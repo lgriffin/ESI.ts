@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "target": "ES6",
+      "module": "commonjs",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "outDir": "./dist"
+    },
+    "include": ["src/**/*.ts", "tests/step-definitions/**/*.ts", "tests/features/**/*.feature"],
+    "exclude": ["node_modules", "dist"]
+  }
+  
