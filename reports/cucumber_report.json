@@ -1,1 +1,418 @@
-[]
+[
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "get-faction-warfare-leaderboards;fetch-character-leaderboards",
+        "keyword": "Scenario",
+        "line": 3,
+        "name": "Fetch character leaderboards",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 4,
+            "name": "I have a valid API token",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 5,
+            "name": "I request the faction warfare character leaderboards",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:20"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 6,
+            "name": "I should receive the character leaderboards data",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:35"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "get-faction-warfare-leaderboards;fetch-corporation-leaderboards",
+        "keyword": "Scenario",
+        "line": 8,
+        "name": "Fetch corporation leaderboards",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 9,
+            "name": "I have a valid API token",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 10,
+            "name": "I request the faction warfare corporation leaderboards",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:25"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 11,
+            "name": "I should receive the corporation leaderboards data",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:41"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "get-faction-warfare-leaderboards;fetch-overall-leaderboards",
+        "keyword": "Scenario",
+        "line": 13,
+        "name": "Fetch overall leaderboards",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 14,
+            "name": "I have a valid API token",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 15,
+            "name": "I request the faction warfare leaderboards",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:30"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 16,
+            "name": "I should receive the overall leaderboards data",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:47"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "get-faction-warfare-leaderboards",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Get Faction Warfare Leaderboards",
+    "tags": [],
+    "uri": "tests\\bdd\\features\\factions\\getFactionWarfareLeaderboards.feature"
+  },
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "get-faction-warfare-stats;fetch-faction-warfare-stats",
+        "keyword": "Scenario",
+        "line": 3,
+        "name": "Fetch faction warfare stats",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 4,
+            "name": "I have a valid API token",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 5,
+            "name": "I request the faction warfare stats",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareStats.ts:20"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 6,
+            "name": "I should receive the faction warfare stats data",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareStats.ts:35"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "get-faction-warfare-stats;fetch-character-faction-warfare-stats",
+        "keyword": "Scenario",
+        "line": 8,
+        "name": "Fetch character faction warfare stats",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 9,
+            "name": "I have a valid API token",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "a valid character ID of 12345",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 11,
+            "name": "I request the faction warfare stats for the character",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 12,
+            "name": "I should receive the faction warfare stats data for the character",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "get-faction-warfare-stats;fetch-corporation-faction-warfare-stats",
+        "keyword": "Scenario",
+        "line": 14,
+        "name": "Fetch corporation faction warfare stats",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 15,
+            "name": "I have a valid API token",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 16,
+            "name": "a valid corporation ID of 67890",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 17,
+            "name": "I request the faction warfare stats for the corporation",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 18,
+            "name": "I should receive the faction warfare stats data for the corporation",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "get-faction-warfare-stats",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Get Faction Warfare Stats",
+    "tags": [],
+    "uri": "tests\\bdd\\features\\factions\\getFactionWarfareStats.feature"
+  },
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "get-faction-warfare-systems;fetch-faction-warfare-systems",
+        "keyword": "Scenario",
+        "line": 3,
+        "name": "Fetch faction warfare systems",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 4,
+            "name": "I have a valid API token",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 5,
+            "name": "I request the faction warfare systems",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 6,
+            "name": "I should receive the faction warfare systems data",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "get-faction-warfare-systems",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Get Faction Warfare Systems",
+    "tags": [],
+    "uri": "tests\\bdd\\features\\factions\\getFactionWarfareSystems.feature"
+  },
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "get-faction-warfare-wars;fetch-faction-warfare-wars",
+        "keyword": "Scenario",
+        "line": 3,
+        "name": "Fetch faction warfare wars",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 4,
+            "name": "I have a valid API token",
+            "result": {
+              "status": "ambiguous",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 5,
+            "name": "I request the faction warfare wars",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 6,
+            "name": "I should receive the faction warfare wars data",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "get-faction-warfare-wars",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Get Faction Warfare Wars",
+    "tags": [],
+    "uri": "tests\\bdd\\features\\factions\\getFactionWarfareWars.feature"
+  }
+]
