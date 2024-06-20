@@ -1,60 +1,39 @@
 import fs from 'fs';
 import path from 'path';
+import axios from 'axios';
 
-import { buildError, checkForConfig, log } from './util';
-import { projectConfig, server, routes } from './constants';
+export const buildError = (message: string, type: string = 'ERROR'): Error => {
+  return new Error(`[${type}] ${message}`);
+};
 
-interface Settings {
-  route?: string;
-  authToken?: string;
-  language?: string;
-  projectName?: string;
-}
-
-const getSettings = (): Settings => {
+export const checkForConfig = (): boolean => {
   const configPath = path.join(__dirname, 'esi.json');
-  const configFile = fs.readFileSync(configPath, 'utf8');
-  return JSON.parse(configFile);
+  return fs.existsSync(configPath);
 };
 
-const setSettings = ({ route = 'latest', authToken, language = 'en/us', projectName }: Settings): boolean => {
-  if (checkForConfig()) {
-    const currentSettings = getSettings();
+export const log = (message: string, level: string = 'INFO'): void => {
+  console.log(`[${level}] ${message}`);
+};
 
-    // Check if settings are already set, and don't change if not needed
-    route = route || currentSettings.route || 'latest';
-    authToken = authToken || currentSettings.authToken || '';
-    language = language || currentSettings.language || 'en/us';
-    projectName = projectName || currentSettings.projectName || '';
-
-    if (!routes.includes(route)) {
-      throw buildError(`setSettings needs its "route" argument to be one of these: ${routes}`);
-    }
-    const routeUrl = `https://${server}/${route}/`;
-
-    try {
-      const newConfig = JSON.stringify(
-        {
-          projectName,
-          link: routeUrl,
-          authToken,
-          language
-        },
-        null,
-        2
-      );
-      fs.writeFileSync(projectConfig, newConfig);
-      log(`Successfully updated config!\nNew config:\n${newConfig}`, 'INFO');
-    } catch (e) {
-      throw buildError(`Couldn't write config file! Error:\n${e}`);
-    }
-    return true;
+export const getSettings = (): any => {
+  const configPath = path.join(__dirname, 'esi.json');
+  if (fs.existsSync(configPath)) {
+    const config = fs.readFileSync(configPath, 'utf8');
+    return JSON.parse(config);
   }
-  throw buildError('If you are seeing this error, 2 + 2 is not equal to 4 and your life is a lie.', 'THIS_SHOULDNT_EVER_HAPPEN');
+  return null;
 };
 
-const sleep = async (millis: number): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, millis));
+export const request = async ({ subUrl, needsAuth = false }: { subUrl: string; needsAuth?: boolean }): Promise<object> => {
+  const baseUrl = 'https://esi.evetech.net/latest/';
+  const url = `${baseUrl}${subUrl}`;
+  const headers = needsAuth ? { Authorization: `Bearer ${process.env.AUTH_TOKEN}` } : {};
+  const response = await axios.get(url, { headers });
+  return response.data;
 };
 
-export { getSettings, setSettings, sleep };
+export const inputValidation = ({ input, type, message }: { input: any; type: string; message: string }): void => {
+  if (typeof input !== type) {
+    throw new Error(message);
+  }
+};

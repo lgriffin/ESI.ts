@@ -1,11 +1,3 @@
-const common = [
-    'tests/features/**/*.feature',
-    '--require-module ts-node/register',
-    '--import tests/step-definitions/**/*.ts',
-    '--format progress-bar'
-  ].join(' ');
-  
-  module.exports = {
-    default: common
-  };
-  
+module.exports = {
+  default: `--require-module ts-node/register --require tests/bdd/features/**/*.ts --require tests/bdd/steps/**/*.ts --format progress --format json:reports/cucumber_report.json`
+};
