@@ -14,9 +14,13 @@
             "keyword": "Given ",
             "line": 4,
             "name": "I have a valid API token",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:17"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "failed",
+              "duration": 72565000,
+              "error_message": "Error [ERR_REQUIRE_ESM]: require() of ES Module D:\\code\\ESI.ts\\node_modules\\chai\\chai.js from D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts not supported.\nInstead change the require of chai.js in D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts to a dynamic import() which is available in all CommonJS modules.\n    at require.extensions.<computed> [as .js] (D:\\code\\ESI.ts\\node_modules\\ts-node\\dist\\index.js:851:20)\n    at D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:70\n    at async initializeChai (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:22)\n    at async World.<anonymous> (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:40:5)"
             }
           },
           {
@@ -24,11 +28,8 @@
             "keyword": "When ",
             "line": 5,
             "name": "I request the faction warfare character leaderboards",
-            "match": {
-              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:20"
-            },
             "result": {
-              "status": "skipped",
+              "status": "undefined",
               "duration": 0
             }
           },
@@ -37,11 +38,8 @@
             "keyword": "Then ",
             "line": 6,
             "name": "I should receive the character leaderboards data",
-            "match": {
-              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:35"
-            },
             "result": {
-              "status": "skipped",
+              "status": "undefined",
               "duration": 0
             }
           }
@@ -61,9 +59,13 @@
             "keyword": "Given ",
             "line": 9,
             "name": "I have a valid API token",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:17"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "failed",
+              "duration": 26040600,
+              "error_message": "Error [ERR_REQUIRE_ESM]: require() of ES Module D:\\code\\ESI.ts\\node_modules\\chai\\chai.js from D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts not supported.\nInstead change the require of chai.js in D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts to a dynamic import() which is available in all CommonJS modules.\n    at require.extensions.<computed> [as .js] (D:\\code\\ESI.ts\\node_modules\\ts-node\\dist\\index.js:851:20)\n    at D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:70\n    at async initializeChai (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:22)\n    at async World.<anonymous> (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:40:5)"
             }
           },
           {
@@ -71,11 +73,8 @@
             "keyword": "When ",
             "line": 10,
             "name": "I request the faction warfare corporation leaderboards",
-            "match": {
-              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:25"
-            },
             "result": {
-              "status": "skipped",
+              "status": "undefined",
               "duration": 0
             }
           },
@@ -84,11 +83,8 @@
             "keyword": "Then ",
             "line": 11,
             "name": "I should receive the corporation leaderboards data",
-            "match": {
-              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:41"
-            },
             "result": {
-              "status": "skipped",
+              "status": "undefined",
               "duration": 0
             }
           }
@@ -108,9 +104,13 @@
             "keyword": "Given ",
             "line": 14,
             "name": "I have a valid API token",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:17"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "failed",
+              "duration": 21103900,
+              "error_message": "Error [ERR_REQUIRE_ESM]: require() of ES Module D:\\code\\ESI.ts\\node_modules\\chai\\chai.js from D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts not supported.\nInstead change the require of chai.js in D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts to a dynamic import() which is available in all CommonJS modules.\n    at require.extensions.<computed> [as .js] (D:\\code\\ESI.ts\\node_modules\\ts-node\\dist\\index.js:851:20)\n    at D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:70\n    at async initializeChai (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:22)\n    at async World.<anonymous> (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:40:5)"
             }
           },
           {
@@ -118,11 +118,8 @@
             "keyword": "When ",
             "line": 15,
             "name": "I request the faction warfare leaderboards",
-            "match": {
-              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:30"
-            },
             "result": {
-              "status": "skipped",
+              "status": "undefined",
               "duration": 0
             }
           },
@@ -131,11 +128,8 @@
             "keyword": "Then ",
             "line": 16,
             "name": "I should receive the overall leaderboards data",
-            "match": {
-              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareLeaderboards.ts:47"
-            },
             "result": {
-              "status": "skipped",
+              "status": "undefined",
               "duration": 0
             }
           }
@@ -166,9 +160,13 @@
             "keyword": "Given ",
             "line": 4,
             "name": "I have a valid API token",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:17"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "failed",
+              "duration": 10182899,
+              "error_message": "Error [ERR_REQUIRE_ESM]: require() of ES Module D:\\code\\ESI.ts\\node_modules\\chai\\chai.js from D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts not supported.\nInstead change the require of chai.js in D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts to a dynamic import() which is available in all CommonJS modules.\n    at require.extensions.<computed> [as .js] (D:\\code\\ESI.ts\\node_modules\\ts-node\\dist\\index.js:851:20)\n    at D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:70\n    at async initializeChai (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:22)\n    at async World.<anonymous> (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:40:5)"
             }
           },
           {
@@ -176,11 +174,8 @@
             "keyword": "When ",
             "line": 5,
             "name": "I request the faction warfare stats",
-            "match": {
-              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareStats.ts:20"
-            },
             "result": {
-              "status": "skipped",
+              "status": "undefined",
               "duration": 0
             }
           },
@@ -189,11 +184,8 @@
             "keyword": "Then ",
             "line": 6,
             "name": "I should receive the faction warfare stats data",
-            "match": {
-              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareStats.ts:35"
-            },
             "result": {
-              "status": "skipped",
+              "status": "undefined",
               "duration": 0
             }
           }
@@ -213,9 +205,13 @@
             "keyword": "Given ",
             "line": 9,
             "name": "I have a valid API token",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:17"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "failed",
+              "duration": 9600200,
+              "error_message": "Error [ERR_REQUIRE_ESM]: require() of ES Module D:\\code\\ESI.ts\\node_modules\\chai\\chai.js from D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts not supported.\nInstead change the require of chai.js in D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts to a dynamic import() which is available in all CommonJS modules.\n    at require.extensions.<computed> [as .js] (D:\\code\\ESI.ts\\node_modules\\ts-node\\dist\\index.js:851:20)\n    at D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:70\n    at async initializeChai (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:22)\n    at async World.<anonymous> (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:40:5)"
             }
           },
           {
@@ -264,9 +260,13 @@
             "keyword": "Given ",
             "line": 15,
             "name": "I have a valid API token",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:17"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "failed",
+              "duration": 8525900,
+              "error_message": "Error [ERR_REQUIRE_ESM]: require() of ES Module D:\\code\\ESI.ts\\node_modules\\chai\\chai.js from D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts not supported.\nInstead change the require of chai.js in D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts to a dynamic import() which is available in all CommonJS modules.\n    at require.extensions.<computed> [as .js] (D:\\code\\ESI.ts\\node_modules\\ts-node\\dist\\index.js:851:20)\n    at D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:70\n    at async initializeChai (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:22)\n    at async World.<anonymous> (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:40:5)"
             }
           },
           {
@@ -326,9 +326,13 @@
             "keyword": "Given ",
             "line": 4,
             "name": "I have a valid API token",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:17"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "failed",
+              "duration": 11719900,
+              "error_message": "Error [ERR_REQUIRE_ESM]: require() of ES Module D:\\code\\ESI.ts\\node_modules\\chai\\chai.js from D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts not supported.\nInstead change the require of chai.js in D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts to a dynamic import() which is available in all CommonJS modules.\n    at require.extensions.<computed> [as .js] (D:\\code\\ESI.ts\\node_modules\\ts-node\\dist\\index.js:851:20)\n    at D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:70\n    at async initializeChai (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:22)\n    at async World.<anonymous> (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:40:5)"
             }
           },
           {
@@ -336,8 +340,11 @@
             "keyword": "When ",
             "line": 5,
             "name": "I request the faction warfare systems",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:28"
+            },
             "result": {
-              "status": "ambiguous",
+              "status": "skipped",
               "duration": 0
             }
           },
@@ -346,8 +353,11 @@
             "keyword": "Then ",
             "line": 6,
             "name": "I should receive the faction warfare systems data",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:32"
+            },
             "result": {
-              "status": "ambiguous",
+              "status": "skipped",
               "duration": 0
             }
           }
@@ -378,9 +388,13 @@
             "keyword": "Given ",
             "line": 4,
             "name": "I have a valid API token",
+            "match": {
+              "location": "tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:17"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "failed",
+              "duration": 8787800,
+              "error_message": "Error [ERR_REQUIRE_ESM]: require() of ES Module D:\\code\\ESI.ts\\node_modules\\chai\\chai.js from D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts not supported.\nInstead change the require of chai.js in D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts to a dynamic import() which is available in all CommonJS modules.\n    at require.extensions.<computed> [as .js] (D:\\code\\ESI.ts\\node_modules\\ts-node\\dist\\index.js:851:20)\n    at D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:70\n    at async initializeChai (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:35:22)\n    at async World.<anonymous> (D:\\code\\ESI.ts\\tests\\bdd\\steps\\factions\\getFactionWarfareSystems.ts:40:5)"
             }
           },
           {

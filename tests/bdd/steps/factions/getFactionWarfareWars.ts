@@ -1,29 +1,34 @@
-import { Given, When, Then } from '@cucumber/cucumber';
-import { factionWarfare } from '../../../../src/api/factions/getFactionWarfareSystems';
+import { ApiClient } from '../../../../src/core/ApiClient';
+import { ApiError } from '../../../../src/core/ApiError';
 
-let expect: Chai.ExpectStatic;
-let response: any;
+export class FactionWarfareWarsApi {
+    constructor(private client: ApiClient) {}
 
-// Dynamically import chai within the function scope
-async function initializeChai() {
-  if (!expect) {
-    const chai = await import('chai');
-    expect = chai.expect;
-  }
+    private async handleRequest(endpoint: string): Promise<any> {
+        const url = `${this.client.getLink()}/${endpoint}`;
+        const headers = {
+            'Authorization': this.client.getAuthorizationHeader()
+        };
+
+        try {
+            const response = await fetch(url, { headers });
+            if (!response.ok) {
+                throw new ApiError(response.status, `Error: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            if (error instanceof ApiError) {
+                console.error(`API Error: ${error.message} (Status Code: ${error.statusCode})`);
+            } else if (error instanceof Error) {
+                console.error(`Unexpected Error: ${error.message}`);
+            } else {
+                console.error(`Unexpected Error: ${error}`);
+            }
+            throw error;
+        }
+    }
+
+    async getWars(): Promise<object> {
+        return await this.handleRequest('fw/wars');
+    }
 }
-
-Given('I have a valid API token', async function () {
-  await initializeChai();
-  process.env.AUTH_TOKEN = 'valid_token';
-});
-
-When('I request the faction warfare systems', async function () {
-  await initializeChai();
-  response = await factionWarfare.systems();
-});
-
-Then('I should receive the faction warfare systems data', async function () {
-  await initializeChai();
-  expect(response).to.be.an('object');
-  // Add more specific assertions as needed
-});

@@ -1,51 +1,42 @@
-import { Given, When, Then } from '@cucumber/cucumber';
-import { factionWarfare } from '../../../../src/api/factions/getFactionWarfareLeaderboards';
+import { ApiClient } from '../../../../src/core/ApiClient';
+import { ApiError } from '../../../../src/core/ApiError';
 
-let expect: Chai.ExpectStatic;
-let response: any;
+export class FactionWarfareLeaderboardsApi {
+    constructor(private client: ApiClient) {}
 
-// Dynamically import chai within the function scope
-async function initializeChai() {
-  if (!expect) {
-    const chai = await import('chai');
-    expect = chai.expect;
-  }
+    private async handleRequest(endpoint: string): Promise<any> {
+        const url = `${this.client.getLink()}/${endpoint}`;
+        const headers = {
+            'Authorization': this.client.getAuthorizationHeader()
+        };
+
+        try {
+            const response = await fetch(url, { headers });
+            if (!response.ok) {
+                throw new ApiError(response.status, `Error: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            if (error instanceof ApiError) {
+                console.error(`API Error: ${error.message} (Status Code: ${error.statusCode})`);
+            } else if (error instanceof Error) {
+                console.error(`Unexpected Error: ${error.message}`);
+            } else {
+                console.error(`Unexpected Error: ${error}`);
+            }
+            throw error;
+        }
+    }
+
+    async getCharacters(): Promise<object> {
+        return await this.handleRequest('fw/leaderboards/characters');
+    }
+
+    async getCorporations(): Promise<object> {
+        return await this.handleRequest('fw/leaderboards/corporations');
+    }
+
+    async getOverall(): Promise<object> {
+        return await this.handleRequest('fw/leaderboards');
+    }
 }
-
-Given('I have a valid API token', async function () {
-  await initializeChai();
-  process.env.AUTH_TOKEN = 'valid_token';
-});
-
-When('I request the faction warfare character leaderboards', async function () {
-  await initializeChai();
-  response = await factionWarfare.leaderboards.characters();
-});
-
-When('I request the faction warfare corporation leaderboards', async function () {
-  await initializeChai();
-  response = await factionWarfare.leaderboards.corps();
-});
-
-When('I request the faction warfare leaderboards', async function () {
-  await initializeChai();
-  response = await factionWarfare.leaderboards.leaderboard();
-});
-
-Then('I should receive the character leaderboards data', async function () {
-  await initializeChai();
-  expect(response).to.be.an('object');
-  // Add more specific assertions as needed
-});
-
-Then('I should receive the corporation leaderboards data', async function () {
-  await initializeChai();
-  expect(response).to.be.an('object');
-  // Add more specific assertions as needed
-});
-
-Then('I should receive the overall leaderboards data', async function () {
-  await initializeChai();
-  expect(response).to.be.an('object');
-  // Add more specific assertions as needed
-});

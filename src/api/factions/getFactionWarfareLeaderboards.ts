@@ -1,53 +1,46 @@
-import { request } from '../../core/util/request';
-import { inputValidation } from '../../core/util/inputValidation';
-import { logInfo, logError } from '../../core/logger/loggerUtil';
+import { ApiClient } from '../../core/ApiClient';
+import { ApiError } from '../../core/ApiError';
+import logger from '../../core/logger/logger';
 
-export const factionWarfare = {
-  leaderboards: {
-    characters: async (): Promise<object> => {
-      logInfo('Fetching character leaderboards');
-      try {
-        const data = await request({ subUrl: 'fw/leaderboards/characters' });
-        logInfo('Character leaderboards fetched successfully');
-        return data;
-      } catch (error) {
-        if (error instanceof Error) {
-          logError(`Error fetching character leaderboards: ${error.message}`);
-        } else {
-          logError('Unknown error fetching character leaderboards');
+export class FactionWarfareLeaderboardsApi {
+    constructor(private client: ApiClient) {}
+
+    private async handleRequest(endpoint: string): Promise<any> {
+        const url = `${this.client.getLink()}/${endpoint}`;
+        const headers: HeadersInit = {};
+        const authHeader = this.client.getAuthorizationHeader();
+        if (authHeader) {
+            headers['Authorization'] = authHeader;
         }
-        throw error;
-      }
-    },
-    corps: async (): Promise<object> => {
-      logInfo('Fetching corporation leaderboards');
-      try {
-        const data = await request({ subUrl: 'fw/leaderboards/corporations' });
-        logInfo('Corporation leaderboards fetched successfully');
-        return data;
-      } catch (error) {
-        if (error instanceof Error) {
-          logError(`Error fetching corporation leaderboards: ${error.message}`);
-        } else {
-          logError('Unknown error fetching corporation leaderboards');
+
+        logger.info(`Hitting endpoint: ${url}`);
+        try {
+            const response = await fetch(url, { headers });
+            if (!response.ok) {
+                throw new ApiError(response.status, `Error: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            if (error instanceof ApiError) {
+                logger.error(`API Error: ${error.message} (Status Code: ${error.statusCode})`);
+            } else if (error instanceof Error) {
+                logger.error(`Unexpected Error: ${error.message}`);
+            } else {
+                logger.error(`Unexpected Error: ${error}`);
+            }
+            throw error;
         }
-        throw error;
-      }
-    },
-    leaderboard: async (): Promise<object> => {
-      logInfo('Fetching overall leaderboards');
-      try {
-        const data = await request({ subUrl: 'fw/leaderboards' });
-        logInfo('Overall leaderboards fetched successfully');
-        return data;
-      } catch (error) {
-        if (error instanceof Error) {
-          logError(`Error fetching overall leaderboards: ${error.message}`);
-        } else {
-          logError('Unknown error fetching overall leaderboards');
-        }
-        throw error;
-      }
     }
-  }
-};
+
+    async getCharacters(): Promise<object> {
+        return await this.handleRequest('fw/leaderboards/characters');
+    }
+
+    async getCorporations(): Promise<object> {
+        return await this.handleRequest('fw/leaderboards/corporations');
+    }
+
+    async getOverall(): Promise<object> {
+        return await this.handleRequest('fw/leaderboards');
+    }
+}
