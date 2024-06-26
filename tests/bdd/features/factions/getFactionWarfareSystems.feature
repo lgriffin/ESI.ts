@@ -1,6 +1,6 @@
 Feature: Get Faction Warfare Systems
 
-  Scenario: Fetch faction warfare systems
-    Given I have a valid API token
+  Scenario: Retrieve faction warfare systems
+    Given faction warfare systems data is available
     When I request the faction warfare systems
-    Then I should receive the faction warfare systems data
+    Then the response should contain systems data

@@ -1,42 +1,33 @@
+import { loadFeature, defineFeature } from 'jest-cucumber';
+import fetchMock from 'jest-fetch-mock';
 import { ApiClient } from '../../../../src/core/ApiClient';
-import { ApiError } from '../../../../src/core/ApiError';
+import { FactionWarfareLeaderboardsApi } from '../../../../src/api/factions/getFactionWarfareLeaderboards';
 
-export class FactionWarfareLeaderboardsApi {
-    constructor(private client: ApiClient) {}
+const feature = loadFeature('tests/bdd/features/factions/getFactionWarfareLeaderboards.feature');
 
-    private async handleRequest(endpoint: string): Promise<any> {
-        const url = `${this.client.getLink()}/${endpoint}`;
-        const headers = {
-            'Authorization': this.client.getAuthorizationHeader()
-        };
+defineFeature(feature, (test) => {
+  let response: any;
+  let api: FactionWarfareLeaderboardsApi;
 
-        try {
-            const response = await fetch(url, { headers });
-            if (!response.ok) {
-                throw new ApiError(response.status, `Error: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            if (error instanceof ApiError) {
-                console.error(`API Error: ${error.message} (Status Code: ${error.statusCode})`);
-            } else if (error instanceof Error) {
-                console.error(`Unexpected Error: ${error.message}`);
-            } else {
-                console.error(`Unexpected Error: ${error}`);
-            }
-            throw error;
-        }
-    }
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
 
-    async getCharacters(): Promise<object> {
-        return await this.handleRequest('fw/leaderboards/characters');
-    }
+  test('Fetching faction warfare leaderboards', ({ given, when, then }) => {
+    given('faction warfare leaderboards are available', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({
+        characters: { kills: { yesterday: 10, last_week: 70, total: 300 } },
+        corporations: { kills: { yesterday: 15, last_week: 80, total: 350 } },
+      }));
+      api = new FactionWarfareLeaderboardsApi(new ApiClient('clientId', 'https://esi.evetech.net'));
+    });
 
-    async getCorporations(): Promise<object> {
-        return await this.handleRequest('fw/leaderboards/corporations');
-    }
+    when('the leaderboards are requested', async () => {
+      response = await api.getCharacters();
+    });
 
-    async getOverall(): Promise<object> {
-        return await this.handleRequest('fw/leaderboards');
-    }
-}
+    then('the response should contain the leaderboards data', () => {
+      expect(response.characters.kills.total).toBe(300);
+    });
+  });
+});

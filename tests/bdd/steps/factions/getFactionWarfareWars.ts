@@ -1,34 +1,33 @@
+import { loadFeature, defineFeature } from 'jest-cucumber';
+import fetchMock from 'jest-fetch-mock';
 import { ApiClient } from '../../../../src/core/ApiClient';
-import { ApiError } from '../../../../src/core/ApiError';
+import { FactionWarfareWarsApi } from '../../../../src/api/factions/getFactionWarfareWars';
 
-export class FactionWarfareWarsApi {
-    constructor(private client: ApiClient) {}
+const feature = loadFeature('tests/bdd/features/factions/getFactionWarfareWars.feature');
 
-    private async handleRequest(endpoint: string): Promise<any> {
-        const url = `${this.client.getLink()}/${endpoint}`;
-        const headers = {
-            'Authorization': this.client.getAuthorizationHeader()
-        };
+defineFeature(feature, (test) => {
+  let response: any;
+  let api: FactionWarfareWarsApi;
 
-        try {
-            const response = await fetch(url, { headers });
-            if (!response.ok) {
-                throw new ApiError(response.status, `Error: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            if (error instanceof ApiError) {
-                console.error(`API Error: ${error.message} (Status Code: ${error.statusCode})`);
-            } else if (error instanceof Error) {
-                console.error(`Unexpected Error: ${error.message}`);
-            } else {
-                console.error(`Unexpected Error: ${error}`);
-            }
-            throw error;
-        }
-    }
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
 
-    async getWars(): Promise<object> {
-        return await this.handleRequest('fw/wars');
-    }
-}
+  test('Retrieve faction warfare wars', ({ given, when, then }) => {
+    given('faction warfare wars are available', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({
+        wars: [{ war_id: 1, faction_id: 500001 }]
+      }));
+      api = new FactionWarfareWarsApi(new ApiClient('clientId', 'https://esi.evetech.net'));
+    });
+
+    when('the wars are requested', async () => {
+      response = await api.getWars();
+    });
+
+    then('the response should contain the wars data', () => {
+      expect(response.wars[0].war_id).toBe(1);
+      expect(response.wars[0].faction_id).toBe(500001);
+    });
+  });
+});

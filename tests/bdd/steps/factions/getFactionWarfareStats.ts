@@ -1,42 +1,34 @@
+import { loadFeature, defineFeature } from 'jest-cucumber';
+import fetchMock from 'jest-fetch-mock';
 import { ApiClient } from '../../../../src/core/ApiClient';
-import { ApiError } from '../../../../src/core/ApiError';
+import { FactionWarfareStatsApi } from '../../../../src/api/factions/getFactionWarfareStats';
 
-export class FactionWarfareStatsApi {
-    constructor(private client: ApiClient) {}
+const feature = loadFeature('tests/bdd/features/factions/getFactionWarfareStats.feature');
 
-    private async handleRequest(endpoint: string): Promise<any> {
-        const url = `${this.client.getLink()}/${endpoint}`;
-        const headers = {
-            'Authorization': this.client.getAuthorizationHeader()
-        };
+defineFeature(feature, (test) => {
+  let response: any;
+  let api: FactionWarfareStatsApi;
 
-        try {
-            const response = await fetch(url, { headers });
-            if (!response.ok) {
-                throw new ApiError(response.status, `Error: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            if (error instanceof ApiError) {
-                console.error(`API Error: ${error.message} (Status Code: ${error.statusCode})`);
-            } else if (error instanceof Error) {
-                console.error(`Unexpected Error: ${error.message}`);
-            } else {
-                console.error(`Unexpected Error: ${error}`);
-            }
-            throw error;
-        }
-    }
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
 
-    async getStats(): Promise<object> {
-        return await this.handleRequest('fw/stats');
-    }
+  test('Retrieve faction warfare statistics', ({ given, when, then }) => {
+    given('faction warfare stats are available', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({
+        kills: { total: 1000 },
+        victory_points: { total: 2000 },
+      }));
+      api = new FactionWarfareStatsApi(new ApiClient('clientId', 'https://esi.evetech.net'));
+    });
 
-    async getCharacterStats(characterId: number): Promise<object> {
-        return await this.handleRequest(`characters/${characterId}/fw/stats`);
-    }
+    when('the stats are requested', async () => {
+      response = await api.getStats();
+    });
 
-    async getCorporationStats(corporationId: number): Promise<object> {
-        return await this.handleRequest(`corporations/${corporationId}/fw/stats`);
-    }
-}
+    then('the response should contain the stats data', () => {
+      expect(response.kills.total).toBe(1000);
+      expect(response.victory_points.total).toBe(2000);
+    });
+  });
+});

@@ -1,6 +1,6 @@
 Feature: Get Faction Warfare Wars
 
-  Scenario: Fetch faction warfare wars
-    Given I have a valid API token
+  Scenario: Retrieve faction warfare wars
+    Given faction warfare wars data is available
     When I request the faction warfare wars
-    Then I should receive the faction warfare wars data
+    Then the response should contain wars data

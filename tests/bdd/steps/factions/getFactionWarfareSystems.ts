@@ -1,35 +1,33 @@
-import { Given, When, Then } from '@cucumber/cucumber';
+import { loadFeature, defineFeature } from 'jest-cucumber';
+import fetchMock from 'jest-fetch-mock';
+import { ApiClient } from '../../../../src/core/ApiClient';
 import { FactionWarfareSystemsApi } from '../../../../src/api/factions/getFactionWarfareSystems';
-import { ApiClientBuilder } from '../../../../src/core/ApiClientBuilder';
-import { getConfig } from '../../../../src/config/configManager';
 
-let api: FactionWarfareSystemsApi;
-let response: any;
-let expect: Chai.ExpectStatic;
+const feature = loadFeature('tests/bdd/features/factions/getFactionWarfareSystems.feature');
 
-async function initializeChai() {
-    if (!expect) {
-        const chai = await import('chai');
-        expect = chai.expect;
-    }
-}
+defineFeature(feature, (test) => {
+  let response: any;
+  let api: FactionWarfareSystemsApi;
 
-Given('I have a valid API token', async function () {
-    await initializeChai();
-    const config = getConfig();
-    const client = new ApiClientBuilder()
-        .setClientId(config.projectName)
-        .setAccessToken(config.authToken)
-        .setLink(config.link)
-        .build();
-    api = new FactionWarfareSystemsApi(client);
-});
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
 
-When('I request the faction warfare systems', async function () {
-    response = await api.getSystems();
-});
+  test('Retrieve faction warfare systems', ({ given, when, then }) => {
+    given('faction warfare systems are available', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({
+        systems: [{ system_id: 30000142, occupier_faction_id: 500001 }]
+      }));
+      api = new FactionWarfareSystemsApi(new ApiClient('clientId', 'https://esi.evetech.net'));
+    });
 
-Then('I should receive the faction warfare systems data', async function () {
-    expect(response).to.be.an('object');
-    // Add more specific assertions as needed
+    when('the systems are requested', async () => {
+      response = await api.getSystems();
+    });
+
+    then('the response should contain the systems data', () => {
+      expect(response.systems[0].system_id).toBe(30000142);
+      expect(response.systems[0].occupier_faction_id).toBe(500001);
+    });
+  });
 });

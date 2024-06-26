@@ -1,42 +1,148 @@
-import { expect } from 'chai';
-import { factionWarfare } from '../../src/api/factions/getFactionWarfareStats';
-import sinon from 'sinon';
-import * as requestModule from '../../src/core/util/request';
+import { FactionWarfareStatsApi } from '../../../src/api/factions/getFactionWarfareStats';
+import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
+import { getConfig } from '../../../src/config/configManager';
+import fetchMock from 'jest-fetch-mock';
 
-describe('Faction Warfare Stats API', () => {
-  let requestStub: sinon.SinonStub;
+fetchMock.enableMocks();
 
-  beforeEach(() => {
-    requestStub = sinon.stub(requestModule, 'request');
-  });
+const config = getConfig();
 
-  afterEach(() => {
-    requestStub.restore();
-  });
+const createClient = (authToken?: string) => {
+    return new ApiClientBuilder()
+        .setClientId(config.projectName)
+        .setLink(config.link)
+        .setAccessToken(authToken) // Pass token if available
+        .build();
+};
 
-  it('should fetch faction warfare stats', async () => {
-    const mockData = { /* Mock response data */ };
-    requestStub.resolves(mockData);
+describe('FactionWarfareStatsApi', () => {
+    beforeEach(() => {
+        fetchMock.resetMocks();
+    });
 
-    const data = await factionWarfare.stats.stats();
-    expect(data).to.deep.equal(mockData);
-  });
+    it('should return valid structure for faction warfare stats without auth token', async () => {
+        const client = createClient();
+        const factionWarfareStatsApi = new FactionWarfareStatsApi(client);
 
-  it('should fetch character faction warfare stats', async () => {
-    const mockData = { /* Mock response data */ };
-    const characterID = 12345;
-    requestStub.resolves(mockData);
+        const mockResponse = [
+            {
+                faction_id: 500001,
+                kills: {
+                    last_week: 200,
+                    total: 5000,
+                    yesterday: 50
+                },
+                pilots: 300,
+                victory_points: {
+                    last_week: 1500,
+                    total: 30000,
+                    yesterday: 75
+                }
+            }
+        ];
 
-    const data = await factionWarfare.stats.characterStats(characterID);
-    expect(data).to.deep.equal(mockData);
-  });
+        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-  it('should fetch corporation faction warfare stats', async () => {
-    const mockData = { /* Mock response data */ };
-    const corporationID = 67890;
-    requestStub.resolves(mockData);
+        type FactionWarfareStat = {
+            faction_id: number;
+            kills: {
+                last_week: number;
+                total: number;
+                yesterday: number;
+            };
+            pilots: number;
+            victory_points: {
+                last_week: number;
+                total: number;
+                yesterday: number;
+            };
+        };
 
-    const data = await factionWarfare.stats.corporationStats(corporationID);
-    expect(data).to.deep.equal(mockData);
-  });
+        const result = await factionWarfareStatsApi.getStats() as FactionWarfareStat[];
+
+        expect(Array.isArray(result)).toBe(true);
+        result.forEach((stat: FactionWarfareStat) => {
+            expect(stat).toHaveProperty('faction_id');
+            expect(typeof stat.faction_id).toBe('number');
+            expect(stat).toHaveProperty('kills');
+            expect(stat.kills).toHaveProperty('last_week');
+            expect(typeof stat.kills.last_week).toBe('number');
+            expect(stat.kills).toHaveProperty('total');
+            expect(typeof stat.kills.total).toBe('number');
+            expect(stat.kills).toHaveProperty('yesterday');
+            expect(typeof stat.kills.yesterday).toBe('number');
+            expect(stat).toHaveProperty('pilots');
+            expect(typeof stat.pilots).toBe('number');
+            expect(stat).toHaveProperty('victory_points');
+            expect(stat.victory_points).toHaveProperty('last_week');
+            expect(typeof stat.victory_points.last_week).toBe('number');
+            expect(stat.victory_points).toHaveProperty('total');
+            expect(typeof stat.victory_points.total).toBe('number');
+            expect(stat.victory_points).toHaveProperty('yesterday');
+            expect(typeof stat.victory_points.yesterday).toBe('number');
+        });
+    });
+
+    it('should return valid structure for faction warfare stats with auth token', async () => {
+        const client = createClient(config.authToken);
+        const factionWarfareStatsApi = new FactionWarfareStatsApi(client);
+
+        const mockResponse = [
+            {
+                faction_id: 500001,
+                kills: {
+                    last_week: 200,
+                    total: 5000,
+                    yesterday: 50
+                },
+                pilots: 300,
+                victory_points: {
+                    last_week: 1500,
+                    total: 30000,
+                    yesterday: 75
+                }
+            }
+        ];
+
+        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+        type FactionWarfareStat = {
+            faction_id: number;
+            kills: {
+                last_week: number;
+                total: number;
+                yesterday: number;
+            };
+            pilots: number;
+            victory_points: {
+                last_week: number;
+                total: number;
+                yesterday: number;
+            };
+        };
+
+        const result = await factionWarfareStatsApi.getStats() as FactionWarfareStat[];
+
+        expect(Array.isArray(result)).toBe(true);
+        result.forEach((stat: FactionWarfareStat) => {
+            expect(stat).toHaveProperty('faction_id');
+            expect(typeof stat.faction_id).toBe('number');
+            expect(stat).toHaveProperty('kills');
+            expect(stat.kills).toHaveProperty('last_week');
+            expect(typeof stat.kills.last_week).toBe('number');
+            expect(stat.kills).toHaveProperty('total');
+            expect(typeof stat.kills.total).toBe('number');
+            expect(stat.kills).toHaveProperty('yesterday');
+            expect(typeof stat.kills.yesterday).toBe('number');
+            expect(stat).toHaveProperty('pilots');
+            expect(typeof stat.pilots).toBe('number');
+            expect(stat).toHaveProperty('victory_points');
+            expect(stat.victory_points).toHaveProperty('last_week');
+            expect(typeof stat.victory_points.last_week).toBe('number');
+            expect(stat.victory_points).toHaveProperty('total');
+            expect(typeof stat.victory_points.total).toBe('number');
+            expect(stat.victory_points).toHaveProperty('yesterday');
+            expect(typeof stat.victory_points.yesterday).toBe('number');
+        });
+    });
 });

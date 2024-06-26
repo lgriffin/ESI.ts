@@ -1,24 +1,48 @@
-import { expect } from 'chai';
-import { factionWarfare } from '../../src/api/factions/getFactionWarfareWars';
-import sinon from 'sinon';
-import * as requestModule from '../../src/core/util/request';
+import { FactionWarfareWarsApi } from '../../../src/api/factions/getFactionWarfareWars';
+import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
+import { getConfig } from '../../../src/config/configManager';
+import fetchMock from 'jest-fetch-mock';
 
-describe('Faction Warfare Wars API', () => {
-  let requestStub: sinon.SinonStub;
+fetchMock.enableMocks();
 
-  beforeEach(() => {
-    requestStub = sinon.stub(requestModule, 'request');
-  });
+const config = getConfig();
 
-  afterEach(() => {
-    requestStub.restore();
-  });
+const client = new ApiClientBuilder()
+    .setClientId(config.projectName)
+    .setLink(config.link)
+    .setAccessToken(config.authToken || undefined) // Allow undefined token
+    .build();
 
-  it('should fetch faction warfare wars', async () => {
-    const mockData = { /* Mock response data */ };
-    requestStub.resolves(mockData);
+const factionWarfareWarsApi = new FactionWarfareWarsApi(client);
 
-    const data = await factionWarfare.wars();
-    expect(data).to.deep.equal(mockData);
-  });
+describe('FactionWarfareWarsApi', () => {
+    beforeEach(() => {
+        fetchMock.resetMocks();
+    });
+
+    it('should return valid structure for faction warfare wars', async () => {
+        const mockResponse = [
+            {
+                against_id: 500002,
+                faction_id: 500001
+            }
+        ];
+
+        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+        type FactionWarfareWar = {
+            against_id: number;
+            faction_id: number;
+        };
+
+        const result = await factionWarfareWarsApi.getWars() as FactionWarfareWar[];
+
+        expect(Array.isArray(result)).toBe(true);
+        result.forEach((war: FactionWarfareWar) => {
+            expect(war).toHaveProperty('against_id');
+            expect(typeof war.against_id).toBe('number');
+            expect(war).toHaveProperty('faction_id');
+            expect(typeof war.faction_id).toBe('number');
+        });
+    });
 });
