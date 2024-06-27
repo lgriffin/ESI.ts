@@ -9,16 +9,21 @@ export class FactionWarfareStatsApi {
         const url = `${this.client.getLink()}/${endpoint}`;
         const headers: HeadersInit = {};
         const authHeader = this.client.getAuthorizationHeader();
-        if (requiresAuth && authHeader) {
-            headers['Authorization'] = authHeader;
+        if (requiresAuth) {
+            if (authHeader) {
+                headers['Authorization'] = authHeader;
+            } else {
+                logger.warn(`Authorization token is missing for endpoint: ${url}`);
+                return { error: 'authorization not provided or forbidden access' };
+            }
         }
 
         logger.info(`Hitting endpoint: ${url}`);
         try {
             const response = await fetch(url, { headers });
-            if (response.status === 401) {
-                logger.warn(`Authorization not provided for endpoint: ${url}`);
-                return { error: 'authorization not provided' };
+            if (response.status === 401 || response.status === 403) {
+                logger.warn(`Authorization not provided or forbidden access for endpoint: ${url}`);
+                return { error: 'authorization not provided or forbidden access' };
             }
             if (!response.ok) {
                 throw new ApiError(response.status, `Error: ${response.statusText}`);

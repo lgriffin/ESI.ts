@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2017",
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "moduleResolution": "node",
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "tests/bdd/steps/**/*.ts", "tests/bdd/features/**/*.feature", "src/types/**/*.d.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
