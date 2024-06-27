@@ -1,9 +1,11 @@
-import { configure } from 'jest-cucumber';
+import { setWorldConstructor } from '@cucumber/cucumber';
 
-// Optional: Configure jest-cucumber settings here
-configure({
-  // Example setting: only run scenarios with the @focus tag
-  scenarioNameTemplate: (vars) => `${vars.featureTitle} - ${vars.scenarioTitle}`,
-});
+export class CustomWorld {
+  constructor() {
+    // Initialization code
+  }
 
-console.log('Jest BDD Setup Loaded');
+  // Define any shared state or methods needed for tests
+}
+
+setWorldConstructor(CustomWorld);

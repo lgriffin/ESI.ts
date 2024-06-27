@@ -18,15 +18,15 @@ const factionWarfareLeaderboardsApi = new FactionWarfareLeaderboardsApi(client);
 const factionWarfareStatsApi = new FactionWarfareStatsApi(client);
 const factionWarfareSystemsApi = new FactionWarfareSystemsApi(client);
 const factionWarfareWarsApi = new FactionWarfareWarsApi(client);
+const demoCharacter = 1689391488;
+const demoCorp = 98742334;
 
 const testFactionWarfareAPIs = async () => {
     try {
         console.log('Testing Faction Warfare Character Stats');
-        const characterStats = await factionWarfareStatsApi.getCharacterStats(1689391488); // Replace with a valid character ID
+        const characterStats = await factionWarfareStatsApi.getCharacterStats(demoCharacter); // Replace with a valid character ID
         console.log('Character Stats:', JSON.stringify(characterStats, null, 2));
 
-
-        /*
         console.log('Testing Faction Warfare Leaderboards - Characters');
         const leaderboardsCharacters = await factionWarfareLeaderboardsApi.getCharacters();
         console.log('Leaderboards - Characters:', JSON.stringify(leaderboardsCharacters, null, 2));
@@ -43,9 +43,8 @@ const testFactionWarfareAPIs = async () => {
         const stats = await factionWarfareStatsApi.getStats();
         console.log('Stats:', JSON.stringify(stats, null, 2));
 
-       
         console.log('Testing Faction Warfare Corporation Stats');
-        const corporationStats = await factionWarfareStatsApi.getCorporationStats(67890); // Replace with a valid corporation ID
+        const corporationStats = await factionWarfareStatsApi.getCorporationStats(demoCorp); // Replace with a valid corporation ID
         console.log('Corporation Stats:', JSON.stringify(corporationStats, null, 2));
 
         console.log('Testing Faction Warfare Systems');
@@ -55,7 +54,6 @@ const testFactionWarfareAPIs = async () => {
         console.log('Testing Faction Warfare Wars');
         const wars = await factionWarfareWarsApi.getWars();
         console.log('Wars:', JSON.stringify(wars, null, 2));
-        */
     } catch (error) {
         console.error('Error testing Faction Warfare APIs:', error);
     }
