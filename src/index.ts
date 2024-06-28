@@ -3,6 +3,12 @@ import { FactionWarfareLeaderboardsApi } from './api/factions/getFactionWarfareL
 import { FactionWarfareStatsApi } from './api/factions/getFactionWarfareStats';
 import { FactionWarfareSystemsApi } from './api/factions/getFactionWarfareSystems';
 import { FactionWarfareWarsApi } from './api/factions/getFactionWarfareWars';
+import { AlliancesApi } from './api/alliances/getAlliances';
+import { AllianceByIdApi } from './api/alliances/getAllianceById';
+import { AllianceContactsApi } from './api/alliances/getAllianceContacts';
+import { AllianceContactLabelsApi } from './api/alliances/getAllianceContactLabels';
+import { AllianceCorporationsApi } from './api/alliances/getAllianceCorporations';
+import { AllianceIconsApi } from './api/alliances/getAllianceIcons';
 import { getConfig } from './config/configManager';
 import logger from './core/logger/logger'; // Ensure logger is imported
 
@@ -18,8 +24,17 @@ const factionWarfareLeaderboardsApi = new FactionWarfareLeaderboardsApi(client);
 const factionWarfareStatsApi = new FactionWarfareStatsApi(client);
 const factionWarfareSystemsApi = new FactionWarfareSystemsApi(client);
 const factionWarfareWarsApi = new FactionWarfareWarsApi(client);
+
+const allianceApi = new AlliancesApi(client);
+const allianceByID = new AllianceByIdApi(client);
+const allianceContactsApi = new AllianceContactsApi(client);
+const allianceContactLabelsApi = new AllianceContactLabelsApi(client);
+const allianceCorporationsApi = new AllianceCorporationsApi(client);
+const allianceIconsApi = new AllianceIconsApi(client);
+
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
+const demoAlliance = 1354830081; // Replace with a valid alliance ID
 
 const testFactionWarfareAPIs = async () => {
     try {
@@ -59,7 +74,34 @@ const testFactionWarfareAPIs = async () => {
     }
 };
 
+const testAllianceAPIs = async () => {
+    try {
+        console.log('Testing Alliance Information');
+        const allianceInfo = await allianceByID.getAllianceById(demoAlliance);
+        console.log('Alliance Info:', JSON.stringify(allianceInfo, null, 2));
+
+        console.log('Testing Alliance Contacts');
+        const allianceContacts = await allianceContactsApi.getAllianceContacts(demoAlliance);
+        console.log('Alliance Contacts:', JSON.stringify(allianceContacts, null, 2));
+
+        console.log('Testing Alliance Contact Labels');
+        const allianceContactLabels = await allianceContactLabelsApi.getAllianceContactLabels(demoAlliance);
+        console.log('Alliance Contact Labels:', JSON.stringify(allianceContactLabels, null, 2));
+
+        console.log('Testing Alliance Corporations');
+        const allianceCorporations = await allianceCorporationsApi.getAllianceCorporations(demoAlliance);
+        console.log('Alliance Corporations:', JSON.stringify(allianceCorporations, null, 2));
+
+        console.log('Testing Alliance Icons');
+        const allianceIcons = await allianceIconsApi.getAllianceIcons(demoAlliance);
+        console.log('Alliance Icons:', JSON.stringify(allianceIcons, null, 2));
+    } catch (error) {
+        console.error('Error testing Alliance APIs:', error);
+    }
+};
+
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
-testFactionWarfareAPIs();
+//testFactionWarfareAPIs();
+testAllianceAPIs();
