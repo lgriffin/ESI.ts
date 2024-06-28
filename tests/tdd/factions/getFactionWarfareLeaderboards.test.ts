@@ -1,19 +1,14 @@
 import { FactionWarfareLeaderboardsApi } from '../../../src/api/factions/getFactionWarfareLeaderboards';
-import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { getConfig } from '../../../src/config/configManager';
+import { getClient } from '../../../src/config/jest/jest.setup';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const config = getConfig();
+let factionWarfareLeaderboardsApi: FactionWarfareLeaderboardsApi;
 
-const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined) // Allow undefined token
-    .build();
-
-const factionWarfareLeaderboardsApi = new FactionWarfareLeaderboardsApi(client);
+beforeAll(() => {
+    factionWarfareLeaderboardsApi = new FactionWarfareLeaderboardsApi(getClient());
+});
 
 describe('FactionWarfareLeaderboardsApi', () => {
     beforeEach(() => {

@@ -1,19 +1,14 @@
 import { FactionWarfareWarsApi } from '../../../src/api/factions/getFactionWarfareWars';
-import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { getConfig } from '../../../src/config/configManager';
+import { getClient } from '../../../src/config/jest/jest.setup';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const config = getConfig();
+let factionWarfareWarsApi: FactionWarfareWarsApi;
 
-const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined) // Allow undefined token
-    .build();
-
-const factionWarfareWarsApi = new FactionWarfareWarsApi(client);
+beforeAll(() => {
+    factionWarfareWarsApi = new FactionWarfareWarsApi(getClient());
+});
 
 describe('FactionWarfareWarsApi', () => {
     beforeEach(() => {

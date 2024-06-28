@@ -1,19 +1,14 @@
 import { FactionWarfareStatsApi } from '../../../src/api/factions/getFactionWarfareStats';
-import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { getConfig } from '../../../src/config/configManager';
+import { getClient } from '../../../src/config/jest/jest.setup';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const config = getConfig();
+let factionWarfareStatsApi: FactionWarfareStatsApi;
 
-const createClient = (authToken?: string) => {
-    return new ApiClientBuilder()
-        .setClientId(config.projectName)
-        .setLink(config.link)
-        .setAccessToken(authToken) // Pass token if available
-        .build();
-};
+beforeAll(() => {
+    factionWarfareStatsApi = new FactionWarfareStatsApi(getClient());
+});
 
 describe('FactionWarfareStatsApi', () => {
     beforeEach(() => {
@@ -21,9 +16,6 @@ describe('FactionWarfareStatsApi', () => {
     });
 
     it('should return valid structure for faction warfare stats without auth token', async () => {
-        const client = createClient();
-        const factionWarfareStatsApi = new FactionWarfareStatsApi(client);
-
         const mockResponse = [
             {
                 faction_id: 500001,
@@ -84,9 +76,6 @@ describe('FactionWarfareStatsApi', () => {
     });
 
     it('should return valid structure for faction warfare stats with auth token', async () => {
-        const client = createClient(config.authToken);
-        const factionWarfareStatsApi = new FactionWarfareStatsApi(client);
-
         const mockResponse = [
             {
                 faction_id: 500001,
