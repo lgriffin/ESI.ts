@@ -1,4 +1,4 @@
-import { AlliancesApi } from '../../../src/api/alliances/getAlliances';
+import {AllAlliancesApi} from '../../../src/api/alliances/getAlliances';
 import { getClient } from '../../../src/config/jest/jest.setup';
 import fetchMock from 'jest-fetch-mock';
 
@@ -8,10 +8,10 @@ interface Alliance {
     alliance_id: number;
 }
 
-let alliancesApi: AlliancesApi;
+let alliancesApi: AllAlliancesApi;
 
 beforeAll(() => {
-    alliancesApi = new AlliancesApi(getClient());
+    alliancesApi = new AllAlliancesApi(getClient());
 });
 
 describe('AlliancesApi', () => {

@@ -2,7 +2,7 @@ import { ApiClient } from './ApiClient';
 import { ApiError } from './ApiError';
 import logger from './logger/logger';
 
-export async function handleRequest(client: ApiClient, endpoint: string, requiresAuth: boolean = false): Promise<any> {
+export const handleRequest = async (client: ApiClient, endpoint: string, requiresAuth: boolean = false): Promise<any> => {
     const url = `${client.getLink()}/${endpoint}`;
     const headers: HeadersInit = {};
     const authHeader = client.getAuthorizationHeader();
@@ -14,8 +14,8 @@ export async function handleRequest(client: ApiClient, endpoint: string, require
     try {
         const response = await fetch(url, { headers });
         if (response.status === 401) {
-            logger.warn(`Authorization not provided or forbidden access for endpoint: ${url}`);
-            return { error: 'authorization not provided or forbidden access' };
+            logger.warn(`Authorization not provided for endpoint: ${url}`);
+            return { error: 'authorization not provided' };
         }
         if (!response.ok) {
             throw new ApiError(response.status, `Error: ${response.statusText}`);
@@ -31,4 +31,4 @@ export async function handleRequest(client: ApiClient, endpoint: string, require
         }
         throw error;
     }
-}
+};

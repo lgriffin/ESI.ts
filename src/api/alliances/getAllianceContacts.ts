@@ -1,5 +1,5 @@
 import { ApiClient } from '../../core/ApiClient';
-import { handleRequest } from '../../core/requestHandler';
+import { handleRequest } from '../../core/ApiRequestHandler';
 
 export class AllianceContactsApi {
     constructor(private client: ApiClient) {}
