@@ -5,6 +5,7 @@ import logger from './core/logger/logger'; // Ensure logger is imported
 import { AllianceClient } from './api/alliances/AllianceClient'; // Import the AllianceClient correctly
 import { WarsAPIBuilder } from './api/wars/WarsAPIBuilder';
 import { UniverseApiBuilder } from './api/universe/UniverseApiBuilder';
+import { StatusAPIBuilder } from './api/status/StatusApiBuilder';
 
 const config = getConfig();
 
@@ -18,6 +19,7 @@ const factionClient = new FactionAPIBuilder(client).build();
 const allianceClient = new AllianceClient(client); 
 const warsClient = new WarsAPIBuilder(client).build();
 const universeClient = new UniverseApiBuilder(client).build();
+const statusClient = new StatusAPIBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -237,6 +239,16 @@ const testUniverseAPIs = async () => {
     }
 };
 
+const testStatusAPI = async () => {
+    try {
+        console.log('Testing Status API');
+        const status = await statusClient.getStatus();
+        console.log('Status:', JSON.stringify(status, null, 2));
+    } catch (error) {
+        console.error('Error testing Status API:', error);
+    }
+};
+
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
@@ -244,5 +256,5 @@ logger.info('config is pointing towards ' + config.link);
 //testFactionAPIs();
 //testAllianceAPIs();
 //testWarsAPI();
-
-testUniverseAPIs();
+testStatusAPI();
+//testUniverseAPIs();

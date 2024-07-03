@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
+// This is just to try and create a structure for the architecture, implementatiton will follow. Keeping this around for now in github
 // List of API groups and their respective endpoints
 const apiStructure = {
   alliances: [
