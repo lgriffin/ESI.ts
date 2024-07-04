@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "lint": "eslint . --ext .ts",
     "test": "jest --config jest.unit.config.cjs",
-    "bdd": "jest --config jest.bdd.config.cjs"
+    "bdd": "jest --config jest.bdd.config.cjs",
+    "coverage": "jest --config jest.unit.config.cjs --coverage"
   },
   "keywords": [],
   "author": "lgriffin",

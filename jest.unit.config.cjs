@@ -15,4 +15,11 @@ module.exports = {
   },
   testMatch: ['<rootDir>/tests/tdd/**/*.test.ts'], // Only run unit tests under tests/tdd
   verbose: true,
+  coverageDirectory: 'coverage/unit',
+  coverageReporters: ['text', 'lcov'],
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/index.ts',
+  ],
 };
