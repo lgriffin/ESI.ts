@@ -6,6 +6,7 @@ import { AllianceClient } from './clients/AllianceClient'; // Import the Allianc
 import { WarsAPIBuilder } from './builders/WarsAPIBuilder';
 import { UniverseAPIBuilder } from './builders/UniverseApiBuilder';
 import { StatusAPIBuilder } from './builders/StatusApiBuilder';
+import { InsuranceAPIBuilder } from './builders/InsuranceApiBuilder';
 
 const config = getConfig();
 
@@ -20,6 +21,7 @@ const allianceClient = new AllianceClient(client);
 const warsClient = new WarsAPIBuilder(client).build();
 const universeClient = new UniverseAPIBuilder(client).build();
 const statusClient = new StatusAPIBuilder(client).build();
+const insuranceClient = new InsuranceAPIBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -249,6 +251,16 @@ const testStatusAPI = async () => {
     }
 };
 
+const testInsurancePrices = async () => {
+    try {
+        console.log('Testing Insurance Prices');
+        const prices = await insuranceClient.getInsurancePrices();
+        console.log('Insurance Prices:', JSON.stringify(prices, null, 2));
+    } catch (error) {
+        console.error('Error testing Insurance Prices:', error);
+    }
+};
+
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
@@ -257,4 +269,5 @@ logger.info('config is pointing towards ' + config.link);
 //testAllianceAPIs();
 //testWarsAPI();
 //testStatusAPI();
-testUniverseAPIs();
+//testUniverseAPIs();
+testInsurancePrices();

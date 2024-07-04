@@ -1,5 +1,4 @@
-import { InsuranceApi } from '../../../src/api/insurance/getInsurancePrices';
-import { ApiClient } from '../../../src/core/ApiClient';
+import { InsuranceClient } from '../../../src/clients/InsuranceClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -13,9 +12,9 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
-const insuranceApi = new InsuranceApi(client);
+const insuranceClient = new InsuranceClient(client);
 
-describe('InsuranceApi', () => {
+describe('InsuranceClient', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
@@ -36,7 +35,7 @@ describe('InsuranceApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await insuranceApi.getInsurancePrices();
+        const result = await insuranceClient.getInsurancePrices();
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((insurance: any) => {
