@@ -1,5 +1,5 @@
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { FactionClient } from '../../../src/api/factions/FactionClient';
+import { FactionClient } from '../../../src/clients/FactionClient';
 import { FactionWarfareLeaderboardsApi } from '../../../src/api/factions/getFactionWarfareLeaderboards';
 import { FactionWarfareStatsApi } from '../../../src/api/factions/getFactionWarfareStats';
 import { FactionWarfareSystemsApi } from '../../../src/api/factions/getFactionWarfareSystems';

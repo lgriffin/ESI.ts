@@ -1,6 +1,6 @@
-import { WarsApi } from './getWars';
-import { WarByIdApi } from './getWarById';
-import { WarKillmailsApi } from './getWarKillmails';
+import { WarsApi } from '../api/wars/getWars';
+import { WarByIdApi } from '../api/wars/getWarById';
+import { WarKillmailsApi } from '../api/wars/getWarKillmails';
 
 export class WarsClient {
     constructor(

@@ -1,5 +1,5 @@
-import { ApiClient } from '../../core/ApiClient';
-import { handleRequest } from '../../core/ApiRequestHandler';
+import { ApiClient } from '../core/ApiClient';
+import { handleRequest } from '../core/ApiRequestHandler';
 
 export class StatusClient {
     constructor(private client: ApiClient) {}

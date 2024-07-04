@@ -1,7 +1,7 @@
-import { FactionWarfareLeaderboardsApi } from './getFactionWarfareLeaderboards';
-import { FactionWarfareStatsApi } from './getFactionWarfareStats';
-import { FactionWarfareSystemsApi } from './getFactionWarfareSystems';
-import { FactionWarfareWarsApi } from './getFactionWarfareWars';
+import { FactionWarfareLeaderboardsApi } from '../api/factions/getFactionWarfareLeaderboards';
+import { FactionWarfareStatsApi } from '../api/factions/getFactionWarfareStats';
+import { FactionWarfareSystemsApi } from '../api/factions/getFactionWarfareSystems';
+import { FactionWarfareWarsApi } from '../api/factions/getFactionWarfareWars';
 
 export class FactionClient {
     private factionWarfareLeaderboardsApi: FactionWarfareLeaderboardsApi;

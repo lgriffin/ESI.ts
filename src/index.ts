@@ -1,11 +1,11 @@
 import { ApiClientBuilder } from './core/ApiClientBuilder';
-import { FactionAPIBuilder } from './api/factions/FactionApiBuilder';
+import { FactionAPIBuilder } from './builders/FactionApiBuilder';
 import { getConfig } from './config/configManager';
 import logger from './core/logger/logger'; // Ensure logger is imported
-import { AllianceClient } from './api/alliances/AllianceClient'; // Import the AllianceClient correctly
-import { WarsAPIBuilder } from './api/wars/WarsAPIBuilder';
-import { UniverseApiBuilder } from './api/universe/UniverseApiBuilder';
-import { StatusAPIBuilder } from './api/status/StatusApiBuilder';
+import { AllianceClient } from './clients/AllianceClient'; // Import the AllianceClient correctly
+import { WarsAPIBuilder } from './builders/WarsAPIBuilder';
+import { UniverseApiBuilder } from './builders/UniverseApiBuilder';
+import { StatusAPIBuilder } from './builders/StatusApiBuilder';
 
 const config = getConfig();
 

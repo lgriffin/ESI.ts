@@ -1,4 +1,4 @@
-import { StatusClient } from '../../../src/api/status/StatusClient';
+import { StatusClient } from '../../../src/clients/StatusClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';

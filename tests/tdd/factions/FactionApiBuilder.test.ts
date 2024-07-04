@@ -1,5 +1,5 @@
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { FactionAPIBuilder } from '../../../src/api/factions/FactionApiBuilder';
+import { FactionAPIBuilder } from '../../../src/builders/FactionApiBuilder';
 import { getConfig } from '../../../src/config/configManager';
 
 describe('FactionApiBuilder', () => {

@@ -1,5 +1,5 @@
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { WarsAPIBuilder } from '../../../src/api/wars/WarsAPIBuilder';
+import { WarsAPIBuilder } from '../../../src/builders/WarsAPIBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
 

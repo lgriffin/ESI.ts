@@ -1,10 +1,10 @@
-import { ApiClient } from '../../core/ApiClient';
-import { AllianceByIdApi } from './getAllianceById';
-import { AllianceContactsApi } from './getAllianceContacts';
-import { AllianceContactLabelsApi } from './getAllianceContactLabels';
-import { AllianceCorporationsApi } from './getAllianceCorporations';
-import { AllianceIconsApi } from './getAllianceIcons';
-import { AllAlliancesApi } from './getAlliances';
+import { ApiClient } from '../core/ApiClient';
+import { AllianceByIdApi } from '../api/alliances/getAllianceById';
+import { AllianceContactsApi } from '../api/alliances/getAllianceContacts';
+import { AllianceContactLabelsApi } from '../api/alliances/getAllianceContactLabels';
+import { AllianceCorporationsApi } from '../api/alliances/getAllianceCorporations';
+import { AllianceIconsApi } from '../api/alliances/getAllianceIcons';
+import { AllAlliancesApi } from '../api/alliances/getAlliances';
 
 export class AllianceClient {
     private allianceApi: AllianceByIdApi;

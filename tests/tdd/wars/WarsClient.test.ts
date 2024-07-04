@@ -1,5 +1,5 @@
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { WarsClient } from '../../../src/api/wars/WarsClient';
+import { WarsClient } from '../../../src/clients/WarsClient';
 import { WarsApi } from '../../../src/api/wars/getWars';
 import { WarByIdApi } from '../../../src/api/wars/getWarById';
 import { WarKillmailsApi } from '../../../src/api/wars/getWarKillmails';

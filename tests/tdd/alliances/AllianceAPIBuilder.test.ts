@@ -1,5 +1,5 @@
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { AllianceApiBuilder } from '../../../src/api/alliances/AllianceApiBuilder';
+import { AllianceApiBuilder } from '../../../src/builders/AllianceApiBuilder';
 import { getConfig } from '../../../src/config/configManager';
 
 describe('AllianceApiBuilder', () => {

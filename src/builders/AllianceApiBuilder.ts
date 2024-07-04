@@ -1,5 +1,5 @@
-import { ApiClient } from '../../core/ApiClient';
-import { AllianceClient } from './AllianceClient';
+import { ApiClient } from '../core/ApiClient';
+import { AllianceClient } from '../clients/AllianceClient';
 
 export class AllianceApiBuilder {
     private client: ApiClient;
