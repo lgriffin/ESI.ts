@@ -4,7 +4,7 @@ import { getConfig } from './config/configManager';
 import logger from './core/logger/logger'; // Ensure logger is imported
 import { AllianceClient } from './clients/AllianceClient'; // Import the AllianceClient correctly
 import { WarsAPIBuilder } from './builders/WarsAPIBuilder';
-import { UniverseApiBuilder } from './builders/UniverseApiBuilder';
+import { UniverseAPIBuilder } from './builders/UniverseApiBuilder';
 import { StatusAPIBuilder } from './builders/StatusApiBuilder';
 
 const config = getConfig();
@@ -18,7 +18,7 @@ const client = new ApiClientBuilder()
 const factionClient = new FactionAPIBuilder(client).build();
 const allianceClient = new AllianceClient(client); 
 const warsClient = new WarsAPIBuilder(client).build();
-const universeClient = new UniverseApiBuilder(client).build();
+const universeClient = new UniverseAPIBuilder(client).build();
 const statusClient = new StatusAPIBuilder(client).build();
 
 const demoCharacter = 1689391488;
@@ -256,5 +256,5 @@ logger.info('config is pointing towards ' + config.link);
 //testFactionAPIs();
 //testAllianceAPIs();
 //testWarsAPI();
-testStatusAPI();
-//testUniverseAPIs();
+//testStatusAPI();
+testUniverseAPIs();

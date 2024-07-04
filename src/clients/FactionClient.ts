@@ -1,3 +1,4 @@
+import { ApiClient } from '../core/ApiClient';
 import { FactionWarfareLeaderboardsApi } from '../api/factions/getFactionWarfareLeaderboards';
 import { FactionWarfareStatsApi } from '../api/factions/getFactionWarfareStats';
 import { FactionWarfareSystemsApi } from '../api/factions/getFactionWarfareSystems';
@@ -9,16 +10,11 @@ export class FactionClient {
     private factionWarfareSystemsApi: FactionWarfareSystemsApi;
     private factionWarfareWarsApi: FactionWarfareWarsApi;
 
-    constructor(
-        factionWarfareLeaderboardsApi: FactionWarfareLeaderboardsApi,
-        factionWarfareStatsApi: FactionWarfareStatsApi,
-        factionWarfareSystemsApi: FactionWarfareSystemsApi,
-        factionWarfareWarsApi: FactionWarfareWarsApi
-    ) {
-        this.factionWarfareLeaderboardsApi = factionWarfareLeaderboardsApi;
-        this.factionWarfareStatsApi = factionWarfareStatsApi;
-        this.factionWarfareSystemsApi = factionWarfareSystemsApi;
-        this.factionWarfareWarsApi = factionWarfareWarsApi;
+    constructor(client: ApiClient) {
+        this.factionWarfareLeaderboardsApi = new FactionWarfareLeaderboardsApi(client);
+        this.factionWarfareStatsApi = new FactionWarfareStatsApi(client);
+        this.factionWarfareSystemsApi = new FactionWarfareSystemsApi(client);
+        this.factionWarfareWarsApi = new FactionWarfareWarsApi(client);
     }
 
     async getLeaderboardsCharacters(): Promise<any> {

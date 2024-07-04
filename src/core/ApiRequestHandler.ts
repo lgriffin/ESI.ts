@@ -33,6 +33,10 @@ export const handleRequest = async (
             logger.warn(`Authorization not provided for endpoint: ${url}`);
             return { error: 'authorization not provided' };
         }
+        if (response.status === 403) {
+            logger.warn(`Forbidden returned for endpoint: ${url}`);
+            return { error: 'resource not found' };
+        }
         if (response.status === 404) {
             logger.warn(`Resource not found at endpoint: ${url}`);
             return { error: 'resource not found' };
