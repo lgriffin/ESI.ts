@@ -2,6 +2,14 @@ import { ApiClient } from './ApiClient';
 import { ApiError } from './ApiError';
 import logger from './logger/logger';
 
+const statusHandlers: Record<number, string> = {
+    401: 'Authorization not provided',
+    403: 'Forbidden returned',
+    404: 'Resource not found',
+    500: 'Internal server error',
+    520: 'Internal server error, did the request terminate too soon?',
+};
+
 export const handleRequest = async (
     client: ApiClient,
     endpoint: string,
@@ -29,25 +37,16 @@ export const handleRequest = async (
         }
 
         const response = await fetch(url, options);
-        if (response.status === 401) {
-            logger.warn(`Authorization not provided for endpoint: ${url}`);
-            return { error: 'authorization not provided' };
+        if (statusHandlers[response.status]) {
+            const errorMessage = statusHandlers[response.status];
+            logger.warn(`${errorMessage} for endpoint: ${url}`);
+            return { error: errorMessage.toLowerCase() };
         }
-        if (response.status === 403) {
-            logger.warn(`Forbidden returned for endpoint: ${url}`);
-            return { error: 'resource not found' };
-        }
-        if (response.status === 404) {
-            logger.warn(`Resource not found at endpoint: ${url}`);
-            return { error: 'resource not found' };
-        }
-        if (response.status === 500) {
-            logger.warn(`Internal server error at endpoint: ${url}`);
-            return { error: 'internal server error' };
-        }
+
         if (!response.ok) {
             throw new ApiError(response.status, `Error: ${response.statusText}`);
         }
+
         return await response.json();
     } catch (error) {
         if (error instanceof ApiError) {

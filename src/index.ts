@@ -7,6 +7,8 @@ import { WarsAPIBuilder } from './builders/WarsAPIBuilder';
 import { UniverseAPIBuilder } from './builders/UniverseApiBuilder';
 import { StatusAPIBuilder } from './builders/StatusApiBuilder';
 import { InsuranceAPIBuilder } from './builders/InsuranceApiBuilder';
+import { DogmaAPIBuilder } from './builders/DogmaApiBuilder';
+import { RouteApiBuilder } from './builders/RouteApiBuilder';
 
 const config = getConfig();
 
@@ -22,6 +24,8 @@ const warsClient = new WarsAPIBuilder(client).build();
 const universeClient = new UniverseAPIBuilder(client).build();
 const statusClient = new StatusAPIBuilder(client).build();
 const insuranceClient = new InsuranceAPIBuilder(client).build();
+const dogmaClient = new DogmaAPIBuilder(client).build();
+const routeClient = new RouteApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -261,6 +265,42 @@ const testInsurancePrices = async () => {
     }
 };
 
+const testDogmaAPI = async () => {
+    try {
+        console.log('Testing Dogma Attributes');
+        const attributes = await dogmaClient.getAttributes();
+        console.log('Attributes:', JSON.stringify(attributes, null, 2));
+
+        console.log('Testing Dogma Attribute by ID');
+        const attributeInfo = await dogmaClient.getAttributeById(1237); // Replace with a valid attribute ID
+        console.log('Attribute Info:', JSON.stringify(attributeInfo, null, 2));
+
+        console.log('Testing Dogma Dynamic Item Information');
+        const dynamicItemInfo = await dogmaClient.getDynamicItemInfo(1, 1); // Replace with valid type_id and item_id
+        console.log('Dynamic Item Info:', JSON.stringify(dynamicItemInfo, null, 2));
+
+        console.log('Testing Dogma Effects');
+        const effects = await dogmaClient.getEffects();
+        console.log('Effects:', JSON.stringify(effects, null, 2));
+
+        console.log('Testing Dogma Effect by ID');
+        const effectInfo = await dogmaClient.getEffectById(6402); // Replace with a valid effect ID
+        console.log('Effect Info:', JSON.stringify(effectInfo, null, 2));
+    } catch (error) {
+       console.error('Error in the Dogma testing');
+    }
+};
+
+const testRouteAPI = async () => {
+    try {
+        console.log('Testing Route API');
+        const route = await routeClient.getRoute(30003283, 30000142);
+        console.log('Route:', JSON.stringify(route, null, 2));
+    } catch (error) {
+        console.error('Error testing Route API:', error);
+    }
+};
+
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
@@ -270,4 +310,6 @@ logger.info('config is pointing towards ' + config.link);
 //testWarsAPI();
 //testStatusAPI();
 //testUniverseAPIs();
-testInsurancePrices();
+//testInsurancePrices();
+//testDogmaAPI();
+testRouteAPI();
