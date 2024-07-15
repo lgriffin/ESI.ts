@@ -12,6 +12,7 @@ import { RouteApiBuilder } from './builders/RouteApiBuilder';
 import { IncursionsApiBuilder } from './builders/IncursionsApiBuilder';
 import { OpportunitiesApiBuilder } from './builders/OpportunitiesApiBuilder';
 import { SearchApiBuilder } from './builders/SearchApiBuilder';
+import { SovereigntyApiBuilder } from './builders/SovereigntyApiBuilder';
 
 const config = getConfig();
 
@@ -31,7 +32,7 @@ const dogmaClient = new DogmaAPIBuilder(client).build();
 const routeClient = new RouteApiBuilder(client).build();
 const incursionsClient = new IncursionsApiBuilder(client).build();
 const searchClient = new SearchApiBuilder(client).build();
-
+const sovereigntyClient = new SovereigntyApiBuilder(client).build();
 const opportunitiesClient = new OpportunitiesApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
@@ -352,14 +353,30 @@ const testCharacterSearchAPI = async () => {
         const searchClient = new SearchApiBuilder(client).build();
         
         console.log('Testing Character Search');
-        const searchResults = await searchClient.searchCharacter(demoCharacter, 'Test');
+        const searchResults = await searchClient.characterSearch(demoCharacter, 'Test');
         console.log('Search Results:', JSON.stringify(searchResults, null, 2));
     } catch (error) {
         console.error('Error testing Character Search API:', error);
     }
 };
 
+const testSovereigntyAPIs = async () => {
+    try {
+        console.log('Testing Sovereignty Campaigns');
+        const campaigns = await sovereigntyClient.getSovereigntyCampaigns();
+        console.log('Campaigns:', JSON.stringify(campaigns, null, 2));
 
+        console.log('Testing Sovereignty Map');
+        const map = await sovereigntyClient.getSovereigntyMap();
+        console.log('Map:', JSON.stringify(map, null, 2));
+
+        console.log('Testing Sovereignty Structures');
+        const structures = await sovereigntyClient.getSovereigntyStructures();
+        console.log('Structures:', JSON.stringify(structures, null, 2));
+    } catch (error) {
+        console.error('Error testing Sovereignty APIs:', error);
+    }
+};
 
 
 logger.info('Testing about to begin');
@@ -376,4 +393,5 @@ logger.info('config is pointing towards ' + config.link);
 //testRouteAPI();
 //testIncursionsAPI();
 //testOpportunitiesAPIs();
-testCharacterSearchAPI();
+//testCharacterSearchAPI();
+testSovereigntyAPIs();

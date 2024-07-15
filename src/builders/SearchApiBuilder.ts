@@ -1,5 +1,4 @@
 import { ApiClient } from '../core/ApiClient';
-import { CharacterSearchApi } from '../api/search/getCharacterSearch';
 import { SearchClient } from '../clients/SearchClient';
 
 export class SearchApiBuilder {
@@ -10,8 +9,6 @@ export class SearchApiBuilder {
     }
 
     public build(): SearchClient {
-        return new SearchClient(
-            new CharacterSearchApi(this.client)
-        );
+        return new SearchClient(this.client);
     }
 }

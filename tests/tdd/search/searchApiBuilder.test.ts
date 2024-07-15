@@ -1,21 +1,17 @@
-import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
+import { ApiClient } from '../../../src/core/ApiClient';
 import { SearchApiBuilder } from '../../../src/builders/SearchApiBuilder';
-import { getConfig } from '../../../src/config/configManager';
-
-const config = getConfig();
+import { SearchClient } from '../../../src/clients/SearchClient';
 
 describe('SearchApiBuilder', () => {
-    it('should build a SearchClient with all APIs instantiated', () => {
-        const client = new ApiClientBuilder()
-            .setClientId(config.projectName)
-            .setLink(config.link)
-            .setAccessToken(config.authToken || undefined)
-            .build();
+    let client: ApiClient;
 
+    beforeEach(() => {
+        client = new ApiClient('projectName', 'https://esi.evetech.net/latest', 'token');
+    });
+
+    it('should build a SearchClient', () => {
         const builder = new SearchApiBuilder(client);
         const searchClient = builder.build();
-
-        expect(searchClient).toBeDefined();
-        expect(searchClient.searchCharacter).toBeDefined();
+        expect(searchClient).toBeInstanceOf(SearchClient);
     });
 });

@@ -1,42 +1,40 @@
+import { ApiClient } from '../../../src/core/ApiClient';
 import { SearchClient } from '../../../src/clients/SearchClient';
-import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { getConfig } from '../../../src/config/configManager';
-import { CharacterSearchApi } from '../../../src/api/search/getCharacterSearch';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const config = getConfig();
-
-const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
-    .build();
-
-const searchClient = new SearchClient(
-    new CharacterSearchApi(client)
-);
-
 describe('SearchClient', () => {
+    let client: ApiClient;
+    let searchClient: SearchClient;
+
     beforeEach(() => {
+        client = new ApiClient('projectName', 'https://esi.evetech.net/latest', 'token');
+        searchClient = new SearchClient(client);
         fetchMock.resetMocks();
     });
 
     it('should return search results for a character', async () => {
-        const mockResponse = { search_results: [{ character_id: 12345, name: 'Test Character' }] };
+        const mockResponse = {
+            search_results: {
+                character: [12345678],
+                corporation: [],
+                alliance: []
+            }
+        };
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await searchClient.searchCharacter(12345, 'Test');
+        const result = await searchClient.characterSearch(123456, 'searchString') as {
+            search_results: {
+                character: number[];
+                corporation: number[];
+                alliance: number[];
+            }
+        };
 
         expect(result).toHaveProperty('search_results');
-        expect(Array.isArray(result.search_results)).toBe(true);
-        result.search_results.forEach((item: { character_id: number; name: string }) => {
-            expect(item).toHaveProperty('character_id');
-            expect(typeof item.character_id).toBe('number');
-            expect(item).toHaveProperty('name');
-            expect(typeof item.name).toBe('string');
-        });
+        expect(result.search_results).toHaveProperty('character');
+        expect(result.search_results.character).toContain(12345678);
     });
 });
