@@ -9,6 +9,9 @@ import { StatusAPIBuilder } from './builders/StatusApiBuilder';
 import { InsuranceAPIBuilder } from './builders/InsuranceApiBuilder';
 import { DogmaAPIBuilder } from './builders/DogmaApiBuilder';
 import { RouteApiBuilder } from './builders/RouteApiBuilder';
+import { IncursionsApiBuilder } from './builders/IncursionsApiBuilder';
+import { OpportunitiesApiBuilder } from './builders/OpportunitiesApiBuilder';
+import { SearchApiBuilder } from './builders/SearchApiBuilder';
 
 const config = getConfig();
 
@@ -26,6 +29,10 @@ const statusClient = new StatusAPIBuilder(client).build();
 const insuranceClient = new InsuranceAPIBuilder(client).build();
 const dogmaClient = new DogmaAPIBuilder(client).build();
 const routeClient = new RouteApiBuilder(client).build();
+const incursionsClient = new IncursionsApiBuilder(client).build();
+const searchClient = new SearchApiBuilder(client).build();
+
+const opportunitiesClient = new OpportunitiesApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -301,6 +308,60 @@ const testRouteAPI = async () => {
     }
 };
 
+const testIncursionsAPI = async () => {
+
+    try{
+        console.log("Testing incursions API");
+        const incursions = await incursionsClient.getIncursions();
+        console.log(incursions);
+    } catch (error) {
+        console.error('Hmmm we hit an error testing our incursions API:',error);
+    }
+
+}
+
+const testOpportunitiesAPIs = async () => {
+    try {
+        console.log('Testing Character Opportunities');
+        const characterOpportunities = await opportunitiesClient.getCharacterOpportunities(12345); // Replace with a valid character ID
+        console.log('Character Opportunities:', JSON.stringify(characterOpportunities, null, 2));
+
+        console.log('Testing Opportunities Groups');
+        const opportunitiesGroups = await opportunitiesClient.getOpportunitiesGroups();
+        console.log('Opportunities Groups:', JSON.stringify(opportunitiesGroups, null, 2));
+
+        console.log('Testing Opportunities Group by ID');
+        const opportunitiesGroupById = await opportunitiesClient.getOpportunitiesGroupById(100); // Replace with a valid group ID using 100 as an example
+        console.log('Opportunities Group by ID:', JSON.stringify(opportunitiesGroupById, null, 2));
+
+        console.log('Testing Opportunities Tasks');
+        const opportunitiesTasks = await opportunitiesClient.getOpportunitiesTasks();
+        console.log('Opportunities Tasks:', JSON.stringify(opportunitiesTasks, null, 2));
+
+        console.log('Testing Opportunities Task by ID');
+        const opportunitiesTaskById = await opportunitiesClient.getOpportunitiesTaskById(102); // Replace with a valid task ID using 102 as an example
+        console.log('Opportunities Task by ID:', JSON.stringify(opportunitiesTaskById, null, 2));
+
+    } catch (error) {
+        console.error('Error testing Opportunities APIs:', error);
+    }
+};
+
+const testCharacterSearchAPI = async () => {
+    try {
+        const searchClient = new SearchApiBuilder(client).build();
+        
+        console.log('Testing Character Search');
+        const searchResults = await searchClient.searchCharacter(demoCharacter, 'Test');
+        console.log('Search Results:', JSON.stringify(searchResults, null, 2));
+    } catch (error) {
+        console.error('Error testing Character Search API:', error);
+    }
+};
+
+
+
+
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
@@ -312,4 +373,7 @@ logger.info('config is pointing towards ' + config.link);
 //testUniverseAPIs();
 //testInsurancePrices();
 //testDogmaAPI();
-testRouteAPI();
+//testRouteAPI();
+//testIncursionsAPI();
+//testOpportunitiesAPIs();
+testCharacterSearchAPI();

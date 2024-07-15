@@ -1,11 +1,11 @@
-import { ApiClientBuilder } from '../../src/core/ApiClientBuilder';
-import { IncursionsApi } from '../../src/api/incursions/getIncursions';
-import { getConfig } from '../../src/config/configManager';
+import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
+import { IncursionsApiBuilder } from '../../../src/builders/IncursionsApiBuilder';
+import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-describe('IncursionsApi', () => {
+describe('IncursionsClient', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
@@ -33,9 +33,9 @@ describe('IncursionsApi', () => {
             .setAccessToken(config.authToken || undefined)
             .build();
 
-        const incursionsApi = new IncursionsApi(client);
+        const incursionsClient = new IncursionsApiBuilder(client).build();
 
-        const incursions = await incursionsApi.getIncursions();
+        const incursions = await incursionsClient.getIncursions();
         expect(incursions).toEqual(mockResponse);
     });
 });

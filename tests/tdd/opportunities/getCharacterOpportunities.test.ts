@@ -20,21 +20,19 @@ describe('OpportunitiesClient', () => {
         fetchMock.resetMocks();
     });
 
-    it('should return valid structure for opportunities tasks', async () => {
-        const mockResponse = [{ task_id: 123, name: 'Task Name', description: 'Description' }];
+    it('should return valid structure for character opportunities', async () => {
+        const mockResponse = [{ task_id: 123, completed_at: '2024-07-01T18:57:11Z' }];
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getOpportunitiesTasks();
+        const result = await opportunitiesClient.getCharacterOpportunities(12345); // Replace with a valid character ID
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((task: { task_id: number; name: string; description: string }) => {
-            expect(task).toHaveProperty('task_id');
-            expect(typeof task.task_id).toBe('number');
-            expect(task).toHaveProperty('name');
-            expect(typeof task.name).toBe('string');
-            expect(task).toHaveProperty('description');
-            expect(typeof task.description).toBe('string');
+        result.forEach((opportunity: { task_id: number; completed_at: string }) => {
+            expect(opportunity).toHaveProperty('task_id');
+            expect(typeof opportunity.task_id).toBe('number');
+            expect(opportunity).toHaveProperty('completed_at');
+            expect(typeof opportunity.completed_at).toBe('string');
         });
     });
 });
