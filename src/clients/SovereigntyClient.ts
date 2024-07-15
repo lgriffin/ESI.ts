@@ -1,7 +1,7 @@
 import { ApiClient } from '../core/ApiClient';
-import { SovereigntyCampaignsApi } from '../api/sovereignty/GetSovereigntyCampaigns';
-import { SovereigntyMapApi } from '../api/sovereignty/GetSovereigntyMap';
-import { SovereigntyStructuresApi } from '../api/sovereignty/GetSovereigntyStructures';
+import { SovereigntyCampaignsApi } from '../api/sovereignty/getSovereigntyCampaigns';
+import { SovereigntyMapApi } from '../api/sovereignty/getSovereigntyMap';
+import { SovereigntyStructuresApi } from '../api/sovereignty/getSovereigntyStructures';
 
 export class SovereigntyClient {
     private sovereigntyCampaignsApi: SovereigntyCampaignsApi;

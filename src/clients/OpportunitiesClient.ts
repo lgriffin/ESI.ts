@@ -1,9 +1,9 @@
-import { GetCharacterOpportunitiesApi } from '../api/opportunities/GetCharacterOpportunities';
-import { GetOpportunitiesGroupsApi } from '../api/opportunities/GetOpportunitiesGroups';
-import { GetOpportunitiesGroupByIdApi } from '../api/opportunities/GetOpportunitiesGroupById';
-import { GetOpportunitiesTasksApi } from '../api/opportunities/GetOpportunitiesTasks';
-import { GetOpportunitiesTaskByIdApi } from '../api/opportunities/GetOpportunitiesTaskById';
 import { ApiClient } from '../core/ApiClient';
+import { GetCharacterOpportunitiesApi } from '../api/opportunities/getCharacterOpportunities';
+import { GetOpportunitiesGroupsApi } from '../api/opportunities/getOpportunitiesGroups';
+import { GetOpportunitiesGroupByIdApi } from '../api/opportunities/getOpportunitiesGroupById';
+import { GetOpportunitiesTasksApi } from '../api/opportunities/getOpportunitiesTasks';
+import { GetOpportunitiesTaskByIdApi } from '../api/opportunities/getOpportunitiesTaskById';
 
 export class OpportunitiesClient {
     private getCharacterOpportunitiesApi: GetCharacterOpportunitiesApi;
