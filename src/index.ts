@@ -13,6 +13,10 @@ import { IncursionsApiBuilder } from './builders/IncursionsApiBuilder';
 import { OpportunitiesApiBuilder } from './builders/OpportunitiesApiBuilder';
 import { SearchApiBuilder } from './builders/SearchApiBuilder';
 import { SovereigntyApiBuilder } from './builders/SovereigntyApiBuilder';
+import { AssetsApiBuilder } from './builders/AssetsApiBuilder';
+import { BookmarkApiBuilder } from './builders/BookmarkApiBuilder';
+import { CalendarApiBuilder } from './builders/CalendarApiBuilder';
+import { ClonesApiBuilder } from './builders/ClonesApiBuilder';
 
 const config = getConfig();
 
@@ -34,11 +38,16 @@ const incursionsClient = new IncursionsApiBuilder(client).build();
 const searchClient = new SearchApiBuilder(client).build();
 const sovereigntyClient = new SovereigntyApiBuilder(client).build();
 const opportunitiesClient = new OpportunitiesApiBuilder(client).build();
+const assetsClient = new AssetsApiBuilder(client).build();
+const bookmarkClient = new BookmarkApiBuilder(client).build();
+const calendarClient = new CalendarApiBuilder(client).build();
+const clonesClient = new ClonesApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
 const demoAlliance = 99005338;
-const demoWarId = 740620; // just a test
+const demoWarId = 740620;
+const demoItemIds = [111, 222, 333];
 
 const testFactionAPIs = async () => {
     try {
@@ -350,8 +359,7 @@ const testOpportunitiesAPIs = async () => {
 
 const testCharacterSearchAPI = async () => {
     try {
-        const searchClient = new SearchApiBuilder(client).build();
-        
+     
         console.log('Testing Character Search');
         const searchResults = await searchClient.characterSearch(demoCharacter, 'Test');
         console.log('Search Results:', JSON.stringify(searchResults, null, 2));
@@ -378,6 +386,96 @@ const testSovereigntyAPIs = async () => {
     }
 };
 
+const testAssetsAPI = async () => {
+    try {
+        console.log('Testing Character Assets');
+        const characterAssets = await assetsClient.getCharacterAssets(demoCharacter);
+        console.log('Character Assets:', JSON.stringify(characterAssets, null, 2));
+
+        console.log('Testing Post Character Asset Locations');
+        const characterAssetLocations = await assetsClient.postCharacterAssetLocations(demoCharacter, demoItemIds);
+        console.log('Character Asset Locations:', JSON.stringify(characterAssetLocations, null, 2));
+
+        console.log('Testing Post Character Asset Names');
+        const characterAssetNames = await assetsClient.postCharacterAssetNames(demoCharacter, demoItemIds);
+        console.log('Character Asset Names:', JSON.stringify(characterAssetNames, null, 2));
+
+        console.log('Testing Corporation Assets');
+        const corporationAssets = await assetsClient.getCorporationAssets(demoCorp);
+        console.log('Corporation Assets:', JSON.stringify(corporationAssets, null, 2));
+
+        console.log('Testing Post Corporation Asset Locations');
+        const corporationAssetLocations = await assetsClient.postCorporationAssetLocations(demoCorp, demoItemIds);
+        console.log('Corporation Asset Locations:', JSON.stringify(corporationAssetLocations, null, 2));
+
+        console.log('Testing Post Corporation Asset Names');
+        const corporationAssetNames = await assetsClient.postCorporationAssetNames(demoCorp, demoItemIds);
+        console.log('Corporation Asset Names:', JSON.stringify(corporationAssetNames, null, 2));
+    } catch (error) {
+        console.error('Error testing Assets APIs:', error);
+    }
+};
+
+const testBookmarkAPIs = async () => {
+
+    try {
+        console.log('Testing Character Bookmarks');
+        const characterBookmarks = await bookmarkClient.getCharacterBookmarks(demoCharacter);
+        console.log('Character Bookmarks:', JSON.stringify(characterBookmarks, null, 2));
+
+        console.log('Testing Character Bookmark Folders');
+        const characterBookmarkFolders = await bookmarkClient.getCharacterBookmarkFolders(demoCharacter);
+        console.log('Character Bookmark Folders:', JSON.stringify(characterBookmarkFolders, null, 2));
+
+        console.log('Testing Corporation Bookmarks');
+        const corporationBookmarks = await bookmarkClient.getCorporationBookmarks(demoCorp);
+        console.log('Corporation Bookmarks:', JSON.stringify(corporationBookmarks, null, 2));
+
+        console.log('Testing Corporation Bookmark Folders');
+        const corporationBookmarkFolders = await bookmarkClient.getCorporationBookmarkFolders(demoCorp);
+        console.log('Corporation Bookmark Folders:', JSON.stringify(corporationBookmarkFolders, null, 2));
+    } catch (error) {
+        console.error('Error testing Bookmark APIs:', error);
+    }
+};
+
+const testCalendarAPIs = async () => {
+       try {
+        console.log('Testing Calendar Events');
+        const calendarEvents = await calendarClient.getCalendarEvents(demoCharacter);
+        console.log('Calendar Events:', JSON.stringify(calendarEvents, null, 2));
+
+        console.log('Testing Calendar Event by ID');
+        const calendarEvent = await calendarClient.getCalendarEventById(demoCharacter, 67890);
+        console.log('Calendar Event:', JSON.stringify(calendarEvent, null, 2));
+
+        console.log('Testing Respond to Calendar Event');
+        const response = await calendarClient.respondToCalendarEvent(demoCharacter, 67890, 'accepted');
+        console.log('Response to Calendar Event:', JSON.stringify(response, null, 2));
+
+        console.log('Testing Get Event Attendees');
+        const attendees = await calendarClient.getEventAttendees(demoCharacter, 67890);
+        console.log('Event Attendees:', JSON.stringify(attendees, null, 2));
+
+    } catch (error) {
+        console.error('Error testing Calendar APIs:', error);
+    }
+};
+
+const testClonesAPI = async () => {
+ 
+    try {
+        console.log('Testing Clones');
+        const clones = await clonesClient.getClones(demoCharacter);
+        console.log('Clones:', JSON.stringify(clones, null, 2));
+
+        console.log('Testing Implants');
+        const implants = await clonesClient.getImplants(demoCharacter);
+        console.log('Implants:', JSON.stringify(implants, null, 2));
+    } catch (error) {
+        console.error('Error testing Clones API:', error);
+    }
+};
 
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
@@ -394,4 +492,8 @@ logger.info('config is pointing towards ' + config.link);
 //testIncursionsAPI();
 //testOpportunitiesAPIs();
 //testCharacterSearchAPI();
-testSovereigntyAPIs();
+//testSovereigntyAPIs();
+//testAssetsAPI();
+//testBookmarkAPIs();
+//testCalendarAPIs();
+testClonesAPI();

@@ -1,6 +1,6 @@
-import { ApiClientBuilder } from '../../src/core/ApiClientBuilder';
-import { IncursionsApi } from '../../src/api/incursions/getIncursions';
-import { getConfig } from '../../src/config/configManager';
+import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
+import { IncursionsApi } from '../../../src/api/incursions/getIncursions';
+import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
