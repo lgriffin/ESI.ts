@@ -1,4 +1,4 @@
-import { DogmaAPIBuilder } from '../../../src/builders/DogmaAPIBuilder';
+import { DogmaAPIBuilder } from '../../../src/builders/DogmaApiBuilder';
 import { ApiClient } from '../../../src/core/ApiClient';
 import fetchMock from 'jest-fetch-mock';
 

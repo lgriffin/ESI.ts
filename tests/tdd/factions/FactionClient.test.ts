@@ -5,10 +5,10 @@ import { FactionWarfareStatsApi } from '../../../src/api/factions/getFactionWarf
 import { FactionWarfareSystemsApi } from '../../../src/api/factions/getFactionWarfareSystems';
 import { FactionWarfareWarsApi } from '../../../src/api/factions/getFactionWarfareWars';
 
-jest.mock('../../src/api/factions/getFactionWarfareLeaderboards');
-jest.mock('../../src/api/factions/getFactionWarfareStats');
-jest.mock('../../src/api/factions/getFactionWarfareSystems');
-jest.mock('../../src/api/factions/getFactionWarfareWars');
+jest.mock('../../../src/api/factions/getFactionWarfareLeaderboards');
+jest.mock('../../../src/api/factions/getFactionWarfareStats');
+jest.mock('../../../src/api/factions/getFactionWarfareSystems');
+jest.mock('../../../src/api/factions/getFactionWarfareWars');
 
 describe('FactionClient', () => {
     let client: ApiClient;

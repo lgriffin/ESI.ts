@@ -1,5 +1,5 @@
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
-import { OpportunitiesApiBuilder } from '../../../src/builders/OpportunitiesAPIBuilder';
+import { OpportunitiesApiBuilder } from '../../../src/builders/OpportunitiesApiBuilder';
 import { getConfig } from '../../../src/config/configManager';
 
 const config = getConfig();

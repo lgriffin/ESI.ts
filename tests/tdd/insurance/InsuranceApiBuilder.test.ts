@@ -1,7 +1,7 @@
 import { ApiClient } from '../../../src/core/ApiClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
-import { InsuranceAPIBuilder } from '../../../src/builders/InsuranceAPIBuilder';
+import { InsuranceAPIBuilder } from '../../../src/builders/InsuranceApiBuilder';
 import { InsuranceClient } from '../../../src/clients/InsuranceClient';
 
 describe('InsuranceAPIBuilder', () => {

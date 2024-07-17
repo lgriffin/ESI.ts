@@ -1,4 +1,4 @@
-import { StatusAPIBuilder } from '../../../src/builders/StatusAPIBuilder';
+import { StatusAPIBuilder } from '../../../src/builders/StatusApiBuilder';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 

@@ -51,7 +51,7 @@ describe('CharacterClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterClient.getCharacterAgentsResearch(123456789);
+        const result: Array<{ agent_id: number; points_per_day: number; remainder_points: number; skill_type_id: number; started_at: string }> = await characterClient.getCharacterAgentsResearch(123456789);
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((agent) => {
@@ -84,7 +84,7 @@ describe('CharacterClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterClient.getCharacterBlueprints(123456789);
+        const result: Array<{ item_id: number; type_id: number; location_id: number; location_flag: string; quantity: number; time_efficiency: number; material_efficiency: number; runs: number }> = await characterClient.getCharacterBlueprints(123456789);
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((blueprint) => {
@@ -119,7 +119,7 @@ describe('CharacterClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterClient.getCharacterCorporationHistory(123456789);
+        const result: Array<{ corporation_id: number; is_deleted: boolean; record_id: number; start_date: string }> = await characterClient.getCharacterCorporationHistory(123456789);
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((history) => {
@@ -145,7 +145,7 @@ describe('CharacterClient', () => {
             characters: [1234567890, 1234567891],
         };
 
-        const result = await characterClient.postCspaChargeCost(123456, body.characters);
+        const result: { cost: number } = await characterClient.postCspaChargeCost(123456, body.characters);
 
         expect(result).toHaveProperty('cost');
         expect(typeof result.cost).toBe('number');

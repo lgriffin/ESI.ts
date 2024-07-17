@@ -1,4 +1,4 @@
-import { PostCspaChargeCostApi } from '../../../src/api/characters/postCspaChargeCost';
+import { PostCspaChargeCostApi } from '../../../src/api/characters/postCSPAChargeCost';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -30,7 +30,8 @@ describe('PostCspaChargeCostApi', () => {
             characters: [1234567890, 1234567891]
         };
 
-        const result: any = await cspaChargeCostApi.calculateCspaChargeCost(123456, body);
+        // Explicitly defining the type inline
+        const result = await cspaChargeCostApi.calculateCspaChargeCost(123456, body) as { cost: number };
 
         expect(result).toHaveProperty('cost');
         expect(typeof result.cost).toBe('number');
