@@ -1,4 +1,4 @@
-import { GetCharacterRolesApi } from '../../../src/api/characters/getCharacterRoles';
+import { PostCspaChargeCostApi } from '../../../src/api/characters/postCspaChargeCost';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -12,23 +12,27 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
-const characterRolesApi = new GetCharacterRolesApi(client);
+const cspaChargeCostApi = new PostCspaChargeCostApi(client);
 
-describe('GetCharacterRolesApi', () => {
+describe('PostCspaChargeCostApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
 
-    it('should return valid structure for character roles', async () => {
+    it('should return valid structure for CSPA charge cost', async () => {
         const mockResponse = {
-            roles: ['role1', 'role2']
+            cost: 123456.78
         };
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterRolesApi.getCharacterRoles(123456);
+        const body = {
+            characters: [1234567890, 1234567891]
+        };
 
-        expect(result).toHaveProperty('roles');
-        expect(Array.isArray(result.roles)).toBe(true);
+        const result: any = await cspaChargeCostApi.calculateCspaChargeCost(123456, body);
+
+        expect(result).toHaveProperty('cost');
+        expect(typeof result.cost).toBe('number');
     });
 });

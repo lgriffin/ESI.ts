@@ -1,4 +1,4 @@
-import { GetCharacterTitlesApi } from '../../../src/api/characters/getCharacterTitles'
+import { GetMedalsApi } from '../../../src/api/characters/getMedals';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -12,29 +12,31 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
-const characterTitlesApi = new GetCharacterTitlesApi(client);
+const medalsApi = new GetMedalsApi(client);
 
-describe('GetCharacterTitlesApi', () => {
+describe('GetMedalsApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
 
-    it('should return valid structure for character titles', async () => {
+    it('should return valid structure for medals', async () => {
         const mockResponse = [
             {
-                title_id: 1,
-                name: 'CEO'
+                medal_id: 1,
+                reason: 'Bravery',
+                status: 'public'
             }
         ];
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterTitlesApi.getCharacterTitles(123456);
+        const result = await medalsApi.getMedals(123456);
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((title: { title_id: number, name: string }) => {
-            expect(title).toHaveProperty('title_id');
-            expect(title).toHaveProperty('name');
+        result.forEach((medal) => {
+            expect(medal).toHaveProperty('medal_id');
+            expect(medal).toHaveProperty('reason');
+            expect(medal).toHaveProperty('status');
         });
     });
 });

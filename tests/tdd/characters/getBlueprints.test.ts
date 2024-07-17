@@ -1,4 +1,4 @@
-import { GetCharacterTitlesApi } from '../../../src/api/characters/getCharacterTitles'
+import { GetBlueprintsApi } from '../../../src/api/characters/getBlueprints';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -12,29 +12,31 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
-const characterTitlesApi = new GetCharacterTitlesApi(client);
+const blueprintsApi = new GetBlueprintsApi(client);
 
-describe('GetCharacterTitlesApi', () => {
+describe('GetBlueprintsApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
 
-    it('should return valid structure for character titles', async () => {
+    it('should return valid structure for blueprints', async () => {
         const mockResponse = [
             {
-                title_id: 1,
-                name: 'CEO'
+                item_id: 123456,
+                type_id: 654321,
+                location_id: 123456,
             }
         ];
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterTitlesApi.getCharacterTitles(123456);
+        const result = await blueprintsApi.getBlueprints(123456);
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((title: { title_id: number, name: string }) => {
-            expect(title).toHaveProperty('title_id');
-            expect(title).toHaveProperty('name');
+        result.forEach((blueprint) => {
+            expect(blueprint).toHaveProperty('item_id');
+            expect(blueprint).toHaveProperty('type_id');
+            expect(blueprint).toHaveProperty('location_id');
         });
     });
 });

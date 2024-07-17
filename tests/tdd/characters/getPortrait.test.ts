@@ -1,4 +1,4 @@
-import { GetCharacterRolesApi } from '../../../src/api/characters/getCharacterRoles';
+import { GetPortraitApi } from '../../../src/api/characters/getPortrait';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -12,23 +12,24 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
-const characterRolesApi = new GetCharacterRolesApi(client);
+const portraitApi = new GetPortraitApi(client);
 
-describe('GetCharacterRolesApi', () => {
+describe('GetPortraitApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
 
-    it('should return valid structure for character roles', async () => {
+    it('should return valid structure for portrait', async () => {
         const mockResponse = {
-            roles: ['role1', 'role2']
+            px64x64: 'https://imageserver.eveonline.com/Character/123456_64.jpg',
+            px128x128: 'https://imageserver.eveonline.com/Character/123456_128.jpg'
         };
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterRolesApi.getCharacterRoles(123456);
+        const result = await portraitApi.getPortrait(123456);
 
-        expect(result).toHaveProperty('roles');
-        expect(Array.isArray(result.roles)).toBe(true);
+        expect(result).toHaveProperty('px64x64');
+        expect(result).toHaveProperty('px128x128');
     });
 });

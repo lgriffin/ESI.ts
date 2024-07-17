@@ -17,6 +17,7 @@ import { AssetsApiBuilder } from './builders/AssetsApiBuilder';
 import { BookmarkApiBuilder } from './builders/BookmarkApiBuilder';
 import { CalendarApiBuilder } from './builders/CalendarApiBuilder';
 import { ClonesApiBuilder } from './builders/ClonesApiBuilder';
+import { CharacterApiBuilder } from './builders/CharacterApiBuilder';
 
 const config = getConfig();
 
@@ -42,7 +43,7 @@ const assetsClient = new AssetsApiBuilder(client).build();
 const bookmarkClient = new BookmarkApiBuilder(client).build();
 const calendarClient = new CalendarApiBuilder(client).build();
 const clonesClient = new ClonesApiBuilder(client).build();
-
+const characterClient = new CharacterApiBuilder(client).build();
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
 const demoAlliance = 99005338;
@@ -476,6 +477,36 @@ const testClonesAPI = async () => {
         console.error('Error testing Clones API:', error);
     }
 };
+
+const testCharacterApi = async () => {
+    try {
+        console.log('Testing Character Public Info');
+        const characterPublicInfo = await characterClient.getCharacterPublicInfo(demoCharacter);
+        console.log('Character Public Info:', JSON.stringify(characterPublicInfo, null, 2));
+
+        console.log('Testing Character Agents Research');
+        const characterAgentsResearch = await characterClient.getCharacterAgentsResearch(demoCharacter);
+        console.log('Character Agents Research:', JSON.stringify(characterAgentsResearch, null, 2));
+
+        console.log('Testing Character Blueprints');
+        const characterBlueprints = await characterClient.getCharacterBlueprints(demoCharacter);
+        console.log('Character Blueprints:', JSON.stringify(characterBlueprints, null, 2));
+
+        console.log('Testing Character Corporation History');
+        const characterCorporationHistory = await characterClient.getCharacterCorporationHistory(demoCharacter);
+        console.log('Character Corporation History:', JSON.stringify(characterCorporationHistory, null, 2));
+
+        console.log('Testing CSPA Charge Cost');
+        const cspaChargeCost = await characterClient.postCspaChargeCost(demoCharacter, [1234567890, 1234567891]);
+        console.log('CSPA Charge Cost:', JSON.stringify(cspaChargeCost, null, 2));
+    } catch (error) {
+        console.error('Error testing Character APIs:', error);
+    }
+};
+
+// Add this line to call the test function
+testCharacterApi();
+
 
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');

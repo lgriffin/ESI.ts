@@ -1,4 +1,4 @@
-import { GetCharacterTitlesApi } from '../../../src/api/characters/getCharacterTitles'
+import { GetNotificationsApi } from '../../../src/api/characters/getNotifications';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -12,29 +12,31 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
-const characterTitlesApi = new GetCharacterTitlesApi(client);
+const notificationsApi = new GetNotificationsApi(client);
 
-describe('GetCharacterTitlesApi', () => {
+describe('GetNotificationsApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
 
-    it('should return valid structure for character titles', async () => {
+    it('should return valid structure for notifications', async () => {
         const mockResponse = [
             {
-                title_id: 1,
-                name: 'CEO'
+                notification_id: 1,
+                type: 'WarDeclared',
+                is_read: true
             }
         ];
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterTitlesApi.getCharacterTitles(123456);
+        const result = await notificationsApi.getNotifications(123456);
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((title: { title_id: number, name: string }) => {
-            expect(title).toHaveProperty('title_id');
-            expect(title).toHaveProperty('name');
+        result.forEach((notification) => {
+            expect(notification).toHaveProperty('notification_id');
+            expect(notification).toHaveProperty('type');
+            expect(notification).toHaveProperty('is_read');
         });
     });
 });
