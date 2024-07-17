@@ -2,21 +2,12 @@ import { ApiClient } from './ApiClient';
 import { ApiError } from './ApiError';
 import logger from './logger/logger';
 
-// we most likely do NOT need all of these but for completeness keeping it here to stay consistent with most web API errors
 const statusHandlers: Record<number, string> = {
-    200: 'OK',
-    201: 'Created',
-    204: 'No Content',
-    400: 'Bad Request',
+    204 : 'No Content',
     401: 'Authorization not provided',
-    402: 'Payment Required',
     403: 'Forbidden returned',
     404: 'Resource not found',
-    405: 'Method Not Allowed',
-    409: 'Conflict',
-    429: 'Too Many Requests',
     500: 'Internal server error',
-    503: 'Service Unavailable',
     520: 'Internal server error, did the request terminate too soon?',
 };
 

@@ -37,7 +37,7 @@ describe('PostCorporationAssetLocationsApi', () => {
         const result = await corporationAssetLocationsApi.postCorporationAssetLocations(123456, [1234567890]);
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach(location => {
+        result.forEach((location: { item_id: number, position: { x: number, y: number, z: number } }) => {
             expect(location).toHaveProperty('item_id');
             expect(location).toHaveProperty('position');
             expect(location.position).toHaveProperty('x');

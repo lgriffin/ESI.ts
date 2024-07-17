@@ -12,13 +12,21 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
+const mockResponse: Array<{folder_id: number, name: string, creator_id: number, created: string}> = [
+    {
+        folder_id: 2001,
+        name: 'Test Folder',
+        creator_id: 1001,
+        created: '2024-01-01T00:00:00Z'
+    }
+];
+
 describe('CorporationBookmarkFoldersApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
 
     it('should return corporation bookmark folders', async () => {
-        const mockResponse = [/* Mock data here */];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
         const api = new CorporationBookmarkFoldersApi(client);

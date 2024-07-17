@@ -12,13 +12,26 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
+    const mockResponse: Array<{bookmark_id: number, coordinates: {x: number, y: number, z: number}, created: string, creator_id: number, folder_id: number, item: {item_id: number, type_id: number}, location_id: number, memo: string, note: string}> = [
+        {
+            bookmark_id: 1,
+            coordinates: { x: 1.0, y: 2.0, z: 3.0 },
+            created: '2024-01-01T00:00:00Z',
+            creator_id: 1001,
+            folder_id: 2001,
+            item: { item_id: 3001, type_id: 4001 },
+            location_id: 5001,
+            memo: 'Test memo',
+            note: 'Test note'
+        }
+    ];
 describe('CharacterBookmarksApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
 
     it('should return character bookmarks', async () => {
-        const mockResponse = [/* Mock data here */];
+     
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
         const api = new CharacterBookmarksApi(client);

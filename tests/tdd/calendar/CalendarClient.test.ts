@@ -21,7 +21,7 @@ describe('CalendarClient', () => {
     });
 
     it('should return valid structure for getCalendarEvents', async () => {
-        const mockResponse = [
+        const mockResponse: { event_id: number; event_date: string; title: string; importance: number }[] = [
             {
                 event_id: 1,
                 event_date: '2024-07-01T12:00:00Z',
@@ -32,10 +32,10 @@ describe('CalendarClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result: { event_id: number; event_date: string; title: string; importance: number }[] = await calendarClient.getCalendarEvents(123456789);
+        const result = await calendarClient.getCalendarEvents(123456789);
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((event) => {
+        (result as { event_id: number; event_date: string; title: string; importance: number }[]).forEach(event => {
             expect(event).toHaveProperty('event_id');
             expect(typeof event.event_id).toBe('number');
             expect(event).toHaveProperty('event_date');
@@ -48,7 +48,7 @@ describe('CalendarClient', () => {
     });
 
     it('should return valid structure for getCalendarEventById', async () => {
-        const mockResponse = {
+        const mockResponse: { event_id: number; event_date: string; title: string; description: string } = {
             event_id: 1,
             event_date: '2024-07-01T12:00:00Z',
             title: 'Event Title',
@@ -57,7 +57,9 @@ describe('CalendarClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result: { event_id: number; event_date: string; title: string; description: string } = await calendarClient.getCalendarEventById(123456789, 1);
+       
+        const result = await calendarClient.getCalendarEventById(123456789, 1) as { event_id: number, event_date: string, title: string, description: string };
+
 
         expect(result).toHaveProperty('event_id');
         expect(typeof result.event_id).toBe('number');
@@ -78,7 +80,7 @@ describe('CalendarClient', () => {
     });
 
     it('should return valid structure for getEventAttendees', async () => {
-        const mockResponse = [
+        const mockResponse: { character_id: number; response: string }[] = [
             {
                 character_id: 123,
                 response: 'accepted'
@@ -87,10 +89,10 @@ describe('CalendarClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result: { character_id: number; response: string }[] = await calendarClient.getEventAttendees(123456789, 1);
+        const result = await calendarClient.getEventAttendees(123456789, 1);
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((attendee) => {
+        (result as { character_id: number; response: string }[]).forEach(attendee => {
             expect(attendee).toHaveProperty('character_id');
             expect(typeof attendee.character_id).toBe('number');
             expect(attendee).toHaveProperty('response');

@@ -1,5 +1,5 @@
 import { ApiClient } from '../../../src/core/ApiClient';
-import { DogmaAPIBuilder } from '../../../src/builders/DogmaAPIBuilder';
+import { DogmaAPIBuilder } from '../../../src/builders/DogmaApiBuilder';
 import { DogmaClient } from '../../../src/clients/DogmaClient';
 
 describe('DogmaAPIBuilder', () => {

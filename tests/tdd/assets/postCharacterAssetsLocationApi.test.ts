@@ -36,8 +36,10 @@ describe('PostCharacterAssetLocationsApi', () => {
 
         const result = await characterAssetLocationsApi.postCharacterAssetLocations(123456, [1234567890]);
 
+        console.log('API response:', result); // Log the result for debugging
+
         expect(Array.isArray(result)).toBe(true);
-        result.forEach(location => {
+        result.forEach((location: { item_id: number, position: { x: number, y: number, z: number } }) => {
             expect(location).toHaveProperty('item_id');
             expect(location).toHaveProperty('position');
             expect(location.position).toHaveProperty('x');

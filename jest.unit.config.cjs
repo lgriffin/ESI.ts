@@ -13,7 +13,7 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
-  testMatch: ['<rootDir>/tests/tdd/**/*.test.ts'], // Only run unit tests under tests/tdd
+  testMatch: ['<rootDir>/tests/tdd/**/*.test.ts'],
   verbose: true,
   coverageDirectory: 'coverage/unit',
   coverageReporters: ['text', 'lcov'],
@@ -22,4 +22,9 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/index.ts',
   ],
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.json',
+    },
+  },
 };
