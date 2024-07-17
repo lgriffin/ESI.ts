@@ -4,10 +4,14 @@ import logger from './logger/logger';
 
 const statusHandlers: Record<number, string> = {
     204 : 'No Content',
+    201: 'Created',
+    400: 'Bad Request',
     401: 'Authorization not provided',
     403: 'Forbidden returned',
     404: 'Resource not found',
+    429: 'Too many requests',
     500: 'Internal server error',
+    503: 'Service Unavailable',
     520: 'Internal server error, did the request terminate too soon?',
 };
 

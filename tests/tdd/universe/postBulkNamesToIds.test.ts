@@ -32,7 +32,7 @@ describe('PostBulkNamesToIdsApi', () => {
             category: string;
         };
 
-        const result = await postBulkNamesToIdsApi.postBulkNamesToIds(['Test Name', 'Another Name']) as NameToIdResponse[];
+        const result = await postBulkNamesToIdsApi.postBulkNamesToIds([1,2]) as NameToIdResponse[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((item: NameToIdResponse) => {
