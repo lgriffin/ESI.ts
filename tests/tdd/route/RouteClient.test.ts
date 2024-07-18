@@ -10,7 +10,7 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined) // Allow undefined token
+    .setAccessToken(config.authToken || undefined)
     .build();
 
 const routeClient = new RouteClient(client);
@@ -21,17 +21,18 @@ describe('RouteClient', () => {
     });
 
     it('should return valid route information from client', async () => {
-        const mockResponse = [30000142, 30000144];
+        const mockResponse = [
+            30000142,
+            30000144
+        ];
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
         const result = await routeClient.getRoute(30000142, 30000144);
 
         expect(Array.isArray(result)).toBe(true);
-        if (Array.isArray(result)) {
-            result.forEach((systemId: number) => {
-                expect(typeof systemId).toBe('number');
-            });
-        }
+        result.forEach((systemId: number) => {
+            expect(typeof systemId).toBe('number');
+        });
     });
 });

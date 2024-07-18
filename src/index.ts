@@ -18,6 +18,7 @@ import { BookmarkApiBuilder } from './builders/BookmarkApiBuilder';
 import { CalendarApiBuilder } from './builders/CalendarApiBuilder';
 import { ClonesApiBuilder } from './builders/ClonesApiBuilder';
 import { CharacterApiBuilder } from './builders/CharacterApiBuilder';
+import { ContractsApiBuilder } from './builders/ContractsApiBuilder';
 
 const config = getConfig();
 
@@ -44,6 +45,8 @@ const bookmarkClient = new BookmarkApiBuilder(client).build();
 const calendarClient = new CalendarApiBuilder(client).build();
 const clonesClient = new ClonesApiBuilder(client).build();
 const characterClient = new CharacterApiBuilder(client).build();
+const contractsClient = new ContractsApiBuilder(client).build();
+
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
 const demoAlliance = 99005338;
@@ -504,8 +507,49 @@ const testCharacterApi = async () => {
     }
 };
 
-// Add this line to call the test function
-testCharacterApi();
+const testContracts = async () => {
+    try {
+        console.log('Testing Character Contracts');
+        const characterContracts = await contractsClient.getCharacterContracts(demoCharacter);
+        console.log('Character Contracts:', characterContracts);
+
+        console.log('Testing Character Contract Bids');
+        const characterContractBids = await contractsClient.getCharacterContractBids(demoCharacter, 206732670);
+        console.log('Character Contract Bids:', characterContractBids);
+
+        console.log('Testing Character Contract Items');
+        const characterContractItems = await contractsClient.getCharacterContractItems(demoCharacter, 987654321);
+        console.log('Character Contract Items:', characterContractItems);
+
+        console.log('Testing Public Contracts');
+        const publicContracts = await contractsClient.getPublicContracts(10000001);
+        console.log('Public Contracts:', publicContracts);
+
+        console.log('Testing Public Contract Bids');
+        const publicContractBids = await contractsClient.getPublicContractBids(206732670); // update to a valid contract ID, this works right now!
+        console.log('Public Contract Bids:', publicContractBids);
+
+        console.log('Testing Public Contract Items');
+        const publicContractItems = await contractsClient.getPublicContractItems(206732670);
+        console.log('Public Contract Items:', publicContractItems);
+
+        console.log('Testing Corporation Contracts');
+        const corporationContracts = await contractsClient.getCorporationContracts(demoCorp);
+        console.log('Corporation Contracts:', corporationContracts);
+
+        console.log('Testing Corporation Contract Bids');
+        const corporationContractBids = await contractsClient.getCorporationContractBids(demoCorp, 987654321);
+        console.log('Corporation Contract Bids:', corporationContractBids);
+
+        console.log('Testing Corporation Contract Items');
+        const corporationContractItems = await contractsClient.getCorporationContractItems(demoCorp, 987654321);
+        console.log('Corporation Contract Items:', corporationContractItems);
+    } catch (error) {
+        console.error('Error testing Contracts APIs:', error);
+    }
+};
+
+
 
 
 logger.info('Testing about to begin');
@@ -527,4 +571,6 @@ logger.info('config is pointing towards ' + config.link);
 //testAssetsAPI();
 //testBookmarkAPIs();
 //testCalendarAPIs();
-testClonesAPI();
+//testClonesAPI();
+//testCharacterApi();
+testContracts();
