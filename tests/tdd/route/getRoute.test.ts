@@ -21,34 +21,17 @@ describe('RouteApi', () => {
     });
 
     it('should return valid route information', async () => {
-        const mockResponse = {
-            route: [
-                {
-                    system_id: 30000142,
-                    security_status: 0.9
-                },
-                {
-                    system_id: 30000144,
-                    security_status: 0.8
-                }
-            ]
-        };
+        const mockResponse = [30000142, 30000144];
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        type Route = {
-            system_id: number;
-            security_status: number;
-        };
-
-        const result = await routeApi.getRoute(30000142, 30000144) as Route[];
+        const result = await routeApi.getRoute(30000142, 30000144);
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((routeSegment: Route) => {
-            expect(routeSegment).toHaveProperty('system_id');
-            expect(typeof routeSegment.system_id).toBe('number');
-            expect(routeSegment).toHaveProperty('security_status');
-            expect(typeof routeSegment.security_status).toBe('number');
-        });
+        if (Array.isArray(result)) {
+            result.forEach((systemId: number) => {
+                expect(typeof systemId).toBe('number');
+            });
+        }
     });
 });

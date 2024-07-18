@@ -1,10 +1,11 @@
+import { ApiClient } from '../core/ApiClient';
 import { IncursionsApi } from '../api/incursions/getIncursions';
 
 export class IncursionsClient {
     private incursionsApi: IncursionsApi;
 
-    constructor(incursionsApi: IncursionsApi) {
-        this.incursionsApi = incursionsApi;
+    constructor(client: ApiClient) {
+        this.incursionsApi = new IncursionsApi(client);
     }
 
     async getIncursions(): Promise<any> {

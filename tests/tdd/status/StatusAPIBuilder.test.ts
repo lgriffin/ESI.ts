@@ -1,4 +1,5 @@
 import { StatusAPIBuilder } from '../../../src/builders/StatusApiBuilder';
+import { StatusClient } from '../../../src/clients/StatusClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 
@@ -14,6 +15,6 @@ describe('StatusAPIBuilder', () => {
         const builder = new StatusAPIBuilder(client);
         const statusClient = builder.build();
 
-        expect(statusClient).toBeInstanceOf(statusClient);
+        expect(statusClient).toBeInstanceOf(StatusClient);
     });
 });

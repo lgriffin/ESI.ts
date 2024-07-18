@@ -1,6 +1,7 @@
 import { BookmarkApiBuilder } from '../../../src/builders/BookmarkApiBuilder';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
+import { BookmarkClient } from '../../../src/clients/BookmarkClient';
 
 const config = getConfig();
 const client = new ApiClientBuilder()
@@ -15,6 +16,6 @@ describe('BookmarkApiBuilder', () => {
         const bookmarkClient = builder.build();
 
         expect(bookmarkClient).toBeDefined();
-        expect(bookmarkClient).toBeInstanceOf(bookmarkClient);
+        expect(bookmarkClient).toBeInstanceOf(BookmarkClient);
     });
 });

@@ -1,9 +1,10 @@
-import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { IncursionsApiBuilder } from '../../../src/builders/IncursionsApiBuilder';
+import { IncursionsClient } from '../../../src/clients/IncursionsClient';
+import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 
 describe('IncursionsApiBuilder', () => {
-    it('should build an IncursionsClient correctly', () => {
+    it('should build an IncursionsClient', () => {
         const config = getConfig();
         const client = new ApiClientBuilder()
             .setClientId(config.projectName)
@@ -11,9 +12,9 @@ describe('IncursionsApiBuilder', () => {
             .setAccessToken(config.authToken || undefined)
             .build();
 
-        const incursionsClient = new IncursionsApiBuilder(client).build();
+        const builder = new IncursionsApiBuilder(client);
+        const incursionsClient = builder.build();
 
-        expect(incursionsClient).toBeDefined();
-        expect(incursionsClient.getIncursions).toBeDefined();
+        expect(incursionsClient).toBeInstanceOf(IncursionsClient);
     });
 });

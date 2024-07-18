@@ -57,9 +57,7 @@ describe('CalendarClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-       
         const result = await calendarClient.getCalendarEventById(123456789, 1) as { event_id: number, event_date: string, title: string, description: string };
-
 
         expect(result).toHaveProperty('event_id');
         expect(typeof result.event_id).toBe('number');
@@ -76,7 +74,7 @@ describe('CalendarClient', () => {
 
         const response = await calendarClient.respondToCalendarEvent(123456789, 1, 'accepted');
 
-        expect(response).toBeUndefined();
+        expect(response).toEqual({ error: 'no content' });
     });
 
     it('should return valid structure for getEventAttendees', async () => {

@@ -1,10 +1,17 @@
 import { CorporationBookmarksApi } from '../../../src/api/bookmarks/getCorporationBookmarks';
-import { getClient } from '../../../src/config/jest/jest.setup';
+import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
+import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const client = getClient();
+const config = getConfig();
+const client = new ApiClientBuilder()
+    .setClientId(config.projectName)
+    .setLink(config.link)
+    .setAccessToken(config.authToken || undefined)
+    .build();
+
 
 const corporationBookmarksApi = new CorporationBookmarksApi(client);
 
