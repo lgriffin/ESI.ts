@@ -1,4 +1,4 @@
-import { ContractApiBuilder } from '../../../src/builders/ContractsApiBuilder';
+import { ContractsApiBuilder } from '../../../src/builders/ContractsApiBuilder';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import { ContractsClient } from '../../../src/clients/ContractsClient';
@@ -12,7 +12,7 @@ const client = new ApiClientBuilder()
 
 describe('ContractApiBuilder', () => {
     it('should build and return a ContractClient instance', () => {
-        const builder = new ContractApiBuilder(client);
+        const builder = new ContractsApiBuilder(client);
         const contractClient = builder.build();
 
         expect(contractClient).toBeInstanceOf(ContractsClient);

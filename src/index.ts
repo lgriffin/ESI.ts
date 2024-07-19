@@ -19,6 +19,7 @@ import { CalendarApiBuilder } from './builders/CalendarApiBuilder';
 import { ClonesApiBuilder } from './builders/ClonesApiBuilder';
 import { CharacterApiBuilder } from './builders/CharacterApiBuilder';
 import { ContractsApiBuilder } from './builders/ContractsApiBuilder';
+import { CorporationsApiBuilder } from './builders/CorporationsApiBuilder';
 
 const config = getConfig();
 
@@ -46,6 +47,7 @@ const calendarClient = new CalendarApiBuilder(client).build();
 const clonesClient = new ClonesApiBuilder(client).build();
 const characterClient = new CharacterApiBuilder(client).build();
 const contractsClient = new ContractsApiBuilder(client).build();
+const corporationsClient = new CorporationsApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -549,6 +551,102 @@ const testContracts = async () => {
     }
 };
 
+const testCorporations = async () => {
+    try {
+        console.log('Testing Corporation Info');
+        const corporationInfo = await corporationsClient.getCorporationInfo(123456789);
+        console.log('Corporation Info:', corporationInfo);
+
+        console.log('Testing Corporation Alliance History');
+        const allianceHistory = await corporationsClient.getCorporationAllianceHistory(123456789);
+        console.log('Alliance History:', allianceHistory);
+
+        console.log('Testing Corporation Blueprints');
+        const blueprints = await corporationsClient.getCorporationBlueprints(123456789);
+        console.log('Blueprints:', blueprints);
+
+        console.log('Testing Corporation ALSC Logs');
+        const alscLogs = await corporationsClient.getCorporationAlscLogs(123456789);
+        console.log('ALSC Logs:', alscLogs);
+
+        console.log('Testing Corporation Divisions');
+        const divisions = await corporationsClient.getCorporationDivisions(123456789);
+        console.log('Divisions:', divisions);
+
+        console.log('Testing Corporation Facilities');
+        const facilities = await corporationsClient.getCorporationFacilities(123456789);
+        console.log('Facilities:', facilities);
+
+        console.log('Testing Corporation Icon');
+        const icon = await corporationsClient.getCorporationIcon(123456789);
+        console.log('Icon:', icon);
+
+        console.log('Testing Corporation Medals');
+        const medals = await corporationsClient.getCorporationMedals(123456789);
+        console.log('Medals:', medals);
+
+        console.log('Testing Corporation Issued Medals');
+        const issuedMedals = await corporationsClient.getCorporationIssuedMedals(123456789);
+        console.log('Issued Medals:', issuedMedals);
+
+        console.log('Testing Corporation Members');
+        const members = await corporationsClient.getCorporationMembers(123456789);
+        console.log('Members:', members);
+
+        console.log('Testing Corporation Member Limit');
+        const memberLimit = await corporationsClient.getCorporationMemberLimit(123456789);
+        console.log('Member Limit:', memberLimit);
+
+        console.log('Testing Corporation Member Titles');
+        const memberTitles = await corporationsClient.getCorporationMemberTitles(123456789);
+        console.log('Member Titles:', memberTitles);
+
+        console.log('Testing Corporation Member Tracking');
+        const memberTracking = await corporationsClient.getCorporationMemberTracking(123456789);
+        console.log('Member Tracking:', memberTracking);
+
+        console.log('Testing Corporation Roles');
+        const roles = await corporationsClient.getCorporationRoles(123456789);
+        console.log('Roles:', roles);
+
+        console.log('Testing Corporation Roles History');
+        const rolesHistory = await corporationsClient.getCorporationRolesHistory(123456789);
+        console.log('Roles History:', rolesHistory);
+
+        console.log('Testing Corporation Shareholders');
+        const shareholders = await corporationsClient.getCorporationShareholders(123456789);
+        console.log('Shareholders:', shareholders);
+
+        console.log('Testing Corporation Standings');
+        const standings = await corporationsClient.getCorporationStandings(123456789);
+        console.log('Standings:', standings);
+
+        console.log('Testing Corporation Starbases');
+        const starbases = await corporationsClient.getCorporationStarbases(123456789);
+        console.log('Starbases:', starbases);
+
+        console.log('Testing Corporation Starbase Detail');
+        const starbaseDetail = await corporationsClient.getCorporationStarbaseDetail(123456789, 987654321);
+        console.log('Starbase Detail:', starbaseDetail);
+
+        console.log('Testing Corporation Structures');
+        const structures = await corporationsClient.getCorporationStructures(123456789);
+        console.log('Structures:', structures);
+
+        console.log('Testing Corporation Titles');
+        const titles = await corporationsClient.getCorporationTitles(123456789);
+        console.log('Titles:', titles);
+
+        console.log('Testing NPC Corporations');
+        const npcCorporations = await corporationsClient.getNpcCorporations();
+        console.log('NPC Corporations:', npcCorporations);
+
+    } catch (error) {
+        console.error('Error testing CorporationsClient:', error);
+    }
+
+
+};
 
 
 
@@ -573,4 +671,6 @@ logger.info('config is pointing towards ' + config.link);
 //testCalendarAPIs();
 //testClonesAPI();
 //testCharacterApi();
-testContracts();
+//testContracts();
+
+testCorporations();
