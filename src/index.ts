@@ -20,6 +20,8 @@ import { ClonesApiBuilder } from './builders/ClonesApiBuilder';
 import { CharacterApiBuilder } from './builders/CharacterApiBuilder';
 import { ContractsApiBuilder } from './builders/ContractsApiBuilder';
 import { CorporationsApiBuilder } from './builders/CorporationsApiBuilder';
+import { FittingsApiBuilder } from './builders/FittingsApiBuilder';
+import { FleetApiBuilder } from './builders/FleetApiBuilder';
 
 const config = getConfig();
 
@@ -48,6 +50,8 @@ const clonesClient = new ClonesApiBuilder(client).build();
 const characterClient = new CharacterApiBuilder(client).build();
 const contractsClient = new ContractsApiBuilder(client).build();
 const corporationsClient = new CorporationsApiBuilder(client).build();
+const fittingsClient = new FittingsApiBuilder(client).build();
+const fleetClient = new FleetApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -648,6 +652,97 @@ const testCorporations = async () => {
 
 };
 
+const testFittings = async () => {
+    try {
+  
+
+        // Test get fittings
+        console.log('Testing getCharacterFittings...');
+        const fittings = await fittingsClient.getFittings(demoCharacter);
+        console.log('Character Fittings:', fittings);
+
+        // Test create fitting
+        console.log('Testing createCharacterFitting...');
+        const newFitting = {
+            name: 'New Fitting',
+            description: 'Test fitting',
+            ship_type_id: 1234,
+            items: [
+                {
+                    type_id: 5678,
+                    quantity: 1,
+                    flag: 12
+                }
+            ]
+        };
+        const createdFitting = await fittingsClient.createFitting(demoCharacter, newFitting);
+        console.log('Created Fitting:', createdFitting);
+
+        // Test delete fitting
+        console.log('Testing deleteCharacterFitting...');
+        const fittingIdToDelete = 1; // Replace with actual fitting ID
+        await fittingsClient.deleteFitting(demoCharacter, fittingIdToDelete);
+        console.log('Deleted Fitting ID:', fittingIdToDelete);
+
+    } catch (error) {
+        console.error('Error testing fittings:', error);
+    }
+};
+
+
+export const testFleet = async () => {
+    try {
+        const characterFleetInfo = await fleetClient.getCharacterFleetInfo(1234567890);
+        console.log('Character Fleet Info:', characterFleetInfo);
+
+        const fleetInfo = await fleetClient.getFleetInformation(1234567890);
+        console.log('Fleet Info:', fleetInfo);
+
+        const updateFleetBody = { is_free_move: true };
+        const updateFleet = await fleetClient.updateFleet(1234567890, updateFleetBody);
+        console.log('Update Fleet:', updateFleet);
+
+        const fleetMembers = await fleetClient.getFleetMembers(1234567890);
+        console.log('Fleet Members:', fleetMembers);
+
+        const createFleetInvitationBody = { character_id: 123456, role: 'squad_member' };
+        const createFleetInvitation = await fleetClient.createFleetInvitation(1234567890, createFleetInvitationBody);
+        console.log('Create Fleet Invitation:', createFleetInvitation);
+
+        const kickFleetMember = await fleetClient.kickFleetMember(1234567890, 123456789);
+        console.log('Kick Fleet Member:', kickFleetMember);
+
+        const moveFleetMemberBody = { role: 'squad_member', squad_id: 1, wing_id: 2 };
+        const moveFleetMember = await fleetClient.moveFleetMember(1234567890, 123456789, moveFleetMemberBody);
+        console.log('Move Fleet Member:', moveFleetMember);
+
+        const deleteFleetSquad = await fleetClient.deleteFleetSquad(1234567890, 1);
+        console.log('Delete Fleet Squad:', deleteFleetSquad);
+
+        const renameFleetSquad = await fleetClient.renameFleetSquad(1234567890, 1, 'New Squad Name');
+        console.log('Rename Fleet Squad:', renameFleetSquad);
+
+        const fleetWings = await fleetClient.getFleetWings(1234567890);
+        console.log('Fleet Wings:', fleetWings);
+
+        const createFleetWingBody = { name: 'New Wing' };
+        const createFleetWing = await fleetClient.createFleetWing(1234567890, createFleetWingBody);
+        console.log('Create Fleet Wing:', createFleetWing);
+
+        const deleteFleetWing = await fleetClient.deleteFleetWing(1234567890, 1);
+        console.log('Delete Fleet Wing:', deleteFleetWing);
+
+        const renameFleetWing = await fleetClient.renameFleetWing(1234567890, 1, 'New Wing Name');
+        console.log('Rename Fleet Wing:', renameFleetWing);
+
+        const createFleetSquad = await fleetClient.createFleetSquad(1234567890, 1);
+        console.log('Create Fleet Squad:', createFleetSquad);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+};
+
+
 
 
 logger.info('Testing about to begin');
@@ -672,5 +767,6 @@ logger.info('config is pointing towards ' + config.link);
 //testClonesAPI();
 //testCharacterApi();
 //testContracts();
-
-testCorporations();
+//testCorporations();
+//testFittings();
+testFleet();

@@ -1,19 +1,15 @@
-import fetchMock from 'jest-fetch-mock';
 import { ApiClientBuilder } from '../../core/ApiClientBuilder';
-import { getConfig } from '../configManager'; // Adjusted the path if needed
-
-let client: any;
-
-beforeAll(() => {
-    const config = getConfig();
-
-    client = new ApiClientBuilder()
-        .setClientId(config.projectName)
-        .setLink(config.link)
-        .setAccessToken(config.authToken || undefined) // Allow undefined token
-        .build();
-});
+import { getConfig } from '../../config/configManager';
+import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
+
+const config = getConfig();
+
+const client = new ApiClientBuilder()
+    .setClientId(config.projectName)
+    .setLink(config.link)
+    .setAccessToken(config.authToken || undefined) // Allow undefined token
+    .build();
 
 export const getClient = () => client;

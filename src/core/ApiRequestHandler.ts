@@ -44,8 +44,17 @@ export const handleRequest = async (
         const response = await fetch(url, options);
         if (statusHandlers[response.status]) {
             const errorMessage = statusHandlers[response.status];
-            logger.warn(`${errorMessage} for endpoint: ${url}`);
-            return { error: errorMessage.toLowerCase() };
+            if (response.status === 204) {
+                logger.info(`${errorMessage} for endpoint: ${url}`);
+                return { error: 'no content' };
+            } else {
+                logger.warn(`${errorMessage} for endpoint: ${url}`);
+                return { error: errorMessage.toLowerCase() };
+            }
+        }
+        // Leigh to come back to this as I seem to need to declare this explicitly for some tests
+        if (response.status === 204) {
+            return { error: 'no content' };
         }
 
         if (!response.ok) {
