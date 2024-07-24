@@ -1,7 +1,7 @@
 Development Roadmap
 
 
-APIs to Implement:
+APIs to Implement: 54 to go
 
 Industry (8 APIs)
 Killmails (3 APIs)
@@ -36,5 +36,7 @@ Thourough Testing:
 Gaining ESI scopes is slowing me down, I need to revisit this with real requests to look at how it handles. Concerned about any API verb that's not a GET, this might require some refactoring as no
 doubt the return logic handling on things like PUT, POST and DELETE require something beyond what I have in place.
 
+Etags:
+returned in headers, check before a call. expose the tag perhaps?
 V 1.0.0
 Should be good to go live when all of the above are considered
