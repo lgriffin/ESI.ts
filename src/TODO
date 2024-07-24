@@ -1,0 +1,40 @@
+Development Roadmap
+
+
+APIs to Implement:
+
+Industry (8 APIs)
+Killmails (3 APIs)
+Location (3 APIs)
+Loyalty (2 APIs)
+Mail (9 APIs)
+Market (11 APIs)
+Planetary Interaction (4 APIs)
+Skills (3 APIs)
+User Iterface (5 APIs)
+Wallet (6 APIs)
+
+Models:
+Need to review the request models particularly for issues and handle that gracefully
+
+Error Codes:
+Revist with the formal Swagger details, I didn't realise this was captured there
+
+Pagination:
+Look at handling more pages, currently only 1st page returns by design. Might require a refactor of a lot of APIs but I might be able to handle this as the requestHandler level with suffix approach
+
+Caching:
+See can I / should I consider caching here
+
+Headers:
+Provide more functionality to interrogage the headers would be a good thing to do. Maybe even use it to construct a header
+
+Integration with Mock ESI data:
+Currently using a mix of my own mocks and real data. ESI Mock is a project, need to look to see can I bind against that
+
+Thourough Testing:
+Gaining ESI scopes is slowing me down, I need to revisit this with real requests to look at how it handles. Concerned about any API verb that's not a GET, this might require some refactoring as no
+doubt the return logic handling on things like PUT, POST and DELETE require something beyond what I have in place.
+
+V 1.0.0
+Should be good to go live when all of the above are considered

@@ -22,6 +22,8 @@ import { ContractsApiBuilder } from './builders/ContractsApiBuilder';
 import { CorporationsApiBuilder } from './builders/CorporationsApiBuilder';
 import { FittingsApiBuilder } from './builders/FittingsApiBuilder';
 import { FleetApiBuilder } from './builders/FleetApiBuilder';
+import { IndustryApiBuilder } from './builders/IndustryApiBuilder';
+import { KillmailsApiBuilder } from './builders/KillmailsBuilder';
 
 const config = getConfig();
 
@@ -52,6 +54,8 @@ const contractsClient = new ContractsApiBuilder(client).build();
 const corporationsClient = new CorporationsApiBuilder(client).build();
 const fittingsClient = new FittingsApiBuilder(client).build();
 const fleetClient = new FleetApiBuilder(client).build();
+const industryClient = new IndustryApiBuilder(client).build();
+const killmailsClient = new KillmailsApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -742,6 +746,72 @@ export const testFleet = async () => {
     }
 };
 
+const testIndustry = async () => {
+    const observerId = 11223344; // Replace with a valid observer ID
+
+
+    try {
+        console.log('Testing Industry APIs...');
+
+        // Test character industry jobs
+        const characterIndustryJobs = await industryClient.getCharacterIndustryJobs(demoCharacter);
+        console.log('Character Industry Jobs:', characterIndustryJobs);
+
+        // Test character mining ledger
+        const characterMiningLedger = await industryClient.getCharacterMiningLedger(demoCharacter);
+        console.log('Character Mining Ledger:', characterMiningLedger);
+
+        // Test corporation mining extractions
+        const moonExtractionTimers = await industryClient.getMoonExtractionTimers(demoCorp);
+        console.log('Moon Extraction Timers:', moonExtractionTimers);
+
+        // Test corporation mining observers
+        const corporationMiningObservers = await industryClient.getCorporationMiningObservers(demoCorp);
+        console.log('Corporation Mining Observers:', corporationMiningObservers);
+
+        // Test observed corporation mining
+        const observedCorporationMining = await industryClient.getMoonExtractionTimers(demoCorp);
+        console.log('Observed Corporation Mining:', observedCorporationMining);
+
+        // Test corporation industry jobs
+        const corporationIndustryJobs = await industryClient.getCorporationIndustryJobs(demoCorp);
+        console.log('Corporation Industry Jobs:', corporationIndustryJobs);
+
+        // Test industry facilities
+        const industryFacilities = await industryClient.getIndustryFacilities();
+        console.log('Industry Facilities:', industryFacilities);
+
+        // Test solar system cost indices
+        const solarSystemCostIndices = await industryClient.getIndustrySystems();
+        console.log('Solar System Cost Indices:', solarSystemCostIndices);
+        console.log(solarSystemCostIndices.length);
+
+    } catch (error) {
+        console.error('Error testing Industry APIs:', error);
+    }
+};
+
+const testKillmails = async () => {
+    try {
+        console.log('Testing getCharacterRecentKillmails...');
+        const characterKillmails = await killmailsClient.getCharacterRecentKillmails(demoCharacter);
+        console.log('Character Recent Killmails:', characterKillmails);
+
+        console.log('Testing getCorporationRecentKillmails...');
+        const corporationKillmails = await killmailsClient.getCorporationRecentKillmails(demoCorp);
+        console.log('Corporation Recent Killmails:', corporationKillmails);
+
+        console.log('Testing getKillmail...');
+        const killmail = await killmailsClient.getKillmail(119525756, 'abcdef1234567890');
+        console.log('Killmail:', killmail);
+
+        console.log('All Killmails API tests passed!');
+    } catch (error) {
+        console.error('Killmails API test failed:', error);
+    }
+};
+
+
 
 
 
@@ -769,4 +839,6 @@ logger.info('config is pointing towards ' + config.link);
 //testContracts();
 //testCorporations();
 //testFittings();
-testFleet();
+//testFleet();
+//testIndustry();
+testKillmails();

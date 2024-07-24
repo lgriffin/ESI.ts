@@ -9,6 +9,7 @@ const statusHandlers: Record<number, string> = {
     401: 'Authorization not provided',
     403: 'Forbidden returned',
     404: 'Resource not found',
+    422: 'Unprocessable Entity',
     429: 'Too many requests',
     500: 'Internal server error',
     503: 'Service Unavailable',
