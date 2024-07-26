@@ -24,6 +24,10 @@ import { FittingsApiBuilder } from './builders/FittingsApiBuilder';
 import { FleetApiBuilder } from './builders/FleetApiBuilder';
 import { IndustryApiBuilder } from './builders/IndustryApiBuilder';
 import { KillmailsApiBuilder } from './builders/KillmailsBuilder';
+import { LocationApiBuilder } from './builders/LocationApiBuilder';
+import { LoyaltyApiBuilder } from './builders/LoyaltyApiBuilder';
+import { PiApiBuilder } from './builders/PiApiBuilder';
+import { SkillsApiBuilder } from './builders/SkillsApiBuilder';
 
 const config = getConfig();
 
@@ -56,6 +60,10 @@ const fittingsClient = new FittingsApiBuilder(client).build();
 const fleetClient = new FleetApiBuilder(client).build();
 const industryClient = new IndustryApiBuilder(client).build();
 const killmailsClient = new KillmailsApiBuilder(client).build();
+const locationClient = new LocationApiBuilder(client).build();
+const loyaltyClient = new LoyaltyApiBuilder(client).build();
+const piClient = new PiApiBuilder(client).build();
+const skillsClient = new SkillsApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -811,9 +819,81 @@ const testKillmails = async () => {
     }
 };
 
+const testLocationApis = async () => {
+    try {
+        console.log("LOCATION TESTING");
+        const location = await locationClient.getCharacterLocation(demoCharacter);
+        console.log('Character Location:', location);
+
+        const onlineStatus = await locationClient.getCharacterOnline(demoCharacter);
+        console.log('Character Online Status:', onlineStatus);
+
+        const ship = await locationClient.getCharacterShip(demoCharacter);
+        console.log('Character Ship:', ship);
+
+    } catch (error) {
+        console.error('Error testing Location APIs:', error);
+    }
+};
 
 
+const testLoyaltyApis = async () => {
+    try {
+        const corporationId = 123;
 
+        const loyaltyPoints = await loyaltyClient.getLoyaltyPoints(demoCharacter);
+        console.log('Loyalty Points:', loyaltyPoints);
+
+        const loyaltyStoreOffers = await loyaltyClient.getLoyaltyStoreOffers(56);
+        console.log('Loyalty Store Offers:', loyaltyStoreOffers);
+
+    } catch (error) {
+        console.error('Error testing Loyalty APIs:', error);
+    }
+};
+
+
+const testPI = async () => {
+
+    try {
+        console.log('Testing getColonies...');
+        const colonies = await piClient.getColonies(demoCharacter);
+        console.log('Colonies:', colonies);
+
+        console.log('Testing getColonyLayout...');
+        const colonyLayout = await piClient.getColonyLayout(demoCharacter, 123);
+        console.log('Colony Layout:', colonyLayout);
+
+        console.log('Testing getCorporationCustomsOffices...');
+        const customsOffices = await piClient.getCorporationCustomsOffices(demoCorp);
+        console.log('Customs Offices:', customsOffices);
+
+        console.log('Testing getSchematicInformation...');
+        const schematicInformation = await piClient.getSchematicInformation(1);
+        console.log('Schematic Information:', schematicInformation);
+
+    } catch (error) {
+        console.error('Error testing PI APIs:', error);
+    }
+};
+
+const testCharacterSkills = async () => {
+       try {
+        console.log('Testing getCharacterAttributes...');
+        const attributes = await skillsClient.getCharacterAttributes(demoCharacter);
+        console.log('Attributes:', attributes);
+
+        console.log('Testing getCharacterSkillQueue...');
+        const skillQueue = await skillsClient.getCharacterSkillQueue(demoCharacter);
+        console.log('Skill Queue:', skillQueue);
+
+        console.log('Testing getCharacterSkills...');
+        const skills = await skillsClient.getCharacterSkills(demoCharacter);
+        console.log('Skills:', skills);
+    } catch (error) {
+        console.error('Error testing Character Skills APIs:', error);
+    }
+};
 
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
@@ -841,4 +921,8 @@ logger.info('config is pointing towards ' + config.link);
 //testFittings();
 //testFleet();
 //testIndustry();
-testKillmails();
+//testKillmails();
+//testLocationApis();
+//testLoyaltyApis();
+//testPI();
+testCharacterSkills();

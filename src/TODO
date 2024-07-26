@@ -1,18 +1,14 @@
 Development Roadmap
 
 
-APIs to Implement:
-
-Industry (8 APIs)
-Killmails (3 APIs)
-Location (3 APIs)
-Loyalty (2 APIs)
+APIs to Implement: 31
 Mail (9 APIs)
 Market (11 APIs)
-Planetary Interaction (4 APIs)
-Skills (3 APIs)
 User Iterface (5 APIs)
 Wallet (6 APIs)
+
+Authentication Issue:
+Need to flag what API end points need auth, this would either be a large refactor to pass in a boolean or would be a spec file we pull from to say API X needs auth
 
 Models:
 Need to review the request models particularly for issues and handle that gracefully
@@ -27,7 +23,7 @@ Caching:
 See can I / should I consider caching here
 
 Headers:
-Provide more functionality to interrogage the headers would be a good thing to do. Maybe even use it to construct a header
+Provide more functionality to interrogage the headers would be a good thing to do. Maybe even use it to construct a header, this is only lightly there in the Handler at present
 
 Integration with Mock ESI data:
 Currently using a mix of my own mocks and real data. ESI Mock is a project, need to look to see can I bind against that

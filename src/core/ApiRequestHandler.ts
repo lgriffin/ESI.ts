@@ -21,11 +21,14 @@ export const handleRequest = async (
     endpoint: string,
     method: string = 'GET',
     body?: string,
-    requiresAuth: boolean = false
+    requiresAuth: boolean = false  //false by default
 ): Promise<any> => {
     const url = `${client.getLink()}/${endpoint}`;
     const headers: HeadersInit = {};
     const authHeader = client.getAuthorizationHeader();
+   // console.log(headers); //this is just the init above as {} so we aren't getting the servers understanding of whether auth is needed or not and we shuold build this header up later
+   // console.log(authHeader);
+    // this will always fail as requiresAuth never gets set from the headers
     if (requiresAuth && authHeader) {
         headers['Authorization'] = authHeader;
     }
