@@ -2,13 +2,14 @@ Development Roadmap
 
 
 APIs to Implement: 31
-Mail (9 APIs)
 Market (11 APIs)
-User Iterface (5 APIs)
 Wallet (6 APIs)
 
 Authentication Issue:
 Need to flag what API end points need auth, this would either be a large refactor to pass in a boolean or would be a spec file we pull from to say API X needs auth
+
+API Verb
+Not all passing in GET using the defaults in apirequesthandler which isn't clean
 
 Models:
 Need to review the request models particularly for issues and handle that gracefully

@@ -28,6 +28,8 @@ import { LocationApiBuilder } from './builders/LocationApiBuilder';
 import { LoyaltyApiBuilder } from './builders/LoyaltyApiBuilder';
 import { PiApiBuilder } from './builders/PiApiBuilder';
 import { SkillsApiBuilder } from './builders/SkillsApiBuilder';
+import { MailApiBuilder } from './builders/MailApiBuilder';
+import { UiApiBuilder } from './builders/UiApiBuilder';
 
 const config = getConfig();
 
@@ -64,6 +66,8 @@ const locationClient = new LocationApiBuilder(client).build();
 const loyaltyClient = new LoyaltyApiBuilder(client).build();
 const piClient = new PiApiBuilder(client).build();
 const skillsClient = new SkillsApiBuilder(client).build();
+const mailClient = new MailApiBuilder(client).build();
+const uiClient = new UiApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -895,6 +899,97 @@ const testCharacterSkills = async () => {
     }
 };
 
+const testMailApis = async () => {
+    try {
+        console.log('Testing getMailHeaders...');
+        const headers = await mailClient.getMailHeaders(demoCharacter);
+        console.log('Mail headers:', headers);
+
+        console.log('Testing sendMail...');
+        const newMailBody = {
+            recipients: [{ recipient_id: 123, recipient_type: 'character' }],
+            subject: 'Test Mail',
+            body: 'This is a test mail'
+        };
+        const sentMail = await mailClient.sendMail(demoCharacter, newMailBody);
+        console.log('Sent mail:', sentMail);
+
+        console.log('Testing deleteMail...');
+        const deleteMailResult = await mailClient.deleteMail(demoCharacter, 1);
+        console.log('Deleted mail:', deleteMailResult);
+
+        console.log('Testing getMail...');
+        const mail = await mailClient.getMail(demoCharacter, 1);
+        console.log('Mail:', mail);
+
+        console.log('Testing updateMailMetadata...');
+        const updateMailBody = {
+            labels: [1, 2],
+            read: true
+        };
+        const updateMailResult = await mailClient.updateMailMetadata(demoCharacter, 1, updateMailBody);
+        console.log('Updated mail metadata:', updateMailResult);
+
+        console.log('Testing getMailLabels...');
+        const labels = await mailClient.getMailLabels(demoCharacter);
+        console.log('Mail labels and unread counts:', labels);
+
+        console.log('Testing createMailLabel...');
+        const newLabelBody = {
+            name: 'New Label'
+        };
+        const createdLabel = await mailClient.createMailLabel(demoCharacter, newLabelBody);
+        console.log('Created mail label:', createdLabel);
+
+        console.log('Testing deleteMailLabel...');
+        const deleteLabelResult = await mailClient.deleteMailLabel(demoCharacter, 1);
+        console.log('Deleted mail label:', deleteLabelResult);
+
+        console.log('Testing getMailingLists...');
+        const mailingLists = await mailClient.getMailingLists(demoCharacter);
+        console.log('Mailing lists:', mailingLists);
+
+    } catch (error) {
+        console.error('Error testing Mail APIs:', error);
+    }
+};
+
+const testUIClient = async () => {
+    console.log('Testing setAutopilotWaypoint');
+    const autopilotResponse = await uiClient.setAutopilotWaypoint({
+        destination_id: 30002505,
+        clear_other_waypoints: true,
+        add_to_beginning: false
+    });
+    console.log('setAutopilotWaypoint Response:', autopilotResponse);
+
+    console.log('Testing openContractWindow');
+    const contractWindowResponse = await uiClient.openContractWindow({
+        contract_id: 123456789
+    });
+    console.log('openContractWindow Response:', contractWindowResponse);
+
+    console.log('Testing openInformationWindow');
+    const informationWindowResponse = await uiClient.openInformationWindow({
+        target_id: 123456789
+    });
+    console.log('openInformationWindow Response:', informationWindowResponse);
+
+    console.log('Testing openMarketDetailsWindow');
+    const marketDetailsWindowResponse = await uiClient.openMarketDetailsWindow({
+        type_id: 123456
+    });
+    console.log('openMarketDetailsWindow Response:', marketDetailsWindowResponse);
+
+    console.log('Testing openNewMailWindow');
+    const newMailWindowResponse = await uiClient.openNewMailWindow({
+        to: [123456789],
+        subject: 'Test Subject',
+        body: 'Test Body'
+    });
+    console.log('openNewMailWindow Response:', newMailWindowResponse);
+};
+
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
@@ -925,4 +1020,6 @@ logger.info('config is pointing towards ' + config.link);
 //testLocationApis();
 //testLoyaltyApis();
 //testPI();
-testCharacterSkills();
+//testCharacterSkills();
+//testMailApis();
+testUIClient();
