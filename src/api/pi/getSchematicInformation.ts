@@ -5,6 +5,6 @@ export class GetSchematicInformationApi {
     constructor(private client: ApiClient) {}
 
     async getSchematicInformation(schematicId: number): Promise<any> {
-        return handleRequest(this.client, `universe/schematics/${schematicId}`);
+        return handleRequest(this.client, `universe/schematics/${schematicId}`, 'GET', undefined, false);
     }
 }

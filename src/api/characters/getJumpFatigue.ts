@@ -5,6 +5,6 @@ export class GetJumpFatigueApi {
     constructor(private client: ApiClient) {}
 
     async getJumpFatigue(characterId: number): Promise<object> {
-        return await handleRequest(this.client, `characters/${characterId}/fatigue/`);
+        return await handleRequest(this.client, `characters/${characterId}/fatigue/`, 'GET', undefined, true);
     }
 }

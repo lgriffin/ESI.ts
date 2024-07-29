@@ -5,6 +5,6 @@ export class GetCorporationMemberTrackingApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationMemberTracking(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/membertracking`);
+        return handleRequest(this.client, `corporations/${corporationId}/membertracking`, 'GET', undefined, true);
     }
 }

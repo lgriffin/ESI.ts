@@ -5,6 +5,6 @@ export class GetCorporationContractBidsApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationContractBids(corporationId: number, contractId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/contracts/${contractId}/bids`);
+        return handleRequest(this.client, `corporations/${corporationId}/contracts/${contractId}/bids`, 'GET', undefined, true);
     }
 }

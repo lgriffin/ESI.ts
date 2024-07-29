@@ -5,6 +5,6 @@ export class GetCharacterSkillQueueApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterSkillQueue(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/skillqueue`);
+        return handleRequest(this.client, `characters/${characterId}/skillqueue`, 'GET', undefined, true);
     }
 }

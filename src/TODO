@@ -4,6 +4,8 @@ Development Roadmap
 APIs to Implement: 31
 Market (11 APIs)
 Wallet (6 APIs)
+Contacts (9 APIs)
+Faction Warfare (needs a refactor for more granularity)
 
 Authentication Issue:
 Need to flag what API end points need auth, this would either be a large refactor to pass in a boolean or would be a spec file we pull from to say API X needs auth
@@ -11,7 +13,7 @@ This is an oversight on my part we do pass the boolean in but I forgot it on sev
 this is an easy fix and tests will break
 
 API Verb
-Not all passing in GET using the defaults in apirequesthandler which isn't clean
+Not all passing in GET using the defaults in apirequesthandler which isn't clean. Handled this now but need to recheck the , undefined paramater and make sure its the right way instead of using JSON.stringify(object)
 
 Models:
 Need to review the request models particularly for issues and handle that gracefully
@@ -39,3 +41,7 @@ Etags:
 returned in headers, check before a call. expose the tag perhaps?
 V 1.0.0
 Should be good to go live when all of the above are considered
+
+API Consistency
+Used the older format revisit it same with Search
+Status also has a weird implementation to revist

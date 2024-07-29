@@ -9,6 +9,6 @@ export class PostCharacterAssetLocationsApi {
     }
 
     async postCharacterAssetLocations(characterId: number, itemIds: number[]): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/assets/locations/`, 'POST', JSON.stringify({ item_ids: itemIds }));
+        return handleRequest(this.client, `characters/${characterId}/assets/locations/`, 'POST', JSON.stringify({ item_ids: itemIds }),true);
     }
 }

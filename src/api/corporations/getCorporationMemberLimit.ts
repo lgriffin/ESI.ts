@@ -5,6 +5,6 @@ export class GetCorporationMemberLimitApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationMemberLimit(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/members/limit`);
+        return handleRequest(this.client, `corporations/${corporationId}/members/limit`, 'GET', undefined, true);
     }
 }

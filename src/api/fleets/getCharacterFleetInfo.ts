@@ -5,6 +5,6 @@ export class GetCharacterFleetInfoApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterFleetInfo(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/fleet`);
+        return handleRequest(this.client, `characters/${characterId}/fleet`, 'GET', undefined, true);
     }
 }

@@ -5,6 +5,6 @@ export class GetCorporationIconApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationIcon(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/icons`);
+        return handleRequest(this.client, `corporations/${corporationId}/icons`, 'GET', undefined, false);
     }
 }

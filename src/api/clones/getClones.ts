@@ -6,6 +6,6 @@ export class GetClonesApi {
 
     async getClones(characterId: number): Promise<any> {
         const endpoint = `characters/${characterId}/clones`;
-        return await handleRequest(this.client, endpoint);
+        return await handleRequest(this.client, endpoint, 'GET', undefined, true);
     }
 }

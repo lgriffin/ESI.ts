@@ -5,6 +5,6 @@ export class GetCharacterLocationApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterLocation(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/location`);
+        return handleRequest(this.client, `characters/${characterId}/location`, 'GET', undefined, true);
     }
 }

@@ -5,6 +5,6 @@ export class GetBlueprintsApi {
     constructor(private client: ApiClient) {}
 
     async getBlueprints(characterId: number): Promise<object[]> {
-        return await handleRequest(this.client, `characters/${characterId}/blueprints/`);
+        return await handleRequest(this.client, `characters/${characterId}/blueprints/`, 'GET', undefined, true);
     }
 }

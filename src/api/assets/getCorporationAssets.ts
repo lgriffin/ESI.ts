@@ -9,6 +9,6 @@ export class GetCorporationAssetsApi {
     }
 
     async getCorporationAssets(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/assets/`);
+        return handleRequest(this.client, `corporations/${corporationId}/assets/`, 'GET', undefined, true);
     }
 }

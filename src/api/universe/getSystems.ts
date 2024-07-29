@@ -5,6 +5,6 @@ export class UniverseSystemsApi {
     constructor(private client: ApiClient) {}
 
     async getSystems(): Promise<number[]> {
-        return handleRequest(this.client, `universe/systems`);
+        return handleRequest(this.client, `universe/systems`, 'GET', undefined, false);
     }
 }

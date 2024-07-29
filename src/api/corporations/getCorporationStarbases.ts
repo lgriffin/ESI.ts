@@ -5,6 +5,6 @@ export class GetCorporationStarbasesApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationStarbases(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/starbases`);
+        return handleRequest(this.client, `corporations/${corporationId}/starbases`, 'GET', undefined, true);
     }
 }

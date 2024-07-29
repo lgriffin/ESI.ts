@@ -5,6 +5,6 @@ export class GetColoniesApi {
     constructor(private client: ApiClient) {}
 
     async getColonies(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/planets`);
+        return handleRequest(this.client, `characters/${characterId}/planets`, 'GET', undefined, true);
     }
 }

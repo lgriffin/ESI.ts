@@ -5,6 +5,6 @@ export class GetFleetWingsApi {
     constructor(private client: ApiClient) {}
 
     async getFleetWings(fleetId: number): Promise<any> {
-        return handleRequest(this.client, `fleets/${fleetId}/wings/`);
+        return handleRequest(this.client, `fleets/${fleetId}/wings/`, 'GET', undefined, true);
     }
 }

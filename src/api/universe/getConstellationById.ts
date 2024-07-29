@@ -5,6 +5,6 @@ export class UniverseConstellationByIdApi {
     constructor(private client: ApiClient) {}
 
     async getConstellationById(constellationId: number): Promise<object> {
-        return handleRequest(this.client, `universe/constellations/${constellationId}`);
+        return handleRequest(this.client, `universe/constellations/${constellationId}`, 'GET', undefined, false);
     }
 }

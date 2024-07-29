@@ -5,6 +5,6 @@ export class CorporationBookmarkFoldersApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationBookmarkFolders(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/bookmarks/folders`);
+        return handleRequest(this.client, `corporations/${corporationId}/bookmarks/folders`, 'GET', undefined, true);
     }
 }

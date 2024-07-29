@@ -5,6 +5,6 @@ export class GetPublicContractItemsApi {
     constructor(private client: ApiClient) {}
 
     async getPublicContractItems(contractId: number): Promise<any> {
-        return handleRequest(this.client, `contracts/public/items/${contractId}`);
+        return handleRequest(this.client, `contracts/public/items/${contractId}`, 'GET', undefined, false);
     }
 }

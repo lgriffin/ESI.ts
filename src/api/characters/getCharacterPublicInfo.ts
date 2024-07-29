@@ -5,6 +5,6 @@ export class GetCharacterPublicInfoApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterPublicInfo(characterId: number): Promise<object> {
-        return await handleRequest(this.client, `characters/${characterId}/`);
+        return await handleRequest(this.client, `characters/${characterId}/`, 'GET', undefined, false);
     }
 }

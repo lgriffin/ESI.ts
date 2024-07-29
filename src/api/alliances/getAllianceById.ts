@@ -5,6 +5,6 @@ export class AllianceByIdApi {
     constructor(private client: ApiClient) {}
 
     async getAllianceById(allianceId: number): Promise<object> {
-        return await handleRequest(this.client, `alliances/${allianceId}/`);
+        return await handleRequest(this.client, `alliances/${allianceId}/`, 'GET', undefined, false);
     }
 }

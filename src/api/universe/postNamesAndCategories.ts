@@ -10,6 +10,6 @@ export class PostNamesAndCategoriesApi {
 
     async postNamesAndCategories(ids: number[]): Promise<any> {
         const payload = JSON.stringify({ ids });
-        return await handleRequest(this.client, 'universe/names', 'POST', payload);
+        return await handleRequest(this.client, 'universe/names', 'POST', payload,false);
     }
 }

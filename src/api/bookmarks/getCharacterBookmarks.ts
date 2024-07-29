@@ -5,6 +5,6 @@ export class CharacterBookmarksApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterBookmarks(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/bookmarks`);
+        return handleRequest(this.client, `characters/${characterId}/bookmarks`, 'GET', undefined, true);
     }
 }

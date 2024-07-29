@@ -5,6 +5,6 @@ export class GetCorporationAlscLogsApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationAlscLogs(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/containers/logs`);
+        return handleRequest(this.client, `corporations/${corporationId}/containers/logs`, 'GET', undefined, true);
     }
 }

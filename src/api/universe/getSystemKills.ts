@@ -5,6 +5,6 @@ export class UniverseSystemKillsApi {
     constructor(private client: ApiClient) {}
 
     async getSystemKills(): Promise<object[]> {
-        return handleRequest(this.client, `universe/system_kills`);
+        return handleRequest(this.client, `universe/system_kills`, 'GET', undefined, false);
     }
 }

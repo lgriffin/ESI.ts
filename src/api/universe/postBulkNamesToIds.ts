@@ -10,6 +10,6 @@ export class PostBulkNamesToIdsApi {
 
     async postBulkNamesToIds(ids: number[]): Promise<any> {
         const payload = JSON.stringify({ ids });
-        return await handleRequest(this.client, 'universe/ids', 'POST', payload);
+        return await handleRequest(this.client, 'universe/ids', 'POST', payload,false);
     }
 }

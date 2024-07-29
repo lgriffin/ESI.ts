@@ -5,6 +5,6 @@ export class GetCorporationMiningObserversApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationMiningObservers(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporation/${corporationId}/mining/observers`);
+        return handleRequest(this.client, `corporation/${corporationId}/mining/observers`, 'GET', undefined, true);
     }
 }

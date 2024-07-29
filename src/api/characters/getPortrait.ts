@@ -5,6 +5,6 @@ export class GetPortraitApi {
     constructor(private client: ApiClient) {}
 
     async getPortrait(characterId: number): Promise<object> {
-        return await handleRequest(this.client, `characters/${characterId}/portrait/`);
+        return await handleRequest(this.client, `characters/${characterId}/portrait/`, 'GET', undefined, false);
     }
 }

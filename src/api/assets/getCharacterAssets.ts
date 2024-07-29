@@ -9,6 +9,6 @@ export class GetCharacterAssetsApi {
     }
 
     async getCharacterAssets(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/assets/`);
+        return handleRequest(this.client, `characters/${characterId}/assets/`, 'GET', undefined, true);
     }
 }

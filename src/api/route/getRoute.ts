@@ -9,6 +9,6 @@ export class RouteApi {
     }
 
     async getRoute(origin: number, destination: number): Promise<object> {
-        return handleRequest(this.client, `route/${origin}/${destination}`);
+        return handleRequest(this.client, `route/${origin}/${destination}`, 'GET', undefined, false);
     }
 }

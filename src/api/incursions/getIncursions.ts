@@ -9,6 +9,6 @@ export class IncursionsApi {
     }
 
     async getIncursions(): Promise<any> {
-        return handleRequest(this.client, 'incursions');
+        return handleRequest(this.client, 'incursions', 'GET', undefined, false);
     }
 }

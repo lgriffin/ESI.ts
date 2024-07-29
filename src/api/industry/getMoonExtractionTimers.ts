@@ -5,6 +5,6 @@ export class GetMoonExtractionTimersApi {
     constructor(private client: ApiClient) {}
 
     async getMoonExtractionTimers(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporation/${corporationId}/mining/extractions`);
+        return handleRequest(this.client, `corporation/${corporationId}/mining/extractions`, 'GET', undefined, true);
     }
 }

@@ -5,6 +5,6 @@ export class UniverseItemGroupsApi {
     constructor(private client: ApiClient) {}
 
     async getItemGroups(): Promise<object[]> {
-        return handleRequest(this.client, 'universe/groups');
+        return handleRequest(this.client, 'universe/groups', 'GET', undefined, false);
     }
 }

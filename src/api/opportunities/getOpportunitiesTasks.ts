@@ -5,6 +5,6 @@ export class GetOpportunitiesTasksApi {
     constructor(private client: ApiClient) {}
 
     async getOpportunitiesTasks(): Promise<any> {
-        return await handleRequest(this.client, 'opportunities/tasks');
+        return await handleRequest(this.client, 'opportunities/tasks', 'GET', undefined, true);
     }
 }

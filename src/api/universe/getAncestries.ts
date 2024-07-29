@@ -5,6 +5,6 @@ export class UniverseAncestriesApi {
     constructor(private client: ApiClient) {}
 
     async getAncestries(): Promise<object[]> {
-        return handleRequest(this.client, 'universe/ancestries');
+        return handleRequest(this.client, 'universe/ancestries', 'GET', undefined, false);
     }
 }

@@ -5,6 +5,6 @@ export class UniverseRegionByIdApi {
     constructor(private client: ApiClient) {}
 
     async getRegionById(regionId: number): Promise<object> {
-        return handleRequest(this.client, `universe/regions/${regionId}`);
+        return handleRequest(this.client, `universe/regions/${regionId}`, 'GET', undefined, false);
     }
 }

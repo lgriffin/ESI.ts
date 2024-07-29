@@ -5,6 +5,6 @@ export class SovereigntyCampaignsApi {
     constructor(private client: ApiClient) {}
 
     async getSovereigntyCampaigns(): Promise<any> {
-        return handleRequest(this.client, 'sovereignty/campaigns');
+        return handleRequest(this.client, 'sovereignty/campaigns', 'GET', undefined, false);
     }
 }

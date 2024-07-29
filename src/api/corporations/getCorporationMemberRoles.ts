@@ -5,6 +5,6 @@ export class GetCorporationMemberRolesApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationMemberRoles(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/roles`);
+        return handleRequest(this.client, `corporations/${corporationId}/roles`, 'GET', undefined, true);
     }
 }

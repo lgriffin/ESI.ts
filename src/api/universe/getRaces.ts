@@ -5,6 +5,6 @@ export class UniverseRacesApi {
     constructor(private client: ApiClient) {}
 
     async getRaces(): Promise<object[]> {
-        return handleRequest(this.client, 'universe/races');
+        return handleRequest(this.client, 'universe/races', 'GET', undefined, false);
     }
 }

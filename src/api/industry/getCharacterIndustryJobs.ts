@@ -5,6 +5,6 @@ export class GetCharacterIndustryJobsApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterIndustryJobs(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/industry/jobs`);
+        return handleRequest(this.client, `characters/${characterId}/industry/jobs`, 'GET', undefined, true);
     }
 }

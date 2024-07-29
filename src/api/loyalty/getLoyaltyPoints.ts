@@ -5,6 +5,6 @@ export class GetLoyaltyPointsApi {
     constructor(private client: ApiClient) {}
 
     async getLoyaltyPoints(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/loyalty/points`);
+        return handleRequest(this.client, `characters/${characterId}/loyalty/points`, 'GET', undefined, true);
     }
 }

@@ -5,6 +5,6 @@ export class DeleteFleetSquadApi {
     constructor(private client: ApiClient) {}
 
     async deleteFleetSquad(fleetId: number, squadId: number): Promise<any> {
-        return handleRequest(this.client, `fleets/${fleetId}/squads/${squadId}/`, 'DELETE');
+        return handleRequest(this.client, `fleets/${fleetId}/squads/${squadId}/`, 'DELETE', undefined, true);
     }
 }

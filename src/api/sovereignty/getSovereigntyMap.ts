@@ -5,6 +5,6 @@ export class SovereigntyMapApi {
     constructor(private client: ApiClient) {}
 
     async getSovereigntyMap(): Promise<any> {
-        return handleRequest(this.client, 'sovereignty/map');
+        return handleRequest(this.client, 'sovereignty/map', 'GET', undefined, false);
     }
 }

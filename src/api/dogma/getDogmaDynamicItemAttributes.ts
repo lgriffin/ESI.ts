@@ -6,6 +6,6 @@ export class DogmaDynamicItemApi {
     constructor(private client: ApiClient) {}
 
     async getDynamicItemInfo(typeId: number, itemId: number): Promise<any> {
-        return handleRequest(this.client, `dogma/dynamic/items/${typeId}/${itemId}`);
+        return handleRequest(this.client, `dogma/dynamic/items/${typeId}/${itemId}`, 'GET', undefined, false);
     }
 }

@@ -5,6 +5,6 @@ export class GetIndustryFacilitiesApi {
     constructor(private client: ApiClient) {}
 
     async getIndustryFacilities(): Promise<any> {
-        return handleRequest(this.client, `industry/facilities`);
+        return handleRequest(this.client, `industry/facilities`, 'GET', undefined, false);
     }
 }

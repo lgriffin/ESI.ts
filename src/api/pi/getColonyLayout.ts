@@ -5,6 +5,6 @@ export class GetColonyLayoutApi {
     constructor(private client: ApiClient) {}
 
     async getColonyLayout(characterId: number, planetId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/planets/${planetId}`);
+        return handleRequest(this.client, `characters/${characterId}/planets/${planetId}`, 'GET', undefined, true);
     }
 }

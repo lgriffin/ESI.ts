@@ -6,6 +6,6 @@ export class DogmaAttributeByIdApi {
     constructor(private client: ApiClient) {}
 
     async getAttributeById(attributeId: number): Promise<any> {
-        return handleRequest(this.client, `dogma/attributes/${attributeId}`);
+        return handleRequest(this.client, `dogma/attributes/${attributeId}`, 'GET', undefined, false);
     }
 }

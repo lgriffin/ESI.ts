@@ -5,6 +5,6 @@ export class UniverseBloodlinesApi {
     constructor(private client: ApiClient) {}
 
     async getBloodlines(): Promise<object[]> {
-        return handleRequest(this.client, 'universe/bloodlines');
+        return handleRequest(this.client, 'universe/bloodlines', 'GET', undefined, false);
     }
 }

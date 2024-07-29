@@ -5,6 +5,6 @@ export class UniverseCategoryByIdApi {
     constructor(private client: ApiClient) {}
 
     async getCategoryById(categoryId: number): Promise<object> {
-        return handleRequest(this.client, `universe/categories/${categoryId}`);
+        return handleRequest(this.client, `universe/categories/${categoryId}`, 'GET', undefined, false);
     }
 }

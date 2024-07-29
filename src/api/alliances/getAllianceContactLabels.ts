@@ -6,6 +6,6 @@ export class AllianceContactLabelsApi {
     constructor(private client: ApiClient) {}
 
     async getAllianceContactLabels(allianceId: number): Promise<object[]> {
-        return handleRequest(this.client, `alliances/${allianceId}/contacts/labels`);
+        return handleRequest(this.client, `alliances/${allianceId}/contacts/labels`, 'GET', undefined, false);
     }
 }

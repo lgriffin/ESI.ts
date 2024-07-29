@@ -5,6 +5,6 @@ export class GetCharacterRecentKillmailsApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterRecentKillmails(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/killmails/recent`);
+        return handleRequest(this.client, `characters/${characterId}/killmails/recent`, 'GET', undefined, true);
     }
 }

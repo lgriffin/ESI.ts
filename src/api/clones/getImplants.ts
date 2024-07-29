@@ -6,6 +6,6 @@ export class GetImplantsApi {
 
     async getImplants(characterId: number): Promise<any> {
         const endpoint = `characters/${characterId}/implants`;
-        return await handleRequest(this.client, endpoint);
+        return await handleRequest(this.client, endpoint, 'GET', undefined, true);
     }
 }

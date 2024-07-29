@@ -5,6 +5,6 @@ export class GetNotificationsApi {
     constructor(private client: ApiClient) {}
 
     async getNotifications(characterId: number): Promise<object[]> {
-        return await handleRequest(this.client, `characters/${characterId}/notifications/`);
+        return await handleRequest(this.client, `characters/${characterId}/notifications/`, 'GET', undefined, true);
     }
 }

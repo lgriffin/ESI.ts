@@ -5,6 +5,6 @@ export class UniverseStarByIdApi {
     constructor(private client: ApiClient) {}
 
     async getStarById(starId: number): Promise<object> {
-        return handleRequest(this.client, `universe/stars/${starId}`);
+        return handleRequest(this.client, `universe/stars/${starId}`, 'GET', undefined, false);
     }
 }

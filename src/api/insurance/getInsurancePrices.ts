@@ -5,6 +5,6 @@ export class InsuranceApi {
     constructor(private client: ApiClient) {}
 
     async getInsurancePrices(): Promise<any> {
-        return handleRequest(this.client, 'insurance/prices');
+        return handleRequest(this.client, 'insurance/prices', 'GET', undefined, false);
     }
 }

@@ -6,6 +6,6 @@ export class DogmaEffectsApi {
     constructor(private client: ApiClient) {}
 
     async getEffects(): Promise<any> {
-        return handleRequest(this.client, 'dogma/effects');
+        return handleRequest(this.client, 'dogma/effects', 'GET', undefined, false);
     }
 }

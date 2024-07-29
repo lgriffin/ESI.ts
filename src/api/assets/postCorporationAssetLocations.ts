@@ -9,6 +9,6 @@ export class PostCorporationAssetLocationsApi {
     }
 
     async postCorporationAssetLocations(corporationId: number, itemIds: number[]): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/assets/locations/`, 'POST', JSON.stringify({ item_ids: itemIds }));
+        return handleRequest(this.client, `corporations/${corporationId}/assets/locations/`, 'POST', JSON.stringify({ item_ids: itemIds }),true);
     }
 }

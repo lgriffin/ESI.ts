@@ -5,6 +5,6 @@ export class GetCorporationMedalsApi {
     constructor(private client: ApiClient) {}
 
     async getCorporationMedals(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `corporations/${corporationId}/medals`);
+        return handleRequest(this.client, `corporations/${corporationId}/medals`, 'GET', undefined, true);
     }
 }

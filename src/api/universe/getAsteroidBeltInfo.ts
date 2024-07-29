@@ -5,6 +5,6 @@ export class UniverseAsteroidBeltApi {
     constructor(private client: ApiClient) {}
 
     async getAsteroidBeltInfo(asteroidBeltId: number): Promise<object> {
-        return handleRequest(this.client, `universe/asteroid_belts/${asteroidBeltId}`);
+        return handleRequest(this.client, `universe/asteroid_belts/${asteroidBeltId}`, 'GET', undefined, false);
     }
 }

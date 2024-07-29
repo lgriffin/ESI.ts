@@ -5,6 +5,6 @@ export class GetMedalsApi {
     constructor(private client: ApiClient) {}
 
     async getMedals(characterId: number): Promise<object[]> {
-        return await handleRequest(this.client, `characters/${characterId}/medals/`);
+        return await handleRequest(this.client, `characters/${characterId}/medals/`, 'GET', undefined, true);
     }
 }

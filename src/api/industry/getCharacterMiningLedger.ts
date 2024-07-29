@@ -5,6 +5,6 @@ export class GetCharacterMiningLedgerApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterMiningLedger(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/mining`);
+        return handleRequest(this.client, `characters/${characterId}/mining`, 'GET', undefined, true);
     }
 }

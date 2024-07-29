@@ -5,6 +5,6 @@ export class GetCharacterAttributesApi {
     constructor(private client: ApiClient) {}
 
     async getCharacterAttributes(characterId: number): Promise<any> {
-        return handleRequest(this.client, `characters/${characterId}/attributes`);
+        return handleRequest(this.client, `characters/${characterId}/attributes`, 'GET', undefined, true);
     }
 }

@@ -5,6 +5,6 @@ export class GetKillmailApi {
     constructor(private client: ApiClient) {}
 
     async getKillmail(killmailId: number, killmailHash: string): Promise<any> {
-        return handleRequest(this.client, `killmails/${killmailId}/${killmailHash}`);
+        return handleRequest(this.client, `killmails/${killmailId}/${killmailHash}`, 'GET', undefined, false);
     }
 }

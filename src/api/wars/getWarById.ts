@@ -5,6 +5,6 @@ export class WarByIdApi {
     constructor(private client: ApiClient) {}
 
     async getWarById(warId: number): Promise<object> {
-        return handleRequest(this.client, `wars/${warId}`);
+        return handleRequest(this.client, `wars/${warId}`, 'GET', undefined, false);
     }
 }

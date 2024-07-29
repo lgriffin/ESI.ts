@@ -5,6 +5,6 @@ export class GetLoyaltyStoreOffersApi {
     constructor(private client: ApiClient) {}
 
     async getLoyaltyStoreOffers(corporationId: number): Promise<any> {
-        return handleRequest(this.client, `loyalty/stores/${corporationId}/offers`);
+        return handleRequest(this.client, `loyalty/stores/${corporationId}/offers`, 'GET', undefined, false);
     }
 }
