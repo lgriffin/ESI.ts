@@ -32,6 +32,8 @@ import { MailApiBuilder } from './builders/MailApiBuilder';
 import { UiApiBuilder } from './builders/UiApiBuilder';
 import { WalletApiBuilder } from './builders/WalletApiBuilder';
 import { ContactsApiBuilder } from './builders/ContactsApiBuilder';
+import { MarketApiBuilder } from './builders/MarketApiBuilder';
+
 const config = getConfig();
 
 const client = new ApiClientBuilder()
@@ -71,6 +73,7 @@ const mailClient = new MailApiBuilder(client).build();
 const uiClient = new UiApiBuilder(client).build();
 const walletClient = new WalletApiBuilder(client).build();
 const contactsClient = new ContactsApiBuilder(client).build();
+const marketClient = new MarketApiBuilder(client).build();
 
 
 const demoCharacter = 1689391488;
@@ -1033,6 +1036,57 @@ const testContacts = async () => {
 }
 };
 
+export const testMarketApis = async () => {
+    try {
+        // Test getCharacterOrders
+        const characterOrders = await marketClient.getCharacterOrders(demoCharacter);
+        console.log('Character Orders:', characterOrders);
+
+        // Test getCharacterOrdersHistory
+        const characterOrdersHistory = await marketClient.getCharacterOrderHistory(demoCharacter);
+        console.log('Character Orders History:', characterOrdersHistory);
+
+        // Test getCorporationOrders
+        const corporationOrders = await marketClient.getCorporationOrders(demoCorp);
+        console.log('Corporation Orders:', corporationOrders);
+
+        // Test getCorporationOrdersHistory
+        const corporationOrdersHistory = await marketClient.getCorporationOrderHistory(demoCorp);
+        console.log('Corporation Orders History:', corporationOrdersHistory);
+
+        // Test getMarketHistory
+        const marketHistory = await marketClient.getMarketHistory(123, 456);
+        console.log('Market History:', marketHistory);
+
+        // Test getMarketOrders
+        const marketOrders = await marketClient.getMarketOrders(30000142); //Jita
+        console.log('Market Orders:', marketOrders);
+
+        // Test getMarketTypes
+        const marketTypes = await marketClient.getMarketTypes(123);
+        console.log('Market Types:', marketTypes);
+
+        // Test getMarketGroups
+        const marketGroups = await marketClient.getMarketGroups();
+        console.log('Market Groups:', marketGroups);
+
+        // Test getMarketGroupInformation
+        const marketGroupInformation = await marketClient.getMarketGroupInformation(123);
+        console.log('Market Group Information:', marketGroupInformation);
+
+        // Test getMarketPrices
+        const marketPrices = await marketClient.getMarketPrices();
+        console.log('Market Prices:', marketPrices);
+
+        // Test getMarketOrdersInStructure
+        const marketOrdersInStructure = await marketClient.getMarketOrdersInStructure(123456789);
+        console.log('Market Orders In Structure:', marketOrdersInStructure);
+    } catch (error) {
+        console.error('Error testing Market APIs:', error);
+    }
+};
+
+
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
@@ -1067,4 +1121,5 @@ logger.info('config is pointing towards ' + config.link);
 //testMailApis();
 //testUIClient();
 //testWallet();
-testContacts();
+//testContacts();
+testMarketApis();
