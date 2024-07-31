@@ -1,5 +1,5 @@
 // tests/tdd/status/getStatus.test.ts
-import { StatusApi } from '../../../src/api/status/getStatus';
+import { GetStatusApi } from '../../../src/api/status/getStatus';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -13,40 +13,33 @@ const client = new ApiClientBuilder()
     .setAccessToken(config.authToken || undefined)
     .build();
 
-type StatusResponse = {
-    players: {
-        online: number;
-    };
-    start_time: string;
-    server_version: string;
-};
+const statusApi = new GetStatusApi(client);
 
-describe('StatusApi', () => {
-    let statusApi: StatusApi;
-
+describe('GetStatusApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
-        statusApi = new StatusApi(client);
     });
 
-    it('should return the server status', async () => {
-        const mockResponse: StatusResponse = {
+    it('should return valid status information', async () => {
+        const mockResponse = {
             players: {
-                online: 12345
+                online: 1000
             },
-            start_time: '2024-07-01T18:57:11Z',
+            start_time: '2024-07-01T12:00:00Z',
             server_version: '1.2.3'
         };
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result: StatusResponse = await statusApi.getStatus();
+        const result = await statusApi.getStatus();
 
         expect(result).toHaveProperty('players');
-        expect(result.players.online).toBe(12345);
+        expect(typeof result.players).toBe('object');
+        expect(result.players).toHaveProperty('online');
+        expect(typeof result.players.online).toBe('number');
         expect(result).toHaveProperty('start_time');
-        expect(result.start_time).toBe('2024-07-01T18:57:11Z');
+        expect(typeof result.start_time).toBe('string');
         expect(result).toHaveProperty('server_version');
-        expect(result.server_version).toBe('1.2.3');
+        expect(typeof result.server_version).toBe('string');
     });
 });

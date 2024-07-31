@@ -30,7 +30,7 @@ import { PiApiBuilder } from './builders/PiApiBuilder';
 import { SkillsApiBuilder } from './builders/SkillsApiBuilder';
 import { MailApiBuilder } from './builders/MailApiBuilder';
 import { UiApiBuilder } from './builders/UiApiBuilder';
-
+import { WalletApiBuilder } from './builders/WalletApiBuilder';
 const config = getConfig();
 
 const client = new ApiClientBuilder()
@@ -68,6 +68,7 @@ const piClient = new PiApiBuilder(client).build();
 const skillsClient = new SkillsApiBuilder(client).build();
 const mailClient = new MailApiBuilder(client).build();
 const uiClient = new UiApiBuilder(client).build();
+const walletClient = new WalletApiBuilder(client).build();
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -990,6 +991,19 @@ const testUIClient = async () => {
     console.log('openNewMailWindow Response:', newMailWindowResponse);
 };
 
+
+const testWallet = async () => {
+    const division = 1;
+
+    console.log(await walletClient.getCharacterWallet(demoCharacter));
+    console.log(await walletClient.getCharacterWalletJournal(demoCharacter));
+    console.log(await walletClient.getCharacterWalletTransactions(demoCharacter));
+
+    console.log(await walletClient.getCorporationWallets(demoCorp));
+    console.log(await walletClient.getCorporationWalletJournal(demoCorp, division));
+    console.log(await walletClient.getCorporationWalletTransactions(demoCorp, division));
+};
+
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
@@ -1022,4 +1036,5 @@ logger.info('config is pointing towards ' + config.link);
 //testPI();
 //testCharacterSkills();
 //testMailApis();
-testUIClient();
+//testUIClient();
+testWallet();

@@ -9,7 +9,6 @@ export class CharacterSearchApi {
     }
 
     async searchCharacter(characterId: number, searchString: string): Promise<object> {
-        const endpoint = `characters/${characterId}/search/?search=${encodeURIComponent(searchString)}`;
-        return handleRequest(this.client, endpoint, 'GET', undefined, true);
+        return handleRequest(this.client, `characters/${characterId}/search/?search=${encodeURIComponent(searchString)}`, 'GET', undefined, true);
     }
 }

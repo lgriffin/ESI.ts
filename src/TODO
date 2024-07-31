@@ -41,7 +41,3 @@ Etags:
 returned in headers, check before a call. expose the tag perhaps?
 V 1.0.0
 Should be good to go live when all of the above are considered
-
-API Consistency
-Used the older format revisit it same with Search
-Status also has a weird implementation to revist
