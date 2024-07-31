@@ -31,6 +31,7 @@ import { SkillsApiBuilder } from './builders/SkillsApiBuilder';
 import { MailApiBuilder } from './builders/MailApiBuilder';
 import { UiApiBuilder } from './builders/UiApiBuilder';
 import { WalletApiBuilder } from './builders/WalletApiBuilder';
+import { ContactsApiBuilder } from './builders/ContactsApiBuilder';
 const config = getConfig();
 
 const client = new ApiClientBuilder()
@@ -69,6 +70,8 @@ const skillsClient = new SkillsApiBuilder(client).build();
 const mailClient = new MailApiBuilder(client).build();
 const uiClient = new UiApiBuilder(client).build();
 const walletClient = new WalletApiBuilder(client).build();
+const contactsClient = new ContactsApiBuilder(client).build();
+
 
 const demoCharacter = 1689391488;
 const demoCorp = 98742334;
@@ -956,6 +959,7 @@ const testMailApis = async () => {
 };
 
 const testUIClient = async () => {
+    try {
     console.log('Testing setAutopilotWaypoint');
     const autopilotResponse = await uiClient.setAutopilotWaypoint({
         destination_id: 30002505,
@@ -989,10 +993,14 @@ const testUIClient = async () => {
         body: 'Test Body'
     });
     console.log('openNewMailWindow Response:', newMailWindowResponse);
+} catch (error) {
+    console.error('Error testing Alliance APIs:', error);
 };
+}
 
 
 const testWallet = async () => {
+    try {
     const division = 1;
 
     console.log(await walletClient.getCharacterWallet(demoCharacter));
@@ -1002,6 +1010,27 @@ const testWallet = async () => {
     console.log(await walletClient.getCorporationWallets(demoCorp));
     console.log(await walletClient.getCorporationWalletJournal(demoCorp, division));
     console.log(await walletClient.getCorporationWalletTransactions(demoCorp, division));
+} catch (error) {
+    console.error('Error testing Alliance APIs:', error);
+}
+};
+
+const testContacts = async () => {
+
+    try {
+    
+    console.log(await contactsClient.getAllianceContacts(123456));
+    console.log(await contactsClient.getAllianceContactLabels(123456));
+    console.log(await contactsClient.deleteCharacterContacts(123456, [1, 2, 3]));
+    console.log(await contactsClient.getCharacterContacts(123456));
+    console.log(await contactsClient.postCharacterContacts(123456, { contact_ids: [1, 2], standing: 10 }));
+    console.log(await contactsClient.putCharacterContacts(123456, { contact_ids: [1, 2], standing: 5 }));
+    console.log(await contactsClient.getCharacterContactLabels(123456));
+    console.log(await contactsClient.getCorporationContacts(123456));
+    console.log(await contactsClient.getCorporationContactLabels(123456));
+} catch (error) {
+    console.error('Error testing Contacts APIs:', error);
+}
 };
 
 logger.info('Testing about to begin');
@@ -1037,4 +1066,5 @@ logger.info('config is pointing towards ' + config.link);
 //testCharacterSkills();
 //testMailApis();
 //testUIClient();
-testWallet();
+//testWallet();
+testContacts();
