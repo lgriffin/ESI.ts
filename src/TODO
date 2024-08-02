@@ -1,8 +1,11 @@
 Development Roadmap
 
 
-APIs to Implement: 0
-Faction Warfare (needs a refactor for more granularity)
+APIs to Implement: 0 we are functionally complete
+
+Naming Conventions:
+Took a few different paths through it, need to look at export declarations in particular
+
 
 Authentication Issue:
 Need to flag what API end points need auth, this would either be a large refactor to pass in a boolean or would be a spec file we pull from to say API X needs auth
@@ -38,3 +41,11 @@ Etags:
 returned in headers, check before a call. expose the tag perhaps?
 V 1.0.0
 Should be good to go live when all of the above are considered
+
+204 APIs in Spec
+
+32 Builders
+32 Clients
+
+Current Test Suits: 263
+Should be: 268

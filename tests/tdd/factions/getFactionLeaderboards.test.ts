@@ -1,45 +1,45 @@
-import { FactionWarfareLeaderboardsApi } from '../../../src/api/factions/getFactionWarfareLeaderboards';
+import { GetFactionLeaderboardsApi } from '../../../src/api/factions/getFactionLeaderboards';
 import { getClient } from '../../../src/config/jest/jest.setup';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-let factionWarfareLeaderboardsApi: FactionWarfareLeaderboardsApi;
+let getFactionLeaderboardsApi: GetFactionLeaderboardsApi;
 
 beforeAll(() => {
-    factionWarfareLeaderboardsApi = new FactionWarfareLeaderboardsApi(getClient());
+    getFactionLeaderboardsApi = new GetFactionLeaderboardsApi(getClient());
 });
 
-describe('FactionWarfareLeaderboardsApi', () => {
+describe('GetFactionLeaderboardsApi', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });
 
-    it('should return valid structure for character leaderboards', async () => {
+    it('should return valid structure for faction leaderboards', async () => {
         const mockResponse = {
             active_total: [
                 {
                     amount: 123,
-                    character_id: 456
+                    faction_id: 456
                 }
             ],
             kills: {
                 yesterday: [
                     {
                         amount: 12,
-                        character_id: 789
+                        faction_id: 789
                     }
                 ],
                 week: [
                     {
                         amount: 34,
-                        character_id: 101
+                        faction_id: 101
                     }
                 ],
                 total: [
                     {
                         amount: 56,
-                        character_id: 112
+                        faction_id: 112
                     }
                 ]
             }
@@ -49,7 +49,7 @@ describe('FactionWarfareLeaderboardsApi', () => {
 
         type LeaderboardEntry = {
             amount: number;
-            character_id: number;
+            faction_id: number;
         };
 
         type Leaderboard = {
@@ -61,15 +61,15 @@ describe('FactionWarfareLeaderboardsApi', () => {
             };
         };
 
-        const result = await factionWarfareLeaderboardsApi.getCharacters() as Leaderboard;
+        const result = await getFactionLeaderboardsApi.getOverall() as Leaderboard;
 
         expect(result).toHaveProperty('active_total');
         expect(Array.isArray(result.active_total)).toBe(true);
         result.active_total.forEach((entry: LeaderboardEntry) => {
             expect(entry).toHaveProperty('amount');
             expect(typeof entry.amount).toBe('number');
-            expect(entry).toHaveProperty('character_id');
-            expect(typeof entry.character_id).toBe('number');
+            expect(entry).toHaveProperty('faction_id');
+            expect(typeof entry.faction_id).toBe('number');
         });
 
         expect(result).toHaveProperty('kills');
@@ -78,8 +78,8 @@ describe('FactionWarfareLeaderboardsApi', () => {
         result.kills.yesterday.forEach((entry: LeaderboardEntry) => {
             expect(entry).toHaveProperty('amount');
             expect(typeof entry.amount).toBe('number');
-            expect(entry).toHaveProperty('character_id');
-            expect(typeof entry.character_id).toBe('number');
+            expect(entry).toHaveProperty('faction_id');
+            expect(typeof entry.faction_id).toBe('number');
         });
 
         expect(result.kills).toHaveProperty('week');
@@ -87,8 +87,8 @@ describe('FactionWarfareLeaderboardsApi', () => {
         result.kills.week.forEach((entry: LeaderboardEntry) => {
             expect(entry).toHaveProperty('amount');
             expect(typeof entry.amount).toBe('number');
-            expect(entry).toHaveProperty('character_id');
-            expect(typeof entry.character_id).toBe('number');
+            expect(entry).toHaveProperty('faction_id');
+            expect(typeof entry.faction_id).toBe('number');
         });
 
         expect(result.kills).toHaveProperty('total');
@@ -96,8 +96,8 @@ describe('FactionWarfareLeaderboardsApi', () => {
         result.kills.total.forEach((entry: LeaderboardEntry) => {
             expect(entry).toHaveProperty('amount');
             expect(typeof entry.amount).toBe('number');
-            expect(entry).toHaveProperty('character_id');
-            expect(typeof entry.character_id).toBe('number');
+            expect(entry).toHaveProperty('faction_id');
+            expect(typeof entry.faction_id).toBe('number');
         });
     });
 });

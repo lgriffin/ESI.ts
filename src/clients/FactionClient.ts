@@ -1,51 +1,63 @@
 import { ApiClient } from '../core/ApiClient';
-import { FactionWarfareLeaderboardsApi } from '../api/factions/getFactionWarfareLeaderboards';
-import { FactionWarfareStatsApi } from '../api/factions/getFactionWarfareStats';
+import { GetCharacterLeaderboardsApi } from '../api/factions/getCharacterLeaderboards';
+import { GetCorporationLeaderboardsApi } from '../api/factions/getCorporationLeaderboards';
+import { GetFactionLeaderboardsApi } from '../api/factions/getFactionLeaderboards';
+import { getFactionWarfareStats } from '../api/factions/getFactionWarfareStats';
+import { GetCharacterFactionWarfareStatsApi } from '../api/factions/getCharacterFactionWarfareStats';
+import { GetCorporationFactionWarfareStatsApi } from '../api/factions/getCorporationFactionWarfareStats';
 import { FactionWarfareSystemsApi } from '../api/factions/getFactionWarfareSystems';
 import { FactionWarfareWarsApi } from '../api/factions/getFactionWarfareWars';
 
 export class FactionClient {
-    private factionWarfareLeaderboardsApi: FactionWarfareLeaderboardsApi;
-    private factionWarfareStatsApi: FactionWarfareStatsApi;
-    private factionWarfareSystemsApi: FactionWarfareSystemsApi;
-    private factionWarfareWarsApi: FactionWarfareWarsApi;
+    private getCharacterLeaderboardsApi: GetCharacterLeaderboardsApi;
+    private getCorporationLeaderboardsApi: GetCorporationLeaderboardsApi;
+    private getFactionLeaderboardsApi: GetFactionLeaderboardsApi;
+    private getFactionWarfareStatsApi: getFactionWarfareStats;
+    private getCharacterFactionWarfareStatsApi: GetCharacterFactionWarfareStatsApi;
+    private getCorporationFactionWarfareStatsApi: GetCorporationFactionWarfareStatsApi;
+    private getFactionWarfareSystemsApi: FactionWarfareSystemsApi;
+    private getFactionWarfareWarsApi: FactionWarfareWarsApi;
 
     constructor(client: ApiClient) {
-        this.factionWarfareLeaderboardsApi = new FactionWarfareLeaderboardsApi(client);
-        this.factionWarfareStatsApi = new FactionWarfareStatsApi(client);
-        this.factionWarfareSystemsApi = new FactionWarfareSystemsApi(client);
-        this.factionWarfareWarsApi = new FactionWarfareWarsApi(client);
+        this.getCharacterLeaderboardsApi = new GetCharacterLeaderboardsApi(client);
+        this.getCorporationLeaderboardsApi = new GetCorporationLeaderboardsApi(client);
+        this.getFactionLeaderboardsApi = new GetFactionLeaderboardsApi(client);
+        this.getFactionWarfareStatsApi = new getFactionWarfareStats(client);
+        this.getCharacterFactionWarfareStatsApi = new GetCharacterFactionWarfareStatsApi(client);
+        this.getCorporationFactionWarfareStatsApi = new GetCorporationFactionWarfareStatsApi(client);
+        this.getFactionWarfareSystemsApi = new FactionWarfareSystemsApi(client);
+        this.getFactionWarfareWarsApi = new FactionWarfareWarsApi(client);
     }
 
     async getLeaderboardsCharacters(): Promise<any> {
-        return await this.factionWarfareLeaderboardsApi.getCharacters();
+        return await this.getCharacterLeaderboardsApi.getCharacters();
     }
 
     async getLeaderboardsCorporations(): Promise<any> {
-        return await this.factionWarfareLeaderboardsApi.getCorporations();
+        return await this.getCorporationLeaderboardsApi.getCorporations();
     }
 
     async getLeaderboardsOverall(): Promise<any> {
-        return await this.factionWarfareLeaderboardsApi.getOverall();
+        return await this.getFactionLeaderboardsApi.getOverall();
     }
 
     async getStats(): Promise<any> {
-        return await this.factionWarfareStatsApi.getStats();
+        return await this.getFactionWarfareStatsApi.getStats();
     }
 
     async getCharacterStats(characterId: number): Promise<any> {
-        return await this.factionWarfareStatsApi.getCharacterStats(characterId);
+        return await this.getCharacterFactionWarfareStatsApi.getCharacterStats(characterId);
     }
 
     async getCorporationStats(corporationId: number): Promise<any> {
-        return await this.factionWarfareStatsApi.getCorporationStats(corporationId);
+        return await this.getCorporationFactionWarfareStatsApi.getCorporationStats(corporationId);
     }
 
     async getSystems(): Promise<any> {
-        return await this.factionWarfareSystemsApi.getSystems();
+        return await this.getFactionWarfareSystemsApi.getSystems();
     }
 
     async getWars(): Promise<any> {
-        return await this.factionWarfareWarsApi.getWars();
+        return await this.getFactionWarfareWarsApi.getWars();
     }
 }

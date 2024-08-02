@@ -88,6 +88,10 @@ const testFactionAPIs = async () => {
         const characterStats = await factionClient.getCharacterStats(demoCharacter);
         console.log('Character Stats:', JSON.stringify(characterStats, null, 2));
 
+        console.log('Testing Faction Warfare Corporation Stats');
+        const corporationStats = await factionClient.getCorporationStats(demoCorp);
+        console.log('Corporation Stats:', JSON.stringify(corporationStats, null, 2));
+
         console.log('Testing Faction Warfare Leaderboards - Characters');
         const leaderboardsCharacters = await factionClient.getLeaderboardsCharacters();
         console.log('Leaderboards - Characters:', JSON.stringify(leaderboardsCharacters, null, 2));
@@ -104,10 +108,6 @@ const testFactionAPIs = async () => {
         const stats = await factionClient.getStats();
         console.log('Stats:', JSON.stringify(stats, null, 2));
 
-        console.log('Testing Faction Warfare Corporation Stats');
-        const corporationStats = await factionClient.getCorporationStats(demoCorp);
-        console.log('Corporation Stats:', JSON.stringify(corporationStats, null, 2));
-
         console.log('Testing Faction Warfare Systems');
         const systems = await factionClient.getSystems();
         console.log('Systems:', JSON.stringify(systems, null, 2));
@@ -119,6 +119,7 @@ const testFactionAPIs = async () => {
         console.error('Error testing Faction Warfare APIs:', error);
     }
 };
+
 
 const testAllianceAPIs = async () => {
     try {
@@ -1091,7 +1092,7 @@ logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
 
-//testFactionAPIs();
+testFactionAPIs();
 //testAllianceAPIs();
 //testWarsAPI();
 //testStatusAPI();
@@ -1122,4 +1123,4 @@ logger.info('config is pointing towards ' + config.link);
 //testUIClient();
 //testWallet();
 //testContacts();
-testMarketApis();
+//testMarketApis();
