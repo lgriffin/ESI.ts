@@ -6,6 +6,16 @@ APIs to Implement: 0 we are functionally complete
 Naming Conventions:
 Took a few different paths through it, need to look at export declarations in particular
 
+Location of APIs
+
+Looking at the ESI Spec, taking the Alliance as an example, there are 4 APIs. My approach wrapped the other /alliances endpoints such as in Contacts under Alliance to make it more logical.
+This means I need to check manually 1:1 to make sure all endpoints are there and that they are either logically mapping to the ESI or logically placed in a structure that I recognise. This is
+important because of the Client / Builder relationship so my thinking is to match the ESI spec identically and not mix up locations. This might lead to a custom builder that could pull all the /character
+or / alliance or /corp and make a holistic Builder/Client for that combination. This might lead to a structural refactor and have Builders and Clients matching the ESI and a Logical grouping of Builders/Clients then as a custom option
+
+Director and Builder pattern
+
+Look at the Director approach to ensure building custom APIs is a thing
 
 Authentication Issue:
 Need to flag what API end points need auth, this would either be a large refactor to pass in a boolean or would be a spec file we pull from to say API X needs auth
