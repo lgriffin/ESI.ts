@@ -1,4 +1,3 @@
-// src/clients/WalletClient.ts
 import { GetCharacterWalletApi } from '../api/wallet/getCharacterWallet';
 import { GetCharacterWalletJournalApi } from '../api/wallet/getCharacterWalletJournal';
 import { GetCharacterWalletTransactionsApi } from '../api/wallet/getCharacterWalletTransactions';

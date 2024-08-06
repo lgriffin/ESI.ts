@@ -5,6 +5,6 @@ export class FactionWarfareSystemsApi {
     constructor(private client: ApiClient) {}
 
     async getSystems(): Promise<object> {
-        return await handleRequest(this.client, 'fw/systems');
+        return await handleRequest(this.client, 'fw/systems', 'GET', undefined, false);
     }
 }

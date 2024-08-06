@@ -19,7 +19,7 @@ const statusHandlers: Record<number, string> = {
 export const handleRequest = async (
     client: ApiClient,
     endpoint: string,
-    method: string = 'GET',
+    method: string,
     body?: string,
     requiresAuth: boolean = false  //false by default
 ): Promise<any> => {
