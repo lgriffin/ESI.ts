@@ -27,7 +27,7 @@ describe('GetPortraitApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await portraitApi.getPortrait(123456);
+        const result = await getBody(() => portraitApi.getPortrait(123456));
 
         expect(result).toHaveProperty('px64x64');
         expect(result).toHaveProperty('px128x128');

@@ -50,7 +50,7 @@ describe('GetFactionWarfareStatsApi', () => {
             };
         };
 
-        const result = await getFactionWarfareStatsApi.getStats() as FactionWarfareStat[];
+        const result = await getBody(() => getFactionWarfareStatsApi.getStats()) as FactionWarfareStat[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((stat: FactionWarfareStat) => {

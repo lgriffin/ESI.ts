@@ -22,7 +22,7 @@ describe('PostFleetInvitationApi', () => {
             role: 'fleet_commander'
         };
 
-        const result = await fleetInvitationApi.createFleetInvitation(1234567890, body);
+        const result = await getBody(() => fleetInvitationApi.createFleetInvitation(1234567890, body));
 
         expect(result).toEqual({ error: 'no content' });
     });

@@ -39,7 +39,7 @@ describe('GetMarketOrdersApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketOrdersApi.getMarketOrders(10000002);
+        const result = await getBody(() => marketOrdersApi.getMarketOrders(10000002));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(order => {

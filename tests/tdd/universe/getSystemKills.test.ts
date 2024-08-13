@@ -33,7 +33,7 @@ describe('UniverseSystemKillsApi', () => {
             system_id: number;
         };
 
-        const result = await universeSystemKillsApi.getSystemKills() as SystemKillResponse[];
+        const result = await getBody(() => universeSystemKillsApi.getSystemKills()) as SystemKillResponse[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((kill: SystemKillResponse) => {

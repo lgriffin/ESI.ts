@@ -24,7 +24,7 @@ describe('GetNpcCorporationsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await api.getNpcCorporations();
+        const result = await getBody(() => api.getNpcCorporations());
 
         expect(Array.isArray(result)).toBe(true);
         (result as number[]).forEach(corpId => {

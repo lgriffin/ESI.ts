@@ -28,7 +28,7 @@ describe('UniverseConstellationByIdApi', () => {
             systems: number[];
         };
 
-        const result = await universeConstellationByIdApi.getConstellationById(1) as ConstellationResponse;
+        const result = await getBody(() => universeConstellationByIdApi.getConstellationById(1)) as ConstellationResponse;
         expect(result).toHaveProperty('constellation_id');
         expect(result).toHaveProperty('name');
         expect(result).toHaveProperty('systems');

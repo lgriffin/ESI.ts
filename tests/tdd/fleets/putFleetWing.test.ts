@@ -15,7 +15,7 @@ describe('PutFleetWingApi', () => {
     it('should rename a fleet wing', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await fleetWingApi.renameFleetWing(1234567890, 987654321, 'New Wing Name');
+        const result = await getBody(() => fleetWingApi.renameFleetWing(1234567890, 987654321, 'New Wing Name'));
 
         expect(result).toEqual({ error: 'no content' });
     });

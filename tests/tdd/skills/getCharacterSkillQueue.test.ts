@@ -27,7 +27,7 @@ describe('GetCharacterSkillQueueApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterSkillQueueApi.getCharacterSkillQueue(123456789);
+        const result = await getBody(() => characterSkillQueueApi.getCharacterSkillQueue(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((skill: { skill_id: number, finished_level: number, start_sp: number, end_sp: number, start_time: string, finish_time: string }) => {

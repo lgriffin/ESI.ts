@@ -30,7 +30,7 @@ describe('SovereigntyClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await sovereigntyClient.getSovereigntyCampaigns();
+        const result = await getBody(() => sovereigntyClient.getSovereigntyCampaigns());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((campaign: any) => {
             expect(campaign).toHaveProperty('campaign_id');
@@ -50,7 +50,7 @@ describe('SovereigntyClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await sovereigntyClient.getSovereigntyMap();
+        const result = await getBody(() => sovereigntyClient.getSovereigntyMap());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((map: any) => {
             expect(map).toHaveProperty('system_id');
@@ -74,7 +74,7 @@ describe('SovereigntyClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await sovereigntyClient.getSovereigntyStructures();
+        const result = await getBody(() => sovereigntyClient.getSovereigntyStructures());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((structure: any) => {
             expect(structure).toHaveProperty('structure_id');

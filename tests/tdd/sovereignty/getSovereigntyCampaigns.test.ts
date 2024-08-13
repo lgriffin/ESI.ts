@@ -30,7 +30,7 @@ describe('SovereigntyCampaignsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await sovereigntyCampaignsApi.getSovereigntyCampaigns();
+        const result = await getBody(() => sovereigntyCampaignsApi.getSovereigntyCampaigns());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((campaign: any) => {

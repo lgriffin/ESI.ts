@@ -33,7 +33,7 @@ describe('PIClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await piClient.getColonies(123456);
+        const result = await getBody(() => piClient.getColonies(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as { planet_id: number, planet_type: string, owner_id: number, system_id: number, last_update: string, num_pins: number }[]).forEach(colony => {
@@ -73,7 +73,7 @@ describe('PIClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await piClient.getColonyLayout(123456, 654321);
+        const result = await getBody(() => piClient.getColonyLayout(123456, 654321));
 
         expect(result).toHaveProperty('links');
         expect(Array.isArray(result.links)).toBe(true);
@@ -99,7 +99,7 @@ describe('PIClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await piClient.getCorporationCustomsOffices(123456);
+        const result = await getBody(() => piClient.getCorporationCustomsOffices(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as {
@@ -141,7 +141,7 @@ describe('PIClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await piClient.getSchematicInformation(1);
+        const result = await getBody(() => piClient.getSchematicInformation(1));
 
         expect(result).toHaveProperty('schematic_id');
         expect(typeof result.schematic_id).toBe('number');

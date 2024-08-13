@@ -35,7 +35,7 @@ describe('FactionClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await factionClient.getLeaderboardsCharacters();
+        const result = await getBody(() => factionClient.getLeaderboardsCharacters());
 
         expect(result).toHaveProperty('kills');
         expect(result.kills).toHaveProperty('yesterday');
@@ -63,7 +63,7 @@ describe('FactionClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await factionClient.getLeaderboardsCorporations();
+        const result = await getBody(() => factionClient.getLeaderboardsCorporations());
 
         expect(result).toHaveProperty('kills');
         expect(result.kills).toHaveProperty('yesterday');
@@ -91,7 +91,7 @@ describe('FactionClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await factionClient.getLeaderboardsOverall();
+        const result = await getBody(() => factionClient.getLeaderboardsOverall());
 
         expect(result).toHaveProperty('kills');
         expect(result.kills).toHaveProperty('yesterday');
@@ -123,7 +123,7 @@ describe('FactionClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await factionClient.getStats();
+        const result = await getBody(() => factionClient.getStats());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((stat: { faction_id: number, kills: { last_week: number, total: number, yesterday: number }, pilots: number, victory_points: { last_week: number, total: number, yesterday: number } }) => {
@@ -166,7 +166,7 @@ describe('FactionClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await factionClient.getCharacterStats(123456789);
+        const result = await getBody(() => factionClient.getCharacterStats(123456789));
 
         expect(result).toHaveProperty('faction_id');
         expect(typeof result.faction_id).toBe('number');
@@ -203,7 +203,7 @@ describe('FactionClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await factionClient.getCorporationStats(987654321);
+        const result = await getBody(() => factionClient.getCorporationStats(987654321));
 
         expect(result).toHaveProperty('faction_id');
         expect(typeof result.faction_id).toBe('number');
@@ -237,7 +237,7 @@ describe('FactionClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await factionClient.getSystems();
+        const result = await getBody(() => factionClient.getSystems());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((system: { contested: string, occupier_faction_id: number, owner_faction_id: number, solar_system_id: number, victory_points: number, victory_points_threshold: number }) => {
@@ -267,7 +267,7 @@ describe('FactionClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await factionClient.getWars();
+        const result = await getBody(() => factionClient.getWars());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((war: { against_id: number, faction_id: number }) => {

@@ -32,7 +32,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getCharacterContracts(123456789);
+        const result = await getBody(() => contractClient.getCharacterContracts(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(contract => {
@@ -58,7 +58,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getCharacterContractBids(123456789, 1);
+        const result = await getBody(() => contractClient.getCharacterContractBids(123456789, 1));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(bid => {
@@ -82,7 +82,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getCharacterContractItems(123456789, 1);
+        const result = await getBody(() => contractClient.getCharacterContractItems(123456789, 1));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(item => {
@@ -107,7 +107,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getPublicContracts(123);
+        const result = await getBody(() => contractClient.getPublicContracts(123));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(contract => {
@@ -133,7 +133,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getPublicContractBids(1);
+        const result = await getBody(() => contractClient.getPublicContractBids(1));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(bid => {
@@ -157,7 +157,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getPublicContractItems(1);
+        const result = await getBody(() => contractClient.getPublicContractItems(1));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(item => {
@@ -182,7 +182,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getCorporationContracts(123456789);
+        const result = await getBody(() => contractClient.getCorporationContracts(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(contract => {
@@ -208,7 +208,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getCorporationContractBids(123456789, 1);
+        const result = await getBody(() => contractClient.getCorporationContractBids(123456789, 1));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(bid => {
@@ -232,7 +232,7 @@ describe('ContractClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contractClient.getCorporationContractItems(123456789, 1);
+        const result = await getBody(() => contractClient.getCorporationContractItems(123456789, 1));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(item => {

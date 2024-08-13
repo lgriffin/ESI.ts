@@ -41,7 +41,7 @@ describe('GetCharacterContractsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterContractsApi.getCharacterContracts(123456789);
+        const result = await getBody(() => characterContractsApi.getCharacterContracts(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach((contract) => {

@@ -30,7 +30,7 @@ describe('GetMarketGroupInformationApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketGroupInformationApi.getMarketGroupInformation(1);
+        const result = await getBody(() => marketGroupInformationApi.getMarketGroupInformation(1));
 
         expect(result).toHaveProperty('market_group_id');
         expect(result).toHaveProperty('name');

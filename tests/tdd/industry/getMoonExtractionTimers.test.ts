@@ -25,7 +25,7 @@ describe('GetMoonExtractionTimersApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await moonExtractionTimersApi.getMoonExtractionTimers(123456789);
+        const result = await getBody(() => moonExtractionTimersApi.getMoonExtractionTimers(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((timer: any) => {

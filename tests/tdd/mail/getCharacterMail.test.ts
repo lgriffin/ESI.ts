@@ -27,7 +27,7 @@ describe('GetCharacterMailApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterMailApi.getMail(123456, 1);
+        const result = await getBody(() => characterMailApi.getMail(123456, 1));
 
         expect(result).toHaveProperty('mail_id');
         expect(typeof result.mail_id).toBe('number');

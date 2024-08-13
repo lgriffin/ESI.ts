@@ -37,7 +37,7 @@ describe('UniverseStationByIdApi', () => {
             owner: number;
         };
 
-        const result = await universeStationByIdApi.getStationById(600001) as StationResponse;
+        const result = await getBody(() => universeStationByIdApi.getStationById(600001)) as StationResponse;
 
         expect(result).toHaveProperty('station_id');
         expect(typeof result.station_id).toBe('number');

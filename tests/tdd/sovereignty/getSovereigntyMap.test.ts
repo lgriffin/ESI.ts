@@ -26,7 +26,7 @@ describe('SovereigntyMapApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await sovereigntyMapApi.getSovereigntyMap();
+        const result = await getBody(() => sovereigntyMapApi.getSovereigntyMap());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((map: any) => {

@@ -25,7 +25,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getCharacterOpportunities(12345); // Replace with a valid character ID
+        const result = await getBody(() => opportunitiesClient.getCharacterOpportunities(12345)); // Replace with a valid character ID
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((opportunity: { task_id: number; completed_at: string }) => {
@@ -41,7 +41,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getOpportunitiesGroups();
+        const result = await getBody(() => opportunitiesClient.getOpportunitiesGroups());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((group: { group_id: number; name: string; description: string }) => {
@@ -59,7 +59,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getOpportunitiesGroupById(123); // Replace with a valid group ID
+        const result = await getBody(() => opportunitiesClient.getOpportunitiesGroupById(123)); // Replace with a valid group ID
 
         expect(result).toHaveProperty('group_id');
         expect(typeof result.group_id).toBe('number');
@@ -79,7 +79,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getOpportunitiesTasks();
+        const result = await getBody(() => opportunitiesClient.getOpportunitiesTasks());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((task: { task_id: number; name: string; description: string }) => {
@@ -97,7 +97,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getOpportunitiesTaskById(123); // Replace with a valid task ID
+        const result = await getBody(() => opportunitiesClient.getOpportunitiesTaskById(123)); // Replace with a valid task ID
 
         expect(result).toHaveProperty('task_id');
         expect(typeof result.task_id).toBe('number');

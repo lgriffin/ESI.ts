@@ -32,7 +32,7 @@ describe('PostCharacterMailApi', () => {
             labels: []
         };
 
-        const result = await characterMailApi.sendMail(123456, body);
+        const result = await getBody(() => characterMailApi.sendMail(123456, body));
 
         expect(result).toHaveProperty('mail_id');
         expect(typeof result.mail_id).toBe('number');

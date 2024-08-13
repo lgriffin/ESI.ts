@@ -38,7 +38,7 @@ describe('FactionWarfareSystemsApi', () => {
             victory_points_threshold: number;
         };
 
-        const result = await factionWarfareSystemsApi.getSystems() as FactionWarfareSystem[];
+        const result = await getBody(() => factionWarfareSystemsApi.getSystems()) as FactionWarfareSystem[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((system: FactionWarfareSystem) => {

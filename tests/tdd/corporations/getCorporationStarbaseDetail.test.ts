@@ -31,7 +31,7 @@ describe('GetCorporationStarbaseDetailApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await api.getCorporationStarbaseDetail(123456, 1234567890);
+        const result = await getBody(() => api.getCorporationStarbaseDetail(123456, 1234567890));
 
         expect(result).toHaveProperty('starbase_id');
         expect(typeof result.starbase_id).toBe('number');

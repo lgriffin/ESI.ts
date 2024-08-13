@@ -30,7 +30,7 @@ describe('GetCorporationShareholdersApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationShareholdersApi.getCorporationShareholders(12345);
+        const result = await getBody(() => corporationShareholdersApi.getCorporationShareholders(12345));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((shareholder: { shareholder_id: number, shareholder_type: string, shares: number }) => {

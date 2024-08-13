@@ -22,7 +22,7 @@ describe('UniverseConstellationsApi', () => {
         const mockResponse = [{ constellation_id: 1, name: 'Constellation 1' }, { constellation_id: 2, name: 'Constellation 2' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeConstellationsApi.getConstellations();
+        const result = await getBody(() => universeConstellationsApi.getConstellations());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((constellation: any) => {
             expect(constellation).toHaveProperty('constellation_id');

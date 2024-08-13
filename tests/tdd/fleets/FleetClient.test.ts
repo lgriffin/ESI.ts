@@ -29,7 +29,7 @@ describe('FleetClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await fleetClient.getCharacterFleetInfo(123456789);
+        const result = await getBody(() => fleetClient.getCharacterFleetInfo(123456789));
 
         expect(result).toHaveProperty('fleet_id');
         expect(result).toHaveProperty('role');
@@ -48,7 +48,7 @@ describe('FleetClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await fleetClient.getFleetInformation(1234567890);
+        const result = await getBody(() => fleetClient.getFleetInformation(1234567890));
 
         expect(result).toHaveProperty('fleet_id');
         expect(result).toHaveProperty('is_free_move');
@@ -62,7 +62,7 @@ describe('FleetClient', () => {
 
         const body = { is_free_move: true };
 
-        const result = await fleetClient.updateFleet(1234567890, body);
+        const result = await getBody(() => fleetClient.updateFleet(1234567890, body));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -85,7 +85,7 @@ describe('FleetClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await fleetClient.getFleetMembers(1234567890);
+        const result = await getBody(() => fleetClient.getFleetMembers(1234567890));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(member => {
@@ -107,7 +107,7 @@ describe('FleetClient', () => {
 
         const body = { character_id: 123456, role: 'squad_member' };
 
-        const result = await fleetClient.createFleetInvitation(1234567890, body);
+        const result = await getBody(() => fleetClient.createFleetInvitation(1234567890, body));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -115,7 +115,7 @@ describe('FleetClient', () => {
     it('should kick a fleet member', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await fleetClient.kickFleetMember(1234567890, 123456789);
+        const result = await getBody(() => fleetClient.kickFleetMember(1234567890, 123456789));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -125,7 +125,7 @@ describe('FleetClient', () => {
 
         const body = { role: 'squad_member', squad_id: 1, wing_id: 2 };
 
-        const result = await fleetClient.moveFleetMember(1234567890, 123456789, body);
+        const result = await getBody(() => fleetClient.moveFleetMember(1234567890, 123456789, body));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -133,7 +133,7 @@ describe('FleetClient', () => {
     it('should delete a fleet squad', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await fleetClient.deleteFleetSquad(1234567890, 1);
+        const result = await getBody(() => fleetClient.deleteFleetSquad(1234567890, 1));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -141,7 +141,7 @@ describe('FleetClient', () => {
     it('should rename a fleet squad', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await fleetClient.renameFleetSquad(1234567890, 1, 'New Squad Name');
+        const result = await getBody(() => fleetClient.renameFleetSquad(1234567890, 1, 'New Squad Name'));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -162,7 +162,7 @@ describe('FleetClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await fleetClient.getFleetWings(1234567890);
+        const result = await getBody(() => fleetClient.getFleetWings(1234567890));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(wing => {
@@ -181,7 +181,7 @@ describe('FleetClient', () => {
 
         const body = { name: 'New Wing' };
 
-        const result = await fleetClient.createFleetWing(1234567890, body);
+        const result = await getBody(() => fleetClient.createFleetWing(1234567890, body));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -189,7 +189,7 @@ describe('FleetClient', () => {
     it('should delete a fleet wing', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await fleetClient.deleteFleetWing(1234567890, 1);
+        const result = await getBody(() => fleetClient.deleteFleetWing(1234567890, 1));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -197,7 +197,7 @@ describe('FleetClient', () => {
     it('should rename a fleet wing', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await fleetClient.renameFleetWing(1234567890, 1, 'New Wing Name');
+        const result = await getBody(() => fleetClient.renameFleetWing(1234567890, 1, 'New Wing Name'));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -205,7 +205,7 @@ describe('FleetClient', () => {
     it('should create a fleet squad', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await fleetClient.createFleetSquad(1234567890, 1);
+        const result = await getBody(() => fleetClient.createFleetSquad(1234567890, 1));
 
         expect(result).toEqual({ error: 'no content' });
     });

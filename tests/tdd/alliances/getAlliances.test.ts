@@ -27,7 +27,7 @@ describe('AlliancesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await alliancesApi.getAllAlliances() as Alliance[];
+        const result = await getBody(() => alliancesApi.getAllAlliances()) as Alliance[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((alliance: Alliance) => {

@@ -16,7 +16,7 @@ describe('DogmaDynamicItemApi', () => {
         const mockResponse = { item_id: 1, type_id: 1, dogma: [] };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await dogmaDynamicItemApi.getDynamicItemInfo(1, 1);
+        const result = await getBody(() => dogmaDynamicItemApi.getDynamicItemInfo(1, 1));
         expect(result).toEqual(mockResponse);
     });
 });

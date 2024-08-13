@@ -25,7 +25,7 @@ describe('GetImplantsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getImplantsApi.getImplants(123456789);
+        const result = await getBody(() => getImplantsApi.getImplants(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((implant: number) => {

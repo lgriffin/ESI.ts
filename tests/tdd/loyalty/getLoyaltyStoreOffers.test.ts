@@ -25,7 +25,7 @@ describe('GetLoyaltyStoreOffersApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await loyaltyStoreOffersApi.getLoyaltyStoreOffers(123);
+        const result = await getBody(() => loyaltyStoreOffersApi.getLoyaltyStoreOffers(123));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((offer: { offer_id: number, lp_cost: number, isk_cost: number, item_id: number, quantity: number }) => {

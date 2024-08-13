@@ -43,7 +43,7 @@ describe('UniverseStargateByIdApi', () => {
             };
         };
 
-        const result = await universeStargateByIdApi.getStargateById(50000001) as StargateResponse;
+        const result = await getBody(() => universeStargateByIdApi.getStargateById(50000001)) as StargateResponse;
 
         expect(result).toHaveProperty('stargate_id');
         expect(typeof result.stargate_id).toBe('number');

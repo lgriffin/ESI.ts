@@ -41,7 +41,7 @@ describe('GetCorporationDivisionsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationDivisionsApi.getCorporationDivisions(12345);
+        const result = await getBody(() => corporationDivisionsApi.getCorporationDivisions(12345));
 
         expect(result).toHaveProperty('hangar');
         expect(Array.isArray(result.hangar)).toBe(true);

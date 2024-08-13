@@ -25,7 +25,7 @@ describe('GetMarketTypesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketTypesApi.getMarketTypes(10000002);
+        const result = await getBody(() => marketTypesApi.getMarketTypes(10000002));
 
         expect(Array.isArray(result)).toBe(true);
         (result as number[]).forEach(typeId => {

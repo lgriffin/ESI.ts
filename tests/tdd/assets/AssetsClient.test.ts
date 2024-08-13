@@ -34,7 +34,7 @@ describe('AssetsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await assetsClient.getCharacterAssets(123456789);
+        const result = await getBody(() => assetsClient.getCharacterAssets(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((asset: { item_id: number; location_flag: string; location_id: number; location_type: string; quantity: number; type_id: number }) => {
@@ -67,7 +67,7 @@ describe('AssetsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await assetsClient.postCharacterAssetLocations(123456789, [1, 2, 3]);
+        const result = await getBody(() => assetsClient.postCharacterAssetLocations(123456789, [1, 2, 3]));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((location: { item_id: number; position: { x: number; y: number; z: number } }) => {
@@ -94,7 +94,7 @@ describe('AssetsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await assetsClient.postCharacterAssetNames(123456789, [1, 2, 3]);
+        const result = await getBody(() => assetsClient.postCharacterAssetNames(123456789, [1, 2, 3]));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((assetName: { item_id: number; name: string }) => {
@@ -119,7 +119,7 @@ describe('AssetsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await assetsClient.getCorporationAssets(987654321);
+        const result = await getBody(() => assetsClient.getCorporationAssets(987654321));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((asset: { item_id: number; location_flag: string; location_id: number; location_type: string; quantity: number; type_id: number }) => {
@@ -152,7 +152,7 @@ describe('AssetsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await assetsClient.postCorporationAssetLocations(987654321, [1, 2, 3]);
+        const result = await getBody(() => assetsClient.postCorporationAssetLocations(987654321, [1, 2, 3]));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((location: { item_id: number; position: { x: number; y: number; z: number } }) => {
@@ -179,7 +179,7 @@ describe('AssetsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await assetsClient.postCorporationAssetNames(987654321, [1, 2, 3]);
+        const result = await getBody(() => assetsClient.postCorporationAssetNames(987654321, [1, 2, 3]));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((assetName: { item_id: number; name: string }) => {

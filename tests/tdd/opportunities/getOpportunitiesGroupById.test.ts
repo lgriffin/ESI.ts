@@ -25,7 +25,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getOpportunitiesGroupById(123); // Replace with a valid group ID
+        const result = await getBody(() => opportunitiesClient.getOpportunitiesGroupById(123)); // Replace with a valid group ID
 
         expect(result).toHaveProperty('group_id');
         expect(typeof result.group_id).toBe('number');

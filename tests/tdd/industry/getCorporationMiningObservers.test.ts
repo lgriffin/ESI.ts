@@ -23,7 +23,7 @@ describe('GetCorporationMiningObserversApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationMiningObserversApi.getCorporationMiningObservers(123456789);
+        const result = await getBody(() => corporationMiningObserversApi.getCorporationMiningObservers(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((observer: any) => {

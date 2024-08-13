@@ -22,7 +22,7 @@ describe('GetAllianceContactLabelsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await allianceContactLabelsApi.getAllianceContactLabels(123456);
+        const result = await getBody(() => allianceContactLabelsApi.getAllianceContactLabels(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((label: any) => {

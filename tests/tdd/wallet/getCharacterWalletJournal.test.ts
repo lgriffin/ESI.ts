@@ -36,7 +36,7 @@ describe('GetCharacterWalletJournalApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await walletJournalApi.getCharacterWalletJournal(123456789);
+        const result = await getBody(() => walletJournalApi.getCharacterWalletJournal(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((entry: { date: string; ref_id: number; amount: number; balance: number; reason: string; type_id: number; owner_id1: number; owner_id2: number }) => {

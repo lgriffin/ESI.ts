@@ -30,7 +30,7 @@ describe('CorporationBookmarkFoldersApi', () => {
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
         const api = new CorporationBookmarkFoldersApi(client);
-        const result = await api.getCorporationBookmarkFolders(12345);
+        const result = await getBody(() => api.getCorporationBookmarkFolders(12345));
 
         expect(result).toEqual(mockResponse);
     });

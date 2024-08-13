@@ -29,7 +29,7 @@ describe('PostOpenNewMailWindowApi', () => {
             body: 'Test Body'
         };
 
-        const result = await openNewMailWindowApi.openNewMailWindow(body);
+        const result = await getBody(() => openNewMailWindowApi.openNewMailWindow(body));
 
         expect(result).toEqual({ error: 'no content' });
     });

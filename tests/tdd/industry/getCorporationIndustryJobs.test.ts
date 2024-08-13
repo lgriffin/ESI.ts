@@ -41,7 +41,7 @@ describe('GetCorporationIndustryJobsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationIndustryJobsApi.getCorporationIndustryJobs(123456789);
+        const result = await getBody(() => corporationIndustryJobsApi.getCorporationIndustryJobs(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((job: any) => {

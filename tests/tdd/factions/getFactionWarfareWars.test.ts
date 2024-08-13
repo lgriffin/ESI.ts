@@ -30,7 +30,7 @@ describe('FactionWarfareWarsApi', () => {
             faction_id: number;
         };
 
-        const result = await factionWarfareWarsApi.getWars() as FactionWarfareWar[];
+        const result = await getBody(() => factionWarfareWarsApi.getWars()) as FactionWarfareWar[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((war: FactionWarfareWar) => {

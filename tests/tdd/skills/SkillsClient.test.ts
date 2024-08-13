@@ -31,7 +31,7 @@ describe('SkillsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await skillsClient.getCharacterAttributes(123456);
+        const result = await getBody(() => skillsClient.getCharacterAttributes(123456));
 
         expect(result).toHaveProperty('intelligence');
         expect(typeof result.intelligence).toBe('number');
@@ -60,7 +60,7 @@ describe('SkillsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await skillsClient.getCharacterSkills(123456);
+        const result = await getBody(() => skillsClient.getCharacterSkills(123456));
 
         expect(result).toHaveProperty('total_sp');
         expect(typeof result.total_sp).toBe('number');
@@ -91,7 +91,7 @@ describe('SkillsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await skillsClient.getCharacterSkillQueue(123456);
+        const result = await getBody(() => skillsClient.getCharacterSkillQueue(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as { skill_id: number, finished_level: number, start_sp: number, end_sp: number, start_time: string, finish_time: string }[]).forEach(skill => {

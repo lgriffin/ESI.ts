@@ -33,7 +33,7 @@ describe('GetCorporationStarbasesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationStarbasesApi.getCorporationStarbases(12345);
+        const result = await getBody(() => corporationStarbasesApi.getCorporationStarbases(12345));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((starbase: { starbase_id: number, type_id: number, system_id: number, moon_id: number, state: string, unanchor_at: string }) => {

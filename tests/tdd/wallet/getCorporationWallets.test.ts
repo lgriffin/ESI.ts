@@ -30,7 +30,7 @@ describe('GetCorporationWalletsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationWalletsApi.getCorporationWallets(123456789);
+        const result = await getBody(() => corporationWalletsApi.getCorporationWallets(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((wallet: { division: number; balance: number }) => {

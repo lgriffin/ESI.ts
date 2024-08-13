@@ -62,3 +62,15 @@ Looks to be implemented strangly
 
 Current Test Suits: 263
 Should be: 268
+
+
+Testing Issues:
+AllianceClient test is incomplete
+ContactsClient as well
+Corporations as well
+getIncursions.test.ts needs a refactor
+UIClient needs an impl for test
+
+Refactoring:
+
+ return handleRequest is returned on SearchClient this needs refactoring

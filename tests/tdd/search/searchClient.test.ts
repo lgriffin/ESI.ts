@@ -25,7 +25,7 @@ describe('SearchClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await searchClient.characterSearch(123456, 'searchString') as {
+        const result = await getBody(() => searchClient.characterSearch(1689391488, 'searchString')) as {
             search_results: {
                 character: number[];
                 corporation: number[];

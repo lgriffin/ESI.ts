@@ -28,7 +28,7 @@ describe('CorporationsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationsClient.getCorporationInfo(123456789);
+        const result = await getBody(() => corporationsClient.getCorporationInfo(123456789));
 
         expect(result).toHaveProperty('corporation_id');
         expect(typeof result.corporation_id).toBe('number');
@@ -50,7 +50,7 @@ describe('CorporationsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationsClient.getCorporationAllianceHistory(123456789);
+        const result = await getBody(() => corporationsClient.getCorporationAllianceHistory(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((history: { alliance_id: number; is_deleted: boolean; record_id: number; start_date: string }) => {
@@ -81,7 +81,7 @@ describe('CorporationsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationsClient.getCorporationBlueprints(123456789);
+        const result = await getBody(() => corporationsClient.getCorporationBlueprints(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((blueprint: { item_id: number; type_id: number; location_id: number; location_flag: string; quantity: number; time_efficiency: number; material_efficiency: number; runs: number }) => {
@@ -119,7 +119,7 @@ describe('CorporationsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationsClient.getCorporationAlscLogs(123456789);
+        const result = await getBody(() => corporationsClient.getCorporationAlscLogs(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((log: { action: string; character_id: number; timestamp: string; item_id: number; location_flag: string; location_id: number; quantity: number }) => {
@@ -158,7 +158,7 @@ describe('CorporationsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationsClient.getCorporationDivisions(123456789);
+        const result = await getBody(() => corporationsClient.getCorporationDivisions(123456789));
 
         expect(result).toHaveProperty('hangar');
         expect(Array.isArray(result.hangar)).toBe(true);
@@ -192,7 +192,7 @@ describe('CorporationsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationsClient.getCorporationFacilities(123456789);
+        const result = await getBody(() => corporationsClient.getCorporationFacilities(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((facility: { facility_id: number; type_id: number; system_id: number; region_id: number; solar_system_id: number }) => {
@@ -218,7 +218,7 @@ describe('CorporationsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationsClient.getCorporationIcon(123456789);
+        const result = await getBody(() => corporationsClient.getCorporationIcon(123456789));
 
         expect(result).toHaveProperty('px64x64');
         expect(typeof result.px64x64).toBe('string');

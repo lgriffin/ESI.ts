@@ -23,7 +23,7 @@ describe('PostCharacterMailLabelsApi', () => {
             name: "New Label"
         };
 
-        const result = await mailLabelsApi.createMailLabel(123456, body);
+        const result = await getBody(() => mailLabelsApi.createMailLabel(123456, body));
 
         expect(result).toHaveProperty('label_id');
         expect(typeof result.label_id).toBe('number');

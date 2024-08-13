@@ -27,7 +27,7 @@ describe('PostOpenInformationWindowApi', () => {
             target_id: 123456789
         };
 
-        const result = await openInformationWindowApi.openInformationWindow(body);
+        const result = await getBody(() => openInformationWindowApi.openInformationWindow(body));
 
         expect(result).toEqual({ error: 'no content' });
     });

@@ -38,7 +38,7 @@ describe('GetCorporationWalletTransactionsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationWalletTransactionsApi.getCorporationWalletTransactions(123456789, 1);
+        const result = await getBody(() => corporationWalletTransactionsApi.getCorporationWalletTransactions(123456789, 1));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((transaction: { transaction_id: number; date: string; quantity: number; type_id: number; unit_price: number; client_id: number; location_id: number; is_buy: boolean; is_personal: boolean; journal_ref_id: number }) => {

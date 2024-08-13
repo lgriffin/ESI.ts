@@ -27,7 +27,7 @@ describe('GetIndustrySystemsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industrySystemsApi.getIndustrySystems();
+        const result = await getBody(() => industrySystemsApi.getIndustrySystems());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((system: any) => {

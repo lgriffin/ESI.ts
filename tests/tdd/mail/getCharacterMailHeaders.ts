@@ -29,7 +29,7 @@ describe('GetCharacterMailHeadersApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await mailHeadersApi.getCharacterMailHeaders(123456789);
+        const result = await getBody(() => mailHeadersApi.getCharacterMailHeaders(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((mailHeader: { mail_id: number, subject: string, from: number, to: { recipients: number[], mailing_list_ids: number[] }, timestamp: string, is_read: boolean }) => {

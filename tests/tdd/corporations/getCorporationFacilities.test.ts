@@ -35,7 +35,7 @@ describe('GetCorporationFacilitiesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationFacilitiesApi.getCorporationFacilities(12345);
+        const result = await getBody(() => corporationFacilitiesApi.getCorporationFacilities(12345));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((facility: { facility_id: number; type_id: number; solar_system_id: number; region_id: number; starbase_id: number; owner_id: number; name: string; system_cost_index: number }) => {

@@ -39,7 +39,7 @@ describe('PostCharacterFittingApi', () => {
             ]
         };
 
-        const result = await characterFittingApi.createFitting(123456, fittingData);
+        const result = await getBody(() => characterFittingApi.createFitting(123456, fittingData));
 
         expect(result).toHaveProperty('fitting_id');
         expect(typeof result.fitting_id).toBe('number');

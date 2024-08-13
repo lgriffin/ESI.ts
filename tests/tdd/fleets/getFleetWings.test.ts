@@ -22,7 +22,7 @@ describe('GetFleetWingsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await fleetWingsApi.getFleetWings(1234567890);
+        const result = await getBody(() => fleetWingsApi.getFleetWings(1234567890));
 
         expect(Array.isArray(result)).toBe(true);
         (result as { wing_id: number; name: string }[]).forEach(wing => {

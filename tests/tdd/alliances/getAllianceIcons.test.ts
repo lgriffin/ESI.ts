@@ -2,6 +2,7 @@ import { AllianceIconsApi } from '../../../src/api/alliances/getAllianceIcons';
 import { getClient } from '../../../src/config/jest/jest.setup';
 import fetchMock from 'jest-fetch-mock';
 
+
 fetchMock.enableMocks();
 
 interface AllianceIcons {
@@ -28,7 +29,7 @@ describe('AllianceIconsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await allianceIconsApi.getAllianceIcons(99000001) as AllianceIcons;
+        const result = await getBody(() => allianceIconsApi.getAllianceIcons(99000001)) as AllianceIcons;
 
         expect(result).toHaveProperty('px128x128');
         expect(typeof result.px128x128).toBe('string');

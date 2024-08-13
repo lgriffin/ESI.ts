@@ -29,7 +29,7 @@ describe('PutFleetMemberApi', () => {
             wing_id: 123456789
         };
 
-        const result = await fleetMemberApi.moveFleetMember(1234567890, 123456789, body);
+        const result = await getBody(() => fleetMemberApi.moveFleetMember(1234567890, 123456789, body));
 
         expect(result).toEqual({ error: 'no content' });
     });

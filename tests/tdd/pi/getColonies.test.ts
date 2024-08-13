@@ -26,7 +26,7 @@ describe('GetColoniesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await coloniesApi.getColonies(123456);
+        const result = await getBody(() => coloniesApi.getColonies(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((colony: { planet_id: number, planet_type: string, owner_id: number, system_id: number, last_update: string, num_pins: number }) => {

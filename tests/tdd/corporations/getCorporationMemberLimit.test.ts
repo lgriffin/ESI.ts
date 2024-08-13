@@ -24,7 +24,7 @@ describe('GetCorporationMemberLimitApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationMemberLimitApi.getCorporationMemberLimit(12345);
+        const result = await getBody(() => corporationMemberLimitApi.getCorporationMemberLimit(12345));
 
         expect(result).toHaveProperty('member_limit');
         expect(typeof result.member_limit).toBe('number');

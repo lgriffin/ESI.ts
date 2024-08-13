@@ -37,7 +37,7 @@ describe('GetClonesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getClonesApi.getClones(123456789);
+        const result = await getBody(() => getClonesApi.getClones(123456789));
 
         expect(result).toHaveProperty('home_location');
         expect(result.home_location).toHaveProperty('location_id');

@@ -36,7 +36,7 @@ describe('GetMarketPricesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketPricesApi.getMarketPrices();
+        const result = await getBody(() => marketPricesApi.getMarketPrices());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((price: { type_id: number, average_price: number, adjusted_price: number }) => {

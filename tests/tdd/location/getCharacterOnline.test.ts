@@ -30,7 +30,7 @@ describe('GetCharacterOnlineApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterOnlineApi.getCharacterOnline(123456);
+        const result = await getBody(() => characterOnlineApi.getCharacterOnline(123456));
 
         expect(result).toHaveProperty('online');
         expect(typeof result.online).toBe('boolean');

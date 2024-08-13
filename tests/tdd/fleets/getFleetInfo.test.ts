@@ -31,7 +31,7 @@ describe('GetFleetInfoApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await fleetInfoApi.getFleetInfo(1234567890);
+        const result = await getBody(() => fleetInfoApi.getFleetInfo(1234567890));
 
         expect(result).toHaveProperty('fleet_id');
         expect(result).toHaveProperty('name');

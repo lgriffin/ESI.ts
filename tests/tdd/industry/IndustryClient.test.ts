@@ -49,7 +49,7 @@ describe('IndustryClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industryClient.getCharacterIndustryJobs(123456789);
+        const result = await getBody(() => industryClient.getCharacterIndustryJobs(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((job: any) => {
@@ -110,7 +110,7 @@ describe('IndustryClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industryClient.getCharacterMiningLedger(123456789);
+        const result = await getBody(() => industryClient.getCharacterMiningLedger(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((ledger: any) => {
@@ -138,7 +138,7 @@ describe('IndustryClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industryClient.getMoonExtractionTimers(123456789);
+        const result = await getBody(() => industryClient.getMoonExtractionTimers(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((timer: any) => {
@@ -166,7 +166,7 @@ describe('IndustryClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industryClient.getCorporationMiningObservers(123456789);
+        const result = await getBody(() => industryClient.getCorporationMiningObservers(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((observer: any) => {
@@ -192,7 +192,7 @@ describe('IndustryClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industryClient.getCorporationMiningObserver(123456789, 987654321);
+        const result = await getBody(() => industryClient.getCorporationMiningObserver(123456789, 987654321));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((record: any) => {
@@ -238,7 +238,7 @@ describe('IndustryClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industryClient.getCorporationIndustryJobs(123456789);
+        const result = await getBody(() => industryClient.getCorporationIndustryJobs(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((job: any) => {
@@ -301,7 +301,7 @@ describe('IndustryClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industryClient.getIndustryFacilities();
+        const result = await getBody(() => industryClient.getIndustryFacilities());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((facility: any) => {
@@ -335,7 +335,7 @@ describe('IndustryClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await industryClient.getIndustrySystems();
+        const result = await getBody(() => industryClient.getIndustrySystems());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((system: any) => {

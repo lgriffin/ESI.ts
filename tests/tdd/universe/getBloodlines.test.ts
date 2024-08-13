@@ -22,7 +22,7 @@ describe('UniverseBloodlinesApi', () => {
         const mockResponse = [{ bloodline_id: 1, name: 'Bloodline 1' }, { bloodline_id: 2, name: 'Bloodline 2' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeBloodlinesApi.getBloodlines();
+        const result = await getBody(() => universeBloodlinesApi.getBloodlines());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((bloodline: any) => {
             expect(bloodline).toHaveProperty('bloodline_id');

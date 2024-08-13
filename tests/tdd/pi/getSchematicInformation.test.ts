@@ -22,7 +22,7 @@ describe('GetSchematicInformationApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await schematicInformationApi.getSchematicInformation(1);
+        const result = await getBody(() => schematicInformationApi.getSchematicInformation(1));
 
         expect(result).toHaveProperty('schematic_id');
         expect(typeof result.schematic_id).toBe('number');

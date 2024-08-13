@@ -61,7 +61,7 @@ describe('GetFactionLeaderboardsApi', () => {
             };
         };
 
-        const result = await getFactionLeaderboardsApi.getOverall() as Leaderboard;
+        const result = await getBody(() => getFactionLeaderboardsApi.getOverall()) as Leaderboard;
 
         expect(result).toHaveProperty('active_total');
         expect(Array.isArray(result.active_total)).toBe(true);

@@ -15,7 +15,7 @@ describe('DeleteCharacterMailApi', () => {
     it('should delete a mail', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await deleteMailApi.deleteMail(123456, 1);
+        const result = await getBody(() => deleteMailApi.deleteMail(123456, 1));
 
         expect(result).toEqual({ error: 'no content' });
     });

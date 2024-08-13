@@ -32,7 +32,7 @@ describe('ContactsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contactsClient.getAllianceContacts(123456);
+        const result = await getBody(() => contactsClient.getAllianceContacts(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(contact => {
@@ -53,7 +53,7 @@ describe('ContactsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contactsClient.getAllianceContactLabels(123456);
+        const result = await getBody(() => contactsClient.getAllianceContactLabels(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(label => {

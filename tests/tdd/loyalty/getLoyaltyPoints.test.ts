@@ -22,7 +22,7 @@ describe('GetLoyaltyPointsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await loyaltyPointsApi.getLoyaltyPoints(123456);
+        const result = await getBody(() => loyaltyPointsApi.getLoyaltyPoints(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((points: { corporation_id: number, loyalty_points: number }) => {

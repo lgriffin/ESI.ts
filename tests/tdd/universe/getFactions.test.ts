@@ -22,7 +22,7 @@ describe('UniverseFactionsApi', () => {
         const mockResponse = [{ faction_id: 1, name: 'Faction 1' }, { faction_id: 2, name: 'Faction 2' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeFactionsApi.getFactions();
+        const result = await getBody(() => universeFactionsApi.getFactions());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((faction: any) => {
             expect(faction).toHaveProperty('faction_id');

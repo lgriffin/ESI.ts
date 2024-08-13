@@ -34,7 +34,7 @@ describe('GetCorporationAssetsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getCorporationAssetsApi.getCorporationAssets(123456789);
+        const result = await getBody(() => getCorporationAssetsApi.getCorporationAssets(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((asset: { item_id: number; location_flag: string; location_id: number; location_type: string; quantity: number; type_id: number }) => {

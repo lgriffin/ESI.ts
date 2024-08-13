@@ -26,7 +26,7 @@ describe('GetCharacterRolesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterRolesApi.getCharacterRoles(123456);
+        const result = await getBody(() => characterRolesApi.getCharacterRoles(123456));
 
         expect(result).toHaveProperty('roles');
         expect(Array.isArray(result.roles)).toBe(true);

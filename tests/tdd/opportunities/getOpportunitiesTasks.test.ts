@@ -25,7 +25,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getOpportunitiesTasks();
+        const result = await getBody(() => opportunitiesClient.getOpportunitiesTasks());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((task: { task_id: number; name: string; description: string }) => {

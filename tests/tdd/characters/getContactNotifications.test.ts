@@ -30,10 +30,10 @@ describe('GetContactNotificationsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await contactNotificationsApi.getContactNotifications(123456);
+        const result = await getBody(() => contactNotificationsApi.getContactNotifications(123456));
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((notification) => {
+        result.forEach((notification: {notification_id: number, sender_character_id: number, standing_level: number}) => {
             expect(notification).toHaveProperty('notification_id');
             expect(notification).toHaveProperty('sender_character_id');
             expect(notification).toHaveProperty('standing_level');

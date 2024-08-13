@@ -18,7 +18,7 @@ describe('AllianceClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await allianceClient.getAllianceById(allianceId);
+        const result = await getBody(() => allianceClient.getAllianceById(allianceId));
         expect(result.alliance_id).toBe(allianceId);
         expect(result.name).toBe('Test Alliance');
     });

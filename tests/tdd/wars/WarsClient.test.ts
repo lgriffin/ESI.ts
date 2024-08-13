@@ -34,7 +34,7 @@ describe('WarsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await warsClient.getWars();
+        const result = await getBody(() => warsClient.getWars());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((war: any) => {
@@ -60,7 +60,7 @@ describe('WarsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await warsClient.getWarById(1);
+        const result = await getBody(() => warsClient.getWarById(1));
 
         expect(result).toHaveProperty('war_id');
         expect(result.war_id).toBe(1);
@@ -80,7 +80,7 @@ describe('WarsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await warsClient.getWarKillmails(1);
+        const result = await getBody(() => warsClient.getWarKillmails(1));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((killmail: any) => {

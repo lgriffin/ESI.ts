@@ -34,7 +34,7 @@ describe('GetCorporationAlscLogsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationAlscLogsApi.getCorporationAlscLogs(12345);
+        const result = await getBody(() => corporationAlscLogsApi.getCorporationAlscLogs(12345));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(log => {

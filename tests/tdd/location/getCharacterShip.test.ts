@@ -29,7 +29,7 @@ describe('GetCharacterShipApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterShipApi.getCharacterShip(123456);
+        const result = await getBody(() => characterShipApi.getCharacterShip(123456));
 
         expect(result).toHaveProperty('ship_item_id');
         expect(typeof result.ship_item_id).toBe('number');

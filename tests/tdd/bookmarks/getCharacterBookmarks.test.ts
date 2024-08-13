@@ -35,7 +35,7 @@ describe('CharacterBookmarksApi', () => {
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
         const api = new CharacterBookmarksApi(client);
-        const result = await api.getCharacterBookmarks(12345);
+        const result = await getBody(() => api.getCharacterBookmarks(12345));
 
         expect(result).toEqual(mockResponse);
     });

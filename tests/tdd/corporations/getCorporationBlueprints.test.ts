@@ -35,7 +35,7 @@ describe('GetCorporationBlueprintsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationBlueprintsApi.getCorporationBlueprints(12345);
+        const result = await getBody(() => corporationBlueprintsApi.getCorporationBlueprints(12345));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(blueprint => {

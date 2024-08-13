@@ -31,7 +31,7 @@ describe('GetStatusApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await statusApi.getStatus();
+        const result = await getBody(() => statusApi.getStatus());
 
         expect(result).toHaveProperty('players');
         expect(typeof result.players).toBe('object');

@@ -33,7 +33,7 @@ describe('GetCorporationMemberRolesHistoryApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationMemberRolesHistoryApi.getCorporationMemberRolesHistory(12345);
+        const result = await getBody(() => corporationMemberRolesHistoryApi.getCorporationMemberRolesHistory(12345));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((history: { character_id: number, changed_at: string, issuer_id: number, role_type: string, old_roles: string[], new_roles: string[] }) => {

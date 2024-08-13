@@ -37,7 +37,7 @@ describe('UniverseTypeByIdApi', () => {
             group_id: number;
         };
 
-        const result = await universeTypeByIdApi.getTypeById(12345) as TypeResponse;
+        const result = await getBody(() => universeTypeByIdApi.getTypeById(12345)) as TypeResponse;
 
         expect(result).toHaveProperty('type_id');
         expect(typeof result.type_id).toBe('number');

@@ -30,7 +30,7 @@ describe('GetKillmailApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await killmailApi.getKillmail(12345, 'abcdef1234567890');
+        const result = await getBody(() => killmailApi.getKillmail(12345, 'abcdef1234567890'));
 
         expect(result).toHaveProperty('killmail_id');
         expect(typeof result.killmail_id).toBe('number');

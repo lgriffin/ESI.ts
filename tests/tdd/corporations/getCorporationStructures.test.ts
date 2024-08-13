@@ -33,7 +33,7 @@ describe('GetCorporationStructuresApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await api.getCorporationStructures(123456);
+        const result = await getBody(() => api.getCorporationStructures(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(structure => {

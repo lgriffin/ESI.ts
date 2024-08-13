@@ -43,7 +43,7 @@ describe('UniversePlanetByIdApi', () => {
             };
         };
 
-        const result = await universePlanetByIdApi.getPlanetById(1) as PlanetResponse;
+        const result = await getBody(() => universePlanetByIdApi.getPlanetById(1)) as PlanetResponse;
 
         expect(result).toHaveProperty('planet_id');
         expect(typeof result.planet_id).toBe('number');

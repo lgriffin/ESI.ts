@@ -23,7 +23,7 @@ describe('GetEventAttendeesApi', () => {
         const mockResponse = [{ character_id: 123, event_response: 'accepted' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getEventAttendeesApi.getEventAttendees(12345, 67890);
+        const result = await getBody(() => getEventAttendeesApi.getEventAttendees(12345, 67890));
         expect(result).toEqual(mockResponse);
     });
 });

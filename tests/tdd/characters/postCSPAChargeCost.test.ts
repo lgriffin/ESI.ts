@@ -31,7 +31,7 @@ describe('PostCspaChargeCostApi', () => {
         };
 
         // Explicitly defining the type inline
-        const result = await cspaChargeCostApi.calculateCspaChargeCost(123456, body) as { cost: number };
+        const result = await getBody(() => cspaChargeCostApi.calculateCspaChargeCost(123456, body)) as { cost: number };
 
         expect(result).toHaveProperty('cost');
         expect(typeof result.cost).toBe('number');

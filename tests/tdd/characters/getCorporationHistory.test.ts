@@ -30,10 +30,10 @@ describe('GetCorporationHistoryApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationHistoryApi.getCorporationHistory(123456);
+        const result = await getBody(() => corporationHistoryApi.getCorporationHistory(123456));
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((history) => {
+        result.forEach((history: { corporation_id: number, start_date: Date, record_id: number}) => {
             expect(history).toHaveProperty('corporation_id');
             expect(history).toHaveProperty('start_date');
             expect(history).toHaveProperty('record_id');

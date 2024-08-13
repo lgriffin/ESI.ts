@@ -20,7 +20,7 @@ describe('PutCharacterMailApi', () => {
             read: true
         };
 
-        const result = await characterMailApi.updateMailMetadata(123456, 1, body);
+        const result = await getBody(() => characterMailApi.updateMailMetadata(123456, 1, body));
 
         expect(result).toEqual({ error: 'no content' });
     });

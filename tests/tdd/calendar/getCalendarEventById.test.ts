@@ -23,7 +23,7 @@ describe('GetCalendarEventByIdApi', () => {
         const mockResponse = { event_id: 1, title: 'Event 1' };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getCalendarEventByIdApi.getCalendarEventById(12345, 67890);
+        const result = await getBody(() => getCalendarEventByIdApi.getCalendarEventById(12345, 67890));
         expect(result).toEqual(mockResponse);
     });
 });

@@ -2,6 +2,7 @@ import { AllianceCorporationsApi } from '../../../src/api/alliances/getAllianceC
 import { getClient } from '../../../src/config/jest/jest.setup';
 import fetchMock from 'jest-fetch-mock';
 
+
 fetchMock.enableMocks();
 
 interface Corporation {
@@ -27,7 +28,7 @@ describe('AllianceCorporationsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await allianceCorporationsApi.getAllianceCorporations(99000006) as Corporation[];
+        const result = await getBody(() => allianceCorporationsApi.getAllianceCorporations(99000006)) as Corporation[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((corporation: Corporation) => {

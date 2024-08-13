@@ -36,7 +36,7 @@ describe('IncursionsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await incursionsClient.getIncursions();
+        const result = await getBody(() => incursionsClient.getIncursions());
 
         expect(Array.isArray(result)).toBe(true);
         if (Array.isArray(result)) {

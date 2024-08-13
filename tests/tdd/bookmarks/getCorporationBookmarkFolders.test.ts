@@ -35,7 +35,7 @@ describe('CorporationBookmarksApi', () => {
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
         const api = new CorporationBookmarksApi(client);
-        const result = await api.getCorporationBookmarks(12345);
+        const result = await getBody(() => api.getCorporationBookmarks(12345));
 
         expect(result).toEqual(mockResponse);
     });

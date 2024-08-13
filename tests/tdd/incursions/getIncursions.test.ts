@@ -35,7 +35,7 @@ describe('IncursionsApi', () => {
 
         const incursionsApi = new IncursionsApi(client);
 
-        const incursions = await incursionsApi.getIncursions();
-        expect(incursions).toEqual(mockResponse);
+        const result = await getBody(() => incursionsApi.getIncursions());
+        expect(result).toEqual(mockResponse);
     });
 });

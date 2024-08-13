@@ -37,7 +37,7 @@ describe('UniverseStarByIdApi', () => {
             luminosity: number;
         };
 
-        const result = await universeStarByIdApi.getStarById(40000001) as StarResponse;
+        const result = await getBody(() => universeStarByIdApi.getStarById(40000001)) as StarResponse;
 
         expect(result).toHaveProperty('star_id');
         expect(typeof result.star_id).toBe('number');

@@ -26,7 +26,7 @@ describe('GetCharacterMailLabelsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await mailLabelsApi.getMailLabels(123456789);
+        const result = await getBody(() => mailLabelsApi.getMailLabels(123456789));
 
         expect(result).toHaveProperty('labels');
         expect(Array.isArray(result.labels)).toBe(true);

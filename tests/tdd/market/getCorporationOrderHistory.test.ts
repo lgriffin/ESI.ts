@@ -40,7 +40,7 @@ describe('GetCorporationOrderHistoryApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationOrderHistoryApi.getCorporationOrderHistory(123456);
+        const result = await getBody(() => corporationOrderHistoryApi.getCorporationOrderHistory(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(order => {

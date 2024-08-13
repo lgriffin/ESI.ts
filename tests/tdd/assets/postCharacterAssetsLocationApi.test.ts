@@ -34,7 +34,7 @@ describe('PostCharacterAssetLocationsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterAssetLocationsApi.postCharacterAssetLocations(123456, [1234567890]);
+        const result = await getBody(() => characterAssetLocationsApi.postCharacterAssetLocations(123456, [1234567890]));
 
         console.log('API response:', result); // Log the result for debugging
 

@@ -30,7 +30,7 @@ describe('GetCorporationStandingsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationStandingsApi.getCorporationStandings(12345);
+        const result = await getBody(() => corporationStandingsApi.getCorporationStandings(12345));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((standing: { from_id: number, from_type: string, standing: number }) => {

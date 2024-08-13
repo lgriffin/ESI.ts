@@ -23,7 +23,7 @@ describe('RespondToCalendarEventApi', () => {
         const mockResponse = { success: true };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await respondToCalendarEventApi.respondToCalendarEvent(12345, 67890, 'accepted');
+        const result = await getBody(() => respondToCalendarEventApi.respondToCalendarEvent(12345, 67890, 'accepted'));
         expect(result).toEqual(mockResponse);
     });
 });

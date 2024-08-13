@@ -34,7 +34,7 @@ describe('AllianceContactsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await allianceContactsApi.getAllianceContacts(99000006) as Contact[];
+        const result = await getBody(() => allianceContactsApi.getAllianceContacts(99000006)) as Contact[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((contact: Contact) => {

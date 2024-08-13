@@ -44,7 +44,7 @@ describe('GetMarketOrdersInStructureApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketOrdersInStructureApi.getMarketOrdersInStructure(123456);
+        const result = await getBody(() => marketOrdersInStructureApi.getMarketOrdersInStructure(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {

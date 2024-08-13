@@ -30,10 +30,10 @@ describe('GetMedalsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await medalsApi.getMedals(123456);
+        const result = await getBody(() => medalsApi.getMedals(123456));
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((medal) => {
+        result.forEach((medal: {medal_id: number, reason: String, status: String}) => {
             expect(medal).toHaveProperty('medal_id');
             expect(medal).toHaveProperty('reason');
             expect(medal).toHaveProperty('status');

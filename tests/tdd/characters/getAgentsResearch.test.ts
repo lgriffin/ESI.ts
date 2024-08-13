@@ -30,10 +30,10 @@ describe('GetAgentsResearchApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await agentsResearchApi.getAgentsResearch(123456);
+        const result = await getBody(() => agentsResearchApi.getAgentsResearch(123456));
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((research) => {
+        result.forEach((research: { agent_id: number, skill_type_id: number, researchh_start_date: Date}) => {
             expect(research).toHaveProperty('agent_id');
             expect(research).toHaveProperty('skill_type_id');
             expect(research).toHaveProperty('research_start_date');

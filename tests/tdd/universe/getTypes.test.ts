@@ -23,7 +23,7 @@ describe('UniverseTypesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeTypesApi.getTypes() as number[];
+        const result = await getBody(() => universeTypesApi.getTypes()) as number[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((id: number) => {

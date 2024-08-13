@@ -23,7 +23,7 @@ describe('WarKillmailsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await warKillmailsApi.getWarKillmails(1);
+        const result = await getBody(() => warKillmailsApi.getWarKillmails(1));
         expect(Array.isArray(result)).toBe(true);
         result.forEach((killmail: any) => {
             expect(killmail).toHaveProperty('killmail_id');

@@ -23,7 +23,7 @@ describe('WarByIdApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await warByIdApi.getWarById(1);
+        const result = await getBody(() => warByIdApi.getWarById(1));
         expect(result).toHaveProperty('war_id');
         expect(result).toHaveProperty('declared');
         expect(result).toHaveProperty('finished');

@@ -22,7 +22,7 @@ describe('UniverseAsteroidBeltApi', () => {
         const mockResponse = { asteroid_belt_id: 1, name: 'Asteroid Belt 1' };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeAsteroidBeltApi.getAsteroidBeltInfo(1);
+        const result = await getBody(() => universeAsteroidBeltApi.getAsteroidBeltInfo(1));
         expect(result).toHaveProperty('asteroid_belt_id');
         expect(result).toHaveProperty('name');
     });

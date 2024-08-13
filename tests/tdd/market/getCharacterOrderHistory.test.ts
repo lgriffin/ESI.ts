@@ -40,7 +40,7 @@ describe('GetCharacterOrderHistoryApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterOrderHistoryApi.getCharacterOrderHistory(123456);
+        const result = await getBody(() => characterOrderHistoryApi.getCharacterOrderHistory(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(order => {

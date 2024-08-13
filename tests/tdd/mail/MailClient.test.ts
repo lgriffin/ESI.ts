@@ -31,7 +31,7 @@ describe('MailClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await mailClient.getMailHeaders(123456789);
+        const result = await getBody(() => mailClient.getMailHeaders(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((mail: { mail_id: number, subject: string, from: number, timestamp: string }) => {
@@ -59,7 +59,7 @@ describe('MailClient', () => {
             body: 'This is a test mail'
         };
 
-        const result = await mailClient.sendMail(123456, body);
+        const result = await getBody(() => mailClient.sendMail(123456, body));
 
         expect(result).toHaveProperty('mail_id');
         expect(typeof result.mail_id).toBe('number');
@@ -68,7 +68,7 @@ describe('MailClient', () => {
     it('should delete a mail', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await mailClient.deleteMail(123456, 1);
+        const result = await getBody(() => mailClient.deleteMail(123456, 1));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -84,7 +84,7 @@ describe('MailClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await mailClient.getMail(123456, 1);
+        const result = await getBody(() => mailClient.getMail(123456, 1));
 
         expect(result).toHaveProperty('mail_id');
         expect(typeof result.mail_id).toBe('number');
@@ -106,7 +106,7 @@ describe('MailClient', () => {
             read: true
         };
 
-        const result = await mailClient.updateMailMetadata(123456, 1, body);
+        const result = await getBody(() => mailClient.updateMailMetadata(123456, 1, body));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -125,7 +125,7 @@ describe('MailClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await mailClient.getMailLabels(123456789);
+        const result = await getBody(() => mailClient.getMailLabels(123456789));
 
         expect(result).toHaveProperty('labels');
         expect(Array.isArray(result.labels)).toBe(true);
@@ -152,7 +152,7 @@ describe('MailClient', () => {
             name: "New Label"
         };
 
-        const result = await mailClient.createMailLabel(123456, body);
+        const result = await getBody(() => mailClient.createMailLabel(123456, body));
 
         expect(result).toHaveProperty('label_id');
         expect(typeof result.label_id).toBe('number');
@@ -161,7 +161,7 @@ describe('MailClient', () => {
     it('should delete a mail label', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await mailClient.deleteMailLabel(123456, 1);
+        const result = await getBody(() => mailClient.deleteMailLabel(123456, 1));
 
         expect(result).toEqual({ error: 'no content' });
     });
@@ -176,7 +176,7 @@ describe('MailClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await mailClient.getMailingLists(123456789);
+        const result = await getBody(() => mailClient.getMailingLists(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((list: { mailing_list_id: number, name: string }) => {

@@ -36,7 +36,7 @@ describe('CharacterSearchApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterSearchApi.searchCharacter(12345, 'Test') as CharacterSearchResponse;
+        const result = await getBody(() => characterSearchApi.searchCharacter(1689391488, 'Test')) as CharacterSearchResponse;
 
         expect(result).toHaveProperty('search_results');
         expect(Array.isArray(result.search_results)).toBe(true);

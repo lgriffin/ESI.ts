@@ -25,7 +25,7 @@ describe('RouteApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await routeApi.getRoute(30000142, 30000144);
+        const result = await getBody(() => routeApi.getRoute(30000142, 30000144));
 
         expect(Array.isArray(result)).toBe(true);
         if (Array.isArray(result)) {

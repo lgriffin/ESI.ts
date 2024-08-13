@@ -31,7 +31,7 @@ describe('GetCorporationContractItemsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationContractItemsApi.getCorporationContractItems(123456789, 987654321);
+        const result = await getBody(() => corporationContractItemsApi.getCorporationContractItems(123456789, 987654321));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach((item) => {

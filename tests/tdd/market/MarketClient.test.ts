@@ -44,7 +44,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getCharacterOrders(123456);
+        const result = await getBody(() => marketClient.getCharacterOrders(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
@@ -80,7 +80,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getCharacterOrderHistory(123456);
+        const result = await getBody(() => marketClient.getCharacterOrderHistory(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
@@ -125,7 +125,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getCorporationOrders(123456);
+        const result = await getBody(() => marketClient.getCorporationOrders(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
@@ -161,7 +161,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getCorporationOrderHistory(123456);
+        const result = await getBody(() => marketClient.getCorporationOrderHistory(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
@@ -196,7 +196,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getMarketHistory(123456, 678910);
+        const result = await getBody(() => marketClient.getMarketHistory(123456, 678910));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((history: { date: string, order_count: number, volume: number, highest: number, average: number, lowest: number }) => {
@@ -239,7 +239,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getMarketOrders(123456);
+        const result = await getBody(() => marketClient.getMarketOrders(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
@@ -265,7 +265,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getMarketTypes(123456);
+        const result = await getBody(() => marketClient.getMarketTypes(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((typeId: number) => {
@@ -285,7 +285,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getMarketGroups();
+        const result = await getBody(() => marketClient.getMarketGroups());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((group: { market_group_id: number, name: string, description: string, types: number[] }) => {
@@ -310,7 +310,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getMarketGroupInformation(1);
+        const result = await getBody(() => marketClient.getMarketGroupInformation(1));
 
         expect(result).toHaveProperty('market_group_id');
         expect(typeof result.market_group_id).toBe('number');
@@ -338,7 +338,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getMarketPrices();
+        const result = await getBody(() => marketClient.getMarketPrices());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((price: { type_id: number, average_price: number, adjusted_price: number }) => {
@@ -375,7 +375,7 @@ describe('MarketClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketClient.getMarketOrdersInStructure(123456789);
+        const result = await getBody(() => marketClient.getMarketOrdersInStructure(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {

@@ -38,7 +38,7 @@ describe('GetCharacterFittingsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterFittingsApi.getFittings(123456);
+        const result = await getBody(() => characterFittingsApi.getFittings(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((fitting: { fitting_id: number, name: string, description: string, ship_type_id: number, items: Array<{ flag: string, quantity: number, type_id: number }> }) => {

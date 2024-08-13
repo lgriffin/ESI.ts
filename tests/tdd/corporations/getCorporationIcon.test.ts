@@ -28,7 +28,7 @@ describe('GetCorporationIconApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationIconApi.getCorporationIcon(12345);
+        const result = await getBody(() => corporationIconApi.getCorporationIcon(12345));
 
         expect(result).toHaveProperty('px64x64');
         expect(typeof result.px64x64).toBe('string');

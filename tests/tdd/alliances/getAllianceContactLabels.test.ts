@@ -30,7 +30,7 @@ describe('AllianceContactLabelsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await allianceContactLabelsApi.getAllianceContactLabels(99000006) as ContactLabel[];
+        const result = await getBody(() => allianceContactLabelsApi.getAllianceContactLabels(99000006)) as ContactLabel[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((label: ContactLabel) => {

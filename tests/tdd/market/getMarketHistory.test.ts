@@ -34,7 +34,7 @@ describe('GetMarketHistoryApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketHistoryApi.getMarketHistory(10000002, 34);
+        const result = await getBody(() => marketHistoryApi.getMarketHistory(10000002, 34));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(history => {

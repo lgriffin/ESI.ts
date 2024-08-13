@@ -17,7 +17,7 @@ describe('DeleteFleetWingApi', () => {
 
         fetchMock.mockResponseOnce(mockResponse, { status: 204 });
 
-        const result = await fleetWingApi.deleteFleetWing(1234567890, 123456789);
+        const result = await getBody(() => fleetWingApi.deleteFleetWing(1234567890, 123456789));
 
         expect(result).toEqual({ error: 'no content' });
     });

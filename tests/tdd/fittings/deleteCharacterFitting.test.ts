@@ -15,7 +15,7 @@ describe('DeleteCharacterFittingApi', () => {
     it('should delete a character fitting', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await characterFittingApi.deleteFitting(123456, 1);
+        const result = await getBody(() => characterFittingApi.deleteFitting(123456, 1));
 
         expect(result).toEqual({ error: 'no content' });
     });

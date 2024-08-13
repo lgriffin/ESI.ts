@@ -15,7 +15,7 @@ describe('PostFleetSquadApi', () => {
     it('should create a fleet squad', async () => {
         fetchMock.mockResponseOnce('', { status: 201 });
 
-        const result = await fleetSquadApi.createFleetSquad(1234567890, 987654321);
+        const result = await getBody(() => fleetSquadApi.createFleetSquad(1234567890, 987654321));
 
         expect(result).toEqual({ error: 'created' });
     });

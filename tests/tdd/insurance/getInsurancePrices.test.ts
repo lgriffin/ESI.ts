@@ -36,7 +36,7 @@ describe('InsuranceApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await insuranceApi.getInsurancePrices();
+        const result = await getBody(() => insuranceApi.getInsurancePrices());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((insurance: any) => {

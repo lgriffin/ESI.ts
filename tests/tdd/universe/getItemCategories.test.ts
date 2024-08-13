@@ -22,7 +22,7 @@ describe('UniverseCategoriesApi', () => {
         const mockResponse = [{ category_id: 1, name: 'Category 1' }, { category_id: 2, name: 'Category 2' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeCategoriesApi.getCategories();
+        const result = await getBody(() => universeCategoriesApi.getCategories());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((category: any) => {
             expect(category).toHaveProperty('category_id');

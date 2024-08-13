@@ -32,7 +32,7 @@ describe('GetMarketGroupsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await marketGroupsApi.getMarketGroups();
+        const result = await getBody(() => marketGroupsApi.getMarketGroups());
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(group => {

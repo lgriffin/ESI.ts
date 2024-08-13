@@ -33,7 +33,7 @@ describe('GetCorporationIssuedMedalsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationIssuedMedalsApi.getCorporationIssuedMedals(12345);
+        const result = await getBody(() => corporationIssuedMedalsApi.getCorporationIssuedMedals(12345));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((medal: { medal_id: number; recipient_id: number; issuer_id: number; issued_at: string; reason: string; status: string }) => {

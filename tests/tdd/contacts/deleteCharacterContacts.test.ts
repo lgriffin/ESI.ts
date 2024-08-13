@@ -16,7 +16,7 @@ describe('DeleteCharacterContactsApi', () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
         const contactIds = [123, 456];
-        const result = await characterContactsApi.deleteCharacterContacts(123456, contactIds);
+        const result = await getBody(() => characterContactsApi.deleteCharacterContacts(123456, contactIds));
 
         expect(result).toEqual({ error: 'no content' });
     });

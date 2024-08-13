@@ -28,7 +28,7 @@ describe('RouteClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await routeClient.getRoute(30000142, 30000144);
+        const result = await getBody(() => routeClient.getRoute(30000142, 30000144));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((systemId: number) => {

@@ -34,7 +34,8 @@ describe('AllianceByIdApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await allianceByIdApi.getAllianceById(99000006) as AllianceInfo;
+        const result = await getBody(() => allianceByIdApi.getAllianceById(99000006)) as AllianceInfo    
+        ;
 
         expect(result).toHaveProperty('alliance_id');
         expect(typeof result.alliance_id).toBe('number');

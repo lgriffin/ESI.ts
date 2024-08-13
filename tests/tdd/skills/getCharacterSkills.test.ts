@@ -27,7 +27,7 @@ describe('GetCharacterSkillsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterSkillsApi.getCharacterSkills(123456);
+        const result = await getBody(() => characterSkillsApi.getCharacterSkills(123456));
 
         expect(result).toHaveProperty('total_sp');
         expect(typeof result.total_sp).toBe('number');

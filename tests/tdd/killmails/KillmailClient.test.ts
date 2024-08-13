@@ -33,7 +33,7 @@ describe('KillmailsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await killmailsClient.getCharacterRecentKillmails(123456);
+        const result = await getBody(() => killmailsClient.getCharacterRecentKillmails(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((killmail: any) => {
@@ -64,7 +64,7 @@ describe('KillmailsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await killmailsClient.getCorporationRecentKillmails(123456);
+        const result = await getBody(() => killmailsClient.getCorporationRecentKillmails(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((killmail: any) => {
@@ -93,7 +93,7 @@ describe('KillmailsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await killmailsClient.getKillmail(12345, 'abcdef1234567890');
+        const result = await getBody(() => killmailsClient.getKillmail(12345, 'abcdef1234567890'));
 
         expect(result).toHaveProperty('killmail_id');
         expect(typeof result.killmail_id).toBe('number');

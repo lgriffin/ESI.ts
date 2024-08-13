@@ -1,6 +1,8 @@
 import { ApiClientBuilder } from '../../core/ApiClientBuilder';
 import { getConfig } from '../../config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { getBody, getHeaders } from '../../../src/core/util/testHelpers';
+import '../../../types/global.d.ts';
 
 fetchMock.enableMocks();
 
@@ -13,3 +15,11 @@ const client = new ApiClientBuilder()
     .build();
 
 export const getClient = () => client;
+
+beforeEach(() => {
+    fetchMock.resetMocks();
+});
+
+// Assigning functions to the global object
+global.getBody = getBody;
+global.getHeaders = getHeaders;

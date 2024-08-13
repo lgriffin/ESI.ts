@@ -16,7 +16,7 @@ describe('DogmaEffectByIdApi', () => {
         const mockResponse = { effect_id: 1, name: 'test_effect' };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await dogmaEffectByIdApi.getEffectById(1);
+        const result = await getBody(() => dogmaEffectByIdApi.getEffectById(1));
         expect(result).toEqual(mockResponse);
     });
 });

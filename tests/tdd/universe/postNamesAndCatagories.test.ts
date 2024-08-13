@@ -32,7 +32,7 @@ describe('PostNamesAndCategoriesApi', () => {
             category: string;
         };
 
-        const result = await postNamesAndCategoriesApi.postNamesAndCategories([123, 456]) as NamesAndCategoriesResponse[];
+        const result = await getBody(() => postNamesAndCategoriesApi.postNamesAndCategories([123, 456])) as NamesAndCategoriesResponse[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((item: NamesAndCategoriesResponse) => {

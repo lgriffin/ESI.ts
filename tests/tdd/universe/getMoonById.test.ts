@@ -41,7 +41,7 @@ describe('UniverseMoonByIdApi', () => {
             };
         };
 
-        const result = await universeMoonByIdApi.getMoonById(1) as MoonResponse;
+        const result = await getBody(() => universeMoonByIdApi.getMoonById(1)) as MoonResponse;
 
         expect(result).toHaveProperty('moon_id');
         expect(typeof result.moon_id).toBe('number');

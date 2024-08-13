@@ -28,7 +28,7 @@ describe('GetCharacterPublicInfoApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterPublicInfoApi.getCharacterPublicInfo(123456);
+        const result = await getBody(() => characterPublicInfoApi.getCharacterPublicInfo(123456));
 
         expect(result).toHaveProperty('character_id');
         expect(result).toHaveProperty('name');

@@ -33,7 +33,7 @@ describe('UniverseSystemJumpsApi', () => {
             system_id: number;
         };
 
-        const result = await universeSystemJumpsApi.getSystemJumps() as SystemJumpResponse[];
+        const result = await getBody(() => universeSystemJumpsApi.getSystemJumps()) as SystemJumpResponse[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((jump: SystemJumpResponse) => {

@@ -23,7 +23,7 @@ describe('WarsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await warsApi.getWars();
+        const result = await getBody(() => warsApi.getWars());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((war: any) => {
             expect(war).toHaveProperty('war_id');

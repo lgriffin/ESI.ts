@@ -26,7 +26,7 @@ describe('WalletClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await walletClient.getCharacterWallet(123456789);
+        const result = await getBody(() => walletClient.getCharacterWallet(123456789));
 
         expect(result).toHaveProperty('balance');
         expect(typeof result.balance).toBe('number');
@@ -48,7 +48,7 @@ describe('WalletClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await walletClient.getCharacterWalletJournal(123456789);
+        const result = await getBody(() => walletClient.getCharacterWalletJournal(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((entry: { date: string; ref_id: number; amount: number; balance: number; reason: string; type_id: number; first_party_id: number; second_party_id: number }) => {
@@ -81,7 +81,7 @@ describe('WalletClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await walletClient.getCharacterWalletTransactions(123456789);
+        const result = await getBody(() => walletClient.getCharacterWalletTransactions(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((transaction: { transaction_id: number; date: string; quantity: number; type_id: number; unit_price: number; client_id: number; location_id: number; is_buy: boolean; is_personal: boolean; journal_ref_id: number }) => {
@@ -108,7 +108,7 @@ describe('WalletClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await walletClient.getCorporationWallets(123456789);
+        const result = await getBody(() => walletClient.getCorporationWallets(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((wallet: { division: number; balance: number }) => {
@@ -135,7 +135,7 @@ describe('WalletClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await walletClient.getCorporationWalletJournal(123456789, 1);
+        const result = await getBody(() => walletClient.getCorporationWalletJournal(123456789, 1));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((entry: { date: string; ref_id: number; amount: number; balance: number; reason: string; type_id: number; first_party_id: number; second_party_id: number }) => {
@@ -168,7 +168,7 @@ describe('WalletClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await walletClient.getCorporationWalletTransactions(123456789, 1);
+        const result = await getBody(() => walletClient.getCorporationWalletTransactions(123456789, 1));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((transaction: { transaction_id: number; date: string; quantity: number; type_id: number; unit_price: number; client_id: number; location_id: number; is_buy: boolean; is_personal: boolean; journal_ref_id: number }) => {

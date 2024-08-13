@@ -30,10 +30,10 @@ describe('GetBlueprintsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await blueprintsApi.getBlueprints(123456);
+        const result = await getBody(() => blueprintsApi.getBlueprints(123456));
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((blueprint) => {
+        result.forEach((blueprint: {item_id: number, type_id: number, location_id: number}) => {
             expect(blueprint).toHaveProperty('item_id');
             expect(blueprint).toHaveProperty('type_id');
             expect(blueprint).toHaveProperty('location_id');

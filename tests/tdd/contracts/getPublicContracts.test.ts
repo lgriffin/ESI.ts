@@ -42,7 +42,7 @@ describe('GetPublicContractsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await publicContractsApi.getPublicContracts(10000001);
+        const result = await getBody(() => publicContractsApi.getPublicContracts(10000001));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach((contract) => {

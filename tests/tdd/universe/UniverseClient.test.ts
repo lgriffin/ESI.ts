@@ -32,7 +32,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getAncestries();
+        const result = await getBody(() => universeClient.getAncestries());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((ancestry: any) => {
@@ -54,7 +54,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getAsteroidBeltInfo(1);
+        const result = await getBody(() => universeClient.getAsteroidBeltInfo(1));
 
         expect(result).toHaveProperty('asteroid_belt_id');
         expect(result.asteroid_belt_id).toBe(1);
@@ -76,7 +76,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getBloodlines();
+        const result = await getBody(() => universeClient.getBloodlines());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((bloodline: any) => {
@@ -99,7 +99,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getConstellationById(1);
+        const result = await getBody(() => universeClient.getConstellationById(1));
 
         expect(result).toHaveProperty('constellation_id');
         expect(result.constellation_id).toBe(1);
@@ -126,7 +126,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getConstellations();
+        const result = await getBody(() => universeClient.getConstellations());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((constellation: any) => {
@@ -157,7 +157,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getFactions();
+        const result = await getBody(() => universeClient.getFactions());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((faction: any) => {
@@ -181,7 +181,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getGraphics();
+        const result = await getBody(() => universeClient.getGraphics());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((graphic: any) => {
@@ -203,7 +203,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getGraphicById(1);
+        const result = await getBody(() => universeClient.getGraphicById(1));
 
         expect(result).toHaveProperty('graphic_id');
         expect(result.graphic_id).toBe(1);

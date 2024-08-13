@@ -29,7 +29,7 @@ describe('LocationClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await locationClient.getCharacterLocation(123456);
+        const result = await getBody(() => locationClient.getCharacterLocation(123456));
 
         expect(result).toHaveProperty('solar_system_id');
         expect(typeof result.solar_system_id).toBe('number');
@@ -49,7 +49,7 @@ describe('LocationClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await locationClient.getCharacterOnline(123456);
+        const result = await getBody(() => locationClient.getCharacterOnline(123456));
 
         expect(result).toHaveProperty('online');
         expect(typeof result.online).toBe('boolean');
@@ -70,7 +70,7 @@ describe('LocationClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await locationClient.getCharacterShip(123456);
+        const result = await getBody(() => locationClient.getCharacterShip(123456));
 
         expect(result).toHaveProperty('ship_item_id');
         expect(typeof result.ship_item_id).toBe('number');

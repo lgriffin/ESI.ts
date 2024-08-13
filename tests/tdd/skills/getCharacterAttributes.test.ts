@@ -23,7 +23,7 @@ describe('GetCharacterAttributesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterAttributesApi.getCharacterAttributes(123456);
+        const result = await getBody(() => characterAttributesApi.getCharacterAttributes(123456));
 
         expect(result).toHaveProperty('intelligence');
         expect(typeof result.intelligence).toBe('number');

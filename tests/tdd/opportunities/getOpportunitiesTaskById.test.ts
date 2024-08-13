@@ -25,7 +25,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getOpportunitiesTaskById(123); // Replace with a valid task ID
+        const result = await getBody(() => opportunitiesClient.getOpportunitiesTaskById(123)); // Replace with a valid task ID
 
         expect(result).toHaveProperty('task_id');
         expect(typeof result.task_id).toBe('number');

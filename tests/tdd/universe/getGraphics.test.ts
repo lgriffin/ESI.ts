@@ -22,7 +22,7 @@ describe('UniverseGraphicsApi', () => {
         const mockResponse = [{ graphic_id: 1, name: 'Graphic 1' }, { graphic_id: 2, name: 'Graphic 2' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeGraphicsApi.getGraphics();
+        const result = await getBody(() => universeGraphicsApi.getGraphics());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((graphic: any) => {
             expect(graphic).toHaveProperty('graphic_id');

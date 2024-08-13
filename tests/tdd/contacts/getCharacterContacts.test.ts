@@ -24,7 +24,7 @@ describe('getCharacterContacts', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterContactsApi.getContacts(123456);
+        const result = await getBody(() => characterContactsApi.getContacts(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((contact: any) => {

@@ -31,7 +31,7 @@ describe('GetCorporationMemberTrackingApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationMemberTrackingApi.getCorporationMemberTracking(12345);
+        const result = await getBody(() => corporationMemberTrackingApi.getCorporationMemberTracking(12345));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((member: { character_id: number, start_date: string, location_id: number, ship_type_id: number }) => {

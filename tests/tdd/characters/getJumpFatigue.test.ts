@@ -28,7 +28,7 @@ describe('GetJumpFatigueApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await jumpFatigueApi.getJumpFatigue(123456);
+        const result = await getBody(() => jumpFatigueApi.getJumpFatigue(123456));
 
         expect(result).toHaveProperty('jump_fatigue_expire_date');
         expect(result).toHaveProperty('last_jump_date');

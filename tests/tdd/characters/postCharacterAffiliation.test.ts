@@ -35,7 +35,7 @@ describe('PostCharacterAffiliationApi', () => {
             characters: [1234567890, 1234567891]
         };
 
-        const result = await characterAffiliationApi.postCharacterAffiliation(body);
+        const result = await getBody(() => characterAffiliationApi.postCharacterAffiliation(body));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((affiliation: { character_id: number, corporation_id: number, alliance_id: number, faction_id: number }) => {

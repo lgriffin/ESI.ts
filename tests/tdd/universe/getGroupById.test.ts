@@ -33,7 +33,7 @@ describe('UniverseItemGroupByIdApi', () => {
             description: string;
         };
 
-        const result = await universeItemGroupByIdApi.getItemGroupById(1) as ItemGroupResponse;
+        const result = await getBody(() => universeItemGroupByIdApi.getItemGroupById(1)) as ItemGroupResponse;
 
         expect(result).toHaveProperty('group_id');
         expect(typeof result.group_id).toBe('number');

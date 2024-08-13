@@ -33,7 +33,7 @@ describe('GetColonyLayoutApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await colonyLayoutApi.getColonyLayout(123456, 654321);
+        const result = await getBody(() => colonyLayoutApi.getColonyLayout(123456, 654321));
 
         expect(result).toHaveProperty('links');
         expect(Array.isArray(result.links)).toBe(true);

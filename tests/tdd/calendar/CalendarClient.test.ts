@@ -32,7 +32,7 @@ describe('CalendarClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await calendarClient.getCalendarEvents(123456789);
+        const result = await getBody(() => calendarClient.getCalendarEvents(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         (result as { event_id: number; event_date: string; title: string; importance: number }[]).forEach(event => {
@@ -57,7 +57,7 @@ describe('CalendarClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await calendarClient.getCalendarEventById(123456789, 1) as { event_id: number, event_date: string, title: string, description: string };
+        const result = await getBody(() => calendarClient.getCalendarEventById(123456789, 1)) as { event_id: number, event_date: string, title: string, description: string };
 
         expect(result).toHaveProperty('event_id');
         expect(typeof result.event_id).toBe('number');
@@ -72,7 +72,7 @@ describe('CalendarClient', () => {
     it('should handle respondToCalendarEvent correctly', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const response = await calendarClient.respondToCalendarEvent(123456789, 1, 'accepted');
+        const response = await getBody(() => calendarClient.respondToCalendarEvent(123456789, 1, 'accepted'));
 
         expect(response).toEqual({ error: 'no content' });
     });
@@ -87,7 +87,7 @@ describe('CalendarClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await calendarClient.getEventAttendees(123456789, 1);
+        const result = await getBody(() => calendarClient.getEventAttendees(123456789, 1));
 
         expect(Array.isArray(result)).toBe(true);
         (result as { character_id: number; response: string }[]).forEach(attendee => {

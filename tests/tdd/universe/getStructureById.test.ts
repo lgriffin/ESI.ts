@@ -47,7 +47,7 @@ describe('UniverseStructureByIdApi', () => {
             };
         };
 
-        const result = await universeStructureByIdApi.getStructureById(1021975535893) as StructureResponse;
+        const result = await getBody(() => universeStructureByIdApi.getStructureById(1021975535893)) as StructureResponse;
 
         expect(result).toHaveProperty('structure_id');
         expect(typeof result.structure_id).toBe('number');

@@ -32,7 +32,7 @@ describe('UpdateFleetApi', () => {
             motd: 'Fleet Message of the Day'
         };
 
-        const result = await updateFleetApi.updateFleet(1234567890, body);
+        const result = await getBody(() => updateFleetApi.updateFleet(1234567890, body));
 
         expect(result).toEqual({ error: 'no content' });
     });

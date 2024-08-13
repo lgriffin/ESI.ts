@@ -32,7 +32,7 @@ describe('GetCharacterRecentKillmailsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterRecentKillmailsApi.getCharacterRecentKillmails(123456);
+        const result = await getBody(() => characterRecentKillmailsApi.getCharacterRecentKillmails(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((killmail: any) => {

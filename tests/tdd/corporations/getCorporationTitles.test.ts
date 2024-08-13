@@ -37,7 +37,7 @@ describe('GetCorporationTitlesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await api.getCorporationTitles(123456);
+        const result = await getBody(() => api.getCorporationTitles(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as any[]).forEach(title => {

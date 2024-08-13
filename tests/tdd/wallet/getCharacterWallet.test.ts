@@ -27,7 +27,7 @@ describe('GetCharacterWalletApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await walletApi.getCharacterWallet(123456789);
+        const result = await getBody(() => walletApi.getCharacterWallet(123456789));
 
         expect(result).toHaveProperty('balance');
         expect(typeof result.balance).toBe('number');

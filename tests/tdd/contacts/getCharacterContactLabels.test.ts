@@ -22,7 +22,7 @@ describe('getCharacterContactLabels', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterContactLabelsApi.getLabels(123456);
+        const result = await getBody(() => characterContactLabelsApi.getLabels(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((label: any) => {

@@ -16,7 +16,7 @@ describe('DogmaAttributeByIdApi', () => {
         const mockResponse = { attribute_id: 1, name: 'test_attribute' };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await dogmaAttributeByIdApi.getAttributeById(1);
+        const result = await getBody(() => dogmaAttributeByIdApi.getAttributeById(1));
         expect(result).toEqual(mockResponse);
     });
 });

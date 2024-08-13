@@ -38,7 +38,7 @@ describe('BookmarkClient', () => {
       
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await bookmarkClient.getCharacterBookmarks(12345);
+        const result = await getBody(() => bookmarkClient.getCharacterBookmarks(12345));
         expect(result).toEqual(mockResponse);
     });
 
@@ -46,7 +46,7 @@ describe('BookmarkClient', () => {
         
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await bookmarkClient.getCharacterBookmarkFolders(12345);
+        const result = await getBody(() => bookmarkClient.getCharacterBookmarkFolders(12345));
         expect(result).toEqual(mockResponse);
     });
 
@@ -54,7 +54,7 @@ describe('BookmarkClient', () => {
       
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await bookmarkClient.getCorporationBookmarks(12345);
+        const result = await getBody(() => bookmarkClient.getCorporationBookmarks(12345));
         expect(result).toEqual(mockResponse);
     });
 
@@ -62,7 +62,7 @@ describe('BookmarkClient', () => {
        
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await bookmarkClient.getCorporationBookmarkFolders(12345);
+        const result = await getBody(() => bookmarkClient.getCorporationBookmarkFolders(12345));
         expect(result).toEqual(mockResponse);
     });
 });

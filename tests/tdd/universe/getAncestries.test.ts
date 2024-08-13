@@ -22,7 +22,7 @@ describe('UniverseAncestriesApi', () => {
         const mockResponse = [{ ancestry_id: 1, name: 'Ancestry 1' }, { ancestry_id: 2, name: 'Ancestry 2' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeAncestriesApi.getAncestries();
+        const result = await getBody(() => universeAncestriesApi.getAncestries());
         expect(Array.isArray(result)).toBe(true);
         result.forEach((ancestry: any) => {
             expect(ancestry).toHaveProperty('ancestry_id');

@@ -24,7 +24,7 @@ describe('GetCharacterMiningLedgerApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterMiningLedgerApi.getCharacterMiningLedger(123456789);
+        const result = await getBody(() => characterMiningLedgerApi.getCharacterMiningLedger(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((entry: any) => {

@@ -32,7 +32,7 @@ describe('GetCorporationMedalsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationMedalsApi.getCorporationMedals(12345);
+        const result = await getBody(() => corporationMedalsApi.getCorporationMedals(12345));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((medal: { medal_id: number; title: string; description: string; creator_id: number; created_at: string }) => {

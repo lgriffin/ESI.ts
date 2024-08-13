@@ -23,7 +23,7 @@ describe('PostFleetWingApi', () => {
             name: 'New Wing'
         };
 
-        const result = await fleetWingApi.createFleetWing(1234567890, body);
+        const result = await getBody(() => fleetWingApi.createFleetWing(1234567890, body));
 
         expect(result).toHaveProperty('wing_id');
         expect(typeof result.wing_id).toBe('number');

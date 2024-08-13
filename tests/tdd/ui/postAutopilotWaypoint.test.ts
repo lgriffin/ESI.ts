@@ -29,7 +29,7 @@ describe('PostAutopilotWaypointApi', () => {
             add_to_beginning: false
         };
 
-        const result = await autopilotWaypointApi.setAutopilotWaypoint(body);
+        const result = await getBody(() => autopilotWaypointApi.setAutopilotWaypoint(body));
 
         expect(result).toEqual({ error: 'no content' });
     });

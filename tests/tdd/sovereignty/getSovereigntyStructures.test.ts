@@ -30,7 +30,7 @@ describe('SovereigntyStructuresApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await sovereigntyStructuresApi.getSovereigntyStructures();
+        const result = await getBody(() => sovereigntyStructuresApi.getSovereigntyStructures());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((structure: any) => {

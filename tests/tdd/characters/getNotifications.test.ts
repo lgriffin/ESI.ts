@@ -30,10 +30,10 @@ describe('GetNotificationsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await notificationsApi.getNotifications(123456);
+        const result = await getBody(() => notificationsApi.getNotifications(123456));
 
         expect(Array.isArray(result)).toBe(true);
-        result.forEach((notification) => {
+        result.forEach((notification: {notification_id: number, type: String, is_read: Boolean}) => {
             expect(notification).toHaveProperty('notification_id');
             expect(notification).toHaveProperty('type');
             expect(notification).toHaveProperty('is_read');

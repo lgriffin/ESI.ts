@@ -28,7 +28,7 @@ describe('GetCorporationInfoApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationInfoApi.getCorporationInfo(12345);
+        const result = await getBody(() => corporationInfoApi.getCorporationInfo(12345));
 
         expect(result).toHaveProperty('corporation_id');
         expect(typeof result.corporation_id).toBe('number');

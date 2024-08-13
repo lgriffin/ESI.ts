@@ -23,7 +23,7 @@ describe('postCharacterContacts', () => {
             label_ids: [1, 2]
         };
 
-        const result = await characterContactsApi.addContacts(123456, contacts);
+        const result = await getBody(() => characterContactsApi.addContacts(123456, contacts));
 
         expect(result).toEqual({ error: 'created' });
     });

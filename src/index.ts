@@ -33,6 +33,8 @@ import { UiApiBuilder } from './builders/UiApiBuilder';
 import { WalletApiBuilder } from './builders/WalletApiBuilder';
 import { ContactsApiBuilder } from './builders/ContactsApiBuilder';
 import { MarketApiBuilder } from './builders/MarketApiBuilder';
+import HeadersUtil from './core/util/headersUtil';
+import { getBody, getHeaders } from './core/util/testHelpers';
 
 const config = getConfig();
 
@@ -299,8 +301,8 @@ const testUniverseAPIs = async () => {
 const testStatusAPI = async () => {
     try {
         console.log('Testing Status API');
-        const status = await statusClient.getStatus();
-        console.log('Status:', JSON.stringify(status, null, 2));
+        const { headers, body } = await statusClient.getStatus();
+        console.log('Status:', body);
     } catch (error) {
         console.error('Error testing Status API:', error);
     }
@@ -1060,7 +1062,7 @@ export const testMarketApis = async () => {
         console.log('Market History:', marketHistory);
 
         // Test getMarketOrders
-        const marketOrders = await marketClient.getMarketOrders(30000142); //Jita
+        const marketOrders = await marketClient.getMarketOrders(30000142); //Jita (30000142) is in The Forge (10000002)
         console.log('Market Orders:', marketOrders);
 
         // Test getMarketTypes
@@ -1087,15 +1089,26 @@ export const testMarketApis = async () => {
     }
 };
 
+const testMarketOrders2 = async () => {
+    try {
+        const { headers, body } = await marketClient.getMarketOrders(10000002);
+        console.log('Market Orders:', JSON.stringify(body, null, 2));
+        console.log('X-Pages:', HeadersUtil.xPages);
+        console.log('Full Headers:', headers);
+    } catch (error) {
+        console.error('Error testing Market Orders:', error);
+    }
+};
+
 
 logger.info('Testing about to begin');
 logger.info('Auth Token is ' + config.authToken + ' be happy if this is not set and a blank space exists');
 logger.info('config is pointing towards ' + config.link);
 
-testFactionAPIs();
+//testFactionAPIs();
 //testAllianceAPIs();
 //testWarsAPI();
-//testStatusAPI();
+testStatusAPI();
 //testUniverseAPIs();
 //testInsurancePrices();
 //testDogmaAPI();
@@ -1124,3 +1137,4 @@ testFactionAPIs();
 //testWallet();
 //testContacts();
 //testMarketApis();
+//testMarketOrders2();

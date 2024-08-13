@@ -29,7 +29,7 @@ describe('GetCharacterLocationApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterLocationApi.getCharacterLocation(123456);
+        const result = await getBody(() => characterLocationApi.getCharacterLocation(123456));
 
         expect(result).toHaveProperty('solar_system_id');
         expect(typeof result.solar_system_id).toBe('number');

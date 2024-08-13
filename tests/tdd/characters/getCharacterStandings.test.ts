@@ -32,7 +32,7 @@ describe('GetCharacterStandingsApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterStandingsApi.getCharacterStandings(123456);
+        const result = await getBody(() => characterStandingsApi.getCharacterStandings(123456));
 
         expect(result).toHaveProperty('standings');
         expect(Array.isArray(result.standings)).toBe(true);

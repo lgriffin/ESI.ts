@@ -20,7 +20,7 @@ describe('GetCharacterAssetsApi', () => {
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const getCharacterAssetsApi = new GetCharacterAssetsApi(getClient());
-    const result = await getCharacterAssetsApi.getCharacterAssets(123456789);
+    const result = await getBody(() => getCharacterAssetsApi.getCharacterAssets(123456789));
 
     expect(Array.isArray(result)).toBe(true);
     result.forEach((asset: any) => {

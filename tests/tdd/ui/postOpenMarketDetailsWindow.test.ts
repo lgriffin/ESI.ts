@@ -27,7 +27,7 @@ describe('PostOpenMarketDetailsWindowApi', () => {
             type_id: 123456
         };
 
-        const result = await openMarketDetailsWindowApi.openMarketDetailsWindow(body);
+        const result = await getBody(() => openMarketDetailsWindowApi.openMarketDetailsWindow(body));
 
         expect(result).toEqual({ error: 'no content' });
     });

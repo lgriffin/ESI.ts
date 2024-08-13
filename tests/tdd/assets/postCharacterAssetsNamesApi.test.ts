@@ -30,7 +30,7 @@ describe('PostCharacterAssetNamesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await postCharacterAssetNamesApi.postCharacterAssetNames(123456789, [1, 2, 3]);
+        const result = await getBody(() => postCharacterAssetNamesApi.postCharacterAssetNames(123456789, [1, 2, 3]));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((assetName: { item_id: number; name: string }) => {

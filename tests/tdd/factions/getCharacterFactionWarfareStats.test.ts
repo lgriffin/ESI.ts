@@ -48,7 +48,7 @@ describe('GetCharacterFactionWarfareStatsApi', () => {
             };
         };
 
-        const result = await getCharacterFactionWarfareStatsApi.getCharacterStats(123456) as FactionWarfareStat;
+        const result = await getBody(() => getCharacterFactionWarfareStatsApi.getCharacterStats(123456)) as FactionWarfareStat;
 
         expect(result).toHaveProperty('faction_id');
         expect(typeof result.faction_id).toBe('number');

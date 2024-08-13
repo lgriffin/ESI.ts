@@ -23,7 +23,7 @@ describe('putCharacterContacts', () => {
             label_ids: [1, 2]
         };
 
-        const result = await characterContactsApi.editContacts(123456, contacts);
+        const result = await getBody(() => characterContactsApi.editContacts(123456, contacts));
 
         expect(result).toEqual({ error: 'no content' });
     });

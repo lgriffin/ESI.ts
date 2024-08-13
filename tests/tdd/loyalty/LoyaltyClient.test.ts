@@ -30,7 +30,7 @@ describe('LoyaltyClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await loyaltyClient.getLoyaltyPoints(123456);
+        const result = await getBody(() => loyaltyClient.getLoyaltyPoints(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((points: { corporation_id: number, loyalty_points: number }) => {
@@ -54,7 +54,7 @@ describe('LoyaltyClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await loyaltyClient.getLoyaltyStoreOffers(123);
+        const result = await getBody(() => loyaltyClient.getLoyaltyStoreOffers(123));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((offer: { offer_id: number, lp_cost: number, isk_cost: number, item_id: number, quantity: number }) => {

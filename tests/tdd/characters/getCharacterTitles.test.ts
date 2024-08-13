@@ -29,7 +29,7 @@ describe('GetCharacterTitlesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await characterTitlesApi.getCharacterTitles(123456);
+        const result = await getBody(() => characterTitlesApi.getCharacterTitles(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((title: { title_id: number, name: string }) => {

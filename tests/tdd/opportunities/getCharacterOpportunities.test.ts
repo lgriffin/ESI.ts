@@ -25,7 +25,7 @@ describe('OpportunitiesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await opportunitiesClient.getCharacterOpportunities(12345); // Replace with a valid character ID
+        const result = await getBody(() => opportunitiesClient.getCharacterOpportunities(1689391488));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((opportunity: { task_id: number; completed_at: string }) => {

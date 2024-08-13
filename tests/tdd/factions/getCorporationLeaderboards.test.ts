@@ -61,7 +61,7 @@ describe('GetCorporationLeaderboardsApi', () => {
             };
         };
 
-        const result = await getCorporationLeaderboardsApi.getCorporations() as Leaderboard;
+        const result = await getBody(() => getCorporationLeaderboardsApi.getCorporations()) as Leaderboard;
 
         expect(result).toHaveProperty('active_total');
         expect(Array.isArray(result.active_total)).toBe(true);

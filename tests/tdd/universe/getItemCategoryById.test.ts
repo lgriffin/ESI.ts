@@ -28,7 +28,7 @@ describe('UniverseCategoryByIdApi', () => {
             groups: number[];
         };
 
-        const result = await universeCategoryByIdApi.getCategoryById(1) as CategoryResponse;
+        const result = await getBody(() => universeCategoryByIdApi.getCategoryById(1)) as CategoryResponse;
         expect(result).toHaveProperty('category_id');
         expect(result).toHaveProperty('name');
         expect(result).toHaveProperty('groups');

@@ -40,7 +40,7 @@ describe('FittingsClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await fittingsClient.getFittings(123456);
+        const result = await getBody(() => fittingsClient.getFittings(123456));
 
         expect(Array.isArray(result)).toBe(true);
         (result as { fitting_id: number, name: string, description: string, ship_type_id: number, items: Array<{ flag: string, quantity: number, type_id: number }> }[]).forEach(fitting => {
@@ -77,7 +77,7 @@ describe('FittingsClient', () => {
             ]
         };
 
-        const result = await fittingsClient.createFitting(123456, fittingData);
+        const result = await getBody(() => fittingsClient.createFitting(123456, fittingData));
 
         expect(result).toHaveProperty('fitting_id');
         expect(typeof result.fitting_id).toBe('number');
@@ -86,7 +86,7 @@ describe('FittingsClient', () => {
     it('should delete a fitting', async () => {
         fetchMock.mockResponseOnce('', { status: 204 });
 
-        const result = await fittingsClient.deleteFitting(123456, 1);
+        const result = await getBody(() => fittingsClient.deleteFitting(123456, 1));
 
         expect(result).toEqual({ error: 'no content' });
     });

@@ -37,7 +37,7 @@ describe('ClonesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await clonesClient.getClones(123456789);
+        const result = await getBody(() => clonesClient.getClones(123456789));
 
         expect(result).toHaveProperty('home_location');
         expect(result.home_location).toHaveProperty('location_id');
@@ -51,7 +51,7 @@ describe('ClonesClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await clonesClient.getImplants(123456789);
+        const result = await getBody(() => clonesClient.getImplants(123456789));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((implant: number) => {

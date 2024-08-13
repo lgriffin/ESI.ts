@@ -35,7 +35,7 @@ describe('UniverseItemGroupsApi', () => {
             description: string;
         };
 
-        const result = await universeItemGroupsApi.getItemGroups() as ItemGroupResponse[];
+        const result = await getBody(() => universeItemGroupsApi.getItemGroups()) as ItemGroupResponse[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((group: ItemGroupResponse) => {

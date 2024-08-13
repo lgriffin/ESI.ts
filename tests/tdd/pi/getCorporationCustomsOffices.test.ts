@@ -28,7 +28,7 @@ describe('GetCorporationCustomsOfficesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await customsOfficesApi.getCorporationCustomsOffices(123456);
+        const result = await getBody(() => customsOfficesApi.getCorporationCustomsOffices(123456));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((office: {

@@ -33,7 +33,7 @@ describe('UniverseGraphicByIdApi', () => {
             description: string;
         };
 
-        const result = await universeGraphicByIdApi.getGraphicById(1) as GraphicResponse;
+        const result = await getBody(() => universeGraphicByIdApi.getGraphicById(1)) as GraphicResponse;
 
         expect(result).toHaveProperty('graphic_id');
         expect(typeof result.graphic_id).toBe('number');

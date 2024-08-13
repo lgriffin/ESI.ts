@@ -25,7 +25,7 @@ describe('GetCorporationMiningObserverApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await corporationMiningObserverApi.getCorporationMiningObserver(123456789, 987654321);
+        const result = await getBody(() => corporationMiningObserverApi.getCorporationMiningObserver(123456789, 987654321));
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((mining: any) => {

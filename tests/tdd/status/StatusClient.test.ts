@@ -29,7 +29,7 @@ describe('StatusClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await statusClient.getStatus();
+        const result = await getBody(() => statusClient.getStatus());
 
         expect(result.players).toBe(12345);
         expect(result.start_time).toBe('2024-07-01T18:57:11Z');

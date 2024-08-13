@@ -35,7 +35,7 @@ describe('UniverseRacesApi', () => {
             description: string;
         };
 
-        const result = await universeRacesApi.getRaces() as RaceResponse[];
+        const result = await getBody(() => universeRacesApi.getRaces()) as RaceResponse[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((race: RaceResponse) => {

@@ -27,7 +27,7 @@ describe('PostOpenContractWindowApi', () => {
             contract_id: 123456789
         };
 
-        const result = await openContractWindowApi.openContractWindow(body);
+        const result = await getBody(() => openContractWindowApi.openContractWindow(body));
 
         expect(result).toEqual({ error: 'no content' });
     });

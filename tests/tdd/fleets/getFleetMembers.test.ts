@@ -30,7 +30,7 @@ describe('GetFleetMembersApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await fleetMembersApi.getFleetMembers(1234567890);
+        const result = await getBody(() => fleetMembersApi.getFleetMembers(1234567890));
 
         expect(Array.isArray(result)).toBe(true);
         (result as Array<{ character_id: number; role: string; join_time: string }>).forEach(member => {

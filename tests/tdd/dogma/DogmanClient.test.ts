@@ -16,7 +16,7 @@ describe('DogmaClient', () => {
         const mockResponse = [{ attribute_id: 1, name: 'test_attribute' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await dogmaClient.getAttributes();
+        const result = await getBody(() => dogmaClient.getAttributes());
         expect(result).toEqual(mockResponse);
     });
 
@@ -24,7 +24,7 @@ describe('DogmaClient', () => {
         const mockResponse = { attribute_id: 1, name: 'test_attribute' };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await dogmaClient.getAttributeById(1);
+        const result = await getBody(() => dogmaClient.getAttributeById(1));
         expect(result).toEqual(mockResponse);
     });
 
@@ -32,7 +32,7 @@ describe('DogmaClient', () => {
         const mockResponse = { item_id: 1, type_id: 1, dogma: [] };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await dogmaClient.getDynamicItemInfo(1, 1);
+        const result = await getBody(() => dogmaClient.getDynamicItemInfo(1, 1));
         expect(result).toEqual(mockResponse);
     });
 
@@ -40,7 +40,7 @@ describe('DogmaClient', () => {
         const mockResponse = [{ effect_id: 1, name: 'test_effect' }];
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await dogmaClient.getEffects();
+        const result = await getBody(() => dogmaClient.getEffects());
         expect(result).toEqual(mockResponse);
     });
 
@@ -48,7 +48,7 @@ describe('DogmaClient', () => {
         const mockResponse = { effect_id: 1, name: 'test_effect' };
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await dogmaClient.getEffectById(1);
+        const result = await getBody(() => dogmaClient.getEffectById(1));
         expect(result).toEqual(mockResponse);
     });
 });

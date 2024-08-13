@@ -21,7 +21,7 @@ describe('PutFleetSquadApi', () => {
             name: 'New Squad Name'
         };
 
-        const result = await fleetSquadApi.renameFleetSquad(1234567890, 123456789, body);
+        const result = await getBody(() => fleetSquadApi.renameFleetSquad(1234567890, 123456789, body));
 
         expect(result).toEqual({ error: 'no content' });
     });

@@ -35,7 +35,7 @@ describe('UniverseSystemByIdApi', () => {
             security_status: number;
         };
 
-        const result = await universeSystemByIdApi.getSystemById(30000142) as SystemResponse;
+        const result = await getBody(() => universeSystemByIdApi.getSystemById(30000142)) as SystemResponse;
 
         expect(result).toHaveProperty('system_id');
         expect(typeof result.system_id).toBe('number');
