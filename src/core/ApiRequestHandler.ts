@@ -4,16 +4,19 @@ import { logInfo, logWarn, logError } from '../core/logger/loggerUtil';
 import HeadersUtil from '../core/util/headersUtil';
 
 const statusHandlers: Record<number, string> = {
-    204: 'No Content',
     201: 'Created',
+    204: 'No Content',
+    304: 'Not Modified',
     400: 'Bad Request',
-    401: 'Authorization not provided',
-    403: 'Forbidden returned',
+    401: 'Unauthorized',
+    403: 'Forbidden',
     404: 'Resource not found',
+    420: 'Error Limited',
     422: 'Unprocessable Entity',
     429: 'Too many requests',
     500: 'Internal server error',
     503: 'Service Unavailable',
+    504: 'Gateway Timeout',
     520: 'Internal server error, did the request terminate too soon?',
 };
 

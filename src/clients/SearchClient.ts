@@ -1,14 +1,14 @@
 import { ApiClient } from '../core/ApiClient';
-import { handleRequest } from '../core/ApiRequestHandler';
+import { CharacterSearchApi } from '../api/search/getCharacterSearch';
 
 export class SearchClient {
-    private client: ApiClient;
+    private characterSearchApi: CharacterSearchApi;
 
     constructor(client: ApiClient) {
-        this.client = client;
+        this.characterSearchApi = new CharacterSearchApi(client);
     }
 
     async characterSearch(characterId: number, searchString: string): Promise<object> {
-        return handleRequest(this.client, `characters/${characterId}/search?search=${searchString}`, 'GET', undefined, true);
+        return this.characterSearchApi.searchCharacter(characterId, searchString);
     }
 }
