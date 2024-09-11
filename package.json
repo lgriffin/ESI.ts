@@ -1,5 +1,5 @@
 {
-  "name": "esi.ts",
+  "name": "@lgriffin/esi.ts",
   "version": "1.0.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "index.js",
