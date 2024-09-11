@@ -1,7 +1,7 @@
 Development Roadmap
 
 
-APIs to Implement: 0 we are functionally complete
+
 
 Naming Conventions:
 Took a few different paths through it, need to look at export declarations in particular
@@ -28,17 +28,18 @@ Not all passing in GET using the defaults in apirequesthandler which isn't clean
 Models:
 Need to review the request models particularly for issues and handle that gracefully
 
-Error Codes:
-Revist with the formal Swagger details, I didn't realise this was captured there
-
-Pagination:
-Look at handling more pages, currently only 1st page returns by design. Might require a refactor of a lot of APIs but I might be able to handle this as the requestHandler level with suffix approach
 
 Caching:
 See can I / should I consider caching here
 
-Headers:
-Provide more functionality to interrogage the headers would be a good thing to do. Maybe even use it to construct a header, this is only lightly there in the Handler at present
+Rate Limiting:
+For some pages we will get rate limited, we might want to check the number of pages and decide to only request X every minute
+
+Pagination II
+General pagination is in place, I wonder can we request a specific page
+
+URL Tidy up:
+Construction of the URL to bring in different data sources, right now we don't add that to the URL but we should if it is present in the conf file
 
 Integration with Mock ESI data:
 Currently using a mix of my own mocks and real data. ESI Mock is a project, need to look to see can I bind against that

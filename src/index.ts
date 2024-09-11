@@ -35,6 +35,8 @@ import { ContactsApiBuilder } from './builders/ContactsApiBuilder';
 import { MarketApiBuilder } from './builders/MarketApiBuilder';
 import HeadersUtil from './core/util/headersUtil';
 import { getBody, getHeaders } from './core/util/testHelpers';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const config = getConfig();
 
@@ -1089,12 +1091,33 @@ export const testMarketApis = async () => {
     }
 };
 
+const writeResponseToFileSync = (filename: string, data: any) => {
+    try {
+        // Define the file path (saving in the project's root directory)
+        const filePath = path.join(__dirname, filename);
+        
+        // Convert JSON body to a string
+        const jsonData = JSON.stringify(data, null, 2); // Pretty print with 2 spaces
+        
+        // Write the file synchronously
+        fs.writeFileSync(filePath, jsonData, 'utf8');
+        
+        console.log(`File has been written to ${filePath}`);
+        console.log(jsonData.length);
+    } catch (error) {
+        console.error('Error writing file:', error);
+    }
+};
+
 const testMarketOrders2 = async () => {
     try {
         const { headers, body } = await marketClient.getMarketOrders(10000002);
-        console.log('Market Orders:', JSON.stringify(body, null, 2));
-        console.log('X-Pages:', HeadersUtil.xPages);
-        console.log('Full Headers:', headers);
+     //   console.log('Market Orders:', JSON.stringify(body, null, 2));
+        const bodySize = JSON.stringify(body).length;
+        console.log('Size of JSON body (in characters):', bodySize);
+        writeResponseToFileSync('marketOrders.json', body);
+      //  console.log('X-Pages:', HeadersUtil.xPages);
+    //    console.log('Full Headers:', headers);
     } catch (error) {
         console.error('Error testing Market Orders:', error);
     }
