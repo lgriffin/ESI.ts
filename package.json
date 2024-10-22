@@ -10,7 +10,8 @@
     "lint": "eslint . --ext .ts",
     "test": "jest --config jest.unit.config.cjs",
     "bdd": "jest --config jest.bdd.config.cjs",
-    "coverage": "jest --config jest.unit.config.cjs --coverage"
+    "coverage": "jest --config jest.unit.config.cjs --coverage",
+    "docs": "typedoc --out docs --entryPointStrategy expand src"
   },
   "keywords": [],
   "author": "lgriffin",
@@ -38,6 +39,7 @@
     "prettier": "^3.3.2",
     "ts-jest": "^29.2.2",
     "ts-node": "^10.9.2",
+    "typedoc": "^0.26.10",
     "typescript": "^5.4.5"
   },
   "dependencies": {

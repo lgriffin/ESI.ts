@@ -1,0 +1,118 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@lgriffin/esi.ts</title><meta name="description" content="Documentation for @lgriffin/esi.ts"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="assets/icons.svg#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div><div class="field"><div id="tsd-toolbar-links"></div></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@lgriffin/esi.ts</a></div><div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><h1>@lgriffin/esi.ts</h1></div><div class="tsd-panel tsd-typography"><a id="md:esits" class="tsd-anchor"></a><h1 class="tsd-anchor-link">ESI.ts<a href="#md:esits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1><p>This repository contains a TypeScript implementation for the EVE Online API (ESI). This is inspired by the JavaScript implementation at <a href="https://github.com/ExperiBass/esiJS" target="_blank" class="external">https://github.com/ExperiBass/esiJS</a></p>
+<p>The project is a personal goal for me, I'm a lapsed developer (actively an Engineering Manager) going back to upskill in TypeScript after a decade away from development in Node.js and Java. Why TypeScript? Familarity with JavaScript and a hopefully better experience for anyone using my app.</p>
+<p>In my absence from coding, I have generated a lot of knowledge on concepts around architecture and design. So the intent of this application is to:</p>
+<ul>
+<li>Build a clean architecture inspired application -- NOTE This will not be perfect, I'm going to try and adhere to it as best I can</li>
+<li>Bring in Behaviour Driven Development to describe the intentions of the API for non expert programmers</li>
+<li>Try and pursue a red-green TDD style approach for the APIs</li>
+<li>Seperate the API into small, consumable usage</li>
+<li>Look at design patterns, currently playing around with a Builder Pattern to eventually look at tailored client usage where we can have a slimmer client experience and create customised and narrower API profiles</li>
+<li>Figure out how github actions work, I know enough of Jenkins to hopefully figure this out</li>
+<li>Figure out caching and API management</li>
+<li>Figure out auth flows and longer term token management and see can the API help here.</li>
+<li>Develop a useful user guide and documentation</li>
+</ul>
+<p>This is most likely overkill for most end users, my goal is maintability and extensibility of the API and try and get a best practices project off the ground. The project is in flight, this first formal public commit is more to expose the intention and architecture. The factions API was chosen first just to have a mix of open calls and auth calls. This did not follow any best practices with testing and was an attempt to just get a functional API working. A lot of time was spent battling tooling (cucumber.js does not like TypeScript) and different integrations but this is at a point now where I am happy with the intentions. As I progress through each future API grouping my aim is to follow best practices and create a hopefully useful app for the EVE Online Community.</p>
+<p>ISK donations are always welcome to deiseman in game, reach out to chat about any ideas or how the design and API exposure could benefit your app.</p>
+<a id="md:api-implementation-status" class="tsd-anchor"></a><h2 class="tsd-anchor-link">API Implementation Status<a href="#md:api-implementation-status" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>As progress is made I will try and update this to show what is functional and in place.</p>
+<a id="md:faction-warfare" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Faction Warfare<a href="#md:faction-warfare" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[x] Get Faction Warfare Leaderboards - Characters <img src="https://img.shields.io/badge/Status-Implemented-brightgreen" alt="✔️"></li>
+<li>[x] Get Faction Warfare Leaderboards - Corporations <img src="https://img.shields.io/badge/Status-Implemented-brightgreen" alt="✔️"></li>
+<li>[x] Get Faction Warfare Leaderboards - Overall <img src="https://img.shields.io/badge/Status-Implemented-brightgreen" alt="✔️"></li>
+<li>[x] Get Faction Warfare Stats <img src="https://img.shields.io/badge/Status-Implemented-brightgreen" alt="✔️"></li>
+<li>[x] Get Faction Warfare Character Stats <img src="https://img.shields.io/badge/Status-Implemented-brightgreen" alt="✔️"></li>
+<li>[x] Get Faction Warfare Corporation Stats <img src="https://img.shields.io/badge/Status-Implemented-brightgreen" alt="✔️"></li>
+<li>[x] Get Faction Warfare Systems <img src="https://img.shields.io/badge/Status-Implemented-brightgreen" alt="✔️"></li>
+<li>[x] Get Faction Warfare Wars <img src="https://img.shields.io/badge/Status-Implemented-brightgreen" alt="✔️"></li>
+</ul>
+<a id="md:alliances" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Alliances<a href="#md:alliances" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Alliance by ID <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Alliance Corporations <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Alliances <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Alliance Icons <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:bookmarks" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Bookmarks<a href="#md:bookmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Character Bookmarks <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Bookmark Folders <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Bookmarks <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Bookmark Folders <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:calendar" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Calendar<a href="#md:calendar" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Character Calendar <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Calendar Event by ID <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Calendar Event Attendees <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Respond to Calendar Event <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:characters" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Characters<a href="#md:characters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Character by ID <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Agents Research <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Blueprints <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Corporation History <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Medals <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Notifications <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Portrait <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Roles <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:clones" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Clones<a href="#md:clones" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Clones <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Jump Clones <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Implants <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:contacts" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Contacts<a href="#md:contacts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Character Contacts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Contacts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Alliance Contacts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Add Character Contacts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Edit Character Contacts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Delete Character Contacts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:contracts" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Contracts<a href="#md:contracts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Character Contracts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Contracts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Public Contracts <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Contract Bids <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Contract Items <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:corporations" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Corporations<a href="#md:corporations" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Corporation by ID <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Assets <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Blueprints <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Divisions <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Facilities <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Icons <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Medals <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Members <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:dogma" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Dogma<a href="#md:dogma" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Dogma Attributes <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Dogma Effects <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:fittings" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Fittings<a href="#md:fittings" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Character Fittings <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Create Character Fitting <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Delete Character Fitting <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:fleets" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Fleets<a href="#md:fleets" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Fleet by ID <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Fleet Members <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Invite Fleet Member <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Kick Fleet Member <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Update Fleet Member <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Fleet Wings <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:incursions" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Incursions<a href="#md:incursions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Incursions <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:industry" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Industry<a href="#md:industry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Industry Facilities <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Industry Systems <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Character Industry Jobs <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+<li>[ ] Get Corporation Industry Jobs <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:insurance" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Insurance<a href="#md:insurance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Insurance Prices <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+<a id="md:killmails" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Killmails<a href="#md:killmails" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>[ ] Get Character Killmails <img src="https://img.shields.io/badge/Status-Not_Implemented-red" alt="❌"></li>
+</ul>
+</div></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="assets/icons.svg#icon-chevronDown"></use></svg>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#md:esits"><span>ESI.ts</span></a><ul><li><a href="#md:api-implementation-status"><span>API <wbr/>Implementation <wbr/>Status</span></a></li><li><ul><li><a href="#md:faction-warfare"><span>Faction <wbr/>Warfare</span></a></li><li><a href="#md:alliances"><span>Alliances</span></a></li><li><a href="#md:bookmarks"><span>Bookmarks</span></a></li><li><a href="#md:calendar"><span>Calendar</span></a></li><li><a href="#md:characters"><span>Characters</span></a></li><li><a href="#md:clones"><span>Clones</span></a></li><li><a href="#md:contacts"><span>Contacts</span></a></li><li><a href="#md:contracts"><span>Contracts</span></a></li><li><a href="#md:corporations"><span>Corporations</span></a></li><li><a href="#md:dogma"><span>Dogma</span></a></li><li><a href="#md:fittings"><span>Fittings</span></a></li><li><a href="#md:fleets"><span>Fleets</span></a></li><li><a href="#md:incursions"><span>Incursions</span></a></li><li><a href="#md:industry"><span>Industry</span></a></li><li><a href="#md:insurance"><span>Insurance</span></a></li><li><a href="#md:killmails"><span>Killmails</span></a></li></ul></li></ul></div></details></div><div class="site-menu"><nav class="tsd-navigation"><a href="modules.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="assets/icons.svg#icon-1"></use></svg><span>@lgriffin/esi.ts</span></a><ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="."><li>Loading...</li></ul></nav></div></div></div><footer><p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer><div class="overlay"></div></body></html>
