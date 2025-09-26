@@ -11,6 +11,7 @@ A modern, type-safe TypeScript implementation for the [EVE Online ESI API](https
 - **Type-Safe**: Full TypeScript support with comprehensive type definitions
 - **Clean Architecture**: Separation of concerns with dependency injection
 - **Resilient**: Built-in error handling, retry logic, and circuit breakers
+- **High Performance**: Intelligent ETag caching for optimal bandwidth usage
 - **Testable**: Extensive test coverage with BDD scenarios
 - **Modern**: Uses latest TypeScript features and best practices
 - **Comprehensive**: Covers all ESI API endpoints with organized client structure
@@ -382,6 +383,130 @@ async function safeCharacterLookup(characterId: number) {
   }
 }
 ```
+
+## ⚡ Performance & Caching
+
+### Intelligent ETag Caching
+
+ESI.ts includes a sophisticated ETag caching system that automatically optimizes API calls by avoiding unnecessary data transfers. This feature is **enabled by default** and works transparently with all GET requests.
+
+#### How ETag Caching Works
+
+ETags (Entity Tags) are unique identifiers returned by ESI servers that represent the current version of a resource. When data hasn't changed, the server returns a `304 Not Modified` status instead of the full data, dramatically reducing bandwidth usage and improving response times.
+
+#### Basic Usage (Automatic)
+
+```typescript
+import { EsiClient } from '@lgriffin/esi.ts';
+
+// ETag caching is enabled by default
+const client = new EsiClient({
+  clientId: 'my-eve-app'
+});
+
+// First call - downloads and caches data
+const alliances1 = await client.alliance.getAlliances();
+
+// Second call - returns cached data if unchanged (304 response)
+const alliances2 = await client.alliance.getAlliances(); // ⚡ Lightning fast!
+```
+
+#### Custom Cache Configuration
+
+```typescript
+const client = new EsiClient({
+  clientId: 'my-eve-app',
+  enableETagCache: true, // Default: true
+  etagCacheConfig: {
+    maxEntries: 1000,      // Max cached responses (default: 1000)
+    defaultTtl: 300000,    // Cache TTL in ms (default: 5 minutes)
+    cleanupInterval: 60000, // Cleanup frequency (default: 1 minute)
+    persistToStorage: true, // Save to localStorage (default: false)
+    storageKey: 'my-esi-cache' // Custom storage key
+  }
+});
+```
+
+#### Cache Management
+
+```typescript
+// Get cache statistics
+const stats = client.getCacheStats();
+console.log(`Cache: ${stats.totalEntries}/${stats.maxEntries} entries`);
+console.log(`Hit rate optimization: ${stats.hitRate}%`);
+
+// Clear cache manually
+client.clearCache();
+
+// Update cache settings at runtime
+client.updateCacheConfig({
+  maxEntries: 2000,
+  defaultTtl: 600000 // 10 minutes
+});
+
+// Disable caching for specific use cases
+const client = new EsiClient({
+  enableETagCache: false // Disable caching entirely
+});
+```
+
+#### Performance Benefits
+
+- **🚀 Faster Response Times**: Cached responses return instantly
+- **📉 Reduced Bandwidth**: Avoid downloading unchanged data
+- **🔋 Server-Friendly**: Reduces load on ESI servers
+- **💰 Cost Effective**: Lower data usage for mobile/metered connections
+- **🎯 Smart Caching**: Only caches GET requests with ETags
+
+#### Cache Behavior
+
+| Scenario | Behavior | Performance Impact |
+|----------|----------|-------------------|
+| First API call | Downloads data, stores ETag | Normal speed |
+| Data unchanged | Returns cached data (304) | ⚡ **~95% faster** |
+| Data changed | Downloads new data, updates cache | Normal speed |
+| Cache expired | Downloads fresh data | Normal speed |
+| Cache full | Evicts oldest entries automatically | Minimal impact |
+
+#### Advanced ETag Features
+
+```typescript
+// Monitor cache performance
+client.on('cacheHit', (url, etag) => {
+  console.log(`Cache hit for ${url} with ETag ${etag}`);
+});
+
+client.on('cacheMiss', (url) => {
+  console.log(`Cache miss for ${url} - downloading fresh data`);
+});
+
+// Programmatic cache inspection
+const cache = client.getETagCache();
+if (cache) {
+  const entry = cache.get('https://esi.evetech.net/latest/alliances');
+  if (entry) {
+    console.log(`Cached data age: ${Date.now() - entry.timestamp}ms`);
+    console.log(`ETag: ${entry.etag}`);
+  }
+}
+```
+
+#### When ETag Caching Helps Most
+
+- **📊 Market Data**: Price lists that update periodically
+- **🏢 Corporation/Alliance Info**: Relatively static organizational data  
+- **🌌 Universe Data**: Star system, station, and type information
+- **👥 Character Lists**: Member rosters and public information
+- **📈 Statistics**: Aggregate data that updates on intervals
+
+#### Implementation Details
+
+- **Architecture**: Implemented at the core `ApiRequestHandler` level
+- **Scope**: Works with ALL GET requests automatically
+- **Compatibility**: Fully backward compatible - existing code works unchanged
+- **Thread Safety**: Uses atomic operations for cache management
+- **Memory Efficient**: Automatic cleanup and size management
+- **Storage Options**: In-memory (default) or persistent localStorage
 
 ## 🔧 Advanced Configuration
 

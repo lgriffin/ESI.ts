@@ -38,6 +38,8 @@ import { UniverseClient } from './clients/UniverseClient';
 import { WalletClient } from './clients/WalletClient';
 import { WarsClient } from './clients/WarsClient';
 import { MetaClient } from './clients/MetaClient';
+import { initializeETagCache, getETagCache } from './core/ApiRequestHandler';
+import { ETagCacheConfig } from './core/cache/ETagCacheManager';
 
 export interface EsiClientConfig {
     clientId?: string;
@@ -45,12 +47,15 @@ export interface EsiClientConfig {
     accessToken?: string;
     timeout?: number;
     retryAttempts?: number;
+    enableETagCache?: boolean;
+    etagCacheConfig?: ETagCacheConfig;
 }
 
 export class EsiClient {
     private factory: ApiFactory;
     private apiClient: ApiClient;
     private clients: Map<string, any> = new Map();
+    private etagCacheEnabled: boolean;
 
     constructor(config?: EsiClientConfig) {
         this.factory = apiFactory;
@@ -73,6 +78,13 @@ export class EsiClient {
                 timeout: 30000,
                 retryAttempts: 3
             });
+        }
+
+        // Initialize ETag cache if enabled (default is enabled)
+        this.etagCacheEnabled = config?.enableETagCache !== false;
+        if (this.etagCacheEnabled) {
+            initializeETagCache(config?.etagCacheConfig);
+            logger.info('ETag cache initialized');
         }
 
         this.initializeClients();
@@ -289,9 +301,46 @@ export class EsiClient {
     }
 
     /**
+     * Get ETag cache statistics
+     */
+    getCacheStats(): any {
+        if (!this.etagCacheEnabled) {
+            return null;
+        }
+        const cache = getETagCache();
+        return cache ? cache.getStats() : null;
+    }
+
+    /**
+     * Clear ETag cache
+     */
+    clearCache(): void {
+        const cache = getETagCache();
+        if (cache) {
+            cache.clear();
+            logger.info('ETag cache cleared');
+        }
+    }
+
+    /**
+     * Update ETag cache configuration
+     */
+    updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void {
+        const cache = getETagCache();
+        if (cache) {
+            cache.updateConfig(newConfig);
+            logger.info('ETag cache configuration updated');
+        }
+    }
+
+    /**
      * Cleanup resources
      */
     async shutdown(): Promise<void> {
+        const cache = getETagCache();
+        if (cache) {
+            cache.shutdown();
+        }
         await this.factory.shutdown();
         this.clients.clear();
         logger.info('EsiClient shutdown completed');

@@ -26,6 +26,18 @@ class HeadersUtil {
         return this.headers['expires'] ?? null;
     }
 
+    static get etag(): string | null {
+        return this.headers['etag'] ?? null;
+    }
+
+    static get lastModified(): string | null {
+        return this.headers['last-modified'] ?? null;
+    }
+
+    static get cacheControl(): string | null {
+        return this.headers['cache-control'] ?? null;
+    }
+
     static getHeaders(): Record<string, string> {
         return this.headers;
     }

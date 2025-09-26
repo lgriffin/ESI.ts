@@ -8,15 +8,12 @@ interface Alliance {
     alliance_id: number;
 }
 
-let alliancesApi: AllAlliancesApi;
-
-beforeAll(() => {
-    alliancesApi = new AllAlliancesApi(getClient());
-});
-
 describe('AlliancesApi', () => {
+    let alliancesApi: AllAlliancesApi;
+
     beforeEach(() => {
         fetchMock.resetMocks();
+        alliancesApi = new AllAlliancesApi(getClient());
     });
 
     it('should return valid structure for all alliances', async () => {
@@ -27,7 +24,7 @@ describe('AlliancesApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => alliancesApi.getAllAlliances()) as Alliance[];
+        const result = await alliancesApi.getAllAlliances() as Alliance[];
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((alliance: Alliance) => {

@@ -1,7 +1,8 @@
 import { ApiClient } from './ApiClient';
 import { buildError } from '../core/util/error';
-import { logInfo, logWarn, logError } from '../core/logger/loggerUtil';
+import { logInfo, logWarn, logError, logDebug } from '../core/logger/loggerUtil';
 import HeadersUtil from '../core/util/headersUtil';
+import { ETagCacheManager } from './cache/ETagCacheManager';
 
 const statusHandlers: Record<number, string> = {
     201: 'Created',
@@ -18,6 +19,40 @@ const statusHandlers: Record<number, string> = {
     503: 'Service Unavailable',
     504: 'Gateway Timeout',
     520: 'Internal server error, did the request terminate too soon?',
+};
+
+// Global ETag cache instance
+let etagCache: ETagCacheManager | null = null;
+
+export const initializeETagCache = (config?: any): ETagCacheManager => {
+    if (!etagCache) {
+        etagCache = new ETagCacheManager(config);
+    }
+    return etagCache;
+};
+
+export const getETagCache = (): ETagCacheManager | null => {
+    return etagCache;
+};
+
+export const resetETagCache = (): void => {
+    if (etagCache) {
+        etagCache.shutdown();
+    }
+    etagCache = null;
+};
+
+// Helper function for backward compatibility - returns just the body
+export const handleRequestBody = async (
+    client: ApiClient,
+    endpoint: string,
+    method: string,
+    body?: any,
+    requiresAuth: boolean = false,
+    useETag: boolean = true
+): Promise<any> => {
+    const response = await handleRequest(client, endpoint, method, body, requiresAuth, useETag);
+    return response.body || response; // Handle both new and old response formats
 };
 
 const fetchPageData = async (
@@ -58,7 +93,8 @@ export const handleRequest = async (
     endpoint: string,
     method: string,
     body?: any,
-    requiresAuth: boolean = false
+    requiresAuth: boolean = false,
+    useETag: boolean = true
 ): Promise<any> => {
     // Extract the base URL (without any pagination or extra query params)
     const [baseEndpoint] = endpoint.split('?');  // Get only the part before `?`
@@ -75,6 +111,15 @@ export const handleRequest = async (
             throw buildError('Authorization header is required but not provided', 'NO_AUTH_TOKEN');
         }
         headers['Authorization'] = authHeader;
+    }
+
+    // Add ETag support for GET requests
+    if (useETag && method === 'GET' && etagCache) {
+        const cachedETag = etagCache.getETag(url);
+        if (cachedETag) {
+            headers['If-None-Match'] = cachedETag;
+            logDebug(`Adding If-None-Match header: ${cachedETag}`);
+        }
     }
 
     const options: RequestInit = {
@@ -95,6 +140,21 @@ export const handleRequest = async (
             if (response.status === 204) {
                 logInfo(`${errorMessage} for endpoint: ${url}`);
                 return { headers: responseHeaders, body: { error: 'no content' } };
+            } else if (response.status === 304) {
+                // Not Modified - return cached data
+                if (useETag && etagCache) {
+                    const cachedEntry = etagCache.get(url);
+                    if (cachedEntry) {
+                        logInfo(`Cache hit (304) for endpoint: ${url}`);
+                        return { 
+                            headers: { ...cachedEntry.headers, ...responseHeaders }, 
+                            body: cachedEntry.data,
+                            fromCache: true 
+                        };
+                    }
+                }
+                logWarn(`${errorMessage} for endpoint: ${url} - no cached data available`);
+                return { headers: responseHeaders, body: { error: errorMessage.toLowerCase() } };
             } else {
                 logWarn(`${errorMessage} for endpoint: ${url}`);
                 return { headers: responseHeaders, body: { error: errorMessage.toLowerCase() } };
@@ -108,6 +168,12 @@ export const handleRequest = async (
         // Get the data and number of pages from the first response
         const data = await response.json();
         const totalPages = HeadersUtil.xPages;
+
+        // Cache the response if ETag is present and this is a GET request
+        if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
+            etagCache.set(url, HeadersUtil.etag, data, responseHeaders);
+            logDebug(`Cached response for ${url} with ETag ${HeadersUtil.etag}`);
+        }
 
         // If there's only one page, return the data immediately
         if (totalPages <= 1) {
@@ -125,7 +191,15 @@ export const handleRequest = async (
         }
 
         // Merge all pages' data into one response
-        return { headers: responseHeaders, body: allData.flat() };  // Flatten the array if needed
+        const finalData = allData.flat();
+        
+        // Cache the complete paginated response if ETag is present
+        if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
+            etagCache.set(url, HeadersUtil.etag, finalData, responseHeaders);
+            logDebug(`Cached paginated response for ${url} with ETag ${HeadersUtil.etag}`);
+        }
+        
+        return { headers: responseHeaders, body: finalData };  // Flatten the array if needed
     } catch (error) {
         if (error instanceof Error) {
             logError(`Unexpected error: ${error.message}`);

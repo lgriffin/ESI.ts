@@ -6,18 +6,20 @@ import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const config = getConfig();
-const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
-    .build();
-
-const statusApi = new GetStatusApi(client);
-
 describe('GetStatusApi', () => {
+    let statusApi: GetStatusApi;
+
     beforeEach(() => {
         fetchMock.resetMocks();
+        
+        const config = getConfig();
+        const client = new ApiClientBuilder()
+            .setClientId(config.projectName)
+            .setLink(config.link)
+            .setAccessToken(config.authToken || undefined)
+            .build();
+
+        statusApi = new GetStatusApi(client);
     });
 
     it('should return valid status information', async () => {
@@ -31,7 +33,7 @@ describe('GetStatusApi', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => statusApi.getStatus());
+        const result = await statusApi.getStatus();
 
         expect(result).toHaveProperty('players');
         expect(typeof result.players).toBe('object');

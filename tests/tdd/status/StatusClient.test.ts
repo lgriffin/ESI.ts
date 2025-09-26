@@ -1,22 +1,24 @@
 import { StatusClient } from '../../../src/clients/StatusClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
+import { getBody } from '../../../src/core/util/testHelpers';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
-
-const config = getConfig();
-const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
-    .build();
 
 describe('StatusClient', () => {
     let statusClient: StatusClient;
 
     beforeEach(() => {
         fetchMock.resetMocks();
+        
+        const config = getConfig();
+        const client = new ApiClientBuilder()
+            .setClientId(config.projectName)
+            .setLink(config.link)
+            .setAccessToken(config.authToken || undefined)
+            .build();
+
         statusClient = new StatusClient(client);
     });
 
@@ -29,7 +31,7 @@ describe('StatusClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => statusClient.getStatus());
+        const result = await statusClient.getStatus();
 
         expect(result.players).toBe(12345);
         expect(result.start_time).toBe('2024-07-01T18:57:11Z');
