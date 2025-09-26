@@ -1,28 +1,12 @@
 Development Roadmap
 
-
-
-
-Naming Conventions:
-Took a few different paths through it, need to look at export declarations in particular
-
-Location of APIs
-
 Looking at the ESI Spec, taking the Alliance as an example, there are 4 APIs. My approach wrapped the other /alliances endpoints such as in Contacts under Alliance to make it more logical.
 This means I need to check manually 1:1 to make sure all endpoints are there and that they are either logically mapping to the ESI or logically placed in a structure that I recognise. This is
 important because of the Client / Builder relationship so my thinking is to match the ESI spec identically and not mix up locations. This might lead to a custom builder that could pull all the /character
 or / alliance or /corp and make a holistic Builder/Client for that combination. This might lead to a structural refactor and have Builders and Clients matching the ESI and a Logical grouping of Builders/Clients then as a custom option
 
-Director and Builder pattern
 
-Look at the Director approach to ensure building custom APIs is a thing
 
-✅ Authentication Issue: RESOLVED
-All API endpoints have been verified against the ESI Swagger specification.
-Authentication requirements are correctly implemented across all APIs.
-- Public APIs correctly set to requiresAuth: false
-- Private APIs correctly set to requiresAuth: true
-- Character affiliation endpoint correctly set to false (public endpoint)
 
 API Verb
 Not all passing in GET using the defaults in apirequesthandler which isn't clean. Handled this now but need to recheck the , undefined paramater and make sure its the right way instead of using JSON.stringify(object)
@@ -50,24 +34,9 @@ Thourough Testing:
 Gaining ESI scopes is slowing me down, I need to revisit this with real requests to look at how it handles. Concerned about any API verb that's not a GET, this might require some refactoring as no
 doubt the return logic handling on things like PUT, POST and DELETE require something beyond what I have in place.
 
-✅ Etags: IMPLEMENTED
-Comprehensive ETag caching system implemented with:
-- Automatic ETag detection and If-None-Match header support
-- In-memory cache with TTL and size management
-- 304 Not Modified response handling
-- Cache statistics and management methods
-- Configurable cache settings (size, TTL, cleanup intervals)
-- Optional persistent storage support
-- Comprehensive unit and BDD tests
-V 1.0.0
-Should be good to go live when all of the above are considered
 
 
-✅ Testing Issues: RESOLVED
-✅ AllianceClient test - Complete with all 6 methods tested
-✅ ContactsClient test - Complete with all 9 methods tested (alliance, character, corporation contacts)
-✅ CorporationsClient test - Significantly improved (14/24 methods tested, added key missing methods)
-✅ getIncursions.test.ts - Refactored to use proper client pattern with comprehensive test coverage
+
 
 Testing Summary:
 - All client tests now follow consistent patterns and best practices

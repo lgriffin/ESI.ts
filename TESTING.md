@@ -292,11 +292,10 @@ Feature: Get Alliance Information by ID
 Implement step definitions in TypeScript:
 
 ```typescript
-// tests/bdd/steps/alliances/getAllianceById.ts
-import { Given, When, Then } from '@cucumber/cucumber';
-import { expect } from 'chai';
-import { AllianceClient } from '../../../../src/clients/AllianceClient';
-import { TestDataFactory, TestAssertions } from '../../../../src/testing/TestHelpers';
+// tests/bdd-scenarios/alliances/bdd-alliance.test.ts
+import { EsiClient } from '../../../src/EsiClient';
+import { getETagCache, resetETagCache } from '../../../src/core/ApiRequestHandler';
+import fetchMock from 'jest-fetch-mock';
 
 let allianceClient: AllianceClient;
 let result: any;
@@ -515,7 +514,7 @@ jobs:
 ## 📚 Resources
 
 - [Jest Documentation](https://jestjs.io/docs/getting-started)
-- [Cucumber.js Documentation](https://cucumber.io/docs/cucumber/)
+- [Jest BDD Testing](https://jestjs.io/docs/using-matchers)
 - [TypeScript Testing Best Practices](https://typescript-eslint.io/docs/)
 - [ESI API Documentation](https://esi.evetech.net/ui/)
 

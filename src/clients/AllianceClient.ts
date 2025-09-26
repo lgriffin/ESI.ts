@@ -15,7 +15,7 @@ import { IApiService } from '../core/IAPIBuilder';
 
 export class AllianceClient implements IApiService {
     readonly name = 'AllianceClient';
-    readonly version = '1.0.0';
+    readonly version = '2.0.0';
     private allianceApi: AllianceByIdApi;
     private allianceContactsApi: AllianceContactsApi;
     private allianceContactLabelsApi: AllianceContactLabelsApi;

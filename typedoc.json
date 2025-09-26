@@ -1,7 +1,77 @@
 {
+  "entryPointStrategy": "expand",
   "entryPoints": ["src"],
-  "entryPointStrategy": "expand", 
   "out": "docs",
-  "tsconfig": "./tsconfig.json",
-  "exclude": ["**/tests/**", "**/node_modules/**"]
+  "name": "@lgriffin/esi.ts - EVE Online ESI API Client",
+  "theme": "default",
+  "readme": "./README.md",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "categorizeByGroup": true,
+  "defaultCategory": "Other",
+  "categoryOrder": [
+    "Clients",
+    "Core",
+    "API",
+    "Builders",
+    "Configuration",
+    "Utilities",
+    "Types",
+    "*"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/tests/**/*",
+    "**/demo/**/*",
+    "**/node_modules/**/*",
+    "**/dist/**/*",
+    "**/coverage/**/*"
+  ],
+  "excludeNotDocumented": false,
+  "plugin": [],
+  "sort": ["source-order"],
+  "kindSortOrder": [
+    "Document",
+    "Project",
+    "Module",
+    "Namespace", 
+    "Enum",
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Constructor",
+    "Property",
+    "Variable",
+    "Function",
+    "Accessor",
+    "Method"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "searchInComments": true,
+  "cleanOutputDir": true,
+  "titleLink": "https://github.com/lgriffin/ESI.ts",
+  "navigationLinks": {
+    "GitHub": "https://github.com/lgriffin/ESI.ts",
+    "NPM": "https://www.npmjs.com/package/@lgriffin/esi.ts"
+  },
+  "sidebarLinks": {
+    "ESI Documentation": "https://esi.evetech.net/ui/",
+    "EVE Online": "https://www.eveonline.com/"
+  },
+  "githubPages": true,
+  "gitRevision": "main",
+  "gitRemote": "origin",
+  "sourceLinkTemplate": "https://github.com/lgriffin/ESI.ts/blob/{gitRevision}/{path}#L{line}",
+  "disableSources": false,
+  "basePath": "./",
+  "markdownItOptions": {
+    "html": true
+  }
 }

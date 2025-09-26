@@ -268,7 +268,7 @@ export const getBody = async <T>(operation: () => Promise<T>): Promise<T> => {
 export const getHeaders = (client: ApiClient): Record<string, string> => {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'User-Agent': 'ESI.ts/1.0.0'
+        'User-Agent': 'ESI.ts/2.0.0'
     };
 
     const authHeader = client.getAuthorizationHeader();

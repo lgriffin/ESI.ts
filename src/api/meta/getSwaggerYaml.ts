@@ -14,7 +14,7 @@ export class GetSwaggerYamlApi {
                 method: 'GET',
                 headers: {
                     accept: 'text/yaml, application/x-yaml, text/plain',
-                    'User-Agent': 'esiJS/1.0.0'
+                    'User-Agent': 'esiJS/2.0.0'
                 }
             });
 

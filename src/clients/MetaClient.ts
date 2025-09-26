@@ -5,7 +5,7 @@ import { IApiService } from '../core/IAPIBuilder';
 
 export class MetaClient implements IApiService {
     readonly name = 'MetaClient';
-    readonly version = '1.0.0';
+    readonly version = '2.0.0';
     private getSwaggerJsonApi: GetSwaggerJsonApi;
     private getSwaggerYamlApi: GetSwaggerYamlApi;
 

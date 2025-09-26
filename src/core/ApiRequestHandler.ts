@@ -74,7 +74,7 @@ const fetchPageData = async (
         method,
         headers: {
             accept: 'gzip, deflate, br',
-            'User-Agent': 'esiJS/1.0.0',
+            'User-Agent': 'esiJS/2.0.0',
             ...(requiresAuth ? { Authorization: client.getAuthorizationHeader() } : {})
         },
         body: body ? JSON.stringify(body) : undefined
@@ -102,7 +102,7 @@ export const handleRequest = async (
     const url = `${client.getLink()}/${endpoint}`;
     const headers: HeadersInit = {
         accept: 'gzip, deflate, br',
-        'User-Agent': `esiJS/1.0.0`  // Use the version from package.json ideally
+        'User-Agent': `esiJS/2.0.0`  // Use the version from package.json ideally
     };
 
     if (requiresAuth) {
