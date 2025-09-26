@@ -1,8 +1,9 @@
 // src/builders/DogmaAPIBuilder.ts
 import { ApiClient } from '../core/ApiClient';
 import { DogmaClient } from '../clients/DogmaClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class DogmaAPIBuilder {
+export class DogmaAPIBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

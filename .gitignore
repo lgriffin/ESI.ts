@@ -69,3 +69,7 @@ build/
 # Temporary directories and files
 tmp/
 temp/
+
+# Test reports and coverage
+reports/
+report/

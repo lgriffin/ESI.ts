@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
-import { FactionClient } from '../clients/FactionClient'; 
+import { FactionClient } from '../clients/FactionClient';
+import { IAPIBuilder } from '../core/IAPIBuilder'; 
 
-export class FactionAPIBuilder {
+export class FactionAPIBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

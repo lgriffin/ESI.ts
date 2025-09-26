@@ -13,7 +13,10 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
-  testMatch: ['<rootDir>/tests/tdd/**/*.test.ts'],
+  testMatch: [
+    '<rootDir>/tests/tdd/**/*.test.ts',
+    '<rootDir>/tests/bdd-scenarios/**/*.test.ts'
+  ],
   verbose: true,
   coverageDirectory: 'coverage/unit',
   coverageReporters: ['text', 'lcov'],

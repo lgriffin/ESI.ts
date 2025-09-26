@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
 import { SearchClient } from '../clients/SearchClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class SearchApiBuilder {
+export class SearchApiBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
 import { MarketClient } from '../clients/MarketClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class MarketApiBuilder {
+export class MarketApiBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

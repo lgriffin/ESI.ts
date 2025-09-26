@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
 import { AssetsClient } from '../clients/AssetsClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class AssetsApiBuilder {
+export class AssetsApiBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {
