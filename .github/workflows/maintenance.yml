@@ -1,0 +1,236 @@
+name: Maintenance & Security
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  # Job 1: Dependency Updates
+  dependency-updates:
+    name: 📦 Dependency Updates
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔍 Check for outdated packages
+        run: npm outdated || true
+        
+      - name: 📊 Generate dependency report
+        run: |
+          echo "# Dependency Status Report" > dependency-report.md
+          echo "Generated on: $(date)" >> dependency-report.md
+          echo "" >> dependency-report.md
+          echo "## Outdated Packages" >> dependency-report.md
+          npm outdated --json > outdated.json || true
+          if [ -s outdated.json ]; then
+            echo "Found outdated packages - see outdated.json for details" >> dependency-report.md
+          else
+            echo "All packages are up to date! ✅" >> dependency-report.md
+          fi
+          
+      - name: 📤 Upload dependency report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-report
+          path: |
+            dependency-report.md
+            outdated.json
+          retention-days: 30
+
+  # Job 2: Security Audit
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔒 Run npm audit
+        run: |
+          echo "# Security Audit Report" > security-report.md
+          echo "Generated on: $(date)" >> security-report.md
+          echo "" >> security-report.md
+          echo "## NPM Audit Results" >> security-report.md
+          npm audit --json > audit.json || true
+          if [ -s audit.json ]; then
+            npm audit >> security-report.md || true
+          else
+            echo "No security vulnerabilities found! ✅" >> security-report.md
+          fi
+          
+      - name: 🔍 Check for security advisories
+        run: |
+          echo "" >> security-report.md
+          echo "## Security Advisories" >> security-report.md
+          npm audit --audit-level=high --json > high-severity.json || true
+          if [ -s high-severity.json ]; then
+            echo "⚠️ High severity vulnerabilities found!" >> security-report.md
+          else
+            echo "No high severity vulnerabilities found! ✅" >> security-report.md
+          fi
+          
+      - name: 📤 Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: |
+            security-report.md
+            audit.json
+            high-severity.json
+          retention-days: 30
+
+  # Job 3: Code Quality Check
+  code-quality:
+    name: 📊 Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔍 Run linting
+        run: npm run lint > lint-report.txt || true
+        
+      - name: 🧪 Run tests with coverage
+        run: npm run coverage
+        
+      - name: 📊 Generate quality report
+        run: |
+          echo "# Code Quality Report" > quality-report.md
+          echo "Generated on: $(date)" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "## Linting Results" >> quality-report.md
+          if [ -s lint-report.txt ]; then
+            echo "⚠️ Linting issues found:" >> quality-report.md
+            cat lint-report.txt >> quality-report.md
+          else
+            echo "No linting issues found! ✅" >> quality-report.md
+          fi
+          echo "" >> quality-report.md
+          echo "## Test Coverage" >> quality-report.md
+          echo "Coverage reports generated in ./coverage/" >> quality-report.md
+          
+      - name: 📤 Upload quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-report
+          path: |
+            quality-report.md
+            lint-report.txt
+            coverage/
+          retention-days: 30
+
+  # Job 4: Health Check
+  health-check:
+    name: 🏥 Health Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🏗️ Build project
+        run: npm run build
+        
+      - name: 🏥 Run health check
+        run: npm run health-check || true
+        
+      - name: 📊 Generate health report
+        run: |
+          echo "# Health Check Report" > health-report.md
+          echo "Generated on: $(date)" >> health-report.md
+          echo "" >> health-report.md
+          echo "## Build Status" >> health-report.md
+          if [ -d "dist" ]; then
+            echo "✅ Build successful - dist/ directory exists" >> health-report.md
+            echo "Build size: $(du -sh dist/ | cut -f1)" >> health-report.md
+          else
+            echo "❌ Build failed - dist/ directory not found" >> health-report.md
+          fi
+          echo "" >> health-report.md
+          echo "## Package Info" >> health-report.md
+          echo "Version: $(node -p "require('./package.json').version")" >> health-report.md
+          echo "Node.js: $(node --version)" >> health-report.md
+          echo "NPM: $(npm --version)" >> health-report.md
+          
+      - name: 📤 Upload health report
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report
+          path: health-report.md
+          retention-days: 30
+
+  # Job 5: Summary
+  maintenance-summary:
+    name: 📋 Maintenance Summary
+    runs-on: ubuntu-latest
+    needs: [dependency-updates, security-audit, code-quality, health-check]
+    if: always()
+    
+    steps:
+      - name: 📋 Create maintenance summary
+        run: |
+          echo "# 🔧 Weekly Maintenance Summary" > maintenance-summary.md
+          echo "Generated on: $(date)" >> maintenance-summary.md
+          echo "" >> maintenance-summary.md
+          echo "## Job Results" >> maintenance-summary.md
+          echo "- Dependency Updates: ${{ needs.dependency-updates.result }}" >> maintenance-summary.md
+          echo "- Security Audit: ${{ needs.security-audit.result }}" >> maintenance-summary.md
+          echo "- Code Quality: ${{ needs.code-quality.result }}" >> maintenance-summary.md
+          echo "- Health Check: ${{ needs.health-check.result }}" >> maintenance-summary.md
+          echo "" >> maintenance-summary.md
+          echo "## Next Steps" >> maintenance-summary.md
+          echo "1. Review dependency report for outdated packages" >> maintenance-summary.md
+          echo "2. Address any security vulnerabilities found" >> maintenance-summary.md
+          echo "3. Fix any code quality issues identified" >> maintenance-summary.md
+          echo "4. Monitor build and deployment health" >> maintenance-summary.md
+          
+      - name: 📤 Upload maintenance summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: maintenance-summary
+          path: maintenance-summary.md
+          retention-days: 30

@@ -86,7 +86,7 @@ describe('MetaClient', () => {
     describe('client properties', () => {
         it('should have correct name and version', () => {
             expect(metaClient.name).toBe('MetaClient');
-            expect(metaClient.version).toBe('1.0.0');
+            expect(metaClient.version).toBe('2.0.0');
         });
     });
 });

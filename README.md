@@ -4,6 +4,11 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5%2B-blue)](https://www.typescriptlang.org/)
 
+[![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
+[![Release Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/release.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/release.yml)
+[![PR Validation](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml)
+[![Maintenance](https://github.com/lgriffin/ESI.ts/actions/workflows/maintenance.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/maintenance.yml)
+
 A modern, type-safe TypeScript implementation for the [EVE Online ESI API](https://esi.evetech.net/). Built with clean architecture principles, comprehensive error handling, and extensive testing.
 
 ## 🚀 Features

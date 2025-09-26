@@ -1,16 +1,271 @@
-name: CI
+name: CI/CD Pipeline
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
-  build:
+  # Job 1: Lint and Build
+  lint-and-build:
+    name: 🔍 Lint & Build
     runs-on: ubuntu-latest
-
+    
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '14'
-      - run: npm install
-      - run: npm run build
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔍 Run ESLint
+        run: npm run lint
+        
+      - name: 🏗️ Build project
+        run: npm run build
+        
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: dist/
+          retention-days: 1
+
+  # Job 2: Unit Tests
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    
+    strategy:
+      matrix:
+        node-version: [18, 20, 21]
+        
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🧪 Run unit tests
+        run: npm test
+        
+      - name: 📊 Upload coverage reports
+        if: matrix.node-version == '20'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: coverage/
+          retention-days: 7
+
+  # Job 3: BDD Tests
+  bdd-tests:
+    name: 🎭 BDD Scenarios
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    
+    strategy:
+      matrix:
+        test-suite: 
+          - alliance
+          - character
+          - corporation
+          - market
+          - universe
+          - integration
+          - performance
+          
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🎭 Run BDD tests - ${{ matrix.test-suite }}
+        run: npm run bdd:${{ matrix.test-suite }}
+        
+      - name: 📊 Upload BDD results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bdd-results-${{ matrix.test-suite }}
+          path: coverage/
+          retention-days: 7
+
+  # Job 4: Full Test Suite
+  full-test-suite:
+    name: 🚀 Complete Test Suite
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🧪 Run all tests
+        run: npm run test:all
+        
+      - name: 📊 Generate coverage report
+        run: npm run coverage
+        
+      - name: 📤 Upload full coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-full
+          path: coverage/
+          retention-days: 30
+
+  # Job 5: Documentation Generation
+  documentation:
+    name: 📚 Generate Documentation
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 📚 Generate documentation
+        run: npm run docs
+        
+      - name: 📤 Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs/
+          retention-days: 30
+          
+      - name: 🚀 Deploy to GitHub Pages
+        if: github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+
+  # Job 6: Security Audit
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔒 Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+        
+      - name: 🔍 Run security scan
+        uses: securecodewarrior/github-action-add-sarif@v1
+        if: always()
+        with:
+          sarif-file: 'security-scan.sarif'
+        continue-on-error: true
+
+  # Job 7: Performance Tests
+  performance-tests:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: ⚡ Run performance tests
+        run: npm run bdd:performance
+        
+      - name: 📊 Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: coverage/
+          retention-days: 30
+
+  # Job 8: Quality Gate
+  quality-gate:
+    name: ✅ Quality Gate
+    runs-on: ubuntu-latest
+    needs: [unit-tests, bdd-tests, full-test-suite, security-audit]
+    if: always()
+    
+    steps:
+      - name: 📥 Check job results
+        run: |
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "BDD Tests: ${{ needs.bdd-tests.result }}"
+          echo "Full Test Suite: ${{ needs.full-test-suite.result }}"
+          echo "Security Audit: ${{ needs.security-audit.result }}"
+          
+      - name: ✅ Quality Gate Passed
+        if: needs.unit-tests.result == 'success' && needs.bdd-tests.result == 'success' && needs.full-test-suite.result == 'success'
+        run: |
+          echo "🎉 All quality checks passed!"
+          echo "✅ Unit tests: PASSED"
+          echo "✅ BDD tests: PASSED" 
+          echo "✅ Full test suite: PASSED"
+          
+      - name: ❌ Quality Gate Failed
+        if: needs.unit-tests.result != 'success' || needs.bdd-tests.result != 'success' || needs.full-test-suite.result != 'success'
+        run: |
+          echo "❌ Quality gate failed!"
+          exit 1

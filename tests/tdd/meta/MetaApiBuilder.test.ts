@@ -31,7 +31,7 @@ describe('MetaApiBuilder', () => {
         
         expect(metaClient).toBeInstanceOf(MetaClient);
         expect(metaClient.name).toBe('MetaClient');
-        expect(metaClient.version).toBe('1.0.0');
+        expect(metaClient.version).toBe('2.0.0');
     });
 
     it('should pass the ApiClient to the MetaClient', () => {

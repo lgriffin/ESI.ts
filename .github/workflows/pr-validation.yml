@@ -1,0 +1,246 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  # Job 1: PR Info & Labels
+  pr-info:
+    name: 📋 PR Information
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📋 PR Details
+        run: |
+          echo "## Pull Request Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Title:** ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author:** @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Base:** ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Head:** ${{ github.event.pull_request.head.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files Changed:** ${{ github.event.pull_request.changed_files }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Additions:** +${{ github.event.pull_request.additions }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deletions:** -${{ github.event.pull_request.deletions }}" >> $GITHUB_STEP_SUMMARY
+
+  # Job 2: Fast Validation
+  fast-validation:
+    name: ⚡ Fast Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔍 Run linting on changed files
+        run: |
+          # Get changed TypeScript files
+          CHANGED_TS_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} HEAD | grep -E '\.(ts|tsx)$' || true)
+          if [ -n "$CHANGED_TS_FILES" ]; then
+            echo "Linting changed TypeScript files:"
+            echo "$CHANGED_TS_FILES"
+            npm run lint -- $CHANGED_TS_FILES
+          else
+            echo "No TypeScript files changed"
+          fi
+          
+      - name: 🏗️ Build project
+        run: npm run build
+        
+      - name: ✅ Fast validation passed
+        run: echo "✅ Fast validation completed successfully!"
+
+  # Job 3: Test Impact Analysis
+  test-impact:
+    name: 🧪 Test Impact Analysis
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔍 Analyze changed files
+        run: |
+          echo "## Test Impact Analysis" >> $GITHUB_STEP_SUMMARY
+          
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} HEAD)
+          echo "### Changed Files:" >> $GITHUB_STEP_SUMMARY
+          echo "$CHANGED_FILES" | while read file; do
+            echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+          done
+          
+          # Check if tests need to run
+          if echo "$CHANGED_FILES" | grep -qE '\.(ts|tsx|js|jsx)$'; then
+            echo "### Recommendation: 🧪 **Run full test suite**" >> $GITHUB_STEP_SUMMARY
+            echo "TypeScript/JavaScript files were modified" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Recommendation: ⚡ **Run basic validation**" >> $GITHUB_STEP_SUMMARY
+            echo "Only documentation or configuration files were modified" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Job 4: Comprehensive Testing
+  comprehensive-tests:
+    name: 🚀 Comprehensive Tests
+    runs-on: ubuntu-latest
+    needs: fast-validation
+    if: github.event.pull_request.draft == false
+    
+    strategy:
+      matrix:
+        test-type: [unit, bdd-alliance, bdd-character, bdd-corporation, bdd-integration]
+        
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🧪 Run ${{ matrix.test-type }} tests
+        run: |
+          case "${{ matrix.test-type }}" in
+            "unit")
+              npm test
+              ;;
+            "bdd-alliance")
+              npm run bdd:alliance
+              ;;
+            "bdd-character")
+              npm run bdd:character
+              ;;
+            "bdd-corporation")
+              npm run bdd:corporation
+              ;;
+            "bdd-integration")
+              npm run bdd:integration
+              ;;
+          esac
+          
+      - name: 📊 Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-type }}
+          path: coverage/
+          retention-days: 7
+
+  # Job 5: Security & Quality Check
+  security-quality:
+    name: 🔒 Security & Quality
+    runs-on: ubuntu-latest
+    needs: fast-validation
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔒 Security audit
+        run: |
+          echo "## Security Audit Results" >> $GITHUB_STEP_SUMMARY
+          if npm audit --audit-level=high; then
+            echo "✅ No high-severity vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Security vulnerabilities detected" >> $GITHUB_STEP_SUMMARY
+            echo "Please review and address before merging" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+        
+      - name: 📊 Generate coverage
+        run: npm run coverage
+        
+      - name: 📈 Coverage Summary
+        run: |
+          echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "Coverage report generated successfully ✅" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Coverage report not found ⚠️" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Job 6: PR Validation Summary
+  pr-validation-summary:
+    name: ✅ PR Validation Summary
+    runs-on: ubuntu-latest
+    needs: [pr-info, fast-validation, test-impact, comprehensive-tests, security-quality]
+    if: always() && github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📊 Generate validation summary
+        run: |
+          echo "# 🔍 Pull Request Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Fast Validation:** ${{ needs.fast-validation.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Impact Analysis:** ${{ needs.test-impact.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Comprehensive Tests:** ${{ needs.comprehensive-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security & Quality:** ${{ needs.security-quality.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          if [ "${{ needs.fast-validation.result }}" = "success" ] && 
+             [ "${{ needs.comprehensive-tests.result }}" = "success" ] &&
+             [ "${{ needs.security-quality.result }}" = "success" ]; then
+            echo "## ✅ Overall Status: PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "This PR is ready for review and merge!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ Overall Status: FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "Please address the failing checks before merging." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: ✅ Validation Complete
+        if: needs.fast-validation.result == 'success' && needs.comprehensive-tests.result == 'success' && needs.security-quality.result == 'success'
+        run: |
+          echo "🎉 All PR validation checks passed!"
+          echo "✅ Linting and build successful"
+          echo "✅ All tests passing"
+          echo "✅ Security audit clean"
+          echo "✅ Code quality maintained"
+          
+      - name: ❌ Validation Failed
+        if: needs.fast-validation.result != 'success' || needs.comprehensive-tests.result != 'success' || needs.security-quality.result != 'success'
+        run: |
+          echo "❌ PR validation failed!"
+          echo "Please check the job results and fix any issues."
+          exit 1

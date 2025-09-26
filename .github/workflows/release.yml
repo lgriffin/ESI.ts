@@ -1,0 +1,154 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  release:
+    types: [published]
+
+jobs:
+  # Job 1: Validate Release
+  validate-release:
+    name: 🔍 Validate Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🔍 Run linting
+        run: npm run lint
+        
+      - name: 🏗️ Build project
+        run: npm run build
+        
+      - name: 🧪 Run full test suite
+        run: npm run test:all
+        
+      - name: 📚 Generate documentation
+        run: npm run docs
+
+  # Job 2: Publish to NPM
+  publish-npm:
+    name: 📦 Publish to NPM
+    runs-on: ubuntu-latest
+    needs: validate-release
+    if: github.event_name == 'release' && github.event.action == 'published'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🏗️ Build project
+        run: npm run build
+        
+      - name: 📦 Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Job 3: Deploy Documentation
+  deploy-docs:
+    name: 📚 Deploy Documentation
+    runs-on: ubuntu-latest
+    needs: validate-release
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 📚 Generate documentation
+        run: npm run docs
+        
+      - name: 🚀 Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          cname: esi-ts-docs.yourdomain.com  # Optional: Add your custom domain
+
+  # Job 4: Create Release Assets
+  create-assets:
+    name: 📎 Create Release Assets
+    runs-on: ubuntu-latest
+    needs: validate-release
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: npm ci
+        
+      - name: 🏗️ Build project
+        run: npm run build
+        
+      - name: 📚 Generate documentation
+        run: npm run docs
+        
+      - name: 📦 Create distribution package
+        run: npm pack
+        
+      - name: 🗜️ Create documentation archive
+        run: tar -czf docs.tar.gz docs/
+        
+      - name: 📎 Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            *.tgz
+            docs.tar.gz
+            README.md
+            LICENSE
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Job 5: Notify Success
+  notify-success:
+    name: 🎉 Notify Success
+    runs-on: ubuntu-latest
+    needs: [publish-npm, deploy-docs, create-assets]
+    if: always() && needs.publish-npm.result == 'success'
+    
+    steps:
+      - name: 🎉 Release Success
+        run: |
+          echo "🚀 Release completed successfully!"
+          echo "✅ NPM package published"
+          echo "✅ Documentation deployed"
+          echo "✅ Release assets created"
