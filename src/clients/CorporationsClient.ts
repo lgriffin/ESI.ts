@@ -21,6 +21,7 @@ import { GetCorporationStarbaseDetailApi } from '../api/corporations/getCorporat
 import { GetCorporationStructuresApi } from '../api/corporations/getCorporationStructures';
 import { GetCorporationTitlesApi } from '../api/corporations/getCorporationTitles';
 import { GetNpcCorporationsApi } from '../api/corporations/getNpcCorporations';
+import { GetCorporationProjectsApi } from '../api/corporations/getCorporationProjects';
 
 export class CorporationsClient {
     private getCorporationInfoApi: GetCorporationInfoApi;
@@ -45,6 +46,7 @@ export class CorporationsClient {
     private getCorporationStructuresApi: GetCorporationStructuresApi;
     private getCorporationTitlesApi: GetCorporationTitlesApi;
     private getNpcCorporationsApi: GetNpcCorporationsApi;
+    private getCorporationProjectsApi: GetCorporationProjectsApi;
 
     constructor(client: ApiClient) {
         this.getCorporationInfoApi = new GetCorporationInfoApi(client);
@@ -69,6 +71,7 @@ export class CorporationsClient {
         this.getCorporationStructuresApi = new GetCorporationStructuresApi(client);
         this.getCorporationTitlesApi = new GetCorporationTitlesApi(client);
         this.getNpcCorporationsApi = new GetNpcCorporationsApi(client);
+        this.getCorporationProjectsApi = new GetCorporationProjectsApi(client);
     }
 
     async getCorporationInfo(corporationId: number): Promise<any> {
@@ -157,5 +160,9 @@ export class CorporationsClient {
 
     async getNpcCorporations(): Promise<any> {
         return await this.getNpcCorporationsApi.getNpcCorporations();
+    }
+
+    async getCorporationProjects(corporationId: number): Promise<any> {
+        return await this.getCorporationProjectsApi.getCorporationProjects(corporationId);
     }
 }

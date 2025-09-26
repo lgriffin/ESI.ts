@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
 import { SovereigntyClient } from '../clients/SovereigntyClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class SovereigntyApiBuilder {
+export class SovereigntyApiBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

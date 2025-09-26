@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
 import { RouteClient } from '../clients/RouteClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class RouteApiBuilder {
+export class RouteApiBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

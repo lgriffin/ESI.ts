@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
 import { InsuranceClient } from '../clients/InsuranceClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class InsuranceAPIBuilder {
+export class InsuranceAPIBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

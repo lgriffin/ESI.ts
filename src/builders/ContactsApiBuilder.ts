@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
 import { ContactsClient } from '../clients/ContactsClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class ContactsApiBuilder {
+export class ContactsApiBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

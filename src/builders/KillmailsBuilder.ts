@@ -1,7 +1,8 @@
 import { ApiClient } from '../core/ApiClient';
 import { KillmailsClient } from '../clients/KillmailsClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class KillmailsApiBuilder {
+export class KillmailsApiBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {

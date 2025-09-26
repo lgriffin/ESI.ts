@@ -1,9 +1,8 @@
-// src/builders/FittingsApiBuilder.ts
-
 import { ApiClient } from '../core/ApiClient';
 import { FittingsClient } from '../clients/FittingsClient';
+import { IAPIBuilder } from '../core/IAPIBuilder';
 
-export class FittingsApiBuilder {
+export class FittingsApiBuilder implements IAPIBuilder {
     private client: ApiClient;
 
     constructor(client: ApiClient) {
