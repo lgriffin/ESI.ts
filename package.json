@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/EsiClient.js",
   "type": "commonjs",
@@ -10,6 +10,7 @@
     "dev": "ts-node demo/examples.ts",
     "example": "ts-node demo/character-profile-demo.ts",
     "universe-demo": "ts-node demo/universe-demo.ts",
+    "rate-limiting-demo": "ts-node demo/rate-limiting-demo.ts",
     "examples:flexible": "ts-node demo/flexible-examples.ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
