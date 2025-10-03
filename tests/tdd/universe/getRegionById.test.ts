@@ -37,7 +37,7 @@ describe('UniverseRegionByIdApi', () => {
             systems: number[];
         };
 
-        const result = await getBody(() => universeRegionByIdApi.getRegionById(10000001)) as RegionResponse;
+        const result = await universeRegionByIdApi.getRegionById(10000001) as RegionResponse;
 
         expect(result).toHaveProperty('region_id');
         expect(typeof result.region_id).toBe('number');

@@ -836,7 +836,8 @@ The flexible examples (`npm run examples:flexible`) demonstrate:
 
 | File | Purpose | Command |
 |------|---------|---------|
-| `src/index.ts` | Character profile assembly | `npm run example` |
+| `demo/character-profile-demo.ts` | Character profile assembly | `npm run example` |
+| `demo/universe-demo.ts` | Universe routes demonstration | `npm run universe-demo` |
 | `demo/flexible-examples.ts` | All flexible API patterns | `npm run examples:flexible` |
 
 ### Learning Path
