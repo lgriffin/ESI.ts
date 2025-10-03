@@ -8,8 +8,8 @@
  * @license GPL-3.0-or-later
  */
 
-import { EsiClient } from './EsiClient';
-import { ApiError, ApiErrorType } from './core/errors/ApiError';
+import { EsiClient } from '../src/EsiClient';
+import { ApiError, ApiErrorType } from '../src/core/errors/ApiError';
 
 // Demo character ID - a well-known EVE Online character (the author of this tool)
 const DEMO_CHARACTER_ID = 1689391488;
@@ -177,10 +177,10 @@ async function runCharacterProfileExample() {
 }
 
 // Export the main functionality for library users
-export { EsiClient } from './EsiClient';
-export { ApiError, ApiErrorType } from './core/errors/ApiError';
-export { ApiClient } from './core/ApiClient';
-export { ApiClientBuilder } from './core/ApiClientBuilder';
+export { EsiClient } from '../src/EsiClient';
+export { ApiError, ApiErrorType } from '../src/core/errors/ApiError';
+export { ApiClient } from '../src/core/ApiClient';
+export { ApiClientBuilder } from '../src/core/ApiClientBuilder';
 export { getCompleteCharacterProfile, displayCharacterProfile };
 
 // Export flexible client builders
@@ -190,18 +190,18 @@ export {
   EsiClientBuilder,
   ApiClientType,
   ClientInstance 
-} from './EsiClientBuilder';
+} from '../src/EsiClientBuilder';
 
 // Export individual client classes for direct use
-export { AllianceClient } from './clients/AllianceClient';
-export { CharacterClient } from './clients/CharacterClient';
-export { CorporationsClient } from './clients/CorporationsClient';
-export { MarketClient } from './clients/MarketClient';
-export { UniverseClient } from './clients/UniverseClient';
-export { FleetClient } from './clients/FleetClient';
-export { AssetsClient } from './clients/AssetsClient';
-export { WalletClient } from './clients/WalletClient';
-export { MailClient } from './clients/MailClient';
+export { AllianceClient } from '../src/clients/AllianceClient';
+export { CharacterClient } from '../src/clients/CharacterClient';
+export { CorporationsClient } from '../src/clients/CorporationsClient';
+export { MarketClient } from '../src/clients/MarketClient';
+export { UniverseClient } from '../src/clients/UniverseClient';
+export { FleetClient } from '../src/clients/FleetClient';
+export { AssetsClient } from '../src/clients/AssetsClient';
+export { WalletClient } from '../src/clients/WalletClient';
+export { MailClient } from '../src/clients/MailClient';
 
 // Run the example if this file is executed directly
 if (require.main === module) {

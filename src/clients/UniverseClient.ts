@@ -28,6 +28,8 @@ import { UniverseTypeByIdApi } from '../api/universe/getTypeById';
 import { UniverseTypesApi } from '../api/universe/getTypes';
 import { PostBulkNamesToIdsApi } from '../api/universe/postBulkNamesToIds';
 import { PostNamesAndCategoriesApi } from '../api/universe/postNamesAndCategories';
+import { UniverseSchematicByIdApi } from '../api/universe/getSchematicById';
+import { UniverseRegionsApi } from '../api/universe/getRegions';
 
 export class UniverseClient {
     private universeAncestriesApi: UniverseAncestriesApi;
@@ -59,6 +61,8 @@ export class UniverseClient {
     private universeTypesApi: UniverseTypesApi;
     private postBulkNamesToIdsApi: PostBulkNamesToIdsApi;
     private postNamesAndCategoriesApi: PostNamesAndCategoriesApi;
+    private universeSchematicByIdApi: UniverseSchematicByIdApi;
+    private universeRegionsApi: UniverseRegionsApi;
 
     constructor(client: ApiClient) {
         this.universeAncestriesApi = new UniverseAncestriesApi(client);
@@ -90,6 +94,8 @@ export class UniverseClient {
         this.universeTypesApi = new UniverseTypesApi(client);
         this.postBulkNamesToIdsApi = new PostBulkNamesToIdsApi(client);
         this.postNamesAndCategoriesApi = new PostNamesAndCategoriesApi(client);
+        this.universeSchematicByIdApi = new UniverseSchematicByIdApi(client);
+        this.universeRegionsApi = new UniverseRegionsApi(client);
     }
 
    
@@ -207,6 +213,14 @@ export class UniverseClient {
     
         async postNamesAndCategories(ids: number[]): Promise<any> {
             return await this.postNamesAndCategoriesApi.postNamesAndCategories(ids);
+        }
+    
+        async getSchematicById(schematicId: number): Promise<any> {
+            return await this.universeSchematicByIdApi.getSchematicById(schematicId);
+        }
+    
+        async getRegions(): Promise<any> {
+            return await this.universeRegionsApi.getRegions();
         }
     }
     

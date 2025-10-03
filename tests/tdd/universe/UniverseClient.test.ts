@@ -1,6 +1,7 @@
 import { UniverseClient } from '../../../src/clients/UniverseClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
+import { getBody } from '../../../src/core/util/testHelpers';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -211,5 +212,57 @@ describe('UniverseClient', () => {
         expect(typeof result.url).toBe('string');
         expect(result).toHaveProperty('description');
         expect(typeof result.description).toBe('string');
+    });
+
+    it('should return valid schematic information', async () => {
+        const mockResponse = {
+            schematic_id: 1,
+            name: 'Test Schematic',
+            description: 'A test schematic description',
+            cycle_time: 300,
+            materials: [
+                {
+                    type_id: 34,
+                    quantity: 1
+                }
+            ],
+            products: [
+                {
+                    type_id: 35,
+                    quantity: 1
+                }
+            ]
+        };
+
+        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+        const result = await universeClient.getSchematicById(1);
+
+        expect(result).toHaveProperty('schematic_id');
+        expect(result.schematic_id).toBe(1);
+        expect(result).toHaveProperty('name');
+        expect(typeof result.name).toBe('string');
+        expect(result).toHaveProperty('description');
+        expect(typeof result.description).toBe('string');
+        expect(result).toHaveProperty('cycle_time');
+        expect(typeof result.cycle_time).toBe('number');
+        expect(result).toHaveProperty('materials');
+        expect(Array.isArray(result.materials)).toBe(true);
+        expect(result).toHaveProperty('products');
+        expect(Array.isArray(result.products)).toBe(true);
+    });
+
+    it('should return valid regions list', async () => {
+        const mockResponse = [10000001, 10000002, 10000003, 10000004, 10000005];
+
+        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+        const result = await universeClient.getRegions();
+
+        expect(Array.isArray(result)).toBe(true);
+        result.forEach((regionId: number) => {
+            expect(typeof regionId).toBe('number');
+            expect(regionId).toBeGreaterThan(0);
+        });
     });
 });
