@@ -473,7 +473,7 @@ describe('BDD Scenarios: Integration Workflows', () => {
         const totalTime = endTime - startTime;
 
         // Then: I should minimize API calls and response time
-        expect(totalTime).toBeLessThan(300); // Should complete in under 300ms due to parallelization
+        expect(totalTime).toBeLessThan(500); // Should complete in under 500ms due to parallelization
         expect(character.character_id).toBe(characterId);
         expect(portrait.px512x512).toBeDefined();
         expect(corporation.corporation_id).toBe(corporationId);

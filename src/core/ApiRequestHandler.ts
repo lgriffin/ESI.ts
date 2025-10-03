@@ -3,6 +3,8 @@ import { buildError } from '../core/util/error';
 import { logInfo, logWarn, logError, logDebug } from '../core/logger/loggerUtil';
 import HeadersUtil from '../core/util/headersUtil';
 import { ETagCacheManager } from './cache/ETagCacheManager';
+import { RateLimiter } from './rateLimiter/RateLimiter';
+import { PaginationHandler } from './pagination/PaginationHandler';
 
 const statusHandlers: Record<number, string> = {
     201: 'Created',
@@ -84,7 +86,13 @@ const fetchPageData = async (
         throw buildError(`Error: ${response.statusText}`, 'API_ERROR');
     }
 
-    const responseData = await response.json();
+    let responseData;
+    try {
+        responseData = await response.json();
+    } catch (jsonError) {
+        logError(`Failed to parse JSON response for page ${page}: ${jsonError}`);
+        throw buildError(`Invalid JSON response for page ${page}: ${jsonError}`, 'JSON_PARSE_ERROR');
+    }
     return responseData;  // Return only the data (body)
 };
 
@@ -131,6 +139,10 @@ export const handleRequest = async (
     logInfo(`Hitting endpoint: ${url}`);
 
     try {
+        // Check rate limit before making the request
+        const rateLimiter = RateLimiter.getInstance();
+        await rateLimiter.checkRateLimit();
+
         // Fetch the first page (page 1)
         const response = await fetch(url, options);
         const responseHeaders = HeadersUtil.extractHeaders(response.headers);
@@ -166,8 +178,17 @@ export const handleRequest = async (
         }
 
         // Get the data and number of pages from the first response
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonError) {
+            logError(`Failed to parse JSON response: ${jsonError}`);
+            throw buildError(`Invalid JSON response: ${jsonError}`, 'JSON_PARSE_ERROR');
+        }
         const totalPages = HeadersUtil.xPages;
+
+        // Update rate limiter with response headers
+        rateLimiter.updateRateLimitInfo(responseHeaders);
 
         // Cache the response if ETag is present and this is a GET request
         if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
@@ -180,26 +201,35 @@ export const handleRequest = async (
             return { headers: responseHeaders, body: data };
         }
 
-        // Now fetch the additional pages (starting from page 2)
-        logInfo(`Found ${totalPages} pages, fetching additional pages...`);
-        const allData = [data];  // Store data from page 1
-
-        for (let page = 2; page <= totalPages; page++) {
-            logInfo(`Fetching page ${page}...`);
-            const paginatedData = await fetchPageData(client, baseEndpoint, method, page, requiresAuth, body);
-            allData.push(...paginatedData);  // Append the paginated data
-        }
-
-        // Merge all pages' data into one response
-        const finalData = allData.flat();
+        // Use the new pagination handler for multiple pages
+        logInfo(`Found ${totalPages} pages, fetching additional pages with rate limiting...`);
         
-        // Cache the complete paginated response if ETag is present
-        if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
-            etagCache.set(url, HeadersUtil.etag, finalData, responseHeaders);
-            logDebug(`Cached paginated response for ${url} with ETag ${HeadersUtil.etag}`);
+        try {
+            const allData = await PaginationHandler.fetchAllPages(
+                client, 
+                baseEndpoint, 
+                method, 
+                requiresAuth, 
+                body,
+                {
+                    maxPages: Math.min(totalPages, 1000), // Reasonable limit
+                    stopOnEmptyPage: true, // Stop if we hit an empty page
+                    maxRetries: 3
+                }
+            );
+            
+            // Cache the complete paginated response if ETag is present
+            if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
+                etagCache.set(url, HeadersUtil.etag, allData, responseHeaders);
+                logDebug(`Cached paginated response for ${url} with ETag ${HeadersUtil.etag}`);
+            }
+            
+            return { headers: responseHeaders, body: allData };
+            
+        } catch (paginationError) {
+            logWarn(`Pagination failed, returning first page only: ${paginationError}`);
+            return { headers: responseHeaders, body: data };
         }
-        
-        return { headers: responseHeaders, body: finalData };  // Flatten the array if needed
     } catch (error) {
         if (error instanceof Error) {
             logError(`Unexpected error: ${error.message}`);

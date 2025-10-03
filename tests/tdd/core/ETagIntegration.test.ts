@@ -13,9 +13,15 @@ describe('ETag Integration Tests', () => {
         // Reset the global cache to ensure clean state
         resetETagCache();
         
+        // Reset rate limiter to ensure clean state
+        const { RateLimiter } = require('../../../src/core/rateLimiter/RateLimiter');
+        const rateLimiter = RateLimiter.getInstance();
+        rateLimiter.reset();
+        rateLimiter.setTestMode(true);
+        
         client = new EsiClient({
             clientId: 'test-client',
-            baseUrl: 'https://esi.evetech.net',
+            baseUrl: 'https://test-api.example.com',
             enableETagCache: true,
             etagCacheConfig: {
                 maxEntries: 100,
@@ -64,7 +70,8 @@ describe('ETag Integration Tests', () => {
                 }
             });
 
-            await client.alliance.getAlliances();
+            const firstResult = await client.alliance.getAlliances();
+            expect(firstResult).toEqual(mockData);
 
             // Second request - should return 304
             fetchMock.mockResponseOnce('', {
@@ -114,7 +121,7 @@ describe('ETag Integration Tests', () => {
             expect(secondResult).toEqual(newData);
 
             const cache = getETagCache();
-            const url = 'https://esi.evetech.net/alliances';
+            const url = 'https://test-api.example.com/alliances';
             expect(cache?.getETag(url)).toBe(newETag);
         });
     });
