@@ -105,6 +105,9 @@ export const handleRequest = async (
         const response = await fetch(url, options);
         const responseHeaders = HeadersUtil.extractHeaders(response.headers);
 
+        // Update rate limiter with response headers and status code on EVERY response
+        rateLimiter.updateFromResponse(responseHeaders, response.status);
+
         // Handle special success statuses
         if (response.status === 201) {
             let data;
@@ -132,7 +135,14 @@ export const handleRequest = async (
             throw new EsiError(304, 'Not Modified — no cached data available', url);
         }
 
-        // Handle errors (4xx/5xx)
+        // Handle 420/429 rate limiting errors
+        if (response.status === 420 || response.status === 429) {
+            const errorMessage = statusHandlers[response.status] || response.statusText;
+            logWarn(`Rate limited (${response.status}) on ${url}`);
+            throw new EsiError(response.status, errorMessage, url);
+        }
+
+        // Handle other errors (4xx/5xx)
         if (!response.ok) {
             const errorMessage = statusHandlers[response.status] || response.statusText;
 
@@ -162,9 +172,6 @@ export const handleRequest = async (
             throw buildError(`Invalid JSON response: ${jsonError}`, 'JSON_PARSE_ERROR');
         }
         const totalPages = HeadersUtil.xPages;
-
-        // Update rate limiter with response headers
-        rateLimiter.updateRateLimitInfo(responseHeaders);
 
         // Cache the response if ETag is present and this is a GET request
         if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
@@ -217,6 +224,10 @@ export const handleRequest = async (
             return { headers: responseHeaders, body: data };
         }
     } catch (error) {
+        // Re-throw EsiError as-is (don't re-wrap known errors)
+        if (error instanceof EsiError) {
+            throw error;
+        }
         if (error instanceof Error) {
             logError(`Unexpected error: ${error.message}`);
             throw buildError(error.message, 'ESIJS_ERROR');
