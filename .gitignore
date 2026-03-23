@@ -63,6 +63,9 @@ build/
 # VS Code specific files
 .vscode/
 
+# Claude Code
+.claude/
+
 # Log files
 *.log
 

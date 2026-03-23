@@ -1,63 +1,44 @@
-import { GetCharacterIndustryJobsApi } from '../api/industry/getCharacterIndustryJobs';
-import { GetCharacterMiningLedgerApi } from '../api/industry/getCharacterMiningLedger';
-import { GetMoonExtractionTimersApi } from '../api/industry/getMoonExtractionTimers';
-import { GetCorporationMiningObserversApi } from '../api/industry/getCorporationMiningObservers';
-import { GetCorporationMiningObserverApi } from '../api/industry/getCorporationMiningObserver';
-import { GetCorporationIndustryJobsApi } from '../api/industry/getCorporationIndustryJobs';
-import { GetIndustryFacilitiesApi } from '../api/industry/getIndustryFacilities';
-import { GetIndustrySystemsApi } from '../api/industry/getIndustrySystems';
 import { ApiClient } from '../core/ApiClient';
+import { createClient } from '../core/endpoints/createClient';
+import { industryEndpoints } from '../core/endpoints/industryEndpoints';
+import { IndustryJob, MiningLedgerEntry, IndustryFacility, IndustrySystem } from '../types/api-responses';
 
 export class IndustryClient {
-    private getCharacterIndustryJobsApi: GetCharacterIndustryJobsApi;
-    private getCharacterMiningLedgerApi: GetCharacterMiningLedgerApi;
-    private getMoonExtractionTimersApi: GetMoonExtractionTimersApi;
-    private getCorporationMiningObserversApi: GetCorporationMiningObserversApi;
-    private getCorporationMiningObserverApi: GetCorporationMiningObserverApi;
-    private getCorporationIndustryJobsApi: GetCorporationIndustryJobsApi;
-    private getIndustryFacilitiesApi: GetIndustryFacilitiesApi;
-    private getIndustrySystemsApi: GetIndustrySystemsApi;
+    private api: ReturnType<typeof createClient<typeof industryEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getCharacterIndustryJobsApi = new GetCharacterIndustryJobsApi(client);
-        this.getCharacterMiningLedgerApi = new GetCharacterMiningLedgerApi(client);
-        this.getMoonExtractionTimersApi = new GetMoonExtractionTimersApi(client);
-        this.getCorporationMiningObserversApi = new GetCorporationMiningObserversApi(client);
-        this.getCorporationMiningObserverApi = new GetCorporationMiningObserverApi(client);
-        this.getCorporationIndustryJobsApi = new GetCorporationIndustryJobsApi(client);
-        this.getIndustryFacilitiesApi = new GetIndustryFacilitiesApi(client);
-        this.getIndustrySystemsApi = new GetIndustrySystemsApi(client);
+        this.api = createClient(client, industryEndpoints);
     }
 
-    async getCharacterIndustryJobs(characterId: number): Promise<any> {
-        return await this.getCharacterIndustryJobsApi.getCharacterIndustryJobs(characterId);
+    async getCharacterIndustryJobs(characterId: number): Promise<IndustryJob[]> {
+        return this.api.getCharacterIndustryJobs(characterId);
     }
 
-    async getCharacterMiningLedger(characterId: number): Promise<any> {
-        return await this.getCharacterMiningLedgerApi.getCharacterMiningLedger(characterId);
+    async getCharacterMiningLedger(characterId: number): Promise<MiningLedgerEntry[]> {
+        return this.api.getCharacterMiningLedger(characterId);
     }
 
     async getMoonExtractionTimers(corporationId: number): Promise<any> {
-        return await this.getMoonExtractionTimersApi.getMoonExtractionTimers(corporationId);
+        return this.api.getMoonExtractionTimers(corporationId);
     }
 
     async getCorporationMiningObservers(corporationId: number): Promise<any> {
-        return await this.getCorporationMiningObserversApi.getCorporationMiningObservers(corporationId);
+        return this.api.getCorporationMiningObservers(corporationId);
     }
 
     async getCorporationMiningObserver(corporationId: number, observerId: number): Promise<any> {
-        return await this.getCorporationMiningObserverApi.getCorporationMiningObserver(corporationId, observerId);
+        return this.api.getCorporationMiningObserver(corporationId, observerId);
     }
 
-    async getCorporationIndustryJobs(corporationId: number): Promise<any> {
-        return await this.getCorporationIndustryJobsApi.getCorporationIndustryJobs(corporationId);
+    async getCorporationIndustryJobs(corporationId: number): Promise<IndustryJob[]> {
+        return this.api.getCorporationIndustryJobs(corporationId);
     }
 
-    async getIndustryFacilities(): Promise<any> {
-        return await this.getIndustryFacilitiesApi.getIndustryFacilities();
+    async getIndustryFacilities(): Promise<IndustryFacility[]> {
+        return this.api.getIndustryFacilities();
     }
 
-    async getIndustrySystems(): Promise<any> {
-        return await this.getIndustrySystemsApi.getIndustrySystems();
+    async getIndustrySystems(): Promise<IndustrySystem[]> {
+        return this.api.getIndustrySystems();
     }
 }

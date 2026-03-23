@@ -6,7 +6,7 @@
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../../src/core/errors/ApiError';
+import { EsiError } from '../../../src/core/util/error';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
 
 describe('BDD Scenarios: Universe Information', () => {
@@ -53,7 +53,7 @@ describe('BDD Scenarios: Universe Information', () => {
         expect(result.stargates).toBeInstanceOf(Array);
         expect(result.stations).toBeInstanceOf(Array);
         expect(result.planets).toBeInstanceOf(Array);
-        expect(result.stations.length).toBeGreaterThan(0);
+        expect(result.stations!.length).toBeGreaterThan(0);
       });
     });
 
@@ -61,7 +61,7 @@ describe('BDD Scenarios: Universe Information', () => {
       it('Given an invalid solar system ID, When I request system information, Then I should receive a not found error', async () => {
         // Given: An invalid solar system ID
         const invalidSystemId = 99999999;
-        const expectedError = TestDataFactory.createError(ApiErrorType.NOT_FOUND_ERROR, 404);
+        const expectedError = TestDataFactory.createError(404);
 
         // Mock the API to throw an error
         jest.spyOn(client.universe, 'getSystemById').mockRejectedValue(expectedError);
@@ -69,7 +69,7 @@ describe('BDD Scenarios: Universe Information', () => {
         // When & Then: I request system info and expect an error
         await expect(client.universe.getSystemById(invalidSystemId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
 

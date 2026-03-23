@@ -6,7 +6,7 @@
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../../src/core/errors/ApiError';
+import { EsiError } from '../../../src/core/util/error';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
 
 describe('BDD Scenarios: Integration Workflows', () => {
@@ -47,7 +47,7 @@ describe('BDD Scenarios: Integration Workflows', () => {
         jest.spyOn(client.corporations, 'getCorporationInfo').mockResolvedValue(mockCorporation);
         jest.spyOn(client.alliance, 'getAllianceById').mockResolvedValue(mockAlliance);
         jest.spyOn(client.location, 'getCharacterLocation').mockResolvedValue(mockLocation);
-        jest.spyOn(client.characters, 'getCharacterRoles').mockResolvedValue(mockSkills);
+        jest.spyOn(client.characters, 'getCharacterRoles').mockResolvedValue(mockSkills as any);
 
         // When: I assemble a complete profile
         const character = await client.characters.getCharacterPublicInfo(characterId);
@@ -56,7 +56,7 @@ describe('BDD Scenarios: Integration Workflows', () => {
           client.corporations.getCorporationInfo(character.corporation_id),
           client.alliance.getAllianceById(character.alliance_id!),
           client.location.getCharacterLocation(characterId),
-          client.characters.getCharacterRoles(characterId)
+          client.characters.getCharacterRoles(characterId) as any
         ]);
 
         // Then: I should gather all related character data
@@ -176,7 +176,7 @@ describe('BDD Scenarios: Integration Workflows', () => {
         jest.spyOn(client.corporations, 'getCorporationInfo').mockResolvedValue(mockCorporation);
         jest.spyOn(client.corporations, 'getCorporationMembers').mockResolvedValue(mockMembers);
         jest.spyOn(client.corporations, 'getCorporationRoles').mockResolvedValue(mockMemberRoles);
-        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(mockWallets);
+        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(mockWallets as any);
         jest.spyOn(client.corporations, 'getCorporationBlueprints').mockResolvedValue(mockAssets);
 
         // When: I manage corporation overview
@@ -251,9 +251,9 @@ describe('BDD Scenarios: Integration Workflows', () => {
         ];
 
         // Mock all API responses
-        jest.spyOn(client.fleets, 'getFleetInformation').mockResolvedValue(mockFleet);
-        jest.spyOn(client.fleets, 'getFleetMembers').mockResolvedValue(mockMembers);
-        jest.spyOn(client.fleets, 'getFleetWings').mockResolvedValue(mockWings);
+        jest.spyOn(client.fleets, 'getFleetInformation').mockResolvedValue(mockFleet as any);
+        jest.spyOn(client.fleets, 'getFleetMembers').mockResolvedValue(mockMembers as any);
+        jest.spyOn(client.fleets, 'getFleetWings').mockResolvedValue(mockWings as any);
 
         // When: I manage fleet operations
         const fleet = await client.fleets.getFleetInformation(fleetId);
@@ -331,12 +331,12 @@ describe('BDD Scenarios: Integration Workflows', () => {
         ];
 
         // Mock all API responses
-        jest.spyOn(client.characters, 'getCharacterRoles').mockResolvedValue(mockIndustryJobs);
-        jest.spyOn(client.characters, 'getCharacterBlueprints').mockResolvedValue(mockBlueprints);
-        jest.spyOn(client.characters, 'getCharacterPublicInfo').mockResolvedValue(mockAssets);
+        jest.spyOn(client.characters, 'getCharacterRoles').mockResolvedValue(mockIndustryJobs as any);
+        jest.spyOn(client.characters, 'getCharacterBlueprints').mockResolvedValue(mockBlueprints as any);
+        jest.spyOn(client.characters, 'getCharacterPublicInfo').mockResolvedValue(mockAssets as any);
 
         // When: I set up production
-        const [industryJobs, blueprints, assets] = await Promise.all([
+        const [industryJobs, blueprints, assets]: any[] = await Promise.all([
           client.characters.getCharacterRoles(characterId),
           client.characters.getCharacterBlueprints(characterId),
           client.characters.getCharacterPublicInfo(characterId)
@@ -374,7 +374,7 @@ describe('BDD Scenarios: Integration Workflows', () => {
         
         // Mock successful and failed responses
         const mockCharacter = TestDataFactory.createCharacterInfo({ character_id: characterId });
-        const serviceError = TestDataFactory.createError(ApiErrorType.SERVER_ERROR, 503);
+        const serviceError = TestDataFactory.createError(503);
         
         jest.spyOn(client.characters, 'getCharacterPublicInfo').mockResolvedValue(mockCharacter);
         jest.spyOn(client.characters, 'getCharacterPortrait').mockRejectedValue(serviceError);
@@ -404,7 +404,7 @@ describe('BDD Scenarios: Integration Workflows', () => {
         
         // Verify error handling
         if (results[1].status === 'rejected') {
-          expect(results[1].reason).toBeInstanceOf(ApiError);
+          expect(results[1].reason).toBeInstanceOf(EsiError);
         }
       });
     });
@@ -451,7 +451,7 @@ describe('BDD Scenarios: Integration Workflows', () => {
         });
         jest.spyOn(client.characters, 'getCharacterRoles').mockImplementation(async () => {
           await new Promise(resolve => setTimeout(resolve, 90));
-          return mockData.skills;
+          return mockData.skills as any;
         });
 
         // When: I optimize data gathering
@@ -466,9 +466,9 @@ describe('BDD Scenarios: Integration Workflows', () => {
           client.corporations.getCorporationInfo(character.corporation_id),
           client.alliance.getAllianceById(character.alliance_id!),
           client.location.getCharacterLocation(characterId),
-          client.characters.getCharacterRoles(characterId)
+          client.characters.getCharacterRoles(characterId) as any
         ]);
-        
+
         const endTime = Date.now();
         const totalTime = endTime - startTime;
 

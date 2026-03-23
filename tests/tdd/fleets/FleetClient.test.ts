@@ -9,7 +9,7 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
     .build();
 
 const fleetClient = new FleetClient(client);
@@ -64,7 +64,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.updateFleet(1234567890, body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should return valid structure for getFleetMembers', async () => {
@@ -109,7 +109,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.createFleetInvitation(1234567890, body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should kick a fleet member', async () => {
@@ -117,7 +117,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.kickFleetMember(1234567890, 123456789));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should move a fleet member', async () => {
@@ -127,7 +127,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.moveFleetMember(1234567890, 123456789, body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should delete a fleet squad', async () => {
@@ -135,7 +135,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.deleteFleetSquad(1234567890, 1));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should rename a fleet squad', async () => {
@@ -143,7 +143,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.renameFleetSquad(1234567890, 1, 'New Squad Name'));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should return fleet wings', async () => {
@@ -183,7 +183,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.createFleetWing(1234567890, body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should delete a fleet wing', async () => {
@@ -191,7 +191,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.deleteFleetWing(1234567890, 1));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should rename a fleet wing', async () => {
@@ -199,7 +199,7 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.renameFleetWing(1234567890, 1, 'New Wing Name'));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should create a fleet squad', async () => {
@@ -207,6 +207,6 @@ describe('FleetClient', () => {
 
         const result = await getBody(() => fleetClient.createFleetSquad(1234567890, 1));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 });

@@ -1,42 +1,31 @@
 import { ApiClient } from '../core/ApiClient';
-import { PostAutopilotWaypointApi } from '../api/ui/postAutopilotWaypoint';
-import { PostOpenContractWindowApi } from '../api/ui/postOpenContractWindow';
-import { PostOpenInformationWindowApi } from '../api/ui/postOpenInformationWindow';
-import { PostOpenMarketDetailsWindowApi } from '../api/ui/postOpenMarketDetailsWindow';
-import { PostOpenNewMailWindowApi } from '../api/ui/postOpenNewMailWindow';
+import { createClient } from '../core/endpoints/createClient';
+import { uiEndpoints } from '../core/endpoints/uiEndpoints';
 
-export class UIClient {
-    private postAutopilotWaypointApi: PostAutopilotWaypointApi;
-    private postOpenContractWindowApi: PostOpenContractWindowApi;
-    private postOpenInformationWindowApi: PostOpenInformationWindowApi;
-    private postOpenMarketDetailsWindowApi: PostOpenMarketDetailsWindowApi;
-    private postOpenNewMailWindowApi: PostOpenNewMailWindowApi;
+export class UiClient {
+    private api: ReturnType<typeof createClient<typeof uiEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.postAutopilotWaypointApi = new PostAutopilotWaypointApi(client);
-        this.postOpenContractWindowApi = new PostOpenContractWindowApi(client);
-        this.postOpenInformationWindowApi = new PostOpenInformationWindowApi(client);
-        this.postOpenMarketDetailsWindowApi = new PostOpenMarketDetailsWindowApi(client);
-        this.postOpenNewMailWindowApi = new PostOpenNewMailWindowApi(client);
+        this.api = createClient(client, uiEndpoints);
     }
 
-    async setAutopilotWaypoint(body: object): Promise<any> {
-        return await this.postAutopilotWaypointApi.setAutopilotWaypoint(body);
+    async setAutopilotWaypoint(body: object): Promise<void> {
+        return this.api.setAutopilotWaypoint(body);
     }
 
-    async openContractWindow(body: object): Promise<any> {
-        return await this.postOpenContractWindowApi.openContractWindow(body);
+    async openContractWindow(body: object): Promise<void> {
+        return this.api.openContractWindow(body);
     }
 
-    async openInformationWindow(body: object): Promise<any> {
-        return await this.postOpenInformationWindowApi.openInformationWindow(body);
+    async openInformationWindow(body: object): Promise<void> {
+        return this.api.openInformationWindow(body);
     }
 
-    async openMarketDetailsWindow(body: object): Promise<any> {
-        return await this.postOpenMarketDetailsWindowApi.openMarketDetailsWindow(body);
+    async openMarketDetailsWindow(body: object): Promise<void> {
+        return this.api.openMarketDetailsWindow(body);
     }
 
-    async openNewMailWindow(body: object): Promise<any> {
-        return await this.postOpenNewMailWindowApi.openNewMailWindow(body);
+    async openNewMailWindow(body: object): Promise<void> {
+        return this.api.openNewMailWindow(body);
     }
 }

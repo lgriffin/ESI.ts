@@ -1,4 +1,4 @@
-import { PIClient } from '../../../src/clients/PiClient';
+import { PiClient } from '../../../src/clients/PiClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -9,12 +9,12 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
     .build();
 
-const piClient = new PIClient(client);
+const piClient = new PiClient(client);
 
-describe('PIClient', () => {
+describe('PiClient', () => {
     beforeEach(() => {
         fetchMock.resetMocks();
     });

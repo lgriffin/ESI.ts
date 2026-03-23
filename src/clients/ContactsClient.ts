@@ -1,70 +1,48 @@
-import { getAllianceContacts } from '../api/contacts/getAllianceContacts';
-import { getAllianceContactLabels } from '../api/contacts/getAllianceContactLabels';
-import { deleteCharacterContacts } from '../api/contacts/deleteCharacterContacts';
-import { getCharacterContacts } from '../api/contacts/getCharacterContacts';
-import { postCharacterContacts } from '../api/contacts/postCharacterContacts';
-import { putCharacterContacts } from '../api/contacts/putCharacterContacts';
-import { getCharacterContactLabels } from '../api/contacts/getCharacterContactLabels';
-import { getCorporationContacts } from '../api/contacts/getCorporationContacts';
-import { getCorporationContactLabels } from '../api/contacts/getCorporationContactLabels';
 import { ApiClient } from '../core/ApiClient';
+import { createClient } from '../core/endpoints/createClient';
+import { contactEndpoints } from '../core/endpoints/contactEndpoints';
+import { Contact, ContactLabel } from '../types/api-responses';
 
 export class ContactsClient {
-    private getAllianceContactsApi: getAllianceContacts;
-    private getAllianceContactLabelsApi: getAllianceContactLabels;
-    private deleteCharacterContactsApi: deleteCharacterContacts;
-    private getCharacterContactsApi: getCharacterContacts;
-    private postCharacterContactsApi: postCharacterContacts;
-    private putCharacterContactsApi: putCharacterContacts;
-    private getCharacterContactLabelsApi: getCharacterContactLabels;
-    private getCorporationContactsApi: getCorporationContacts;
-    private getCorporationContactLabelsApi: getCorporationContactLabels;
+    private api: ReturnType<typeof createClient<typeof contactEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getAllianceContactsApi = new getAllianceContacts(client);
-        this.getAllianceContactLabelsApi = new getAllianceContactLabels(client);
-        this.deleteCharacterContactsApi = new deleteCharacterContacts(client);
-        this.getCharacterContactsApi = new getCharacterContacts(client);
-        this.postCharacterContactsApi = new postCharacterContacts(client);
-        this.putCharacterContactsApi = new putCharacterContacts(client);
-        this.getCharacterContactLabelsApi = new getCharacterContactLabels(client);
-        this.getCorporationContactsApi = new getCorporationContacts(client);
-        this.getCorporationContactLabelsApi = new getCorporationContactLabels(client);
+        this.api = createClient(client, contactEndpoints);
     }
 
-    async getAllianceContacts(allianceId: number): Promise<any> {
-        return await this.getAllianceContactsApi.getAllianceContacts(allianceId);
+    async getAllianceContacts(allianceId: number): Promise<Contact[]> {
+        return this.api.getAllianceContacts(allianceId);
     }
 
-    async getAllianceContactLabels(allianceId: number): Promise<any> {
-        return await this.getAllianceContactLabelsApi.getAllianceContactLabels(allianceId);
+    async getAllianceContactLabels(allianceId: number): Promise<ContactLabel[]> {
+        return this.api.getAllianceContactLabels(allianceId);
     }
 
-    async deleteCharacterContacts(characterId: number, contactIds: number[]): Promise<any> {
-        return await this.deleteCharacterContactsApi.deleteCharacterContacts(characterId, contactIds);
+    async deleteCharacterContacts(characterId: number, contactIds: number[]): Promise<void> {
+        return this.api.deleteCharacterContacts(characterId, contactIds);
     }
 
-    async getCharacterContacts(characterId: number): Promise<any> {
-        return await this.getCharacterContactsApi.getContacts(characterId);
+    async getCharacterContacts(characterId: number): Promise<Contact[]> {
+        return this.api.getCharacterContacts(characterId);
     }
 
-    async postCharacterContacts(characterId: number, contacts: object): Promise<any> {
-        return await this.postCharacterContactsApi.addContacts(characterId, contacts);
+    async postCharacterContacts(characterId: number, contacts: object): Promise<number[]> {
+        return this.api.addContacts(characterId, contacts);
     }
 
-    async putCharacterContacts(characterId: number, contacts: object): Promise<any> {
-        return await this.putCharacterContactsApi.editContacts(characterId, contacts);
+    async putCharacterContacts(characterId: number, contacts: object): Promise<void> {
+        return this.api.editContacts(characterId, contacts);
     }
 
-    async getCharacterContactLabels(characterId: number): Promise<any> {
-        return await this.getCharacterContactLabelsApi.getLabels(characterId);
+    async getCharacterContactLabels(characterId: number): Promise<ContactLabel[]> {
+        return this.api.getCharacterContactLabels(characterId);
     }
 
-    async getCorporationContacts(corporationId: number): Promise<any> {
-        return await this.getCorporationContactsApi.getContacts(corporationId);
+    async getCorporationContacts(corporationId: number): Promise<Contact[]> {
+        return this.api.getCorporationContacts(corporationId);
     }
 
-    async getCorporationContactLabels(corporationId: number): Promise<any> {
-        return await this.getCorporationContactLabelsApi.getLabels(corporationId);
+    async getCorporationContactLabels(corporationId: number): Promise<ContactLabel[]> {
+        return this.api.getCorporationContactLabels(corporationId);
     }
 }

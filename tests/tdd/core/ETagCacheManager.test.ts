@@ -7,8 +7,7 @@ describe('ETagCacheManager', () => {
         cacheManager = new ETagCacheManager({
             maxEntries: 5,
             defaultTtl: 1000, // 1 second for testing
-            cleanupInterval: 500, // 0.5 seconds
-            persistToStorage: false
+            cleanupInterval: 500 // 0.5 seconds
         });
     });
 

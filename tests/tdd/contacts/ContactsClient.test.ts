@@ -16,7 +16,7 @@ describe('ContactsClient', () => {
         const client = new ApiClientBuilder()
             .setClientId(config.projectName)
             .setLink(config.link)
-            .setAccessToken(config.authToken || undefined)
+            .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
             .build();
 
         contactsClient = new ContactsClient(client);
@@ -262,28 +262,25 @@ describe('ContactsClient', () => {
     });
 
     describe('Error Handling', () => {
-        it('should handle authentication errors', async () => {
+        it('should throw on authentication errors', async () => {
             fetchMock.mockResponseOnce('Unauthorized', { status: 401 });
 
-            const result = await getBody(() => contactsClient.getCharacterContacts(123456));
-            expect(result).toHaveProperty('error');
-            expect(result.error).toBe('unauthorized');
+            await expect(contactsClient.getCharacterContacts(123456))
+                .rejects.toThrow('Unauthorized');
         });
 
-        it('should handle forbidden access errors', async () => {
+        it('should throw on forbidden access errors', async () => {
             fetchMock.mockResponseOnce('Forbidden', { status: 403 });
 
-            const result = await getBody(() => contactsClient.getCorporationContacts(123456789));
-            expect(result).toHaveProperty('error');
-            expect(result.error).toBe('forbidden');
+            await expect(contactsClient.getCorporationContacts(123456789))
+                .rejects.toThrow('Forbidden');
         });
 
-        it('should handle not found errors', async () => {
+        it('should throw on not found errors', async () => {
             fetchMock.mockResponseOnce('Not Found', { status: 404 });
 
-            const result = await getBody(() => contactsClient.getAllianceContacts(999999999));
-            expect(result).toHaveProperty('error');
-            expect(result.error).toBe('resource not found');
+            await expect(contactsClient.getAllianceContacts(999999999))
+                .rejects.toThrow('Resource not found');
         });
     });
 });

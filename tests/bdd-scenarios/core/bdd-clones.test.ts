@@ -1,12 +1,12 @@
 /**
- * BDD-Style Testing for Clones API (Jump Clone Activation)
- * 
- * This demonstrates BDD principles for the Clones API jump activation
+ * BDD-Style Testing for Clones API
+ *
+ * This demonstrates BDD principles for the Clones API
  * using Given/When/Then patterns.
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../../src/core/errors/ApiError';
+import { EsiError } from '../../../src/core/util/error';
 
 describe('BDD: Clone Management', () => {
   let client: EsiClient;
@@ -20,139 +20,114 @@ describe('BDD: Clone Management', () => {
     });
   });
 
-  describe('Feature: Jump Clone Activation', () => {
-    describe('Scenario: Activate a valid jump clone', () => {
-      it('Given a valid character with available jump clones, When I activate a specific jump clone, Then the jump should be successful', async () => {
-        // Given: A valid character with available jump clones
+  describe('Feature: Retrieve Character Clones', () => {
+    describe('Scenario: Get clone information for a valid character', () => {
+      it('Given a valid character ID, When I request clone information, Then I should receive clone details', async () => {
+        // Given
         const characterId = 90000001;
-        const jumpCloneId = 12345;
         const expectedResponse = {
-          success: true,
-          jump_clone_id: jumpCloneId,
-          location_id: 60003760,
-          location_name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant'
+          home_location: {
+            location_id: 60003760,
+            location_type: 'station'
+          },
+          jump_clones: [
+            { jump_clone_id: 12345, location_id: 60003760, implants: [1, 2, 3] },
+            { jump_clone_id: 12346, location_id: 60008494, implants: [] }
+          ],
+          last_clone_jump_date: '2024-01-15T12:00:00Z',
+          last_station_change_date: '2024-01-10T08:00:00Z'
         };
 
-        // Mock the API response
-        jest.spyOn(client.clones, 'activateJumpClone').mockResolvedValue(expectedResponse);
+        jest.spyOn(client.clones, 'getClones').mockResolvedValue(expectedResponse as any);
 
-        // When: I activate a specific jump clone
-        const result = await client.clones.activateJumpClone(characterId, jumpCloneId);
+        // When
+        const result = await client.clones.getClones(characterId);
 
-        // Then: The jump should be successful
+        // Then
         expect(result).toBeDefined();
-        expect(result.success).toBe(true);
-        expect(result.jump_clone_id).toBe(jumpCloneId);
-        expect(result).toHaveProperty('location_id');
-        expect(result).toHaveProperty('location_name');
+        expect(result.home_location).toBeDefined();
+        expect(result.home_location!.location_id).toBe(60003760);
+        expect(result.jump_clones).toHaveLength(2);
       });
     });
 
-    describe('Scenario: Handle jump clone cooldown', () => {
-      it('Given a character with jump clone cooldown active, When I attempt to activate a jump clone, Then I should receive a cooldown error', async () => {
-        // Given: A character with jump clone cooldown active
+    describe('Scenario: Handle unauthorized clone request', () => {
+      it('Given an invalid access token, When I request clone information, Then I should receive an authentication error', async () => {
+        // Given
         const characterId = 90000001;
-        const jumpCloneId = 12345;
-        const cooldownError = new ApiError('Jump clone cooldown active', ApiErrorType.RATE_LIMIT_ERROR, 429);
+        const authError = new EsiError(401, 'Token is expired');
 
-        // Mock the API error
-        jest.spyOn(client.clones, 'activateJumpClone').mockRejectedValue(cooldownError);
+        jest.spyOn(client.clones, 'getClones').mockRejectedValue(authError);
 
-        // When & Then: I attempt to activate and should receive an error
-        await expect(client.clones.activateJumpClone(characterId, jumpCloneId)).rejects.toThrow('Jump clone cooldown active');
-      });
-    });
-
-    describe('Scenario: Handle non-existent jump clone', () => {
-      it('Given a non-existent jump clone ID, When I attempt to activate it, Then I should receive a not found error', async () => {
-        // Given: A non-existent jump clone ID
-        const characterId = 90000001;
-        const invalidJumpCloneId = 99999999;
-        const notFoundError = new ApiError('Jump clone not found', ApiErrorType.NOT_FOUND_ERROR, 404);
-
-        // Mock the API error
-        jest.spyOn(client.clones, 'activateJumpClone').mockRejectedValue(notFoundError);
-
-        // When & Then: I attempt to activate and should receive an error
-        await expect(client.clones.activateJumpClone(characterId, invalidJumpCloneId)).rejects.toThrow('Jump clone not found');
-      });
-    });
-
-    describe('Scenario: Handle character in space', () => {
-      it('Given a character currently in space, When I attempt to activate a jump clone, Then I should receive an invalid location error', async () => {
-        // Given: A character currently in space
-        const characterId = 90000001;
-        const jumpCloneId = 12345;
-        const locationError = new ApiError('Cannot jump clone while in space', ApiErrorType.CLIENT_ERROR, 400);
-
-        // Mock the API error
-        jest.spyOn(client.clones, 'activateJumpClone').mockRejectedValue(locationError);
-
-        // When & Then: I attempt to activate and should receive an error
-        await expect(client.clones.activateJumpClone(characterId, jumpCloneId)).rejects.toThrow('Cannot jump clone while in space');
+        // When & Then
+        await expect(client.clones.getClones(characterId)).rejects.toThrow('Token is expired');
       });
     });
   });
 
-  describe('Feature: Authentication and Authorization', () => {
-    describe('Scenario: Verify proper character ownership', () => {
-      it('Given a character ID that I do not own, When I attempt to activate their jump clone, Then I should receive an unauthorized error', async () => {
-        // Given: A character ID that I do not own
-        const unauthorizedCharacterId = 90000002;
-        const jumpCloneId = 12345;
-        const unauthorizedError = new ApiError('Character not owned by token', ApiErrorType.AUTHORIZATION_ERROR, 403);
+  describe('Feature: Retrieve Character Implants', () => {
+    describe('Scenario: Get active implants for a character', () => {
+      it('Given a valid character ID, When I request implant information, Then I should receive a list of implant type IDs', async () => {
+        // Given
+        const characterId = 90000001;
+        const expectedImplants = [9899, 9941, 9942, 9943, 9956];
 
-        // Mock the API error
-        jest.spyOn(client.clones, 'activateJumpClone').mockRejectedValue(unauthorizedError);
+        jest.spyOn(client.clones, 'getImplants').mockResolvedValue(expectedImplants);
 
-        // When & Then: I attempt to activate and should receive an error
-        await expect(client.clones.activateJumpClone(unauthorizedCharacterId, jumpCloneId)).rejects.toThrow('Character not owned by token');
+        // When
+        const result = await client.clones.getImplants(characterId);
+
+        // Then
+        expect(Array.isArray(result)).toBe(true);
+        expect(result).toHaveLength(5);
+        result.forEach((implant: number) => {
+          expect(typeof implant).toBe('number');
+        });
       });
     });
 
-    describe('Scenario: Verify required scopes', () => {
-      it('Given an access token without required scopes, When I attempt to activate a jump clone, Then I should receive a scope error', async () => {
-        // Given: An access token without required scopes
+    describe('Scenario: Character with no implants', () => {
+      it('Given a character with no active implants, When I request implant information, Then I should receive an empty array', async () => {
+        // Given
         const characterId = 90000001;
-        const jumpCloneId = 12345;
-        const scopeError = new ApiError('Required scope missing: esi-clones.jump_clones.v1', ApiErrorType.AUTHORIZATION_ERROR, 403);
 
-        // Mock the API error
-        jest.spyOn(client.clones, 'activateJumpClone').mockRejectedValue(scopeError);
+        jest.spyOn(client.clones, 'getImplants').mockResolvedValue([]);
 
-        // When & Then: I attempt to activate and should receive an error
-        await expect(client.clones.activateJumpClone(characterId, jumpCloneId)).rejects.toThrow('Required scope missing: esi-clones.jump_clones.v1');
+        // When
+        const result = await client.clones.getImplants(characterId);
+
+        // Then
+        expect(Array.isArray(result)).toBe(true);
+        expect(result).toHaveLength(0);
       });
     });
   });
 
-  describe('Feature: Jump Clone Workflow', () => {
-    describe('Scenario: Complete jump clone workflow', () => {
-      it('Given a character with multiple jump clones, When I list clones and then activate one, Then the workflow should complete successfully', async () => {
-        // Given: A character with multiple jump clones
+  describe('Feature: Clone Workflow', () => {
+    describe('Scenario: Retrieve clones and their implants', () => {
+      it('Given a character with clones, When I retrieve clone info and implants, Then I should have complete clone data', async () => {
+        // Given
         const characterId = 90000001;
-        const availableClones = [
-          { jump_clone_id: 12345, location_id: 60003760, name: 'Jita Clone' },
-          { jump_clone_id: 12346, location_id: 60008494, name: 'Amarr Clone' }
-        ];
-        const selectedCloneId = 12345;
-        const activationResponse = { success: true, jump_clone_id: selectedCloneId };
+        const cloneData = {
+          home_location: { location_id: 60003760, location_type: 'station' },
+          jump_clones: [
+            { jump_clone_id: 12345, location_id: 60003760, implants: [9899, 9941] },
+            { jump_clone_id: 12346, location_id: 60008494, implants: [9942] }
+          ]
+        };
+        const activeImplants = [9943, 9956];
 
-        // Mock both API responses
-        jest.spyOn(client.clones, 'getClones').mockResolvedValue({ jump_clones: availableClones });
-        jest.spyOn(client.clones, 'activateJumpClone').mockResolvedValue(activationResponse);
+        jest.spyOn(client.clones, 'getClones').mockResolvedValue(cloneData as any);
+        jest.spyOn(client.clones, 'getImplants').mockResolvedValue(activeImplants);
 
-        // When: I list clones and then activate one
+        // When
         const clones = await client.clones.getClones(characterId);
-        const selectedClone = clones.jump_clones.find((clone: any) => clone.jump_clone_id === selectedCloneId);
-        const result = await client.clones.activateJumpClone(characterId, selectedCloneId);
+        const implants = await client.clones.getImplants(characterId);
 
-        // Then: The workflow should complete successfully
+        // Then
         expect(clones.jump_clones).toHaveLength(2);
-        expect(selectedClone).toBeDefined();
-        expect(selectedClone.name).toBe('Jita Clone');
-        expect(result.success).toBe(true);
-        expect(result.jump_clone_id).toBe(selectedCloneId);
+        expect(implants).toHaveLength(2);
+        expect(clones.jump_clones[0].implants).toHaveLength(2);
       });
     });
   });

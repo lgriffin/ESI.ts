@@ -1,58 +1,36 @@
 import { ApiClient } from '../core/ApiClient';
-import { AllianceByIdApi } from '../api/alliances/getAllianceById';
-import { AllianceContactsApi } from '../api/alliances/getAllianceContacts';
-import { AllianceContactLabelsApi } from '../api/alliances/getAllianceContactLabels';
-import { AllianceCorporationsApi } from '../api/alliances/getAllianceCorporations';
-import { AllianceIconsApi } from '../api/alliances/getAllianceIcons';
-import { AllAlliancesApi } from '../api/alliances/getAlliances';
-import { 
-    AllianceInfo, 
-    AllianceContact, 
-    AllianceContactLabel, 
-    AllianceIcon 
-} from '../types/api-responses';
-import { IApiService } from '../core/IAPIBuilder';
+import { createClient } from '../core/endpoints/createClient';
+import { allianceEndpoints } from '../core/endpoints/allianceEndpoints';
+import { AllianceInfo, AllianceContact, AllianceContactLabel, AllianceIcon } from '../types/api-responses';
 
-export class AllianceClient implements IApiService {
-    readonly name = 'AllianceClient';
-    readonly version = '2.0.0';
-    private allianceApi: AllianceByIdApi;
-    private allianceContactsApi: AllianceContactsApi;
-    private allianceContactLabelsApi: AllianceContactLabelsApi;
-    private allianceCorporationsApi: AllianceCorporationsApi;
-    private allianceIconsApi: AllianceIconsApi;
-    private allAlliancesApi: AllAlliancesApi;
+export class AllianceClient {
+    private api: ReturnType<typeof createClient<typeof allianceEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.allianceApi = new AllianceByIdApi(client);
-        this.allianceContactsApi = new AllianceContactsApi(client);
-        this.allianceContactLabelsApi = new AllianceContactLabelsApi(client);
-        this.allianceCorporationsApi = new AllianceCorporationsApi(client);
-        this.allianceIconsApi = new AllianceIconsApi(client);
-        this.allAlliancesApi = new AllAlliancesApi(client);
+        this.api = createClient(client, allianceEndpoints);
     }
 
     async getAllianceById(allianceId: number): Promise<AllianceInfo> {
-        return await this.allianceApi.getAllianceById(allianceId) as AllianceInfo;
+        return this.api.getAllianceById(allianceId);
     }
 
     async getContacts(allianceId: number): Promise<AllianceContact[]> {
-        return await this.allianceContactsApi.getAllianceContacts(allianceId) as AllianceContact[];
+        return this.api.getContacts(allianceId);
     }
 
     async getContactLabels(allianceId: number): Promise<AllianceContactLabel[]> {
-        return await this.allianceContactLabelsApi.getAllianceContactLabels(allianceId) as AllianceContactLabel[];
+        return this.api.getContactLabels(allianceId);
     }
 
     async getCorporations(allianceId: number): Promise<number[]> {
-        return await this.allianceCorporationsApi.getAllianceCorporations(allianceId) as number[];
+        return this.api.getCorporations(allianceId);
     }
 
     async getIcons(allianceId: number): Promise<AllianceIcon> {
-        return await this.allianceIconsApi.getAllianceIcons(allianceId) as AllianceIcon;
+        return this.api.getIcons(allianceId);
     }
 
     async getAlliances(): Promise<number[]> {
-        return await this.allAlliancesApi.getAllAlliances() as unknown as number[];
+        return this.api.getAlliances();
     }
 }

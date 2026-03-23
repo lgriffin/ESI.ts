@@ -1,28 +1,24 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCharacterRecentKillmailsApi } from '../api/killmails/getCharacterRecentKillmails';
-import { GetCorporationRecentKillmailsApi } from '../api/killmails/getCorporationRecentKillmails';
-import { GetKillmailApi } from '../api/killmails/getKillmail';
+import { createClient } from '../core/endpoints/createClient';
+import { killmailEndpoints } from '../core/endpoints/killmailEndpoints';
+import { KillmailSummary, Killmail } from '../types/api-responses';
 
 export class KillmailsClient {
-    private getCharacterRecentKillmailsApi: GetCharacterRecentKillmailsApi;
-    private getCorporationRecentKillmailsApi: GetCorporationRecentKillmailsApi;
-    private getKillmailApi: GetKillmailApi;
+    private api: ReturnType<typeof createClient<typeof killmailEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getCharacterRecentKillmailsApi = new GetCharacterRecentKillmailsApi(client);
-        this.getCorporationRecentKillmailsApi = new GetCorporationRecentKillmailsApi(client);
-        this.getKillmailApi = new GetKillmailApi(client);
+        this.api = createClient(client, killmailEndpoints);
     }
 
-    async getCharacterRecentKillmails(characterId: number): Promise<any> {
-        return await this.getCharacterRecentKillmailsApi.getCharacterRecentKillmails(characterId);
+    async getCharacterRecentKillmails(characterId: number): Promise<KillmailSummary[]> {
+        return this.api.getCharacterRecentKillmails(characterId);
     }
 
-    async getCorporationRecentKillmails(corporationId: number): Promise<any> {
-        return await this.getCorporationRecentKillmailsApi.getCorporationRecentKillmails(corporationId);
+    async getCorporationRecentKillmails(corporationId: number): Promise<KillmailSummary[]> {
+        return this.api.getCorporationRecentKillmails(corporationId);
     }
 
-    async getKillmail(killmailId: number, killmailHash: string): Promise<any> {
-        return await this.getKillmailApi.getKillmail(killmailId, killmailHash);
+    async getKillmail(killmailId: number, killmailHash: string): Promise<Killmail> {
+        return this.api.getKillmail(killmailId, killmailHash);
     }
 }

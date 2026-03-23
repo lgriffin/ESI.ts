@@ -15,4 +15,8 @@ export class ApiClient {
     getLink(): string {
         return this.link;
     }
+
+    setAccessToken(token: string): void {
+        this.accessToken = token;
+    }
 }

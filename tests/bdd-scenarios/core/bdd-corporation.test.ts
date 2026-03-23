@@ -6,7 +6,7 @@
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../../src/core/errors/ApiError';
+import { EsiError } from '../../../src/core/util/error';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
 
 describe('BDD Scenarios: Corporation Management', () => {
@@ -57,7 +57,7 @@ describe('BDD Scenarios: Corporation Management', () => {
       it('Given an invalid corporation ID, When I request public information, Then I should receive a not found error', async () => {
         // Given: An invalid corporation ID
         const invalidCorporationId = 999999999;
-        const expectedError = TestDataFactory.createError(ApiErrorType.NOT_FOUND_ERROR, 404);
+        const expectedError = TestDataFactory.createError(404);
 
         // Mock the API to throw an error
         jest.spyOn(client.corporations, 'getCorporationInfo').mockRejectedValue(expectedError);
@@ -65,7 +65,7 @@ describe('BDD Scenarios: Corporation Management', () => {
         // When & Then: I request corporation info and expect an error
         await expect(client.corporations.getCorporationInfo(invalidCorporationId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
   });
@@ -207,10 +207,10 @@ describe('BDD Scenarios: Corporation Management', () => {
         ];
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(expectedWallets);
+        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(expectedWallets as any);
 
         // When: I request wallets (using standings as available method)
-        const result = await client.corporations.getCorporationStandings(corporationId);
+        const result = await client.corporations.getCorporationStandings(corporationId) as any;
 
         // Then: I should receive wallet divisions
         expect(result).toBeInstanceOf(Array);
@@ -241,10 +241,10 @@ describe('BDD Scenarios: Corporation Management', () => {
         ];
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(expectedJournal);
+        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(expectedJournal as any);
 
         // When: I request wallet journal (using standings as available method)
-        const result = await client.corporations.getCorporationStandings(corporationId);
+        const result = await client.corporations.getCorporationStandings(corporationId) as any;
 
         // Then: I should receive transaction history
         expect(result).toBeInstanceOf(Array);
@@ -262,7 +262,7 @@ describe('BDD Scenarios: Corporation Management', () => {
       it('Given a member without director roles, When I access restricted data, Then I should receive a forbidden error', async () => {
         // Given: A member without director roles
         const corporationId = 1344654522;
-        const forbiddenError = TestDataFactory.createError(ApiErrorType.AUTHORIZATION_ERROR, 403);
+        const forbiddenError = TestDataFactory.createError(403);
 
         // Mock the API to throw a forbidden error
         jest.spyOn(client.corporations, 'getCorporationMembers').mockRejectedValue(forbiddenError);
@@ -270,7 +270,7 @@ describe('BDD Scenarios: Corporation Management', () => {
         // When & Then: I access restricted data and expect a forbidden error
         await expect(client.corporations.getCorporationMembers(corporationId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
 
@@ -278,7 +278,7 @@ describe('BDD Scenarios: Corporation Management', () => {
       it('Given invalid authentication credentials, When I access corporation data, Then I should receive an authentication error', async () => {
         // Given: Invalid authentication credentials
         const corporationId = 1344654522;
-        const authError = TestDataFactory.createError(ApiErrorType.AUTHENTICATION_ERROR, 401);
+        const authError = TestDataFactory.createError(401);
 
         // Mock the API to throw an authentication error
         jest.spyOn(client.corporations, 'getCorporationBlueprints').mockRejectedValue(authError);
@@ -286,7 +286,7 @@ describe('BDD Scenarios: Corporation Management', () => {
         // When & Then: I access corporation data and expect an authentication error
         await expect(client.corporations.getCorporationBlueprints(corporationId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
   });
@@ -359,11 +359,11 @@ describe('BDD Scenarios: Corporation Management', () => {
         // Mock all API responses
         jest.spyOn(client.corporations, 'getCorporationInfo').mockResolvedValue(mockCorporation);
         jest.spyOn(client.corporations, 'getCorporationMembers').mockResolvedValue(mockMembers);
-        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(mockWallets);
-        jest.spyOn(client.corporations, 'getCorporationStructures').mockResolvedValue(mockStructures);
+        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(mockWallets as any);
+        jest.spyOn(client.corporations, 'getCorporationStructures').mockResolvedValue(mockStructures as any);
 
         // When: I gather complete corporation data
-        const [corporation, members, wallets, structures] = await Promise.all([
+        const [corporation, members, wallets, structures]: any[] = await Promise.all([
           client.corporations.getCorporationInfo(corporationId),
           client.corporations.getCorporationMembers(corporationId),
           client.corporations.getCorporationStandings(corporationId),
@@ -373,10 +373,10 @@ describe('BDD Scenarios: Corporation Management', () => {
         // Then: I should successfully retrieve all corporation information
         expect(corporation).toBeDefined();
         expect(corporation.corporation_id).toBe(corporationId);
-        
+
         expect(members).toBeInstanceOf(Array);
         expect(members.length).toBeGreaterThan(0);
-        
+
         expect(wallets).toBeInstanceOf(Array);
         expect(wallets[0].division).toBe(1);
         

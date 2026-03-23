@@ -6,7 +6,7 @@
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../../src/core/errors/ApiError';
+import { EsiError } from '../../../src/core/util/error';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
 
 describe('BDD Scenarios: Performance Testing', () => {
@@ -420,7 +420,7 @@ describe('BDD Scenarios: Performance Testing', () => {
           
           // Simulate error rate - fail 30% of requests based on character ID
           if (id % 10 < 3) { // This will fail roughly 30% of requests
-            throw TestDataFactory.createError(ApiErrorType.SERVER_ERROR, 500);
+            throw TestDataFactory.createError(500);
           }
           
           return TestDataFactory.createCharacterInfo({ character_id: id });
@@ -455,7 +455,7 @@ describe('BDD Scenarios: Performance Testing', () => {
         
         // Verify error objects are properly formed
         errors.forEach((errorResult: any) => {
-          expect(errorResult.details).toBeInstanceOf(ApiError);
+          expect(errorResult.details).toBeInstanceOf(EsiError);
         });
       });
     });

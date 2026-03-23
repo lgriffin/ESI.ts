@@ -1,17 +1,26 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
-  "main": "dist/EsiClient.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "ts-node demo/character-profile-demo.ts",
-    "dev": "ts-node demo/examples.ts",
-    "example": "ts-node demo/character-profile-demo.ts",
-    "universe-demo": "ts-node demo/universe-demo.ts",
-    "rate-limiting-demo": "ts-node demo/rate-limiting-demo.ts",
-    "examples:flexible": "ts-node demo/flexible-examples.ts",
+    "start": "ts-node examples/character-profile.ts",
+    "example": "ts-node examples/character-profile.ts",
+    "example:status": "ts-node examples/status.ts",
+    "example:character": "ts-node examples/character-lookup.ts",
+    "example:universe": "ts-node examples/universe-info.ts",
+    "example:market": "ts-node examples/market-prices.ts",
+    "example:alliance": "ts-node examples/alliance-info.ts",
+    "example:route": "ts-node examples/route-planner.ts",
+    "example:wars": "ts-node examples/wars.ts",
+    "example:sovereignty": "ts-node examples/sovereignty.ts",
+    "example:industry": "ts-node examples/industry.ts",
+    "example:incursions": "ts-node examples/incursions.ts",
+    "example:dogma": "ts-node examples/dogma.ts",
+    "example:rate-limiting": "ts-node examples/rate-limiting.ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "test": "jest --config jest.unit.config.cjs",
@@ -47,7 +56,6 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^20.19.17",
     "@types/winston": "^2.4.4",
-    "@types/winston-loggly-bulk": "^3.0.6",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "chai": "^5.3.3",
@@ -60,13 +68,10 @@
     "prettier": "^3.3.2",
     "ts-jest": "^29.2.2",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.26.10",
+    "typedoc": "^0.28.18",
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "axios": "^1.7.2",
-    "winston": "^3.13.0",
-    "winston-loggly-bulk": "^3.2.1",
-    "winston-transport": "^4.7.0"
+    "winston": "^3.13.0"
   }
 }

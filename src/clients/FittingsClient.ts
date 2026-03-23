@@ -1,28 +1,24 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCharacterFittingsApi } from '../api/fittings/getCharacterFittings';
-import { PostCharacterFittingApi } from '../api/fittings/postCharacterFittings';
-import { DeleteCharacterFittingApi } from '../api/fittings/deleteCharacterFitting';
+import { createClient } from '../core/endpoints/createClient';
+import { fittingEndpoints } from '../core/endpoints/fittingEndpoints';
+import { Fitting } from '../types/api-responses';
 
 export class FittingsClient {
-    private getCharacterFittingsApi: GetCharacterFittingsApi;
-    private postCharacterFittingApi: PostCharacterFittingApi;
-    private deleteCharacterFittingApi: DeleteCharacterFittingApi;
+    private api: ReturnType<typeof createClient<typeof fittingEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getCharacterFittingsApi = new GetCharacterFittingsApi(client);
-        this.postCharacterFittingApi = new PostCharacterFittingApi(client);
-        this.deleteCharacterFittingApi = new DeleteCharacterFittingApi(client);
+        this.api = createClient(client, fittingEndpoints);
     }
 
-    async getFittings(characterId: number): Promise<any> {
-        return await this.getCharacterFittingsApi.getFittings(characterId);
+    async getFittings(characterId: number): Promise<Fitting[]> {
+        return this.api.getFittings(characterId);
     }
 
-    async createFitting(characterId: number, fittingData: object): Promise<any> {
-        return await this.postCharacterFittingApi.createFitting(characterId, fittingData);
+    async createFitting(characterId: number, fittingData: object): Promise<{ fitting_id: number }> {
+        return this.api.createFitting(characterId, fittingData);
     }
 
-    async deleteFitting(characterId: number, fittingId: number): Promise<any> {
-        return await this.deleteCharacterFittingApi.deleteFitting(characterId, fittingId);
+    async deleteFitting(characterId: number, fittingId: number): Promise<void> {
+        return this.api.deleteFitting(characterId, fittingId);
     }
 }

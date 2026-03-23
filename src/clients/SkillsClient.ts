@@ -1,28 +1,24 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCharacterAttributesApi } from '../api/skills/getCharacterAttributes';
-import { GetCharacterSkillQueueApi } from '../api/skills/getCharacterSkillQueue';
-import { GetCharacterSkillsApi } from '../api/skills/getCharacterSkills';
+import { createClient } from '../core/endpoints/createClient';
+import { skillEndpoints } from '../core/endpoints/skillEndpoints';
+import { CharacterAttributes, CharacterSkill, SkillQueue } from '../types/api-responses';
 
 export class CharacterSkillsClient {
-    private getCharacterAttributesApi: GetCharacterAttributesApi;
-    private getCharacterSkillQueueApi: GetCharacterSkillQueueApi;
-    private getCharacterSkillsApi: GetCharacterSkillsApi;
+    private api: ReturnType<typeof createClient<typeof skillEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getCharacterAttributesApi = new GetCharacterAttributesApi(client);
-        this.getCharacterSkillQueueApi = new GetCharacterSkillQueueApi(client);
-        this.getCharacterSkillsApi = new GetCharacterSkillsApi(client);
+        this.api = createClient(client, skillEndpoints);
     }
 
-    async getCharacterAttributes(characterId: number): Promise<any> {
-        return await this.getCharacterAttributesApi.getCharacterAttributes(characterId);
+    async getCharacterAttributes(characterId: number): Promise<CharacterAttributes> {
+        return this.api.getCharacterAttributes(characterId);
     }
 
-    async getCharacterSkillQueue(characterId: number): Promise<any> {
-        return await this.getCharacterSkillQueueApi.getCharacterSkillQueue(characterId);
+    async getCharacterSkillQueue(characterId: number): Promise<SkillQueue[]> {
+        return this.api.getCharacterSkillQueue(characterId);
     }
 
-    async getCharacterSkills(characterId: number): Promise<any> {
-        return await this.getCharacterSkillsApi.getCharacterSkills(characterId);
+    async getCharacterSkills(characterId: number): Promise<{ skills: CharacterSkill[]; total_sp: number; unallocated_sp?: number }> {
+        return this.api.getCharacterSkills(characterId);
     }
 }

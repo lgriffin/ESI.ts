@@ -1,14 +1,15 @@
 import { ApiClient } from '../core/ApiClient';
-import { RouteApi } from '../api/route/getRoute';
+import { createClient } from '../core/endpoints/createClient';
+import { routeEndpoints } from '../core/endpoints/routeEndpoints';
 
 export class RouteClient {
-    private routeApi: RouteApi;
+    private api: ReturnType<typeof createClient<typeof routeEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.routeApi = new RouteApi(client);
+        this.api = createClient(client, routeEndpoints);
     }
 
-    async getRoute(origin: number, destination: number): Promise<any> {
-        return await this.routeApi.getRoute(origin, destination);
+    async getRoute(origin: number, destination: number): Promise<number[]> {
+        return this.api.getRoute(origin, destination);
     }
 }

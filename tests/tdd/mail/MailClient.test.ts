@@ -9,7 +9,7 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
     .build();
 
 const mailClient = new MailClient(client);
@@ -70,7 +70,7 @@ describe('MailClient', () => {
 
         const result = await getBody(() => mailClient.deleteMail(123456, 1));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should return a mail', async () => {
@@ -108,7 +108,7 @@ describe('MailClient', () => {
 
         const result = await getBody(() => mailClient.updateMailMetadata(123456, 1, body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should return mail labels and unread counts', async () => {
@@ -163,7 +163,7 @@ describe('MailClient', () => {
 
         const result = await getBody(() => mailClient.deleteMailLabel(123456, 1));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should return mailing list subscriptions', async () => {

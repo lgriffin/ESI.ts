@@ -24,76 +24,64 @@ export class PaginationHandler {
     };
 
     /**
-     * Fetch all pages for a given endpoint
+     * Fetch remaining pages (2..totalPages) and combine with first page data.
+     * The caller has already fetched page 1 and knows the total page count.
      */
-    static async fetchAllPages(
+    static async fetchRemainingPages(
         client: ApiClient,
-        baseEndpoint: string,
+        endpoint: string,
         method: string,
         requiresAuth: boolean,
+        firstPageData: any[],
+        totalPages: number,
         body?: any,
         options: PaginationOptions = {}
     ): Promise<any[]> {
         const opts = { ...this.DEFAULT_OPTIONS, ...options };
         const rateLimiter = RateLimiter.getInstance();
-        const allData: any[] = [];
+        const allData: any[] = [...firstPageData];
 
-        try {
-            // Fetch first page to get total pages info
-            const firstPageData = await this.fetchPageWithRetry(
-                client, baseEndpoint, method, 1, requiresAuth, body, opts
-            );
-            
-            allData.push(...firstPageData.data);
-            const totalPages = firstPageData.totalPages;
+        const effectiveMaxPage = Math.min(totalPages, opts.maxPages);
 
-            logInfo(`Found ${totalPages} total pages. Fetching remaining pages...`);
+        if (effectiveMaxPage <= 1) {
+            return allData;
+        }
 
-            // If only one page, return early
-            if (totalPages <= 1) {
-                return allData;
-            }
+        logInfo(`Fetching pages 2-${effectiveMaxPage} for ${endpoint}...`);
 
-            // Fetch remaining pages with rate limiting
-            for (let page = 2; page <= totalPages && page <= opts.maxPages; page++) {
-                try {
-                    // Check rate limit before each request
-                    await rateLimiter.checkRateLimit();
+        let consecutiveFailures = 0;
 
-                    const pageData = await this.fetchPageWithRetry(
-                        client, baseEndpoint, method, page, requiresAuth, body, opts
-                    );
+        for (let page = 2; page <= effectiveMaxPage; page++) {
+            try {
+                await rateLimiter.checkRateLimit();
 
-                    // Check if page is empty and we should stop
-                    if (opts.stopOnEmptyPage && (!pageData.data || pageData.data.length === 0)) {
-                        logWarn(`Page ${page} is empty. Stopping pagination.`);
-                        break;
-                    }
+                const pageData = await this.fetchPageWithRetry(
+                    client, endpoint, method, page, requiresAuth, body, opts
+                );
 
-                    allData.push(...pageData.data);
-                    logInfo(`Fetched page ${page}/${totalPages} (${pageData.data?.length || 0} items)`);
+                consecutiveFailures = 0;
 
-                } catch (error) {
-                    logError(`Failed to fetch page ${page}: ${error}`);
-                    
-                    // If we've hit max retries, stop pagination
-                    if (page > opts.maxRetries) {
-                        logWarn(`Max retries reached for page ${page}. Stopping pagination.`);
-                        break;
-                    }
-                    
-                    // Wait before retrying
-                    await this.sleep(opts.retryDelayMs);
+                if (opts.stopOnEmptyPage && (!pageData || pageData.length === 0)) {
+                    logWarn(`Page ${page} is empty. Stopping pagination.`);
+                    break;
+                }
+
+                allData.push(...pageData);
+                logInfo(`Fetched page ${page}/${effectiveMaxPage} (${pageData?.length || 0} items)`);
+
+            } catch (error) {
+                consecutiveFailures++;
+                logError(`Failed to fetch page ${page}: ${error}`);
+
+                if (consecutiveFailures >= opts.maxRetries) {
+                    logWarn(`${consecutiveFailures} consecutive failures. Stopping pagination.`);
+                    break;
                 }
             }
-
-            logInfo(`Pagination complete. Fetched ${allData.length} total items from ${Math.min(totalPages, opts.maxPages)} pages.`);
-            return allData;
-
-        } catch (error) {
-            logError(`Pagination failed: ${error}`);
-            throw buildError(`Pagination failed: ${error}`, 'PAGINATION_ERROR');
         }
+
+        logInfo(`Pagination complete. Fetched ${allData.length} total items from up to ${effectiveMaxPage} pages.`);
+        return allData;
     }
 
     /**
@@ -101,32 +89,26 @@ export class PaginationHandler {
      */
     private static async fetchPageWithRetry(
         client: ApiClient,
-        baseEndpoint: string,
+        endpoint: string,
         method: string,
         page: number,
         requiresAuth: boolean,
         body: any,
         options: Required<PaginationOptions>
-    ): Promise<{ data: any[], totalPages: number }> {
+    ): Promise<any[]> {
         let lastError: Error | null = null;
 
         for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
             try {
-                const response = await this.fetchSinglePage(
-                    client, baseEndpoint, method, page, requiresAuth, body
+                return await this.fetchSinglePage(
+                    client, endpoint, method, page, requiresAuth, body
                 );
-
-                return {
-                    data: response.data || [],
-                    totalPages: response.totalPages || 1
-                };
-
             } catch (error) {
                 lastError = error as Error;
                 logWarn(`Attempt ${attempt}/${options.maxRetries} failed for page ${page}: ${error}`);
 
                 if (attempt < options.maxRetries) {
-                    await this.sleep(options.retryDelayMs * attempt); // Exponential backoff
+                    await this.sleep(options.retryDelayMs * attempt);
                 }
             }
         }
@@ -135,17 +117,19 @@ export class PaginationHandler {
     }
 
     /**
-     * Fetch a single page
+     * Fetch a single page.
+     * Preserves any existing query params on the endpoint and appends page=N.
      */
     private static async fetchSinglePage(
         client: ApiClient,
-        baseEndpoint: string,
+        endpoint: string,
         method: string,
         page: number,
         requiresAuth: boolean,
         body: any
-    ): Promise<{ data: any[], totalPages: number }> {
-        const paginatedEndpoint = `${baseEndpoint}?page=${page}`;
+    ): Promise<any[]> {
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const paginatedEndpoint = `${endpoint}${separator}page=${page}`;
         const url = `${client.getLink()}/${paginatedEndpoint}`;
 
         logInfo(`Fetching page ${page}: ${url}`);
@@ -170,9 +154,8 @@ export class PaginationHandler {
         } catch (jsonError) {
             throw new Error(`Invalid JSON response for page ${page}: ${jsonError}`);
         }
-        const totalPages = parseInt(response.headers.get('x-pages') || '1', 10);
 
-        return { data, totalPages };
+        return Array.isArray(data) ? data : [data];
     }
 
     /**

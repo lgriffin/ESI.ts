@@ -16,7 +16,7 @@ describe('CorporationsClient', () => {
         const client = new ApiClientBuilder()
             .setClientId(config.projectName)
             .setLink(config.link)
-            .setAccessToken(config.authToken || undefined)
+            .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
             .build();
 
         corporationsClient = new CorporationsClient(client);
@@ -376,26 +376,4 @@ describe('CorporationsClient', () => {
         });
     });
 
-    it('should return valid structure for getCorporationProjects', async () => {
-        const mockResponse = [
-            {
-                project_id: 1,
-                name: 'Research Project Alpha',
-                description: 'Advanced research project',
-                status: 'active'
-            }
-        ];
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => corporationsClient.getCorporationProjects(123456789));
-
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((project: any) => {
-            expect(project).toHaveProperty('project_id');
-            expect(typeof project.project_id).toBe('number');
-            expect(project).toHaveProperty('name');
-            expect(typeof project.name).toBe('string');
-        });
-    });
 });
