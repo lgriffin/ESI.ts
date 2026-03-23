@@ -1,43 +1,32 @@
-// src/clients/DogmaClient.ts
 import { ApiClient } from '../core/ApiClient';
-import { DogmaAttributesApi } from '../api/dogma/getDogmaAttributes';
-import { DogmaAttributeByIdApi } from '../api/dogma/getDogmaAttributeById';
-import { DogmaDynamicItemApi } from '../api/dogma/getDogmaDynamicItemAttributes';
-import { DogmaEffectsApi } from '../api/dogma/getDogmaEffects';
-import { DogmaEffectByIdApi } from '../api/dogma/getDogmaEffectById';
+import { createClient } from '../core/endpoints/createClient';
+import { dogmaEndpoints } from '../core/endpoints/dogmaEndpoints';
+import { DogmaAttribute, DogmaEffect, DogmaDynamicItem } from '../types/api-responses';
 
 export class DogmaClient {
-    private dogmaAttributesApi: DogmaAttributesApi;
-    private dogmaAttributeByIdApi: DogmaAttributeByIdApi;
-    private dogmaDynamicItemApi: DogmaDynamicItemApi;
-    private dogmaEffectsApi: DogmaEffectsApi;
-    private dogmaEffectByIdApi: DogmaEffectByIdApi;
+    private api: ReturnType<typeof createClient<typeof dogmaEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.dogmaAttributesApi = new DogmaAttributesApi(client);
-        this.dogmaAttributeByIdApi = new DogmaAttributeByIdApi(client);
-        this.dogmaDynamicItemApi = new DogmaDynamicItemApi(client);
-        this.dogmaEffectsApi = new DogmaEffectsApi(client);
-        this.dogmaEffectByIdApi = new DogmaEffectByIdApi(client);
+        this.api = createClient(client, dogmaEndpoints);
     }
 
-    async getAttributes(): Promise<any> {
-        return await this.dogmaAttributesApi.getAttributes();
+    async getAttributes(): Promise<number[]> {
+        return this.api.getAttributes();
     }
 
-    async getAttributeById(attributeId: number): Promise<any> {
-        return await this.dogmaAttributeByIdApi.getAttributeById(attributeId);
+    async getAttributeById(attributeId: number): Promise<DogmaAttribute> {
+        return this.api.getAttributeById(attributeId);
     }
 
-    async getDynamicItemInfo(typeId: number, itemId: number): Promise<any> {
-        return await this.dogmaDynamicItemApi.getDynamicItemInfo(typeId, itemId);
+    async getDynamicItemInfo(typeId: number, itemId: number): Promise<DogmaDynamicItem> {
+        return this.api.getDynamicItemInfo(typeId, itemId);
     }
 
-    async getEffects(): Promise<any> {
-        return await this.dogmaEffectsApi.getEffects();
+    async getEffects(): Promise<number[]> {
+        return this.api.getEffects();
     }
 
-    async getEffectById(effectId: number): Promise<any> {
-        return await this.dogmaEffectByIdApi.getEffectById(effectId);
+    async getEffectById(effectId: number): Promise<DogmaEffect> {
+        return this.api.getEffectById(effectId);
     }
 }

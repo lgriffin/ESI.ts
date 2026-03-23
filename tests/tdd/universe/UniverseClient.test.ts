@@ -10,7 +10,7 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
     .build();
 
 const universeClient = new UniverseClient(client);
@@ -236,7 +236,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getSchematicById(1);
+        const result = await getBody(() => universeClient.getSchematicById(1));
 
         expect(result).toHaveProperty('schematic_id');
         expect(result.schematic_id).toBe(1);
@@ -257,7 +257,7 @@ describe('UniverseClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await universeClient.getRegions();
+        const result = await getBody(() => universeClient.getRegions());
 
         expect(Array.isArray(result)).toBe(true);
         result.forEach((regionId: number) => {

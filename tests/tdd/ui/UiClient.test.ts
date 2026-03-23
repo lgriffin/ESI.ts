@@ -1,4 +1,4 @@
-import { UIClient } from '../../../src/clients/UiClient';
+import { UiClient } from '../../../src/clients/UiClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
@@ -9,15 +9,15 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
     .build();
 
-describe('UIClient', () => {
-    let uiClient: UIClient;
+describe('UiClient', () => {
+    let uiClient: UiClient;
 
     beforeEach(() => {
         fetchMock.resetMocks();
-        uiClient = new UIClient(client);
+        uiClient = new UiClient(client);
     });
 
     it('should set autopilot waypoint', async () => {
@@ -30,7 +30,7 @@ describe('UIClient', () => {
 
         const result = await getBody(() => uiClient.setAutopilotWaypoint(body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should open contract window', async () => {
@@ -41,7 +41,7 @@ describe('UIClient', () => {
 
         const result = await getBody(() => uiClient.openContractWindow(body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should open information window', async () => {
@@ -52,7 +52,7 @@ describe('UIClient', () => {
 
         const result = await getBody(() => uiClient.openInformationWindow(body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should open market details window', async () => {
@@ -63,7 +63,7 @@ describe('UIClient', () => {
 
         const result = await getBody(() => uiClient.openMarketDetailsWindow(body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 
     it('should open new mail window', async () => {
@@ -76,6 +76,6 @@ describe('UIClient', () => {
 
         const result = await getBody(() => uiClient.openNewMailWindow(body));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 });

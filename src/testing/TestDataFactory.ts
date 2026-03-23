@@ -12,7 +12,7 @@ import {
   WalletTransaction,
   Contract
 } from '../types/api-responses';
-import { ApiError, ApiErrorType } from '../core/errors/ApiError';
+import { EsiError } from '../core/util/error';
 
 export class TestDataFactory {
   // Alliance test data
@@ -573,40 +573,17 @@ export class TestDataFactory {
   }
 
   // Error test data
-  static createError(type: ApiErrorType, statusCode?: number, details?: any): ApiError {
-    const messages = {
-      [ApiErrorType.NETWORK_ERROR]: 'Network connection failed',
-      [ApiErrorType.AUTHENTICATION_ERROR]: 'Authentication failed - invalid or expired token',
-      [ApiErrorType.AUTHORIZATION_ERROR]: 'Access denied - insufficient permissions',
-      [ApiErrorType.RATE_LIMIT_ERROR]: 'Rate limit exceeded - too many requests',
-      [ApiErrorType.SERVER_ERROR]: 'Internal server error',
-      [ApiErrorType.CLIENT_ERROR]: 'Bad request - invalid parameters',
-      [ApiErrorType.VALIDATION_ERROR]: 'Validation failed - invalid input data',
-      [ApiErrorType.NOT_FOUND_ERROR]: 'Resource not found',
-      [ApiErrorType.TIMEOUT_ERROR]: 'Request timeout',
-      [ApiErrorType.UNKNOWN_ERROR]: 'Unknown error occurred'
+  static createError(statusCode: number, message?: string): EsiError {
+    const defaultMessages: Record<number, string> = {
+      400: 'Bad request',
+      401: 'Unauthorized',
+      403: 'Forbidden',
+      404: 'Resource not found',
+      429: 'Rate limit exceeded',
+      500: 'Internal server error',
+      503: 'Service unavailable',
     };
-
-    const defaultStatusCodes: Record<ApiErrorType, number | undefined> = {
-      [ApiErrorType.AUTHENTICATION_ERROR]: 401,
-      [ApiErrorType.AUTHORIZATION_ERROR]: 403,
-      [ApiErrorType.NOT_FOUND_ERROR]: 404,
-      [ApiErrorType.RATE_LIMIT_ERROR]: 429,
-      [ApiErrorType.SERVER_ERROR]: 500,
-      [ApiErrorType.CLIENT_ERROR]: 400,
-      [ApiErrorType.VALIDATION_ERROR]: 400,
-      [ApiErrorType.NETWORK_ERROR]: undefined,
-      [ApiErrorType.TIMEOUT_ERROR]: undefined,
-      [ApiErrorType.UNKNOWN_ERROR]: undefined
-    };
-
-    return new ApiError(
-      messages[type],
-      type,
-      statusCode || defaultStatusCodes[type],
-      details,
-      `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    );
+    return new EsiError(statusCode, message || defaultMessages[statusCode] || 'Unknown error');
   }
 
   // Test scenarios
@@ -634,11 +611,11 @@ export class TestDataFactory {
         { id: 666666666, name: 'Tactical Narcotics Team', ticker: 'TNT', alliance: 99000004 }
       ],
       errorScenarios: [
-        { type: ApiErrorType.NETWORK_ERROR, probability: 0.1 },
-        { type: ApiErrorType.RATE_LIMIT_ERROR, probability: 0.05 },
-        { type: ApiErrorType.SERVER_ERROR, probability: 0.02 },
-        { type: ApiErrorType.TIMEOUT_ERROR, probability: 0.03 },
-        { type: ApiErrorType.NOT_FOUND_ERROR, probability: 0.01 }
+        { statusCode: 0, label: 'network_error', probability: 0.1 },
+        { statusCode: 429, label: 'rate_limited', probability: 0.05 },
+        { statusCode: 500, label: 'server_error', probability: 0.02 },
+        { statusCode: 504, label: 'timeout', probability: 0.03 },
+        { statusCode: 404, label: 'not_found', probability: 0.01 }
       ]
     };
   }

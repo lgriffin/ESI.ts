@@ -1,21 +1,20 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetLoyaltyPointsApi } from '../api/loyalty/getLoyaltyPoints';
-import { GetLoyaltyStoreOffersApi } from '../api/loyalty/getLoyaltyStoreOffers';
+import { createClient } from '../core/endpoints/createClient';
+import { loyaltyEndpoints } from '../core/endpoints/loyaltyEndpoints';
+import { LoyaltyPoints, LoyaltyStoreOffer } from '../types/api-responses';
 
 export class LoyaltyClient {
-    private getLoyaltyPointsApi: GetLoyaltyPointsApi;
-    private getLoyaltyStoreOffersApi: GetLoyaltyStoreOffersApi;
+    private api: ReturnType<typeof createClient<typeof loyaltyEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getLoyaltyPointsApi = new GetLoyaltyPointsApi(client);
-        this.getLoyaltyStoreOffersApi = new GetLoyaltyStoreOffersApi(client);
+        this.api = createClient(client, loyaltyEndpoints);
     }
 
-    async getLoyaltyPoints(characterId: number): Promise<any> {
-        return await this.getLoyaltyPointsApi.getLoyaltyPoints(characterId);
+    async getLoyaltyPoints(characterId: number): Promise<LoyaltyPoints[]> {
+        return this.api.getLoyaltyPoints(characterId);
     }
 
-    async getLoyaltyStoreOffers(corporationId: number): Promise<any> {
-        return await this.getLoyaltyStoreOffersApi.getLoyaltyStoreOffers(corporationId);
+    async getLoyaltyStoreOffers(corporationId: number): Promise<LoyaltyStoreOffer[]> {
+        return this.api.getLoyaltyStoreOffers(corporationId);
     }
 }

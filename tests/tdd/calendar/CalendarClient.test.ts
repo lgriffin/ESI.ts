@@ -10,7 +10,7 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
     .build();
 
 const calendarClient = new CalendarClient(client);
@@ -74,7 +74,7 @@ describe('CalendarClient', () => {
 
         const response = await getBody(() => calendarClient.respondToCalendarEvent(123456789, 1, 'accepted'));
 
-        expect(response).toEqual({ error: 'no content' });
+        expect(response).toBeUndefined();
     });
 
     it('should return valid structure for getEventAttendees', async () => {

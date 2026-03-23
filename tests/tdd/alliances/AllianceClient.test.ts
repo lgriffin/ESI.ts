@@ -16,7 +16,7 @@ describe('AllianceClient', () => {
         const client = new ApiClientBuilder()
             .setClientId(config.projectName)
             .setLink(config.link)
-            .setAccessToken(config.authToken || undefined)
+            .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
             .build();
 
         allianceClient = new AllianceClient(client);
@@ -46,13 +46,12 @@ describe('AllianceClient', () => {
             expect(result.date_founded).toBe('2010-05-23T05:20:00Z');
         });
 
-        it('should handle API errors gracefully', async () => {
+        it('should throw EsiError on API errors', async () => {
             const allianceId = 99999999;
             fetchMock.mockResponseOnce('Not Found', { status: 404 });
 
-            const result = await getBody(() => allianceClient.getAllianceById(allianceId));
-            expect(result).toHaveProperty('error');
-            expect(result.error).toBe('resource not found');
+            await expect(allianceClient.getAllianceById(allianceId))
+                .rejects.toThrow('Resource not found');
         });
     });
 
@@ -170,12 +169,11 @@ describe('AllianceClient', () => {
 
             fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-            // getAlliances uses handleRequestBody, so it returns the body directly
-            const result = await allianceClient.getAlliances();
-            
+            const result = await getBody(() => allianceClient.getAlliances());
+
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
-            
+
             // Verify all entries are numbers (alliance IDs)
             result.forEach((allianceId: number) => {
                 expect(typeof allianceId).toBe('number');
@@ -188,9 +186,8 @@ describe('AllianceClient', () => {
 
             fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-            // getAlliances uses handleRequestBody, so it returns the body directly
-            const result = await allianceClient.getAlliances();
-            
+            const result = await getBody(() => allianceClient.getAlliances());
+
             expect(Array.isArray(result)).toBe(true);
             expect(result).toHaveLength(0);
         });

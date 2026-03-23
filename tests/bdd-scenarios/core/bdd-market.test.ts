@@ -6,7 +6,7 @@
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../../src/core/errors/ApiError';
+import { EsiError } from '../../../src/core/util/error';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
 
 describe('BDD Scenarios: Market Management', () => {
@@ -57,7 +57,7 @@ describe('BDD Scenarios: Market Management', () => {
     describe('Scenario: Handle market data unavailability', () => {
       it('Given market data is temporarily unavailable, When I request prices, Then I should receive an appropriate service error', async () => {
         // Given: Market data is temporarily unavailable
-        const serviceError = TestDataFactory.createError(ApiErrorType.SERVER_ERROR, 503);
+        const serviceError = TestDataFactory.createError(503);
 
         // Mock the API to throw a service error
         jest.spyOn(client.market, 'getMarketPrices').mockRejectedValue(serviceError);
@@ -65,7 +65,7 @@ describe('BDD Scenarios: Market Management', () => {
         // When & Then: I request prices and expect a service error
         await expect(client.market.getMarketPrices())
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
   });
@@ -304,7 +304,7 @@ describe('BDD Scenarios: Market Management', () => {
         expect(result).toBeInstanceOf(Array);
         expect(result[0]).toHaveProperty('order_id');
         expect(result[0]).toHaveProperty('state');
-        expect(['closed', 'cancelled', 'expired'].includes(result[0].state)).toBe(true);
+        expect(['closed', 'cancelled', 'expired'].includes(result[0].state!)).toBe(true);
         expect(result[0].volume_remain).toBeLessThanOrEqual(result[0].volume_total);
       });
     });

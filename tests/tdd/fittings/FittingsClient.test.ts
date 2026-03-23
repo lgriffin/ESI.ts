@@ -11,7 +11,7 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
     .build();
 
 const fittingsClient = new FittingsClient(client);
@@ -88,6 +88,6 @@ describe('FittingsClient', () => {
 
         const result = await getBody(() => fittingsClient.deleteFitting(123456, 1));
 
-        expect(result).toEqual({ error: 'no content' });
+        expect(result).toBeUndefined();
     });
 });

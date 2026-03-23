@@ -6,7 +6,7 @@
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../../src/core/errors/ApiError';
+import { EsiError } from '../../../src/core/util/error';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
 
 describe('BDD Scenarios: Character Management', () => {
@@ -52,7 +52,7 @@ describe('BDD Scenarios: Character Management', () => {
       it('Given an invalid character ID, When I request public information, Then I should receive a not found error', async () => {
         // Given: An invalid character ID
         const invalidCharacterId = 999999999;
-        const expectedError = TestDataFactory.createError(ApiErrorType.NOT_FOUND_ERROR, 404);
+        const expectedError = TestDataFactory.createError(404);
 
         // Mock the API to throw an error
         jest.spyOn(client.characters, 'getCharacterPublicInfo').mockRejectedValue(expectedError);
@@ -60,7 +60,7 @@ describe('BDD Scenarios: Character Management', () => {
         // When & Then: I request character info and expect an error
         await expect(client.characters.getCharacterPublicInfo(invalidCharacterId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
   });
@@ -221,7 +221,7 @@ describe('BDD Scenarios: Character Management', () => {
       it('Given an unauthenticated request, When I access private data, Then I should receive an authorization error', async () => {
         // Given: An unauthenticated request
         const characterId = 1689391488;
-        const authError = TestDataFactory.createError(ApiErrorType.AUTHORIZATION_ERROR, 403);
+        const authError = TestDataFactory.createError(403);
 
         // Mock the API to throw an authorization error
         jest.spyOn(client.characters, 'getCharacterRoles').mockRejectedValue(authError);
@@ -229,7 +229,7 @@ describe('BDD Scenarios: Character Management', () => {
         // When & Then: I access private data and expect an authorization error
         await expect(client.characters.getCharacterRoles(characterId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
 
@@ -237,7 +237,7 @@ describe('BDD Scenarios: Character Management', () => {
       it('Given an expired token, When I access private data, Then I should receive an authentication error', async () => {
         // Given: An expired token
         const characterId = 1689391488;
-        const authError = TestDataFactory.createError(ApiErrorType.AUTHENTICATION_ERROR, 401);
+        const authError = TestDataFactory.createError(401);
 
         // Mock the API to throw an authentication error
         jest.spyOn(client.characters, 'getCharacterNotifications').mockRejectedValue(authError);
@@ -245,7 +245,7 @@ describe('BDD Scenarios: Character Management', () => {
         // When & Then: I access private data and expect an authentication error
         await expect(client.characters.getCharacterNotifications(characterId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
   });

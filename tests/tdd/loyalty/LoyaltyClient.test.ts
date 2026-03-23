@@ -10,7 +10,7 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
     .build();
 
 const loyaltyClient = new LoyaltyClient(client);

@@ -4,7 +4,6 @@ import path from 'path';
 interface Config {
     projectName: string;
     link: string;
-    authToken: string;
     language: string;
 }
 

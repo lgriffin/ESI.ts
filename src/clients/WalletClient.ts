@@ -1,49 +1,36 @@
-import { GetCharacterWalletApi } from '../api/wallet/getCharacterWallet';
-import { GetCharacterWalletJournalApi } from '../api/wallet/getCharacterWalletJournal';
-import { GetCharacterWalletTransactionsApi } from '../api/wallet/getCharacterWalletTransactions';
-import { GetCorporationWalletsApi } from '../api/wallet/getCorporationWallets';
-import { GetCorporationWalletJournalApi } from '../api/wallet/getCorporationWalletJournal';
-import { GetCorporationWalletTransactionsApi } from '../api/wallet/getCorporationWalletTransactions';
 import { ApiClient } from '../core/ApiClient';
+import { createClient } from '../core/endpoints/createClient';
+import { walletEndpoints } from '../core/endpoints/walletEndpoints';
+import { WalletJournal, WalletTransaction } from '../types/api-responses';
 
 export class WalletClient {
-    private getCharacterWalletApi: GetCharacterWalletApi;
-    private getCharacterWalletJournalApi: GetCharacterWalletJournalApi;
-    private getCharacterWalletTransactionsApi: GetCharacterWalletTransactionsApi;
-    private getCorporationWalletsApi: GetCorporationWalletsApi;
-    private getCorporationWalletJournalApi: GetCorporationWalletJournalApi;
-    private getCorporationWalletTransactionsApi: GetCorporationWalletTransactionsApi;
+    private api: ReturnType<typeof createClient<typeof walletEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getCharacterWalletApi = new GetCharacterWalletApi(client);
-        this.getCharacterWalletJournalApi = new GetCharacterWalletJournalApi(client);
-        this.getCharacterWalletTransactionsApi = new GetCharacterWalletTransactionsApi(client);
-        this.getCorporationWalletsApi = new GetCorporationWalletsApi(client);
-        this.getCorporationWalletJournalApi = new GetCorporationWalletJournalApi(client);
-        this.getCorporationWalletTransactionsApi = new GetCorporationWalletTransactionsApi(client);
+        this.api = createClient(client, walletEndpoints);
     }
 
-    async getCharacterWallet(characterId: number): Promise<any> {
-        return await this.getCharacterWalletApi.getCharacterWallet(characterId);
+    async getCharacterWallet(characterId: number): Promise<number> {
+        return this.api.getCharacterWallet(characterId);
     }
 
-    async getCharacterWalletJournal(characterId: number): Promise<any> {
-        return await this.getCharacterWalletJournalApi.getCharacterWalletJournal(characterId);
+    async getCharacterWalletJournal(characterId: number): Promise<WalletJournal[]> {
+        return this.api.getCharacterWalletJournal(characterId);
     }
 
-    async getCharacterWalletTransactions(characterId: number): Promise<any> {
-        return await this.getCharacterWalletTransactionsApi.getCharacterWalletTransactions(characterId);
+    async getCharacterWalletTransactions(characterId: number): Promise<WalletTransaction[]> {
+        return this.api.getCharacterWalletTransactions(characterId);
     }
 
-    async getCorporationWallets(corporationId: number): Promise<any> {
-        return await this.getCorporationWalletsApi.getCorporationWallets(corporationId);
+    async getCorporationWallets(corporationId: number): Promise<{ division: number; balance: number }[]> {
+        return this.api.getCorporationWallets(corporationId);
     }
 
-    async getCorporationWalletJournal(corporationId: number, division: number): Promise<any> {
-        return await this.getCorporationWalletJournalApi.getCorporationWalletJournal(corporationId, division);
+    async getCorporationWalletJournal(corporationId: number, division: number): Promise<WalletJournal[]> {
+        return this.api.getCorporationWalletJournal(corporationId, division);
     }
 
-    async getCorporationWalletTransactions(corporationId: number, division: number): Promise<any> {
-        return await this.getCorporationWalletTransactionsApi.getCorporationWalletTransactions(corporationId, division);
+    async getCorporationWalletTransactions(corporationId: number, division: number): Promise<WalletTransaction[]> {
+        return this.api.getCorporationWalletTransactions(corporationId, division);
     }
 }

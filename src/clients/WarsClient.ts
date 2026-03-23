@@ -1,28 +1,24 @@
 import { ApiClient } from '../core/ApiClient';
-import { WarsApi } from '../api/wars/getWars';
-import { WarByIdApi } from '../api/wars/getWarById';
-import { WarKillmailsApi } from '../api/wars/getWarKillmails';
+import { createClient } from '../core/endpoints/createClient';
+import { warEndpoints } from '../core/endpoints/warEndpoints';
+import { War, KillmailSummary } from '../types/api-responses';
 
 export class WarsClient {
-    private warsApi: WarsApi;
-    private warByIdApi: WarByIdApi;
-    private warKillmailsApi: WarKillmailsApi;
+    private api: ReturnType<typeof createClient<typeof warEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.warsApi = new WarsApi(client);
-        this.warByIdApi = new WarByIdApi(client);
-        this.warKillmailsApi = new WarKillmailsApi(client);
+        this.api = createClient(client, warEndpoints);
     }
 
-    async getWars(): Promise<any> {
-        return await this.warsApi.getWars();
+    async getWars(): Promise<number[]> {
+        return this.api.getWars();
     }
 
-    async getWarById(warId: number): Promise<any> {
-        return await this.warByIdApi.getWarById(warId);
+    async getWarById(warId: number): Promise<War> {
+        return this.api.getWarById(warId);
     }
 
-    async getWarKillmails(warId: number): Promise<any> {
-        return await this.warKillmailsApi.getWarKillmails(warId);
+    async getWarKillmails(warId: number): Promise<KillmailSummary[]> {
+        return this.api.getWarKillmails(warId);
     }
 }

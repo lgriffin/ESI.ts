@@ -1,24 +1,16 @@
-import { GetStatusApi } from '../api/status/getStatus';
 import { ApiClient } from '../core/ApiClient';
+import { createClient } from '../core/endpoints/createClient';
+import { statusEndpoints } from '../core/endpoints/statusEndpoints';
+import { ServerStatus } from '../types/api-responses';
 
 export class StatusClient {
-    private getStatusApi: GetStatusApi;
+    private api: ReturnType<typeof createClient<typeof statusEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getStatusApi = new GetStatusApi(client);
+        this.api = createClient(client, statusEndpoints);
     }
 
-    async getStatus(): Promise<any> {
-        return await this.getStatusApi.getStatus();
+    async getStatus(): Promise<ServerStatus> {
+        return this.api.getStatus();
     }
 }
-
-
-
-/* This is what we had in case we want to go more granular later again
-return {
-            players: response.players,
-            start_time: response.start_time,
-            server_version: response.server_version,
-        };
-*/

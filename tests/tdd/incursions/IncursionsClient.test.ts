@@ -10,7 +10,7 @@ const config = getConfig();
 const client = new ApiClientBuilder()
     .setClientId(config.projectName)
     .setLink(config.link)
-    .setAccessToken(config.authToken || undefined) // Allow undefined token
+    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token') // Allow undefined token
     .build();
 
 const incursionsClient = new IncursionsClient(client);

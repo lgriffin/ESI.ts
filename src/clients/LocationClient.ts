@@ -1,28 +1,24 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCharacterLocationApi } from '../api/location/getCharacterLocation';
-import { GetCharacterOnlineApi } from '../api/location/getCharacterOnline';
-import { GetCharacterShipApi } from '../api/location/getCharacterShip';
+import { createClient } from '../core/endpoints/createClient';
+import { locationEndpoints } from '../core/endpoints/locationEndpoints';
+import { CharacterLocation, CharacterOnline, CharacterShip } from '../types/api-responses';
 
 export class LocationClient {
-    private getCharacterLocationApi: GetCharacterLocationApi;
-    private getCharacterOnlineApi: GetCharacterOnlineApi;
-    private getCharacterShipApi: GetCharacterShipApi;
+    private api: ReturnType<typeof createClient<typeof locationEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.getCharacterLocationApi = new GetCharacterLocationApi(client);
-        this.getCharacterOnlineApi = new GetCharacterOnlineApi(client);
-        this.getCharacterShipApi = new GetCharacterShipApi(client);
+        this.api = createClient(client, locationEndpoints);
     }
 
-    async getCharacterLocation(characterId: number): Promise<any> {
-        return await this.getCharacterLocationApi.getCharacterLocation(characterId);
+    async getCharacterLocation(characterId: number): Promise<CharacterLocation> {
+        return this.api.getCharacterLocation(characterId);
     }
 
-    async getCharacterOnline(characterId: number): Promise<any> {
-        return await this.getCharacterOnlineApi.getCharacterOnline(characterId);
+    async getCharacterOnline(characterId: number): Promise<CharacterOnline> {
+        return this.api.getCharacterOnline(characterId);
     }
 
-    async getCharacterShip(characterId: number): Promise<any> {
-        return await this.getCharacterShipApi.getCharacterShip(characterId);
+    async getCharacterShip(characterId: number): Promise<CharacterShip> {
+        return this.api.getCharacterShip(characterId);
     }
 }

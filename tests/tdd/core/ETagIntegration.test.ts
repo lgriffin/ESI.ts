@@ -47,13 +47,13 @@ describe('ETag Integration Tests', () => {
                 }
             });
 
-            const result = await client.alliance.getAlliances();
+            const response = await client.alliance.getAlliances();
 
-            expect(result).toEqual(mockData);
-            
+            expect(response).toEqual(mockData);
+
             const cache = getETagCache();
             expect(cache).toBeDefined();
-            
+
             const cacheStats = client.getCacheStats();
             expect(cacheStats.totalEntries).toBe(1);
         });
@@ -70,8 +70,8 @@ describe('ETag Integration Tests', () => {
                 }
             });
 
-            const firstResult = await client.alliance.getAlliances();
-            expect(firstResult).toEqual(mockData);
+            const firstResponse = await client.alliance.getAlliances();
+            expect(firstResponse).toEqual(mockData);
 
             // Second request - should return 304
             fetchMock.mockResponseOnce('', {
@@ -81,9 +81,9 @@ describe('ETag Integration Tests', () => {
                 }
             });
 
-            const cachedResult = await client.alliance.getAlliances();
+            const cachedResponse = await client.alliance.getAlliances();
 
-            expect(cachedResult).toEqual(mockData);
+            expect(cachedResponse).toEqual(mockData);
             expect(fetchMock).toHaveBeenCalledTimes(2);
             
             // Verify If-None-Match header was sent
@@ -106,8 +106,8 @@ describe('ETag Integration Tests', () => {
                 }
             });
 
-            const firstResult = await client.alliance.getAlliances();
-            expect(firstResult).toEqual(oldData);
+            const firstResponse = await client.alliance.getAlliances();
+            expect(firstResponse).toEqual(oldData);
 
             // Second request with new ETag
             fetchMock.mockResponseOnce(JSON.stringify(newData), {
@@ -117,8 +117,8 @@ describe('ETag Integration Tests', () => {
                 }
             });
 
-            const secondResult = await client.alliance.getAlliances();
-            expect(secondResult).toEqual(newData);
+            const secondResponse = await client.alliance.getAlliances();
+            expect(secondResponse).toEqual(newData);
 
             const cache = getETagCache();
             const url = 'https://test-api.example.com/alliances';
@@ -181,9 +181,9 @@ describe('ETag Integration Tests', () => {
                 headers: { 'ETag': '"test123"' }
             });
 
-            const result = await clientWithoutETag.alliance.getAlliances();
+            const response = await clientWithoutETag.alliance.getAlliances();
 
-            expect(result).toEqual(mockData);
+            expect(response).toEqual(mockData);
             expect(clientWithoutETag.getCacheStats()).toBeNull();
 
             clientWithoutETag.shutdown();
@@ -199,11 +199,9 @@ describe('ETag Integration Tests', () => {
                 status: 304
             });
 
-            // Should handle gracefully and not crash
-            const result = await client.alliance.getAlliances();
-            
-            // Should return error object for 304 with no cache
-            expect(result).toEqual({ error: 'not modified' });
+            // Should throw since there's no cached data for this 304
+            await expect(client.alliance.getAlliances())
+                .rejects.toThrow('Not Modified');
         });
 
         it('should handle network errors gracefully', async () => {

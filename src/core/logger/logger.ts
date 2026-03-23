@@ -1,5 +1,4 @@
 import { createLogger, format, transports } from 'winston';
-import { Loggly } from 'winston-loggly-bulk';
 
 const { combine, timestamp, printf, colorize } = format;
 
@@ -8,28 +7,18 @@ const logFormat = printf(({ level, message, timestamp }) => {
   return `${timestamp} [${level}]: ${message}`;
 });
 
-// Create Winston logger instance
+// Create Winston logger instance — console only by default.
+// Libraries should not write to files; the consuming application controls logging.
 const logger = createLogger({
+  level: process.env.ESI_LOG_LEVEL || 'warn',
   format: combine(
-    colorize(), // Enable colors for log levels
-    timestamp(), // Add timestamp to logs
-    logFormat // Apply custom format
+    colorize(),
+    timestamp(),
+    logFormat
   ),
   transports: [
-    new transports.Console(), // Log to console
-    new transports.File({ filename: 'logs/error.log', level: 'error' }), // Log errors to a file
-    new transports.File({ filename: 'logs/combined.log' }) // Log all levels to a file
+    new transports.Console()
   ]
 });
 
-/* Optional: Add Loggly transport for remote logging
-if (process.env.NODE_ENV === 'production') {
-  logger.add(new Loggly({
-    token: 'YOUR_LOGGLY_TOKEN',
-    subdomain: 'YOUR_LOGGLY_SUBDOMAIN',
-    tags: ['Winston-NodeJS'],
-    json: true
-  }));
-}
-*/
 export default logger;

@@ -6,7 +6,7 @@
  */
 
 import { EsiClient } from '../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../src/core/errors/ApiError';
+import { EsiError } from '../../src/core/util/error';
 import { TestDataFactory } from '../../src/testing/TestDataFactory';
 
 describe('BDD Demo: Alliance Management', () => {
@@ -49,7 +49,7 @@ describe('BDD Demo: Alliance Management', () => {
       it('Given an invalid alliance ID, When I request alliance details, Then I should receive a not found error', async () => {
         // Given: An invalid alliance ID
         const invalidAllianceId = 999999999;
-        const expectedError = TestDataFactory.createError(ApiErrorType.NOT_FOUND_ERROR, 404);
+        const expectedError = TestDataFactory.createError(404);
 
         // Mock the API to throw an error
         jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(expectedError);
@@ -57,7 +57,7 @@ describe('BDD Demo: Alliance Management', () => {
         // When & Then: I request alliance details and expect an error
         await expect(client.alliance.getAllianceById(invalidAllianceId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
 
@@ -65,7 +65,7 @@ describe('BDD Demo: Alliance Management', () => {
       it('Given network connectivity problems, When I request alliance details, Then I should receive a network error with retry capability', async () => {
         // Given: Network connectivity problems
         const allianceId = 99005338;
-        const networkError = TestDataFactory.createError(ApiErrorType.NETWORK_ERROR);
+        const networkError = TestDataFactory.createError(0);
 
         // Mock the API to throw a network error
         jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(networkError);
@@ -73,7 +73,7 @@ describe('BDD Demo: Alliance Management', () => {
         // When & Then: I request alliance details and expect a network error
         await expect(client.alliance.getAllianceById(allianceId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
   });
@@ -135,7 +135,7 @@ describe('BDD Demo: Alliance Management', () => {
       it('Given API rate limiting is active, When I make requests, Then I should receive appropriate rate limit errors', async () => {
         // Given: API rate limiting is active
         const allianceId = 99005338;
-        const rateLimitError = TestDataFactory.createError(ApiErrorType.RATE_LIMIT_ERROR, 429);
+        const rateLimitError = TestDataFactory.createError(429);
 
         // Mock the API to throw a rate limit error
         jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(rateLimitError);
@@ -143,7 +143,7 @@ describe('BDD Demo: Alliance Management', () => {
         // When & Then: I make a request and expect a rate limit error
         await expect(client.alliance.getAllianceById(allianceId))
           .rejects
-          .toThrow(ApiError);
+          .toThrow(EsiError);
       });
     });
 

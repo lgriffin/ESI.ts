@@ -15,6 +15,5 @@ export const getHeaders = async (apiCall: () => Promise<any>): Promise<Record<st
 };
 
 export const getBody = async (apiCall: () => Promise<any>): Promise<any> => {
-    const response = await apiCall();
-    return response.body;
+    return apiCall();
 };

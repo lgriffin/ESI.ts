@@ -1,14 +1,16 @@
 import { ApiClient } from '../core/ApiClient';
-import { InsuranceApi } from '../api/insurance/getInsurancePrices';
+import { createClient } from '../core/endpoints/createClient';
+import { insuranceEndpoints } from '../core/endpoints/insuranceEndpoints';
+import { InsurancePrice } from '../types/api-responses';
 
 export class InsuranceClient {
-    private insuranceApi: InsuranceApi;
+    private api: ReturnType<typeof createClient<typeof insuranceEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.insuranceApi = new InsuranceApi(client);
+        this.api = createClient(client, insuranceEndpoints);
     }
 
-    async getInsurancePrices(): Promise<any> {
-        return await this.insuranceApi.getInsurancePrices();
+    async getInsurancePrices(): Promise<InsurancePrice[]> {
+        return this.api.getInsurancePrices();
     }
 }

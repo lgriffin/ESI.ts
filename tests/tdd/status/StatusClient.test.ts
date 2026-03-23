@@ -16,7 +16,7 @@ describe('StatusClient', () => {
         const client = new ApiClientBuilder()
             .setClientId(config.projectName)
             .setLink(config.link)
-            .setAccessToken(config.authToken || undefined)
+            .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
             .build();
 
         statusClient = new StatusClient(client);
@@ -31,7 +31,7 @@ describe('StatusClient', () => {
 
         fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await statusClient.getStatus();
+        const result = await getBody(() => statusClient.getStatus());
 
         expect(result.players).toBe(12345);
         expect(result.start_time).toBe('2024-07-01T18:57:11Z');

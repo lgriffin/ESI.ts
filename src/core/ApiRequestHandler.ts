@@ -1,5 +1,5 @@
 import { ApiClient } from './ApiClient';
-import { buildError } from '../core/util/error';
+import { buildError, EsiError } from '../core/util/error';
 import { logInfo, logWarn, logError, logDebug } from '../core/logger/loggerUtil';
 import HeadersUtil from '../core/util/headersUtil';
 import { ETagCacheManager } from './cache/ETagCacheManager';
@@ -44,56 +44,14 @@ export const resetETagCache = (): void => {
     etagCache = null;
 };
 
-// Helper function for backward compatibility - returns just the body
-export const handleRequestBody = async (
-    client: ApiClient,
-    endpoint: string,
-    method: string,
-    body?: any,
-    requiresAuth: boolean = false,
-    useETag: boolean = true
-): Promise<any> => {
-    const response = await handleRequest(client, endpoint, method, body, requiresAuth, useETag);
-    return response.body || response; // Handle both new and old response formats
-};
-
-const fetchPageData = async (
-    client: ApiClient,
-    baseEndpoint: string,
-    method: string,
-    page: number,
-    requiresAuth: boolean,
-    body?: any
-): Promise<any> => {
-    // Build the correct paginated endpoint for the specific page
-    const paginatedEndpoint = `${baseEndpoint}?page=${page}`;
-
-    // Log the correct endpoint with incremented page number
-    logInfo(`Fetching page ${page}: ${client.getLink()}/${paginatedEndpoint}`);
-
-    // Fetch the specific page data
-    const response = await fetch(`${client.getLink()}/${paginatedEndpoint}`, {
-        method,
-        headers: {
-            accept: 'gzip, deflate, br',
-            'User-Agent': 'esiJS/2.0.0',
-            ...(requiresAuth ? { Authorization: client.getAuthorizationHeader() } : {})
-        },
-        body: body ? JSON.stringify(body) : undefined
-    });
-
-    if (!response.ok) {
-        throw buildError(`Error: ${response.statusText}`, 'API_ERROR');
-    }
-
-    let responseData;
-    try {
-        responseData = await response.json();
-    } catch (jsonError) {
-        logError(`Failed to parse JSON response for page ${page}: ${jsonError}`);
-        throw buildError(`Invalid JSON response for page ${page}: ${jsonError}`, 'JSON_PARSE_ERROR');
-    }
-    return responseData;  // Return only the data (body)
+/**
+ * Parse max-age from Cache-Control header, returns TTL in milliseconds or undefined
+ */
+const parseCacheControlTtl = (headers: Record<string, string>): number | undefined => {
+    const cacheControl = headers['cache-control'] || headers['Cache-Control'];
+    if (!cacheControl) return undefined;
+    const match = cacheControl.match(/max-age=(\d+)/);
+    return match ? parseInt(match[1], 10) * 1000 : undefined;
 };
 
 export const handleRequest = async (
@@ -147,34 +105,52 @@ export const handleRequest = async (
         const response = await fetch(url, options);
         const responseHeaders = HeadersUtil.extractHeaders(response.headers);
 
-        if (statusHandlers[response.status]) {
-            const errorMessage = statusHandlers[response.status];
-            if (response.status === 204) {
-                logInfo(`${errorMessage} for endpoint: ${url}`);
-                return { headers: responseHeaders, body: { error: 'no content' } };
-            } else if (response.status === 304) {
-                // Not Modified - return cached data
-                if (useETag && etagCache) {
-                    const cachedEntry = etagCache.get(url);
-                    if (cachedEntry) {
-                        logInfo(`Cache hit (304) for endpoint: ${url}`);
-                        return { 
-                            headers: { ...cachedEntry.headers, ...responseHeaders }, 
-                            body: cachedEntry.data,
-                            fromCache: true 
-                        };
-                    }
-                }
-                logWarn(`${errorMessage} for endpoint: ${url} - no cached data available`);
-                return { headers: responseHeaders, body: { error: errorMessage.toLowerCase() } };
-            } else {
-                logWarn(`${errorMessage} for endpoint: ${url}`);
-                return { headers: responseHeaders, body: { error: errorMessage.toLowerCase() } };
-            }
+        // Handle special success statuses
+        if (response.status === 201) {
+            let data;
+            try { data = await response.json(); } catch { data = undefined; }
+            return { headers: responseHeaders, body: data };
         }
 
+        if (response.status === 204) {
+            logInfo(`No Content for endpoint: ${url}`);
+            return { headers: responseHeaders, body: undefined };
+        }
+
+        if (response.status === 304) {
+            if (useETag && etagCache) {
+                const cachedEntry = etagCache.get(url);
+                if (cachedEntry) {
+                    logInfo(`Cache hit (304) for endpoint: ${url}`);
+                    return {
+                        headers: { ...cachedEntry.headers, ...responseHeaders },
+                        body: cachedEntry.data,
+                        fromCache: true
+                    };
+                }
+            }
+            throw new EsiError(304, 'Not Modified — no cached data available', url);
+        }
+
+        // Handle errors (4xx/5xx)
         if (!response.ok) {
-            throw buildError(`Error: ${response.statusText}`, 'API_ERROR');
+            const errorMessage = statusHandlers[response.status] || response.statusText;
+
+            // On 5xx, serve stale cached data if available
+            if (response.status >= 500 && useETag && etagCache) {
+                const cachedEntry = etagCache.get(url);
+                if (cachedEntry) {
+                    logWarn(`${errorMessage} for ${url} — serving stale cache`);
+                    return {
+                        headers: { ...cachedEntry.headers, ...responseHeaders },
+                        body: cachedEntry.data,
+                        fromCache: true,
+                        stale: true
+                    };
+                }
+            }
+
+            throw new EsiError(response.status, errorMessage, url);
         }
 
         // Get the data and number of pages from the first response
@@ -192,8 +168,14 @@ export const handleRequest = async (
 
         // Cache the response if ETag is present and this is a GET request
         if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
-            etagCache.set(url, HeadersUtil.etag, data, responseHeaders);
-            logDebug(`Cached response for ${url} with ETag ${HeadersUtil.etag}`);
+            const ttl = parseCacheControlTtl(responseHeaders);
+            etagCache.set(url, HeadersUtil.etag, data, responseHeaders, ttl);
+            logDebug(`Cached response for ${url} with ETag ${HeadersUtil.etag}${ttl ? ` (ttl=${ttl}ms)` : ''}`);
+        }
+
+        // Invalidate related GET caches on write operations
+        if (method !== 'GET' && etagCache) {
+            etagCache.deleteByPath(endpoint.split('?')[0]);
         }
 
         // If there's only one page, return the data immediately
@@ -201,31 +183,35 @@ export const handleRequest = async (
             return { headers: responseHeaders, body: data };
         }
 
-        // Use the new pagination handler for multiple pages
+        // Fetch remaining pages (2..totalPages), reusing page 1 data we already have
         logInfo(`Found ${totalPages} pages, fetching additional pages with rate limiting...`);
-        
+
         try {
-            const allData = await PaginationHandler.fetchAllPages(
-                client, 
-                baseEndpoint, 
-                method, 
-                requiresAuth, 
+            const firstPageData = Array.isArray(data) ? data : [data];
+            const allData = await PaginationHandler.fetchRemainingPages(
+                client,
+                endpoint,
+                method,
+                requiresAuth,
+                firstPageData,
+                totalPages,
                 body,
                 {
-                    maxPages: Math.min(totalPages, 1000), // Reasonable limit
-                    stopOnEmptyPage: true, // Stop if we hit an empty page
+                    maxPages: Math.min(totalPages, 1000),
+                    stopOnEmptyPage: true,
                     maxRetries: 3
                 }
             );
-            
+
             // Cache the complete paginated response if ETag is present
             if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
-                etagCache.set(url, HeadersUtil.etag, allData, responseHeaders);
+                const ttl = parseCacheControlTtl(responseHeaders);
+                etagCache.set(url, HeadersUtil.etag, allData, responseHeaders, ttl);
                 logDebug(`Cached paginated response for ${url} with ETag ${HeadersUtil.etag}`);
             }
-            
+
             return { headers: responseHeaders, body: allData };
-            
+
         } catch (paginationError) {
             logWarn(`Pagination failed, returning first page only: ${paginationError}`);
             return { headers: responseHeaders, body: data };

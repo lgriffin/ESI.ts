@@ -1,14 +1,16 @@
 import { ApiClient } from '../core/ApiClient';
-import { IncursionsApi } from '../api/incursions/getIncursions';
+import { createClient } from '../core/endpoints/createClient';
+import { incursionEndpoints } from '../core/endpoints/incursionEndpoints';
+import { Incursion } from '../types/api-responses';
 
 export class IncursionsClient {
-    private incursionsApi: IncursionsApi;
+    private api: ReturnType<typeof createClient<typeof incursionEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.incursionsApi = new IncursionsApi(client);
+        this.api = createClient(client, incursionEndpoints);
     }
 
-    async getIncursions(): Promise<any> {
-        return await this.incursionsApi.getIncursions();
+    async getIncursions(): Promise<Incursion[]> {
+        return this.api.getIncursions();
     }
 }

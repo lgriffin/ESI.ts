@@ -205,7 +205,7 @@ describe('BDD: ETag Caching System', () => {
 
   describe('Feature: Error Handling and Edge Cases', () => {
     describe('Scenario: Handle server errors gracefully with caching', () => {
-      it('Given a cached response, When the server returns an error, Then the cached data should still be available', async () => {
+      it('Given a cached response, When the server returns an error, Then the stale cached data should be served', async () => {
         // Given: A cached response
         const validData = [{ alliance_id: 1, name: 'Test Alliance' }];
         const etag = '"valid-etag"';
@@ -220,15 +220,9 @@ describe('BDD: ETag Caching System', () => {
         // When: The server returns an error
         fetchMock.mockResponseOnce('Server Error', { status: 500 });
 
-        // Then: The request should return an error, but cached data should still be available
-        const errorResult = await client.alliance.getAlliances() as any;
-        expect(errorResult).toHaveProperty('error');
-        expect(errorResult.error).toBe('internal server error');
-        
-        const cache = getETagCache();
-        const cachedEntry = cache?.get('https://esi.evetech.net/alliances');
-        expect(cachedEntry).toBeDefined();
-        expect(cachedEntry?.data).toEqual(validData);
+        // Then: The cached data should be served (stale-on-error)
+        const errorResult = await client.alliance.getAlliances();
+        expect(errorResult).toEqual(validData);
       });
     });
 

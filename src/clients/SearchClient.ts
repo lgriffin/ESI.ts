@@ -1,14 +1,16 @@
 import { ApiClient } from '../core/ApiClient';
-import { CharacterSearchApi } from '../api/search/getCharacterSearch';
+import { createClient } from '../core/endpoints/createClient';
+import { searchEndpoints } from '../core/endpoints/searchEndpoints';
+import { SearchResult } from '../types/api-responses';
 
 export class SearchClient {
-    private characterSearchApi: CharacterSearchApi;
+    private api: ReturnType<typeof createClient<typeof searchEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.characterSearchApi = new CharacterSearchApi(client);
+        this.api = createClient(client, searchEndpoints);
     }
 
-    async characterSearch(characterId: number, searchString: string): Promise<object> {
-        return this.characterSearchApi.searchCharacter(characterId, searchString);
+    async characterSearch(characterId: number, searchString: string): Promise<SearchResult> {
+        return this.api.searchCharacter(characterId, searchString);
     }
 }

@@ -1,4 +1,4 @@
-import { logInfo, logDebug, logWarn } from '../logger/loggerUtil';
+import { logInfo, logDebug } from '../logger/loggerUtil';
 
 export interface CacheEntry {
     etag: string;
@@ -12,8 +12,6 @@ export interface ETagCacheConfig {
     maxEntries?: number;
     defaultTtl?: number; // Default TTL in milliseconds
     cleanupInterval?: number; // Cleanup interval in milliseconds
-    persistToStorage?: boolean;
-    storageKey?: string;
 }
 
 export class ETagCacheManager {
@@ -26,13 +24,7 @@ export class ETagCacheManager {
             maxEntries: config.maxEntries ?? 1000,
             defaultTtl: config.defaultTtl ?? 5 * 60 * 1000, // 5 minutes default
             cleanupInterval: config.cleanupInterval ?? 60 * 1000, // 1 minute cleanup
-            persistToStorage: config.persistToStorage ?? false,
-            storageKey: config.storageKey ?? 'esi-etag-cache'
         };
-
-        if (this.config.persistToStorage) {
-            this.loadFromStorage();
-        }
 
         this.startCleanupTimer();
         logInfo(`ETag cache manager initialized with ${this.config.maxEntries} max entries`);
@@ -86,10 +78,6 @@ export class ETagCacheManager {
 
         this.cache.set(url, entry);
         logDebug(`Cached response for ${url} with ETag ${etag}`);
-
-        if (this.config.persistToStorage) {
-            this.saveToStorage();
-        }
     }
 
     /**
@@ -104,11 +92,24 @@ export class ETagCacheManager {
      * Clear specific cache entry
      */
     delete(url: string): boolean {
-        const deleted = this.cache.delete(url);
-        if (deleted && this.config.persistToStorage) {
-            this.saveToStorage();
+        return this.cache.delete(url);
+    }
+
+    /**
+     * Delete all cache entries whose URL contains the given path segment
+     */
+    deleteByPath(pathSegment: string): number {
+        let count = 0;
+        for (const key of Array.from(this.cache.keys())) {
+            if (key.includes(pathSegment)) {
+                this.cache.delete(key);
+                count++;
+            }
         }
-        return deleted;
+        if (count > 0) {
+            logDebug(`Invalidated ${count} cache entries matching ${pathSegment}`);
+        }
+        return count;
     }
 
     /**
@@ -116,9 +117,6 @@ export class ETagCacheManager {
      */
     clear(): void {
         this.cache.clear();
-        if (this.config.persistToStorage) {
-            this.saveToStorage();
-        }
         logInfo('ETag cache cleared');
     }
 
@@ -171,9 +169,6 @@ export class ETagCacheManager {
         const cleanedCount = beforeSize - this.cache.size;
         if (cleanedCount > 0) {
             logDebug(`Cleaned up ${cleanedCount} expired cache entries`);
-            if (this.config.persistToStorage) {
-                this.saveToStorage();
-            }
         }
 
         return cleanedCount;
@@ -185,9 +180,6 @@ export class ETagCacheManager {
     shutdown(): void {
         if (this.cleanupTimer) {
             clearInterval(this.cleanupTimer);
-        }
-        if (this.config.persistToStorage) {
-            this.saveToStorage();
         }
         logInfo('ETag cache manager shut down');
     }
@@ -218,31 +210,8 @@ export class ETagCacheManager {
         this.cleanupTimer = setInterval(() => {
             this.cleanup();
         }, this.config.cleanupInterval);
+        // Don't prevent process exit (important for test runners and CLI tools)
+        this.cleanupTimer.unref();
     }
 
-    private loadFromStorage(): void {
-        try {
-            if (typeof localStorage !== 'undefined') {
-                const stored = localStorage.getItem(this.config.storageKey);
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    this.cache = new Map(data);
-                    logInfo(`Loaded ${this.cache.size} entries from storage`);
-                }
-            }
-        } catch (error) {
-            logWarn(`Failed to load cache from storage: ${error}`);
-        }
-    }
-
-    private saveToStorage(): void {
-        try {
-            if (typeof localStorage !== 'undefined') {
-                const data = Array.from(this.cache.entries());
-                localStorage.setItem(this.config.storageKey, JSON.stringify(data));
-            }
-        } catch (error) {
-            logWarn(`Failed to save cache to storage: ${error}`);
-        }
-    }
 }

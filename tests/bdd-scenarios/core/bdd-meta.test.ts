@@ -6,7 +6,7 @@
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { ApiError, ApiErrorType } from '../../../src/core/errors/ApiError';
+import { EsiError } from '../../../src/core/util/error';
 
 describe('BDD: Meta API Management', () => {
   let client: EsiClient;
@@ -78,7 +78,7 @@ components: {}`;
     describe('Scenario: Handle API service unavailability', () => {
       it('Given the ESI API is unavailable, When I request the Swagger specification, Then I should receive a service unavailable error', async () => {
         // Given: The ESI API is unavailable
-        const serviceError = new ApiError('Service Unavailable', ApiErrorType.SERVER_ERROR, 503);
+        const serviceError = new EsiError(503, 'Service Unavailable');
 
         // Mock the API error
         jest.spyOn(client.meta, 'getSwaggerJson').mockRejectedValue(serviceError);
