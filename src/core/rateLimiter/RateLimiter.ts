@@ -1,22 +1,80 @@
 /**
  * Rate Limiter for ESI API calls
- * Handles EVE Online's rate limiting system with intelligent backoff
+ *
+ * Implements both the new floating-window rate limiting system and the legacy
+ * error-limit system per the official ESI documentation:
+ *
+ * New system (X-Ratelimit-* headers):
+ *   - Floating window with token bucket per IP+route group
+ *   - Token costs: 2xx = 2 tokens, 3xx = 1 token, 4xx = 5 tokens, 5xx = 0 tokens
+ *   - Returns 429 when bucket is empty, with Retry-After header
+ *
+ * Legacy system (x-esi-error-limit-* headers):
+ *   - 100 non-2xx/3xx errors per minute
+ *   - Returns 420 when limit exceeded, with Retry-After header
  */
 
 export interface RateLimitInfo {
+    /** Tokens remaining in current window (new system) */
     remaining: number;
-    resetTime: number;
-    retryAfter?: number;
+    /** Total token budget (new system) */
+    limit: number;
+    /** Tokens used in current window (new system) */
+    used: number;
+    /** Route group for this endpoint (new system) */
+    group: string | null;
+    /** Legacy error-limit remaining count */
+    errorLimitRemain: number;
+    /** Legacy error-limit seconds until reset */
+    errorLimitReset: number;
+    /** Retry-After value in seconds (set on 420/429) */
+    retryAfter: number | null;
+    /** Timestamp (ms) when we must stop sending requests */
+    blockedUntil: number;
+}
+
+/** Token costs per HTTP status code range, per ESI docs */
+const TOKEN_COSTS: Record<string, number> = {
+    '2xx': 2,
+    '3xx': 1,
+    '4xx': 5,
+    '5xx': 0,
+};
+
+function getTokenCost(statusCode: number): number {
+    if (statusCode >= 200 && statusCode < 300) return TOKEN_COSTS['2xx'];
+    if (statusCode >= 300 && statusCode < 400) return TOKEN_COSTS['3xx'];
+    if (statusCode >= 400 && statusCode < 500) return TOKEN_COSTS['4xx'];
+    if (statusCode >= 500 && statusCode < 600) return TOKEN_COSTS['5xx'];
+    return 2; // default to 2xx cost
 }
 
 export class RateLimiter {
     private static instance: RateLimiter;
-    private rateLimitInfo: RateLimitInfo | null = null;
+    private rateLimitInfo: RateLimitInfo;
     private lastRequestTime: number = 0;
-    private readonly minDelayMs: number = 100; // Minimum delay between requests
+    private readonly minDelayMs: number = 50;
     private isTestMode: boolean = false;
 
-    private constructor() {}
+    /** Threshold below which we start adding delays to decelerate */
+    private readonly decelerationThreshold: number = 0.2; // 20% remaining
+
+    private constructor() {
+        this.rateLimitInfo = this.defaultInfo();
+    }
+
+    private defaultInfo(): RateLimitInfo {
+        return {
+            remaining: -1, // -1 means "no data yet"
+            limit: 0,
+            used: 0,
+            group: null,
+            errorLimitRemain: 100,
+            errorLimitReset: 0,
+            retryAfter: null,
+            blockedUntil: 0,
+        };
+    }
 
     static getInstance(): RateLimiter {
         if (!RateLimiter.instance) {
@@ -26,92 +84,131 @@ export class RateLimiter {
     }
 
     /**
-     * Update rate limit information from response headers
+     * Update rate limit information from response headers and status code.
+     * Must be called on EVERY response, not just 2xx.
      */
-    updateRateLimitInfo(headers: Record<string, string>): void {
-        // Skip rate limit updates in test mode
-        if (this.isTestMode) {
-            return;
+    updateFromResponse(headers: Record<string, string>, statusCode: number): void {
+        if (this.isTestMode) return;
+
+        // New rate limit headers (preferred)
+        const remaining = headers['x-ratelimit-remaining'];
+        const limit = headers['x-ratelimit-limit'];
+        const used = headers['x-ratelimit-used'];
+        const group = headers['x-ratelimit-group'] || null;
+
+        if (remaining !== undefined) {
+            this.rateLimitInfo.remaining = parseInt(remaining, 10);
+        }
+        if (limit !== undefined) {
+            this.rateLimitInfo.limit = parseInt(limit, 10);
+        }
+        if (used !== undefined) {
+            this.rateLimitInfo.used = parseInt(used, 10);
+        }
+        this.rateLimitInfo.group = group;
+
+        // Legacy error limit headers
+        const errorRemain = headers['x-esi-error-limit-remain'];
+        const errorReset = headers['x-esi-error-limit-reset'];
+        if (errorRemain !== undefined) {
+            this.rateLimitInfo.errorLimitRemain = parseInt(errorRemain, 10);
+        }
+        if (errorReset !== undefined) {
+            this.rateLimitInfo.errorLimitReset = parseInt(errorReset, 10);
         }
 
-        const remaining = parseInt(headers['x-esi-error-limit-remain'] || '0', 10);
-        const resetTime = parseInt(headers['x-esi-error-limit-reset'] || '0', 10);
-        const retryAfter = headers['retry-after'] ? parseInt(headers['retry-after'], 10) : undefined;
+        // Retry-After (present on 420 and 429 responses)
+        const retryAfter = headers['retry-after'];
+        if (retryAfter !== undefined) {
+            const retrySeconds = parseInt(retryAfter, 10);
+            this.rateLimitInfo.retryAfter = retrySeconds;
+            this.rateLimitInfo.blockedUntil = Date.now() + retrySeconds * 1000;
+        }
 
-        this.rateLimitInfo = {
-            remaining,
-            resetTime,
-            retryAfter
-        };
+        // Handle 420 (legacy error limited) and 429 (new rate limited)
+        if (statusCode === 420 || statusCode === 429) {
+            if (!this.rateLimitInfo.retryAfter) {
+                // No Retry-After header — default to 60 seconds for safety
+                this.rateLimitInfo.blockedUntil = Date.now() + 60_000;
+            }
+        }
     }
 
     /**
-     * Check if we should wait before making the next request
+     * Legacy method — kept for backwards compatibility.
+     * Prefer updateFromResponse() which also accepts status code.
+     */
+    updateRateLimitInfo(headers: Record<string, string>): void {
+        this.updateFromResponse(headers, 200);
+    }
+
+    /**
+     * Check if we should wait before making the next request.
+     * Enforces hard blocks (420/429), proactive deceleration, and minimum delay.
      */
     async checkRateLimit(): Promise<void> {
-        // Skip all rate limiting in test mode
-        if (this.isTestMode) {
-            return;
-        }
-
-        if (!this.rateLimitInfo) {
-            // No rate limit info, just ensure minimum delay
-            await this.enforceMinDelay();
-            return;
-        }
+        if (this.isTestMode) return;
 
         const now = Date.now();
-        
-        // Check if we've hit the error limit
-        if (this.rateLimitInfo.remaining <= 0) {
-            const waitTime = this.calculateWaitTime();
-            console.log(`Rate limit reached. Waiting ${waitTime}ms before next request...`);
+
+        // Hard block: we received a 420/429 and must wait
+        if (this.rateLimitInfo.blockedUntil > now) {
+            const waitTime = this.rateLimitInfo.blockedUntil - now;
+            console.warn(`[ESI Rate Limit] Blocked for ${Math.ceil(waitTime / 1000)}s (420/429 received)`);
+            await this.sleep(waitTime);
+            // Clear the block after waiting
+            this.rateLimitInfo.blockedUntil = 0;
+            this.rateLimitInfo.retryAfter = null;
+            return;
+        }
+
+        // Legacy error limit: if remaining errors are very low, slow down
+        if (this.rateLimitInfo.errorLimitRemain <= 10 && this.rateLimitInfo.errorLimitRemain > 0) {
+            const resetMs = this.rateLimitInfo.errorLimitReset * 1000;
+            const delay = Math.min(resetMs, 5000); // cap at 5s
+            if (delay > 0) {
+                console.warn(`[ESI Rate Limit] Legacy error limit low (${this.rateLimitInfo.errorLimitRemain}), waiting ${delay}ms`);
+                await this.sleep(delay);
+                return;
+            }
+        }
+
+        // Legacy error limit: completely exhausted
+        if (this.rateLimitInfo.errorLimitRemain <= 0 && this.rateLimitInfo.errorLimitReset > 0) {
+            const waitTime = this.rateLimitInfo.errorLimitReset * 1000;
+            console.warn(`[ESI Rate Limit] Legacy error limit exhausted, waiting ${Math.ceil(waitTime / 1000)}s`);
             await this.sleep(waitTime);
             return;
         }
 
-        // Check if we need to wait for reset time
-        if (this.rateLimitInfo.resetTime > 0) {
-            const resetTimeMs = this.rateLimitInfo.resetTime * 1000;
-            const timeUntilReset = resetTimeMs - now;
-            
-            if (timeUntilReset > 0) {
-                console.log(`Rate limit reset in ${timeUntilReset}ms. Waiting...`);
-                await this.sleep(timeUntilReset);
+        // Proactive deceleration: if new-system remaining is known and getting low
+        if (this.rateLimitInfo.remaining >= 0 && this.rateLimitInfo.limit > 0) {
+            const ratio = this.rateLimitInfo.remaining / this.rateLimitInfo.limit;
+
+            if (this.rateLimitInfo.remaining <= 0) {
+                // Bucket empty — wait before next request
+                console.warn('[ESI Rate Limit] Token bucket empty, waiting 1s');
+                await this.sleep(1000);
+                return;
+            }
+
+            if (ratio <= this.decelerationThreshold) {
+                // Linearly increase delay as remaining approaches 0
+                // At 20% remaining: ~50ms extra, at 1% remaining: ~1000ms extra
+                const extraDelay = Math.ceil((1 - ratio / this.decelerationThreshold) * 1000);
+                await this.sleep(extraDelay);
+                return;
             }
         }
 
-        // Enforce minimum delay between requests
+        // Minimum delay between requests
         await this.enforceMinDelay();
-    }
-
-    /**
-     * Calculate how long to wait based on rate limit info
-     */
-    private calculateWaitTime(): number {
-        if (!this.rateLimitInfo) return 0;
-
-        // If we have a retry-after header, use that
-        if (this.rateLimitInfo.retryAfter) {
-            return this.rateLimitInfo.retryAfter * 1000;
-        }
-
-        // If we have a reset time, calculate wait until reset
-        if (this.rateLimitInfo.resetTime > 0) {
-            const now = Date.now();
-            const resetTimeMs = this.rateLimitInfo.resetTime * 1000;
-            return Math.max(0, resetTimeMs - now);
-        }
-
-        // Default exponential backoff
-        return 5000; // 5 seconds
     }
 
     /**
      * Enforce minimum delay between requests
      */
     private async enforceMinDelay(): Promise<void> {
-        // Skip delay in test mode
         if (this.isTestMode) {
             this.lastRequestTime = Date.now();
             return;
@@ -119,41 +216,41 @@ export class RateLimiter {
 
         const now = Date.now();
         const timeSinceLastRequest = now - this.lastRequestTime;
-        
+
         if (timeSinceLastRequest < this.minDelayMs) {
-            const waitTime = this.minDelayMs - timeSinceLastRequest;
-            await this.sleep(waitTime);
+            await this.sleep(this.minDelayMs - timeSinceLastRequest);
         }
-        
+
         this.lastRequestTime = Date.now();
     }
 
-    /**
-     * Sleep for specified milliseconds
-     */
     private sleep(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    /**
-     * Get current rate limit status
-     */
-    getStatus(): RateLimitInfo | null {
-        return this.rateLimitInfo;
+    /** Get current rate limit status */
+    getStatus(): RateLimitInfo {
+        return { ...this.rateLimitInfo };
     }
 
-    /**
-     * Set test mode (disables delays)
-     */
+    /** Get token cost for a given status code */
+    static getTokenCost(statusCode: number): number {
+        return getTokenCost(statusCode);
+    }
+
+    /** Check if currently blocked (420/429 backoff active) */
+    isBlocked(): boolean {
+        return this.rateLimitInfo.blockedUntil > Date.now();
+    }
+
+    /** Set test mode (disables all delays) */
     setTestMode(enabled: boolean): void {
         this.isTestMode = enabled;
     }
 
-    /**
-     * Reset rate limiter state
-     */
+    /** Reset rate limiter state */
     reset(): void {
-        this.rateLimitInfo = null;
+        this.rateLimitInfo = this.defaultInfo();
         this.lastRequestTime = 0;
     }
 }

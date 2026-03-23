@@ -22,6 +22,27 @@ class HeadersUtil {
         return parseInt(this.headers['x-esi-error-limit-reset'] ?? '0', 10);
     }
 
+    static get rateLimitRemaining(): number {
+        return parseInt(this.headers['x-ratelimit-remaining'] ?? '-1', 10);
+    }
+
+    static get rateLimitLimit(): number {
+        return parseInt(this.headers['x-ratelimit-limit'] ?? '0', 10);
+    }
+
+    static get rateLimitUsed(): number {
+        return parseInt(this.headers['x-ratelimit-used'] ?? '0', 10);
+    }
+
+    static get rateLimitGroup(): string | null {
+        return this.headers['x-ratelimit-group'] ?? null;
+    }
+
+    static get retryAfter(): number | null {
+        const val = this.headers['retry-after'];
+        return val ? parseInt(val, 10) : null;
+    }
+
     static get expires(): string | null {
         return this.headers['expires'] ?? null;
     }
