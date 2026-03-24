@@ -5,6 +5,7 @@ import HeadersUtil from '../core/util/headersUtil';
 import { ETagCacheManager } from './cache/ETagCacheManager';
 import { RateLimiter } from './rateLimiter/RateLimiter';
 import { PaginationHandler } from './pagination/PaginationHandler';
+import { CursorPaginationHandler, CursorTokens } from './pagination/CursorPaginationHandler';
 
 const statusHandlers: Record<number, string> = {
     201: 'Created',
@@ -171,7 +172,6 @@ export const handleRequest = async (
             logError(`Failed to parse JSON response: ${jsonError}`);
             throw buildError(`Invalid JSON response: ${jsonError}`, 'JSON_PARSE_ERROR');
         }
-        const totalPages = HeadersUtil.xPages;
 
         // Cache the response if ETag is present and this is a GET request
         if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
@@ -184,6 +184,19 @@ export const handleRequest = async (
         if (method !== 'GET' && etagCache) {
             etagCache.deleteByPath(endpoint.split('?')[0]);
         }
+
+        // --- Cursor-based pagination ---
+        if (HeadersUtil.hasCursorPagination) {
+            const cursors: CursorTokens = {
+                before: HeadersUtil.cursorBefore,
+                after: HeadersUtil.cursorAfter,
+            };
+
+            return { headers: responseHeaders, body: data, cursors };
+        }
+
+        // --- Offset-based pagination ---
+        const totalPages = HeadersUtil.xPages;
 
         // If there's only one page, return the data immediately
         if (totalPages <= 1) {

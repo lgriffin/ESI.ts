@@ -43,6 +43,10 @@ export { WalletClient } from './clients/WalletClient';
 export { WarsClient } from './clients/WarsClient';
 export { MetaClient } from './clients/MetaClient';
 
+// Cursor pagination
+export { CursorOptions, CursorResult, fetchAllCursorPages } from './core/endpoints/createClient';
+export { CursorTokens } from './core/pagination/CursorPaginationHandler';
+
 // Error class
 export { EsiError } from './core/util/error';
 

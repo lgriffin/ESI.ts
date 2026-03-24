@@ -15,6 +15,8 @@ export interface EndpointDefinition {
     hasBody?: boolean;
     /** Custom body builder for endpoints that construct body from individual params */
     bodyBuilder?: (...args: any[]) => any;
+    /** Whether this endpoint uses cursor-based pagination (before/after tokens) */
+    cursorPagination?: boolean;
 }
 
 export type EndpointMap = Record<string, EndpointDefinition>;
