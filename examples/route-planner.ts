@@ -4,6 +4,9 @@
  * Calculates the shortest route between two solar systems
  * and looks up the name of each system along the way.
  *
+ * The route endpoint uses POST with an optional body for
+ * preferences, avoid lists, and custom connections (e.g. jump bridges).
+ *
  * Usage: npm run example:route
  */
 import { EsiClient } from '../src/EsiClient';
@@ -17,6 +20,7 @@ async function main() {
   try {
     console.log(`Route: Jita -> Amarr\n`);
 
+    // Basic route (shortest path, default options)
     const route = await client.route.getRoute(JITA_SYSTEM_ID, AMARR_SYSTEM_ID);
 
     console.log(`Total jumps: ${route.length - 1}\n`);
@@ -26,7 +30,7 @@ async function main() {
       route.map((id: number) => client.universe.getSystemById(id))
     );
 
-    console.log('Route');
+    console.log('Route (Shortest)');
     console.log('-'.repeat(40));
     for (let i = 0; i < route.length; i++) {
       const name = systems[i].name ?? `System ${route[i]}`;
@@ -34,6 +38,15 @@ async function main() {
       const prefix = i === 0 ? 'START' : i === route.length - 1 ? 'END  ' : `  ${String(i).padStart(3)}`;
       console.log(`  ${prefix}  ${name} (${sec})`);
     }
+
+    // Safer route
+    console.log('\nRoute (Safer)');
+    console.log('-'.repeat(40));
+    const saferRoute = await client.route.getRoute(JITA_SYSTEM_ID, AMARR_SYSTEM_ID, {
+      preference: 'Safer',
+    });
+    console.log(`  ${saferRoute.length - 1} jumps`);
+
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

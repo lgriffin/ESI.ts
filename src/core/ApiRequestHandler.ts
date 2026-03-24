@@ -69,7 +69,8 @@ export const handleRequest = async (
     const url = `${client.getLink()}/${endpoint}`;
     const headers: HeadersInit = {
         accept: 'gzip, deflate, br',
-        'User-Agent': `esiJS/2.0.0`  // Use the version from package.json ideally
+        'User-Agent': `esiJS/2.0.0`,  // Use the version from package.json ideally
+        'X-Compatibility-Date': '2025-12-16',
     };
 
     if (requiresAuth) {
@@ -87,6 +88,10 @@ export const handleRequest = async (
             headers['If-None-Match'] = cachedETag;
             logDebug(`Adding If-None-Match header: ${cachedETag}`);
         }
+    }
+
+    if (body) {
+        (headers as Record<string, string>)['Content-Type'] = 'application/json';
     }
 
     const options: RequestInit = {

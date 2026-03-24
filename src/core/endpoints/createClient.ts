@@ -1,7 +1,7 @@
 import { ApiClient } from '../ApiClient';
 import { handleRequest } from '../ApiRequestHandler';
 import { EndpointMap, EndpointArgs } from './EndpointDefinition';
-import { CursorPaginationHandler, CursorTokens } from '../pagination/CursorPaginationHandler';
+import { CursorTokens } from '../pagination/CursorPaginationHandler';
 
 export interface CursorOptions {
     before?: string;
@@ -92,33 +92,48 @@ export function createClient<T extends EndpointMap>(
 
 /**
  * Fetch all pages of a cursor-paginated endpoint.
- * Pass a function that calls the cursor endpoint method.
  *
- * Usage:
- *   const allProjects = await fetchAllCursorPages(
- *       (cursor) => corpClient.getProjects(corpId, cursor)
+ * ESI returns cursor tokens in the response body. This helper follows
+ * `after` tokens until the dataset is exhausted (empty items array).
+ *
+ * Usage with body-based cursors (ESI's actual format):
+ *   const allJobs = await fetchAllCursorPages(
+ *       (before, after) => client.freelanceJobs.getFreelanceJobs(before, after),
+ *       (response) => response.freelance_jobs,
+ *       (response) => response.cursor,
+ *   );
+ *
+ * Usage with CursorResult shape:
+ *   const all = await fetchAllCursorPages(
+ *       (before, after) => fetcher({ before, after }),
+ *       (r) => r.data,
+ *       (r) => r.cursors,
  *   );
  */
-export async function fetchAllCursorPages<T = any>(
-    fetcher: (cursor?: CursorOptions) => Promise<CursorResult<T>>,
-): Promise<T[]> {
-    const allData: T[] = [];
-    let cursor: CursorOptions | undefined;
+export async function fetchAllCursorPages<TResponse, TItem = any>(
+    fetcher: (before?: string, after?: string) => Promise<TResponse>,
+    getItems: (response: TResponse) => TItem[],
+    getCursor: (response: TResponse) => { before?: string | null; after?: string | null },
+): Promise<TItem[]> {
+    const allData: TItem[] = [];
+    let afterToken: string | undefined;
 
     while (true) {
-        const result = await fetcher(cursor);
+        const response = await fetcher(undefined, afterToken);
+        const items = getItems(response);
 
-        if (result.data.length === 0) {
+        if (!items || items.length === 0) {
             break;
         }
 
-        allData.push(...result.data);
+        allData.push(...items);
 
-        if (!result.cursors.after) {
+        const cursor = getCursor(response);
+        if (!cursor.after) {
             break;
         }
 
-        cursor = { after: result.cursors.after };
+        afterToken = cursor.after;
     }
 
     return allData;

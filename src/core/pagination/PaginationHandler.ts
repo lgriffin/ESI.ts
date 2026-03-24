@@ -139,6 +139,7 @@ export class PaginationHandler {
             headers: {
                 accept: 'gzip, deflate, br',
                 'User-Agent': 'esiJS/2.0.0',
+                'X-Compatibility-Date': '2025-12-16',
                 ...(requiresAuth ? { Authorization: client.getAuthorizationHeader() } : {})
             },
             body: body ? JSON.stringify(body) : undefined

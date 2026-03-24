@@ -32,7 +32,7 @@ export { LoyaltyClient } from './clients/LoyaltyClient';
 export { MailClient } from './clients/MailClient';
 export { MarketClient } from './clients/MarketClient';
 export { PiClient } from './clients/PiClient';
-export { RouteClient } from './clients/RouteClient';
+export { RouteClient, RouteOptions } from './clients/RouteClient';
 export { SearchClient } from './clients/SearchClient';
 export { CharacterSkillsClient } from './clients/SkillsClient';
 export { SovereigntyClient } from './clients/SovereigntyClient';
@@ -42,6 +42,7 @@ export { UniverseClient } from './clients/UniverseClient';
 export { WalletClient } from './clients/WalletClient';
 export { WarsClient } from './clients/WarsClient';
 export { MetaClient } from './clients/MetaClient';
+export { FreelanceJobsClient } from './clients/FreelanceJobsClient';
 
 // Cursor pagination
 export { CursorOptions, CursorResult, fetchAllCursorPages } from './core/endpoints/createClient';

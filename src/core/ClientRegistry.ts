@@ -30,13 +30,15 @@ import { UniverseClient } from '../clients/UniverseClient';
 import { WalletClient } from '../clients/WalletClient';
 import { WarsClient } from '../clients/WarsClient';
 import { MetaClient } from '../clients/MetaClient';
+import { FreelanceJobsClient } from '../clients/FreelanceJobsClient';
 
 export type ApiClientType =
     | 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones'
     | 'contacts' | 'contracts' | 'corporations' | 'dogma' | 'factions' | 'fittings'
     | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location'
     | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills'
-    | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta';
+    | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta'
+    | 'freelanceJobs';
 
 export type ClientInstance =
     | AllianceClient | AssetsClient | CalendarClient | CharacterClient
@@ -45,7 +47,7 @@ export type ClientInstance =
     | InsuranceClient | KillmailsClient | LocationClient | LoyaltyClient | MailClient
     | MarketClient | PiClient | RouteClient | SearchClient | CharacterSkillsClient
     | SovereigntyClient | StatusClient | UiClient | UniverseClient | WalletClient
-    | WarsClient | MetaClient;
+    | WarsClient | MetaClient | FreelanceJobsClient;
 
 const clientFactories: Record<ApiClientType, new (apiClient: ApiClient) => ClientInstance> = {
     alliance: AllianceClient,
@@ -79,6 +81,7 @@ const clientFactories: Record<ApiClientType, new (apiClient: ApiClient) => Clien
     wallet: WalletClient,
     wars: WarsClient,
     meta: MetaClient,
+    freelanceJobs: FreelanceJobsClient,
 };
 
 export function createClientInstance(name: ApiClientType, apiClient: ApiClient): ClientInstance {
@@ -95,5 +98,5 @@ export {
     InsuranceClient, KillmailsClient, LocationClient, LoyaltyClient, MailClient,
     MarketClient, PiClient, RouteClient, SearchClient, CharacterSkillsClient,
     SovereigntyClient, StatusClient, UiClient, UniverseClient, WalletClient,
-    WarsClient, MetaClient
+    WarsClient, MetaClient, FreelanceJobsClient
 };

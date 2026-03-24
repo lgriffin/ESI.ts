@@ -821,6 +821,71 @@ export interface SearchResult {
     structure?: number[];
 }
 
+// Freelance Jobs Types
+export interface EsiCursor {
+    before: string | null;
+    after: string | null;
+}
+
+export interface FreelanceJobSummary {
+    id: string;
+    name: string;
+    state: string;
+    last_modified: string;
+    progress: {
+        current: number;
+        desired: number;
+    };
+    reward?: {
+        initial: number;
+        remaining: number;
+    };
+}
+
+export interface FreelanceJobsListing {
+    cursor: EsiCursor;
+    freelance_jobs: FreelanceJobSummary[];
+}
+
+export interface FreelanceJobDetail {
+    id: string;
+    name: string;
+    state: string;
+    last_modified: string;
+    progress: {
+        current: number;
+        desired: number;
+    };
+    reward?: {
+        initial: number;
+        remaining: number;
+    };
+    details: {
+        description: string;
+        career: string;
+        created: string;
+        expires: string;
+        creator: {
+            character: { id: number; name: string };
+            corporation: { id: number; name: string };
+        };
+    };
+    configuration: {
+        version: number;
+        parameters: Record<string, any>;
+        method: string;
+    };
+    contribution: {
+        max_committed_participants: number;
+        reward_per_contribution: number;
+        submission_multiplier: number;
+    };
+    access_and_visibility: {
+        acl_protected: boolean;
+        broadcast_locations: { id: number; name: string }[];
+    };
+}
+
 // Character Sub-types
 export interface AgentResearch {
     agent_id: number;

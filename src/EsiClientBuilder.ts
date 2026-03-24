@@ -7,7 +7,7 @@ import {
     InsuranceClient, KillmailsClient, LocationClient, LoyaltyClient, MailClient,
     MarketClient, PiClient, RouteClient, SearchClient, CharacterSkillsClient,
     SovereigntyClient, StatusClient, UiClient, UniverseClient, WalletClient,
-    WarsClient, MetaClient
+    WarsClient, MetaClient, FreelanceJobsClient
 } from './core/ClientRegistry';
 import { EsiClientConfig } from './EsiClient';
 import logger from './core/logger/logger';
@@ -77,6 +77,7 @@ export class CustomEsiClient {
     get wallet(): WalletClient | undefined { return this.getClient('wallet') as WalletClient; }
     get wars(): WarsClient | undefined { return this.getClient('wars') as WarsClient; }
     get meta(): MetaClient | undefined { return this.getClient('meta') as MetaClient; }
+    get freelanceJobs(): FreelanceJobsClient | undefined { return this.getClient('freelanceJobs') as FreelanceJobsClient; }
 
     async shutdown(): Promise<void> {
         this.clients.clear();

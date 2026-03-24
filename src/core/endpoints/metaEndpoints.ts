@@ -1,8 +1,8 @@
 import { EndpointDefinition, EndpointMap } from './EndpointDefinition';
 
 export const metaEndpoints = {
-    getSwaggerJson: {
-        path: 'meta/swagger.json',
+    getOpenApiJson: {
+        path: 'meta/openapi.json',
         method: 'GET',
         requiresAuth: false,
     },
