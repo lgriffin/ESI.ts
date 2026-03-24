@@ -1,6 +1,17 @@
 import { ApiClient } from '../ApiClient';
 import { handleRequest } from '../ApiRequestHandler';
 import { EndpointMap, EndpointArgs } from './EndpointDefinition';
+import { CursorPaginationHandler, CursorTokens } from '../pagination/CursorPaginationHandler';
+
+export interface CursorOptions {
+    before?: string;
+    after?: string;
+}
+
+export interface CursorResult<T = any> {
+    data: T[];
+    cursors: CursorTokens;
+}
 
 type ClientMethods<T extends EndpointMap> = {
     [K in keyof T]: (...args: EndpointArgs<T[K]>) => Promise<any>;
@@ -46,10 +57,69 @@ export function createClient<T extends EndpointMap>(
                 body = args[argIndex];
             }
 
+            // For cursor-paginated endpoints, check for trailing cursor options arg
+            if (def.cursorPagination) {
+                const lastArg = args[args.length - 1];
+                const cursorOpts: CursorOptions | undefined =
+                    lastArg && typeof lastArg === 'object' && ('before' in lastArg || 'after' in lastArg)
+                        ? lastArg
+                        : undefined;
+
+                if (cursorOpts) {
+                    const parts: string[] = [];
+                    if (cursorOpts.before) parts.push(`before=${encodeURIComponent(cursorOpts.before)}`);
+                    if (cursorOpts.after) parts.push(`after=${encodeURIComponent(cursorOpts.after)}`);
+                    if (parts.length > 0) {
+                        path += (path.includes('?') ? '&' : '?') + parts.join('&');
+                    }
+                }
+
+                const response = await handleRequest(apiClient, path, def.method, body, def.requiresAuth);
+                const data = Array.isArray(response.body) ? response.body : response.body != null ? [response.body] : [];
+                return {
+                    data,
+                    cursors: response.cursors ?? { before: null, after: null },
+                } as CursorResult;
+            }
+
             const response = await handleRequest(apiClient, path, def.method, body, def.requiresAuth);
             return response.body;
         };
     }
 
     return client;
+}
+
+/**
+ * Fetch all pages of a cursor-paginated endpoint.
+ * Pass a function that calls the cursor endpoint method.
+ *
+ * Usage:
+ *   const allProjects = await fetchAllCursorPages(
+ *       (cursor) => corpClient.getProjects(corpId, cursor)
+ *   );
+ */
+export async function fetchAllCursorPages<T = any>(
+    fetcher: (cursor?: CursorOptions) => Promise<CursorResult<T>>,
+): Promise<T[]> {
+    const allData: T[] = [];
+    let cursor: CursorOptions | undefined;
+
+    while (true) {
+        const result = await fetcher(cursor);
+
+        if (result.data.length === 0) {
+            break;
+        }
+
+        allData.push(...result.data);
+
+        if (!result.cursors.after) {
+            break;
+        }
+
+        cursor = { after: result.cursors.after };
+    }
+
+    return allData;
 }

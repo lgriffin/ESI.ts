@@ -9,7 +9,8 @@ A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.n
 
 - Typed responses for all endpoints
 - ETag caching with Cache-Control TTL, stale-on-error, and write invalidation
-- Automatic pagination and rate limiting
+- Automatic offset-based pagination and cursor-based pagination support
+- Rate limiting with header-driven backoff
 - 28 domain clients covering the full ESI surface
 
 ## Installation
@@ -207,6 +208,56 @@ client.updateCacheConfig({ maxEntries: 2000 });
 const uncachedClient = new EsiClient({ enableETagCache: false });
 ```
 
+## Cursor-based Pagination
+
+ESI is transitioning new routes from offset-based (`page=N`, `x-pages`) to cursor-based pagination using opaque `before`/`after` tokens. The first route to use this will be Corporation Projects. See the [ESI blog post](https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page) for background.
+
+Cursor-paginated endpoints return a `CursorResult` with `data` and `cursors`:
+
+```typescript
+import { fetchAllCursorPages } from '@lgriffin/esi.ts';
+
+// Requires auth — the Corporation Projects endpoint needs an EVE SSO token
+const client = new EsiClient({ accessToken: 'your-token' });
+
+// Fetch a single page (returns { data, cursors })
+const page = await client.corporations.getProjects(corporationId);
+console.log(page.data);               // project records
+console.log(page.cursors.after);       // opaque token for next page
+
+// Fetch the next page using the cursor
+const nextPage = await client.corporations.getProjects(corporationId, {
+    after: page.cursors.after
+});
+
+// Auto-fetch all pages in one call
+const allProjects = await fetchAllCursorPages(
+    (cursor) => client.corporations.getProjects(corporationId, cursor)
+);
+```
+
+**Polling for changes** — cursor tokens persist across sessions, so you can save the last `after` token and poll later to get only records that changed:
+
+```typescript
+// After initial scan, save the final cursor
+let savedCursor = lastPage.cursors.after;
+
+// Later: check for updates (hours, days, or weeks later)
+const updates = await client.corporations.getProjects(corporationId, {
+    after: savedCursor
+});
+if (updates.data.length > 0) {
+    // Process changed records — duplicates are expected for modified records
+    savedCursor = updates.cursors.after;
+}
+```
+
+Key points:
+- Cursor tokens are **opaque strings** — never parse or validate them
+- An **empty result array** signals the end of the dataset (not a short page)
+- **Duplicates across pages** are expected when records are modified between requests
+- Existing offset-based routes (`getMarketOrders`, etc.) are unchanged
+
 ## Error Handling
 
 API errors throw `EsiError` with `statusCode`, `message`, and `url` properties:
@@ -279,8 +330,9 @@ npm run example:dogma        # Item type details + dogma attributes
 Additional examples:
 
 ```bash
-npm run example              # Full character profile assembly
-npm run example:rate-limiting # Rate limiter & pagination demonstration
+npm run example                    # Full character profile assembly
+npm run example:rate-limiting      # Rate limiter & pagination demonstration
+npm run example:cursor-pagination  # Cursor-based pagination patterns (simulated, no auth needed)
 ```
 
 ### Parallel Requests
@@ -327,7 +379,7 @@ try {
 ## Testing
 
 ```bash
-npm test          # Unit + integration tests (40 suites, 263 tests)
+npm test          # Unit + integration tests (46 suites, 331 tests)
 npm run coverage  # Tests with coverage report
 npm run bdd       # BDD scenario tests only
 ```

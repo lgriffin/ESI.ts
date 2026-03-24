@@ -59,6 +59,18 @@ class HeadersUtil {
         return this.headers['cache-control'] ?? null;
     }
 
+    static get cursorBefore(): string | null {
+        return this.headers['x-cursor-before'] ?? null;
+    }
+
+    static get cursorAfter(): string | null {
+        return this.headers['x-cursor-after'] ?? null;
+    }
+
+    static get hasCursorPagination(): boolean {
+        return this.cursorBefore !== null || this.cursorAfter !== null;
+    }
+
     static getHeaders(): Record<string, string> {
         return this.headers;
     }

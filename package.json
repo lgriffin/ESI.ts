@@ -21,6 +21,7 @@
     "example:incursions": "ts-node examples/incursions.ts",
     "example:dogma": "ts-node examples/dogma.ts",
     "example:rate-limiting": "ts-node examples/rate-limiting.ts",
+    "example:cursor-pagination": "ts-node examples/cursor-pagination.ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "test": "jest --config jest.unit.config.cjs",
