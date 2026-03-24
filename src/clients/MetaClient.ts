@@ -12,12 +12,12 @@ export class MetaClient {
         this.api = createClient(client, metaEndpoints);
     }
 
-    async getSwaggerJson(): Promise<any> {
-        return this.api.getSwaggerJson();
+    async getOpenApiJson(): Promise<any> {
+        return this.api.getOpenApiJson();
     }
 
-    async getSwaggerYaml(): Promise<string> {
-        const url = `${this.client.getLink()}/meta/swagger.yaml`;
+    async getOpenApiYaml(): Promise<string> {
+        const url = `${this.client.getLink()}/meta/openapi.yaml`;
 
         logInfo(`Hitting endpoint: ${url}`);
 
@@ -26,7 +26,8 @@ export class MetaClient {
                 method: 'GET',
                 headers: {
                     accept: 'text/yaml, application/x-yaml, text/plain',
-                    'User-Agent': 'esiJS/2.0.0'
+                    'User-Agent': 'esiJS/2.0.0',
+                    'X-Compatibility-Date': '2025-12-16',
                 }
             });
 

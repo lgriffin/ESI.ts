@@ -31,6 +31,7 @@ import { UniverseClient } from './clients/UniverseClient';
 import { WalletClient } from './clients/WalletClient';
 import { WarsClient } from './clients/WarsClient';
 import { MetaClient } from './clients/MetaClient';
+import { FreelanceJobsClient } from './clients/FreelanceJobsClient';
 import { initializeETagCache, getETagCache } from './core/ApiRequestHandler';
 import { ETagCacheConfig } from './core/cache/ETagCacheManager';
 import logger from './core/logger/logger';
@@ -105,6 +106,7 @@ export class EsiClient {
     get wallet(): WalletClient { return this.getClient('wallet'); }
     get wars(): WarsClient { return this.getClient('wars'); }
     get meta(): MetaClient { return this.getClient('meta'); }
+    get freelanceJobs(): FreelanceJobsClient { return this.getClient('freelanceJobs'); }
 
     setAccessToken(token: string): void {
         this.apiClient.setAccessToken(token);

@@ -11,7 +11,7 @@ A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.n
 - ETag caching with Cache-Control TTL, stale-on-error, and write invalidation
 - Automatic offset-based pagination and cursor-based pagination support
 - Rate limiting with header-driven backoff
-- 28 domain clients covering the full ESI surface
+- 29 domain clients covering the full ESI surface
 
 ## Installation
 
@@ -182,7 +182,8 @@ All clients are accessed as properties on the `EsiClient` instance. Authenticate
 | Universe | `client.universe` | Some | `getSystemById(id)`, `getTypeById(id)` |
 | Wallet | `client.wallet` | Yes | `getCharacterWallet(id)` |
 | Wars | `client.wars` | No | `getWars()`, `getWarById(id)` |
-| Meta | `client.meta` | No | `getHeaders()`, `ping()` |
+| Freelance Jobs | `client.freelanceJobs` | Some | `getFreelanceJobs()`, `getFreelanceJobById(id)` |
+| Meta | `client.meta` | No | `getOpenApiJson()`, `getOpenApiYaml()` |
 
 ## Caching
 
@@ -210,45 +211,45 @@ const uncachedClient = new EsiClient({ enableETagCache: false });
 
 ## Cursor-based Pagination
 
-ESI is transitioning new routes from offset-based (`page=N`, `x-pages`) to cursor-based pagination using opaque `before`/`after` tokens. The first route to use this will be Corporation Projects. See the [ESI blog post](https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page) for background.
-
-Cursor-paginated endpoints return a `CursorResult` with `data` and `cursors`:
+Newer ESI routes (Freelance Jobs, and future routes) use cursor-based pagination with opaque `before`/`after` tokens in the response body. See the [ESI blog post](https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page) for background.
 
 ```typescript
-import { fetchAllCursorPages } from '@lgriffin/esi.ts';
+import { EsiClient, fetchAllCursorPages } from '@lgriffin/esi.ts';
 
-// Requires auth — the Corporation Projects endpoint needs an EVE SSO token
-const client = new EsiClient({ accessToken: 'your-token' });
+const client = new EsiClient();
 
-// Fetch a single page (returns { data, cursors })
-const page = await client.corporations.getProjects(corporationId);
-console.log(page.data);               // project records
-console.log(page.cursors.after);       // opaque token for next page
+// Fetch first page — returns { cursor: { before, after }, freelance_jobs: [...] }
+const page = await client.freelanceJobs.getFreelanceJobs();
+console.log(page.freelance_jobs);      // job records
+console.log(page.cursor.after);        // opaque token for next page
 
-// Fetch the next page using the cursor
-const nextPage = await client.corporations.getProjects(corporationId, {
-    after: page.cursors.after
-});
+// Fetch next page using the cursor
+const nextPage = await client.freelanceJobs.getFreelanceJobs(undefined, page.cursor.after);
 
 // Auto-fetch all pages in one call
-const allProjects = await fetchAllCursorPages(
-    (cursor) => client.corporations.getProjects(corporationId, cursor)
+const allJobs = await fetchAllCursorPages(
+    (before, after) => client.freelanceJobs.getFreelanceJobs(before, after),
+    (response) => response.freelance_jobs,
+    (response) => response.cursor,
 );
+
+// Authenticated endpoints — character/corporation freelance jobs
+const authedClient = new EsiClient({ accessToken: 'your-token' });
+const myJobs = await authedClient.freelanceJobs.getCharacterFreelanceJobs(characterId);
+const corpJobs = await authedClient.freelanceJobs.getCorporationFreelanceJobs(corporationId);
 ```
 
 **Polling for changes** — cursor tokens persist across sessions, so you can save the last `after` token and poll later to get only records that changed:
 
 ```typescript
 // After initial scan, save the final cursor
-let savedCursor = lastPage.cursors.after;
+let savedCursor = lastPage.cursor.after;
 
 // Later: check for updates (hours, days, or weeks later)
-const updates = await client.corporations.getProjects(corporationId, {
-    after: savedCursor
-});
-if (updates.data.length > 0) {
+const updates = await client.freelanceJobs.getFreelanceJobs(undefined, savedCursor);
+if (updates.freelance_jobs.length > 0) {
     // Process changed records — duplicates are expected for modified records
-    savedCursor = updates.cursors.after;
+    savedCursor = updates.cursor.after;
 }
 ```
 
@@ -332,7 +333,7 @@ Additional examples:
 ```bash
 npm run example                    # Full character profile assembly
 npm run example:rate-limiting      # Rate limiter & pagination demonstration
-npm run example:cursor-pagination  # Cursor-based pagination patterns (simulated, no auth needed)
+npm run example:cursor-pagination  # Freelance Jobs with cursor pagination (live ESI, no auth needed)
 ```
 
 ### Parallel Requests
@@ -379,7 +380,7 @@ try {
 ## Testing
 
 ```bash
-npm test          # Unit + integration tests (46 suites, 331 tests)
+npm test          # Unit + integration tests (47 suites, 341 tests)
 npm run coverage  # Tests with coverage report
 npm run bdd       # BDD scenario tests only
 ```
