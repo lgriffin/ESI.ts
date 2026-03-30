@@ -154,7 +154,7 @@ describe('BDD Scenarios: Universe Information', () => {
         expect(result.name).toBe('Test Citadel');
         expect(result.solar_system_id).toBe(30000142);
         expect(result.position).toBeDefined();
-        expect(result.position.x).toBeDefined();
+        expect(result.position!.x).toBeDefined();
       });
     });
   });

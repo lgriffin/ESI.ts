@@ -2,6 +2,7 @@ import { ApiClient } from '../ApiClient';
 import { handleRequest } from '../ApiRequestHandler';
 import { EndpointMap, EndpointArgs } from './EndpointDefinition';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
+import { EsiResponse, EsiResponseMeta } from '../../types/api-responses';
 
 export interface CursorOptions {
     before?: string;
@@ -13,15 +14,35 @@ export interface CursorResult<T = any> {
     cursors: CursorTokens;
 }
 
+export interface CreateClientOptions {
+    returnMetadata?: boolean;
+}
+
 type ClientMethods<T extends EndpointMap> = {
     [K in keyof T]: (...args: EndpointArgs<T[K]>) => Promise<any>;
 };
 
+export type WithMetadata<T> = {
+    [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R>
+        ? (...args: A) => Promise<EsiResponse<R>>
+        : T[K];
+};
+
+function buildMeta(response: any): EsiResponseMeta {
+    return {
+        headers: response.headers ?? {},
+        fromCache: response.fromCache ?? false,
+        stale: response.stale ?? false,
+    };
+}
+
 export function createClient<T extends EndpointMap>(
     apiClient: ApiClient,
-    endpoints: T
+    endpoints: T,
+    options?: CreateClientOptions
 ): ClientMethods<T> {
     const client = {} as ClientMethods<T>;
+    const returnMetadata = options?.returnMetadata ?? false;
 
     for (const [methodName, def] of Object.entries(endpoints)) {
         (client as any)[methodName] = async (...args: any[]) => {
@@ -76,13 +97,21 @@ export function createClient<T extends EndpointMap>(
 
                 const response = await handleRequest(apiClient, path, def.method, body, def.requiresAuth);
                 const data = Array.isArray(response.body) ? response.body : response.body != null ? [response.body] : [];
-                return {
+                const cursorResult = {
                     data,
                     cursors: response.cursors ?? { before: null, after: null },
                 } as CursorResult;
+
+                if (returnMetadata) {
+                    return { data: cursorResult, meta: buildMeta(response) };
+                }
+                return cursorResult;
             }
 
             const response = await handleRequest(apiClient, path, def.method, body, def.requiresAuth);
+            if (returnMetadata) {
+                return { data: response.body, meta: buildMeta(response) };
+            }
             return response.body;
         };
     }

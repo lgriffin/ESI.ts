@@ -44,12 +44,12 @@ export { WarsClient } from './clients/WarsClient';
 export { MetaClient } from './clients/MetaClient';
 export { FreelanceJobsClient } from './clients/FreelanceJobsClient';
 
-// Cursor pagination
-export { CursorOptions, CursorResult, fetchAllCursorPages } from './core/endpoints/createClient';
+// Cursor pagination & client utilities
+export { CursorOptions, CursorResult, CreateClientOptions, WithMetadata, fetchAllCursorPages } from './core/endpoints/createClient';
 export { CursorTokens } from './core/pagination/CursorPaginationHandler';
 
-// Error class
-export { EsiError } from './core/util/error';
+// Error class & type guards
+export { EsiError, isEsiError, isRateLimited, isNotFound, isUnauthorized, isForbidden, isServerError } from './core/util/error';
 
 // Types
 export * from './types/api-responses';
