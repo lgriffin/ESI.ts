@@ -1,23 +1,35 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient } from '../core/endpoints/createClient';
+import { createClient, WithMetadata } from '../core/endpoints/createClient';
 import { metaEndpoints } from '../core/endpoints/metaEndpoints';
 import { logInfo, logError } from '../core/logger/loggerUtil';
 
 export class MetaClient {
     private api: ReturnType<typeof createClient<typeof metaEndpoints>>;
-    private client: ApiClient;
+    private _client: ApiClient;
+    private _metaApi?: ReturnType<typeof createClient<typeof metaEndpoints>>;
 
     constructor(client: ApiClient) {
-        this.client = client;
+        this._client = client;
         this.api = createClient(client, metaEndpoints);
     }
 
-    async getOpenApiJson(): Promise<any> {
+    /**
+     * Retrieves the ESI OpenAPI specification in JSON format.
+     *
+     * @returns The full ESI OpenAPI specification as a JSON object
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async getOpenApiJson(): Promise<Record<string, any>> {
         return this.api.getOpenApiJson();
     }
 
+    /**
+     * Retrieves the ESI OpenAPI specification in YAML format.
+     *
+     * @returns The full ESI OpenAPI specification as a YAML string
+     */
     async getOpenApiYaml(): Promise<string> {
-        const url = `${this.client.getLink()}/meta/openapi.yaml`;
+        const url = `${this._client.getLink()}/meta/openapi.yaml`;
 
         logInfo(`Hitting endpoint: ${url}`);
 
@@ -45,5 +57,12 @@ export class MetaClient {
                 throw new Error(String(error));
             }
         }
+    }
+
+    withMetadata(): WithMetadata<Omit<MetaClient, 'withMetadata'>> {
+        if (!this._metaApi) {
+            this._metaApi = createClient(this._client, metaEndpoints, { returnMetadata: true });
+        }
+        return this._metaApi as unknown as WithMetadata<Omit<MetaClient, 'withMetadata'>>;
     }
 }

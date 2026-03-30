@@ -1,3 +1,15 @@
+// Response metadata types
+export interface EsiResponseMeta {
+    headers: Record<string, string>;
+    fromCache: boolean;
+    stale: boolean;
+}
+
+export interface EsiResponse<T> {
+    data: T;
+    meta: EsiResponseMeta;
+}
+
 // Alliance Types
 export interface AllianceInfo {
     alliance_id: number;
@@ -884,6 +896,348 @@ export interface FreelanceJobDetail {
         acl_protected: boolean;
         broadcast_locations: { id: number; name: string }[];
     };
+}
+
+// Universe Sub-types (celestials)
+export interface AsteroidBeltInfo {
+    name: string;
+    position: { x: number; y: number; z: number };
+    system_id: number;
+}
+
+export interface GraphicInfo {
+    graphic_id: number;
+    collision_file?: string;
+    graphic_file?: string;
+    icon_folder?: string;
+    sofico_folder?: string;
+}
+
+export interface ItemCategory {
+    category_id: number;
+    name: string;
+    groups: number[];
+    published: boolean;
+}
+
+export interface ItemGroup {
+    group_id: number;
+    name: string;
+    category_id: number;
+    types: number[];
+    published: boolean;
+}
+
+export interface MoonInfo {
+    moon_id: number;
+    name: string;
+    system_id: number;
+    position: { x: number; y: number; z: number };
+}
+
+export interface PlanetInfo {
+    planet_id: number;
+    name: string;
+    system_id: number;
+    type_id: number;
+    position: { x: number; y: number; z: number };
+}
+
+export interface StarInfo {
+    star_id: number;
+    solar_system_id: number;
+    name: string;
+    type_id: number;
+    age: number;
+    luminosity: number;
+    radius: number;
+    spectral_class: string;
+    temperature: number;
+}
+
+export interface StargateInfo {
+    stargate_id: number;
+    name: string;
+    system_id: number;
+    type_id: number;
+    position: { x: number; y: number; z: number };
+    destination: { system_id: number; stargate_id: number };
+}
+
+export interface StructureInfo {
+    structure_id: number;
+    name: string;
+    owner_id: number;
+    solar_system_id: number;
+    type_id?: number;
+    position?: { x: number; y: number; z: number };
+}
+
+export interface SystemJump {
+    system_id: number;
+    ship_jumps: number;
+}
+
+export interface SystemKill {
+    system_id: number;
+    npc_kills: number;
+    pod_kills: number;
+    ship_kills: number;
+}
+
+export interface BulkIdResult {
+    agents?: { id: number; name: string }[];
+    alliances?: { id: number; name: string }[];
+    characters?: { id: number; name: string }[];
+    constellations?: { id: number; name: string }[];
+    corporations?: { id: number; name: string }[];
+    factions?: { id: number; name: string }[];
+    inventory_types?: { id: number; name: string }[];
+    regions?: { id: number; name: string }[];
+    systems?: { id: number; name: string }[];
+    stations?: { id: number; name: string }[];
+}
+
+export interface NameAndCategory {
+    id: number;
+    name: string;
+    category: 'alliance' | 'character' | 'constellation' | 'corporation' | 'inventory_type' | 'region' | 'solar_system' | 'station' | 'faction';
+}
+
+export interface SchematicInfo {
+    schematic_name: string;
+    cycle_time: number;
+}
+
+// Corporation Sub-types (extended)
+export interface CorporationDivisions {
+    hangar?: { division: number; name?: string }[];
+    wallet?: { division: number; name?: string }[];
+}
+
+export interface CorporationFacility {
+    facility_id: number;
+    type_id: number;
+    system_id: number;
+}
+
+export interface CorporationIssuedMedal {
+    medal_id: number;
+    title: string;
+    description: string;
+    character_id: number;
+    issued_at: string;
+    issuer_id: number;
+    reason: string;
+    status: 'private' | 'public';
+}
+
+export interface CorporationMemberTitle {
+    character_id: number;
+    titles: number[];
+}
+
+export interface CorporationMemberTracking {
+    character_id: number;
+    start_date: string;
+    base_id?: number;
+    location_id?: number;
+    logoff_date?: string;
+    logon_date?: string;
+    online?: boolean;
+    ship_type_id?: number;
+}
+
+export interface CorporationMemberRole {
+    character_id: number;
+    roles?: string[];
+    grantable_roles?: string[];
+    roles_at_hq?: string[];
+    grantable_roles_at_hq?: string[];
+    roles_at_base?: string[];
+    grantable_roles_at_base?: string[];
+    roles_at_other?: string[];
+    grantable_roles_at_other?: string[];
+}
+
+export interface CorporationRoleHistory {
+    character_id: number;
+    changed_at: string;
+    issuer_id: number;
+    role_type: string;
+    before: string[];
+    after: string[];
+}
+
+export interface CorporationShareholder {
+    shareholder_id: number;
+    shareholder_type: 'character' | 'corporation';
+    share_count: number;
+}
+
+export interface CorporationStarbaseDetail {
+    state: 'offline' | 'online' | 'onlining' | 'reinforced' | 'unanchoring';
+    fuels?: { type_id: number; quantity: number }[];
+    allow_alliance_members?: boolean;
+    allow_corporation_members?: boolean;
+    anchor?: string;
+    attack_if_at_war?: boolean;
+    attack_if_other_security_status_dropping?: boolean;
+    attack_security_status_threshold?: number;
+    fuel_bay_take?: string;
+    fuel_bay_view?: string;
+    offline?: string;
+    online?: string;
+    unanchor?: string;
+    use_alliance_standings?: boolean;
+}
+
+export interface CorporationStructure {
+    structure_id: number;
+    corporation_id: number;
+    type_id: number;
+    system_id: number;
+    profile_id: number;
+    services?: { name: string; state: 'online' | 'offline' | 'cleanup' }[];
+    fuel_expires?: string;
+    state: string;
+    state_timer_start?: string;
+    state_timer_end?: string;
+    unanchors_at?: string;
+    reinforce_hour?: number;
+    next_reinforce_apply?: string;
+}
+
+export interface CorporationTitle {
+    title_id: number;
+    name?: string;
+    roles?: string[];
+    grantable_roles?: string[];
+    roles_at_hq?: string[];
+    grantable_roles_at_hq?: string[];
+    roles_at_base?: string[];
+    grantable_roles_at_base?: string[];
+    roles_at_other?: string[];
+    grantable_roles_at_other?: string[];
+}
+
+export interface ContainerLog {
+    logged_at: string;
+    container_id: number;
+    container_type_id: number;
+    character_id: number;
+    location_id: number;
+    location_flag: string;
+    action: string;
+    password_type?: 'config' | 'general';
+    type_id?: number;
+    quantity?: number;
+    old_config_bitmask?: number;
+    new_config_bitmask?: number;
+}
+
+// Faction Warfare Sub-types (extended)
+export interface FactionWarfareLeaderboard {
+    kills: {
+        yesterday: { amount: number; id?: number }[];
+        last_week: { amount: number; id?: number }[];
+        active_total: { amount: number; id?: number }[];
+    };
+    victory_points: {
+        yesterday: { amount: number; id?: number }[];
+        last_week: { amount: number; id?: number }[];
+        active_total: { amount: number; id?: number }[];
+    };
+}
+
+export interface FactionWarfareCorporationStats {
+    faction_id?: number;
+    enlisted_on?: string;
+    pilots?: number;
+    kills: { yesterday: number; last_week: number; total: number };
+    victory_points: { yesterday: number; last_week: number; total: number };
+}
+
+// Industry Sub-types (extended)
+export interface MoonExtractionTimer {
+    structure_id: number;
+    moon_id: number;
+    extraction_start_time: string;
+    chunk_arrival_time: string;
+    natural_decay_time: string;
+}
+
+export interface MiningObserver {
+    observer_id: number;
+    observer_type: string;
+    last_updated: string;
+}
+
+export interface MiningObserverEntry {
+    character_id: number;
+    recorded_corporation_id: number;
+    type_id: number;
+    quantity: number;
+    last_updated: string;
+}
+
+// PI Sub-types (extended)
+export interface ColonyLayout {
+    links: { source_pin_id: number; destination_pin_id: number; link_level: number }[];
+    pins: {
+        pin_id: number;
+        type_id: number;
+        latitude: number;
+        longitude: number;
+        schematic_id?: number;
+        extractor_details?: {
+            heads: { head_id: number; latitude: number; longitude: number }[];
+            product_type_id?: number;
+            cycle_time?: number;
+            head_radius?: number;
+            qty_per_cycle?: number;
+        };
+        factory_details?: { schematic_id: number };
+        contents?: { type_id: number; amount: number }[];
+        install_time?: string;
+        expiry_time?: string;
+        last_cycle_start?: string;
+    }[];
+    routes: {
+        route_id: number;
+        source_pin_id: number;
+        destination_pin_id: number;
+        content_type_id: number;
+        quantity: number;
+        waypoints?: number[];
+    }[];
+}
+
+// Freelance Jobs Sub-types (extended)
+export interface CharacterFreelanceJobsListing {
+    cursor: EsiCursor;
+    freelance_jobs: FreelanceJobSummary[];
+}
+
+export interface FreelanceJobParticipation {
+    job_id: string;
+    character_id: number;
+    status: string;
+    contributions: number;
+    last_contribution?: string;
+}
+
+export interface CorporationFreelanceJobsListing {
+    cursor: EsiCursor;
+    freelance_jobs: FreelanceJobSummary[];
+}
+
+export interface FreelanceJobParticipant {
+    character_id: number;
+    corporation_id: number;
+    status: string;
+    contributions: number;
+    last_contribution?: string;
 }
 
 // Character Sub-types
