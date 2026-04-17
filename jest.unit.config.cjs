@@ -13,7 +13,7 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
   },
   testMatch: [
     '<rootDir>/tests/tdd/**/*.test.ts',
@@ -26,9 +26,4 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.d.ts',
   ],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-    },
-  },
 };

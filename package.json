@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -40,8 +40,8 @@
     "docs": "typedoc --options typedoc.json",
     "docs:watch": "typedoc --options typedoc.json --watch",
     "docs:serve": "npx http-server docs -p 8080 -o",
-    "clean": "rimraf dist coverage docs",
-    "clean:docs": "rimraf docs",
+    "clean": "rm -rf dist coverage docs",
+    "clean:docs": "rm -rf docs",
     "prepare": "npm run build",
     "health-check": "ts-node -e \"import('./src/EsiClient').then(({EsiClient}) => new EsiClient().healthCheck().then(console.log))\""
   },
@@ -53,13 +53,10 @@
     "url": "https://github.com/lgriffin/ESI.ts"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.20",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.19.17",
-    "@types/winston": "^2.4.4",
+    "@types/node": "^24.0.3",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
-    "chai": "^5.3.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
