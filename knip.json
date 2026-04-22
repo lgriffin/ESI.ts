@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "project": ["src/**/*.ts"],
+  "ignoreDependencies": ["eslint-plugin-prettier", "jest-junit"],
+  "exclude": ["unresolved"]
+}

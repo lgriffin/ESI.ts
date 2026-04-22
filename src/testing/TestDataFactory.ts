@@ -1,6 +1,7 @@
-import { 
-  AllianceInfo, 
-  CharacterInfo, 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  AllianceInfo,
+  CharacterInfo,
   CorporationInfo,
   AllianceContact,
   AllianceContactLabel,
@@ -8,15 +9,16 @@ import {
   CharacterAttributes,
   CharacterSkill,
   MarketOrder,
-  MarketHistory,
   WalletTransaction,
-  Contract
+  Contract,
 } from '../types/api-responses';
 import { EsiError } from '../core/util/error';
 
 export class TestDataFactory {
   // Alliance test data
-  static createAllianceInfo(overrides: Partial<AllianceInfo> = {}): AllianceInfo {
+  static createAllianceInfo(
+    overrides: Partial<AllianceInfo> = {},
+  ): AllianceInfo {
     return {
       alliance_id: 99005338,
       name: 'Goonswarm Federation',
@@ -26,30 +28,36 @@ export class TestDataFactory {
       executor_corporation_id: 1344654522,
       date_founded: '2010-06-01T00:00:00Z',
       faction_id: 500001,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createAllianceContact(overrides: Partial<AllianceContact> = {}): AllianceContact {
+  static createAllianceContact(
+    overrides: Partial<AllianceContact> = {},
+  ): AllianceContact {
     return {
       contact_id: 1689391488,
       contact_type: 'character',
       standing: 10.0,
       label_ids: [1, 2],
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createAllianceContactLabel(overrides: Partial<AllianceContactLabel> = {}): AllianceContactLabel {
+  static createAllianceContactLabel(
+    overrides: Partial<AllianceContactLabel> = {},
+  ): AllianceContactLabel {
     return {
       label_id: 1,
       label_name: 'Friendly',
-      ...overrides
+      ...overrides,
     };
   }
 
   // Character test data
-  static createCharacterInfo(overrides: Partial<CharacterInfo> = {}): CharacterInfo {
+  static createCharacterInfo(
+    overrides: Partial<CharacterInfo> = {},
+  ): CharacterInfo {
     return {
       character_id: 1689391488,
       name: 'Test Character',
@@ -62,20 +70,24 @@ export class TestDataFactory {
       description: 'A test character for BDD scenarios',
       security_status: 5.0,
       title: 'Test Pilot',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterPortrait(characterId: number = 1689391488): CharacterPortrait {
+  static createCharacterPortrait(
+    characterId: number = 1689391488,
+  ): CharacterPortrait {
     return {
       px64x64: `https://images.evetech.net/characters/${characterId}/portrait?size=64`,
       px128x128: `https://images.evetech.net/characters/${characterId}/portrait?size=128`,
       px256x256: `https://images.evetech.net/characters/${characterId}/portrait?size=256`,
-      px512x512: `https://images.evetech.net/characters/${characterId}/portrait?size=512`
+      px512x512: `https://images.evetech.net/characters/${characterId}/portrait?size=512`,
     };
   }
 
-  static createCharacterAttributes(overrides: Partial<CharacterAttributes> = {}): CharacterAttributes {
+  static createCharacterAttributes(
+    overrides: Partial<CharacterAttributes> = {},
+  ): CharacterAttributes {
     return {
       charisma: 20,
       intelligence: 24,
@@ -85,41 +97,45 @@ export class TestDataFactory {
       bonus_remaps: 2,
       last_remap_date: '2023-01-01T00:00:00Z',
       accrued_remap_cooldown_date: '2024-01-01T00:00:00Z',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterSkill(overrides: Partial<CharacterSkill> = {}): CharacterSkill {
+  static createCharacterSkill(
+    overrides: Partial<CharacterSkill> = {},
+  ): CharacterSkill {
     return {
       skill_id: 3300,
       skillpoints_in_skill: 256000,
       trained_skill_level: 5,
       active_skill_level: 5,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterRoles(overrides: any = {}): any {
+  static createCharacterRoles(overrides: Record<string, any> = {}): any {
     return {
       roles: ['Director'],
       roles_at_base: [],
       roles_at_hq: ['Director'],
       roles_at_other: [],
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCorporationHistoryEntry(overrides: any = {}): any {
+  static createCorporationHistoryEntry(
+    overrides: Record<string, any> = {},
+  ): any {
     return {
       corporation_id: 1344654522,
       is_deleted: false,
       record_id: 1,
       start_date: '2020-01-01T00:00:00Z',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterMedal(overrides: any = {}): any {
+  static createCharacterMedal(overrides: Record<string, any> = {}): any {
     return {
       medal_id: 1,
       title: 'Test Medal',
@@ -128,11 +144,11 @@ export class TestDataFactory {
       date: '2023-01-01T00:00:00Z',
       issuer_id: 1689391489,
       reason: 'Outstanding service',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterNotification(overrides: any = {}): any {
+  static createCharacterNotification(overrides: Record<string, any> = {}): any {
     return {
       notification_id: 1000001,
       sender_id: 1689391489,
@@ -141,33 +157,33 @@ export class TestDataFactory {
       timestamp: '2024-01-15T12:00:00Z',
       type: 'AllWarDeclaredMsg',
       is_read: false,
-      ...overrides
+      ...overrides,
     };
   }
 
   // Market test data
-  static createMarketPrice(overrides: any = {}): any {
+  static createMarketPrice(overrides: Record<string, any> = {}): any {
     return {
       type_id: 34,
-      average_price: 4.50,
+      average_price: 4.5,
       adjusted_price: 4.55,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createMarketHistory(overrides: any = {}): any {
+  static createMarketHistory(overrides: Record<string, any> = {}): any {
     return {
       date: '2024-01-15',
       volume: 1000000000,
       order_count: 2500,
-      lowest: 4.20,
-      highest: 4.80,
-      average: 4.50,
-      ...overrides
+      lowest: 4.2,
+      highest: 4.8,
+      average: 4.5,
+      ...overrides,
     };
   }
 
-  static createCharacterMarketOrder(overrides: any = {}): any {
+  static createCharacterMarketOrder(overrides: Record<string, any> = {}): any {
     return {
       order_id: 5000000001,
       type_id: 34,
@@ -177,16 +193,16 @@ export class TestDataFactory {
       volume_total: 1000000,
       volume_remain: 750000,
       min_volume: 1,
-      price: 4.50,
+      price: 4.5,
       is_buy_order: true,
       duration: 90,
       issued: '2024-01-15T12:00:00Z',
       state: 'open',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterOrderHistory(overrides: any = {}): any {
+  static createCharacterOrderHistory(overrides: Record<string, any> = {}): any {
     return {
       order_id: 5000000001,
       type_id: 34,
@@ -196,17 +212,17 @@ export class TestDataFactory {
       volume_total: 1000000,
       volume_remain: 0,
       min_volume: 1,
-      price: 4.50,
+      price: 4.5,
       is_buy_order: true,
       duration: 90,
       issued: '2024-01-10T12:00:00Z',
       state: 'closed',
-      ...overrides
+      ...overrides,
     };
   }
 
   // Universe test data
-  static createSolarSystem(overrides: any = {}): any {
+  static createSolarSystem(overrides: Record<string, any> = {}): any {
     return {
       system_id: 30000142,
       name: 'Jita',
@@ -217,13 +233,13 @@ export class TestDataFactory {
       stations: [60003760, 60003761],
       planets: [
         { planet_id: 40000001, moons: [40000002, 40000003] },
-        { planet_id: 40000004, moons: [40000005] }
+        { planet_id: 40000004, moons: [40000005] },
       ],
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createStation(overrides: any = {}): any {
+  static createStation(overrides: Record<string, any> = {}): any {
     return {
       station_id: 60003760,
       name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
@@ -235,12 +251,19 @@ export class TestDataFactory {
       reprocessing_stations_take: 0.05,
       max_dockable_ship_volume: 50000000,
       office_rental_cost: 10000000,
-      services: ['bounty-missions', 'courier-missions', 'interbus', 'reprocessing-plant', 'market', 'stock-exchange'],
-      ...overrides
+      services: [
+        'bounty-missions',
+        'courier-missions',
+        'interbus',
+        'reprocessing-plant',
+        'market',
+        'stock-exchange',
+      ],
+      ...overrides,
     };
   }
 
-  static createStructure(overrides: any = {}): any {
+  static createStructure(overrides: Record<string, any> = {}): any {
     return {
       structure_id: 1021975535893,
       name: 'Test Citadel',
@@ -248,11 +271,11 @@ export class TestDataFactory {
       solar_system_id: 30000142,
       type_id: 35832,
       position: { x: 1000000000, y: 2000000000, z: 3000000000 },
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createItemType(overrides: any = {}): any {
+  static createItemType(overrides: Record<string, any> = {}): any {
     return {
       type_id: 34,
       name: 'Tritanium',
@@ -266,22 +289,22 @@ export class TestDataFactory {
       portion_size: 1,
       radius: 1.0,
       published: true,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createItemGroup(overrides: any = {}): any {
+  static createItemGroup(overrides: Record<string, any> = {}): any {
     return {
       group_id: 18,
       name: 'Mineral',
       category_id: 4,
       published: true,
       types: [34, 35, 36, 37, 38, 39, 40, 11399],
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createStar(overrides: any = {}): any {
+  static createStar(overrides: Record<string, any> = {}): any {
     return {
       star_id: 40000001,
       name: 'Jita - Star',
@@ -292,22 +315,22 @@ export class TestDataFactory {
       radius: 62140000,
       spectral_class: 'K2 V',
       temperature: 4567,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createPlanet(overrides: any = {}): any {
+  static createPlanet(overrides: Record<string, any> = {}): any {
     return {
       planet_id: 40000004,
       name: 'Jita IV',
       type_id: 11,
       system_id: 30000142,
       position: { x: 150000000000, y: 0, z: 0 },
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createSearchResults(overrides: any = {}): any {
+  static createSearchResults(overrides: Record<string, any> = {}): any {
     return {
       systems: [],
       stations: [],
@@ -315,21 +338,23 @@ export class TestDataFactory {
       characters: [],
       corporations: [],
       alliances: [],
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createEntityName(overrides: any = {}): any {
+  static createEntityName(overrides: Record<string, any> = {}): any {
     return {
       id: 30000142,
       name: 'Jita',
       category: 'solar_system',
-      ...overrides
+      ...overrides,
     };
   }
 
   // Corporation test data
-  static createCorporationMemberRoles(overrides: any = {}): any {
+  static createCorporationMemberRoles(
+    overrides: Record<string, any> = {},
+  ): any {
     return {
       character_id: 1689391488,
       roles: ['Director', 'Personnel_Manager'],
@@ -337,11 +362,11 @@ export class TestDataFactory {
       roles_at_hq: ['Director'],
       roles_at_base: [],
       roles_at_other: [],
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCorporationAsset(overrides: any = {}): any {
+  static createCorporationAsset(overrides: Record<string, any> = {}): any {
     return {
       item_id: 1000000000001,
       type_id: 587,
@@ -349,11 +374,11 @@ export class TestDataFactory {
       location_id: 60003760,
       location_flag: 'CorpSAG1',
       location_type: 'station',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCorporationStructure(overrides: any = {}): any {
+  static createCorporationStructure(overrides: Record<string, any> = {}): any {
     return {
       structure_id: 1021975535893,
       type_id: 35832,
@@ -363,34 +388,34 @@ export class TestDataFactory {
       state_timer_start: '2024-01-15T12:00:00Z',
       state_timer_end: '2024-01-22T12:00:00Z',
       state: 'shield_vulnerable',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCorporationWallet(overrides: any = {}): any {
+  static createCorporationWallet(overrides: Record<string, any> = {}): any {
     return {
       division: 1,
-      balance: 1000000000.00,
-      ...overrides
+      balance: 1000000000.0,
+      ...overrides,
     };
   }
 
-  static createWalletJournalEntry(overrides: any = {}): any {
+  static createWalletJournalEntry(overrides: Record<string, any> = {}): any {
     return {
       id: 1000000001,
       date: '2024-01-15T12:00:00Z',
       ref_type: 'market_transaction',
       first_party_id: 1344654522,
-      amount: 1000000.00,
-      balance: 1000000000.00,
+      amount: 1000000.0,
+      balance: 1000000000.0,
       reason: 'Market transaction',
       description: 'Sold items on market',
-      ...overrides
+      ...overrides,
     };
   }
 
   // Fleet test data
-  static createFleetInfo(overrides: any = {}): any {
+  static createFleetInfo(overrides: Record<string, any> = {}): any {
     return {
       fleet_id: 1234567890,
       fleet_boss_id: 1689391488,
@@ -398,34 +423,32 @@ export class TestDataFactory {
       is_registered: true,
       is_voice_enabled: true,
       motd: 'Fleet operations in progress',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createFleetMember(overrides: any = {}): any {
+  static createFleetMember(overrides: Record<string, any> = {}): any {
     return {
       character_id: 1689391488,
       role: 'fleet_commander',
       ship_type_id: 17918,
       solar_system_id: 30000142,
       station_id: 60003760,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createFleetWing(overrides: any = {}): any {
+  static createFleetWing(overrides: Record<string, any> = {}): any {
     return {
       wing_id: 987654321,
       name: 'Wing 1',
-      squads: [
-        { squad_id: 123456789, name: 'Squad 1' }
-      ],
-      ...overrides
+      squads: [{ squad_id: 123456789, name: 'Squad 1' }],
+      ...overrides,
     };
   }
 
   // Industry test data
-  static createIndustryJob(overrides: any = {}): any {
+  static createIndustryJob(overrides: Record<string, any> = {}): any {
     return {
       job_id: 1000001,
       installer_id: 1689391488,
@@ -438,11 +461,11 @@ export class TestDataFactory {
       status: 'active',
       start_date: '2024-01-15T12:00:00Z',
       end_date: '2024-01-16T12:00:00Z',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createBlueprint(overrides: any = {}): any {
+  static createBlueprint(overrides: Record<string, any> = {}): any {
     return {
       item_id: 1000000001,
       type_id: 17918,
@@ -452,11 +475,11 @@ export class TestDataFactory {
       time_efficiency: 10,
       material_efficiency: 10,
       runs: 100,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterAsset(overrides: any = {}): any {
+  static createCharacterAsset(overrides: Record<string, any> = {}): any {
     return {
       item_id: 1000000002,
       type_id: 34,
@@ -464,33 +487,45 @@ export class TestDataFactory {
       location_id: 60003760,
       location_flag: 'Hangar',
       location_type: 'station',
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterLocation(overrides: any = {}): any {
+  static createCharacterLocation(overrides: Record<string, any> = {}): any {
     return {
       solar_system_id: 30000142,
       station_id: 60003760,
       structure_id: undefined,
-      ...overrides
+      ...overrides,
     };
   }
 
-  static createCharacterSkills(overrides: any = {}): any {
+  static createCharacterSkills(overrides: Record<string, any> = {}): any {
     return {
       skills: [
-        { skill_id: 3300, skillpoints_in_skill: 256000, trained_skill_level: 5, active_skill_level: 5 },
-        { skill_id: 3301, skillpoints_in_skill: 128000, trained_skill_level: 4, active_skill_level: 4 }
+        {
+          skill_id: 3300,
+          skillpoints_in_skill: 256000,
+          trained_skill_level: 5,
+          active_skill_level: 5,
+        },
+        {
+          skill_id: 3301,
+          skillpoints_in_skill: 128000,
+          trained_skill_level: 4,
+          active_skill_level: 4,
+        },
       ],
       total_sp: 384000,
       unallocated_sp: 0,
-      ...overrides
+      ...overrides,
     };
   }
 
   // Corporation test data
-  static createCorporationInfo(overrides: Partial<CorporationInfo> = {}): CorporationInfo {
+  static createCorporationInfo(
+    overrides: Partial<CorporationInfo> = {},
+  ): CorporationInfo {
     return {
       corporation_id: 1344654522,
       name: 'GoonWaffe',
@@ -504,10 +539,11 @@ export class TestDataFactory {
       description: 'The founding corporation of Goonswarm Federation',
       home_station_id: 60003760,
       shares: 1000,
+      // eslint-disable-next-line sonarjs/no-clear-text-protocols
       url: 'http://www.goonfleet.com/',
       faction_id: 500001,
       war_eligible: true,
-      ...overrides
+      ...overrides,
     };
   }
 
@@ -520,30 +556,31 @@ export class TestDataFactory {
       volume_total: 1000000,
       volume_remain: 500000,
       min_volume: 1,
-      price: 5.50,
+      price: 5.5,
       is_buy_order: false,
       duration: 90,
       issued: '2023-12-01T12:00:00Z',
       range: 'region',
-      ...overrides
+      ...overrides,
     };
   }
 
-
   // Wallet test data
-  static createWalletTransaction(overrides: Partial<WalletTransaction> = {}): WalletTransaction {
+  static createWalletTransaction(
+    overrides: Partial<WalletTransaction> = {},
+  ): WalletTransaction {
     return {
       transaction_id: 123456789,
       date: '2023-12-01T12:00:00Z',
       type_id: 34,
       location_id: 60003760,
-      unit_price: 5.50,
+      unit_price: 5.5,
       quantity: 1000,
       client_id: 1689391488,
       is_buy: false,
       is_personal: true,
       journal_ref_id: 987654321,
-      ...overrides
+      ...overrides,
     };
   }
 
@@ -568,7 +605,7 @@ export class TestDataFactory {
       reward: 500000,
       collateral: 10000000,
       volume: 1000,
-      ...overrides
+      ...overrides,
     };
   }
 
@@ -583,7 +620,11 @@ export class TestDataFactory {
       500: 'Internal server error',
       503: 'Service unavailable',
     };
-    return new EsiError(statusCode, message || defaultMessages[statusCode] || 'Unknown error');
+    return new EsiError(
+      statusCode,
+      // eslint-disable-next-line security/detect-object-injection
+      message || defaultMessages[statusCode] || 'Unknown error',
+    );
   }
 
   // Test scenarios
@@ -594,79 +635,144 @@ export class TestDataFactory {
         { id: 99000001, name: 'Test Alliance Please Ignore', ticker: 'TEST' },
         { id: 99000002, name: 'Brave Collective', ticker: 'BRAVE' },
         { id: 99000003, name: 'Pandemic Legion', ticker: 'PL' },
-        { id: 99000004, name: 'Northern Coalition.', ticker: 'NC.' }
+        { id: 99000004, name: 'Northern Coalition.', ticker: 'NC.' },
       ],
       characters: [
-        { id: 1689391488, name: 'Test Character', corp: 1344654522, alliance: 99005338 },
-        { id: 123456789, name: 'Demo Pilot', corp: 987654321, alliance: 99000001 },
-        { id: 111111111, name: 'Alpha Tester', corp: 222222222, alliance: 99000002 },
-        { id: 333333333, name: 'Beta User', corp: 444444444, alliance: 99000003 },
-        { id: 555555555, name: 'Gamma Pilot', corp: 666666666, alliance: 99000004 }
+        {
+          id: 1689391488,
+          name: 'Test Character',
+          corp: 1344654522,
+          alliance: 99005338,
+        },
+        {
+          id: 123456789,
+          name: 'Demo Pilot',
+          corp: 987654321,
+          alliance: 99000001,
+        },
+        {
+          id: 111111111,
+          name: 'Alpha Tester',
+          corp: 222222222,
+          alliance: 99000002,
+        },
+        {
+          id: 333333333,
+          name: 'Beta User',
+          corp: 444444444,
+          alliance: 99000003,
+        },
+        {
+          id: 555555555,
+          name: 'Gamma Pilot',
+          corp: 666666666,
+          alliance: 99000004,
+        },
       ],
       corporations: [
-        { id: 1344654522, name: 'GoonWaffe', ticker: 'GEWNS', alliance: 99005338 },
-        { id: 987654321, name: 'Test Corp Please Ignore', ticker: 'TCPI', alliance: 99000001 },
-        { id: 222222222, name: 'Brave Newbies Inc.', ticker: 'BNI', alliance: 99000002 },
-        { id: 444444444, name: 'Sniggerdly', ticker: 'SNIGG', alliance: 99000003 },
-        { id: 666666666, name: 'Tactical Narcotics Team', ticker: 'TNT', alliance: 99000004 }
+        {
+          id: 1344654522,
+          name: 'GoonWaffe',
+          ticker: 'GEWNS',
+          alliance: 99005338,
+        },
+        {
+          id: 987654321,
+          name: 'Test Corp Please Ignore',
+          ticker: 'TCPI',
+          alliance: 99000001,
+        },
+        {
+          id: 222222222,
+          name: 'Brave Newbies Inc.',
+          ticker: 'BNI',
+          alliance: 99000002,
+        },
+        {
+          id: 444444444,
+          name: 'Sniggerdly',
+          ticker: 'SNIGG',
+          alliance: 99000003,
+        },
+        {
+          id: 666666666,
+          name: 'Tactical Narcotics Team',
+          ticker: 'TNT',
+          alliance: 99000004,
+        },
       ],
       errorScenarios: [
         { statusCode: 0, label: 'network_error', probability: 0.1 },
         { statusCode: 429, label: 'rate_limited', probability: 0.05 },
         { statusCode: 500, label: 'server_error', probability: 0.02 },
         { statusCode: 504, label: 'timeout', probability: 0.03 },
-        { statusCode: 404, label: 'not_found', probability: 0.01 }
-      ]
+        { statusCode: 404, label: 'not_found', probability: 0.01 },
+      ],
     };
   }
 
   // Performance test data
-  static createPerformanceTestData(size: 'small' | 'medium' | 'large' = 'medium') {
+  static createPerformanceTestData(
+    size: 'small' | 'medium' | 'large' = 'medium',
+  ) {
     const sizes = {
       small: { alliances: 5, characters: 20, corporations: 10 },
       medium: { alliances: 20, characters: 100, corporations: 50 },
-      large: { alliances: 100, characters: 1000, corporations: 500 }
+      large: { alliances: 100, characters: 1000, corporations: 500 },
     };
 
+    // eslint-disable-next-line security/detect-object-injection
     const config = sizes[size];
     const data = {
       alliances: [] as AllianceInfo[],
       characters: [] as CharacterInfo[],
-      corporations: [] as CorporationInfo[]
+      corporations: [] as CorporationInfo[],
     };
 
     // Generate alliances
     for (let i = 1; i <= config.alliances; i++) {
-      data.alliances.push(this.createAllianceInfo({
-        alliance_id: 99000000 + i,
-        name: `Test Alliance ${i}`,
-        ticker: `TST${i.toString().padStart(2, '0')}`,
-        creator_id: 1000000 + i
-      }));
+      data.alliances.push(
+        this.createAllianceInfo({
+          alliance_id: 99000000 + i,
+          name: `Test Alliance ${i}`,
+          ticker: `TST${i.toString().padStart(2, '0')}`,
+          creator_id: 1000000 + i,
+        }),
+      );
     }
 
     // Generate corporations
     for (let i = 1; i <= config.corporations; i++) {
-      const allianceIndex = Math.floor((i - 1) / (config.corporations / config.alliances));
-      data.corporations.push(this.createCorporationInfo({
-        corporation_id: 2000000 + i,
-        name: `Test Corporation ${i}`,
-        ticker: `TC${i.toString().padStart(3, '0')}`,
-        alliance_id: data.alliances[allianceIndex]?.alliance_id,
-        ceo_id: 3000000 + i
-      }));
+      const allianceIndex = Math.floor(
+        (i - 1) / (config.corporations / config.alliances),
+      );
+      data.corporations.push(
+        this.createCorporationInfo({
+          corporation_id: 2000000 + i,
+          name: `Test Corporation ${i}`,
+          ticker: `TC${i.toString().padStart(3, '0')}`,
+          // eslint-disable-next-line security/detect-object-injection
+          alliance_id: data.alliances[allianceIndex]?.alliance_id,
+          ceo_id: 3000000 + i,
+        }),
+      );
     }
 
     // Generate characters
     for (let i = 1; i <= config.characters; i++) {
-      const corpIndex = Math.floor((i - 1) / (config.characters / config.corporations));
+      const corpIndex = Math.floor(
+        (i - 1) / (config.characters / config.corporations),
+      );
+      // eslint-disable-next-line security/detect-object-injection
       const corp = data.corporations[corpIndex];
-      data.characters.push(this.createCharacterInfo({
-        character_id: 3000000 + i,
-        name: `Test Character ${i}`,
-        corporation_id: corp?.corporation_id || 2000001,
-        alliance_id: corp?.alliance_id
-      }));
+      data.characters.push(
+        this.createCharacterInfo({
+          character_id: 3000000 + i,
+          name: `Test Character ${i}`,
+          corporation_id: corp?.corporation_id || 2000001,
+          alliance_id: corp?.alliance_id,
+        }),
+      );
     }
 
     return data;
@@ -681,7 +787,7 @@ export class TestDataFactory {
       creator_id: 1689391488,
       creator_corporation_id: 1344654522,
       executor_corporation_id: 1344654522,
-      date_founded: '2010-06-01T00:00:00Z'
+      date_founded: '2010-06-01T00:00:00Z',
     });
 
     const goonwaffe = this.createCorporationInfo({
@@ -692,7 +798,7 @@ export class TestDataFactory {
       ceo_id: 1689391488,
       creator_id: 1689391488,
       member_count: 15000,
-      date_founded: '2003-05-06T00:00:00Z'
+      date_founded: '2003-05-06T00:00:00Z',
     });
 
     const testCharacter = this.createCharacterInfo({
@@ -700,7 +806,7 @@ export class TestDataFactory {
       name: 'The Mittani',
       corporation_id: 1344654522,
       alliance_id: 99005338,
-      birthday: '2003-05-06T00:00:00Z'
+      birthday: '2003-05-06T00:00:00Z',
     });
 
     return {
@@ -710,8 +816,12 @@ export class TestDataFactory {
       relationships: {
         allianceExecutor: { alliance: 99005338, corporation: 1344654522 },
         corporationCEO: { corporation: 1344654522, character: 1689391488 },
-        characterMembership: { character: 1689391488, corporation: 1344654522, alliance: 99005338 }
-      }
+        characterMembership: {
+          character: 1689391488,
+          corporation: 1344654522,
+          alliance: 99005338,
+        },
+      },
     };
   }
 }

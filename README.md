@@ -4,6 +4,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue)](https://www.typescriptlang.org/)
 [![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
+[![PR Validation](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml)
 
 A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/).
 
@@ -11,7 +12,7 @@ A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.n
 - ETag caching with Cache-Control TTL, stale-on-error, and write invalidation
 - Automatic offset-based pagination and cursor-based pagination support
 - Rate limiting with header-driven backoff
-- 29 domain clients covering the full ESI surface
+- 32 domain clients covering the full ESI surface
 
 ## Installation
 
@@ -66,17 +67,17 @@ await client.shutdown();
 
 ```typescript
 const client = new EsiClient({
-  clientId: 'my-app',              // User-Agent identifier (default: 'esi-client')
-  accessToken: 'your-token',       // EVE SSO token for authenticated endpoints
+  clientId: 'my-app', // User-Agent identifier (default: 'esi-client')
+  accessToken: 'your-token', // EVE SSO token for authenticated endpoints
   baseUrl: 'https://esi.evetech.net', // ESI base URL (default)
-  timeout: 30000,                  // Request timeout in ms (default: 30000)
-  retryAttempts: 3,                // Retry count (default: 3)
-  enableETagCache: true,           // ETag caching (default: true)
+  timeout: 30000, // Request timeout in ms (default: 30000)
+  retryAttempts: 3, // Retry count (default: 3)
+  enableETagCache: true, // ETag caching (default: true)
   etagCacheConfig: {
-    maxEntries: 1000,              // Max cached responses (default: 1000)
-    defaultTtl: 300000,            // Fallback TTL in ms (default: 5 min)
-    cleanupInterval: 60000         // Expired entry cleanup interval (default: 1 min)
-  }
+    maxEntries: 1000, // Max cached responses (default: 1000)
+    defaultTtl: 300000, // Fallback TTL in ms (default: 5 min)
+    cleanupInterval: 60000, // Expired entry cleanup interval (default: 1 min)
+  },
 });
 ```
 
@@ -139,51 +140,51 @@ client.setAccessToken(newToken);
 
 ### Environment variables reference
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ESI_ACCESS_TOKEN` | EVE SSO access token | none |
-| `ESI_CLIENT_ID` | User-Agent identifier | `esi-client` |
-| `ESI_BASE_URL` | ESI API base URL | `https://esi.evetech.net` |
-| `ESI_LOG_LEVEL` | Log level (`error`, `warn`, `info`, `debug`) | `warn` |
+| Variable           | Description                                  | Default                   |
+| ------------------ | -------------------------------------------- | ------------------------- |
+| `ESI_ACCESS_TOKEN` | EVE SSO access token                         | none                      |
+| `ESI_CLIENT_ID`    | User-Agent identifier                        | `esi-client`              |
+| `ESI_BASE_URL`     | ESI API base URL                             | `https://esi.evetech.net` |
+| `ESI_LOG_LEVEL`    | Log level (`error`, `warn`, `info`, `debug`) | `warn`                    |
 
 ## Available APIs
 
 All clients are accessed as properties on the `EsiClient` instance. Authenticated endpoints require an access token.
 
-| Client | Property | Auth | Examples |
-|--------|----------|------|----------|
-| Alliance | `client.alliance` | Some | `getAlliances()`, `getAllianceById(id)` |
-| Assets | `client.assets` | Yes | `getCharacterAssets(id)` |
-| Calendar | `client.calendar` | Yes | `getCharacterCalendar(id)` |
-| Characters | `client.characters` | Some | `getCharacterPublicInfo(id)`, `getCharacterPortrait(id)` |
-| Clones | `client.clones` | Yes | `getCharacterClones(id)` |
-| Contacts | `client.contacts` | Yes | `getCharacterContacts(id)` |
-| Contracts | `client.contracts` | Yes | `getCharacterContracts(id)` |
-| Corporations | `client.corporations` | Some | `getCorporationInfo(id)`, `getCorporationMembers(id)` |
-| Dogma | `client.dogma` | No | `getDogmaAttributes()`, `getDogmaEffects()` |
-| Factions | `client.factions` | Some | `getFactionWarStats()` |
-| Fittings | `client.fittings` | Yes | `getFittings(id)`, `createFitting(id, body)` |
-| Fleets | `client.fleets` | Yes | `getFleet(id)`, `getFleetMembers(id)` |
-| Incursions | `client.incursions` | No | `getIncursions()` |
-| Industry | `client.industry` | Some | `getCharacterIndustryJobs(id)` |
-| Insurance | `client.insurance` | No | `getInsurancePrices()` |
-| Killmails | `client.killmails` | Some | `getKillmail(id, hash)` |
-| Location | `client.location` | Yes | `getCharacterLocation(id)` |
-| Loyalty | `client.loyalty` | Yes | `getCharacterLoyaltyPoints(id)` |
-| Mail | `client.mail` | Yes | `getCharacterMail(id)` |
-| Market | `client.market` | Some | `getMarketPrices()`, `getMarketOrders(regionId)` |
-| PI | `client.pi` | Yes | `getCharacterPlanets(id)` |
-| Route | `client.route` | No | `getRoute(origin, destination)` |
-| Search | `client.search` | Some | `search(characterId, query)` |
-| Skills | `client.skills` | Yes | `getCharacterSkills(id)` |
-| Sovereignty | `client.sovereignty` | No | `getSovereigntyMap()` |
-| Status | `client.status` | No | `getStatus()` |
-| UI | `client.ui` | Yes | `setWaypoint(id)` |
-| Universe | `client.universe` | Some | `getSystemById(id)`, `getTypeById(id)` |
-| Wallet | `client.wallet` | Yes | `getCharacterWallet(id)` |
-| Wars | `client.wars` | No | `getWars()`, `getWarById(id)` |
-| Freelance Jobs | `client.freelanceJobs` | Some | `getFreelanceJobs()`, `getFreelanceJobById(id)` |
-| Meta | `client.meta` | No | `getOpenApiJson()`, `getOpenApiYaml()` |
+| Client         | Property               | Auth | Examples                                                 |
+| -------------- | ---------------------- | ---- | -------------------------------------------------------- |
+| Alliance       | `client.alliance`      | Some | `getAlliances()`, `getAllianceById(id)`                  |
+| Assets         | `client.assets`        | Yes  | `getCharacterAssets(id)`                                 |
+| Calendar       | `client.calendar`      | Yes  | `getCharacterCalendar(id)`                               |
+| Characters     | `client.characters`    | Some | `getCharacterPublicInfo(id)`, `getCharacterPortrait(id)` |
+| Clones         | `client.clones`        | Yes  | `getCharacterClones(id)`                                 |
+| Contacts       | `client.contacts`      | Yes  | `getCharacterContacts(id)`                               |
+| Contracts      | `client.contracts`     | Yes  | `getCharacterContracts(id)`                              |
+| Corporations   | `client.corporations`  | Some | `getCorporationInfo(id)`, `getCorporationMembers(id)`    |
+| Dogma          | `client.dogma`         | No   | `getDogmaAttributes()`, `getDogmaEffects()`              |
+| Factions       | `client.factions`      | Some | `getFactionWarStats()`                                   |
+| Fittings       | `client.fittings`      | Yes  | `getFittings(id)`, `createFitting(id, body)`             |
+| Fleets         | `client.fleets`        | Yes  | `getFleet(id)`, `getFleetMembers(id)`                    |
+| Incursions     | `client.incursions`    | No   | `getIncursions()`                                        |
+| Industry       | `client.industry`      | Some | `getCharacterIndustryJobs(id)`                           |
+| Insurance      | `client.insurance`     | No   | `getInsurancePrices()`                                   |
+| Killmails      | `client.killmails`     | Some | `getKillmail(id, hash)`                                  |
+| Location       | `client.location`      | Yes  | `getCharacterLocation(id)`                               |
+| Loyalty        | `client.loyalty`       | Yes  | `getCharacterLoyaltyPoints(id)`                          |
+| Mail           | `client.mail`          | Yes  | `getCharacterMail(id)`                                   |
+| Market         | `client.market`        | Some | `getMarketPrices()`, `getMarketOrders(regionId)`         |
+| PI             | `client.pi`            | Yes  | `getCharacterPlanets(id)`                                |
+| Route          | `client.route`         | No   | `getRoute(origin, destination)`                          |
+| Search         | `client.search`        | Some | `search(characterId, query)`                             |
+| Skills         | `client.skills`        | Yes  | `getCharacterSkills(id)`                                 |
+| Sovereignty    | `client.sovereignty`   | No   | `getSovereigntyMap()`                                    |
+| Status         | `client.status`        | No   | `getStatus()`                                            |
+| UI             | `client.ui`            | Yes  | `setWaypoint(id)`                                        |
+| Universe       | `client.universe`      | Some | `getSystemById(id)`, `getTypeById(id)`                   |
+| Wallet         | `client.wallet`        | Yes  | `getCharacterWallet(id)`                                 |
+| Wars           | `client.wars`          | No   | `getWars()`, `getWarById(id)`                            |
+| Freelance Jobs | `client.freelanceJobs` | Some | `getFreelanceJobs()`, `getFreelanceJobById(id)`          |
+| Meta           | `client.meta`          | No   | `getOpenApiJson()`, `getOpenApiYaml()`                   |
 
 ## Caching
 
@@ -220,23 +221,28 @@ const client = new EsiClient();
 
 // Fetch first page — returns { cursor: { before, after }, freelance_jobs: [...] }
 const page = await client.freelanceJobs.getFreelanceJobs();
-console.log(page.freelance_jobs);      // job records
-console.log(page.cursor.after);        // opaque token for next page
+console.log(page.freelance_jobs); // job records
+console.log(page.cursor.after); // opaque token for next page
 
 // Fetch next page using the cursor
-const nextPage = await client.freelanceJobs.getFreelanceJobs(undefined, page.cursor.after);
+const nextPage = await client.freelanceJobs.getFreelanceJobs(
+  undefined,
+  page.cursor.after,
+);
 
 // Auto-fetch all pages in one call
 const allJobs = await fetchAllCursorPages(
-    (before, after) => client.freelanceJobs.getFreelanceJobs(before, after),
-    (response) => response.freelance_jobs,
-    (response) => response.cursor,
+  (before, after) => client.freelanceJobs.getFreelanceJobs(before, after),
+  (response) => response.freelance_jobs,
+  (response) => response.cursor,
 );
 
 // Authenticated endpoints — character/corporation freelance jobs
 const authedClient = new EsiClient({ accessToken: 'your-token' });
-const myJobs = await authedClient.freelanceJobs.getCharacterFreelanceJobs(characterId);
-const corpJobs = await authedClient.freelanceJobs.getCorporationFreelanceJobs(corporationId);
+const myJobs =
+  await authedClient.freelanceJobs.getCharacterFreelanceJobs(characterId);
+const corpJobs =
+  await authedClient.freelanceJobs.getCorporationFreelanceJobs(corporationId);
 ```
 
 **Polling for changes** — cursor tokens persist across sessions, so you can save the last `after` token and poll later to get only records that changed:
@@ -246,14 +252,18 @@ const corpJobs = await authedClient.freelanceJobs.getCorporationFreelanceJobs(co
 let savedCursor = lastPage.cursor.after;
 
 // Later: check for updates (hours, days, or weeks later)
-const updates = await client.freelanceJobs.getFreelanceJobs(undefined, savedCursor);
+const updates = await client.freelanceJobs.getFreelanceJobs(
+  undefined,
+  savedCursor,
+);
 if (updates.freelance_jobs.length > 0) {
-    // Process changed records — duplicates are expected for modified records
-    savedCursor = updates.cursor.after;
+  // Process changed records — duplicates are expected for modified records
+  savedCursor = updates.cursor.after;
 }
 ```
 
 Key points:
+
 - Cursor tokens are **opaque strings** — never parse or validate them
 - An **empty result array** signals the end of the dataset (not a short page)
 - **Duplicates across pages** are expected when records are modified between requests
@@ -306,7 +316,9 @@ Or create standalone single-API clients:
 ```typescript
 import { EsiApiFactory } from '@lgriffin/esi.ts';
 
-const marketClient = EsiApiFactory.createMarketClient({ clientId: 'price-checker' });
+const marketClient = EsiApiFactory.createMarketClient({
+  clientId: 'price-checker',
+});
 const prices = await marketClient.getMarketPrices();
 ```
 
@@ -342,7 +354,7 @@ npm run example:cursor-pagination  # Freelance Jobs with cursor pagination (live
 const [character, portrait, corp] = await Promise.all([
   client.characters.getCharacterPublicInfo(characterId),
   client.characters.getCharacterPortrait(characterId),
-  client.corporations.getCorporationInfo(corporationId)
+  client.corporations.getCorporationInfo(corporationId),
 ]);
 
 console.log(`${character.name} [${corp.ticker}]`);
@@ -353,14 +365,14 @@ console.log(`${character.name} [${corp.ticker}]`);
 ```typescript
 const [orders, history] = await Promise.all([
   client.market.getMarketOrders(regionId),
-  client.market.getMarketHistory(regionId, typeId)
+  client.market.getMarketHistory(regionId, typeId),
 ]);
 
-const buyOrders = orders.filter(o => o.is_buy_order);
-const sellOrders = orders.filter(o => !o.is_buy_order);
+const buyOrders = orders.filter((o) => o.is_buy_order);
+const sellOrders = orders.filter((o) => !o.is_buy_order);
 
-console.log(`Best buy: ${Math.max(...buyOrders.map(o => o.price))}`);
-console.log(`Best sell: ${Math.min(...sellOrders.map(o => o.price))}`);
+console.log(`Best buy: ${Math.max(...buyOrders.map((o) => o.price))}`);
+console.log(`Best sell: ${Math.min(...sellOrders.map((o) => o.price))}`);
 ```
 
 ## Resource Management
@@ -377,11 +389,91 @@ try {
 }
 ```
 
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Code Quality Tools
+
+The project uses a comprehensive suite of static analysis and code quality tools:
+
+| Tool                                                                                 | Purpose                                                 | Command                        |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------ |
+| [ESLint](https://eslint.org/)                                                        | Linting with TypeScript, security, and code smell rules | `npm run lint`                 |
+| [Prettier](https://prettier.io/)                                                     | Code formatting                                         | `npm run format:check`         |
+| [knip](https://knip.dev/)                                                            | Dead code and unused export detection                   | `npm run knip`                 |
+| [eslint-plugin-security](https://github.com/eslint-community/eslint-plugin-security) | Security anti-pattern detection                         | Integrated into `npm run lint` |
+| [eslint-plugin-sonarjs](https://github.com/SonarSource/eslint-plugin-sonarjs)        | Cognitive complexity and code smell detection           | Integrated into `npm run lint` |
+| [husky](https://typicode.github.io/husky/)                                           | Git pre-commit hooks                                    | Automatic on commit            |
+| [lint-staged](https://github.com/lint-staged/lint-staged)                            | Run linters on staged files only                        | Automatic on commit            |
+
+### Available Scripts
+
+```bash
+# Development
+npm run build              # Compile TypeScript
+npm run lint               # Run ESLint
+npm run lint:fix           # Run ESLint with auto-fix
+npm run format             # Format code with Prettier
+npm run format:check       # Check formatting without modifying
+
+# Testing
+npm test                   # Unit tests
+npm run test:all           # Unit + improved + BDD tests
+npm run coverage           # Tests with coverage report (thresholds enforced)
+npm run bdd                # BDD scenario tests
+
+# Static Analysis
+npm run knip               # Detect dead code and unused exports
+npm run validate:esi       # Validate endpoints against live ESI swagger spec
+npm run validate           # Run all checks: lint, format, build, coverage, knip
+
+# Documentation
+npm run docs               # Generate TypeDoc API documentation
+npm run docs:serve         # Serve docs locally on port 8080
+```
+
+### ESI Endpoint Validation
+
+To verify that the codebase endpoint definitions match the live ESI swagger spec:
+
+```bash
+npm run validate:esi
+```
+
+This fetches `https://esi.evetech.net/latest/swagger.json` and reports:
+
+- Endpoints in the codebase that are no longer in the ESI spec
+- Endpoints in the ESI spec that the codebase doesn't cover
+- HTTP method mismatches between codebase and spec
+
+### Pre-commit Hooks
+
+The project uses husky with lint-staged to run ESLint and Prettier on staged files before each commit. This is set up automatically when you run `npm install`.
+
+### CI/CD
+
+Every pull request runs the full validation suite:
+
+- ESLint (with security and sonarjs plugins)
+- Prettier formatting check
+- TypeScript compilation
+- Unit tests across Node.js 18, 20, and 22
+- BDD scenario tests
+- Coverage threshold enforcement (branches: 50%, functions: 50%, lines: 65%, statements: 65%)
+- Dead code detection via knip
+- npm security audit
+
+See [.github/workflows/README.md](.github/workflows/README.md) for full workflow details.
+
 ## Testing
 
 ```bash
-npm test          # Unit + integration tests (47 suites, 341 tests)
-npm run coverage  # Tests with coverage report
+npm test          # Unit + integration tests (49 suites, 360 tests)
+npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 ```
 
@@ -396,7 +488,7 @@ npm run example:status    # Confirms ESI connectivity and server status
 1. Fork the repository
 2. Create a feature branch
 3. Write tests for your changes
-4. Ensure all tests pass: `npm test`
+4. Run `npm run validate` to check everything passes
 5. Open a Pull Request
 
 ## License

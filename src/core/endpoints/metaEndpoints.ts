@@ -1,9 +1,9 @@
-import { EndpointDefinition, EndpointMap } from './EndpointDefinition';
+import { EndpointMap } from './EndpointDefinition';
 
 export const metaEndpoints = {
-    getOpenApiJson: {
-        path: 'meta/openapi.json',
-        method: 'GET',
-        requiresAuth: false,
-    },
+  getOpenApiJson: {
+    path: 'meta/openapi.json',
+    method: 'GET',
+    requiresAuth: false,
+  },
 } as const satisfies EndpointMap;

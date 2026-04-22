@@ -3,7 +3,11 @@ export { EsiClient, EsiClientConfig } from './EsiClient';
 export { getDefaultClient } from './EsiClient';
 
 // Builder & factory
-export { CustomEsiClient, EsiClientBuilder, EsiApiFactory } from './EsiClientBuilder';
+export {
+  CustomEsiClient,
+  EsiClientBuilder,
+  EsiApiFactory,
+} from './EsiClientBuilder';
 export { ApiClientType } from './core/ClientRegistry';
 
 // Core (for direct instantiation)
@@ -45,11 +49,25 @@ export { MetaClient } from './clients/MetaClient';
 export { FreelanceJobsClient } from './clients/FreelanceJobsClient';
 
 // Cursor pagination & client utilities
-export { CursorOptions, CursorResult, CreateClientOptions, WithMetadata, fetchAllCursorPages } from './core/endpoints/createClient';
+export {
+  CursorOptions,
+  CursorResult,
+  CreateClientOptions,
+  WithMetadata,
+  fetchAllCursorPages,
+} from './core/endpoints/createClient';
 export { CursorTokens } from './core/pagination/CursorPaginationHandler';
 
 // Error class & type guards
-export { EsiError, isEsiError, isRateLimited, isNotFound, isUnauthorized, isForbidden, isServerError } from './core/util/error';
+export {
+  EsiError,
+  isEsiError,
+  isRateLimited,
+  isNotFound,
+  isUnauthorized,
+  isForbidden,
+  isServerError,
+} from './core/util/error';
 
 // Types
 export * from './types/api-responses';

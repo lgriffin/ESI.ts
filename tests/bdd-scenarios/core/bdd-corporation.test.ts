@@ -1,6 +1,6 @@
 /**
  * BDD Scenarios: Corporation Management
- * 
+ *
  * Comprehensive behavior-driven tests for all Corporation-related APIs
  * covering public information, member management, assets, and structures.
  */
@@ -16,7 +16,7 @@ describe('BDD Scenarios: Corporation Management', () => {
     client = new EsiClient({
       clientId: 'test-corporation-client',
       baseUrl: 'https://esi.evetech.net',
-      timeout: 5000
+      timeout: 5000,
     });
   });
 
@@ -33,14 +33,17 @@ describe('BDD Scenarios: Corporation Management', () => {
           ceo_id: 1689391488,
           creator_id: 1689391488,
           date_founded: '2010-06-01T00:00:00Z',
-          member_count: 15000
+          member_count: 15000,
         });
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationInfo').mockResolvedValue(expectedCorporation);
+        jest
+          .spyOn(client.corporations, 'getCorporationInfo')
+          .mockResolvedValue(expectedCorporation);
 
         // When: I request public information
-        const result = await client.corporations.getCorporationInfo(validCorporationId);
+        const result =
+          await client.corporations.getCorporationInfo(validCorporationId);
 
         // Then: I should receive complete corporation profile
         expect(result).toBeDefined();
@@ -60,12 +63,14 @@ describe('BDD Scenarios: Corporation Management', () => {
         const expectedError = TestDataFactory.createError(404);
 
         // Mock the API to throw an error
-        jest.spyOn(client.corporations, 'getCorporationInfo').mockRejectedValue(expectedError);
+        jest
+          .spyOn(client.corporations, 'getCorporationInfo')
+          .mockRejectedValue(expectedError);
 
         // When & Then: I request corporation info and expect an error
-        await expect(client.corporations.getCorporationInfo(invalidCorporationId))
-          .rejects
-          .toThrow(EsiError);
+        await expect(
+          client.corporations.getCorporationInfo(invalidCorporationId),
+        ).rejects.toThrow(EsiError);
       });
     });
   });
@@ -78,10 +83,13 @@ describe('BDD Scenarios: Corporation Management', () => {
         const expectedMembers = [1689391488, 1689391489, 1689391490];
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationMembers').mockResolvedValue(expectedMembers);
+        jest
+          .spyOn(client.corporations, 'getCorporationMembers')
+          .mockResolvedValue(expectedMembers);
 
         // When: I request member list
-        const result = await client.corporations.getCorporationMembers(corporationId);
+        const result =
+          await client.corporations.getCorporationMembers(corporationId);
 
         // Then: I should receive member character IDs
         expect(result).toBeInstanceOf(Array);
@@ -102,15 +110,18 @@ describe('BDD Scenarios: Corporation Management', () => {
             grantable_roles: ['Hangar_Take_1', 'Hangar_Take_2'],
             roles_at_hq: ['Director'],
             roles_at_base: [],
-            roles_at_other: []
-          })
+            roles_at_other: [],
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationRoles').mockResolvedValue(expectedRoles);
+        jest
+          .spyOn(client.corporations, 'getCorporationRoles')
+          .mockResolvedValue(expectedRoles);
 
         // When: I request member roles
-        const result = await client.corporations.getCorporationRoles(corporationId);
+        const result =
+          await client.corporations.getCorporationRoles(corporationId);
 
         // Then: I should receive role assignments
         expect(result).toBeInstanceOf(Array);
@@ -134,15 +145,18 @@ describe('BDD Scenarios: Corporation Management', () => {
             quantity: 100,
             location_id: 60003760,
             location_flag: 'CorpSAG1',
-            location_type: 'station'
-          })
+            location_type: 'station',
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationBlueprints').mockResolvedValue(expectedAssets);
+        jest
+          .spyOn(client.corporations, 'getCorporationBlueprints')
+          .mockResolvedValue(expectedAssets);
 
         // When: I request assets (using blueprints as available method)
-        const result = await client.corporations.getCorporationBlueprints(corporationId);
+        const result =
+          await client.corporations.getCorporationBlueprints(corporationId);
 
         // Then: I should receive corporation inventory
         expect(result).toBeInstanceOf(Array);
@@ -169,15 +183,18 @@ describe('BDD Scenarios: Corporation Management', () => {
             fuel_expires: '2024-02-01T12:00:00Z',
             state_timer_start: '2024-01-15T12:00:00Z',
             state_timer_end: '2024-01-22T12:00:00Z',
-            state: 'shield_vulnerable'
-          })
+            state: 'shield_vulnerable',
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationStructures').mockResolvedValue(expectedStructures);
+        jest
+          .spyOn(client.corporations, 'getCorporationStructures')
+          .mockResolvedValue(expectedStructures);
 
         // When: I request structures
-        const result = await client.corporations.getCorporationStructures(corporationId);
+        const result =
+          await client.corporations.getCorporationStructures(corporationId);
 
         // Then: I should receive structure information
         expect(result).toBeInstanceOf(Array);
@@ -198,19 +215,23 @@ describe('BDD Scenarios: Corporation Management', () => {
         const expectedWallets = [
           TestDataFactory.createCorporationWallet({
             division: 1,
-            balance: 1000000000.00
+            balance: 1000000000.0,
           }),
           TestDataFactory.createCorporationWallet({
             division: 2,
-            balance: 500000000.00
-          })
+            balance: 500000000.0,
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(expectedWallets as any);
+        jest
+          .spyOn(client.corporations, 'getCorporationStandings')
+          .mockResolvedValue(expectedWallets as any);
 
         // When: I request wallets (using standings as available method)
-        const result = await client.corporations.getCorporationStandings(corporationId) as any;
+        const result = (await client.corporations.getCorporationStandings(
+          corporationId,
+        )) as any;
 
         // Then: I should receive wallet divisions
         expect(result).toBeInstanceOf(Array);
@@ -233,18 +254,22 @@ describe('BDD Scenarios: Corporation Management', () => {
             date: '2024-01-15T12:00:00Z',
             ref_type: 'market_transaction',
             first_party_id: corporationId,
-            amount: 1000000.00,
-            balance: 1000000000.00,
+            amount: 1000000.0,
+            balance: 1000000000.0,
             reason: 'Market transaction',
-            description: 'Sold items on market'
-          })
+            description: 'Sold items on market',
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(expectedJournal as any);
+        jest
+          .spyOn(client.corporations, 'getCorporationStandings')
+          .mockResolvedValue(expectedJournal as any);
 
         // When: I request wallet journal (using standings as available method)
-        const result = await client.corporations.getCorporationStandings(corporationId) as any;
+        const result = (await client.corporations.getCorporationStandings(
+          corporationId,
+        )) as any;
 
         // Then: I should receive transaction history
         expect(result).toBeInstanceOf(Array);
@@ -265,12 +290,14 @@ describe('BDD Scenarios: Corporation Management', () => {
         const forbiddenError = TestDataFactory.createError(403);
 
         // Mock the API to throw a forbidden error
-        jest.spyOn(client.corporations, 'getCorporationMembers').mockRejectedValue(forbiddenError);
+        jest
+          .spyOn(client.corporations, 'getCorporationMembers')
+          .mockRejectedValue(forbiddenError);
 
         // When & Then: I access restricted data and expect a forbidden error
-        await expect(client.corporations.getCorporationMembers(corporationId))
-          .rejects
-          .toThrow(EsiError);
+        await expect(
+          client.corporations.getCorporationMembers(corporationId),
+        ).rejects.toThrow(EsiError);
       });
     });
 
@@ -281,12 +308,14 @@ describe('BDD Scenarios: Corporation Management', () => {
         const authError = TestDataFactory.createError(401);
 
         // Mock the API to throw an authentication error
-        jest.spyOn(client.corporations, 'getCorporationBlueprints').mockRejectedValue(authError);
+        jest
+          .spyOn(client.corporations, 'getCorporationBlueprints')
+          .mockRejectedValue(authError);
 
         // When & Then: I access corporation data and expect an authentication error
-        await expect(client.corporations.getCorporationBlueprints(corporationId))
-          .rejects
-          .toThrow(EsiError);
+        await expect(
+          client.corporations.getCorporationBlueprints(corporationId),
+        ).rejects.toThrow(EsiError);
       });
     });
   });
@@ -296,14 +325,20 @@ describe('BDD Scenarios: Corporation Management', () => {
       it('Given a large corporation with many members, When I request member data, Then the system should handle large data sets efficiently', async () => {
         // Given: A large corporation with many members
         const corporationId = 1344654522;
-        const largeMememberList = Array.from({ length: 10000 }, (_, i) => 1689391488 + i);
+        const largeMememberList = Array.from(
+          { length: 10000 },
+          (_, i) => 1689391488 + i,
+        );
 
         // Mock the API response with large data set
-        jest.spyOn(client.corporations, 'getCorporationMembers').mockResolvedValue(largeMememberList);
+        jest
+          .spyOn(client.corporations, 'getCorporationMembers')
+          .mockResolvedValue(largeMememberList);
 
         // When: I request member data
         const startTime = Date.now();
-        const result = await client.corporations.getCorporationMembers(corporationId);
+        const result =
+          await client.corporations.getCorporationMembers(corporationId);
         const endTime = Date.now();
         const responseTime = endTime - startTime;
 
@@ -318,22 +353,26 @@ describe('BDD Scenarios: Corporation Management', () => {
       it('Given multiple concurrent corporation data requests, When I make them simultaneously, Then all should complete successfully', async () => {
         // Given: Multiple concurrent corporation data requests
         const corporationIds = [1344654522, 1344654523, 1344654524];
-        const mockCorporations = corporationIds.map(id => 
-          TestDataFactory.createCorporationInfo({ 
-            corporation_id: id, 
+        const mockCorporations = corporationIds.map((id) =>
+          TestDataFactory.createCorporationInfo({
+            corporation_id: id,
             name: `Corporation ${id}`,
-            ticker: `CORP${id.toString().slice(-2)}`
-          })
+            ticker: `CORP${id.toString().slice(-2)}`,
+          }),
         );
 
         // Mock the API responses
-        jest.spyOn(client.corporations, 'getCorporationInfo')
-          .mockImplementation(async (id: number) => 
-            mockCorporations.find(corp => corp.corporation_id === id)!
+        jest
+          .spyOn(client.corporations, 'getCorporationInfo')
+          .mockImplementation(
+            async (id: number) =>
+              mockCorporations.find((corp) => corp.corporation_id === id)!,
           );
 
         // When: I make them simultaneously
-        const promises = corporationIds.map(id => client.corporations.getCorporationInfo(id));
+        const promises = corporationIds.map((id) =>
+          client.corporations.getCorporationInfo(id),
+        );
         const results = await Promise.all(promises);
 
         // Then: All should complete successfully
@@ -351,24 +390,44 @@ describe('BDD Scenarios: Corporation Management', () => {
       it('Given a corporation ID, When I gather complete corporation data, Then I should successfully retrieve all corporation information', async () => {
         // Given: A corporation ID
         const corporationId = 1344654522;
-        const mockCorporation = TestDataFactory.createCorporationInfo({ corporation_id: corporationId });
+        const mockCorporation = TestDataFactory.createCorporationInfo({
+          corporation_id: corporationId,
+        });
         const mockMembers = [1689391488, 1689391489];
-        const mockWallets = [TestDataFactory.createCorporationWallet({ division: 1, balance: 1000000000 })];
-        const mockStructures = [TestDataFactory.createCorporationStructure({ structure_id: 1021975535893 })];
+        const mockWallets = [
+          TestDataFactory.createCorporationWallet({
+            division: 1,
+            balance: 1000000000,
+          }),
+        ];
+        const mockStructures = [
+          TestDataFactory.createCorporationStructure({
+            structure_id: 1021975535893,
+          }),
+        ];
 
         // Mock all API responses
-        jest.spyOn(client.corporations, 'getCorporationInfo').mockResolvedValue(mockCorporation);
-        jest.spyOn(client.corporations, 'getCorporationMembers').mockResolvedValue(mockMembers);
-        jest.spyOn(client.corporations, 'getCorporationStandings').mockResolvedValue(mockWallets as any);
-        jest.spyOn(client.corporations, 'getCorporationStructures').mockResolvedValue(mockStructures as any);
+        jest
+          .spyOn(client.corporations, 'getCorporationInfo')
+          .mockResolvedValue(mockCorporation);
+        jest
+          .spyOn(client.corporations, 'getCorporationMembers')
+          .mockResolvedValue(mockMembers);
+        jest
+          .spyOn(client.corporations, 'getCorporationStandings')
+          .mockResolvedValue(mockWallets as any);
+        jest
+          .spyOn(client.corporations, 'getCorporationStructures')
+          .mockResolvedValue(mockStructures as any);
 
         // When: I gather complete corporation data
-        const [corporation, members, wallets, structures]: any[] = await Promise.all([
-          client.corporations.getCorporationInfo(corporationId),
-          client.corporations.getCorporationMembers(corporationId),
-          client.corporations.getCorporationStandings(corporationId),
-          client.corporations.getCorporationStructures(corporationId)
-        ]);
+        const [corporation, members, wallets, structures]: any[] =
+          await Promise.all([
+            client.corporations.getCorporationInfo(corporationId),
+            client.corporations.getCorporationMembers(corporationId),
+            client.corporations.getCorporationStandings(corporationId),
+            client.corporations.getCorporationStructures(corporationId),
+          ]);
 
         // Then: I should successfully retrieve all corporation information
         expect(corporation).toBeDefined();
@@ -379,7 +438,7 @@ describe('BDD Scenarios: Corporation Management', () => {
 
         expect(wallets).toBeInstanceOf(Array);
         expect(wallets[0].division).toBe(1);
-        
+
         expect(structures).toBeInstanceOf(Array);
         expect(structures[0].structure_id).toBe(1021975535893);
       });

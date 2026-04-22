@@ -37,116 +37,186 @@ import { ETagCacheConfig } from './core/cache/ETagCacheManager';
 import logger from './core/logger/logger';
 
 export interface EsiClientConfig {
-    clientId?: string;
-    baseUrl?: string;
-    accessToken?: string;
-    timeout?: number;
-    retryAttempts?: number;
-    enableETagCache?: boolean;
-    etagCacheConfig?: ETagCacheConfig;
+  clientId?: string;
+  baseUrl?: string;
+  accessToken?: string;
+  timeout?: number;
+  retryAttempts?: number;
+  enableETagCache?: boolean;
+  etagCacheConfig?: ETagCacheConfig;
 }
 
 export class EsiClient {
-    private apiClient: ApiClient;
-    private clients: Map<string, any> = new Map();
-    private etagCacheEnabled: boolean;
+  private apiClient: ApiClient;
+  private clients: Map<string, unknown> = new Map();
+  private etagCacheEnabled: boolean;
 
-    constructor(config?: EsiClientConfig) {
-        const token = config?.accessToken || process.env.ESI_ACCESS_TOKEN;
-        this.apiClient = new ApiClient(
-            config?.clientId || process.env.ESI_CLIENT_ID || 'esi-client',
-            config?.baseUrl || process.env.ESI_BASE_URL || 'https://esi.evetech.net',
-            token
-        );
+  constructor(config?: EsiClientConfig) {
+    const token = config?.accessToken || process.env.ESI_ACCESS_TOKEN;
+    this.apiClient = new ApiClient(
+      config?.clientId || process.env.ESI_CLIENT_ID || 'esi-client',
+      config?.baseUrl || process.env.ESI_BASE_URL || 'https://esi.evetech.net',
+      token,
+    );
 
-        this.etagCacheEnabled = config?.enableETagCache !== false;
-        if (this.etagCacheEnabled) {
-            initializeETagCache(config?.etagCacheConfig);
-        }
-
-        logger.info('EsiClient initialized successfully');
+    this.etagCacheEnabled = config?.enableETagCache !== false;
+    if (this.etagCacheEnabled) {
+      initializeETagCache(config?.etagCacheConfig);
     }
 
-    private getClient<T>(name: ApiClientType): T {
-        if (!this.clients.has(name)) {
-            this.clients.set(name, createClientInstance(name, this.apiClient));
-        }
-        return this.clients.get(name);
-    }
+    logger.info('EsiClient initialized successfully');
+  }
 
-    // Domain client accessors
-    get alliance(): AllianceClient { return this.getClient('alliance'); }
-    get assets(): AssetsClient { return this.getClient('assets'); }
-    get calendar(): CalendarClient { return this.getClient('calendar'); }
-    get characters(): CharacterClient { return this.getClient('characters'); }
-    get clones(): ClonesClient { return this.getClient('clones'); }
-    get contacts(): ContactsClient { return this.getClient('contacts'); }
-    get contracts(): ContractsClient { return this.getClient('contracts'); }
-    get corporations(): CorporationsClient { return this.getClient('corporations'); }
-    get dogma(): DogmaClient { return this.getClient('dogma'); }
-    get factions(): FactionClient { return this.getClient('factions'); }
-    get fittings(): FittingsClient { return this.getClient('fittings'); }
-    get fleets(): FleetClient { return this.getClient('fleets'); }
-    get incursions(): IncursionsClient { return this.getClient('incursions'); }
-    get industry(): IndustryClient { return this.getClient('industry'); }
-    get insurance(): InsuranceClient { return this.getClient('insurance'); }
-    get killmails(): KillmailsClient { return this.getClient('killmails'); }
-    get location(): LocationClient { return this.getClient('location'); }
-    get loyalty(): LoyaltyClient { return this.getClient('loyalty'); }
-    get mail(): MailClient { return this.getClient('mail'); }
-    get market(): MarketClient { return this.getClient('market'); }
-    get pi(): PiClient { return this.getClient('pi'); }
-    get route(): RouteClient { return this.getClient('route'); }
-    get search(): SearchClient { return this.getClient('search'); }
-    get skills(): CharacterSkillsClient { return this.getClient('skills'); }
-    get sovereignty(): SovereigntyClient { return this.getClient('sovereignty'); }
-    get status(): StatusClient { return this.getClient('status'); }
-    get ui(): UiClient { return this.getClient('ui'); }
-    get universe(): UniverseClient { return this.getClient('universe'); }
-    get wallet(): WalletClient { return this.getClient('wallet'); }
-    get wars(): WarsClient { return this.getClient('wars'); }
-    get meta(): MetaClient { return this.getClient('meta'); }
-    get freelanceJobs(): FreelanceJobsClient { return this.getClient('freelanceJobs'); }
-
-    setAccessToken(token: string): void {
-        this.apiClient.setAccessToken(token);
-        logger.info('Access token updated');
+  private getClient<T>(name: ApiClientType): T {
+    if (!this.clients.has(name)) {
+      this.clients.set(name, createClientInstance(name, this.apiClient));
     }
+    return this.clients.get(name) as T;
+  }
 
-    getCacheStats(): any {
-        if (!this.etagCacheEnabled) return null;
-        const cache = getETagCache();
-        return cache ? cache.getStats() : null;
-    }
+  // Domain client accessors
+  get alliance(): AllianceClient {
+    return this.getClient('alliance');
+  }
+  get assets(): AssetsClient {
+    return this.getClient('assets');
+  }
+  get calendar(): CalendarClient {
+    return this.getClient('calendar');
+  }
+  get characters(): CharacterClient {
+    return this.getClient('characters');
+  }
+  get clones(): ClonesClient {
+    return this.getClient('clones');
+  }
+  get contacts(): ContactsClient {
+    return this.getClient('contacts');
+  }
+  get contracts(): ContractsClient {
+    return this.getClient('contracts');
+  }
+  get corporations(): CorporationsClient {
+    return this.getClient('corporations');
+  }
+  get dogma(): DogmaClient {
+    return this.getClient('dogma');
+  }
+  get factions(): FactionClient {
+    return this.getClient('factions');
+  }
+  get fittings(): FittingsClient {
+    return this.getClient('fittings');
+  }
+  get fleets(): FleetClient {
+    return this.getClient('fleets');
+  }
+  get incursions(): IncursionsClient {
+    return this.getClient('incursions');
+  }
+  get industry(): IndustryClient {
+    return this.getClient('industry');
+  }
+  get insurance(): InsuranceClient {
+    return this.getClient('insurance');
+  }
+  get killmails(): KillmailsClient {
+    return this.getClient('killmails');
+  }
+  get location(): LocationClient {
+    return this.getClient('location');
+  }
+  get loyalty(): LoyaltyClient {
+    return this.getClient('loyalty');
+  }
+  get mail(): MailClient {
+    return this.getClient('mail');
+  }
+  get market(): MarketClient {
+    return this.getClient('market');
+  }
+  get pi(): PiClient {
+    return this.getClient('pi');
+  }
+  get route(): RouteClient {
+    return this.getClient('route');
+  }
+  get search(): SearchClient {
+    return this.getClient('search');
+  }
+  get skills(): CharacterSkillsClient {
+    return this.getClient('skills');
+  }
+  get sovereignty(): SovereigntyClient {
+    return this.getClient('sovereignty');
+  }
+  get status(): StatusClient {
+    return this.getClient('status');
+  }
+  get ui(): UiClient {
+    return this.getClient('ui');
+  }
+  get universe(): UniverseClient {
+    return this.getClient('universe');
+  }
+  get wallet(): WalletClient {
+    return this.getClient('wallet');
+  }
+  get wars(): WarsClient {
+    return this.getClient('wars');
+  }
+  get meta(): MetaClient {
+    return this.getClient('meta');
+  }
+  get freelanceJobs(): FreelanceJobsClient {
+    return this.getClient('freelanceJobs');
+  }
 
-    clearCache(): void {
-        const cache = getETagCache();
-        if (cache) {
-            cache.clear();
-        }
-    }
+  setAccessToken(token: string): void {
+    this.apiClient.setAccessToken(token);
+    logger.info('Access token updated');
+  }
 
-    updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void {
-        const cache = getETagCache();
-        if (cache) {
-            cache.updateConfig(newConfig);
-        }
-    }
+  getCacheStats(): {
+    totalEntries: number;
+    maxEntries: number;
+    hitRate: number;
+    oldestEntry: number | null;
+    newestEntry: number | null;
+  } | null {
+    if (!this.etagCacheEnabled) return null;
+    const cache = getETagCache();
+    return cache ? cache.getStats() : null;
+  }
 
-    async shutdown(): Promise<void> {
-        const cache = getETagCache();
-        if (cache) {
-            cache.shutdown();
-        }
-        this.clients.clear();
-        logger.info('EsiClient shutdown completed');
+  clearCache(): void {
+    const cache = getETagCache();
+    if (cache) {
+      cache.clear();
     }
+  }
+
+  updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void {
+    const cache = getETagCache();
+    if (cache) {
+      cache.updateConfig(newConfig);
+    }
+  }
+
+  shutdown(): void {
+    const cache = getETagCache();
+    if (cache) {
+      cache.shutdown();
+    }
+    this.clients.clear();
+    logger.info('EsiClient shutdown completed');
+  }
 }
 
 let _defaultClient: EsiClient | null = null;
 export function getDefaultClient(): EsiClient {
-    if (!_defaultClient) {
-        _defaultClient = new EsiClient();
-    }
-    return _defaultClient;
+  if (!_defaultClient) {
+    _defaultClient = new EsiClient();
+  }
+  return _defaultClient;
 }
