@@ -18,8 +18,8 @@ export class StatusClient {
    *
    * @returns The current server status information
    */
-  async getStatus(): Promise<ServerStatus> {
-    return this.api.getStatus();
+  getStatus(): Promise<ServerStatus> {
+    return this.api.getStatus() as Promise<ServerStatus>;
   }
 
   withMetadata(): WithMetadata<Omit<StatusClient, 'withMetadata'>> {

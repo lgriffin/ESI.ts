@@ -20,8 +20,10 @@ export class MailClient {
    * @returns A list of mail message headers
    * @requires Authentication
    */
-  async getMailHeaders(characterId: number): Promise<MailMessage[]> {
-    return this.api.getCharacterMailHeaders(characterId);
+  getMailHeaders(characterId: number): Promise<MailMessage[]> {
+    return this.api.getCharacterMailHeaders(characterId) as Promise<
+      MailMessage[]
+    >;
   }
 
   /**
@@ -32,8 +34,8 @@ export class MailClient {
    * @returns The ID of the newly created mail
    * @requires Authentication
    */
-  async sendMail(characterId: number, body: object): Promise<number> {
-    return this.api.sendMail(characterId, body);
+  sendMail(characterId: number, body: object): Promise<number> {
+    return this.api.sendMail(characterId, body) as Promise<number>;
   }
 
   /**
@@ -44,8 +46,8 @@ export class MailClient {
    * @returns void
    * @requires Authentication
    */
-  async deleteMail(characterId: number, mailId: number): Promise<void> {
-    return this.api.deleteMail(characterId, mailId);
+  deleteMail(characterId: number, mailId: number): Promise<void> {
+    return this.api.deleteMail(characterId, mailId) as Promise<void>;
   }
 
   /**
@@ -56,8 +58,8 @@ export class MailClient {
    * @returns The full mail message including body, sender, and recipients
    * @requires Authentication
    */
-  async getMail(characterId: number, mailId: number): Promise<MailMessage> {
-    return this.api.getMail(characterId, mailId);
+  getMail(characterId: number, mailId: number): Promise<MailMessage> {
+    return this.api.getMail(characterId, mailId) as Promise<MailMessage>;
   }
 
   /**
@@ -69,12 +71,16 @@ export class MailClient {
    * @returns void
    * @requires Authentication
    */
-  async updateMailMetadata(
+  updateMailMetadata(
     characterId: number,
     mailId: number,
     body: object,
   ): Promise<void> {
-    return this.api.updateMailMetadata(characterId, mailId, body);
+    return this.api.updateMailMetadata(
+      characterId,
+      mailId,
+      body,
+    ) as Promise<void>;
   }
 
   /**
@@ -84,10 +90,13 @@ export class MailClient {
    * @returns The character's mail labels and total unread mail count
    * @requires Authentication
    */
-  async getMailLabels(
+  getMailLabels(
     characterId: number,
   ): Promise<{ total_unread_count?: number; labels?: MailLabel[] }> {
-    return this.api.getMailLabels(characterId);
+    return this.api.getMailLabels(characterId) as Promise<{
+      total_unread_count?: number;
+      labels?: MailLabel[];
+    }>;
   }
 
   /**
@@ -98,8 +107,8 @@ export class MailClient {
    * @returns The ID of the newly created label
    * @requires Authentication
    */
-  async createMailLabel(characterId: number, body: object): Promise<number> {
-    return this.api.createMailLabel(characterId, body);
+  createMailLabel(characterId: number, body: object): Promise<number> {
+    return this.api.createMailLabel(characterId, body) as Promise<number>;
   }
 
   /**
@@ -110,8 +119,8 @@ export class MailClient {
    * @returns void
    * @requires Authentication
    */
-  async deleteMailLabel(characterId: number, labelId: number): Promise<void> {
-    return this.api.deleteMailLabel(characterId, labelId);
+  deleteMailLabel(characterId: number, labelId: number): Promise<void> {
+    return this.api.deleteMailLabel(characterId, labelId) as Promise<void>;
   }
 
   /**
@@ -121,10 +130,12 @@ export class MailClient {
    * @returns A list of mailing lists with their IDs and names
    * @requires Authentication
    */
-  async getMailingLists(
+  getMailingLists(
     characterId: number,
   ): Promise<{ mailing_list_id: number; name: string }[]> {
-    return this.api.getMailingLists(characterId);
+    return this.api.getMailingLists(characterId) as Promise<
+      { mailing_list_id: number; name: string }[]
+    >;
   }
 
   withMetadata(): WithMetadata<Omit<MailClient, 'withMetadata'>> {

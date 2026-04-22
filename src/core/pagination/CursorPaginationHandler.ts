@@ -24,7 +24,7 @@ export interface CursorTokens {
   after: string | null;
 }
 
-export interface CursorPage<T = any> {
+export interface CursorPage<T = unknown> {
   data: T[];
   cursors: CursorTokens;
 }
@@ -51,7 +51,7 @@ export class CursorPaginationHandler {
     method: string,
     requiresAuth: boolean,
     cursor?: { before?: string; after?: string },
-    body?: any,
+    body?: unknown,
   ): Promise<CursorPage> {
     const url = this.buildUrl(client, endpoint, cursor);
 
@@ -74,12 +74,14 @@ export class CursorPaginationHandler {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    let data: any[];
+    let data: unknown[];
     try {
-      const parsed = await response.json();
-      data = Array.isArray(parsed) ? parsed : [parsed];
+      const parsed: unknown = await response.json();
+      data = Array.isArray(parsed) ? (parsed as unknown[]) : [parsed];
     } catch (jsonError) {
-      throw new Error(`Invalid JSON response: ${jsonError}`);
+      throw new Error(
+        `Invalid JSON response: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`,
+      );
     }
 
     const cursors = this.extractCursors(response.headers);
@@ -97,14 +99,14 @@ export class CursorPaginationHandler {
     endpoint: string,
     method: string,
     requiresAuth: boolean,
-    firstPageData: any[],
+    firstPageData: unknown[],
     firstCursors: CursorTokens,
-    body?: any,
+    body?: unknown,
     options: CursorPaginationOptions = {},
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const rateLimiter = RateLimiter.getInstance();
-    const allData: any[] = [...firstPageData];
+    const allData: unknown[] = [...firstPageData];
 
     let afterToken = firstCursors.after;
     let pageCount = 1;
@@ -138,7 +140,9 @@ export class CursorPaginationHandler {
         logInfo(`Cursor page ${pageCount} fetched (${page.data.length} items)`);
       } catch (error) {
         consecutiveFailures++;
-        logError(`Cursor page fetch failed: ${error}`);
+        logError(
+          `Cursor page fetch failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
 
         if (consecutiveFailures >= opts.maxRetries) {
           logWarn(
@@ -164,7 +168,7 @@ export class CursorPaginationHandler {
     method: string,
     requiresAuth: boolean,
     cursor: { before?: string; after?: string },
-    body: any,
+    body: unknown,
     options: Required<CursorPaginationOptions>,
   ): Promise<CursorPage> {
     let lastError: Error | null = null;
@@ -182,7 +186,7 @@ export class CursorPaginationHandler {
       } catch (error) {
         lastError = error as Error;
         logWarn(
-          `Cursor fetch attempt ${attempt}/${options.maxRetries} failed: ${error}`,
+          `Cursor fetch attempt ${attempt}/${options.maxRetries} failed: ${error instanceof Error ? error.message : String(error)}`,
         );
         if (attempt < options.maxRetries) {
           await this.sleep(options.retryDelayMs * attempt);

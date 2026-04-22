@@ -32,8 +32,10 @@ export class CharacterClient {
    * @param characterId - The ID of the character to look up
    * @returns Public character information including name, corporation, and birthday
    */
-  async getCharacterPublicInfo(characterId: number): Promise<CharacterInfo> {
-    return this.api.getCharacterPublicInfo(characterId);
+  getCharacterPublicInfo(characterId: number): Promise<CharacterInfo> {
+    return this.api.getCharacterPublicInfo(
+      characterId,
+    ) as Promise<CharacterInfo>;
   }
 
   /**
@@ -43,10 +45,8 @@ export class CharacterClient {
    * @returns A list of research agents with skill, points, and start date information
    * @requires Authentication
    */
-  async getCharacterAgentsResearch(
-    characterId: number,
-  ): Promise<AgentResearch[]> {
-    return this.api.getAgentsResearch(characterId);
+  getCharacterAgentsResearch(characterId: number): Promise<AgentResearch[]> {
+    return this.api.getAgentsResearch(characterId) as Promise<AgentResearch[]>;
   }
 
   /**
@@ -56,8 +56,8 @@ export class CharacterClient {
    * @returns A list of blueprints with material/time efficiency and run information
    * @requires Authentication
    */
-  async getCharacterBlueprints(characterId: number): Promise<Blueprint[]> {
-    return this.api.getBlueprints(characterId);
+  getCharacterBlueprints(characterId: number): Promise<Blueprint[]> {
+    return this.api.getBlueprints(characterId) as Promise<Blueprint[]>;
   }
 
   /**
@@ -67,10 +67,12 @@ export class CharacterClient {
    * @returns A chronological list of corporations the character has been a member of
    * @requires Authentication
    */
-  async getCharacterCorporationHistory(
+  getCharacterCorporationHistory(
     characterId: number,
   ): Promise<CorporationHistory[]> {
-    return this.api.getCorporationHistory(characterId);
+    return this.api.getCorporationHistory(characterId) as Promise<
+      CorporationHistory[]
+    >;
   }
 
   /**
@@ -81,11 +83,14 @@ export class CharacterClient {
    * @returns The total CSPA charge cost in ISK
    * @requires Authentication
    */
-  async postCspaChargeCost(
+  postCspaChargeCost(
     characterId: number,
     characters: number[],
   ): Promise<number> {
-    return this.api.calculateCspaChargeCost(characterId, characters);
+    return this.api.calculateCspaChargeCost(
+      characterId,
+      characters,
+    ) as Promise<number>;
   }
 
   /**
@@ -95,8 +100,8 @@ export class CharacterClient {
    * @returns Jump fatigue expiry dates and last jump information
    * @requires Authentication
    */
-  async getCharacterFatigue(characterId: number): Promise<JumpFatigue> {
-    return this.api.getJumpFatigue(characterId);
+  getCharacterFatigue(characterId: number): Promise<JumpFatigue> {
+    return this.api.getJumpFatigue(characterId) as Promise<JumpFatigue>;
   }
 
   /**
@@ -106,8 +111,8 @@ export class CharacterClient {
    * @returns A list of medals the character has been awarded
    * @requires Authentication
    */
-  async getCharacterMedals(characterId: number): Promise<Medal[]> {
-    return this.api.getMedals(characterId);
+  getCharacterMedals(characterId: number): Promise<Medal[]> {
+    return this.api.getMedals(characterId) as Promise<Medal[]>;
   }
 
   /**
@@ -117,10 +122,8 @@ export class CharacterClient {
    * @returns A list of notifications including type, sender, and timestamp
    * @requires Authentication
    */
-  async getCharacterNotifications(
-    characterId: number,
-  ): Promise<Notification[]> {
-    return this.api.getNotifications(characterId);
+  getCharacterNotifications(characterId: number): Promise<Notification[]> {
+    return this.api.getNotifications(characterId) as Promise<Notification[]>;
   }
 
   /**
@@ -130,10 +133,12 @@ export class CharacterClient {
    * @returns A list of contact-related notifications
    * @requires Authentication
    */
-  async getCharacterNotificationsContacts(
+  getCharacterNotificationsContacts(
     characterId: number,
   ): Promise<Notification[]> {
-    return this.api.getContactNotifications(characterId);
+    return this.api.getContactNotifications(characterId) as Promise<
+      Notification[]
+    >;
   }
 
   /**
@@ -142,8 +147,8 @@ export class CharacterClient {
    * @param characterId - The ID of the character whose portrait to retrieve
    * @returns Portrait URLs at different resolutions (64x64, 128x128, 256x256, 512x512)
    */
-  async getCharacterPortrait(characterId: number): Promise<CharacterPortrait> {
-    return this.api.getPortrait(characterId);
+  getCharacterPortrait(characterId: number): Promise<CharacterPortrait> {
+    return this.api.getPortrait(characterId) as Promise<CharacterPortrait>;
   }
 
   /**
@@ -153,8 +158,8 @@ export class CharacterClient {
    * @returns The character's roles including regular, HQ, base, and other role categories
    * @requires Authentication
    */
-  async getCharacterRoles(characterId: number): Promise<CharacterRole> {
-    return this.api.getRoles(characterId);
+  getCharacterRoles(characterId: number): Promise<CharacterRole> {
+    return this.api.getRoles(characterId) as Promise<CharacterRole>;
   }
 
   /**
@@ -164,8 +169,8 @@ export class CharacterClient {
    * @returns A list of standings with from_type, from_id, and standing value
    * @requires Authentication
    */
-  async getCharacterStandings(characterId: number): Promise<Standing[]> {
-    return this.api.getStandings(characterId);
+  getCharacterStandings(characterId: number): Promise<Standing[]> {
+    return this.api.getStandings(characterId) as Promise<Standing[]>;
   }
 
   /**
@@ -175,8 +180,8 @@ export class CharacterClient {
    * @returns A list of corporation titles assigned to the character
    * @requires Authentication
    */
-  async getCharacterTitles(characterId: number): Promise<CharacterTitle[]> {
-    return this.api.getTitles(characterId);
+  getCharacterTitles(characterId: number): Promise<CharacterTitle[]> {
+    return this.api.getTitles(characterId) as Promise<CharacterTitle[]>;
   }
 
   /**
@@ -185,10 +190,12 @@ export class CharacterClient {
    * @param characters - An array of character IDs to look up affiliations for
    * @returns Affiliation data including corporation, alliance, and faction IDs for each character
    */
-  async postCharacterAffiliation(
+  postCharacterAffiliation(
     characters: number[],
   ): Promise<CharacterAffiliation[]> {
-    return this.api.postCharacterAffiliation(characters);
+    return this.api.postCharacterAffiliation(characters) as Promise<
+      CharacterAffiliation[]
+    >;
   }
 
   withMetadata(): WithMetadata<Omit<CharacterClient, 'withMetadata'>> {

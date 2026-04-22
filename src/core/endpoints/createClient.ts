@@ -1,5 +1,5 @@
 import { ApiClient } from '../ApiClient';
-import { handleRequest } from '../ApiRequestHandler';
+import { handleRequest, EsiHandlerResponse } from '../ApiRequestHandler';
 import { EndpointMap, EndpointArgs } from './EndpointDefinition';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
 import { EsiResponse, EsiResponseMeta } from '../../types/api-responses';
@@ -9,7 +9,7 @@ export interface CursorOptions {
   after?: string;
 }
 
-export interface CursorResult<T = any> {
+export interface CursorResult<T = unknown> {
   data: T[];
   cursors: CursorTokens;
 }
@@ -19,7 +19,7 @@ export interface CreateClientOptions {
 }
 
 type ClientMethods<T extends EndpointMap> = {
-  [K in keyof T]: (...args: EndpointArgs<T[K]>) => Promise<any>;
+  [K in keyof T]: (...args: EndpointArgs<T[K]>) => Promise<unknown>;
 };
 
 export type WithMetadata<T> = {
@@ -28,14 +28,15 @@ export type WithMetadata<T> = {
     : T[K];
 };
 
-function buildMeta(response: any): EsiResponseMeta {
+function buildMeta(response: EsiHandlerResponse): EsiResponseMeta {
   return {
-    headers: response.headers ?? {},
+    headers: response.headers,
     fromCache: response.fromCache ?? false,
     stale: response.stale ?? false,
   };
 }
 
+/* eslint-disable sonarjs/cognitive-complexity */
 export function createClient<T extends EndpointMap>(
   apiClient: ApiClient,
   endpoints: T,
@@ -45,10 +46,12 @@ export function createClient<T extends EndpointMap>(
   const returnMetadata = options?.returnMetadata ?? false;
 
   for (const [methodName, def] of Object.entries(endpoints)) {
-    (client as any)[methodName] = async (...args: any[]) => {
+    // eslint-disable-next-line security/detect-object-injection
+    (client as Record<string, (...args: unknown[]) => Promise<unknown>>)[
+      methodName
+    ] = async (...args: unknown[]) => {
       let argIndex = 0;
 
-      // Substitute path parameters
       let path = def.path;
       if (def.pathParams) {
         for (const param of def.pathParams) {
@@ -56,7 +59,6 @@ export function createClient<T extends EndpointMap>(
         }
       }
 
-      // Append query parameters
       if (def.queryParams) {
         const queryParts: string[] = [];
         for (const [, queryKey] of Object.entries(def.queryParams)) {
@@ -70,23 +72,27 @@ export function createClient<T extends EndpointMap>(
         }
       }
 
-      // Build body — match existing behavior: pass JSON.stringify'd string to handleRequest
-      let body: any = undefined;
+      let body: unknown = undefined;
       if (def.bodyBuilder) {
-        body = def.bodyBuilder(...args.slice(argIndex));
+        /* eslint-disable @typescript-eslint/no-unsafe-argument */
+        body = def.bodyBuilder(
+          ...(args.slice(argIndex) as Parameters<typeof def.bodyBuilder>),
+        );
+        /* eslint-enable @typescript-eslint/no-unsafe-argument */
       } else if (def.hasBody) {
+        // eslint-disable-next-line security/detect-object-injection
         body = args[argIndex];
       }
 
-      // For cursor-paginated endpoints, check for trailing cursor options arg
       if (def.cursorPagination) {
         const lastArg = args[args.length - 1];
-        const cursorOpts: CursorOptions | undefined =
-          lastArg &&
+        const isCursorArg =
+          lastArg != null &&
           typeof lastArg === 'object' &&
-          ('before' in lastArg || 'after' in lastArg)
-            ? lastArg
-            : undefined;
+          ('before' in lastArg || 'after' in lastArg);
+        const cursorOpts: CursorOptions | undefined = isCursorArg
+          ? (lastArg as CursorOptions)
+          : undefined;
 
         if (cursorOpts) {
           const parts: string[] = [];
@@ -106,15 +112,19 @@ export function createClient<T extends EndpointMap>(
           body,
           def.requiresAuth,
         );
-        const data = Array.isArray(response.body)
-          ? response.body
-          : response.body != null
-            ? [response.body]
-            : [];
-        const cursorResult = {
+        const responseBody = response.body;
+        let data: unknown[];
+        if (Array.isArray(responseBody)) {
+          data = responseBody as unknown[];
+        } else if (responseBody !== null && responseBody !== undefined) {
+          data = [responseBody];
+        } else {
+          data = [];
+        }
+        const cursorResult: CursorResult = {
           data,
           cursors: response.cursors ?? { before: null, after: null },
-        } as CursorResult;
+        };
 
         if (returnMetadata) {
           return { data: cursorResult, meta: buildMeta(response) };
@@ -138,6 +148,7 @@ export function createClient<T extends EndpointMap>(
 
   return client;
 }
+/* eslint-enable sonarjs/cognitive-complexity */
 
 /**
  * Fetch all pages of a cursor-paginated endpoint.
@@ -159,7 +170,7 @@ export function createClient<T extends EndpointMap>(
  *       (r) => r.cursors,
  *   );
  */
-export async function fetchAllCursorPages<TResponse, TItem = any>(
+export async function fetchAllCursorPages<TResponse, TItem = unknown>(
   fetcher: (before?: string, after?: string) => Promise<TResponse>,
   getItems: (response: TResponse) => TItem[],
   getCursor: (response: TResponse) => {
@@ -169,20 +180,23 @@ export async function fetchAllCursorPages<TResponse, TItem = any>(
 ): Promise<TItem[]> {
   const allData: TItem[] = [];
   let afterToken: string | undefined;
+  let hasMore = true;
 
-  while (true) {
+  while (hasMore) {
     const response = await fetcher(undefined, afterToken);
     const items = getItems(response);
 
     if (!items || items.length === 0) {
-      break;
+      hasMore = false;
+      continue;
     }
 
     allData.push(...items);
 
     const cursor = getCursor(response);
     if (!cursor.after) {
-      break;
+      hasMore = false;
+      continue;
     }
 
     afterToken = cursor.after;

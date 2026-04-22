@@ -18,10 +18,11 @@ export class MetaClient {
    *
    * @returns The full ESI OpenAPI specification as a JSON object
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getOpenApiJson(): Promise<Record<string, any>> {
-    return this.api.getOpenApiJson();
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  getOpenApiJson(): Promise<Record<string, any>> {
+    return this.api.getOpenApiJson() as Promise<Record<string, any>>;
   }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   /**
    * Retrieves the ESI OpenAPI specification in YAML format.
@@ -53,7 +54,7 @@ export class MetaClient {
         logError(`Error fetching YAML: ${error.message}`);
         throw error;
       } else {
-        logError(`Unexpected error: ${error}`);
+        logError(`Unexpected error: ${String(error)}`);
         throw new Error(String(error));
       }
     }

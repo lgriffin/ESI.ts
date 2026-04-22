@@ -48,7 +48,7 @@ export interface EsiClientConfig {
 
 export class EsiClient {
   private apiClient: ApiClient;
-  private clients: Map<string, any> = new Map();
+  private clients: Map<string, unknown> = new Map();
   private etagCacheEnabled: boolean;
 
   constructor(config?: EsiClientConfig) {
@@ -71,7 +71,7 @@ export class EsiClient {
     if (!this.clients.has(name)) {
       this.clients.set(name, createClientInstance(name, this.apiClient));
     }
-    return this.clients.get(name);
+    return this.clients.get(name) as T;
   }
 
   // Domain client accessors
@@ -177,7 +177,13 @@ export class EsiClient {
     logger.info('Access token updated');
   }
 
-  getCacheStats(): any {
+  getCacheStats(): {
+    totalEntries: number;
+    maxEntries: number;
+    hitRate: number;
+    oldestEntry: number | null;
+    newestEntry: number | null;
+  } | null {
     if (!this.etagCacheEnabled) return null;
     const cache = getETagCache();
     return cache ? cache.getStats() : null;
@@ -197,7 +203,7 @@ export class EsiClient {
     }
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     const cache = getETagCache();
     if (cache) {
       cache.shutdown();

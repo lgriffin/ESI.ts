@@ -20,8 +20,8 @@ export class MarketClient {
    * @returns A list of the character's open market orders
    * @requires Authentication
    */
-  async getCharacterOrders(characterId: number): Promise<MarketOrder[]> {
-    return this.api.getCharacterOrders(characterId);
+  getCharacterOrders(characterId: number): Promise<MarketOrder[]> {
+    return this.api.getCharacterOrders(characterId) as Promise<MarketOrder[]>;
   }
 
   /**
@@ -31,8 +31,10 @@ export class MarketClient {
    * @returns A list of the character's historical market orders
    * @requires Authentication
    */
-  async getCharacterOrderHistory(characterId: number): Promise<MarketOrder[]> {
-    return this.api.getCharacterOrderHistory(characterId);
+  getCharacterOrderHistory(characterId: number): Promise<MarketOrder[]> {
+    return this.api.getCharacterOrderHistory(characterId) as Promise<
+      MarketOrder[]
+    >;
   }
 
   /**
@@ -42,8 +44,10 @@ export class MarketClient {
    * @returns A list of the corporation's open market orders
    * @requires Authentication
    */
-  async getCorporationOrders(corporationId: number): Promise<MarketOrder[]> {
-    return this.api.getCorporationOrders(corporationId);
+  getCorporationOrders(corporationId: number): Promise<MarketOrder[]> {
+    return this.api.getCorporationOrders(corporationId) as Promise<
+      MarketOrder[]
+    >;
   }
 
   /**
@@ -53,10 +57,10 @@ export class MarketClient {
    * @returns A list of the corporation's historical market orders
    * @requires Authentication
    */
-  async getCorporationOrderHistory(
-    corporationId: number,
-  ): Promise<MarketOrder[]> {
-    return this.api.getCorporationOrderHistory(corporationId);
+  getCorporationOrderHistory(corporationId: number): Promise<MarketOrder[]> {
+    return this.api.getCorporationOrderHistory(corporationId) as Promise<
+      MarketOrder[]
+    >;
   }
 
   /**
@@ -66,11 +70,10 @@ export class MarketClient {
    * @param typeId - The type ID of the item to get history for
    * @returns A list of daily market history entries with price and volume data
    */
-  async getMarketHistory(
-    regionId: number,
-    typeId: number,
-  ): Promise<MarketHistory[]> {
-    return this.api.getMarketHistory(regionId, typeId);
+  getMarketHistory(regionId: number, typeId: number): Promise<MarketHistory[]> {
+    return this.api.getMarketHistory(regionId, typeId) as Promise<
+      MarketHistory[]
+    >;
   }
 
   /**
@@ -79,8 +82,8 @@ export class MarketClient {
    * @param regionId - The ID of the region to fetch orders for
    * @returns A list of all active market orders in the region
    */
-  async getMarketOrders(regionId: number): Promise<MarketOrder[]> {
-    return this.api.getMarketOrders(regionId, 'all');
+  getMarketOrders(regionId: number): Promise<MarketOrder[]> {
+    return this.api.getMarketOrders(regionId, 'all') as Promise<MarketOrder[]>;
   }
 
   /**
@@ -89,8 +92,8 @@ export class MarketClient {
    * @param regionId - The ID of the region to check for active types
    * @returns A list of type IDs with active orders in the region
    */
-  async getMarketTypes(regionId: number): Promise<number[]> {
-    return this.api.getMarketTypes(regionId);
+  getMarketTypes(regionId: number): Promise<number[]> {
+    return this.api.getMarketTypes(regionId) as Promise<number[]>;
   }
 
   /**
@@ -98,8 +101,8 @@ export class MarketClient {
    *
    * @returns A list of all market group IDs
    */
-  async getMarketGroups(): Promise<number[]> {
-    return this.api.getMarketGroups();
+  getMarketGroups(): Promise<number[]> {
+    return this.api.getMarketGroups() as Promise<number[]>;
   }
 
   /**
@@ -108,14 +111,20 @@ export class MarketClient {
    * @param marketGroupId - The ID of the market group to look up
    * @returns The market group details including name, description, types, and optional parent group
    */
-  async getMarketGroupInformation(marketGroupId: number): Promise<{
+  getMarketGroupInformation(marketGroupId: number): Promise<{
     market_group_id: number;
     name: string;
     description: string;
     types: number[];
     parent_group_id?: number;
   }> {
-    return this.api.getMarketGroupInformation(marketGroupId);
+    return this.api.getMarketGroupInformation(marketGroupId) as Promise<{
+      market_group_id: number;
+      name: string;
+      description: string;
+      types: number[];
+      parent_group_id?: number;
+    }>;
   }
 
   /**
@@ -123,10 +132,12 @@ export class MarketClient {
    *
    * @returns A list of item types with their average and adjusted market prices
    */
-  async getMarketPrices(): Promise<
+  getMarketPrices(): Promise<
     { type_id: number; average_price?: number; adjusted_price?: number }[]
   > {
-    return this.api.getMarketPrices();
+    return this.api.getMarketPrices() as Promise<
+      { type_id: number; average_price?: number; adjusted_price?: number }[]
+    >;
   }
 
   /**
@@ -135,10 +146,10 @@ export class MarketClient {
    * @param structureId - The ID of the structure to fetch orders for
    * @returns A list of active market orders in the structure
    */
-  async getMarketOrdersInStructure(
-    structureId: number,
-  ): Promise<MarketOrder[]> {
-    return this.api.getMarketOrdersInStructure(structureId);
+  getMarketOrdersInStructure(structureId: number): Promise<MarketOrder[]> {
+    return this.api.getMarketOrdersInStructure(structureId) as Promise<
+      MarketOrder[]
+    >;
   }
 
   withMetadata(): WithMetadata<Omit<MarketClient, 'withMetadata'>> {

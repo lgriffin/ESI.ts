@@ -22,8 +22,8 @@ export class DogmaClient {
    *
    * @returns An array of dogma attribute IDs
    */
-  async getAttributes(): Promise<number[]> {
-    return this.api.getAttributes();
+  getAttributes(): Promise<number[]> {
+    return this.api.getAttributes() as Promise<number[]>;
   }
 
   /**
@@ -32,8 +32,8 @@ export class DogmaClient {
    * @param attributeId - The ID of the dogma attribute to look up
    * @returns Detailed information about the dogma attribute
    */
-  async getAttributeById(attributeId: number): Promise<DogmaAttribute> {
-    return this.api.getAttributeById(attributeId);
+  getAttributeById(attributeId: number): Promise<DogmaAttribute> {
+    return this.api.getAttributeById(attributeId) as Promise<DogmaAttribute>;
   }
 
   /**
@@ -43,11 +43,14 @@ export class DogmaClient {
    * @param itemId - The item ID of the specific dynamic item
    * @returns Dynamic dogma information for the mutated item
    */
-  async getDynamicItemInfo(
+  getDynamicItemInfo(
     typeId: number,
     itemId: number,
   ): Promise<DogmaDynamicItem> {
-    return this.api.getDynamicItemInfo(typeId, itemId);
+    return this.api.getDynamicItemInfo(
+      typeId,
+      itemId,
+    ) as Promise<DogmaDynamicItem>;
   }
 
   /**
@@ -55,8 +58,8 @@ export class DogmaClient {
    *
    * @returns An array of dogma effect IDs
    */
-  async getEffects(): Promise<number[]> {
-    return this.api.getEffects();
+  getEffects(): Promise<number[]> {
+    return this.api.getEffects() as Promise<number[]>;
   }
 
   /**
@@ -65,8 +68,8 @@ export class DogmaClient {
    * @param effectId - The ID of the dogma effect to look up
    * @returns Detailed information about the dogma effect
    */
-  async getEffectById(effectId: number): Promise<DogmaEffect> {
-    return this.api.getEffectById(effectId);
+  getEffectById(effectId: number): Promise<DogmaEffect> {
+    return this.api.getEffectById(effectId) as Promise<DogmaEffect>;
   }
 
   withMetadata(): WithMetadata<Omit<DogmaClient, 'withMetadata'>> {

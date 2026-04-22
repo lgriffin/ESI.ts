@@ -20,8 +20,8 @@ export class ContactsClient {
    * @returns A list of alliance contacts with standings and contact types
    * @requires Authentication
    */
-  async getAllianceContacts(allianceId: number): Promise<Contact[]> {
-    return this.api.getAllianceContacts(allianceId);
+  getAllianceContacts(allianceId: number): Promise<Contact[]> {
+    return this.api.getAllianceContacts(allianceId) as Promise<Contact[]>;
   }
 
   /**
@@ -31,8 +31,10 @@ export class ContactsClient {
    * @returns A list of custom labels used to categorize alliance contacts
    * @requires Authentication
    */
-  async getAllianceContactLabels(allianceId: number): Promise<ContactLabel[]> {
-    return this.api.getAllianceContactLabels(allianceId);
+  getAllianceContactLabels(allianceId: number): Promise<ContactLabel[]> {
+    return this.api.getAllianceContactLabels(allianceId) as Promise<
+      ContactLabel[]
+    >;
   }
 
   /**
@@ -42,11 +44,14 @@ export class ContactsClient {
    * @param contactIds - An array of contact IDs to remove
    * @requires Authentication
    */
-  async deleteCharacterContacts(
+  deleteCharacterContacts(
     characterId: number,
     contactIds: number[],
   ): Promise<void> {
-    return this.api.deleteCharacterContacts(characterId, contactIds);
+    return this.api.deleteCharacterContacts(
+      characterId,
+      contactIds,
+    ) as Promise<void>;
   }
 
   /**
@@ -56,8 +61,8 @@ export class ContactsClient {
    * @returns A list of character contacts with standings, labels, and contact types
    * @requires Authentication
    */
-  async getCharacterContacts(characterId: number): Promise<Contact[]> {
-    return this.api.getCharacterContacts(characterId);
+  getCharacterContacts(characterId: number): Promise<Contact[]> {
+    return this.api.getCharacterContacts(characterId) as Promise<Contact[]>;
   }
 
   /**
@@ -68,11 +73,11 @@ export class ContactsClient {
    * @returns An array of contact IDs that were successfully added
    * @requires Authentication
    */
-  async postCharacterContacts(
+  postCharacterContacts(
     characterId: number,
     contacts: object,
   ): Promise<number[]> {
-    return this.api.addContacts(characterId, contacts);
+    return this.api.addContacts(characterId, contacts) as Promise<number[]>;
   }
 
   /**
@@ -82,11 +87,8 @@ export class ContactsClient {
    * @param contacts - Updated contact data including IDs, standings, and optional labels
    * @requires Authentication
    */
-  async putCharacterContacts(
-    characterId: number,
-    contacts: object,
-  ): Promise<void> {
-    return this.api.editContacts(characterId, contacts);
+  putCharacterContacts(characterId: number, contacts: object): Promise<void> {
+    return this.api.editContacts(characterId, contacts) as Promise<void>;
   }
 
   /**
@@ -96,10 +98,10 @@ export class ContactsClient {
    * @returns A list of custom labels used to categorize character contacts
    * @requires Authentication
    */
-  async getCharacterContactLabels(
-    characterId: number,
-  ): Promise<ContactLabel[]> {
-    return this.api.getCharacterContactLabels(characterId);
+  getCharacterContactLabels(characterId: number): Promise<ContactLabel[]> {
+    return this.api.getCharacterContactLabels(characterId) as Promise<
+      ContactLabel[]
+    >;
   }
 
   /**
@@ -109,8 +111,8 @@ export class ContactsClient {
    * @returns A list of corporation contacts with standings and contact types
    * @requires Authentication
    */
-  async getCorporationContacts(corporationId: number): Promise<Contact[]> {
-    return this.api.getCorporationContacts(corporationId);
+  getCorporationContacts(corporationId: number): Promise<Contact[]> {
+    return this.api.getCorporationContacts(corporationId) as Promise<Contact[]>;
   }
 
   /**
@@ -120,10 +122,10 @@ export class ContactsClient {
    * @returns A list of custom labels used to categorize corporation contacts
    * @requires Authentication
    */
-  async getCorporationContactLabels(
-    corporationId: number,
-  ): Promise<ContactLabel[]> {
-    return this.api.getCorporationContactLabels(corporationId);
+  getCorporationContactLabels(corporationId: number): Promise<ContactLabel[]> {
+    return this.api.getCorporationContactLabels(corporationId) as Promise<
+      ContactLabel[]
+    >;
   }
 
   withMetadata(): WithMetadata<Omit<ContactsClient, 'withMetadata'>> {

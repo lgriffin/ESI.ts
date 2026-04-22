@@ -24,8 +24,10 @@ export class LocationClient {
    * @returns The character's current location including solar system and optional station or structure
    * @requires Authentication
    */
-  async getCharacterLocation(characterId: number): Promise<CharacterLocation> {
-    return this.api.getCharacterLocation(characterId);
+  getCharacterLocation(characterId: number): Promise<CharacterLocation> {
+    return this.api.getCharacterLocation(
+      characterId,
+    ) as Promise<CharacterLocation>;
   }
 
   /**
@@ -35,8 +37,8 @@ export class LocationClient {
    * @returns The character's online status and last login/logout times
    * @requires Authentication
    */
-  async getCharacterOnline(characterId: number): Promise<CharacterOnline> {
-    return this.api.getCharacterOnline(characterId);
+  getCharacterOnline(characterId: number): Promise<CharacterOnline> {
+    return this.api.getCharacterOnline(characterId) as Promise<CharacterOnline>;
   }
 
   /**
@@ -46,8 +48,8 @@ export class LocationClient {
    * @returns The character's current ship details including type ID and ship name
    * @requires Authentication
    */
-  async getCharacterShip(characterId: number): Promise<CharacterShip> {
-    return this.api.getCharacterShip(characterId);
+  getCharacterShip(characterId: number): Promise<CharacterShip> {
+    return this.api.getCharacterShip(characterId) as Promise<CharacterShip>;
   }
 
   withMetadata(): WithMetadata<Omit<LocationClient, 'withMetadata'>> {

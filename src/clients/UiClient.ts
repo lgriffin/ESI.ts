@@ -18,8 +18,8 @@ export class UiClient {
    * @param body - The waypoint configuration including destination, whether to add to beginning, and whether to clear other waypoints
    * @requires Authentication
    */
-  async setAutopilotWaypoint(body: object): Promise<void> {
-    return this.api.setAutopilotWaypoint(body);
+  setAutopilotWaypoint(body: object): Promise<void> {
+    return this.api.setAutopilotWaypoint(body) as Promise<void>;
   }
 
   /**
@@ -28,8 +28,8 @@ export class UiClient {
    * @param body - The contract details including the contract ID to display
    * @requires Authentication
    */
-  async openContractWindow(body: object): Promise<void> {
-    return this.api.openContractWindow(body);
+  openContractWindow(body: object): Promise<void> {
+    return this.api.openContractWindow(body) as Promise<void>;
   }
 
   /**
@@ -38,8 +38,8 @@ export class UiClient {
    * @param body - The target entity details including the target ID to display
    * @requires Authentication
    */
-  async openInformationWindow(body: object): Promise<void> {
-    return this.api.openInformationWindow(body);
+  openInformationWindow(body: object): Promise<void> {
+    return this.api.openInformationWindow(body) as Promise<void>;
   }
 
   /**
@@ -48,8 +48,8 @@ export class UiClient {
    * @param body - The market item details including the type ID to display
    * @requires Authentication
    */
-  async openMarketDetailsWindow(body: object): Promise<void> {
-    return this.api.openMarketDetailsWindow(body);
+  openMarketDetailsWindow(body: object): Promise<void> {
+    return this.api.openMarketDetailsWindow(body) as Promise<void>;
   }
 
   /**
@@ -58,8 +58,8 @@ export class UiClient {
    * @param body - The mail details including recipients, subject, and body text
    * @requires Authentication
    */
-  async openNewMailWindow(body: object): Promise<void> {
-    return this.api.openNewMailWindow(body);
+  openNewMailWindow(body: object): Promise<void> {
+    return this.api.openNewMailWindow(body) as Promise<void>;
   }
 
   withMetadata(): WithMetadata<Omit<UiClient, 'withMetadata'>> {

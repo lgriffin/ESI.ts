@@ -33,7 +33,9 @@ export class RouteClient {
     options?: RouteOptions,
   ): Promise<number[]> {
     const body = options ?? {};
-    const result = await this.api.getRoute(origin, destination, body);
+    const result = (await this.api.getRoute(origin, destination, body)) as {
+      route: number[];
+    };
     return result.route;
   }
 

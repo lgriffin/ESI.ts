@@ -4,7 +4,7 @@ const { combine, timestamp, printf, colorize } = format;
 
 // Define custom log format
 const logFormat = printf(({ level, message, timestamp }) => {
-  return `${timestamp} [${level}]: ${message}`;
+  return `${String(timestamp)} [${String(level)}]: ${String(message)}`;
 });
 
 // Create Winston logger instance — console only by default.

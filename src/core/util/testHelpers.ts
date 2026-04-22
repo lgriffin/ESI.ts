@@ -1,5 +1,6 @@
 import fetchMock from 'jest-fetch-mock';
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 export const mockApiCall = (
   apiCall: (...args: any[]) => Promise<any>,
   mockResponse: object,
@@ -22,3 +23,4 @@ export const getHeaders = async (
 export const getBody = async (apiCall: () => Promise<any>): Promise<any> => {
   return apiCall();
 };
+/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */

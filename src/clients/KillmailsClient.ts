@@ -20,10 +20,10 @@ export class KillmailsClient {
    * @returns A list of recent killmail summaries including killmail IDs and hashes
    * @requires Authentication
    */
-  async getCharacterRecentKillmails(
-    characterId: number,
-  ): Promise<KillmailSummary[]> {
-    return this.api.getCharacterRecentKillmails(characterId);
+  getCharacterRecentKillmails(characterId: number): Promise<KillmailSummary[]> {
+    return this.api.getCharacterRecentKillmails(characterId) as Promise<
+      KillmailSummary[]
+    >;
   }
 
   /**
@@ -33,10 +33,12 @@ export class KillmailsClient {
    * @returns A list of recent killmail summaries including killmail IDs and hashes
    * @requires Authentication
    */
-  async getCorporationRecentKillmails(
+  getCorporationRecentKillmails(
     corporationId: number,
   ): Promise<KillmailSummary[]> {
-    return this.api.getCorporationRecentKillmails(corporationId);
+    return this.api.getCorporationRecentKillmails(corporationId) as Promise<
+      KillmailSummary[]
+    >;
   }
 
   /**
@@ -46,11 +48,8 @@ export class KillmailsClient {
    * @param killmailHash - The hash of the killmail for verification
    * @returns The full killmail details including victim, attackers, and items
    */
-  async getKillmail(
-    killmailId: number,
-    killmailHash: string,
-  ): Promise<Killmail> {
-    return this.api.getKillmail(killmailId, killmailHash);
+  getKillmail(killmailId: number, killmailHash: string): Promise<Killmail> {
+    return this.api.getKillmail(killmailId, killmailHash) as Promise<Killmail>;
   }
 
   withMetadata(): WithMetadata<Omit<KillmailsClient, 'withMetadata'>> {

@@ -44,8 +44,8 @@ describe('Cursor Pagination Integration (handleRequest)', () => {
 
     expect(result.body).toEqual([{ id: 1 }, { id: 2 }]);
     expect(result.cursors).toBeDefined();
-    expect(result.cursors.before).toBe('before-tok');
-    expect(result.cursors.after).toBe('after-tok');
+    expect(result.cursors!.before).toBe('before-tok');
+    expect(result.cursors!.after).toBe('after-tok');
   });
 
   it('should not return cursors for offset-based pagination', async () => {
@@ -103,7 +103,7 @@ describe('Cursor Pagination Integration (handleRequest)', () => {
       'https://esi.evetech.net/corporations/123/projects?after=cursor-1',
     );
     expect(result.body).toEqual([{ id: 3 }]);
-    expect(result.cursors.after).toBe('a2');
+    expect(result.cursors!.after).toBe('a2');
   });
 
   it('should not auto-paginate cursor responses (single page only)', async () => {
@@ -125,7 +125,7 @@ describe('Cursor Pagination Integration (handleRequest)', () => {
     );
 
     expect(result.body).toEqual([{ id: 1 }, { id: 2 }]);
-    expect(result.cursors.after).toBe('next-cursor');
+    expect(result.cursors!.after).toBe('next-cursor');
     // Only 1 fetch — no auto-pagination
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -146,7 +146,7 @@ describe('Cursor Pagination Integration (handleRequest)', () => {
       false,
     );
 
-    expect(result.cursors.before).toBeNull();
-    expect(result.cursors.after).toBe('after-only');
+    expect(result.cursors!.before).toBeNull();
+    expect(result.cursors!.after).toBe('after-only');
   });
 });

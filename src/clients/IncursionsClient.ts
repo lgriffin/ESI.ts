@@ -18,8 +18,8 @@ export class IncursionsClient {
    *
    * @returns An array of active incursions
    */
-  async getIncursions(): Promise<Incursion[]> {
-    return this.api.getIncursions();
+  getIncursions(): Promise<Incursion[]> {
+    return this.api.getIncursions() as Promise<Incursion[]>;
   }
 
   withMetadata(): WithMetadata<Omit<IncursionsClient, 'withMetadata'>> {

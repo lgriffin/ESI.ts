@@ -71,7 +71,7 @@ describe('BDD: ETag Caching System', () => {
         expect(cache).toBeDefined();
 
         const cacheStats = client.getCacheStats();
-        expect(cacheStats.totalEntries).toBe(1);
+        expect(cacheStats!.totalEntries).toBe(1);
 
         const cachedETag = cache?.getETag('https://esi.evetech.net/alliances');
         expect(cachedETag).toBe(etag);
@@ -171,10 +171,10 @@ describe('BDD: ETag Caching System', () => {
 
         // Then: I should receive detailed information about cache usage
         expect(stats).toBeDefined();
-        expect(stats.totalEntries).toBe(2);
-        expect(stats.maxEntries).toBe(50);
-        expect(stats.oldestEntry).toBeDefined();
-        expect(stats.newestEntry).toBeDefined();
+        expect(stats!.totalEntries).toBe(2);
+        expect(stats!.maxEntries).toBe(50);
+        expect(stats!.oldestEntry).toBeDefined();
+        expect(stats!.newestEntry).toBeDefined();
       });
     });
 
@@ -186,13 +186,13 @@ describe('BDD: ETag Caching System', () => {
         });
 
         await client.alliance.getAlliances();
-        expect(client.getCacheStats().totalEntries).toBe(1);
+        expect(client.getCacheStats()!.totalEntries).toBe(1);
 
         // When: I clear the cache
         client.clearCache();
 
         // Then: All cached data should be removed
-        expect(client.getCacheStats().totalEntries).toBe(0);
+        expect(client.getCacheStats()!.totalEntries).toBe(0);
       });
     });
 
@@ -200,7 +200,7 @@ describe('BDD: ETag Caching System', () => {
       it('Given a client with initial cache settings, When I update the cache configuration, Then the new settings should take effect', async () => {
         // Given: A client with initial cache settings
         const initialStats = client.getCacheStats();
-        expect(initialStats.maxEntries).toBe(50);
+        expect(initialStats!.maxEntries).toBe(50);
 
         // When: I update the cache configuration
         client.updateCacheConfig({
@@ -210,7 +210,7 @@ describe('BDD: ETag Caching System', () => {
 
         // Then: The new settings should take effect
         const updatedStats = client.getCacheStats();
-        expect(updatedStats.maxEntries).toBe(100);
+        expect(updatedStats!.maxEntries).toBe(100);
       });
     });
   });
@@ -253,7 +253,7 @@ describe('BDD: ETag Caching System', () => {
 
         // Then: The system should work normally without caching
         expect(result).toEqual(data);
-        expect(client.getCacheStats().totalEntries).toBe(0); // Nothing cached
+        expect(client.getCacheStats()!.totalEntries).toBe(0); // Nothing cached
       });
     });
   });

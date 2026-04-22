@@ -142,6 +142,7 @@ export function createClientInstance(
   name: ApiClientType,
   apiClient: ApiClient,
 ): ClientInstance {
+  // eslint-disable-next-line security/detect-object-injection
   return new clientFactories[name](apiClient);
 }
 

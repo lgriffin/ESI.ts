@@ -10,10 +10,15 @@ import HeadersUtil from '../core/util/headersUtil';
 import { ETagCacheManager } from './cache/ETagCacheManager';
 import { RateLimiter } from './rateLimiter/RateLimiter';
 import { PaginationHandler } from './pagination/PaginationHandler';
-import {
-  CursorPaginationHandler,
-  CursorTokens,
-} from './pagination/CursorPaginationHandler';
+import { CursorTokens } from './pagination/CursorPaginationHandler';
+
+export interface EsiHandlerResponse {
+  headers: Record<string, string>;
+  body: unknown;
+  fromCache?: boolean;
+  stale?: boolean;
+  cursors?: CursorTokens;
+}
 
 const statusHandlers: Record<number, string> = {
   201: 'Created',
@@ -35,7 +40,9 @@ const statusHandlers: Record<number, string> = {
 // Global ETag cache instance
 let etagCache: ETagCacheManager | null = null;
 
-export const initializeETagCache = (config?: any): ETagCacheManager => {
+export const initializeETagCache = (
+  config?: ConstructorParameters<typeof ETagCacheManager>[0],
+): ETagCacheManager => {
   if (!etagCache) {
     etagCache = new ETagCacheManager(config);
   }
@@ -61,21 +68,19 @@ const parseCacheControlTtl = (
 ): number | undefined => {
   const cacheControl = headers['cache-control'] || headers['Cache-Control'];
   if (!cacheControl) return undefined;
-  const match = cacheControl.match(/max-age=(\d+)/);
+  const match = /max-age=(\d+)/.exec(cacheControl);
   return match ? parseInt(match[1], 10) * 1000 : undefined;
 };
 
+/* eslint-disable sonarjs/cognitive-complexity */
 export const handleRequest = async (
   client: ApiClient,
   endpoint: string,
   method: string,
-  body?: any,
+  body?: unknown,
   requiresAuth: boolean = false,
   useETag: boolean = true,
-): Promise<any> => {
-  // Extract the base URL (without any pagination or extra query params)
-  const [baseEndpoint] = endpoint.split('?'); // Get only the part before `?`
-
+): Promise<EsiHandlerResponse> => {
   const url = `${client.getLink()}/${endpoint}`;
   const headers: HeadersInit = {
     accept: 'gzip, deflate, br',
@@ -129,9 +134,9 @@ export const handleRequest = async (
 
     // Handle special success statuses
     if (response.status === 201) {
-      let data;
+      let data: unknown;
       try {
-        data = await response.json();
+        data = (await response.json()) as unknown;
       } catch {
         data = undefined;
       }
@@ -189,23 +194,23 @@ export const handleRequest = async (
     }
 
     // Get the data and number of pages from the first response
-    let data;
+    let data: unknown;
     try {
-      data = await response.json();
+      data = (await response.json()) as unknown;
     } catch (jsonError) {
-      logError(`Failed to parse JSON response: ${jsonError}`);
-      throw buildError(
-        `Invalid JSON response: ${jsonError}`,
-        'JSON_PARSE_ERROR',
-      );
+      const msg =
+        jsonError instanceof Error ? jsonError.message : String(jsonError);
+      logError(`Failed to parse JSON response: ${msg}`);
+      throw buildError(`Invalid JSON response: ${msg}`, 'JSON_PARSE_ERROR');
     }
 
     // Cache the response if ETag is present and this is a GET request
     if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
       const ttl = parseCacheControlTtl(responseHeaders);
       etagCache.set(url, HeadersUtil.etag, data, responseHeaders, ttl);
+      const ttlInfo = ttl ? ` (ttl=${ttl}ms)` : '';
       logDebug(
-        `Cached response for ${url} with ETag ${HeadersUtil.etag}${ttl ? ` (ttl=${ttl}ms)` : ''}`,
+        `Cached response for ${url} with ETag ${HeadersUtil.etag}${ttlInfo}`,
       );
     }
 
@@ -264,23 +269,24 @@ export const handleRequest = async (
       }
 
       return { headers: responseHeaders, body: allData };
-    } catch (paginationError) {
-      logWarn(
-        `Pagination failed, returning first page only: ${paginationError}`,
-      );
+    } catch (paginationError: unknown) {
+      const msg =
+        paginationError instanceof Error
+          ? paginationError.message
+          : String(paginationError);
+      logWarn(`Pagination failed, returning first page only: ${msg}`);
       return { headers: responseHeaders, body: data };
     }
-  } catch (error) {
-    // Re-throw EsiError as-is (don't re-wrap known errors)
+  } catch (error: unknown) {
     if (error instanceof EsiError) {
       throw error;
     }
     if (error instanceof Error) {
       logError(`Unexpected error: ${error.message}`);
       throw buildError(error.message, 'ESIJS_ERROR');
-    } else {
-      logError(`Unexpected error: ${error}`);
-      throw buildError(String(error), 'ESIJS_ERROR');
     }
+    logError(`Unexpected error: ${String(error)}`);
+    throw buildError(String(error), 'ESIJS_ERROR');
   }
 };
+/* eslint-enable sonarjs/cognitive-complexity */

@@ -60,7 +60,7 @@ export const buildError = (
 ): Error => {
   const error = new Error(`[${type}] ${message}`);
   if (url) {
-    (error as any).url = url;
+    (error as Error & { url: string }).url = url;
   }
   return error;
 };

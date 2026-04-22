@@ -21,11 +21,14 @@ export class SearchClient {
    * @returns Search results grouped by entity category
    * @requires Authentication
    */
-  async characterSearch(
+  characterSearch(
     characterId: number,
     searchString: string,
   ): Promise<SearchResult> {
-    return this.api.searchCharacter(characterId, searchString);
+    return this.api.searchCharacter(
+      characterId,
+      searchString,
+    ) as Promise<SearchResult>;
   }
 
   withMetadata(): WithMetadata<Omit<SearchClient, 'withMetadata'>> {

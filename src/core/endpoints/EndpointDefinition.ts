@@ -14,7 +14,8 @@ export interface EndpointDefinition {
   /** Whether the method accepts a body parameter (for POST/PUT/DELETE) */
   hasBody?: boolean;
   /** Custom body builder for endpoints that construct body from individual params */
-  bodyBuilder?: (...args: any[]) => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bodyBuilder?: (...args: any[]) => unknown;
   /** Whether this endpoint uses cursor-based pagination (before/after tokens) */
   cursorPagination?: boolean;
 }
@@ -25,8 +26,8 @@ export type EndpointMap = Record<string, EndpointDefinition>;
 
 /** Convert a readonly string tuple to a tuple of number | string (one per path param) */
 type PathParamArgs<P> = P extends readonly [
-  any,
-  ...infer Rest extends readonly any[],
+  unknown,
+  ...infer Rest extends readonly unknown[],
 ]
   ? [number | string, ...PathParamArgs<Rest>]
   : [];
@@ -35,14 +36,14 @@ type PathParamArgs<P> = P extends readonly [
 export type EndpointArgs<D> = D extends {
   pathParams: infer P extends readonly string[];
 }
-  ? D extends { bodyBuilder: (...args: infer BA) => any }
+  ? D extends { bodyBuilder: (...args: infer BA) => unknown }
     ? [...PathParamArgs<P>, ...BA]
     : D extends { hasBody: true }
       ? [...PathParamArgs<P>, body: object]
       : D extends { queryParams: Record<string, string> }
         ? [...PathParamArgs<P>, ...(string | number | undefined)[]]
         : PathParamArgs<P>
-  : D extends { bodyBuilder: (...args: infer BA) => any }
+  : D extends { bodyBuilder: (...args: infer BA) => unknown }
     ? BA
     : D extends { hasBody: true }
       ? [body: object]

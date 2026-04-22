@@ -25,10 +25,10 @@ export class FleetClient {
    * @returns Fleet membership information for the character
    * @requires Authentication
    */
-  async getCharacterFleetInfo(
-    characterId: number,
-  ): Promise<CharacterFleetInfo> {
-    return this.api.getCharacterFleetInfo(characterId);
+  getCharacterFleetInfo(characterId: number): Promise<CharacterFleetInfo> {
+    return this.api.getCharacterFleetInfo(
+      characterId,
+    ) as Promise<CharacterFleetInfo>;
   }
 
   /**
@@ -38,8 +38,8 @@ export class FleetClient {
    * @returns Detailed fleet information
    * @requires Authentication
    */
-  async getFleetInformation(fleetId: number): Promise<FleetInfo> {
-    return this.api.getFleetInfo(fleetId);
+  getFleetInformation(fleetId: number): Promise<FleetInfo> {
+    return this.api.getFleetInfo(fleetId) as Promise<FleetInfo>;
   }
 
   /**
@@ -49,8 +49,8 @@ export class FleetClient {
    * @param body - The fleet settings to update
    * @requires Authentication
    */
-  async updateFleet(fleetId: number, body: object): Promise<void> {
-    return this.api.updateFleet(fleetId, body);
+  updateFleet(fleetId: number, body: object): Promise<void> {
+    return this.api.updateFleet(fleetId, body) as Promise<void>;
   }
 
   /**
@@ -60,8 +60,8 @@ export class FleetClient {
    * @returns An array of fleet members
    * @requires Authentication
    */
-  async getFleetMembers(fleetId: number): Promise<FleetMember[]> {
-    return this.api.getFleetMembers(fleetId);
+  getFleetMembers(fleetId: number): Promise<FleetMember[]> {
+    return this.api.getFleetMembers(fleetId) as Promise<FleetMember[]>;
   }
 
   /**
@@ -71,8 +71,8 @@ export class FleetClient {
    * @param body - The invitation details including the character to invite and their role
    * @requires Authentication
    */
-  async createFleetInvitation(fleetId: number, body: object): Promise<void> {
-    return this.api.createFleetInvitation(fleetId, body);
+  createFleetInvitation(fleetId: number, body: object): Promise<void> {
+    return this.api.createFleetInvitation(fleetId, body) as Promise<void>;
   }
 
   /**
@@ -82,8 +82,8 @@ export class FleetClient {
    * @param memberId - The character ID of the member to kick
    * @requires Authentication
    */
-  async kickFleetMember(fleetId: number, memberId: number): Promise<void> {
-    return this.api.kickFleetMember(fleetId, memberId);
+  kickFleetMember(fleetId: number, memberId: number): Promise<void> {
+    return this.api.kickFleetMember(fleetId, memberId) as Promise<void>;
   }
 
   /**
@@ -94,12 +94,12 @@ export class FleetClient {
    * @param body - The target role, wing, and/or squad assignment
    * @requires Authentication
    */
-  async moveFleetMember(
+  moveFleetMember(
     fleetId: number,
     memberId: number,
     body: object,
   ): Promise<void> {
-    return this.api.moveFleetMember(fleetId, memberId, body);
+    return this.api.moveFleetMember(fleetId, memberId, body) as Promise<void>;
   }
 
   /**
@@ -109,8 +109,8 @@ export class FleetClient {
    * @param squadId - The ID of the squad to delete
    * @requires Authentication
    */
-  async deleteFleetSquad(fleetId: number, squadId: number): Promise<void> {
-    return this.api.deleteFleetSquad(fleetId, squadId);
+  deleteFleetSquad(fleetId: number, squadId: number): Promise<void> {
+    return this.api.deleteFleetSquad(fleetId, squadId) as Promise<void>;
   }
 
   /**
@@ -121,12 +121,12 @@ export class FleetClient {
    * @param name - The new name for the squad
    * @requires Authentication
    */
-  async renameFleetSquad(
+  renameFleetSquad(
     fleetId: number,
     squadId: number,
     name: string,
   ): Promise<void> {
-    return this.api.renameFleetSquad(fleetId, squadId, name);
+    return this.api.renameFleetSquad(fleetId, squadId, name) as Promise<void>;
   }
 
   /**
@@ -136,8 +136,8 @@ export class FleetClient {
    * @returns An array of fleet wings with their nested squads
    * @requires Authentication
    */
-  async getFleetWings(fleetId: number): Promise<FleetWing[]> {
-    return this.api.getFleetWings(fleetId);
+  getFleetWings(fleetId: number): Promise<FleetWing[]> {
+    return this.api.getFleetWings(fleetId) as Promise<FleetWing[]>;
   }
 
   /**
@@ -148,11 +148,10 @@ export class FleetClient {
    * @returns The ID of the newly created wing
    * @requires Authentication
    */
-  async createFleetWing(
-    fleetId: number,
-    body: object,
-  ): Promise<{ wing_id: number }> {
-    return this.api.createFleetWing(fleetId, body);
+  createFleetWing(fleetId: number, body: object): Promise<{ wing_id: number }> {
+    return this.api.createFleetWing(fleetId, body) as Promise<{
+      wing_id: number;
+    }>;
   }
 
   /**
@@ -162,8 +161,8 @@ export class FleetClient {
    * @param wingId - The ID of the wing to delete
    * @requires Authentication
    */
-  async deleteFleetWing(fleetId: number, wingId: number): Promise<void> {
-    return this.api.deleteFleetWing(fleetId, wingId);
+  deleteFleetWing(fleetId: number, wingId: number): Promise<void> {
+    return this.api.deleteFleetWing(fleetId, wingId) as Promise<void>;
   }
 
   /**
@@ -174,12 +173,12 @@ export class FleetClient {
    * @param name - The new name for the wing
    * @requires Authentication
    */
-  async renameFleetWing(
+  renameFleetWing(
     fleetId: number,
     wingId: number,
     name: string,
   ): Promise<void> {
-    return this.api.renameFleetWing(fleetId, wingId, name);
+    return this.api.renameFleetWing(fleetId, wingId, name) as Promise<void>;
   }
 
   /**
@@ -190,11 +189,13 @@ export class FleetClient {
    * @returns The ID of the newly created squad
    * @requires Authentication
    */
-  async createFleetSquad(
+  createFleetSquad(
     fleetId: number,
     wingId: number,
   ): Promise<{ squad_id: number }> {
-    return this.api.createFleetSquad(fleetId, wingId);
+    return this.api.createFleetSquad(fleetId, wingId) as Promise<{
+      squad_id: number;
+    }>;
   }
 
   withMetadata(): WithMetadata<Omit<FleetClient, 'withMetadata'>> {

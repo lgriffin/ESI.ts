@@ -1,4 +1,4 @@
-import { EndpointDefinition, EndpointMap } from './EndpointDefinition';
+import { EndpointMap } from './EndpointDefinition';
 
 export const freelanceJobsEndpoints = {
   getFreelanceJobs: {

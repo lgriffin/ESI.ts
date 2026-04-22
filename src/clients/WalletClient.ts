@@ -20,8 +20,8 @@ export class WalletClient {
    * @returns The character's wallet balance in ISK
    * @requires Authentication
    */
-  async getCharacterWallet(characterId: number): Promise<number> {
-    return this.api.getCharacterWallet(characterId);
+  getCharacterWallet(characterId: number): Promise<number> {
+    return this.api.getCharacterWallet(characterId) as Promise<number>;
   }
 
   /**
@@ -31,10 +31,10 @@ export class WalletClient {
    * @returns A list of wallet journal entries
    * @requires Authentication
    */
-  async getCharacterWalletJournal(
-    characterId: number,
-  ): Promise<WalletJournal[]> {
-    return this.api.getCharacterWalletJournal(characterId);
+  getCharacterWalletJournal(characterId: number): Promise<WalletJournal[]> {
+    return this.api.getCharacterWalletJournal(characterId) as Promise<
+      WalletJournal[]
+    >;
   }
 
   /**
@@ -44,10 +44,12 @@ export class WalletClient {
    * @returns A list of market buy and sell transactions
    * @requires Authentication
    */
-  async getCharacterWalletTransactions(
+  getCharacterWalletTransactions(
     characterId: number,
   ): Promise<WalletTransaction[]> {
-    return this.api.getCharacterWalletTransactions(characterId);
+    return this.api.getCharacterWalletTransactions(characterId) as Promise<
+      WalletTransaction[]
+    >;
   }
 
   /**
@@ -57,10 +59,12 @@ export class WalletClient {
    * @returns A list of wallet divisions with their balances
    * @requires Authentication
    */
-  async getCorporationWallets(
+  getCorporationWallets(
     corporationId: number,
   ): Promise<{ division: number; balance: number }[]> {
-    return this.api.getCorporationWallets(corporationId);
+    return this.api.getCorporationWallets(corporationId) as Promise<
+      { division: number; balance: number }[]
+    >;
   }
 
   /**
@@ -71,11 +75,14 @@ export class WalletClient {
    * @returns A list of wallet journal entries for the specified division
    * @requires Authentication
    */
-  async getCorporationWalletJournal(
+  getCorporationWalletJournal(
     corporationId: number,
     division: number,
   ): Promise<WalletJournal[]> {
-    return this.api.getCorporationWalletJournal(corporationId, division);
+    return this.api.getCorporationWalletJournal(
+      corporationId,
+      division,
+    ) as Promise<WalletJournal[]>;
   }
 
   /**
@@ -86,11 +93,14 @@ export class WalletClient {
    * @returns A list of market buy and sell transactions for the specified division
    * @requires Authentication
    */
-  async getCorporationWalletTransactions(
+  getCorporationWalletTransactions(
     corporationId: number,
     division: number,
   ): Promise<WalletTransaction[]> {
-    return this.api.getCorporationWalletTransactions(corporationId, division);
+    return this.api.getCorporationWalletTransactions(
+      corporationId,
+      division,
+    ) as Promise<WalletTransaction[]>;
   }
 
   withMetadata(): WithMetadata<Omit<WalletClient, 'withMetadata'>> {

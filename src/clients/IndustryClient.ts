@@ -28,8 +28,10 @@ export class IndustryClient {
    * @returns An array of the character's industry jobs
    * @requires Authentication
    */
-  async getCharacterIndustryJobs(characterId: number): Promise<IndustryJob[]> {
-    return this.api.getCharacterIndustryJobs(characterId);
+  getCharacterIndustryJobs(characterId: number): Promise<IndustryJob[]> {
+    return this.api.getCharacterIndustryJobs(characterId) as Promise<
+      IndustryJob[]
+    >;
   }
 
   /**
@@ -39,10 +41,10 @@ export class IndustryClient {
    * @returns An array of mining ledger entries
    * @requires Authentication
    */
-  async getCharacterMiningLedger(
-    characterId: number,
-  ): Promise<MiningLedgerEntry[]> {
-    return this.api.getCharacterMiningLedger(characterId);
+  getCharacterMiningLedger(characterId: number): Promise<MiningLedgerEntry[]> {
+    return this.api.getCharacterMiningLedger(characterId) as Promise<
+      MiningLedgerEntry[]
+    >;
   }
 
   /**
@@ -52,10 +54,12 @@ export class IndustryClient {
    * @returns An array of moon extraction timers
    * @requires Authentication
    */
-  async getMoonExtractionTimers(
+  getMoonExtractionTimers(
     corporationId: number,
   ): Promise<MoonExtractionTimer[]> {
-    return this.api.getMoonExtractionTimers(corporationId);
+    return this.api.getMoonExtractionTimers(corporationId) as Promise<
+      MoonExtractionTimer[]
+    >;
   }
 
   /**
@@ -65,10 +69,12 @@ export class IndustryClient {
    * @returns An array of mining observers
    * @requires Authentication
    */
-  async getCorporationMiningObservers(
+  getCorporationMiningObservers(
     corporationId: number,
   ): Promise<MiningObserver[]> {
-    return this.api.getCorporationMiningObservers(corporationId);
+    return this.api.getCorporationMiningObservers(corporationId) as Promise<
+      MiningObserver[]
+    >;
   }
 
   /**
@@ -79,11 +85,14 @@ export class IndustryClient {
    * @returns An array of mining activity entries for the observer
    * @requires Authentication
    */
-  async getCorporationMiningObserver(
+  getCorporationMiningObserver(
     corporationId: number,
     observerId: number,
   ): Promise<MiningObserverEntry[]> {
-    return this.api.getCorporationMiningObserver(corporationId, observerId);
+    return this.api.getCorporationMiningObserver(
+      corporationId,
+      observerId,
+    ) as Promise<MiningObserverEntry[]>;
   }
 
   /**
@@ -93,10 +102,10 @@ export class IndustryClient {
    * @returns An array of the corporation's industry jobs
    * @requires Authentication
    */
-  async getCorporationIndustryJobs(
-    corporationId: number,
-  ): Promise<IndustryJob[]> {
-    return this.api.getCorporationIndustryJobs(corporationId);
+  getCorporationIndustryJobs(corporationId: number): Promise<IndustryJob[]> {
+    return this.api.getCorporationIndustryJobs(corporationId) as Promise<
+      IndustryJob[]
+    >;
   }
 
   /**
@@ -104,8 +113,8 @@ export class IndustryClient {
    *
    * @returns An array of industry facilities
    */
-  async getIndustryFacilities(): Promise<IndustryFacility[]> {
-    return this.api.getIndustryFacilities();
+  getIndustryFacilities(): Promise<IndustryFacility[]> {
+    return this.api.getIndustryFacilities() as Promise<IndustryFacility[]>;
   }
 
   /**
@@ -113,8 +122,8 @@ export class IndustryClient {
    *
    * @returns An array of industry system cost indices
    */
-  async getIndustrySystems(): Promise<IndustrySystem[]> {
-    return this.api.getIndustrySystems();
+  getIndustrySystems(): Promise<IndustrySystem[]> {
+    return this.api.getIndustrySystems() as Promise<IndustrySystem[]>;
   }
 
   withMetadata(): WithMetadata<Omit<IndustryClient, 'withMetadata'>> {

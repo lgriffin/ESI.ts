@@ -18,8 +18,8 @@ export class InsuranceClient {
    *
    * @returns An array of insurance price listings per ship type
    */
-  async getInsurancePrices(): Promise<InsurancePrice[]> {
-    return this.api.getInsurancePrices();
+  getInsurancePrices(): Promise<InsurancePrice[]> {
+    return this.api.getInsurancePrices() as Promise<InsurancePrice[]>;
   }
 
   withMetadata(): WithMetadata<Omit<InsuranceClient, 'withMetadata'>> {

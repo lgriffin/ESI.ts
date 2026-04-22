@@ -25,8 +25,8 @@ export class FactionClient {
    *
    * @returns Faction warfare character leaderboard rankings
    */
-  async getLeaderboardsCharacters(): Promise<FactionWarfareLeaderboard> {
-    return this.api.getCharacters();
+  getLeaderboardsCharacters(): Promise<FactionWarfareLeaderboard> {
+    return this.api.getCharacters() as Promise<FactionWarfareLeaderboard>;
   }
 
   /**
@@ -34,8 +34,8 @@ export class FactionClient {
    *
    * @returns Faction warfare corporation leaderboard rankings
    */
-  async getLeaderboardsCorporations(): Promise<FactionWarfareLeaderboard> {
-    return this.api.getCorporations();
+  getLeaderboardsCorporations(): Promise<FactionWarfareLeaderboard> {
+    return this.api.getCorporations() as Promise<FactionWarfareLeaderboard>;
   }
 
   /**
@@ -43,8 +43,8 @@ export class FactionClient {
    *
    * @returns Overall faction warfare leaderboard rankings
    */
-  async getLeaderboardsOverall(): Promise<FactionWarfareLeaderboard> {
-    return this.api.getOverall();
+  getLeaderboardsOverall(): Promise<FactionWarfareLeaderboard> {
+    return this.api.getOverall() as Promise<FactionWarfareLeaderboard>;
   }
 
   /**
@@ -52,8 +52,8 @@ export class FactionClient {
    *
    * @returns An array of per-faction warfare statistics
    */
-  async getStats(): Promise<FactionWarfareStats[]> {
-    return this.api.getStats();
+  getStats(): Promise<FactionWarfareStats[]> {
+    return this.api.getStats() as Promise<FactionWarfareStats[]>;
   }
 
   /**
@@ -63,10 +63,12 @@ export class FactionClient {
    * @returns Faction warfare statistics for the character
    * @requires Authentication
    */
-  async getCharacterStats(
+  getCharacterStats(
     characterId: number,
   ): Promise<FactionWarfareCharacterStats> {
-    return this.api.getCharacterStats(characterId);
+    return this.api.getCharacterStats(
+      characterId,
+    ) as Promise<FactionWarfareCharacterStats>;
   }
 
   /**
@@ -76,10 +78,12 @@ export class FactionClient {
    * @returns Faction warfare statistics for the corporation
    * @requires Authentication
    */
-  async getCorporationStats(
+  getCorporationStats(
     corporationId: number,
   ): Promise<FactionWarfareCorporationStats> {
-    return this.api.getCorporationStats(corporationId);
+    return this.api.getCorporationStats(
+      corporationId,
+    ) as Promise<FactionWarfareCorporationStats>;
   }
 
   /**
@@ -87,8 +91,8 @@ export class FactionClient {
    *
    * @returns An array of faction warfare system statuses
    */
-  async getSystems(): Promise<FactionWarfareSystem[]> {
-    return this.api.getSystems();
+  getSystems(): Promise<FactionWarfareSystem[]> {
+    return this.api.getSystems() as Promise<FactionWarfareSystem[]>;
   }
 
   /**
@@ -96,8 +100,8 @@ export class FactionClient {
    *
    * @returns An array of active faction warfare wars
    */
-  async getWars(): Promise<FactionWarfareWar[]> {
-    return this.api.getWars();
+  getWars(): Promise<FactionWarfareWar[]> {
+    return this.api.getWars() as Promise<FactionWarfareWar[]>;
   }
 
   withMetadata(): WithMetadata<Omit<FactionClient, 'withMetadata'>> {

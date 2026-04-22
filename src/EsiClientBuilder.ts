@@ -172,7 +172,7 @@ export class CustomEsiClient {
     return this.getClient('freelanceJobs') as FreelanceJobsClient;
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     this.clients.clear();
     logger.info('CustomEsiClient shutdown completed');
   }

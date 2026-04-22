@@ -637,7 +637,7 @@ export interface Killmail {
     ship_type_id: number;
     damage_taken: number;
     position?: { x: number; y: number; z: number };
-    items?: any[];
+    items?: unknown[];
   };
   attackers: {
     character_id?: number;
@@ -935,7 +935,7 @@ export interface FreelanceJobDetail {
   };
   configuration: {
     version: number;
-    parameters: Record<string, any>;
+    parameters: Record<string, unknown>;
     method: string;
   };
   contribution: {

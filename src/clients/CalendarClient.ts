@@ -24,8 +24,8 @@ export class CalendarClient {
    * @returns A list of upcoming calendar events
    * @requires Authentication
    */
-  async getCalendarEvents(characterId: number): Promise<CalendarEvent[]> {
-    return this.api.getCalendarEvents(characterId);
+  getCalendarEvents(characterId: number): Promise<CalendarEvent[]> {
+    return this.api.getCalendarEvents(characterId) as Promise<CalendarEvent[]>;
   }
 
   /**
@@ -36,11 +36,14 @@ export class CalendarClient {
    * @returns Detailed event information including title, description, and timing
    * @requires Authentication
    */
-  async getCalendarEventById(
+  getCalendarEventById(
     characterId: number,
     eventId: number,
   ): Promise<CalendarEventDetail> {
-    return this.api.getCalendarEventById(characterId, eventId);
+    return this.api.getCalendarEventById(
+      characterId,
+      eventId,
+    ) as Promise<CalendarEventDetail>;
   }
 
   /**
@@ -51,12 +54,16 @@ export class CalendarClient {
    * @param response - The response status to set for this event
    * @requires Authentication
    */
-  async respondToCalendarEvent(
+  respondToCalendarEvent(
     characterId: number,
     eventId: number,
     response: string,
   ): Promise<void> {
-    return this.api.respondToCalendarEvent(characterId, eventId, response);
+    return this.api.respondToCalendarEvent(
+      characterId,
+      eventId,
+      response,
+    ) as Promise<void>;
   }
 
   /**
@@ -67,11 +74,13 @@ export class CalendarClient {
    * @returns A list of attendees with their response statuses
    * @requires Authentication
    */
-  async getEventAttendees(
+  getEventAttendees(
     characterId: number,
     eventId: number,
   ): Promise<CalendarEventAttendee[]> {
-    return this.api.getEventAttendees(characterId, eventId);
+    return this.api.getEventAttendees(characterId, eventId) as Promise<
+      CalendarEventAttendee[]
+    >;
   }
 
   withMetadata(): WithMetadata<Omit<CalendarClient, 'withMetadata'>> {

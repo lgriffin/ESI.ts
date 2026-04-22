@@ -61,7 +61,7 @@ describe('ETag Integration Tests', () => {
       expect(cache).toBeDefined();
 
       const cacheStats = client.getCacheStats();
-      expect(cacheStats.totalEntries).toBe(1);
+      expect(cacheStats!.totalEntries).toBe(1);
     });
 
     it('should return cached data on 304 Not Modified', async () => {
@@ -144,8 +144,8 @@ describe('ETag Integration Tests', () => {
 
       const stats = client.getCacheStats();
       expect(stats).toBeDefined();
-      expect(stats.totalEntries).toBe(1);
-      expect(stats.maxEntries).toBe(100);
+      expect(stats!.totalEntries).toBe(1);
+      expect(stats!.maxEntries).toBe(100);
     });
 
     it('should clear cache', async () => {
@@ -157,21 +157,21 @@ describe('ETag Integration Tests', () => {
 
       await client.alliance.getAlliances();
 
-      expect(client.getCacheStats().totalEntries).toBe(1);
+      expect(client.getCacheStats()!.totalEntries).toBe(1);
 
       client.clearCache();
 
-      expect(client.getCacheStats().totalEntries).toBe(0);
+      expect(client.getCacheStats()!.totalEntries).toBe(0);
     });
 
     it('should update cache configuration', () => {
       const initialStats = client.getCacheStats();
-      expect(initialStats.maxEntries).toBe(100);
+      expect(initialStats!.maxEntries).toBe(100);
 
       client.updateCacheConfig({ maxEntries: 200 });
 
       const updatedStats = client.getCacheStats();
-      expect(updatedStats.maxEntries).toBe(200);
+      expect(updatedStats!.maxEntries).toBe(200);
     });
   });
 

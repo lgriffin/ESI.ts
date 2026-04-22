@@ -24,10 +24,10 @@ export class CharacterSkillsClient {
    * @returns The character's current attribute values and bonus remap information
    * @requires Authentication
    */
-  async getCharacterAttributes(
-    characterId: number,
-  ): Promise<CharacterAttributes> {
-    return this.api.getCharacterAttributes(characterId);
+  getCharacterAttributes(characterId: number): Promise<CharacterAttributes> {
+    return this.api.getCharacterAttributes(
+      characterId,
+    ) as Promise<CharacterAttributes>;
   }
 
   /**
@@ -37,8 +37,10 @@ export class CharacterSkillsClient {
    * @returns An ordered list of skills currently in the character's training queue
    * @requires Authentication
    */
-  async getCharacterSkillQueue(characterId: number): Promise<SkillQueue[]> {
-    return this.api.getCharacterSkillQueue(characterId);
+  getCharacterSkillQueue(characterId: number): Promise<SkillQueue[]> {
+    return this.api.getCharacterSkillQueue(characterId) as Promise<
+      SkillQueue[]
+    >;
   }
 
   /**
@@ -48,12 +50,16 @@ export class CharacterSkillsClient {
    * @returns The character's trained skills, total SP, and optionally unallocated SP
    * @requires Authentication
    */
-  async getCharacterSkills(characterId: number): Promise<{
+  getCharacterSkills(characterId: number): Promise<{
     skills: CharacterSkill[];
     total_sp: number;
     unallocated_sp?: number;
   }> {
-    return this.api.getCharacterSkills(characterId);
+    return this.api.getCharacterSkills(characterId) as Promise<{
+      skills: CharacterSkill[];
+      total_sp: number;
+      unallocated_sp?: number;
+    }>;
   }
 
   withMetadata(): WithMetadata<Omit<CharacterSkillsClient, 'withMetadata'>> {

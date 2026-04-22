@@ -24,8 +24,10 @@ export class AssetsClient {
    * @returns A list of the character's assets including type, quantity, and location
    * @requires Authentication
    */
-  async getCharacterAssets(characterId: number): Promise<CharacterAsset[]> {
-    return this.api.getCharacterAssets(characterId);
+  getCharacterAssets(characterId: number): Promise<CharacterAsset[]> {
+    return this.api.getCharacterAssets(characterId) as Promise<
+      CharacterAsset[]
+    >;
   }
 
   /**
@@ -36,11 +38,14 @@ export class AssetsClient {
    * @returns Location information for each requested asset
    * @requires Authentication
    */
-  async postCharacterAssetLocations(
+  postCharacterAssetLocations(
     characterId: number,
     itemIds: number[],
   ): Promise<AssetLocation[]> {
-    return this.api.postCharacterAssetLocations(characterId, itemIds);
+    return this.api.postCharacterAssetLocations(
+      characterId,
+      itemIds,
+    ) as Promise<AssetLocation[]>;
   }
 
   /**
@@ -51,11 +56,13 @@ export class AssetsClient {
    * @returns The user-assigned names for each requested asset
    * @requires Authentication
    */
-  async postCharacterAssetNames(
+  postCharacterAssetNames(
     characterId: number,
     itemIds: number[],
   ): Promise<AssetName[]> {
-    return this.api.postCharacterAssetNames(characterId, itemIds);
+    return this.api.postCharacterAssetNames(characterId, itemIds) as Promise<
+      AssetName[]
+    >;
   }
 
   /**
@@ -65,8 +72,10 @@ export class AssetsClient {
    * @returns A list of the corporation's assets including type, quantity, and location
    * @requires Authentication
    */
-  async getCorporationAssets(corporationId: number): Promise<CharacterAsset[]> {
-    return this.api.getCorporationAssets(corporationId);
+  getCorporationAssets(corporationId: number): Promise<CharacterAsset[]> {
+    return this.api.getCorporationAssets(corporationId) as Promise<
+      CharacterAsset[]
+    >;
   }
 
   /**
@@ -77,11 +86,14 @@ export class AssetsClient {
    * @returns Location information for each requested asset
    * @requires Authentication
    */
-  async postCorporationAssetLocations(
+  postCorporationAssetLocations(
     corporationId: number,
     itemIds: number[],
   ): Promise<AssetLocation[]> {
-    return this.api.postCorporationAssetLocations(corporationId, itemIds);
+    return this.api.postCorporationAssetLocations(
+      corporationId,
+      itemIds,
+    ) as Promise<AssetLocation[]>;
   }
 
   /**
@@ -92,11 +104,14 @@ export class AssetsClient {
    * @returns The user-assigned names for each requested asset
    * @requires Authentication
    */
-  async postCorporationAssetNames(
+  postCorporationAssetNames(
     corporationId: number,
     itemIds: number[],
   ): Promise<AssetName[]> {
-    return this.api.postCorporationAssetNames(corporationId, itemIds);
+    return this.api.postCorporationAssetNames(
+      corporationId,
+      itemIds,
+    ) as Promise<AssetName[]>;
   }
 
   withMetadata(): WithMetadata<Omit<AssetsClient, 'withMetadata'>> {

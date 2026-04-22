@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AllianceInfo,
   CharacterInfo,
@@ -8,7 +9,6 @@ import {
   CharacterAttributes,
   CharacterSkill,
   MarketOrder,
-  MarketHistory,
   WalletTransaction,
   Contract,
 } from '../types/api-responses';
@@ -113,7 +113,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCharacterRoles(overrides: any = {}): any {
+  static createCharacterRoles(overrides: Record<string, any> = {}): any {
     return {
       roles: ['Director'],
       roles_at_base: [],
@@ -123,7 +123,9 @@ export class TestDataFactory {
     };
   }
 
-  static createCorporationHistoryEntry(overrides: any = {}): any {
+  static createCorporationHistoryEntry(
+    overrides: Record<string, any> = {},
+  ): any {
     return {
       corporation_id: 1344654522,
       is_deleted: false,
@@ -133,7 +135,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCharacterMedal(overrides: any = {}): any {
+  static createCharacterMedal(overrides: Record<string, any> = {}): any {
     return {
       medal_id: 1,
       title: 'Test Medal',
@@ -146,7 +148,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCharacterNotification(overrides: any = {}): any {
+  static createCharacterNotification(overrides: Record<string, any> = {}): any {
     return {
       notification_id: 1000001,
       sender_id: 1689391489,
@@ -160,7 +162,7 @@ export class TestDataFactory {
   }
 
   // Market test data
-  static createMarketPrice(overrides: any = {}): any {
+  static createMarketPrice(overrides: Record<string, any> = {}): any {
     return {
       type_id: 34,
       average_price: 4.5,
@@ -169,7 +171,7 @@ export class TestDataFactory {
     };
   }
 
-  static createMarketHistory(overrides: any = {}): any {
+  static createMarketHistory(overrides: Record<string, any> = {}): any {
     return {
       date: '2024-01-15',
       volume: 1000000000,
@@ -181,7 +183,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCharacterMarketOrder(overrides: any = {}): any {
+  static createCharacterMarketOrder(overrides: Record<string, any> = {}): any {
     return {
       order_id: 5000000001,
       type_id: 34,
@@ -200,7 +202,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCharacterOrderHistory(overrides: any = {}): any {
+  static createCharacterOrderHistory(overrides: Record<string, any> = {}): any {
     return {
       order_id: 5000000001,
       type_id: 34,
@@ -220,7 +222,7 @@ export class TestDataFactory {
   }
 
   // Universe test data
-  static createSolarSystem(overrides: any = {}): any {
+  static createSolarSystem(overrides: Record<string, any> = {}): any {
     return {
       system_id: 30000142,
       name: 'Jita',
@@ -237,7 +239,7 @@ export class TestDataFactory {
     };
   }
 
-  static createStation(overrides: any = {}): any {
+  static createStation(overrides: Record<string, any> = {}): any {
     return {
       station_id: 60003760,
       name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
@@ -261,7 +263,7 @@ export class TestDataFactory {
     };
   }
 
-  static createStructure(overrides: any = {}): any {
+  static createStructure(overrides: Record<string, any> = {}): any {
     return {
       structure_id: 1021975535893,
       name: 'Test Citadel',
@@ -273,7 +275,7 @@ export class TestDataFactory {
     };
   }
 
-  static createItemType(overrides: any = {}): any {
+  static createItemType(overrides: Record<string, any> = {}): any {
     return {
       type_id: 34,
       name: 'Tritanium',
@@ -291,7 +293,7 @@ export class TestDataFactory {
     };
   }
 
-  static createItemGroup(overrides: any = {}): any {
+  static createItemGroup(overrides: Record<string, any> = {}): any {
     return {
       group_id: 18,
       name: 'Mineral',
@@ -302,7 +304,7 @@ export class TestDataFactory {
     };
   }
 
-  static createStar(overrides: any = {}): any {
+  static createStar(overrides: Record<string, any> = {}): any {
     return {
       star_id: 40000001,
       name: 'Jita - Star',
@@ -317,7 +319,7 @@ export class TestDataFactory {
     };
   }
 
-  static createPlanet(overrides: any = {}): any {
+  static createPlanet(overrides: Record<string, any> = {}): any {
     return {
       planet_id: 40000004,
       name: 'Jita IV',
@@ -328,7 +330,7 @@ export class TestDataFactory {
     };
   }
 
-  static createSearchResults(overrides: any = {}): any {
+  static createSearchResults(overrides: Record<string, any> = {}): any {
     return {
       systems: [],
       stations: [],
@@ -340,7 +342,7 @@ export class TestDataFactory {
     };
   }
 
-  static createEntityName(overrides: any = {}): any {
+  static createEntityName(overrides: Record<string, any> = {}): any {
     return {
       id: 30000142,
       name: 'Jita',
@@ -350,7 +352,9 @@ export class TestDataFactory {
   }
 
   // Corporation test data
-  static createCorporationMemberRoles(overrides: any = {}): any {
+  static createCorporationMemberRoles(
+    overrides: Record<string, any> = {},
+  ): any {
     return {
       character_id: 1689391488,
       roles: ['Director', 'Personnel_Manager'],
@@ -362,7 +366,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCorporationAsset(overrides: any = {}): any {
+  static createCorporationAsset(overrides: Record<string, any> = {}): any {
     return {
       item_id: 1000000000001,
       type_id: 587,
@@ -374,7 +378,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCorporationStructure(overrides: any = {}): any {
+  static createCorporationStructure(overrides: Record<string, any> = {}): any {
     return {
       structure_id: 1021975535893,
       type_id: 35832,
@@ -388,7 +392,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCorporationWallet(overrides: any = {}): any {
+  static createCorporationWallet(overrides: Record<string, any> = {}): any {
     return {
       division: 1,
       balance: 1000000000.0,
@@ -396,7 +400,7 @@ export class TestDataFactory {
     };
   }
 
-  static createWalletJournalEntry(overrides: any = {}): any {
+  static createWalletJournalEntry(overrides: Record<string, any> = {}): any {
     return {
       id: 1000000001,
       date: '2024-01-15T12:00:00Z',
@@ -411,7 +415,7 @@ export class TestDataFactory {
   }
 
   // Fleet test data
-  static createFleetInfo(overrides: any = {}): any {
+  static createFleetInfo(overrides: Record<string, any> = {}): any {
     return {
       fleet_id: 1234567890,
       fleet_boss_id: 1689391488,
@@ -423,7 +427,7 @@ export class TestDataFactory {
     };
   }
 
-  static createFleetMember(overrides: any = {}): any {
+  static createFleetMember(overrides: Record<string, any> = {}): any {
     return {
       character_id: 1689391488,
       role: 'fleet_commander',
@@ -434,7 +438,7 @@ export class TestDataFactory {
     };
   }
 
-  static createFleetWing(overrides: any = {}): any {
+  static createFleetWing(overrides: Record<string, any> = {}): any {
     return {
       wing_id: 987654321,
       name: 'Wing 1',
@@ -444,7 +448,7 @@ export class TestDataFactory {
   }
 
   // Industry test data
-  static createIndustryJob(overrides: any = {}): any {
+  static createIndustryJob(overrides: Record<string, any> = {}): any {
     return {
       job_id: 1000001,
       installer_id: 1689391488,
@@ -461,7 +465,7 @@ export class TestDataFactory {
     };
   }
 
-  static createBlueprint(overrides: any = {}): any {
+  static createBlueprint(overrides: Record<string, any> = {}): any {
     return {
       item_id: 1000000001,
       type_id: 17918,
@@ -475,7 +479,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCharacterAsset(overrides: any = {}): any {
+  static createCharacterAsset(overrides: Record<string, any> = {}): any {
     return {
       item_id: 1000000002,
       type_id: 34,
@@ -487,7 +491,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCharacterLocation(overrides: any = {}): any {
+  static createCharacterLocation(overrides: Record<string, any> = {}): any {
     return {
       solar_system_id: 30000142,
       station_id: 60003760,
@@ -496,7 +500,7 @@ export class TestDataFactory {
     };
   }
 
-  static createCharacterSkills(overrides: any = {}): any {
+  static createCharacterSkills(overrides: Record<string, any> = {}): any {
     return {
       skills: [
         {
@@ -535,6 +539,7 @@ export class TestDataFactory {
       description: 'The founding corporation of Goonswarm Federation',
       home_station_id: 60003760,
       shares: 1000,
+      // eslint-disable-next-line sonarjs/no-clear-text-protocols
       url: 'http://www.goonfleet.com/',
       faction_id: 500001,
       war_eligible: true,
@@ -617,6 +622,7 @@ export class TestDataFactory {
     };
     return new EsiError(
       statusCode,
+      // eslint-disable-next-line security/detect-object-injection
       message || defaultMessages[statusCode] || 'Unknown error',
     );
   }
@@ -715,6 +721,7 @@ export class TestDataFactory {
       large: { alliances: 100, characters: 1000, corporations: 500 },
     };
 
+    // eslint-disable-next-line security/detect-object-injection
     const config = sizes[size];
     const data = {
       alliances: [] as AllianceInfo[],
@@ -744,6 +751,7 @@ export class TestDataFactory {
           corporation_id: 2000000 + i,
           name: `Test Corporation ${i}`,
           ticker: `TC${i.toString().padStart(3, '0')}`,
+          // eslint-disable-next-line security/detect-object-injection
           alliance_id: data.alliances[allianceIndex]?.alliance_id,
           ceo_id: 3000000 + i,
         }),
@@ -755,6 +763,7 @@ export class TestDataFactory {
       const corpIndex = Math.floor(
         (i - 1) / (config.characters / config.corporations),
       );
+      // eslint-disable-next-line security/detect-object-injection
       const corp = data.corporations[corpIndex];
       data.characters.push(
         this.createCharacterInfo({

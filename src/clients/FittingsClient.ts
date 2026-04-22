@@ -20,8 +20,8 @@ export class FittingsClient {
    * @returns An array of the character's saved fittings
    * @requires Authentication
    */
-  async getFittings(characterId: number): Promise<Fitting[]> {
-    return this.api.getFittings(characterId);
+  getFittings(characterId: number): Promise<Fitting[]> {
+    return this.api.getFittings(characterId) as Promise<Fitting[]>;
   }
 
   /**
@@ -32,11 +32,13 @@ export class FittingsClient {
    * @returns The ID of the newly created fitting
    * @requires Authentication
    */
-  async createFitting(
+  createFitting(
     characterId: number,
     fittingData: object,
   ): Promise<{ fitting_id: number }> {
-    return this.api.createFitting(characterId, fittingData);
+    return this.api.createFitting(characterId, fittingData) as Promise<{
+      fitting_id: number;
+    }>;
   }
 
   /**
@@ -46,8 +48,8 @@ export class FittingsClient {
    * @param fittingId - The ID of the fitting to delete
    * @requires Authentication
    */
-  async deleteFitting(characterId: number, fittingId: number): Promise<void> {
-    return this.api.deleteFitting(characterId, fittingId);
+  deleteFitting(characterId: number, fittingId: number): Promise<void> {
+    return this.api.deleteFitting(characterId, fittingId) as Promise<void>;
   }
 
   withMetadata(): WithMetadata<Omit<FittingsClient, 'withMetadata'>> {

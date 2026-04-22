@@ -42,8 +42,8 @@ export class UniverseClient {
    *
    * @returns A list of character ancestries
    */
-  async getAncestries(): Promise<Ancestry[]> {
-    return this.api.getAncestries();
+  getAncestries(): Promise<Ancestry[]> {
+    return this.api.getAncestries() as Promise<Ancestry[]>;
   }
 
   /**
@@ -52,8 +52,10 @@ export class UniverseClient {
    * @param asteroidBeltId - The ID of the asteroid belt
    * @returns Details about the asteroid belt
    */
-  async getAsteroidBeltInfo(asteroidBeltId: number): Promise<AsteroidBeltInfo> {
-    return this.api.getAsteroidBeltInfo(asteroidBeltId);
+  getAsteroidBeltInfo(asteroidBeltId: number): Promise<AsteroidBeltInfo> {
+    return this.api.getAsteroidBeltInfo(
+      asteroidBeltId,
+    ) as Promise<AsteroidBeltInfo>;
   }
 
   /**
@@ -61,8 +63,8 @@ export class UniverseClient {
    *
    * @returns A list of character bloodlines
    */
-  async getBloodlines(): Promise<Bloodline[]> {
-    return this.api.getBloodlines();
+  getBloodlines(): Promise<Bloodline[]> {
+    return this.api.getBloodlines() as Promise<Bloodline[]>;
   }
 
   /**
@@ -71,10 +73,10 @@ export class UniverseClient {
    * @param constellationId - The ID of the constellation
    * @returns Detailed constellation information
    */
-  async getConstellationById(
-    constellationId: number,
-  ): Promise<ConstellationInfo> {
-    return this.api.getConstellationById(constellationId);
+  getConstellationById(constellationId: number): Promise<ConstellationInfo> {
+    return this.api.getConstellationById(
+      constellationId,
+    ) as Promise<ConstellationInfo>;
   }
 
   /**
@@ -82,8 +84,8 @@ export class UniverseClient {
    *
    * @returns A list of constellation IDs
    */
-  async getConstellations(): Promise<number[]> {
-    return this.api.getConstellations();
+  getConstellations(): Promise<number[]> {
+    return this.api.getConstellations() as Promise<number[]>;
   }
 
   /**
@@ -91,8 +93,8 @@ export class UniverseClient {
    *
    * @returns A list of NPC factions
    */
-  async getFactions(): Promise<Faction[]> {
-    return this.api.getFactions();
+  getFactions(): Promise<Faction[]> {
+    return this.api.getFactions() as Promise<Faction[]>;
   }
 
   /**
@@ -101,8 +103,8 @@ export class UniverseClient {
    * @param graphicId - The ID of the graphic
    * @returns Detailed graphic information
    */
-  async getGraphicById(graphicId: number): Promise<GraphicInfo> {
-    return this.api.getGraphicById(graphicId);
+  getGraphicById(graphicId: number): Promise<GraphicInfo> {
+    return this.api.getGraphicById(graphicId) as Promise<GraphicInfo>;
   }
 
   /**
@@ -110,8 +112,8 @@ export class UniverseClient {
    *
    * @returns A list of graphic IDs
    */
-  async getGraphics(): Promise<number[]> {
-    return this.api.getGraphics();
+  getGraphics(): Promise<number[]> {
+    return this.api.getGraphics() as Promise<number[]>;
   }
 
   /**
@@ -119,8 +121,8 @@ export class UniverseClient {
    *
    * @returns A list of item category IDs
    */
-  async getItemCategories(): Promise<number[]> {
-    return this.api.getCategories();
+  getItemCategories(): Promise<number[]> {
+    return this.api.getCategories() as Promise<number[]>;
   }
 
   /**
@@ -129,8 +131,8 @@ export class UniverseClient {
    * @param categoryId - The ID of the item category
    * @returns Detailed item category information
    */
-  async getItemCategoryById(categoryId: number): Promise<ItemCategory> {
-    return this.api.getCategoryById(categoryId);
+  getItemCategoryById(categoryId: number): Promise<ItemCategory> {
+    return this.api.getCategoryById(categoryId) as Promise<ItemCategory>;
   }
 
   /**
@@ -139,8 +141,8 @@ export class UniverseClient {
    * @param groupId - The ID of the item group
    * @returns Detailed item group information
    */
-  async getItemGroupById(groupId: number): Promise<ItemGroup> {
-    return this.api.getItemGroupById(groupId);
+  getItemGroupById(groupId: number): Promise<ItemGroup> {
+    return this.api.getItemGroupById(groupId) as Promise<ItemGroup>;
   }
 
   /**
@@ -148,8 +150,8 @@ export class UniverseClient {
    *
    * @returns A list of item group IDs
    */
-  async getItemGroups(): Promise<number[]> {
-    return this.api.getItemGroups();
+  getItemGroups(): Promise<number[]> {
+    return this.api.getItemGroups() as Promise<number[]>;
   }
 
   /**
@@ -158,8 +160,8 @@ export class UniverseClient {
    * @param moonId - The ID of the moon
    * @returns Detailed moon information
    */
-  async getMoonById(moonId: number): Promise<MoonInfo> {
-    return this.api.getMoonById(moonId);
+  getMoonById(moonId: number): Promise<MoonInfo> {
+    return this.api.getMoonById(moonId) as Promise<MoonInfo>;
   }
 
   /**
@@ -168,8 +170,8 @@ export class UniverseClient {
    * @param planetId - The ID of the planet
    * @returns Detailed planet information
    */
-  async getPlanetById(planetId: number): Promise<PlanetInfo> {
-    return this.api.getPlanetById(planetId);
+  getPlanetById(planetId: number): Promise<PlanetInfo> {
+    return this.api.getPlanetById(planetId) as Promise<PlanetInfo>;
   }
 
   /**
@@ -177,8 +179,8 @@ export class UniverseClient {
    *
    * @returns A list of playable races
    */
-  async getRaces(): Promise<Race[]> {
-    return this.api.getRaces();
+  getRaces(): Promise<Race[]> {
+    return this.api.getRaces() as Promise<Race[]>;
   }
 
   /**
@@ -187,8 +189,8 @@ export class UniverseClient {
    * @param regionId - The ID of the region
    * @returns Detailed region information
    */
-  async getRegionById(regionId: number): Promise<RegionInfo> {
-    return this.api.getRegionById(regionId);
+  getRegionById(regionId: number): Promise<RegionInfo> {
+    return this.api.getRegionById(regionId) as Promise<RegionInfo>;
   }
 
   /**
@@ -197,8 +199,8 @@ export class UniverseClient {
    * @param starId - The ID of the star
    * @returns Detailed star information
    */
-  async getStarById(starId: number): Promise<StarInfo> {
-    return this.api.getStarById(starId);
+  getStarById(starId: number): Promise<StarInfo> {
+    return this.api.getStarById(starId) as Promise<StarInfo>;
   }
 
   /**
@@ -207,8 +209,8 @@ export class UniverseClient {
    * @param stargateId - The ID of the stargate
    * @returns Detailed stargate information
    */
-  async getStargateById(stargateId: number): Promise<StargateInfo> {
-    return this.api.getStargateById(stargateId);
+  getStargateById(stargateId: number): Promise<StargateInfo> {
+    return this.api.getStargateById(stargateId) as Promise<StargateInfo>;
   }
 
   /**
@@ -217,8 +219,8 @@ export class UniverseClient {
    * @param stationId - The ID of the station
    * @returns Detailed station information
    */
-  async getStationById(stationId: number): Promise<StationInfo> {
-    return this.api.getStationById(stationId);
+  getStationById(stationId: number): Promise<StationInfo> {
+    return this.api.getStationById(stationId) as Promise<StationInfo>;
   }
 
   /**
@@ -228,8 +230,8 @@ export class UniverseClient {
    * @returns Detailed structure information
    * @requires Authentication
    */
-  async getStructureById(structureId: number): Promise<StructureInfo> {
-    return this.api.getStructureById(structureId);
+  getStructureById(structureId: number): Promise<StructureInfo> {
+    return this.api.getStructureById(structureId) as Promise<StructureInfo>;
   }
 
   /**
@@ -237,8 +239,8 @@ export class UniverseClient {
    *
    * @returns A list of structure IDs
    */
-  async getStructures(): Promise<number[]> {
-    return this.api.getStructures();
+  getStructures(): Promise<number[]> {
+    return this.api.getStructures() as Promise<number[]>;
   }
 
   /**
@@ -247,8 +249,8 @@ export class UniverseClient {
    * @param systemId - The ID of the solar system
    * @returns Detailed solar system information
    */
-  async getSystemById(systemId: number): Promise<SolarSystemInfo> {
-    return this.api.getSystemById(systemId);
+  getSystemById(systemId: number): Promise<SolarSystemInfo> {
+    return this.api.getSystemById(systemId) as Promise<SolarSystemInfo>;
   }
 
   /**
@@ -256,8 +258,8 @@ export class UniverseClient {
    *
    * @returns A list of solar systems with their jump counts
    */
-  async getSystemJumps(): Promise<SystemJump[]> {
-    return this.api.getSystemJumps();
+  getSystemJumps(): Promise<SystemJump[]> {
+    return this.api.getSystemJumps() as Promise<SystemJump[]>;
   }
 
   /**
@@ -265,8 +267,8 @@ export class UniverseClient {
    *
    * @returns A list of solar systems with their kill counts
    */
-  async getSystemKills(): Promise<SystemKill[]> {
-    return this.api.getSystemKills();
+  getSystemKills(): Promise<SystemKill[]> {
+    return this.api.getSystemKills() as Promise<SystemKill[]>;
   }
 
   /**
@@ -274,8 +276,8 @@ export class UniverseClient {
    *
    * @returns A list of solar system IDs
    */
-  async getSystems(): Promise<number[]> {
-    return this.api.getSystems();
+  getSystems(): Promise<number[]> {
+    return this.api.getSystems() as Promise<number[]>;
   }
 
   /**
@@ -284,8 +286,8 @@ export class UniverseClient {
    * @param typeId - The ID of the item type
    * @returns Detailed item type information
    */
-  async getTypeById(typeId: number): Promise<TypeInfo> {
-    return this.api.getTypeById(typeId);
+  getTypeById(typeId: number): Promise<TypeInfo> {
+    return this.api.getTypeById(typeId) as Promise<TypeInfo>;
   }
 
   /**
@@ -293,8 +295,8 @@ export class UniverseClient {
    *
    * @returns A list of item type IDs
    */
-  async getTypes(): Promise<number[]> {
-    return this.api.getTypes();
+  getTypes(): Promise<number[]> {
+    return this.api.getTypes() as Promise<number[]>;
   }
 
   /**
@@ -303,8 +305,8 @@ export class UniverseClient {
    * @param ids - An array of names to resolve to IDs
    * @returns The resolved IDs grouped by entity category
    */
-  async postBulkNamesToIds(ids: number[]): Promise<BulkIdResult> {
-    return this.api.postBulkNamesToIds(ids);
+  postBulkNamesToIds(ids: number[]): Promise<BulkIdResult> {
+    return this.api.postBulkNamesToIds(ids) as Promise<BulkIdResult>;
   }
 
   /**
@@ -313,8 +315,8 @@ export class UniverseClient {
    * @param ids - An array of entity IDs to resolve
    * @returns A list of names with their corresponding categories
    */
-  async postNamesAndCategories(ids: number[]): Promise<NameAndCategory[]> {
-    return this.api.postNamesAndCategories(ids);
+  postNamesAndCategories(ids: number[]): Promise<NameAndCategory[]> {
+    return this.api.postNamesAndCategories(ids) as Promise<NameAndCategory[]>;
   }
 
   /**
@@ -323,8 +325,8 @@ export class UniverseClient {
    * @param schematicId - The ID of the PI schematic
    * @returns Detailed schematic information including inputs and outputs
    */
-  async getSchematicById(schematicId: number): Promise<SchematicInfo> {
-    return this.api.getSchematicById(schematicId);
+  getSchematicById(schematicId: number): Promise<SchematicInfo> {
+    return this.api.getSchematicById(schematicId) as Promise<SchematicInfo>;
   }
 
   /**
@@ -332,8 +334,8 @@ export class UniverseClient {
    *
    * @returns A list of region IDs
    */
-  async getRegions(): Promise<number[]> {
-    return this.api.getRegions();
+  getRegions(): Promise<number[]> {
+    return this.api.getRegions() as Promise<number[]>;
   }
 
   withMetadata(): WithMetadata<Omit<UniverseClient, 'withMetadata'>> {

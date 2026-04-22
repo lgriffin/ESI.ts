@@ -8,5 +8,6 @@ export default async function globalTeardown() {
   const rateLimiter = RateLimiter.getInstance();
   rateLimiter.reset();
 
-  console.log('✅ Rate limiter reset after test completion');
+  // eslint-disable-next-line no-console
+  console.log('Rate limiter reset after test completion');
 }

@@ -24,8 +24,8 @@ export class SovereigntyClient {
    *
    * @returns A list of active sovereignty campaigns
    */
-  async getSovereigntyCampaigns(): Promise<SovereigntyCampaign[]> {
-    return this.api.getSovereigntyCampaigns();
+  getSovereigntyCampaigns(): Promise<SovereigntyCampaign[]> {
+    return this.api.getSovereigntyCampaigns() as Promise<SovereigntyCampaign[]>;
   }
 
   /**
@@ -33,8 +33,8 @@ export class SovereigntyClient {
    *
    * @returns A list of solar systems and their sovereignty holders
    */
-  async getSovereigntyMap(): Promise<SovereigntyMap[]> {
-    return this.api.getSovereigntyMap();
+  getSovereigntyMap(): Promise<SovereigntyMap[]> {
+    return this.api.getSovereigntyMap() as Promise<SovereigntyMap[]>;
   }
 
   /**
@@ -42,8 +42,10 @@ export class SovereigntyClient {
    *
    * @returns A list of sovereignty structures with their reinforcement and vulnerability details
    */
-  async getSovereigntyStructures(): Promise<SovereigntyStructure[]> {
-    return this.api.getSovereigntyStructures();
+  getSovereigntyStructures(): Promise<SovereigntyStructure[]> {
+    return this.api.getSovereigntyStructures() as Promise<
+      SovereigntyStructure[]
+    >;
   }
 
   withMetadata(): WithMetadata<Omit<SovereigntyClient, 'withMetadata'>> {

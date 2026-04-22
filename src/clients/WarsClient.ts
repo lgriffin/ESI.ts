@@ -18,8 +18,8 @@ export class WarsClient {
    *
    * @returns A list of war IDs
    */
-  async getWars(): Promise<number[]> {
-    return this.api.getWars();
+  getWars(): Promise<number[]> {
+    return this.api.getWars() as Promise<number[]>;
   }
 
   /**
@@ -28,8 +28,8 @@ export class WarsClient {
    * @param warId - The ID of the war
    * @returns Detailed war information
    */
-  async getWarById(warId: number): Promise<War> {
-    return this.api.getWarById(warId);
+  getWarById(warId: number): Promise<War> {
+    return this.api.getWarById(warId) as Promise<War>;
   }
 
   /**
@@ -38,8 +38,8 @@ export class WarsClient {
    * @param warId - The ID of the war
    * @returns A list of killmail summaries for the war
    */
-  async getWarKillmails(warId: number): Promise<KillmailSummary[]> {
-    return this.api.getWarKillmails(warId);
+  getWarKillmails(warId: number): Promise<KillmailSummary[]> {
+    return this.api.getWarKillmails(warId) as Promise<KillmailSummary[]>;
   }
 
   withMetadata(): WithMetadata<Omit<WarsClient, 'withMetadata'>> {

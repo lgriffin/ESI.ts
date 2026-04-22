@@ -9,5 +9,6 @@ export default async function globalSetup() {
   rateLimiter.setTestMode(true);
   rateLimiter.reset(); // Reset any existing state
 
-  console.log('✅ Test mode enabled for rate limiter');
+  // eslint-disable-next-line no-console
+  console.log('Test mode enabled for rate limiter');
 }

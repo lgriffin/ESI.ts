@@ -20,8 +20,8 @@ export class ContractsClient {
    * @returns A list of contracts with type, status, and pricing information
    * @requires Authentication
    */
-  async getCharacterContracts(characterId: number): Promise<Contract[]> {
-    return this.api.getCharacterContracts(characterId);
+  getCharacterContracts(characterId: number): Promise<Contract[]> {
+    return this.api.getCharacterContracts(characterId) as Promise<Contract[]>;
   }
 
   /**
@@ -32,11 +32,14 @@ export class ContractsClient {
    * @returns A list of bids with bidder, amount, and timestamp
    * @requires Authentication
    */
-  async getCharacterContractBids(
+  getCharacterContractBids(
     characterId: number,
     contractId: number,
   ): Promise<ContractBid[]> {
-    return this.api.getCharacterContractBids(characterId, contractId);
+    return this.api.getCharacterContractBids(
+      characterId,
+      contractId,
+    ) as Promise<ContractBid[]>;
   }
 
   /**
@@ -47,11 +50,14 @@ export class ContractsClient {
    * @returns A list of items in the contract with type, quantity, and included/excluded status
    * @requires Authentication
    */
-  async getCharacterContractItems(
+  getCharacterContractItems(
     characterId: number,
     contractId: number,
   ): Promise<ContractItem[]> {
-    return this.api.getCharacterContractItems(characterId, contractId);
+    return this.api.getCharacterContractItems(
+      characterId,
+      contractId,
+    ) as Promise<ContractItem[]>;
   }
 
   /**
@@ -60,8 +66,8 @@ export class ContractsClient {
    * @param regionId - The ID of the region whose public contracts to retrieve
    * @returns A list of public contracts in the region
    */
-  async getPublicContracts(regionId: number): Promise<Contract[]> {
-    return this.api.getPublicContracts(regionId);
+  getPublicContracts(regionId: number): Promise<Contract[]> {
+    return this.api.getPublicContracts(regionId) as Promise<Contract[]>;
   }
 
   /**
@@ -70,8 +76,8 @@ export class ContractsClient {
    * @param contractId - The ID of the public contract whose bids to retrieve
    * @returns A list of bids with bidder, amount, and timestamp
    */
-  async getPublicContractBids(contractId: number): Promise<ContractBid[]> {
-    return this.api.getPublicContractBids(contractId);
+  getPublicContractBids(contractId: number): Promise<ContractBid[]> {
+    return this.api.getPublicContractBids(contractId) as Promise<ContractBid[]>;
   }
 
   /**
@@ -80,8 +86,10 @@ export class ContractsClient {
    * @param contractId - The ID of the public contract whose items to retrieve
    * @returns A list of items in the contract with type, quantity, and included/excluded status
    */
-  async getPublicContractItems(contractId: number): Promise<ContractItem[]> {
-    return this.api.getPublicContractItems(contractId);
+  getPublicContractItems(contractId: number): Promise<ContractItem[]> {
+    return this.api.getPublicContractItems(contractId) as Promise<
+      ContractItem[]
+    >;
   }
 
   /**
@@ -91,8 +99,10 @@ export class ContractsClient {
    * @returns A list of contracts with type, status, and pricing information
    * @requires Authentication
    */
-  async getCorporationContracts(corporationId: number): Promise<Contract[]> {
-    return this.api.getCorporationContracts(corporationId);
+  getCorporationContracts(corporationId: number): Promise<Contract[]> {
+    return this.api.getCorporationContracts(corporationId) as Promise<
+      Contract[]
+    >;
   }
 
   /**
@@ -103,11 +113,14 @@ export class ContractsClient {
    * @returns A list of bids with bidder, amount, and timestamp
    * @requires Authentication
    */
-  async getCorporationContractBids(
+  getCorporationContractBids(
     corporationId: number,
     contractId: number,
   ): Promise<ContractBid[]> {
-    return this.api.getCorporationContractBids(corporationId, contractId);
+    return this.api.getCorporationContractBids(
+      corporationId,
+      contractId,
+    ) as Promise<ContractBid[]>;
   }
 
   /**
@@ -118,11 +131,14 @@ export class ContractsClient {
    * @returns A list of items in the contract with type, quantity, and included/excluded status
    * @requires Authentication
    */
-  async getCorporationContractItems(
+  getCorporationContractItems(
     corporationId: number,
     contractId: number,
   ): Promise<ContractItem[]> {
-    return this.api.getCorporationContractItems(corporationId, contractId);
+    return this.api.getCorporationContractItems(
+      corporationId,
+      contractId,
+    ) as Promise<ContractItem[]>;
   }
 
   withMetadata(): WithMetadata<Omit<ContractsClient, 'withMetadata'>> {

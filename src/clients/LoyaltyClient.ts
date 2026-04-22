@@ -20,8 +20,8 @@ export class LoyaltyClient {
    * @returns A list of loyalty point balances per corporation
    * @requires Authentication
    */
-  async getLoyaltyPoints(characterId: number): Promise<LoyaltyPoints[]> {
-    return this.api.getLoyaltyPoints(characterId);
+  getLoyaltyPoints(characterId: number): Promise<LoyaltyPoints[]> {
+    return this.api.getLoyaltyPoints(characterId) as Promise<LoyaltyPoints[]>;
   }
 
   /**
@@ -30,10 +30,10 @@ export class LoyaltyClient {
    * @param corporationId - The ID of the NPC corporation whose LP store to query
    * @returns A list of offers available in the loyalty store
    */
-  async getLoyaltyStoreOffers(
-    corporationId: number,
-  ): Promise<LoyaltyStoreOffer[]> {
-    return this.api.getLoyaltyStoreOffers(corporationId);
+  getLoyaltyStoreOffers(corporationId: number): Promise<LoyaltyStoreOffer[]> {
+    return this.api.getLoyaltyStoreOffers(corporationId) as Promise<
+      LoyaltyStoreOffer[]
+    >;
   }
 
   withMetadata(): WithMetadata<Omit<LoyaltyClient, 'withMetadata'>> {

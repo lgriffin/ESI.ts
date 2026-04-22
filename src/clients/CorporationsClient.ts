@@ -40,8 +40,10 @@ export class CorporationsClient {
    * @param corporationId - The ID of the corporation to look up
    * @returns Public corporation information including name, ticker, member count, and CEO
    */
-  async getCorporationInfo(corporationId: number): Promise<CorporationInfo> {
-    return this.api.getCorporationInfo(corporationId);
+  getCorporationInfo(corporationId: number): Promise<CorporationInfo> {
+    return this.api.getCorporationInfo(
+      corporationId,
+    ) as Promise<CorporationInfo>;
   }
 
   /**
@@ -50,10 +52,12 @@ export class CorporationsClient {
    * @param corporationId - The ID of the corporation whose alliance history to retrieve
    * @returns A chronological list of alliances the corporation has been a member of
    */
-  async getCorporationAllianceHistory(
+  getCorporationAllianceHistory(
     corporationId: number,
   ): Promise<CorporationAllianceHistory[]> {
-    return this.api.getCorporationAllianceHistory(corporationId);
+    return this.api.getCorporationAllianceHistory(corporationId) as Promise<
+      CorporationAllianceHistory[]
+    >;
   }
 
   /**
@@ -63,8 +67,10 @@ export class CorporationsClient {
    * @returns A list of blueprints with material/time efficiency and run information
    * @requires Authentication
    */
-  async getCorporationBlueprints(corporationId: number): Promise<Blueprint[]> {
-    return this.api.getCorporationBlueprints(corporationId);
+  getCorporationBlueprints(corporationId: number): Promise<Blueprint[]> {
+    return this.api.getCorporationBlueprints(corporationId) as Promise<
+      Blueprint[]
+    >;
   }
 
   /**
@@ -74,8 +80,10 @@ export class CorporationsClient {
    * @returns A list of container access logs with action, character, and timestamp details
    * @requires Authentication
    */
-  async getCorporationAlscLogs(corporationId: number): Promise<ContainerLog[]> {
-    return this.api.getCorporationAlscLogs(corporationId);
+  getCorporationAlscLogs(corporationId: number): Promise<ContainerLog[]> {
+    return this.api.getCorporationAlscLogs(corporationId) as Promise<
+      ContainerLog[]
+    >;
   }
 
   /**
@@ -85,10 +93,12 @@ export class CorporationsClient {
    * @returns Hangar and wallet division configurations with custom names
    * @requires Authentication
    */
-  async getCorporationDivisions(
+  getCorporationDivisions(
     corporationId: number,
   ): Promise<CorporationDivisions> {
-    return this.api.getCorporationDivisions(corporationId);
+    return this.api.getCorporationDivisions(
+      corporationId,
+    ) as Promise<CorporationDivisions>;
   }
 
   /**
@@ -98,10 +108,12 @@ export class CorporationsClient {
    * @returns A list of corporation-owned facilities with type and solar system information
    * @requires Authentication
    */
-  async getCorporationFacilities(
+  getCorporationFacilities(
     corporationId: number,
   ): Promise<CorporationFacility[]> {
-    return this.api.getCorporationFacilities(corporationId);
+    return this.api.getCorporationFacilities(corporationId) as Promise<
+      CorporationFacility[]
+    >;
   }
 
   /**
@@ -110,10 +122,14 @@ export class CorporationsClient {
    * @param corporationId - The ID of the corporation whose icons to retrieve
    * @returns Icon URLs at 64x64, 128x128, and 256x256 resolutions
    */
-  async getCorporationIcon(
+  getCorporationIcon(
     corporationId: number,
   ): Promise<{ px64x64?: string; px128x128?: string; px256x256?: string }> {
-    return this.api.getCorporationIcon(corporationId);
+    return this.api.getCorporationIcon(corporationId) as Promise<{
+      px64x64?: string;
+      px128x128?: string;
+      px256x256?: string;
+    }>;
   }
 
   /**
@@ -123,10 +139,10 @@ export class CorporationsClient {
    * @returns A list of medals defined by the corporation
    * @requires Authentication
    */
-  async getCorporationMedals(
-    corporationId: number,
-  ): Promise<CorporationMedal[]> {
-    return this.api.getCorporationMedals(corporationId);
+  getCorporationMedals(corporationId: number): Promise<CorporationMedal[]> {
+    return this.api.getCorporationMedals(corporationId) as Promise<
+      CorporationMedal[]
+    >;
   }
 
   /**
@@ -136,10 +152,12 @@ export class CorporationsClient {
    * @returns A list of medals issued to corporation members with recipient and issuer details
    * @requires Authentication
    */
-  async getCorporationIssuedMedals(
+  getCorporationIssuedMedals(
     corporationId: number,
   ): Promise<CorporationIssuedMedal[]> {
-    return this.api.getCorporationIssuedMedals(corporationId);
+    return this.api.getCorporationIssuedMedals(corporationId) as Promise<
+      CorporationIssuedMedal[]
+    >;
   }
 
   /**
@@ -149,8 +167,8 @@ export class CorporationsClient {
    * @returns An array of character IDs for all corporation members
    * @requires Authentication
    */
-  async getCorporationMembers(corporationId: number): Promise<number[]> {
-    return this.api.getCorporationMembers(corporationId);
+  getCorporationMembers(corporationId: number): Promise<number[]> {
+    return this.api.getCorporationMembers(corporationId) as Promise<number[]>;
   }
 
   /**
@@ -160,8 +178,8 @@ export class CorporationsClient {
    * @returns The maximum member count for the corporation
    * @requires Authentication
    */
-  async getCorporationMemberLimit(corporationId: number): Promise<number> {
-    return this.api.getCorporationMemberLimit(corporationId);
+  getCorporationMemberLimit(corporationId: number): Promise<number> {
+    return this.api.getCorporationMemberLimit(corporationId) as Promise<number>;
   }
 
   /**
@@ -171,10 +189,12 @@ export class CorporationsClient {
    * @returns A list of members and their assigned title IDs
    * @requires Authentication
    */
-  async getCorporationMemberTitles(
+  getCorporationMemberTitles(
     corporationId: number,
   ): Promise<CorporationMemberTitle[]> {
-    return this.api.getCorporationMembersTitles(corporationId);
+    return this.api.getCorporationMembersTitles(corporationId) as Promise<
+      CorporationMemberTitle[]
+    >;
   }
 
   /**
@@ -184,10 +204,12 @@ export class CorporationsClient {
    * @returns A list of members with login times, ship types, and location details
    * @requires Authentication
    */
-  async getCorporationMemberTracking(
+  getCorporationMemberTracking(
     corporationId: number,
   ): Promise<CorporationMemberTracking[]> {
-    return this.api.getCorporationMemberTracking(corporationId);
+    return this.api.getCorporationMemberTracking(corporationId) as Promise<
+      CorporationMemberTracking[]
+    >;
   }
 
   /**
@@ -197,10 +219,10 @@ export class CorporationsClient {
    * @returns A list of members and their assigned roles across all role categories
    * @requires Authentication
    */
-  async getCorporationRoles(
-    corporationId: number,
-  ): Promise<CorporationMemberRole[]> {
-    return this.api.getCorporationMemberRoles(corporationId);
+  getCorporationRoles(corporationId: number): Promise<CorporationMemberRole[]> {
+    return this.api.getCorporationMemberRoles(corporationId) as Promise<
+      CorporationMemberRole[]
+    >;
   }
 
   /**
@@ -210,10 +232,12 @@ export class CorporationsClient {
    * @returns A chronological list of role changes with before/after states and issuer details
    * @requires Authentication
    */
-  async getCorporationRolesHistory(
+  getCorporationRolesHistory(
     corporationId: number,
   ): Promise<CorporationRoleHistory[]> {
-    return this.api.getCorporationMemberRolesHistory(corporationId);
+    return this.api.getCorporationMemberRolesHistory(corporationId) as Promise<
+      CorporationRoleHistory[]
+    >;
   }
 
   /**
@@ -223,10 +247,12 @@ export class CorporationsClient {
    * @returns A list of shareholders with share counts and holder types
    * @requires Authentication
    */
-  async getCorporationShareholders(
+  getCorporationShareholders(
     corporationId: number,
   ): Promise<CorporationShareholder[]> {
-    return this.api.getCorporationShareholders(corporationId);
+    return this.api.getCorporationShareholders(corporationId) as Promise<
+      CorporationShareholder[]
+    >;
   }
 
   /**
@@ -236,8 +262,10 @@ export class CorporationsClient {
    * @returns A list of standings with from_type, from_id, and standing value
    * @requires Authentication
    */
-  async getCorporationStandings(corporationId: number): Promise<Standing[]> {
-    return this.api.getCorporationStandings(corporationId);
+  getCorporationStandings(corporationId: number): Promise<Standing[]> {
+    return this.api.getCorporationStandings(corporationId) as Promise<
+      Standing[]
+    >;
   }
 
   /**
@@ -247,10 +275,12 @@ export class CorporationsClient {
    * @returns A list of starbases with type, system, and state information
    * @requires Authentication
    */
-  async getCorporationStarbases(
+  getCorporationStarbases(
     corporationId: number,
   ): Promise<CorporationStarbase[]> {
-    return this.api.getCorporationStarbases(corporationId);
+    return this.api.getCorporationStarbases(corporationId) as Promise<
+      CorporationStarbase[]
+    >;
   }
 
   /**
@@ -261,11 +291,14 @@ export class CorporationsClient {
    * @returns Detailed starbase information including fuel levels and access settings
    * @requires Authentication
    */
-  async getCorporationStarbaseDetail(
+  getCorporationStarbaseDetail(
     corporationId: number,
     starbaseId: number,
   ): Promise<CorporationStarbaseDetail> {
-    return this.api.getCorporationStarbaseDetail(corporationId, starbaseId);
+    return this.api.getCorporationStarbaseDetail(
+      corporationId,
+      starbaseId,
+    ) as Promise<CorporationStarbaseDetail>;
   }
 
   /**
@@ -275,10 +308,12 @@ export class CorporationsClient {
    * @returns A list of structures with type, location, state, and service information
    * @requires Authentication
    */
-  async getCorporationStructures(
+  getCorporationStructures(
     corporationId: number,
   ): Promise<CorporationStructure[]> {
-    return this.api.getCorporationStructures(corporationId);
+    return this.api.getCorporationStructures(corporationId) as Promise<
+      CorporationStructure[]
+    >;
   }
 
   /**
@@ -288,10 +323,10 @@ export class CorporationsClient {
    * @returns A list of corporation titles with names and granted roles
    * @requires Authentication
    */
-  async getCorporationTitles(
-    corporationId: number,
-  ): Promise<CorporationTitle[]> {
-    return this.api.getCorporationTitles(corporationId);
+  getCorporationTitles(corporationId: number): Promise<CorporationTitle[]> {
+    return this.api.getCorporationTitles(corporationId) as Promise<
+      CorporationTitle[]
+    >;
   }
 
   /**
@@ -299,8 +334,8 @@ export class CorporationsClient {
    *
    * @returns An array of NPC corporation IDs
    */
-  async getNpcCorporations(): Promise<number[]> {
-    return this.api.getNpcCorporations();
+  getNpcCorporations(): Promise<number[]> {
+    return this.api.getNpcCorporations() as Promise<number[]>;
   }
 
   withMetadata(): WithMetadata<Omit<CorporationsClient, 'withMetadata'>> {

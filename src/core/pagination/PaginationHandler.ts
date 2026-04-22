@@ -5,7 +5,6 @@
 
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
-import { buildError } from '../util/error';
 import { RateLimiter } from '../rateLimiter/RateLimiter';
 
 export interface PaginationOptions {
@@ -32,14 +31,14 @@ export class PaginationHandler {
     endpoint: string,
     method: string,
     requiresAuth: boolean,
-    firstPageData: any[],
+    firstPageData: unknown[],
     totalPages: number,
-    body?: any,
+    body?: unknown,
     options: PaginationOptions = {},
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const rateLimiter = RateLimiter.getInstance();
-    const allData: any[] = [...firstPageData];
+    const allData: unknown[] = [...firstPageData];
 
     const effectiveMaxPage = Math.min(totalPages, opts.maxPages);
 
@@ -74,11 +73,13 @@ export class PaginationHandler {
 
         allData.push(...pageData);
         logInfo(
-          `Fetched page ${page}/${effectiveMaxPage} (${pageData?.length || 0} items)`,
+          `Fetched page ${page}/${effectiveMaxPage} (${pageData.length} items)`,
         );
       } catch (error) {
         consecutiveFailures++;
-        logError(`Failed to fetch page ${page}: ${error}`);
+        logError(
+          `Failed to fetch page ${page}: ${error instanceof Error ? error.message : String(error)}`,
+        );
 
         if (consecutiveFailures >= opts.maxRetries) {
           logWarn(
@@ -104,9 +105,9 @@ export class PaginationHandler {
     method: string,
     page: number,
     requiresAuth: boolean,
-    body: any,
+    body: unknown,
     options: Required<PaginationOptions>,
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
@@ -122,7 +123,7 @@ export class PaginationHandler {
       } catch (error) {
         lastError = error as Error;
         logWarn(
-          `Attempt ${attempt}/${options.maxRetries} failed for page ${page}: ${error}`,
+          `Attempt ${attempt}/${options.maxRetries} failed for page ${page}: ${error instanceof Error ? error.message : String(error)}`,
         );
 
         if (attempt < options.maxRetries) {
@@ -149,8 +150,8 @@ export class PaginationHandler {
     method: string,
     page: number,
     requiresAuth: boolean,
-    body: any,
-  ): Promise<any[]> {
+    body: unknown,
+  ): Promise<unknown[]> {
     const separator = endpoint.includes('?') ? '&' : '?';
     const paginatedEndpoint = `${endpoint}${separator}page=${page}`;
     const url = `${client.getLink()}/${paginatedEndpoint}`;
@@ -174,14 +175,16 @@ export class PaginationHandler {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    let data;
+    let data: unknown;
     try {
-      data = await response.json();
+      data = (await response.json()) as unknown;
     } catch (jsonError) {
-      throw new Error(`Invalid JSON response for page ${page}: ${jsonError}`);
+      throw new Error(
+        `Invalid JSON response for page ${page}: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`,
+      );
     }
 
-    return Array.isArray(data) ? data : [data];
+    return Array.isArray(data) ? (data as unknown[]) : [data];
   }
 
   /**

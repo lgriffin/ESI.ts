@@ -16,11 +16,10 @@ const client = new ApiClientBuilder()
 
 export const getClient = () => client;
 
-beforeEach(() => {
+beforeEach(async () => {
   fetchMock.resetMocks();
 
-  // Reset rate limiter before each test to ensure clean state
-  const { RateLimiter } = require('../../core/rateLimiter/RateLimiter');
+  const { RateLimiter } = await import('../../core/rateLimiter/RateLimiter');
   const rateLimiter = RateLimiter.getInstance();
   rateLimiter.reset();
   rateLimiter.setTestMode(true);

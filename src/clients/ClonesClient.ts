@@ -20,8 +20,8 @@ export class ClonesClient {
    * @returns Clone information including home location and jump clone details
    * @requires Authentication
    */
-  async getClones(characterId: number): Promise<CloneInfo> {
-    return this.api.getClones(characterId);
+  getClones(characterId: number): Promise<CloneInfo> {
+    return this.api.getClones(characterId) as Promise<CloneInfo>;
   }
 
   /**
@@ -31,8 +31,8 @@ export class ClonesClient {
    * @returns An array of type IDs for the currently installed implants
    * @requires Authentication
    */
-  async getImplants(characterId: number): Promise<number[]> {
-    return this.api.getImplants(characterId);
+  getImplants(characterId: number): Promise<number[]> {
+    return this.api.getImplants(characterId) as Promise<number[]>;
   }
 
   withMetadata(): WithMetadata<Omit<ClonesClient, 'withMetadata'>> {

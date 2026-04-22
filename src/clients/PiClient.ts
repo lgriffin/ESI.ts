@@ -25,8 +25,8 @@ export class PiClient {
    * @returns A list of the character's planetary colonies
    * @requires Authentication
    */
-  async getColonies(characterId: number): Promise<PlanetaryColony[]> {
-    return this.api.getColonies(characterId);
+  getColonies(characterId: number): Promise<PlanetaryColony[]> {
+    return this.api.getColonies(characterId) as Promise<PlanetaryColony[]>;
   }
 
   /**
@@ -37,11 +37,14 @@ export class PiClient {
    * @returns The colony layout with pins, links, and routes
    * @requires Authentication
    */
-  async getColonyLayout(
+  getColonyLayout(
     characterId: number,
     planetId: number,
   ): Promise<ColonyLayout> {
-    return this.api.getColonyLayout(characterId, planetId);
+    return this.api.getColonyLayout(
+      characterId,
+      planetId,
+    ) as Promise<ColonyLayout>;
   }
 
   /**
@@ -51,10 +54,12 @@ export class PiClient {
    * @returns A list of the corporation's customs offices with their settings
    * @requires Authentication
    */
-  async getCorporationCustomsOffices(
+  getCorporationCustomsOffices(
     corporationId: number,
   ): Promise<CustomsOffice[]> {
-    return this.api.getCorporationCustomsOffices(corporationId);
+    return this.api.getCorporationCustomsOffices(corporationId) as Promise<
+      CustomsOffice[]
+    >;
   }
 
   /**
@@ -63,8 +68,10 @@ export class PiClient {
    * @param schematicId - The ID of the schematic to look up
    * @returns The schematic details including cycle time, inputs, and outputs
    */
-  async getSchematicInformation(schematicId: number): Promise<SchematicInfo> {
-    return this.api.getSchematicInformation(schematicId);
+  getSchematicInformation(schematicId: number): Promise<SchematicInfo> {
+    return this.api.getSchematicInformation(
+      schematicId,
+    ) as Promise<SchematicInfo>;
   }
 
   withMetadata(): WithMetadata<Omit<PiClient, 'withMetadata'>> {

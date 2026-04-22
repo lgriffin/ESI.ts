@@ -94,36 +94,39 @@ export class RateLimiter {
     if (this.isTestMode) return;
 
     // New rate limit headers (preferred)
-    const remaining = headers['x-ratelimit-remaining'];
-    const limit = headers['x-ratelimit-limit'];
-    const used = headers['x-ratelimit-used'];
     const group = headers['x-ratelimit-group'] || null;
 
-    if (remaining !== undefined) {
-      this.rateLimitInfo.remaining = parseInt(remaining, 10);
+    if ('x-ratelimit-remaining' in headers) {
+      this.rateLimitInfo.remaining = parseInt(
+        headers['x-ratelimit-remaining'],
+        10,
+      );
     }
-    if (limit !== undefined) {
-      this.rateLimitInfo.limit = parseInt(limit, 10);
+    if ('x-ratelimit-limit' in headers) {
+      this.rateLimitInfo.limit = parseInt(headers['x-ratelimit-limit'], 10);
     }
-    if (used !== undefined) {
-      this.rateLimitInfo.used = parseInt(used, 10);
+    if ('x-ratelimit-used' in headers) {
+      this.rateLimitInfo.used = parseInt(headers['x-ratelimit-used'], 10);
     }
     this.rateLimitInfo.group = group;
 
     // Legacy error limit headers
-    const errorRemain = headers['x-esi-error-limit-remain'];
-    const errorReset = headers['x-esi-error-limit-reset'];
-    if (errorRemain !== undefined) {
-      this.rateLimitInfo.errorLimitRemain = parseInt(errorRemain, 10);
+    if ('x-esi-error-limit-remain' in headers) {
+      this.rateLimitInfo.errorLimitRemain = parseInt(
+        headers['x-esi-error-limit-remain'],
+        10,
+      );
     }
-    if (errorReset !== undefined) {
-      this.rateLimitInfo.errorLimitReset = parseInt(errorReset, 10);
+    if ('x-esi-error-limit-reset' in headers) {
+      this.rateLimitInfo.errorLimitReset = parseInt(
+        headers['x-esi-error-limit-reset'],
+        10,
+      );
     }
 
     // Retry-After (present on 420 and 429 responses)
-    const retryAfter = headers['retry-after'];
-    if (retryAfter !== undefined) {
-      const retrySeconds = parseInt(retryAfter, 10);
+    if ('retry-after' in headers) {
+      const retrySeconds = parseInt(headers['retry-after'], 10);
       this.rateLimitInfo.retryAfter = retrySeconds;
       this.rateLimitInfo.blockedUntil = Date.now() + retrySeconds * 1000;
     }

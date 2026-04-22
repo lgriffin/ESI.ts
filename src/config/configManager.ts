@@ -25,9 +25,11 @@ const loadConfig = () => {
   const __dirname = getDirname();
   const configPath = path.join(__dirname, 'esi.json');
 
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   if (fs.existsSync(configPath)) {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const configFile = fs.readFileSync(configPath, 'utf8');
-    config = JSON.parse(configFile);
+    config = JSON.parse(configFile) as Config;
   } else {
     throw new Error('Configuration file not found');
   }

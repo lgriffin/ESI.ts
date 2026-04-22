@@ -24,8 +24,8 @@ export class AllianceClient {
    * @param allianceId - The ID of the alliance to look up
    * @returns Public alliance information including name, ticker, and founding date
    */
-  async getAllianceById(allianceId: number): Promise<AllianceInfo> {
-    return this.api.getAllianceById(allianceId);
+  getAllianceById(allianceId: number): Promise<AllianceInfo> {
+    return this.api.getAllianceById(allianceId) as Promise<AllianceInfo>;
   }
 
   /**
@@ -35,8 +35,8 @@ export class AllianceClient {
    * @returns A list of alliance contacts with standings and contact types
    * @requires Authentication
    */
-  async getContacts(allianceId: number): Promise<AllianceContact[]> {
-    return this.api.getContacts(allianceId);
+  getContacts(allianceId: number): Promise<AllianceContact[]> {
+    return this.api.getContacts(allianceId) as Promise<AllianceContact[]>;
   }
 
   /**
@@ -46,8 +46,10 @@ export class AllianceClient {
    * @returns A list of custom labels used to categorize alliance contacts
    * @requires Authentication
    */
-  async getContactLabels(allianceId: number): Promise<AllianceContactLabel[]> {
-    return this.api.getContactLabels(allianceId);
+  getContactLabels(allianceId: number): Promise<AllianceContactLabel[]> {
+    return this.api.getContactLabels(allianceId) as Promise<
+      AllianceContactLabel[]
+    >;
   }
 
   /**
@@ -56,8 +58,8 @@ export class AllianceClient {
    * @param allianceId - The ID of the alliance whose member corporations to retrieve
    * @returns An array of corporation IDs belonging to the alliance
    */
-  async getCorporations(allianceId: number): Promise<number[]> {
-    return this.api.getCorporations(allianceId);
+  getCorporations(allianceId: number): Promise<number[]> {
+    return this.api.getCorporations(allianceId) as Promise<number[]>;
   }
 
   /**
@@ -66,8 +68,8 @@ export class AllianceClient {
    * @param allianceId - The ID of the alliance whose icons to retrieve
    * @returns Icon URLs at various resolutions for the alliance
    */
-  async getIcons(allianceId: number): Promise<AllianceIcon> {
-    return this.api.getIcons(allianceId);
+  getIcons(allianceId: number): Promise<AllianceIcon> {
+    return this.api.getIcons(allianceId) as Promise<AllianceIcon>;
   }
 
   /**
@@ -75,8 +77,8 @@ export class AllianceClient {
    *
    * @returns An array of all active alliance IDs
    */
-  async getAlliances(): Promise<number[]> {
-    return this.api.getAlliances();
+  getAlliances(): Promise<number[]> {
+    return this.api.getAlliances() as Promise<number[]>;
   }
 
   withMetadata(): WithMetadata<Omit<AllianceClient, 'withMetadata'>> {

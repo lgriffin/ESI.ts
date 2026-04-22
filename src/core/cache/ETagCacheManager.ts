@@ -2,10 +2,10 @@ import { logInfo, logDebug } from '../logger/loggerUtil';
 
 export interface CacheEntry {
   etag: string;
-  data: any;
+  data: unknown;
   headers: Record<string, string>;
   timestamp: number;
-  ttl?: number; // Time to live in milliseconds
+  ttl?: number;
 }
 
 export interface ETagCacheConfig {
@@ -67,7 +67,7 @@ export class ETagCacheManager {
   set(
     url: string,
     etag: string,
-    data: any,
+    data: unknown,
     headers: Record<string, string>,
     customTtl?: number,
   ): void {
@@ -163,7 +163,6 @@ export class ETagCacheManager {
    */
   cleanup(): number {
     const beforeSize = this.cache.size;
-    const now = Date.now();
     const expiredKeys: string[] = [];
 
     for (const [url, entry] of this.cache.entries()) {

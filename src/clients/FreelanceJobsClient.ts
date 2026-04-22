@@ -29,11 +29,14 @@ export class FreelanceJobsClient {
    * @param after - Optional cursor token for fetching the next page of results
    * @returns A listing of freelance jobs with cursor pagination metadata
    */
-  async getFreelanceJobs(
+  getFreelanceJobs(
     before?: string,
     after?: string,
   ): Promise<FreelanceJobsListing> {
-    return this.api.getFreelanceJobs(before, after);
+    return this.api.getFreelanceJobs(
+      before,
+      after,
+    ) as Promise<FreelanceJobsListing>;
   }
 
   /**
@@ -42,8 +45,8 @@ export class FreelanceJobsClient {
    * @param jobId - The unique identifier of the freelance job
    * @returns Detailed information about the freelance job
    */
-  async getFreelanceJobById(jobId: string): Promise<FreelanceJobDetail> {
-    return this.api.getFreelanceJobById(jobId);
+  getFreelanceJobById(jobId: string): Promise<FreelanceJobDetail> {
+    return this.api.getFreelanceJobById(jobId) as Promise<FreelanceJobDetail>;
   }
 
   /**
@@ -55,12 +58,16 @@ export class FreelanceJobsClient {
    * @returns A listing of the character's freelance jobs with cursor pagination metadata
    * @requires Authentication
    */
-  async getCharacterFreelanceJobs(
+  getCharacterFreelanceJobs(
     characterId: number,
     before?: string,
     after?: string,
   ): Promise<CharacterFreelanceJobsListing> {
-    return this.api.getCharacterFreelanceJobs(characterId, before, after);
+    return this.api.getCharacterFreelanceJobs(
+      characterId,
+      before,
+      after,
+    ) as Promise<CharacterFreelanceJobsListing>;
   }
 
   /**
@@ -71,11 +78,14 @@ export class FreelanceJobsClient {
    * @returns The character's participation details for the job
    * @requires Authentication
    */
-  async getCharacterFreelanceJobParticipation(
+  getCharacterFreelanceJobParticipation(
     characterId: number,
     jobId: string,
   ): Promise<FreelanceJobParticipation> {
-    return this.api.getCharacterFreelanceJobParticipation(characterId, jobId);
+    return this.api.getCharacterFreelanceJobParticipation(
+      characterId,
+      jobId,
+    ) as Promise<FreelanceJobParticipation>;
   }
 
   /**
@@ -87,12 +97,16 @@ export class FreelanceJobsClient {
    * @returns A listing of the corporation's freelance jobs with cursor pagination metadata
    * @requires Authentication
    */
-  async getCorporationFreelanceJobs(
+  getCorporationFreelanceJobs(
     corporationId: number,
     before?: string,
     after?: string,
   ): Promise<CorporationFreelanceJobsListing> {
-    return this.api.getCorporationFreelanceJobs(corporationId, before, after);
+    return this.api.getCorporationFreelanceJobs(
+      corporationId,
+      before,
+      after,
+    ) as Promise<CorporationFreelanceJobsListing>;
   }
 
   /**
@@ -103,14 +117,14 @@ export class FreelanceJobsClient {
    * @returns An array of participants from the corporation in the job
    * @requires Authentication
    */
-  async getCorporationFreelanceJobParticipants(
+  getCorporationFreelanceJobParticipants(
     corporationId: number,
     jobId: string,
   ): Promise<FreelanceJobParticipant[]> {
     return this.api.getCorporationFreelanceJobParticipants(
       corporationId,
       jobId,
-    );
+    ) as Promise<FreelanceJobParticipant[]>;
   }
 
   withMetadata(): WithMetadata<Omit<FreelanceJobsClient, 'withMetadata'>> {
