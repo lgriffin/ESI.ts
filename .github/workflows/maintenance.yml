@@ -11,25 +11,25 @@ jobs:
   dependency-updates:
     name: 📦 Dependency Updates
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          
+
       - name: 📋 Install dependencies
         run: npm ci
-        
+
       - name: 🔍 Check for outdated packages
         run: npm outdated || true
-        
+
       - name: 📊 Generate dependency report
         run: |
           echo "# Dependency Status Report" > dependency-report.md
@@ -42,7 +42,7 @@ jobs:
           else
             echo "All packages are up to date! ✅" >> dependency-report.md
           fi
-          
+
       - name: 📤 Upload dependency report
         uses: actions/upload-artifact@v4
         with:
@@ -56,20 +56,20 @@ jobs:
   security-audit:
     name: 🔒 Security Audit
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        
+
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          
+
       - name: 📋 Install dependencies
         run: npm ci
-        
+
       - name: 🔒 Run npm audit
         run: |
           echo "# Security Audit Report" > security-report.md
@@ -82,7 +82,7 @@ jobs:
           else
             echo "No security vulnerabilities found! ✅" >> security-report.md
           fi
-          
+
       - name: 🔍 Check for security advisories
         run: |
           echo "" >> security-report.md
@@ -93,7 +93,7 @@ jobs:
           else
             echo "No high severity vulnerabilities found! ✅" >> security-report.md
           fi
-          
+
       - name: 📤 Upload security report
         uses: actions/upload-artifact@v4
         with:
@@ -108,26 +108,32 @@ jobs:
   code-quality:
     name: 📊 Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        
+
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          
+
       - name: 📋 Install dependencies
         run: npm ci
-        
+
       - name: 🔍 Run linting
         run: npm run lint > lint-report.txt || true
-        
+
+      - name: 🔍 Check formatting
+        run: npm run format:check > format-report.txt || true
+
+      - name: 🔍 Dead code detection
+        run: npx knip > knip-report.txt || true
+
       - name: 🧪 Run tests with coverage
         run: npm run coverage
-        
+
       - name: 📊 Generate quality report
         run: |
           echo "# Code Quality Report" > quality-report.md
@@ -141,9 +147,25 @@ jobs:
             echo "No linting issues found! ✅" >> quality-report.md
           fi
           echo "" >> quality-report.md
+          echo "## Formatting" >> quality-report.md
+          if [ -s format-report.txt ]; then
+            echo "⚠️ Formatting issues found:" >> quality-report.md
+            cat format-report.txt >> quality-report.md
+          else
+            echo "No formatting issues found! ✅" >> quality-report.md
+          fi
+          echo "" >> quality-report.md
+          echo "## Dead Code (knip)" >> quality-report.md
+          if [ -s knip-report.txt ]; then
+            echo "⚠️ Unused exports or dependencies found:" >> quality-report.md
+            cat knip-report.txt >> quality-report.md
+          else
+            echo "No dead code found! ✅" >> quality-report.md
+          fi
+          echo "" >> quality-report.md
           echo "## Test Coverage" >> quality-report.md
           echo "Coverage reports generated in ./coverage/" >> quality-report.md
-          
+
       - name: 📤 Upload quality report
         uses: actions/upload-artifact@v4
         with:
@@ -151,6 +173,8 @@ jobs:
           path: |
             quality-report.md
             lint-report.txt
+            format-report.txt
+            knip-report.txt
             coverage/
           retention-days: 30
 
@@ -158,26 +182,26 @@ jobs:
   health-check:
     name: 🏥 Health Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        
+
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          
+
       - name: 📋 Install dependencies
         run: npm ci
-        
+
       - name: 🏗️ Build project
         run: npm run build
-        
+
       - name: 🏥 Run health check
         run: npm run health-check || true
-        
+
       - name: 📊 Generate health report
         run: |
           echo "# Health Check Report" > health-report.md
@@ -195,7 +219,7 @@ jobs:
           echo "Version: $(node -p "require('./package.json').version")" >> health-report.md
           echo "Node.js: $(node --version)" >> health-report.md
           echo "NPM: $(npm --version)" >> health-report.md
-          
+
       - name: 📤 Upload health report
         uses: actions/upload-artifact@v4
         with:
@@ -209,7 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [dependency-updates, security-audit, code-quality, health-check]
     if: always()
-    
+
     steps:
       - name: 📋 Create maintenance summary
         run: |
@@ -227,7 +251,7 @@ jobs:
           echo "2. Address any security vulnerabilities found" >> maintenance-summary.md
           echo "3. Fix any code quality issues identified" >> maintenance-summary.md
           echo "4. Monitor build and deployment health" >> maintenance-summary.md
-          
+
       - name: 📤 Upload maintenance summary
         uses: actions/upload-artifact@v4
         with:

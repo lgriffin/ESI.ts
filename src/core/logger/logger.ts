@@ -11,14 +11,8 @@ const logFormat = printf(({ level, message, timestamp }) => {
 // Libraries should not write to files; the consuming application controls logging.
 const logger = createLogger({
   level: process.env.ESI_LOG_LEVEL || 'warn',
-  format: combine(
-    colorize(),
-    timestamp(),
-    logFormat
-  ),
-  transports: [
-    new transports.Console()
-  ]
+  format: combine(colorize(), timestamp(), logFormat),
+  transports: [new transports.Console()],
 });
 
 export default logger;

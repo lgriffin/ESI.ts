@@ -1,6 +1,6 @@
 /**
  * BDD Scenarios: Character Management
- * 
+ *
  * Comprehensive behavior-driven tests for Character-related APIs
  * covering public information, portraits, roles, and other available endpoints.
  */
@@ -16,7 +16,7 @@ describe('BDD Scenarios: Character Management', () => {
     client = new EsiClient({
       clientId: 'test-character-client',
       baseUrl: 'https://esi.evetech.net',
-      timeout: 5000
+      timeout: 5000,
     });
   });
 
@@ -29,14 +29,17 @@ describe('BDD Scenarios: Character Management', () => {
           character_id: validCharacterId,
           name: 'Test Character',
           corporation_id: 1344654522,
-          alliance_id: 99005338
+          alliance_id: 99005338,
         });
 
         // Mock the API response
-        jest.spyOn(client.characters, 'getCharacterPublicInfo').mockResolvedValue(expectedCharacter);
+        jest
+          .spyOn(client.characters, 'getCharacterPublicInfo')
+          .mockResolvedValue(expectedCharacter);
 
         // When: I request public information
-        const result = await client.characters.getCharacterPublicInfo(validCharacterId);
+        const result =
+          await client.characters.getCharacterPublicInfo(validCharacterId);
 
         // Then: I should receive complete character profile
         expect(result).toBeDefined();
@@ -55,12 +58,14 @@ describe('BDD Scenarios: Character Management', () => {
         const expectedError = TestDataFactory.createError(404);
 
         // Mock the API to throw an error
-        jest.spyOn(client.characters, 'getCharacterPublicInfo').mockRejectedValue(expectedError);
+        jest
+          .spyOn(client.characters, 'getCharacterPublicInfo')
+          .mockRejectedValue(expectedError);
 
         // When & Then: I request character info and expect an error
-        await expect(client.characters.getCharacterPublicInfo(invalidCharacterId))
-          .rejects
-          .toThrow(EsiError);
+        await expect(
+          client.characters.getCharacterPublicInfo(invalidCharacterId),
+        ).rejects.toThrow(EsiError);
       });
     });
   });
@@ -73,10 +78,13 @@ describe('BDD Scenarios: Character Management', () => {
         const expectedPortrait = TestDataFactory.createCharacterPortrait();
 
         // Mock the API response
-        jest.spyOn(client.characters, 'getCharacterPortrait').mockResolvedValue(expectedPortrait);
+        jest
+          .spyOn(client.characters, 'getCharacterPortrait')
+          .mockResolvedValue(expectedPortrait);
 
         // When: I request portraits
-        const result = await client.characters.getCharacterPortrait(characterId);
+        const result =
+          await client.characters.getCharacterPortrait(characterId);
 
         // Then: I should receive image URLs in different sizes
         expect(result).toBeDefined();
@@ -97,11 +105,13 @@ describe('BDD Scenarios: Character Management', () => {
           roles: ['Director', 'Personnel_Manager'],
           roles_at_base: ['Station_Manager'],
           roles_at_hq: ['Director'],
-          roles_at_other: []
+          roles_at_other: [],
         });
 
         // Mock the API response
-        jest.spyOn(client.characters, 'getCharacterRoles').mockResolvedValue(expectedRoles);
+        jest
+          .spyOn(client.characters, 'getCharacterRoles')
+          .mockResolvedValue(expectedRoles);
 
         // When: I request roles
         const result = await client.characters.getCharacterRoles(characterId);
@@ -126,21 +136,24 @@ describe('BDD Scenarios: Character Management', () => {
             corporation_id: 1344654522,
             is_deleted: false,
             record_id: 1,
-            start_date: '2020-01-01T00:00:00Z'
+            start_date: '2020-01-01T00:00:00Z',
           }),
           TestDataFactory.createCorporationHistoryEntry({
             corporation_id: 1000001,
             is_deleted: false,
             record_id: 2,
-            start_date: '2015-01-01T00:00:00Z'
-          })
+            start_date: '2015-01-01T00:00:00Z',
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.characters, 'getCharacterCorporationHistory').mockResolvedValue(expectedHistory);
+        jest
+          .spyOn(client.characters, 'getCharacterCorporationHistory')
+          .mockResolvedValue(expectedHistory);
 
         // When: I request corporation history
-        const result = await client.characters.getCharacterCorporationHistory(characterId);
+        const result =
+          await client.characters.getCharacterCorporationHistory(characterId);
 
         // Then: I should receive employment history
         expect(result).toBeInstanceOf(Array);
@@ -163,12 +176,14 @@ describe('BDD Scenarios: Character Management', () => {
             corporation_id: 1344654522,
             date: '2023-01-01T00:00:00Z',
             issuer_id: 1689391489,
-            reason: 'Outstanding service'
-          })
+            reason: 'Outstanding service',
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.characters, 'getCharacterMedals').mockResolvedValue(expectedMedals);
+        jest
+          .spyOn(client.characters, 'getCharacterMedals')
+          .mockResolvedValue(expectedMedals);
 
         // When: I request medals
         const result = await client.characters.getCharacterMedals(characterId);
@@ -196,15 +211,18 @@ describe('BDD Scenarios: Character Management', () => {
             text: 'Test notification',
             timestamp: '2024-01-15T12:00:00Z',
             type: 'AllWarDeclaredMsg',
-            is_read: false
-          })
+            is_read: false,
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.characters, 'getCharacterNotifications').mockResolvedValue(expectedNotifications);
+        jest
+          .spyOn(client.characters, 'getCharacterNotifications')
+          .mockResolvedValue(expectedNotifications);
 
         // When: I request notifications
-        const result = await client.characters.getCharacterNotifications(characterId);
+        const result =
+          await client.characters.getCharacterNotifications(characterId);
 
         // Then: I should receive notification list
         expect(result).toBeInstanceOf(Array);
@@ -224,12 +242,14 @@ describe('BDD Scenarios: Character Management', () => {
         const authError = TestDataFactory.createError(403);
 
         // Mock the API to throw an authorization error
-        jest.spyOn(client.characters, 'getCharacterRoles').mockRejectedValue(authError);
+        jest
+          .spyOn(client.characters, 'getCharacterRoles')
+          .mockRejectedValue(authError);
 
         // When & Then: I access private data and expect an authorization error
-        await expect(client.characters.getCharacterRoles(characterId))
-          .rejects
-          .toThrow(EsiError);
+        await expect(
+          client.characters.getCharacterRoles(characterId),
+        ).rejects.toThrow(EsiError);
       });
     });
 
@@ -240,12 +260,14 @@ describe('BDD Scenarios: Character Management', () => {
         const authError = TestDataFactory.createError(401);
 
         // Mock the API to throw an authentication error
-        jest.spyOn(client.characters, 'getCharacterNotifications').mockRejectedValue(authError);
+        jest
+          .spyOn(client.characters, 'getCharacterNotifications')
+          .mockRejectedValue(authError);
 
         // When & Then: I access private data and expect an authentication error
-        await expect(client.characters.getCharacterNotifications(characterId))
-          .rejects
-          .toThrow(EsiError);
+        await expect(
+          client.characters.getCharacterNotifications(characterId),
+        ).rejects.toThrow(EsiError);
       });
     });
   });
@@ -255,18 +277,25 @@ describe('BDD Scenarios: Character Management', () => {
       it('Given multiple concurrent character requests, When I make them simultaneously, Then all should complete successfully', async () => {
         // Given: Multiple concurrent character requests
         const characterIds = [1689391488, 1689391489, 1689391490];
-        const mockCharacters = characterIds.map(id => 
-          TestDataFactory.createCharacterInfo({ character_id: id, name: `Character ${id}` })
+        const mockCharacters = characterIds.map((id) =>
+          TestDataFactory.createCharacterInfo({
+            character_id: id,
+            name: `Character ${id}`,
+          }),
         );
 
         // Mock the API responses
-        jest.spyOn(client.characters, 'getCharacterPublicInfo')
-          .mockImplementation(async (id: number) => 
-            mockCharacters.find(char => char.character_id === id)!
+        jest
+          .spyOn(client.characters, 'getCharacterPublicInfo')
+          .mockImplementation(
+            async (id: number) =>
+              mockCharacters.find((char) => char.character_id === id)!,
           );
 
         // When: I make them simultaneously
-        const promises = characterIds.map(id => client.characters.getCharacterPublicInfo(id));
+        const promises = characterIds.map((id) =>
+          client.characters.getCharacterPublicInfo(id),
+        );
         const results = await Promise.all(promises);
 
         // Then: All should complete successfully
@@ -282,17 +311,22 @@ describe('BDD Scenarios: Character Management', () => {
       it('Given normal API conditions, When I request character data, Then response should be within acceptable limits', async () => {
         // Given: Normal API conditions
         const characterId = 1689391488;
-        const mockCharacter = TestDataFactory.createCharacterInfo({ character_id: characterId });
+        const mockCharacter = TestDataFactory.createCharacterInfo({
+          character_id: characterId,
+        });
 
         // Mock with simulated network delay
-        jest.spyOn(client.characters, 'getCharacterPublicInfo').mockImplementation(async () => {
-          await new Promise(resolve => setTimeout(resolve, 150)); // 150ms delay
-          return mockCharacter;
-        });
+        jest
+          .spyOn(client.characters, 'getCharacterPublicInfo')
+          .mockImplementation(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 150)); // 150ms delay
+            return mockCharacter;
+          });
 
         // When: I request character data and measure time
         const startTime = Date.now();
-        const result = await client.characters.getCharacterPublicInfo(characterId);
+        const result =
+          await client.characters.getCharacterPublicInfo(characterId);
         const endTime = Date.now();
         const responseTime = endTime - startTime;
 
@@ -309,35 +343,51 @@ describe('BDD Scenarios: Character Management', () => {
       it('Given a character ID, When I gather complete profile data, Then I should successfully retrieve all available character information', async () => {
         // Given: A character ID
         const characterId = 1689391488;
-        const mockCharacter = TestDataFactory.createCharacterInfo({ character_id: characterId });
+        const mockCharacter = TestDataFactory.createCharacterInfo({
+          character_id: characterId,
+        });
         const mockPortrait = TestDataFactory.createCharacterPortrait();
-        const mockRoles = TestDataFactory.createCharacterRoles({ roles: ['Director'] });
-        const mockNotifications = [TestDataFactory.createCharacterNotification({ notification_id: 1000001 })];
+        const mockRoles = TestDataFactory.createCharacterRoles({
+          roles: ['Director'],
+        });
+        const mockNotifications = [
+          TestDataFactory.createCharacterNotification({
+            notification_id: 1000001,
+          }),
+        ];
 
         // Mock all API responses
-        jest.spyOn(client.characters, 'getCharacterPublicInfo').mockResolvedValue(mockCharacter);
-        jest.spyOn(client.characters, 'getCharacterPortrait').mockResolvedValue(mockPortrait);
-        jest.spyOn(client.characters, 'getCharacterRoles').mockResolvedValue(mockRoles);
-        jest.spyOn(client.characters, 'getCharacterNotifications').mockResolvedValue(mockNotifications);
+        jest
+          .spyOn(client.characters, 'getCharacterPublicInfo')
+          .mockResolvedValue(mockCharacter);
+        jest
+          .spyOn(client.characters, 'getCharacterPortrait')
+          .mockResolvedValue(mockPortrait);
+        jest
+          .spyOn(client.characters, 'getCharacterRoles')
+          .mockResolvedValue(mockRoles);
+        jest
+          .spyOn(client.characters, 'getCharacterNotifications')
+          .mockResolvedValue(mockNotifications);
 
         // When: I gather complete profile data
         const [character, portrait, roles, notifications] = await Promise.all([
           client.characters.getCharacterPublicInfo(characterId),
           client.characters.getCharacterPortrait(characterId),
           client.characters.getCharacterRoles(characterId),
-          client.characters.getCharacterNotifications(characterId)
+          client.characters.getCharacterNotifications(characterId),
         ]);
 
         // Then: I should successfully retrieve all available character information
         expect(character).toBeDefined();
         expect(character.character_id).toBe(characterId);
-        
+
         expect(portrait).toBeDefined();
         expect(portrait.px64x64).toBeDefined();
-        
+
         expect(roles).toBeDefined();
         expect(roles.roles).toContain('Director');
-        
+
         expect(notifications).toBeInstanceOf(Array);
         expect(notifications[0].notification_id).toBe(1000001);
       });

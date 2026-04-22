@@ -26,4 +26,12 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.d.ts',
   ],
+  coverageThreshold: {
+    global: {
+      branches: 50,
+      functions: 50,
+      lines: 65,
+      statements: 65,
+    },
+  },
 };

@@ -1,6 +1,6 @@
 /**
  * BDD Scenarios: Universe Information
- * 
+ *
  * Comprehensive behavior-driven tests for all Universe-related APIs
  * covering systems, stations, structures, types, and static game data.
  */
@@ -16,7 +16,7 @@ describe('BDD Scenarios: Universe Information', () => {
     client = new EsiClient({
       clientId: 'test-universe-client',
       baseUrl: 'https://esi.evetech.net',
-      timeout: 5000
+      timeout: 5000,
     });
   });
 
@@ -35,12 +35,14 @@ describe('BDD Scenarios: Universe Information', () => {
           stations: [60003760, 60003761],
           planets: [
             { planet_id: 40000001, moons: [40000002, 40000003] },
-            { planet_id: 40000004, moons: [40000005] }
-          ]
+            { planet_id: 40000004, moons: [40000005] },
+          ],
         });
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getSystemById').mockResolvedValue(expectedSystem);
+        jest
+          .spyOn(client.universe, 'getSystemById')
+          .mockResolvedValue(expectedSystem);
 
         // When: I request system information
         const result = await client.universe.getSystemById(validSystemId);
@@ -64,12 +66,14 @@ describe('BDD Scenarios: Universe Information', () => {
         const expectedError = TestDataFactory.createError(404);
 
         // Mock the API to throw an error
-        jest.spyOn(client.universe, 'getSystemById').mockRejectedValue(expectedError);
+        jest
+          .spyOn(client.universe, 'getSystemById')
+          .mockRejectedValue(expectedError);
 
         // When & Then: I request system info and expect an error
-        await expect(client.universe.getSystemById(invalidSystemId))
-          .rejects
-          .toThrow(EsiError);
+        await expect(
+          client.universe.getSystemById(invalidSystemId),
+        ).rejects.toThrow(EsiError);
       });
     });
 
@@ -79,7 +83,9 @@ describe('BDD Scenarios: Universe Information', () => {
         const expectedSystems = [30000001, 30000002, 30000142, 30001161]; // Sample system IDs
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getSystems').mockResolvedValue(expectedSystems);
+        jest
+          .spyOn(client.universe, 'getSystems')
+          .mockResolvedValue(expectedSystems);
 
         // When: I request all systems
         const result = await client.universe.getSystems();
@@ -109,11 +115,20 @@ describe('BDD Scenarios: Universe Information', () => {
           reprocessing_stations_take: 0.05,
           max_dockable_ship_volume: 50000000,
           office_rental_cost: 10000000,
-          services: ['bounty-missions', 'courier-missions', 'interbus', 'reprocessing-plant', 'market', 'stock-exchange']
+          services: [
+            'bounty-missions',
+            'courier-missions',
+            'interbus',
+            'reprocessing-plant',
+            'market',
+            'stock-exchange',
+          ],
         });
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getStationById').mockResolvedValue(expectedStation);
+        jest
+          .spyOn(client.universe, 'getStationById')
+          .mockResolvedValue(expectedStation);
 
         // When: I request station information
         const result = await client.universe.getStationById(validStationId);
@@ -139,11 +154,13 @@ describe('BDD Scenarios: Universe Information', () => {
           owner_id: 1689391488,
           solar_system_id: 30000142,
           type_id: 35832,
-          position: { x: 1000000000, y: 2000000000, z: 3000000000 }
+          position: { x: 1000000000, y: 2000000000, z: 3000000000 },
         });
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getStructureById').mockResolvedValue(expectedStructure);
+        jest
+          .spyOn(client.universe, 'getStructureById')
+          .mockResolvedValue(expectedStructure);
 
         // When: I request structure information
         const result = await client.universe.getStructureById(validStructureId);
@@ -176,11 +193,13 @@ describe('BDD Scenarios: Universe Information', () => {
           capacity: 0.0,
           portion_size: 1,
           radius: 1.0,
-          published: true
+          published: true,
         });
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getTypeById').mockResolvedValue(expectedType);
+        jest
+          .spyOn(client.universe, 'getTypeById')
+          .mockResolvedValue(expectedType);
 
         // When: I request type information
         const result = await client.universe.getTypeById(validTypeId);
@@ -202,7 +221,9 @@ describe('BDD Scenarios: Universe Information', () => {
         const expectedGroups = [1, 2, 18, 25, 419]; // Sample group IDs
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getItemGroups').mockResolvedValue(expectedGroups);
+        jest
+          .spyOn(client.universe, 'getItemGroups')
+          .mockResolvedValue(expectedGroups);
 
         // When: I request all item groups
         const result = await client.universe.getItemGroups();
@@ -224,11 +245,13 @@ describe('BDD Scenarios: Universe Information', () => {
           name: 'Mineral',
           category_id: 4,
           published: true,
-          types: [34, 35, 36, 37, 38, 39, 40, 11399] // Mineral type IDs
+          types: [34, 35, 36, 37, 38, 39, 40, 11399], // Mineral type IDs
         });
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getItemGroupById').mockResolvedValue(expectedGroup);
+        jest
+          .spyOn(client.universe, 'getItemGroupById')
+          .mockResolvedValue(expectedGroup);
 
         // When: I request group information
         const result = await client.universe.getItemGroupById(validGroupId);
@@ -259,11 +282,13 @@ describe('BDD Scenarios: Universe Information', () => {
           luminosity: 0.06575,
           radius: 62140000,
           spectral_class: 'K2 V',
-          temperature: 4567
+          temperature: 4567,
         });
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getStarById').mockResolvedValue(expectedStar);
+        jest
+          .spyOn(client.universe, 'getStarById')
+          .mockResolvedValue(expectedStar);
 
         // When: I request star information
         const result = await client.universe.getStarById(validStarId);
@@ -288,11 +313,13 @@ describe('BDD Scenarios: Universe Information', () => {
           name: 'Jita IV',
           type_id: 11,
           system_id: 30000142,
-          position: { x: 150000000000, y: 0, z: 0 }
+          position: { x: 150000000000, y: 0, z: 0 },
         });
 
         // Mock the API response
-        jest.spyOn(client.universe, 'getPlanetById').mockResolvedValue(expectedPlanet);
+        jest
+          .spyOn(client.universe, 'getPlanetById')
+          .mockResolvedValue(expectedPlanet);
 
         // When: I request planet information
         const result = await client.universe.getPlanetById(validPlanetId);
@@ -313,22 +340,26 @@ describe('BDD Scenarios: Universe Information', () => {
       it('Given multiple concurrent universe data requests, When I make them simultaneously, Then all should complete successfully', async () => {
         // Given: Multiple concurrent universe data requests
         const systemIds = [30000142, 30001161, 30002187]; // Jita, Amarr, Dodixie
-        const mockSystems = systemIds.map(id => 
-          TestDataFactory.createSolarSystem({ 
-            system_id: id, 
+        const mockSystems = systemIds.map((id) =>
+          TestDataFactory.createSolarSystem({
+            system_id: id,
             name: `System ${id}`,
-            security_status: Math.random()
-          })
+            security_status: Math.random(),
+          }),
         );
 
         // Mock the API responses
-        jest.spyOn(client.universe, 'getSystemById')
-          .mockImplementation(async (id: number) => 
-            mockSystems.find(system => system.system_id === id)!
+        jest
+          .spyOn(client.universe, 'getSystemById')
+          .mockImplementation(
+            async (id: number) =>
+              mockSystems.find((system) => system.system_id === id)!,
           );
 
         // When: I make them simultaneously
-        const promises = systemIds.map(id => client.universe.getSystemById(id));
+        const promises = systemIds.map((id) =>
+          client.universe.getSystemById(id),
+        );
         const results = await Promise.all(promises);
 
         // Then: All should complete successfully
@@ -343,10 +374,15 @@ describe('BDD Scenarios: Universe Information', () => {
     describe('Scenario: Handle large universe data sets', () => {
       it('Given a request for all systems, When I process the large dataset, Then the system should handle it efficiently', async () => {
         // Given: A request for all systems
-        const largeSsystemSet = Array.from({ length: 8000 }, (_, i) => 30000001 + i);
+        const largeSsystemSet = Array.from(
+          { length: 8000 },
+          (_, i) => 30000001 + i,
+        );
 
         // Mock the API response with large dataset
-        jest.spyOn(client.universe, 'getSystems').mockResolvedValue(largeSsystemSet);
+        jest
+          .spyOn(client.universe, 'getSystems')
+          .mockResolvedValue(largeSsystemSet);
 
         // When: I process the large dataset
         const startTime = Date.now();
@@ -374,14 +410,19 @@ describe('BDD Scenarios: Universe Information', () => {
           structures: [],
           characters: [],
           corporations: [],
-          alliances: []
+          alliances: [],
         });
 
         // Mock the API response
-        jest.spyOn(client.search, 'characterSearch').mockResolvedValue(expectedResults);
+        jest
+          .spyOn(client.search, 'characterSearch')
+          .mockResolvedValue(expectedResults);
 
         // When: I search the universe
-        const result = await client.search.characterSearch(1689391488, searchTerm) as any;
+        const result = (await client.search.characterSearch(
+          1689391488,
+          searchTerm,
+        )) as any;
 
         // Then: I should receive matching entities
         expect(result).toBeDefined();
@@ -397,13 +438,27 @@ describe('BDD Scenarios: Universe Information', () => {
         // Given: A list of entity IDs
         const entityIds = [30000142, 60003760, 1689391488];
         const expectedNames = [
-          TestDataFactory.createEntityName({ id: 30000142, name: 'Jita', category: 'solar_system' }),
-          TestDataFactory.createEntityName({ id: 60003760, name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant', category: 'station' }),
-          TestDataFactory.createEntityName({ id: 1689391488, name: 'Test Character', category: 'character' })
+          TestDataFactory.createEntityName({
+            id: 30000142,
+            name: 'Jita',
+            category: 'solar_system',
+          }),
+          TestDataFactory.createEntityName({
+            id: 60003760,
+            name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
+            category: 'station',
+          }),
+          TestDataFactory.createEntityName({
+            id: 1689391488,
+            name: 'Test Character',
+            category: 'character',
+          }),
         ];
 
         // Mock the API response
-        jest.spyOn(client.universe, 'postNamesAndCategories').mockResolvedValue(expectedNames);
+        jest
+          .spyOn(client.universe, 'postNamesAndCategories')
+          .mockResolvedValue(expectedNames);
 
         // When: I request name resolution
         const result = await client.universe.postNamesAndCategories(entityIds);
@@ -414,8 +469,12 @@ describe('BDD Scenarios: Universe Information', () => {
         expect(result[0]).toHaveProperty('id');
         expect(result[0]).toHaveProperty('name');
         expect(result[0]).toHaveProperty('category');
-        expect(result.find((item: any) => item.id === 30000142)?.name).toBe('Jita');
-        expect(result.find((item: any) => item.id === 30000142)?.category).toBe('solar_system');
+        expect(result.find((item: any) => item.id === 30000142)?.name).toBe(
+          'Jita',
+        );
+        expect(result.find((item: any) => item.id === 30000142)?.category).toBe(
+          'solar_system',
+        );
       });
     });
   });
@@ -425,36 +484,54 @@ describe('BDD Scenarios: Universe Information', () => {
       it('Given a system ID, When I gather complete system information, Then I should successfully retrieve all system data', async () => {
         // Given: A system ID
         const systemId = 30000142;
-        const mockSystem = TestDataFactory.createSolarSystem({ system_id: systemId, name: 'Jita' });
-        const mockStar = TestDataFactory.createStar({ star_id: 40000001, solar_system_id: systemId });
-        const mockStation = TestDataFactory.createStation({ station_id: 60003760, system_id: systemId });
-        const mockPlanet = TestDataFactory.createPlanet({ planet_id: 40000004, system_id: systemId });
+        const mockSystem = TestDataFactory.createSolarSystem({
+          system_id: systemId,
+          name: 'Jita',
+        });
+        const mockStar = TestDataFactory.createStar({
+          star_id: 40000001,
+          solar_system_id: systemId,
+        });
+        const mockStation = TestDataFactory.createStation({
+          station_id: 60003760,
+          system_id: systemId,
+        });
+        const mockPlanet = TestDataFactory.createPlanet({
+          planet_id: 40000004,
+          system_id: systemId,
+        });
 
         // Mock all API responses
-        jest.spyOn(client.universe, 'getSystemById').mockResolvedValue(mockSystem);
+        jest
+          .spyOn(client.universe, 'getSystemById')
+          .mockResolvedValue(mockSystem);
         jest.spyOn(client.universe, 'getStarById').mockResolvedValue(mockStar);
-        jest.spyOn(client.universe, 'getStationById').mockResolvedValue(mockStation);
-        jest.spyOn(client.universe, 'getPlanetById').mockResolvedValue(mockPlanet);
+        jest
+          .spyOn(client.universe, 'getStationById')
+          .mockResolvedValue(mockStation);
+        jest
+          .spyOn(client.universe, 'getPlanetById')
+          .mockResolvedValue(mockPlanet);
 
         // When: I gather complete system information
         const system = await client.universe.getSystemById(systemId);
         const [star, station, planet] = await Promise.all([
           client.universe.getStarById(system.star_id!),
           client.universe.getStationById(system.stations![0]),
-          client.universe.getPlanetById(system.planets![0].planet_id)
+          client.universe.getPlanetById(system.planets![0].planet_id),
         ]);
 
         // Then: I should successfully retrieve all system data
         expect(system).toBeDefined();
         expect(system.system_id).toBe(systemId);
         expect(system.name).toBe('Jita');
-        
+
         expect(star).toBeDefined();
         expect(star.solar_system_id).toBe(systemId);
-        
+
         expect(station).toBeDefined();
         expect(station.system_id).toBe(systemId);
-        
+
         expect(planet).toBeDefined();
         expect(planet.system_id).toBe(systemId);
       });

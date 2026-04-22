@@ -16,7 +16,7 @@ describe('BDD: Clone Management', () => {
       clientId: 'test-client',
       baseUrl: 'https://esi.evetech.net',
       accessToken: 'mock-access-token',
-      timeout: 5000
+      timeout: 5000,
     });
   });
 
@@ -28,17 +28,23 @@ describe('BDD: Clone Management', () => {
         const expectedResponse = {
           home_location: {
             location_id: 60003760,
-            location_type: 'station'
+            location_type: 'station',
           },
           jump_clones: [
-            { jump_clone_id: 12345, location_id: 60003760, implants: [1, 2, 3] },
-            { jump_clone_id: 12346, location_id: 60008494, implants: [] }
+            {
+              jump_clone_id: 12345,
+              location_id: 60003760,
+              implants: [1, 2, 3],
+            },
+            { jump_clone_id: 12346, location_id: 60008494, implants: [] },
           ],
           last_clone_jump_date: '2024-01-15T12:00:00Z',
-          last_station_change_date: '2024-01-10T08:00:00Z'
+          last_station_change_date: '2024-01-10T08:00:00Z',
         };
 
-        jest.spyOn(client.clones, 'getClones').mockResolvedValue(expectedResponse as any);
+        jest
+          .spyOn(client.clones, 'getClones')
+          .mockResolvedValue(expectedResponse as any);
 
         // When
         const result = await client.clones.getClones(characterId);
@@ -60,7 +66,9 @@ describe('BDD: Clone Management', () => {
         jest.spyOn(client.clones, 'getClones').mockRejectedValue(authError);
 
         // When & Then
-        await expect(client.clones.getClones(characterId)).rejects.toThrow('Token is expired');
+        await expect(client.clones.getClones(characterId)).rejects.toThrow(
+          'Token is expired',
+        );
       });
     });
   });
@@ -72,7 +80,9 @@ describe('BDD: Clone Management', () => {
         const characterId = 90000001;
         const expectedImplants = [9899, 9941, 9942, 9943, 9956];
 
-        jest.spyOn(client.clones, 'getImplants').mockResolvedValue(expectedImplants);
+        jest
+          .spyOn(client.clones, 'getImplants')
+          .mockResolvedValue(expectedImplants);
 
         // When
         const result = await client.clones.getImplants(characterId);
@@ -111,14 +121,22 @@ describe('BDD: Clone Management', () => {
         const cloneData = {
           home_location: { location_id: 60003760, location_type: 'station' },
           jump_clones: [
-            { jump_clone_id: 12345, location_id: 60003760, implants: [9899, 9941] },
-            { jump_clone_id: 12346, location_id: 60008494, implants: [9942] }
-          ]
+            {
+              jump_clone_id: 12345,
+              location_id: 60003760,
+              implants: [9899, 9941],
+            },
+            { jump_clone_id: 12346, location_id: 60008494, implants: [9942] },
+          ],
         };
         const activeImplants = [9943, 9956];
 
-        jest.spyOn(client.clones, 'getClones').mockResolvedValue(cloneData as any);
-        jest.spyOn(client.clones, 'getImplants').mockResolvedValue(activeImplants);
+        jest
+          .spyOn(client.clones, 'getClones')
+          .mockResolvedValue(cloneData as any);
+        jest
+          .spyOn(client.clones, 'getImplants')
+          .mockResolvedValue(activeImplants);
 
         // When
         const clones = await client.clones.getClones(characterId);

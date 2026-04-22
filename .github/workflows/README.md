@@ -1,119 +1,81 @@
-# 🚀 GitHub Actions Workflows
+# GitHub Actions Workflows
 
 This directory contains automated CI/CD workflows for the ESI.ts project.
 
-## 📋 Workflow Overview
+## Workflow Overview
 
-### 🔄 Main CI/CD Pipeline (`ci.yml`)
-**Triggers:** Push to `main`/`develop`, Pull Requests
-- **Lint & Build** - Code quality and compilation checks
-- **Unit Tests** - Comprehensive unit test suite across Node.js versions
-- **BDD Tests** - Behavior-driven development scenarios
-- **Full Test Suite** - Complete test coverage analysis
-- **Documentation** - Auto-generate and deploy docs
-- **Security Audit** - Vulnerability scanning
-- **Performance Tests** - Performance benchmarking
-- **Quality Gate** - Overall validation checkpoint
+### Main CI/CD Pipeline (`ci.yml`)
 
-### 🚀 Release Pipeline (`release.yml`)
+**Triggers:** Push to `master`/`main`/`develop`, Pull Requests
+
+| Job             | Description                                                                             |
+| --------------- | --------------------------------------------------------------------------------------- |
+| Lint & Build    | ESLint (with security + sonarjs plugins), Prettier format check, TypeScript compilation |
+| Static Analysis | Dead code detection (knip), npm security audit                                          |
+| Unit Tests      | Test suite across Node.js 18, 20, 22                                                    |
+| Coverage        | Tests with coverage threshold enforcement                                               |
+| BDD Tests       | Behavior-driven development scenarios (7 suites)                                        |
+| Full Test Suite | Complete test run                                                                       |
+| Documentation   | Auto-generate and deploy docs (master/main only)                                        |
+| Quality Gate    | All-or-nothing validation checkpoint                                                    |
+
+### Pull Request Validation (`pr-validation.yml`)
+
+**Triggers:** Pull request events on `master`/`main`/`develop`
+
+| Job                   | Description                              |
+| --------------------- | ---------------------------------------- |
+| PR Information        | Metadata summary                         |
+| Lint, Format & Build  | ESLint, Prettier check, TypeScript build |
+| Static Analysis       | knip dead code detection, npm audit      |
+| Tests                 | Unit + BDD test matrix                   |
+| Coverage              | Coverage with threshold enforcement      |
+| PR Validation Summary | Overall pass/fail gate                   |
+
+### Release Pipeline (`release.yml`)
+
 **Triggers:** Git tags (`v*.*.*`), GitHub releases
-- **Validate Release** - Pre-release validation
-- **Publish to NPM** - Automated package publishing
-- **Deploy Documentation** - Release documentation deployment
-- **Create Assets** - Generate release artifacts
-- **Success Notifications** - Release completion alerts
 
-### 🔍 Pull Request Validation (`pr-validation.yml`)
-**Triggers:** Pull request events
-- **PR Information** - Metadata collection and analysis
-- **Fast Validation** - Quick lint and build checks
-- **Test Impact Analysis** - Smart test execution based on changes
-- **Comprehensive Testing** - Full test suite for critical changes
-- **Security & Quality** - Security audit and coverage analysis
-- **Validation Summary** - Overall PR health report
+| Job                  | Description                                                       |
+| -------------------- | ----------------------------------------------------------------- |
+| Validate Release     | Lint, format check, knip, security audit, build, full tests, docs |
+| Publish to NPM       | Automated package publishing                                      |
+| Deploy Documentation | Release documentation deployment                                  |
+| Create Assets        | Generate release artifacts                                        |
 
-### 🔧 Maintenance & Security (`maintenance.yml`)
+### Maintenance & Security (`maintenance.yml`)
+
 **Triggers:** Weekly schedule (Mondays 9 AM UTC), Manual dispatch
-- **Dependency Updates** - Package freshness monitoring
-- **Security Audit** - Regular vulnerability scanning
-- **Code Quality** - Automated quality assessments
-- **Health Check** - System health monitoring
-- **Maintenance Summary** - Weekly maintenance reports
 
-## 🎯 Workflow Features
+| Job                | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| Dependency Updates | Package freshness monitoring                    |
+| Security Audit     | Vulnerability scanning                          |
+| Code Quality       | Lint, formatting, dead code detection, coverage |
+| Health Check       | Build and runtime health                        |
 
-### ✅ **Comprehensive Testing**
-- Unit tests across multiple Node.js versions (18, 20, 21)
-- BDD scenarios for behavior validation
-- Performance benchmarking
-- Security vulnerability scanning
+## Static Analysis Tools
 
-### 📊 **Quality Assurance**
-- ESLint code quality checks
-- Test coverage reporting
-- Build validation across environments
-- Automated dependency auditing
+Every PR and CI run includes:
 
-### 🚀 **Automated Deployment**
-- NPM package publishing on releases
-- GitHub Pages documentation deployment
-- Release asset creation and attachment
-- Version-aware documentation updates
+- **ESLint** with `@typescript-eslint`, `eslint-plugin-security`, `eslint-plugin-sonarjs`
+- **Prettier** formatting verification
+- **knip** dead code and unused export detection
+- **npm audit** dependency vulnerability scanning
+- **Jest coverage** with enforced thresholds (branches: 50%, functions: 50%, lines: 65%, statements: 65%)
 
-### 🔒 **Security & Maintenance**
-- Weekly dependency health checks
-- Automated security vulnerability detection
-- Code quality trend monitoring
-- Maintenance task scheduling
+## Required Secrets
 
-## 📈 **Workflow Status Badges**
+| Secret         | Purpose                                            |
+| -------------- | -------------------------------------------------- |
+| `NPM_TOKEN`    | NPM authentication token for package publishing    |
+| `GITHUB_TOKEN` | Provided automatically for GitHub Pages deployment |
 
-Add these badges to your README.md:
+## Workflow Status Badges
 
-\`\`\`markdown
+```markdown
 [![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
 [![Release Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/release.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/release.yml)
 [![PR Validation](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml)
 [![Maintenance](https://github.com/lgriffin/ESI.ts/actions/workflows/maintenance.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/maintenance.yml)
-\`\`\`
-
-## 🔧 **Required Secrets**
-
-To enable all workflow features, add these secrets to your GitHub repository:
-
-### NPM Publishing
-- `NPM_TOKEN` - NPM authentication token for package publishing
-
-### Optional Enhancements
-- `SLACK_WEBHOOK` - For Slack notifications (if desired)
-- `DISCORD_WEBHOOK` - For Discord notifications (if desired)
-
-## 📚 **Workflow Artifacts**
-
-Each workflow generates useful artifacts:
-
-- **Test Results** - Coverage reports and test outputs
-- **Build Artifacts** - Compiled distribution files
-- **Documentation** - Generated API documentation
-- **Security Reports** - Vulnerability scan results
-- **Quality Reports** - Code quality assessments
-
-## 🎯 **Next Steps**
-
-1. **Enable GitHub Pages** in repository settings for documentation deployment
-2. **Add NPM_TOKEN secret** for automated package publishing
-3. **Configure branch protection** rules to require workflow success
-4. **Customize CNAME** in release.yml for custom documentation domain
-5. **Review and adjust** workflow schedules based on your needs
-
-## 🤝 **Contributing**
-
-When modifying workflows:
-1. Test changes in a fork first
-2. Update this README with any new features
-3. Ensure all secrets and permissions are documented
-4. Consider backward compatibility with existing processes
-
----
-
-*These workflows provide enterprise-grade CI/CD automation for the ESI.ts project, ensuring code quality, security, and reliable deployments.*
+```

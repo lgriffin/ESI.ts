@@ -15,7 +15,7 @@ describe('BDD: Meta API Management', () => {
     client = new EsiClient({
       clientId: 'test-client',
       baseUrl: 'https://esi.evetech.net',
-      timeout: 5000
+      timeout: 5000,
     });
   });
 
@@ -27,14 +27,16 @@ describe('BDD: Meta API Management', () => {
           openapi: '3.1.0',
           info: {
             title: 'EVE Stable Infrastructure (ESI) - tranquility',
-            version: '2025-12-16'
+            version: '2025-12-16',
           },
           paths: {},
-          components: {}
+          components: {},
         };
 
         // Mock the API response
-        jest.spyOn(client.meta, 'getOpenApiJson').mockResolvedValue(expectedSpec);
+        jest
+          .spyOn(client.meta, 'getOpenApiJson')
+          .mockResolvedValue(expectedSpec);
 
         // When: I request the OpenAPI JSON specification
         const result = await client.meta.getOpenApiJson();
@@ -60,7 +62,9 @@ paths: {}
 components: {}`;
 
         // Mock the API response
-        jest.spyOn(client.meta, 'getOpenApiYaml').mockResolvedValue(expectedYamlSpec);
+        jest
+          .spyOn(client.meta, 'getOpenApiYaml')
+          .mockResolvedValue(expectedYamlSpec);
 
         // When: I request the OpenAPI YAML specification
         const result = await client.meta.getOpenApiYaml();
@@ -81,10 +85,14 @@ components: {}`;
         const serviceError = new EsiError(503, 'Service Unavailable');
 
         // Mock the API error
-        jest.spyOn(client.meta, 'getOpenApiJson').mockRejectedValue(serviceError);
+        jest
+          .spyOn(client.meta, 'getOpenApiJson')
+          .mockRejectedValue(serviceError);
 
         // When & Then: I request the specification and should receive an error
-        await expect(client.meta.getOpenApiJson()).rejects.toThrow('Service Unavailable');
+        await expect(client.meta.getOpenApiJson()).rejects.toThrow(
+          'Service Unavailable',
+        );
       });
     });
   });
@@ -95,8 +103,11 @@ components: {}`;
         // Given: Both specifications are available
         const jsonSpec = {
           openapi: '3.1.0',
-          info: { title: 'EVE Stable Infrastructure (ESI) - tranquility', version: '2025-12-16' },
-          paths: { '/alliances': { get: { summary: 'List alliances' } } }
+          info: {
+            title: 'EVE Stable Infrastructure (ESI) - tranquility',
+            version: '2025-12-16',
+          },
+          paths: { '/alliances': { get: { summary: 'List alliances' } } },
         };
 
         const yamlSpec = `openapi: 3.1.0
@@ -115,7 +126,7 @@ paths:
         // When: I retrieve both formats
         const [jsonResult, yamlResult] = await Promise.all([
           client.meta.getOpenApiJson(),
-          client.meta.getOpenApiYaml()
+          client.meta.getOpenApiYaml(),
         ]);
 
         // Then: They should contain equivalent information

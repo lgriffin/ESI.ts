@@ -9,21 +9,21 @@ fetchMock.enableMocks();
 const config = getConfig();
 
 const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
-    .build();
+  .setClientId(config.projectName)
+  .setLink(config.link)
+  .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+  .build();
 
 export const getClient = () => client;
 
 beforeEach(() => {
-    fetchMock.resetMocks();
-    
-    // Reset rate limiter before each test to ensure clean state
-    const { RateLimiter } = require('../../core/rateLimiter/RateLimiter');
-    const rateLimiter = RateLimiter.getInstance();
-    rateLimiter.reset();
-    rateLimiter.setTestMode(true);
+  fetchMock.resetMocks();
+
+  // Reset rate limiter before each test to ensure clean state
+  const { RateLimiter } = require('../../core/rateLimiter/RateLimiter');
+  const rateLimiter = RateLimiter.getInstance();
+  rateLimiter.reset();
+  rateLimiter.setTestMode(true);
 });
 
 // Assigning functions to the global object

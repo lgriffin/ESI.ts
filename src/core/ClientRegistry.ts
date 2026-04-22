@@ -33,70 +33,154 @@ import { MetaClient } from '../clients/MetaClient';
 import { FreelanceJobsClient } from '../clients/FreelanceJobsClient';
 
 export type ApiClientType =
-    | 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones'
-    | 'contacts' | 'contracts' | 'corporations' | 'dogma' | 'factions' | 'fittings'
-    | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location'
-    | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills'
-    | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta'
-    | 'freelanceJobs';
+  | 'alliance'
+  | 'assets'
+  | 'calendar'
+  | 'characters'
+  | 'clones'
+  | 'contacts'
+  | 'contracts'
+  | 'corporations'
+  | 'dogma'
+  | 'factions'
+  | 'fittings'
+  | 'fleets'
+  | 'incursions'
+  | 'industry'
+  | 'insurance'
+  | 'killmails'
+  | 'location'
+  | 'loyalty'
+  | 'mail'
+  | 'market'
+  | 'pi'
+  | 'route'
+  | 'search'
+  | 'skills'
+  | 'sovereignty'
+  | 'status'
+  | 'ui'
+  | 'universe'
+  | 'wallet'
+  | 'wars'
+  | 'meta'
+  | 'freelanceJobs';
 
 export type ClientInstance =
-    | AllianceClient | AssetsClient | CalendarClient | CharacterClient
-    | ClonesClient | ContactsClient | ContractsClient | CorporationsClient | DogmaClient
-    | FactionClient | FittingsClient | FleetClient | IncursionsClient | IndustryClient
-    | InsuranceClient | KillmailsClient | LocationClient | LoyaltyClient | MailClient
-    | MarketClient | PiClient | RouteClient | SearchClient | CharacterSkillsClient
-    | SovereigntyClient | StatusClient | UiClient | UniverseClient | WalletClient
-    | WarsClient | MetaClient | FreelanceJobsClient;
+  | AllianceClient
+  | AssetsClient
+  | CalendarClient
+  | CharacterClient
+  | ClonesClient
+  | ContactsClient
+  | ContractsClient
+  | CorporationsClient
+  | DogmaClient
+  | FactionClient
+  | FittingsClient
+  | FleetClient
+  | IncursionsClient
+  | IndustryClient
+  | InsuranceClient
+  | KillmailsClient
+  | LocationClient
+  | LoyaltyClient
+  | MailClient
+  | MarketClient
+  | PiClient
+  | RouteClient
+  | SearchClient
+  | CharacterSkillsClient
+  | SovereigntyClient
+  | StatusClient
+  | UiClient
+  | UniverseClient
+  | WalletClient
+  | WarsClient
+  | MetaClient
+  | FreelanceJobsClient;
 
-const clientFactories: Record<ApiClientType, new (apiClient: ApiClient) => ClientInstance> = {
-    alliance: AllianceClient,
-    assets: AssetsClient,
-    calendar: CalendarClient,
-    characters: CharacterClient,
-    clones: ClonesClient,
-    contacts: ContactsClient,
-    contracts: ContractsClient,
-    corporations: CorporationsClient,
-    dogma: DogmaClient,
-    factions: FactionClient,
-    fittings: FittingsClient,
-    fleets: FleetClient,
-    incursions: IncursionsClient,
-    industry: IndustryClient,
-    insurance: InsuranceClient,
-    killmails: KillmailsClient,
-    location: LocationClient,
-    loyalty: LoyaltyClient,
-    mail: MailClient,
-    market: MarketClient,
-    pi: PiClient,
-    route: RouteClient,
-    search: SearchClient,
-    skills: CharacterSkillsClient,
-    sovereignty: SovereigntyClient,
-    status: StatusClient,
-    ui: UiClient,
-    universe: UniverseClient,
-    wallet: WalletClient,
-    wars: WarsClient,
-    meta: MetaClient,
-    freelanceJobs: FreelanceJobsClient,
+const clientFactories: Record<
+  ApiClientType,
+  new (apiClient: ApiClient) => ClientInstance
+> = {
+  alliance: AllianceClient,
+  assets: AssetsClient,
+  calendar: CalendarClient,
+  characters: CharacterClient,
+  clones: ClonesClient,
+  contacts: ContactsClient,
+  contracts: ContractsClient,
+  corporations: CorporationsClient,
+  dogma: DogmaClient,
+  factions: FactionClient,
+  fittings: FittingsClient,
+  fleets: FleetClient,
+  incursions: IncursionsClient,
+  industry: IndustryClient,
+  insurance: InsuranceClient,
+  killmails: KillmailsClient,
+  location: LocationClient,
+  loyalty: LoyaltyClient,
+  mail: MailClient,
+  market: MarketClient,
+  pi: PiClient,
+  route: RouteClient,
+  search: SearchClient,
+  skills: CharacterSkillsClient,
+  sovereignty: SovereigntyClient,
+  status: StatusClient,
+  ui: UiClient,
+  universe: UniverseClient,
+  wallet: WalletClient,
+  wars: WarsClient,
+  meta: MetaClient,
+  freelanceJobs: FreelanceJobsClient,
 };
 
-export function createClientInstance(name: ApiClientType, apiClient: ApiClient): ClientInstance {
-    return new clientFactories[name](apiClient);
+export function createClientInstance(
+  name: ApiClientType,
+  apiClient: ApiClient,
+): ClientInstance {
+  return new clientFactories[name](apiClient);
 }
 
-export const allClientTypes: ApiClientType[] = Object.keys(clientFactories) as ApiClientType[];
+export const allClientTypes: ApiClientType[] = Object.keys(
+  clientFactories,
+) as ApiClientType[];
 
 // Re-export client classes for direct use
 export {
-    AllianceClient, AssetsClient, CalendarClient, CharacterClient,
-    ClonesClient, ContactsClient, ContractsClient, CorporationsClient, DogmaClient,
-    FactionClient, FittingsClient, FleetClient, IncursionsClient, IndustryClient,
-    InsuranceClient, KillmailsClient, LocationClient, LoyaltyClient, MailClient,
-    MarketClient, PiClient, RouteClient, SearchClient, CharacterSkillsClient,
-    SovereigntyClient, StatusClient, UiClient, UniverseClient, WalletClient,
-    WarsClient, MetaClient, FreelanceJobsClient
+  AllianceClient,
+  AssetsClient,
+  CalendarClient,
+  CharacterClient,
+  ClonesClient,
+  ContactsClient,
+  ContractsClient,
+  CorporationsClient,
+  DogmaClient,
+  FactionClient,
+  FittingsClient,
+  FleetClient,
+  IncursionsClient,
+  IndustryClient,
+  InsuranceClient,
+  KillmailsClient,
+  LocationClient,
+  LoyaltyClient,
+  MailClient,
+  MarketClient,
+  PiClient,
+  RouteClient,
+  SearchClient,
+  CharacterSkillsClient,
+  SovereigntyClient,
+  StatusClient,
+  UiClient,
+  UniverseClient,
+  WalletClient,
+  WarsClient,
+  MetaClient,
+  FreelanceJobsClient,
 };

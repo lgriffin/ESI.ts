@@ -1,12 +1,15 @@
 /**
  * BDD-Style Testing for ETag Caching
- * 
+ *
  * This demonstrates BDD principles for ETag caching functionality
  * using Given/When/Then patterns.
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import { getETagCache, resetETagCache } from '../../../src/core/ApiRequestHandler';
+import {
+  getETagCache,
+  resetETagCache,
+} from '../../../src/core/ApiRequestHandler';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -16,18 +19,18 @@ describe('BDD: ETag Caching System', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    
+
     // Reset the global cache to ensure clean state
     resetETagCache();
-    
+
     client = new EsiClient({
       clientId: 'test-client',
       baseUrl: 'https://esi.evetech.net',
       enableETagCache: true,
       etagCacheConfig: {
         maxEntries: 50,
-        defaultTtl: 300000 // 5 minutes
-      }
+        defaultTtl: 300000, // 5 minutes
+      },
     });
   });
 
@@ -40,18 +43,22 @@ describe('BDD: ETag Caching System', () => {
       it('Given a fresh client with no cached data, When I make an API request that returns an ETag, Then the response should be cached for future use', async () => {
         // Given: A fresh client with no cached data
         const allianceData = [
-          { alliance_id: 99005338, name: 'Goonswarm Federation', ticker: 'CONDI' },
-          { alliance_id: 99005551, name: 'Pandemic Horde', ticker: 'REKTD' }
+          {
+            alliance_id: 99005338,
+            name: 'Goonswarm Federation',
+            ticker: 'CONDI',
+          },
+          { alliance_id: 99005551, name: 'Pandemic Horde', ticker: 'REKTD' },
         ];
         const etag = '"1234567890abcdef"';
 
         // Mock successful response with ETag
         fetchMock.mockResponseOnce(JSON.stringify(allianceData), {
           headers: {
-            'ETag': etag,
+            ETag: etag,
             'Content-Type': 'application/json',
-            'Cache-Control': 'public, max-age=300'
-          }
+            'Cache-Control': 'public, max-age=300',
+          },
         });
 
         // When: I make an API request that returns an ETag
@@ -59,13 +66,13 @@ describe('BDD: ETag Caching System', () => {
 
         // Then: The response should be cached for future use
         expect(result).toEqual(allianceData);
-        
+
         const cache = getETagCache();
         expect(cache).toBeDefined();
-        
+
         const cacheStats = client.getCacheStats();
         expect(cacheStats.totalEntries).toBe(1);
-        
+
         const cachedETag = cache?.getETag('https://esi.evetech.net/alliances');
         expect(cachedETag).toBe(etag);
       });
@@ -74,12 +81,14 @@ describe('BDD: ETag Caching System', () => {
     describe('Scenario: Subsequent request with unchanged data returns cached response', () => {
       it('Given cached data with an ETag, When I make the same request and server returns 304 Not Modified, Then I should receive the cached data without a new download', async () => {
         // Given: Cached data with an ETag
-        const allianceData = [{ alliance_id: 99005338, name: 'Goonswarm Federation' }];
+        const allianceData = [
+          { alliance_id: 99005338, name: 'Goonswarm Federation' },
+        ];
         const etag = '"cached123"';
 
         // First request to populate cache
         fetchMock.mockResponseOnce(JSON.stringify(allianceData), {
-          headers: { 'ETag': etag, 'Content-Type': 'application/json' }
+          headers: { ETag: etag, 'Content-Type': 'application/json' },
         });
 
         await client.alliance.getAlliances();
@@ -87,7 +96,7 @@ describe('BDD: ETag Caching System', () => {
         // When: I make the same request and server returns 304 Not Modified
         fetchMock.mockResponseOnce('', {
           status: 304,
-          headers: { 'ETag': etag }
+          headers: { ETag: etag },
         });
 
         const cachedResult = await client.alliance.getAlliances();
@@ -95,7 +104,7 @@ describe('BDD: ETag Caching System', () => {
         // Then: I should receive the cached data without a new download
         expect(cachedResult).toEqual(allianceData);
         expect(fetchMock).toHaveBeenCalledTimes(2);
-        
+
         // Verify If-None-Match header was sent
         const secondRequest = fetchMock.mock.calls[1];
         const headers = secondRequest[1]?.headers as Record<string, string>;
@@ -107,13 +116,16 @@ describe('BDD: ETag Caching System', () => {
       it('Given cached data with an ETag, When the server returns new data with a different ETag, Then the cache should be updated with the new data', async () => {
         // Given: Cached data with an ETag
         const oldData = [{ alliance_id: 1, name: 'Old Alliance' }];
-        const newData = [{ alliance_id: 1, name: 'Updated Alliance' }, { alliance_id: 2, name: 'New Alliance' }];
+        const newData = [
+          { alliance_id: 1, name: 'Updated Alliance' },
+          { alliance_id: 2, name: 'New Alliance' },
+        ];
         const oldETag = '"old-etag-123"';
         const newETag = '"new-etag-456"';
 
         // First request
         fetchMock.mockResponseOnce(JSON.stringify(oldData), {
-          headers: { 'ETag': oldETag }
+          headers: { ETag: oldETag },
         });
 
         const firstResult = await client.alliance.getAlliances();
@@ -121,14 +133,14 @@ describe('BDD: ETag Caching System', () => {
 
         // When: The server returns new data with a different ETag
         fetchMock.mockResponseOnce(JSON.stringify(newData), {
-          headers: { 'ETag': newETag }
+          headers: { ETag: newETag },
         });
 
         const updatedResult = await client.alliance.getAlliances();
 
         // Then: The cache should be updated with the new data
         expect(updatedResult).toEqual(newData);
-        
+
         const cache = getETagCache();
         const cachedETag = cache?.getETag('https://esi.evetech.net/alliances');
         expect(cachedETag).toBe(newETag);
@@ -142,12 +154,12 @@ describe('BDD: ETag Caching System', () => {
         // Given: Multiple cached responses
         const endpoints = [
           { endpoint: 'alliances', data: [{ id: 1 }] },
-          { endpoint: 'status', data: { status: 'ok' } }
+          { endpoint: 'status', data: { status: 'ok' } },
         ];
 
         for (let i = 0; i < endpoints.length; i++) {
           fetchMock.mockResponseOnce(JSON.stringify(endpoints[i].data), {
-            headers: { 'ETag': `"etag-${i}"` }
+            headers: { ETag: `"etag-${i}"` },
           });
         }
 
@@ -170,7 +182,7 @@ describe('BDD: ETag Caching System', () => {
       it('Given a cache with stored responses, When I clear the cache, Then all cached data should be removed', async () => {
         // Given: A cache with stored responses
         fetchMock.mockResponseOnce(JSON.stringify([]), {
-          headers: { 'ETag': '"test-etag"' }
+          headers: { ETag: '"test-etag"' },
         });
 
         await client.alliance.getAlliances();
@@ -191,9 +203,9 @@ describe('BDD: ETag Caching System', () => {
         expect(initialStats.maxEntries).toBe(50);
 
         // When: I update the cache configuration
-        client.updateCacheConfig({ 
+        client.updateCacheConfig({
           maxEntries: 100,
-          defaultTtl: 600000 // 10 minutes
+          defaultTtl: 600000, // 10 minutes
         });
 
         // Then: The new settings should take effect
@@ -211,7 +223,7 @@ describe('BDD: ETag Caching System', () => {
         const etag = '"valid-etag"';
 
         fetchMock.mockResponseOnce(JSON.stringify(validData), {
-          headers: { 'ETag': etag }
+          headers: { ETag: etag },
         });
 
         const firstResult = await client.alliance.getAlliances();
@@ -232,7 +244,7 @@ describe('BDD: ETag Caching System', () => {
         const data = [{ alliance_id: 1, name: 'Test Alliance' }];
 
         fetchMock.mockResponseOnce(JSON.stringify(data), {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
           // No ETag header
         });
 
@@ -251,13 +263,13 @@ describe('BDD: ETag Caching System', () => {
       it('Given a client with ETag caching disabled, When I make API requests, Then responses should be returned normally without caching', async () => {
         // Given: A client with ETag caching disabled
         const clientWithoutCache = new EsiClient({
-          enableETagCache: false
+          enableETagCache: false,
         });
 
         const data = [{ alliance_id: 1, name: 'Test Alliance' }];
 
         fetchMock.mockResponseOnce(JSON.stringify(data), {
-          headers: { 'ETag': '"should-not-be-cached"' }
+          headers: { ETag: '"should-not-be-cached"' },
         });
 
         // When: I make API requests
