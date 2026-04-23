@@ -14,7 +14,7 @@ This directory contains automated CI/CD workflows for the ESI.ts project.
 | Static Analysis | Dead code detection (knip), npm security audit                                          |
 | Unit Tests      | Test suite across Node.js 18, 20, 22                                                    |
 | Coverage        | Tests with coverage threshold enforcement                                               |
-| BDD Tests       | Behavior-driven development scenarios (7 suites)                                        |
+| BDD Tests       | Behavior-driven development scenarios (31 suites)                                       |
 | Full Test Suite | Complete test run                                                                       |
 | Documentation   | Auto-generate and deploy docs (master/main only)                                        |
 | Quality Gate    | All-or-nothing validation checkpoint                                                    |

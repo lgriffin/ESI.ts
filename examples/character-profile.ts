@@ -4,6 +4,12 @@
  * This demonstrates how to use the ESI.ts library to gather comprehensive
  * character information by combining multiple API calls efficiently.
  *
+ * Public endpoints are used for character info, portrait, corporation, and alliance.
+ * The location endpoint is authenticated and will gracefully degrade without a token.
+ *
+ * ESI Scopes Required (optional, for full output):
+ *   - esi-location.read_location.v1  (character location — degrades gracefully without token)
+ *
  * @author lgriffin
  * @license GPL-3.0-or-later
  */

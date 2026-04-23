@@ -39,13 +39,37 @@ tests/
 ├── bdd-scenarios/                # BDD scenario tests
 │   ├── core/
 │   │   ├── bdd-alliance.test.ts
+│   │   ├── bdd-assets.test.ts
+│   │   ├── bdd-calendar.test.ts
 │   │   ├── bdd-character.test.ts
 │   │   ├── bdd-clones.test.ts
+│   │   ├── bdd-contacts.test.ts
+│   │   ├── bdd-contracts.test.ts
 │   │   ├── bdd-corporation.test.ts
 │   │   ├── bdd-etag-caching.test.ts
+│   │   ├── bdd-factions.test.ts
+│   │   ├── bdd-fittings.test.ts
+│   │   ├── bdd-fleets.test.ts
+│   │   ├── bdd-freelance-jobs.test.ts
+│   │   ├── bdd-incursions.test.ts
+│   │   ├── bdd-industry.test.ts
+│   │   ├── bdd-insurance.test.ts
+│   │   ├── bdd-killmails.test.ts
+│   │   ├── bdd-location.test.ts
+│   │   ├── bdd-loyalty.test.ts
+│   │   ├── bdd-mail.test.ts
 │   │   ├── bdd-market.test.ts
 │   │   ├── bdd-meta.test.ts
-│   │   └── bdd-universe.test.ts
+│   │   ├── bdd-pi.test.ts
+│   │   ├── bdd-route.test.ts
+│   │   ├── bdd-search.test.ts
+│   │   ├── bdd-skills.test.ts
+│   │   ├── bdd-sovereignty.test.ts
+│   │   ├── bdd-status.test.ts
+│   │   ├── bdd-ui.test.ts
+│   │   ├── bdd-universe.test.ts
+│   │   ├── bdd-wallet.test.ts
+│   │   └── bdd-wars.test.ts
 │   ├── integration/
 │   │   └── bdd-integration-workflows.test.ts
 │   └── performance/
@@ -57,7 +81,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All tests (TDD + BDD) — 40 suites, 263 tests
+# All tests (TDD + BDD) — 73 suites, 577 tests
 npm test
 
 # Watch mode for development
@@ -81,13 +105,22 @@ npm run bdd:market
 npm run bdd:universe
 npm run bdd:integration
 npm run bdd:performance
+
+# All other BDD domains are also runnable individually:
+# npm run bdd:assets, bdd:calendar, bdd:contacts, bdd:contracts,
+# bdd:factions, bdd:fittings, bdd:fleets, bdd:freelance,
+# bdd:incursions, bdd:industry, bdd:insurance, bdd:killmails,
+# bdd:location, bdd:loyalty, bdd:mail, bdd:pi, bdd:route,
+# bdd:search, bdd:skills, bdd:sovereignty, bdd:status,
+# bdd:ui, bdd:wallet, bdd:wars
 ```
 
 ### Live API Verification
 
-The `examples/` directory contains scripts that hit the real ESI API (public endpoints only, no auth needed):
+The `examples/` directory contains scripts that hit the real ESI API. Public examples need no auth; authenticated examples require `ESI_ACCESS_TOKEN` with the noted scopes.
 
 ```bash
+# Public endpoints (no auth needed)
 npm run example:status       # Quickest smoke test — server status
 npm run example:character    # Character lookup
 npm run example:universe     # System/constellation/region/station
@@ -99,6 +132,18 @@ npm run example:sovereignty  # Nullsec sovereignty map
 npm run example:industry     # Industry facilities + insurance
 npm run example:incursions   # Incursions + faction warfare
 npm run example:dogma        # Item types + dogma attributes
+npm run example:contracts    # Public region contracts + auction details
+
+# Authenticated endpoints (require ESI_ACCESS_TOKEN with listed scopes)
+npm run example:wallet       # Wallet balance, journal, transactions
+npm run example:skills       # Trained skills, queue, attributes
+npm run example:assets       # Asset inventory with bulk lookups
+npm run example:killmails    # Killmail summaries + full details
+npm run example:fleet        # Fleet info, members, wings/squads
+npm run example:mail         # Inbox, labels, mailing lists
+npm run example:location     # Current system, online, ship
+npm run example:fittings     # Ship fittings + clones + implants
+npm run example:contacts     # Contact list with standings
 ```
 
 ## How Tests Work
@@ -127,7 +172,9 @@ Error scenarios mock non-200 status codes:
 
 ```typescript
 fetchMock.mockResponseOnce('Not Found', { status: 404 });
-await expect(client.getAllianceById(99999999)).rejects.toThrow('Resource not found');
+await expect(client.getAllianceById(99999999)).rejects.toThrow(
+  'Resource not found',
+);
 ```
 
 ### Test Helpers
@@ -151,7 +198,10 @@ const alliance = TestDataFactory.createAllianceInfo();
 // => { alliance_id: 99005338, name: 'Goonswarm Federation', ticker: 'CONDI', ... }
 
 // Override specific fields
-const custom = TestDataFactory.createAllianceInfo({ name: 'My Alliance', ticker: 'TEST' });
+const custom = TestDataFactory.createAllianceInfo({
+  name: 'My Alliance',
+  ticker: 'TEST',
+});
 
 // Create error instances
 const notFound = TestDataFactory.createError(404);
@@ -160,45 +210,45 @@ const notFound = TestDataFactory.createError(404);
 
 Available factory methods:
 
-| Method | Returns |
-|--------|---------|
-| `createAllianceInfo()` | `AllianceInfo` |
-| `createAllianceContact()` | `AllianceContact` |
-| `createAllianceContactLabel()` | `AllianceContactLabel` |
-| `createCharacterInfo()` | `CharacterInfo` |
-| `createCharacterPortrait()` | `CharacterPortrait` |
-| `createCharacterAttributes()` | `CharacterAttributes` |
-| `createCharacterSkill()` | `CharacterSkill` |
-| `createCharacterRoles()` | Roles object |
-| `createCharacterLocation()` | Location object |
-| `createCharacterSkills()` | Skills summary |
-| `createCharacterAsset()` | Asset object |
-| `createCorporationInfo()` | `CorporationInfo` |
-| `createCorporationMemberRoles()` | Member roles object |
-| `createCorporationAsset()` | Corp asset object |
-| `createCorporationStructure()` | Structure object |
-| `createCorporationWallet()` | Wallet division |
-| `createMarketOrder()` | `MarketOrder` |
-| `createMarketPrice()` | Price object |
-| `createMarketHistory()` | History entry |
-| `createWalletTransaction()` | `WalletTransaction` |
-| `createWalletJournalEntry()` | Journal entry |
-| `createContract()` | `Contract` |
-| `createFleetInfo()` | Fleet object |
-| `createFleetMember()` | Fleet member |
-| `createFleetWing()` | Fleet wing |
-| `createIndustryJob()` | Industry job |
-| `createBlueprint()` | Blueprint object |
-| `createSolarSystem()` | System object |
-| `createStation()` | Station object |
-| `createStructure()` | Structure object |
-| `createItemType()` | Type object |
-| `createItemGroup()` | Group object |
-| `createStar()` | Star object |
-| `createPlanet()` | Planet object |
-| `createError(statusCode)` | `EsiError` |
-| `createPerformanceTestData(size)` | Bulk test data |
-| `createRealisticTestData()` | Linked alliance/corp/character |
+| Method                            | Returns                        |
+| --------------------------------- | ------------------------------ |
+| `createAllianceInfo()`            | `AllianceInfo`                 |
+| `createAllianceContact()`         | `AllianceContact`              |
+| `createAllianceContactLabel()`    | `AllianceContactLabel`         |
+| `createCharacterInfo()`           | `CharacterInfo`                |
+| `createCharacterPortrait()`       | `CharacterPortrait`            |
+| `createCharacterAttributes()`     | `CharacterAttributes`          |
+| `createCharacterSkill()`          | `CharacterSkill`               |
+| `createCharacterRoles()`          | Roles object                   |
+| `createCharacterLocation()`       | Location object                |
+| `createCharacterSkills()`         | Skills summary                 |
+| `createCharacterAsset()`          | Asset object                   |
+| `createCorporationInfo()`         | `CorporationInfo`              |
+| `createCorporationMemberRoles()`  | Member roles object            |
+| `createCorporationAsset()`        | Corp asset object              |
+| `createCorporationStructure()`    | Structure object               |
+| `createCorporationWallet()`       | Wallet division                |
+| `createMarketOrder()`             | `MarketOrder`                  |
+| `createMarketPrice()`             | Price object                   |
+| `createMarketHistory()`           | History entry                  |
+| `createWalletTransaction()`       | `WalletTransaction`            |
+| `createWalletJournalEntry()`      | Journal entry                  |
+| `createContract()`                | `Contract`                     |
+| `createFleetInfo()`               | Fleet object                   |
+| `createFleetMember()`             | Fleet member                   |
+| `createFleetWing()`               | Fleet wing                     |
+| `createIndustryJob()`             | Industry job                   |
+| `createBlueprint()`               | Blueprint object               |
+| `createSolarSystem()`             | System object                  |
+| `createStation()`                 | Station object                 |
+| `createStructure()`               | Structure object               |
+| `createItemType()`                | Type object                    |
+| `createItemGroup()`               | Group object                   |
+| `createStar()`                    | Star object                    |
+| `createPlanet()`                  | Planet object                  |
+| `createError(statusCode)`         | `EsiError`                     |
+| `createPerformanceTestData(size)` | Bulk test data                 |
+| `createRealisticTestData()`       | Linked alliance/corp/character |
 
 ## TDD Test Pattern
 
@@ -211,33 +261,38 @@ import { getBody } from '../../../src/core/util/testHelpers';
 import fetchMock from 'jest-fetch-mock';
 
 describe('AllianceClient', () => {
-    let allianceClient: AllianceClient;
+  let allianceClient: AllianceClient;
 
-    beforeEach(() => {
-        fetchMock.resetMocks();
-        const client = new ApiClientBuilder()
-            .setClientId('test')
-            .setLink('https://esi.evetech.net')
-            .build();
-        allianceClient = new AllianceClient(client);
-    });
+  beforeEach(() => {
+    fetchMock.resetMocks();
+    const client = new ApiClientBuilder()
+      .setClientId('test')
+      .setLink('https://esi.evetech.net')
+      .build();
+    allianceClient = new AllianceClient(client);
+  });
 
-    it('should return alliance info', async () => {
-        fetchMock.mockResponseOnce(JSON.stringify({
-            alliance_id: 99005338,
-            name: 'Goonswarm Federation',
-            ticker: 'CONDI'
-        }));
+  it('should return alliance info', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        alliance_id: 99005338,
+        name: 'Goonswarm Federation',
+        ticker: 'CONDI',
+      }),
+    );
 
-        const result = await getBody(() => allianceClient.getAllianceById(99005338));
-        expect(result.name).toBe('Goonswarm Federation');
-    });
+    const result = await getBody(() =>
+      allianceClient.getAllianceById(99005338),
+    );
+    expect(result.name).toBe('Goonswarm Federation');
+  });
 
-    it('should throw on 404', async () => {
-        fetchMock.mockResponseOnce('Not Found', { status: 404 });
-        await expect(allianceClient.getAllianceById(99999999))
-            .rejects.toThrow('Resource not found');
-    });
+  it('should throw on 404', async () => {
+    fetchMock.mockResponseOnce('Not Found', { status: 404 });
+    await expect(allianceClient.getAllianceById(99999999)).rejects.toThrow(
+      'Resource not found',
+    );
+  });
 });
 ```
 
@@ -250,26 +305,30 @@ import { EsiClient } from '../../../src/EsiClient';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
 
 describe('Feature: Retrieve Alliance Information', () => {
-    let client: EsiClient;
+  let client: EsiClient;
 
-    beforeEach(() => {
-        client = new EsiClient({ clientId: 'test-client' });
+  beforeEach(() => {
+    client = new EsiClient({ clientId: 'test-client' });
+  });
+
+  describe('Scenario: Get alliance details for valid ID', () => {
+    it('Given a valid alliance ID, When I request details, Then I receive alliance info', async () => {
+      // Given
+      const expected = TestDataFactory.createAllianceInfo({
+        name: 'Goonswarm Federation',
+      });
+      jest
+        .spyOn(client.alliance, 'getAllianceById')
+        .mockResolvedValue(expected);
+
+      // When
+      const result = await client.alliance.getAllianceById(99005338);
+
+      // Then
+      expect(result.name).toBe('Goonswarm Federation');
+      expect(result).toHaveProperty('ticker');
     });
-
-    describe('Scenario: Get alliance details for valid ID', () => {
-        it('Given a valid alliance ID, When I request details, Then I receive alliance info', async () => {
-            // Given
-            const expected = TestDataFactory.createAllianceInfo({ name: 'Goonswarm Federation' });
-            jest.spyOn(client.alliance, 'getAllianceById').mockResolvedValue(expected);
-
-            // When
-            const result = await client.alliance.getAllianceById(99005338);
-
-            // Then
-            expect(result.name).toBe('Goonswarm Federation');
-            expect(result).toHaveProperty('ticker');
-        });
-    });
+  });
 });
 ```
 
@@ -288,8 +347,9 @@ import { EsiError } from '../../../src/core/util/error';
 
 // The API layer throws EsiError on 4xx/5xx responses
 fetchMock.mockResponseOnce('Not Found', { status: 404 });
-await expect(client.getAllianceById(99999999))
-    .rejects.toThrow('Resource not found');
+await expect(client.getAllianceById(99999999)).rejects.toThrow(
+  'Resource not found',
+);
 
 // Or use TestDataFactory for mock errors
 const error = TestDataFactory.createError(429, 'Rate limit exceeded');
