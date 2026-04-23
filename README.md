@@ -324,7 +324,9 @@ const prices = await marketClient.getMarketPrices();
 
 ## Examples
 
-Runnable examples are in the `examples/` directory. All use **public endpoints** — no auth token needed.
+Runnable examples are in the `examples/` directory.
+
+### Public Endpoints (no auth needed)
 
 ```bash
 npm run example:status       # Server status — quickest smoke test
@@ -338,14 +340,26 @@ npm run example:sovereignty  # Nullsec sovereignty map + active campaigns
 npm run example:industry     # Industry facilities, cost indices, insurance
 npm run example:incursions   # Active incursions + faction warfare stats
 npm run example:dogma        # Item type details + dogma attributes
+npm run example:contracts    # Public region contracts + auction bids/items
+npm run example:rate-limiting      # Rate limiter & pagination demonstration
+npm run example:cursor-pagination  # Freelance Jobs with cursor pagination
 ```
 
-Additional examples:
+### Authenticated Endpoints (require ESI_ACCESS_TOKEN)
+
+These examples require an EVE SSO token with the listed scopes. Set `ESI_ACCESS_TOKEN` in your environment or `.env` file.
 
 ```bash
 npm run example                    # Full character profile assembly
-npm run example:rate-limiting      # Rate limiter & pagination demonstration
-npm run example:cursor-pagination  # Freelance Jobs with cursor pagination (live ESI, no auth needed)
+npm run example:wallet       # Wallet balance, journal, transactions    (esi-wallet.read_character_wallet.v1)
+npm run example:skills       # Trained skills, queue, attributes        (esi-skills.read_skills.v1, esi-skills.read_skillqueue.v1)
+npm run example:assets       # Asset inventory with bulk name lookup    (esi-assets.read_assets.v1)
+npm run example:killmails    # Recent killmails + full details          (esi-killmails.read_killmails.v1)
+npm run example:fleet        # Fleet info, members, wing/squad structure (esi-fleets.read_fleet.v1)
+npm run example:mail         # Inbox headers, labels, mailing lists    (esi-mail.read_mail.v1)
+npm run example:location     # Current system, online status, ship     (esi-location.read_location.v1)
+npm run example:fittings     # Saved fittings + clone state + implants (esi-fittings.read_fittings.v1, esi-clones.read_clones.v1)
+npm run example:contacts     # Contact list with standings + labels    (esi-characters.read_contacts.v1)
 ```
 
 ### Parallel Requests
@@ -472,7 +486,7 @@ See [.github/workflows/README.md](.github/workflows/README.md) for full workflow
 ## Testing
 
 ```bash
-npm test          # Unit + integration tests (49 suites, 360 tests)
+npm test          # Unit + integration tests (73 suites, 577 tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 ```

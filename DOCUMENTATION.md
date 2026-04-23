@@ -1,6 +1,6 @@
 # 📚 ESI.ts Documentation Guide
 
-> **Version 2.0.0** - Latest documentation for the EVE Online ESI API TypeScript client
+> **Version 3.4.0** - Latest documentation for the EVE Online ESI API TypeScript client
 
 ## 🌐 Online Documentation
 
@@ -79,12 +79,14 @@ npm run clean
 
 The documentation includes comprehensive examples for:
 
-- **Basic Usage** - Simple API calls
-- **Authentication** - Working with authenticated endpoints  
-- **Error Handling** - Proper error management
-- **Custom Clients** - Building lightweight clients
-- **ETag Caching** - Performance optimization
+- **Basic Usage** - Simple API calls (status, character lookup, universe)
+- **Authentication** - Working with authenticated endpoints (wallet, skills, assets, mail)
+- **Error Handling** - Proper error management with `EsiError`
+- **Custom Clients** - Building lightweight clients with `EsiClientBuilder`
+- **ETag Caching** - Performance optimization with `Cache-Control` TTL
 - **Builder Pattern** - Fluent client construction
+- **Cursor Pagination** - Freelance Jobs and future cursor-based routes
+- **ESI Scopes** - Required SSO scopes documented per endpoint
 
 ## 📊 Documentation Quality
 
