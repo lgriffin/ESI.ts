@@ -41,7 +41,7 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "jest --config jest.unit.config.cjs",
     "test:watch": "jest --config jest.unit.config.cjs --watch",
-    "test:improved": "jest --config jest.unit.config.cjs --testPathPattern=improved",
+    "test:improved": "jest --config jest.unit.config.cjs --testPathPattern=improved --passWithNoTests",
     "bdd": "jest --config jest.unit.config.cjs --testPathPattern=bdd-",
     "bdd:alliance": "jest --config jest.unit.config.cjs --testPathPattern=bdd-alliance",
     "bdd:assets": "jest --config jest.unit.config.cjs --testPathPattern=bdd-assets",
