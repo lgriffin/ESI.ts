@@ -1,5 +1,5 @@
 // Main client
-export { EsiClient, EsiClientConfig } from './EsiClient';
+export { EsiClient, EsiClientConfig, EsiDatasource } from './EsiClient';
 export { getDefaultClient } from './EsiClient';
 
 // Builder & factory
@@ -68,6 +68,9 @@ export {
   isForbidden,
   isServerError,
 } from './core/util/error';
+
+// Endpoint definition types
+export { DeprecationInfo } from './core/endpoints/EndpointDefinition';
 
 // Types
 export * from './types/api-responses';

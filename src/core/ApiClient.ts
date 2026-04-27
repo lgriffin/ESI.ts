@@ -1,10 +1,13 @@
+export type EsiDatasource = 'tranquility' | 'singularity';
+
 export class ApiClient {
+  private datasource?: EsiDatasource;
+
   constructor(
     private clientId: string,
     private link: string,
     private accessToken?: string,
   ) {
-    // Remove trailing slash from the link if present
     this.link = this.link.replace(/\/$/, '');
   }
 
@@ -14,6 +17,14 @@ export class ApiClient {
 
   getLink(): string {
     return this.link;
+  }
+
+  getDatasource(): EsiDatasource | undefined {
+    return this.datasource;
+  }
+
+  setDatasource(datasource: EsiDatasource | undefined): void {
+    this.datasource = datasource;
   }
 
   setAccessToken(token: string): void {

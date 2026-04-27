@@ -11,6 +11,7 @@ import { ETagCacheManager } from './cache/ETagCacheManager';
 import { RateLimiter } from './rateLimiter/RateLimiter';
 import { PaginationHandler } from './pagination/PaginationHandler';
 import { CursorTokens } from './pagination/CursorPaginationHandler';
+import { USER_AGENT, COMPATIBILITY_DATE } from './constants';
 
 export interface EsiHandlerResponse {
   headers: Record<string, string>;
@@ -84,8 +85,8 @@ export const handleRequest = async (
   const url = `${client.getLink()}/${endpoint}`;
   const headers: HeadersInit = {
     accept: 'gzip, deflate, br',
-    'User-Agent': `esiJS/2.0.0`, // Use the version from package.json ideally
-    'X-Compatibility-Date': '2025-12-16',
+    'User-Agent': USER_AGENT,
+    'X-Compatibility-Date': COMPATIBILITY_DATE,
   };
 
   if (requiresAuth) {

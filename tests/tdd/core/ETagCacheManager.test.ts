@@ -161,6 +161,51 @@ describe('ETagCacheManager', () => {
         newStats.oldestEntry!,
       );
     });
+
+    it('should track hits and misses', () => {
+      cacheManager.set('url1', '"etag1"', [], {});
+
+      cacheManager.get('url1'); // hit
+      cacheManager.get('url1'); // hit
+      cacheManager.get('url-miss'); // miss
+
+      const stats = cacheManager.getStats();
+      expect(stats.hits).toBe(2);
+      expect(stats.misses).toBe(1);
+      expect(stats.hitRate).toBeCloseTo(2 / 3);
+    });
+
+    it('should return hitRate of 0 when no lookups have occurred', () => {
+      const stats = cacheManager.getStats();
+      expect(stats.hitRate).toBe(0);
+      expect(stats.hits).toBe(0);
+      expect(stats.misses).toBe(0);
+    });
+
+    it('should count expired entries as misses', async () => {
+      cacheManager.set('url1', '"etag1"', [], {}, 50); // 50ms TTL
+
+      cacheManager.get('url1'); // hit (still valid)
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      cacheManager.get('url1'); // miss (expired)
+
+      const stats = cacheManager.getStats();
+      expect(stats.hits).toBe(1);
+      expect(stats.misses).toBe(1);
+      expect(stats.hitRate).toBeCloseTo(0.5);
+    });
+
+    it('should reset hit/miss counters on clear', () => {
+      cacheManager.set('url1', '"etag1"', [], {});
+      cacheManager.get('url1'); // hit
+      cacheManager.get('url-miss'); // miss
+
+      cacheManager.clear();
+      const stats = cacheManager.getStats();
+      expect(stats.hits).toBe(0);
+      expect(stats.misses).toBe(0);
+      expect(stats.hitRate).toBe(0);
+    });
   });
 
   describe('Configuration Updates', () => {

@@ -36,10 +36,13 @@ import { initializeETagCache, getETagCache } from './core/ApiRequestHandler';
 import { ETagCacheConfig } from './core/cache/ETagCacheManager';
 import logger from './core/logger/logger';
 
+export type EsiDatasource = 'tranquility' | 'singularity';
+
 export interface EsiClientConfig {
   clientId?: string;
   baseUrl?: string;
   accessToken?: string;
+  datasource?: EsiDatasource;
   timeout?: number;
   retryAttempts?: number;
   enableETagCache?: boolean;
@@ -58,6 +61,13 @@ export class EsiClient {
       config?.baseUrl || process.env.ESI_BASE_URL || 'https://esi.evetech.net',
       token,
     );
+
+    const datasource =
+      config?.datasource ||
+      (process.env.ESI_DATASOURCE as EsiDatasource | undefined);
+    if (datasource) {
+      this.apiClient.setDatasource(datasource);
+    }
 
     this.etagCacheEnabled = config?.enableETagCache !== false;
     if (this.etagCacheEnabled) {
@@ -180,6 +190,8 @@ export class EsiClient {
   getCacheStats(): {
     totalEntries: number;
     maxEntries: number;
+    hits: number;
+    misses: number;
     hitRate: number;
     oldestEntry: number | null;
     newestEntry: number | null;

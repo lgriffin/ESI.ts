@@ -1,5 +1,11 @@
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
+export interface DeprecationInfo {
+  message?: string;
+  replacedBy?: string;
+  sunsetDate?: string;
+}
+
 export interface EndpointDefinition {
   /** URL template with placeholders, e.g. 'alliances/{allianceId}/' */
   path: string;
@@ -18,6 +24,8 @@ export interface EndpointDefinition {
   bodyBuilder?: (...args: any[]) => unknown;
   /** Whether this endpoint uses cursor-based pagination (before/after tokens) */
   cursorPagination?: boolean;
+  /** Mark an endpoint as deprecated with optional migration guidance */
+  deprecated?: DeprecationInfo;
 }
 
 export type EndpointMap = Record<string, EndpointDefinition>;

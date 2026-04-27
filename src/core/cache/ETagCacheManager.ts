@@ -18,6 +18,8 @@ export class ETagCacheManager {
   private cache: Map<string, CacheEntry> = new Map();
   private config: Required<ETagCacheConfig>;
   private cleanupTimer?: NodeJS.Timeout;
+  private hits: number = 0;
+  private misses: number = 0;
 
   constructor(config: ETagCacheConfig = {}) {
     this.config = {
@@ -39,16 +41,18 @@ export class ETagCacheManager {
     const entry = this.cache.get(url);
 
     if (!entry) {
+      this.misses++;
       return null;
     }
 
-    // Check if entry has expired
     if (this.isExpired(entry)) {
       this.cache.delete(url);
+      this.misses++;
       logDebug(`Cache entry expired for ${url}`);
       return null;
     }
 
+    this.hits++;
     logDebug(`Cache hit for ${url} with ETag ${entry.etag}`);
     return entry;
   }
@@ -125,6 +129,8 @@ export class ETagCacheManager {
    */
   clear(): void {
     this.cache.clear();
+    this.hits = 0;
+    this.misses = 0;
     logInfo('ETag cache cleared');
   }
 
@@ -134,17 +140,22 @@ export class ETagCacheManager {
   getStats(): {
     totalEntries: number;
     maxEntries: number;
+    hits: number;
+    misses: number;
     hitRate: number;
     oldestEntry: number | null;
     newestEntry: number | null;
   } {
     const entries = Array.from(this.cache.values());
     const timestamps = entries.map((e) => e.timestamp);
+    const total = this.hits + this.misses;
 
     return {
       totalEntries: this.cache.size,
       maxEntries: this.config.maxEntries,
-      hitRate: 0, // Would need to track hits/misses for this
+      hits: this.hits,
+      misses: this.misses,
+      hitRate: total > 0 ? this.hits / total : 0,
       oldestEntry: timestamps.length > 0 ? Math.min(...timestamps) : null,
       newestEntry: timestamps.length > 0 ? Math.max(...timestamps) : null,
     };
