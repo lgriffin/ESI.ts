@@ -153,26 +153,6 @@ export interface MarketHistory {
   lowest: number;
 }
 
-// Common API Response Types
-export interface ApiResponse<T> {
-  data: T;
-  status: number;
-  headers: Record<string, string>;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total_count?: number;
-  page?: number;
-  total_pages?: number;
-}
-
-export interface ErrorResponse {
-  error: string;
-  error_description?: string;
-  sso_status?: number;
-}
-
 // Asset Types
 export interface CharacterAsset {
   item_id: number;
@@ -397,10 +377,6 @@ export interface CorporationMedal {
   description: string;
   creator_id: number;
   date: string;
-}
-
-export interface CorporationMember {
-  character_id: number;
 }
 
 export interface CorporationStarbase {
