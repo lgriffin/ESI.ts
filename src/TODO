@@ -64,16 +64,39 @@ Recently Completed
     Concurrent refreshes are coalesced into a single provider call.
     Also available via EsiClient.setTokenProvider() at runtime.
 
+[x] Clean Architecture: HeadersUtil Pure Function
+    Replaced static HeadersUtil class (globally mutable state) with
+    parseHeaders() pure function returning ParsedHeaders interface.
+    Eliminates concurrent-request data corruption risk.
+
+[x] Clean Architecture: Decompose executeRequest
+    Broke monolithic executeRequest (216 lines, 9 responsibilities) into
+    focused helpers: buildRequestHeaders, handleEarlyStatus,
+    tryStaleCacheResponse, cacheResponse, parseJsonBody,
+    handleCursorPagination, handleOffsetPagination.
+
+[x] Clean Architecture: Extract Interfaces
+    ICache, IRateLimiter, ILogger interfaces extracted from concrete
+    implementations. ETagCacheManager implements ICache, RateLimiter
+    implements IRateLimiter. Logger supports setLogger() for custom
+    ILogger implementations. All interfaces exported from index.ts.
+
 
 Remaining Gaps
 --------------
 
 [ ] Request Middleware / Interceptors
     No hooks for intercepting or transforming requests/responses.
-    All logic is monolithic in ApiRequestHandler. Extensibility point
-    for consumers who need custom headers, logging, or metrics.
+    Extensibility point for consumers who need custom headers,
+    logging, or metrics.
 
 [ ] Circuit Breaker
     Rate limiter handles throttling, but there is no circuit breaker for
     repeated failures to a specific endpoint (e.g., back off after N
     consecutive 5xx errors rather than continuing to retry).
+
+[ ] Dependency Injection
+    ApiRequestHandler still uses module-level singletons for cache and
+    rate limiter. Interfaces are defined (ICache, IRateLimiter, ILogger)
+    but not yet injected — concrete implementations are still imported
+    directly. Next step toward full testability and clean architecture.

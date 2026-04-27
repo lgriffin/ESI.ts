@@ -72,5 +72,11 @@ export {
 // Endpoint definition types
 export { DeprecationInfo } from './core/endpoints/EndpointDefinition';
 
+// Interfaces (for custom implementations / testing)
+export { ICache } from './core/cache/ICache';
+export { IRateLimiter } from './core/rateLimiter/IRateLimiter';
+export { ILogger } from './core/logger/ILogger';
+export { setLogger } from './core/logger/loggerUtil';
+
 // Types
 export * from './types/api-responses';
