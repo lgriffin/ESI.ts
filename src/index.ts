@@ -72,6 +72,21 @@ export {
 // Endpoint definition types
 export { DeprecationInfo } from './core/endpoints/EndpointDefinition';
 
+// Middleware
+export {
+  RequestInterceptor,
+  ResponseInterceptor,
+  RequestContext,
+  ResponseContext,
+} from './core/middleware/Middleware';
+
+// Circuit breaker
+export {
+  CircuitBreakerConfig,
+  CircuitState,
+  CircuitOpenError,
+} from './core/circuitBreaker/CircuitBreaker';
+
 // Interfaces (for custom implementations / testing)
 export { ICache } from './core/cache/ICache';
 export { IRateLimiter } from './core/rateLimiter/IRateLimiter';

@@ -82,21 +82,30 @@ Recently Completed
     ILogger implementations. All interfaces exported from index.ts.
 
 
+[x] Request Middleware / Interceptors
+    RequestInterceptor and ResponseInterceptor types. MiddlewareManager
+    handles ordered execution. Configured via EsiClientConfig or at
+    runtime via addRequestInterceptor()/addResponseInterceptor().
+    Interceptors receive typed context (url, method, headers, body,
+    durationMs, fromCache) and return modified context.
+
+[x] Circuit Breaker
+    CircuitBreaker with closed→open→half-open state machine. Tracks
+    consecutive 5xx failures per endpoint path. Configurable threshold,
+    reset timeout, and half-open probe attempts. Enabled via
+    enableCircuitBreaker in EsiClientConfig. Stats and reset via
+    getCircuitBreakerStats()/resetCircuitBreaker().
+
+[x] Dependency Injection
+    ApiClient holds optional ICache, IRateLimiter, CircuitBreaker.
+    executeRequest resolves dependencies from client first, falls back
+    to global singletons. Each EsiClient instance can have its own
+    cache, rate limiter, and circuit breaker. Enables mock injection
+    for testing without global state pollution.
+
+
 Remaining Gaps
 --------------
 
-[ ] Request Middleware / Interceptors
-    No hooks for intercepting or transforming requests/responses.
-    Extensibility point for consumers who need custom headers,
-    logging, or metrics.
-
-[ ] Circuit Breaker
-    Rate limiter handles throttling, but there is no circuit breaker for
-    repeated failures to a specific endpoint (e.g., back off after N
-    consecutive 5xx errors rather than continuing to retry).
-
-[ ] Dependency Injection
-    ApiRequestHandler still uses module-level singletons for cache and
-    rate limiter. Interfaces are defined (ICache, IRateLimiter, ILogger)
-    but not yet injected — concrete implementations are still imported
-    directly. Next step toward full testability and clean architecture.
+    No remaining architectural gaps identified. All items from the
+    original roadmap and clean architecture audit are complete.

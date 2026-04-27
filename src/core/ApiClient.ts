@@ -1,3 +1,12 @@
+import {
+  MiddlewareManager,
+  RequestInterceptor,
+  ResponseInterceptor,
+} from './middleware/Middleware';
+import { ICache } from './cache/ICache';
+import { IRateLimiter } from './rateLimiter/IRateLimiter';
+import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
+
 export type EsiDatasource = 'tranquility' | 'singularity';
 
 export type TokenProvider = () => Promise<string>;
@@ -6,6 +15,10 @@ export class ApiClient {
   private datasource?: EsiDatasource;
   private tokenProvider?: TokenProvider;
   private refreshInFlight?: Promise<string>;
+  private middleware: MiddlewareManager = new MiddlewareManager();
+  private cache: ICache | null = null;
+  private rateLimiter: IRateLimiter | null = null;
+  private circuitBreaker: CircuitBreaker | null = null;
 
   constructor(
     private clientId: string,
@@ -13,6 +26,42 @@ export class ApiClient {
     private accessToken?: string,
   ) {
     this.link = this.link.replace(/\/$/, '');
+  }
+
+  getCache(): ICache | null {
+    return this.cache;
+  }
+
+  setCache(cache: ICache | null): void {
+    this.cache = cache;
+  }
+
+  getRateLimiter(): IRateLimiter | null {
+    return this.rateLimiter;
+  }
+
+  setRateLimiter(limiter: IRateLimiter | null): void {
+    this.rateLimiter = limiter;
+  }
+
+  getCircuitBreaker(): CircuitBreaker | null {
+    return this.circuitBreaker;
+  }
+
+  setCircuitBreaker(cb: CircuitBreaker | null): void {
+    this.circuitBreaker = cb;
+  }
+
+  getMiddleware(): MiddlewareManager {
+    return this.middleware;
+  }
+
+  addRequestInterceptor(fn: RequestInterceptor): () => void {
+    return this.middleware.addRequestInterceptor(fn);
+  }
+
+  addResponseInterceptor(fn: ResponseInterceptor): () => void {
+    return this.middleware.addResponseInterceptor(fn);
   }
 
   getAuthorizationHeader(): string | undefined {

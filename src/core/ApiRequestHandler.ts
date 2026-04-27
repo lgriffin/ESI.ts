@@ -8,10 +8,17 @@ import {
 } from '../core/logger/loggerUtil';
 import { parseHeaders, ParsedHeaders } from '../core/util/headersUtil';
 import { ETagCacheManager } from './cache/ETagCacheManager';
+import { ICache } from './cache/ICache';
+import { IRateLimiter } from './rateLimiter/IRateLimiter';
 import { RateLimiter } from './rateLimiter/RateLimiter';
 import { PaginationHandler } from './pagination/PaginationHandler';
 import { CursorTokens } from './pagination/CursorPaginationHandler';
 import { USER_AGENT, COMPATIBILITY_DATE } from './constants';
+import { RequestContext, ResponseContext } from './middleware/Middleware';
+import {
+  CircuitBreaker,
+  CircuitBreakerConfig,
+} from './circuitBreaker/CircuitBreaker';
 
 export interface EsiHandlerResponse {
   headers: Record<string, string>;
@@ -38,28 +45,63 @@ const STATUS_MESSAGES: Record<number, string> = {
   520: 'Internal server error, did the request terminate too soon?',
 };
 
-// Global ETag cache instance
-let etagCache: ETagCacheManager | null = null;
+// --- Global instance management (backward compat) ---
+
+let globalCache: ETagCacheManager | null = null;
+let globalCircuitBreaker: CircuitBreaker | null = null;
 
 export const initializeETagCache = (
   config?: ConstructorParameters<typeof ETagCacheManager>[0],
 ): ETagCacheManager => {
-  if (!etagCache) {
-    etagCache = new ETagCacheManager(config);
+  if (!globalCache) {
+    globalCache = new ETagCacheManager(config);
   }
-  return etagCache;
+  return globalCache;
 };
 
 export const getETagCache = (): ETagCacheManager | null => {
-  return etagCache;
+  return globalCache;
 };
 
 export const resetETagCache = (): void => {
-  if (etagCache) {
-    etagCache.shutdown();
+  if (globalCache) {
+    globalCache.shutdown();
   }
-  etagCache = null;
+  globalCache = null;
 };
+
+export const initializeCircuitBreaker = (
+  config?: CircuitBreakerConfig,
+): CircuitBreaker => {
+  if (!globalCircuitBreaker) {
+    globalCircuitBreaker = new CircuitBreaker(config);
+  }
+  return globalCircuitBreaker;
+};
+
+export const getCircuitBreaker = (): CircuitBreaker | null => {
+  return globalCircuitBreaker;
+};
+
+export const resetCircuitBreaker = (): void => {
+  globalCircuitBreaker = null;
+};
+
+// --- Dependency resolution ---
+
+function resolveCache(client: ApiClient): ICache | null {
+  return client.getCache() ?? globalCache;
+}
+
+function resolveRateLimiter(client: ApiClient): IRateLimiter {
+  return client.getRateLimiter() ?? RateLimiter.getInstance();
+}
+
+function resolveCircuitBreaker(client: ApiClient): CircuitBreaker | null {
+  return client.getCircuitBreaker() ?? globalCircuitBreaker;
+}
+
+// --- Pure helpers ---
 
 const parseCacheControlTtl = (
   headers: Record<string, string>,
@@ -69,8 +111,6 @@ const parseCacheControlTtl = (
   const match = /max-age=(\d+)/.exec(cacheControl);
   return match ? parseInt(match[1], 10) * 1000 : undefined;
 };
-
-// --- Composed helper functions ---
 
 function buildRequestHeaders(
   client: ApiClient,
@@ -97,8 +137,9 @@ function buildRequestHeaders(
     headers['Authorization'] = authHeader;
   }
 
-  if (useETag && method === 'GET' && etagCache) {
-    const cachedETag = etagCache.getETag(url);
+  const cache = resolveCache(client);
+  if (useETag && method === 'GET' && cache) {
+    const cachedETag = cache.getETag(url);
     if (cachedETag) {
       headers['If-None-Match'] = cachedETag;
       logDebug(`Adding If-None-Match header: ${cachedETag}`);
@@ -113,10 +154,10 @@ function buildRequestHeaders(
 }
 
 function handleEarlyStatus(
+  client: ApiClient,
   status: number,
   url: string,
   parsed: ParsedHeaders,
-  response: Response,
   useETag: boolean,
 ): EsiHandlerResponse | null {
   if (status === 201) {
@@ -129,8 +170,9 @@ function handleEarlyStatus(
   }
 
   if (status === 304) {
-    if (useETag && etagCache) {
-      const cachedEntry = etagCache.get(url);
+    const cache = resolveCache(client);
+    if (useETag && cache) {
+      const cachedEntry = cache.get(url);
       if (cachedEntry) {
         logInfo(`Cache hit (304) for endpoint: ${url}`);
         return {
@@ -147,11 +189,13 @@ function handleEarlyStatus(
 }
 
 function tryStaleCacheResponse(
+  client: ApiClient,
   url: string,
   parsed: ParsedHeaders,
 ): EsiHandlerResponse | null {
-  if (!etagCache) return null;
-  const cachedEntry = etagCache.get(url);
+  const cache = resolveCache(client);
+  if (!cache) return null;
+  const cachedEntry = cache.get(url);
   if (!cachedEntry) return null;
   return {
     headers: { ...cachedEntry.headers, ...parsed.raw },
@@ -162,6 +206,7 @@ function tryStaleCacheResponse(
 }
 
 function cacheResponse(
+  client: ApiClient,
   url: string,
   method: string,
   endpoint: string,
@@ -169,15 +214,16 @@ function cacheResponse(
   data: unknown,
   useETag: boolean,
 ): void {
-  if (useETag && method === 'GET' && etagCache && parsed.etag) {
+  const cache = resolveCache(client);
+  if (useETag && method === 'GET' && cache && parsed.etag) {
     const ttl = parseCacheControlTtl(parsed.raw);
-    etagCache.set(url, parsed.etag, data, parsed.raw, ttl);
+    cache.set(url, parsed.etag, data, parsed.raw, ttl);
     const ttlInfo = ttl ? ` (ttl=${ttl}ms)` : '';
     logDebug(`Cached response for ${url} with ETag ${parsed.etag}${ttlInfo}`);
   }
 
-  if (method !== 'GET' && etagCache) {
-    etagCache.deleteByPath(endpoint.split('?')[0]);
+  if (method !== 'GET' && cache) {
+    cache.deleteByPath(endpoint.split('?')[0]);
   }
 }
 
@@ -247,7 +293,7 @@ async function handleOffsetPagination(
       },
     );
 
-    cacheResponse(url, method, endpoint, parsed, allData, useETag);
+    cacheResponse(client, url, method, endpoint, parsed, allData, useETag);
     return { headers: parsed.raw, body: allData };
   } catch (paginationError: unknown) {
     const msg =
@@ -259,7 +305,102 @@ async function handleOffsetPagination(
   }
 }
 
+// --- Response interceptor wrapper ---
+
+async function applyResponseInterceptors(
+  client: ApiClient,
+  result: EsiHandlerResponse,
+  url: string,
+  endpoint: string,
+  method: string,
+  startTime: number,
+): Promise<EsiHandlerResponse> {
+  const middleware = client.getMiddleware();
+  if (!middleware.hasInterceptors()) return result;
+
+  const responseCtx: ResponseContext = {
+    url,
+    endpoint,
+    method,
+    status: 200,
+    headers: result.headers,
+    body: result.body,
+    durationMs: Date.now() - startTime,
+    fromCache: result.fromCache ?? false,
+  };
+
+  const modified = await middleware.applyResponseInterceptors(responseCtx);
+  return {
+    ...result,
+    headers: modified.headers,
+    body: modified.body,
+  };
+}
+
 // --- Main request functions ---
+
+async function applyRequestMiddleware(
+  client: ApiClient,
+  url: string,
+  endpoint: string,
+  method: string,
+  headers: Record<string, string>,
+  body: unknown,
+): Promise<{ url: string; headers: Record<string, string>; body: unknown }> {
+  const middleware = client.getMiddleware();
+  if (!middleware.hasInterceptors()) {
+    return { url, headers, body };
+  }
+  const reqCtx: RequestContext = {
+    url,
+    endpoint,
+    method,
+    headers: { ...headers },
+    body,
+  };
+  const modified = await middleware.applyRequestInterceptors(reqCtx);
+  return {
+    url: modified.url,
+    headers: modified.headers,
+    body: modified.body,
+  };
+}
+
+function handleErrorResponse(
+  client: ApiClient,
+  response: Response,
+  url: string,
+  parsed: ParsedHeaders,
+  useETag: boolean,
+): EsiHandlerResponse | never {
+  const errorMessage = STATUS_MESSAGES[response.status] || response.statusText;
+
+  if (response.status >= 500 && useETag) {
+    const staleResult = tryStaleCacheResponse(client, url, parsed);
+    if (staleResult) {
+      logWarn(`${errorMessage} for ${url} — serving stale cache`);
+      return staleResult;
+    }
+  }
+
+  if (response.status === 420 || response.status === 429) {
+    logWarn(`Rate limited (${response.status}) on ${url}`);
+  }
+
+  throw new EsiError(response.status, errorMessage, url);
+}
+
+function wrapError(error: unknown): never {
+  if (error instanceof EsiError) {
+    throw error;
+  }
+  if (error instanceof Error) {
+    logError(`Unexpected error: ${error.message}`);
+    throw buildError(error.message, 'ESIJS_ERROR');
+  }
+  logError(`Unexpected error: ${String(error)}`);
+  throw buildError(String(error), 'ESIJS_ERROR');
+}
 
 const executeRequest = async (
   client: ApiClient,
@@ -269,26 +410,42 @@ const executeRequest = async (
   requiresAuth: boolean = false,
   useETag: boolean = true,
 ): Promise<EsiHandlerResponse> => {
-  const url = `${client.getLink()}/${endpoint}`;
-  const headers = buildRequestHeaders(
+  const startTime = Date.now();
+  const rawUrl = `${client.getLink()}/${endpoint}`;
+  const builtHeaders = buildRequestHeaders(
     client,
-    url,
+    rawUrl,
     method,
     requiresAuth,
     useETag,
+    body,
+  ) as Record<string, string>;
+
+  const req = await applyRequestMiddleware(
+    client,
+    rawUrl,
+    endpoint,
+    method,
+    builtHeaders,
     body,
   );
 
   const options: RequestInit = {
     method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
+    headers: req.headers,
+    body: req.body ? JSON.stringify(req.body) : undefined,
   };
 
+  const url = req.url;
   logInfo(`Hitting endpoint: ${url}`);
+  const finish = (r: EsiHandlerResponse) =>
+    applyResponseInterceptors(client, r, url, endpoint, method, startTime);
 
   try {
-    const rateLimiter = RateLimiter.getInstance();
+    const cb = resolveCircuitBreaker(client);
+    if (cb) cb.checkCircuit(endpoint);
+
+    const rateLimiter = resolveRateLimiter(client);
     await rateLimiter.checkRateLimit();
 
     const response = await fetch(url, options);
@@ -296,7 +453,11 @@ const executeRequest = async (
 
     rateLimiter.updateFromResponse(parsed.raw, response.status);
 
-    // 201 needs body parsing attempt
+    if (cb) {
+      if (response.status >= 500) cb.recordFailure(endpoint, response.status);
+      else cb.recordSuccess(endpoint);
+    }
+
     if (response.status === 201) {
       let data: unknown;
       try {
@@ -304,46 +465,36 @@ const executeRequest = async (
       } catch {
         data = undefined;
       }
-      return { headers: parsed.raw, body: data };
+      return finish({ headers: parsed.raw, body: data });
     }
 
     const earlyResult = handleEarlyStatus(
+      client,
       response.status,
       url,
       parsed,
-      response,
       useETag,
     );
-    if (earlyResult) return earlyResult;
+    if (earlyResult) return finish(earlyResult);
 
-    // Handle error statuses (4xx/5xx)
     if (!response.ok) {
-      const errorMessage =
-        STATUS_MESSAGES[response.status] || response.statusText;
-
-      if (response.status >= 500 && useETag) {
-        const staleResult = tryStaleCacheResponse(url, parsed);
-        if (staleResult) {
-          logWarn(`${errorMessage} for ${url} — serving stale cache`);
-          return staleResult;
-        }
-      }
-
-      if (response.status === 420 || response.status === 429) {
-        logWarn(`Rate limited (${response.status}) on ${url}`);
-      }
-
-      throw new EsiError(response.status, errorMessage, url);
+      const staleOrThrow = handleErrorResponse(
+        client,
+        response,
+        url,
+        parsed,
+        useETag,
+      );
+      return finish(staleOrThrow);
     }
 
     const data = await parseJsonBody(response, url);
-
-    cacheResponse(url, method, endpoint, parsed, data, useETag);
+    cacheResponse(client, url, method, endpoint, parsed, data, useETag);
 
     const cursorResult = handleCursorPagination(parsed, data);
-    if (cursorResult) return cursorResult;
+    if (cursorResult) return finish(cursorResult);
 
-    return await handleOffsetPagination(
+    const paginatedResult = await handleOffsetPagination(
       client,
       endpoint,
       method,
@@ -354,16 +505,9 @@ const executeRequest = async (
       url,
       useETag,
     );
+    return finish(paginatedResult);
   } catch (error: unknown) {
-    if (error instanceof EsiError) {
-      throw error;
-    }
-    if (error instanceof Error) {
-      logError(`Unexpected error: ${error.message}`);
-      throw buildError(error.message, 'ESIJS_ERROR');
-    }
-    logError(`Unexpected error: ${String(error)}`);
-    throw buildError(String(error), 'ESIJS_ERROR');
+    wrapError(error);
   }
 };
 
