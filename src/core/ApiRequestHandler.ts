@@ -74,7 +74,7 @@ const parseCacheControlTtl = (
 };
 
 /* eslint-disable sonarjs/cognitive-complexity */
-export const handleRequest = async (
+const executeRequest = async (
   client: ApiClient,
   endpoint: string,
   method: string,
@@ -288,6 +288,61 @@ export const handleRequest = async (
     }
     logError(`Unexpected error: ${String(error)}`);
     throw buildError(String(error), 'ESIJS_ERROR');
+  }
+};
+
+export const handleRequest = async (
+  client: ApiClient,
+  endpoint: string,
+  method: string,
+  body?: unknown,
+  requiresAuth: boolean = false,
+  useETag: boolean = true,
+): Promise<EsiHandlerResponse> => {
+  try {
+    return await executeRequest(
+      client,
+      endpoint,
+      method,
+      body,
+      requiresAuth,
+      useETag,
+    );
+  } catch (error: unknown) {
+    if (
+      error instanceof EsiError &&
+      error.statusCode === 401 &&
+      requiresAuth &&
+      client.hasTokenProvider()
+    ) {
+      logInfo('Received 401, attempting token refresh...');
+      try {
+        await client.refreshToken();
+        logInfo('Token refreshed, retrying request');
+        return await executeRequest(
+          client,
+          endpoint,
+          method,
+          body,
+          requiresAuth,
+          useETag,
+        );
+      } catch (refreshError: unknown) {
+        if (refreshError instanceof EsiError) {
+          throw refreshError;
+        }
+        const msg =
+          refreshError instanceof Error
+            ? refreshError.message
+            : String(refreshError);
+        logError(`Token refresh failed: ${msg}`);
+        throw buildError(
+          `Token refresh failed: ${msg}`,
+          'TOKEN_REFRESH_FAILED',
+        );
+      }
+    }
+    throw error;
   }
 };
 /* eslint-enable sonarjs/cognitive-complexity */

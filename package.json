@@ -35,6 +35,7 @@
     "example:contacts": "ts-node examples/contacts.ts",
     "example:rate-limiting": "ts-node examples/rate-limiting.ts",
     "example:cursor-pagination": "ts-node examples/cursor-pagination.ts",
+    "example:token-refresh": "ts-node examples/token-refresh.ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",

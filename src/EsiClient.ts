@@ -1,4 +1,4 @@
-import { ApiClient } from './core/ApiClient';
+import { ApiClient, TokenProvider } from './core/ApiClient';
 import { createClientInstance, ApiClientType } from './core/ClientRegistry';
 import { AllianceClient } from './clients/AllianceClient';
 import { AssetsClient } from './clients/AssetsClient';
@@ -43,6 +43,7 @@ export interface EsiClientConfig {
   baseUrl?: string;
   accessToken?: string;
   datasource?: EsiDatasource;
+  onTokenRefresh?: TokenProvider;
   timeout?: number;
   retryAttempts?: number;
   enableETagCache?: boolean;
@@ -67,6 +68,10 @@ export class EsiClient {
       (process.env.ESI_DATASOURCE as EsiDatasource | undefined);
     if (datasource) {
       this.apiClient.setDatasource(datasource);
+    }
+
+    if (config?.onTokenRefresh) {
+      this.apiClient.setTokenProvider(config.onTokenRefresh);
     }
 
     this.etagCacheEnabled = config?.enableETagCache !== false;
@@ -185,6 +190,13 @@ export class EsiClient {
   setAccessToken(token: string): void {
     this.apiClient.setAccessToken(token);
     logger.info('Access token updated');
+  }
+
+  setTokenProvider(provider: TokenProvider | undefined): void {
+    this.apiClient.setTokenProvider(provider);
+    logger.info(
+      provider ? 'Token provider configured' : 'Token provider removed',
+    );
   }
 
   getCacheStats(): {
