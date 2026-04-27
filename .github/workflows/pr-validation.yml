@@ -83,7 +83,14 @@ jobs:
     strategy:
       matrix:
         test-type:
-          [unit, bdd-alliance, bdd-character, bdd-corporation, bdd-integration]
+          [
+            unit,
+            bdd-alliance,
+            bdd-character,
+            bdd-corporation,
+            bdd-integration,
+            integration,
+          ]
 
     steps:
       - name: Checkout code
@@ -115,6 +122,9 @@ jobs:
               ;;
             "bdd-integration")
               npm run bdd:integration
+              ;;
+            "integration")
+              npm run test:integration
               ;;
           esac
 
