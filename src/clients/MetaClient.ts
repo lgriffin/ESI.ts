@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { createClient, WithMetadata } from '../core/endpoints/createClient';
 import { metaEndpoints } from '../core/endpoints/metaEndpoints';
 import { logInfo, logError } from '../core/logger/loggerUtil';
+import { USER_AGENT, COMPATIBILITY_DATE } from '../core/constants';
 
 export class MetaClient {
   private api: ReturnType<typeof createClient<typeof metaEndpoints>>;
@@ -39,8 +40,8 @@ export class MetaClient {
         method: 'GET',
         headers: {
           accept: 'text/yaml, application/x-yaml, text/plain',
-          'User-Agent': 'esiJS/2.0.0',
-          'X-Compatibility-Date': '2025-12-16',
+          'User-Agent': USER_AGENT,
+          'X-Compatibility-Date': COMPATIBILITY_DATE,
         },
       });
 

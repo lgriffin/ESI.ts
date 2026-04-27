@@ -6,6 +6,7 @@
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
 import { RateLimiter } from '../rateLimiter/RateLimiter';
+import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
 
 export interface PaginationOptions {
   maxPages?: number;
@@ -162,8 +163,8 @@ export class PaginationHandler {
       method,
       headers: {
         accept: 'gzip, deflate, br',
-        'User-Agent': 'esiJS/2.0.0',
-        'X-Compatibility-Date': '2025-12-16',
+        'User-Agent': USER_AGENT,
+        'X-Compatibility-Date': COMPATIBILITY_DATE,
         ...(requiresAuth
           ? { Authorization: client.getAuthorizationHeader() }
           : {}),

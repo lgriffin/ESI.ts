@@ -3,6 +3,8 @@ import { handleRequest, EsiHandlerResponse } from '../ApiRequestHandler';
 import { EndpointMap, EndpointArgs } from './EndpointDefinition';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
 import { EsiResponse, EsiResponseMeta } from '../../types/api-responses';
+import { validatePathParam, validateQueryParam } from '../util/validation';
+import { logWarn } from '../logger/loggerUtil';
 
 export interface CursorOptions {
   before?: string;
@@ -50,21 +52,34 @@ export function createClient<T extends EndpointMap>(
     (client as Record<string, (...args: unknown[]) => Promise<unknown>>)[
       methodName
     ] = async (...args: unknown[]) => {
+      if (def.deprecated) {
+        const parts = [`Endpoint '${methodName}' is deprecated.`];
+        if (def.deprecated.message) parts.push(def.deprecated.message);
+        if (def.deprecated.replacedBy)
+          parts.push(`Use '${def.deprecated.replacedBy}' instead.`);
+        if (def.deprecated.sunsetDate)
+          parts.push(`Sunset date: ${def.deprecated.sunsetDate}.`);
+        logWarn(parts.join(' '));
+      }
+
       let argIndex = 0;
 
       let path = def.path;
       if (def.pathParams) {
         for (const param of def.pathParams) {
-          path = path.replace(`{${param}}`, String(args[argIndex++]));
+          const raw = args[argIndex++];
+          const validated = validatePathParam(param, raw);
+          path = path.replace(`{${param}}`, validated);
         }
       }
 
       if (def.queryParams) {
         const queryParts: string[] = [];
-        for (const [, queryKey] of Object.entries(def.queryParams)) {
+        for (const [paramName, queryKey] of Object.entries(def.queryParams)) {
           const value = args[argIndex++];
           if (value !== undefined) {
-            queryParts.push(`${queryKey}=${encodeURIComponent(String(value))}`);
+            const validated = validateQueryParam(paramName, value);
+            queryParts.push(`${queryKey}=${encodeURIComponent(validated)}`);
           }
         }
         if (queryParts.length > 0) {
@@ -82,6 +97,13 @@ export function createClient<T extends EndpointMap>(
       } else if (def.hasBody) {
         // eslint-disable-next-line security/detect-object-injection
         body = args[argIndex];
+      }
+
+      const datasource = apiClient.getDatasource();
+      if (datasource) {
+        path +=
+          (path.includes('?') ? '&' : '?') +
+          `datasource=${encodeURIComponent(datasource)}`;
       }
 
       if (def.cursorPagination) {
