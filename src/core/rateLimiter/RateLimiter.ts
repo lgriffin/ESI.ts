@@ -14,6 +14,8 @@
  *   - Returns 420 when limit exceeded, with Retry-After header
  */
 
+import { IRateLimiter } from './IRateLimiter';
+
 export interface RateLimitInfo {
   /** Tokens remaining in current window (new system) */
   remaining: number;
@@ -49,7 +51,7 @@ function getTokenCost(statusCode: number): number {
   return 2; // default to 2xx cost
 }
 
-export class RateLimiter {
+export class RateLimiter implements IRateLimiter {
   private static instance: RateLimiter;
   private rateLimitInfo: RateLimitInfo;
   private lastRequestTime: number = 0;

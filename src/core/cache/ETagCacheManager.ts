@@ -1,20 +1,15 @@
 import { logInfo, logDebug } from '../logger/loggerUtil';
+import { ICache, CacheEntry } from './ICache';
 
-export interface CacheEntry {
-  etag: string;
-  data: unknown;
-  headers: Record<string, string>;
-  timestamp: number;
-  ttl?: number;
-}
+export type { CacheEntry } from './ICache';
 
 export interface ETagCacheConfig {
   maxEntries?: number;
-  defaultTtl?: number; // Default TTL in milliseconds
-  cleanupInterval?: number; // Cleanup interval in milliseconds
+  defaultTtl?: number;
+  cleanupInterval?: number;
 }
 
-export class ETagCacheManager {
+export class ETagCacheManager implements ICache {
   private cache: Map<string, CacheEntry> = new Map();
   private config: Required<ETagCacheConfig>;
   private cleanupTimer?: NodeJS.Timeout;

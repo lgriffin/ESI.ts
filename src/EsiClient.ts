@@ -1,4 +1,8 @@
 import { ApiClient, TokenProvider } from './core/ApiClient';
+import {
+  RequestInterceptor,
+  ResponseInterceptor,
+} from './core/middleware/Middleware';
 import { createClientInstance, ApiClientType } from './core/ClientRegistry';
 import { AllianceClient } from './clients/AllianceClient';
 import { AssetsClient } from './clients/AssetsClient';
@@ -32,8 +36,14 @@ import { WalletClient } from './clients/WalletClient';
 import { WarsClient } from './clients/WarsClient';
 import { MetaClient } from './clients/MetaClient';
 import { FreelanceJobsClient } from './clients/FreelanceJobsClient';
-import { initializeETagCache, getETagCache } from './core/ApiRequestHandler';
+import {
+  initializeETagCache,
+  getETagCache,
+  initializeCircuitBreaker,
+  getCircuitBreaker,
+} from './core/ApiRequestHandler';
 import { ETagCacheConfig } from './core/cache/ETagCacheManager';
+import { CircuitBreakerConfig } from './core/circuitBreaker/CircuitBreaker';
 import logger from './core/logger/logger';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
@@ -48,6 +58,10 @@ export interface EsiClientConfig {
   retryAttempts?: number;
   enableETagCache?: boolean;
   etagCacheConfig?: ETagCacheConfig;
+  enableCircuitBreaker?: boolean;
+  circuitBreakerConfig?: CircuitBreakerConfig;
+  requestInterceptors?: RequestInterceptor[];
+  responseInterceptors?: ResponseInterceptor[];
 }
 
 export class EsiClient {
@@ -76,7 +90,24 @@ export class EsiClient {
 
     this.etagCacheEnabled = config?.enableETagCache !== false;
     if (this.etagCacheEnabled) {
-      initializeETagCache(config?.etagCacheConfig);
+      const cache = initializeETagCache(config?.etagCacheConfig);
+      this.apiClient.setCache(cache);
+    }
+
+    if (config?.enableCircuitBreaker) {
+      const cb = initializeCircuitBreaker(config.circuitBreakerConfig);
+      this.apiClient.setCircuitBreaker(cb);
+    }
+
+    if (config?.requestInterceptors) {
+      for (const interceptor of config.requestInterceptors) {
+        this.apiClient.addRequestInterceptor(interceptor);
+      }
+    }
+    if (config?.responseInterceptors) {
+      for (const interceptor of config.responseInterceptors) {
+        this.apiClient.addResponseInterceptor(interceptor);
+      }
     }
 
     logger.info('EsiClient initialized successfully');
@@ -187,6 +218,14 @@ export class EsiClient {
     return this.getClient('freelanceJobs');
   }
 
+  addRequestInterceptor(fn: RequestInterceptor): () => void {
+    return this.apiClient.addRequestInterceptor(fn);
+  }
+
+  addResponseInterceptor(fn: ResponseInterceptor): () => void {
+    return this.apiClient.addResponseInterceptor(fn);
+  }
+
   setAccessToken(token: string): void {
     this.apiClient.setAccessToken(token);
     logger.info('Access token updated');
@@ -224,6 +263,25 @@ export class EsiClient {
     const cache = getETagCache();
     if (cache) {
       cache.updateConfig(newConfig);
+    }
+  }
+
+  getCircuitBreakerStats(): {
+    totalCircuits: number;
+    openCircuits: number;
+    circuits: Record<
+      string,
+      { state: 'closed' | 'open' | 'half-open'; failures: number }
+    >;
+  } | null {
+    const cb = getCircuitBreaker();
+    return cb ? cb.getStats() : null;
+  }
+
+  resetCircuitBreaker(endpoint?: string): void {
+    const cb = getCircuitBreaker();
+    if (cb) {
+      cb.reset(endpoint);
     }
   }
 
