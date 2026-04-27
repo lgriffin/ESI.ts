@@ -11,7 +11,7 @@ export {
 export { ApiClientType } from './core/ClientRegistry';
 
 // Core (for direct instantiation)
-export { ApiClient } from './core/ApiClient';
+export { ApiClient, TokenProvider } from './core/ApiClient';
 export { ApiClientBuilder } from './core/ApiClientBuilder';
 
 // Domain clients

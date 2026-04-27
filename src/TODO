@@ -58,12 +58,15 @@ Recently Completed
     Logs a warning via logger on each call to a deprecated endpoint.
 
 
+[x] Token Refresh
+    EsiClientConfig accepts onTokenRefresh callback (TokenProvider).
+    On 401, the handler automatically refreshes and retries once.
+    Concurrent refreshes are coalesced into a single provider call.
+    Also available via EsiClient.setTokenProvider() at runtime.
+
+
 Remaining Gaps
 --------------
-
-[ ] Token Refresh / OAuth2 SSO
-    Only supports static access tokens via setAccessToken() or env var.
-    No automatic token refresh, expiry tracking, or SSO callback hooks.
 
 [ ] Request Middleware / Interceptors
     No hooks for intercepting or transforming requests/responses.
