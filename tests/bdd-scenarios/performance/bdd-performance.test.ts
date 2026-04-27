@@ -169,9 +169,9 @@ describe('BDD Scenarios: Performance Testing', () => {
 
         // Then: The system should handle varying conditions gracefully
         results.forEach((result) => {
-          // Response time should be close to expected delay (within 100ms tolerance)
+          // Timer scheduling can undershoot by ~2ms, so allow a small margin
           expect(result.actualResponseTime).toBeGreaterThanOrEqual(
-            result.expectedDelay,
+            result.expectedDelay - 5,
           );
           expect(result.actualResponseTime).toBeLessThan(
             result.expectedDelay + 150,

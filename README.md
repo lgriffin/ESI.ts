@@ -12,6 +12,7 @@ A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.n
 - ETag caching with Cache-Control TTL, stale-on-error, and write invalidation
 - Automatic offset-based pagination and cursor-based pagination support
 - Rate limiting with header-driven backoff
+- Automatic token refresh with 401 retry and concurrent coalescing
 - 32 domain clients covering the full ESI surface
 
 ## Installation
@@ -70,6 +71,7 @@ const client = new EsiClient({
   clientId: 'my-app', // User-Agent identifier (default: 'esi-client')
   accessToken: 'your-token', // EVE SSO token for authenticated endpoints
   baseUrl: 'https://esi.evetech.net', // ESI base URL (default)
+  onTokenRefresh: async () => newToken, // Auto-refresh on 401 (optional)
   timeout: 30000, // Request timeout in ms (default: 30000)
   retryAttempts: 3, // Retry count (default: 3)
   enableETagCache: true, // ETag caching (default: true)
@@ -137,6 +139,46 @@ client.setAccessToken(newToken);
 2. Set a callback URL and select the ESI scopes your app needs
 3. Implement the [OAuth2 flow](https://docs.esi.evetech.net/docs/sso/) to obtain an access token
 4. Access tokens expire — use the refresh token to get new ones
+
+### Automatic Token Refresh
+
+EVE SSO access tokens expire after 20 minutes. Instead of manually tracking expiry, you can provide a refresh callback — the client will automatically call it on 401, update the token, and retry the request:
+
+```typescript
+const client = new EsiClient({
+  accessToken: initialToken,
+  onTokenRefresh: async () => {
+    const response = await fetch('https://login.eveonline.com/v2/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: myRefreshToken,
+        client_id: myClientId,
+      }),
+    });
+    const { access_token } = await response.json();
+    return access_token;
+  },
+});
+
+// Requests now auto-refresh on 401 — no manual token management needed
+const location = await client.location.getCharacterLocation(characterId);
+```
+
+The token provider can also be set or changed at runtime:
+
+```typescript
+client.setTokenProvider(myRefreshFunction);
+client.setTokenProvider(undefined); // disable auto-refresh
+```
+
+Key behaviors:
+
+- Only retries **once** per request — if the refreshed token also gets a 401, the error is thrown
+- **Concurrent coalescing** — if multiple requests hit 401 simultaneously, only one refresh call is made
+- If the refresh callback throws (e.g., refresh token revoked), a `TOKEN_REFRESH_FAILED` error is raised
+- Without a token provider, 401 errors throw immediately as before
 
 ### Environment variables reference
 
@@ -343,6 +385,7 @@ npm run example:dogma        # Item type details + dogma attributes
 npm run example:contracts    # Public region contracts + auction bids/items
 npm run example:rate-limiting      # Rate limiter & pagination demonstration
 npm run example:cursor-pagination  # Freelance Jobs with cursor pagination
+npm run example:token-refresh      # Automatic token refresh on 401
 ```
 
 ### Authenticated Endpoints (require ESI_ACCESS_TOKEN)
