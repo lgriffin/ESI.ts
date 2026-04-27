@@ -55,11 +55,13 @@ describeIfLive('Live ESI: Rate Limit Headers', () => {
     const response = await fetch('https://esi.evetech.net/latest/status/');
     expect(response.ok).toBe(true);
 
-    const remaining = response.headers.get('x-esi-error-limit-remain');
-    const reset = response.headers.get('x-esi-error-limit-reset');
+    const remaining = response.headers.get('x-ratelimit-remaining');
+    const limit = response.headers.get('x-ratelimit-limit');
+    const group = response.headers.get('x-ratelimit-group');
 
     expect(remaining).not.toBeNull();
-    expect(reset).not.toBeNull();
+    expect(limit).not.toBeNull();
+    expect(group).not.toBeNull();
     expect(parseInt(remaining!, 10)).toBeGreaterThanOrEqual(0);
   });
 });
