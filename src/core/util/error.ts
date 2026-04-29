@@ -3,6 +3,7 @@ export class EsiError extends Error {
     public readonly statusCode: number,
     message: string,
     public readonly url?: string,
+    public readonly requestId?: string,
   ) {
     super(message);
     this.name = 'EsiError';

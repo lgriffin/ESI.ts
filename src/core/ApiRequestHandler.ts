@@ -182,7 +182,12 @@ function handleEarlyStatus(
         };
       }
     }
-    throw new EsiError(304, 'Not Modified — no cached data available', url);
+    throw new EsiError(
+      304,
+      'Not Modified — no cached data available',
+      url,
+      parsed.requestId ?? undefined,
+    );
   }
 
   return null;
@@ -389,7 +394,12 @@ function handleErrorResponse(
     logWarn(`Rate limited (${response.status}) on ${url}`);
   }
 
-  throw new EsiError(response.status, errorMessage, url);
+  throw new EsiError(
+    response.status,
+    errorMessage,
+    url,
+    parsed.requestId ?? undefined,
+  );
 }
 
 function wrapError(error: unknown): never {
@@ -462,11 +472,18 @@ async function fetchOnePage(
     else cb.recordSuccess(endpoint);
   }
 
+  if (parsed.warning) {
+    logWarn(
+      `ESI Warning ${parsed.warning.code} for ${url}: ${parsed.warning.message}`,
+    );
+  }
+
   if (!response.ok) {
     throw new EsiError(
       response.status,
       STATUS_MESSAGES[response.status] || response.statusText,
       url,
+      parsed.requestId ?? undefined,
     );
   }
 
@@ -538,6 +555,12 @@ const executeRequest = async (
     if (cb) {
       if (response.status >= 500) cb.recordFailure(endpoint, response.status);
       else cb.recordSuccess(endpoint);
+    }
+
+    if (parsed.warning) {
+      logWarn(
+        `ESI Warning ${parsed.warning.code} for ${url}: ${parsed.warning.message}`,
+      );
     }
 
     if (response.status === 201) {
