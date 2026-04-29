@@ -4,6 +4,7 @@ import { EndpointMap, EndpointArgs } from './EndpointDefinition';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
 import { EsiResponse, EsiResponseMeta } from '../../types/api-responses';
 import { validatePathParam, validateQueryParam } from '../util/validation';
+import { parseWarning } from '../util/headersUtil';
 import { logWarn } from '../logger/loggerUtil';
 
 export interface CursorOptions {
@@ -31,11 +32,19 @@ export type WithMetadata<T> = {
 };
 
 function buildMeta(response: EsiHandlerResponse): EsiResponseMeta {
-  return {
+  const meta: EsiResponseMeta = {
     headers: response.headers,
     fromCache: response.fromCache ?? false,
     stale: response.stale ?? false,
   };
+  const w = parseWarning(response.headers['warning']);
+  if (w) meta.warning = w;
+  if (response.headers['x-esi-request-id'])
+    meta.requestId = response.headers['x-esi-request-id'];
+  if (response.headers['date']) meta.date = response.headers['date'];
+  if (response.headers['content-language'])
+    meta.contentLanguage = response.headers['content-language'];
+  return meta;
 }
 
 /* eslint-disable sonarjs/cognitive-complexity */

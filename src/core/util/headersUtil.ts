@@ -1,3 +1,8 @@
+export interface EsiWarning {
+  code: number;
+  message: string;
+}
+
 export interface ParsedHeaders {
   raw: Record<string, string>;
   xPages: number;
@@ -8,6 +13,21 @@ export interface ParsedHeaders {
   cursorBefore: string | null;
   cursorAfter: string | null;
   hasCursorPagination: boolean;
+  warning: EsiWarning | null;
+  requestId: string | null;
+  date: string | null;
+  contentLanguage: string | null;
+}
+
+export function parseWarning(
+  value: string | null | undefined,
+): EsiWarning | null {
+  if (!value) return null;
+  const match =
+    /^(\d{3}) - "([^"]+)"$/.exec(value) ??
+    /^(\d{3}) - ([^ ].+[^ ])$/.exec(value);
+  if (!match) return null;
+  return { code: parseInt(match[1], 10), message: match[2] };
 }
 
 export function parseHeaders(fetchHeaders: Headers): ParsedHeaders {
@@ -29,5 +49,9 @@ export function parseHeaders(fetchHeaders: Headers): ParsedHeaders {
     cursorBefore,
     cursorAfter,
     hasCursorPagination: 'x-cursor-before' in raw || 'x-cursor-after' in raw,
+    warning: parseWarning(raw['warning']),
+    requestId: raw['x-esi-request-id'] ?? null,
+    date: raw['date'] ?? null,
+    contentLanguage: raw['content-language'] ?? null,
   };
 }

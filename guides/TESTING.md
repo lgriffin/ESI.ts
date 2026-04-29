@@ -13,8 +13,25 @@ tests/
 │   ├── contacts/ContactsClient.test.ts
 │   ├── core/
 │   │   ├── ETagCacheManager.test.ts
-│   │   └── ETagIntegration.test.ts
+│   │   ├── ETagIntegration.test.ts
+│   │   ├── EsiError.test.ts
+│   │   ├── headersUtil.test.ts
+│   │   ├── PaginationHandler.test.ts
+│   │   ├── PaginationIntegration.test.ts
+│   │   ├── RateLimiter.test.ts
+│   │   ├── RateLimitIntegration.test.ts
+│   │   ├── WithMetadata.test.ts
+│   │   ├── circuitBreaker.test.ts
+│   │   ├── constants.test.ts
+│   │   ├── createClient.test.ts
+│   │   ├── CursorPaginationHandler.test.ts
+│   │   ├── CursorPaginationIntegration.test.ts
+│   │   ├── dependencyInjection.test.ts
+│   │   ├── middleware.test.ts
+│   │   ├── tokenRefresh.test.ts
+│   │   └── validation.test.ts
 │   ├── corporations/CorporationsClient.test.ts
+│   ├── dogma/DogmaClient.test.ts
 │   ├── factions/FactionClient.test.ts
 │   ├── fittings/FittingsClient.test.ts
 │   ├── fleets/FleetClient.test.ts
@@ -46,6 +63,7 @@ tests/
 │   │   ├── bdd-contacts.test.ts
 │   │   ├── bdd-contracts.test.ts
 │   │   ├── bdd-corporation.test.ts
+│   │   ├── bdd-dogma.test.ts
 │   │   ├── bdd-etag-caching.test.ts
 │   │   ├── bdd-factions.test.ts
 │   │   ├── bdd-fittings.test.ts
@@ -61,6 +79,7 @@ tests/
 │   │   ├── bdd-market.test.ts
 │   │   ├── bdd-meta.test.ts
 │   │   ├── bdd-pi.test.ts
+│   │   ├── bdd-response-headers.test.ts
 │   │   ├── bdd-route.test.ts
 │   │   ├── bdd-search.test.ts
 │   │   ├── bdd-skills.test.ts
@@ -74,14 +93,17 @@ tests/
 │   │   └── bdd-integration-workflows.test.ts
 │   └── performance/
 │       └── bdd-performance.test.ts
-└── bdd/
-    └── simple-bdd-demo.test.ts
+├── bdd/
+│   └── simple-bdd-demo.test.ts
+└── integration/                  # Integration tests (real ESI API)
+    ├── gated-auth.test.ts        # Tier 1: authenticated endpoint stubs
+    └── live-esi.test.ts          # Tier 2: live ESI API smoke tests
 ```
 
 ## Running Tests
 
 ```bash
-# All tests (TDD + BDD) — 73 suites, 577 tests
+# All unit + BDD tests — 84 suites, 690 tests
 npm test
 
 # Watch mode for development
@@ -107,13 +129,60 @@ npm run bdd:integration
 npm run bdd:performance
 
 # All other BDD domains are also runnable individually:
-# npm run bdd:assets, bdd:calendar, bdd:contacts, bdd:contracts,
-# bdd:factions, bdd:fittings, bdd:fleets, bdd:freelance,
-# bdd:incursions, bdd:industry, bdd:insurance, bdd:killmails,
-# bdd:location, bdd:loyalty, bdd:mail, bdd:pi, bdd:route,
+# npm run bdd:assets, bdd:calendar, bdd:clones, bdd:contacts,
+# bdd:contracts, bdd:dogma, bdd:etag-caching, bdd:factions,
+# bdd:fittings, bdd:fleets, bdd:freelance, bdd:incursions,
+# bdd:industry, bdd:insurance, bdd:killmails, bdd:location,
+# bdd:loyalty, bdd:mail, bdd:meta, bdd:pi, bdd:route,
 # bdd:search, bdd:skills, bdd:sovereignty, bdd:status,
 # bdd:ui, bdd:wallet, bdd:wars
 ```
+
+## Integration Tests
+
+Integration tests live in `tests/integration/` and hit the real ESI API. They are **not** part of the default `npm test` run and require a separate config.
+
+```bash
+# Run integration tests
+npx jest --config jest.integration.config.cjs
+```
+
+### Tier 1: Gated Auth Tests (`gated-auth.test.ts`)
+
+Full-stack integration tests that exercise the real request pipeline (rate limiter, circuit breaker, middleware, ETag caching) against live ESI endpoints. These use public endpoints that don't require authentication.
+
+**What they cover:**
+
+- Rate limiter throttling with real ESI rate limit headers
+- ETag cache hit/miss behavior with real `304 Not Modified` responses
+- Circuit breaker state transitions with real server errors
+- Middleware request/response interception in the live pipeline
+- Error handling with real `404`, `400` responses
+
+```bash
+# Run Tier 1 only
+npx jest --config jest.integration.config.cjs --testPathPattern=gated-auth
+```
+
+### Tier 2: Live ESI Smoke Tests (`live-esi.test.ts`)
+
+Lightweight smoke tests that verify the library can talk to real ESI and get correct response shapes. Designed to catch regressions that mocks wouldn't surface (e.g. ESI schema changes, header format changes).
+
+**What they cover:**
+
+- Server status endpoint returns valid player count and version
+- Alliance lookup returns expected fields
+- Market prices returns array of type/price pairs
+- Character info returns expected fields
+- Universe system lookup returns valid system data
+- 404 handling for nonexistent resources
+
+```bash
+# Run Tier 2 only
+npx jest --config jest.integration.config.cjs --testPathPattern=live-esi
+```
+
+**Note:** Integration tests are rate-limited and have longer timeouts. They may fail if ESI is experiencing downtime. CI runs them on a schedule rather than on every push.
 
 ### Live API Verification
 
@@ -150,15 +219,19 @@ npm run example:contacts     # Contact list with standings
 
 ### Configuration
 
-A single Jest config drives all tests:
+Two Jest configs drive the test suites:
 
-- **Config file**: `jest.unit.config.cjs`
+- **Unit + BDD**: `jest.unit.config.cjs` — runs TDD and BDD tests with `jest-fetch-mock`
+- **Integration**: `jest.integration.config.cjs` — runs integration tests against live ESI
+
+Common setup:
+
 - **Setup**: `src/config/jest/jest.setup.ts` — enables `jest-fetch-mock`, creates a shared `ApiClient`, resets rate limiter before each test
 - **Global setup/teardown**: `src/config/jest/globalSetup.ts` and `globalTeardown.ts`
 
 ### Mocking
 
-All tests use [jest-fetch-mock](https://github.com/jefflau/jest-fetch-mock) to intercept `fetch` calls. No real HTTP requests are made during tests.
+All unit and BDD tests use [jest-fetch-mock](https://github.com/jefflau/jest-fetch-mock) to intercept `fetch` calls. No real HTTP requests are made during tests.
 
 ```typescript
 import fetchMock from 'jest-fetch-mock';
@@ -334,7 +407,7 @@ describe('Feature: Retrieve Alliance Information', () => {
 
 ### BDD Test Categories
 
-- **Core** (`bdd-scenarios/core/`): Domain-specific scenarios — alliance, character, clones, corporation, market, meta, universe, ETag caching
+- **Core** (`bdd-scenarios/core/`): Domain-specific scenarios — alliance, character, clones, corporation, market, meta, universe, ETag caching, response headers
 - **Integration** (`bdd-scenarios/integration/`): Cross-domain workflows — character profile assembly, market analysis, fleet operations
 - **Performance** (`bdd-scenarios/performance/`): Concurrent requests, large dataset handling, memory efficiency, error handling performance
 
@@ -360,9 +433,10 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 
 1. **TDD test**: Create `tests/tdd/<domain>/<ClientName>.test.ts`. Mock fetch responses, call client methods, assert results.
 2. **BDD test**: Add scenarios to existing files in `tests/bdd-scenarios/core/` or create new ones. Use `jest.spyOn` on `EsiClient` properties.
-3. **Test data**: Add factory methods to `src/testing/TestDataFactory.ts` if new response types are needed.
+3. **Integration test**: Add to `tests/integration/`. Use real fetch (no mocks). Keep tests idempotent and read-only against ESI.
+4. **Test data**: Add factory methods to `src/testing/TestDataFactory.ts` if new response types are needed.
 
-All tests run through the single `jest.unit.config.cjs` config — no separate config files needed.
+Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `jest.integration.config.cjs`.
 
 ## Debugging
 
