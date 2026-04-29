@@ -76,3 +76,6 @@ temp/
 # Test reports and coverage
 reports/
 report/
+
+# Local planning docs
+ideas.md
