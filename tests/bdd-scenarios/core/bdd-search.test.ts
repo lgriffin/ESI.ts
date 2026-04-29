@@ -39,6 +39,18 @@ describe('BDD: Search Management', () => {
         const result = await client.search.characterSearch(
           characterId,
           searchString,
+          [
+            'character',
+            'corporation',
+            'alliance',
+            'solar_system',
+            'station',
+            'constellation',
+            'region',
+            'faction',
+            'inventory_type',
+            'agent',
+          ],
         );
 
         // Then
@@ -68,6 +80,18 @@ describe('BDD: Search Management', () => {
         const result = await client.search.characterSearch(
           characterId,
           searchString,
+          [
+            'character',
+            'corporation',
+            'alliance',
+            'solar_system',
+            'station',
+            'constellation',
+            'region',
+            'faction',
+            'inventory_type',
+            'agent',
+          ],
         );
 
         // Then
@@ -95,6 +119,18 @@ describe('BDD: Search Management', () => {
         const result = await client.search.characterSearch(
           characterId,
           searchString,
+          [
+            'character',
+            'corporation',
+            'alliance',
+            'solar_system',
+            'station',
+            'constellation',
+            'region',
+            'faction',
+            'inventory_type',
+            'agent',
+          ],
         );
 
         // Then
@@ -124,6 +160,18 @@ describe('BDD: Search Management', () => {
         const result = await client.search.characterSearch(
           characterId,
           searchString,
+          [
+            'character',
+            'corporation',
+            'alliance',
+            'solar_system',
+            'station',
+            'constellation',
+            'region',
+            'faction',
+            'inventory_type',
+            'agent',
+          ],
         );
 
         // Then
@@ -150,6 +198,18 @@ describe('BDD: Search Management', () => {
         const result = await client.search.characterSearch(
           characterId,
           searchString,
+          [
+            'character',
+            'corporation',
+            'alliance',
+            'solar_system',
+            'station',
+            'constellation',
+            'region',
+            'faction',
+            'inventory_type',
+            'agent',
+          ],
         );
 
         // Then
@@ -170,7 +230,9 @@ describe('BDD: Search Management', () => {
 
         // When & Then
         await expect(
-          client.search.characterSearch(characterId, searchString),
+          client.search.characterSearch(characterId, searchString, [
+            'character',
+          ]),
         ).rejects.toThrow(EsiError);
       });
     });
@@ -193,6 +255,18 @@ describe('BDD: Search Management', () => {
         const result = await client.search.characterSearch(
           characterId,
           searchString,
+          [
+            'character',
+            'corporation',
+            'alliance',
+            'solar_system',
+            'station',
+            'constellation',
+            'region',
+            'faction',
+            'inventory_type',
+            'agent',
+          ],
         );
 
         // Then
