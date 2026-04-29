@@ -1,6 +1,7 @@
 import { ApiClient } from '../core/ApiClient';
 import { createClient, WithMetadata } from '../core/endpoints/createClient';
 import { allianceEndpoints } from '../core/endpoints/allianceEndpoints';
+import { contactEndpoints } from '../core/endpoints/contactEndpoints';
 import {
   AllianceInfo,
   AllianceContact,
@@ -10,12 +11,14 @@ import {
 
 export class AllianceClient {
   private api: ReturnType<typeof createClient<typeof allianceEndpoints>>;
+  private contactApi: ReturnType<typeof createClient<typeof contactEndpoints>>;
   private _client: ApiClient;
   private _metaApi?: ReturnType<typeof createClient<typeof allianceEndpoints>>;
 
   constructor(client: ApiClient) {
     this._client = client;
     this.api = createClient(client, allianceEndpoints);
+    this.contactApi = createClient(client, contactEndpoints);
   }
 
   /**
@@ -36,7 +39,9 @@ export class AllianceClient {
    * @requires Authentication
    */
   getContacts(allianceId: number): Promise<AllianceContact[]> {
-    return this.api.getContacts(allianceId) as Promise<AllianceContact[]>;
+    return this.contactApi.getAllianceContacts(allianceId) as Promise<
+      AllianceContact[]
+    >;
   }
 
   /**
@@ -47,7 +52,7 @@ export class AllianceClient {
    * @requires Authentication
    */
   getContactLabels(allianceId: number): Promise<AllianceContactLabel[]> {
-    return this.api.getContactLabels(allianceId) as Promise<
+    return this.contactApi.getAllianceContactLabels(allianceId) as Promise<
       AllianceContactLabel[]
     >;
   }

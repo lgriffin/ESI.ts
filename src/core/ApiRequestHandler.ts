@@ -11,7 +11,7 @@ import { ETagCacheManager } from './cache/ETagCacheManager';
 import { ICache } from './cache/ICache';
 import { IRateLimiter } from './rateLimiter/IRateLimiter';
 import { RateLimiter } from './rateLimiter/RateLimiter';
-import { PaginationHandler } from './pagination/PaginationHandler';
+import { PaginationHandler, PageFetcher } from './pagination/PaginationHandler';
 import { CursorTokens } from './pagination/CursorPaginationHandler';
 import { USER_AGENT, COMPATIBILITY_DATE } from './constants';
 import { RequestContext, ResponseContext } from './middleware/Middleware';
@@ -265,6 +265,7 @@ async function handleOffsetPagination(
   body: unknown,
   url: string,
   useETag: boolean,
+  pageFetch?: PageFetcher,
 ): Promise<EsiHandlerResponse> {
   const totalPages = parsed.xPages;
 
@@ -291,6 +292,7 @@ async function handleOffsetPagination(
         stopOnEmptyPage: true,
         maxRetries: 3,
       },
+      pageFetch,
     );
 
     cacheResponse(client, url, method, endpoint, parsed, allData, useETag);
@@ -402,15 +404,20 @@ function wrapError(error: unknown): never {
   throw buildError(String(error), 'ESIJS_ERROR');
 }
 
-const executeRequest = async (
+interface SingleFetchResult {
+  data: unknown;
+  parsed: ParsedHeaders;
+  url: string;
+}
+
+async function fetchOnePage(
   client: ApiClient,
   endpoint: string,
   method: string,
   body?: unknown,
   requiresAuth: boolean = false,
-  useETag: boolean = true,
-): Promise<EsiHandlerResponse> => {
-  const startTime = Date.now();
+  useETag: boolean = false,
+): Promise<SingleFetchResult> {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const builtHeaders = buildRequestHeaders(
     client,
@@ -438,10 +445,85 @@ const executeRequest = async (
 
   const url = req.url;
   logInfo(`Hitting endpoint: ${url}`);
-  const finish = (r: EsiHandlerResponse) =>
-    applyResponseInterceptors(client, r, url, endpoint, method, startTime);
+
+  const cb = resolveCircuitBreaker(client);
+  if (cb) cb.checkCircuit(endpoint);
+
+  const rateLimiter = resolveRateLimiter(client);
+  await rateLimiter.checkRateLimit();
+
+  const response = await fetch(url, options);
+  const parsed = parseHeaders(response.headers);
+
+  rateLimiter.updateFromResponse(parsed.raw, response.status);
+
+  if (cb) {
+    if (response.status >= 500) cb.recordFailure(endpoint, response.status);
+    else cb.recordSuccess(endpoint);
+  }
+
+  if (!response.ok) {
+    throw new EsiError(
+      response.status,
+      STATUS_MESSAGES[response.status] || response.statusText,
+      url,
+    );
+  }
+
+  const data = await parseJsonBody(response, url);
+  return { data, parsed, url };
+}
+
+const executeRequest = async (
+  client: ApiClient,
+  endpoint: string,
+  method: string,
+  body?: unknown,
+  requiresAuth: boolean = false,
+  useETag: boolean = true,
+): Promise<EsiHandlerResponse> => {
+  const startTime = Date.now();
+  const finish = (r: EsiHandlerResponse) => {
+    const rawUrl = `${client.getLink()}/${endpoint}`;
+    return applyResponseInterceptors(
+      client,
+      r,
+      rawUrl,
+      endpoint,
+      method,
+      startTime,
+    );
+  };
 
   try {
+    const rawUrl = `${client.getLink()}/${endpoint}`;
+    const builtHeaders = buildRequestHeaders(
+      client,
+      rawUrl,
+      method,
+      requiresAuth,
+      useETag,
+      body,
+    ) as Record<string, string>;
+
+    const req = await applyRequestMiddleware(
+      client,
+      rawUrl,
+      endpoint,
+      method,
+      builtHeaders,
+      body,
+    );
+
+    const options: RequestInit = {
+      method,
+      headers: req.headers,
+      body: req.body ? JSON.stringify(req.body) : undefined,
+    };
+
+    const url = req.url;
+    logInfo(`Hitting endpoint: ${url}`);
+
     const cb = resolveCircuitBreaker(client);
     if (cb) cb.checkCircuit(endpoint);
 
@@ -494,6 +576,19 @@ const executeRequest = async (
     const cursorResult = handleCursorPagination(parsed, data);
     if (cursorResult) return finish(cursorResult);
 
+    const pageFetch = async (paginatedEndpoint: string): Promise<unknown[]> => {
+      const result = await fetchOnePage(
+        client,
+        paginatedEndpoint,
+        method,
+        body,
+        requiresAuth,
+      );
+      return Array.isArray(result.data)
+        ? (result.data as unknown[])
+        : [result.data];
+    };
+
     const paginatedResult = await handleOffsetPagination(
       client,
       endpoint,
@@ -504,6 +599,7 @@ const executeRequest = async (
       body,
       url,
       useETag,
+      pageFetch,
     );
     return finish(paginatedResult);
   } catch (error: unknown) {

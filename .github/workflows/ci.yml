@@ -125,10 +125,38 @@ jobs:
       matrix:
         test-suite:
           - alliance
+          - assets
+          - calendar
           - character
+          - clones
+          - contacts
+          - contracts
           - corporation
+          - dogma
+          - etag-caching
+          - factions
+          - fittings
+          - fleets
+          - freelance
+          - incursions
+          - industry
+          - insurance
+          - killmails
+          - location
+          - loyalty
+          - mail
           - market
+          - meta
+          - pi
+          - route
+          - search
+          - skills
+          - sovereignty
+          - status
+          - ui
           - universe
+          - wallet
+          - wars
           - integration
           - performance
 

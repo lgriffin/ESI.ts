@@ -7,18 +7,6 @@ export const allianceEndpoints = {
     requiresAuth: false,
     pathParams: ['allianceId'],
   },
-  getContacts: {
-    path: 'alliances/{allianceId}/contacts',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['allianceId'],
-  },
-  getContactLabels: {
-    path: 'alliances/{allianceId}/contacts/labels',
-    method: 'GET',
-    requiresAuth: true,
-    pathParams: ['allianceId'],
-  },
   getCorporations: {
     path: 'alliances/{allianceId}/corporations/',
     method: 'GET',
