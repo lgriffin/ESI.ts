@@ -329,6 +329,24 @@ describeIfGated('Gated Auth: Calendar', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Search (authenticated)
+// ---------------------------------------------------------------------------
+
+describeIfGated('Gated Auth: Search', () => {
+  afterAll(() => delay(500));
+
+  it('characterSearch returns results object', async () => {
+    const result = await client.search.characterSearch(characterId, 'Jita', [
+      'solar_system',
+    ]);
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    expect(result.solar_system).toBeDefined();
+    expect(Array.isArray(result.solar_system)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Factions (character stats)
 // ---------------------------------------------------------------------------
 
