@@ -24,10 +24,12 @@ export class SearchClient {
   characterSearch(
     characterId: number,
     searchString: string,
+    categories: string[],
   ): Promise<SearchResult> {
     return this.api.searchCharacter(
       characterId,
       searchString,
+      categories.join(','),
     ) as Promise<SearchResult>;
   }
 

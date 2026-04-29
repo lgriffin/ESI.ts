@@ -422,6 +422,7 @@ describe('BDD Scenarios: Universe Information', () => {
         const result = (await client.search.characterSearch(
           1689391488,
           searchTerm,
+          ['solar_system', 'station', 'constellation', 'region'],
         )) as any;
 
         // Then: I should receive matching entities

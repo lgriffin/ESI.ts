@@ -6,6 +6,6 @@ export const searchEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    queryParams: { searchString: 'search' },
+    queryParams: { searchString: 'search', categories: 'categories' },
   },
 } as const satisfies EndpointMap;
