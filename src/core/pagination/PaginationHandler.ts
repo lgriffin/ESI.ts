@@ -15,6 +15,8 @@ export interface PaginationOptions {
   stopOnEmptyPage?: boolean;
 }
 
+export type PageFetcher = (paginatedEndpoint: string) => Promise<unknown[]>;
+
 export class PaginationHandler {
   private static readonly DEFAULT_OPTIONS: Required<PaginationOptions> = {
     maxPages: 1000, // Reasonable limit to prevent infinite loops
@@ -36,6 +38,7 @@ export class PaginationHandler {
     totalPages: number,
     body?: unknown,
     options: PaginationOptions = {},
+    pageFetch?: PageFetcher,
   ): Promise<unknown[]> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const rateLimiter = RateLimiter.getInstance();
@@ -63,6 +66,7 @@ export class PaginationHandler {
           requiresAuth,
           body,
           opts,
+          pageFetch,
         );
 
         consecutiveFailures = 0;
@@ -108,6 +112,7 @@ export class PaginationHandler {
     requiresAuth: boolean,
     body: unknown,
     options: Required<PaginationOptions>,
+    pageFetch?: PageFetcher,
   ): Promise<unknown[]> {
     let lastError: Error | null = null;
 
@@ -120,6 +125,7 @@ export class PaginationHandler {
           page,
           requiresAuth,
           body,
+          pageFetch,
         );
       } catch (error) {
         lastError = error as Error;
@@ -152,9 +158,16 @@ export class PaginationHandler {
     page: number,
     requiresAuth: boolean,
     body: unknown,
+    pageFetch?: PageFetcher,
   ): Promise<unknown[]> {
     const separator = endpoint.includes('?') ? '&' : '?';
     const paginatedEndpoint = `${endpoint}${separator}page=${page}`;
+
+    if (pageFetch) {
+      logInfo(`Fetching page ${page} via pipeline: ${paginatedEndpoint}`);
+      return pageFetch(paginatedEndpoint);
+    }
+
     const url = `${client.getLink()}/${paginatedEndpoint}`;
 
     logInfo(`Fetching page ${page}: ${url}`);

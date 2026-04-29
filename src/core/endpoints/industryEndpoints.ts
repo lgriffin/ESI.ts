@@ -20,19 +20,19 @@ export const industryEndpoints = {
     pathParams: ['corporationId'],
   },
   getMoonExtractionTimers: {
-    path: 'corporation/{corporationId}/mining/extractions',
+    path: 'corporations/{corporationId}/mining/extractions',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
   },
   getCorporationMiningObservers: {
-    path: 'corporation/{corporationId}/mining/observers',
+    path: 'corporations/{corporationId}/mining/observers',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
   },
   getCorporationMiningObserver: {
-    path: 'corporation/{corporationId}/mining/observers/{observerId}',
+    path: 'corporations/{corporationId}/mining/observers/{observerId}',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId', 'observerId'],

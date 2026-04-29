@@ -82,15 +82,7 @@ jobs:
 
     strategy:
       matrix:
-        test-type:
-          [
-            unit,
-            bdd-alliance,
-            bdd-character,
-            bdd-corporation,
-            bdd-integration,
-            integration,
-          ]
+        test-type: [unit, bdd, integration]
 
     steps:
       - name: Checkout code
@@ -111,17 +103,8 @@ jobs:
             "unit")
               npm test
               ;;
-            "bdd-alliance")
-              npm run bdd:alliance
-              ;;
-            "bdd-character")
-              npm run bdd:character
-              ;;
-            "bdd-corporation")
-              npm run bdd:corporation
-              ;;
-            "bdd-integration")
-              npm run bdd:integration
+            "bdd")
+              npm run bdd
               ;;
             "integration")
               npm run test:integration
