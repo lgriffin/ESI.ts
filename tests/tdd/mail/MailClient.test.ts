@@ -51,6 +51,9 @@ describe('MailClient', () => {
         expect(typeof mail.timestamp).toBe('string');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/mail/',
+    );
   });
 
   it('should send a new mail', async () => {
@@ -70,6 +73,9 @@ describe('MailClient', () => {
 
     expect(result).toHaveProperty('mail_id');
     expect(typeof result.mail_id).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/mail/',
+    );
   });
 
   it('should delete a mail', async () => {
@@ -78,6 +84,9 @@ describe('MailClient', () => {
     const result = await getBody(() => mailClient.deleteMail(123456, 1));
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/mail/1/',
+    );
   });
 
   it('should return a mail', async () => {
@@ -103,6 +112,9 @@ describe('MailClient', () => {
     expect(typeof result.from).toBe('number');
     expect(result).toHaveProperty('timestamp');
     expect(typeof result.timestamp).toBe('string');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/mail/1/',
+    );
   });
 
   it('should update mail metadata', async () => {
@@ -118,6 +130,9 @@ describe('MailClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/mail/1/',
+    );
   });
 
   it('should return mail labels and unread counts', async () => {
@@ -150,6 +165,9 @@ describe('MailClient', () => {
     );
     expect(result).toHaveProperty('total_unread_count');
     expect(typeof result.total_unread_count).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/mail/labels/',
+    );
   });
 
   it('should create a mail label', async () => {
@@ -169,6 +187,9 @@ describe('MailClient', () => {
 
     expect(result).toHaveProperty('label_id');
     expect(typeof result.label_id).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/mail/labels/',
+    );
   });
 
   it('should delete a mail label', async () => {
@@ -177,6 +198,9 @@ describe('MailClient', () => {
     const result = await getBody(() => mailClient.deleteMailLabel(123456, 1));
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/mail/labels/1/',
+    );
   });
 
   it('should return mailing list subscriptions', async () => {
@@ -198,5 +222,8 @@ describe('MailClient', () => {
       expect(list).toHaveProperty('name');
       expect(typeof list.name).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/mail/lists/',
+    );
   });
 });

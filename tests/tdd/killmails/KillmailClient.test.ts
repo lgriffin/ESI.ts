@@ -51,6 +51,9 @@ describe('KillmailsClient', () => {
       expect(killmail).toHaveProperty('attackers');
       expect(Array.isArray(killmail.attackers)).toBe(true);
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/killmails/recent',
+    );
   });
 
   it('should return valid structure for getCorporationRecentKillmails', async () => {
@@ -84,6 +87,9 @@ describe('KillmailsClient', () => {
       expect(killmail).toHaveProperty('attackers');
       expect(Array.isArray(killmail.attackers)).toBe(true);
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456/killmails/recent',
+    );
   });
 
   it('should return valid structure for getKillmail', async () => {
@@ -112,5 +118,8 @@ describe('KillmailsClient', () => {
     expect(typeof result.victim.character_id).toBe('number');
     expect(result).toHaveProperty('attackers');
     expect(Array.isArray(result.attackers)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/killmails/12345/abcdef1234567890',
+    );
   });
 });

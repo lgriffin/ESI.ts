@@ -1,7 +1,6 @@
 import { FreelanceJobsClient } from '../../../src/clients/FreelanceJobsClient';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
-import { resetETagCache } from '../../../src/core/ApiRequestHandler';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -66,8 +65,7 @@ describe('FreelanceJobsClient', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    resetETagCache();
-    const rateLimiter = RateLimiter.getInstance();
+    const rateLimiter = new RateLimiter();
     rateLimiter.reset();
     rateLimiter.setTestMode(true);
     const apiClient = new ApiClient(
@@ -75,6 +73,7 @@ describe('FreelanceJobsClient', () => {
       'https://esi.evetech.net',
       undefined,
     );
+    apiClient.setRateLimiter(rateLimiter);
     client = new FreelanceJobsClient(apiClient);
   });
 
@@ -144,11 +143,14 @@ describe('FreelanceJobsClient', () => {
 
   describe('getCharacterFreelanceJobs', () => {
     it('should fetch character freelance jobs with auth', async () => {
+      const rateLimiter = new RateLimiter();
+      rateLimiter.setTestMode(true);
       const authedApiClient = new ApiClient(
         'test',
         'https://esi.evetech.net',
         'my-token',
       );
+      authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
 
       fetchMock.mockResponseOnce(JSON.stringify(MOCK_LISTING));
@@ -166,11 +168,14 @@ describe('FreelanceJobsClient', () => {
     });
 
     it('should pass cursor params for character listing', async () => {
+      const rateLimiter = new RateLimiter();
+      rateLimiter.setTestMode(true);
       const authedApiClient = new ApiClient(
         'test',
         'https://esi.evetech.net',
         'my-token',
       );
+      authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
 
       fetchMock.mockResponseOnce(JSON.stringify(MOCK_LISTING));
@@ -189,11 +194,14 @@ describe('FreelanceJobsClient', () => {
 
   describe('getCharacterFreelanceJobParticipation', () => {
     it('should fetch participation for a specific job', async () => {
+      const rateLimiter = new RateLimiter();
+      rateLimiter.setTestMode(true);
       const authedApiClient = new ApiClient(
         'test',
         'https://esi.evetech.net',
         'my-token',
       );
+      authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
       const mockParticipation = { status: 'committed', contributions: 5 };
 
@@ -213,11 +221,14 @@ describe('FreelanceJobsClient', () => {
 
   describe('getCorporationFreelanceJobs', () => {
     it('should fetch corporation freelance jobs with auth', async () => {
+      const rateLimiter = new RateLimiter();
+      rateLimiter.setTestMode(true);
       const authedApiClient = new ApiClient(
         'test',
         'https://esi.evetech.net',
         'my-token',
       );
+      authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
 
       fetchMock.mockResponseOnce(JSON.stringify(MOCK_LISTING));
@@ -237,11 +248,14 @@ describe('FreelanceJobsClient', () => {
 
   describe('getCorporationFreelanceJobParticipants', () => {
     it('should fetch participants for a corporation job', async () => {
+      const rateLimiter = new RateLimiter();
+      rateLimiter.setTestMode(true);
       const authedApiClient = new ApiClient(
         'test',
         'https://esi.evetech.net',
         'my-token',
       );
+      authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
       const mockParticipants = [{ character_id: 111 }, { character_id: 222 }];
 

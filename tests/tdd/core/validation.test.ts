@@ -1,6 +1,7 @@
 import {
   validatePathParam,
   validateQueryParam,
+  validateBaseUrl,
 } from '../../../src/core/util/validation';
 
 describe('validatePathParam', () => {
@@ -83,5 +84,56 @@ describe('validateQueryParam', () => {
   it('should accept values at the length limit', () => {
     const maxString = 'a'.repeat(2000);
     expect(validateQueryParam('search', maxString)).toBe(maxString);
+  });
+});
+
+describe('validateBaseUrl', () => {
+  it('should accept valid ESI URLs', () => {
+    expect(validateBaseUrl('https://esi.evetech.net')).toBe(
+      'https://esi.evetech.net',
+    );
+    expect(validateBaseUrl('https://esi.evetech.net/latest')).toBe(
+      'https://esi.evetech.net/latest',
+    );
+  });
+
+  it('should strip trailing slash', () => {
+    expect(validateBaseUrl('https://esi.evetech.net/')).toBe(
+      'https://esi.evetech.net',
+    );
+  });
+
+  it('should reject non-HTTPS URLs', () => {
+    expect(() => validateBaseUrl('http://esi.evetech.net')).toThrow(
+      'HTTPS protocol',
+    );
+  });
+
+  it('should reject non-allowlisted hosts', () => {
+    expect(() => validateBaseUrl('https://evil.com')).toThrow(
+      'not in the allowlist',
+    );
+  });
+
+  it('should reject subdomain spoofing', () => {
+    expect(() => validateBaseUrl('https://esi.evetech.net.evil.com')).toThrow(
+      'not in the allowlist',
+    );
+  });
+
+  it('should reject invalid URLs', () => {
+    expect(() => validateBaseUrl('not-a-url')).toThrow('Invalid base URL');
+  });
+
+  it('should allow custom hosts when unsafeAllowCustomHost is true', () => {
+    expect(validateBaseUrl('https://my-proxy.example.com', true)).toBe(
+      'https://my-proxy.example.com',
+    );
+  });
+
+  it('should still require HTTPS even with unsafeAllowCustomHost', () => {
+    expect(() => validateBaseUrl('http://my-proxy.example.com', true)).toThrow(
+      'HTTPS protocol',
+    );
   });
 });

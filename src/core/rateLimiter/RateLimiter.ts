@@ -52,16 +52,14 @@ function getTokenCost(statusCode: number): number {
 }
 
 export class RateLimiter implements IRateLimiter {
-  private static instance: RateLimiter;
   private rateLimitInfo: RateLimitInfo;
   private lastRequestTime: number = 0;
   private readonly minDelayMs: number = 50;
   private isTestMode: boolean = false;
 
-  /** Threshold below which we start adding delays to decelerate */
-  private readonly decelerationThreshold: number = 0.2; // 20% remaining
+  private readonly decelerationThreshold: number = 0.2;
 
-  private constructor() {
+  constructor() {
     this.rateLimitInfo = this.defaultInfo();
   }
 
@@ -76,13 +74,6 @@ export class RateLimiter implements IRateLimiter {
       retryAfter: null,
       blockedUntil: 0,
     };
-  }
-
-  static getInstance(): RateLimiter {
-    if (!RateLimiter.instance) {
-      RateLimiter.instance = new RateLimiter();
-    }
-    return RateLimiter.instance;
   }
 
   /**

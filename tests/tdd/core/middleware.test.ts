@@ -11,13 +11,16 @@ import fetchMock from 'jest-fetch-mock';
 fetchMock.enableMocks();
 
 describe('Middleware', () => {
+  let rateLimiter: RateLimiter;
+
   beforeEach(() => {
     fetchMock.resetMocks();
-    RateLimiter.getInstance().setTestMode(true);
+    rateLimiter = new RateLimiter();
+    rateLimiter.setTestMode(true);
   });
 
   afterEach(() => {
-    RateLimiter.getInstance().setTestMode(false);
+    rateLimiter.setTestMode(false);
   });
 
   describe('MiddlewareManager', () => {
@@ -98,6 +101,7 @@ describe('Middleware', () => {
   describe('Integration with handleRequest', () => {
     it('should apply request interceptor headers to outgoing request', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       client.addRequestInterceptor((ctx: RequestContext) => ({
         ...ctx,
         headers: { ...ctx.headers, 'X-Trace-Id': 'abc-123' },
@@ -116,6 +120,7 @@ describe('Middleware', () => {
 
     it('should apply response interceptor to transform body', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       client.addResponseInterceptor((ctx: ResponseContext) => ({
         ...ctx,
         body: { ...(ctx.body as Record<string, unknown>), injected: true },
@@ -131,6 +136,7 @@ describe('Middleware', () => {
 
     it('should provide durationMs in response context', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       let capturedDuration = -1;
 
       client.addResponseInterceptor((ctx: ResponseContext) => {
@@ -147,6 +153,7 @@ describe('Middleware', () => {
 
     it('should allow removing interceptor at runtime', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       const remove = client.addRequestInterceptor((ctx: RequestContext) => ({
         ...ctx,
         headers: { ...ctx.headers, 'X-Custom': 'yes' },

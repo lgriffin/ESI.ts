@@ -78,7 +78,7 @@ export function createClient<T extends EndpointMap>(
         for (const param of def.pathParams) {
           const raw = args[argIndex++];
           const validated = validatePathParam(param, raw);
-          path = path.replace(`{${param}}`, validated);
+          path = path.replace(`{${param}}`, encodeURIComponent(validated));
         }
       }
 

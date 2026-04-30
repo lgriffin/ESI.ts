@@ -45,6 +45,9 @@ describe('SkillsClient', () => {
     expect(typeof result.willpower).toBe('number');
     expect(result).toHaveProperty('charisma');
     expect(typeof result.charisma).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/attributes',
+    );
   });
 
   it('should return character skills', async () => {
@@ -84,6 +87,9 @@ describe('SkillsClient', () => {
       expect(skill).toHaveProperty('active_skill_level');
       expect(typeof skill.active_skill_level).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/skills',
+    );
   });
 
   it('should return character skill queue', async () => {
@@ -128,5 +134,8 @@ describe('SkillsClient', () => {
       expect(skill).toHaveProperty('finish_time');
       expect(typeof skill.finish_time).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/skillqueue',
+    );
   });
 });

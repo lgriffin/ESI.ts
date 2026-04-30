@@ -37,6 +37,9 @@ describe('FleetClient', () => {
     expect(result).toHaveProperty('role');
     expect(result).toHaveProperty('squad_id');
     expect(result).toHaveProperty('wing_id');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/fleet',
+    );
   });
 
   it('should return valid structure for getFleetInformation', async () => {
@@ -59,6 +62,9 @@ describe('FleetClient', () => {
     expect(result).toHaveProperty('is_registered');
     expect(result).toHaveProperty('is_voice_enabled');
     expect(result).toHaveProperty('motd');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890',
+    );
   });
 
   it('should update the fleet information', async () => {
@@ -71,6 +77,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890',
+    );
   });
 
   it('should return valid structure for getFleetMembers', async () => {
@@ -106,6 +115,9 @@ describe('FleetClient', () => {
       expect(member).toHaveProperty('takes_fleet_warp');
       expect(member).toHaveProperty('wing_id');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/members',
+    );
   });
 
   it('should create a fleet invitation', async () => {
@@ -118,6 +130,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/members/',
+    );
   });
 
   it('should kick a fleet member', async () => {
@@ -128,6 +143,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/members/123456789/',
+    );
   });
 
   it('should move a fleet member', async () => {
@@ -140,6 +158,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/members/123456789/',
+    );
   });
 
   it('should delete a fleet squad', async () => {
@@ -150,6 +171,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/squads/1/',
+    );
   });
 
   it('should rename a fleet squad', async () => {
@@ -160,6 +184,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/squads/1/',
+    );
   });
 
   it('should return fleet wings', async () => {
@@ -190,6 +217,9 @@ describe('FleetClient', () => {
         expect(squad).toHaveProperty('name');
       });
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/wings/',
+    );
   });
 
   it('should create a fleet wing', async () => {
@@ -202,6 +232,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/wings/',
+    );
   });
 
   it('should delete a fleet wing', async () => {
@@ -212,6 +245,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/wings/1/',
+    );
   });
 
   it('should rename a fleet wing', async () => {
@@ -222,6 +258,9 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/wings/1/',
+    );
   });
 
   it('should create a fleet squad', async () => {
@@ -232,5 +271,8 @@ describe('FleetClient', () => {
     );
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fleets/1234567890/wings/1/squads/',
+    );
   });
 });

@@ -1,5 +1,6 @@
 import { ApiClient } from '../../../src/core/ApiClient';
 import { SearchClient } from '../../../src/clients/SearchClient';
+import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -14,6 +15,9 @@ describe('SearchClient', () => {
       'https://esi.evetech.net/latest',
       'token',
     );
+    const rateLimiter = new RateLimiter();
+    rateLimiter.setTestMode(true);
+    client.setRateLimiter(rateLimiter);
     searchClient = new SearchClient(client);
     fetchMock.resetMocks();
   });
@@ -46,5 +50,8 @@ describe('SearchClient', () => {
     expect(result).toHaveProperty('search_results');
     expect(result.search_results).toHaveProperty('character');
     expect(result.search_results.character).toContain(12345678);
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      'https://esi.evetech.net/latest/characters/1689391488/search/',
+    );
   });
 });

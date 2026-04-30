@@ -1,7 +1,4 @@
-import {
-  handleRequest,
-  resetETagCache,
-} from '../../../src/core/ApiRequestHandler';
+import { handleRequest } from '../../../src/core/ApiRequestHandler';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
@@ -18,11 +15,11 @@ describe('Cursor Pagination Integration (handleRequest)', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    resetETagCache();
-    const rateLimiter = RateLimiter.getInstance();
+    const rateLimiter = new RateLimiter();
     rateLimiter.reset();
     rateLimiter.setTestMode(true);
     client = new ApiClient('test', 'https://esi.evetech.net', undefined);
+    client.setRateLimiter(rateLimiter);
   });
 
   it('should detect cursor pagination and return cursors in response', async () => {

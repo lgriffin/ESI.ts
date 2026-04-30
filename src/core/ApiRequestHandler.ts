@@ -7,10 +7,9 @@ import {
   logDebug,
 } from '../core/logger/loggerUtil';
 import { parseHeaders, ParsedHeaders } from '../core/util/headersUtil';
-import { ETagCacheManager } from './cache/ETagCacheManager';
+import { ETagCacheManager, ETagCacheConfig } from './cache/ETagCacheManager';
 import { ICache } from './cache/ICache';
 import { IRateLimiter } from './rateLimiter/IRateLimiter';
-import { RateLimiter } from './rateLimiter/RateLimiter';
 import { PaginationHandler, PageFetcher } from './pagination/PaginationHandler';
 import { CursorTokens } from './pagination/CursorPaginationHandler';
 import { USER_AGENT, COMPATIBILITY_DATE } from './constants';
@@ -45,60 +44,26 @@ const STATUS_MESSAGES: Record<number, string> = {
   520: 'Internal server error, did the request terminate too soon?',
 };
 
-// --- Global instance management (backward compat) ---
-
-let globalCache: ETagCacheManager | null = null;
-let globalCircuitBreaker: CircuitBreaker | null = null;
-
-export const initializeETagCache = (
-  config?: ConstructorParameters<typeof ETagCacheManager>[0],
-): ETagCacheManager => {
-  if (!globalCache) {
-    globalCache = new ETagCacheManager(config);
-  }
-  return globalCache;
-};
-
-export const getETagCache = (): ETagCacheManager | null => {
-  return globalCache;
-};
-
-export const resetETagCache = (): void => {
-  if (globalCache) {
-    globalCache.shutdown();
-  }
-  globalCache = null;
-};
-
-export const initializeCircuitBreaker = (
-  config?: CircuitBreakerConfig,
-): CircuitBreaker => {
-  if (!globalCircuitBreaker) {
-    globalCircuitBreaker = new CircuitBreaker(config);
-  }
-  return globalCircuitBreaker;
-};
-
-export const getCircuitBreaker = (): CircuitBreaker | null => {
-  return globalCircuitBreaker;
-};
-
-export const resetCircuitBreaker = (): void => {
-  globalCircuitBreaker = null;
-};
-
 // --- Dependency resolution ---
 
 function resolveCache(client: ApiClient): ICache | null {
-  return client.getCache() ?? globalCache;
+  return client.getCache();
 }
 
 function resolveRateLimiter(client: ApiClient): IRateLimiter {
-  return client.getRateLimiter() ?? RateLimiter.getInstance();
+  const limiter = client.getRateLimiter();
+  if (!limiter) {
+    throw buildError(
+      'No rate limiter configured on ApiClient. ' +
+        'Set one via apiClient.setRateLimiter(new RateLimiter()).',
+      'CONFIGURATION_ERROR',
+    );
+  }
+  return limiter;
 }
 
 function resolveCircuitBreaker(client: ApiClient): CircuitBreaker | null {
-  return client.getCircuitBreaker() ?? globalCircuitBreaker;
+  return client.getCircuitBreaker();
 }
 
 // --- Pure helpers ---

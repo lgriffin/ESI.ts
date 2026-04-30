@@ -11,15 +11,18 @@ const BASE_URL = 'https://esi.evetech.net';
 
 describe('createClient', () => {
   let apiClient: ApiClient;
+  let rateLimiter: RateLimiter;
 
   beforeEach(() => {
     fetchMock.resetMocks();
+    rateLimiter = new RateLimiter();
+    rateLimiter.setTestMode(true);
     apiClient = new ApiClient('test', BASE_URL);
-    RateLimiter.getInstance().setTestMode(true);
+    apiClient.setRateLimiter(rateLimiter);
   });
 
   afterEach(() => {
-    RateLimiter.getInstance().setTestMode(false);
+    rateLimiter.setTestMode(false);
   });
 
   describe('datasource parameter', () => {

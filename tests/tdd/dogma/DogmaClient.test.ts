@@ -34,6 +34,9 @@ describe('DogmaClient', () => {
       result.forEach((id: number) => {
         expect(typeof id).toBe('number');
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/dogma/attributes',
+      );
     });
 
     it('should handle empty attributes list', async () => {
@@ -43,6 +46,9 @@ describe('DogmaClient', () => {
 
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(0);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/dogma/attributes',
+      );
     });
   });
 
@@ -74,6 +80,9 @@ describe('DogmaClient', () => {
       expect(result.published).toBe(true);
       expect(result.display_name).toBe('Powergrid Output');
       expect(result.high_is_good).toBe(true);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/dogma/attributes/20',
+      );
     });
 
     it('should throw on non-existent attribute', async () => {
@@ -98,6 +107,9 @@ describe('DogmaClient', () => {
       result.forEach((id: number) => {
         expect(typeof id).toBe('number');
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/dogma/effects',
+      );
     });
   });
 
@@ -125,6 +137,9 @@ describe('DogmaClient', () => {
       expect(result.published).toBe(true);
       expect(result.is_warp_safe).toBe(true);
       expect(result.is_offensive).toBe(false);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/dogma/effects/11',
+      );
     });
 
     it('should throw on non-existent effect', async () => {
@@ -169,6 +184,9 @@ describe('DogmaClient', () => {
       expect(Array.isArray(result.dogma_effects)).toBe(true);
       expect(result.dogma_effects).toHaveLength(2);
       expect(result.dogma_effects[0].effect_id).toBe(11);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/dogma/dynamic/items/47740/1234567890',
+      );
     });
 
     it('should throw on non-existent dynamic item', async () => {

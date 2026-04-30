@@ -62,6 +62,9 @@ describe('AssetsClient', () => {
         expect(typeof asset.type_id).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/assets/',
+    );
   });
 
   it('should return valid structure for character asset locations', async () => {
@@ -100,6 +103,9 @@ describe('AssetsClient', () => {
         expect(typeof location.position.z).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/assets/locations/',
+    );
   });
 
   it('should return valid structure for character asset names', async () => {
@@ -123,6 +129,9 @@ describe('AssetsClient', () => {
       expect(assetName).toHaveProperty('name');
       expect(typeof assetName.name).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/assets/names/',
+    );
   });
 
   it('should return valid structure for corporation assets', async () => {
@@ -167,6 +176,9 @@ describe('AssetsClient', () => {
         expect(typeof asset.type_id).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/987654321/assets/',
+    );
   });
 
   it('should return valid structure for corporation asset locations', async () => {
@@ -205,6 +217,9 @@ describe('AssetsClient', () => {
         expect(typeof location.position.z).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/987654321/assets/locations/',
+    );
   });
 
   it('should return valid structure for corporation asset names', async () => {
@@ -228,5 +243,8 @@ describe('AssetsClient', () => {
       expect(assetName).toHaveProperty('name');
       expect(typeof assetName.name).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/987654321/assets/names/',
+    );
   });
 });

@@ -7,13 +7,16 @@ import fetchMock from 'jest-fetch-mock';
 fetchMock.enableMocks();
 
 describe('Token Refresh', () => {
+  let rateLimiter: RateLimiter;
+
   beforeEach(() => {
     fetchMock.resetMocks();
-    RateLimiter.getInstance().setTestMode(true);
+    rateLimiter = new RateLimiter();
+    rateLimiter.setTestMode(true);
   });
 
   afterEach(() => {
-    RateLimiter.getInstance().setTestMode(false);
+    rateLimiter.setTestMode(false);
   });
 
   describe('ApiClient.refreshToken', () => {
@@ -112,6 +115,7 @@ describe('Token Refresh', () => {
         'https://esi.evetech.net',
         'expired-token',
       );
+      client.setRateLimiter(rateLimiter);
       client.setTokenProvider(async () => 'fresh-token');
 
       fetchMock
@@ -142,6 +146,7 @@ describe('Token Refresh', () => {
         'https://esi.evetech.net',
         'expired-token',
       );
+      client.setRateLimiter(rateLimiter);
 
       fetchMock.mockResponseOnce('', { status: 401 });
 
@@ -154,6 +159,7 @@ describe('Token Refresh', () => {
 
     it('should not retry on 401 for non-authenticated requests', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       client.setTokenProvider(async () => 'fresh-token');
 
       fetchMock.mockResponseOnce('', { status: 401 });
@@ -171,6 +177,7 @@ describe('Token Refresh', () => {
         'https://esi.evetech.net',
         'expired-token',
       );
+      client.setRateLimiter(rateLimiter);
       client.setTokenProvider(async () => {
         throw new Error('Refresh token expired');
       });
@@ -190,6 +197,7 @@ describe('Token Refresh', () => {
         'https://esi.evetech.net',
         'bad-token',
       );
+      client.setRateLimiter(rateLimiter);
       client.setTokenProvider(async () => 'still-bad-token');
 
       fetchMock
@@ -209,6 +217,7 @@ describe('Token Refresh', () => {
         'https://esi.evetech.net',
         'valid-token',
       );
+      client.setRateLimiter(rateLimiter);
       client.setTokenProvider(async () => 'fresh-token');
 
       fetchMock.mockResponseOnce('', { status: 403 });
@@ -226,6 +235,7 @@ describe('Token Refresh', () => {
         'https://esi.evetech.net',
         'bad-token',
       );
+      client.setRateLimiter(rateLimiter);
       client.setTokenProvider(async () => 'still-bad');
 
       fetchMock

@@ -47,6 +47,9 @@ describe('ContractClient', () => {
       expect(contract).toHaveProperty('type');
       expect(typeof contract.type).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/contracts',
+    );
   });
 
   it('should return valid structure for getContractBids', async () => {
@@ -73,6 +76,9 @@ describe('ContractClient', () => {
       expect(bid).toHaveProperty('date_bid');
       expect(typeof bid.date_bid).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/contracts/1/bids',
+    );
   });
 
   it('should return valid structure for getContractItems', async () => {
@@ -99,6 +105,9 @@ describe('ContractClient', () => {
       expect(item).toHaveProperty('quantity');
       expect(typeof item.quantity).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/contracts/1/items',
+    );
   });
 
   it('should return valid structure for getPublicContracts', async () => {
@@ -126,6 +135,9 @@ describe('ContractClient', () => {
       expect(contract).toHaveProperty('type');
       expect(typeof contract.type).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/contracts/public/123',
+    );
   });
 
   it('should return valid structure for getPublicContractBids', async () => {
@@ -150,6 +162,9 @@ describe('ContractClient', () => {
       expect(bid).toHaveProperty('date_bid');
       expect(typeof bid.date_bid).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/contracts/public/bids/1',
+    );
   });
 
   it('should return valid structure for getPublicContractItems', async () => {
@@ -176,6 +191,9 @@ describe('ContractClient', () => {
       expect(item).toHaveProperty('quantity');
       expect(typeof item.quantity).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/contracts/public/items/1',
+    );
   });
 
   it('should return valid structure for getCorporationContracts', async () => {
@@ -205,6 +223,9 @@ describe('ContractClient', () => {
       expect(contract).toHaveProperty('type');
       expect(typeof contract.type).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/contracts',
+    );
   });
 
   it('should return valid structure for getCorporationContractBids', async () => {
@@ -231,6 +252,9 @@ describe('ContractClient', () => {
       expect(bid).toHaveProperty('date_bid');
       expect(typeof bid.date_bid).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/contracts/1/bids',
+    );
   });
 
   it('should return valid structure for getCorporationContractItems', async () => {
@@ -257,5 +281,8 @@ describe('ContractClient', () => {
       expect(item).toHaveProperty('quantity');
       expect(typeof item.quantity).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/contracts/1/items',
+    );
   });
 });

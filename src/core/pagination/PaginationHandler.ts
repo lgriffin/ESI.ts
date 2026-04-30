@@ -5,7 +5,6 @@
 
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
-import { RateLimiter } from '../rateLimiter/RateLimiter';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
 
 export interface PaginationOptions {
@@ -41,7 +40,7 @@ export class PaginationHandler {
     pageFetch?: PageFetcher,
   ): Promise<unknown[]> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
-    const rateLimiter = RateLimiter.getInstance();
+    const rateLimiter = client.getRateLimiter();
     const allData: unknown[] = [...firstPageData];
 
     const effectiveMaxPage = Math.min(totalPages, opts.maxPages);
@@ -56,7 +55,7 @@ export class PaginationHandler {
 
     for (let page = 2; page <= effectiveMaxPage; page++) {
       try {
-        await rateLimiter.checkRateLimit();
+        if (rateLimiter) await rateLimiter.checkRateLimit();
 
         const pageData = await this.fetchPageWithRetry(
           client,

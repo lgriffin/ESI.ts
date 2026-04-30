@@ -79,18 +79,22 @@ class MockCache implements ICache {
 }
 
 describe('Dependency Injection', () => {
+  let rateLimiter: RateLimiter;
+
   beforeEach(() => {
     fetchMock.resetMocks();
-    RateLimiter.getInstance().setTestMode(true);
+    rateLimiter = new RateLimiter();
+    rateLimiter.setTestMode(true);
   });
 
   afterEach(() => {
-    RateLimiter.getInstance().setTestMode(false);
+    rateLimiter.setTestMode(false);
   });
 
   describe('ICache injection', () => {
     it('should use injected cache for ETag lookup', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       const mockCache = new MockCache();
       client.setCache(mockCache);
 
@@ -106,6 +110,7 @@ describe('Dependency Injection', () => {
 
     it('should send If-None-Match when cache has ETag', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       const mockCache = new MockCache();
       mockCache.set(
         'https://esi.evetech.net/v1/status/',
@@ -130,6 +135,7 @@ describe('Dependency Injection', () => {
 
     it('should serve cached data on 304', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       const mockCache = new MockCache();
       mockCache.set(
         'https://esi.evetech.net/v1/status/',
@@ -151,6 +157,7 @@ describe('Dependency Injection', () => {
   describe('IRateLimiter injection', () => {
     it('should use injected rate limiter', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       let checkCalled = false;
       let updateCalled = false;
 
@@ -188,6 +195,7 @@ describe('Dependency Injection', () => {
   describe('CircuitBreaker injection', () => {
     it('should use injected circuit breaker', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       const cb = new CircuitBreaker({ failureThreshold: 2 });
       client.setCircuitBreaker(cb);
 
@@ -206,6 +214,7 @@ describe('Dependency Injection', () => {
 
     it('should block requests when circuit is open', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
       const cb = new CircuitBreaker({ failureThreshold: 1 });
       client.setCircuitBreaker(cb);
 
@@ -223,6 +232,8 @@ describe('Dependency Injection', () => {
     it('should use different caches for different clients', async () => {
       const client1 = new ApiClient('test1', 'https://esi.evetech.net');
       const client2 = new ApiClient('test2', 'https://esi.evetech.net');
+      client1.setRateLimiter(rateLimiter);
+      client2.setRateLimiter(rateLimiter);
 
       const cache1 = new MockCache();
       const cache2 = new MockCache();

@@ -6,10 +6,6 @@
  */
 
 import { EsiClient } from '../../../src/EsiClient';
-import {
-  getETagCache,
-  resetETagCache,
-} from '../../../src/core/ApiRequestHandler';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -19,9 +15,6 @@ describe('BDD: ETag Caching System', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-
-    // Reset the global cache to ensure clean state
-    resetETagCache();
 
     client = new EsiClient({
       clientId: 'test-client',
@@ -67,14 +60,21 @@ describe('BDD: ETag Caching System', () => {
         // Then: The response should be cached for future use
         expect(result).toEqual(allianceData);
 
-        const cache = getETagCache();
-        expect(cache).toBeDefined();
-
         const cacheStats = client.getCacheStats();
+        expect(cacheStats).toBeDefined();
         expect(cacheStats!.totalEntries).toBe(1);
 
-        const cachedETag = cache?.getETag('https://esi.evetech.net/alliances');
-        expect(cachedETag).toBe(etag);
+        // Verify the ETag is cached by making a second request and checking If-None-Match
+        fetchMock.mockResponseOnce('', {
+          status: 304,
+          headers: { ETag: etag },
+        });
+        await client.alliance.getAlliances();
+        const secondCallHeaders = fetchMock.mock.calls[1][1]?.headers as Record<
+          string,
+          string
+        >;
+        expect(secondCallHeaders['If-None-Match']).toBe(etag);
       });
     });
 
@@ -141,9 +141,17 @@ describe('BDD: ETag Caching System', () => {
         // Then: The cache should be updated with the new data
         expect(updatedResult).toEqual(newData);
 
-        const cache = getETagCache();
-        const cachedETag = cache?.getETag('https://esi.evetech.net/alliances');
-        expect(cachedETag).toBe(newETag);
+        // Verify cache was updated with new ETag by making a third request
+        fetchMock.mockResponseOnce('', {
+          status: 304,
+          headers: { ETag: newETag },
+        });
+        await client.alliance.getAlliances();
+        const thirdCallHeaders = fetchMock.mock.calls[2][1]?.headers as Record<
+          string,
+          string
+        >;
+        expect(thirdCallHeaders['If-None-Match']).toBe(newETag);
       });
     });
   });

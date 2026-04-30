@@ -59,6 +59,9 @@ describe('PiClient', () => {
       expect(colony).toHaveProperty('num_pins');
       expect(typeof colony.num_pins).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/planets',
+    );
   });
 
   it('should return valid structure for getColonyLayout', async () => {
@@ -96,6 +99,9 @@ describe('PiClient', () => {
     expect(Array.isArray(result.pins)).toBe(true);
     expect(result).toHaveProperty('routes');
     expect(Array.isArray(result.routes)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/planets/654321',
+    );
   });
 
   it('should return valid structure for getCorporationCustomsOffices', async () => {
@@ -148,6 +154,9 @@ describe('PiClient', () => {
       expect(office).toHaveProperty('corp_tax_rate');
       expect(typeof office.corp_tax_rate).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456/customs_offices',
+    );
   });
 
   it('should return valid structure for getSchematicInformation', async () => {
@@ -170,5 +179,8 @@ describe('PiClient', () => {
     expect(typeof result.cycle_time).toBe('number');
     expect(result).toHaveProperty('output_quantity');
     expect(typeof result.output_quantity).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/schematics/1',
+    );
   });
 });

@@ -36,5 +36,8 @@ describe('StatusClient', () => {
     expect(result.players).toBe(12345);
     expect(result.start_time).toBe('2024-07-01T18:57:11Z');
     expect(result.server_version).toBe('1.2.3');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/status',
+    );
   });
 });

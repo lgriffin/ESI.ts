@@ -59,5 +59,8 @@ describe('IncursionsClient', () => {
         expect(typeof incursion.type).toBe('string');
       });
     }
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/incursions',
+    );
   });
 });

@@ -1,9 +1,5 @@
 import { EsiClient } from '../../src/EsiClient';
 import { EsiClientBuilder, EsiApiFactory } from '../../src/EsiClientBuilder';
-import {
-  resetETagCache,
-  resetCircuitBreaker,
-} from '../../src/core/ApiRequestHandler';
 import { RateLimiter } from '../../src/core/rateLimiter/RateLimiter';
 import { EsiError } from '../../src/core/util/error';
 import { ICache, CacheEntry } from '../../src/core/cache/ICache';
@@ -24,11 +20,6 @@ const standardHeaders = (overrides: Record<string, string> = {}) => ({
 
 function resetGlobals() {
   fetchMock.resetMocks();
-  resetETagCache();
-  resetCircuitBreaker();
-  const rl = RateLimiter.getInstance();
-  rl.reset();
-  rl.setTestMode(true);
 }
 
 describe('Integration: Full Request Lifecycle', () => {
@@ -39,6 +30,7 @@ describe('Integration: Full Request Lifecycle', () => {
     client = new EsiClient({
       clientId: 'integration-test',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       enableETagCache: true,
       etagCacheConfig: { maxEntries: 100, defaultTtl: 60000 },
     });
@@ -103,6 +95,7 @@ describe('Integration: ETag Cache Round-Trip', () => {
     client = new EsiClient({
       clientId: 'etag-integration',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       enableETagCache: true,
       etagCacheConfig: { maxEntries: 100, defaultTtl: 60000 },
     });
@@ -160,6 +153,7 @@ describe('Integration: Circuit Breaker Trip and Recovery', () => {
     client = new EsiClient({
       clientId: 'cb-integration',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       enableETagCache: false,
       enableCircuitBreaker: true,
       circuitBreakerConfig: {
@@ -230,6 +224,7 @@ describe('Integration: Middleware Pipeline', () => {
     client = new EsiClient({
       clientId: 'mw-integration',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       enableETagCache: false,
     });
   });
@@ -327,6 +322,7 @@ describe('Integration: Token Refresh Flow', () => {
     const client = new EsiClient({
       clientId: 'token-integration',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       accessToken: 'expired-token',
       enableETagCache: false,
       onTokenRefresh: async () => {
@@ -364,6 +360,7 @@ describe('Integration: Pagination Assembly', () => {
     client = new EsiClient({
       clientId: 'pagination-integration',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       enableETagCache: false,
     });
   });
@@ -397,6 +394,7 @@ describe('Integration: Error Propagation', () => {
     client = new EsiClient({
       clientId: 'error-integration',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       enableETagCache: false,
     });
   });
@@ -439,6 +437,7 @@ describe('Integration: Error Propagation', () => {
     const cachedClient = new EsiClient({
       clientId: 'stale-cache-test',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       enableETagCache: true,
       etagCacheConfig: { maxEntries: 100, defaultTtl: 60000 },
     });
@@ -473,6 +472,7 @@ describe('Integration: Client Creation Patterns', () => {
     const client = new EsiClient({
       clientId: 'pattern-full',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
       enableETagCache: false,
     });
     fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
@@ -486,7 +486,11 @@ describe('Integration: Client Creation Patterns', () => {
   it('should produce a working client via EsiClientBuilder', async () => {
     const custom = new EsiClientBuilder()
       .addClients(['status', 'market'])
-      .withConfig({ clientId: 'pattern-builder', baseUrl: BASE_URL })
+      .withConfig({
+        clientId: 'pattern-builder',
+        baseUrl: BASE_URL,
+        unsafeAllowCustomHost: true,
+      })
       .build();
 
     expect(custom.hasClient('status')).toBe(true);
@@ -505,6 +509,7 @@ describe('Integration: Client Creation Patterns', () => {
     const marketClient = EsiApiFactory.createMarketClient({
       clientId: 'pattern-factory',
       baseUrl: BASE_URL,
+      unsafeAllowCustomHost: true,
     });
     fetchMock.mockResponseOnce(
       JSON.stringify([{ type_id: 34, average_price: 5.0 }]),
@@ -590,10 +595,15 @@ describe('Integration: DI Isolation', () => {
     const { ApiClient } = await import('../../src/core/ApiClient');
     const { handleRequest } = await import('../../src/core/ApiRequestHandler');
 
+    const rl = new RateLimiter();
+    rl.setTestMode(true);
+
     const clientA = new ApiClient('a', BASE_URL, undefined);
+    clientA.setRateLimiter(rl);
     clientA.setCache(cacheA);
 
     const clientB = new ApiClient('b', BASE_URL, undefined);
+    clientB.setRateLimiter(rl);
     clientB.setCache(cacheB);
 
     fetchMock.mockResponseOnce(JSON.stringify({ a: 1 }), {

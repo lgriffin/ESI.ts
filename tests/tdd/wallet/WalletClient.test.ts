@@ -32,6 +32,9 @@ describe('WalletClient', () => {
 
     expect(result).toHaveProperty('balance');
     expect(typeof result.balance).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/wallet',
+    );
   });
 
   it('should return character wallet journal', async () => {
@@ -75,6 +78,9 @@ describe('WalletClient', () => {
         expect(entry).toHaveProperty('first_party_id');
         expect(entry).toHaveProperty('second_party_id');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/wallet/journal',
     );
   });
 
@@ -126,6 +132,9 @@ describe('WalletClient', () => {
         expect(transaction).toHaveProperty('journal_ref_id');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/wallet/transactions',
+    );
   });
 
   it('should return corporation wallet balance', async () => {
@@ -149,6 +158,9 @@ describe('WalletClient', () => {
       expect(wallet).toHaveProperty('balance');
       expect(typeof wallet.balance).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/wallets',
+    );
   });
 
   it('should return corporation wallet journal', async () => {
@@ -192,6 +204,9 @@ describe('WalletClient', () => {
         expect(entry).toHaveProperty('first_party_id');
         expect(entry).toHaveProperty('second_party_id');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/wallets/1/journal',
     );
   });
 
@@ -242,6 +257,9 @@ describe('WalletClient', () => {
         expect(transaction).toHaveProperty('is_personal');
         expect(transaction).toHaveProperty('journal_ref_id');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/wallets/1/transactions',
     );
   });
 });

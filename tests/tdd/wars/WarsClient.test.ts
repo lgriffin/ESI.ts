@@ -45,6 +45,9 @@ describe('WarsClient', () => {
       expect(war).toHaveProperty('started');
       expect(typeof war.started).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/wars',
+    );
   });
 
   it('should return valid war by ID', async () => {
@@ -68,6 +71,9 @@ describe('WarsClient', () => {
     expect(typeof result.declared).toBe('string');
     expect(result).toHaveProperty('started');
     expect(typeof result.started).toBe('string');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/wars/1',
+    );
   });
 
   it('should return valid war killmails', async () => {
@@ -89,5 +95,8 @@ describe('WarsClient', () => {
       expect(killmail).toHaveProperty('killmail_id');
       expect(typeof killmail.killmail_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/wars/1/killmails',
+    );
   });
 });
