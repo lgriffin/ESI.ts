@@ -73,6 +73,9 @@ describe('MarketClient', () => {
         expect(typeof order.is_buy_order).toBe('boolean');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/orders/',
+    );
   });
 
   it('should return character order history', async () => {
@@ -120,6 +123,9 @@ describe('MarketClient', () => {
         expect(order).toHaveProperty('is_buy_order');
         expect(typeof order.is_buy_order).toBe('boolean');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/orders/history/',
     );
   });
 
@@ -178,6 +184,9 @@ describe('MarketClient', () => {
         expect(typeof order.is_buy_order).toBe('boolean');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456/orders/',
+    );
   });
 
   it('should return corporation order history', async () => {
@@ -226,6 +235,9 @@ describe('MarketClient', () => {
         expect(typeof order.is_buy_order).toBe('boolean');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456/orders/history/',
+    );
   });
 
   it('should return market history', async () => {
@@ -269,6 +281,9 @@ describe('MarketClient', () => {
         expect(history).toHaveProperty('lowest');
         expect(typeof history.lowest).toBe('number');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/123456/history/?type_id=678910',
     );
   });
 
@@ -325,6 +340,9 @@ describe('MarketClient', () => {
         expect(typeof order.is_buy_order).toBe('boolean');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/123456/orders/?order_type=all',
+    );
   });
 
   it('should return market types', async () => {
@@ -338,6 +356,9 @@ describe('MarketClient', () => {
     result.forEach((typeId: number) => {
       expect(typeof typeId).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/123456/types/',
+    );
   });
 
   it('should return market groups', async () => {
@@ -372,6 +393,9 @@ describe('MarketClient', () => {
         expect(Array.isArray(group.types)).toBe(true);
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/groups/',
+    );
   });
 
   it('should return market group information', async () => {
@@ -396,6 +420,9 @@ describe('MarketClient', () => {
     expect(typeof result.description).toBe('string');
     expect(result).toHaveProperty('types');
     expect(Array.isArray(result.types)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/groups/1/',
+    );
   });
 
   it('should return market prices', async () => {
@@ -430,6 +457,9 @@ describe('MarketClient', () => {
         expect(price).toHaveProperty('adjusted_price');
         expect(typeof price.adjusted_price).toBe('number');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/prices/',
     );
   });
 
@@ -487,6 +517,9 @@ describe('MarketClient', () => {
         expect(order).toHaveProperty('is_buy_order');
         expect(typeof order.is_buy_order).toBe('boolean');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/structures/123456789/',
     );
   });
 });

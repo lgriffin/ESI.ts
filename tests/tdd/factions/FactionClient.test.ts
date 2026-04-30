@@ -47,6 +47,9 @@ describe('FactionClient', () => {
     expect(result.victory_points).toHaveProperty('yesterday');
     expect(result.victory_points).toHaveProperty('last_week');
     expect(result.victory_points).toHaveProperty('total');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fw/leaderboards/characters',
+    );
   });
 
   it('should return valid structure for getLeaderboardsCorporations', async () => {
@@ -77,6 +80,9 @@ describe('FactionClient', () => {
     expect(result.victory_points).toHaveProperty('yesterday');
     expect(result.victory_points).toHaveProperty('last_week');
     expect(result.victory_points).toHaveProperty('total');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fw/leaderboards/corporations',
+    );
   });
 
   it('should return valid structure for getLeaderboardsOverall', async () => {
@@ -105,6 +111,9 @@ describe('FactionClient', () => {
     expect(result.victory_points).toHaveProperty('yesterday');
     expect(result.victory_points).toHaveProperty('last_week');
     expect(result.victory_points).toHaveProperty('total');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fw/leaderboards',
+    );
   });
 
   it('should return valid structure for getStats', async () => {
@@ -157,6 +166,9 @@ describe('FactionClient', () => {
         expect(typeof stat.victory_points.yesterday).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fw/stats',
+    );
   });
 
   it('should return valid structure for getCharacterStats', async () => {
@@ -196,6 +208,9 @@ describe('FactionClient', () => {
     expect(typeof result.victory_points.total).toBe('number');
     expect(result.victory_points).toHaveProperty('yesterday');
     expect(typeof result.victory_points.yesterday).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/fw/stats',
+    );
   });
 
   it('should return valid structure for getCorporationStats', async () => {
@@ -235,6 +250,9 @@ describe('FactionClient', () => {
     expect(typeof result.victory_points.total).toBe('number');
     expect(result.victory_points).toHaveProperty('yesterday');
     expect(typeof result.victory_points.yesterday).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/987654321/fw/stats',
+    );
   });
 
   it('should return valid structure for getSystems', async () => {
@@ -277,6 +295,9 @@ describe('FactionClient', () => {
         expect(typeof system.victory_points_threshold).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fw/systems',
+    );
   });
 
   it('should return valid structure for getWars', async () => {
@@ -298,5 +319,8 @@ describe('FactionClient', () => {
       expect(war).toHaveProperty('faction_id');
       expect(typeof war.faction_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/fw/wars',
+    );
   });
 });

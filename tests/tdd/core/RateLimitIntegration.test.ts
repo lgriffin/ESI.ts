@@ -1,7 +1,4 @@
-import {
-  handleRequest,
-  resetETagCache,
-} from '../../../src/core/ApiRequestHandler';
+import { handleRequest } from '../../../src/core/ApiRequestHandler';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
@@ -18,11 +15,11 @@ describe('Rate Limit Integration (handleRequest)', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    resetETagCache();
-    rateLimiter = RateLimiter.getInstance();
+    rateLimiter = new RateLimiter();
     rateLimiter.reset();
     rateLimiter.setTestMode(true);
     client = new ApiClient('test', 'https://esi.evetech.net', 'test-token');
+    client.setRateLimiter(rateLimiter);
   });
 
   it('should update rate limiter on successful 200 response', async () => {

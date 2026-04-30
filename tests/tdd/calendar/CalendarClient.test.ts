@@ -59,6 +59,9 @@ describe('CalendarClient', () => {
       expect(event).toHaveProperty('importance');
       expect(typeof event.importance).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/calendar/',
+    );
   });
 
   it('should return valid structure for getCalendarEventById', async () => {
@@ -93,6 +96,9 @@ describe('CalendarClient', () => {
     expect(typeof result.title).toBe('string');
     expect(result).toHaveProperty('description');
     expect(typeof result.description).toBe('string');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/calendar/1/',
+    );
   });
 
   it('should handle respondToCalendarEvent correctly', async () => {
@@ -103,6 +109,9 @@ describe('CalendarClient', () => {
     );
 
     expect(response).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/calendar/1/',
+    );
   });
 
   it('should return valid structure for getEventAttendees', async () => {
@@ -127,6 +136,9 @@ describe('CalendarClient', () => {
         expect(attendee).toHaveProperty('response');
         expect(typeof attendee.response).toBe('string');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/calendar/1/attendees/',
     );
   });
 });

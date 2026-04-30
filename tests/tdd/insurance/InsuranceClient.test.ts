@@ -46,5 +46,8 @@ describe('InsuranceClient', () => {
       expect(insurance).toHaveProperty('payout');
       expect(typeof insurance.payout).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/insurance/prices',
+    );
   });
 });

@@ -1,7 +1,6 @@
 import { AllianceClient } from '../../../src/clients/AllianceClient';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
-import { resetETagCache } from '../../../src/core/ApiRequestHandler';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -12,9 +11,11 @@ describe('withMetadata()', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    resetETagCache();
-    RateLimiter.getInstance().reset();
+    const rateLimiter = new RateLimiter();
+    rateLimiter.reset();
+    rateLimiter.setTestMode(true);
     apiClient = new ApiClient('https://esi.evetech.net', 'test-client');
+    apiClient.setRateLimiter(rateLimiter);
     allianceClient = new AllianceClient(apiClient);
   });
 

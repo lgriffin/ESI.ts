@@ -41,6 +41,9 @@ describe('LoyaltyClient', () => {
         expect(typeof points.loyalty_points).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/loyalty/points',
+    );
   });
 
   it('should return loyalty store offers', async () => {
@@ -80,6 +83,9 @@ describe('LoyaltyClient', () => {
         expect(offer).toHaveProperty('quantity');
         expect(typeof offer.quantity).toBe('number');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/loyalty/stores/123/offers',
     );
   });
 });

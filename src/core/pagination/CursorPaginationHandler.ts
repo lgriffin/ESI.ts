@@ -17,7 +17,6 @@
 
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
-import { RateLimiter } from '../rateLimiter/RateLimiter';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
 
 export interface CursorTokens {
@@ -106,7 +105,7 @@ export class CursorPaginationHandler {
     options: CursorPaginationOptions = {},
   ): Promise<unknown[]> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
-    const rateLimiter = RateLimiter.getInstance();
+    const rateLimiter = client.getRateLimiter();
     const allData: unknown[] = [...firstPageData];
 
     let afterToken = firstCursors.after;
@@ -115,7 +114,7 @@ export class CursorPaginationHandler {
 
     while (afterToken && pageCount < opts.maxPages) {
       try {
-        await rateLimiter.checkRateLimit();
+        if (rateLimiter) await rateLimiter.checkRateLimit();
 
         const page = await this.fetchPageWithRetry(
           client,

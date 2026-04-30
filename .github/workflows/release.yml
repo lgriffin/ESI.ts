@@ -38,6 +38,11 @@ jobs:
       - name: 🔒 Security audit
         run: npm audit --audit-level=high
 
+      - name: 📋 Verify changelog
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          grep -q "## \[${VERSION}\]" CHANGELOG.md || (echo "CHANGELOG.md missing entry for v${VERSION}" && exit 1)
+
       - name: 🏗️ Build project
         run: npm run build
 
@@ -103,7 +108,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
-          cname: esi-ts-docs.yourdomain.com # Optional: Add your custom domain
 
   # Job 4: Create Release Assets
   create-assets:

@@ -2,7 +2,6 @@ import { StatusClient } from '../../../src/clients/StatusClient';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { EsiError } from '../../../src/core/util/error';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
-import { resetETagCache } from '../../../src/core/ApiRequestHandler';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -19,9 +18,11 @@ describe('BDD: ESI Response Header Best Practices', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    resetETagCache();
-    RateLimiter.getInstance().reset();
+    const rateLimiter = new RateLimiter();
+    rateLimiter.reset();
+    rateLimiter.setTestMode(true);
     apiClient = new ApiClient('https://esi.evetech.net', 'test-client');
+    apiClient.setRateLimiter(rateLimiter);
     statusClient = new StatusClient(apiClient);
   });
 

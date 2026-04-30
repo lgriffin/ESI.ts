@@ -46,6 +46,9 @@ describe('ContactsClient', () => {
         expect(contact).toHaveProperty('standing');
         expect(contact).toHaveProperty('label_ids');
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances/123456/contacts',
+      );
     });
 
     it('should return valid structure for getAllianceContactLabels', async () => {
@@ -67,6 +70,9 @@ describe('ContactsClient', () => {
         expect(label).toHaveProperty('label_id');
         expect(label).toHaveProperty('name');
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances/123456/contacts/labels',
+      );
     });
   });
 
@@ -113,6 +119,9 @@ describe('ContactsClient', () => {
       expect(result[1].label_ids).toEqual([2, 3]);
       expect(result[1].is_watched).toBe(true);
       expect(result[1].is_blocked).toBe(true);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/characters/123456/contacts',
+      );
     });
 
     it('should return valid structure for getCharacterContactLabels', async () => {
@@ -146,6 +155,9 @@ describe('ContactsClient', () => {
         expect(typeof label.label_id).toBe('number');
         expect(typeof label.name).toBe('string');
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/characters/123456/contacts/labels',
+      );
     });
 
     it('should handle postCharacterContacts (add contacts)', async () => {
@@ -173,6 +185,9 @@ describe('ContactsClient', () => {
 
       expect(Array.isArray(result)).toBe(true);
       expect(result).toEqual([123456789, 987654321]);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/characters/123456/contacts',
+      );
     });
 
     it('should handle putCharacterContacts (edit contacts)', async () => {
@@ -192,6 +207,9 @@ describe('ContactsClient', () => {
       );
 
       expect(result).toEqual({});
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/characters/123456/contacts',
+      );
     });
 
     it('should handle deleteCharacterContacts', async () => {
@@ -205,6 +223,9 @@ describe('ContactsClient', () => {
       );
 
       expect(result).toEqual({});
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/characters/123456/contacts',
+      );
     });
   });
 
@@ -247,6 +268,9 @@ describe('ContactsClient', () => {
         expect(Array.isArray(contact.label_ids)).toBe(true);
         expect(typeof contact.is_watched).toBe('boolean');
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/corporations/123456789/contacts',
+      );
     });
 
     it('should return valid structure for getCorporationContactLabels', async () => {
@@ -276,6 +300,9 @@ describe('ContactsClient', () => {
         expect(typeof label.label_id).toBe('number');
         expect(typeof label.name).toBe('string');
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/corporations/123456789/contacts/labels',
+      );
     });
   });
 

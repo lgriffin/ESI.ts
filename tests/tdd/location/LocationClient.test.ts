@@ -39,6 +39,9 @@ describe('LocationClient', () => {
     expect(typeof result.station_id).toBe('number');
     expect(result).toHaveProperty('structure_id');
     expect(typeof result.structure_id).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/location',
+    );
   });
 
   it('should return valid structure for getCharacterOnline', async () => {
@@ -63,6 +66,9 @@ describe('LocationClient', () => {
     expect(typeof result.last_logout).toBe('string');
     expect(result).toHaveProperty('logins');
     expect(typeof result.logins).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/online',
+    );
   });
 
   it('should return valid structure for getCharacterShip', async () => {
@@ -82,5 +88,8 @@ describe('LocationClient', () => {
     expect(typeof result.ship_name).toBe('string');
     expect(result).toHaveProperty('ship_type_id');
     expect(typeof result.ship_type_id).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/ship',
+    );
   });
 });

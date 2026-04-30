@@ -1,12 +1,32 @@
+function sanitizeUrl(url?: string): string | undefined {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    const sensitiveParams = ['token', 'access_token', 'api_key'];
+    for (const param of sensitiveParams) {
+      if (parsed.searchParams.has(param)) {
+        parsed.searchParams.set(param, '[REDACTED]');
+      }
+    }
+    return parsed.toString();
+  } catch {
+    const qIndex = url.indexOf('?');
+    return qIndex >= 0 ? url.substring(0, qIndex) + '?[params-redacted]' : url;
+  }
+}
+
 export class EsiError extends Error {
+  public readonly url?: string;
+
   constructor(
     public readonly statusCode: number,
     message: string,
-    public readonly url?: string,
+    url?: string,
     public readonly requestId?: string,
   ) {
     super(message);
     this.name = 'EsiError';
+    this.url = sanitizeUrl(url);
   }
 
   isRateLimited(): boolean {

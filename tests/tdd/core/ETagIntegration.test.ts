@@ -1,9 +1,4 @@
 import { EsiClient } from '../../../src/EsiClient';
-import {
-  initializeETagCache,
-  getETagCache,
-  resetETagCache,
-} from '../../../src/core/ApiRequestHandler';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -14,20 +9,10 @@ describe('ETag Integration Tests', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
 
-    // Reset the global cache to ensure clean state
-    resetETagCache();
-
-    // Reset rate limiter to ensure clean state
-    const {
-      RateLimiter,
-    } = require('../../../src/core/rateLimiter/RateLimiter');
-    const rateLimiter = RateLimiter.getInstance();
-    rateLimiter.reset();
-    rateLimiter.setTestMode(true);
-
     client = new EsiClient({
       clientId: 'test-client',
       baseUrl: 'https://test-api.example.com',
+      unsafeAllowCustomHost: true,
       enableETagCache: true,
       etagCacheConfig: {
         maxEntries: 100,
@@ -57,10 +42,8 @@ describe('ETag Integration Tests', () => {
 
       expect(response).toEqual(mockData);
 
-      const cache = getETagCache();
-      expect(cache).toBeDefined();
-
       const cacheStats = client.getCacheStats();
+      expect(cacheStats).toBeDefined();
       expect(cacheStats!.totalEntries).toBe(1);
     });
 
@@ -126,9 +109,19 @@ describe('ETag Integration Tests', () => {
       const secondResponse = await client.alliance.getAlliances();
       expect(secondResponse).toEqual(newData);
 
-      const cache = getETagCache();
-      const url = 'https://test-api.example.com/alliances';
-      expect(cache?.getETag(url)).toBe(newETag);
+      // Verify cache was updated with the new ETag by making a third request
+      // and checking the If-None-Match header
+      fetchMock.mockResponseOnce('', {
+        status: 304,
+        headers: { ETag: newETag },
+      });
+
+      await client.alliance.getAlliances();
+      const thirdCallHeaders = fetchMock.mock.calls[2][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(thirdCallHeaders['If-None-Match']).toBe(newETag);
     });
   });
 

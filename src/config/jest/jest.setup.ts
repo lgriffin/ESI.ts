@@ -1,4 +1,5 @@
 import { ApiClientBuilder } from '../../core/ApiClientBuilder';
+import { RateLimiter } from '../../core/rateLimiter/RateLimiter';
 import { getConfig } from '../../config/configManager';
 import fetchMock from 'jest-fetch-mock';
 import { getBody, getHeaders } from '../../../src/core/util/testHelpers';
@@ -8,23 +9,22 @@ fetchMock.enableMocks();
 
 const config = getConfig();
 
+const rateLimiter = new RateLimiter();
+rateLimiter.setTestMode(true);
+
 const client = new ApiClientBuilder()
   .setClientId(config.projectName)
   .setLink(config.link)
   .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+  .setRateLimiter(rateLimiter)
   .build();
 
 export const getClient = () => client;
 
-beforeEach(async () => {
+beforeEach(() => {
   fetchMock.resetMocks();
-
-  const { RateLimiter } = await import('../../core/rateLimiter/RateLimiter');
-  const rateLimiter = RateLimiter.getInstance();
   rateLimiter.reset();
-  rateLimiter.setTestMode(true);
 });
 
-// Assigning functions to the global object
 global.getBody = getBody;
 global.getHeaders = getHeaders;

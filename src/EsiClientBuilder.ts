@@ -1,4 +1,6 @@
 import { ApiClient } from './core/ApiClient';
+import { RateLimiter } from './core/rateLimiter/RateLimiter';
+import { validateBaseUrl } from './core/util/validation';
 import {
   ApiClientType,
   ClientInstance,
@@ -48,11 +50,16 @@ export class CustomEsiClient {
 
   constructor(config: EsiClientConfig & { clients: ApiClientType[] }) {
     this.enabledClients = new Set(config.clients);
+    const baseUrl = validateBaseUrl(
+      config.baseUrl || process.env.ESI_BASE_URL || 'https://esi.evetech.net',
+      config.unsafeAllowCustomHost,
+    );
     this.apiClient = new ApiClient(
       config.clientId || process.env.ESI_CLIENT_ID || 'esi-custom-client',
-      config.baseUrl || process.env.ESI_BASE_URL || 'https://esi.evetech.net',
+      baseUrl,
       config.accessToken || process.env.ESI_ACCESS_TOKEN,
     );
+    this.apiClient.setRateLimiter(new RateLimiter());
 
     for (const name of this.enabledClients) {
       this.clients.set(name, createClientInstance(name, this.apiClient));
@@ -250,11 +257,17 @@ export class EsiApiFactory {
   }
 
   private static buildApiClient(config?: EsiClientConfig): ApiClient {
-    return new ApiClient(
-      config?.clientId || process.env.ESI_CLIENT_ID || 'esi-standalone-client',
+    const baseUrl = validateBaseUrl(
       config?.baseUrl || process.env.ESI_BASE_URL || 'https://esi.evetech.net',
+      config?.unsafeAllowCustomHost,
+    );
+    const client = new ApiClient(
+      config?.clientId || process.env.ESI_CLIENT_ID || 'esi-standalone-client',
+      baseUrl,
       config?.accessToken || process.env.ESI_ACCESS_TOKEN,
     );
+    client.setRateLimiter(new RateLimiter());
+    return client;
   }
 }
 

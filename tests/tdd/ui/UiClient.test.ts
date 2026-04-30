@@ -31,6 +31,9 @@ describe('UiClient', () => {
     const result = await getBody(() => uiClient.setAutopilotWaypoint(body));
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/autopilot/waypoint',
+    );
   });
 
   it('should open contract window', async () => {
@@ -42,6 +45,9 @@ describe('UiClient', () => {
     const result = await getBody(() => uiClient.openContractWindow(body));
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/openwindow/contract',
+    );
   });
 
   it('should open information window', async () => {
@@ -53,6 +59,9 @@ describe('UiClient', () => {
     const result = await getBody(() => uiClient.openInformationWindow(body));
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/openwindow/information',
+    );
   });
 
   it('should open market details window', async () => {
@@ -64,6 +73,9 @@ describe('UiClient', () => {
     const result = await getBody(() => uiClient.openMarketDetailsWindow(body));
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/openwindow/marketdetails',
+    );
   });
 
   it('should open new mail window', async () => {
@@ -77,5 +89,8 @@ describe('UiClient', () => {
     const result = await getBody(() => uiClient.openNewMailWindow(body));
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/openwindow/newmail',
+    );
   });
 });

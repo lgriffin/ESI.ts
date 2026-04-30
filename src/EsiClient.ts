@@ -36,14 +36,16 @@ import { WalletClient } from './clients/WalletClient';
 import { WarsClient } from './clients/WarsClient';
 import { MetaClient } from './clients/MetaClient';
 import { FreelanceJobsClient } from './clients/FreelanceJobsClient';
+import { validateBaseUrl } from './core/util/validation';
 import {
-  initializeETagCache,
-  getETagCache,
-  initializeCircuitBreaker,
-  getCircuitBreaker,
-} from './core/ApiRequestHandler';
-import { ETagCacheConfig } from './core/cache/ETagCacheManager';
-import { CircuitBreakerConfig } from './core/circuitBreaker/CircuitBreaker';
+  ETagCacheManager,
+  ETagCacheConfig,
+} from './core/cache/ETagCacheManager';
+import {
+  CircuitBreaker,
+  CircuitBreakerConfig,
+} from './core/circuitBreaker/CircuitBreaker';
+import { RateLimiter } from './core/rateLimiter/RateLimiter';
 import logger from './core/logger/logger';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
@@ -60,6 +62,7 @@ export interface EsiClientConfig {
   etagCacheConfig?: ETagCacheConfig;
   enableCircuitBreaker?: boolean;
   circuitBreakerConfig?: CircuitBreakerConfig;
+  unsafeAllowCustomHost?: boolean;
   requestInterceptors?: RequestInterceptor[];
   responseInterceptors?: ResponseInterceptor[];
 }
@@ -71,9 +74,13 @@ export class EsiClient {
 
   constructor(config?: EsiClientConfig) {
     const token = config?.accessToken || process.env.ESI_ACCESS_TOKEN;
+    const baseUrl = validateBaseUrl(
+      config?.baseUrl || process.env.ESI_BASE_URL || 'https://esi.evetech.net',
+      config?.unsafeAllowCustomHost,
+    );
     this.apiClient = new ApiClient(
       config?.clientId || process.env.ESI_CLIENT_ID || 'esi-client',
-      config?.baseUrl || process.env.ESI_BASE_URL || 'https://esi.evetech.net',
+      baseUrl,
       token,
     );
 
@@ -88,15 +95,17 @@ export class EsiClient {
       this.apiClient.setTokenProvider(config.onTokenRefresh);
     }
 
+    this.apiClient.setRateLimiter(new RateLimiter());
+
     this.etagCacheEnabled = config?.enableETagCache !== false;
     if (this.etagCacheEnabled) {
-      const cache = initializeETagCache(config?.etagCacheConfig);
-      this.apiClient.setCache(cache);
+      this.apiClient.setCache(new ETagCacheManager(config?.etagCacheConfig));
     }
 
     if (config?.enableCircuitBreaker) {
-      const cb = initializeCircuitBreaker(config.circuitBreakerConfig);
-      this.apiClient.setCircuitBreaker(cb);
+      this.apiClient.setCircuitBreaker(
+        new CircuitBreaker(config.circuitBreakerConfig),
+      );
     }
 
     if (config?.requestInterceptors) {
@@ -248,21 +257,21 @@ export class EsiClient {
     newestEntry: number | null;
   } | null {
     if (!this.etagCacheEnabled) return null;
-    const cache = getETagCache();
-    return cache ? cache.getStats() : null;
+    const cache = this.apiClient.getCache();
+    return cache ? (cache as ETagCacheManager).getStats() : null;
   }
 
   clearCache(): void {
-    const cache = getETagCache();
+    const cache = this.apiClient.getCache();
     if (cache) {
-      cache.clear();
+      (cache as ETagCacheManager).clear();
     }
   }
 
   updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void {
-    const cache = getETagCache();
+    const cache = this.apiClient.getCache();
     if (cache) {
-      cache.updateConfig(newConfig);
+      (cache as ETagCacheManager).updateConfig(newConfig);
     }
   }
 
@@ -274,21 +283,21 @@ export class EsiClient {
       { state: 'closed' | 'open' | 'half-open'; failures: number }
     >;
   } | null {
-    const cb = getCircuitBreaker();
+    const cb = this.apiClient.getCircuitBreaker();
     return cb ? cb.getStats() : null;
   }
 
   resetCircuitBreaker(endpoint?: string): void {
-    const cb = getCircuitBreaker();
+    const cb = this.apiClient.getCircuitBreaker();
     if (cb) {
       cb.reset(endpoint);
     }
   }
 
   shutdown(): void {
-    const cache = getETagCache();
+    const cache = this.apiClient.getCache();
     if (cache) {
-      cache.shutdown();
+      (cache as ETagCacheManager).shutdown();
     }
     this.clients.clear();
     logger.info('EsiClient shutdown completed');

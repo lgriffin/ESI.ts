@@ -46,6 +46,9 @@ describe('AllianceClient', () => {
       expect(result.creator_id).toBe(12345);
       expect(result.creator_corporation_id).toBe(67890);
       expect(result.date_founded).toBe('2010-05-23T05:20:00Z');
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances/99005338/',
+      );
     });
 
     it('should throw EsiError on API errors', async () => {
@@ -94,6 +97,9 @@ describe('AllianceClient', () => {
       expect(result[1].contact_type).toBe('corporation');
       expect(result[1].standing).toBe(-5.0);
       expect(result[1].label_ids).toEqual([3]);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances/99005338/contacts',
+      );
     });
   });
 
@@ -130,6 +136,9 @@ describe('AllianceClient', () => {
       expect(result[1].name).toBe('Neutrals');
       expect(result[2].label_id).toBe(3);
       expect(result[2].name).toBe('Enemies');
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances/99005338/contacts/labels',
+      );
     });
   });
 
@@ -152,6 +161,9 @@ describe('AllianceClient', () => {
       result.forEach((corpId: number) => {
         expect(typeof corpId).toBe('number');
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances/99005338/corporations/',
+      );
     });
   });
 
@@ -174,6 +186,9 @@ describe('AllianceClient', () => {
       expect(result.px128x128).toBe(
         'https://images.evetech.net/alliances/99005338/logo?size=128',
       );
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances/99005338/icons/',
+      );
     });
   });
 
@@ -193,6 +208,9 @@ describe('AllianceClient', () => {
         expect(typeof allianceId).toBe('number');
         expect(allianceId).toBeGreaterThan(0);
       });
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances',
+      );
     });
 
     it('should handle empty alliance list', async () => {
@@ -204,6 +222,9 @@ describe('AllianceClient', () => {
 
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(0);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/latest/alliances',
+      );
     });
   });
 });

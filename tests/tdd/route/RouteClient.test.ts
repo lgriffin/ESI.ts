@@ -1,7 +1,6 @@
 import { RouteClient } from '../../../src/clients/RouteClient';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
-import { resetETagCache } from '../../../src/core/ApiRequestHandler';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -11,8 +10,7 @@ describe('RouteClient', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    resetETagCache();
-    const rateLimiter = RateLimiter.getInstance();
+    const rateLimiter = new RateLimiter();
     rateLimiter.reset();
     rateLimiter.setTestMode(true);
     const apiClient = new ApiClient(
@@ -20,6 +18,7 @@ describe('RouteClient', () => {
       'https://esi.evetech.net',
       undefined,
     );
+    apiClient.setRateLimiter(rateLimiter);
     client = new RouteClient(apiClient);
   });
 

@@ -29,6 +29,35 @@ export function validatePathParam(paramName: string, value: unknown): string {
   return str;
 }
 
+const ALLOWED_ESI_HOSTS = ['esi.evetech.net'];
+
+export function validateBaseUrl(
+  url: string,
+  allowCustomHost?: boolean,
+): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw buildError(`Invalid base URL: ${url}`, 'VALIDATION_ERROR');
+  }
+
+  if (parsed.protocol !== 'https:') {
+    throw buildError('Base URL must use HTTPS protocol', 'VALIDATION_ERROR');
+  }
+
+  if (!allowCustomHost && !ALLOWED_ESI_HOSTS.includes(parsed.hostname)) {
+    throw buildError(
+      `Base URL host '${parsed.hostname}' is not in the allowlist. ` +
+        `Allowed hosts: ${ALLOWED_ESI_HOSTS.join(', ')}. ` +
+        `Set unsafeAllowCustomHost to bypass this check.`,
+      'VALIDATION_ERROR',
+    );
+  }
+
+  return url.replace(/\/$/, '');
+}
+
 export function validateQueryParam(paramName: string, value: unknown): string {
   if (value === null || value === undefined) {
     throw buildError(

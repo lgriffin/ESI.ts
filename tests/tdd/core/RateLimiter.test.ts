@@ -4,7 +4,7 @@ describe('RateLimiter', () => {
   let limiter: RateLimiter;
 
   beforeEach(() => {
-    limiter = RateLimiter.getInstance();
+    limiter = new RateLimiter();
     limiter.reset();
     limiter.setTestMode(false);
   });
@@ -13,11 +13,11 @@ describe('RateLimiter', () => {
     limiter.setTestMode(true);
   });
 
-  describe('singleton', () => {
-    it('should return the same instance', () => {
-      const a = RateLimiter.getInstance();
-      const b = RateLimiter.getInstance();
-      expect(a).toBe(b);
+  describe('constructor', () => {
+    it('should return independent instances', () => {
+      const a = new RateLimiter();
+      const b = new RateLimiter();
+      expect(a).not.toBe(b);
     });
   });
 

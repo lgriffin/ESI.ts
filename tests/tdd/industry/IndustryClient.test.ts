@@ -98,6 +98,9 @@ describe('IndustryClient', () => {
       expect(job).toHaveProperty('completed_character_id');
       expect(typeof job.completed_character_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/industry/jobs',
+    );
   });
 
   it('should return valid structure for getCharacterMiningLedger', async () => {
@@ -127,6 +130,9 @@ describe('IndustryClient', () => {
       expect(ledger).toHaveProperty('type_id');
       expect(typeof ledger.type_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/mining',
+    );
   });
 
   it('should return valid structure for getMoonExtractionTimers', async () => {
@@ -159,6 +165,9 @@ describe('IndustryClient', () => {
       expect(timer).toHaveProperty('natural_decay_time');
       expect(typeof timer.natural_decay_time).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/mining/extractions',
+    );
   });
 
   it('should return valid structure for getCorporationMiningObservers', async () => {
@@ -185,6 +194,9 @@ describe('IndustryClient', () => {
       expect(observer).toHaveProperty('last_updated');
       expect(typeof observer.last_updated).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/mining/observers',
+    );
   });
 
   it('should return valid structure for getCorporationMiningObserver', async () => {
@@ -217,6 +229,9 @@ describe('IndustryClient', () => {
       expect(record).toHaveProperty('last_updated');
       expect(typeof record.last_updated).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/mining/observers/987654321',
+    );
   });
 
   it('should return valid structure for getCorporationIndustryJobs', async () => {
@@ -297,6 +312,9 @@ describe('IndustryClient', () => {
       expect(job).toHaveProperty('completed_character_id');
       expect(typeof job.completed_character_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/industry/jobs',
+    );
   });
 
   it('should return valid structure for getIndustryFacilities', async () => {
@@ -330,6 +348,9 @@ describe('IndustryClient', () => {
       expect(facility).toHaveProperty('tax');
       expect(typeof facility.tax).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/industry/facilities',
+    );
   });
 
   it('should return valid structure for getIndustrySystems', async () => {
@@ -362,5 +383,8 @@ describe('IndustryClient', () => {
         expect(typeof index.cost_index).toBe('number');
       });
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/industry/systems',
+    );
   });
 });

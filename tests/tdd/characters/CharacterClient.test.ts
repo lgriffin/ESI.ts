@@ -38,6 +38,9 @@ describe('CharacterClient', () => {
     expect(typeof result.name).toBe('string');
     expect(result).toHaveProperty('corporation_id');
     expect(typeof result.corporation_id).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/',
+    );
   });
 
   it('should return valid structure for getCharacterAgentsResearch', async () => {
@@ -76,6 +79,9 @@ describe('CharacterClient', () => {
       expect(agent).toHaveProperty('started_at');
       expect(typeof agent.started_at).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/agents_research/',
+    );
   });
 
   it('should return valid structure for getCharacterBlueprints', async () => {
@@ -124,6 +130,9 @@ describe('CharacterClient', () => {
       expect(blueprint).toHaveProperty('runs');
       expect(typeof blueprint.runs).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/blueprints/',
+    );
   });
 
   it('should return valid structure for getCharacterCorporationHistory', async () => {
@@ -158,6 +167,9 @@ describe('CharacterClient', () => {
       expect(history).toHaveProperty('start_date');
       expect(typeof history.start_date).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/corporationhistory/',
+    );
   });
 
   it('should return valid structure for postCspaChargeCost', async () => {
@@ -177,5 +189,8 @@ describe('CharacterClient', () => {
 
     expect(result).toHaveProperty('cost');
     expect(typeof result.cost).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/cspa/',
+    );
   });
 });

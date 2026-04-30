@@ -63,6 +63,9 @@ describe('FittingsClient', () => {
         expect(item).toHaveProperty('type_id');
       });
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/fittings',
+    );
   });
 
   it('should create a fitting', async () => {
@@ -91,6 +94,9 @@ describe('FittingsClient', () => {
 
     expect(result).toHaveProperty('fitting_id');
     expect(typeof result.fitting_id).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/fittings',
+    );
   });
 
   it('should delete a fitting', async () => {
@@ -99,5 +105,8 @@ describe('FittingsClient', () => {
     const result = await getBody(() => fittingsClient.deleteFitting(123456, 1));
 
     expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/fittings/1',
+    );
   });
 });

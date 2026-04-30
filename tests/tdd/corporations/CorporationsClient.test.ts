@@ -41,6 +41,9 @@ describe('CorporationsClient', () => {
     expect(typeof result.name).toBe('string');
     expect(result).toHaveProperty('ticker');
     expect(typeof result.ticker).toBe('string');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789',
+    );
   });
 
   it('should return valid structure for getCorporationAllianceHistory', async () => {
@@ -76,6 +79,9 @@ describe('CorporationsClient', () => {
         expect(history).toHaveProperty('start_date');
         expect(typeof history.start_date).toBe('string');
       },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/alliancehistory',
     );
   });
 
@@ -129,6 +135,9 @@ describe('CorporationsClient', () => {
         expect(typeof blueprint.runs).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/blueprints',
+    );
   });
 
   it('should return valid structure for getCorporationAlscLogs', async () => {
@@ -177,6 +186,9 @@ describe('CorporationsClient', () => {
         expect(typeof log.quantity).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/containers/logs',
+    );
   });
 
   it('should return valid structure for getCorporationDivisions', async () => {
@@ -218,6 +230,9 @@ describe('CorporationsClient', () => {
       expect(division).toHaveProperty('division');
       expect(typeof division.division).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/divisions',
+    );
   });
 
   it('should return valid structure for getCorporationFacilities', async () => {
@@ -258,6 +273,9 @@ describe('CorporationsClient', () => {
         expect(typeof facility.solar_system_id).toBe('number');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/facilities',
+    );
   });
 
   it('should return valid structure for getCorporationIcon', async () => {
@@ -279,6 +297,9 @@ describe('CorporationsClient', () => {
     expect(typeof result.px128x128).toBe('string');
     expect(result).toHaveProperty('px256x256');
     expect(typeof result.px256x256).toBe('string');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/icons',
+    );
   });
 
   // Adding tests for key missing methods
@@ -313,6 +334,9 @@ describe('CorporationsClient', () => {
         expect(typeof member.title).toBe('string');
       },
     );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/members',
+    );
   });
 
   it('should return valid structure for getCorporationMemberLimit', async () => {
@@ -326,6 +350,9 @@ describe('CorporationsClient', () => {
 
     expect(typeof result).toBe('number');
     expect(result).toBe(50);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/members/limit',
+    );
   });
 
   it('should return valid structure for getCorporationRoles', async () => {
@@ -358,6 +385,9 @@ describe('CorporationsClient', () => {
       expect(roleData).toHaveProperty('grantable_roles');
       expect(Array.isArray(roleData.grantable_roles)).toBe(true);
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/roles',
+    );
   });
 
   it('should return valid structure for getCorporationStandings', async () => {
@@ -389,6 +419,9 @@ describe('CorporationsClient', () => {
       expect(standing).toHaveProperty('standing');
       expect(typeof standing.standing).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/standings',
+    );
   });
 
   it('should return valid structure for getCorporationTitles', async () => {
@@ -422,6 +455,9 @@ describe('CorporationsClient', () => {
       expect(title).toHaveProperty('roles');
       expect(Array.isArray(title.roles)).toBe(true);
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/titles',
+    );
   });
 
   it('should return valid structure for getNpcCorporations', async () => {
@@ -436,5 +472,8 @@ describe('CorporationsClient', () => {
       expect(typeof corpId).toBe('number');
       expect(corpId).toBeGreaterThan(0);
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/npccorps',
+    );
   });
 });

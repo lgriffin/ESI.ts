@@ -1,5 +1,6 @@
 import { ApiClient } from '../../../src/core/ApiClient';
 import { SovereigntyClient } from '../../../src/clients/SovereigntyClient';
+import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -11,6 +12,9 @@ describe('SovereigntyClient', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
     client = new ApiClient('dummy-client-id', 'https://esi.evetech.net');
+    const rateLimiter = new RateLimiter();
+    rateLimiter.setTestMode(true);
+    client.setRateLimiter(rateLimiter);
     sovereigntyClient = new SovereigntyClient(client);
   });
 
@@ -38,6 +42,9 @@ describe('SovereigntyClient', () => {
       expect(campaign).toHaveProperty('campaign_id');
       expect(typeof campaign.campaign_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/sovereignty/campaigns',
+    );
   });
 
   it('should get sovereignty map', async () => {
@@ -58,6 +65,9 @@ describe('SovereigntyClient', () => {
       expect(map).toHaveProperty('system_id');
       expect(typeof map.system_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/sovereignty/map',
+    );
   });
 
   it('should get sovereignty structures', async () => {
@@ -84,5 +94,8 @@ describe('SovereigntyClient', () => {
       expect(structure).toHaveProperty('structure_id');
       expect(typeof structure.structure_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/sovereignty/structures',
+    );
   });
 });

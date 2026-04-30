@@ -44,6 +44,9 @@ describe('UniverseClient', () => {
       expect(ancestry).toHaveProperty('bloodline_id');
       expect(typeof ancestry.bloodline_id).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/ancestries',
+    );
   });
 
   it('should return valid asteroid belt information', async () => {
@@ -63,6 +66,9 @@ describe('UniverseClient', () => {
     expect(typeof result.name).toBe('string');
     expect(result).toHaveProperty('system_id');
     expect(typeof result.system_id).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/asteroid_belts/1',
+    );
   });
 
   it('should return valid bloodlines', async () => {
@@ -88,6 +94,9 @@ describe('UniverseClient', () => {
       expect(bloodline).toHaveProperty('description');
       expect(typeof bloodline.description).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/bloodlines',
+    );
   });
 
   it('should return valid constellation information by ID', async () => {
@@ -113,6 +122,9 @@ describe('UniverseClient', () => {
     result.systems.forEach((system: any) => {
       expect(typeof system).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/constellations/1',
+    );
   });
 
   it('should return valid constellations', async () => {
@@ -143,6 +155,9 @@ describe('UniverseClient', () => {
         expect(typeof system).toBe('number');
       });
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/constellations',
+    );
   });
 
   // Continue writing tests for other UniverseClient methods in a similar manner
@@ -169,6 +184,9 @@ describe('UniverseClient', () => {
       expect(faction).toHaveProperty('description');
       expect(typeof faction.description).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/factions',
+    );
   });
 
   it('should return valid graphics', async () => {
@@ -193,6 +211,9 @@ describe('UniverseClient', () => {
       expect(graphic).toHaveProperty('description');
       expect(typeof graphic.description).toBe('string');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/graphics',
+    );
   });
 
   it('should return valid graphic information by ID', async () => {
@@ -212,6 +233,9 @@ describe('UniverseClient', () => {
     expect(typeof result.url).toBe('string');
     expect(result).toHaveProperty('description');
     expect(typeof result.description).toBe('string');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/graphics/1',
+    );
   });
 
   it('should return valid schematic information', async () => {
@@ -250,6 +274,9 @@ describe('UniverseClient', () => {
     expect(Array.isArray(result.materials)).toBe(true);
     expect(result).toHaveProperty('products');
     expect(Array.isArray(result.products)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/schematics/1',
+    );
   });
 
   it('should return valid regions list', async () => {
@@ -264,5 +291,8 @@ describe('UniverseClient', () => {
       expect(typeof regionId).toBe('number');
       expect(regionId).toBeGreaterThan(0);
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/regions',
+    );
   });
 });

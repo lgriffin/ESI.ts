@@ -10,10 +10,11 @@ describe('PaginationHandler', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    const rateLimiter = RateLimiter.getInstance();
+    const rateLimiter = new RateLimiter();
     rateLimiter.reset();
     rateLimiter.setTestMode(true);
     client = new ApiClient('test', 'https://esi.evetech.net', undefined);
+    client.setRateLimiter(rateLimiter);
   });
 
   describe('fetchRemainingPages', () => {

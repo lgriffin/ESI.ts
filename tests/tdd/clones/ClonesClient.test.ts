@@ -44,6 +44,9 @@ describe('ClonesClient', () => {
     expect(result.home_location).toHaveProperty('location_type');
     expect(result).toHaveProperty('jump_clones');
     expect(Array.isArray(result.jump_clones)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/clones',
+    );
   });
 
   it('should return valid structure for implants', async () => {
@@ -57,5 +60,8 @@ describe('ClonesClient', () => {
     result.forEach((implant: number) => {
       expect(typeof implant).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/implants',
+    );
   });
 });

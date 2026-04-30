@@ -90,4 +90,47 @@ describe('EsiError', () => {
       expect(isServerError(new Error('not esi'))).toBe(false);
     });
   });
+
+  describe('URL sanitization', () => {
+    it('should redact sensitive query parameters', () => {
+      const err = new EsiError(
+        400,
+        'Bad request',
+        'https://esi.evetech.net/latest/foo?token=secret123&page=1',
+      );
+      expect(err.url).toContain('token=%5BREDACTED%5D');
+      expect(err.url).not.toContain('secret123');
+      expect(err.url).toContain('page=1');
+    });
+
+    it('should redact access_token parameter', () => {
+      const err = new EsiError(
+        401,
+        'Unauthorized',
+        'https://esi.evetech.net/latest/foo?access_token=mytoken',
+      );
+      expect(err.url).not.toContain('mytoken');
+    });
+
+    it('should preserve URLs without sensitive params', () => {
+      const err = new EsiError(
+        404,
+        'Not found',
+        'https://esi.evetech.net/latest/alliances/99005338/',
+      );
+      expect(err.url).toBe(
+        'https://esi.evetech.net/latest/alliances/99005338/',
+      );
+    });
+
+    it('should handle malformed URLs by stripping query string', () => {
+      const err = new EsiError(500, 'Error', 'not-a-url?secret=value');
+      expect(err.url).toBe('not-a-url?[params-redacted]');
+    });
+
+    it('should handle undefined URL', () => {
+      const err = new EsiError(500, 'Error');
+      expect(err.url).toBeUndefined();
+    });
+  });
 });

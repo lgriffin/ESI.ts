@@ -82,10 +82,18 @@ export {
 
 // Circuit breaker
 export {
+  CircuitBreaker,
   CircuitBreakerConfig,
   CircuitState,
   CircuitOpenError,
 } from './core/circuitBreaker/CircuitBreaker';
+
+// Rate limiter & cache (for direct instantiation)
+export { RateLimiter, RateLimitInfo } from './core/rateLimiter/RateLimiter';
+export {
+  ETagCacheManager,
+  ETagCacheConfig,
+} from './core/cache/ETagCacheManager';
 
 // Interfaces (for custom implementations / testing)
 export { ICache } from './core/cache/ICache';
