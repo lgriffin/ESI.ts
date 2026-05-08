@@ -632,15 +632,16 @@ export const handleRequest = async (
   requiresAuth: boolean = false,
   useETag: boolean = true,
 ): Promise<EsiHandlerResponse> => {
+  const doExecute = () =>
+    executeRequest(client, endpoint, method, body, requiresAuth, useETag);
+
+  const dedup = client.getDeduplicator();
+  const canDedup = dedup && method === 'GET' && !body;
+
   try {
-    return await executeRequest(
-      client,
-      endpoint,
-      method,
-      body,
-      requiresAuth,
-      useETag,
-    );
+    return canDedup
+      ? await dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
+      : await doExecute();
   } catch (error: unknown) {
     if (
       error instanceof EsiError &&
