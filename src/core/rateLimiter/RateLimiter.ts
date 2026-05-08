@@ -52,15 +52,22 @@ function getTokenCost(statusCode: number): number {
   return 2; // default to 2xx cost
 }
 
+export interface RateLimiterConfig {
+  minDelayMs?: number;
+  decelerationThreshold?: number;
+}
+
 export class RateLimiter implements IRateLimiter {
   private rateLimitInfo: RateLimitInfo;
   private lastRequestTime: number = 0;
-  private readonly minDelayMs: number = 50;
+  private readonly minDelayMs: number;
   private isTestMode: boolean = false;
 
-  private readonly decelerationThreshold: number = 0.2;
+  private readonly decelerationThreshold: number;
 
-  constructor() {
+  constructor(config?: RateLimiterConfig) {
+    this.minDelayMs = config?.minDelayMs ?? 50;
+    this.decelerationThreshold = config?.decelerationThreshold ?? 0.2;
     this.rateLimitInfo = this.defaultInfo();
   }
 

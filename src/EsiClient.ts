@@ -45,7 +45,9 @@ import {
   CircuitBreaker,
   CircuitBreakerConfig,
 } from './core/circuitBreaker/CircuitBreaker';
-import { RateLimiter } from './core/rateLimiter/RateLimiter';
+import { RateLimiter, RateLimiterConfig } from './core/rateLimiter/RateLimiter';
+import { RequestDeduplicator } from './core/RequestDeduplicator';
+import { EsiDiagnostics } from './core/EsiDiagnostics';
 import logger from './core/logger/logger';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
@@ -63,6 +65,8 @@ export interface EsiClientConfig {
   enableCircuitBreaker?: boolean;
   circuitBreakerConfig?: CircuitBreakerConfig;
   unsafeAllowCustomHost?: boolean;
+  enableRequestDeduplication?: boolean;
+  rateLimiterConfig?: RateLimiterConfig;
   requestInterceptors?: RequestInterceptor[];
   responseInterceptors?: ResponseInterceptor[];
 }
@@ -71,6 +75,8 @@ export class EsiClient {
   private apiClient: ApiClient;
   private clients: Map<string, unknown> = new Map();
   private etagCacheEnabled: boolean;
+  private _diagnostics: EsiDiagnostics | null = null;
+  private deduplicator: RequestDeduplicator | null = null;
 
   constructor(config?: EsiClientConfig) {
     const token = config?.accessToken || process.env.ESI_ACCESS_TOKEN;
@@ -99,7 +105,12 @@ export class EsiClient {
       this.apiClient.setTokenProvider(config.onTokenRefresh);
     }
 
-    this.apiClient.setRateLimiter(new RateLimiter());
+    this.apiClient.setRateLimiter(new RateLimiter(config?.rateLimiterConfig));
+
+    if (config?.enableRequestDeduplication !== false) {
+      this.deduplicator = new RequestDeduplicator();
+      this.apiClient.setDeduplicator(this.deduplicator);
+    }
 
     this.etagCacheEnabled = config?.enableETagCache !== false;
     if (this.etagCacheEnabled) {
@@ -251,57 +262,44 @@ export class EsiClient {
     );
   }
 
-  getCacheStats(): {
-    totalEntries: number;
-    maxEntries: number;
-    hits: number;
-    misses: number;
-    hitRate: number;
-    oldestEntry: number | null;
-    newestEntry: number | null;
-  } | null {
-    if (!this.etagCacheEnabled) return null;
-    const cache = this.apiClient.getCache();
-    return cache ? (cache as ETagCacheManager).getStats() : null;
+  get diagnostics(): EsiDiagnostics {
+    if (!this._diagnostics) {
+      this._diagnostics = new EsiDiagnostics(
+        this.apiClient,
+        this.etagCacheEnabled,
+        this.deduplicator,
+      );
+    }
+    return this._diagnostics;
+  }
+
+  getCacheStats() {
+    return this.diagnostics.getCacheStats();
   }
 
   clearCache(): void {
-    const cache = this.apiClient.getCache();
-    if (cache) {
-      (cache as ETagCacheManager).clear();
-    }
+    this.diagnostics.clearCache();
   }
 
   updateCacheConfig(newConfig: Partial<ETagCacheConfig>): void {
-    const cache = this.apiClient.getCache();
-    if (cache) {
-      (cache as ETagCacheManager).updateConfig(newConfig);
-    }
+    this.diagnostics.updateCacheConfig(newConfig);
   }
 
-  getCircuitBreakerStats(): {
-    totalCircuits: number;
-    openCircuits: number;
-    circuits: Record<
-      string,
-      { state: 'closed' | 'open' | 'half-open'; failures: number }
-    >;
-  } | null {
-    const cb = this.apiClient.getCircuitBreaker();
-    return cb ? cb.getStats() : null;
+  getCircuitBreakerStats() {
+    return this.diagnostics.getCircuitBreakerStats();
   }
 
   resetCircuitBreaker(endpoint?: string): void {
-    const cb = this.apiClient.getCircuitBreaker();
-    if (cb) {
-      cb.reset(endpoint);
-    }
+    this.diagnostics.resetCircuitBreaker(endpoint);
   }
 
   shutdown(): void {
     const cache = this.apiClient.getCache();
     if (cache) {
       (cache as ETagCacheManager).shutdown();
+    }
+    if (this.deduplicator) {
+      this.deduplicator.clear();
     }
     this.clients.clear();
     logger.info('EsiClient shutdown completed');

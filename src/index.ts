@@ -94,11 +94,31 @@ export {
 } from './core/circuitBreaker/CircuitBreaker';
 
 // Rate limiter & cache (for direct instantiation)
-export { RateLimiter, RateLimitInfo } from './core/rateLimiter/RateLimiter';
+export {
+  RateLimiter,
+  RateLimitInfo,
+  RateLimiterConfig,
+} from './core/rateLimiter/RateLimiter';
 export {
   ETagCacheManager,
   ETagCacheConfig,
 } from './core/cache/ETagCacheManager';
+
+// Request deduplication
+export { RequestDeduplicator } from './core/RequestDeduplicator';
+
+// Diagnostics
+export {
+  EsiDiagnostics,
+  CacheStats,
+  CircuitBreakerStats,
+} from './core/EsiDiagnostics';
+
+// Async pagination
+export {
+  fetchPages,
+  PageResult,
+} from './core/pagination/AsyncPaginationIterator';
 
 // Interfaces (for custom implementations / testing)
 export { ICache } from './core/cache/ICache';
