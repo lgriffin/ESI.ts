@@ -19,6 +19,7 @@ export class ApiClient {
   private cache: ICache | null = null;
   private rateLimiter: IRateLimiter | null = null;
   private circuitBreaker: CircuitBreaker | null = null;
+  private timeout: number = 30_000;
 
   constructor(
     private clientId: string,
@@ -26,6 +27,14 @@ export class ApiClient {
     private accessToken?: string,
   ) {
     this.link = this.link.replace(/\/$/, '');
+  }
+
+  getTimeout(): number {
+    return this.timeout;
+  }
+
+  setTimeout(timeout: number): void {
+    this.timeout = timeout;
   }
 
   getCache(): ICache | null {

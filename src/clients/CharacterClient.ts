@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { characterEndpoints } from '../core/endpoints/characterEndpoints';
 import {
   CharacterInfo,
@@ -16,14 +16,9 @@ import {
   CharacterRole,
 } from '../types/api-responses';
 
-export class CharacterClient {
-  private api: ReturnType<typeof createClient<typeof characterEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof characterEndpoints>>;
-
+export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, characterEndpoints);
+    super(client, characterEndpoints);
   }
 
   /**
@@ -195,17 +190,6 @@ export class CharacterClient {
   ): Promise<CharacterAffiliation[]> {
     return this.api.postCharacterAffiliation(characters) as Promise<
       CharacterAffiliation[]
-    >;
-  }
-
-  withMetadata(): WithMetadata<Omit<CharacterClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, characterEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<CharacterClient, 'withMetadata'>
     >;
   }
 }

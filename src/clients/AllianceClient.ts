@@ -1,5 +1,6 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
+import { createClient } from '../core/endpoints/createClient';
 import { allianceEndpoints } from '../core/endpoints/allianceEndpoints';
 import { contactEndpoints } from '../core/endpoints/contactEndpoints';
 import {
@@ -9,15 +10,11 @@ import {
   AllianceIcon,
 } from '../types/api-responses';
 
-export class AllianceClient {
-  private api: ReturnType<typeof createClient<typeof allianceEndpoints>>;
+export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
   private contactApi: ReturnType<typeof createClient<typeof contactEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof allianceEndpoints>>;
 
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, allianceEndpoints);
+    super(client, allianceEndpoints);
     this.contactApi = createClient(client, contactEndpoints);
   }
 
@@ -84,16 +81,5 @@ export class AllianceClient {
    */
   getAlliances(): Promise<number[]> {
     return this.api.getAlliances() as Promise<number[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<AllianceClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, allianceEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<AllianceClient, 'withMetadata'>
-    >;
   }
 }

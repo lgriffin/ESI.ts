@@ -11,6 +11,7 @@ export class ApiClientBuilder {
   private rateLimiter?: IRateLimiter;
   private cache?: ICache;
   private circuitBreaker?: CircuitBreaker;
+  private _timeout?: number;
 
   setClientId(clientId: string): ApiClientBuilder {
     this.clientId = clientId;
@@ -42,11 +43,17 @@ export class ApiClientBuilder {
     return this;
   }
 
+  setTimeout(timeout: number): ApiClientBuilder {
+    this._timeout = timeout;
+    return this;
+  }
+
   build(): ApiClient {
     const client = new ApiClient(this.clientId, this.link, this.accessToken);
     client.setRateLimiter(this.rateLimiter ?? new RateLimiter());
     if (this.cache) client.setCache(this.cache);
     if (this.circuitBreaker) client.setCircuitBreaker(this.circuitBreaker);
+    if (this._timeout !== undefined) client.setTimeout(this._timeout);
     return client;
   }
 }

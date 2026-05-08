@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { statusEndpoints } from '../core/endpoints/statusEndpoints';
 import { ServerStatus } from '../types/api-responses';
 
-export class StatusClient {
-  private api: ReturnType<typeof createClient<typeof statusEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof statusEndpoints>>;
-
+export class StatusClient extends BaseEsiClient<typeof statusEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, statusEndpoints);
+    super(client, statusEndpoints);
   }
 
   /**
@@ -20,16 +15,5 @@ export class StatusClient {
    */
   getStatus(): Promise<ServerStatus> {
     return this.api.getStatus() as Promise<ServerStatus>;
-  }
-
-  withMetadata(): WithMetadata<Omit<StatusClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, statusEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<StatusClient, 'withMetadata'>
-    >;
   }
 }

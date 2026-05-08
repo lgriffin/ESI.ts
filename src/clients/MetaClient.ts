@@ -1,17 +1,12 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { metaEndpoints } from '../core/endpoints/metaEndpoints';
 import { logInfo, logError } from '../core/logger/loggerUtil';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../core/constants';
 
-export class MetaClient {
-  private api: ReturnType<typeof createClient<typeof metaEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof metaEndpoints>>;
-
+export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, metaEndpoints);
+    super(client, metaEndpoints);
   }
 
   /**
@@ -59,16 +54,5 @@ export class MetaClient {
         throw new Error(String(error));
       }
     }
-  }
-
-  withMetadata(): WithMetadata<Omit<MetaClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, metaEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<MetaClient, 'withMetadata'>
-    >;
   }
 }

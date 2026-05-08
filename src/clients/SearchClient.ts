@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { searchEndpoints } from '../core/endpoints/searchEndpoints';
 import { SearchResult } from '../types/api-responses';
 
-export class SearchClient {
-  private api: ReturnType<typeof createClient<typeof searchEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof searchEndpoints>>;
-
+export class SearchClient extends BaseEsiClient<typeof searchEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, searchEndpoints);
+    super(client, searchEndpoints);
   }
 
   /**
@@ -31,16 +26,5 @@ export class SearchClient {
       searchString,
       categories.join(','),
     ) as Promise<SearchResult>;
-  }
-
-  withMetadata(): WithMetadata<Omit<SearchClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, searchEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<SearchClient, 'withMetadata'>
-    >;
   }
 }

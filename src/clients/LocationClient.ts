@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { locationEndpoints } from '../core/endpoints/locationEndpoints';
 import {
   CharacterLocation,
@@ -7,14 +7,9 @@ import {
   CharacterShip,
 } from '../types/api-responses';
 
-export class LocationClient {
-  private api: ReturnType<typeof createClient<typeof locationEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof locationEndpoints>>;
-
+export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, locationEndpoints);
+    super(client, locationEndpoints);
   }
 
   /**
@@ -50,16 +45,5 @@ export class LocationClient {
    */
   getCharacterShip(characterId: number): Promise<CharacterShip> {
     return this.api.getCharacterShip(characterId) as Promise<CharacterShip>;
-  }
-
-  withMetadata(): WithMetadata<Omit<LocationClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, locationEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<LocationClient, 'withMetadata'>
-    >;
   }
 }

@@ -48,6 +48,21 @@ export class EsiError extends Error {
   isServerError(): boolean {
     return this.statusCode >= 500;
   }
+
+  isTimeout(): boolean {
+    return this.statusCode === 0;
+  }
+
+  get retryable(): boolean {
+    return (
+      this.statusCode === 0 ||
+      this.statusCode === 420 ||
+      this.statusCode === 429 ||
+      this.statusCode === 502 ||
+      this.statusCode === 503 ||
+      this.statusCode === 504
+    );
+  }
 }
 
 export function isEsiError(error: unknown): error is EsiError {
@@ -72,6 +87,14 @@ export function isForbidden(error: unknown): error is EsiError {
 
 export function isServerError(error: unknown): error is EsiError {
   return error instanceof EsiError && error.isServerError();
+}
+
+export function isTimeout(error: unknown): error is EsiError {
+  return error instanceof EsiError && error.isTimeout();
+}
+
+export function isRetryable(error: unknown): error is EsiError {
+  return error instanceof EsiError && error.retryable;
 }
 
 export const buildError = (

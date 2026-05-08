@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { sovereigntyEndpoints } from '../core/endpoints/sovereigntyEndpoints';
 import {
   SovereigntyCampaign,
@@ -7,16 +7,11 @@ import {
   SovereigntyStructure,
 } from '../types/api-responses';
 
-export class SovereigntyClient {
-  private api: ReturnType<typeof createClient<typeof sovereigntyEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<
-    typeof createClient<typeof sovereigntyEndpoints>
-  >;
-
+export class SovereigntyClient extends BaseEsiClient<
+  typeof sovereigntyEndpoints
+> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, sovereigntyEndpoints);
+    super(client, sovereigntyEndpoints);
   }
 
   /**
@@ -45,17 +40,6 @@ export class SovereigntyClient {
   getSovereigntyStructures(): Promise<SovereigntyStructure[]> {
     return this.api.getSovereigntyStructures() as Promise<
       SovereigntyStructure[]
-    >;
-  }
-
-  withMetadata(): WithMetadata<Omit<SovereigntyClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, sovereigntyEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<SovereigntyClient, 'withMetadata'>
     >;
   }
 }

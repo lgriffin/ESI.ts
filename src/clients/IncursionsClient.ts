@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { incursionEndpoints } from '../core/endpoints/incursionEndpoints';
 import { Incursion } from '../types/api-responses';
 
-export class IncursionsClient {
-  private api: ReturnType<typeof createClient<typeof incursionEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof incursionEndpoints>>;
-
+export class IncursionsClient extends BaseEsiClient<typeof incursionEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, incursionEndpoints);
+    super(client, incursionEndpoints);
   }
 
   /**
@@ -20,16 +15,5 @@ export class IncursionsClient {
    */
   getIncursions(): Promise<Incursion[]> {
     return this.api.getIncursions() as Promise<Incursion[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<IncursionsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, incursionEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<IncursionsClient, 'withMetadata'>
-    >;
   }
 }
