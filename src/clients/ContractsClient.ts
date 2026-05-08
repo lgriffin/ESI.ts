@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { contractEndpoints } from '../core/endpoints/contractEndpoints';
 import { Contract, ContractBid, ContractItem } from '../types/api-responses';
 
-export class ContractsClient {
-  private api: ReturnType<typeof createClient<typeof contractEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof contractEndpoints>>;
-
+export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, contractEndpoints);
+    super(client, contractEndpoints);
   }
 
   /**
@@ -139,16 +134,5 @@ export class ContractsClient {
       corporationId,
       contractId,
     ) as Promise<ContractItem[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<ContractsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, contractEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<ContractsClient, 'withMetadata'>
-    >;
   }
 }

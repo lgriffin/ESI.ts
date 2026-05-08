@@ -15,6 +15,7 @@
  */
 
 import { IRateLimiter } from './IRateLimiter';
+import { logWarn } from '../logger/loggerUtil';
 
 export interface RateLimitInfo {
   /** Tokens remaining in current window (new system) */
@@ -51,15 +52,22 @@ function getTokenCost(statusCode: number): number {
   return 2; // default to 2xx cost
 }
 
+export interface RateLimiterConfig {
+  minDelayMs?: number;
+  decelerationThreshold?: number;
+}
+
 export class RateLimiter implements IRateLimiter {
   private rateLimitInfo: RateLimitInfo;
   private lastRequestTime: number = 0;
-  private readonly minDelayMs: number = 50;
+  private readonly minDelayMs: number;
   private isTestMode: boolean = false;
 
-  private readonly decelerationThreshold: number = 0.2;
+  private readonly decelerationThreshold: number;
 
-  constructor() {
+  constructor(config?: RateLimiterConfig) {
+    this.minDelayMs = config?.minDelayMs ?? 50;
+    this.decelerationThreshold = config?.decelerationThreshold ?? 0.2;
     this.rateLimitInfo = this.defaultInfo();
   }
 
@@ -153,7 +161,7 @@ export class RateLimiter implements IRateLimiter {
     // Hard block: we received a 420/429 and must wait
     if (this.rateLimitInfo.blockedUntil > now) {
       const waitTime = this.rateLimitInfo.blockedUntil - now;
-      console.warn(
+      logWarn(
         `[ESI Rate Limit] Blocked for ${Math.ceil(waitTime / 1000)}s (420/429 received)`,
       );
       await this.sleep(waitTime);
@@ -171,7 +179,7 @@ export class RateLimiter implements IRateLimiter {
       const resetMs = this.rateLimitInfo.errorLimitReset * 1000;
       const delay = Math.min(resetMs, 5000); // cap at 5s
       if (delay > 0) {
-        console.warn(
+        logWarn(
           `[ESI Rate Limit] Legacy error limit low (${this.rateLimitInfo.errorLimitRemain}), waiting ${delay}ms`,
         );
         await this.sleep(delay);
@@ -185,7 +193,7 @@ export class RateLimiter implements IRateLimiter {
       this.rateLimitInfo.errorLimitReset > 0
     ) {
       const waitTime = this.rateLimitInfo.errorLimitReset * 1000;
-      console.warn(
+      logWarn(
         `[ESI Rate Limit] Legacy error limit exhausted, waiting ${Math.ceil(waitTime / 1000)}s`,
       );
       await this.sleep(waitTime);
@@ -198,7 +206,7 @@ export class RateLimiter implements IRateLimiter {
 
       if (this.rateLimitInfo.remaining <= 0) {
         // Bucket empty — wait before next request
-        console.warn('[ESI Rate Limit] Token bucket empty, waiting 1s');
+        logWarn('[ESI Rate Limit] Token bucket empty, waiting 1s');
         await this.sleep(1000);
         return;
       }

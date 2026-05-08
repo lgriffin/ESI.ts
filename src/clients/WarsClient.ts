@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { warEndpoints } from '../core/endpoints/warEndpoints';
 import { War, KillmailSummary } from '../types/api-responses';
 
-export class WarsClient {
-  private api: ReturnType<typeof createClient<typeof warEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof warEndpoints>>;
-
+export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, warEndpoints);
+    super(client, warEndpoints);
   }
 
   /**
@@ -40,16 +35,5 @@ export class WarsClient {
    */
   getWarKillmails(warId: number): Promise<KillmailSummary[]> {
     return this.api.getWarKillmails(warId) as Promise<KillmailSummary[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<WarsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, warEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<WarsClient, 'withMetadata'>
-    >;
   }
 }

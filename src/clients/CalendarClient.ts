@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { calendarEndpoints } from '../core/endpoints/calendarEndpoints';
 import {
   CalendarEvent,
@@ -7,14 +7,9 @@ import {
   CalendarEventAttendee,
 } from '../types/api-responses';
 
-export class CalendarClient {
-  private api: ReturnType<typeof createClient<typeof calendarEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof calendarEndpoints>>;
-
+export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, calendarEndpoints);
+    super(client, calendarEndpoints);
   }
 
   /**
@@ -80,17 +75,6 @@ export class CalendarClient {
   ): Promise<CalendarEventAttendee[]> {
     return this.api.getEventAttendees(characterId, eventId) as Promise<
       CalendarEventAttendee[]
-    >;
-  }
-
-  withMetadata(): WithMetadata<Omit<CalendarClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, calendarEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<CalendarClient, 'withMetadata'>
     >;
   }
 }

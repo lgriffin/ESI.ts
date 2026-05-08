@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { contactEndpoints } from '../core/endpoints/contactEndpoints';
 import { Contact, ContactLabel } from '../types/api-responses';
 
-export class ContactsClient {
-  private api: ReturnType<typeof createClient<typeof contactEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof contactEndpoints>>;
-
+export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, contactEndpoints);
+    super(client, contactEndpoints);
   }
 
   /**
@@ -125,17 +120,6 @@ export class ContactsClient {
   getCorporationContactLabels(corporationId: number): Promise<ContactLabel[]> {
     return this.api.getCorporationContactLabels(corporationId) as Promise<
       ContactLabel[]
-    >;
-  }
-
-  withMetadata(): WithMetadata<Omit<ContactsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, contactEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<ContactsClient, 'withMetadata'>
     >;
   }
 }

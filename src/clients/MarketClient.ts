@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { marketEndpoints } from '../core/endpoints/marketEndpoints';
 import { MarketOrder, MarketHistory } from '../types/api-responses';
 
-export class MarketClient {
-  private api: ReturnType<typeof createClient<typeof marketEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof marketEndpoints>>;
-
+export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, marketEndpoints);
+    super(client, marketEndpoints);
   }
 
   /**
@@ -149,17 +144,6 @@ export class MarketClient {
   getMarketOrdersInStructure(structureId: number): Promise<MarketOrder[]> {
     return this.api.getMarketOrdersInStructure(structureId) as Promise<
       MarketOrder[]
-    >;
-  }
-
-  withMetadata(): WithMetadata<Omit<MarketClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, marketEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<MarketClient, 'withMetadata'>
     >;
   }
 }

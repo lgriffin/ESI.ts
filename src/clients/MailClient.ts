@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { mailEndpoints } from '../core/endpoints/mailEndpoints';
 import { MailMessage, MailLabel } from '../types/api-responses';
 
-export class MailClient {
-  private api: ReturnType<typeof createClient<typeof mailEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof mailEndpoints>>;
-
+export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, mailEndpoints);
+    super(client, mailEndpoints);
   }
 
   /**
@@ -135,17 +130,6 @@ export class MailClient {
   ): Promise<{ mailing_list_id: number; name: string }[]> {
     return this.api.getMailingLists(characterId) as Promise<
       { mailing_list_id: number; name: string }[]
-    >;
-  }
-
-  withMetadata(): WithMetadata<Omit<MailClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, mailEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<MailClient, 'withMetadata'>
     >;
   }
 }

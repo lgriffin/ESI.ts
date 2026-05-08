@@ -6,6 +6,7 @@ import {
 import { ICache } from './cache/ICache';
 import { IRateLimiter } from './rateLimiter/IRateLimiter';
 import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
+import { RequestDeduplicator } from './RequestDeduplicator';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
@@ -19,6 +20,8 @@ export class ApiClient {
   private cache: ICache | null = null;
   private rateLimiter: IRateLimiter | null = null;
   private circuitBreaker: CircuitBreaker | null = null;
+  private timeout: number = 30_000;
+  private deduplicator: RequestDeduplicator | null = null;
 
   constructor(
     private clientId: string,
@@ -26,6 +29,14 @@ export class ApiClient {
     private accessToken?: string,
   ) {
     this.link = this.link.replace(/\/$/, '');
+  }
+
+  getTimeout(): number {
+    return this.timeout;
+  }
+
+  setTimeout(timeout: number): void {
+    this.timeout = timeout;
   }
 
   getCache(): ICache | null {
@@ -50,6 +61,14 @@ export class ApiClient {
 
   setCircuitBreaker(cb: CircuitBreaker | null): void {
     this.circuitBreaker = cb;
+  }
+
+  getDeduplicator(): RequestDeduplicator | null {
+    return this.deduplicator;
+  }
+
+  setDeduplicator(dedup: RequestDeduplicator | null): void {
+    this.deduplicator = dedup;
   }
 
   getMiddleware(): MiddlewareManager {

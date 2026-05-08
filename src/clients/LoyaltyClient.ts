@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { loyaltyEndpoints } from '../core/endpoints/loyaltyEndpoints';
 import { LoyaltyPoints, LoyaltyStoreOffer } from '../types/api-responses';
 
-export class LoyaltyClient {
-  private api: ReturnType<typeof createClient<typeof loyaltyEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof loyaltyEndpoints>>;
-
+export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, loyaltyEndpoints);
+    super(client, loyaltyEndpoints);
   }
 
   /**
@@ -33,17 +28,6 @@ export class LoyaltyClient {
   getLoyaltyStoreOffers(corporationId: number): Promise<LoyaltyStoreOffer[]> {
     return this.api.getLoyaltyStoreOffers(corporationId) as Promise<
       LoyaltyStoreOffer[]
-    >;
-  }
-
-  withMetadata(): WithMetadata<Omit<LoyaltyClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, loyaltyEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<LoyaltyClient, 'withMetadata'>
     >;
   }
 }

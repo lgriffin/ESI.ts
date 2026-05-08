@@ -6,6 +6,8 @@ import {
   isUnauthorized,
   isForbidden,
   isServerError,
+  isTimeout,
+  isRetryable,
 } from '../../../src/core/util/error';
 
 describe('EsiError', () => {
@@ -42,6 +44,31 @@ describe('EsiError', () => {
       expect(new EsiError(429, 'Too many requests').isServerError()).toBe(
         false,
       );
+    });
+
+    it('isTimeout returns true for status code 0', () => {
+      expect(
+        new EsiError(0, 'Request timed out after 30000ms').isTimeout(),
+      ).toBe(true);
+      expect(new EsiError(500, 'Server error').isTimeout()).toBe(false);
+      expect(new EsiError(408, 'Request Timeout').isTimeout()).toBe(false);
+    });
+
+    it('retryable returns true for transient errors', () => {
+      expect(new EsiError(0, 'timeout').retryable).toBe(true);
+      expect(new EsiError(420, 'Error Limited').retryable).toBe(true);
+      expect(new EsiError(429, 'Too many requests').retryable).toBe(true);
+      expect(new EsiError(502, 'Bad Gateway').retryable).toBe(true);
+      expect(new EsiError(503, 'Service Unavailable').retryable).toBe(true);
+      expect(new EsiError(504, 'Gateway Timeout').retryable).toBe(true);
+    });
+
+    it('retryable returns false for non-transient errors', () => {
+      expect(new EsiError(400, 'Bad Request').retryable).toBe(false);
+      expect(new EsiError(401, 'Unauthorized').retryable).toBe(false);
+      expect(new EsiError(403, 'Forbidden').retryable).toBe(false);
+      expect(new EsiError(404, 'Not Found').retryable).toBe(false);
+      expect(new EsiError(500, 'Internal Server Error').retryable).toBe(false);
     });
   });
 
@@ -88,6 +115,23 @@ describe('EsiError', () => {
       expect(isServerError(new EsiError(503, 'Unavailable'))).toBe(true);
       expect(isServerError(new EsiError(404, 'Not found'))).toBe(false);
       expect(isServerError(new Error('not esi'))).toBe(false);
+    });
+
+    it('isTimeout combines instanceof and status check', () => {
+      expect(isTimeout(new EsiError(0, 'timed out'))).toBe(true);
+      expect(isTimeout(new EsiError(500, 'server error'))).toBe(false);
+      expect(isTimeout(new Error('not esi'))).toBe(false);
+      expect(isTimeout(null)).toBe(false);
+    });
+
+    it('isRetryable combines instanceof and retryable check', () => {
+      expect(isRetryable(new EsiError(429, 'Too many requests'))).toBe(true);
+      expect(isRetryable(new EsiError(503, 'Unavailable'))).toBe(true);
+      expect(isRetryable(new EsiError(0, 'timeout'))).toBe(true);
+      expect(isRetryable(new EsiError(404, 'Not found'))).toBe(false);
+      expect(isRetryable(new EsiError(400, 'Bad request'))).toBe(false);
+      expect(isRetryable(new Error('not esi'))).toBe(false);
+      expect(isRetryable(null)).toBe(false);
     });
   });
 

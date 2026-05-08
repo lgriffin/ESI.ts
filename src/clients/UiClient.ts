@@ -1,15 +1,10 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { uiEndpoints } from '../core/endpoints/uiEndpoints';
 
-export class UiClient {
-  private api: ReturnType<typeof createClient<typeof uiEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof uiEndpoints>>;
-
+export class UiClient extends BaseEsiClient<typeof uiEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, uiEndpoints);
+    super(client, uiEndpoints);
   }
 
   /**
@@ -60,16 +55,5 @@ export class UiClient {
    */
   openNewMailWindow(body: object): Promise<void> {
     return this.api.openNewMailWindow(body) as Promise<void>;
-  }
-
-  withMetadata(): WithMetadata<Omit<UiClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, uiEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<UiClient, 'withMetadata'>
-    >;
   }
 }

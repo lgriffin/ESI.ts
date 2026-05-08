@@ -7,17 +7,14 @@ import {
   logDebug,
 } from '../core/logger/loggerUtil';
 import { parseHeaders, ParsedHeaders } from '../core/util/headersUtil';
-import { ETagCacheManager, ETagCacheConfig } from './cache/ETagCacheManager';
+import { ETagCacheManager } from './cache/ETagCacheManager';
 import { ICache } from './cache/ICache';
 import { IRateLimiter } from './rateLimiter/IRateLimiter';
 import { PaginationHandler, PageFetcher } from './pagination/PaginationHandler';
 import { CursorTokens } from './pagination/CursorPaginationHandler';
 import { USER_AGENT, COMPATIBILITY_DATE } from './constants';
 import { RequestContext, ResponseContext } from './middleware/Middleware';
-import {
-  CircuitBreaker,
-  CircuitBreakerConfig,
-} from './circuitBreaker/CircuitBreaker';
+import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
 
 export interface EsiHandlerResponse {
   headers: Record<string, string>;
@@ -427,7 +424,23 @@ async function fetchOnePage(
   const rateLimiter = resolveRateLimiter(client);
   await rateLimiter.checkRateLimit();
 
-  const response = await fetch(url, options);
+  const timeoutMs = client.getTimeout();
+  const controller = new AbortController();
+  const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+  options.signal = controller.signal;
+
+  let response: Response;
+  try {
+    response = await fetch(url, options);
+  } catch (err) {
+    clearTimeout(timer);
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new EsiError(0, `Request timed out after ${timeoutMs}ms`, url);
+    }
+    throw err;
+  }
+  clearTimeout(timer);
+
   const parsed = parseHeaders(response.headers);
 
   rateLimiter.updateFromResponse(parsed.raw, response.status);
@@ -512,7 +525,23 @@ const executeRequest = async (
     const rateLimiter = resolveRateLimiter(client);
     await rateLimiter.checkRateLimit();
 
-    const response = await fetch(url, options);
+    const timeoutMs = client.getTimeout();
+    const controller = new AbortController();
+    const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+    options.signal = controller.signal;
+
+    let response: Response;
+    try {
+      response = await fetch(url, options);
+    } catch (err) {
+      clearTimeout(timer);
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new EsiError(0, `Request timed out after ${timeoutMs}ms`, url);
+      }
+      throw err;
+    }
+    clearTimeout(timer);
+
     const parsed = parseHeaders(response.headers);
 
     rateLimiter.updateFromResponse(parsed.raw, response.status);
@@ -603,15 +632,16 @@ export const handleRequest = async (
   requiresAuth: boolean = false,
   useETag: boolean = true,
 ): Promise<EsiHandlerResponse> => {
+  const doExecute = () =>
+    executeRequest(client, endpoint, method, body, requiresAuth, useETag);
+
+  const dedup = client.getDeduplicator();
+  const canDedup = dedup && method === 'GET' && !body;
+
   try {
-    return await executeRequest(
-      client,
-      endpoint,
-      method,
-      body,
-      requiresAuth,
-      useETag,
-    );
+    return canDedup
+      ? await dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
+      : await doExecute();
   } catch (error: unknown) {
     if (
       error instanceof EsiError &&

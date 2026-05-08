@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { dogmaEndpoints } from '../core/endpoints/dogmaEndpoints';
 import {
   DogmaAttribute,
@@ -7,14 +7,9 @@ import {
   DogmaDynamicItem,
 } from '../types/api-responses';
 
-export class DogmaClient {
-  private api: ReturnType<typeof createClient<typeof dogmaEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof dogmaEndpoints>>;
-
+export class DogmaClient extends BaseEsiClient<typeof dogmaEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, dogmaEndpoints);
+    super(client, dogmaEndpoints);
   }
 
   /**
@@ -70,16 +65,5 @@ export class DogmaClient {
    */
   getEffectById(effectId: number): Promise<DogmaEffect> {
     return this.api.getEffectById(effectId) as Promise<DogmaEffect>;
-  }
-
-  withMetadata(): WithMetadata<Omit<DogmaClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, dogmaEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<DogmaClient, 'withMetadata'>
-    >;
   }
 }
