@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { cloneEndpoints } from '../core/endpoints/cloneEndpoints';
 import { CloneInfo } from '../types/api-responses';
 
-export class ClonesClient {
-  private api: ReturnType<typeof createClient<typeof cloneEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof cloneEndpoints>>;
-
+export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, cloneEndpoints);
+    super(client, cloneEndpoints);
   }
 
   /**
@@ -33,16 +28,5 @@ export class ClonesClient {
    */
   getImplants(characterId: number): Promise<number[]> {
     return this.api.getImplants(characterId) as Promise<number[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<ClonesClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, cloneEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<ClonesClient, 'withMetadata'>
-    >;
   }
 }

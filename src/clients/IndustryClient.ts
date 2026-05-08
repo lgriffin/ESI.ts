@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { industryEndpoints } from '../core/endpoints/industryEndpoints';
 import {
   IndustryJob,
@@ -11,14 +11,9 @@ import {
   MiningObserverEntry,
 } from '../types/api-responses';
 
-export class IndustryClient {
-  private api: ReturnType<typeof createClient<typeof industryEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof industryEndpoints>>;
-
+export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, industryEndpoints);
+    super(client, industryEndpoints);
   }
 
   /**
@@ -124,16 +119,5 @@ export class IndustryClient {
    */
   getIndustrySystems(): Promise<IndustrySystem[]> {
     return this.api.getIndustrySystems() as Promise<IndustrySystem[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<IndustryClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, industryEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<IndustryClient, 'withMetadata'>
-    >;
   }
 }

@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { walletEndpoints } from '../core/endpoints/walletEndpoints';
 import { WalletJournal, WalletTransaction } from '../types/api-responses';
 
-export class WalletClient {
-  private api: ReturnType<typeof createClient<typeof walletEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof walletEndpoints>>;
-
+export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, walletEndpoints);
+    super(client, walletEndpoints);
   }
 
   /**
@@ -101,16 +96,5 @@ export class WalletClient {
       corporationId,
       division,
     ) as Promise<WalletTransaction[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<WalletClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, walletEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<WalletClient, 'withMetadata'>
-    >;
   }
 }

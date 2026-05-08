@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { corporationEndpoints } from '../core/endpoints/corporationEndpoints';
 import {
   Blueprint,
@@ -22,16 +22,11 @@ import {
   Standing,
 } from '../types/api-responses';
 
-export class CorporationsClient {
-  private api: ReturnType<typeof createClient<typeof corporationEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<
-    typeof createClient<typeof corporationEndpoints>
-  >;
-
+export class CorporationsClient extends BaseEsiClient<
+  typeof corporationEndpoints
+> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, corporationEndpoints);
+    super(client, corporationEndpoints);
   }
 
   /**
@@ -336,16 +331,5 @@ export class CorporationsClient {
    */
   getNpcCorporations(): Promise<number[]> {
     return this.api.getNpcCorporations() as Promise<number[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<CorporationsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, corporationEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<CorporationsClient, 'withMetadata'>
-    >;
   }
 }

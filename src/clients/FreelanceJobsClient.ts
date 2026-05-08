@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { freelanceJobsEndpoints } from '../core/endpoints/freelanceJobsEndpoints';
 import {
   FreelanceJobsListing,
@@ -10,16 +10,11 @@ import {
   FreelanceJobParticipant,
 } from '../types/api-responses';
 
-export class FreelanceJobsClient {
-  private api: ReturnType<typeof createClient<typeof freelanceJobsEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<
-    typeof createClient<typeof freelanceJobsEndpoints>
-  >;
-
+export class FreelanceJobsClient extends BaseEsiClient<
+  typeof freelanceJobsEndpoints
+> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, freelanceJobsEndpoints);
+    super(client, freelanceJobsEndpoints);
   }
 
   /**
@@ -125,16 +120,5 @@ export class FreelanceJobsClient {
       corporationId,
       jobId,
     ) as Promise<FreelanceJobParticipant[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<FreelanceJobsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, freelanceJobsEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<FreelanceJobsClient, 'withMetadata'>
-    >;
   }
 }

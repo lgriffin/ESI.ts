@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { routeEndpoints } from '../core/endpoints/routeEndpoints';
 
 export interface RouteOptions {
@@ -9,14 +9,9 @@ export interface RouteOptions {
   security_penalty?: number;
 }
 
-export class RouteClient {
-  private api: ReturnType<typeof createClient<typeof routeEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof routeEndpoints>>;
-
+export class RouteClient extends BaseEsiClient<typeof routeEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, routeEndpoints);
+    super(client, routeEndpoints);
   }
 
   /**
@@ -37,16 +32,5 @@ export class RouteClient {
       route: number[];
     };
     return result.route;
-  }
-
-  withMetadata(): WithMetadata<Omit<RouteClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, routeEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<RouteClient, 'withMetadata'>
-    >;
   }
 }

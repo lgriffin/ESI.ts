@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { skillEndpoints } from '../core/endpoints/skillEndpoints';
 import {
   CharacterAttributes,
@@ -7,14 +7,11 @@ import {
   SkillQueue,
 } from '../types/api-responses';
 
-export class CharacterSkillsClient {
-  private api: ReturnType<typeof createClient<typeof skillEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof skillEndpoints>>;
-
+export class CharacterSkillsClient extends BaseEsiClient<
+  typeof skillEndpoints
+> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, skillEndpoints);
+    super(client, skillEndpoints);
   }
 
   /**
@@ -60,16 +57,5 @@ export class CharacterSkillsClient {
       total_sp: number;
       unallocated_sp?: number;
     }>;
-  }
-
-  withMetadata(): WithMetadata<Omit<CharacterSkillsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, skillEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<CharacterSkillsClient, 'withMetadata'>
-    >;
   }
 }

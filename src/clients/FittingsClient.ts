@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { fittingEndpoints } from '../core/endpoints/fittingEndpoints';
 import { Fitting } from '../types/api-responses';
 
-export class FittingsClient {
-  private api: ReturnType<typeof createClient<typeof fittingEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof fittingEndpoints>>;
-
+export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, fittingEndpoints);
+    super(client, fittingEndpoints);
   }
 
   /**
@@ -50,16 +45,5 @@ export class FittingsClient {
    */
   deleteFitting(characterId: number, fittingId: number): Promise<void> {
     return this.api.deleteFitting(characterId, fittingId) as Promise<void>;
-  }
-
-  withMetadata(): WithMetadata<Omit<FittingsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, fittingEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<FittingsClient, 'withMetadata'>
-    >;
   }
 }

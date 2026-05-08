@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { universeEndpoints } from '../core/endpoints/universeEndpoints';
 import {
   Ancestry,
@@ -27,14 +27,9 @@ import {
   TypeInfo,
 } from '../types/api-responses';
 
-export class UniverseClient {
-  private api: ReturnType<typeof createClient<typeof universeEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof universeEndpoints>>;
-
+export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, universeEndpoints);
+    super(client, universeEndpoints);
   }
 
   /**
@@ -336,16 +331,5 @@ export class UniverseClient {
    */
   getRegions(): Promise<number[]> {
     return this.api.getRegions() as Promise<number[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<UniverseClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, universeEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<UniverseClient, 'withMetadata'>
-    >;
   }
 }

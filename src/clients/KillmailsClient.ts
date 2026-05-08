@@ -1,16 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { killmailEndpoints } from '../core/endpoints/killmailEndpoints';
 import { KillmailSummary, Killmail } from '../types/api-responses';
 
-export class KillmailsClient {
-  private api: ReturnType<typeof createClient<typeof killmailEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof killmailEndpoints>>;
-
+export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, killmailEndpoints);
+    super(client, killmailEndpoints);
   }
 
   /**
@@ -50,16 +45,5 @@ export class KillmailsClient {
    */
   getKillmail(killmailId: number, killmailHash: string): Promise<Killmail> {
     return this.api.getKillmail(killmailId, killmailHash) as Promise<Killmail>;
-  }
-
-  withMetadata(): WithMetadata<Omit<KillmailsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, killmailEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<KillmailsClient, 'withMetadata'>
-    >;
   }
 }

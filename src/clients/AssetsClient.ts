@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { assetEndpoints } from '../core/endpoints/assetEndpoints';
 import {
   CharacterAsset,
@@ -7,14 +7,9 @@ import {
   AssetName,
 } from '../types/api-responses';
 
-export class AssetsClient {
-  private api: ReturnType<typeof createClient<typeof assetEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof assetEndpoints>>;
-
+export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, assetEndpoints);
+    super(client, assetEndpoints);
   }
 
   /**
@@ -112,16 +107,5 @@ export class AssetsClient {
       corporationId,
       itemIds,
     ) as Promise<AssetName[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<AssetsClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, assetEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<AssetsClient, 'withMetadata'>
-    >;
   }
 }

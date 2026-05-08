@@ -91,6 +91,10 @@ export class EsiClient {
       this.apiClient.setDatasource(datasource);
     }
 
+    if (config?.timeout !== undefined) {
+      this.apiClient.setTimeout(config.timeout);
+    }
+
     if (config?.onTokenRefresh) {
       this.apiClient.setTokenProvider(config.onTokenRefresh);
     }

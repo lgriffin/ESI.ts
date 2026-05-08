@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { factionEndpoints } from '../core/endpoints/factionEndpoints';
 import {
   FactionWarfareStats,
@@ -10,14 +10,9 @@ import {
   FactionWarfareWar,
 } from '../types/api-responses';
 
-export class FactionClient {
-  private api: ReturnType<typeof createClient<typeof factionEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof factionEndpoints>>;
-
+export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, factionEndpoints);
+    super(client, factionEndpoints);
   }
 
   /**
@@ -102,16 +97,5 @@ export class FactionClient {
    */
   getWars(): Promise<FactionWarfareWar[]> {
     return this.api.getWars() as Promise<FactionWarfareWar[]>;
-  }
-
-  withMetadata(): WithMetadata<Omit<FactionClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, factionEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<FactionClient, 'withMetadata'>
-    >;
   }
 }

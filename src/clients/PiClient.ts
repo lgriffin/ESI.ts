@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { piEndpoints } from '../core/endpoints/piEndpoints';
 import {
   PlanetaryColony,
@@ -8,14 +8,9 @@ import {
   SchematicInfo,
 } from '../types/api-responses';
 
-export class PiClient {
-  private api: ReturnType<typeof createClient<typeof piEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof piEndpoints>>;
-
+export class PiClient extends BaseEsiClient<typeof piEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, piEndpoints);
+    super(client, piEndpoints);
   }
 
   /**
@@ -72,16 +67,5 @@ export class PiClient {
     return this.api.getSchematicInformation(
       schematicId,
     ) as Promise<SchematicInfo>;
-  }
-
-  withMetadata(): WithMetadata<Omit<PiClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, piEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<PiClient, 'withMetadata'>
-    >;
   }
 }

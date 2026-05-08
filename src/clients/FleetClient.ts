@@ -1,5 +1,5 @@
 import { ApiClient } from '../core/ApiClient';
-import { createClient, WithMetadata } from '../core/endpoints/createClient';
+import { BaseEsiClient } from './BaseEsiClient';
 import { fleetEndpoints } from '../core/endpoints/fleetEndpoints';
 import {
   CharacterFleetInfo,
@@ -8,14 +8,9 @@ import {
   FleetWing,
 } from '../types/api-responses';
 
-export class FleetClient {
-  private api: ReturnType<typeof createClient<typeof fleetEndpoints>>;
-  private _client: ApiClient;
-  private _metaApi?: ReturnType<typeof createClient<typeof fleetEndpoints>>;
-
+export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
   constructor(client: ApiClient) {
-    this._client = client;
-    this.api = createClient(client, fleetEndpoints);
+    super(client, fleetEndpoints);
   }
 
   /**
@@ -196,16 +191,5 @@ export class FleetClient {
     return this.api.createFleetSquad(fleetId, wingId) as Promise<{
       squad_id: number;
     }>;
-  }
-
-  withMetadata(): WithMetadata<Omit<FleetClient, 'withMetadata'>> {
-    if (!this._metaApi) {
-      this._metaApi = createClient(this._client, fleetEndpoints, {
-        returnMetadata: true,
-      });
-    }
-    return this._metaApi as unknown as WithMetadata<
-      Omit<FleetClient, 'withMetadata'>
-    >;
   }
 }

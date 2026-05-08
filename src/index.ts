@@ -14,6 +14,9 @@ export { ApiClientType } from './core/ClientRegistry';
 export { ApiClient, TokenProvider } from './core/ApiClient';
 export { ApiClientBuilder } from './core/ApiClientBuilder';
 
+// Base client (for custom domain client implementations)
+export { BaseEsiClient } from './clients/BaseEsiClient';
+
 // Domain clients
 export { AllianceClient } from './clients/AllianceClient';
 export { AssetsClient } from './clients/AssetsClient';
@@ -67,6 +70,8 @@ export {
   isUnauthorized,
   isForbidden,
   isServerError,
+  isTimeout,
+  isRetryable,
 } from './core/util/error';
 
 // Endpoint definition types
