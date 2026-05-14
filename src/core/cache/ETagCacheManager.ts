@@ -107,7 +107,7 @@ export class ETagCacheManager implements ICache {
    */
   deleteByPath(pathSegment: string): number {
     let count = 0;
-    for (const key of Array.from(this.cache.keys())) {
+    for (const key of this.cache.keys()) {
       if (key.includes(pathSegment)) {
         this.cache.delete(key);
         count++;
@@ -141,8 +141,12 @@ export class ETagCacheManager implements ICache {
     oldestEntry: number | null;
     newestEntry: number | null;
   } {
-    const entries = Array.from(this.cache.values());
-    const timestamps = entries.map((e) => e.timestamp);
+    let oldest = Infinity;
+    let newest = -Infinity;
+    for (const entry of this.cache.values()) {
+      if (entry.timestamp < oldest) oldest = entry.timestamp;
+      if (entry.timestamp > newest) newest = entry.timestamp;
+    }
     const total = this.hits + this.misses;
 
     return {
@@ -151,8 +155,8 @@ export class ETagCacheManager implements ICache {
       hits: this.hits,
       misses: this.misses,
       hitRate: total > 0 ? this.hits / total : 0,
-      oldestEntry: timestamps.length > 0 ? Math.min(...timestamps) : null,
-      newestEntry: timestamps.length > 0 ? Math.max(...timestamps) : null,
+      oldestEntry: this.cache.size > 0 ? oldest : null,
+      newestEntry: this.cache.size > 0 ? newest : null,
     };
   }
 
@@ -169,15 +173,12 @@ export class ETagCacheManager implements ICache {
    */
   cleanup(): number {
     const beforeSize = this.cache.size;
-    const expiredKeys: string[] = [];
 
     for (const [url, entry] of this.cache.entries()) {
       if (this.isExpired(entry)) {
-        expiredKeys.push(url);
+        this.cache.delete(url);
       }
     }
-
-    expiredKeys.forEach((key) => this.cache.delete(key));
 
     const cleanedCount = beforeSize - this.cache.size;
     if (cleanedCount > 0) {

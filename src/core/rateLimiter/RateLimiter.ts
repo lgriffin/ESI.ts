@@ -16,6 +16,7 @@
 
 import { IRateLimiter } from './IRateLimiter';
 import { logWarn } from '../logger/loggerUtil';
+import { sleep } from '../util/sleep';
 
 export interface RateLimitInfo {
   /** Tokens remaining in current window (new system) */
@@ -164,7 +165,7 @@ export class RateLimiter implements IRateLimiter {
       logWarn(
         `[ESI Rate Limit] Blocked for ${Math.ceil(waitTime / 1000)}s (420/429 received)`,
       );
-      await this.sleep(waitTime);
+      await sleep(waitTime);
       // Clear the block after waiting
       this.rateLimitInfo.blockedUntil = 0;
       this.rateLimitInfo.retryAfter = null;
@@ -182,7 +183,7 @@ export class RateLimiter implements IRateLimiter {
         logWarn(
           `[ESI Rate Limit] Legacy error limit low (${this.rateLimitInfo.errorLimitRemain}), waiting ${delay}ms`,
         );
-        await this.sleep(delay);
+        await sleep(delay);
         return;
       }
     }
@@ -196,7 +197,7 @@ export class RateLimiter implements IRateLimiter {
       logWarn(
         `[ESI Rate Limit] Legacy error limit exhausted, waiting ${Math.ceil(waitTime / 1000)}s`,
       );
-      await this.sleep(waitTime);
+      await sleep(waitTime);
       return;
     }
 
@@ -207,7 +208,7 @@ export class RateLimiter implements IRateLimiter {
       if (this.rateLimitInfo.remaining <= 0) {
         // Bucket empty — wait before next request
         logWarn('[ESI Rate Limit] Token bucket empty, waiting 1s');
-        await this.sleep(1000);
+        await sleep(1000);
         return;
       }
 
@@ -217,7 +218,7 @@ export class RateLimiter implements IRateLimiter {
         const extraDelay = Math.ceil(
           (1 - ratio / this.decelerationThreshold) * 1000,
         );
-        await this.sleep(extraDelay);
+        await sleep(extraDelay);
         return;
       }
     }
@@ -239,14 +240,10 @@ export class RateLimiter implements IRateLimiter {
     const timeSinceLastRequest = now - this.lastRequestTime;
 
     if (timeSinceLastRequest < this.minDelayMs) {
-      await this.sleep(this.minDelayMs - timeSinceLastRequest);
+      await sleep(this.minDelayMs - timeSinceLastRequest);
     }
 
     this.lastRequestTime = Date.now();
-  }
-
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /** Get current rate limit status */

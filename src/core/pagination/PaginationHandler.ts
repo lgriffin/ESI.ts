@@ -6,6 +6,7 @@
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
+import { sleep } from '../util/sleep';
 
 export interface PaginationOptions {
   maxPages?: number;
@@ -133,7 +134,7 @@ export class PaginationHandler {
         );
 
         if (attempt < options.maxRetries) {
-          await this.sleep(options.retryDelayMs * attempt);
+          await sleep(options.retryDelayMs * attempt);
         }
       }
     }
@@ -198,12 +199,5 @@ export class PaginationHandler {
     }
 
     return Array.isArray(data) ? (data as unknown[]) : [data];
-  }
-
-  /**
-   * Sleep utility
-   */
-  private static sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

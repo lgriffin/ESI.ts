@@ -298,6 +298,10 @@ export class EsiClient {
     if (cache) {
       (cache as ETagCacheManager).shutdown();
     }
+    const cb = this.apiClient.getCircuitBreaker();
+    if (cb) {
+      cb.shutdown();
+    }
     if (this.deduplicator) {
       this.deduplicator.clear();
     }

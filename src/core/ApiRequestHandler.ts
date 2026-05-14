@@ -7,7 +7,6 @@ import {
   logDebug,
 } from '../core/logger/loggerUtil';
 import { parseHeaders, ParsedHeaders } from '../core/util/headersUtil';
-import { ETagCacheManager } from './cache/ETagCacheManager';
 import { ICache } from './cache/ICache';
 import { IRateLimiter } from './rateLimiter/IRateLimiter';
 import { PaginationHandler, PageFetcher } from './pagination/PaginationHandler';
@@ -376,20 +375,20 @@ function wrapError(error: unknown): never {
   throw buildError(String(error), 'ESIJS_ERROR');
 }
 
-interface SingleFetchResult {
-  data: unknown;
+interface RawFetchResult {
+  response: Response;
   parsed: ParsedHeaders;
   url: string;
 }
 
-async function fetchOnePage(
+async function executeSingleFetch(
   client: ApiClient,
   endpoint: string,
   method: string,
-  body?: unknown,
-  requiresAuth: boolean = false,
-  useETag: boolean = false,
-): Promise<SingleFetchResult> {
+  body: unknown,
+  requiresAuth: boolean,
+  useETag: boolean,
+): Promise<RawFetchResult> {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const builtHeaders = buildRequestHeaders(
     client,
@@ -456,6 +455,32 @@ async function fetchOnePage(
     );
   }
 
+  return { response, parsed, url };
+}
+
+interface SingleFetchResult {
+  data: unknown;
+  parsed: ParsedHeaders;
+  url: string;
+}
+
+async function fetchOnePage(
+  client: ApiClient,
+  endpoint: string,
+  method: string,
+  body?: unknown,
+  requiresAuth: boolean = false,
+  useETag: boolean = false,
+): Promise<SingleFetchResult> {
+  const { response, parsed, url } = await executeSingleFetch(
+    client,
+    endpoint,
+    method,
+    body,
+    requiresAuth,
+    useETag,
+  );
+
   if (!response.ok) {
     throw new EsiError(
       response.status,
@@ -491,71 +516,14 @@ const executeRequest = async (
   };
 
   try {
-    const rawUrl = `${client.getLink()}/${endpoint}`;
-    const builtHeaders = buildRequestHeaders(
+    const { response, parsed, url } = await executeSingleFetch(
       client,
-      rawUrl,
-      method,
-      requiresAuth,
-      useETag,
-      body,
-    ) as Record<string, string>;
-
-    const req = await applyRequestMiddleware(
-      client,
-      rawUrl,
       endpoint,
       method,
-      builtHeaders,
       body,
+      requiresAuth,
+      useETag,
     );
-
-    const options: RequestInit = {
-      method,
-      headers: req.headers,
-      body: req.body ? JSON.stringify(req.body) : undefined,
-    };
-
-    const url = req.url;
-    logInfo(`Hitting endpoint: ${url}`);
-
-    const cb = resolveCircuitBreaker(client);
-    if (cb) cb.checkCircuit(endpoint);
-
-    const rateLimiter = resolveRateLimiter(client);
-    await rateLimiter.checkRateLimit();
-
-    const timeoutMs = client.getTimeout();
-    const controller = new AbortController();
-    const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
-    options.signal = controller.signal;
-
-    let response: Response;
-    try {
-      response = await fetch(url, options);
-    } catch (err) {
-      clearTimeout(timer);
-      if (err instanceof Error && err.name === 'AbortError') {
-        throw new EsiError(0, `Request timed out after ${timeoutMs}ms`, url);
-      }
-      throw err;
-    }
-    clearTimeout(timer);
-
-    const parsed = parseHeaders(response.headers);
-
-    rateLimiter.updateFromResponse(parsed.raw, response.status);
-
-    if (cb) {
-      if (response.status >= 500) cb.recordFailure(endpoint, response.status);
-      else cb.recordSuccess(endpoint);
-    }
-
-    if (parsed.warning) {
-      logWarn(
-        `ESI Warning ${parsed.warning.code} for ${url}: ${parsed.warning.message}`,
-      );
-    }
 
     if (response.status === 201) {
       let data: unknown;

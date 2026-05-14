@@ -6,6 +6,7 @@ export interface CircuitBreakerConfig {
   failureThreshold?: number;
   resetTimeoutMs?: number;
   halfOpenMaxAttempts?: number;
+  staleThresholdMs?: number;
 }
 
 interface CircuitRecord {
@@ -20,11 +21,13 @@ export class CircuitBreaker {
   private readonly failureThreshold: number;
   private readonly resetTimeoutMs: number;
   private readonly halfOpenMaxAttempts: number;
+  private readonly staleThresholdMs: number;
 
   constructor(config: CircuitBreakerConfig = {}) {
     this.failureThreshold = config.failureThreshold ?? 5;
     this.resetTimeoutMs = config.resetTimeoutMs ?? 30_000;
     this.halfOpenMaxAttempts = config.halfOpenMaxAttempts ?? 1;
+    this.staleThresholdMs = config.staleThresholdMs ?? 3_600_000;
   }
 
   private getKey(endpoint: string): string {
@@ -154,6 +157,30 @@ export class CircuitBreaker {
     } else {
       this.circuits.clear();
     }
+  }
+
+  cleanup(): number {
+    const now = Date.now();
+    let cleaned = 0;
+    for (const [key, record] of this.circuits.entries()) {
+      if (
+        record.state === 'closed' &&
+        record.failures === 0 &&
+        record.lastFailureTime > 0 &&
+        now - record.lastFailureTime > this.staleThresholdMs
+      ) {
+        this.circuits.delete(key);
+        cleaned++;
+      }
+    }
+    if (cleaned > 0) {
+      logInfo(`Circuit breaker cleanup: removed ${cleaned} stale circuits`);
+    }
+    return cleaned;
+  }
+
+  shutdown(): void {
+    this.circuits.clear();
   }
 }
 
