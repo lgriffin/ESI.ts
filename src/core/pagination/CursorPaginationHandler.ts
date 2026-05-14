@@ -18,6 +18,7 @@
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
+import { sleep } from '../util/sleep';
 
 export interface CursorTokens {
   before: string | null;
@@ -189,7 +190,7 @@ export class CursorPaginationHandler {
           `Cursor fetch attempt ${attempt}/${options.maxRetries} failed: ${error instanceof Error ? error.message : String(error)}`,
         );
         if (attempt < options.maxRetries) {
-          await this.sleep(options.retryDelayMs * attempt);
+          await sleep(options.retryDelayMs * attempt);
         }
       }
     }
@@ -229,9 +230,5 @@ export class CursorPaginationHandler {
       url += separator + parts.join('&');
     }
     return url;
-  }
-
-  private static sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
