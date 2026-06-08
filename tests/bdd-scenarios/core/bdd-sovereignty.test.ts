@@ -259,6 +259,96 @@ describe('BDD: Sovereignty Management', () => {
     });
   });
 
+  describe('Feature: Combined Sovereignty Systems', () => {
+    describe('Scenario: Get combined sovereignty systems with ADM indices', () => {
+      it('Given the combined systems endpoint is available, When I request sovereignty systems, Then I should receive occupancy, structures, and separate ADM indices', async () => {
+        // Given
+        const expectedSystems = [
+          {
+            system_id: 30000142,
+            alliance_id: 99005338,
+            corporation_id: 1344654522,
+            military_index: 5.0,
+            industry_index: 3.2,
+            strategic_index: 1.0,
+            structures: [
+              {
+                structure_id: 8001,
+                structure_type_id: 32226,
+                vulnerability_occupancy_level: 4.5,
+              },
+            ],
+          },
+          {
+            system_id: 30004759,
+            alliance_id: 99000001,
+            corporation_id: 987654321,
+            military_index: 2.0,
+            industry_index: 4.5,
+            strategic_index: 3.0,
+            structures: [],
+          },
+        ];
+
+        jest
+          .spyOn(client.sovereignty, 'getSovereigntySystems')
+          .mockResolvedValue(expectedSystems as any);
+
+        // When
+        const result = await client.sovereignty.getSovereigntySystems();
+
+        // Then
+        expect(result).toBeDefined();
+        expect(result).toHaveLength(2);
+        expect(result[0].military_index).toBe(5.0);
+        expect(result[0].industry_index).toBe(3.2);
+        expect(result[0].strategic_index).toBe(1.0);
+        expect(result[0].structures).toHaveLength(1);
+        expect(result[1].structures).toHaveLength(0);
+      });
+    });
+
+    describe('Scenario: Combined route replaces separate map and structures endpoints', () => {
+      it('Given the combined systems endpoint, When I fetch systems, Then it should contain data from both map and structures', async () => {
+        // Given
+        const systemsData = [
+          {
+            system_id: 30000142,
+            alliance_id: 99005338,
+            corporation_id: 1344654522,
+            faction_id: undefined,
+            military_index: 5.0,
+            industry_index: 3.2,
+            strategic_index: 1.0,
+            structures: [
+              {
+                structure_id: 8001,
+                structure_type_id: 32226,
+                vulnerability_occupancy_level: 4.5,
+                vulnerable_start_time: '2026-05-20T17:00:00Z',
+                vulnerable_end_time: '2026-05-20T20:00:00Z',
+              },
+            ],
+          },
+        ];
+
+        jest
+          .spyOn(client.sovereignty, 'getSovereigntySystems')
+          .mockResolvedValue(systemsData as any);
+
+        // When
+        const result = await client.sovereignty.getSovereigntySystems();
+
+        // Then
+        expect(result[0].system_id).toBeDefined();
+        expect(result[0].alliance_id).toBeDefined();
+        expect(result[0].military_index).toBeDefined();
+        expect(result[0].structures![0].structure_id).toBeDefined();
+        expect(result[0].structures![0].vulnerable_start_time).toBeDefined();
+      });
+    });
+  });
+
   describe('Feature: Sovereignty Workflow', () => {
     describe('Scenario: Concurrent fetch of map, campaigns, and structures', () => {
       it('Given all sovereignty endpoints are available, When I fetch all data concurrently, Then all three should return valid data', async () => {

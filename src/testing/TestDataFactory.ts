@@ -11,6 +11,13 @@ import {
   MarketOrder,
   WalletTransaction,
   Contract,
+  SovereigntySystem,
+  SovereigntyHub,
+  OrbitalSkyhook,
+  RaidableSkyhook,
+  MercenaryDen,
+  MercenaryTacticalOperation,
+  AccessListEntry,
 } from '../types/api-responses';
 import { EsiError } from '../core/util/error';
 
@@ -605,6 +612,113 @@ export class TestDataFactory {
       reward: 500000,
       collateral: 10000000,
       volume: 1000,
+      ...overrides,
+    };
+  }
+
+  // Sovereignty test data (Equinox)
+  static createSovereigntySystem(
+    overrides: Partial<SovereigntySystem> = {},
+  ): SovereigntySystem {
+    return {
+      system_id: 30000142,
+      alliance_id: 99005338,
+      corporation_id: 1344654522,
+      military_index: 5.0,
+      industry_index: 3.2,
+      strategic_index: 1.0,
+      structures: [
+        {
+          structure_id: 8001,
+          structure_type_id: 32226,
+          vulnerability_occupancy_level: 4.5,
+        },
+      ],
+      ...overrides,
+    };
+  }
+
+  static createSovereigntyHub(
+    overrides: Partial<SovereigntyHub> = {},
+  ): SovereigntyHub {
+    return {
+      structure_id: 100000001,
+      system_id: 30000142,
+      corporation_id: 98000002,
+      alliance_id: 99000006,
+      online: true,
+      remaining_reagents: 500,
+      installed_upgrades: [1, 2, 3],
+      ...overrides,
+    };
+  }
+
+  static createOrbitalSkyhook(
+    overrides: Partial<OrbitalSkyhook> = {},
+  ): OrbitalSkyhook {
+    return {
+      structure_id: 200000001,
+      system_id: 30000142,
+      corporation_id: 98000002,
+      alliance_id: 99000006,
+      online: true,
+      reagent_silo_capacity: 1000,
+      reagent_silo_level: 750,
+      ...overrides,
+    };
+  }
+
+  static createRaidableSkyhook(
+    overrides: Partial<RaidableSkyhook> = {},
+  ): RaidableSkyhook {
+    return {
+      structure_id: 200000001,
+      system_id: 30000142,
+      corporation_id: 98000002,
+      alliance_id: 99000006,
+      raidable_at: '2026-05-20T12:00:00Z',
+      is_raidable: true,
+      ...overrides,
+    };
+  }
+
+  static createMercenaryDen(
+    overrides: Partial<MercenaryDen> = {},
+  ): MercenaryDen {
+    return {
+      den_id: 5001,
+      system_id: 30000142,
+      constellation_id: 20000125,
+      region_id: 10000002,
+      development_level: 3,
+      anarchy_level: 2,
+      active_operations: 1,
+      ...overrides,
+    };
+  }
+
+  static createMercenaryTacticalOperation(
+    overrides: Partial<MercenaryTacticalOperation> = {},
+  ): MercenaryTacticalOperation {
+    return {
+      operation_id: 7001,
+      den_id: 5001,
+      system_id: 30000142,
+      site_type: 'assault',
+      status: 'active',
+      started_at: '2026-05-20T10:00:00Z',
+      expires_at: '2026-05-20T22:00:00Z',
+      ...overrides,
+    };
+  }
+
+  static createAccessListEntry(
+    overrides: Partial<AccessListEntry> = {},
+  ): AccessListEntry {
+    return {
+      entity_id: 1689391488,
+      entity_type: 'character',
+      access_type: 'allowed',
       ...overrides,
     };
   }

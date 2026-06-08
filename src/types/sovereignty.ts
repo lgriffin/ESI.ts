@@ -31,3 +31,22 @@ export interface SovereigntyStructure {
   vulnerable_start_time?: string;
   vulnerable_end_time?: string;
 }
+
+export interface SovereigntySystemStructure {
+  structure_id: number;
+  structure_type_id: number;
+  vulnerability_occupancy_level?: number;
+  vulnerable_start_time?: string;
+  vulnerable_end_time?: string;
+}
+
+export interface SovereigntySystem {
+  system_id: number;
+  alliance_id?: number;
+  corporation_id?: number;
+  faction_id?: number;
+  military_index?: number;
+  industry_index?: number;
+  strategic_index?: number;
+  structures?: SovereigntySystemStructure[];
+}

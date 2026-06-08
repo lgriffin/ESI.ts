@@ -37,6 +37,9 @@ import {
   WarsClient,
   MetaClient,
   FreelanceJobsClient,
+  SkyhooksClient,
+  MercenaryClient,
+  AccessListsClient,
 } from './core/ClientRegistry';
 import { EsiClientConfig } from './EsiClient';
 import logger from './core/logger/logger';
@@ -177,6 +180,15 @@ export class CustomEsiClient {
   }
   get freelanceJobs(): FreelanceJobsClient | undefined {
     return this.getClient('freelanceJobs') as FreelanceJobsClient;
+  }
+  get skyhooks(): SkyhooksClient | undefined {
+    return this.getClient('skyhooks') as SkyhooksClient;
+  }
+  get mercenary(): MercenaryClient | undefined {
+    return this.getClient('mercenary') as MercenaryClient;
+  }
+  get accessLists(): AccessListsClient | undefined {
+    return this.getClient('accessLists') as AccessListsClient;
   }
 
   shutdown(): void {
