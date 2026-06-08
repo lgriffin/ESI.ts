@@ -98,4 +98,41 @@ describe('SovereigntyClient', () => {
       'https://esi.evetech.net/sovereignty/structures',
     );
   });
+
+  it('should get sovereignty systems (combined route)', async () => {
+    const mockResponse = [
+      {
+        system_id: 30000142,
+        alliance_id: 99000006,
+        corporation_id: 98000002,
+        military_index: 3.5,
+        industry_index: 2.1,
+        strategic_index: 1.0,
+        structures: [
+          {
+            structure_id: 1018253388776,
+            structure_type_id: 32226,
+            vulnerability_occupancy_level: 4.5,
+          },
+        ],
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      sovereigntyClient.getSovereigntySystems(),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    result.forEach((system: any) => {
+      expect(system).toHaveProperty('system_id');
+      expect(typeof system.system_id).toBe('number');
+      expect(system).toHaveProperty('military_index');
+      expect(system).toHaveProperty('industry_index');
+      expect(system).toHaveProperty('strategic_index');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/sovereignty/systems',
+    );
+  });
 });

@@ -31,6 +31,9 @@ import { WalletClient } from '../clients/WalletClient';
 import { WarsClient } from '../clients/WarsClient';
 import { MetaClient } from '../clients/MetaClient';
 import { FreelanceJobsClient } from '../clients/FreelanceJobsClient';
+import { SkyhooksClient } from '../clients/SkyhooksClient';
+import { MercenaryClient } from '../clients/MercenaryClient';
+import { AccessListsClient } from '../clients/AccessListsClient';
 
 export type ApiClientType =
   | 'alliance'
@@ -64,7 +67,10 @@ export type ApiClientType =
   | 'wallet'
   | 'wars'
   | 'meta'
-  | 'freelanceJobs';
+  | 'freelanceJobs'
+  | 'skyhooks'
+  | 'mercenary'
+  | 'accessLists';
 
 export type ClientInstance =
   | AllianceClient
@@ -98,7 +104,10 @@ export type ClientInstance =
   | WalletClient
   | WarsClient
   | MetaClient
-  | FreelanceJobsClient;
+  | FreelanceJobsClient
+  | SkyhooksClient
+  | MercenaryClient
+  | AccessListsClient;
 
 const clientFactories: Record<
   ApiClientType,
@@ -136,6 +145,9 @@ const clientFactories: Record<
   wars: WarsClient,
   meta: MetaClient,
   freelanceJobs: FreelanceJobsClient,
+  skyhooks: SkyhooksClient,
+  mercenary: MercenaryClient,
+  accessLists: AccessListsClient,
 };
 
 export function createClientInstance(
@@ -184,4 +196,7 @@ export {
   WarsClient,
   MetaClient,
   FreelanceJobsClient,
+  SkyhooksClient,
+  MercenaryClient,
+  AccessListsClient,
 };

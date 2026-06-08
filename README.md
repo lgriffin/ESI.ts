@@ -13,7 +13,7 @@ A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.n
 - Automatic offset-based pagination and cursor-based pagination support
 - Rate limiting with header-driven backoff
 - Automatic token refresh with 401 retry and concurrent coalescing
-- 32 domain clients covering the full ESI surface
+- 35 domain clients covering the full ESI surface
 
 ## Installation
 
@@ -219,7 +219,10 @@ All clients are accessed as properties on the `EsiClient` instance. Authenticate
 | Route          | `client.route`         | No   | `getRoute(origin, destination)`                          |
 | Search         | `client.search`        | Some | `search(characterId, query)`                             |
 | Skills         | `client.skills`        | Yes  | `getCharacterSkills(id)`                                 |
-| Sovereignty    | `client.sovereignty`   | No   | `getSovereigntyMap()`                                    |
+| Sovereignty    | `client.sovereignty`   | No   | `getSovereigntySystems()`, `getSovereigntyMap()`         |
+| Skyhooks       | `client.skyhooks`      | No   | `getSovereigntyHubs()`, `getRaidableSkyhooks()`          |
+| Mercenary      | `client.mercenary`     | No   | `getMercenaryDens()`, `getMercenaryTacticalOperations()` |
+| Access Lists   | `client.accessLists`   | Yes  | `getAccessList(id)`                                      |
 | Status         | `client.status`        | No   | `getStatus()`                                            |
 | UI             | `client.ui`            | Yes  | `setWaypoint(id)`                                        |
 | Universe       | `client.universe`      | Some | `getSystemById(id)`, `getTypeById(id)`                   |

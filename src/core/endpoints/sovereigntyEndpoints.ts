@@ -10,9 +10,24 @@ export const sovereigntyEndpoints = {
     path: 'sovereignty/map',
     method: 'GET',
     requiresAuth: false,
+    deprecated: {
+      message: 'Use getSovereigntySystems instead',
+      replacedBy: 'getSovereigntySystems',
+      sunsetDate: '2026-05-19',
+    },
   },
   getSovereigntyStructures: {
     path: 'sovereignty/structures',
+    method: 'GET',
+    requiresAuth: false,
+    deprecated: {
+      message: 'Use getSovereigntySystems instead',
+      replacedBy: 'getSovereigntySystems',
+      sunsetDate: '2026-05-19',
+    },
+  },
+  getSovereigntySystems: {
+    path: 'sovereignty/systems',
     method: 'GET',
     requiresAuth: false,
   },

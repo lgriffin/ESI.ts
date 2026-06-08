@@ -50,6 +50,9 @@ export { WalletClient } from './clients/WalletClient';
 export { WarsClient } from './clients/WarsClient';
 export { MetaClient } from './clients/MetaClient';
 export { FreelanceJobsClient } from './clients/FreelanceJobsClient';
+export { SkyhooksClient } from './clients/SkyhooksClient';
+export { MercenaryClient } from './clients/MercenaryClient';
+export { AccessListsClient } from './clients/AccessListsClient';
 
 // Cursor pagination & client utilities
 export {

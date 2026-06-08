@@ -36,6 +36,9 @@ import { WalletClient } from './clients/WalletClient';
 import { WarsClient } from './clients/WarsClient';
 import { MetaClient } from './clients/MetaClient';
 import { FreelanceJobsClient } from './clients/FreelanceJobsClient';
+import { SkyhooksClient } from './clients/SkyhooksClient';
+import { MercenaryClient } from './clients/MercenaryClient';
+import { AccessListsClient } from './clients/AccessListsClient';
 import { validateBaseUrl } from './core/util/validation';
 import {
   ETagCacheManager,
@@ -240,6 +243,15 @@ export class EsiClient {
   }
   get freelanceJobs(): FreelanceJobsClient {
     return this.getClient('freelanceJobs');
+  }
+  get skyhooks(): SkyhooksClient {
+    return this.getClient('skyhooks');
+  }
+  get mercenary(): MercenaryClient {
+    return this.getClient('mercenary');
+  }
+  get accessLists(): AccessListsClient {
+    return this.getClient('accessLists');
   }
 
   addRequestInterceptor(fn: RequestInterceptor): () => void {

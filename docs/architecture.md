@@ -18,7 +18,7 @@ graph TB
         Index["index.ts exports"]
     end
 
-    subgraph DomainClients["Domain Client Layer (33 clients)"]
+    subgraph DomainClients["Domain Client Layer (36 clients)"]
         Alliance["AllianceClient"]
         Character["CharacterClient"]
         Market["MarketClient"]
@@ -28,7 +28,7 @@ graph TB
 
     subgraph EndpointLayer["Endpoint Definition Layer"]
         EndpointDef["EndpointDefinition"]
-        EndpointFiles["*Endpoints.ts (33 files)"]
+        EndpointFiles["*Endpoints.ts (36 files)"]
         CreateClient["createClient()"]
         Registry["ClientRegistry"]
     end
@@ -346,7 +346,7 @@ Three ways consumers can create clients, from simple to selective.
 graph TB
     subgraph Pattern1["Pattern 1: Full Client (default)"]
         P1Code["const client = new EsiClient()"]
-        P1Result["All 33 domain clients<br/>available via getters"]
+        P1Result["All 36 domain clients<br/>available via getters"]
         P1Code --> P1Result
     end
 
@@ -434,7 +434,7 @@ graph TB
 
     subgraph TDDTests["TDD Test Suites"]
         Core["Core Infrastructure<br/>ETagCache, RateLimiter,<br/>CircuitBreaker, Middleware,<br/>DI, TokenRefresh, Validation"]
-        Clients["Domain Clients<br/>33 client test files<br/>(GET, POST, PUT, DELETE)"]
+        Clients["Domain Clients<br/>36 client test files<br/>(GET, POST, PUT, DELETE)"]
         Integration["Integration Tests<br/>Pagination, ETag flow,<br/>Rate limit integration"]
     end
 
