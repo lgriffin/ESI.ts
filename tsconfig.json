@@ -2,15 +2,16 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "commonjs",
+    "moduleResolution": "bundler",
     "strict": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "declarationMap": true,
     "typeRoots": ["./node_modules/@types", "./types"],
     "types": ["jest", "node"],
+    "rootDir": "./src",
     "outDir": "./dist",
     "incremental": true
   },
