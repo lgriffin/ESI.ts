@@ -24,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 
-- `knip`: 6.6.1 → 6.16.1
 - `ts-jest`: 29.4.9 → 29.4.11
 - `eslint-plugin-prettier`: 5.5.5 → 5.5.6
 
