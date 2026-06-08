@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.1] - 2026-06-08
+
+### Changed
+
+- **TypeScript 5.9 → 6.0** — upgraded to TypeScript 6.0.3, the last version before the Go-based TS7 compiler
+- `tsconfig.json`: added explicit `moduleResolution: "bundler"` (TS6 changed the default from `node` to `bundler`)
+- `tsconfig.json`: added explicit `rootDir: "./src"` (TS6 requires this when emitting)
+- `tsconfig.json`: removed `esModuleInterop: true` (always-on in TS6)
+
 ## [4.1.0] - 2026-06-08
 
 ### Added
