@@ -939,5 +939,3 @@ export class TestDataFactory {
     };
   }
 }
-
-export default TestDataFactory;
