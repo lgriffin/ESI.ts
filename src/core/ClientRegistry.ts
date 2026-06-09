@@ -158,7 +158,7 @@ export function createClientInstance(
   return new clientFactories[name](apiClient);
 }
 
-export const allClientTypes: ApiClientType[] = Object.keys(
+const allClientTypes: ApiClientType[] = Object.keys(
   clientFactories,
 ) as ApiClientType[];
 

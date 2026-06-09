@@ -1,18 +1,6 @@
 import fetchMock from 'jest-fetch-mock';
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
-export const mockApiCall = (
-  apiCall: (...args: any[]) => Promise<any>,
-  mockResponse: object,
-  mockHeaders: Record<string, string> = {},
-) => {
-  fetchMock.mockResponseOnce(JSON.stringify(mockResponse), {
-    headers: mockHeaders,
-  });
-
-  return apiCall;
-};
-
 export const getHeaders = async (
   apiCall: () => Promise<any>,
 ): Promise<Record<string, string>> => {

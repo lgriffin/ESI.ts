@@ -2,7 +2,7 @@
  * ESI.ts Example: Sovereignty
  *
  * Shows current sovereignty data — who owns nullsec systems,
- * ADM indices, active campaigns, and raidable skyhooks.
+ * ADM indices, and active campaigns.
  *
  * Usage: npm run example:sovereignty
  */
