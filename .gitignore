@@ -77,5 +77,8 @@ temp/
 reports/
 report/
 
+# Generated documentation (TypeDoc output)
+docs/
+
 # Local planning docs
 ideas.md

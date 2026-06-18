@@ -5,28 +5,35 @@
 ```
 tests/
 ├── tdd/                          # Unit tests (one per domain client)
+│   ├── access-lists/AccessListsClient.test.ts
 │   ├── alliances/AllianceClient.test.ts
 │   ├── assets/AssetsClient.test.ts
 │   ├── calendar/CalendarClient.test.ts
 │   ├── characters/CharacterClient.test.ts
+│   ├── clients/FreelanceJobsClient.test.ts
 │   ├── clones/ClonesClient.test.ts
 │   ├── contacts/ContactsClient.test.ts
+│   ├── contracts/ContractsClient.test.ts
 │   ├── core/
+│   │   ├── AsyncPaginationIterator.test.ts
+│   │   ├── CursorPaginationHandler.test.ts
+│   │   ├── CursorPaginationIntegration.test.ts
 │   │   ├── ETagCacheManager.test.ts
 │   │   ├── ETagIntegration.test.ts
+│   │   ├── EsiDiagnostics.test.ts
 │   │   ├── EsiError.test.ts
-│   │   ├── headersUtil.test.ts
 │   │   ├── PaginationHandler.test.ts
 │   │   ├── PaginationIntegration.test.ts
-│   │   ├── RateLimiter.test.ts
 │   │   ├── RateLimitIntegration.test.ts
+│   │   ├── RateLimiter.test.ts
+│   │   ├── RequestDeduplicator.test.ts
 │   │   ├── WithMetadata.test.ts
 │   │   ├── circuitBreaker.test.ts
 │   │   ├── constants.test.ts
 │   │   ├── createClient.test.ts
-│   │   ├── CursorPaginationHandler.test.ts
-│   │   ├── CursorPaginationIntegration.test.ts
 │   │   ├── dependencyInjection.test.ts
+│   │   ├── endpointDefinitions.test.ts
+│   │   ├── headersUtil.test.ts
 │   │   ├── middleware.test.ts
 │   │   ├── tokenRefresh.test.ts
 │   │   └── validation.test.ts
@@ -43,10 +50,13 @@ tests/
 │   ├── loyalty/LoyaltyClient.test.ts
 │   ├── mail/MailClient.test.ts
 │   ├── market/MarketClient.test.ts
+│   ├── mercenary/MercenaryClient.test.ts
+│   ├── meta/MetaClient.test.ts
 │   ├── pi/PiClient.test.ts
 │   ├── route/RouteClient.test.ts
 │   ├── search/searchClient.test.ts
 │   ├── skills/SkillsClient.test.ts
+│   ├── skyhooks/SkyhooksClient.test.ts
 │   ├── sovereignty/SovereigntyClient.test.ts
 │   ├── status/StatusClient.test.ts
 │   ├── ui/UiClient.test.ts
@@ -55,6 +65,7 @@ tests/
 │   └── wars/WarsClient.test.ts
 ├── bdd-scenarios/                # BDD scenario tests
 │   ├── core/
+│   │   ├── bdd-access-lists.test.ts
 │   │   ├── bdd-alliance.test.ts
 │   │   ├── bdd-assets.test.ts
 │   │   ├── bdd-calendar.test.ts
@@ -77,12 +88,14 @@ tests/
 │   │   ├── bdd-loyalty.test.ts
 │   │   ├── bdd-mail.test.ts
 │   │   ├── bdd-market.test.ts
+│   │   ├── bdd-mercenary.test.ts
 │   │   ├── bdd-meta.test.ts
 │   │   ├── bdd-pi.test.ts
 │   │   ├── bdd-response-headers.test.ts
 │   │   ├── bdd-route.test.ts
 │   │   ├── bdd-search.test.ts
 │   │   ├── bdd-skills.test.ts
+│   │   ├── bdd-skyhooks.test.ts
 │   │   ├── bdd-sovereignty.test.ts
 │   │   ├── bdd-status.test.ts
 │   │   ├── bdd-ui.test.ts
@@ -96,6 +109,7 @@ tests/
 ├── bdd/
 │   └── simple-bdd-demo.test.ts
 └── integration/                  # Integration tests (real ESI API)
+    ├── full-stack.test.ts        # Full-stack integration workflows
     ├── gated-auth.test.ts        # Tier 1: authenticated endpoint stubs
     └── live-esi.test.ts          # Tier 2: live ESI API smoke tests
 ```
@@ -103,7 +117,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All unit + BDD tests — 84 suites, 690 tests
+# All unit + BDD tests — 96 suites, 2605 tests
 npm test
 
 # Watch mode for development
@@ -129,13 +143,13 @@ npm run bdd:integration
 npm run bdd:performance
 
 # All other BDD domains are also runnable individually:
-# npm run bdd:assets, bdd:calendar, bdd:clones, bdd:contacts,
-# bdd:contracts, bdd:dogma, bdd:etag-caching, bdd:factions,
-# bdd:fittings, bdd:fleets, bdd:freelance, bdd:incursions,
-# bdd:industry, bdd:insurance, bdd:killmails, bdd:location,
-# bdd:loyalty, bdd:mail, bdd:meta, bdd:pi, bdd:route,
-# bdd:search, bdd:skills, bdd:sovereignty, bdd:status,
-# bdd:ui, bdd:wallet, bdd:wars
+# npm run bdd:access-lists, bdd:assets, bdd:calendar, bdd:clones,
+# bdd:contacts, bdd:contracts, bdd:dogma, bdd:etag-caching,
+# bdd:factions, bdd:fittings, bdd:fleets, bdd:freelance,
+# bdd:incursions, bdd:industry, bdd:insurance, bdd:killmails,
+# bdd:location, bdd:loyalty, bdd:mail, bdd:mercenary, bdd:meta,
+# bdd:pi, bdd:route, bdd:search, bdd:skills, bdd:skyhooks,
+# bdd:sovereignty, bdd:status, bdd:ui, bdd:wallet, bdd:wars
 ```
 
 ## Integration Tests
@@ -182,6 +196,15 @@ Lightweight smoke tests that verify the library can talk to real ESI and get cor
 npx jest --config jest.integration.config.cjs --testPathPattern=live-esi
 ```
 
+### Full-Stack Integration (`full-stack.test.ts`)
+
+End-to-end workflows that exercise multiple clients together through the full request pipeline.
+
+```bash
+# Run full-stack only
+npx jest --config jest.integration.config.cjs --testPathPattern=full-stack
+```
+
 **Note:** Integration tests are rate-limited and have longer timeouts. They may fail if ESI is experiencing downtime. CI runs them on a schedule rather than on every push.
 
 ### Live API Verification
@@ -198,6 +221,8 @@ npm run example:alliance     # Alliance info + member corps
 npm run example:route        # Route planning with system names
 npm run example:wars         # Recent wars
 npm run example:sovereignty  # Nullsec sovereignty map
+npm run example:skyhooks     # Sovereignty hubs + orbital skyhooks
+npm run example:mercenary    # Mercenary dens + tactical operations
 npm run example:industry     # Industry facilities + insurance
 npm run example:incursions   # Incursions + faction warfare
 npm run example:dogma        # Item types + dogma attributes
@@ -213,6 +238,12 @@ npm run example:mail         # Inbox, labels, mailing lists
 npm run example:location     # Current system, online, ship
 npm run example:fittings     # Ship fittings + clones + implants
 npm run example:contacts     # Contact list with standings
+npm run example:access-lists # Access list entries (requires ACL scope)
+
+# Utility / advanced pattern examples
+npm run example:rate-limiting      # Rate limiter behavior demo
+npm run example:cursor-pagination  # Cursor-based pagination demo
+npm run example:token-refresh      # Token refresh flow demo
 ```
 
 ## How Tests Work
@@ -283,45 +314,60 @@ const notFound = TestDataFactory.createError(404);
 
 Available factory methods:
 
-| Method                            | Returns                        |
-| --------------------------------- | ------------------------------ |
-| `createAllianceInfo()`            | `AllianceInfo`                 |
-| `createAllianceContact()`         | `AllianceContact`              |
-| `createAllianceContactLabel()`    | `AllianceContactLabel`         |
-| `createCharacterInfo()`           | `CharacterInfo`                |
-| `createCharacterPortrait()`       | `CharacterPortrait`            |
-| `createCharacterAttributes()`     | `CharacterAttributes`          |
-| `createCharacterSkill()`          | `CharacterSkill`               |
-| `createCharacterRoles()`          | Roles object                   |
-| `createCharacterLocation()`       | Location object                |
-| `createCharacterSkills()`         | Skills summary                 |
-| `createCharacterAsset()`          | Asset object                   |
-| `createCorporationInfo()`         | `CorporationInfo`              |
-| `createCorporationMemberRoles()`  | Member roles object            |
-| `createCorporationAsset()`        | Corp asset object              |
-| `createCorporationStructure()`    | Structure object               |
-| `createCorporationWallet()`       | Wallet division                |
-| `createMarketOrder()`             | `MarketOrder`                  |
-| `createMarketPrice()`             | Price object                   |
-| `createMarketHistory()`           | History entry                  |
-| `createWalletTransaction()`       | `WalletTransaction`            |
-| `createWalletJournalEntry()`      | Journal entry                  |
-| `createContract()`                | `Contract`                     |
-| `createFleetInfo()`               | Fleet object                   |
-| `createFleetMember()`             | Fleet member                   |
-| `createFleetWing()`               | Fleet wing                     |
-| `createIndustryJob()`             | Industry job                   |
-| `createBlueprint()`               | Blueprint object               |
-| `createSolarSystem()`             | System object                  |
-| `createStation()`                 | Station object                 |
-| `createStructure()`               | Structure object               |
-| `createItemType()`                | Type object                    |
-| `createItemGroup()`               | Group object                   |
-| `createStar()`                    | Star object                    |
-| `createPlanet()`                  | Planet object                  |
-| `createError(statusCode)`         | `EsiError`                     |
-| `createPerformanceTestData(size)` | Bulk test data                 |
-| `createRealisticTestData()`       | Linked alliance/corp/character |
+| Method                               | Returns                        |
+| ------------------------------------ | ------------------------------ |
+| `createAllianceInfo()`               | `AllianceInfo`                 |
+| `createAllianceContact()`            | `AllianceContact`              |
+| `createAllianceContactLabel()`       | `AllianceContactLabel`         |
+| `createCharacterInfo()`              | `CharacterInfo`                |
+| `createCharacterPortrait()`          | `CharacterPortrait`            |
+| `createCharacterAttributes()`        | `CharacterAttributes`          |
+| `createCharacterSkill()`             | `CharacterSkill`               |
+| `createCharacterRoles()`             | Roles object                   |
+| `createCharacterLocation()`          | Location object                |
+| `createCharacterSkills()`            | Skills summary                 |
+| `createCharacterAsset()`             | Asset object                   |
+| `createCharacterMarketOrder()`       | Character market order         |
+| `createCharacterOrderHistory()`      | Order history entry            |
+| `createCharacterMedal()`             | Medal object                   |
+| `createCharacterNotification()`      | Notification object            |
+| `createCorporationInfo()`            | `CorporationInfo`              |
+| `createCorporationHistoryEntry()`    | Corp history entry             |
+| `createCorporationMemberRoles()`     | Member roles object            |
+| `createCorporationAsset()`           | Corp asset object              |
+| `createCorporationStructure()`       | Structure object               |
+| `createCorporationWallet()`          | Wallet division                |
+| `createMarketOrder()`                | `MarketOrder`                  |
+| `createMarketPrice()`                | Price object                   |
+| `createMarketHistory()`              | History entry                  |
+| `createWalletTransaction()`          | `WalletTransaction`            |
+| `createWalletJournalEntry()`         | Journal entry                  |
+| `createContract()`                   | `Contract`                     |
+| `createFleetInfo()`                  | Fleet object                   |
+| `createFleetMember()`                | Fleet member                   |
+| `createFleetWing()`                  | Fleet wing                     |
+| `createIndustryJob()`                | Industry job                   |
+| `createBlueprint()`                  | Blueprint object               |
+| `createSolarSystem()`                | System object                  |
+| `createStation()`                    | Station object                 |
+| `createStructure()`                  | Structure object               |
+| `createItemType()`                   | Type object                    |
+| `createItemGroup()`                  | Group object                   |
+| `createStar()`                       | Star object                    |
+| `createPlanet()`                     | Planet object                  |
+| `createSearchResults()`              | Search result set              |
+| `createEntityName()`                 | Named entity                   |
+| `createSovereigntySystem()`          | Sovereignty system (combined)  |
+| `createSovereigntyHub()`             | Sovereignty hub                |
+| `createOrbitalSkyhook()`             | Orbital skyhook                |
+| `createRaidableSkyhook()`            | Raidable skyhook               |
+| `createMercenaryDen()`               | Mercenary den                  |
+| `createMercenaryTacticalOperation()` | Mercenary tactical operation   |
+| `createAccessListEntry()`            | Access list entry              |
+| `createError(statusCode)`            | `EsiError`                     |
+| `createTestScenarios()`              | Full test scenario set         |
+| `createPerformanceTestData(size)`    | Bulk test data                 |
+| `createRealisticTestData()`          | Linked alliance/corp/character |
 
 ## TDD Test Pattern
 
@@ -407,7 +453,7 @@ describe('Feature: Retrieve Alliance Information', () => {
 
 ### BDD Test Categories
 
-- **Core** (`bdd-scenarios/core/`): Domain-specific scenarios — alliance, character, clones, corporation, market, meta, universe, ETag caching, response headers
+- **Core** (`bdd-scenarios/core/`): Domain-specific scenarios for all 35 domain clients plus cross-cutting concerns (ETag caching, response headers)
 - **Integration** (`bdd-scenarios/integration/`): Cross-domain workflows — character profile assembly, market analysis, fleet operations
 - **Performance** (`bdd-scenarios/performance/`): Concurrent requests, large dataset handling, memory efficiency, error handling performance
 
