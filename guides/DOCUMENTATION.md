@@ -1,6 +1,6 @@
 # ESI.ts Documentation Guide
 
-> **Version 3.4.0** - Latest documentation for the EVE Online ESI API TypeScript client
+> **Version 4.1.1** - Latest documentation for the EVE Online ESI API TypeScript client
 
 ## Local Documentation
 
@@ -12,29 +12,32 @@ The complete API documentation is automatically generated from the TypeScript so
 
 ### Main Sections
 
-1. **[Classes](../docs/classes/index.html)** - All API clients and core classes
-   - `EsiClient` - Main client with all APIs
-   - `CustomEsiClient` - Lightweight client with selected APIs
-   - Individual clients (`CharacterClient`, `MarketClient`, etc.)
+1. **Classes** - All API clients and core classes
+   - `EsiClient` - Main client with all 35 domain APIs
+   - `CustomEsiClient` - Lightweight client with selected APIs via `EsiClientBuilder`
+   - Individual clients (`CharacterClient`, `MarketClient`, `SkyhooksClient`, etc.)
 
-2. **[Interfaces](../docs/interfaces/index.html)** - TypeScript interfaces and contracts
-   - Configuration interfaces
-   - API response types
-   - Client contracts
+2. **Interfaces** - TypeScript interfaces and contracts
+   - Configuration interfaces (`EsiClientConfig`)
+   - API response types (33 domain-specific type files)
+   - Client contracts (`ICache`, `IRateLimiter`, `ILogger`)
 
-3. **[Functions](../docs/functions/index.html)** - Utility functions and helpers
+3. **Functions** - Utility functions and helpers
    - Request handlers
    - Validation utilities
    - Test helpers
 
-4. **[Types](../docs/types/index.html)** - Type aliases and custom types
+4. **Types** - Type aliases and custom types
 
 ### Key Documentation Pages
 
-- **[EsiClient](../docs/classes/src_EsiClient.EsiClient.html)** - Main client class
-- **[EsiClientBuilder](../docs/classes/src_EsiClientBuilder.EsiClientBuilder.html)** - Builder pattern for custom clients
-- **[API Request Handler](../docs/functions/src_core_ApiRequestHandler.handleRequest.html)** - Core request processing
-- **[ETag Caching](../docs/functions/src_core_ApiRequestHandler.initializeETagCache.html)** - Performance caching system
+- **EsiClient** - Main client class with all domain accessors
+- **EsiClientBuilder** - Builder pattern for custom clients
+- **EsiDiagnostics** - Cache/circuit-breaker stats accessor
+- **RequestDeduplicator** - Concurrent request coalescing
+- **CircuitBreaker** - Fault tolerance with state machine
+- **ETagCacheManager** - ETag-based response caching
+- **RateLimiter** - ESI rate limit compliance
 
 ## Documentation Commands
 
@@ -86,6 +89,8 @@ The documentation includes comprehensive examples for:
 - **Builder Pattern** - Fluent client construction
 - **Cursor Pagination** - Freelance Jobs and future cursor-based routes
 - **ESI Scopes** - Required SSO scopes documented per endpoint
+- **Rate Limiting** - Configurable rate limit compliance
+- **Token Refresh** - Automatic 401 retry with token provider
 
 ## Documentation Quality
 
@@ -97,9 +102,4 @@ The documentation includes comprehensive examples for:
 
 ## Keeping Documentation Updated
 
-The documentation is automatically regenerated from source code, ensuring it's always current with the latest API changes. Key benefits:
-
-- **Always Current** - Reflects latest code changes
-- **Type Accurate** - TypeScript ensures type information is correct
-- **Comprehensive** - Covers all public APIs automatically
-- **Searchable** - Full-text search across all content
+The documentation is automatically regenerated from source code, ensuring it's always current with the latest API changes. CI generates and uploads documentation as a build artifact on every push.
