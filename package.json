@@ -166,7 +166,7 @@
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-fetch-mock": "^3.0.3",
-    "jest-junit": "^16.0.0",
+    "jest-junit": "^17.0.0",
     "knip": "^6.6.1",
     "lint-staged": "^17.0.8",
     "prettier": "^3.3.2",
