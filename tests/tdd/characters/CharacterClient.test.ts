@@ -1,6 +1,7 @@
 import { CharacterClient } from '../../../src/clients/CharacterClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
+import { getBody } from '../../../src/core/util/testHelpers';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -191,6 +192,127 @@ describe('CharacterClient', () => {
     expect(typeof result.cost).toBe('number');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/cspa/',
+    );
+  });
+
+  it('should return valid structure for getCharacterFatigue', async () => {
+    const mockResponse = {
+      jump_fatigue_expire_date: '2024-07-01T12:00:00Z',
+      last_jump_date: '2024-07-01T11:00:00Z',
+      last_update_date: '2024-07-01T12:00:00Z',
+    };
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    const result = await getBody(() =>
+      characterClient.getCharacterFatigue(123),
+    );
+    expect(result).toHaveProperty('last_jump_date');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123/fatigue/',
+    );
+  });
+
+  it('should return valid structure for getCharacterMedals', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ medal_id: 1, title: 'Medal', description: 'A medal' }]),
+    );
+    const result = await getBody(() => characterClient.getCharacterMedals(123));
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123/medals/',
+    );
+  });
+
+  it('should return valid structure for getCharacterNotifications', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([
+        { notification_id: 1, type: 'AllWarDeclaredMsg', sender_id: 123 },
+      ]),
+    );
+    const result = await getBody(() =>
+      characterClient.getCharacterNotifications(123),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123/notifications/',
+    );
+  });
+
+  it('should return valid structure for getCharacterNotificationsContacts', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ notification_id: 1, sender_character_id: 456 }]),
+    );
+    const result = await getBody(() =>
+      characterClient.getCharacterNotificationsContacts(123),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123/notifications/contacts/',
+    );
+  });
+
+  it('should return valid structure for getCharacterPortrait', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        px64x64: 'https://images.evetech.net/characters/123/portrait?size=64',
+        px128x128:
+          'https://images.evetech.net/characters/123/portrait?size=128',
+      }),
+    );
+    const result = await getBody(() =>
+      characterClient.getCharacterPortrait(123),
+    );
+    expect(result).toHaveProperty('px64x64');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123/portrait/',
+    );
+  });
+
+  it('should return valid structure for getCharacterRoles', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({ roles: ['Director'], roles_at_hq: [] }),
+    );
+    const result = await getBody(() => characterClient.getCharacterRoles(123));
+    expect(result).toHaveProperty('roles');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123/roles',
+    );
+  });
+
+  it('should return valid structure for getCharacterStandings', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([
+        { from_id: 500001, from_type: 'faction', standing: 5.0 },
+      ]),
+    );
+    const result = await getBody(() =>
+      characterClient.getCharacterStandings(123),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123/standings',
+    );
+  });
+
+  it('should return valid structure for getCharacterTitles', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([{ title_id: 1, name: 'CEO' }]));
+    const result = await getBody(() => characterClient.getCharacterTitles(123));
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123/titles',
+    );
+  });
+
+  it('should return valid structure for postCharacterAffiliation', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ character_id: 123, corporation_id: 456 }]),
+    );
+    const result = await getBody(() =>
+      characterClient.postCharacterAffiliation([123]),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0].character_id).toBe(123);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/affiliation',
     );
   });
 });

@@ -154,6 +154,86 @@ describe('CircuitBreaker', () => {
     });
   });
 
+  describe('half-open max attempts', () => {
+    it('should throw after exceeding halfOpenMaxAttempts', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 2,
+        resetTimeoutMs: 0,
+        halfOpenMaxAttempts: 1,
+      });
+
+      cb.recordFailure('v1/status/', 500);
+      cb.recordFailure('v1/status/', 500);
+
+      // 1st call transitions open→half-open (does not count as attempt)
+      cb.checkCircuit('v1/status/');
+      // 2nd call: halfOpenAttempts(0) < max(1), increments to 1
+      cb.checkCircuit('v1/status/');
+      // 3rd call: halfOpenAttempts(1) >= max(1), throws
+      expect(() => cb.checkCircuit('v1/status/')).toThrow(CircuitOpenError);
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should remove stale closed circuits with no active failures', async () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 3,
+        staleThresholdMs: 1,
+      });
+
+      cb.recordFailure('v1/status/', 500);
+      cb.recordSuccess('v1/status/');
+
+      await new Promise((resolve) => setTimeout(resolve, 5));
+
+      const cleaned = cb.cleanup();
+      expect(cleaned).toBe(1);
+      expect(cb.getStats().totalCircuits).toBe(0);
+    });
+
+    it('should not remove open circuits', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 2,
+        staleThresholdMs: 0,
+      });
+
+      cb.recordFailure('v1/status/', 500);
+      cb.recordFailure('v1/status/', 500);
+
+      const cleaned = cb.cleanup();
+      expect(cleaned).toBe(0);
+      expect(cb.getStats().totalCircuits).toBe(1);
+    });
+
+    it('should not remove circuits with zero lastFailureTime', () => {
+      const cb = new CircuitBreaker({ staleThresholdMs: 0 });
+
+      cb.checkCircuit('v1/status/');
+
+      const cleaned = cb.cleanup();
+      expect(cleaned).toBe(0);
+    });
+
+    it('should return count of cleaned circuits', async () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 5,
+        staleThresholdMs: 1,
+      });
+
+      cb.recordFailure('v1/a/', 500);
+      cb.recordSuccess('v1/a/');
+      cb.recordFailure('v1/b/', 500);
+      cb.recordSuccess('v1/b/');
+      cb.recordFailure('v1/c/', 500);
+      cb.recordSuccess('v1/c/');
+
+      await new Promise((resolve) => setTimeout(resolve, 5));
+
+      const cleaned = cb.cleanup();
+      expect(cleaned).toBe(3);
+    });
+  });
+
   describe('stats and reset', () => {
     it('should report stats for all circuits', () => {
       const cb = new CircuitBreaker({ failureThreshold: 2 });

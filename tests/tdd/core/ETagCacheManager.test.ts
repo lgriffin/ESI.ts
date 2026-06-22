@@ -208,6 +208,61 @@ describe('ETagCacheManager', () => {
     });
   });
 
+  describe('deleteByPath', () => {
+    it('should delete entries matching path segment and return count', () => {
+      cacheManager.set(
+        'https://esi.evetech.net/v1/characters/123/',
+        '"a"',
+        [],
+        {},
+      );
+      cacheManager.set(
+        'https://esi.evetech.net/v1/characters/456/',
+        '"b"',
+        [],
+        {},
+      );
+      cacheManager.set('https://esi.evetech.net/v1/alliances/', '"c"', [], {});
+
+      const count = cacheManager.deleteByPath('/characters/');
+      expect(count).toBe(2);
+      expect(
+        cacheManager.has('https://esi.evetech.net/v1/characters/123/'),
+      ).toBe(false);
+      expect(
+        cacheManager.has('https://esi.evetech.net/v1/characters/456/'),
+      ).toBe(false);
+      expect(cacheManager.has('https://esi.evetech.net/v1/alliances/')).toBe(
+        true,
+      );
+    });
+
+    it('should return 0 when no entries match', () => {
+      cacheManager.set('https://esi.evetech.net/v1/alliances/', '"a"', [], {});
+
+      const count = cacheManager.deleteByPath('/characters/');
+      expect(count).toBe(0);
+    });
+
+    it('should handle partial path matches', () => {
+      cacheManager.set(
+        'https://esi.evetech.net/v1/characters/123/assets/',
+        '"a"',
+        [],
+        {},
+      );
+      cacheManager.set(
+        'https://esi.evetech.net/v1/characters/123/wallet/',
+        '"b"',
+        [],
+        {},
+      );
+
+      const count = cacheManager.deleteByPath('characters/123');
+      expect(count).toBe(2);
+    });
+  });
+
   describe('Configuration Updates', () => {
     it('should update configuration', () => {
       const initialStats = cacheManager.getStats();

@@ -1,4 +1,5 @@
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import * as sleepModule from '../../../src/core/util/sleep';
 
 describe('RateLimiter', () => {
   let limiter: RateLimiter;
@@ -222,6 +223,102 @@ describe('RateLimiter', () => {
       status1.remaining = 999;
       const status2 = limiter.getStatus();
       expect(status2.remaining).not.toBe(999);
+    });
+  });
+
+  describe('getTokenCost edge cases', () => {
+    it('should return default cost (2) for out-of-range status codes', () => {
+      expect(RateLimiter.getTokenCost(600)).toBe(2);
+      expect(RateLimiter.getTokenCost(100)).toBe(2);
+      expect(RateLimiter.getTokenCost(0)).toBe(2);
+      expect(RateLimiter.getTokenCost(-1)).toBe(2);
+    });
+  });
+
+  describe('checkRateLimit delay paths', () => {
+    let sleepSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      sleepSpy.mockRestore();
+    });
+
+    it('should wait and clear block when blockedUntil is in the future', async () => {
+      limiter.updateFromResponse({ 'retry-after': '10' }, 429);
+
+      await limiter.checkRateLimit();
+
+      expect(sleepSpy).toHaveBeenCalled();
+      const sleepArg = sleepSpy.mock.calls[0][0] as number;
+      expect(sleepArg).toBeGreaterThan(0);
+      expect(sleepArg).toBeLessThanOrEqual(10000);
+
+      expect(limiter.isBlocked()).toBe(false);
+      expect(limiter.getStatus().retryAfter).toBeNull();
+    });
+
+    it('should slow down when legacy error limit is low (1-10)', async () => {
+      limiter.updateFromResponse(
+        {
+          'x-esi-error-limit-remain': '5',
+          'x-esi-error-limit-reset': '10',
+        },
+        404,
+      );
+
+      await limiter.checkRateLimit();
+
+      expect(sleepSpy).toHaveBeenCalled();
+      const sleepArg = sleepSpy.mock.calls[0][0] as number;
+      expect(sleepArg).toBeLessThanOrEqual(5000);
+    });
+
+    it('should wait full reset time when legacy error limit is exhausted', async () => {
+      limiter.updateFromResponse(
+        {
+          'x-esi-error-limit-remain': '0',
+          'x-esi-error-limit-reset': '120',
+        },
+        404,
+      );
+
+      await limiter.checkRateLimit();
+
+      expect(sleepSpy).toHaveBeenCalledWith(120000);
+    });
+
+    it('should wait 1s when token bucket is empty', async () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '0',
+          'x-ratelimit-limit': '100',
+        },
+        200,
+      );
+
+      await limiter.checkRateLimit();
+
+      expect(sleepSpy).toHaveBeenCalledWith(1000);
+    });
+
+    it('should apply proactive deceleration when ratio is below threshold', async () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '10',
+          'x-ratelimit-limit': '100',
+        },
+        200,
+      );
+
+      await limiter.checkRateLimit();
+
+      expect(sleepSpy).toHaveBeenCalled();
+      const sleepArg = sleepSpy.mock.calls[0][0] as number;
+      expect(sleepArg).toBeGreaterThan(0);
+      expect(sleepArg).toBeLessThanOrEqual(1000);
     });
   });
 });
