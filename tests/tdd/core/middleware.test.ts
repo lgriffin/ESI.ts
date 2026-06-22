@@ -86,6 +86,39 @@ describe('Middleware', () => {
       expect(manager.hasInterceptors()).toBe(false);
     });
 
+    it('should remove only the specified response interceptor', async () => {
+      const manager = new MiddlewareManager();
+      const order: number[] = [];
+
+      manager.addResponseInterceptor((ctx) => {
+        order.push(1);
+        return ctx;
+      });
+      const remove = manager.addResponseInterceptor((ctx) => {
+        order.push(2);
+        return ctx;
+      });
+      manager.addResponseInterceptor((ctx) => {
+        order.push(3);
+        return ctx;
+      });
+
+      remove();
+
+      await manager.applyResponseInterceptors({
+        url: 'http://test',
+        endpoint: 'test',
+        method: 'GET',
+        status: 200,
+        headers: {},
+        body: {},
+        durationMs: 10,
+        fromCache: false,
+      });
+
+      expect(order).toEqual([1, 3]);
+    });
+
     it('should clear all interceptors', () => {
       const manager = new MiddlewareManager();
       manager.addRequestInterceptor((ctx) => ctx);

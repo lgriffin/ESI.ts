@@ -476,4 +476,147 @@ describe('CorporationsClient', () => {
       'https://esi.evetech.net/latest/corporations/npccorps',
     );
   });
+
+  it('should return valid structure for getCorporationMedals', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([
+        { medal_id: 1, title: 'Valor', description: 'For bravery' },
+      ]),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationMedals(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/medals',
+    );
+  });
+
+  it('should return valid structure for getCorporationIssuedMedals', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([
+        { medal_id: 1, character_id: 99, issued_at: '2024-01-01T00:00:00Z' },
+      ]),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationIssuedMedals(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/medals/issued',
+    );
+  });
+
+  it('should return valid structure for getCorporationMemberTitles', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ character_id: 99, titles: [1, 2] }]),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationMemberTitles(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/members/titles',
+    );
+  });
+
+  it('should return valid structure for getCorporationMemberTracking', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([
+        { character_id: 99, location_id: 60003760, ship_type_id: 587 },
+      ]),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationMemberTracking(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/membertracking',
+    );
+  });
+
+  it('should return valid structure for getCorporationRolesHistory', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([
+        {
+          character_id: 99,
+          changed_at: '2024-01-01T00:00:00Z',
+          role_type: 'roles',
+        },
+      ]),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationRolesHistory(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/roles/history',
+    );
+  });
+
+  it('should return valid structure for getCorporationShareholders', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([
+        { shareholder_id: 99, shareholder_type: 'character', share_count: 100 },
+      ]),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationShareholders(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/shareholders',
+    );
+  });
+
+  it('should return valid structure for getCorporationStarbases', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ starbase_id: 1, type_id: 16213, system_id: 30000142 }]),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationStarbases(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/starbases',
+    );
+  });
+
+  it('should return valid structure for getCorporationStarbaseDetail', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        state: 'online',
+        fuel_bay_view: 'alliance_member',
+        fuels: [{ type_id: 16275, quantity: 960 }],
+      }),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationStarbaseDetail(123456789, 1),
+    );
+    expect(result).toHaveProperty('state');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/starbases/1',
+    );
+  });
+
+  it('should return valid structure for getCorporationStructures', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([
+        {
+          structure_id: 1000000001,
+          type_id: 35832,
+          system_id: 30000142,
+          corporation_id: 123456789,
+          state: 'shield_vulnerable',
+        },
+      ]),
+    );
+    const result = await getBody(() =>
+      corporationsClient.getCorporationStructures(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/structures',
+    );
+  });
 });

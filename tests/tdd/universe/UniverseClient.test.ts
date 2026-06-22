@@ -295,4 +295,273 @@ describe('UniverseClient', () => {
       'https://esi.evetech.net/latest/universe/regions',
     );
   });
+
+  it('should return valid item categories', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([1, 2, 3]));
+    const result = await getBody(() => universeClient.getItemCategories());
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/categories',
+    );
+  });
+
+  it('should return valid item category by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({ category_id: 6, name: 'Ship', groups: [25, 26] }),
+    );
+    const result = await getBody(() => universeClient.getItemCategoryById(6));
+    expect(result.category_id).toBe(6);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/categories/6',
+    );
+  });
+
+  it('should return valid item group by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({ group_id: 25, name: 'Frigate', types: [587, 603] }),
+    );
+    const result = await getBody(() => universeClient.getItemGroupById(25));
+    expect(result.group_id).toBe(25);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/groups/25',
+    );
+  });
+
+  it('should return valid item groups', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([25, 26, 27]));
+    const result = await getBody(() => universeClient.getItemGroups());
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/groups',
+    );
+  });
+
+  it('should return valid moon info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        moon_id: 40000001,
+        name: 'Moon I',
+        system_id: 30000001,
+      }),
+    );
+    const result = await getBody(() => universeClient.getMoonById(40000001));
+    expect(result.moon_id).toBe(40000001);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/moons/40000001',
+    );
+  });
+
+  it('should return valid planet info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        planet_id: 40000002,
+        name: 'Planet I',
+        system_id: 30000001,
+      }),
+    );
+    const result = await getBody(() => universeClient.getPlanetById(40000002));
+    expect(result.planet_id).toBe(40000002);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/planets/40000002',
+    );
+  });
+
+  it('should return valid races', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ race_id: 1, name: 'Caldari', description: 'A race' }]),
+    );
+    const result = await getBody(() => universeClient.getRaces());
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0].race_id).toBe(1);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/races',
+    );
+  });
+
+  it('should return valid region info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        region_id: 10000002,
+        name: 'The Forge',
+        constellations: [20000001],
+      }),
+    );
+    const result = await getBody(() => universeClient.getRegionById(10000002));
+    expect(result.region_id).toBe(10000002);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/regions/10000002',
+    );
+  });
+
+  it('should return valid star info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        star_id: 40000099,
+        name: 'Jita Star',
+        spectral_class: 'K2 V',
+      }),
+    );
+    const result = await getBody(() => universeClient.getStarById(40000099));
+    expect(result.star_id).toBe(40000099);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/stars/40000099',
+    );
+  });
+
+  it('should return valid stargate info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        stargate_id: 50000001,
+        name: 'Jita-Perimeter',
+        system_id: 30000142,
+      }),
+    );
+    const result = await getBody(() =>
+      universeClient.getStargateById(50000001),
+    );
+    expect(result.stargate_id).toBe(50000001);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/stargates/50000001',
+    );
+  });
+
+  it('should return valid station info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        station_id: 60003760,
+        name: 'Jita IV - Moon 4',
+        system_id: 30000142,
+      }),
+    );
+    const result = await getBody(() => universeClient.getStationById(60003760));
+    expect(result.station_id).toBe(60003760);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/stations/60003760',
+    );
+  });
+
+  it('should return valid structure info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        structure_id: 1000000001,
+        name: 'My Citadel',
+        solar_system_id: 30000142,
+      }),
+    );
+    const result = await getBody(() =>
+      universeClient.getStructureById(1000000001),
+    );
+    expect(result.structure_id).toBe(1000000001);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/structures/1000000001',
+    );
+  });
+
+  it('should return valid structures list', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([1000000001, 1000000002]));
+    const result = await getBody(() => universeClient.getStructures());
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/structures',
+    );
+  });
+
+  it('should return valid system info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        system_id: 30000142,
+        name: 'Jita',
+        security_status: 0.9459,
+      }),
+    );
+    const result = await getBody(() => universeClient.getSystemById(30000142));
+    expect(result.system_id).toBe(30000142);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/systems/30000142',
+    );
+  });
+
+  it('should return valid system jumps', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ system_id: 30000142, ship_jumps: 100 }]),
+    );
+    const result = await getBody(() => universeClient.getSystemJumps());
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0].ship_jumps).toBe(100);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/system_jumps',
+    );
+  });
+
+  it('should return valid system kills', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ system_id: 30000142, ship_kills: 50, npc_kills: 200 }]),
+    );
+    const result = await getBody(() => universeClient.getSystemKills());
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0].ship_kills).toBe(50);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/system_kills',
+    );
+  });
+
+  it('should return valid systems list', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([30000001, 30000002]));
+    const result = await getBody(() => universeClient.getSystems());
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/systems',
+    );
+  });
+
+  it('should return valid type info by ID', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        type_id: 587,
+        name: 'Rifter',
+        description: 'A frigate',
+      }),
+    );
+    const result = await getBody(() => universeClient.getTypeById(587));
+    expect(result.type_id).toBe(587);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/types/587',
+    );
+  });
+
+  it('should return valid types list', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([587, 603, 621]));
+    const result = await getBody(() => universeClient.getTypes());
+    expect(Array.isArray(result)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/types',
+    );
+  });
+
+  it('should resolve names to IDs via postBulkNamesToIds', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify({ characters: [{ id: 123, name: 'Pilot' }] }),
+    );
+    const result = await getBody(() =>
+      universeClient.postBulkNamesToIds([123]),
+    );
+    expect(result).toHaveProperty('characters');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/ids',
+    );
+  });
+
+  it('should resolve IDs to names via postNamesAndCategories', async () => {
+    fetchMock.mockResponseOnce(
+      JSON.stringify([{ id: 123, name: 'Pilot', category: 'character' }]),
+    );
+    const result = await getBody(() =>
+      universeClient.postNamesAndCategories([123]),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0].category).toBe('character');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/universe/names',
+    );
+  });
 });

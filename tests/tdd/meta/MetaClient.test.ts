@@ -63,4 +63,24 @@ describe('MetaClient', () => {
       'https://esi.evetech.net/latest/meta/openapi.yaml',
     );
   });
+
+  it('should throw on non-ok YAML response', async () => {
+    fetchMock.mockResponseOnce('Not Found', {
+      status: 404,
+      statusText: 'Not Found',
+    });
+    await expect(metaClient.getOpenApiYaml()).rejects.toThrow('HTTP 404');
+  });
+
+  it('should rethrow Error instances from YAML fetch', async () => {
+    fetchMock.mockRejectOnce(new Error('Network failure'));
+    await expect(metaClient.getOpenApiYaml()).rejects.toThrow(
+      'Network failure',
+    );
+  });
+
+  it('should wrap non-Error exceptions from YAML fetch', async () => {
+    fetchMock.mockRejectOnce('string error' as unknown as Error);
+    await expect(metaClient.getOpenApiYaml()).rejects.toThrow('string error');
+  });
 });
