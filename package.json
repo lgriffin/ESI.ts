@@ -168,7 +168,7 @@
     "jest-fetch-mock": "^3.0.3",
     "jest-junit": "^16.0.0",
     "knip": "^6.6.1",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.0.8",
     "prettier": "^3.3.2",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
