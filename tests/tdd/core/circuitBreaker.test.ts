@@ -134,6 +134,46 @@ describe('CircuitBreaker', () => {
     });
   });
 
+  describe('rate-limit responses', () => {
+    it('should count 429 Too Many Requests as a failure', () => {
+      const cb = new CircuitBreaker({ failureThreshold: 2 });
+
+      cb.recordFailure('v1/status/', 429);
+      cb.recordFailure('v1/status/', 429);
+
+      expect(cb.getState('v1/status/')).toBe('open');
+    });
+
+    it('should count 420 Error Limited as a failure', () => {
+      const cb = new CircuitBreaker({ failureThreshold: 2 });
+
+      cb.recordFailure('v1/status/', 420);
+      cb.recordFailure('v1/status/', 420);
+
+      expect(cb.getState('v1/status/')).toBe('open');
+    });
+
+    it('should not count other 4xx as failures', () => {
+      const cb = new CircuitBreaker({ failureThreshold: 2 });
+
+      cb.recordFailure('v1/status/', 400);
+      cb.recordFailure('v1/status/', 403);
+      cb.recordFailure('v1/status/', 404);
+
+      expect(cb.getState('v1/status/')).toBe('closed');
+    });
+
+    it('should open circuit with mixed rate-limit and 5xx failures', () => {
+      const cb = new CircuitBreaker({ failureThreshold: 3 });
+
+      cb.recordFailure('v1/status/', 429);
+      cb.recordFailure('v1/status/', 500);
+      cb.recordFailure('v1/status/', 420);
+
+      expect(cb.getState('v1/status/')).toBe('open');
+    });
+  });
+
   describe('CircuitOpenError', () => {
     it('should include endpoint and failure count', () => {
       const cb = new CircuitBreaker({ failureThreshold: 2 });

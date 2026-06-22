@@ -445,8 +445,15 @@ async function executeSingleFetch(
   rateLimiter.updateFromResponse(parsed.raw, response.status);
 
   if (cb) {
-    if (response.status >= 500) cb.recordFailure(endpoint, response.status);
-    else cb.recordSuccess(endpoint);
+    if (
+      response.status >= 500 ||
+      response.status === 420 ||
+      response.status === 429
+    ) {
+      cb.recordFailure(endpoint, response.status);
+    } else {
+      cb.recordSuccess(endpoint);
+    }
   }
 
   if (parsed.warning) {

@@ -89,7 +89,7 @@ export class CircuitBreaker {
   }
 
   recordFailure(endpoint: string, statusCode: number): void {
-    if (statusCode < 500) return;
+    if (statusCode < 500 && statusCode !== 420 && statusCode !== 429) return;
 
     const key = this.getKey(endpoint);
     const record = this.getOrCreate(key);
@@ -108,7 +108,7 @@ export class CircuitBreaker {
     if (record.failures >= this.failureThreshold) {
       record.state = 'open';
       logWarn(
-        `Circuit opened for ${key} after ${record.failures} consecutive 5xx failures`,
+        `Circuit opened for ${key} after ${record.failures} consecutive failures`,
       );
     }
   }
