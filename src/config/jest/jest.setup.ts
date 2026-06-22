@@ -2,7 +2,7 @@ import { ApiClientBuilder } from '../../core/ApiClientBuilder';
 import { RateLimiter } from '../../core/rateLimiter/RateLimiter';
 import { getConfig } from '../../config/configManager';
 import fetchMock from 'jest-fetch-mock';
-import { getBody, getHeaders } from '../../../src/core/util/testHelpers';
+import { getBody } from '../../../src/core/util/testHelpers';
 import '../../../types/global.d.ts';
 
 fetchMock.enableMocks();
@@ -27,4 +27,3 @@ beforeEach(() => {
 });
 
 global.getBody = getBody;
-global.getHeaders = getHeaders;

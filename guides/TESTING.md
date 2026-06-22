@@ -283,7 +283,7 @@ await expect(client.getAllianceById(99999999)).rejects.toThrow(
 
 ### Test Helpers
 
-**`src/core/util/testHelpers.ts`** — provides `getBody()` and `getHeaders()` wrappers used in TDD tests:
+**`src/core/util/testHelpers.ts`** — provides `getBody()` wrapper used in TDD tests:
 
 ```typescript
 import { getBody } from '../../../src/core/util/testHelpers';
