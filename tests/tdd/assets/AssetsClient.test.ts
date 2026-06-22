@@ -106,6 +106,8 @@ describe('AssetsClient', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456789/assets/locations/',
     );
+    const sentBody = fetchMock.mock.calls[0][1]?.body;
+    expect(sentBody).toBe(JSON.stringify([1, 2, 3]));
   });
 
   it('should return valid structure for character asset names', async () => {
@@ -132,6 +134,8 @@ describe('AssetsClient', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456789/assets/names/',
     );
+    const sentBody = fetchMock.mock.calls[0][1]?.body;
+    expect(sentBody).toBe(JSON.stringify([1, 2, 3]));
   });
 
   it('should return valid structure for corporation assets', async () => {
@@ -220,6 +224,8 @@ describe('AssetsClient', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/987654321/assets/locations/',
     );
+    const sentBody = fetchMock.mock.calls[0][1]?.body;
+    expect(sentBody).toBe(JSON.stringify([1, 2, 3]));
   });
 
   it('should return valid structure for corporation asset names', async () => {
@@ -246,5 +252,7 @@ describe('AssetsClient', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/987654321/assets/names/',
     );
+    const sentBody = fetchMock.mock.calls[0][1]?.body;
+    expect(sentBody).toBe(JSON.stringify([1, 2, 3]));
   });
 });

@@ -56,6 +56,6 @@ export const contactEndpoints = {
     method: 'DELETE',
     requiresAuth: true,
     pathParams: ['characterId'],
-    bodyBuilder: (contactIds: number[]) => ({ contact_ids: contactIds }),
+    bodyBuilder: (contactIds: number[]) => contactIds,
   },
 } as const satisfies EndpointMap;
