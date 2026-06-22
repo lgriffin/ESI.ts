@@ -15,23 +15,6 @@ export interface SovereigntyCampaign {
   participants?: { alliance_id: number; score: number }[];
 }
 
-export interface SovereigntyMap {
-  system_id: number;
-  alliance_id?: number;
-  corporation_id?: number;
-  faction_id?: number;
-}
-
-export interface SovereigntyStructure {
-  alliance_id: number;
-  solar_system_id: number;
-  structure_id: number;
-  structure_type_id: number;
-  vulnerability_occupancy_level?: number;
-  vulnerable_start_time?: string;
-  vulnerable_end_time?: string;
-}
-
 export interface SovereigntySystemStructure {
   structure_id: number;
   structure_type_id: number;

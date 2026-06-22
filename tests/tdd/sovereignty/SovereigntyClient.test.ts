@@ -47,58 +47,6 @@ describe('SovereigntyClient', () => {
     );
   });
 
-  it('should get sovereignty map', async () => {
-    const mockResponse = [
-      {
-        alliance_id: 99000006,
-        corporation_id: 98000002,
-        faction_id: 500001,
-        system_id: 30000142,
-      },
-    ];
-
-    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-    const result = await getBody(() => sovereigntyClient.getSovereigntyMap());
-    expect(Array.isArray(result)).toBe(true);
-    result.forEach((map: any) => {
-      expect(map).toHaveProperty('system_id');
-      expect(typeof map.system_id).toBe('number');
-    });
-    expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/sovereignty/map',
-    );
-  });
-
-  it('should get sovereignty structures', async () => {
-    const mockResponse = [
-      {
-        alliance_id: 99000006,
-        corporation_id: 98000002,
-        faction_id: 500001,
-        system_id: 30000142,
-        structure_id: 1018253388776,
-        type_id: 32226,
-        vulnerable_end_time: '2023-07-02T00:00:00Z',
-        vulnerable_start_time: '2023-07-01T17:00:00Z',
-      },
-    ];
-
-    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-    const result = await getBody(() =>
-      sovereigntyClient.getSovereigntyStructures(),
-    );
-    expect(Array.isArray(result)).toBe(true);
-    result.forEach((structure: any) => {
-      expect(structure).toHaveProperty('structure_id');
-      expect(typeof structure.structure_id).toBe('number');
-    });
-    expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/sovereignty/structures',
-    );
-  });
-
   it('should get sovereignty systems (combined route)', async () => {
     const mockResponse = [
       {
