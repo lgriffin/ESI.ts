@@ -297,11 +297,11 @@ export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
   /**
    * Resolves a list of names to their corresponding IDs via a bulk POST operation.
    *
-   * @param ids - An array of names to resolve to IDs
+   * @param names - An array of names to resolve to IDs
    * @returns The resolved IDs grouped by entity category
    */
-  postBulkNamesToIds(ids: number[]): Promise<BulkIdResult> {
-    return this.api.postBulkNamesToIds(ids) as Promise<BulkIdResult>;
+  postBulkNamesToIds(names: string[]): Promise<BulkIdResult> {
+    return this.api.postBulkNamesToIds(names) as Promise<BulkIdResult>;
   }
 
   /**
