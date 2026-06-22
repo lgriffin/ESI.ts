@@ -2,6 +2,7 @@ import { ApiClient } from '../../../src/core/ApiClient';
 import { handleRequest } from '../../../src/core/ApiRequestHandler';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
+import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
 import { EsiError } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 
@@ -174,6 +175,69 @@ describe('ApiRequestHandler', () => {
       await expect(
         handleRequest(client, 'v1/characters/123/', 'GET'),
       ).rejects.toThrow(EsiError);
+    });
+  });
+
+  describe('circuit breaker rate-limit integration', () => {
+    let cb: CircuitBreaker;
+
+    beforeEach(() => {
+      cb = new CircuitBreaker({ failureThreshold: 5 });
+      client.setCircuitBreaker(cb);
+    });
+
+    afterEach(() => {
+      cb.shutdown();
+    });
+
+    it('should record circuit breaker failure on 429 response', async () => {
+      fetchMock.mockResponseOnce('Too Many Requests', { status: 429 });
+
+      await expect(handleRequest(client, 'v1/status/', 'GET')).rejects.toThrow(
+        EsiError,
+      );
+
+      const stats = cb.getStats();
+      expect(stats.circuits['v1/status/']).toBeDefined();
+      expect(stats.circuits['v1/status/'].failures).toBe(1);
+    });
+
+    it('should record circuit breaker failure on 420 response', async () => {
+      fetchMock.mockResponseOnce('Error Limited', { status: 420 });
+
+      await expect(handleRequest(client, 'v1/status/', 'GET')).rejects.toThrow(
+        EsiError,
+      );
+
+      const stats = cb.getStats();
+      expect(stats.circuits['v1/status/']).toBeDefined();
+      expect(stats.circuits['v1/status/'].failures).toBe(1);
+    });
+
+    it('should record circuit breaker success on 200 response', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({ players: 100 }));
+
+      await handleRequest(client, 'v1/status/', 'GET');
+
+      const stats = cb.getStats();
+      expect(stats.circuits['v1/status/'].state).toBe('closed');
+      expect(stats.circuits['v1/status/'].failures).toBe(0);
+    });
+
+    it('should record circuit breaker success on 200 and reset prior failures', async () => {
+      // First, record a failure
+      fetchMock.mockResponseOnce('Internal Server Error', { status: 500 });
+      await expect(handleRequest(client, 'v1/status/', 'GET')).rejects.toThrow(
+        EsiError,
+      );
+
+      expect(cb.getStats().circuits['v1/status/'].failures).toBe(1);
+
+      // Then a success should reset failures
+      fetchMock.mockResponseOnce(JSON.stringify({ players: 100 }));
+      await handleRequest(client, 'v1/status/', 'GET');
+
+      expect(cb.getStats().circuits['v1/status/'].failures).toBe(0);
     });
   });
 });
