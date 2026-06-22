@@ -44,7 +44,7 @@ jobs:
           fi
 
       - name: 📤 Upload dependency report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dependency-report
           path: |
@@ -95,7 +95,7 @@ jobs:
           fi
 
       - name: 📤 Upload security report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-report
           path: |
@@ -167,7 +167,7 @@ jobs:
           echo "Coverage reports generated in ./coverage/" >> quality-report.md
 
       - name: 📤 Upload quality report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: code-quality-report
           path: |
@@ -221,7 +221,7 @@ jobs:
           echo "NPM: $(npm --version)" >> health-report.md
 
       - name: 📤 Upload health report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: health-report
           path: health-report.md
@@ -253,7 +253,7 @@ jobs:
           echo "4. Monitor build and deployment health" >> maintenance-summary.md
 
       - name: 📤 Upload maintenance summary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: maintenance-summary
           path: maintenance-summary.md
