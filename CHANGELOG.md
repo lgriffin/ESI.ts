@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Dependabot** — automated weekly dependency update PRs
+- **CodeQL Analysis** — GitHub-native security scanning workflow
+- **Commitlint** — conventional commit message validation via husky hook
+- **Version consistency script** — `npm run validate:versions` checks `package.json` matches `constants.ts`
+- **`npm run check:all`** — comprehensive validation including ESI endpoint and version checks
+- Coverage and npm download badges in README
+- `.editorconfig`, `.nvmrc`, `CONTRIBUTING.md`, `SECURITY.md`
+
+### Fixed
+
+- **User-Agent version** — ESI requests were sending `esi.ts/3.4.0` instead of `esi.ts/4.1.1` (fixed in constants.ts)
+- **Compatibility date** — updated from `2025-12-16` to `2026-05-19` (Equinox)
+- TypeScript badge in README updated from 5.0+ to 6.0+
+
+### Removed
+
+- `src/TODO` — fully completed roadmap
+- `jest.improved.config.cjs` — dead config matching zero test files
+- `docs/` — generated TypeDoc output removed from git tracking (CI builds as artifact)
+
+### Changed
+
+- `package.json`: added `keywords`, `homepage`, `bugs` URLs, `files` includes README/LICENSE/CHANGELOG
+- Moved `docs/architecture.md` to `guides/ARCHITECTURE.md`
+- Updated `guides/TESTING.md` and `guides/DOCUMENTATION.md` to current state
+
 ## [4.1.1] - 2026-06-08
 
 ### Changed
