@@ -226,6 +226,8 @@ describe('ContactsClient', () => {
       expect(fetchMock.mock.calls[0][0]).toBe(
         'https://esi.evetech.net/latest/characters/123456/contacts',
       );
+      const sentBody = fetchMock.mock.calls[0][1]?.body;
+      expect(sentBody).toBe(JSON.stringify([123456789, 987654321]));
     });
   });
 
