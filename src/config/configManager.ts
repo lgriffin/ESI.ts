@@ -9,15 +9,23 @@ interface Config {
 
 let config: Config;
 
-// Cross-platform way to get __dirname that works in both CommonJS and ES modules
-const getDirname = () => {
+// Cross-platform way to get __dirname that works in both CommonJS and ES modules.
+// In CommonJS (the default for this project), __dirname is always available.
+// The fallback avoids process.cwd() which would point to the consuming project,
+// not the ESI.ts package directory.
+const getDirname = (): string => {
   if (typeof __dirname !== 'undefined') {
-    // CommonJS environment
     return __dirname;
-  } else {
-    // ES module environment - try to get from process.cwd() and work backwards
-    // This is a fallback that should work in most cases
-    return process.cwd();
+  }
+  // Fallback: resolve this module's own location via require.resolve.
+  // This works when require() is available but __dirname is not (e.g. bundled CommonJS).
+  try {
+    return path.dirname(require.resolve('./configManager'));
+  } catch {
+    throw new Error(
+      'Unable to determine config directory: __dirname is not available and ' +
+        'require.resolve failed. Ensure ESI.ts is used in a CommonJS environment.',
+    );
   }
 };
 
