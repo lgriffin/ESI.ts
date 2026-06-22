@@ -2,9 +2,11 @@
 
 [![npm version](https://badge.fury.io/js/%40lgriffin%2Fesi.ts.svg)](https://badge.fury.io/js/%40lgriffin%2Fesi.ts)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0%2B-blue)](https://www.typescriptlang.org/)
 [![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
 [![PR Validation](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml)
+[![Coverage](https://img.shields.io/badge/coverage-65%25%2B-brightgreen)](https://github.com/lgriffin/ESI.ts)
+[![npm downloads](https://img.shields.io/npm/dm/%40lgriffin/esi.ts)](https://www.npmjs.com/package/@lgriffin/esi.ts)
 
 A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/).
 

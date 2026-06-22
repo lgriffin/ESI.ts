@@ -19,7 +19,10 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -106,6 +109,8 @@
     "knip": "knip",
     "validate:esi": "ts-node scripts/validate-esi-endpoints.ts",
     "validate": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code",
+    "validate:versions": "ts-node scripts/validate-versions.ts",
+    "check:all": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code && npm run validate:esi && npm run validate:versions",
     "docs": "typedoc --options typedoc.json",
     "docs:watch": "typedoc --options typedoc.json --watch",
     "docs:serve": "npx http-server docs -p 8080 -o",
@@ -126,14 +131,29 @@
       "prettier --write"
     ]
   },
-  "keywords": [],
+  "keywords": [
+    "eve-online",
+    "esi",
+    "api-client",
+    "typescript",
+    "eve",
+    "caching",
+    "rate-limiting",
+    "mmo"
+  ],
   "author": "lgriffin",
   "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/lgriffin/ESI.ts#readme",
+  "bugs": {
+    "url": "https://github.com/lgriffin/ESI.ts/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/lgriffin/ESI.ts"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^18.19.130",
     "@typescript-eslint/eslint-plugin": "^7.18.0",

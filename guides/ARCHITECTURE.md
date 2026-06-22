@@ -296,7 +296,7 @@ graph TB
 
     subgraph Testing["Test Stage"]
         Unit["Unit Tests<br/>(jest.unit.config)"]
-        BDD["BDD Scenarios<br/>(30 domain suites)"]
+        BDD["BDD Scenarios<br/>(37 domain suites)"]
         Coverage["Coverage Check<br/>(50% branch, 65% line)"]
         Matrix["Node 18, 20, 22"]
     end
@@ -439,7 +439,7 @@ graph TB
     end
 
     subgraph BDDTests["BDD Scenario Suites"]
-        DomainBDD["Domain Scenarios<br/>alliance, character, market,<br/>universe, wallet, ... (30)"]
+        DomainBDD["Domain Scenarios<br/>alliance, character, market,<br/>universe, wallet, ... (37)"]
         PerfBDD["Performance Scenarios<br/>Concurrency, memory,<br/>large datasets"]
         IntBDD["Integration Scenarios<br/>Cross-domain workflows"]
     end
