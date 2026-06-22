@@ -543,12 +543,14 @@ describe('UniverseClient', () => {
       JSON.stringify({ characters: [{ id: 123, name: 'Pilot' }] }),
     );
     const result = await getBody(() =>
-      universeClient.postBulkNamesToIds([123]),
+      universeClient.postBulkNamesToIds(['Pilot']),
     );
     expect(result).toHaveProperty('characters');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/universe/ids',
     );
+    const sentBody = fetchMock.mock.calls[0][1]?.body;
+    expect(sentBody).toBe(JSON.stringify(['Pilot']));
   });
 
   it('should resolve IDs to names via postNamesAndCategories', async () => {
@@ -563,5 +565,7 @@ describe('UniverseClient', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/universe/names',
     );
+    const sentBody = fetchMock.mock.calls[0][1]?.body;
+    expect(sentBody).toBe(JSON.stringify([123]));
   });
 });

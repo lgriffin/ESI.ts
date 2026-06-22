@@ -70,7 +70,7 @@ export const universeEndpoints = {
     path: 'universe/ids',
     method: 'POST',
     requiresAuth: false,
-    bodyBuilder: (ids: number[]) => ({ ids }),
+    bodyBuilder: (names: string[]) => names,
   },
   getMoonById: {
     path: 'universe/moons/{moonId}',
@@ -82,7 +82,7 @@ export const universeEndpoints = {
     path: 'universe/names',
     method: 'POST',
     requiresAuth: false,
-    bodyBuilder: (ids: number[]) => ({ ids }),
+    bodyBuilder: (ids: number[]) => ids,
   },
   getPlanetById: {
     path: 'universe/planets/{planetId}',
