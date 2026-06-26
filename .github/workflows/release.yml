@@ -141,7 +141,7 @@ jobs:
         run: tar -czf docs.tar.gz docs/
 
       - name: 📎 Upload release assets
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             *.tgz
