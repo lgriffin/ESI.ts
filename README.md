@@ -534,7 +534,7 @@ See [.github/workflows/README.md](.github/workflows/README.md) for full workflow
 ## Testing
 
 ```bash
-npm test          # Unit + integration tests (73 suites, 577 tests)
+npm test          # Unit + BDD tests (104 suites, 2785 tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 ```

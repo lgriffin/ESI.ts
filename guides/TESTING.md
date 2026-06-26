@@ -117,7 +117,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All unit + BDD tests — 96 suites, 2605 tests
+# All unit + BDD tests — 104 suites, 2785 tests
 npm test
 
 # Watch mode for development

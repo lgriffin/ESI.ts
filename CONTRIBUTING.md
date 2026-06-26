@@ -4,7 +4,7 @@ Thank you for your interest in contributing to ESI.ts! This guide will help you 
 
 ## Prerequisites
 
-- **Node.js** 20 or later
+- **Node.js** 18 or later
 - **npm**
 
 ## Getting Started

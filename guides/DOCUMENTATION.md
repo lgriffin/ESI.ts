@@ -1,6 +1,6 @@
 # ESI.ts Documentation Guide
 
-> **Version 4.1.1** - Latest documentation for the EVE Online ESI API TypeScript client
+> **Version 5.1.0** - Latest documentation for the EVE Online ESI API TypeScript client
 
 ## Local Documentation
 
