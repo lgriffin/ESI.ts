@@ -10,7 +10,7 @@ export function validatePathParam(paramName: string, value: unknown): string {
     );
   }
 
-  const str = String(value);
+  const str = `${value as string | number}`;
 
   if (UNSAFE_PATH_CHARS.test(str)) {
     throw buildError(
@@ -66,7 +66,7 @@ export function validateQueryParam(paramName: string, value: unknown): string {
     );
   }
 
-  const str = String(value);
+  const str = `${value as string | number}`;
 
   if (typeof value === 'number' && !Number.isFinite(value)) {
     throw buildError(
