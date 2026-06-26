@@ -27,7 +27,8 @@ export function parseWarning(
     /^(\d{3}) - "([^"]+)"$/.exec(value) ??
     /^(\d{3}) - ([^ ].+[^ ])$/.exec(value);
   if (!match) return null;
-  return { code: parseInt(match[1], 10), message: match[2] };
+  const [, code, message] = match;
+  return { code: parseInt(code!, 10), message: message! };
 }
 
 export function parseHeaders(fetchHeaders: Headers): ParsedHeaders {

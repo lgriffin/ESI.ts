@@ -67,10 +67,10 @@ function resolveCircuitBreaker(client: ApiClient): CircuitBreaker | null {
 const parseCacheControlTtl = (
   headers: Record<string, string>,
 ): number | undefined => {
-  const cacheControl = headers['cache-control'] || headers['Cache-Control'];
+  const cacheControl = headers['cache-control'] ?? headers['Cache-Control'];
   if (!cacheControl) return undefined;
   const match = /max-age=(\d+)/.exec(cacheControl);
-  return match ? parseInt(match[1], 10) * 1000 : undefined;
+  return match ? parseInt(match[1]!, 10) * 1000 : undefined;
 };
 
 function buildRequestHeaders(
@@ -189,7 +189,7 @@ function cacheResponse(
   }
 
   if (method !== 'GET' && cache) {
-    cache.deleteByPath(endpoint.split('?')[0]);
+    cache.deleteByPath(endpoint.split('?')[0]!);
   }
 }
 

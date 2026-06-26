@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.1.0] - 2026-06-26
+
+### Added
+
+- **`noUncheckedIndexedAccess`** compiler flag — array/record indexing now returns `T | undefined`, catching unguarded index access at compile time
+- **`noImplicitReturns`** compiler flag — all function code paths must explicitly return a value
+- **`noImplicitOverride`** compiler flag — `override` keyword required when overriding base class methods
+- **`tsconfig.test.json`** — separate TypeScript config for tests, relaxing `noUncheckedIndexedAccess` for test utility patterns
+
+### Changed
+
+- `RateLimiter` token cost lookup inlined (removed unnecessary `Record` indirection)
+- Jest configs (`jest.unit.config.cjs`, `jest.integration.config.cjs`) now use `tsconfig.test.json`
+
+### Fixed
+
+- Unguarded indexed access in `ApiRequestHandler`, `CircuitBreaker`, `RateLimiter`, and `headersUtil`
+
 ## [5.0.0] - 2026-06-26
 
 ### Breaking Changes

@@ -38,19 +38,12 @@ export interface RateLimitInfo {
 }
 
 /** Token costs per HTTP status code range, per ESI docs */
-const TOKEN_COSTS: Record<string, number> = {
-  '2xx': 2,
-  '3xx': 1,
-  '4xx': 5,
-  '5xx': 0,
-};
-
 function getTokenCost(statusCode: number): number {
-  if (statusCode >= 200 && statusCode < 300) return TOKEN_COSTS['2xx'];
-  if (statusCode >= 300 && statusCode < 400) return TOKEN_COSTS['3xx'];
-  if (statusCode >= 400 && statusCode < 500) return TOKEN_COSTS['4xx'];
-  if (statusCode >= 500 && statusCode < 600) return TOKEN_COSTS['5xx'];
-  return 2; // default to 2xx cost
+  if (statusCode >= 200 && statusCode < 300) return 2;
+  if (statusCode >= 300 && statusCode < 400) return 1;
+  if (statusCode >= 400 && statusCode < 500) return 5;
+  if (statusCode >= 500 && statusCode < 600) return 0;
+  return 2;
 }
 
 export interface RateLimiterConfig {

@@ -31,7 +31,7 @@ export class CircuitBreaker {
   }
 
   private getKey(endpoint: string): string {
-    return endpoint.split('?')[0];
+    return endpoint.split('?')[0]!;
   }
 
   private getOrCreate(key: string): CircuitRecord {
