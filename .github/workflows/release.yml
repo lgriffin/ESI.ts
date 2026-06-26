@@ -7,6 +7,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+  pages: write
+
 jobs:
   # Job 1: Validate Release
   validate-release:
