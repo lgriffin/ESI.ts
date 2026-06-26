@@ -7,19 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-06-26
+
+### Breaking Changes
+
+- **Removed `SovereigntyClient.getSovereigntyMap()`** — sunset ESI endpoint; use `getSovereigntySystems()` instead
+- **Removed `SovereigntyClient.getSovereigntyStructures()`** — sunset ESI endpoint; use `getSovereigntySystems()` instead
+
 ### Added
 
-- **Dependabot** — automated weekly dependency update PRs
+- **Dependabot** — automated weekly dependency update PRs with grouped ESLint and testing ecosystems
 - **CodeQL Analysis** — GitHub-native security scanning workflow
 - **Commitlint** — conventional commit message validation via husky hook
 - **Version consistency script** — `npm run validate:versions` checks `package.json` matches `constants.ts`
 - **`npm run check:all`** — comprehensive validation including ESI endpoint and version checks
 - Coverage and npm download badges in README
 - `.editorconfig`, `.nvmrc`, `CONTRIBUTING.md`, `SECURITY.md`
+- ClientRegistry test coverage for all 35 client types
 
 ### Fixed
 
-- **User-Agent version** — ESI requests were sending `esi.ts/3.4.0` instead of `esi.ts/4.1.1` (fixed in constants.ts)
+- **POST body format** for asset and contact endpoints — request body was incorrectly structured
+- **POST body format** for `/universe/ids` and `/universe/names` — same issue
+- **Circuit breaker** now treats HTTP 420/429 rate-limit responses as failures
+- **configManager** uses `require.resolve` instead of `process.cwd()` fallback for reliable path resolution
+- **User-Agent version** — ESI requests were sending `esi.ts/3.4.0` instead of current version
 - **Compatibility date** — updated from `2025-12-16` to `2026-05-19` (Equinox)
 - TypeScript badge in README updated from 5.0+ to 6.0+
 
@@ -28,12 +40,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/TODO` — fully completed roadmap
 - `jest.improved.config.cjs` — dead config matching zero test files
 - `docs/` — generated TypeDoc output removed from git tracking (CI builds as artifact)
+- Unused `getHeaders` test helper
 
 ### Changed
 
 - `package.json`: added `keywords`, `homepage`, `bugs` URLs, `files` includes README/LICENSE/CHANGELOG
 - Moved `docs/architecture.md` to `guides/ARCHITECTURE.md`
 - Updated `guides/TESTING.md` and `guides/DOCUMENTATION.md` to current state
+- Test coverage raised from 75% to 91%+
+
+### Dependencies
+
+- `@typescript-eslint/eslint-plugin`: 7.18.0 → 8.x
+- `@typescript-eslint/parser`: 7.18.0 → 8.x
+- `@types/node`: 18.x → 26.x
+- `@commitlint/cli`: 19.x → 21.x
+- `eslint-config-prettier`: 9.x → 10.x
+- `lint-staged`: 16.x → 17.x
+- `jest-junit`: 16.x → 17.x
+- GitHub Actions: checkout v4→v7, setup-node v4→v6, upload-artifact v4→v7, codeql-action v3→v4, gh-pages v3→v4, action-gh-release v1→v3
 
 ## [4.1.1] - 2026-06-08
 
