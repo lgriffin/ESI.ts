@@ -9,7 +9,7 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:@typescript-eslint/recommended-type-checked',
     'plugin:security/recommended-legacy',
     'plugin:sonarjs/recommended-legacy',
     'prettier',
@@ -29,7 +29,6 @@ module.exports = {
     '@typescript-eslint/no-unsafe-argument': 'warn',
     '@typescript-eslint/restrict-template-expressions': 'warn',
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
-    '@typescript-eslint/no-var-requires': 'warn',
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-constant-condition': 'warn',
 
