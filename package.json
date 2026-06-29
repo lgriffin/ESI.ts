@@ -106,6 +106,7 @@
     "test:integration:live": "node -e \"process.env.ESI_LIVE_TESTS='true';require('child_process').execSync('npx jest --config jest.integration.config.cjs --testPathPattern=live-esi',{stdio:'inherit',env:Object.assign({},process.env,{ESI_LIVE_TESTS:'true'})})\"",
     "test:integration:gated": "node --env-file=.env -e \"require('child_process').execSync('npx jest --config jest.integration.config.cjs --testPathPattern=gated-auth',{stdio:'inherit',env:Object.assign({},process.env,{ESI_GATED_TESTS:'true'})})\"",
     "test:all": "npm run test && npm run bdd && npm run test:integration",
+    "generate:types": "ts-node scripts/generate-esi-types.ts",
     "knip": "knip",
     "validate:esi": "ts-node scripts/validate-esi-endpoints.ts",
     "validate": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code",

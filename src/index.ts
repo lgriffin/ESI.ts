@@ -110,6 +110,14 @@ export {
 // Request deduplication
 export { RequestDeduplicator } from './core/RequestDeduplicator';
 
+// Batch operations
+export {
+  batchFetch,
+  batchPost,
+  BatchOptions,
+  BatchResult,
+} from './core/BatchRequestHandler';
+
 // Diagnostics
 export {
   EsiDiagnostics,

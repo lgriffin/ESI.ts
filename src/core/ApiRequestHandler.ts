@@ -14,6 +14,7 @@ import { CursorTokens } from './pagination/CursorPaginationHandler';
 import { USER_AGENT, COMPATIBILITY_DATE } from './constants';
 import { RequestContext, ResponseContext } from './middleware/Middleware';
 import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
+import { esiCacheTtls } from './endpoints/esi-cache-ttls.generated';
 
 export interface EsiHandlerResponse {
   headers: Record<string, string>;
@@ -63,6 +64,49 @@ function resolveCircuitBreaker(client: ApiClient): CircuitBreaker | null {
 }
 
 // --- Pure helpers ---
+
+function camelToSnake(s: string): string {
+  return s.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+}
+
+function lookupSpecTtl(
+  method: string,
+  templatePath: string,
+): number | undefined {
+  const normalized = templatePath
+    .replace(/\/$/, '')
+    .replace(/\{(\w+)\}/g, (_, name: string) => `{${camelToSnake(name)}}`);
+  const key = `${method}:${normalized}`;
+  const seconds = esiCacheTtls[key];
+  return typeof seconds === 'number' ? seconds * 1000 : undefined;
+}
+
+function trySpecAwareCacheHit(
+  client: ApiClient,
+  url: string,
+  method: string,
+  templatePath?: string,
+): EsiHandlerResponse | null {
+  if (method !== 'GET' || !templatePath) return null;
+  const specTtlMs = lookupSpecTtl(method, templatePath);
+  if (!specTtlMs) return null;
+  const cache = resolveCache(client);
+  if (!cache) return null;
+  const entry = cache.get(url);
+  if (!entry) return null;
+  const age = Date.now() - entry.timestamp;
+  if (age < specTtlMs) {
+    logDebug(
+      `Spec-aware cache hit for ${url} (age=${Math.round(age / 1000)}s, ttl=${Math.round(specTtlMs / 1000)}s)`,
+    );
+    return {
+      headers: entry.headers,
+      body: entry.data,
+      fromCache: true,
+    };
+  }
+  return null;
+}
 
 const parseCacheControlTtl = (
   headers: Record<string, string>,
@@ -606,7 +650,12 @@ export const handleRequest = async (
   body?: unknown,
   requiresAuth: boolean = false,
   useETag: boolean = true,
+  templatePath?: string,
 ): Promise<EsiHandlerResponse> => {
+  const rawUrl = `${client.getLink()}/${endpoint}`;
+  const specHit = trySpecAwareCacheHit(client, rawUrl, method, templatePath);
+  if (specHit) return specHit;
+
   const doExecute = () =>
     executeRequest(client, endpoint, method, body, requiresAuth, useETag);
 

@@ -142,6 +142,8 @@ export function createClient<T extends EndpointMap>(
           def.method,
           body,
           def.requiresAuth,
+          true,
+          def.path,
         );
         const responseBody = response.body;
         let data: unknown[];
@@ -169,6 +171,8 @@ export function createClient<T extends EndpointMap>(
         def.method,
         body,
         def.requiresAuth,
+        true,
+        def.path,
       );
       if (returnMetadata) {
         return { data: response.body, meta: buildMeta(response) };

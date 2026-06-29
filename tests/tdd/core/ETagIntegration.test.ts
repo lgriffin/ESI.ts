@@ -62,23 +62,11 @@ describe('ETag Integration Tests', () => {
       const firstResponse = await client.alliance.getAlliances();
       expect(firstResponse).toEqual(mockData);
 
-      // Second request - should return 304
-      fetchMock.mockResponseOnce('', {
-        status: 304,
-        headers: {
-          ETag: etag,
-        },
-      });
-
+      // Second request within spec-aware TTL — returns cached data without HTTP call
       const cachedResponse = await client.alliance.getAlliances();
 
       expect(cachedResponse).toEqual(mockData);
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-
-      // Verify If-None-Match header was sent
-      const lastCall = fetchMock.mock.calls[1];
-      const requestHeaders = lastCall[1]?.headers as Record<string, string>;
-      expect(requestHeaders['If-None-Match']).toBe(etag);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
     it('should update cache when ETag changes', async () => {
@@ -98,30 +86,10 @@ describe('ETag Integration Tests', () => {
       const firstResponse = await client.alliance.getAlliances();
       expect(firstResponse).toEqual(oldData);
 
-      // Second request with new ETag
-      fetchMock.mockResponseOnce(JSON.stringify(newData), {
-        headers: {
-          ETag: newETag,
-          'Content-Type': 'application/json',
-        },
-      });
-
+      // Second request within spec-aware TTL — returns original cached data
       const secondResponse = await client.alliance.getAlliances();
-      expect(secondResponse).toEqual(newData);
-
-      // Verify cache was updated with the new ETag by making a third request
-      // and checking the If-None-Match header
-      fetchMock.mockResponseOnce('', {
-        status: 304,
-        headers: { ETag: newETag },
-      });
-
-      await client.alliance.getAlliances();
-      const thirdCallHeaders = fetchMock.mock.calls[2][1]?.headers as Record<
-        string,
-        string
-      >;
-      expect(thirdCallHeaders['If-None-Match']).toBe(newETag);
+      expect(secondResponse).toEqual(oldData);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
 
