@@ -505,32 +505,43 @@ graph TB
 
 ## 9. Rate Limiting Strategy
 
+ESI enforces 36 independent rate limit groups (e.g., `market-order: 12000 tokens/15m`, `char-notification: 15 tokens/15m`). The rate limiter maintains a separate token bucket per group, extracted from the ESI OpenAPI meta spec at build time (`esi-rate-limit-groups.generated.ts`).
+
+**Per-group bucketing**: Each endpoint maps to a rate limit group via the generated spec. When `checkRateLimit(templatePath, method)` is called, the limiter resolves the group and checks/decelerates only that group's bucket. A 429 on one group blocks only that group.
+
+**Per-user bucketing** (opt-in): When `userKeyExtractor` is configured, each user key gets its own set of group buckets, preventing one user's rate limit exhaustion from affecting others in multi-character apps.
+
+**Server sync**: Response headers (`x-ratelimit-remaining`, `x-ratelimit-group`) are authoritative — they override spec-derived initial values.
+
 ```mermaid
 graph TB
-    subgraph NewSystem["New System (X-Ratelimit-*)"]
-        Bucket["Token Bucket<br/>per IP + route group"]
+    subgraph PerGroup["Per-Group Token Buckets"]
+        Lookup["lookupGroupSpec()<br/>templatePath → group"]
+        Bucket["GroupBucket per group<br/>remaining, limit, blockedUntil"]
         Costs["Token Costs:<br/>2xx = 2, 3xx = 1<br/>4xx = 5, 5xx = 0"]
         Decel["Proactive Deceleration<br/>at 20% remaining"]
-        Block429["429 → block until<br/>Retry-After"]
+        Block429["429 → block this group<br/>until Retry-After"]
     end
 
     subgraph LegacySystem["Legacy System (x-esi-error-limit-*)"]
-        ErrorBudget["100 errors/minute"]
+        ErrorBudget["100 errors/minute<br/>(global, not per-group)"]
         SlowDown["Slow down at<br/>10 remaining"]
         Block420["420 → block until<br/>Retry-After"]
     end
 
     subgraph Decision["Rate Limit Check"]
-        Start["checkRateLimit()"]
-        IsBlocked{"Blocked?<br/>(420/429)"}
+        Start["checkRateLimit(templatePath, method)"]
+        ResolveGroup["Resolve group bucket"]
+        IsBlocked{"Group blocked?<br/>(420/429)"}
         LegacyLow{"Legacy errors<br/>< 10?"}
         LegacyZero{"Legacy errors<br/>= 0?"}
-        BucketLow{"Bucket < 20%<br/>remaining?"}
-        BucketEmpty{"Bucket<br/>empty?"}
+        BucketLow{"Group bucket < 20%<br/>remaining?"}
+        BucketEmpty{"Group bucket<br/>empty?"}
         MinDelay["Enforce 50ms<br/>minimum delay"]
     end
 
-    Start --> IsBlocked
+    Start --> ResolveGroup
+    ResolveGroup --> IsBlocked
     IsBlocked -->|Yes| Block429
     IsBlocked -->|No| LegacyZero
     LegacyZero -->|Yes| Block420
@@ -542,7 +553,7 @@ graph TB
     BucketLow -->|Yes| Decel
     BucketLow -->|No| MinDelay
 
-    style NewSystem fill:#e3f2fd,stroke:#1565c0
+    style PerGroup fill:#e3f2fd,stroke:#1565c0
     style LegacySystem fill:#fff3e0,stroke:#e65100
     style Decision fill:#e8f5e9,stroke:#2e7d32
 ```

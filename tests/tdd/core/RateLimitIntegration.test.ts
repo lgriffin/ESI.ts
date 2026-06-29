@@ -118,4 +118,61 @@ describe('Rate Limit Integration (handleRequest)', () => {
     );
     expect(result.body).toEqual([1, 2, 3]);
   });
+
+  it('should pass templatePath through to rate limiter', async () => {
+    const checkSpy = jest.spyOn(rateLimiter, 'checkRateLimit');
+    const updateSpy = jest.spyOn(rateLimiter, 'updateFromResponse');
+
+    fetchMock.mockResponseOnce(JSON.stringify({ price: 100 }), {
+      headers: {
+        'x-pages': '1',
+        'x-ratelimit-remaining': '11998',
+        'x-ratelimit-limit': '12000',
+        'x-ratelimit-used': '2',
+        'x-ratelimit-group': 'market-order',
+      },
+    });
+
+    await handleRequest(
+      client,
+      'markets/10000002/orders',
+      'GET',
+      undefined,
+      false,
+      false,
+      'markets/{regionId}/orders',
+    );
+
+    expect(checkSpy).toHaveBeenCalledWith(
+      'markets/{regionId}/orders',
+      'GET',
+      expect.any(Object),
+    );
+    expect(updateSpy).toHaveBeenCalledWith(
+      expect.any(Object),
+      200,
+      'markets/{regionId}/orders',
+      'GET',
+      expect.any(Object),
+    );
+
+    checkSpy.mockRestore();
+    updateSpy.mockRestore();
+  });
+
+  it('should work without templatePath for backward compatibility', async () => {
+    const checkSpy = jest.spyOn(rateLimiter, 'checkRateLimit');
+
+    fetchMock.mockResponseOnce(JSON.stringify({ status: 'ok' }), {
+      headers: {
+        'x-pages': '1',
+      },
+    });
+
+    await handleRequest(client, 'status', 'GET', undefined, false, false);
+
+    expect(checkSpy).toHaveBeenCalledWith(undefined, 'GET', expect.any(Object));
+
+    checkSpy.mockRestore();
+  });
 });

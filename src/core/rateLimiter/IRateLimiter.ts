@@ -1,6 +1,25 @@
+export interface RateLimitGroupStatus {
+  group: string;
+  remaining: number;
+  limit: number;
+  used: number;
+  windowSizeMs: number;
+  blockedUntil: number;
+}
+
 export interface IRateLimiter {
-  checkRateLimit(): Promise<void>;
-  updateFromResponse(headers: Record<string, string>, statusCode: number): void;
+  checkRateLimit(
+    templatePath?: string,
+    method?: string,
+    requestHeaders?: Record<string, string>,
+  ): Promise<void>;
+  updateFromResponse(
+    headers: Record<string, string>,
+    statusCode: number,
+    templatePath?: string,
+    method?: string,
+    requestHeaders?: Record<string, string>,
+  ): void;
   getStatus(): {
     remaining: number;
     limit: number;
@@ -11,6 +30,8 @@ export interface IRateLimiter {
     retryAfter: number | null;
     blockedUntil: number;
   };
-  isBlocked(): boolean;
+  getGroupStatus(group: string): RateLimitGroupStatus | undefined;
+  getAllGroupStatuses(): Map<string, RateLimitGroupStatus>;
+  isBlocked(group?: string): boolean;
   reset(): void;
 }

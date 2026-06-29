@@ -137,7 +137,11 @@ export {
 
 // Interfaces (for custom implementations / testing)
 export { ICache } from './core/cache/ICache';
-export { IRateLimiter } from './core/rateLimiter/IRateLimiter';
+export {
+  IRateLimiter,
+  RateLimitGroupStatus,
+} from './core/rateLimiter/IRateLimiter';
+export { RateLimitGroupSpec } from './core/endpoints/esi-rate-limit-groups.generated';
 export { ILogger } from './core/logger/ILogger';
 export { setLogger } from './core/logger/loggerUtil';
 

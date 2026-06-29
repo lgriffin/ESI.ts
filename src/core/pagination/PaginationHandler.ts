@@ -39,6 +39,7 @@ export class PaginationHandler {
     body?: unknown,
     options: PaginationOptions = {},
     pageFetch?: PageFetcher,
+    templatePath?: string,
   ): Promise<unknown[]> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const rateLimiter = client.getRateLimiter();
@@ -56,7 +57,7 @@ export class PaginationHandler {
 
     for (let page = 2; page <= effectiveMaxPage; page++) {
       try {
-        if (rateLimiter) await rateLimiter.checkRateLimit();
+        if (rateLimiter) await rateLimiter.checkRateLimit(templatePath, method);
 
         const pageData = await this.fetchPageWithRetry(
           client,

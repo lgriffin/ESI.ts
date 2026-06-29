@@ -343,7 +343,7 @@ const order: EsiSpec.GetMarketsRegionIdOrders200Ok = {
 To regenerate types from the latest ESI spec:
 
 ```bash
-npm run generate:types    # fetches spec, generates 147 interfaces + cache TTL map
+npm run generate:types    # fetches spec, generates 147 interfaces + cache TTL map + rate limit groups
 npm run validate:esi      # reports type drift between hand-written and generated types
 ```
 
@@ -466,6 +466,45 @@ The `meta` object includes:
 | `responseTimeMs` | `number?`                | Request duration in milliseconds                  |
 | `requestId`      | `string?`                | ESI request ID                                    |
 | `warning`        | `object?`                | ESI deprecation warning                           |
+
+## Rate Limiting
+
+ESI.ts automatically manages rate limiting using ESI's per-group token bucket system. The 36 rate limit groups from the ESI OpenAPI spec are extracted at build time, so each group (e.g., `market-order`, `char-notification`) gets its own independent bucket. A burst of market requests won't starve unrelated endpoints.
+
+Rate limiting works out of the box with no configuration. For multi-character applications, enable per-user bucketing:
+
+```typescript
+import { EsiClient } from '@lgriffin/esi.ts';
+
+const client = new EsiClient({
+  rateLimiterConfig: {
+    userKeyExtractor: (headers) => headers['authorization'] ?? 'anon',
+  },
+});
+```
+
+Monitor rate limit status per group:
+
+```typescript
+const limiter = client.getRateLimiter();
+
+// Worst-case across all groups (backward-compatible)
+const status = limiter.getStatus();
+console.log(status.remaining, status.limit, status.group);
+
+// Specific group
+const marketStatus = limiter.getGroupStatus('market-order');
+console.log(marketStatus?.remaining); // tokens remaining in this group
+
+// All active groups
+const all = limiter.getAllGroupStatuses();
+for (const [group, info] of all) {
+  console.log(`${group}: ${info.remaining}/${info.limit}`);
+}
+
+// Check if a specific group is blocked
+console.log(limiter.isBlocked('char-notification')); // true if 429'd
+```
 
 ## Lightweight Clients
 

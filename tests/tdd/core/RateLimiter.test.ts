@@ -1,4 +1,5 @@
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { esiRateLimitGroups } from '../../../src/core/endpoints/esi-rate-limit-groups.generated';
 import * as sleepModule from '../../../src/core/util/sleep';
 
 describe('RateLimiter', () => {
@@ -319,6 +320,475 @@ describe('RateLimiter', () => {
       const sleepArg = sleepSpy.mock.calls[0][0] as number;
       expect(sleepArg).toBeGreaterThan(0);
       expect(sleepArg).toBeLessThanOrEqual(1000);
+    });
+  });
+
+  describe('generated rate limit groups', () => {
+    it('should contain market-order group for market orders endpoint', () => {
+      const spec = esiRateLimitGroups['GET:markets/{region_id}/orders'];
+      expect(spec).toBeDefined();
+      expect(spec!.group).toBe('market-order');
+      expect(spec!.maxTokens).toBe(12000);
+      expect(spec!.windowSizeMs).toBe(900000);
+    });
+
+    it('should contain char-notification group with low token limit', () => {
+      const spec =
+        esiRateLimitGroups['GET:characters/{character_id}/notifications'];
+      expect(spec).toBeDefined();
+      expect(spec!.group).toBe('char-notification');
+      expect(spec!.maxTokens).toBe(15);
+    });
+
+    it('should use snake_case parameter names in keys', () => {
+      expect(
+        esiRateLimitGroups['GET:characters/{character_id}/assets'],
+      ).toBeDefined();
+      expect(
+        esiRateLimitGroups['GET:characters/{characterId}/assets'],
+      ).toBeUndefined();
+    });
+  });
+
+  describe('per-group bucket creation', () => {
+    let sleepSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      sleepSpy.mockRestore();
+    });
+
+    it('should create a bucket from spec when templatePath matches', async () => {
+      await limiter.checkRateLimit('markets/{regionId}/orders', 'GET');
+
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '11998',
+          'x-ratelimit-limit': '12000',
+          'x-ratelimit-used': '2',
+          'x-ratelimit-group': 'market-order',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      const groupStatus = limiter.getGroupStatus('market-order');
+      expect(groupStatus).toBeDefined();
+      expect(groupStatus!.group).toBe('market-order');
+      expect(groupStatus!.remaining).toBe(11998);
+      expect(groupStatus!.limit).toBe(12000);
+    });
+
+    it('should use fallback bucket when no templatePath provided', async () => {
+      await limiter.checkRateLimit();
+      const status = limiter.getStatus();
+      expect(status.group).toBeNull();
+    });
+  });
+
+  describe('group isolation', () => {
+    let sleepSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      sleepSpy.mockRestore();
+    });
+
+    it('should not block group B when group A is rate limited', async () => {
+      limiter.updateFromResponse(
+        { 'retry-after': '60' },
+        429,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      expect(limiter.isBlocked('char-notification')).toBe(true);
+
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '11990',
+          'x-ratelimit-limit': '12000',
+          'x-ratelimit-used': '10',
+          'x-ratelimit-group': 'market-order',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      expect(limiter.isBlocked('market-order')).toBe(false);
+    });
+
+    it('should track separate remaining counts per group', () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '10',
+          'x-ratelimit-limit': '15',
+          'x-ratelimit-used': '5',
+          'x-ratelimit-group': 'char-notification',
+        },
+        200,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '11000',
+          'x-ratelimit-limit': '12000',
+          'x-ratelimit-used': '1000',
+          'x-ratelimit-group': 'market-order',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      const notifStatus = limiter.getGroupStatus('char-notification');
+      const marketStatus = limiter.getGroupStatus('market-order');
+
+      expect(notifStatus!.remaining).toBe(10);
+      expect(marketStatus!.remaining).toBe(11000);
+    });
+  });
+
+  describe('server sync overrides spec', () => {
+    it('should use server-provided limit over spec default', () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '500',
+          'x-ratelimit-limit': '600',
+          'x-ratelimit-used': '100',
+          'x-ratelimit-group': 'market-order',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      const groupStatus = limiter.getGroupStatus('market-order');
+      expect(groupStatus!.limit).toBe(600);
+    });
+  });
+
+  describe('per-group 429 blocking', () => {
+    let sleepSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      sleepSpy.mockRestore();
+    });
+
+    it('should block only the affected group on 429', () => {
+      limiter.updateFromResponse(
+        { 'retry-after': '30' },
+        429,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      expect(limiter.isBlocked('char-notification')).toBe(true);
+      expect(limiter.isBlocked('market-order')).toBe(false);
+      expect(limiter.isBlocked()).toBe(true);
+    });
+
+    it('should wait group-specific block time in checkRateLimit', async () => {
+      limiter.updateFromResponse(
+        { 'retry-after': '5' },
+        429,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      await limiter.checkRateLimit(
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      expect(sleepSpy).toHaveBeenCalled();
+      const sleepArg = sleepSpy.mock.calls[0][0] as number;
+      expect(sleepArg).toBeGreaterThan(0);
+      expect(sleepArg).toBeLessThanOrEqual(5000);
+    });
+  });
+
+  describe('per-user bucketing', () => {
+    let userLimiter: RateLimiter;
+
+    beforeEach(() => {
+      userLimiter = new RateLimiter({
+        userKeyExtractor: (headers) => headers['authorization'] ?? 'anon',
+      });
+      userLimiter.setTestMode(false);
+    });
+
+    afterEach(() => {
+      userLimiter.setTestMode(true);
+    });
+
+    it('should create separate bucket sets for different users', () => {
+      const userAHeaders = { authorization: 'Bearer user-a-token' };
+      const userBHeaders = { authorization: 'Bearer user-b-token' };
+
+      userLimiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '5',
+          'x-ratelimit-limit': '15',
+          'x-ratelimit-used': '10',
+          'x-ratelimit-group': 'char-notification',
+        },
+        200,
+        'characters/{characterId}/notifications',
+        'GET',
+        userAHeaders,
+      );
+
+      userLimiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '14',
+          'x-ratelimit-limit': '15',
+          'x-ratelimit-used': '1',
+          'x-ratelimit-group': 'char-notification',
+        },
+        200,
+        'characters/{characterId}/notifications',
+        'GET',
+        userBHeaders,
+      );
+
+      const status = userLimiter.getStatus();
+      expect(status.remaining).toBe(5);
+    });
+
+    it('should use default buckets when no request headers provided', () => {
+      userLimiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '90',
+          'x-ratelimit-limit': '100',
+          'x-ratelimit-used': '10',
+          'x-ratelimit-group': 'market-order',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      const groupStatus = userLimiter.getGroupStatus('market-order');
+      expect(groupStatus).toBeDefined();
+      expect(groupStatus!.remaining).toBe(90);
+    });
+  });
+
+  describe('getGroupStatus and getAllGroupStatuses', () => {
+    it('should return undefined for unknown group', () => {
+      expect(limiter.getGroupStatus('nonexistent')).toBeUndefined();
+    });
+
+    it('should return all active groups', () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '10',
+          'x-ratelimit-limit': '15',
+          'x-ratelimit-group': 'char-notification',
+        },
+        200,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '11000',
+          'x-ratelimit-limit': '12000',
+          'x-ratelimit-group': 'market-order',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      const all = limiter.getAllGroupStatuses();
+      expect(all.size).toBe(2);
+      expect(all.has('char-notification')).toBe(true);
+      expect(all.has('market-order')).toBe(true);
+    });
+  });
+
+  describe('getStatus backward compatibility', () => {
+    it('should return worst-case group in getStatus', () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '2',
+          'x-ratelimit-limit': '15',
+          'x-ratelimit-used': '13',
+          'x-ratelimit-group': 'char-notification',
+        },
+        200,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '11000',
+          'x-ratelimit-limit': '12000',
+          'x-ratelimit-used': '1000',
+          'x-ratelimit-group': 'market-order',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      const status = limiter.getStatus();
+      expect(status.group).toBe('char-notification');
+      expect(status.remaining).toBe(2);
+      expect(status.limit).toBe(15);
+    });
+
+    it('should return RateLimitInfo shape with all expected fields', () => {
+      const status = limiter.getStatus();
+      expect(status).toHaveProperty('remaining');
+      expect(status).toHaveProperty('limit');
+      expect(status).toHaveProperty('used');
+      expect(status).toHaveProperty('group');
+      expect(status).toHaveProperty('errorLimitRemain');
+      expect(status).toHaveProperty('errorLimitReset');
+      expect(status).toHaveProperty('retryAfter');
+      expect(status).toHaveProperty('blockedUntil');
+    });
+  });
+
+  describe('isBlocked specificity', () => {
+    it('should report specific group blocked', () => {
+      limiter.updateFromResponse(
+        { 'retry-after': '10' },
+        429,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      expect(limiter.isBlocked('char-notification')).toBe(true);
+      expect(limiter.isBlocked('market-order')).toBe(false);
+    });
+
+    it('should report any blocked when called without group', () => {
+      limiter.updateFromResponse(
+        { 'retry-after': '10' },
+        429,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      expect(limiter.isBlocked()).toBe(true);
+    });
+
+    it('should report not blocked when no groups are blocked', () => {
+      expect(limiter.isBlocked()).toBe(false);
+      expect(limiter.isBlocked('market-order')).toBe(false);
+    });
+  });
+
+  describe('reset clears all groups', () => {
+    it('should clear all group buckets and user buckets', () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '0',
+          'x-ratelimit-limit': '15',
+          'x-ratelimit-group': 'char-notification',
+          'retry-after': '60',
+        },
+        429,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '100',
+          'x-ratelimit-limit': '12000',
+          'x-ratelimit-group': 'market-order',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      limiter.reset();
+
+      expect(limiter.getAllGroupStatuses().size).toBe(0);
+      expect(limiter.isBlocked()).toBe(false);
+      expect(limiter.getGroupStatus('char-notification')).toBeUndefined();
+      expect(limiter.getGroupStatus('market-order')).toBeUndefined();
+    });
+  });
+
+  describe('per-group deceleration', () => {
+    let sleepSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      sleepSpy.mockRestore();
+    });
+
+    it('should decelerate only the group with low tokens', async () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '1',
+          'x-ratelimit-limit': '15',
+          'x-ratelimit-used': '14',
+          'x-ratelimit-group': 'char-notification',
+        },
+        200,
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      sleepSpy.mockClear();
+      await limiter.checkRateLimit(
+        'characters/{characterId}/notifications',
+        'GET',
+      );
+
+      expect(sleepSpy).toHaveBeenCalled();
+      const sleepArg = sleepSpy.mock.calls[0][0] as number;
+      expect(sleepArg).toBeGreaterThan(0);
+    });
+  });
+
+  describe('response group header is authoritative', () => {
+    it('should use x-ratelimit-group from response over spec lookup', () => {
+      limiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '500',
+          'x-ratelimit-limit': '600',
+          'x-ratelimit-used': '100',
+          'x-ratelimit-group': 'custom-override-group',
+        },
+        200,
+        'markets/{regionId}/orders',
+        'GET',
+      );
+
+      const overrideStatus = limiter.getGroupStatus('custom-override-group');
+      expect(overrideStatus).toBeDefined();
+      expect(overrideStatus!.remaining).toBe(500);
+
+      const specStatus = limiter.getGroupStatus('market-order');
+      expect(specStatus).toBeUndefined();
     });
   });
 });
