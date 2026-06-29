@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Spec-driven type generation** from ESI swagger spec (`npm run generate:types`) — 147 TypeScript interfaces + cache TTL map for 119 endpoints
+- **Spec-aware cache bypass** — GET requests within ESI-specified `x-cached-seconds` TTL return cached data with zero HTTP calls, layered on top of ETag caching
+- **`batch()` and `batchPost()` methods** on `EsiClient` — bounded concurrency for multi-ID fetches, auto-chunking for POST endpoints
+- **`EsiSpec` namespace export** with generated response types alongside hand-written types
+- **Type drift detection** in `npm run validate:esi` — compares hand-written types against generated spec types
+- CI step to verify generated types are up to date
+
 ## [5.1.0] - 2026-06-26
 
 ### Added
