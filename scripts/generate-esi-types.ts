@@ -229,7 +229,6 @@ function writeTypesFile(
   const lines: string[] = [
     '/* eslint-disable */',
     '// Auto-generated from ESI Swagger spec — do not edit manually',
-    `// Generated: ${new Date().toISOString()}`,
     `// Spec hash: ${specHash}`,
     `// Total interfaces: ${interfaces.length}`,
     '',
@@ -268,7 +267,6 @@ function writeTypesFile(
 function writeTtlFile(entries: CacheTtlEntry[]): void {
   const lines: string[] = [
     '// Auto-generated from ESI Swagger spec — do not edit manually',
-    `// Generated: ${new Date().toISOString()}`,
     `// Endpoints with cache TTLs: ${entries.length}`,
     '',
     'export const esiCacheTtls: Record<string, number> = {',

@@ -1,5 +1,4 @@
 // Auto-generated from ESI Swagger spec — do not edit manually
-// Generated: 2026-06-29T12:53:00.846Z
 // Endpoints with cache TTLs: 119
 
 export const esiCacheTtls: Record<string, number> = {
