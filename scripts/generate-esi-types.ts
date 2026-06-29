@@ -1,9 +1,10 @@
 /**
- * ESI Type & Cache TTL Generator
+ * ESI Type, Cache TTL & Rate Limit Group Generator
  *
- * Fetches the ESI Swagger 2.0 spec and generates:
+ * Fetches the ESI Swagger 2.0 spec and OpenAPI 3.x meta spec, generates:
  * 1. TypeScript interfaces for all ESI response types
  * 2. A cache TTL map from x-cached-seconds metadata
+ * 3. A rate limit group map from x-rate-limit metadata
  *
  * Usage: npx ts-node scripts/generate-esi-types.ts
  *        npm run generate:types
@@ -14,6 +15,8 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 
 const ESI_SWAGGER_URL = 'https://esi.evetech.net/latest/swagger.json';
+const ESI_OPENAPI_URL =
+  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
 const TYPES_OUTPUT = path.resolve(
   __dirname,
   '../src/types/generated/esi-spec.generated.ts',
@@ -21,6 +24,10 @@ const TYPES_OUTPUT = path.resolve(
 const TTL_OUTPUT = path.resolve(
   __dirname,
   '../src/core/endpoints/esi-cache-ttls.generated.ts',
+);
+const RATE_LIMIT_GROUPS_OUTPUT = path.resolve(
+  __dirname,
+  '../src/core/endpoints/esi-rate-limit-groups.generated.ts',
 );
 
 interface SwaggerSchema {
@@ -285,6 +292,100 @@ function writeTtlFile(entries: CacheTtlEntry[]): void {
   fs.writeFileSync(TTL_OUTPUT, lines.join('\n'), 'utf-8');
 }
 
+// --- OpenAPI 3.x rate limit group extraction ---
+
+interface OpenApiRateLimitExtension {
+  group: string;
+  'max-tokens'?: number;
+  'window-size'?: string;
+}
+
+interface OpenApiOperation {
+  'x-rate-limit'?: OpenApiRateLimitExtension;
+}
+
+interface OpenApiSpec {
+  paths: Record<string, Record<string, OpenApiOperation>>;
+}
+
+interface RateLimitGroupEntry {
+  path: string;
+  method: string;
+  group: string;
+  maxTokens: number;
+  windowSizeMs: number;
+}
+
+function parseWindowSize(windowSize: string): number {
+  const match = windowSize.match(/^(\d+)([smh])$/);
+  if (!match || !match[1] || !match[2]) return 900_000;
+  const value = parseInt(match[1], 10);
+  switch (match[2]) {
+    case 's':
+      return value * 1000;
+    case 'm':
+      return value * 60 * 1000;
+    case 'h':
+      return value * 60 * 60 * 1000;
+    default:
+      return 900_000;
+  }
+}
+
+function extractRateLimitGroups(spec: OpenApiSpec): RateLimitGroupEntry[] {
+  const entries: RateLimitGroupEntry[] = [];
+  const httpMethods = ['get', 'post', 'put', 'delete'];
+
+  for (const [routePath, methods] of Object.entries(spec.paths)) {
+    for (const method of httpMethods) {
+      const op = methods[method] as OpenApiOperation | undefined;
+      if (!op) continue;
+
+      const rateLimit = op['x-rate-limit'];
+      if (!rateLimit || typeof rateLimit.group !== 'string') continue;
+
+      entries.push({
+        path: routePath.replace(/^\//, '').replace(/\/$/, ''),
+        method: method.toUpperCase(),
+        group: rateLimit.group,
+        maxTokens: rateLimit['max-tokens'] ?? 300,
+        windowSizeMs: parseWindowSize(rateLimit['window-size'] ?? '15m'),
+      });
+    }
+  }
+
+  return entries;
+}
+
+function writeRateLimitGroupsFile(entries: RateLimitGroupEntry[]): void {
+  const lines: string[] = [
+    '// Auto-generated from ESI OpenAPI spec — do not edit manually',
+    `// Endpoints with rate limit groups: ${entries.length}`,
+    '',
+    'export interface RateLimitGroupSpec {',
+    '  group: string;',
+    '  maxTokens: number;',
+    '  windowSizeMs: number;',
+    '}',
+    '',
+    'export const esiRateLimitGroups: Record<string, RateLimitGroupSpec> = {',
+  ];
+
+  const sorted = entries.sort((a, b) => a.path.localeCompare(b.path));
+  for (const entry of sorted) {
+    const key = `${entry.method}:${entry.path}`;
+    lines.push(
+      `  '${key}': { group: '${entry.group}', maxTokens: ${entry.maxTokens}, windowSizeMs: ${entry.windowSizeMs} },`,
+    );
+  }
+
+  lines.push('};');
+  lines.push('');
+
+  fs.mkdirSync(path.dirname(RATE_LIMIT_GROUPS_OUTPUT), { recursive: true });
+  fs.writeFileSync(RATE_LIMIT_GROUPS_OUTPUT, lines.join('\n'), 'utf-8');
+}
+
 async function main(): Promise<void> {
   console.log(`Fetching ESI swagger spec from ${ESI_SWAGGER_URL}...`);
 
@@ -331,6 +432,30 @@ async function main(): Promise<void> {
   console.log(`Found ${ttls.length} endpoints with cache TTLs`);
   writeTtlFile(ttls);
   console.log(`Cache TTLs written to ${TTL_OUTPUT}`);
+
+  // Generate rate limit groups from the OpenAPI 3.x meta spec
+  console.log(`\nFetching ESI OpenAPI meta spec from ${ESI_OPENAPI_URL}...`);
+  let openApiSpec: OpenApiSpec;
+  try {
+    const oaResponse = await fetch(ESI_OPENAPI_URL);
+    if (!oaResponse.ok) {
+      throw new Error(`HTTP ${oaResponse.status}: ${oaResponse.statusText}`);
+    }
+    openApiSpec = (await oaResponse.json()) as OpenApiSpec;
+  } catch (err) {
+    console.error(`Failed to fetch ESI OpenAPI meta spec: ${err}`);
+    console.error('Rate limit groups will not be updated.');
+    return;
+  }
+
+  const rateLimitGroups = extractRateLimitGroups(openApiSpec);
+  console.log(
+    `Found ${rateLimitGroups.length} endpoints with rate limit groups`,
+  );
+  const uniqueGroups = new Set(rateLimitGroups.map((e) => e.group));
+  console.log(`Unique groups: ${uniqueGroups.size}`);
+  writeRateLimitGroupsFile(rateLimitGroups);
+  console.log(`Rate limit groups written to ${RATE_LIMIT_GROUPS_OUTPUT}`);
 }
 
 main();

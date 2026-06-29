@@ -178,6 +178,8 @@ describe('Dependency Injection', () => {
           retryAfter: null,
           blockedUntil: 0,
         }),
+        getGroupStatus: () => undefined,
+        getAllGroupStatuses: () => new Map(),
         isBlocked: () => false,
         reset() {},
       };

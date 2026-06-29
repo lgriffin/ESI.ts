@@ -70,9 +70,7 @@ function resolveCircuitBreaker(client: ApiClient): CircuitBreaker | null {
 
 // --- Pure helpers ---
 
-function camelToSnake(s: string): string {
-  return s.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
-}
+import { camelToSnake } from './util/stringUtil';
 
 function lookupSpecTtl(
   method: string,
@@ -284,6 +282,7 @@ async function handleOffsetPagination(
   url: string,
   useETag: boolean,
   pageFetch?: PageFetcher,
+  templatePath?: string,
 ): Promise<EsiHandlerResponse> {
   const totalPages = parsed.xPages;
 
@@ -311,6 +310,7 @@ async function handleOffsetPagination(
         maxRetries: 3,
       },
       pageFetch,
+      templatePath,
     );
 
     cacheResponse(client, url, method, endpoint, parsed, allData, useETag);
@@ -441,6 +441,7 @@ async function executeSingleFetch(
   requiresAuth: boolean,
   useETag: boolean,
   requestTimeout?: number,
+  templatePath?: string,
 ): Promise<RawFetchResult> {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const builtHeaders = buildRequestHeaders(
@@ -474,7 +475,7 @@ async function executeSingleFetch(
   if (cb) cb.checkCircuit(endpoint);
 
   const rateLimiter = resolveRateLimiter(client);
-  await rateLimiter.checkRateLimit();
+  await rateLimiter.checkRateLimit(templatePath, method, req.headers);
 
   const timeoutMs = requestTimeout ?? client.getTimeout();
   const controller = new AbortController();
@@ -495,7 +496,13 @@ async function executeSingleFetch(
 
   const parsed = parseHeaders(response.headers);
 
-  rateLimiter.updateFromResponse(parsed.raw, response.status);
+  rateLimiter.updateFromResponse(
+    parsed.raw,
+    response.status,
+    templatePath,
+    method,
+    req.headers,
+  );
 
   if (cb) {
     if (
@@ -532,6 +539,7 @@ async function fetchOnePage(
   requiresAuth: boolean = false,
   useETag: boolean = false,
   requestTimeout?: number,
+  templatePath?: string,
 ): Promise<SingleFetchResult> {
   const { response, parsed, url } = await executeSingleFetch(
     client,
@@ -541,6 +549,7 @@ async function fetchOnePage(
     requiresAuth,
     useETag,
     requestTimeout,
+    templatePath,
   );
 
   if (!response.ok) {
@@ -564,6 +573,7 @@ const executeRequest = async (
   requiresAuth: boolean = false,
   useETag: boolean = true,
   requestTimeout?: number,
+  templatePath?: string,
 ): Promise<EsiHandlerResponse> => {
   const startTime = Date.now();
   const finish = (r: EsiHandlerResponse) => {
@@ -588,6 +598,7 @@ const executeRequest = async (
       requiresAuth,
       useETag,
       requestTimeout,
+      templatePath,
     );
 
     if (response.status === 201) {
@@ -635,6 +646,7 @@ const executeRequest = async (
         requiresAuth,
         false,
         requestTimeout,
+        templatePath,
       );
       return Array.isArray(result.data)
         ? (result.data as unknown[])
@@ -652,6 +664,7 @@ const executeRequest = async (
       url,
       useETag,
       pageFetch,
+      templatePath,
     );
     return finish(paginatedResult);
   } catch (error: unknown) {
@@ -682,6 +695,7 @@ export const handleRequest = async (
       requiresAuth,
       useETag,
       requestTimeout,
+      templatePath,
     );
 
   const dedup = client.getDeduplicator();
