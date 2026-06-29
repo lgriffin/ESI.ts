@@ -64,17 +64,10 @@ describe('BDD: ETag Caching System', () => {
         expect(cacheStats).toBeDefined();
         expect(cacheStats!.totalEntries).toBe(1);
 
-        // Verify the ETag is cached by making a second request and checking If-None-Match
-        fetchMock.mockResponseOnce('', {
-          status: 304,
-          headers: { ETag: etag },
-        });
-        await client.alliance.getAlliances();
-        const secondCallHeaders = fetchMock.mock.calls[1][1]?.headers as Record<
-          string,
-          string
-        >;
-        expect(secondCallHeaders['If-None-Match']).toBe(etag);
+        // Second request within spec-aware TTL returns cached data without HTTP call
+        const cachedResult = await client.alliance.getAlliances();
+        expect(cachedResult).toEqual(allianceData);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -93,22 +86,12 @@ describe('BDD: ETag Caching System', () => {
 
         await client.alliance.getAlliances();
 
-        // When: I make the same request and server returns 304 Not Modified
-        fetchMock.mockResponseOnce('', {
-          status: 304,
-          headers: { ETag: etag },
-        });
-
+        // When: I make the same request within spec-aware cache TTL
         const cachedResult = await client.alliance.getAlliances();
 
-        // Then: I should receive the cached data without a new download
+        // Then: I should receive the cached data without any new HTTP call
         expect(cachedResult).toEqual(allianceData);
-        expect(fetchMock).toHaveBeenCalledTimes(2);
-
-        // Verify If-None-Match header was sent
-        const secondRequest = fetchMock.mock.calls[1];
-        const headers = secondRequest[1]?.headers as Record<string, string>;
-        expect(headers['If-None-Match']).toBe(etag);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -131,27 +114,12 @@ describe('BDD: ETag Caching System', () => {
         const firstResult = await client.alliance.getAlliances();
         expect(firstResult).toEqual(oldData);
 
-        // When: The server returns new data with a different ETag
-        fetchMock.mockResponseOnce(JSON.stringify(newData), {
-          headers: { ETag: newETag },
-        });
-
+        // When: Second request within spec-aware TTL window
         const updatedResult = await client.alliance.getAlliances();
 
-        // Then: The cache should be updated with the new data
-        expect(updatedResult).toEqual(newData);
-
-        // Verify cache was updated with new ETag by making a third request
-        fetchMock.mockResponseOnce('', {
-          status: 304,
-          headers: { ETag: newETag },
-        });
-        await client.alliance.getAlliances();
-        const thirdCallHeaders = fetchMock.mock.calls[2][1]?.headers as Record<
-          string,
-          string
-        >;
-        expect(thirdCallHeaders['If-None-Match']).toBe(newETag);
+        // Then: Spec-aware cache returns original data (TTL not expired)
+        expect(updatedResult).toEqual(oldData);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
       });
     });
   });

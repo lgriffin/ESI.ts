@@ -51,6 +51,12 @@ import {
 import { RateLimiter, RateLimiterConfig } from './core/rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './core/RequestDeduplicator';
 import { EsiDiagnostics } from './core/EsiDiagnostics';
+import {
+  batchFetch,
+  batchPost,
+  BatchOptions,
+  BatchResult,
+} from './core/BatchRequestHandler';
 import logger from './core/logger/logger';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
@@ -303,6 +309,22 @@ export class EsiClient {
 
   resetCircuitBreaker(endpoint?: string): void {
     this.diagnostics.resetCircuitBreaker(endpoint);
+  }
+
+  async batch<K, T>(
+    keys: K[],
+    fetcher: (key: K) => Promise<T>,
+    options?: BatchOptions,
+  ): Promise<BatchResult<K, T>> {
+    return batchFetch(keys, fetcher, options);
+  }
+
+  async batchPost<T>(
+    ids: number[],
+    poster: (chunk: number[]) => Promise<T[]>,
+    chunkSize?: number,
+  ): Promise<T[]> {
+    return batchPost(ids, poster, chunkSize);
   }
 
   shutdown(): void {

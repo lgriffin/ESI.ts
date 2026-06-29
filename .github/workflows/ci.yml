@@ -57,6 +57,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify generated types are up to date
+        run: |
+          npm run generate:types
+          git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts || {
+            echo "Generated types are stale — run 'npm run generate:types' and commit the result"
+            exit 1
+          }
+
       - name: Run dead code detection (knip)
         run: npx knip --no-exit-code
 

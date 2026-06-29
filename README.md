@@ -11,7 +11,10 @@
 A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/).
 
 - Typed responses for all endpoints
+- Spec-driven type generation from ESI swagger spec (147 interfaces)
 - ETag caching with Cache-Control TTL, stale-on-error, and write invalidation
+- Spec-aware cache TTLs — zero-request cache hits within ESI-specified windows
+- Batch requests with bounded concurrency and auto-chunking
 - Automatic offset-based pagination and cursor-based pagination support
 - Rate limiting with header-driven backoff
 - Automatic token refresh with 401 retry and concurrent coalescing
@@ -257,6 +260,86 @@ client.updateCacheConfig({ maxEntries: 2000 });
 const uncachedClient = new EsiClient({ enableETagCache: false });
 ```
 
+### Spec-Aware Cache TTLs
+
+The library reads `x-cached-seconds` from the ESI swagger spec (119 of 195 endpoints). Within the TTL window, repeated GET requests return cached data with **zero HTTP calls** — not even a conditional GET.
+
+This layers on top of ETag caching in three tiers:
+
+1. **Spec TTL** — data can't have changed yet, return cached data immediately
+2. **ETag conditional GET** — data might have changed, send `If-None-Match` to check
+3. **Full request** — no cache entry, fetch fresh data
+
+```typescript
+const client = new EsiClient();
+
+// First call — fetches from ESI
+const alliances = await client.alliance.getAlliances();
+
+// Second call within the next 3600s — returns cached data, zero HTTP calls
+const same = await client.alliance.getAlliances();
+```
+
+## Batch Requests
+
+Fetch data for multiple IDs with bounded concurrency using `batch()`, or chunk large POST payloads with `batchPost()`:
+
+```typescript
+import { EsiClient } from '@lgriffin/esi.ts';
+
+const client = new EsiClient();
+
+// Fetch 500 type details with at most 10 concurrent requests
+const result = await client.batch(
+  typeIds,
+  (id) => client.universe.getTypeById(id),
+  {
+    concurrency: 10,
+    onProgress: (done, total) => console.log(`${done}/${total}`),
+  },
+);
+
+// result.results: Map<number, T> — successful responses
+// result.errors: Map<number, Error> — failed requests
+console.log(`${result.results.size} succeeded, ${result.errors.size} failed`);
+```
+
+For POST endpoints that accept arrays (e.g., `postUniverseNames` with a 1000-ID limit), `batchPost` auto-chunks and concatenates:
+
+```typescript
+const allNames = await client.batchPost(
+  largeIdArray,
+  (chunk) => client.universe.postUniverseNames(chunk),
+  1000, // chunk size
+);
+```
+
+## Generated Types
+
+The library includes TypeScript interfaces generated directly from the ESI swagger spec, available as the `EsiSpec` namespace. These are guaranteed to match the live spec and complement the hand-written types:
+
+```typescript
+import { EsiSpec } from '@lgriffin/esi.ts';
+
+// Generated type — exact spec field names and optionality
+const order: EsiSpec.GetMarketsRegionIdOrders200Ok = {
+  order_id: 123,
+  type_id: 34,
+  price: 5.5,
+  volume_remain: 1000,
+  volume_total: 5000,
+  is_buy_order: false,
+  // ...
+};
+```
+
+To regenerate types from the latest ESI spec:
+
+```bash
+npm run generate:types    # fetches spec, generates 147 interfaces + cache TTL map
+npm run validate:esi      # reports type drift between hand-written and generated types
+```
+
 ## Cursor-based Pagination
 
 Newer ESI routes (Freelance Jobs, and future routes) use cursor-based pagination with opaque `before`/`after` tokens in the response body. See the [ESI blog post](https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page) for background.
@@ -492,6 +575,7 @@ npm run bdd                # BDD scenario tests
 npm run knip               # Detect dead code and unused exports
 npm run validate:esi       # Validate endpoints against live ESI swagger spec
 npm run validate           # Run all checks: lint, format, build, coverage, knip
+npm run generate:types     # Regenerate TypeScript interfaces from ESI swagger spec
 
 # Documentation
 npm run docs               # Generate TypeDoc API documentation
@@ -523,6 +607,7 @@ Every pull request runs the full validation suite:
 - ESLint (with security and sonarjs plugins)
 - Prettier formatting check
 - TypeScript compilation
+- Generated types staleness check (regenerates from live ESI spec and verifies no diff)
 - Unit tests across Node.js 18, 20, and 22
 - BDD scenario tests
 - Coverage threshold enforcement (branches: 50%, functions: 50%, lines: 65%, statements: 65%)
@@ -534,7 +619,7 @@ See [.github/workflows/README.md](.github/workflows/README.md) for full workflow
 ## Testing
 
 ```bash
-npm test          # Unit + BDD tests (104 suites, 2785 tests)
+npm test          # Unit + BDD tests (106 suites, 2805 tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 ```

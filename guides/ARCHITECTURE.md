@@ -35,6 +35,8 @@ graph TB
 
     subgraph CoreLayer["Core Request Orchestration"]
         Handler["ApiRequestHandler"]
+        SpecTtlCache["Spec-Aware Cache (TTL bypass)"]
+        BatchHandler["BatchRequestHandler"]
         Middleware["MiddlewareManager"]
         RateLimiter["RateLimiter"]
         CircuitBreaker["CircuitBreaker"]
@@ -42,6 +44,11 @@ graph TB
         Pagination["PaginationHandler"]
         CursorPagination["CursorPaginationHandler"]
         TokenRefresh["Token Refresh"]
+    end
+
+    subgraph GeneratedLayer["Generated (from ESI Swagger Spec)"]
+        GenTypes["esi-spec.generated.ts (147 interfaces)"]
+        GenTtls["esi-cache-ttls.generated.ts (119 TTLs)"]
     end
 
     subgraph Interfaces["Interface Contracts"]
@@ -84,12 +91,17 @@ graph TB
     Registry --> Market
     Registry --> Universe
 
+    Handler --> SpecTtlCache
+    SpecTtlCache --> Cache
+    SpecTtlCache --> GenTtls
     Handler --> Middleware
     Handler --> RateLimiter
     Handler --> CircuitBreaker
     Handler --> Cache
     Handler --> Pagination
     Handler --> TokenRefresh
+    EsiClient --> BatchHandler
+    BatchHandler --> Handler
 
     Cache -.->|implements| ICache
     RateLimiter -.->|implements| IRateLimiter
@@ -110,6 +122,7 @@ graph TB
     style CoreLayer fill:#fce4ec,stroke:#c62828
     style Interfaces fill:#f3e5f5,stroke:#6a1b9a
     style Infrastructure fill:#eceff1,stroke:#37474f
+    style GeneratedLayer fill:#e8eaf6,stroke:#283593
 ```
 
 ## 2. Request Lifecycle
@@ -133,7 +146,14 @@ sequenceDiagram
     App->>Client: client.market.getMarketPrices()
     Client->>Domain: MarketClient.getMarketPrices()
     Domain->>Create: validate params, build path
-    Create->>Handler: handleRequest(client, endpoint, method)
+    Create->>Handler: handleRequest(client, endpoint, method, templatePath)
+
+    Note over Handler: Spec-aware cache check (before any HTTP)
+    Handler->>Cache: trySpecAwareCacheHit(url, method, templatePath)
+    alt Within spec TTL
+        Cache-->>Handler: cached data (zero HTTP calls)
+        Handler-->>App: { body, fromCache: true }
+    end
 
     Note over Handler: executeRequest begins
 

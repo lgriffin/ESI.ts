@@ -15,7 +15,9 @@ tests/
 │   ├── contacts/ContactsClient.test.ts
 │   ├── contracts/ContractsClient.test.ts
 │   ├── core/
+│   │   ├── ApiRequestHandler.test.ts
 │   │   ├── AsyncPaginationIterator.test.ts
+│   │   ├── BatchRequestHandler.test.ts
 │   │   ├── CursorPaginationHandler.test.ts
 │   │   ├── CursorPaginationIntegration.test.ts
 │   │   ├── ETagCacheManager.test.ts
@@ -27,6 +29,7 @@ tests/
 │   │   ├── RateLimitIntegration.test.ts
 │   │   ├── RateLimiter.test.ts
 │   │   ├── RequestDeduplicator.test.ts
+│   │   ├── SpecAwareCaching.test.ts
 │   │   ├── WithMetadata.test.ts
 │   │   ├── circuitBreaker.test.ts
 │   │   ├── constants.test.ts
