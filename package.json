@@ -55,6 +55,7 @@
     "example:rate-limiting": "ts-node examples/rate-limiting.ts",
     "example:cursor-pagination": "ts-node examples/cursor-pagination.ts",
     "example:token-refresh": "ts-node examples/token-refresh.ts",
+    "example:retry-timeout-metadata": "ts-node examples/retry-timeout-metadata.ts",
     "token:create": "ts-node scripts/create-token.ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
