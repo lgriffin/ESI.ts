@@ -118,19 +118,10 @@ describe('Integration: ETag Cache Round-Trip', () => {
     const first = await client.status.getStatus();
     expect(first).toEqual(data);
 
-    fetchMock.mockResponseOnce('', {
-      status: 304,
-      headers: standardHeaders({ etag: '"abc123"' }),
-    });
-
+    // Second request within spec-aware TTL returns cached data without HTTP call
     const second = await client.status.getStatus();
     expect(second).toEqual(data);
-
-    const secondHeaders = fetchMock.mock.calls[1][1]?.headers as Record<
-      string,
-      string
-    >;
-    expect(secondHeaders['If-None-Match']).toBe('"abc123"');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('should report cache stats after caching', async () => {
