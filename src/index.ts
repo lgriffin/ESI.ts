@@ -67,6 +67,7 @@ export { CursorTokens } from './core/pagination/CursorPaginationHandler';
 // Error class & type guards
 export {
   EsiError,
+  TimeoutError,
   isEsiError,
   isRateLimited,
   isNotFound,
@@ -106,6 +107,9 @@ export {
   ETagCacheManager,
   ETagCacheConfig,
 } from './core/cache/ETagCacheManager';
+
+// Retry
+export { RetryConfig } from './core/util/retry';
 
 // Request deduplication
 export { RequestDeduplicator } from './core/RequestDeduplicator';

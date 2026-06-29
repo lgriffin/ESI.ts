@@ -37,6 +37,9 @@ function buildMeta(response: EsiHandlerResponse): EsiResponseMeta {
     fromCache: response.fromCache ?? false,
     stale: response.stale ?? false,
   };
+  if (response.cacheHitType) meta.cacheHitType = response.cacheHitType;
+  if (response.responseTimeMs !== undefined)
+    meta.responseTimeMs = response.responseTimeMs;
   const w = parseWarning(response.headers['warning']);
   if (w) meta.warning = w;
   if (response.headers['x-esi-request-id'])
@@ -44,6 +47,14 @@ function buildMeta(response: EsiHandlerResponse): EsiResponseMeta {
   if (response.headers['date']) meta.date = response.headers['date'];
   if (response.headers['content-language'])
     meta.contentLanguage = response.headers['content-language'];
+  if (response.headers['x-ratelimit-remaining']) {
+    meta.rateLimit = {
+      remaining: parseInt(response.headers['x-ratelimit-remaining'], 10),
+      limit: parseInt(response.headers['x-ratelimit-limit'] ?? '0', 10),
+      used: parseInt(response.headers['x-ratelimit-used'] ?? '0', 10),
+      group: response.headers['x-ratelimit-group'] ?? null,
+    };
+  }
   return meta;
 }
 

@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`EsiSpec` namespace export** with generated response types alongside hand-written types
 - **Type drift detection** in `npm run validate:esi` — compares hand-written types against generated spec types
 - CI step to verify generated types are up to date
+- **Retry with exponential backoff** — configurable retry for transient 5xx, timeout, and rate limit errors with jitter; respects circuit breaker state; GET-only by default with `retryMutations` opt-in
+- **`TimeoutError`** subclass of `EsiError` — typed timeout errors with `timeoutMs` property; per-request timeout override via `handleRequest()`
+- **Enhanced response metadata** via `withMetadata()` — rate limit info (`RateLimitMeta`), response timing (`responseTimeMs`), and cache hit type (`cacheHitType`: `'spec-ttl'` | `'etag-304'` | `'stale-on-error'`)
+- `RetryConfig` interface and `retryConfig` option on `EsiClientConfig`
+- `CircuitOpenError` passthrough in request handler (previously wrapped as generic Error)
 
 ## [5.1.0] - 2026-06-26
 

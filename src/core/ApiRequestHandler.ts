@@ -1,5 +1,5 @@
 import { ApiClient } from './ApiClient';
-import { buildError, EsiError } from '../core/util/error';
+import { buildError, EsiError, TimeoutError } from '../core/util/error';
 import {
   logInfo,
   logWarn,
@@ -15,12 +15,17 @@ import { USER_AGENT, COMPATIBILITY_DATE } from './constants';
 import { RequestContext, ResponseContext } from './middleware/Middleware';
 import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
 import { esiCacheTtls } from './endpoints/esi-cache-ttls.generated';
+import { retryDelay } from './util/retry';
+import { sleep } from './util/sleep';
+import { CircuitOpenError } from './circuitBreaker/CircuitBreaker';
 
 export interface EsiHandlerResponse {
   headers: Record<string, string>;
   body: unknown;
   fromCache?: boolean;
   stale?: boolean;
+  cacheHitType?: 'spec-ttl' | 'etag-304' | 'stale-on-error';
+  responseTimeMs?: number;
   cursors?: CursorTokens;
 }
 
@@ -103,6 +108,7 @@ function trySpecAwareCacheHit(
       headers: entry.headers,
       body: entry.data,
       fromCache: true,
+      cacheHitType: 'spec-ttl',
     };
   }
   return null;
@@ -184,6 +190,7 @@ function handleEarlyStatus(
           headers: { ...cachedEntry.headers, ...parsed.raw },
           body: cachedEntry.data,
           fromCache: true,
+          cacheHitType: 'etag-304',
         };
       }
     }
@@ -212,6 +219,7 @@ function tryStaleCacheResponse(
     body: cachedEntry.data,
     fromCache: true,
     stale: true,
+    cacheHitType: 'stale-on-error',
   };
 }
 
@@ -408,7 +416,7 @@ function handleErrorResponse(
 }
 
 function wrapError(error: unknown): never {
-  if (error instanceof EsiError) {
+  if (error instanceof EsiError || error instanceof CircuitOpenError) {
     throw error;
   }
   if (error instanceof Error) {
@@ -432,6 +440,7 @@ async function executeSingleFetch(
   body: unknown,
   requiresAuth: boolean,
   useETag: boolean,
+  requestTimeout?: number,
 ): Promise<RawFetchResult> {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const builtHeaders = buildRequestHeaders(
@@ -467,7 +476,7 @@ async function executeSingleFetch(
   const rateLimiter = resolveRateLimiter(client);
   await rateLimiter.checkRateLimit();
 
-  const timeoutMs = client.getTimeout();
+  const timeoutMs = requestTimeout ?? client.getTimeout();
   const controller = new AbortController();
   const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
   options.signal = controller.signal;
@@ -478,7 +487,7 @@ async function executeSingleFetch(
   } catch (err) {
     clearTimeout(timer);
     if (err instanceof Error && err.name === 'AbortError') {
-      throw new EsiError(0, `Request timed out after ${timeoutMs}ms`, url);
+      throw new TimeoutError(timeoutMs, url);
     }
     throw err;
   }
@@ -522,6 +531,7 @@ async function fetchOnePage(
   body?: unknown,
   requiresAuth: boolean = false,
   useETag: boolean = false,
+  requestTimeout?: number,
 ): Promise<SingleFetchResult> {
   const { response, parsed, url } = await executeSingleFetch(
     client,
@@ -530,6 +540,7 @@ async function fetchOnePage(
     body,
     requiresAuth,
     useETag,
+    requestTimeout,
   );
 
   if (!response.ok) {
@@ -552,9 +563,11 @@ const executeRequest = async (
   body?: unknown,
   requiresAuth: boolean = false,
   useETag: boolean = true,
+  requestTimeout?: number,
 ): Promise<EsiHandlerResponse> => {
   const startTime = Date.now();
   const finish = (r: EsiHandlerResponse) => {
+    r.responseTimeMs = Date.now() - startTime;
     const rawUrl = `${client.getLink()}/${endpoint}`;
     return applyResponseInterceptors(
       client,
@@ -574,6 +587,7 @@ const executeRequest = async (
       body,
       requiresAuth,
       useETag,
+      requestTimeout,
     );
 
     if (response.status === 201) {
@@ -619,6 +633,8 @@ const executeRequest = async (
         method,
         body,
         requiresAuth,
+        false,
+        requestTimeout,
       );
       return Array.isArray(result.data)
         ? (result.data as unknown[])
@@ -651,55 +667,98 @@ export const handleRequest = async (
   requiresAuth: boolean = false,
   useETag: boolean = true,
   templatePath?: string,
+  requestTimeout?: number,
 ): Promise<EsiHandlerResponse> => {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const specHit = trySpecAwareCacheHit(client, rawUrl, method, templatePath);
   if (specHit) return specHit;
 
   const doExecute = () =>
-    executeRequest(client, endpoint, method, body, requiresAuth, useETag);
+    executeRequest(
+      client,
+      endpoint,
+      method,
+      body,
+      requiresAuth,
+      useETag,
+      requestTimeout,
+    );
 
   const dedup = client.getDeduplicator();
   const canDedup = dedup && method === 'GET' && !body;
 
-  try {
-    return canDedup
-      ? await dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
-      : await doExecute();
-  } catch (error: unknown) {
-    if (
-      error instanceof EsiError &&
-      error.statusCode === 401 &&
-      requiresAuth &&
-      client.hasTokenProvider()
-    ) {
-      logInfo('Received 401, attempting token refresh...');
-      try {
-        await client.refreshToken();
-        logInfo('Token refreshed, retrying request');
-        return await executeRequest(
-          client,
-          endpoint,
-          method,
-          body,
-          requiresAuth,
-          useETag,
-        );
-      } catch (refreshError: unknown) {
-        if (refreshError instanceof EsiError) {
-          throw refreshError;
-        }
-        const msg =
-          refreshError instanceof Error
-            ? refreshError.message
-            : String(refreshError);
-        logError(`Token refresh failed: ${msg}`);
-        throw buildError(
-          `Token refresh failed: ${msg}`,
-          'TOKEN_REFRESH_FAILED',
-        );
+  const retryConfig = client.getRetryConfig();
+  const maxRetries = retryConfig?.maxRetries ?? 0;
+  const canRetryMethod =
+    method === 'GET' || retryConfig?.retryMutations === true;
+  const baseDelayMs = retryConfig?.baseDelayMs ?? 1000;
+  const maxDelayMs = retryConfig?.maxDelayMs ?? 30000;
+
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return canDedup
+        ? await dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
+        : await doExecute();
+    } catch (error: unknown) {
+      if (error instanceof CircuitOpenError) {
+        throw error;
       }
+
+      if (
+        error instanceof EsiError &&
+        error.statusCode === 401 &&
+        requiresAuth &&
+        client.hasTokenProvider()
+      ) {
+        logInfo('Received 401, attempting token refresh...');
+        try {
+          await client.refreshToken();
+          logInfo('Token refreshed, retrying request');
+          return await executeRequest(
+            client,
+            endpoint,
+            method,
+            body,
+            requiresAuth,
+            useETag,
+            requestTimeout,
+          );
+        } catch (refreshError: unknown) {
+          if (refreshError instanceof EsiError) {
+            throw refreshError;
+          }
+          const msg =
+            refreshError instanceof Error
+              ? refreshError.message
+              : String(refreshError);
+          logError(`Token refresh failed: ${msg}`);
+          throw buildError(
+            `Token refresh failed: ${msg}`,
+            'TOKEN_REFRESH_FAILED',
+          );
+        }
+      }
+
+      if (
+        error instanceof EsiError &&
+        error.retryable &&
+        canRetryMethod &&
+        attempt < maxRetries
+      ) {
+        const delay = retryDelay(attempt, baseDelayMs, maxDelayMs);
+        logWarn(
+          `Request to ${endpoint} failed (${error.statusCode}), retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`,
+        );
+        await sleep(delay);
+        lastError = error;
+        continue;
+      }
+
+      throw error;
     }
-    throw error;
   }
+
+  throw lastError;
 };

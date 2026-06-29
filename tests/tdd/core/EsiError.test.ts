@@ -1,5 +1,6 @@
 import {
   EsiError,
+  TimeoutError,
   isEsiError,
   isRateLimited,
   isNotFound,
@@ -117,8 +118,11 @@ describe('EsiError', () => {
       expect(isServerError(new Error('not esi'))).toBe(false);
     });
 
-    it('isTimeout combines instanceof and status check', () => {
-      expect(isTimeout(new EsiError(0, 'timed out'))).toBe(true);
+    it('isTimeout checks for TimeoutError instances', () => {
+      expect(
+        isTimeout(new TimeoutError(30000, 'https://esi.test/v1/status/')),
+      ).toBe(true);
+      expect(isTimeout(new EsiError(0, 'timed out'))).toBe(false);
       expect(isTimeout(new EsiError(500, 'server error'))).toBe(false);
       expect(isTimeout(new Error('not esi'))).toBe(false);
       expect(isTimeout(null)).toBe(false);
