@@ -78,7 +78,12 @@ const client = new EsiClient({
   baseUrl: 'https://esi.evetech.net', // ESI base URL (default)
   onTokenRefresh: async () => newToken, // Auto-refresh on 401 (optional)
   timeout: 30000, // Request timeout in ms (default: 30000)
-  retryAttempts: 3, // Retry count (default: 3)
+  retryConfig: {
+    maxRetries: 3, // Max retry attempts for transient errors (default: 0)
+    baseDelayMs: 1000, // Initial backoff delay (default: 1000)
+    maxDelayMs: 30000, // Maximum backoff delay (default: 30000)
+    retryMutations: false, // Retry POST/PUT/DELETE (default: false, GET only)
+  },
   enableETagCache: true, // ETag caching (default: true)
   etagCacheConfig: {
     maxEntries: 1000, // Max cached responses (default: 1000)
@@ -87,6 +92,8 @@ const client = new EsiClient({
   },
 });
 ```
+
+Retry is disabled by default (`maxRetries: 0`). When enabled, transient errors (502, 503, 504, timeout, rate limit) are retried with exponential backoff and jitter. The circuit breaker is respected — requests are not retried when the circuit is open.
 
 The access token can be updated at runtime:
 
@@ -404,17 +411,22 @@ Key points:
 API errors throw `EsiError` with `statusCode`, `message`, and `url` properties:
 
 ```typescript
-import { EsiError } from '@lgriffin/esi.ts';
+import {
+  EsiError,
+  TimeoutError,
+  isTimeout,
+  isRetryable,
+} from '@lgriffin/esi.ts';
 
 try {
   const alliance = await client.alliance.getAllianceById(99999999);
   console.log('Alliance:', alliance.name);
 } catch (err) {
-  if (err instanceof EsiError) {
+  if (isTimeout(err)) {
+    console.log(`Request timed out after ${err.timeoutMs}ms`);
+  } else if (err instanceof EsiError) {
     console.log(`ESI error ${err.statusCode}: ${err.message}`);
-    // e.g. "ESI error 404: Resource not found"
-  } else {
-    console.error('Network or parse error:', err);
+    console.log(`Retryable: ${err.retryable}`);
   }
 }
 ```
@@ -423,6 +435,37 @@ try {
 - **304 Not Modified** — handled internally, returns cached data
 - **4xx/5xx** — throws `EsiError`
 - **5xx with cache** — returns stale cached data instead of throwing
+- **Timeout** — throws `TimeoutError` (extends `EsiError` with `statusCode: 0` and `timeoutMs`)
+- **Retryable errors** — `EsiError.retryable` returns `true` for 502, 503, 504, 420, 429, and timeouts
+
+## Response Metadata
+
+Use `withMetadata()` to get response headers, cache status, rate limit info, and timing alongside the data:
+
+```typescript
+const metaClient = client.alliance.withMetadata();
+const result = await metaClient.getAllianceById(99000001);
+
+console.log(result.data.name); // "Goonswarm Federation"
+console.log(result.meta.fromCache); // true if served from cache
+console.log(result.meta.cacheHitType); // 'spec-ttl' | 'etag-304' | 'stale-on-error'
+console.log(result.meta.responseTimeMs); // milliseconds
+console.log(result.meta.rateLimit); // { remaining, limit, used, group }
+console.log(result.meta.requestId); // ESI request ID for debugging
+```
+
+The `meta` object includes:
+
+| Field            | Type                     | Description                                       |
+| ---------------- | ------------------------ | ------------------------------------------------- |
+| `headers`        | `Record<string, string>` | Raw response headers                              |
+| `fromCache`      | `boolean`                | Whether data was served from cache                |
+| `stale`          | `boolean`                | Whether cached data is stale (5xx fallback)       |
+| `cacheHitType`   | `string?`                | `'spec-ttl'`, `'etag-304'`, or `'stale-on-error'` |
+| `rateLimit`      | `RateLimitMeta?`         | Rate limit status from ESI headers                |
+| `responseTimeMs` | `number?`                | Request duration in milliseconds                  |
+| `requestId`      | `string?`                | ESI request ID                                    |
+| `warning`        | `object?`                | ESI deprecation warning                           |
 
 ## Lightweight Clients
 
@@ -619,7 +662,7 @@ See [.github/workflows/README.md](.github/workflows/README.md) for full workflow
 ## Testing
 
 ```bash
-npm test          # Unit + BDD tests (106 suites, 2805 tests)
+npm test          # Unit + BDD tests (108 suites, 2836 tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 ```

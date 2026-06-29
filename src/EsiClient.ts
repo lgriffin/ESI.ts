@@ -50,6 +50,7 @@ import {
 } from './core/circuitBreaker/CircuitBreaker';
 import { RateLimiter, RateLimiterConfig } from './core/rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './core/RequestDeduplicator';
+import { RetryConfig } from './core/util/retry';
 import { EsiDiagnostics } from './core/EsiDiagnostics';
 import {
   batchFetch,
@@ -69,6 +70,7 @@ export interface EsiClientConfig {
   onTokenRefresh?: TokenProvider;
   timeout?: number;
   retryAttempts?: number;
+  retryConfig?: RetryConfig;
   enableETagCache?: boolean;
   etagCacheConfig?: ETagCacheConfig;
   enableCircuitBreaker?: boolean;
@@ -130,6 +132,12 @@ export class EsiClient {
       this.apiClient.setCircuitBreaker(
         new CircuitBreaker(config.circuitBreakerConfig),
       );
+    }
+
+    if (config?.retryConfig) {
+      this.apiClient.setRetryConfig(config.retryConfig);
+    } else if (config?.retryAttempts !== undefined) {
+      this.apiClient.setRetryConfig({ maxRetries: config.retryAttempts });
     }
 
     if (config?.requestInterceptors) {

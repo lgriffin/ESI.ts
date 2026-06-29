@@ -29,7 +29,9 @@ tests/
 │   │   ├── RateLimitIntegration.test.ts
 │   │   ├── RateLimiter.test.ts
 │   │   ├── RequestDeduplicator.test.ts
+│   │   ├── RetryBackoff.test.ts
 │   │   ├── SpecAwareCaching.test.ts
+│   │   ├── Timeout.test.ts
 │   │   ├── WithMetadata.test.ts
 │   │   ├── circuitBreaker.test.ts
 │   │   ├── constants.test.ts

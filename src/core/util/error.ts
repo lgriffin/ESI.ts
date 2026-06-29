@@ -89,8 +89,19 @@ export function isServerError(error: unknown): error is EsiError {
   return error instanceof EsiError && error.isServerError();
 }
 
-export function isTimeout(error: unknown): error is EsiError {
-  return error instanceof EsiError && error.isTimeout();
+export class TimeoutError extends EsiError {
+  constructor(
+    public readonly timeoutMs: number,
+    url?: string,
+    requestId?: string,
+  ) {
+    super(0, `Request timed out after ${timeoutMs}ms`, url, requestId);
+    this.name = 'TimeoutError';
+  }
+}
+
+export function isTimeout(error: unknown): error is TimeoutError {
+  return error instanceof TimeoutError;
 }
 
 export function isRetryable(error: unknown): error is EsiError {

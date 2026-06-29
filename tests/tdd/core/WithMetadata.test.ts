@@ -1,9 +1,17 @@
 import { AllianceClient } from '../../../src/clients/AllianceClient';
+import { StatusClient } from '../../../src/clients/StatusClient';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
+
+const standardHeaders = (overrides: Record<string, string> = {}) => ({
+  'x-pages': '1',
+  'content-type': 'application/json',
+  ...overrides,
+});
 
 describe('withMetadata()', () => {
   let apiClient: ApiClient;
@@ -36,11 +44,10 @@ describe('withMetadata()', () => {
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockAlliance), {
-      headers: {
-        'content-type': 'application/json',
+      headers: standardHeaders({
         'x-ratelimit-remaining': '95',
         'x-ratelimit-limit': '100',
-      },
+      }),
     });
 
     const metaClient = allianceClient.withMetadata();
@@ -61,7 +68,7 @@ describe('withMetadata()', () => {
     const mockAlliances = [99000001, 99000002];
 
     fetchMock.mockResponseOnce(JSON.stringify(mockAlliances), {
-      headers: { 'content-type': 'application/json' },
+      headers: standardHeaders(),
     });
 
     const result = await allianceClient.getAlliances();
@@ -69,5 +76,126 @@ describe('withMetadata()', () => {
     expect(Array.isArray(result)).toBe(true);
     expect(result).toEqual(mockAlliances);
     expect(result).not.toHaveProperty('meta');
+  });
+
+  describe('rate limit metadata', () => {
+    it('populates meta.rateLimit from response headers', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([99000001]), {
+        headers: standardHeaders({
+          'x-ratelimit-remaining': '90',
+          'x-ratelimit-limit': '100',
+          'x-ratelimit-used': '10',
+          'x-ratelimit-group': 'market',
+        }),
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAlliances();
+
+      expect(result.meta.rateLimit).toBeDefined();
+      expect(result.meta.rateLimit!.remaining).toBe(90);
+      expect(result.meta.rateLimit!.limit).toBe(100);
+      expect(result.meta.rateLimit!.used).toBe(10);
+      expect(result.meta.rateLimit!.group).toBe('market');
+    });
+
+    it('meta.rateLimit is undefined when no rate limit headers', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([99000001]), {
+        headers: standardHeaders(),
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAlliances();
+
+      expect(result.meta.rateLimit).toBeUndefined();
+    });
+  });
+
+  describe('response timing', () => {
+    it('meta.responseTimeMs is a non-negative number', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([99000001]), {
+        headers: standardHeaders(),
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAlliances();
+
+      expect(result.meta.responseTimeMs).toBeDefined();
+      expect(typeof result.meta.responseTimeMs).toBe('number');
+      expect(result.meta.responseTimeMs!).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('cache hit type', () => {
+    it('cacheHitType is undefined for normal 200 response', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([99000001]), {
+        headers: standardHeaders(),
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAlliances();
+
+      expect(result.meta.cacheHitType).toBeUndefined();
+    });
+
+    it('cacheHitType is etag-304 for ETag cache hit', async () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+        cleanupInterval: 60000,
+      });
+      apiClient.setCache(cache);
+
+      const { handleRequest } =
+        await import('../../../src/core/ApiRequestHandler');
+
+      fetchMock.mockResponseOnce(JSON.stringify({ players: 100 }), {
+        headers: standardHeaders({ etag: '"test-etag"' }),
+      });
+
+      await handleRequest(apiClient, 'v1/test-endpoint/', 'GET');
+
+      fetchMock.mockResponseOnce('', {
+        status: 304,
+        headers: standardHeaders({ etag: '"test-etag"' }),
+      });
+
+      const response = await handleRequest(
+        apiClient,
+        'v1/test-endpoint/',
+        'GET',
+      );
+
+      expect(response.cacheHitType).toBe('etag-304');
+      expect(response.fromCache).toBe(true);
+    });
+
+    it('cacheHitType is spec-ttl for spec-aware cache hit', async () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+        cleanupInterval: 60000,
+      });
+      apiClient.setCache(cache);
+      const statusClient = new StatusClient(apiClient);
+
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 100,
+          server_version: '1',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        { headers: standardHeaders({ etag: '"test-etag"' }) },
+      );
+
+      await statusClient.getStatus();
+
+      const metaClient = statusClient.withMetadata();
+      const result = await metaClient.getStatus();
+
+      expect(result.meta.cacheHitType).toBe('spec-ttl');
+      expect(result.meta.fromCache).toBe(true);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
   });
 });

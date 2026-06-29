@@ -155,6 +155,8 @@ sequenceDiagram
         Handler-->>App: { body, fromCache: true }
     end
 
+    Note over Handler: Retry loop (if retryConfig set)
+
     Note over Handler: executeRequest begins
 
     Handler->>Handler: buildRequestHeaders()
@@ -202,6 +204,12 @@ sequenceDiagram
         Cache-->>Handler: stale cached data
     else Status 4xx/5xx
         Handler-->>App: throw EsiError
+    end
+
+    alt Retryable error (5xx/timeout/429) + retries remaining
+        Handler->>Handler: retryDelay(attempt, baseMs, maxMs)
+        Handler->>Handler: sleep(delay with jitter)
+        Handler->>Handler: retry executeRequest
     end
 
     Handler->>MW: applyResponseInterceptors(context)

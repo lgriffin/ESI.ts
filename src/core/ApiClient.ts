@@ -7,6 +7,7 @@ import { ICache } from './cache/ICache';
 import { IRateLimiter } from './rateLimiter/IRateLimiter';
 import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
 import { RequestDeduplicator } from './RequestDeduplicator';
+import { RetryConfig } from './util/retry';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
@@ -22,6 +23,7 @@ export class ApiClient {
   private circuitBreaker: CircuitBreaker | null = null;
   private timeout: number = 30_000;
   private deduplicator: RequestDeduplicator | null = null;
+  private retryConfig: RetryConfig | null = null;
 
   constructor(
     private clientId: string,
@@ -69,6 +71,14 @@ export class ApiClient {
 
   setDeduplicator(dedup: RequestDeduplicator | null): void {
     this.deduplicator = dedup;
+  }
+
+  getRetryConfig(): RetryConfig | null {
+    return this.retryConfig;
+  }
+
+  setRetryConfig(config: RetryConfig | null): void {
+    this.retryConfig = config;
   }
 
   getMiddleware(): MiddlewareManager {
