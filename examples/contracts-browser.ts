@@ -51,7 +51,7 @@ async function main() {
     // Show a sample auction contract with bids
     const auctions = publicContracts.filter(c => c.type === 'auction');
     if (auctions.length > 0) {
-      const auction = auctions[0];
+      const auction = auctions[0]!;
       console.log(`\nSample Auction Contract #${auction.contract_id}`);
       console.log('-'.repeat(40));
       console.log(`  Price:       ${auction.price?.toLocaleString() || 0} ISK`);
@@ -63,7 +63,7 @@ async function main() {
         const bids = await client.contracts.getPublicContractBids(auction.contract_id);
         console.log(`  Bids:        ${bids.length}`);
         if (bids.length > 0) {
-          const topBid = bids.sort((a, b) => b.amount - a.amount)[0];
+          const topBid = bids.sort((a, b) => b.amount - a.amount)[0]!;
           console.log(`  Highest bid: ${topBid.amount.toLocaleString()} ISK`);
         }
       } catch {
@@ -104,7 +104,8 @@ async function main() {
         }
       }
     } catch (err) {
-      if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
+      if (err instanceof Error && (err.message.includes('NO_AUTH_TOKEN') ||
+          (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)))) {
         console.log('Skipped: ESI_ACCESS_TOKEN not set or missing scope esi-contracts.read_character_contracts.v1');
       } else {
         throw err;

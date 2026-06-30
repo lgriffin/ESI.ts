@@ -42,8 +42,10 @@ async function main() {
       );
 
       for (let i = 0; i < sampleAttrs.length; i++) {
-        const name = attrDetails[i].display_name || attrDetails[i].name || `attr_${sampleAttrs[i].attribute_id}`;
-        console.log(`  ${name}: ${sampleAttrs[i].value}`);
+        const attr = attrDetails[i]!;
+        const sample = sampleAttrs[i]!;
+        const name = attr.display_name || attr.name || `attr_${sample.attribute_id}`;
+        console.log(`  ${name}: ${sample.value}`);
       }
     }
 

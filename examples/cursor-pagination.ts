@@ -125,7 +125,7 @@ async function fetchJobDetail() {
             return;
         }
 
-        const jobId = listing.freelance_jobs[0].id;
+        const jobId = listing.freelance_jobs[0]!.id;
         const detail = await client.freelanceJobs.getFreelanceJobById(jobId);
 
         console.log(`  Job: ${detail.name}`);

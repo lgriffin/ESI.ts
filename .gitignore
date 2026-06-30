@@ -77,8 +77,9 @@ temp/
 reports/
 report/
 
-# Generated documentation (TypeDoc output)
-docs/
+# Generated documentation (TypeDoc output — keep hand-written .md files)
+docs/*
+!docs/*.md
 
 # Local planning docs
 ideas.md

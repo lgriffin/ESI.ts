@@ -33,8 +33,9 @@ async function main() {
     console.log('Route (Shortest)');
     console.log('-'.repeat(40));
     for (let i = 0; i < route.length; i++) {
-      const name = systems[i].name ?? `System ${route[i]}`;
-      const sec = systems[i].security_status?.toFixed(2) ?? '?';
+      const sys = systems[i]!;
+      const name = sys.name ?? `System ${route[i]}`;
+      const sec = sys.security_status?.toFixed(2) ?? '?';
       const prefix = i === 0 ? 'START' : i === route.length - 1 ? 'END  ' : `  ${String(i).padStart(3)}`;
       console.log(`  ${prefix}  ${name} (${sec})`);
     }
