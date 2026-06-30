@@ -13,10 +13,7 @@ export interface FleetMember {
   wing_id: number;
   squad_id: number;
   role:
-    | 'fleet_commander'
-    | 'wing_commander'
-    | 'squad_commander'
-    | 'squad_member';
+    'fleet_commander' | 'wing_commander' | 'squad_commander' | 'squad_member';
   role_name: string;
   join_time: string;
   takes_fleet_warp: boolean;
@@ -33,10 +30,7 @@ export interface FleetWing {
 export interface CharacterFleetInfo {
   fleet_id: number;
   role:
-    | 'fleet_commander'
-    | 'wing_commander'
-    | 'squad_commander'
-    | 'squad_member';
+    'fleet_commander' | 'wing_commander' | 'squad_commander' | 'squad_member';
   squad_id: number;
   wing_id: number;
 }

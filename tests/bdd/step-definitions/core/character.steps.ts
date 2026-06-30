@@ -300,9 +300,8 @@ defineFeature(feature, (test) => {
 
       jest
         .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockImplementation(
-          async (id: number) =>
-            mockCharacters.find((char) => char.character_id === id)!,
+        .mockImplementation(async (id: number) =>
+          mockCharacters.find((char) => char.character_id === id)!,
         );
     });
 

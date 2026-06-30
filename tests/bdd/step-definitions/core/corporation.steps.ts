@@ -383,9 +383,8 @@ defineFeature(feature, (test) => {
 
       jest
         .spyOn(client.corporations, 'getCorporationInfo')
-        .mockImplementation(
-          async (id: number) =>
-            mockCorporations.find((corp) => corp.corporation_id === id)!,
+        .mockImplementation(async (id: number) =>
+          mockCorporations.find((corp) => corp.corporation_id === id)!,
         );
     });
 

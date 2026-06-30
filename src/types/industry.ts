@@ -14,12 +14,7 @@ export interface IndustryJob {
   probability?: number;
   product_type_id?: number;
   status:
-    | 'active'
-    | 'cancelled'
-    | 'delivered'
-    | 'paused'
-    | 'ready'
-    | 'reverted';
+    'active' | 'cancelled' | 'delivered' | 'paused' | 'ready' | 'reverted';
   duration: number;
   start_date: string;
   end_date: string;

@@ -14,11 +14,7 @@ export interface CalendarEventDetail {
   owner_id: number;
   owner_name: string;
   owner_type:
-    | 'eve_server'
-    | 'corporation'
-    | 'faction'
-    | 'character'
-    | 'alliance';
+    'eve_server' | 'corporation' | 'faction' | 'character' | 'alliance';
   duration: number;
   importance: number;
   response: string;
