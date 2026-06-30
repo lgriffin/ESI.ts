@@ -3,7 +3,7 @@ import { handleRequest, EsiHandlerResponse } from '../ApiRequestHandler';
 import { EndpointMap, EndpointArgs } from './EndpointDefinition';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
 import { EsiResponse, EsiResponseMeta } from '../../types/api-responses';
-import { validatePathParam, validateQueryParam } from '../util/validation';
+import { buildEndpointPath } from './buildEndpointPath';
 import { parseWarning } from '../util/headersUtil';
 import { logWarn } from '../logger/loggerUtil';
 
@@ -82,49 +82,9 @@ export function createClient<T extends EndpointMap>(
         logWarn(parts.join(' '));
       }
 
-      let argIndex = 0;
-
-      let path = def.path;
-      if (def.pathParams) {
-        for (const param of def.pathParams) {
-          const raw = args[argIndex++];
-          const validated = validatePathParam(param, raw);
-          path = path.replace(`{${param}}`, encodeURIComponent(validated));
-        }
-      }
-
-      if (def.queryParams) {
-        const queryParts: string[] = [];
-        for (const [paramName, queryKey] of Object.entries(def.queryParams)) {
-          const value = args[argIndex++];
-          if (value !== undefined) {
-            const validated = validateQueryParam(paramName, value);
-            queryParts.push(`${queryKey}=${encodeURIComponent(validated)}`);
-          }
-        }
-        if (queryParts.length > 0) {
-          path += (path.includes('?') ? '&' : '?') + queryParts.join('&');
-        }
-      }
-
-      let body: unknown = undefined;
-      if (def.bodyBuilder) {
-        /* eslint-disable @typescript-eslint/no-unsafe-argument */
-        body = def.bodyBuilder(
-          ...(args.slice(argIndex) as Parameters<typeof def.bodyBuilder>),
-        );
-        /* eslint-enable @typescript-eslint/no-unsafe-argument */
-      } else if (def.hasBody) {
-        // eslint-disable-next-line security/detect-object-injection
-        body = args[argIndex];
-      }
-
-      const datasource = apiClient.getDatasource();
-      if (datasource) {
-        path +=
-          (path.includes('?') ? '&' : '?') +
-          `datasource=${encodeURIComponent(datasource)}`;
-      }
+      const built = buildEndpointPath(def, args, apiClient.getDatasource());
+      let path = built.path;
+      const body = built.body;
 
       if (def.cursorPagination) {
         const lastArg = args[args.length - 1];

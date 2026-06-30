@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { walletEndpoints } from '../core/endpoints/walletEndpoints';
 import { WalletJournal, WalletTransaction } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
   constructor(client: ApiClient) {
@@ -96,5 +97,34 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
       corporationId,
       division,
     ) as Promise<WalletTransaction[]>;
+  }
+
+  streamCharacterWalletJournal(
+    characterId: number,
+  ): AsyncGenerator<PageResult<WalletJournal>, void, undefined> {
+    return this.streamEndpoint<WalletJournal>(
+      'getCharacterWalletJournal',
+      characterId,
+    );
+  }
+
+  streamCorporationWalletJournal(
+    corporationId: number,
+    division: number,
+  ): AsyncGenerator<PageResult<WalletJournal>, void, undefined> {
+    return this.streamEndpoint<WalletJournal>(
+      'getCorporationWalletJournal',
+      corporationId,
+      division,
+    );
+  }
+
+  streamCharacterWalletTransactions(
+    characterId: number,
+  ): AsyncGenerator<PageResult<WalletTransaction>, void, undefined> {
+    return this.streamEndpoint<WalletTransaction>(
+      'getCharacterWalletTransactions',
+      characterId,
+    );
   }
 }

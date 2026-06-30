@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { contractEndpoints } from '../core/endpoints/contractEndpoints';
 import { Contract, ContractBid, ContractItem } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
   constructor(client: ApiClient) {
@@ -134,5 +135,26 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
       corporationId,
       contractId,
     ) as Promise<ContractItem[]>;
+  }
+
+  streamPublicContracts(
+    regionId: number,
+  ): AsyncGenerator<PageResult<Contract>, void, undefined> {
+    return this.streamEndpoint<Contract>('getPublicContracts', regionId);
+  }
+
+  streamCharacterContracts(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Contract>, void, undefined> {
+    return this.streamEndpoint<Contract>('getCharacterContracts', characterId);
+  }
+
+  streamCorporationContracts(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<Contract>, void, undefined> {
+    return this.streamEndpoint<Contract>(
+      'getCorporationContracts',
+      corporationId,
+    );
   }
 }

@@ -677,6 +677,23 @@ const executeRequest = async (
   }
 };
 
+export const handleSinglePageRequest = async (
+  client: ApiClient,
+  endpoint: string,
+  method: string,
+  body?: unknown,
+  requiresAuth: boolean = false,
+): Promise<EsiHandlerResponse> => {
+  const { data, parsed } = await fetchOnePage(
+    client,
+    endpoint,
+    method,
+    body,
+    requiresAuth,
+  );
+  return { headers: parsed.raw, body: data };
+};
+
 export const handleRequest = async (
   client: ApiClient,
   endpoint: string,

@@ -1,5 +1,5 @@
 import { ApiClient } from '../ApiClient';
-import { handleRequest } from '../ApiRequestHandler';
+import { handleSinglePageRequest } from '../ApiRequestHandler';
 import { logInfo } from '../logger/loggerUtil';
 
 export interface PageResult<T = unknown> {
@@ -21,7 +21,7 @@ export async function* fetchPages<T = unknown>(
   requiresAuth: boolean = false,
   body?: unknown,
 ): AsyncGenerator<PageResult<T>, void, undefined> {
-  const firstResponse = await handleRequest(
+  const firstResponse = await handleSinglePageRequest(
     client,
     endpoint,
     method,
@@ -39,7 +39,7 @@ export async function* fetchPages<T = unknown>(
 
     logInfo(`Fetching page ${page}/${totalPages}: ${pagedEndpoint}`);
 
-    const response = await handleRequest(
+    const response = await handleSinglePageRequest(
       client,
       pagedEndpoint,
       method,

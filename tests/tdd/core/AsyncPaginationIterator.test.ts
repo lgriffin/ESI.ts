@@ -13,13 +13,13 @@ jest.mock('../../../src/core/ApiRequestHandler', () => {
   const original = jest.requireActual('../../../src/core/ApiRequestHandler');
   return {
     ...original,
-    handleRequest: jest.fn(),
+    handleSinglePageRequest: jest.fn(),
   };
 });
 
-import { handleRequest } from '../../../src/core/ApiRequestHandler';
-const mockHandleRequest = handleRequest as jest.MockedFunction<
-  typeof handleRequest
+import { handleSinglePageRequest } from '../../../src/core/ApiRequestHandler';
+const mockHandleRequest = handleSinglePageRequest as jest.MockedFunction<
+  typeof handleSinglePageRequest
 >;
 
 describe('AsyncPaginationIterator', () => {
@@ -200,7 +200,7 @@ describe('AsyncPaginationIterator', () => {
       expect(pages[0].data).toEqual([]);
     });
 
-    it('should pass requiresAuth and body through to handleRequest', async () => {
+    it('should pass requiresAuth and body through to handleSinglePageRequest', async () => {
       mockHandleRequest.mockResolvedValueOnce({
         headers: { 'x-pages': '1' },
         body: [{ id: 1 }],
