@@ -17,7 +17,7 @@ module.exports = {
   },
   testMatch: [
     '<rootDir>/tests/tdd/**/*.test.ts',
-    '<rootDir>/tests/bdd-scenarios/**/*.test.ts'
+    '<rootDir>/tests/bdd/step-definitions/**/*.steps.ts'
   ],
   verbose: true,
   coverageDirectory: 'coverage/unit',
