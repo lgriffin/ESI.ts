@@ -6,6 +6,7 @@ import {
   AssetLocation,
   AssetName,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
   constructor(client: ApiClient) {
@@ -107,5 +108,23 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
       corporationId,
       itemIds,
     ) as Promise<AssetName[]>;
+  }
+
+  streamCharacterAssets(
+    characterId: number,
+  ): AsyncGenerator<PageResult<CharacterAsset>, void, undefined> {
+    return this.streamEndpoint<CharacterAsset>(
+      'getCharacterAssets',
+      characterId,
+    );
+  }
+
+  streamCorporationAssets(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CharacterAsset>, void, undefined> {
+    return this.streamEndpoint<CharacterAsset>(
+      'getCorporationAssets',
+      corporationId,
+    );
   }
 }

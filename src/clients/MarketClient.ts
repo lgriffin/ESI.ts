@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { marketEndpoints } from '../core/endpoints/marketEndpoints';
 import { MarketOrder, MarketHistory } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
   constructor(client: ApiClient) {
@@ -145,5 +146,53 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
     return this.api.getMarketOrdersInStructure(structureId) as Promise<
       MarketOrder[]
     >;
+  }
+
+  streamMarketOrders(
+    regionId: number,
+  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
+    return this.streamEndpoint<MarketOrder>('getMarketOrders', regionId, 'all');
+  }
+
+  streamMarketTypes(
+    regionId: number,
+  ): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getMarketTypes', regionId);
+  }
+
+  streamCharacterOrderHistory(
+    characterId: number,
+  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
+    return this.streamEndpoint<MarketOrder>(
+      'getCharacterOrderHistory',
+      characterId,
+    );
+  }
+
+  streamCorporationOrders(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
+    return this.streamEndpoint<MarketOrder>(
+      'getCorporationOrders',
+      corporationId,
+    );
+  }
+
+  streamCorporationOrderHistory(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
+    return this.streamEndpoint<MarketOrder>(
+      'getCorporationOrderHistory',
+      corporationId,
+    );
+  }
+
+  streamMarketOrdersInStructure(
+    structureId: number,
+  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
+    return this.streamEndpoint<MarketOrder>(
+      'getMarketOrdersInStructure',
+      structureId,
+    );
   }
 }

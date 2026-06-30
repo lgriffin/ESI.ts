@@ -15,7 +15,7 @@ A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.n
 - ETag caching with Cache-Control TTL, stale-on-error, and write invalidation
 - Spec-aware cache TTLs — zero-request cache hits within ESI-specified windows
 - Batch requests with bounded concurrency and auto-chunking
-- Automatic offset-based pagination and cursor-based pagination support
+- Automatic offset-based pagination, cursor-based pagination, and streaming pagination support
 - Rate limiting with header-driven backoff
 - Automatic token refresh with 401 retry and concurrent coalescing
 - 35 domain clients covering the full ESI surface
@@ -367,6 +367,43 @@ const isPublic = !esiEndpointScopes['GET:universe/types/{type_id}'];
 const scope: EsiScope = 'esi-assets.read_assets.v1';
 ```
 
+## Streaming Pagination
+
+For large paginated endpoints (market orders, contracts, assets), streaming yields one page at a time via `AsyncGenerator` instead of eagerly fetching all pages into memory:
+
+```typescript
+import { EsiClient } from '@lgriffin/esi.ts';
+
+const client = new EsiClient();
+
+// Stream all market orders in The Forge, page by page
+for await (const page of client.market.streamMarketOrders(10000002)) {
+  console.log(
+    `Page ${page.page}/${page.totalPages}: ${page.data.length} orders`,
+  );
+
+  // Process each order as it arrives
+  for (const order of page.data) {
+    if (order.is_buy_order && order.price > 1_000_000) {
+      console.log(`High-value buy: ${order.type_id} @ ${order.price} ISK`);
+    }
+  }
+
+  // Early termination — stops fetching remaining pages
+  if (page.page >= 3) break;
+}
+```
+
+Available streaming methods:
+
+- **MarketClient** — `streamMarketOrders`, `streamMarketTypes`, `streamCharacterOrderHistory`, `streamCorporationOrders`, `streamCorporationOrderHistory`, `streamMarketOrdersInStructure`
+- **ContractsClient** — `streamPublicContracts`, `streamCharacterContracts`, `streamCorporationContracts`
+- **WalletClient** — `streamCharacterWalletJournal`, `streamCorporationWalletJournal`, `streamCharacterWalletTransactions`
+- **AssetsClient** — `streamCharacterAssets`, `streamCorporationAssets`
+- **KillmailsClient** — `streamCharacterRecentKillmails`, `streamCorporationRecentKillmails`
+
+Try it: `npm run example:streaming`
+
 ## Cursor-based Pagination
 
 Newer ESI routes (Freelance Jobs, and future routes) use cursor-based pagination with opaque `before`/`after` tokens in the response body. See the [ESI blog post](https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page) for background.
@@ -575,6 +612,7 @@ npm run example:dogma        # Item type details + dogma attributes
 npm run example:contracts    # Public region contracts + auction bids/items
 npm run example:rate-limiting      # Rate limiter & pagination demonstration
 npm run example:cursor-pagination  # Freelance Jobs with cursor pagination
+npm run example:streaming          # Streaming pagination for large datasets
 npm run example:token-refresh      # Automatic token refresh on 401
 ```
 

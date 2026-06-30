@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { killmailEndpoints } from '../core/endpoints/killmailEndpoints';
 import { KillmailSummary, Killmail } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
   constructor(client: ApiClient) {
@@ -45,5 +46,23 @@ export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
    */
   getKillmail(killmailId: number, killmailHash: string): Promise<Killmail> {
     return this.api.getKillmail(killmailId, killmailHash) as Promise<Killmail>;
+  }
+
+  streamCharacterRecentKillmails(
+    characterId: number,
+  ): AsyncGenerator<PageResult<KillmailSummary>, void, undefined> {
+    return this.streamEndpoint<KillmailSummary>(
+      'getCharacterRecentKillmails',
+      characterId,
+    );
+  }
+
+  streamCorporationRecentKillmails(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<KillmailSummary>, void, undefined> {
+    return this.streamEndpoint<KillmailSummary>(
+      'getCorporationRecentKillmails',
+      corporationId,
+    );
   }
 }

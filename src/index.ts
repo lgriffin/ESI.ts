@@ -134,6 +134,7 @@ export {
   fetchPages,
   PageResult,
 } from './core/pagination/AsyncPaginationIterator';
+export { buildEndpointPath } from './core/endpoints/buildEndpointPath';
 
 // Interfaces (for custom implementations / testing)
 export { ICache } from './core/cache/ICache';
