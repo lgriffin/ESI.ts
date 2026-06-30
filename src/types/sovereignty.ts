@@ -4,10 +4,7 @@ export interface SovereigntyCampaign {
   solar_system_id: number;
   constellation_id: number;
   event_type:
-    | 'tcu_defense'
-    | 'ihub_defense'
-    | 'station_defense'
-    | 'station_freeport';
+    'tcu_defense' | 'ihub_defense' | 'station_defense' | 'station_freeport';
   start_time: string;
   defender_id?: number;
   defender_score?: number;

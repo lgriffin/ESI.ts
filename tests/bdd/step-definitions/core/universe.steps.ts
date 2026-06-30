@@ -363,9 +363,8 @@ defineFeature(feature, (test) => {
 
       jest
         .spyOn(client.universe, 'getSystemById')
-        .mockImplementation(
-          async (id: number) =>
-            mockSystems.find((system) => system.system_id === id)!,
+        .mockImplementation(async (id: number) =>
+          mockSystems.find((system) => system.system_id === id)!,
         );
     });
 
