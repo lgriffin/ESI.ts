@@ -1,8 +1,11 @@
 /**
  * ESI.ts Example: Sovereignty
  *
- * Shows current sovereignty data — who owns nullsec systems,
- * ADM indices, and active campaigns.
+ * Shows active sovereignty campaigns — contested structures,
+ * attack/defense scores, and event types.
+ *
+ * Note: The sovereignty/systems endpoint was sunset by CCP.
+ * This example uses the campaigns endpoint which remains active.
  *
  * Usage: npm run example:sovereignty
  */
@@ -12,42 +15,39 @@ async function main() {
   const client = new EsiClient();
 
   try {
-    console.log('Sovereignty Overview\n');
+    console.log('Sovereignty Campaigns\n');
 
-    const [systems, campaigns] = await Promise.all([
-      client.sovereignty.getSovereigntySystems(),
-      client.sovereignty.getSovereigntyCampaigns(),
-    ]);
+    const campaigns = await client.sovereignty.getSovereigntyCampaigns();
 
-    // Count systems by alliance
-    const allianceSystems = new Map<number, number>();
-    for (const system of systems) {
-      if (system.alliance_id) {
-        allianceSystems.set(system.alliance_id, (allianceSystems.get(system.alliance_id) || 0) + 1);
-      }
+    console.log(`Active campaigns: ${campaigns.length}\n`);
+
+    if (campaigns.length === 0) {
+      console.log('No active sovereignty campaigns at this time.');
+      return;
     }
 
-    // Sort by system count, show top 10
-    const sorted = [...allianceSystems.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    // Group by event type
+    const byType = new Map<string, number>();
+    for (const c of campaigns) {
+      byType.set(c.event_type, (byType.get(c.event_type) || 0) + 1);
+    }
 
-    console.log('Top 10 Alliances by Sovereign Systems');
+    console.log('Campaigns by Type');
+    console.log('-'.repeat(50));
+    for (const [type, count] of [...byType.entries()].sort((a, b) => b[1] - a[1])) {
+      console.log(`  ${type}: ${count}`);
+    }
+
+    console.log('\nRecent Campaigns (first 5)');
     console.log('-'.repeat(60));
-    console.log('  Alliance ID       Systems    Avg Military ADM');
-    for (const [allianceId, count] of sorted) {
-      const allianceSysData = systems.filter(s => s.alliance_id === allianceId);
-      const avgMilitary = allianceSysData.reduce((sum, s) => sum + (s.military_index ?? 0), 0) / allianceSysData.length;
-      console.log(`  ${String(allianceId).padEnd(18)} ${String(count).padEnd(10)} ${avgMilitary.toFixed(1)}`);
-    }
-
-    console.log(`\nTotal sovereign systems: ${systems.filter(s => s.alliance_id).length}`);
-    console.log(`Active campaigns:       ${campaigns.length}`);
-
-    if (campaigns.length > 0) {
-      console.log('\nActive Campaigns (first 3)');
-      console.log('-'.repeat(60));
-      for (const c of campaigns.slice(0, 3)) {
-        console.log(`  System ${c.solar_system_id} - Type: ${c.event_type} - Progress: ${((c.attackers_score ?? 0) * 100).toFixed(1)}%`);
-      }
+    for (const c of campaigns.slice(0, 5)) {
+      const attackPct = ((c.attackers_score ?? 0) * 100).toFixed(1);
+      const defendPct = ((c.defender_score ?? 0) * 100).toFixed(1);
+      console.log(
+        `  System ${c.solar_system_id} | ${c.event_type}` +
+        ` | Attack: ${attackPct}% | Defense: ${defendPct}%` +
+        ` | Defender: ${c.defender_id}`,
+      );
     }
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);

@@ -4,9 +4,13 @@
  * Queries Upwell sovereignty structures — sovereignty hubs,
  * orbital skyhooks with silo levels, and currently raidable skyhooks.
  *
+ * Note: These endpoints may return 404 if CCP has not yet deployed
+ * skyhook content to the current server version.
+ *
  * Usage: npm run example:skyhooks
  */
 import { EsiClient } from '../src/EsiClient';
+import { isNotFound } from '../src/core/util/error';
 
 async function main() {
   const client = new EsiClient();
@@ -14,13 +18,25 @@ async function main() {
   try {
     console.log('Skyhooks & Sovereignty Hubs\n');
 
-    const [hubs, skyhooks, raidable] = await Promise.all([
-      client.skyhooks.getSovereigntyHubs(),
-      client.skyhooks.getOrbitalSkyhooks(),
-      client.skyhooks.getRaidableSkyhooks(),
-    ]);
+    let hubs: Awaited<ReturnType<typeof client.skyhooks.getSovereigntyHubs>>;
+    let skyhooks: Awaited<ReturnType<typeof client.skyhooks.getOrbitalSkyhooks>>;
+    let raidable: Awaited<ReturnType<typeof client.skyhooks.getRaidableSkyhooks>>;
 
-    // Sovereignty hubs overview
+    try {
+      [hubs, skyhooks, raidable] = await Promise.all([
+        client.skyhooks.getSovereigntyHubs(),
+        client.skyhooks.getOrbitalSkyhooks(),
+        client.skyhooks.getRaidableSkyhooks(),
+      ]);
+    } catch (err) {
+      if (isNotFound(err)) {
+        console.log('Skyhook endpoints are not currently available on this ESI version.');
+        console.log('These endpoints may be deployed in a future EVE Online patch.');
+        return;
+      }
+      throw err;
+    }
+
     console.log('Sovereignty Hubs');
     console.log('-'.repeat(60));
     const onlineHubs = hubs.filter(h => h.online);
@@ -34,7 +50,6 @@ async function main() {
     }
     if (hubs.length > 5) console.log(`  ... and ${hubs.length - 5} more`);
 
-    // Orbital skyhooks with silo status
     console.log('\nOrbital Skyhooks');
     console.log('-'.repeat(60));
     console.log(`  Total: ${skyhooks.length}`);
@@ -47,7 +62,6 @@ async function main() {
     }
     if (skyhooks.length > 5) console.log(`  ... and ${skyhooks.length - 5} more`);
 
-    // Raidable skyhooks
     console.log('\nRaidable Skyhooks');
     console.log('-'.repeat(60));
     const nowRaidable = raidable.filter(r => r.is_raidable);

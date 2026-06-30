@@ -4,9 +4,13 @@
  * Fetches mercenary dens across New Eden and their spawned
  * tactical operations (MTOs), showing development and anarchy levels.
  *
+ * Note: These endpoints may return 404 if CCP has not yet deployed
+ * mercenary content to the current server version.
+ *
  * Usage: npm run example:mercenary
  */
 import { EsiClient } from '../src/EsiClient';
+import { isNotFound } from '../src/core/util/error';
 
 async function main() {
   const client = new EsiClient();
@@ -14,12 +18,23 @@ async function main() {
   try {
     console.log('Mercenary Dens & Tactical Operations\n');
 
-    const [dens, operations] = await Promise.all([
-      client.mercenary.getMercenaryDens(),
-      client.mercenary.getMercenaryTacticalOperations(),
-    ]);
+    let dens: Awaited<ReturnType<typeof client.mercenary.getMercenaryDens>>;
+    let operations: Awaited<ReturnType<typeof client.mercenary.getMercenaryTacticalOperations>>;
 
-    // Dens grouped by region
+    try {
+      [dens, operations] = await Promise.all([
+        client.mercenary.getMercenaryDens(),
+        client.mercenary.getMercenaryTacticalOperations(),
+      ]);
+    } catch (err) {
+      if (isNotFound(err)) {
+        console.log('Mercenary endpoints are not currently available on this ESI version.');
+        console.log('These endpoints may be deployed in a future EVE Online patch.');
+        return;
+      }
+      throw err;
+    }
+
     const byRegion = new Map<number, typeof dens>();
     for (const den of dens) {
       const list = byRegion.get(den.region_id) || [];
@@ -43,7 +58,6 @@ async function main() {
     }
     if (sortedRegions.length > 10) console.log(`  ... and ${sortedRegions.length - 10} more`);
 
-    // Tactical operations summary
     console.log(`\nTactical Operations (${operations.length} total)`);
     console.log('-'.repeat(60));
 
