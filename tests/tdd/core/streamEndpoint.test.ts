@@ -8,13 +8,13 @@ jest.mock('../../../src/core/ApiRequestHandler', () => {
   const original = jest.requireActual('../../../src/core/ApiRequestHandler');
   return {
     ...original,
-    handleRequest: jest.fn(),
+    handleSinglePageRequest: jest.fn(),
   };
 });
 
-import { handleRequest } from '../../../src/core/ApiRequestHandler';
-const mockHandleRequest = handleRequest as jest.MockedFunction<
-  typeof handleRequest
+import { handleSinglePageRequest } from '../../../src/core/ApiRequestHandler';
+const mockHandleRequest = handleSinglePageRequest as jest.MockedFunction<
+  typeof handleSinglePageRequest
 >;
 
 const testEndpoints = {
