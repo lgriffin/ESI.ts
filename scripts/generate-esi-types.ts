@@ -29,6 +29,10 @@ const RATE_LIMIT_GROUPS_OUTPUT = path.resolve(
   __dirname,
   '../src/core/endpoints/esi-rate-limit-groups.generated.ts',
 );
+const SCOPES_OUTPUT = path.resolve(
+  __dirname,
+  '../src/core/endpoints/esi-scopes.generated.ts',
+);
 
 interface SwaggerSchema {
   type?: string;
@@ -56,7 +60,7 @@ interface SwaggerOperation {
       headers?: Record<string, unknown>;
     }
   >;
-  security?: unknown[];
+  security?: Record<string, string[]>[];
 }
 
 interface SwaggerParameter {
@@ -77,6 +81,10 @@ interface SwaggerSpec {
   paths: Record<string, Record<string, SwaggerOperation>>;
   definitions?: Record<string, SwaggerSchema>;
   parameters?: Record<string, SwaggerParameter>;
+  securityDefinitions?: Record<
+    string,
+    { scopes?: Record<string, string> }
+  >;
 }
 
 function snakeToPascal(s: string): string {
@@ -386,6 +394,95 @@ function writeRateLimitGroupsFile(entries: RateLimitGroupEntry[]): void {
   fs.writeFileSync(RATE_LIMIT_GROUPS_OUTPUT, lines.join('\n'), 'utf-8');
 }
 
+// --- ESI scope metadata extraction ---
+
+interface EndpointScopeEntry {
+  path: string;
+  method: string;
+  scopes: string[];
+}
+
+function extractAllScopes(spec: SwaggerSpec): string[] {
+  const scopes = new Set<string>();
+  if (spec.securityDefinitions) {
+    for (const def of Object.values(spec.securityDefinitions)) {
+      if (def.scopes) {
+        for (const scope of Object.keys(def.scopes)) {
+          scopes.add(scope);
+        }
+      }
+    }
+  }
+  return Array.from(scopes).sort();
+}
+
+function extractEndpointScopes(spec: SwaggerSpec): EndpointScopeEntry[] {
+  const entries: EndpointScopeEntry[] = [];
+  const httpMethods = ['get', 'post', 'put', 'delete'];
+
+  for (const [routePath, methods] of Object.entries(spec.paths)) {
+    for (const method of httpMethods) {
+      const op = methods[method] as SwaggerOperation | undefined;
+      if (!op?.security?.length) continue;
+
+      const scopes = new Set<string>();
+      for (const requirement of op.security) {
+        for (const scopeList of Object.values(requirement)) {
+          for (const scope of scopeList) {
+            scopes.add(scope);
+          }
+        }
+      }
+
+      if (scopes.size > 0) {
+        entries.push({
+          path: routePath.replace(/^\//, '').replace(/\/$/, ''),
+          method: method.toUpperCase(),
+          scopes: Array.from(scopes).sort(),
+        });
+      }
+    }
+  }
+
+  return entries;
+}
+
+function writeScopesFile(
+  allScopes: string[],
+  entries: EndpointScopeEntry[],
+): void {
+  const lines: string[] = [
+    '// Auto-generated from ESI Swagger spec — do not edit manually',
+    `// Total scopes: ${allScopes.length}`,
+    `// Endpoints requiring scopes: ${entries.length}`,
+    '',
+  ];
+
+  lines.push('export type EsiScope =');
+  for (let i = 0; i < allScopes.length; i++) {
+    const sep = i === allScopes.length - 1 ? ';' : '';
+    lines.push(`  | '${allScopes[i]}'${sep}`);
+  }
+  lines.push('');
+
+  lines.push(
+    'export const esiEndpointScopes: Record<string, EsiScope[]> = {',
+  );
+
+  const sorted = entries.sort((a, b) => a.path.localeCompare(b.path));
+  for (const entry of sorted) {
+    const key = `${entry.method}:${entry.path}`;
+    const scopeArray = entry.scopes.map((s) => `'${s}'`).join(', ');
+    lines.push(`  '${key}': [${scopeArray}],`);
+  }
+
+  lines.push('};');
+  lines.push('');
+
+  fs.mkdirSync(path.dirname(SCOPES_OUTPUT), { recursive: true });
+  fs.writeFileSync(SCOPES_OUTPUT, lines.join('\n'), 'utf-8');
+}
+
 async function main(): Promise<void> {
   console.log(`Fetching ESI swagger spec from ${ESI_SWAGGER_URL}...`);
 
@@ -456,6 +553,16 @@ async function main(): Promise<void> {
   console.log(`Unique groups: ${uniqueGroups.size}`);
   writeRateLimitGroupsFile(rateLimitGroups);
   console.log(`Rate limit groups written to ${RATE_LIMIT_GROUPS_OUTPUT}`);
+
+  // Generate endpoint scope metadata from swagger spec
+  const allScopes = extractAllScopes(spec);
+  console.log(`\nFound ${allScopes.length} unique ESI scopes`);
+  const endpointScopes = extractEndpointScopes(spec);
+  console.log(
+    `Found ${endpointScopes.length} endpoints requiring OAuth scopes`,
+  );
+  writeScopesFile(allScopes, endpointScopes);
+  console.log(`Scopes written to ${SCOPES_OUTPUT}`);
 }
 
 main();

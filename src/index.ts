@@ -142,6 +142,10 @@ export {
   RateLimitGroupStatus,
 } from './core/rateLimiter/IRateLimiter';
 export { RateLimitGroupSpec } from './core/endpoints/esi-rate-limit-groups.generated';
+export {
+  EsiScope,
+  esiEndpointScopes,
+} from './core/endpoints/esi-scopes.generated';
 export { ILogger } from './core/logger/ILogger';
 export { setLogger } from './core/logger/loggerUtil';
 

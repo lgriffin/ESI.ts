@@ -135,6 +135,11 @@ function buildRequestHeaders(
     'X-Compatibility-Date': COMPATIBILITY_DATE,
   };
 
+  const language = client.getLanguage();
+  if (language) {
+    headers['Accept-Language'] = language;
+  }
+
   if (requiresAuth) {
     const authHeader = client.getAuthorizationHeader();
     if (!authHeader) {

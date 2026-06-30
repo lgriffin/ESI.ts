@@ -77,6 +77,7 @@ export interface EsiClientConfig {
   circuitBreakerConfig?: CircuitBreakerConfig;
   unsafeAllowCustomHost?: boolean;
   enableRequestDeduplication?: boolean;
+  language?: string;
   rateLimiterConfig?: RateLimiterConfig;
   requestInterceptors?: RequestInterceptor[];
   responseInterceptors?: ResponseInterceptor[];
@@ -106,6 +107,10 @@ export class EsiClient {
       (process.env.ESI_DATASOURCE as EsiDatasource | undefined);
     if (datasource) {
       this.apiClient.setDatasource(datasource);
+    }
+
+    if (config?.language) {
+      this.apiClient.setLanguage(config.language);
     }
 
     if (config?.timeout !== undefined) {
