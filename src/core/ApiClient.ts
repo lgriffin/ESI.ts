@@ -24,6 +24,7 @@ export class ApiClient {
   private timeout: number = 30_000;
   private deduplicator: RequestDeduplicator | null = null;
   private retryConfig: RetryConfig | null = null;
+  private language?: string;
 
   constructor(
     private clientId: string,
@@ -107,6 +108,14 @@ export class ApiClient {
 
   setDatasource(datasource: EsiDatasource | undefined): void {
     this.datasource = datasource;
+  }
+
+  getLanguage(): string | undefined {
+    return this.language;
+  }
+
+  setLanguage(language: string | undefined): void {
+    this.language = language;
   }
 
   setAccessToken(token: string): void {

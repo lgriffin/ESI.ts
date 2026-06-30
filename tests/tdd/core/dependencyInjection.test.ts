@@ -230,6 +230,57 @@ describe('Dependency Injection', () => {
     });
   });
 
+  describe('Accept-Language header', () => {
+    it('should include Accept-Language when language is configured', async () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
+      client.setLanguage('de');
+
+      fetchMock.mockResponseOnce(JSON.stringify({ name: 'Jita' }), {
+        headers: { 'x-pages': '1' },
+      });
+
+      await handleRequest(client, 'v1/universe/stations/60003760/', 'GET');
+
+      const requestHeaders = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(requestHeaders['Accept-Language']).toBe('de');
+    });
+
+    it('should not include Accept-Language when language is not configured', async () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
+
+      fetchMock.mockResponseOnce(JSON.stringify({ name: 'Jita' }), {
+        headers: { 'x-pages': '1' },
+      });
+
+      await handleRequest(client, 'v1/universe/stations/60003760/', 'GET');
+
+      const requestHeaders = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(requestHeaders['Accept-Language']).toBeUndefined();
+    });
+
+    it('should allow changing language at runtime', async () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
+      client.setLanguage('fr');
+
+      expect(client.getLanguage()).toBe('fr');
+
+      client.setLanguage('ja');
+      expect(client.getLanguage()).toBe('ja');
+
+      client.setLanguage(undefined);
+      expect(client.getLanguage()).toBeUndefined();
+    });
+  });
+
   describe('isolation between clients', () => {
     it('should use different caches for different clients', async () => {
       const client1 = new ApiClient('test1', 'https://esi.evetech.net');

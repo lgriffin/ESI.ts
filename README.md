@@ -77,6 +77,7 @@ const client = new EsiClient({
   accessToken: 'your-token', // EVE SSO token for authenticated endpoints
   baseUrl: 'https://esi.evetech.net', // ESI base URL (default)
   onTokenRefresh: async () => newToken, // Auto-refresh on 401 (optional)
+  language: 'en', // Accept-Language header: en, de, fr, ja, ru, zh, ko, es (default: none)
   timeout: 30000, // Request timeout in ms (default: 30000)
   retryConfig: {
     maxRetries: 3, // Max retry attempts for transient errors (default: 0)
@@ -343,8 +344,27 @@ const order: EsiSpec.GetMarketsRegionIdOrders200Ok = {
 To regenerate types from the latest ESI spec:
 
 ```bash
-npm run generate:types    # fetches spec, generates 147 interfaces + cache TTL map + rate limit groups
+npm run generate:types    # fetches spec, generates 147 interfaces + cache TTL map + rate limit groups + scope map
 npm run validate:esi      # reports type drift between hand-written and generated types
+```
+
+## ESI Scopes
+
+The library includes a generated scope-to-endpoint mapping extracted from the ESI swagger spec. Use it to check which OAuth scopes an endpoint requires before making a request:
+
+```typescript
+import { esiEndpointScopes, EsiScope } from '@lgriffin/esi.ts';
+
+// Look up scopes for a specific endpoint
+const walletScopes = esiEndpointScopes['GET:characters/{character_id}/wallet'];
+// → ['esi-wallet.read_character_wallet.v1']
+
+// Check if an endpoint requires auth
+const isPublic = !esiEndpointScopes['GET:universe/types/{type_id}'];
+// → true (public endpoint, no scopes needed)
+
+// Type-safe scope values
+const scope: EsiScope = 'esi-assets.read_assets.v1';
 ```
 
 ## Cursor-based Pagination
