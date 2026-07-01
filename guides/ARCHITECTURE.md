@@ -453,45 +453,64 @@ graph LR
 
 ## 8. Test Architecture
 
+3,233 tests across 122 suites in 7 tiers. Coverage: 96.35% statements, 87.40% branches, 93.20% functions, 96.38% lines.
+
 ```mermaid
 graph TB
-    subgraph TestTypes["Test Types"]
-        TDD["TDD Unit Tests<br/>(tests/tdd/)"]
-        BDD["BDD Scenarios<br/>(tests/bdd-scenarios/)"]
+    subgraph TestTypes["Test Types (3,233 tests, 122 suites)"]
+        TDD["TDD Unit Tests<br/>(tests/tdd/ — 78 files, 2,784 tests)"]
+        BDD["BDD Scenarios<br/>(tests/bdd/ — 39 features, 335 tests)"]
+        IntMocked["Mocked Integration<br/>(full-stack.test.ts — 20 tests)"]
+        IntLive["Live Integration<br/>(3 files — 61 tests)"]
+        IntGated["Gated Auth<br/>(gated-auth.test.ts — 33 tests)"]
     end
 
     subgraph TDDTests["TDD Test Suites"]
         Core["Core Infrastructure<br/>ETagCache, RateLimiter,<br/>CircuitBreaker, Middleware,<br/>DI, TokenRefresh, Validation"]
         Clients["Domain Clients<br/>35 client test files<br/>(GET, POST, PUT, DELETE)"]
-        Integration["Integration Tests<br/>Pagination, ETag flow,<br/>Rate limit integration"]
+        Resilience["Resilience (12 tests)<br/>Rate limits, retry, dedup"]
+        Security["Security (23 tests)<br/>Token, HTTPS, injection"]
+        Config["Config Validation (33 tests)<br/>Builder, factory, shutdown"]
+        APISurface["API Surface (135 tests)<br/>Export snapshot detector"]
+        CrossCut["Cross-Cutting (15 tests)<br/>Diagnostics, middleware, logger"]
     end
 
     subgraph BDDTests["BDD Scenario Suites"]
-        DomainBDD["Domain Scenarios<br/>alliance, character, market,<br/>universe, wallet, ... (37)"]
+        DomainBDD["Domain Scenarios<br/>alliance, character, market,<br/>universe, wallet, ... (35)"]
         PerfBDD["Performance Scenarios<br/>Concurrency, memory,<br/>large datasets"]
         IntBDD["Integration Scenarios<br/>Cross-domain workflows"]
     end
 
+    subgraph LiveTests["Live Integration Suites"]
+        Smoke["Smoke Tests (40 tests)<br/>42 public endpoints"]
+        ClientInt["Client Integration (11 tests)<br/>EsiClient end-to-end"]
+        SpecContract["Spec Contract (10 tests)<br/>Swagger drift detection"]
+    end
+
     subgraph Coverage["Coverage Enforcement"]
-        Branches["Branches: 50%"]
-        Functions["Functions: 50%"]
-        Lines["Lines: 65%"]
-        Statements["Statements: 65%"]
+        Branches["Branches: 80% (actual 87.40%)"]
+        Functions["Functions: 75% (actual 93.20%)"]
+        Lines["Lines: 90% (actual 96.38%)"]
+        Statements["Statements: 90% (actual 96.35%)"]
     end
 
     subgraph Tools["Test Infrastructure"]
         Jest["Jest + ts-jest"]
         FetchMock["jest-fetch-mock"]
         Factory["TestDataFactory"]
+        CrossEnv["cross-env (Windows)"]
     end
 
     TDD --> TDDTests
     BDD --> BDDTests
+    IntLive --> LiveTests
     TDDTests --> Coverage
     BDDTests --> Coverage
 
     Jest --> TDD
     Jest --> BDD
+    Jest --> IntMocked
+    Jest --> IntLive
     FetchMock --> Core
     FetchMock --> Clients
     Factory --> BDDTests
@@ -499,6 +518,7 @@ graph TB
     style TestTypes fill:#e3f2fd,stroke:#1565c0
     style TDDTests fill:#e8f5e9,stroke:#2e7d32
     style BDDTests fill:#fff3e0,stroke:#e65100
+    style LiveTests fill:#e8eaf6,stroke:#283593
     style Coverage fill:#fce4ec,stroke:#c62828
     style Tools fill:#eceff1,stroke:#37474f
 ```
