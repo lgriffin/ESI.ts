@@ -1,21 +1,25 @@
 Feature: Meta API Management
 
-  Scenario: Get OpenAPI JSON specification
+  # EARS: Event-driven
+  Scenario: WHEN getting OpenAPI JSON specification, the client shall return the data
     Given the ESI API is available
-    When I request the OpenAPI JSON specification
-    Then I should receive a valid OpenAPI JSON document
+    When the client requests the OpenAPI JSON specification
+    Then the client shall return a valid OpenAPI JSON document
 
-  Scenario: Get OpenAPI YAML specification
+  # EARS: Event-driven
+  Scenario: WHEN getting OpenAPI YAML specification, the client shall return the data
     Given the ESI API is available for YAML
-    When I request the OpenAPI YAML specification
-    Then I should receive a valid OpenAPI YAML document
+    When the client requests the OpenAPI YAML specification
+    Then the client shall return a valid OpenAPI YAML document
 
-  Scenario: Handle API service unavailability
+  # EARS: Unwanted
+  Scenario: IF the API service is unavailable, THEN the client shall handle the outage
     Given the ESI API is unavailable
-    When I request the OpenAPI specification
-    Then I should receive a service unavailable error
+    When the client requests the OpenAPI specification
+    Then the client shall return a service unavailable error
 
-  Scenario: Compare JSON and YAML specifications
+  # EARS: Event-driven
+  Scenario: WHEN comparing JSON and YAML specifications, the client shall return the analysis
     Given both JSON and YAML specifications are available
-    When I retrieve both formats
-    Then they should contain equivalent information
+    When the client retrieves both formats
+    Then they shall contain equivalent information

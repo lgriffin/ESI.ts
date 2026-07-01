@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve loyalty points for a character', ({ given, when, then }) => {
+  test('WHEN retrieving loyalty points for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -35,11 +39,11 @@ defineFeature(feature, (test) => {
       },
     );
 
-    when('I request their loyalty points', async () => {
+    when('the client requests their loyalty points', async () => {
       result = await client.loyalty.getLoyaltyPoints(characterId);
     });
 
-    then('I should receive LP balances per corporation', () => {
+    then('the client shall return LP balances per corporation', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(3);
       result.forEach((entry: any) => {
@@ -52,7 +56,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Character with no loyalty points', ({ given, when, then }) => {
+  test('WHILE the character with no loyalty points, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 111111111;
     let result: any;
 
@@ -60,17 +68,24 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.loyalty, 'getLoyaltyPoints').mockResolvedValue([]);
     });
 
-    when('I request their loyalty points expecting none', async () => {
-      result = await client.loyalty.getLoyaltyPoints(characterId);
-    });
+    when(
+      'the client requests their loyalty points expecting none',
+      async () => {
+        result = await client.loyalty.getLoyaltyPoints(characterId);
+      },
+    );
 
-    then('I should receive an empty loyalty points list', () => {
+    then('the client shall return an empty loyalty points list', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(0);
     });
   });
 
-  test('Identify highest LP balance', ({ given, when, then }) => {
+  test('WHEN identifying the highest LP balance, the client shall return the top corporation', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
     let highestLP: any;
@@ -89,7 +104,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(lpBalances);
     });
 
-    when('I analyze their LP balances', async () => {
+    when('the client analyzes their LP balances', async () => {
       result = await client.loyalty.getLoyaltyPoints(characterId);
       highestLP = result.reduce((best: any, current: any) =>
         current.loyalty_points > best.loyalty_points ? current : best,
@@ -100,14 +115,14 @@ defineFeature(feature, (test) => {
       );
     });
 
-    then('I should be able to find the highest LP balance', () => {
+    then('the client shall find the highest LP balance', () => {
       expect(highestLP.corporation_id).toBe(1000125);
       expect(highestLP.loyalty_points).toBe(250000);
       expect(totalLP).toBe(407000);
     });
   });
 
-  test('Retrieve loyalty store offers for a corporation', ({
+  test('WHEN retrieving loyalty store offers for a corporation, the client shall return the data', ({
     given,
     when,
     then,
@@ -148,11 +163,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedOffers);
     });
 
-    when('I request their LP store offers', async () => {
+    when('the client requests their LP store offers', async () => {
       result = await client.loyalty.getLoyaltyStoreOffers(corporationId);
     });
 
-    then('I should receive available items with costs', () => {
+    then('the client shall return available items with costs', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(3);
       result.forEach((offer: any) => {
@@ -167,7 +182,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Filter offers by affordability', ({ given, when, then }) => {
+  test('WHEN filtering offers by affordability, the client shall return filtered results', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1000035;
     const characterLP = 15000;
     let affordableOffers: any;
@@ -205,14 +224,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(storeOffers);
     });
 
-    when('I filter by what the character can afford', async () => {
+    when('the client filters by what the character can afford', async () => {
       const result = await client.loyalty.getLoyaltyStoreOffers(corporationId);
       affordableOffers = result.filter(
         (offer: any) => offer.lp_cost <= characterLP,
       );
     });
 
-    then('I should see only the affordable offers', () => {
+    then('the client shall report only the affordable offers', () => {
       expect(affordableOffers.length).toBe(2);
       expect(affordableOffers[0].offer_id).toBe(1);
       expect(affordableOffers[1].offer_id).toBe(2);
@@ -222,7 +241,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Offers with required items', ({ given, when, then }) => {
+  test('WHEN listing offers with required items, the client shall include item details', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1000125;
     let result: any;
 
@@ -246,11 +269,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(offersWithRequirements);
     });
 
-    when('I inspect the offers with requirements', async () => {
+    when('the client inspects the offers with requirements', async () => {
       result = await client.loyalty.getLoyaltyStoreOffers(corporationId);
     });
 
-    then('I should see the required items and quantities', () => {
+    then('the client shall report the required items and quantities', () => {
       expect(result[0].required_items).toBeInstanceOf(Array);
       expect(result[0].required_items.length).toBe(2);
       expect(result[0].required_items[0]).toHaveProperty('type_id');
@@ -260,7 +283,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle unauthorized access to loyalty points', ({
+  test('IF unauthorized access to loyalty points, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -276,20 +299,27 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request character loyalty points without auth', async () => {
-      try {
-        await client.loyalty.getLoyaltyPoints(characterId);
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests character loyalty points without auth',
+      async () => {
+        try {
+          await client.loyalty.getLoyaltyPoints(characterId);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a 403 forbidden error for loyalty', () => {
+    then('the client shall return a 403 forbidden error for loyalty', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle server error on store offers', ({ given, when, then }) => {
+  test('IF server error on store offers, THEN the client shall return a server error', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1000035;
     let caughtError: any;
 
@@ -301,7 +331,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(serverError);
     });
 
-    when('I request store offers expecting error', async () => {
+    when('the client requests store offers expecting error', async () => {
       try {
         await client.loyalty.getLoyaltyStoreOffers(corporationId);
       } catch (error) {
@@ -309,7 +339,7 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 500 server error', () => {
+    then('the client shall return a 500 server error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });

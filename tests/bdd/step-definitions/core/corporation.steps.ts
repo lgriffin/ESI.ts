@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve corporation public profile', ({ given, when, then }) => {
+  test('WHEN retrieving corporation public profile, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const validCorporationId = 1344654522;
 
@@ -37,11 +41,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedCorporation);
     });
 
-    when('I request public information', async () => {
+    when('the client requests public information', async () => {
       result = await client.corporations.getCorporationInfo(validCorporationId);
     });
 
-    then('I should receive complete corporation profile', () => {
+    then('the client shall return complete corporation profile', () => {
       expect(result).toBeDefined();
       expect(result.corporation_id).toBe(validCorporationId);
       expect(result.name).toBe('GoonWaffe');
@@ -52,7 +56,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle non-existent corporation', ({ given, when, then }) => {
+  test('IF non-existent corporation, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     const invalidCorporationId = 999999999;
     let caughtError: any;
 
@@ -65,7 +73,7 @@ defineFeature(feature, (test) => {
     });
 
     when(
-      'I request public information for the invalid corporation',
+      'the client requests public information for the invalid corporation',
       async () => {
         try {
           await client.corporations.getCorporationInfo(invalidCorporationId);
@@ -75,12 +83,16 @@ defineFeature(feature, (test) => {
       },
     );
 
-    then('I should receive a not found error', () => {
+    then('the client shall return a not found error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Retrieve corporation members', ({ given, when, then }) => {
+  test('WHEN retrieving corporation members, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -92,11 +104,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedMembers);
     });
 
-    when('I request member list', async () => {
+    when('the client requests member list', async () => {
       result = await client.corporations.getCorporationMembers(corporationId);
     });
 
-    then('I should receive member character IDs', () => {
+    then('the client shall return member character IDs', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(typeof result[0]).toBe('number');
@@ -104,7 +116,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve member roles', ({ given, when, then }) => {
+  test('WHEN retrieving member roles, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -125,11 +141,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedRoles);
     });
 
-    when('I request member roles', async () => {
+    when('the client requests member roles', async () => {
       result = await client.corporations.getCorporationRoles(corporationId);
     });
 
-    then('I should receive role assignments', () => {
+    then('the client shall return role assignments', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result[0]).toHaveProperty('character_id');
       expect(result[0]).toHaveProperty('roles');
@@ -138,7 +154,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve corporation assets', ({ given, when, then }) => {
+  test('WHEN retrieving corporation assets, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -159,12 +179,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedAssets);
     });
 
-    when('I request assets', async () => {
+    when('the client requests assets', async () => {
       result =
         await client.corporations.getCorporationBlueprints(corporationId);
     });
 
-    then('I should receive corporation inventory', () => {
+    then('the client shall return corporation inventory', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result[0]).toHaveProperty('item_id');
       expect(result[0]).toHaveProperty('type_id');
@@ -174,7 +194,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve corporation structures', ({ given, when, then }) => {
+  test('WHEN retrieving corporation structures, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -197,12 +221,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedStructures);
     });
 
-    when('I request structures', async () => {
+    when('the client requests structures', async () => {
       result =
         await client.corporations.getCorporationStructures(corporationId);
     });
 
-    then('I should receive structure information', () => {
+    then('the client shall return structure information', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result[0]).toHaveProperty('structure_id');
       expect(result[0]).toHaveProperty('type_id');
@@ -212,7 +236,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve corporation wallets', ({ given, when, then }) => {
+  test('WHEN retrieving corporation wallets, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -233,13 +261,13 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedWallets as any);
     });
 
-    when('I request wallets', async () => {
+    when('the client requests wallets', async () => {
       result = (await client.corporations.getCorporationStandings(
         corporationId,
       )) as any;
     });
 
-    then('I should receive wallet divisions', () => {
+    then('the client shall return wallet divisions', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('division');
@@ -249,7 +277,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve wallet journal', ({ given, when, then }) => {
+  test('WHEN retrieving wallet journal, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -272,13 +304,13 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedJournal as any);
     });
 
-    when('I request wallet journal', async () => {
+    when('the client requests wallet journal', async () => {
       result = (await client.corporations.getCorporationStandings(
         corporationId,
       )) as any;
     });
 
-    then('I should receive transaction history', () => {
+    then('the client shall return transaction history', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result[0]).toHaveProperty('id');
       expect(result[0]).toHaveProperty('date');
@@ -288,7 +320,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle insufficient permissions', ({ given, when, then }) => {
+  test('IF insufficient permissions, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1344654522;
     let caughtError: any;
 
@@ -300,7 +336,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I access restricted data', async () => {
+    when('the client accesses restricted data', async () => {
       try {
         await client.corporations.getCorporationMembers(corporationId);
       } catch (error) {
@@ -308,12 +344,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a forbidden error', () => {
+    then('the client shall return a forbidden error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle invalid authentication', ({ given, when, then }) => {
+  test('IF invalid authentication, THEN the client shall return an authentication error', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1344654522;
     let caughtError: any;
 
@@ -325,7 +365,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(authError);
     });
 
-    when('I access corporation data', async () => {
+    when('the client accesses corporation data', async () => {
       try {
         await client.corporations.getCorporationBlueprints(corporationId);
       } catch (error) {
@@ -333,12 +373,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive an authentication error', () => {
+    then('the client shall return an authentication error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle large corporation data sets', ({ given, when, then }) => {
+  test('The client shall handle large corporation data sets', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     let responseTime: number;
     const corporationId = 1344654522;
@@ -354,21 +398,25 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(largeMemberList);
     });
 
-    when('I request member data', async () => {
+    when('the client requests member data', async () => {
       const startTime = Date.now();
       result = await client.corporations.getCorporationMembers(corporationId);
       const endTime = Date.now();
       responseTime = endTime - startTime;
     });
 
-    then('the system should handle large data sets efficiently', () => {
+    then('the client shall handle large data sets efficiently', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(10000);
       expect(responseTime).toBeLessThan(1000);
     });
   });
 
-  test('Handle concurrent corporation requests', ({ given, when, then }) => {
+  test('The client shall handle concurrent corporation requests', ({
+    given,
+    when,
+    then,
+  }) => {
     let results: any[];
     const corporationIds = [1344654522, 1344654523, 1344654524];
 
@@ -388,14 +436,14 @@ defineFeature(feature, (test) => {
         );
     });
 
-    when('I make them simultaneously', async () => {
+    when('the client makes them simultaneously', async () => {
       const promises = corporationIds.map((id) =>
         client.corporations.getCorporationInfo(id),
       );
       results = await Promise.all(promises);
     });
 
-    then('all should complete successfully', () => {
+    then('all requests shall complete successfully', () => {
       expect(results).toHaveLength(3);
       results.forEach((result: any, index: number) => {
         expect(result.corporation_id).toBe(corporationIds[index]);
@@ -404,7 +452,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Complete corporation profile assembly', ({ given, when, then }) => {
+  test('WHEN completing corporation profile assembly, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     let corporation: any;
     let members: any;
     let wallets: any;
@@ -442,7 +494,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockStructures as any);
     });
 
-    when('I gather complete corporation data', async () => {
+    when('the client gathers complete corporation data', async () => {
       [corporation, members, wallets, structures] = await Promise.all([
         client.corporations.getCorporationInfo(corporationId),
         client.corporations.getCorporationMembers(corporationId),
@@ -451,18 +503,21 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should successfully retrieve all corporation information', () => {
-      expect(corporation).toBeDefined();
-      expect(corporation.corporation_id).toBe(corporationId);
+    then(
+      'the client shall successfully retrieve all corporation information',
+      () => {
+        expect(corporation).toBeDefined();
+        expect(corporation.corporation_id).toBe(corporationId);
 
-      expect(members).toBeInstanceOf(Array);
-      expect(members.length).toBeGreaterThan(0);
+        expect(members).toBeInstanceOf(Array);
+        expect(members.length).toBeGreaterThan(0);
 
-      expect(wallets).toBeInstanceOf(Array);
-      expect(wallets[0].division).toBe(1);
+        expect(wallets).toBeInstanceOf(Array);
+        expect(wallets[0].division).toBe(1);
 
-      expect(structures).toBeInstanceOf(Array);
-      expect(structures[0].structure_id).toBe(1021975535893);
-    });
+        expect(structures).toBeInstanceOf(Array);
+        expect(structures[0].structure_id).toBe(1021975535893);
+      },
+    );
   });
 });

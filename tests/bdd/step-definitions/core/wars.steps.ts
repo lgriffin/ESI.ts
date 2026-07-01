@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('List all wars', ({ given, when, then }) => {
+  test('WHEN listing all wars, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('wars exist in the system', () => {
@@ -25,11 +29,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.wars, 'getWars').mockResolvedValue(expectedWarIds);
     });
 
-    when('I request the list of wars', async () => {
+    when('the client requests the list of wars', async () => {
       result = await client.wars.getWars();
     });
 
-    then('I should receive an array of war IDs', () => {
+    then('the client shall return an array of war IDs', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(5);
       result.forEach((warId: number) => {
@@ -39,7 +43,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Wars are returned in descending order', ({ given, when, then }) => {
+  test('WHEN listing wars, the client shall return them in descending order', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('multiple wars exist in descending order', () => {
@@ -48,11 +56,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.wars, 'getWars').mockResolvedValue(expectedWarIds);
     });
 
-    when('I request the war list', async () => {
+    when('the client requests the war list', async () => {
       result = await client.wars.getWars();
     });
 
-    then('war IDs should be in descending order', () => {
+    then('war IDs shall be in descending order', () => {
       expect(result).toBeInstanceOf(Array);
       for (let i = 1; i < result.length; i++) {
         expect(result[i - 1]).toBeGreaterThan(result[i]);
@@ -60,7 +68,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get details of an active war', ({ given, when, then }) => {
+  test('WHEN getting details of an active war, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('an active war exists', () => {
@@ -89,11 +101,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedWar as any);
     });
 
-    when('I request the war details', async () => {
+    when('the client requests the war details', async () => {
       result = await client.wars.getWarById(700001);
     });
 
-    then('I should receive complete war information', () => {
+    then('the client shall return complete war information', () => {
       expect(result).toBeDefined();
       expect(result.id).toBe(700001);
       expect(result).toHaveProperty('aggressor');
@@ -108,7 +120,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get details of a finished war', ({ given, when, then }) => {
+  test('WHEN getting details of a finished war, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('a finished war exists', () => {
@@ -137,11 +153,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedWar as any);
     });
 
-    when('I request the finished war details', async () => {
+    when('the client requests the finished war details', async () => {
       result = await client.wars.getWarById(700002);
     });
 
-    then('the finished timestamp should be populated', () => {
+    then('the finished timestamp shall be populated', () => {
       expect(result).toBeDefined();
       expect((result as any).finished).not.toBeNull();
       expect((result as any).finished).toBe('2024-01-01T00:00:00Z');
@@ -154,7 +170,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get details of a mutual war', ({ given, when, then }) => {
+  test('WHEN getting details of a mutual war, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('a mutual war exists', () => {
@@ -183,18 +203,22 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedWar as any);
     });
 
-    when('I request the mutual war details', async () => {
+    when('the client requests the mutual war details', async () => {
       result = await client.wars.getWarById(700003);
     });
 
-    then('the mutual flag should be true', () => {
+    then('the mutual flag shall be true', () => {
       expect(result).toBeDefined();
       expect((result as any).mutual).toBe(true);
       expect(typeof (result as any).mutual).toBe('boolean');
     });
   });
 
-  test('Get killmails for a war', ({ given, when, then }) => {
+  test('WHEN getting killmails for a war, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('a war with killmails exists', () => {
@@ -209,11 +233,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedKillmails as any);
     });
 
-    when('I request the war killmails', async () => {
+    when('the client requests the war killmails', async () => {
       result = await client.wars.getWarKillmails(700001);
     });
 
-    then('I should receive killmail summaries', () => {
+    then('the client shall return killmail summaries', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(3);
       result.forEach((killmail: any) => {
@@ -225,24 +249,28 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get killmails for a war with no kills', ({ given, when, then }) => {
+  test('WHILE get killmails for a war with no kills, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('a war with no killmails exists', () => {
       jest.spyOn(client.wars, 'getWarKillmails').mockResolvedValue([]);
     });
 
-    when('I request the war killmails for empty war', async () => {
+    when('the client requests the war killmails for empty war', async () => {
       result = await client.wars.getWarKillmails(700004);
     });
 
-    then('I should receive an empty killmail array', () => {
+    then('the client shall return an empty killmail array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(0);
     });
   });
 
-  test('Request details for an invalid war ID (404)', ({
+  test('IF requesting details for an invalid war ID (404), THEN the client shall return a not-found error', ({
     given,
     when,
     then,
@@ -255,7 +283,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.wars, 'getWarById').mockRejectedValue(notFoundError);
     });
 
-    when('I request the invalid war details', async () => {
+    when('the client requests the invalid war details', async () => {
       try {
         await client.wars.getWarById(999999999);
       } catch (e) {
@@ -263,12 +291,15 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 404 not found error for war details', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-    });
+    then(
+      'the client shall return a 404 not found error for war details',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+      },
+    );
   });
 
-  test('Request killmails for an invalid war ID (404)', ({
+  test('IF requesting killmails for an invalid war ID (404), THEN the client shall return a not-found error', ({
     given,
     when,
     then,
@@ -283,7 +314,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(notFoundError);
     });
 
-    when('I request killmails for invalid war', async () => {
+    when('the client requests killmails for invalid war', async () => {
       try {
         await client.wars.getWarKillmails(999999999);
       } catch (e) {
@@ -291,12 +322,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 404 not found error for killmails', () => {
+    then('the client shall return a 404 not found error for killmails', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Analyze war statistics by comparing aggressor and defender', ({
+  test('WHEN analyzing war statistics by comparing aggressor and defender, the client shall return the analysis', ({
     given,
     when,
     then,
@@ -328,11 +359,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(warDetails as any);
     });
 
-    when('I analyze the war stats', async () => {
+    when('the client analyzes the war stats', async () => {
       result = await client.wars.getWarById(700001);
     });
 
-    then('I should determine the dominant side', () => {
+    then('the client shall determine the dominant side', () => {
       const aggressorIsk = (result as any).aggressor.isk_destroyed;
       const defenderIsk = (result as any).defender.isk_destroyed;
       const aggressorKills = (result as any).aggressor.ships_killed;
@@ -347,7 +378,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Complete war investigation workflow', ({ given, when, then }) => {
+  test('WHEN completing war investigation workflow, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     let details: any;
     let killmails: any;
 
@@ -384,14 +419,17 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(warKillmails as any);
     });
 
-    when('I gather full war data including details and killmails', async () => {
-      [details, killmails] = await Promise.all([
-        client.wars.getWarById(700001),
-        client.wars.getWarKillmails(700001),
-      ]);
-    });
+    when(
+      'the client gathers full war data including details and killmails',
+      async () => {
+        [details, killmails] = await Promise.all([
+          client.wars.getWarById(700001),
+          client.wars.getWarKillmails(700001),
+        ]);
+      },
+    );
 
-    then('I should build a complete picture of the conflict', () => {
+    then('the client shall build a complete picture of the conflict', () => {
       expect(details).toBeDefined();
       expect(details.id).toBe(700001);
       expect(killmails).toBeInstanceOf(Array);

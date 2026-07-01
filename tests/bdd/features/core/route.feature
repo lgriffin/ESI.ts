@@ -1,36 +1,43 @@
 Feature: Route Navigation Management
 
-  Scenario: Calculate shortest route between two systems
+  # EARS: Event-driven
+  Scenario: WHEN calculating shortest route between two systems, the client shall return the result
     Given two solar system IDs
-    When I request the shortest route
-    Then I should receive an ordered list of system IDs
+    When the client requests the shortest route
+    Then the client shall return an ordered list of system IDs
 
-  Scenario: Calculate secure route
+  # EARS: Event-driven
+  Scenario: WHEN calculating secure route, the client shall return the result
     Given two systems for secure routing
-    When I request a secure route
-    Then I should receive a route through high-sec space
+    When the client requests a secure route
+    Then the client shall return a route through high-sec space
 
-  Scenario: Calculate insecure route
+  # EARS: Event-driven
+  Scenario: WHEN calculating insecure route, the client shall return the result
     Given two systems for insecure routing
-    When I request an insecure route
-    Then I should receive a shorter route through low/null-sec
+    When the client requests an insecure route
+    Then the client shall return a shorter route through low/null-sec
 
-  Scenario: Route from a system to itself
+  # EARS: Event-driven
+  Scenario: WHEN routing from a system to itself, the client shall return a single-system route
     Given the same origin and destination
-    When I request a route to itself
-    Then I should receive an array containing only the origin
+    When the client requests a route to itself
+    Then the client shall return an array containing only the origin
 
-  Scenario: Route through multiple systems
+  # EARS: Event-driven
+  Scenario: WHEN routing through multiple systems, the client shall return multi-hop waypoints
     Given distant systems
-    When I request a route between distant systems
-    Then I should receive a multi-hop path
+    When the client requests a route between distant systems
+    Then the client shall return a multi-hop path
 
-  Scenario: Unreachable destination
+  # EARS: Unwanted
+  Scenario: IF the destination is unreachable, THEN the client shall return an error
     Given an unreachable destination
-    When I request a route to unreachable destination
-    Then I should receive a 404 error
+    When the client requests a route to unreachable destination
+    Then the client shall return a 404 error
 
-  Scenario: Route with avoided systems
+  # EARS: Event-driven
+  Scenario: WHEN routing with avoided systems, the client shall exclude them from the path
     Given systems to avoid
-    When I request a route avoiding systems
-    Then I should receive a route that does not include avoided systems
+    When the client requests a route avoiding systems
+    Then the client shall return a route that does not include avoided systems

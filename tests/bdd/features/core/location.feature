@@ -1,41 +1,49 @@
 Feature: Location Management
 
-  Scenario: Retrieve character location while docked
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character location while docked, the client shall return the data
     Given an authenticated character docked in a station
-    When I request their location
-    Then I should receive the solar system and station information
+    When the client requests their location
+    Then the client shall return the solar system and station information
 
-  Scenario: Retrieve character location while in space
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character location while in space, the client shall return the data
     Given an authenticated character flying in space
-    When I request their location while in space
-    Then I should receive only the solar system with no station
+    When the client requests their location while in space
+    Then the client shall return only the solar system with no station
 
-  Scenario: Check online status of an active character
+  # EARS: Event-driven
+  Scenario: WHEN checking online status of an active character, the client shall validate the data
     Given an authenticated character who is currently online
-    When I check their online status
-    Then I should see they are online with login timestamps
+    When the client checks their online status
+    Then the client shall report they are online with login timestamps
 
-  Scenario: Check online status of an offline character
+  # EARS: Event-driven
+  Scenario: WHEN checking online status of an offline character, the client shall validate the data
     Given an authenticated character who is currently offline
-    When I check their offline status
-    Then I should see they are offline
+    When the client checks their offline status
+    Then the client shall report they are offline
 
-  Scenario: Retrieve the ship a character is currently flying
+  # EARS: Event-driven
+  Scenario: WHEN retrieving the ship a character is currently flying, the client shall return the data
     Given an authenticated character in a ship
-    When I request their current ship
-    Then I should receive the ship details
+    When the client requests their current ship
+    Then the client shall return the ship details
 
-  Scenario: Fetch location, online status, and ship simultaneously
+  # EARS: Event-driven
+  Scenario: WHEN fetching location, online status, and ship simultaneously, the client shall return the data
     Given an authenticated character for concurrent location fetch
-    When I fetch location, online status, and ship concurrently
-    Then all three location requests should resolve successfully
+    When the client fetches location, online status, and ship concurrently
+    Then all three location requests shall resolve successfully
 
-  Scenario: Handle unauthorized access to character location
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to character location, THEN the client shall return a forbidden error
     Given an unauthenticated location request
-    When I request a character location without auth
-    Then I should receive a 403 forbidden error for location
+    When the client requests a character location without auth
+    Then the client shall return a 403 forbidden error for location
 
-  Scenario: Handle unauthorized access to online status
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to online status, THEN the client shall return a forbidden error
     Given an unauthenticated online status request
-    When I request online status without auth
-    Then I should receive a 403 forbidden error for online status
+    When the client requests online status without auth
+    Then the client shall return a 403 forbidden error for online status

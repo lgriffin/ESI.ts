@@ -17,7 +17,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get access list with mixed entity types', ({ given, when, then }) => {
+  test('WHEN getting access list with mixed entity types, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given(
@@ -51,11 +55,11 @@ defineFeature(feature, (test) => {
       },
     );
 
-    when('I request the access list', async () => {
+    when('the client requests the access list', async () => {
       result = await client.accessLists.getAccessList(42);
     });
 
-    then('I should receive all entries with their access types', () => {
+    then('the client shall return all entries with their access types', () => {
       expect(result).toBeDefined();
       expect(result.access_list_id).toBe(42);
       expect(result.name).toBe('Station Docking ACL');
@@ -72,7 +76,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Access list with no entries', ({ given, when, then }) => {
+  test('WHILE access list with no entries, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('an empty access list exists', () => {
@@ -87,18 +95,22 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(emptyList as any);
     });
 
-    when('I request the empty access list', async () => {
+    when('the client requests the empty access list', async () => {
       result = await client.accessLists.getAccessList(99);
     });
 
-    then('I should receive the list with an empty entries array', () => {
+    then('the client shall return the list with an empty entries array', () => {
       expect(result).toBeDefined();
       expect(result.access_list_id).toBe(99);
       expect(result.entries).toHaveLength(0);
     });
   });
 
-  test('Unauthorized access to access list', ({ given, when, then }) => {
+  test('IF unauthorized access to access list, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('no valid token is provided', () => {
@@ -107,7 +119,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.accessLists, 'getAccessList').mockRejectedValue(error);
     });
 
-    when('I request an access list without auth', async () => {
+    when('the client requests an access list without auth', async () => {
       try {
         await client.accessLists.getAccessList(42);
       } catch (e) {
@@ -115,12 +127,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 401 error', () => {
+    then('the client shall return a 401 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Access list not found', ({ given, when, then }) => {
+  test('IF access list not found, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('an access list does not exist', () => {
@@ -129,7 +145,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.accessLists, 'getAccessList').mockRejectedValue(error);
     });
 
-    when('I request a non-existent access list', async () => {
+    when('the client requests a non-existent access list', async () => {
       try {
         await client.accessLists.getAccessList(999999);
       } catch (e) {
@@ -137,7 +153,7 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 404 error', () => {
+    then('the client shall return a 404 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });

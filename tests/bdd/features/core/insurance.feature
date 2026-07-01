@@ -1,36 +1,43 @@
 Feature: Insurance Management
 
-  Scenario: Retrieve insurance prices for all ship types
+  # EARS: Event-driven
+  Scenario: WHEN retrieving insurance prices for all ship types, the client shall return the data
     Given the insurance system is operational
-    When I request insurance prices
-    Then I should receive pricing data for available ship types
+    When the client requests insurance prices
+    Then the client shall return pricing data for available ship types
 
-  Scenario: Verify insurance price tiers are ordered correctly
+  # EARS: Event-driven
+  Scenario: WHEN verifying insurance price tiers are ordered correctly, the client shall validate the data
     Given insurance prices are available for tier verification
-    When I examine the tiers for a ship type
-    Then higher tiers should have increasing costs and payouts
+    When the client examines the tiers for a ship type
+    Then higher tiers shall have increasing costs and payouts
 
-  Scenario: Verify payout always exceeds cost for each tier
+  # EARS: Event-driven
+  Scenario: WHEN verifying payout always exceeds cost for each tier, the client shall validate the data
     Given insurance prices are available for payout verification
-    When I check each tier
-    Then the payout should always be greater than the cost
+    When the client checks each tier
+    Then the payout shall always be greater than the cost
 
-  Scenario: Handle large insurance dataset
+  # EARS: Ubiquitous
+  Scenario: The client shall handle large insurance dataset
     Given a large insurance dataset covering many ship types
-    When I process the large insurance response
-    Then the system should handle it efficiently
+    When the client processes the large insurance response
+    Then the client shall handle it efficiently
 
-  Scenario: Each ship type has exactly six insurance tiers
+  # EARS: Event-driven
+  Scenario: WHEN listing insurance tiers, the client shall return exactly six per ship type
     Given insurance prices are available for tier count verification
-    When I inspect each ship type
-    Then every entry should contain six named tiers
+    When the client inspects each ship type
+    Then every entry shall contain six named tiers
 
-  Scenario: Handle ESI service unavailable error
+  # EARS: Unwanted
+  Scenario: IF eSI service unavailable error, THEN the client shall handle the service outage
     Given the ESI service is temporarily unavailable
-    When I request insurance prices expecting an error
-    Then I should receive a 503 service unavailable error
+    When the client requests insurance prices expecting an error
+    Then the client shall return a 503 service unavailable error
 
-  Scenario: Handle rate limiting on insurance endpoint
+  # EARS: Unwanted
+  Scenario: IF rate limiting on insurance endpoint, THEN the client shall respect the rate limit
     Given the API rate limit has been exceeded
-    When I request insurance prices expecting rate limit error
-    Then I should receive a 429 rate limit error
+    When the client requests insurance prices expecting rate limit error
+    Then the client shall return a 429 rate limit error

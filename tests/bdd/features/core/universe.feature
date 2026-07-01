@@ -1,76 +1,91 @@
 Feature: Universe Information
 
-  Scenario: Retrieve solar system details
+  # EARS: Event-driven
+  Scenario: WHEN retrieving solar system details, the client shall return the data
     Given a valid solar system ID
-    When I request system information
-    Then I should receive complete system details
+    When the client requests system information
+    Then the client shall return complete system details
 
-  Scenario: Handle non-existent solar system
+  # EARS: Unwanted
+  Scenario: IF non-existent solar system, THEN the client shall return a not-found error
     Given an invalid solar system ID
-    When I request invalid system information
-    Then I should receive a not found error
+    When the client requests invalid system information
+    Then the client shall return a not found error
 
-  Scenario: Retrieve all solar systems
+  # EARS: Event-driven
+  Scenario: WHEN retrieving all solar systems, the client shall return the data
     Given the universe data is available
-    When I request all systems
-    Then I should receive a list of all system IDs
+    When the client requests all systems
+    Then the client shall return a list of all system IDs
 
-  Scenario: Retrieve station details
+  # EARS: Event-driven
+  Scenario: WHEN retrieving station details, the client shall return the data
     Given a valid station ID
-    When I request station information
-    Then I should receive complete station details
+    When the client requests station information
+    Then the client shall return complete station details
 
-  Scenario: Retrieve structure information
+  # EARS: Event-driven
+  Scenario: WHEN retrieving structure information, the client shall return the data
     Given a valid structure ID
-    When I request structure information
-    Then I should receive structure details
+    When the client requests structure information
+    Then the client shall return structure details
 
-  Scenario: Retrieve item type information
+  # EARS: Event-driven
+  Scenario: WHEN retrieving item type information, the client shall return the data
     Given a valid type ID
-    When I request type information
-    Then I should receive complete item details
+    When the client requests type information
+    Then the client shall return complete item details
 
-  Scenario: Retrieve item groups
+  # EARS: Event-driven
+  Scenario: WHEN retrieving item groups, the client shall return the data
     Given the universe data is available for groups
-    When I request all item groups
-    Then I should receive a list of all group IDs
+    When the client requests all item groups
+    Then the client shall return a list of all group IDs
 
-  Scenario: Retrieve item group details
+  # EARS: Event-driven
+  Scenario: WHEN retrieving item group details, the client shall return the data
     Given a valid group ID
-    When I request group information
-    Then I should receive group details and contained types
+    When the client requests group information
+    Then the client shall return group details and contained types
 
-  Scenario: Retrieve star information
+  # EARS: Event-driven
+  Scenario: WHEN retrieving star information, the client shall return the data
     Given a valid star ID
-    When I request star information
-    Then I should receive star details
+    When the client requests star information
+    Then the client shall return star details
 
-  Scenario: Retrieve planet information
+  # EARS: Event-driven
+  Scenario: WHEN retrieving planet information, the client shall return the data
     Given a valid planet ID
-    When I request planet information
-    Then I should receive planet details
+    When the client requests planet information
+    Then the client shall return planet details
 
-  Scenario: Handle concurrent universe data requests
+  # EARS: Ubiquitous
+  Scenario: The client shall handle concurrent universe data requests
     Given multiple concurrent universe data requests are prepared
-    When I make them simultaneously
-    Then all should complete successfully
+    When the client makes them simultaneously
+    Then all requests shall complete successfully
 
-  Scenario: Handle large universe data sets
+  # EARS: Ubiquitous
+  Scenario: The client shall handle large universe data sets
     Given a request for all systems with large dataset
-    When I process the large dataset
-    Then the system should handle it efficiently
+    When the client processes the large dataset
+    Then the client shall handle it efficiently
 
-  Scenario: Search for universe entities
+  # EARS: Event-driven
+  Scenario: WHEN searching for universe entities, the client shall return matching results
     Given a search term for the universe
-    When I search the universe
-    Then I should receive matching entities
+    When the client searches the universe
+    Then the client shall return matching entities
 
-  Scenario: Name resolution
+  # EARS: Event-driven
+  Scenario: WHEN resolving names to IDs, the client shall return the mappings
     Given a list of entity IDs
-    When I request name resolution
-    Then I should receive entity names and categories
+    When the client requests name resolution
+    Then the client shall return entity names and categories
 
-  Scenario: Complete system exploration workflow
+  # EARS: Event-driven
+  Scenario: WHEN completing system exploration workflow, the client shall complete all steps
     Given a system ID for exploration
-    When I gather complete system information
-    Then I should successfully retrieve all system data
+    When the client gathers complete system information
+    Then the client shall successfully retrieve all system data

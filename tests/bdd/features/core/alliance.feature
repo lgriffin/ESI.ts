@@ -1,41 +1,49 @@
 Feature: Alliance Management
 
-  Scenario: Get alliance details for valid alliance ID
+  # EARS: Event-driven
+  Scenario: WHEN getting alliance details for valid alliance ID, the client shall return the data
     Given a valid alliance ID
-    When I request alliance details
-    Then I should receive complete alliance information
+    When the client requests alliance details
+    Then the client shall return complete alliance information
 
-  Scenario: Handle non-existent alliance ID
+  # EARS: Unwanted
+  Scenario: IF non-existent alliance ID, THEN the client shall return a not-found error
     Given an invalid alliance ID
-    When I request alliance details for the invalid ID
-    Then I should receive a not found error
+    When the client requests alliance details for the invalid ID
+    Then the client shall return a not found error
 
-  Scenario: Handle network connectivity issues
+  # EARS: Unwanted
+  Scenario: IF network connectivity issues occur, THEN the client shall handle them gracefully
     Given network connectivity problems
-    When I request alliance details during network issues
-    Then I should receive a network error
+    When the client requests alliance details during network issues
+    Then the client shall return a network error
 
-  Scenario: Retrieve alliance contacts
+  # EARS: Event-driven
+  Scenario: WHEN retrieving alliance contacts, the client shall return the data
     Given a valid alliance with contacts
-    When I request contact list
-    Then I should receive an array of contacts
+    When the client requests contact list
+    Then the client shall return an array of contacts
 
-  Scenario: Handle empty contact list
+  # EARS: State-driven
+  Scenario: WHILE empty contact list, the client shall return an empty result
     Given an alliance with no contacts
-    When I request contact list for the alliance
-    Then I should receive an empty array
+    When the client requests contact list for the alliance
+    Then the client shall return an empty array
 
-  Scenario: Handle rate limiting gracefully
+  # EARS: Unwanted
+  Scenario: IF rate limiting gracefully, THEN the client shall respect the rate limit
     Given API rate limiting is active
-    When I make a rate limited request
-    Then I should receive appropriate rate limit errors
+    When the client makes a rate limited request
+    Then the client shall return appropriate rate limit errors
 
-  Scenario: Measure response performance
+  # EARS: Ubiquitous
+  Scenario: The client shall measure response performance
     Given normal API conditions
-    When I request alliance data
-    Then the response should be within acceptable time limits
+    When the client requests alliance data
+    Then the response shall be within acceptable time limits
 
-  Scenario: Complete alliance information gathering
+  # EARS: Event-driven
+  Scenario: WHEN completing alliance information gathering, the client shall complete all steps
     Given a valid alliance ID for information gathering
-    When I gather complete alliance information
-    Then I should successfully retrieve all related data
+    When the client gathers complete alliance information
+    Then the client shall successfully retrieve all related data

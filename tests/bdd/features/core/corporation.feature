@@ -1,66 +1,79 @@
 Feature: Corporation Management
 
-  Scenario: Retrieve corporation public profile
+  # EARS: Event-driven
+  Scenario: WHEN retrieving corporation public profile, the client shall return the data
     Given a valid corporation ID
-    When I request public information
-    Then I should receive complete corporation profile
+    When the client requests public information
+    Then the client shall return complete corporation profile
 
-  Scenario: Handle non-existent corporation
+  # EARS: Unwanted
+  Scenario: IF non-existent corporation, THEN the client shall return a not-found error
     Given an invalid corporation ID
-    When I request public information for the invalid corporation
-    Then I should receive a not found error
+    When the client requests public information for the invalid corporation
+    Then the client shall return a not found error
 
-  Scenario: Retrieve corporation members
+  # EARS: Event-driven
+  Scenario: WHEN retrieving corporation members, the client shall return the data
     Given an authenticated corporation director
-    When I request member list
-    Then I should receive member character IDs
+    When the client requests member list
+    Then the client shall return member character IDs
 
-  Scenario: Retrieve member roles
+  # EARS: Event-driven
+  Scenario: WHEN retrieving member roles, the client shall return the data
     Given an authenticated corporation director for roles
-    When I request member roles
-    Then I should receive role assignments
+    When the client requests member roles
+    Then the client shall return role assignments
 
-  Scenario: Retrieve corporation assets
+  # EARS: Event-driven
+  Scenario: WHEN retrieving corporation assets, the client shall return the data
     Given an authenticated corporation member
-    When I request assets
-    Then I should receive corporation inventory
+    When the client requests assets
+    Then the client shall return corporation inventory
 
-  Scenario: Retrieve corporation structures
+  # EARS: Event-driven
+  Scenario: WHEN retrieving corporation structures, the client shall return the data
     Given an authenticated corporation director for structures
-    When I request structures
-    Then I should receive structure information
+    When the client requests structures
+    Then the client shall return structure information
 
-  Scenario: Retrieve corporation wallets
+  # EARS: Event-driven
+  Scenario: WHEN retrieving corporation wallets, the client shall return the data
     Given an authenticated corporation accountant
-    When I request wallets
-    Then I should receive wallet divisions
+    When the client requests wallets
+    Then the client shall return wallet divisions
 
-  Scenario: Retrieve wallet journal
+  # EARS: Event-driven
+  Scenario: WHEN retrieving wallet journal, the client shall return the data
     Given an authenticated corporation accountant for journal
-    When I request wallet journal
-    Then I should receive transaction history
+    When the client requests wallet journal
+    Then the client shall return transaction history
 
-  Scenario: Handle insufficient permissions
+  # EARS: Unwanted
+  Scenario: IF insufficient permissions, THEN the client shall return a forbidden error
     Given a member without director roles
-    When I access restricted data
-    Then I should receive a forbidden error
+    When the client accesses restricted data
+    Then the client shall return a forbidden error
 
-  Scenario: Handle invalid authentication
+  # EARS: Unwanted
+  Scenario: IF invalid authentication, THEN the client shall return an authentication error
     Given invalid authentication credentials
-    When I access corporation data
-    Then I should receive an authentication error
+    When the client accesses corporation data
+    Then the client shall return an authentication error
 
-  Scenario: Handle large corporation data sets
+  # EARS: Ubiquitous
+  Scenario: The client shall handle large corporation data sets
     Given a large corporation with many members
-    When I request member data
-    Then the system should handle large data sets efficiently
+    When the client requests member data
+    Then the client shall handle large data sets efficiently
 
-  Scenario: Handle concurrent corporation requests
+  # EARS: Ubiquitous
+  Scenario: The client shall handle concurrent corporation requests
     Given multiple concurrent corporation data requests
-    When I make them simultaneously
-    Then all should complete successfully
+    When the client makes them simultaneously
+    Then all requests shall complete successfully
 
-  Scenario: Complete corporation profile assembly
+  # EARS: Event-driven
+  Scenario: WHEN completing corporation profile assembly, the client shall complete all steps
     Given a corporation ID for profile assembly
-    When I gather complete corporation data
-    Then I should successfully retrieve all corporation information
+    When the client gathers complete corporation data
+    Then the client shall successfully retrieve all corporation information

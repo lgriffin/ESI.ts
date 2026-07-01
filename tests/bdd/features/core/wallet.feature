@@ -1,61 +1,73 @@
 Feature: Wallet Management
 
-  Scenario: Get ISK balance for a character
+  # EARS: Event-driven
+  Scenario: WHEN getting ISK balance for a character, the client shall return the data
     Given an authenticated character for wallet
-    When I request their wallet balance
-    Then I should receive the ISK amount
+    When the client requests their wallet balance
+    Then the client shall return the ISK amount
 
-  Scenario: Character with zero ISK balance
+  # EARS: State-driven
+  Scenario: WHILE the character with zero ISK balance, the client shall return an empty result
     Given a character with no ISK
-    When I request the zero balance
-    Then I should receive zero
+    When the client requests the zero balance
+    Then the client shall return zero
 
-  Scenario: Get journal entries for a character
+  # EARS: Event-driven
+  Scenario: WHEN getting journal entries for a character, the client shall return the data
     Given an authenticated character with transaction history
-    When I request their wallet journal
-    Then I should receive journal entries
+    When the client requests their wallet journal
+    Then the client shall return journal entries
 
-  Scenario: Empty journal for a new character
+  # EARS: State-driven
+  Scenario: WHILE empty journal for a new character, the client shall return an empty result
     Given a new character with no activity
-    When I request the new character wallet journal
-    Then I should receive an empty journal array
+    When the client requests the new character wallet journal
+    Then the client shall return an empty journal array
 
-  Scenario: Get market transactions for a character
+  # EARS: Event-driven
+  Scenario: WHEN getting market transactions for a character, the client shall return the data
     Given an authenticated character with market activity
-    When I request their transactions
-    Then I should receive transaction records
+    When the client requests their transactions
+    Then the client shall return transaction records
 
-  Scenario: Get corporation wallet divisions
+  # EARS: Event-driven
+  Scenario: WHEN getting corporation wallet divisions, the client shall return the data
     Given an authenticated director
-    When I request corporation wallets
-    Then I should receive all wallet divisions
+    When the client requests corporation wallets
+    Then the client shall return all wallet divisions
 
-  Scenario: Get corporation wallet journal for a specific division
+  # EARS: Event-driven
+  Scenario: WHEN getting corporation wallet journal for a specific division, the client shall return the data
     Given an authenticated director for journal
-    When I request the journal for division 1
-    Then I should receive journal entries for that division
+    When the client requests the journal for division 1
+    Then the client shall return journal entries for that division
 
-  Scenario: Get corporation wallet transactions for a specific division
+  # EARS: Event-driven
+  Scenario: WHEN getting corporation wallet transactions for a specific division, the client shall return the data
     Given an authenticated director for transactions
-    When I request transactions for division 1
-    Then I should receive corporation transaction records
+    When the client requests transactions for division 1
+    Then the client shall return corporation transaction records
 
-  Scenario: Unauthorized access to character wallet (403)
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to character wallet (403), THEN the client shall return a forbidden error
     Given an unauthenticated user for character wallet
-    When I request a character wallet balance without auth
-    Then I should receive a 403 forbidden error for character wallet
+    When the client requests a character wallet balance without auth
+    Then the client shall return a 403 forbidden error for character wallet
 
-  Scenario: Unauthorized access to corporation wallet (403)
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to corporation wallet (403), THEN the client shall return a forbidden error
     Given a non-director character for corporation wallet
-    When I request corporation wallets without auth
-    Then I should receive a 403 forbidden error for corporation wallet
+    When the client requests corporation wallets without auth
+    Then the client shall return a 403 forbidden error for corporation wallet
 
-  Scenario: Fetch balance, journal, and transactions simultaneously
+  # EARS: Event-driven
+  Scenario: WHEN fetching balance, journal, and transactions simultaneously, the client shall return the data
     Given an authenticated character for concurrent wallet ops
-    When I fetch balance, journal, and transactions concurrently
-    Then all wallet data should complete successfully
+    When the client fetches balance, journal, and transactions concurrently
+    Then all wallet data shall complete successfully
 
-  Scenario: Build a complete financial summary for a character
+  # EARS: Event-driven
+  Scenario: WHEN building a complete financial summary for a character, the client shall produce the summary
     Given an authenticated character with financial history
-    When I gather all financial data
-    Then I should be able to compute a financial summary
+    When the client gathers all financial data
+    Then the client shall compute a financial summary

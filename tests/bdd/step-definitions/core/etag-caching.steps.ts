@@ -27,7 +27,11 @@ defineFeature(feature, (test) => {
     client.shutdown();
   });
 
-  test('First-time API request caches response', ({ given, when, then }) => {
+  test('WHEN a first-time API request returns data, the client shall cache the response', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const allianceData = [
       {
@@ -49,11 +53,11 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I make an API request that returns an ETag', async () => {
+    when('the client makes an API request that returns an ETag', async () => {
       result = await client.alliance.getAlliances();
     });
 
-    then('the response should be cached for future use', async () => {
+    then('the response shall be cached for future use', async () => {
       expect(result).toEqual(allianceData);
 
       const cacheStats = client.getCacheStats();
@@ -67,7 +71,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Subsequent request with unchanged data returns cached response', ({
+  test('WHEN data is unchanged on a subsequent request, the client shall return the cached response', ({
     given,
     when,
     then,
@@ -87,19 +91,26 @@ defineFeature(feature, (test) => {
     });
 
     when(
-      'I make the same request and server returns 304 Not Modified',
+      'the client makes the same request and server returns 304 Not Modified',
       async () => {
         cachedResult = await client.alliance.getAlliances();
       },
     );
 
-    then('I should receive the cached data without a new download', () => {
-      expect(cachedResult).toEqual(allianceData);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-    });
+    then(
+      'the client shall return the cached data without a new download',
+      () => {
+        expect(cachedResult).toEqual(allianceData);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 
-  test('Data changes trigger cache update', ({ given, when, then }) => {
+  test('WHEN data changes on a subsequent request, the client shall update the cache', ({
+    given,
+    when,
+    then,
+  }) => {
     let updatedResult: any;
     const oldData = [{ alliance_id: 1, name: 'Old Alliance' }];
     const oldETag = '"old-etag-123"';
@@ -117,14 +128,14 @@ defineFeature(feature, (test) => {
       updatedResult = await client.alliance.getAlliances();
     });
 
-    then('the cache should be updated with the new data', () => {
+    then('the cache shall be updated with the new data', () => {
       // Spec-aware cache returns original data (TTL not expired)
       expect(updatedResult).toEqual(oldData);
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
 
-  test('Cache statistics provide insight into performance', ({
+  test('The client shall provide cache statistics for performance insight', ({
     given,
     when,
     then,
@@ -147,20 +158,27 @@ defineFeature(feature, (test) => {
       await client.status.getStatus();
     });
 
-    when('I request cache statistics', () => {
+    when('the client requests cache statistics', () => {
       stats = client.getCacheStats();
     });
 
-    then('I should receive detailed information about cache usage', () => {
-      expect(stats).toBeDefined();
-      expect(stats!.totalEntries).toBe(2);
-      expect(stats!.maxEntries).toBe(50);
-      expect(stats!.oldestEntry).toBeDefined();
-      expect(stats!.newestEntry).toBeDefined();
-    });
+    then(
+      'the client shall return detailed information about cache usage',
+      () => {
+        expect(stats).toBeDefined();
+        expect(stats!.totalEntries).toBe(2);
+        expect(stats!.maxEntries).toBe(50);
+        expect(stats!.oldestEntry).toBeDefined();
+        expect(stats!.newestEntry).toBeDefined();
+      },
+    );
   });
 
-  test('Cache can be manually cleared', ({ given, when, then }) => {
+  test('WHEN the cache is manually cleared, the client shall remove all cached data', ({
+    given,
+    when,
+    then,
+  }) => {
     given('a cache with stored responses', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]), {
         headers: { ETag: '"test-etag"' },
@@ -170,16 +188,16 @@ defineFeature(feature, (test) => {
       expect(client.getCacheStats()!.totalEntries).toBe(1);
     });
 
-    when('I clear the cache', () => {
+    when('the client clears the cache', () => {
       client.clearCache();
     });
 
-    then('all cached data should be removed', () => {
+    then('all cached data shall be removed', () => {
       expect(client.getCacheStats()!.totalEntries).toBe(0);
     });
   });
 
-  test('Cache configuration can be updated at runtime', ({
+  test('WHERE cache configuration can be updated at runtime, the client shall behave accordingly', ({
     given,
     when,
     then,
@@ -189,20 +207,20 @@ defineFeature(feature, (test) => {
       expect(initialStats!.maxEntries).toBe(50);
     });
 
-    when('I update the cache configuration', () => {
+    when('the client updates the cache configuration', () => {
       client.updateCacheConfig({
         maxEntries: 100,
         defaultTtl: 600000,
       });
     });
 
-    then('the new settings should take effect', () => {
+    then('the new settings shall take effect', () => {
       const updatedStats = client.getCacheStats();
       expect(updatedStats!.maxEntries).toBe(100);
     });
   });
 
-  test('Handle server errors gracefully with caching', ({
+  test('IF server errors gracefully with caching, THEN the client shall return a server error', ({
     given,
     when,
     then,
@@ -226,12 +244,16 @@ defineFeature(feature, (test) => {
       errorResult = await client.alliance.getAlliances();
     });
 
-    then('the stale cached data should be served', () => {
+    then('the stale cached data shall be served', () => {
       expect(errorResult).toEqual(validData);
     });
   });
 
-  test('Handle missing ETag headers gracefully', ({ given, when, then }) => {
+  test('WHEN ETag headers are missing, the client shall work without caching', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const data = [{ alliance_id: 1, name: 'Test Alliance' }];
 
@@ -241,17 +263,17 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I make requests without ETag', async () => {
+    when('the client makes requests without ETag', async () => {
       result = await client.alliance.getAlliances();
     });
 
-    then('the system should work normally without caching', () => {
+    then('the client shall work normally without caching', () => {
       expect(result).toEqual(data);
       expect(client.getCacheStats()!.totalEntries).toBe(0);
     });
   });
 
-  test('Client works normally with caching disabled', ({
+  test('WHILE client works normally with caching disabled, the client shall return an empty result', ({
     given,
     when,
     then,
@@ -270,11 +292,11 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I make API requests without cache', async () => {
+    when('the client makes API requests without cache', async () => {
       result = await clientWithoutCache.alliance.getAlliances();
     });
 
-    then('responses should be returned normally without caching', () => {
+    then('responses shall be returned normally without caching', () => {
       expect(result).toEqual(data);
       expect(clientWithoutCache.getCacheStats()).toBeNull();
 

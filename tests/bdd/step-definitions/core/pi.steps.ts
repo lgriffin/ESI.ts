@@ -17,7 +17,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('List all colonies for a character', ({ given, when, then }) => {
+  test('WHEN listing all colonies for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
     const expectedColonies = [
@@ -47,11 +51,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedColonies as any);
     });
 
-    when('I request planetary colonies', async () => {
+    when('the client requests planetary colonies', async () => {
       result = await client.pi.getColonies(characterId);
     });
 
-    then('I should receive a list of colonies', () => {
+    then('the client shall return a list of colonies', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(2);
       expect(result[0].planet_id).toBe(40000001);
@@ -60,7 +64,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Character with no colonies', ({ given, when, then }) => {
+  test('WHILE the character with no colonies, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
 
@@ -68,17 +76,21 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.pi, 'getColonies').mockResolvedValue([]);
     });
 
-    when('I request colonies', async () => {
+    when('the client requests colonies', async () => {
       result = await client.pi.getColonies(characterId);
     });
 
-    then('I should receive an empty colony array', () => {
+    then('the client shall return an empty colony array', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Get detailed layout for a colony', ({ given, when, then }) => {
+  test('WHEN getting detailed layout for a colony, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
     const planetId = 40000001;
@@ -117,11 +129,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLayout as any);
     });
 
-    when('I request the colony layout', async () => {
+    when('the client requests the colony layout', async () => {
       result = await client.pi.getColonyLayout(characterId, planetId);
     });
 
-    then('I should receive pins, links, and routes', () => {
+    then('the client shall return pins, links, and routes', () => {
       expect(result).toBeDefined();
       expect(result.pins).toHaveLength(2);
       expect(result.links).toHaveLength(1);
@@ -131,7 +143,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get layout for an empty colony', ({ given, when, then }) => {
+  test('WHILE get layout for an empty colony, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
     const planetId = 40000003;
@@ -143,18 +159,22 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(emptyLayout as any);
     });
 
-    when('I request the layout', async () => {
+    when('the client requests the layout', async () => {
       result = await client.pi.getColonyLayout(characterId, planetId);
     });
 
-    then('I should receive empty arrays', () => {
+    then('the client shall return empty arrays', () => {
       expect(result.pins).toHaveLength(0);
       expect(result.links).toHaveLength(0);
       expect(result.routes).toHaveLength(0);
     });
   });
 
-  test('Get a PI schematic by ID', ({ given, when, then }) => {
+  test('WHEN getting a PI schematic by ID, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const schematicId = 130;
     const expectedSchematic = {
@@ -169,18 +189,22 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSchematic as any);
     });
 
-    when('I request the schematic', async () => {
+    when('the client requests the schematic', async () => {
       result = await client.pi.getSchematicInformation(schematicId);
     });
 
-    then('I should receive schematic details', () => {
+    then('the client shall return schematic details', () => {
       expect(result).toBeDefined();
       expect(result.schematic_name).toBe('Bacteria');
       expect(result.cycle_time).toBe(1800);
     });
   });
 
-  test('Schematic not found', ({ given, when, then }) => {
+  test('IF schematic not found, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
     const schematicId = 999999;
 
@@ -189,7 +213,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.pi, 'getSchematicInformation').mockRejectedValue(error);
     });
 
-    when('I request the invalid schematic', async () => {
+    when('the client requests the invalid schematic', async () => {
       try {
         await client.pi.getSchematicInformation(schematicId);
       } catch (e) {
@@ -197,12 +221,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 404 error', () => {
+    then('the client shall return a 404 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('List customs offices for a corporation', ({ given, when, then }) => {
+  test('WHEN listing customs offices for a corporation, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
     const expectedOffices = [
@@ -236,11 +264,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedOffices as any);
     });
 
-    when('I request customs offices', async () => {
+    when('the client requests customs offices', async () => {
       result = await client.pi.getCorporationCustomsOffices(corporationId);
     });
 
-    then('I should receive a list of customs offices', () => {
+    then('the client shall return a list of customs offices', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(2);
       expect(result[0].office_id).toBe(7001);
@@ -248,7 +276,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Unauthorized access to customs offices', ({ given, when, then }) => {
+  test('IF unauthorized access to customs offices, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
     const corporationId = 1344654522;
 
@@ -259,20 +291,23 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(error);
     });
 
-    when('I request customs offices without permissions', async () => {
-      try {
-        await client.pi.getCorporationCustomsOffices(corporationId);
-      } catch (e) {
-        caughtError = e;
-      }
-    });
+    when(
+      'the client requests customs offices without permissions',
+      async () => {
+        try {
+          await client.pi.getCorporationCustomsOffices(corporationId);
+        } catch (e) {
+          caughtError = e;
+        }
+      },
+    );
 
-    then('I should receive a 403 error', () => {
+    then('the client shall return a 403 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Retrieve colonies and inspect their layouts', ({
+  test('WHEN retrieving colonies and inspect their layouts, the client shall return the data', ({
     given,
     when,
     then,
@@ -302,7 +337,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.pi, 'getColonyLayout').mockResolvedValue(layout as any);
     });
 
-    when('I retrieve colonies and then their layouts', async () => {
+    when('the client retrieves colonies and then their layouts', async () => {
       allColonies = await client.pi.getColonies(characterId);
       colonyLayout = await client.pi.getColonyLayout(
         characterId,
@@ -310,7 +345,7 @@ defineFeature(feature, (test) => {
       );
     });
 
-    then('I should have complete PI data', () => {
+    then('the client shall have complete PI data', () => {
       expect(allColonies).toHaveLength(1);
       expect(colonyLayout.pins).toHaveLength(1);
       expect(client.pi.getColonyLayout).toHaveBeenCalledWith(

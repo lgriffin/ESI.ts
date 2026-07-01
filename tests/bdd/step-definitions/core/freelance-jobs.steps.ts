@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get freelance jobs listing', ({ given, when, then }) => {
+  test('WHEN getting freelance jobs listing, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('publicly available freelance jobs exist', () => {
@@ -47,11 +51,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockListing);
     });
 
-    when('I request the job listing', async () => {
+    when('the client requests the job listing', async () => {
       result = await client.freelanceJobs.getFreelanceJobs();
     });
 
-    then('I should receive jobs with pagination cursors', () => {
+    then('the client shall return jobs with pagination cursors', () => {
       expect(result).toBeDefined();
       expect(result.freelance_jobs).toBeInstanceOf(Array);
       expect(result.freelance_jobs).toHaveLength(2);
@@ -65,7 +69,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('No freelance jobs available', ({ given, when, then }) => {
+  test('WHILE no freelance jobs available, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('no freelance jobs exist', () => {
@@ -79,11 +87,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockEmptyListing);
     });
 
-    when('I request the empty job listing', async () => {
+    when('the client requests the empty job listing', async () => {
       result = await client.freelanceJobs.getFreelanceJobs();
     });
 
-    then('I should receive an empty listing', () => {
+    then('the client shall return an empty listing', () => {
       expect(result.freelance_jobs).toBeInstanceOf(Array);
       expect(result.freelance_jobs).toHaveLength(0);
       expect(result.cursor.before).toBeNull();
@@ -91,7 +99,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get a specific freelance job by ID', ({ given, when, then }) => {
+  test('WHEN getting a specific freelance job by ID, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const jobId = 'job-001';
 
@@ -134,11 +146,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockJobDetail);
     });
 
-    when('I request the job details', async () => {
+    when('the client requests the job details', async () => {
       result = await client.freelanceJobs.getFreelanceJobById(jobId);
     });
 
-    then('I should receive the full job information', () => {
+    then('the client shall return the full job information', () => {
       expect(result).toBeDefined();
       expect(result.id).toBe(jobId);
       expect(result.name).toBe('Ore Hauling Contract');
@@ -150,7 +162,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Request a non-existent job', ({ given, when, then }) => {
+  test('IF requesting a non-existent job, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     const invalidJobId = 'job-nonexistent';
     let caughtError: any;
 
@@ -162,7 +178,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(notFoundError);
     });
 
-    when('I request details for the invalid job', async () => {
+    when('the client requests details for the invalid job', async () => {
       try {
         await client.freelanceJobs.getFreelanceJobById(invalidJobId);
       } catch (error) {
@@ -170,12 +186,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 404 error for the job', () => {
+    then('the client shall return a 404 error for the job', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Get character freelance jobs', ({ given, when, then }) => {
+  test('WHEN getting character freelance jobs, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -199,12 +219,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockCharacterJobs);
     });
 
-    when('I request their job listing', async () => {
+    when('the client requests their job listing', async () => {
       result =
         await client.freelanceJobs.getCharacterFreelanceJobs(characterId);
     });
 
-    then('I should receive the character jobs with cursors', () => {
+    then('the client shall return the character jobs with cursors', () => {
       expect(result).toBeDefined();
       expect(result.freelance_jobs).toHaveLength(1);
       expect(result.freelance_jobs[0].id).toBe('job-010');
@@ -213,7 +233,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get character participation in a specific job', ({
+  test('WHEN getting character participation in a specific job, the client shall return the data', ({
     given,
     when,
     then,
@@ -236,14 +256,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockParticipation);
     });
 
-    when('I request their participation details', async () => {
+    when('the client requests their participation details', async () => {
       result = await client.freelanceJobs.getCharacterFreelanceJobParticipation(
         characterId,
         jobId,
       );
     });
 
-    then('I should receive contribution data', () => {
+    then('the client shall return contribution data', () => {
       expect(result).toBeDefined();
       expect(result.job_id).toBe(jobId);
       expect(result.character_id).toBe(characterId);
@@ -253,7 +273,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get corporation freelance jobs', ({ given, when, then }) => {
+  test('WHEN getting corporation freelance jobs, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -276,12 +300,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockCorpJobs);
     });
 
-    when('I request their freelance jobs', async () => {
+    when('the client requests their freelance jobs', async () => {
       result =
         await client.freelanceJobs.getCorporationFreelanceJobs(corporationId);
     });
 
-    then('I should receive the corporation jobs listing', () => {
+    then('the client shall return the corporation jobs listing', () => {
       expect(result).toBeDefined();
       expect(result.freelance_jobs).toHaveLength(1);
       expect(result.freelance_jobs[0].id).toBe('job-050');
@@ -289,7 +313,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Paginate forward through freelance jobs', ({ given, when, then }) => {
+  test('WHEN paginating forward through freelance jobs, the client shall return the correct page', ({
+    given,
+    when,
+    then,
+  }) => {
     let page2: any;
 
     given('a first page with an after cursor', () => {
@@ -322,17 +350,20 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I request the next page using the after token', async () => {
-      const page1 = await client.freelanceJobs.getFreelanceJobs();
-      expect(page1.cursor.after).toBe('page2_token');
+    when(
+      'the client requests the next page using the after token',
+      async () => {
+        const page1 = await client.freelanceJobs.getFreelanceJobs();
+        expect(page1.cursor.after).toBe('page2_token');
 
-      page2 = await client.freelanceJobs.getFreelanceJobs(
-        undefined,
-        page1.cursor.after!,
-      );
-    });
+        page2 = await client.freelanceJobs.getFreelanceJobs(
+          undefined,
+          page1.cursor.after!,
+        );
+      },
+    );
 
-    then('I should receive the second page of results', () => {
+    then('the client shall return the second page of results', () => {
       expect(page2.freelance_jobs).toHaveLength(1);
       expect(page2.freelance_jobs[0].id).toBe('job-002');
       expect(page2.cursor.before).toBe('page2_token');
@@ -340,7 +371,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Paginate backward through freelance jobs', ({ given, when, then }) => {
+  test('WHEN paginating backward through freelance jobs, the client shall return the correct page', ({
+    given,
+    when,
+    then,
+  }) => {
     let firstPage: any;
 
     given('a second page with a before cursor', () => {
@@ -360,18 +395,21 @@ defineFeature(feature, (test) => {
         });
     });
 
-    when('I request the previous page using the before token', async () => {
-      firstPage = await client.freelanceJobs.getFreelanceJobs('page2_token');
-    });
+    when(
+      'the client requests the previous page using the before token',
+      async () => {
+        firstPage = await client.freelanceJobs.getFreelanceJobs('page2_token');
+      },
+    );
 
-    then('I should receive the first page of results', () => {
+    then('the client shall return the first page of results', () => {
       expect(firstPage.freelance_jobs).toHaveLength(1);
       expect(firstPage.freelance_jobs[0].id).toBe('job-001');
       expect(firstPage.cursor.before).toBeNull();
     });
   });
 
-  test('Unauthorized access to character freelance jobs', ({
+  test('IF unauthorized access to character freelance jobs, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -387,16 +425,22 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request character freelance jobs with invalid token', async () => {
-      try {
-        await client.freelanceJobs.getCharacterFreelanceJobs(characterId);
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests character freelance jobs with invalid token',
+      async () => {
+        try {
+          await client.freelanceJobs.getCharacterFreelanceJobs(characterId);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a 403 forbidden error for freelance jobs', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-    });
+    then(
+      'the client shall return a 403 forbidden error for freelance jobs',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+      },
+    );
   });
 });

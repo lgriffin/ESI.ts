@@ -1,31 +1,37 @@
 Feature: Sovereignty Management
 
-  Scenario: Get active sovereignty campaigns
+  # EARS: Event-driven
+  Scenario: WHEN getting active sovereignty campaigns, the client shall return the data
     Given active sovereignty contests exist
-    When I request campaigns
-    Then I should receive campaign details with scores
+    When the client requests campaigns
+    Then the client shall return campaign details with scores
 
-  Scenario: No active sovereignty campaigns
+  # EARS: State-driven
+  Scenario: WHILE no active sovereignty campaigns, the client shall return an empty result
     Given no active campaigns exist
-    When I request campaigns
-    Then I should receive an empty array
+    When the client requests campaigns
+    Then the client shall return an empty array
 
-  Scenario: Service unavailable error for sovereignty
+  # EARS: Unwanted
+  Scenario: IF service unavailable error for sovereignty, THEN the client shall handle the service outage
     Given the ESI service is down
-    When I request sovereignty data
-    Then I should receive a 503 error
+    When the client requests sovereignty data
+    Then the client shall return a 503 error
 
-  Scenario: Get combined sovereignty systems with ADM indices
+  # EARS: Event-driven
+  Scenario: WHEN getting combined sovereignty systems with ADM indices, the client shall return the data
     Given the combined systems endpoint is available
-    When I request sovereignty systems
-    Then I should receive occupancy, structures, and separate ADM indices
+    When the client requests sovereignty systems
+    Then the client shall return occupancy, structures, and separate ADM indices
 
-  Scenario: Combined route replaces separate map and structures endpoints
+  # EARS: Event-driven
+  Scenario: WHEN fetching combined sovereignty data, the client shall replace separate map and structures calls
     Given the combined systems endpoint exists
-    When I fetch systems
-    Then it should contain data from both map and structures
+    When the client fetches systems
+    Then it shall contain data from both map and structures
 
-  Scenario: Concurrent fetch of campaigns and systems
+  # EARS: Ubiquitous
+  Scenario: The client shall handle concurrent fetch of campaigns and systems
     Given all sovereignty endpoints are available
-    When I fetch all data concurrently
-    Then both should return valid data
+    When the client fetches all data concurrently
+    Then both shall return valid data

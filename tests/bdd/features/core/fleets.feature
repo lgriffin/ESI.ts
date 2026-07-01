@@ -1,61 +1,73 @@
 Feature: Fleet Management
 
-  Scenario: Get character fleet info when in a fleet
+  # EARS: Event-driven
+  Scenario: WHEN getting character fleet info when in a fleet, the client shall return the data
     Given a character that is in a fleet
-    When I request their fleet info
-    Then I should receive their fleet assignment details
+    When the client requests their fleet info
+    Then the client shall return their fleet assignment details
 
-  Scenario: Character is not in any fleet
+  # EARS: State-driven
+  Scenario: WHILE the character is not in any fleet, the client shall return an empty result
     Given a character that is not in a fleet
-    When I request fleet info for the character not in a fleet
-    Then I should receive a 404 error
+    When the client requests fleet info for the character not in a fleet
+    Then the client shall return a 404 error
 
-  Scenario: Get fleet information
+  # EARS: Event-driven
+  Scenario: WHEN getting fleet information, the client shall return the data
     Given a valid fleet ID
-    When I request fleet details
-    Then I should receive the fleet MOTD, boss, and settings
+    When the client requests fleet details
+    Then the client shall return the fleet MOTD, boss, and settings
 
-  Scenario: Update fleet settings
+  # EARS: Event-driven
+  Scenario: WHEN updating fleet settings, the client shall apply the changes
     Given a fleet boss
-    When I update the fleet MOTD and free-move setting
-    Then the fleet update should complete without error
+    When the client updates the fleet MOTD and free-move setting
+    Then the fleet update shall complete without error
 
-  Scenario: List all fleet members
+  # EARS: Event-driven
+  Scenario: WHEN listing all fleet members, the client shall return the data
     Given an active fleet with members
-    When I request the member list
-    Then I should receive member details including ships and roles
+    When the client requests the member list
+    Then the client shall return member details including ships and roles
 
-  Scenario: Kick a member from the fleet
+  # EARS: Event-driven
+  Scenario: WHEN kicking a member from the fleet, the client shall complete the operation
     Given a fleet commander for kicking
-    When I kick a member from the fleet
-    Then the kick operation should complete without error
+    When the client kicks a member from the fleet
+    Then the kick operation shall complete without error
 
-  Scenario: Move a member to a different squad
+  # EARS: Event-driven
+  Scenario: WHEN moving a member to a different squad, the client shall complete the move
     Given a fleet commander and a member
-    When I move the member to a new wing and squad
-    Then the move operation should complete without error
+    When the client moves the member to a new wing and squad
+    Then the move operation shall complete without error
 
-  Scenario: Get fleet wings structure
+  # EARS: Event-driven
+  Scenario: WHEN getting fleet wings structure, the client shall return the data
     Given an active fleet with wings
-    When I request the fleet wings
-    Then I should receive wings with nested squads
+    When the client requests the fleet wings
+    Then the client shall return wings with nested squads
 
-  Scenario: Create a new fleet wing
+  # EARS: Event-driven
+  Scenario: WHEN creating a new fleet wing, the client shall create the resource
     Given a fleet commander for wing creation
-    When I create a new wing
-    Then I should receive the new wing ID
+    When the client creates a new wing
+    Then the client shall return the new wing ID
 
-  Scenario: Create a new squad under a wing
+  # EARS: Event-driven
+  Scenario: WHEN creating a new squad under a wing, the client shall create the resource
     Given a fleet with a wing
-    When I create a squad under that wing
-    Then I should receive the new squad ID
+    When the client creates a squad under that wing
+    Then the client shall return the new squad ID
 
-  Scenario: Unauthorized fleet access
+  # EARS: Unwanted
+  Scenario: IF unauthorized fleet access, THEN the client shall return a forbidden error
     Given a non-fleet-boss character
-    When I attempt to modify fleet settings
-    Then I should receive a 403 forbidden error for fleet
+    When the client attempts to modify fleet settings
+    Then the client shall return a 403 forbidden error for fleet
 
-  Scenario: Fetch fleet info, members, and wings concurrently
+  # EARS: Ubiquitous
+  Scenario: The client shall fetch fleet info, members, and wings concurrently
     Given a valid fleet for concurrent fetch
-    When I fetch fleet details, members, and wings in parallel
-    Then all three requests should resolve successfully
+    When the client fetches fleet details, members, and wings in parallel
+    Then all three requests shall resolve successfully

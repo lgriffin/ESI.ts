@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get current server status', ({ given, when, then }) => {
+  test('WHEN getting current server status, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the Tranquility server is online', () => {
@@ -30,11 +34,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.status, 'getStatus').mockResolvedValue(expectedStatus);
     });
 
-    when('I request the server status', async () => {
+    when('the client requests the server status', async () => {
       result = await client.status.getStatus();
     });
 
-    then('I should receive current status information', () => {
+    then('the client shall return current status information', () => {
       expect(result).toBeDefined();
       expect(result).toHaveProperty('players');
       expect(result).toHaveProperty('server_version');
@@ -45,7 +49,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Verify player count is reasonable', ({ given, when, then }) => {
+  test('WHEN verifying player count is reasonable, the client shall validate the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the server is online with a typical player count', () => {
@@ -59,18 +67,22 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.status, 'getStatus').mockResolvedValue(expectedStatus);
     });
 
-    when('I check the player count', async () => {
+    when('the client checks the player count', async () => {
       result = await client.status.getStatus();
     });
 
-    then('the player count should be within expected bounds', () => {
+    then('the player count shall be within expected bounds', () => {
       expect(typeof result.players).toBe('number');
       expect(result.players).toBeGreaterThanOrEqual(0);
       expect(result.players).toBeLessThanOrEqual(65000);
     });
   });
 
-  test('Verify start time is a valid timestamp', ({ given, when, then }) => {
+  test('WHEN verifying start time is a valid timestamp, the client shall validate the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the server is online', () => {
@@ -84,11 +96,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.status, 'getStatus').mockResolvedValue(expectedStatus);
     });
 
-    when('I check the start time', async () => {
+    when('the client checks the start time', async () => {
       result = await client.status.getStatus();
     });
 
-    then('the start time should be a valid ISO timestamp', () => {
+    then('the start time shall be a valid ISO timestamp', () => {
       expect(result.start_time).toBeDefined();
       const parsedDate = new Date(result.start_time);
       expect(parsedDate.getTime()).not.toBeNaN();
@@ -96,7 +108,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('VIP mode is active', ({ given, when, then }) => {
+  test('WHEN VIP mode is active, the client shall report the VIP status', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the server is in VIP mode', () => {
@@ -110,18 +126,18 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.status, 'getStatus').mockResolvedValue(vipStatus);
     });
 
-    when('I request the status', async () => {
+    when('the client requests the status', async () => {
       result = await client.status.getStatus();
     });
 
-    then('the VIP flag should be true and player count should be low', () => {
+    then('the VIP flag should be true and player count shall be low', () => {
       expect(result.vip).toBe(true);
       expect(typeof result.vip).toBe('boolean');
       expect(result.players).toBeLessThan(1000);
     });
   });
 
-  test('VIP mode is inactive during normal operations', ({
+  test('WHEN VIP mode is inactive, the client shall report normal operations', ({
     given,
     when,
     then,
@@ -139,17 +155,21 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.status, 'getStatus').mockResolvedValue(normalStatus);
     });
 
-    when('I request the status for VIP check', async () => {
+    when('the client requests the status for VIP check', async () => {
       result = await client.status.getStatus();
     });
 
-    then('the VIP flag should be false', () => {
+    then('the VIP flag shall be false', () => {
       expect(result.vip).toBe(false);
       expect(result.players).toBeGreaterThan(1000);
     });
   });
 
-  test('Server is unavailable (503)', ({ given, when, then }) => {
+  test('IF server is unavailable (503), THEN the client shall handle the service outage', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('the ESI API is unavailable', () => {
@@ -158,7 +178,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.status, 'getStatus').mockRejectedValue(serviceError);
     });
 
-    when('I request the server status', async () => {
+    when('the client requests the server status', async () => {
       try {
         await client.status.getStatus();
       } catch (e) {
@@ -166,12 +186,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 503 service unavailable error', () => {
+    then('the client shall return a 503 service unavailable error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Internal server error (500)', ({ given, when, then }) => {
+  test('IF internal server error (500), THEN the client shall return a server error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('the ESI API encounters an internal error', () => {
@@ -180,7 +204,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.status, 'getStatus').mockRejectedValue(serverError);
     });
 
-    when('I request the server status for error check', async () => {
+    when('the client requests the server status for error check', async () => {
       try {
         await client.status.getStatus();
       } catch (e) {
@@ -188,12 +212,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 500 error', () => {
+    then('the client shall return a 500 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Monitor server status over multiple checks', ({
+  test('The client shall monitor server status over multiple checks', ({
     given,
     when,
     then,
@@ -230,7 +254,7 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I check the status multiple times', async () => {
+    when('the client checks the status multiple times', async () => {
       results = [];
       for (let i = 0; i < 3; i++) {
         results.push(await client.status.getStatus());
@@ -238,7 +262,7 @@ defineFeature(feature, (test) => {
     });
 
     then(
-      'each check should return valid data with consistent server version',
+      'each check shall return valid data with consistent server version',
       () => {
         expect(results).toHaveLength(3);
         results.forEach((result) => {

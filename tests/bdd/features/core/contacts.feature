@@ -1,46 +1,55 @@
 Feature: Contact Management
 
-  Scenario: Get contacts for a valid character
+  # EARS: Event-driven
+  Scenario: WHEN getting contacts for a valid character, the client shall return the data
     Given a character with contacts
-    When I request character contacts
-    Then I should receive a list of contacts with standings
+    When the client requests character contacts
+    Then the client shall return a list of contacts with standings
 
-  Scenario: Handle empty contacts list
+  # EARS: State-driven
+  Scenario: WHILE empty contacts list, the client shall return an empty result
     Given a character with no contacts
-    When I request character contacts for the empty list
-    Then I should receive an empty array
+    When the client requests character contacts for the empty list
+    Then the client shall return an empty array
 
-  Scenario: Handle unauthorized access to contacts
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to contacts, THEN the client shall return a forbidden error
     Given an invalid or expired token for contacts
-    When I request character contacts without authorization
-    Then I should receive a 403 forbidden error
+    When the client requests character contacts without authorization
+    Then the client shall return a 403 forbidden error
 
-  Scenario: Get contact labels for a character
+  # EARS: Event-driven
+  Scenario: WHEN getting contact labels for a character, the client shall return the data
     Given a character with custom labels
-    When I request contact labels
-    Then I should receive the label definitions
+    When the client requests contact labels
+    Then the client shall return the label definitions
 
-  Scenario: Add new contacts to a character contact list
+  # EARS: Event-driven
+  Scenario: WHEN adding new contacts to a character contact list, the client shall add the entries
     Given contact data with standings
-    When I add contacts
-    Then I should receive the IDs of the added contacts
+    When the client adds contacts
+    Then the client shall return the IDs of the added contacts
 
-  Scenario: Remove contacts from a character contact list
+  # EARS: Event-driven
+  Scenario: WHEN removing contacts from a character contact list, the client shall complete the operation
     Given existing contact IDs
-    When I delete those contacts
-    Then the deletion should complete successfully
+    When the client deletes those contacts
+    Then the deletion shall complete successfully
 
-  Scenario: Get contacts for a corporation
+  # EARS: Event-driven
+  Scenario: WHEN getting contacts for a corporation, the client shall return the data
     Given a valid corporation ID for contacts
-    When I request corporation contacts
-    Then I should receive the corporation contact list
+    When the client requests corporation contacts
+    Then the client shall return the corporation contact list
 
-  Scenario: Get corporation contact labels
+  # EARS: Event-driven
+  Scenario: WHEN getting corporation contact labels, the client shall return the data
     Given a corporation with custom labels
-    When I request corporation contact labels
-    Then I should receive the corporation label definitions
+    When the client requests corporation contact labels
+    Then the client shall return the corporation label definitions
 
-  Scenario: Complete contact management workflow - list, add, and verify
+  # EARS: Event-driven
+  Scenario: WHEN completing contact management workflow - list, add, and verify, the client shall complete all steps
     Given a character managing contacts
-    When I list contacts then add new ones and verify
-    Then the full workflow should succeed
+    When the client lists contacts then add new ones and verify
+    Then the full workflow shall succeed

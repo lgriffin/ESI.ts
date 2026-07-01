@@ -1,36 +1,43 @@
 Feature: Search Management
 
-  Scenario: Search for characters by name
+  # EARS: Event-driven
+  Scenario: WHEN searching for characters by name, the client shall return matching results
     Given a valid character ID and search string
-    When I search for characters
-    Then I should receive matching character results
+    When the client searches for characters
+    Then the client shall return matching character results
 
-  Scenario: Search returns results across multiple categories
+  # EARS: Event-driven
+  Scenario: WHEN searching returns results across multiple categories, the client shall return matching results
     Given a broad search query
-    When I search across categories
-    Then I should receive results in multiple categories
+    When the client searches across categories
+    Then the client shall return results in multiple categories
 
-  Scenario: Search returns empty results
+  # EARS: State-driven
+  Scenario: WHILE search returns empty results, the client shall return an empty result
     Given a search query with no matches
-    When I search for nonexistent items
-    Then I should receive undefined or empty category arrays
+    When the client searches for nonexistent items
+    Then the client shall return undefined or empty category arrays
 
-  Scenario: Search for solar systems
+  # EARS: Event-driven
+  Scenario: WHEN searching for solar systems, the client shall return matching results
     Given a search for a solar system name
-    When I search for solar systems
-    Then I should receive matching system IDs
+    When the client searches for solar systems
+    Then the client shall return matching system IDs
 
-  Scenario: Search for alliances
+  # EARS: Event-driven
+  Scenario: WHEN searching for alliances, the client shall return matching results
     Given a search for an alliance name
-    When I search for alliances
-    Then I should receive matching alliance IDs
+    When the client searches for alliances
+    Then the client shall return matching alliance IDs
 
-  Scenario: Unauthorized search request
+  # EARS: Unwanted
+  Scenario: IF unauthorized search request, THEN the client shall return a forbidden error
     Given insufficient search permissions
-    When I search without permissions
-    Then I should receive a 403 search error
+    When the client searches without permissions
+    Then the client shall return a 403 search error
 
-  Scenario: Search with short query string
+  # EARS: Event-driven
+  Scenario: WHEN searching with short query string, the client shall return matching results
     Given a very short search string
-    When I search with a short query
-    Then I should still receive valid results
+    When the client searches with a short query
+    Then I shall still receive valid results

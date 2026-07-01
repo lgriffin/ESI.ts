@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get clone information for a valid character', ({
+  test('WHEN getting clone information for a valid character, the client shall return the data', ({
     given,
     when,
     then,
@@ -47,11 +47,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedResponse as any);
     });
 
-    when('I request clone information', async () => {
+    when('the client requests clone information', async () => {
       result = await client.clones.getClones(characterId);
     });
 
-    then('I should receive clone details', () => {
+    then('the client shall return clone details', () => {
       expect(result).toBeDefined();
       expect(result.home_location).toBeDefined();
       expect(result.home_location!.location_id).toBe(60003760);
@@ -59,7 +59,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle unauthorized clone request', ({ given, when, then }) => {
+  test('IF unauthorized clone request, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 90000001;
     let error: any;
 
@@ -69,21 +73,28 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.clones, 'getClones').mockRejectedValue(authError);
     });
 
-    when('I request clone information without authorization', async () => {
-      try {
-        await client.clones.getClones(characterId);
-      } catch (e) {
-        error = e;
-      }
-    });
+    when(
+      'the client requests clone information without authorization',
+      async () => {
+        try {
+          await client.clones.getClones(characterId);
+        } catch (e) {
+          error = e;
+        }
+      },
+    );
 
-    then('I should receive an authentication error for clones', () => {
+    then('the client shall return an authentication error for clones', () => {
       expect(error).toBeDefined();
       expect(error.message).toContain('Token is expired');
     });
   });
 
-  test('Get active implants for a character', ({ given, when, then }) => {
+  test('WHEN getting active implants for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 90000001;
     let result: any;
 
@@ -95,11 +106,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedImplants);
     });
 
-    when('I request implant information', async () => {
+    when('the client requests implant information', async () => {
       result = await client.clones.getImplants(characterId);
     });
 
-    then('I should receive a list of implant type IDs', () => {
+    then('the client shall return a list of implant type IDs', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(5);
       result.forEach((implant: number) => {
@@ -108,7 +119,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Character with no implants', ({ given, when, then }) => {
+  test('WHILE the character with no implants, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 90000001;
     let result: any;
 
@@ -116,17 +131,24 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.clones, 'getImplants').mockResolvedValue([]);
     });
 
-    when('I request implant information for the character', async () => {
-      result = await client.clones.getImplants(characterId);
-    });
+    when(
+      'the client requests implant information for the character',
+      async () => {
+        result = await client.clones.getImplants(characterId);
+      },
+    );
 
-    then('I should receive an empty array for implants', () => {
+    then('the client shall return an empty array for implants', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Retrieve clones and their implants', ({ given, when, then }) => {
+  test('WHEN retrieving clones and their implants, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 90000001;
     let clones: any;
     let implants: any;
@@ -153,12 +175,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(activeImplants);
     });
 
-    when('I retrieve clone info and implants', async () => {
+    when('the client retrieves clone info and implants', async () => {
       clones = await client.clones.getClones(characterId);
       implants = await client.clones.getImplants(characterId);
     });
 
-    then('I should have complete clone data', () => {
+    then('the client shall have complete clone data', () => {
       expect(clones.jump_clones).toHaveLength(2);
       expect(implants).toHaveLength(2);
       expect(clones.jump_clones[0].implants).toHaveLength(2);

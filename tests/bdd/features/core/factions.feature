@@ -1,51 +1,61 @@
 Feature: Faction Warfare Management
 
-  Scenario: Get overall faction warfare statistics
+  # EARS: Event-driven
+  Scenario: WHEN getting overall faction warfare statistics, the client shall return the data
     Given the FW system is active
-    When I request faction warfare stats
-    Then I should receive stats for all factions
+    When the client requests faction warfare stats
+    Then the client shall return stats for all factions
 
-  Scenario: Get FW stats for an enlisted character
+  # EARS: Event-driven
+  Scenario: WHEN getting FW stats for an enlisted character, the client shall return the data
     Given a character enlisted in faction warfare
-    When I request character FW stats
-    Then I should receive their personal statistics
+    When the client requests character FW stats
+    Then the client shall return their personal statistics
 
-  Scenario: Handle unauthorized access for character FW stats
+  # EARS: Unwanted
+  Scenario: IF unauthorized access for character FW stats, THEN the client shall return a forbidden error
     Given an invalid or expired token for character stats
-    When I request character FW stats with invalid token
-    Then I should receive a 403 forbidden error for character stats
+    When the client requests character FW stats with invalid token
+    Then the client shall return a 403 forbidden error for character stats
 
-  Scenario: Get FW stats for an enlisted corporation
+  # EARS: Event-driven
+  Scenario: WHEN getting FW stats for an enlisted corporation, the client shall return the data
     Given a corporation enlisted in faction warfare
-    When I request corporation FW stats
-    Then I should receive the corporation statistics
+    When the client requests corporation FW stats
+    Then the client shall return the corporation statistics
 
-  Scenario: Handle unauthorized access for corporation FW stats
+  # EARS: Unwanted
+  Scenario: IF unauthorized access for corporation FW stats, THEN the client shall return a forbidden error
     Given an invalid or expired token for corporation stats
-    When I request corporation FW stats with invalid token
-    Then I should receive a 403 forbidden error for corporation stats
+    When the client requests corporation FW stats with invalid token
+    Then the client shall return a 403 forbidden error for corporation stats
 
-  Scenario: Get current ownership of FW systems
+  # EARS: Event-driven
+  Scenario: WHEN getting current ownership of FW systems, the client shall return the data
     Given active faction warfare systems
-    When I request FW systems
-    Then I should receive system ownership and contested status
+    When the client requests FW systems
+    Then the client shall return system ownership and contested status
 
-  Scenario: Get list of active FW wars
+  # EARS: Event-driven
+  Scenario: WHEN getting list of active FW wars, the client shall return the data
     Given faction warfare is active
-    When I request FW wars
-    Then I should receive the list of faction conflicts
+    When the client requests FW wars
+    Then the client shall return the list of faction conflicts
 
-  Scenario: Get overall FW leaderboard
+  # EARS: Event-driven
+  Scenario: WHEN getting overall FW leaderboard, the client shall return the data
     Given faction warfare is active for leaderboard
-    When I request the overall leaderboard
-    Then I should receive faction rankings
+    When the client requests the overall leaderboard
+    Then the client shall return faction rankings
 
-  Scenario: Get character FW leaderboard
+  # EARS: Event-driven
+  Scenario: WHEN getting character FW leaderboard, the client shall return the data
     Given faction warfare is active for character leaderboard
-    When I request the character leaderboard
-    Then I should receive top character rankings
+    When the client requests the character leaderboard
+    Then the client shall return top character rankings
 
-  Scenario: Complete faction warfare overview
+  # EARS: Event-driven
+  Scenario: WHEN completing faction warfare overview, the client shall complete all steps
     Given an enlisted character for overview
-    When I gather all FW data concurrently
-    Then I should have a complete faction warfare picture
+    When the client gathers all FW data concurrently
+    Then the client shall have a complete faction warfare picture

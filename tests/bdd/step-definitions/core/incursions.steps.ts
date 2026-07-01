@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('List all active incursions', ({ given, when, then }) => {
+  test('WHEN listing all active incursions, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('active incursions exist in the universe', () => {
@@ -48,11 +52,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockIncursions);
     });
 
-    when('I request the incursion list', async () => {
+    when('the client requests the incursion list', async () => {
       result = await client.incursions.getIncursions();
     });
 
-    then('I should receive complete incursion details', () => {
+    then('the client shall return complete incursion details', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
 
@@ -74,24 +78,32 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('No active incursions', ({ given, when, then }) => {
+  test('WHILE no active incursions, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('no incursions are active in the universe', () => {
       jest.spyOn(client.incursions, 'getIncursions').mockResolvedValue([]);
     });
 
-    when('I request the incursion list for empty state', async () => {
+    when('the client requests the incursion list for empty state', async () => {
       result = await client.incursions.getIncursions();
     });
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Incursion in withdrawing state', ({ given, when, then }) => {
+  test('WHEN an incursion is withdrawing, the client shall report the withdrawing state', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('an incursion in the withdrawing state', () => {
@@ -113,11 +125,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockIncursions);
     });
 
-    when('I request the incursion list for withdrawing state', async () => {
-      result = await client.incursions.getIncursions();
-    });
+    when(
+      'the client requests the incursion list for withdrawing state',
+      async () => {
+        result = await client.incursions.getIncursions();
+      },
+    );
 
-    then('the incursion should show zero influence and no boss', () => {
+    then('the incursion shall show zero influence and no boss', () => {
       expect(result).toHaveLength(1);
       expect(result[0].state).toBe('withdrawing');
       expect(result[0].influence).toBe(0.0);
@@ -125,7 +140,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Multiple incursions across different constellations', ({
+  test('WHEN multiple incursions exist, the client shall return all across constellations', ({
     given,
     when,
     then,
@@ -171,11 +186,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockIncursions);
     });
 
-    when('I request the list of multiple incursions', async () => {
+    when('the client requests the list of multiple incursions', async () => {
       result = await client.incursions.getIncursions();
     });
 
-    then('each should have unique constellation and staging system IDs', () => {
+    then('each shall have unique constellation and staging system IDs', () => {
       expect(result).toHaveLength(3);
 
       const constellationIds = result.map((i: any) => i.constellation_id);
@@ -188,7 +203,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('ESI service unavailable', ({ given, when, then }) => {
+  test('IF eSI service unavailable, THEN the client shall handle the service outage', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('the ESI service is experiencing downtime', () => {
@@ -199,7 +218,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(serviceUnavailableError);
     });
 
-    when('I request incursions during downtime', async () => {
+    when('the client requests incursions during downtime', async () => {
       try {
         await client.incursions.getIncursions();
       } catch (error) {
@@ -207,12 +226,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 503 service unavailable error', () => {
+    then('the client shall return a 503 service unavailable error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Server error during incursion retrieval', ({ given, when, then }) => {
+  test('IF server error during incursion retrieval, THEN the client shall return a server error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('an internal server error occurs', () => {
@@ -223,22 +246,25 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(serverError);
     });
 
-    when('I request incursions and a server error happens', async () => {
-      try {
-        await client.incursions.getIncursions();
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests incursions and a server error happens',
+      async () => {
+        try {
+          await client.incursions.getIncursions();
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('the error should indicate a server-side issue', () => {
+    then('the error shall indicate a server-side issue', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
       expect((caughtError as EsiError).statusCode).toBe(500);
       expect((caughtError as EsiError).isServerError()).toBe(true);
     });
   });
 
-  test('Verify incursion influence is within expected bounds', ({
+  test('WHEN verifying incursion influence is within expected bounds, the client shall validate the data', ({
     given,
     when,
     then,
@@ -274,11 +300,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockIncursions);
     });
 
-    when('I examine the incursion results', async () => {
+    when('the client examines the incursion results', async () => {
       result = await client.incursions.getIncursions();
     });
 
-    then('all influence values should be between 0 and 1', () => {
+    then('all influence values shall be between 0 and 1', () => {
       for (const incursion of result) {
         expect(incursion.influence).toBeGreaterThanOrEqual(0);
         expect(incursion.influence).toBeLessThanOrEqual(1);

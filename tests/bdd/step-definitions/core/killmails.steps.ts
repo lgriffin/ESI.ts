@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve recent killmails for a character', ({ given, when, then }) => {
+  test('WHEN retrieving recent killmails for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -32,11 +36,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSummaries);
     });
 
-    when('I request their recent killmails', async () => {
+    when('the client requests their recent killmails', async () => {
       result = await client.killmails.getCharacterRecentKillmails(characterId);
     });
 
-    then('I should receive a list of killmail summaries', () => {
+    then('the client shall return a list of killmail summaries', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(3);
       expect(result[0]).toHaveProperty('killmail_id');
@@ -46,7 +50,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Character with no recent killmails', ({ given, when, then }) => {
+  test('WHILE the character with no recent killmails, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 111111111;
     let result: any;
 
@@ -56,17 +64,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue([]);
     });
 
-    when('I request their killmails', async () => {
+    when('the client requests their killmails', async () => {
       result = await client.killmails.getCharacterRecentKillmails(characterId);
     });
 
-    then('I should receive an empty killmail list', () => {
+    then('the client shall return an empty killmail list', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(0);
     });
   });
 
-  test('Retrieve full killmail details', ({ given, when, then }) => {
+  test('WHEN retrieving full killmail details, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const killmailId = 100001;
     const killmailHash = 'abc123def456';
     let result: any;
@@ -113,11 +125,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedDetail);
     });
 
-    when('I request the killmail details', async () => {
+    when('the client requests the killmail details', async () => {
       result = await client.killmails.getKillmail(killmailId, killmailHash);
     });
 
-    then('I should receive the complete kill report', () => {
+    then('the client shall return the complete kill report', () => {
       expect(result).toBeDefined();
       expect(result.killmail_id).toBe(killmailId);
       expect(result.killmail_time).toBeDefined();
@@ -133,7 +145,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Invalid killmail hash returns 404', ({ given, when, then }) => {
+  test('IF invalid killmail hash returns 404, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     const killmailId = 100001;
     const invalidHash = 'invalid_hash_value';
     let caughtError: any;
@@ -146,20 +162,23 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(notFoundError);
     });
 
-    when('I request the killmail details with invalid hash', async () => {
-      try {
-        await client.killmails.getKillmail(killmailId, invalidHash);
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests the killmail details with invalid hash',
+      async () => {
+        try {
+          await client.killmails.getKillmail(killmailId, invalidHash);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a 404 not found error', () => {
+    then('the client shall return a 404 not found error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Retrieve recent killmails for a corporation', ({
+  test('WHEN retrieving recent killmails for a corporation, the client shall return the data', ({
     given,
     when,
     then,
@@ -181,12 +200,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSummaries);
     });
 
-    when('I request corporation killmails', async () => {
+    when('the client requests corporation killmails', async () => {
       result =
         await client.killmails.getCorporationRecentKillmails(corporationId);
     });
 
-    then('I should receive the corporation kill feed', () => {
+    then('the client shall return the corporation kill feed', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(5);
       result.forEach((summary: any) => {
@@ -196,7 +215,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Chain summary retrieval to detail lookup', ({ given, when, then }) => {
+  test('WHEN chaining summary retrieval to detail lookup, the client shall chain the operations', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let summaryList: any;
     let detail: any;
@@ -236,7 +259,7 @@ defineFeature(feature, (test) => {
     });
 
     when(
-      'I fetch summaries and then look up details for the first kill',
+      'the client fetches summaries and then look up details for the first kill',
       async () => {
         summaryList =
           await client.killmails.getCharacterRecentKillmails(characterId);
@@ -248,7 +271,7 @@ defineFeature(feature, (test) => {
       },
     );
 
-    then('I should get the full kill chain', () => {
+    then('the client shall return the full kill chain', () => {
       expect(summaryList.length).toBeGreaterThan(0);
       expect(detail.killmail_id).toBe(summaryList[0].killmail_id);
       expect(detail.victim).toBeDefined();
@@ -257,7 +280,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Analyze killmail attacker composition', ({ given, when, then }) => {
+  test('WHEN analyzing killmail attacker composition, the client shall return the analysis', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     let finalBlowAttacker: any;
     let totalDamage: number;
@@ -302,7 +329,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.killmails, 'getKillmail').mockResolvedValue(killDetail);
     });
 
-    when('I analyze the attackers', async () => {
+    when('the client analyzes the attackers', async () => {
       result = await client.killmails.getKillmail(400001, 'test_hash');
       finalBlowAttacker = result.attackers.find((a: any) => a.final_blow);
       totalDamage = result.attackers.reduce(
@@ -311,7 +338,7 @@ defineFeature(feature, (test) => {
       );
     });
 
-    then('I should identify the final blow dealer and total damage', () => {
+    then('I shall identify the final blow dealer and total damage', () => {
       expect(finalBlowAttacker).toBeDefined();
       expect(finalBlowAttacker!.character_id).toBe(111111111);
       expect(totalDamage).toBe(15600);
@@ -319,7 +346,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle unauthorized access to character killmails', ({
+  test('IF unauthorized access to character killmails, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -335,7 +362,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request character killmails without auth', async () => {
+    when('the client requests character killmails without auth', async () => {
       try {
         await client.killmails.getCharacterRecentKillmails(characterId);
       } catch (error) {
@@ -343,7 +370,7 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for killmails', () => {
+    then('the client shall return a 403 forbidden error for killmails', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });

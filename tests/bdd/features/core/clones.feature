@@ -1,26 +1,31 @@
 Feature: Clone Management
 
-  Scenario: Get clone information for a valid character
+  # EARS: Event-driven
+  Scenario: WHEN getting clone information for a valid character, the client shall return the data
     Given a valid character ID for clones
-    When I request clone information
-    Then I should receive clone details
+    When the client requests clone information
+    Then the client shall return clone details
 
-  Scenario: Handle unauthorized clone request
+  # EARS: Unwanted
+  Scenario: IF unauthorized clone request, THEN the client shall return a forbidden error
     Given an invalid access token for clones
-    When I request clone information without authorization
-    Then I should receive an authentication error for clones
+    When the client requests clone information without authorization
+    Then the client shall return an authentication error for clones
 
-  Scenario: Get active implants for a character
+  # EARS: Event-driven
+  Scenario: WHEN getting active implants for a character, the client shall return the data
     Given a valid character ID for implants
-    When I request implant information
-    Then I should receive a list of implant type IDs
+    When the client requests implant information
+    Then the client shall return a list of implant type IDs
 
-  Scenario: Character with no implants
+  # EARS: State-driven
+  Scenario: WHILE the character with no implants, the client shall return an empty result
     Given a character with no active implants
-    When I request implant information for the character
-    Then I should receive an empty array for implants
+    When the client requests implant information for the character
+    Then the client shall return an empty array for implants
 
-  Scenario: Retrieve clones and their implants
+  # EARS: Event-driven
+  Scenario: WHEN retrieving clones and their implants, the client shall return the data
     Given a character with clones
-    When I retrieve clone info and implants
-    Then I should have complete clone data
+    When the client retrieves clone info and implants
+    Then the client shall have complete clone data

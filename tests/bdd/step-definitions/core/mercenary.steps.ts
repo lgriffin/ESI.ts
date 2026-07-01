@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get mercenary dens with development data', ({ given, when, then }) => {
+  test('WHEN getting mercenary dens with development data, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const expectedDens = [
       {
@@ -45,11 +49,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedDens as any);
     });
 
-    when('I request dens', async () => {
+    when('the client requests dens', async () => {
       result = await client.mercenary.getMercenaryDens();
     });
 
-    then('I should receive development and anarchy parameters', () => {
+    then('the client shall return development and anarchy parameters', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(2);
       expect(result[0].den_id).toBe(5001);
@@ -59,24 +63,32 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('No mercenary dens available', ({ given, when, then }) => {
+  test('WHILE no mercenary dens available, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('no dens exist in the area', () => {
       jest.spyOn(client.mercenary, 'getMercenaryDens').mockResolvedValue([]);
     });
 
-    when('I request dens', async () => {
+    when('the client requests dens', async () => {
       result = await client.mercenary.getMercenaryDens();
     });
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Get active MTOs spawned from dens', ({ given, when, then }) => {
+  test('WHEN getting active MTOs spawned from dens, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const expectedOps = [
       {
@@ -105,11 +117,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedOps as any);
     });
 
-    when('I request operations', async () => {
+    when('the client requests operations', async () => {
       result = await client.mercenary.getMercenaryTacticalOperations();
     });
 
-    then('I should receive operation details with status', () => {
+    then('the client shall return operation details with status', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(2);
       expect(result[0].operation_id).toBe(7001);
@@ -118,7 +130,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Cross-reference dens with their operations', ({
+  test('WHEN cross-referencing dens with their operations, the client shall return the analysis', ({
     given,
     when,
     then,
@@ -157,21 +169,25 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(ops as any);
     });
 
-    when('I fetch both', async () => {
+    when('the client fetches both', async () => {
       [denResults, opResults] = await Promise.all([
         client.mercenary.getMercenaryDens(),
         client.mercenary.getMercenaryTacticalOperations(),
       ]);
     });
 
-    then('I can correlate operations to their parent dens', () => {
+    then('the client shall correlate operations to their parent dens', () => {
       expect(denResults).toHaveLength(1);
       expect(opResults).toHaveLength(1);
       expect(opResults[0].den_id).toBe(denResults[0].den_id);
     });
   });
 
-  test('Service unavailable error', ({ given, when, then }) => {
+  test('IF service unavailable error, THEN the client shall handle the service outage', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('the ESI service is down', () => {
@@ -179,7 +195,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mercenary, 'getMercenaryDens').mockRejectedValue(error);
     });
 
-    when('I request mercenary data', async () => {
+    when('the client requests mercenary data', async () => {
       try {
         await client.mercenary.getMercenaryDens();
       } catch (e) {
@@ -187,7 +203,7 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 503 error', () => {
+    then('the client shall return a 503 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });

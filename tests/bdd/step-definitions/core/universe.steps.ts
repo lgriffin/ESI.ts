@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve solar system details', ({ given, when, then }) => {
+  test('WHEN retrieving solar system details, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const validSystemId = 30000142;
 
@@ -40,11 +44,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSystem);
     });
 
-    when('I request system information', async () => {
+    when('the client requests system information', async () => {
       result = await client.universe.getSystemById(validSystemId);
     });
 
-    then('I should receive complete system details', () => {
+    then('the client shall return complete system details', () => {
       expect(result).toBeDefined();
       expect(result.system_id).toBe(validSystemId);
       expect(result.name).toBe('Jita');
@@ -56,7 +60,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle non-existent solar system', ({ given, when, then }) => {
+  test('IF non-existent solar system, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
     const invalidSystemId = 99999999;
 
@@ -68,7 +76,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(expectedError);
     });
 
-    when('I request invalid system information', async () => {
+    when('the client requests invalid system information', async () => {
       try {
         await client.universe.getSystemById(invalidSystemId);
       } catch (e) {
@@ -76,12 +84,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a not found error', () => {
+    then('the client shall return a not found error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Retrieve all solar systems', ({ given, when, then }) => {
+  test('WHEN retrieving all solar systems, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the universe data is available', () => {
@@ -92,11 +104,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSystems);
     });
 
-    when('I request all systems', async () => {
+    when('the client requests all systems', async () => {
       result = await client.universe.getSystems();
     });
 
-    then('I should receive a list of all system IDs', () => {
+    then('the client shall return a list of all system IDs', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(result.every((id: any) => typeof id === 'number')).toBe(true);
@@ -104,7 +116,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve station details', ({ given, when, then }) => {
+  test('WHEN retrieving station details, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const validStationId = 60003760;
 
@@ -135,11 +151,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedStation);
     });
 
-    when('I request station information', async () => {
+    when('the client requests station information', async () => {
       result = await client.universe.getStationById(validStationId);
     });
 
-    then('I should receive complete station details', () => {
+    then('the client shall return complete station details', () => {
       expect(result).toBeDefined();
       expect(result.station_id).toBe(validStationId);
       expect(result.name).toContain('Jita IV');
@@ -150,7 +166,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve structure information', ({ given, when, then }) => {
+  test('WHEN retrieving structure information, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const validStructureId = 1021975535893;
 
@@ -169,11 +189,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedStructure);
     });
 
-    when('I request structure information', async () => {
+    when('the client requests structure information', async () => {
       result = await client.universe.getStructureById(validStructureId);
     });
 
-    then('I should receive structure details', () => {
+    then('the client shall return structure details', () => {
       expect(result).toBeDefined();
       expect(result.structure_id).toBe(validStructureId);
       expect(result.name).toBe('Test Citadel');
@@ -183,7 +203,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve item type information', ({ given, when, then }) => {
+  test('WHEN retrieving item type information, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const validTypeId = 34;
 
@@ -208,11 +232,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedType);
     });
 
-    when('I request type information', async () => {
+    when('the client requests type information', async () => {
       result = await client.universe.getTypeById(validTypeId);
     });
 
-    then('I should receive complete item details', () => {
+    then('the client shall return complete item details', () => {
       expect(result).toBeDefined();
       expect(result.type_id).toBe(validTypeId);
       expect(result.name).toBe('Tritanium');
@@ -223,7 +247,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve item groups', ({ given, when, then }) => {
+  test('WHEN retrieving item groups, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the universe data is available for groups', () => {
@@ -234,11 +262,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedGroups);
     });
 
-    when('I request all item groups', async () => {
+    when('the client requests all item groups', async () => {
       result = await client.universe.getItemGroups();
     });
 
-    then('I should receive a list of all group IDs', () => {
+    then('the client shall return a list of all group IDs', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(result.every((id: any) => typeof id === 'number')).toBe(true);
@@ -246,7 +274,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve item group details', ({ given, when, then }) => {
+  test('WHEN retrieving item group details, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const validGroupId = 18;
 
@@ -264,11 +296,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedGroup);
     });
 
-    when('I request group information', async () => {
+    when('the client requests group information', async () => {
       result = await client.universe.getItemGroupById(validGroupId);
     });
 
-    then('I should receive group details and contained types', () => {
+    then('the client shall return group details and contained types', () => {
       expect(result).toBeDefined();
       expect(result.group_id).toBe(validGroupId);
       expect(result.name).toBe('Mineral');
@@ -279,7 +311,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve star information', ({ given, when, then }) => {
+  test('WHEN retrieving star information, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const validStarId = 40000001;
 
@@ -301,11 +337,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedStar);
     });
 
-    when('I request star information', async () => {
+    when('the client requests star information', async () => {
       result = await client.universe.getStarById(validStarId);
     });
 
-    then('I should receive star details', () => {
+    then('the client shall return star details', () => {
       expect(result).toBeDefined();
       expect(result.star_id).toBe(validStarId);
       expect(result.name).toContain('Jita');
@@ -316,7 +352,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve planet information', ({ given, when, then }) => {
+  test('WHEN retrieving planet information, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const validPlanetId = 40000004;
 
@@ -334,11 +374,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedPlanet);
     });
 
-    when('I request planet information', async () => {
+    when('the client requests planet information', async () => {
       result = await client.universe.getPlanetById(validPlanetId);
     });
 
-    then('I should receive planet details', () => {
+    then('the client shall return planet details', () => {
       expect(result).toBeDefined();
       expect(result.planet_id).toBe(validPlanetId);
       expect(result.name).toBe('Jita IV');
@@ -348,7 +388,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle concurrent universe data requests', ({ given, when, then }) => {
+  test('The client shall handle concurrent universe data requests', ({
+    given,
+    when,
+    then,
+  }) => {
     let results: any[];
     const systemIds = [30000142, 30001161, 30002187];
 
@@ -368,12 +412,12 @@ defineFeature(feature, (test) => {
         );
     });
 
-    when('I make them simultaneously', async () => {
+    when('the client makes them simultaneously', async () => {
       const promises = systemIds.map((id) => client.universe.getSystemById(id));
       results = await Promise.all(promises);
     });
 
-    then('all should complete successfully', () => {
+    then('all requests shall complete successfully', () => {
       expect(results).toHaveLength(3);
       results.forEach((result, index) => {
         expect(result.system_id).toBe(systemIds[index]);
@@ -382,7 +426,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle large universe data sets', ({ given, when, then }) => {
+  test('The client shall handle large universe data sets', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     let responseTime: number;
 
@@ -397,14 +445,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(largeSsystemSet);
     });
 
-    when('I process the large dataset', async () => {
+    when('the client processes the large dataset', async () => {
       const startTime = Date.now();
       result = await client.universe.getSystems();
       const endTime = Date.now();
       responseTime = endTime - startTime;
     });
 
-    then('the system should handle it efficiently', () => {
+    then('the client shall handle it efficiently', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(8000);
       expect(responseTime).toBeLessThan(1000);
@@ -412,7 +460,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Search for universe entities', ({ given, when, then }) => {
+  test('WHEN searching for universe entities, the client shall return matching results', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('a search term for the universe', () => {
@@ -430,7 +482,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedResults);
     });
 
-    when('I search the universe', async () => {
+    when('the client searches the universe', async () => {
       result = (await client.search.characterSearch(1689391488, 'Jita', [
         'solar_system',
         'station',
@@ -439,7 +491,7 @@ defineFeature(feature, (test) => {
       ])) as any;
     });
 
-    then('I should receive matching entities', () => {
+    then('the client shall return matching entities', () => {
       expect(result).toBeDefined();
       expect(result.systems).toBeInstanceOf(Array);
       expect(result.stations).toBeInstanceOf(Array);
@@ -448,7 +500,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Name resolution', ({ given, when, then }) => {
+  test('WHEN resolving names to IDs, the client shall return the mappings', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('a list of entity IDs', () => {
@@ -475,12 +531,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedNames);
     });
 
-    when('I request name resolution', async () => {
+    when('the client requests name resolution', async () => {
       const entityIds = [30000142, 60003760, 1689391488];
       result = await client.universe.postNamesAndCategories(entityIds);
     });
 
-    then('I should receive entity names and categories', () => {
+    then('the client shall return entity names and categories', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(3);
       expect(result[0]).toHaveProperty('id');
@@ -495,7 +551,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Complete system exploration workflow', ({ given, when, then }) => {
+  test('WHEN completing system exploration workflow, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     let system: any;
     let star: any;
     let station: any;
@@ -532,7 +592,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockPlanet);
     });
 
-    when('I gather complete system information', async () => {
+    when('the client gathers complete system information', async () => {
       system = await client.universe.getSystemById(systemId);
       [star, station, planet] = await Promise.all([
         client.universe.getStarById(system.star_id!),
@@ -541,7 +601,7 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should successfully retrieve all system data', () => {
+    then('the client shall successfully retrieve all system data', () => {
       expect(system).toBeDefined();
       expect(system.system_id).toBe(systemId);
       expect(system.name).toBe('Jita');

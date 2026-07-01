@@ -1,41 +1,49 @@
 Feature: Character Skills Management
 
-  Scenario: Get trained skills for a character
+  # EARS: Event-driven
+  Scenario: WHEN getting trained skills for a character, the client shall return the data
     Given a valid character ID for skills
-    When I request character skills
-    Then I should receive the skills list with total SP
+    When the client requests character skills
+    Then the client shall return the skills list with total SP
 
-  Scenario: High-SP character with many skills
+  # EARS: Event-driven
+  Scenario: WHEN a high-SP character has many skills, the client shall return all skill data
     Given a veteran character
-    When I request their skills
-    Then I should receive a large skill set with high total SP
+    When the client requests their skills
+    Then the client shall return a large skill set with high total SP
 
-  Scenario: Get the skill training queue
+  # EARS: Event-driven
+  Scenario: WHEN getting the skill training queue, the client shall return the data
     Given a character with skills in training
-    When I request the skill queue
-    Then I should receive an ordered queue
+    When the client requests the skill queue
+    Then the client shall return an ordered queue
 
-  Scenario: Empty skill queue
+  # EARS: State-driven
+  Scenario: WHILE empty skill queue, the client shall return an empty result
     Given a character with no skills in training
-    When I request the skill queue for idle character
-    Then I should receive an empty queue array
+    When the client requests the skill queue for idle character
+    Then the client shall return an empty queue array
 
-  Scenario: Get character neural remap attributes
+  # EARS: Event-driven
+  Scenario: WHEN getting character neural remap attributes, the client shall return the data
     Given a valid character ID for attributes
-    When I request attributes
-    Then I should receive all five attributes and remap info
+    When the client requests attributes
+    Then the client shall return all five attributes and remap info
 
-  Scenario: Attributes with custom remap
+  # EARS: Event-driven
+  Scenario: WHEN attributes include a custom remap, the client shall return remap details
     Given a character with a perception-focused remap
-    When I request remapped attributes
-    Then I should see elevated perception
+    When the client requests remapped attributes
+    Then the client shall report elevated perception
 
-  Scenario: Unauthorized access to skills
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to skills, THEN the client shall return a forbidden error
     Given an invalid or expired token
-    When I request skills without authorization
-    Then I should receive a 403 skills error
+    When the client requests skills without authorization
+    Then the client shall return a 403 skills error
 
-  Scenario: Concurrent fetch of skills, queue, and attributes
+  # EARS: Ubiquitous
+  Scenario: The client shall handle concurrent fetch of skills, queue, and attributes
     Given a valid character for concurrent fetch
-    When I fetch skills, queue, and attributes concurrently
-    Then all three should return valid data
+    When the client fetches skills, queue, and attributes concurrently
+    Then all three shall return valid data

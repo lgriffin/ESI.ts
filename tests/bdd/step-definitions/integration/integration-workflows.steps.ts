@@ -18,7 +18,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Complete character profile creation', ({ given, when, then }) => {
+  test('WHEN completing character profile creation, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     let character: any;
     let portrait: any;
     let corporation: any;
@@ -71,7 +75,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockSkills as any);
     });
 
-    when('I assemble a complete profile', async () => {
+    when('the client assembles a complete profile', async () => {
       character = await client.characters.getCharacterPublicInfo(characterId);
       [portrait, corporation, alliance, location, skills] = await Promise.all([
         client.characters.getCharacterPortrait(characterId),
@@ -82,7 +86,7 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should gather all related character data', () => {
+    then('the client shall gather all related character data', () => {
       expect(character.name).toBe('Test Pilot');
       expect(portrait.px512x512).toBeDefined();
       expect(corporation.name).toBeDefined();
@@ -95,7 +99,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Complete market analysis for trading decisions', ({
+  test('WHEN completing market analysis for trading decisions, the client shall complete all steps', ({
     given,
     when,
     then,
@@ -171,7 +175,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockItemType);
     });
 
-    when('I perform market analysis', async () => {
+    when('the client performs market analysis', async () => {
       [prices, orders, history, characterOrders, itemType] = await Promise.all([
         client.market.getMarketPrices(),
         client.market.getMarketOrders(regionId),
@@ -181,7 +185,7 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should gather comprehensive market data', () => {
+    then('the client shall gather comprehensive market data', () => {
       const currentPrice = prices.find(
         (p: any) => p.type_id === typeId,
       )?.average_price;
@@ -213,7 +217,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Corporation overview and member management', ({
+  test('WHEN managing corporation overview and members, the client shall complete all steps', ({
     given,
     when,
     then,
@@ -275,7 +279,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockAssets);
     });
 
-    when('I manage corporation overview', async () => {
+    when('the client manages corporation overview', async () => {
       corporation = await client.corporations.getCorporationInfo(corporationId);
       [members, memberRoles, wallets, assets] = await Promise.all([
         client.corporations.getCorporationMembers(corporationId),
@@ -285,7 +289,7 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should access all corporation data', () => {
+    then('the client shall access all corporation data', () => {
       expect(corporation.name).toBe('Test Corporation');
       expect(corporation.member_count).toBe(150);
       expect(members.length).toBe(150);
@@ -307,7 +311,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Fleet formation and management', ({ given, when, then }) => {
+  test('WHEN managing fleet formation, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     let fleet: any;
     let members: any;
     let wings: any;
@@ -358,7 +366,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockWings as any);
     });
 
-    when('I manage fleet operations', async () => {
+    when('the client manages fleet operations', async () => {
       fleet = await client.fleets.getFleetInformation(fleetId);
       [members, wings] = await Promise.all([
         client.fleets.getFleetMembers(fleetId),
@@ -366,7 +374,7 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should coordinate fleet activities', () => {
+    then('the client shall coordinate fleet activities', () => {
       expect(fleet.fleet_boss_id).toBe(characterId);
       expect(fleet.motd).toBe('Fleet operations in progress');
       expect(members.length).toBe(2);
@@ -391,7 +399,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Manufacturing operation setup', ({ given, when, then }) => {
+  test('WHEN setting up manufacturing operations, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     let industryJobs: any;
     let blueprints: any;
     let assets: any;
@@ -447,7 +459,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockAssets as any);
     });
 
-    when('I set up production', async () => {
+    when('the client sets up production', async () => {
       [industryJobs, blueprints, assets] = (await Promise.all([
         client.characters.getCharacterRoles(characterId),
         client.characters.getCharacterBlueprints(characterId),
@@ -455,7 +467,7 @@ defineFeature(feature, (test) => {
       ])) as any[];
     });
 
-    then('I should coordinate all manufacturing aspects', () => {
+    then('the client shall coordinate all manufacturing aspects', () => {
       expect(industryJobs.length).toBe(1);
       expect(industryJobs[0].status).toBe('active');
       expect(blueprints.length).toBe(1);
@@ -480,7 +492,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Graceful degradation when services are unavailable', ({
+  test('IF graceful degradation when services are unavailable, THEN the client shall handle the service outage', ({
     given,
     when,
     then,
@@ -509,15 +521,18 @@ defineFeature(feature, (test) => {
       );
     });
 
-    when('I perform integration workflow with partial failures', async () => {
-      results = await Promise.allSettled([
-        client.characters.getCharacterPublicInfo(characterId),
-        client.characters.getCharacterPortrait(characterId),
-        client.corporations.getCorporationInfo(corporationId),
-      ]);
-    });
+    when(
+      'the client performs integration workflow with partial failures',
+      async () => {
+        results = await Promise.allSettled([
+          client.characters.getCharacterPublicInfo(characterId),
+          client.characters.getCharacterPortrait(characterId),
+          client.corporations.getCorporationInfo(corporationId),
+        ]);
+      },
+    );
 
-    then('I should handle partial failures gracefully', () => {
+    then('the client shall handle partial failures gracefully', () => {
       expect(results[0].status).toBe('fulfilled');
       expect(results[1].status).toBe('rejected');
       expect(results[2].status).toBe('fulfilled');
@@ -535,7 +550,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Efficient data gathering for complex workflows', ({
+  test('WHEN gathering data efficiently for complex workflows, the client shall complete all steps', ({
     given,
     when,
     then,
@@ -608,7 +623,7 @@ defineFeature(feature, (test) => {
         });
     });
 
-    when('I optimize data gathering', async () => {
+    when('the client optimizes data gathering', async () => {
       const startTime = Date.now();
 
       character = await client.characters.getCharacterPublicInfo(characterId);
@@ -625,7 +640,7 @@ defineFeature(feature, (test) => {
       totalTime = endTime - startTime;
     });
 
-    then('I should minimize API calls and response time', () => {
+    then('the client shall minimize API calls and response time', () => {
       expect(totalTime).toBeLessThan(500);
       expect(character.character_id).toBe(characterId);
       expect(portrait.px512x512).toBeDefined();

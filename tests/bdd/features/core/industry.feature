@@ -1,56 +1,67 @@
 Feature: Industry Management
 
-  Scenario: Get character industry jobs
+  # EARS: Event-driven
+  Scenario: WHEN getting character industry jobs, the client shall return the data
     Given a character with active industry jobs
-    When I request their industry jobs
-    Then I should receive job details including status and blueprint info
+    When the client requests their industry jobs
+    Then the client shall return job details including status and blueprint info
 
-  Scenario: Character has no industry jobs
+  # EARS: State-driven
+  Scenario: WHILE the character has no industry jobs, the client shall return an empty result
     Given a character with no industry jobs
-    When I request their industry jobs
-    Then I should receive an empty array
+    When the client requests their industry jobs
+    Then the client shall return an empty array
 
-  Scenario: Get corporation industry jobs
+  # EARS: Event-driven
+  Scenario: WHEN getting corporation industry jobs, the client shall return the data
     Given a corporation with running industry jobs
-    When I request the corporation industry jobs
-    Then I should receive the full list of corporation jobs
+    When the client requests the corporation industry jobs
+    Then the client shall return the full list of corporation jobs
 
-  Scenario: Get publicly available industry facilities
+  # EARS: Event-driven
+  Scenario: WHEN getting publicly available industry facilities, the client shall return the data
     Given industry facilities exist in the universe
-    When I request the facility list
-    Then I should receive facilities with location and tax info
+    When the client requests the facility list
+    Then the client shall return facilities with location and tax info
 
-  Scenario: Get industry system cost indices
+  # EARS: Event-driven
+  Scenario: WHEN getting industry system cost indices, the client shall return the data
     Given solar systems with industry activity
-    When I request system indices
-    Then I should receive cost index data per activity
+    When the client requests system indices
+    Then the client shall return cost index data per activity
 
-  Scenario: Get character mining ledger
+  # EARS: Event-driven
+  Scenario: WHEN getting character mining ledger, the client shall return the data
     Given a character who has been mining
-    When I request their mining ledger
-    Then I should receive daily ore quantities
+    When the client requests their mining ledger
+    Then the client shall return daily ore quantities
 
-  Scenario: Get corporation mining observers
+  # EARS: Event-driven
+  Scenario: WHEN getting corporation mining observers, the client shall return the data
     Given a corporation with mining observers
-    When I request the observer list
-    Then I should receive observer details
+    When the client requests the observer list
+    Then the client shall return observer details
 
-  Scenario: Get mining observer details
+  # EARS: Event-driven
+  Scenario: WHEN getting mining observer details, the client shall return the data
     Given a valid mining observer
-    When I request the observer activity
-    Then I should receive character mining entries
+    When the client requests the observer activity
+    Then the client shall return character mining entries
 
-  Scenario: Unauthorized access to industry jobs
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to industry jobs, THEN the client shall return a forbidden error
     Given an invalid or expired token
-    When I request character industry jobs
-    Then I should receive a 403 forbidden error for industry jobs
+    When the client requests character industry jobs
+    Then the client shall return a 403 forbidden error for industry jobs
 
-  Scenario: Unauthorized access to corporation mining data
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to corporation mining data, THEN the client shall return a forbidden error
     Given insufficient corporation roles
-    When I request mining observers
-    Then I should receive a 403 forbidden error for mining observers
+    When the client requests mining observers
+    Then the client shall return a 403 forbidden error for mining observers
 
-  Scenario: Fetch character jobs, facilities, and systems concurrently
+  # EARS: Ubiquitous
+  Scenario: The client shall fetch character jobs, facilities, and systems concurrently
     Given an authenticated character for concurrent industry fetch
-    When I fetch industry jobs, facilities, and systems in parallel
-    Then all three industry requests should resolve successfully
+    When the client fetches industry jobs, facilities, and systems in parallel
+    Then all three industry requests shall resolve successfully

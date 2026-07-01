@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve character location while docked', ({ given, when, then }) => {
+  test('WHEN retrieving character location while docked, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -31,18 +35,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLocation);
     });
 
-    when('I request their location', async () => {
+    when('the client requests their location', async () => {
       result = await client.location.getCharacterLocation(characterId);
     });
 
-    then('I should receive the solar system and station information', () => {
-      expect(result).toBeDefined();
-      expect(result.solar_system_id).toBe(30000142);
-      expect(result.station_id).toBe(60003760);
-    });
+    then(
+      'the client shall return the solar system and station information',
+      () => {
+        expect(result).toBeDefined();
+        expect(result.solar_system_id).toBe(30000142);
+        expect(result.station_id).toBe(60003760);
+      },
+    );
   });
 
-  test('Retrieve character location while in space', ({
+  test('WHEN retrieving character location while in space, the client shall return the data', ({
     given,
     when,
     then,
@@ -62,19 +69,22 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLocation);
     });
 
-    when('I request their location while in space', async () => {
+    when('the client requests their location while in space', async () => {
       result = await client.location.getCharacterLocation(characterId);
     });
 
-    then('I should receive only the solar system with no station', () => {
-      expect(result).toBeDefined();
-      expect(result.solar_system_id).toBe(30002187);
-      expect(result.station_id).toBeUndefined();
-      expect(result.structure_id).toBeUndefined();
-    });
+    then(
+      'the client shall return only the solar system with no station',
+      () => {
+        expect(result).toBeDefined();
+        expect(result.solar_system_id).toBe(30002187);
+        expect(result.station_id).toBeUndefined();
+        expect(result.structure_id).toBeUndefined();
+      },
+    );
   });
 
-  test('Check online status of an active character', ({
+  test('WHEN checking online status of an active character, the client shall validate the data', ({
     given,
     when,
     then,
@@ -95,20 +105,23 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedOnline);
     });
 
-    when('I check their online status', async () => {
+    when('the client checks their online status', async () => {
       result = await client.location.getCharacterOnline(characterId);
     });
 
-    then('I should see they are online with login timestamps', () => {
-      expect(result).toBeDefined();
-      expect(result.online).toBe(true);
-      expect(result.last_login).toBeDefined();
-      expect(result.last_logout).toBeDefined();
-      expect(result.logins).toBeGreaterThan(0);
-    });
+    then(
+      'the client shall report they are online with login timestamps',
+      () => {
+        expect(result).toBeDefined();
+        expect(result.online).toBe(true);
+        expect(result.last_login).toBeDefined();
+        expect(result.last_logout).toBeDefined();
+        expect(result.logins).toBeGreaterThan(0);
+      },
+    );
   });
 
-  test('Check online status of an offline character', ({
+  test('WHEN checking online status of an offline character, the client shall validate the data', ({
     given,
     when,
     then,
@@ -129,11 +142,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedOnline);
     });
 
-    when('I check their offline status', async () => {
+    when('the client checks their offline status', async () => {
       result = await client.location.getCharacterOnline(characterId);
     });
 
-    then('I should see they are offline', () => {
+    then('the client shall report they are offline', () => {
       expect(result).toBeDefined();
       expect(result.online).toBe(false);
       expect(new Date(result.last_logout!).getTime()).toBeGreaterThan(
@@ -142,7 +155,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve the ship a character is currently flying', ({
+  test('WHEN retrieving the ship a character is currently flying, the client shall return the data', ({
     given,
     when,
     then,
@@ -162,11 +175,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedShip);
     });
 
-    when('I request their current ship', async () => {
+    when('the client requests their current ship', async () => {
       result = await client.location.getCharacterShip(characterId);
     });
 
-    then('I should receive the ship details', () => {
+    then('the client shall return the ship details', () => {
       expect(result).toBeDefined();
       expect(result.ship_item_id).toBe(1000000001234);
       expect(result.ship_name).toBe("Mittani's Titan");
@@ -174,7 +187,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Fetch location, online status, and ship simultaneously', ({
+  test('WHEN fetching location, online status, and ship simultaneously, the client shall return the data', ({
     given,
     when,
     then,
@@ -212,15 +225,18 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedShip);
     });
 
-    when('I fetch location, online status, and ship concurrently', async () => {
-      [location, online, ship] = await Promise.all([
-        client.location.getCharacterLocation(characterId),
-        client.location.getCharacterOnline(characterId),
-        client.location.getCharacterShip(characterId),
-      ]);
-    });
+    when(
+      'the client fetches location, online status, and ship concurrently',
+      async () => {
+        [location, online, ship] = await Promise.all([
+          client.location.getCharacterLocation(characterId),
+          client.location.getCharacterOnline(characterId),
+          client.location.getCharacterShip(characterId),
+        ]);
+      },
+    );
 
-    then('all three location requests should resolve successfully', () => {
+    then('all three location requests shall resolve successfully', () => {
       expect(location.solar_system_id).toBe(30000142);
       expect(online.online).toBe(true);
       expect(ship.ship_type_id).toBe(2998);
@@ -228,7 +244,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle unauthorized access to character location', ({
+  test('IF unauthorized access to character location, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -244,7 +260,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request a character location without auth', async () => {
+    when('the client requests a character location without auth', async () => {
       try {
         await client.location.getCharacterLocation(characterId);
       } catch (error) {
@@ -252,12 +268,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for location', () => {
+    then('the client shall return a 403 forbidden error for location', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle unauthorized access to online status', ({
+  test('IF unauthorized access to online status, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -273,7 +289,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request online status without auth', async () => {
+    when('the client requests online status without auth', async () => {
       try {
         await client.location.getCharacterOnline(characterId);
       } catch (error) {
@@ -281,8 +297,11 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for online status', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-    });
+    then(
+      'the client shall return a 403 forbidden error for online status',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+      },
+    );
   });
 });

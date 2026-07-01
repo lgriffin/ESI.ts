@@ -1,41 +1,49 @@
 Feature: Asset Management
 
-  Scenario: Get assets for a valid character
+  # EARS: Event-driven
+  Scenario: WHEN getting assets for a valid character, the client shall return the data
     Given a valid character ID with assets
-    When I request character assets
-    Then I should receive a list of assets
+    When the client requests character assets
+    Then the client shall return a list of assets
 
-  Scenario: Handle empty inventory
+  # EARS: State-driven
+  Scenario: WHILE empty inventory, the client shall return an empty result
     Given a character with no assets
-    When I request character assets for the empty inventory
-    Then I should receive an empty array
+    When the client requests character assets for the empty inventory
+    Then the client shall return an empty array
 
-  Scenario: Handle unauthorized access
+  # EARS: Unwanted
+  Scenario: IF unauthorized access, THEN the client shall return a forbidden error
     Given an invalid or expired token for assets
-    When I request character assets without authorization
-    Then I should receive a 403 forbidden error
+    When the client requests character assets without authorization
+    Then the client shall return a 403 forbidden error
 
-  Scenario: Look up names for specific assets
+  # EARS: Event-driven
+  Scenario: WHEN looking up names for specific assets, the client shall return the data
     Given a character with named assets
-    When I request asset names by item IDs
-    Then I should receive the names for those assets
+    When the client requests asset names by item IDs
+    Then the client shall return the names for those assets
 
-  Scenario: Look up locations for specific assets
+  # EARS: Event-driven
+  Scenario: WHEN looking up locations for specific assets, the client shall return the data
     Given a character with located assets
-    When I request asset locations by item IDs
-    Then I should receive position data
+    When the client requests asset locations by item IDs
+    Then the client shall return position data
 
-  Scenario: Retrieve corporation assets
+  # EARS: Event-driven
+  Scenario: WHEN retrieving corporation assets, the client shall return the data
     Given a valid corporation ID with assets
-    When I request corporation assets
-    Then I should receive the corporation asset list
+    When the client requests corporation assets
+    Then the client shall return the corporation asset list
 
-  Scenario: Concurrent character and corporation asset fetch
+  # EARS: Ubiquitous
+  Scenario: The client shall handle concurrent character and corporation asset fetch
     Given a character and their corporation
-    When I fetch both asset sets concurrently
-    Then I should receive both results independently
+    When the client fetches both asset sets concurrently
+    Then the client shall return both results independently
 
-  Scenario: Full asset audit workflow
+  # EARS: Event-driven
+  Scenario: WHEN performing full asset audit workflow, the client shall complete all steps
     Given a character with assets for audit
-    When I retrieve assets then look up their names and locations
-    Then I should have a complete asset inventory
+    When the client retrieves assets then look up their names and locations
+    Then the client shall have a complete asset inventory

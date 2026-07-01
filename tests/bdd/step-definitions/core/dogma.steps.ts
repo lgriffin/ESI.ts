@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('List all dogma attribute IDs', ({ given, when, then }) => {
+  test('WHEN listing all dogma attribute IDs, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the dogma API is available', () => {
@@ -27,11 +31,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockAttributes);
     });
 
-    when('I request all attributes', async () => {
+    when('the client requests all attributes', async () => {
       result = await client.dogma.getAttributes();
     });
 
-    then('I should receive an array of attribute IDs', () => {
+    then('the client shall return an array of attribute IDs', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
       result.forEach((id: number) => {
@@ -40,7 +44,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get a specific dogma attribute', ({ given, when, then }) => {
+  test('WHEN getting a specific dogma attribute, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const attributeId = 20;
 
@@ -59,11 +67,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockAttribute);
     });
 
-    when('I request attribute details', async () => {
+    when('the client requests attribute details', async () => {
       result = await client.dogma.getAttributeById(attributeId);
     });
 
-    then('I should receive complete attribute information', () => {
+    then('the client shall return complete attribute information', () => {
       expect(result).toBeDefined();
       expect(result.attribute_id).toBe(attributeId);
       expect(result.name).toBe('powerOutput');
@@ -72,7 +80,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle non-existent attribute', ({ given, when, then }) => {
+  test('IF non-existent attribute, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     const invalidId = 999999999;
     let caughtError: any;
 
@@ -84,21 +96,28 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(expectedError);
     });
 
-    when('I request attribute details for the invalid ID', async () => {
-      try {
-        await client.dogma.getAttributeById(invalidId);
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests attribute details for the invalid ID',
+      async () => {
+        try {
+          await client.dogma.getAttributeById(invalidId);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a not found error for the attribute', () => {
+    then('the client shall return a not found error for the attribute', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
       expect((caughtError as EsiError).statusCode).toBe(404);
     });
   });
 
-  test('List all dogma effect IDs', ({ given, when, then }) => {
+  test('WHEN listing all dogma effect IDs, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the dogma effects API is available', () => {
@@ -107,11 +126,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.dogma, 'getEffects').mockResolvedValue(mockEffects);
     });
 
-    when('I request all effects', async () => {
+    when('the client requests all effects', async () => {
       result = await client.dogma.getEffects();
     });
 
-    then('I should receive an array of effect IDs', () => {
+    then('the client shall return an array of effect IDs', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
       result.forEach((id: number) => {
@@ -120,7 +139,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get a specific dogma effect', ({ given, when, then }) => {
+  test('WHEN getting a specific dogma effect, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const effectId = 11;
 
@@ -140,11 +163,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.dogma, 'getEffectById').mockResolvedValue(mockEffect);
     });
 
-    when('I request effect details', async () => {
+    when('the client requests effect details', async () => {
       result = await client.dogma.getEffectById(effectId);
     });
 
-    then('I should receive complete effect information', () => {
+    then('the client shall return complete effect information', () => {
       expect(result).toBeDefined();
       expect(result.effect_id).toBe(effectId);
       expect(result.name).toBe('lowPower');
@@ -153,7 +176,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle non-existent effect', ({ given, when, then }) => {
+  test('IF non-existent effect, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     const invalidId = 999999999;
     let caughtError: any;
 
@@ -165,7 +192,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(expectedError);
     });
 
-    when('I request effect details for the invalid ID', async () => {
+    when('the client requests effect details for the invalid ID', async () => {
       try {
         await client.dogma.getEffectById(invalidId);
       } catch (error) {
@@ -173,13 +200,17 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a not found error for the effect', () => {
+    then('the client shall return a not found error for the effect', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
       expect((caughtError as EsiError).statusCode).toBe(404);
     });
   });
 
-  test('Get mutated item dogma info', ({ given, when, then }) => {
+  test('WHEN getting mutated item dogma info, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const typeId = 47740;
     const itemId = 1234567890;
@@ -204,11 +235,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockDynamicItem);
     });
 
-    when('I request its dynamic dogma info', async () => {
+    when('the client requests its dynamic dogma info', async () => {
       result = await client.dogma.getDynamicItemInfo(typeId, itemId);
     });
 
-    then('I should receive modified attributes and effects', () => {
+    then('the client shall return modified attributes and effects', () => {
       expect(result).toBeDefined();
       expect(result.created_by).toBe(2112625428);
       expect(result.mutator_type_id).toBe(47842);
@@ -220,7 +251,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle non-existent dynamic item', ({ given, when, then }) => {
+  test('IF non-existent dynamic item, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('an invalid type and item ID', () => {
@@ -231,7 +266,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(expectedError);
     });
 
-    when('I request dynamic info for the invalid item', async () => {
+    when('the client requests dynamic info for the invalid item', async () => {
       try {
         await client.dogma.getDynamicItemInfo(999999, 999999);
       } catch (error) {
@@ -239,9 +274,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a not found error for the dynamic item', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-      expect((caughtError as EsiError).statusCode).toBe(404);
-    });
+    then(
+      'the client shall return a not found error for the dynamic item',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+        expect((caughtError as EsiError).statusCode).toBe(404);
+      },
+    );
   });
 });
