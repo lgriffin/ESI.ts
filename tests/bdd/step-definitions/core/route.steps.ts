@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Calculate shortest route between two systems', ({
+  test('WHEN calculating shortest route between two systems, the client shall return the result', ({
     given,
     when,
     then,
@@ -30,11 +30,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.route, 'getRoute').mockResolvedValue(expectedRoute);
     });
 
-    when('I request the shortest route', async () => {
+    when('the client requests the shortest route', async () => {
       result = await client.route.getRoute(origin, destination);
     });
 
-    then('I should receive an ordered list of system IDs', () => {
+    then('the client shall return an ordered list of system IDs', () => {
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
       expect(result[0]).toBe(origin);
@@ -43,7 +43,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Calculate secure route', ({ given, when, then }) => {
+  test('WHEN calculating secure route, the client shall return the result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const origin = 30000142;
     const destination = 30002187;
@@ -56,13 +60,13 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.route, 'getRoute').mockResolvedValue(secureRoute);
     });
 
-    when('I request a secure route', async () => {
+    when('the client requests a secure route', async () => {
       result = await client.route.getRoute(origin, destination, {
         preference: 'Safer',
       });
     });
 
-    then('I should receive a route through high-sec space', () => {
+    then('the client shall return a route through high-sec space', () => {
       expect(result).toBeDefined();
       expect(result[0]).toBe(origin);
       expect(result[result.length - 1]).toBe(destination);
@@ -70,7 +74,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Calculate insecure route', ({ given, when, then }) => {
+  test('WHEN calculating insecure route, the client shall return the result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const origin = 30000142;
     const destination = 30002187;
@@ -80,13 +88,13 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.route, 'getRoute').mockResolvedValue(insecureRoute);
     });
 
-    when('I request an insecure route', async () => {
+    when('the client requests an insecure route', async () => {
       result = await client.route.getRoute(origin, destination, {
         preference: 'LessSecure',
       });
     });
 
-    then('I should receive a shorter route through low/null-sec', () => {
+    then('the client shall return a shorter route through low/null-sec', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(3);
       expect(result[0]).toBe(origin);
@@ -94,7 +102,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Route from a system to itself', ({ given, when, then }) => {
+  test('WHEN routing from a system to itself, the client shall return a single-system route', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const systemId = 30000142;
 
@@ -102,18 +114,22 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.route, 'getRoute').mockResolvedValue([systemId]);
     });
 
-    when('I request a route to itself', async () => {
+    when('the client requests a route to itself', async () => {
       result = await client.route.getRoute(systemId, systemId);
     });
 
-    then('I should receive an array containing only the origin', () => {
+    then('the client shall return an array containing only the origin', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(1);
       expect(result[0]).toBe(systemId);
     });
   });
 
-  test('Route through multiple systems', ({ given, when, then }) => {
+  test('WHEN routing through multiple systems, the client shall return multi-hop waypoints', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const origin = 30000142;
     const destination = 30004759;
@@ -127,11 +143,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.route, 'getRoute').mockResolvedValue(longRoute);
     });
 
-    when('I request a route between distant systems', async () => {
+    when('the client requests a route between distant systems', async () => {
       result = await client.route.getRoute(origin, destination);
     });
 
-    then('I should receive a multi-hop path', () => {
+    then('the client shall return a multi-hop path', () => {
       expect(result).toBeDefined();
       expect(result.length).toBeGreaterThanOrEqual(10);
       expect(result[0]).toBe(origin);
@@ -142,7 +158,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Unreachable destination', ({ given, when, then }) => {
+  test('IF the destination is unreachable, THEN the client shall return an error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
     const origin = 30000142;
     const destination = 99999999;
@@ -152,7 +172,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.route, 'getRoute').mockRejectedValue(error);
     });
 
-    when('I request a route to unreachable destination', async () => {
+    when('the client requests a route to unreachable destination', async () => {
       try {
         await client.route.getRoute(origin, destination);
       } catch (e) {
@@ -160,12 +180,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 404 error', () => {
+    then('the client shall return a 404 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Route with avoided systems', ({ given, when, then }) => {
+  test('WHEN routing with avoided systems, the client shall exclude them from the path', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const origin = 30000142;
     const destination = 30002187;
@@ -180,14 +204,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(routeAvoidingSystems);
     });
 
-    when('I request a route avoiding systems', async () => {
+    when('the client requests a route avoiding systems', async () => {
       result = await client.route.getRoute(origin, destination, {
         avoid_systems: avoidSystems,
       });
     });
 
     then(
-      'I should receive a route that does not include avoided systems',
+      'the client shall return a route that does not include avoided systems',
       () => {
         expect(result).toBeDefined();
         expect(result[0]).toBe(origin);

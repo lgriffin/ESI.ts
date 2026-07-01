@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get contracts for a valid character', ({ given, when, then }) => {
+  test('WHEN getting contracts for a valid character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -43,11 +47,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedContracts);
     });
 
-    when('I request character contracts', async () => {
+    when('the client requests character contracts', async () => {
       result = await client.contracts.getCharacterContracts(characterId);
     });
 
-    then('I should receive a list of contracts', () => {
+    then('the client shall return a list of contracts', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('contract_id', 100000001);
@@ -58,7 +62,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle empty contracts list', ({ given, when, then }) => {
+  test('WHILE empty contracts list, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -70,17 +78,20 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(emptyContracts);
     });
 
-    when('I request character contracts for the empty list', async () => {
-      result = await client.contracts.getCharacterContracts(characterId);
-    });
+    when(
+      'the client requests character contracts for the empty list',
+      async () => {
+        result = await client.contracts.getCharacterContracts(characterId);
+      },
+    );
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Handle non-existent character for contracts', ({
+  test('IF non-existent character for contracts, THEN the client shall return a not-found error', ({
     given,
     when,
     then,
@@ -97,7 +108,7 @@ defineFeature(feature, (test) => {
     });
 
     when(
-      'I request character contracts for the invalid character',
+      'the client requests character contracts for the invalid character',
       async () => {
         try {
           await client.contracts.getCharacterContracts(invalidCharacterId);
@@ -107,12 +118,16 @@ defineFeature(feature, (test) => {
       },
     );
 
-    then('I should receive a 404 not found error', () => {
+    then('the client shall return a 404 not found error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Get public contracts in a region', ({ given, when, then }) => {
+  test('WHEN getting public contracts in a region, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const regionId = 10000002;
     let result: any;
 
@@ -139,11 +154,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedContracts);
     });
 
-    when('I request public contracts', async () => {
+    when('the client requests public contracts', async () => {
       result = await client.contracts.getPublicContracts(regionId);
     });
 
-    then('I should receive contracts available in that region', () => {
+    then('the client shall return contracts available in that region', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('availability', 'public');
@@ -151,7 +166,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get bids for an auction contract', ({ given, when, then }) => {
+  test('WHEN getting bids for an auction contract, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const contractId = 200000002;
     let result: any;
@@ -177,14 +196,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedBids);
     });
 
-    when('I request contract bids', async () => {
+    when('the client requests contract bids', async () => {
       result = await client.contracts.getCharacterContractBids(
         characterId,
         contractId,
       );
     });
 
-    then('I should receive a list of bids', () => {
+    then('the client shall return a list of bids', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('bid_id');
@@ -194,7 +213,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get bids for a public auction', ({ given, when, then }) => {
+  test('WHEN getting bids for a public auction, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const contractId = 200000002;
     let result: any;
 
@@ -213,11 +236,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedBids);
     });
 
-    when('I request public contract bids', async () => {
+    when('the client requests public contract bids', async () => {
       result = await client.contracts.getPublicContractBids(contractId);
     });
 
-    then('I should receive the bid history', () => {
+    then('the client shall return the bid history', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('bid_id', 1);
@@ -225,7 +248,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get items in a character contract', ({ given, when, then }) => {
+  test('WHEN getting items in a character contract, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const contractId = 100000002;
     let result: any;
@@ -253,14 +280,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedItems);
     });
 
-    when('I request contract items', async () => {
+    when('the client requests contract items', async () => {
       result = await client.contracts.getCharacterContractItems(
         characterId,
         contractId,
       );
     });
 
-    then('I should receive the list of items', () => {
+    then('the client shall return the list of items', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('type_id', 34);
@@ -269,7 +296,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Filter character contracts to find only courier contracts', ({
+  test('WHEN filtering character contracts to find only courier contracts, the client shall return filtered results', ({
     given,
     when,
     then,
@@ -306,12 +333,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(allContracts);
     });
 
-    when('I retrieve and filter by courier type', async () => {
+    when('the client retrieves and filter by courier type', async () => {
       const result = await client.contracts.getCharacterContracts(characterId);
       courierContracts = result.filter((c: any) => c.type === 'courier');
     });
 
-    then('I should find only courier contracts', () => {
+    then('the client shall return only courier contracts', () => {
       expect(courierContracts).toHaveLength(2);
       expect(courierContracts.every((c: any) => c.type === 'courier')).toBe(
         true,
@@ -319,7 +346,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Complete contract inspection workflow', ({ given, when, then }) => {
+  test('WHEN completing contract inspection workflow, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const contractId = 400000001;
     let auctionContract: any;
@@ -372,22 +403,25 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(items);
     });
 
-    when('I retrieve the contract then fetch its bids and items', async () => {
-      const contractList =
-        await client.contracts.getCharacterContracts(characterId);
-      auctionContract = contractList.find(
-        (c: any) => c.contract_id === contractId,
-      );
+    when(
+      'the client retrieves the contract then fetch its bids and items',
+      async () => {
+        const contractList =
+          await client.contracts.getCharacterContracts(characterId);
+        auctionContract = contractList.find(
+          (c: any) => c.contract_id === contractId,
+        );
 
-      expect(auctionContract).toBeDefined();
+        expect(auctionContract).toBeDefined();
 
-      [contractBids, contractItems] = await Promise.all([
-        client.contracts.getCharacterContractBids(characterId, contractId),
-        client.contracts.getCharacterContractItems(characterId, contractId),
-      ]);
-    });
+        [contractBids, contractItems] = await Promise.all([
+          client.contracts.getCharacterContractBids(characterId, contractId),
+          client.contracts.getCharacterContractItems(characterId, contractId),
+        ]);
+      },
+    );
 
-    then('I should have full contract details', () => {
+    then('the client shall have full contract details', () => {
       expect(auctionContract!.type).toBe('auction');
       expect(auctionContract!.price).toBe(10000000);
 
@@ -404,7 +438,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Compare character and corporation contracts', ({
+  test('WHEN comparing character and corporation contracts, the client shall return the analysis', ({
     given,
     when,
     then,
@@ -449,14 +483,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(corporationContracts);
     });
 
-    when('I fetch both sets of contracts concurrently', async () => {
+    when('the client fetches both sets of contracts concurrently', async () => {
       [charContracts, corpContracts] = await Promise.all([
         client.contracts.getCharacterContracts(characterId),
         client.contracts.getCorporationContracts(corporationId),
       ]);
     });
 
-    then('I should receive independent results', () => {
+    then('the client shall return independent results', () => {
       expect(charContracts).toHaveLength(1);
       expect(charContracts[0].for_corporation).toBe(false);
 

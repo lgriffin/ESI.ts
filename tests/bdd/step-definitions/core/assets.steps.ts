@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get assets for a valid character', ({ given, when, then }) => {
+  test('WHEN getting assets for a valid character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -45,11 +49,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedAssets);
     });
 
-    when('I request character assets', async () => {
+    when('the client requests character assets', async () => {
       result = await client.assets.getCharacterAssets(characterId);
     });
 
-    then('I should receive a list of assets', () => {
+    then('the client shall return a list of assets', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('item_id');
@@ -62,7 +66,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle empty inventory', ({ given, when, then }) => {
+  test('WHILE empty inventory, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -74,17 +82,24 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(emptyAssets);
     });
 
-    when('I request character assets for the empty inventory', async () => {
-      result = await client.assets.getCharacterAssets(characterId);
-    });
+    when(
+      'the client requests character assets for the empty inventory',
+      async () => {
+        result = await client.assets.getCharacterAssets(characterId);
+      },
+    );
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Handle unauthorized access', ({ given, when, then }) => {
+  test('IF unauthorized access, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let error: any;
 
@@ -96,20 +111,27 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request character assets without authorization', async () => {
-      try {
-        await client.assets.getCharacterAssets(characterId);
-      } catch (e) {
-        error = e;
-      }
-    });
+    when(
+      'the client requests character assets without authorization',
+      async () => {
+        try {
+          await client.assets.getCharacterAssets(characterId);
+        } catch (e) {
+          error = e;
+        }
+      },
+    );
 
-    then('I should receive a 403 forbidden error', () => {
+    then('the client shall return a 403 forbidden error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Look up names for specific assets', ({ given, when, then }) => {
+  test('WHEN looking up names for specific assets, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const itemIds = [1000000001, 1000000002];
     let result: any;
@@ -125,14 +147,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedNames);
     });
 
-    when('I request asset names by item IDs', async () => {
+    when('the client requests asset names by item IDs', async () => {
       result = await client.assets.postCharacterAssetNames(
         characterId,
         itemIds,
       );
     });
 
-    then('I should receive the names for those assets', () => {
+    then('the client shall return the names for those assets', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('item_id', 1000000001);
@@ -142,7 +164,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Look up locations for specific assets', ({ given, when, then }) => {
+  test('WHEN looking up locations for specific assets, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const itemIds = [1000000001];
     let result: any;
@@ -160,14 +186,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLocations);
     });
 
-    when('I request asset locations by item IDs', async () => {
+    when('the client requests asset locations by item IDs', async () => {
       result = await client.assets.postCharacterAssetLocations(
         characterId,
         itemIds,
       );
     });
 
-    then('I should receive position data', () => {
+    then('the client shall return position data', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(1);
       expect(result[0]).toHaveProperty('item_id', 1000000001);
@@ -175,7 +201,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve corporation assets', ({ given, when, then }) => {
+  test('WHEN retrieving corporation assets, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1344654522;
     let result: any;
 
@@ -196,11 +226,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedAssets);
     });
 
-    when('I request corporation assets', async () => {
+    when('the client requests corporation assets', async () => {
       result = await client.assets.getCorporationAssets(corporationId);
     });
 
-    then('I should receive the corporation asset list', () => {
+    then('the client shall return the corporation asset list', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(1);
       expect(result[0].location_flag).toBe('CorpSAG1');
@@ -208,7 +238,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Concurrent character and corporation asset fetch', ({
+  test('The client shall handle concurrent character and corporation asset fetch', ({
     given,
     when,
     then,
@@ -249,14 +279,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(corporationAssets);
     });
 
-    when('I fetch both asset sets concurrently', async () => {
+    when('the client fetches both asset sets concurrently', async () => {
       [charResult, corpResult] = await Promise.all([
         client.assets.getCharacterAssets(characterId),
         client.assets.getCorporationAssets(corporationId),
       ]);
     });
 
-    then('I should receive both results independently', () => {
+    then('the client shall return both results independently', () => {
       expect(charResult).toBeInstanceOf(Array);
       expect(charResult).toHaveLength(2);
       expect(charResult[0].type_id).toBe(34);
@@ -267,7 +297,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Full asset audit workflow', ({ given, when, then }) => {
+  test('WHEN performing full asset audit workflow, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let retrievedAssets: any;
     let names: any;
@@ -299,7 +333,7 @@ defineFeature(feature, (test) => {
     });
 
     when(
-      'I retrieve assets then look up their names and locations',
+      'the client retrieves assets then look up their names and locations',
       async () => {
         retrievedAssets = await client.assets.getCharacterAssets(characterId);
         const itemIds = retrievedAssets.map((a: any) => a.item_id);
@@ -311,7 +345,7 @@ defineFeature(feature, (test) => {
       },
     );
 
-    then('I should have a complete asset inventory', () => {
+    then('the client shall have a complete asset inventory', () => {
       expect(retrievedAssets).toHaveLength(1);
       expect(names).toHaveLength(1);
       expect(names[0].name).toBe('Tritanium Stash');

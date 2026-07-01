@@ -1,51 +1,61 @@
 Feature: Contract Management
 
-  Scenario: Get contracts for a valid character
+  # EARS: Event-driven
+  Scenario: WHEN getting contracts for a valid character, the client shall return the data
     Given a character with contracts
-    When I request character contracts
-    Then I should receive a list of contracts
+    When the client requests character contracts
+    Then the client shall return a list of contracts
 
-  Scenario: Handle empty contracts list
+  # EARS: State-driven
+  Scenario: WHILE empty contracts list, the client shall return an empty result
     Given a character with no contracts
-    When I request character contracts for the empty list
-    Then I should receive an empty array
+    When the client requests character contracts for the empty list
+    Then the client shall return an empty array
 
-  Scenario: Handle non-existent character for contracts
+  # EARS: Unwanted
+  Scenario: IF non-existent character for contracts, THEN the client shall return a not-found error
     Given an invalid character ID for contracts
-    When I request character contracts for the invalid character
-    Then I should receive a 404 not found error
+    When the client requests character contracts for the invalid character
+    Then the client shall return a 404 not found error
 
-  Scenario: Get public contracts in a region
+  # EARS: Event-driven
+  Scenario: WHEN getting public contracts in a region, the client shall return the data
     Given a valid region ID
-    When I request public contracts
-    Then I should receive contracts available in that region
+    When the client requests public contracts
+    Then the client shall return contracts available in that region
 
-  Scenario: Get bids for an auction contract
+  # EARS: Event-driven
+  Scenario: WHEN getting bids for an auction contract, the client shall return the data
     Given an auction contract with bids
-    When I request contract bids
-    Then I should receive a list of bids
+    When the client requests contract bids
+    Then the client shall return a list of bids
 
-  Scenario: Get bids for a public auction
+  # EARS: Event-driven
+  Scenario: WHEN getting bids for a public auction, the client shall return the data
     Given a public auction contract
-    When I request public contract bids
-    Then I should receive the bid history
+    When the client requests public contract bids
+    Then the client shall return the bid history
 
-  Scenario: Get items in a character contract
+  # EARS: Event-driven
+  Scenario: WHEN getting items in a character contract, the client shall return the data
     Given an item exchange contract
-    When I request contract items
-    Then I should receive the list of items
+    When the client requests contract items
+    Then the client shall return the list of items
 
-  Scenario: Filter character contracts to find only courier contracts
+  # EARS: Event-driven
+  Scenario: WHEN filtering character contracts to find only courier contracts, the client shall return filtered results
     Given a character with mixed contract types
-    When I retrieve and filter by courier type
-    Then I should find only courier contracts
+    When the client retrieves and filter by courier type
+    Then the client shall return only courier contracts
 
-  Scenario: Complete contract inspection workflow
+  # EARS: Event-driven
+  Scenario: WHEN completing contract inspection workflow, the client shall complete all steps
     Given an active auction contract
-    When I retrieve the contract then fetch its bids and items
-    Then I should have full contract details
+    When the client retrieves the contract then fetch its bids and items
+    Then the client shall have full contract details
 
-  Scenario: Compare character and corporation contracts
+  # EARS: Event-driven
+  Scenario: WHEN comparing character and corporation contracts, the client shall return the analysis
     Given a character in a corporation
-    When I fetch both sets of contracts concurrently
-    Then I should receive independent results
+    When the client fetches both sets of contracts concurrently
+    Then the client shall return independent results

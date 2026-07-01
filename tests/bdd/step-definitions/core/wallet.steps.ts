@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get ISK balance for a character', ({ given, when, then }) => {
+  test('WHEN getting ISK balance for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -28,11 +32,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedBalance);
     });
 
-    when('I request their wallet balance', async () => {
+    when('the client requests their wallet balance', async () => {
       result = await client.wallet.getCharacterWallet(characterId);
     });
 
-    then('I should receive the ISK amount', () => {
+    then('the client shall return the ISK amount', () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe('number');
       expect(result).toBe(5250000000.75);
@@ -40,7 +44,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Character with zero ISK balance', ({ given, when, then }) => {
+  test('WHILE the character with zero ISK balance, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 123456789;
 
@@ -48,17 +56,21 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.wallet, 'getCharacterWallet').mockResolvedValue(0);
     });
 
-    when('I request the zero balance', async () => {
+    when('the client requests the zero balance', async () => {
       result = await client.wallet.getCharacterWallet(characterId);
     });
 
-    then('I should receive zero', () => {
+    then('the client shall return zero', () => {
       expect(result).toBe(0);
       expect(typeof result).toBe('number');
     });
   });
 
-  test('Get journal entries for a character', ({ given, when, then }) => {
+  test('WHEN getting journal entries for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -85,11 +97,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedJournal);
     });
 
-    when('I request their wallet journal', async () => {
+    when('the client requests their wallet journal', async () => {
       result = await client.wallet.getCharacterWalletJournal(characterId);
     });
 
-    then('I should receive journal entries', () => {
+    then('the client shall return journal entries', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(2);
       expect(result[0]).toHaveProperty('id');
@@ -101,7 +113,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Empty journal for a new character', ({ given, when, then }) => {
+  test('WHILE empty journal for a new character, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 111111111;
 
@@ -111,17 +127,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue([]);
     });
 
-    when('I request the new character wallet journal', async () => {
+    when('the client requests the new character wallet journal', async () => {
       result = await client.wallet.getCharacterWalletJournal(characterId);
     });
 
-    then('I should receive an empty journal array', () => {
+    then('the client shall return an empty journal array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(0);
     });
   });
 
-  test('Get market transactions for a character', ({ given, when, then }) => {
+  test('WHEN getting market transactions for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -150,11 +170,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedTransactions);
     });
 
-    when('I request their transactions', async () => {
+    when('the client requests their transactions', async () => {
       result = await client.wallet.getCharacterWalletTransactions(characterId);
     });
 
-    then('I should receive transaction records', () => {
+    then('the client shall return transaction records', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(2);
       expect(result[0]).toHaveProperty('transaction_id');
@@ -167,7 +187,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get corporation wallet divisions', ({ given, when, then }) => {
+  test('WHEN getting corporation wallet divisions, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -208,11 +232,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedWallets);
     });
 
-    when('I request corporation wallets', async () => {
+    when('the client requests corporation wallets', async () => {
       result = await client.wallet.getCorporationWallets(corporationId);
     });
 
-    then('I should receive all wallet divisions', () => {
+    then('the client shall return all wallet divisions', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(7);
       result.forEach((wallet: any, index: number) => {
@@ -224,7 +248,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get corporation wallet journal for a specific division', ({
+  test('WHEN getting corporation wallet journal for a specific division, the client shall return the data', ({
     given,
     when,
     then,
@@ -248,14 +272,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedJournal);
     });
 
-    when('I request the journal for division 1', async () => {
+    when('the client requests the journal for division 1', async () => {
       result = await client.wallet.getCorporationWalletJournal(
         corporationId,
         division,
       );
     });
 
-    then('I should receive journal entries for that division', () => {
+    then('the client shall return journal entries for that division', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('id');
@@ -264,7 +288,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get corporation wallet transactions for a specific division', ({
+  test('WHEN getting corporation wallet transactions for a specific division, the client shall return the data', ({
     given,
     when,
     then,
@@ -289,14 +313,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedTransactions);
     });
 
-    when('I request transactions for division 1', async () => {
+    when('the client requests transactions for division 1', async () => {
       result = await client.wallet.getCorporationWalletTransactions(
         corporationId,
         division,
       );
     });
 
-    then('I should receive corporation transaction records', () => {
+    then('the client shall return corporation transaction records', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('transaction_id');
@@ -306,7 +330,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Unauthorized access to character wallet (403)', ({
+  test('IF unauthorized access to character wallet (403), THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -321,20 +345,26 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request a character wallet balance without auth', async () => {
-      try {
-        await client.wallet.getCharacterWallet(1689391488);
-      } catch (e) {
-        caughtError = e;
-      }
-    });
+    when(
+      'the client requests a character wallet balance without auth',
+      async () => {
+        try {
+          await client.wallet.getCharacterWallet(1689391488);
+        } catch (e) {
+          caughtError = e;
+        }
+      },
+    );
 
-    then('I should receive a 403 forbidden error for character wallet', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-    });
+    then(
+      'the client shall return a 403 forbidden error for character wallet',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+      },
+    );
   });
 
-  test('Unauthorized access to corporation wallet (403)', ({
+  test('IF unauthorized access to corporation wallet (403), THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -349,7 +379,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request corporation wallets without auth', async () => {
+    when('the client requests corporation wallets without auth', async () => {
       try {
         await client.wallet.getCorporationWallets(1344654522);
       } catch (e) {
@@ -358,14 +388,14 @@ defineFeature(feature, (test) => {
     });
 
     then(
-      'I should receive a 403 forbidden error for corporation wallet',
+      'the client shall return a 403 forbidden error for corporation wallet',
       () => {
         expect(caughtError).toBeInstanceOf(EsiError);
       },
     );
   });
 
-  test('Fetch balance, journal, and transactions simultaneously', ({
+  test('WHEN fetching balance, journal, and transactions simultaneously, the client shall return the data', ({
     given,
     when,
     then,
@@ -403,7 +433,7 @@ defineFeature(feature, (test) => {
     });
 
     when(
-      'I fetch balance, journal, and transactions concurrently',
+      'the client fetches balance, journal, and transactions concurrently',
       async () => {
         [balance, journal, transactions] = await Promise.all([
           client.wallet.getCharacterWallet(characterId),
@@ -413,7 +443,7 @@ defineFeature(feature, (test) => {
       },
     );
 
-    then('all wallet data should complete successfully', () => {
+    then('all wallet data shall complete successfully', () => {
       expect(typeof balance).toBe('number');
       expect(balance).toBe(5250000000.75);
       expect(journal).toBeInstanceOf(Array);
@@ -423,7 +453,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Build a complete financial summary for a character', ({
+  test('WHEN building a complete financial summary for a character, the client shall produce the summary', ({
     given,
     when,
     then,
@@ -481,7 +511,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockTransactions);
     });
 
-    when('I gather all financial data', async () => {
+    when('the client gathers all financial data', async () => {
       [balance, journal, transactions] = await Promise.all([
         client.wallet.getCharacterWallet(characterId),
         client.wallet.getCharacterWalletJournal(characterId),
@@ -489,7 +519,7 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should be able to compute a financial summary', () => {
+    then('the client shall compute a financial summary', () => {
       const totalIncome = journal
         .filter((entry: any) => entry.amount > 0)
         .reduce((sum: number, entry: any) => sum + entry.amount, 0);

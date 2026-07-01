@@ -1,61 +1,73 @@
 Feature: Character Management
 
-  Scenario: Retrieve character public profile
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character public profile, the client shall return the data
     Given a valid character ID
-    When I request public information
-    Then I should receive complete character profile
+    When the client requests public information
+    Then the client shall return complete character profile
 
-  Scenario: Handle non-existent character
+  # EARS: Unwanted
+  Scenario: IF non-existent character, THEN the client shall return a not-found error
     Given an invalid character ID
-    When I request public information for the invalid character
-    Then I should receive a not found error
+    When the client requests public information for the invalid character
+    Then the client shall return a not found error
 
-  Scenario: Retrieve character portraits
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character portraits, the client shall return the data
     Given a valid character ID for portrait
-    When I request portraits
-    Then I should receive image URLs in different sizes
+    When the client requests portraits
+    Then the client shall return image URLs in different sizes
 
-  Scenario: Retrieve character roles
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character roles, the client shall return the data
     Given an authenticated character
-    When I request roles
-    Then I should receive role information
+    When the client requests roles
+    Then the client shall return role information
 
-  Scenario: Retrieve corporation history
+  # EARS: Event-driven
+  Scenario: WHEN retrieving corporation history, the client shall return the data
     Given a character ID for history
-    When I request corporation history
-    Then I should receive employment history
+    When the client requests corporation history
+    Then the client shall return employment history
 
-  Scenario: Retrieve character medals
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character medals, the client shall return the data
     Given a character ID for medals
-    When I request medals
-    Then I should receive medal information
+    When the client requests medals
+    Then the client shall return medal information
 
-  Scenario: Retrieve character notifications
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character notifications, the client shall return the data
     Given an authenticated character for notifications
-    When I request notifications
-    Then I should receive notification list
+    When the client requests notifications
+    Then the client shall return notification list
 
-  Scenario: Handle unauthorized access
+  # EARS: Unwanted
+  Scenario: IF unauthorized access, THEN the client shall return a forbidden error
     Given an unauthenticated request
-    When I access private data without authorization
-    Then I should receive an authorization error
+    When the client accesses private data without authorization
+    Then the client shall return an authorization error
 
-  Scenario: Handle expired authentication
+  # EARS: Unwanted
+  Scenario: IF expired authentication, THEN the client shall return an authentication error
     Given an expired token
-    When I access private data with expired token
-    Then I should receive an authentication error
+    When the client accesses private data with expired token
+    Then the client shall return an authentication error
 
-  Scenario: Handle high-frequency character requests
+  # EARS: Ubiquitous
+  Scenario: The client shall handle high-frequency character requests
     Given multiple concurrent character requests
-    When I make them simultaneously
-    Then all should complete successfully
+    When the client makes them simultaneously
+    Then all requests shall complete successfully
 
-  Scenario: Measure character API response times
+  # EARS: Ubiquitous
+  Scenario: The client shall measure character API response times
     Given normal API conditions for character
-    When I request character data
-    Then response should be within acceptable limits
+    When the client requests character data
+    Then the response shall be within acceptable limits
 
-  Scenario: Complete character profile assembly
+  # EARS: Event-driven
+  Scenario: WHEN completing character profile assembly, the client shall complete all steps
     Given a character ID for profile assembly
-    When I gather complete profile data
-    Then I should successfully retrieve all available character information
+    When the client gathers complete profile data
+    Then the client shall successfully retrieve all available character information

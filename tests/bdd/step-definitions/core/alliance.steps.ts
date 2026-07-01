@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get alliance details for valid alliance ID', ({
+  test('WHEN getting alliance details for valid alliance ID, the client shall return the data', ({
     given,
     when,
     then,
@@ -35,11 +35,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedAlliance);
     });
 
-    when('I request alliance details', async () => {
+    when('the client requests alliance details', async () => {
       result = await client.alliance.getAllianceById(validAllianceId);
     });
 
-    then('I should receive complete alliance information', () => {
+    then('the client shall return complete alliance information', () => {
       expect(result).toBeDefined();
       expect(result.alliance_id).toBe(validAllianceId);
       expect(result.name).toBe('Goonswarm Federation');
@@ -48,7 +48,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle non-existent alliance ID', ({ given, when, then }) => {
+  test('IF non-existent alliance ID, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     const invalidAllianceId = 999999999;
     let error: any;
 
@@ -60,20 +64,27 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(expectedError);
     });
 
-    when('I request alliance details for the invalid ID', async () => {
-      try {
-        await client.alliance.getAllianceById(invalidAllianceId);
-      } catch (e) {
-        error = e;
-      }
-    });
+    when(
+      'the client requests alliance details for the invalid ID',
+      async () => {
+        try {
+          await client.alliance.getAllianceById(invalidAllianceId);
+        } catch (e) {
+          error = e;
+        }
+      },
+    );
 
-    then('I should receive a not found error', () => {
+    then('the client shall return a not found error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle network connectivity issues', ({ given, when, then }) => {
+  test('IF network connectivity issues occur, THEN the client shall handle them gracefully', ({
+    given,
+    when,
+    then,
+  }) => {
     const allianceId = 99005338;
     let error: any;
 
@@ -85,20 +96,27 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(networkError);
     });
 
-    when('I request alliance details during network issues', async () => {
-      try {
-        await client.alliance.getAllianceById(allianceId);
-      } catch (e) {
-        error = e;
-      }
-    });
+    when(
+      'the client requests alliance details during network issues',
+      async () => {
+        try {
+          await client.alliance.getAllianceById(allianceId);
+        } catch (e) {
+          error = e;
+        }
+      },
+    );
 
-    then('I should receive a network error', () => {
+    then('the client shall return a network error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Retrieve alliance contacts', ({ given, when, then }) => {
+  test('WHEN retrieving alliance contacts, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const allianceId = 99005338;
     let result: any;
 
@@ -121,11 +139,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedContacts);
     });
 
-    when('I request contact list', async () => {
+    when('the client requests contact list', async () => {
       result = await client.alliance.getContacts(allianceId);
     });
 
-    then('I should receive an array of contacts', () => {
+    then('the client shall return an array of contacts', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('contact_id');
@@ -134,7 +152,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle empty contact list', ({ given, when, then }) => {
+  test('WHILE empty contact list, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const allianceId = 99005338;
     let result: any;
 
@@ -146,17 +168,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(emptyContacts);
     });
 
-    when('I request contact list for the alliance', async () => {
+    when('the client requests contact list for the alliance', async () => {
       result = await client.alliance.getContacts(allianceId);
     });
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Handle rate limiting gracefully', ({ given, when, then }) => {
+  test('IF rate limiting gracefully, THEN the client shall respect the rate limit', ({
+    given,
+    when,
+    then,
+  }) => {
     const allianceId = 99005338;
     let error: any;
 
@@ -168,7 +194,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(rateLimitError);
     });
 
-    when('I make a rate limited request', async () => {
+    when('the client makes a rate limited request', async () => {
       try {
         await client.alliance.getAllianceById(allianceId);
       } catch (e) {
@@ -176,12 +202,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive appropriate rate limit errors', () => {
+    then('the client shall return appropriate rate limit errors', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Measure response performance', ({ given, when, then }) => {
+  test('The client shall measure response performance', ({
+    given,
+    when,
+    then,
+  }) => {
     const allianceId = 99005338;
     let result: any;
     let responseTime: number;
@@ -199,21 +229,25 @@ defineFeature(feature, (test) => {
         });
     });
 
-    when('I request alliance data', async () => {
+    when('the client requests alliance data', async () => {
       const startTime = Date.now();
       result = await client.alliance.getAllianceById(allianceId);
       const endTime = Date.now();
       responseTime = endTime - startTime;
     });
 
-    then('the response should be within acceptable time limits', () => {
+    then('the response shall be within acceptable time limits', () => {
       expect(result).toBeDefined();
       expect(responseTime).toBeLessThan(5000);
       expect(responseTime).toBeGreaterThan(50);
     });
   });
 
-  test('Complete alliance information gathering', ({ given, when, then }) => {
+  test('WHEN completing alliance information gathering, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     const allianceId = 99005338;
     let alliance: any;
     let contacts: any;
@@ -237,7 +271,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockCorporations);
     });
 
-    when('I gather complete alliance information', async () => {
+    when('the client gathers complete alliance information', async () => {
       [alliance, contacts, corporations] = await Promise.all([
         client.alliance.getAllianceById(allianceId),
         client.alliance.getContacts(allianceId),
@@ -245,7 +279,7 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should successfully retrieve all related data', () => {
+    then('the client shall successfully retrieve all related data', () => {
       expect(alliance).toBeDefined();
       expect(alliance.alliance_id).toBe(allianceId);
 

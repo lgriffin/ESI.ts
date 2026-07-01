@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get upcoming events for a character', ({ given, when, then }) => {
+  test('WHEN getting upcoming events for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -43,11 +47,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedEvents);
     });
 
-    when('I request calendar events', async () => {
+    when('the client requests calendar events', async () => {
       result = await client.calendar.getCalendarEvents(characterId);
     });
 
-    then('I should receive a list of events', () => {
+    then('the client shall return a list of events', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('event_id', 1000001);
@@ -58,7 +62,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle empty calendar', ({ given, when, then }) => {
+  test('WHILE empty calendar, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -70,17 +78,24 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(emptyEvents);
     });
 
-    when('I request calendar events for the empty calendar', async () => {
-      result = await client.calendar.getCalendarEvents(characterId);
-    });
+    when(
+      'the client requests calendar events for the empty calendar',
+      async () => {
+        result = await client.calendar.getCalendarEvents(characterId);
+      },
+    );
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Handle unauthorized access to calendar', ({ given, when, then }) => {
+  test('IF unauthorized access to calendar, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let error: any;
 
@@ -92,20 +107,23 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request calendar events without authorization', async () => {
-      try {
-        await client.calendar.getCalendarEvents(characterId);
-      } catch (e) {
-        error = e;
-      }
-    });
+    when(
+      'the client requests calendar events without authorization',
+      async () => {
+        try {
+          await client.calendar.getCalendarEvents(characterId);
+        } catch (e) {
+          error = e;
+        }
+      },
+    );
 
-    then('I should receive a 403 forbidden error', () => {
+    then('the client shall return a 403 forbidden error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Get detailed information for a specific event', ({
+  test('WHEN getting detailed information for a specific event, the client shall return the data', ({
     given,
     when,
     then,
@@ -133,11 +151,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedDetail);
     });
 
-    when('I request event details', async () => {
+    when('the client requests event details', async () => {
       result = await client.calendar.getCalendarEventById(characterId, eventId);
     });
 
-    then('I should receive complete event information', () => {
+    then('the client shall return complete event information', () => {
       expect(result).toBeDefined();
       expect(result).toHaveProperty('event_id', eventId);
       expect(result).toHaveProperty('title', 'Fleet Op: Jita Defense');
@@ -148,7 +166,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle non-existent event', ({ given, when, then }) => {
+  test('IF non-existent event, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const invalidEventId = 999999999;
     let error: any;
@@ -161,20 +183,30 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(notFoundError);
     });
 
-    when('I request event details for the invalid event', async () => {
-      try {
-        await client.calendar.getCalendarEventById(characterId, invalidEventId);
-      } catch (e) {
-        error = e;
-      }
-    });
+    when(
+      'the client requests event details for the invalid event',
+      async () => {
+        try {
+          await client.calendar.getCalendarEventById(
+            characterId,
+            invalidEventId,
+          );
+        } catch (e) {
+          error = e;
+        }
+      },
+    );
 
-    then('I should receive a 404 not found error', () => {
+    then('the client shall return a 404 not found error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Accept a calendar event invitation', ({ given, when, then }) => {
+  test('WHEN accepting a calendar event invitation, the client shall record the response', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const eventId = 1000001;
 
@@ -184,7 +216,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I accept the event', async () => {
+    when('the client accepts the event', async () => {
       await client.calendar.respondToCalendarEvent(
         characterId,
         eventId,
@@ -192,7 +224,7 @@ defineFeature(feature, (test) => {
       );
     });
 
-    then('the acceptance response should be recorded successfully', () => {
+    then('the acceptance response shall be recorded successfully', () => {
       expect(client.calendar.respondToCalendarEvent).toHaveBeenCalledWith(
         characterId,
         eventId,
@@ -201,7 +233,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Decline a calendar event invitation', ({ given, when, then }) => {
+  test('WHEN declining a calendar event invitation, the client shall record the response', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const eventId = 1000002;
 
@@ -211,7 +247,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I decline the event', async () => {
+    when('the client declines the event', async () => {
       await client.calendar.respondToCalendarEvent(
         characterId,
         eventId,
@@ -219,7 +255,7 @@ defineFeature(feature, (test) => {
       );
     });
 
-    then('the decline response should be recorded', () => {
+    then('the decline response shall be recorded', () => {
       expect(client.calendar.respondToCalendarEvent).toHaveBeenCalledWith(
         characterId,
         eventId,
@@ -228,7 +264,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get attendee list for an event', ({ given, when, then }) => {
+  test('WHEN getting attendee list for an event, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const eventId = 1000001;
     let result: any;
@@ -254,21 +294,24 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedAttendees);
     });
 
-    when('I request the attendee list', async () => {
+    when('the client requests the attendee list', async () => {
       result = await client.calendar.getEventAttendees(characterId, eventId);
     });
 
-    then('I should receive attendees with their response statuses', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(3);
-      expect(result[0]).toHaveProperty('character_id');
-      expect(result[0]).toHaveProperty('event_response', 'accepted');
-      expect(result[1]).toHaveProperty('event_response', 'tentative');
-      expect(result[2]).toHaveProperty('event_response', 'declined');
-    });
+    then(
+      'the client shall return attendees with their response statuses',
+      () => {
+        expect(result).toBeInstanceOf(Array);
+        expect(result).toHaveLength(3);
+        expect(result[0]).toHaveProperty('character_id');
+        expect(result[0]).toHaveProperty('event_response', 'accepted');
+        expect(result[1]).toHaveProperty('event_response', 'tentative');
+        expect(result[2]).toHaveProperty('event_response', 'declined');
+      },
+    );
   });
 
-  test('Complete event lifecycle - view, respond, and check attendees', ({
+  test('WHEN completing event lifecycle - view, respond, and check attendees, the client shall complete all steps', ({
     given,
     when,
     then,
@@ -308,17 +351,26 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(attendeesAfterResponse);
     });
 
-    when('I view details then respond and check attendees', async () => {
-      detail = await client.calendar.getCalendarEventById(characterId, eventId);
-      await client.calendar.respondToCalendarEvent(
-        characterId,
-        eventId,
-        'accepted',
-      );
-      attendees = await client.calendar.getEventAttendees(characterId, eventId);
-    });
+    when(
+      'the client views details then respond and check attendees',
+      async () => {
+        detail = await client.calendar.getCalendarEventById(
+          characterId,
+          eventId,
+        );
+        await client.calendar.respondToCalendarEvent(
+          characterId,
+          eventId,
+          'accepted',
+        );
+        attendees = await client.calendar.getEventAttendees(
+          characterId,
+          eventId,
+        );
+      },
+    );
 
-    then('I should complete the full event interaction', () => {
+    then('the client shall complete the full event interaction', () => {
       expect(detail).toBeDefined();
       expect(detail.title).toBe('Fleet Op: Jita Defense');
 

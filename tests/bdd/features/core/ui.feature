@@ -1,46 +1,55 @@
 Feature: UI Management
 
-  Scenario: Set an autopilot waypoint
+  # EARS: Event-driven
+  Scenario: WHEN setting an autopilot waypoint, the client shall complete the operation
     Given an authenticated character for waypoint
-    When I set an autopilot waypoint to a solar system
-    Then the waypoint should be set successfully
+    When the client sets an autopilot waypoint to a solar system
+    Then the waypoint shall be set successfully
 
-  Scenario: Set a waypoint clearing existing route
+  # EARS: Event-driven
+  Scenario: WHEN setting a waypoint clearing existing route, the client shall complete the operation
     Given an authenticated character with existing waypoints
-    When I set a waypoint with clear flag
-    Then existing waypoints should be cleared
+    When the client sets a waypoint with clear flag
+    Then existing waypoints shall be cleared
 
-  Scenario: Open a contract window
+  # EARS: Event-driven
+  Scenario: WHEN opening a contract window, the client shall complete the operation
     Given an authenticated character for contracts
-    When I open a contract window for a specific contract
-    Then the contract window should open successfully
+    When the client opens a contract window for a specific contract
+    Then the contract window shall open successfully
 
-  Scenario: Open an information window for a character
+  # EARS: Event-driven
+  Scenario: WHEN opening an information window for a character, the client shall complete the operation
     Given an authenticated character for info window
-    When I open an info window for another character
-    Then the information window should display successfully
+    When the client opens an info window for another character
+    Then the information window shall display successfully
 
-  Scenario: Open a market details window
+  # EARS: Event-driven
+  Scenario: WHEN opening a market details window, the client shall complete the operation
     Given an authenticated character for market
-    When I open the market details for an item type
-    Then the market window should display successfully
+    When the client opens the market details for an item type
+    Then the market window shall display successfully
 
-  Scenario: Open a new mail window with pre-filled content
+  # EARS: Event-driven
+  Scenario: WHEN opening a new mail window with pre-filled content, the client shall complete the operation
     Given an authenticated character for mail
-    When I open a new mail window with recipients and content
-    Then the mail window should display with pre-filled data
+    When the client opens a new mail window with recipients and content
+    Then the mail window shall display with pre-filled data
 
-  Scenario: Unauthorized access to UI operations (403)
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to UI operations (403), THEN the client shall return a forbidden error
     Given an unauthenticated user for waypoint
-    When I attempt to set a waypoint
-    Then I should receive a 403 forbidden error for waypoint
+    When the client attempts to set a waypoint
+    Then the client shall return a 403 forbidden error for waypoint
 
-  Scenario: Unauthorized access to contract window (403)
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to contract window (403), THEN the client shall return a forbidden error
     Given an unauthenticated user for contracts
-    When I attempt to open a contract window
-    Then I should receive a 403 forbidden error for contract
+    When the client attempts to open a contract window
+    Then the client shall return a 403 forbidden error for contract
 
-  Scenario: Execute multiple UI operations simultaneously
+  # EARS: Event-driven
+  Scenario: WHEN executing multiple UI operations simultaneously, the client shall complete all operations
     Given an authenticated character for concurrent operations
-    When I perform multiple UI operations concurrently
-    Then all operations should complete successfully
+    When the client performs multiple UI operations concurrently
+    Then all operations shall complete successfully

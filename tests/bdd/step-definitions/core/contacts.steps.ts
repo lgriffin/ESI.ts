@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get contacts for a valid character', ({ given, when, then }) => {
+  test('WHEN getting contacts for a valid character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -47,11 +51,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedContacts);
     });
 
-    when('I request character contacts', async () => {
+    when('the client requests character contacts', async () => {
       result = await client.contacts.getCharacterContacts(characterId);
     });
 
-    then('I should receive a list of contacts with standings', () => {
+    then('the client shall return a list of contacts with standings', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('contact_id', 123456789);
@@ -62,7 +66,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle empty contacts list', ({ given, when, then }) => {
+  test('WHILE empty contacts list, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -74,17 +82,24 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(emptyContacts);
     });
 
-    when('I request character contacts for the empty list', async () => {
-      result = await client.contacts.getCharacterContacts(characterId);
-    });
+    when(
+      'the client requests character contacts for the empty list',
+      async () => {
+        result = await client.contacts.getCharacterContacts(characterId);
+      },
+    );
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Handle unauthorized access to contacts', ({ given, when, then }) => {
+  test('IF unauthorized access to contacts, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let error: any;
 
@@ -96,20 +111,27 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request character contacts without authorization', async () => {
-      try {
-        await client.contacts.getCharacterContacts(characterId);
-      } catch (e) {
-        error = e;
-      }
-    });
+    when(
+      'the client requests character contacts without authorization',
+      async () => {
+        try {
+          await client.contacts.getCharacterContacts(characterId);
+        } catch (e) {
+          error = e;
+        }
+      },
+    );
 
-    then('I should receive a 403 forbidden error', () => {
+    then('the client shall return a 403 forbidden error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Get contact labels for a character', ({ given, when, then }) => {
+  test('WHEN getting contact labels for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -125,11 +147,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLabels);
     });
 
-    when('I request contact labels', async () => {
+    when('the client requests contact labels', async () => {
       result = await client.contacts.getCharacterContactLabels(characterId);
     });
 
-    then('I should receive the label definitions', () => {
+    then('the client shall return the label definitions', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('label_id', 1);
@@ -138,7 +160,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Add new contacts to a character contact list', ({
+  test('WHEN adding new contacts to a character contact list, the client shall add the entries', ({
     given,
     when,
     then,
@@ -160,14 +182,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedIds);
     });
 
-    when('I add contacts', async () => {
+    when('the client adds contacts', async () => {
       result = await client.contacts.postCharacterContacts(
         characterId,
         newContacts,
       );
     });
 
-    then('I should receive the IDs of the added contacts', () => {
+    then('the client shall return the IDs of the added contacts', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result).toContain(111111111);
@@ -175,7 +197,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Remove contacts from a character contact list', ({
+  test('WHEN removing contacts from a character contact list, the client shall complete the operation', ({
     given,
     when,
     then,
@@ -189,11 +211,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I delete those contacts', async () => {
+    when('the client deletes those contacts', async () => {
       await client.contacts.deleteCharacterContacts(characterId, contactIds);
     });
 
-    then('the deletion should complete successfully', () => {
+    then('the deletion shall complete successfully', () => {
       expect(client.contacts.deleteCharacterContacts).toHaveBeenCalledWith(
         characterId,
         contactIds,
@@ -201,7 +223,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get contacts for a corporation', ({ given, when, then }) => {
+  test('WHEN getting contacts for a corporation, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1344654522;
     let result: any;
 
@@ -226,11 +252,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedContacts);
     });
 
-    when('I request corporation contacts', async () => {
+    when('the client requests corporation contacts', async () => {
       result = await client.contacts.getCorporationContacts(corporationId);
     });
 
-    then('I should receive the corporation contact list', () => {
+    then('the client shall return the corporation contact list', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('contact_id', 99005338);
@@ -239,7 +265,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get corporation contact labels', ({ given, when, then }) => {
+  test('WHEN getting corporation contact labels, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1344654522;
     let result: any;
 
@@ -254,18 +284,18 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLabels);
     });
 
-    when('I request corporation contact labels', async () => {
+    when('the client requests corporation contact labels', async () => {
       result = await client.contacts.getCorporationContactLabels(corporationId);
     });
 
-    then('I should receive the corporation label definitions', () => {
+    then('the client shall return the corporation label definitions', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('label_name', 'War Target');
     });
   });
 
-  test('Complete contact management workflow - list, add, and verify', ({
+  test('WHEN completing contact management workflow - list, add, and verify, the client shall complete all steps', ({
     given,
     when,
     then,
@@ -307,7 +337,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue([333333333]);
     });
 
-    when('I list contacts then add new ones and verify', async () => {
+    when('the client lists contacts then add new ones and verify', async () => {
       const newContactData = {
         contact_ids: [333333333],
         standing: 5.0,
@@ -327,7 +357,7 @@ defineFeature(feature, (test) => {
       finalContacts = await client.contacts.getCharacterContacts(characterId);
     });
 
-    then('the full workflow should succeed', () => {
+    then('the full workflow shall succeed', () => {
       expect(finalContacts).toHaveLength(2);
       expect(finalContacts[1].contact_id).toBe(333333333);
       expect(finalContacts[1].standing).toBe(5.0);

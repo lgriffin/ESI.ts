@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get sovereignty hubs as Upwell structures', ({ given, when, then }) => {
+  test('WHEN getting sovereignty hubs as Upwell structures, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const expectedHubs = [
       {
@@ -45,20 +49,27 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedHubs as any);
     });
 
-    when('I request hubs', async () => {
+    when('the client requests hubs', async () => {
       result = await client.skyhooks.getSovereigntyHubs();
     });
 
-    then('I should receive hub data with online status and upgrades', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveLength(2);
-      expect(result[0].online).toBe(true);
-      expect(result[0].installed_upgrades).toEqual([1, 2, 3]);
-      expect(result[1].online).toBe(false);
-    });
+    then(
+      'the client shall return hub data with online status and upgrades',
+      () => {
+        expect(result).toBeDefined();
+        expect(result).toHaveLength(2);
+        expect(result[0].online).toBe(true);
+        expect(result[0].installed_upgrades).toEqual([1, 2, 3]);
+        expect(result[1].online).toBe(false);
+      },
+    );
   });
 
-  test('Get orbital skyhooks with silo data', ({ given, when, then }) => {
+  test('WHEN getting orbital skyhooks with silo data, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const expectedSkyhooks = [
       {
@@ -78,11 +89,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSkyhooks as any);
     });
 
-    when('I request skyhooks', async () => {
+    when('the client requests skyhooks', async () => {
       result = await client.skyhooks.getOrbitalSkyhooks();
     });
 
-    then('I should receive silo capacity and levels', () => {
+    then('the client shall return silo capacity and levels', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(1);
       expect(result[0].reagent_silo_capacity).toBe(1000);
@@ -90,7 +101,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get skyhooks that are currently raidable', ({ given, when, then }) => {
+  test('WHEN getting skyhooks that are currently raidable, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const expectedRaidable = [
       {
@@ -117,11 +132,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedRaidable as any);
     });
 
-    when('I request raidable skyhooks', async () => {
+    when('the client requests raidable skyhooks', async () => {
       result = await client.skyhooks.getRaidableSkyhooks();
     });
 
-    then('I should receive the raidable list', () => {
+    then('the client shall return the raidable list', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(2);
       const raidableNow = result.filter((s: any) => s.is_raidable);
@@ -130,7 +145,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Service unavailable error for skyhooks', ({ given, when, then }) => {
+  test('IF service unavailable error for skyhooks, THEN the client shall handle the service outage', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('the ESI service is down for skyhooks', () => {
@@ -140,7 +159,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(error);
     });
 
-    when('I request skyhook data', async () => {
+    when('the client requests skyhook data', async () => {
       try {
         await client.skyhooks.getSovereigntyHubs();
       } catch (e) {
@@ -148,7 +167,7 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 503 skyhooks error', () => {
+    then('the client shall return a 503 skyhooks error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });

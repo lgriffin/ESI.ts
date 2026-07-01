@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get overall faction warfare statistics', ({ given, when, then }) => {
+  test('WHEN getting overall faction warfare statistics, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the FW system is active', () => {
@@ -48,11 +52,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.factions, 'getStats').mockResolvedValue(expectedStats);
     });
 
-    when('I request faction warfare stats', async () => {
+    when('the client requests faction warfare stats', async () => {
       result = await client.factions.getStats();
     });
 
-    then('I should receive stats for all factions', () => {
+    then('the client shall return stats for all factions', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('faction_id', 500001);
@@ -64,7 +68,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get FW stats for an enlisted character', ({ given, when, then }) => {
+  test('WHEN getting FW stats for an enlisted character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -87,11 +95,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedStats);
     });
 
-    when('I request character FW stats', async () => {
+    when('the client requests character FW stats', async () => {
       result = await client.factions.getCharacterStats(characterId);
     });
 
-    then('I should receive their personal statistics', () => {
+    then('the client shall return their personal statistics', () => {
       expect(result).toBeDefined();
       expect(result).toHaveProperty('faction_id', 500001);
       expect(result).toHaveProperty('enlisted_on');
@@ -102,7 +110,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle unauthorized access for character FW stats', ({
+  test('IF unauthorized access for character FW stats, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -118,20 +126,30 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request character FW stats with invalid token', async () => {
-      try {
-        await client.factions.getCharacterStats(characterId);
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests character FW stats with invalid token',
+      async () => {
+        try {
+          await client.factions.getCharacterStats(characterId);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a 403 forbidden error for character stats', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-    });
+    then(
+      'the client shall return a 403 forbidden error for character stats',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+      },
+    );
   });
 
-  test('Get FW stats for an enlisted corporation', ({ given, when, then }) => {
+  test('WHEN getting FW stats for an enlisted corporation, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -153,11 +171,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedStats);
     });
 
-    when('I request corporation FW stats', async () => {
+    when('the client requests corporation FW stats', async () => {
       result = await client.factions.getCorporationStats(corporationId);
     });
 
-    then('I should receive the corporation statistics', () => {
+    then('the client shall return the corporation statistics', () => {
       expect(result).toBeDefined();
       expect(result).toHaveProperty('faction_id', 500001);
       expect(result).toHaveProperty('enlisted_on');
@@ -167,7 +185,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle unauthorized access for corporation FW stats', ({
+  test('IF unauthorized access for corporation FW stats, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -183,20 +201,30 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request corporation FW stats with invalid token', async () => {
-      try {
-        await client.factions.getCorporationStats(corporationId);
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests corporation FW stats with invalid token',
+      async () => {
+        try {
+          await client.factions.getCorporationStats(corporationId);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a 403 forbidden error for corporation stats', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-    });
+    then(
+      'the client shall return a 403 forbidden error for corporation stats',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+      },
+    );
   });
 
-  test('Get current ownership of FW systems', ({ given, when, then }) => {
+  test('WHEN getting current ownership of FW systems, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('active faction warfare systems', () => {
@@ -224,22 +252,29 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSystems);
     });
 
-    when('I request FW systems', async () => {
+    when('the client requests FW systems', async () => {
       result = await client.factions.getSystems();
     });
 
-    then('I should receive system ownership and contested status', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('solar_system_id');
-      expect(result[0]).toHaveProperty('owner_faction_id');
-      expect(result[0]).toHaveProperty('contested', 'uncontested');
-      expect(result[1]).toHaveProperty('contested', 'contested');
-      expect(result[1].victory_points).toBe(1500);
-    });
+    then(
+      'the client shall return system ownership and contested status',
+      () => {
+        expect(result).toBeInstanceOf(Array);
+        expect(result).toHaveLength(2);
+        expect(result[0]).toHaveProperty('solar_system_id');
+        expect(result[0]).toHaveProperty('owner_faction_id');
+        expect(result[0]).toHaveProperty('contested', 'uncontested');
+        expect(result[1]).toHaveProperty('contested', 'contested');
+        expect(result[1].victory_points).toBe(1500);
+      },
+    );
   });
 
-  test('Get list of active FW wars', ({ given, when, then }) => {
+  test('WHEN getting list of active FW wars, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('faction warfare is active', () => {
@@ -257,11 +292,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.factions, 'getWars').mockResolvedValue(expectedWars);
     });
 
-    when('I request FW wars', async () => {
+    when('the client requests FW wars', async () => {
       result = await client.factions.getWars();
     });
 
-    then('I should receive the list of faction conflicts', () => {
+    then('the client shall return the list of faction conflicts', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('aggressor_id', 500001);
@@ -271,7 +306,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get overall FW leaderboard', ({ given, when, then }) => {
+  test('WHEN getting overall FW leaderboard, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('faction warfare is active for leaderboard', () => {
@@ -311,11 +350,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLeaderboard);
     });
 
-    when('I request the overall leaderboard', async () => {
+    when('the client requests the overall leaderboard', async () => {
       result = await client.factions.getLeaderboardsOverall();
     });
 
-    then('I should receive faction rankings', () => {
+    then('the client shall return faction rankings', () => {
       expect(result).toBeDefined();
       expect(result).toHaveProperty('kills');
       expect(result).toHaveProperty('victory_points');
@@ -325,7 +364,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get character FW leaderboard', ({ given, when, then }) => {
+  test('WHEN getting character FW leaderboard, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('faction warfare is active for character leaderboard', () => {
@@ -356,11 +399,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLeaderboard);
     });
 
-    when('I request the character leaderboard', async () => {
+    when('the client requests the character leaderboard', async () => {
       result = await client.factions.getLeaderboardsCharacters();
     });
 
-    then('I should receive top character rankings', () => {
+    then('the client shall return top character rankings', () => {
       expect(result).toBeDefined();
       expect(result).toHaveProperty('kills');
       expect(result.kills.yesterday).toBeInstanceOf(Array);
@@ -369,7 +412,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Complete faction warfare overview', ({ given, when, then }) => {
+  test('WHEN completing faction warfare overview, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     let factionStats: any;
     let characterStats: any;
     let corporationStats: any;
@@ -442,7 +489,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.factions, 'getWars').mockResolvedValue(wars);
     });
 
-    when('I gather all FW data concurrently', async () => {
+    when('the client gathers all FW data concurrently', async () => {
       [factionStats, characterStats, corporationStats, fwSystems, fwWars] =
         await Promise.all([
           client.factions.getStats(),
@@ -453,7 +500,7 @@ defineFeature(feature, (test) => {
         ]);
     });
 
-    then('I should have a complete faction warfare picture', () => {
+    then('the client shall have a complete faction warfare picture', () => {
       expect(factionStats).toBeInstanceOf(Array);
       expect(factionStats[0].faction_id).toBe(500001);
 

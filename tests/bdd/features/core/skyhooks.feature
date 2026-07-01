@@ -1,21 +1,25 @@
 Feature: Skyhooks Management
 
-  Scenario: Get sovereignty hubs as Upwell structures
+  # EARS: Event-driven
+  Scenario: WHEN getting sovereignty hubs as Upwell structures, the client shall return the data
     Given sovereignty hubs exist
-    When I request hubs
-    Then I should receive hub data with online status and upgrades
+    When the client requests hubs
+    Then the client shall return hub data with online status and upgrades
 
-  Scenario: Get orbital skyhooks with silo data
+  # EARS: Event-driven
+  Scenario: WHEN getting orbital skyhooks with silo data, the client shall return the data
     Given orbital skyhooks are deployed
-    When I request skyhooks
-    Then I should receive silo capacity and levels
+    When the client requests skyhooks
+    Then the client shall return silo capacity and levels
 
-  Scenario: Get skyhooks that are currently raidable
+  # EARS: Event-driven
+  Scenario: WHEN getting skyhooks that are currently raidable, the client shall return the data
     Given raidable skyhooks exist across New Eden
-    When I request raidable skyhooks
-    Then I should receive the raidable list
+    When the client requests raidable skyhooks
+    Then the client shall return the raidable list
 
-  Scenario: Service unavailable error for skyhooks
+  # EARS: Unwanted
+  Scenario: IF service unavailable error for skyhooks, THEN the client shall handle the service outage
     Given the ESI service is down for skyhooks
-    When I request skyhook data
-    Then I should receive a 503 skyhooks error
+    When the client requests skyhook data
+    Then the client shall return a 503 skyhooks error

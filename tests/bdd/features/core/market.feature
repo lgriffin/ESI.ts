@@ -1,56 +1,67 @@
 Feature: Market Management
 
-  Scenario: Retrieve current market prices
+  # EARS: Event-driven
+  Scenario: WHEN retrieving current market prices, the client shall return the data
     Given the market system is operational
-    When I request current market prices
-    Then I should receive price data for all tradeable items
+    When the client requests current market prices
+    Then the client shall return price data for all tradeable items
 
-  Scenario: Handle market data unavailability
+  # EARS: Unwanted
+  Scenario: IF market data is unavailable, THEN the client shall handle the outage
     Given market data is temporarily unavailable
-    When I request market prices expecting error
-    Then I should receive a market service error
+    When the client requests market prices expecting error
+    Then the client shall return a market service error
 
-  Scenario: Retrieve market orders for a region
+  # EARS: Event-driven
+  Scenario: WHEN retrieving market orders for a region, the client shall return the data
     Given a valid region ID
-    When I request market orders for the region
-    Then I should receive current buy and sell orders
+    When the client requests market orders for the region
+    Then the client shall return current buy and sell orders
 
-  Scenario: Filter buy and sell orders
+  # EARS: Event-driven
+  Scenario: WHEN filtering buy and sell orders, the client shall return filtered results
     Given market orders with mixed buy and sell types
-    When I analyze the market orders
-    Then I should be able to distinguish between buy and sell orders
+    When the client analyzes the market orders
+    Then the client shall distinguish between buy and sell orders
 
-  Scenario: Retrieve historical market data
+  # EARS: Event-driven
+  Scenario: WHEN retrieving historical market data, the client shall return the data
     Given a valid region and item type
-    When I request market history
-    Then I should receive historical price and volume data
+    When the client requests market history
+    Then the client shall return historical price and volume data
 
-  Scenario: Analyze price trends
+  # EARS: Event-driven
+  Scenario: WHEN analyzing price trends, the client shall return the analysis
     Given historical market data with trending prices
-    When I analyze price trends
-    Then I should be able to identify market patterns
+    When the client analyzes price trends
+    Then the client shall identify market patterns
 
-  Scenario: Retrieve character market orders
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character market orders, the client shall return the data
     Given an authenticated character with market orders
-    When I request their market orders
-    Then I should receive their active orders
+    When the client requests their market orders
+    Then the client shall return their active orders
 
-  Scenario: Retrieve character order history
+  # EARS: Event-driven
+  Scenario: WHEN retrieving character order history, the client shall return the data
     Given an authenticated character with order history
-    When I request their order history
-    Then I should receive completed and cancelled orders
+    When the client requests their order history
+    Then the client shall return completed and cancelled orders
 
-  Scenario: Handle high-frequency market data requests
+  # EARS: Ubiquitous
+  Scenario: The client shall handle high-frequency market data requests
     Given multiple concurrent market data requests
-    When I make them simultaneously
-    Then all market requests should complete successfully
+    When the client makes them simultaneously
+    Then all market requests shall complete successfully
 
-  Scenario: Handle market data with large volumes
+  # EARS: Ubiquitous
+  Scenario: The client shall handle market data with large volumes
     Given a request for market data with many orders
-    When I process the large market data
-    Then the system should handle large market datasets efficiently
+    When the client processes the large market data
+    Then the client shall handle large market datasets efficiently
 
-  Scenario: Complete market analysis workflow
+  # EARS: Event-driven
+  Scenario: WHEN completing market analysis workflow, the client shall complete all steps
     Given a market analysis requirement
-    When I gather comprehensive market data
-    Then I should successfully retrieve all market information
+    When the client gathers comprehensive market data
+    Then the client shall successfully retrieve all market information

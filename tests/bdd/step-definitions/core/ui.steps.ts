@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Set an autopilot waypoint', ({ given, when, then }) => {
+  test('WHEN setting an autopilot waypoint, the client shall complete the operation', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const waypointBody = {
       destination_id: 30000142,
@@ -30,17 +34,24 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I set an autopilot waypoint to a solar system', async () => {
-      result = await client.ui.setAutopilotWaypoint(waypointBody);
-    });
+    when(
+      'the client sets an autopilot waypoint to a solar system',
+      async () => {
+        result = await client.ui.setAutopilotWaypoint(waypointBody);
+      },
+    );
 
-    then('the waypoint should be set successfully', () => {
+    then('the waypoint shall be set successfully', () => {
       expect(result).toBeUndefined();
       expect(client.ui.setAutopilotWaypoint).toHaveBeenCalledWith(waypointBody);
     });
   });
 
-  test('Set a waypoint clearing existing route', ({ given, when, then }) => {
+  test('WHEN setting a waypoint clearing existing route, the client shall complete the operation', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const waypointBody = {
       destination_id: 30002187,
@@ -54,11 +65,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I set a waypoint with clear flag', async () => {
+    when('the client sets a waypoint with clear flag', async () => {
       result = await client.ui.setAutopilotWaypoint(waypointBody);
     });
 
-    then('existing waypoints should be cleared', () => {
+    then('existing waypoints shall be cleared', () => {
       expect(result).toBeUndefined();
       expect(client.ui.setAutopilotWaypoint).toHaveBeenCalledWith(
         expect.objectContaining({ clear_other_waypoints: true }),
@@ -66,7 +77,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Open a contract window', ({ given, when, then }) => {
+  test('WHEN opening a contract window, the client shall complete the operation', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const contractBody = {
       contract_id: 123456789,
@@ -76,17 +91,20 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.ui, 'openContractWindow').mockResolvedValue(undefined);
     });
 
-    when('I open a contract window for a specific contract', async () => {
-      result = await client.ui.openContractWindow(contractBody);
-    });
+    when(
+      'the client opens a contract window for a specific contract',
+      async () => {
+        result = await client.ui.openContractWindow(contractBody);
+      },
+    );
 
-    then('the contract window should open successfully', () => {
+    then('the contract window shall open successfully', () => {
       expect(result).toBeUndefined();
       expect(client.ui.openContractWindow).toHaveBeenCalledWith(contractBody);
     });
   });
 
-  test('Open an information window for a character', ({
+  test('WHEN opening an information window for a character, the client shall complete the operation', ({
     given,
     when,
     then,
@@ -102,17 +120,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I open an info window for another character', async () => {
+    when('the client opens an info window for another character', async () => {
       result = await client.ui.openInformationWindow(infoBody);
     });
 
-    then('the information window should display successfully', () => {
+    then('the information window shall display successfully', () => {
       expect(result).toBeUndefined();
       expect(client.ui.openInformationWindow).toHaveBeenCalledWith(infoBody);
     });
   });
 
-  test('Open a market details window', ({ given, when, then }) => {
+  test('WHEN opening a market details window, the client shall complete the operation', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const marketBody = {
       type_id: 34,
@@ -124,11 +146,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I open the market details for an item type', async () => {
+    when('the client opens the market details for an item type', async () => {
       result = await client.ui.openMarketDetailsWindow(marketBody);
     });
 
-    then('the market window should display successfully', () => {
+    then('the market window shall display successfully', () => {
       expect(result).toBeUndefined();
       expect(client.ui.openMarketDetailsWindow).toHaveBeenCalledWith(
         marketBody,
@@ -136,7 +158,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Open a new mail window with pre-filled content', ({
+  test('WHEN opening a new mail window with pre-filled content, the client shall complete the operation', ({
     given,
     when,
     then,
@@ -152,17 +174,20 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.ui, 'openNewMailWindow').mockResolvedValue(undefined);
     });
 
-    when('I open a new mail window with recipients and content', async () => {
-      result = await client.ui.openNewMailWindow(mailBody);
-    });
+    when(
+      'the client opens a new mail window with recipients and content',
+      async () => {
+        result = await client.ui.openNewMailWindow(mailBody);
+      },
+    );
 
-    then('the mail window should display with pre-filled data', () => {
+    then('the mail window shall display with pre-filled data', () => {
       expect(result).toBeUndefined();
       expect(client.ui.openNewMailWindow).toHaveBeenCalledWith(mailBody);
     });
   });
 
-  test('Unauthorized access to UI operations (403)', ({
+  test('IF unauthorized access to UI operations (403), THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -177,7 +202,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I attempt to set a waypoint', async () => {
+    when('the client attempts to set a waypoint', async () => {
       try {
         await client.ui.setAutopilotWaypoint({ destination_id: 30000142 });
       } catch (e) {
@@ -185,12 +210,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for waypoint', () => {
+    then('the client shall return a 403 forbidden error for waypoint', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Unauthorized access to contract window (403)', ({
+  test('IF unauthorized access to contract window (403), THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -205,7 +230,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I attempt to open a contract window', async () => {
+    when('the client attempts to open a contract window', async () => {
       try {
         await client.ui.openContractWindow({ contract_id: 123456789 });
       } catch (e) {
@@ -213,12 +238,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for contract', () => {
+    then('the client shall return a 403 forbidden error for contract', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Execute multiple UI operations simultaneously', ({
+  test('WHEN executing multiple UI operations simultaneously, the client shall complete all operations', ({
     given,
     when,
     then,
@@ -239,21 +264,24 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.ui, 'openNewMailWindow').mockResolvedValue(undefined);
     });
 
-    when('I perform multiple UI operations concurrently', async () => {
-      results = await Promise.all([
-        client.ui.setAutopilotWaypoint({ destination_id: 30000142 }),
-        client.ui.openContractWindow({ contract_id: 123456789 }),
-        client.ui.openInformationWindow({ target_id: 1689391488 }),
-        client.ui.openMarketDetailsWindow({ type_id: 34 }),
-        client.ui.openNewMailWindow({
-          recipients: [1689391488],
-          subject: 'Test',
-          body: 'Test body',
-        }),
-      ]);
-    });
+    when(
+      'the client performs multiple UI operations concurrently',
+      async () => {
+        results = await Promise.all([
+          client.ui.setAutopilotWaypoint({ destination_id: 30000142 }),
+          client.ui.openContractWindow({ contract_id: 123456789 }),
+          client.ui.openInformationWindow({ target_id: 1689391488 }),
+          client.ui.openMarketDetailsWindow({ type_id: 34 }),
+          client.ui.openNewMailWindow({
+            recipients: [1689391488],
+            subject: 'Test',
+            body: 'Test body',
+          }),
+        ]);
+      },
+    );
 
-    then('all operations should complete successfully', () => {
+    then('all operations shall complete successfully', () => {
       expect(results).toHaveLength(5);
       results.forEach((result) => {
         expect(result).toBeUndefined();

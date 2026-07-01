@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve character public profile', ({ given, when, then }) => {
+  test('WHEN retrieving character public profile, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const validCharacterId = 1689391488;
     let result: any;
 
@@ -33,11 +37,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedCharacter);
     });
 
-    when('I request public information', async () => {
+    when('the client requests public information', async () => {
       result = await client.characters.getCharacterPublicInfo(validCharacterId);
     });
 
-    then('I should receive complete character profile', () => {
+    then('the client shall return complete character profile', () => {
       expect(result).toBeDefined();
       expect(result.character_id).toBe(validCharacterId);
       expect(result.name).toBe('Test Character');
@@ -47,7 +51,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle non-existent character', ({ given, when, then }) => {
+  test('IF non-existent character, THEN the client shall return a not-found error', ({
+    given,
+    when,
+    then,
+  }) => {
     const invalidCharacterId = 999999999;
     let error: any;
 
@@ -59,20 +67,27 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(expectedError);
     });
 
-    when('I request public information for the invalid character', async () => {
-      try {
-        await client.characters.getCharacterPublicInfo(invalidCharacterId);
-      } catch (e) {
-        error = e;
-      }
-    });
+    when(
+      'the client requests public information for the invalid character',
+      async () => {
+        try {
+          await client.characters.getCharacterPublicInfo(invalidCharacterId);
+        } catch (e) {
+          error = e;
+        }
+      },
+    );
 
-    then('I should receive a not found error', () => {
+    then('the client shall return a not found error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Retrieve character portraits', ({ given, when, then }) => {
+  test('WHEN retrieving character portraits, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -84,11 +99,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedPortrait);
     });
 
-    when('I request portraits', async () => {
+    when('the client requests portraits', async () => {
       result = await client.characters.getCharacterPortrait(characterId);
     });
 
-    then('I should receive image URLs in different sizes', () => {
+    then('the client shall return image URLs in different sizes', () => {
       expect(result).toBeDefined();
       expect(result).toHaveProperty('px64x64');
       expect(result).toHaveProperty('px128x128');
@@ -97,7 +112,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve character roles', ({ given, when, then }) => {
+  test('WHEN retrieving character roles, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -114,11 +133,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedRoles);
     });
 
-    when('I request roles', async () => {
+    when('the client requests roles', async () => {
       result = await client.characters.getCharacterRoles(characterId);
     });
 
-    then('I should receive role information', () => {
+    then('the client shall return role information', () => {
       expect(result).toBeDefined();
       expect(result).toHaveProperty('roles');
       expect(result.roles).toBeInstanceOf(Array);
@@ -127,7 +146,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve corporation history', ({ given, when, then }) => {
+  test('WHEN retrieving corporation history, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -152,12 +175,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedHistory);
     });
 
-    when('I request corporation history', async () => {
+    when('the client requests corporation history', async () => {
       result =
         await client.characters.getCharacterCorporationHistory(characterId);
     });
 
-    then('I should receive employment history', () => {
+    then('the client shall return employment history', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('corporation_id');
@@ -166,7 +189,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve character medals', ({ given, when, then }) => {
+  test('WHEN retrieving character medals, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -188,11 +215,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedMedals);
     });
 
-    when('I request medals', async () => {
+    when('the client requests medals', async () => {
       result = await client.characters.getCharacterMedals(characterId);
     });
 
-    then('I should receive medal information', () => {
+    then('the client shall return medal information', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result[0]).toHaveProperty('medal_id');
       expect(result[0]).toHaveProperty('title');
@@ -201,7 +228,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve character notifications', ({ given, when, then }) => {
+  test('WHEN retrieving character notifications, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -223,11 +254,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedNotifications);
     });
 
-    when('I request notifications', async () => {
+    when('the client requests notifications', async () => {
       result = await client.characters.getCharacterNotifications(characterId);
     });
 
-    then('I should receive notification list', () => {
+    then('the client shall return notification list', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result[0]).toHaveProperty('notification_id');
       expect(result[0]).toHaveProperty('sender_id');
@@ -236,7 +267,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle unauthorized access', ({ given, when, then }) => {
+  test('IF unauthorized access, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let error: any;
 
@@ -248,7 +283,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(authError);
     });
 
-    when('I access private data without authorization', async () => {
+    when('the client accesses private data without authorization', async () => {
       try {
         await client.characters.getCharacterRoles(characterId);
       } catch (e) {
@@ -256,12 +291,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive an authorization error', () => {
+    then('the client shall return an authorization error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle expired authentication', ({ given, when, then }) => {
+  test('IF expired authentication, THEN the client shall return an authentication error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let error: any;
 
@@ -273,7 +312,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(authError);
     });
 
-    when('I access private data with expired token', async () => {
+    when('the client accesses private data with expired token', async () => {
       try {
         await client.characters.getCharacterNotifications(characterId);
       } catch (e) {
@@ -281,12 +320,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive an authentication error', () => {
+    then('the client shall return an authentication error', () => {
       expect(error).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle high-frequency character requests', ({ given, when, then }) => {
+  test('The client shall handle high-frequency character requests', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterIds = [1689391488, 1689391489, 1689391490];
     let results: any;
 
@@ -305,14 +348,14 @@ defineFeature(feature, (test) => {
         );
     });
 
-    when('I make them simultaneously', async () => {
+    when('the client makes them simultaneously', async () => {
       const promises = characterIds.map((id) =>
         client.characters.getCharacterPublicInfo(id),
       );
       results = await Promise.all(promises);
     });
 
-    then('all should complete successfully', () => {
+    then('all requests shall complete successfully', () => {
       expect(results).toHaveLength(3);
       results.forEach((result: any, index: number) => {
         expect(result.character_id).toBe(characterIds[index]);
@@ -321,7 +364,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Measure character API response times', ({ given, when, then }) => {
+  test('The client shall measure character API response times', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
     let responseTime: number;
@@ -339,21 +386,25 @@ defineFeature(feature, (test) => {
         });
     });
 
-    when('I request character data', async () => {
+    when('the client requests character data', async () => {
       const startTime = Date.now();
       result = await client.characters.getCharacterPublicInfo(characterId);
       const endTime = Date.now();
       responseTime = endTime - startTime;
     });
 
-    then('response should be within acceptable limits', () => {
+    then('the response shall be within acceptable limits', () => {
       expect(result).toBeDefined();
       expect(responseTime).toBeLessThan(5000);
       expect(responseTime).toBeGreaterThan(100);
     });
   });
 
-  test('Complete character profile assembly', ({ given, when, then }) => {
+  test('WHEN completing character profile assembly, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let character: any;
     let portrait: any;
@@ -388,7 +439,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockNotifications);
     });
 
-    when('I gather complete profile data', async () => {
+    when('the client gathers complete profile data', async () => {
       [character, portrait, roles, notifications] = await Promise.all([
         client.characters.getCharacterPublicInfo(characterId),
         client.characters.getCharacterPortrait(characterId),
@@ -398,7 +449,7 @@ defineFeature(feature, (test) => {
     });
 
     then(
-      'I should successfully retrieve all available character information',
+      'the client shall successfully retrieve all available character information',
       () => {
         expect(character).toBeDefined();
         expect(character.character_id).toBe(characterId);

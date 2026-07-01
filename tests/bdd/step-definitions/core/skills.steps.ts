@@ -17,7 +17,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get trained skills for a character', ({ given, when, then }) => {
+  test('WHEN getting trained skills for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
     const expectedSkills = TestDataFactory.createCharacterSkills();
@@ -28,11 +32,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSkills);
     });
 
-    when('I request character skills', async () => {
+    when('the client requests character skills', async () => {
       result = await client.skills.getCharacterSkills(characterId);
     });
 
-    then('I should receive the skills list with total SP', () => {
+    then('the client shall return the skills list with total SP', () => {
       expect(result).toBeDefined();
       expect(result.skills).toHaveLength(2);
       expect(result.total_sp).toBe(384000);
@@ -41,7 +45,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('High-SP character with many skills', ({ given, when, then }) => {
+  test('WHEN a high-SP character has many skills, the client shall return all skill data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
     const manySkills = {
@@ -82,11 +90,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(manySkills);
     });
 
-    when('I request their skills', async () => {
+    when('the client requests their skills', async () => {
       result = await client.skills.getCharacterSkills(characterId);
     });
 
-    then('I should receive a large skill set with high total SP', () => {
+    then('the client shall return a large skill set with high total SP', () => {
       expect(result).toBeDefined();
       expect(result.skills).toHaveLength(5);
       expect(result.total_sp).toBe(80000000);
@@ -94,7 +102,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get the skill training queue', ({ given, when, then }) => {
+  test('WHEN getting the skill training queue, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
     const expectedQueue = [
@@ -127,11 +139,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedQueue as any);
     });
 
-    when('I request the skill queue', async () => {
+    when('the client requests the skill queue', async () => {
       result = await client.skills.getCharacterSkillQueue(characterId);
     });
 
-    then('I should receive an ordered queue', () => {
+    then('the client shall return an ordered queue', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(3);
       expect(result[0].queue_position).toBe(0);
@@ -142,7 +154,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Empty skill queue', ({ given, when, then }) => {
+  test('WHILE empty skill queue, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
 
@@ -150,17 +166,21 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.skills, 'getCharacterSkillQueue').mockResolvedValue([]);
     });
 
-    when('I request the skill queue for idle character', async () => {
+    when('the client requests the skill queue for idle character', async () => {
       result = await client.skills.getCharacterSkillQueue(characterId);
     });
 
-    then('I should receive an empty queue array', () => {
+    then('the client shall return an empty queue array', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Get character neural remap attributes', ({ given, when, then }) => {
+  test('WHEN getting character neural remap attributes, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
     const expectedAttributes = TestDataFactory.createCharacterAttributes();
@@ -171,11 +191,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedAttributes);
     });
 
-    when('I request attributes', async () => {
+    when('the client requests attributes', async () => {
       result = await client.skills.getCharacterAttributes(characterId);
     });
 
-    then('I should receive all five attributes and remap info', () => {
+    then('the client shall return all five attributes and remap info', () => {
       expect(result).toBeDefined();
       expect(result.intelligence).toBe(24);
       expect(result.memory).toBe(21);
@@ -186,7 +206,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Attributes with custom remap', ({ given, when, then }) => {
+  test('WHEN attributes include a custom remap, the client shall return remap details', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 90000001;
     const perceptionFocused = TestDataFactory.createCharacterAttributes({
@@ -204,18 +228,22 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(perceptionFocused);
     });
 
-    when('I request remapped attributes', async () => {
+    when('the client requests remapped attributes', async () => {
       result = await client.skills.getCharacterAttributes(characterId);
     });
 
-    then('I should see elevated perception', () => {
+    then('the client shall report elevated perception', () => {
       expect(result.perception).toBe(32);
       expect(result.willpower).toBe(27);
       expect(result.bonus_remaps).toBe(0);
     });
   });
 
-  test('Unauthorized access to skills', ({ given, when, then }) => {
+  test('IF unauthorized access to skills, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
     const characterId = 90000001;
 
@@ -224,7 +252,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.skills, 'getCharacterSkills').mockRejectedValue(error);
     });
 
-    when('I request skills without authorization', async () => {
+    when('the client requests skills without authorization', async () => {
       try {
         await client.skills.getCharacterSkills(characterId);
       } catch (e) {
@@ -232,12 +260,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 skills error', () => {
+    then('the client shall return a 403 skills error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Concurrent fetch of skills, queue, and attributes', ({
+  test('The client shall handle concurrent fetch of skills, queue, and attributes', ({
     given,
     when,
     then,
@@ -270,15 +298,18 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(attributesData);
     });
 
-    when('I fetch skills, queue, and attributes concurrently', async () => {
-      [skills, queue, attributes] = await Promise.all([
-        client.skills.getCharacterSkills(characterId),
-        client.skills.getCharacterSkillQueue(characterId),
-        client.skills.getCharacterAttributes(characterId),
-      ]);
-    });
+    when(
+      'the client fetches skills, queue, and attributes concurrently',
+      async () => {
+        [skills, queue, attributes] = await Promise.all([
+          client.skills.getCharacterSkills(characterId),
+          client.skills.getCharacterSkillQueue(characterId),
+          client.skills.getCharacterAttributes(characterId),
+        ]);
+      },
+    );
 
-    then('all three should return valid data', () => {
+    then('all three shall return valid data', () => {
       expect(skills.skills).toHaveLength(2);
       expect(skills.total_sp).toBe(384000);
       expect(queue).toHaveLength(1);

@@ -1,36 +1,43 @@
 Feature: Integration Workflows
 
-  Scenario: Complete character profile creation
+  # EARS: Event-driven
+  Scenario: WHEN completing character profile creation, the client shall complete all steps
     Given a character ID for profile assembly
-    When I assemble a complete profile
-    Then I should gather all related character data
+    When the client assembles a complete profile
+    Then the client shall gather all related character data
 
-  Scenario: Complete market analysis for trading decisions
+  # EARS: Event-driven
+  Scenario: WHEN completing market analysis for trading decisions, the client shall complete all steps
     Given a trading opportunity exists
-    When I perform market analysis
-    Then I should gather comprehensive market data
+    When the client performs market analysis
+    Then the client shall gather comprehensive market data
 
-  Scenario: Corporation overview and member management
+  # EARS: Event-driven
+  Scenario: WHEN managing corporation overview and members, the client shall complete all steps
     Given a corporation director role
-    When I manage corporation overview
-    Then I should access all corporation data
+    When the client manages corporation overview
+    Then the client shall access all corporation data
 
-  Scenario: Fleet formation and management
+  # EARS: Event-driven
+  Scenario: WHEN managing fleet formation, the client shall complete all steps
     Given fleet commander permissions
-    When I manage fleet operations
-    Then I should coordinate fleet activities
+    When the client manages fleet operations
+    Then the client shall coordinate fleet activities
 
-  Scenario: Manufacturing operation setup
+  # EARS: Event-driven
+  Scenario: WHEN setting up manufacturing operations, the client shall complete all steps
     Given manufacturing requirements exist
-    When I set up production
-    Then I should coordinate all manufacturing aspects
+    When the client sets up production
+    Then the client shall coordinate all manufacturing aspects
 
-  Scenario: Graceful degradation when services are unavailable
+  # EARS: Unwanted
+  Scenario: IF graceful degradation when services are unavailable, THEN the client shall handle the service outage
     Given some services are unavailable
-    When I perform integration workflow with partial failures
-    Then I should handle partial failures gracefully
+    When the client performs integration workflow with partial failures
+    Then the client shall handle partial failures gracefully
 
-  Scenario: Efficient data gathering for complex workflows
+  # EARS: Event-driven
+  Scenario: WHEN gathering data efficiently for complex workflows, the client shall complete all steps
     Given a complex data requirement
-    When I optimize data gathering
-    Then I should minimize API calls and response time
+    When the client optimizes data gathering
+    Then the client shall minimize API calls and response time

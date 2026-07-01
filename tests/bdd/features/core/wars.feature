@@ -1,56 +1,67 @@
 Feature: Wars Management
 
-  Scenario: List all wars
+  # EARS: Event-driven
+  Scenario: WHEN listing all wars, the client shall return the data
     Given wars exist in the system
-    When I request the list of wars
-    Then I should receive an array of war IDs
+    When the client requests the list of wars
+    Then the client shall return an array of war IDs
 
-  Scenario: Wars are returned in descending order
+  # EARS: Event-driven
+  Scenario: WHEN listing wars, the client shall return them in descending order
     Given multiple wars exist in descending order
-    When I request the war list
-    Then war IDs should be in descending order
+    When the client requests the war list
+    Then war IDs shall be in descending order
 
-  Scenario: Get details of an active war
+  # EARS: Event-driven
+  Scenario: WHEN getting details of an active war, the client shall return the data
     Given an active war exists
-    When I request the war details
-    Then I should receive complete war information
+    When the client requests the war details
+    Then the client shall return complete war information
 
-  Scenario: Get details of a finished war
+  # EARS: Event-driven
+  Scenario: WHEN getting details of a finished war, the client shall return the data
     Given a finished war exists
-    When I request the finished war details
-    Then the finished timestamp should be populated
+    When the client requests the finished war details
+    Then the finished timestamp shall be populated
 
-  Scenario: Get details of a mutual war
+  # EARS: Event-driven
+  Scenario: WHEN getting details of a mutual war, the client shall return the data
     Given a mutual war exists
-    When I request the mutual war details
-    Then the mutual flag should be true
+    When the client requests the mutual war details
+    Then the mutual flag shall be true
 
-  Scenario: Get killmails for a war
+  # EARS: Event-driven
+  Scenario: WHEN getting killmails for a war, the client shall return the data
     Given a war with killmails exists
-    When I request the war killmails
-    Then I should receive killmail summaries
+    When the client requests the war killmails
+    Then the client shall return killmail summaries
 
-  Scenario: Get killmails for a war with no kills
+  # EARS: State-driven
+  Scenario: WHILE get killmails for a war with no kills, the client shall return an empty result
     Given a war with no killmails exists
-    When I request the war killmails for empty war
-    Then I should receive an empty killmail array
+    When the client requests the war killmails for empty war
+    Then the client shall return an empty killmail array
 
-  Scenario: Request details for an invalid war ID (404)
+  # EARS: Unwanted
+  Scenario: IF requesting details for an invalid war ID (404), THEN the client shall return a not-found error
     Given an invalid war ID for details
-    When I request the invalid war details
-    Then I should receive a 404 not found error for war details
+    When the client requests the invalid war details
+    Then the client shall return a 404 not found error for war details
 
-  Scenario: Request killmails for an invalid war ID (404)
+  # EARS: Unwanted
+  Scenario: IF requesting killmails for an invalid war ID (404), THEN the client shall return a not-found error
     Given an invalid war ID for killmails
-    When I request killmails for invalid war
-    Then I should receive a 404 not found error for killmails
+    When the client requests killmails for invalid war
+    Then the client shall return a 404 not found error for killmails
 
-  Scenario: Analyze war statistics by comparing aggressor and defender
+  # EARS: Event-driven
+  Scenario: WHEN analyzing war statistics by comparing aggressor and defender, the client shall return the analysis
     Given a war with combat data exists
-    When I analyze the war stats
-    Then I should determine the dominant side
+    When the client analyzes the war stats
+    Then the client shall determine the dominant side
 
-  Scenario: Complete war investigation workflow
+  # EARS: Event-driven
+  Scenario: WHEN completing war investigation workflow, the client shall complete all steps
     Given a war ID to investigate
-    When I gather full war data including details and killmails
-    Then I should build a complete picture of the conflict
+    When the client gathers full war data including details and killmails
+    Then the client shall build a complete picture of the conflict

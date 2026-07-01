@@ -1,46 +1,55 @@
 Feature: Planetary Interaction Management
 
-  Scenario: List all colonies for a character
+  # EARS: Event-driven
+  Scenario: WHEN listing all colonies for a character, the client shall return the data
     Given a valid character ID for PI
-    When I request planetary colonies
-    Then I should receive a list of colonies
+    When the client requests planetary colonies
+    Then the client shall return a list of colonies
 
-  Scenario: Character with no colonies
+  # EARS: State-driven
+  Scenario: WHILE the character with no colonies, the client shall return an empty result
     Given a character with no PI colonies
-    When I request colonies
-    Then I should receive an empty colony array
+    When the client requests colonies
+    Then the client shall return an empty colony array
 
-  Scenario: Get detailed layout for a colony
+  # EARS: Event-driven
+  Scenario: WHEN getting detailed layout for a colony, the client shall return the data
     Given a character ID and planet ID
-    When I request the colony layout
-    Then I should receive pins, links, and routes
+    When the client requests the colony layout
+    Then the client shall return pins, links, and routes
 
-  Scenario: Get layout for an empty colony
+  # EARS: State-driven
+  Scenario: WHILE get layout for an empty colony, the client shall return an empty result
     Given a colony with no structures
-    When I request the layout
-    Then I should receive empty arrays
+    When the client requests the layout
+    Then the client shall return empty arrays
 
-  Scenario: Get a PI schematic by ID
+  # EARS: Event-driven
+  Scenario: WHEN getting a PI schematic by ID, the client shall return the data
     Given a valid schematic ID
-    When I request the schematic
-    Then I should receive schematic details
+    When the client requests the schematic
+    Then the client shall return schematic details
 
-  Scenario: Schematic not found
+  # EARS: Unwanted
+  Scenario: IF schematic not found, THEN the client shall return a not-found error
     Given an invalid schematic ID
-    When I request the invalid schematic
-    Then I should receive a 404 error
+    When the client requests the invalid schematic
+    Then the client shall return a 404 error
 
-  Scenario: List customs offices for a corporation
+  # EARS: Event-driven
+  Scenario: WHEN listing customs offices for a corporation, the client shall return the data
     Given a valid corporation ID for customs offices
-    When I request customs offices
-    Then I should receive a list of customs offices
+    When the client requests customs offices
+    Then the client shall return a list of customs offices
 
-  Scenario: Unauthorized access to customs offices
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to customs offices, THEN the client shall return a forbidden error
     Given insufficient permissions for customs offices
-    When I request customs offices without permissions
-    Then I should receive a 403 error
+    When the client requests customs offices without permissions
+    Then the client shall return a 403 error
 
-  Scenario: Retrieve colonies and inspect their layouts
+  # EARS: Event-driven
+  Scenario: WHEN retrieving colonies and inspect their layouts, the client shall return the data
     Given a character with colonies for workflow
-    When I retrieve colonies and then their layouts
-    Then I should have complete PI data
+    When the client retrieves colonies and then their layouts
+    Then the client shall have complete PI data

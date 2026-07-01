@@ -18,7 +18,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('API response time benchmarking', ({ given, when, then }) => {
+  test('The client shall benchmark API response times', ({
+    given,
+    when,
+    then,
+  }) => {
     let results: any[] = [];
 
     given('normal system load', () => {
@@ -60,59 +64,62 @@ defineFeature(feature, (test) => {
         });
     });
 
-    when('I make API requests and measure response times', async () => {
-      const testCases = [
-        {
-          client: 'alliance',
-          method: 'getAllianceById',
-          args: [99005338],
-          expectedMaxTime: 2000,
-        },
-        {
-          client: 'characters',
-          method: 'getCharacterPublicInfo',
-          args: [1689391488],
-          expectedMaxTime: 1500,
-        },
-        {
-          client: 'corporations',
-          method: 'getCorporationInfo',
-          args: [1344654522],
-          expectedMaxTime: 1500,
-        },
-        {
-          client: 'market',
-          method: 'getMarketPrices',
-          args: [],
-          expectedMaxTime: 3000,
-        },
-        {
-          client: 'universe',
-          method: 'getSystemById',
-          args: [30000142],
-          expectedMaxTime: 1000,
-        },
-      ];
+    when(
+      'the client makes API requests and measure response times',
+      async () => {
+        const testCases = [
+          {
+            client: 'alliance',
+            method: 'getAllianceById',
+            args: [99005338],
+            expectedMaxTime: 2000,
+          },
+          {
+            client: 'characters',
+            method: 'getCharacterPublicInfo',
+            args: [1689391488],
+            expectedMaxTime: 1500,
+          },
+          {
+            client: 'corporations',
+            method: 'getCorporationInfo',
+            args: [1344654522],
+            expectedMaxTime: 1500,
+          },
+          {
+            client: 'market',
+            method: 'getMarketPrices',
+            args: [],
+            expectedMaxTime: 3000,
+          },
+          {
+            client: 'universe',
+            method: 'getSystemById',
+            args: [30000142],
+            expectedMaxTime: 1000,
+          },
+        ];
 
-      results = [];
-      for (const testCase of testCases) {
-        const startTime = Date.now();
+        results = [];
+        for (const testCase of testCases) {
+          const startTime = Date.now();
 
-        const apiClient = (client as any)[testCase.client];
-        await apiClient[testCase.method](...testCase.args);
+          const apiClient = (client as any)[testCase.client];
+          await apiClient[testCase.method](...testCase.args);
 
-        const endTime = Date.now();
-        const responseTime = endTime - startTime;
+          const endTime = Date.now();
+          const responseTime = endTime - startTime;
 
-        results.push({
-          api: `${testCase.client}.${testCase.method}`,
-          responseTime,
-          expectedMaxTime: testCase.expectedMaxTime,
-        });
-      }
-    });
+          results.push({
+            api: `${testCase.client}.${testCase.method}`,
+            responseTime,
+            expectedMaxTime: testCase.expectedMaxTime,
+          });
+        }
+      },
+    );
 
-    then('response times should be within acceptable limits', () => {
+    then('response times shall be within acceptable limits', () => {
       results.forEach((result) => {
         expect(result.responseTime).toBeLessThan(result.expectedMaxTime);
         expect(result.responseTime).toBeGreaterThan(50);
@@ -124,7 +131,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Performance under varying network conditions', ({
+  test('The client shall perform under varying network conditions', ({
     given,
     when,
     then,
@@ -141,7 +148,7 @@ defineFeature(feature, (test) => {
       // Setup will be done per condition in the when step
     });
 
-    when('I make requests under different conditions', async () => {
+    when('the client makes requests under different conditions', async () => {
       results = [];
 
       for (const condition of networkConditions) {
@@ -172,7 +179,7 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('the system should handle varying conditions gracefully', () => {
+    then('the client shall handle varying conditions gracefully', () => {
       results.forEach((result) => {
         expect(result.actualResponseTime).toBeGreaterThanOrEqual(
           result.expectedDelay - 5,
@@ -190,7 +197,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('High concurrency load testing', ({ given, when, then }) => {
+  test('The client shall handle high concurrency load', ({
+    given,
+    when,
+    then,
+  }) => {
     let results: any[];
     let totalTime: number;
     const concurrentRequests = 50;
@@ -211,7 +222,7 @@ defineFeature(feature, (test) => {
         });
     });
 
-    when('I make simultaneous requests', async () => {
+    when('the client makes simultaneous requests', async () => {
       const startTime = Date.now();
       const promises = characterIds.map((id) =>
         client.characters.getCharacterPublicInfo(id),
@@ -221,7 +232,7 @@ defineFeature(feature, (test) => {
       totalTime = endTime - startTime;
     });
 
-    then('the system should handle them efficiently', () => {
+    then('the client shall handle them efficiently', () => {
       expect(results).toHaveLength(concurrentRequests);
       expect(totalTime).toBeLessThan(1000);
 
@@ -236,7 +247,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Mixed API concurrent requests', ({ given, when, then }) => {
+  test('The client shall handle mixed API concurrent requests', ({
+    given,
+    when,
+    then,
+  }) => {
     let results: any[];
     let totalTime: number;
 
@@ -275,39 +290,42 @@ defineFeature(feature, (test) => {
         });
     });
 
-    when('I make concurrent requests across different APIs', async () => {
-      const mixedRequests = [
-        { type: 'alliance', id: 99005338 },
-        { type: 'character', id: 1689391488 },
-        { type: 'corporation', id: 1344654522 },
-        { type: 'system', id: 30000142 },
-        { type: 'market', id: null },
-      ];
+    when(
+      'the client makes concurrent requests across different APIs',
+      async () => {
+        const mixedRequests = [
+          { type: 'alliance', id: 99005338 },
+          { type: 'character', id: 1689391488 },
+          { type: 'corporation', id: 1344654522 },
+          { type: 'system', id: 30000142 },
+          { type: 'market', id: null },
+        ];
 
-      const startTime = Date.now();
-      const promises = mixedRequests.map((request) => {
-        switch (request.type) {
-          case 'alliance':
-            return client.alliance.getAllianceById(request.id!);
-          case 'character':
-            return client.characters.getCharacterPublicInfo(request.id!);
-          case 'corporation':
-            return client.corporations.getCorporationInfo(request.id!);
-          case 'system':
-            return client.universe.getSystemById(request.id!);
-          case 'market':
-            return client.market.getMarketPrices();
-          default:
-            throw new Error('Unknown request type');
-        }
-      });
+        const startTime = Date.now();
+        const promises = mixedRequests.map((request) => {
+          switch (request.type) {
+            case 'alliance':
+              return client.alliance.getAllianceById(request.id!);
+            case 'character':
+              return client.characters.getCharacterPublicInfo(request.id!);
+            case 'corporation':
+              return client.corporations.getCorporationInfo(request.id!);
+            case 'system':
+              return client.universe.getSystemById(request.id!);
+            case 'market':
+              return client.market.getMarketPrices();
+            default:
+              throw new Error('Unknown request type');
+          }
+        });
 
-      results = await Promise.all(promises);
-      const endTime = Date.now();
-      totalTime = endTime - startTime;
-    });
+        results = await Promise.all(promises);
+        const endTime = Date.now();
+        totalTime = endTime - startTime;
+      },
+    );
 
-    then('all mixed requests should complete successfully', () => {
+    then('all mixed requests shall complete successfully', () => {
       expect(results).toHaveLength(5);
       expect(totalTime).toBeLessThan(500);
 
@@ -321,7 +339,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Processing large market datasets', ({ given, when, then }) => {
+  test('The client shall process large market datasets', ({
+    given,
+    when,
+    then,
+  }) => {
     let orders: any;
     let processingTime: number;
     const largeOrderCount = 10000;
@@ -343,7 +365,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(largeOrderSet);
     });
 
-    when('I process the market dataset', async () => {
+    when('the client processes the market dataset', async () => {
       const startTime = Date.now();
       orders = await client.market.getMarketOrders(10000002);
 
@@ -371,7 +393,7 @@ defineFeature(feature, (test) => {
       processingTime = endTime - startTime;
     });
 
-    then('performance should remain acceptable', () => {
+    then('performance shall remain acceptable', () => {
       expect(orders.length).toBe(largeOrderCount);
       expect(processingTime).toBeLessThan(2000);
 
@@ -407,7 +429,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handling large corporation member lists', ({ given, when, then }) => {
+  test('The client shall handle large corporation member lists', ({
+    given,
+    when,
+    then,
+  }) => {
     let members: any;
     let roles: any;
     let processingTime: number;
@@ -434,7 +460,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(memberRoles);
     });
 
-    when('I process member data', async () => {
+    when('the client processes member data', async () => {
       const startTime = Date.now();
       [members, roles] = await Promise.all([
         client.corporations.getCorporationMembers(1344654522),
@@ -456,7 +482,7 @@ defineFeature(feature, (test) => {
       processingTime = endTime - startTime;
     });
 
-    then('performance should scale appropriately', () => {
+    then('performance shall scale appropriately', () => {
       expect(members.length).toBe(largeMemberCount);
       expect(processingTime).toBeLessThan(1500);
 
@@ -481,7 +507,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Memory efficiency with large datasets', ({ given, when, then }) => {
+  test('The client shall maintain memory efficiency with large datasets', ({
+    given,
+    when,
+    then,
+  }) => {
     let results: any[] = [];
     let totalTime: number;
     const iterations = 100;
@@ -500,7 +530,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockDataset);
     });
 
-    when('I process large amounts of data iteratively', async () => {
+    when('the client processes large amounts of data iteratively', async () => {
       const startTime = Date.now();
       results = [];
 
@@ -524,7 +554,7 @@ defineFeature(feature, (test) => {
       totalTime = endTime - startTime;
     });
 
-    then('memory usage should remain efficient', () => {
+    then('memory usage shall remain efficient', () => {
       expect(results.length).toBe(iterations);
       expect(totalTime).toBeLessThan(5000);
 
@@ -543,7 +573,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Performance impact of error conditions', ({ given, when, then }) => {
+  test('IF performance impact of error conditions, THEN the client shall handle it gracefully', ({
+    given,
+    when,
+    then,
+  }) => {
     let results: any[];
     let totalTime: number;
     const totalRequests = 20;
@@ -575,7 +609,7 @@ defineFeature(feature, (test) => {
       totalTime = endTime - startTime;
     });
 
-    then('error handling should not significantly impact performance', () => {
+    then('error handling shall not significantly impact performance', () => {
       const errors = results.filter((result: any) => result.error);
       const successes = results.filter((result: any) => !result.error);
 

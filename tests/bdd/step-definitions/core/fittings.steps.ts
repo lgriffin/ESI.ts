@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('List all saved fittings for a character', ({ given, when, then }) => {
+  test('WHEN listing all saved fittings for a character, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -49,11 +53,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockFittings);
     });
 
-    when('I request their fittings', async () => {
+    when('the client requests their fittings', async () => {
       result = await client.fittings.getFittings(characterId);
     });
 
-    then('I should receive an array of fitting details', () => {
+    then('the client shall return an array of fitting details', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('fitting_id', 1);
@@ -67,7 +71,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Character has no saved fittings', ({ given, when, then }) => {
+  test('WHILE the character has no saved fittings, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -75,17 +83,21 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.fittings, 'getFittings').mockResolvedValue([]);
     });
 
-    when('I request their fittings list', async () => {
+    when('the client requests their fittings list', async () => {
       result = await client.fittings.getFittings(characterId);
     });
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Successfully create a new fitting', ({ given, when, then }) => {
+  test('WHEN creating a new fitting, the client shall create the resource', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
     let fittingData: any;
@@ -108,17 +120,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockResponse);
     });
 
-    when('I create a new fitting', async () => {
+    when('the client creates a new fitting', async () => {
       result = await client.fittings.createFitting(characterId, fittingData);
     });
 
-    then('I should receive the new fitting ID', () => {
+    then('the client shall return the new fitting ID', () => {
       expect(result).toBeDefined();
       expect(result.fitting_id).toBe(42);
     });
   });
 
-  test('Create fitting with maximum items', ({ given, when, then }) => {
+  test('WHEN creating fitting with maximum items, the client shall create the resource', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
     let fullFittingData: any;
@@ -146,23 +162,24 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockResponse);
     });
 
-    when('I save the fitting', async () => {
+    when('the client saves the fitting', async () => {
       result = await client.fittings.createFitting(
         characterId,
         fullFittingData,
       );
     });
 
-    then(
-      'the fitting should be created with all module slots populated',
-      () => {
-        expect(result).toBeDefined();
-        expect(result.fitting_id).toBe(100);
-      },
-    );
+    then('the fitting shall be created with all module slots populated', () => {
+      expect(result).toBeDefined();
+      expect(result.fitting_id).toBe(100);
+    });
   });
 
-  test('Successfully delete an existing fitting', ({ given, when, then }) => {
+  test('WHEN deleting an existing fitting, the client shall complete the operation', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
     const fittingId = 42;
@@ -171,16 +188,20 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.fittings, 'deleteFitting').mockResolvedValue(undefined);
     });
 
-    when('I delete the fitting', async () => {
+    when('the client deletes the fitting', async () => {
       result = await client.fittings.deleteFitting(characterId, fittingId);
     });
 
-    then('the operation should complete without error', () => {
+    then('the operation shall complete without error', () => {
       expect(result).toBeUndefined();
     });
   });
 
-  test('Unauthorized access to fittings', ({ given, when, then }) => {
+  test('IF unauthorized access to fittings, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let caughtError: any;
 
@@ -192,7 +213,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request fittings with invalid token', async () => {
+    when('the client requests fittings with invalid token', async () => {
       try {
         await client.fittings.getFittings(characterId);
       } catch (error) {
@@ -200,12 +221,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for fittings', () => {
+    then('the client shall return a 403 forbidden error for fittings', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Unauthorized access when creating a fitting', ({
+  test('IF unauthorized access when creating a fitting, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -228,7 +249,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I attempt to create a fitting', async () => {
+    when('the client attempts to create a fitting', async () => {
       try {
         await client.fittings.createFitting(characterId, fittingData);
       } catch (error) {
@@ -236,12 +257,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for creation', () => {
+    then('the client shall return a 403 forbidden error for creation', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Full fitting lifecycle - create, list, and delete', ({
+  test('WHEN performing full fitting lifecycle - create, list, and delete, the client shall complete all steps', ({
     given,
     when,
     then,
@@ -279,18 +300,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I create a fitting then list fittings then delete it', async () => {
-      created = await client.fittings.createFitting(characterId, fittingData);
-      expect(created.fitting_id).toBe(99);
+    when(
+      'the client creates a fitting then list fittings then delete it',
+      async () => {
+        created = await client.fittings.createFitting(characterId, fittingData);
+        expect(created.fitting_id).toBe(99);
 
-      fittings = await client.fittings.getFittings(characterId);
-      expect(fittings).toHaveLength(1);
-      expect(fittings[0].fitting_id).toBe(99);
+        fittings = await client.fittings.getFittings(characterId);
+        expect(fittings).toHaveLength(1);
+        expect(fittings[0].fitting_id).toBe(99);
 
-      await client.fittings.deleteFitting(characterId, created.fitting_id);
-    });
+        await client.fittings.deleteFitting(characterId, created.fitting_id);
+      },
+    );
 
-    then('each operation should succeed in sequence', () => {
+    then('each operation shall succeed in sequence', () => {
       expect(createSpy).toHaveBeenCalledWith(characterId, fittingData);
       expect(listSpy).toHaveBeenCalledWith(characterId);
       expect(deleteSpy).toHaveBeenCalledWith(characterId, 99);

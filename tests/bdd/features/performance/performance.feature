@@ -1,41 +1,49 @@
 Feature: Performance Testing
 
-  Scenario: API response time benchmarking
+  # EARS: Ubiquitous
+  Scenario: The client shall benchmark API response times
     Given normal system load
-    When I make API requests and measure response times
-    Then response times should be within acceptable limits
+    When the client makes API requests and measure response times
+    Then response times shall be within acceptable limits
 
-  Scenario: Performance under varying network conditions
+  # EARS: Ubiquitous
+  Scenario: The client shall perform under varying network conditions
     Given different network latencies
-    When I make requests under different conditions
-    Then the system should handle varying conditions gracefully
+    When the client makes requests under different conditions
+    Then the client shall handle varying conditions gracefully
 
-  Scenario: High concurrency load testing
+  # EARS: Ubiquitous
+  Scenario: The client shall handle high concurrency load
     Given high concurrent load
-    When I make simultaneous requests
-    Then the system should handle them efficiently
+    When the client makes simultaneous requests
+    Then the client shall handle them efficiently
 
-  Scenario: Mixed API concurrent requests
+  # EARS: Ubiquitous
+  Scenario: The client shall handle mixed API concurrent requests
     Given mixed API types for concurrent requests
-    When I make concurrent requests across different APIs
-    Then all mixed requests should complete successfully
+    When the client makes concurrent requests across different APIs
+    Then all mixed requests shall complete successfully
 
-  Scenario: Processing large market datasets
+  # EARS: Ubiquitous
+  Scenario: The client shall process large market datasets
     Given large market data
-    When I process the market dataset
-    Then performance should remain acceptable
+    When the client processes the market dataset
+    Then performance shall remain acceptable
 
-  Scenario: Handling large corporation member lists
+  # EARS: Ubiquitous
+  Scenario: The client shall handle large corporation member lists
     Given a large corporation
-    When I process member data
-    Then performance should scale appropriately
+    When the client processes member data
+    Then performance shall scale appropriately
 
-  Scenario: Memory efficiency with large datasets
+  # EARS: Ubiquitous
+  Scenario: The client shall maintain memory efficiency with large datasets
     Given memory-intensive operations
-    When I process large amounts of data iteratively
-    Then memory usage should remain efficient
+    When the client processes large amounts of data iteratively
+    Then memory usage shall remain efficient
 
-  Scenario: Performance impact of error conditions
+  # EARS: Unwanted
+  Scenario: IF performance impact of error conditions, THEN the client shall handle it gracefully
     Given error conditions exist
     When errors occur during requests
-    Then error handling should not significantly impact performance
+    Then error handling shall not significantly impact performance

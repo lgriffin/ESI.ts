@@ -15,7 +15,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get OpenAPI JSON specification', ({ given, when, then }) => {
+  test('WHEN getting OpenAPI JSON specification, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const expectedSpec = {
       openapi: '3.1.0',
@@ -31,11 +35,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.meta, 'getOpenApiJson').mockResolvedValue(expectedSpec);
     });
 
-    when('I request the OpenAPI JSON specification', async () => {
+    when('the client requests the OpenAPI JSON specification', async () => {
       result = await client.meta.getOpenApiJson();
     });
 
-    then('I should receive a valid OpenAPI JSON document', () => {
+    then('the client shall return a valid OpenAPI JSON document', () => {
       expect(result).toBeDefined();
       expect(result.openapi).toBe('3.1.0');
       expect(result.info).toBeDefined();
@@ -45,7 +49,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get OpenAPI YAML specification', ({ given, when, then }) => {
+  test('WHEN getting OpenAPI YAML specification, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const expectedYamlSpec = `openapi: 3.1.0
 info:
@@ -60,11 +68,11 @@ components: {}`;
         .mockResolvedValue(expectedYamlSpec);
     });
 
-    when('I request the OpenAPI YAML specification', async () => {
+    when('the client requests the OpenAPI YAML specification', async () => {
       result = await client.meta.getOpenApiYaml();
     });
 
-    then('I should receive a valid OpenAPI YAML document', () => {
+    then('the client shall return a valid OpenAPI YAML document', () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
       expect(result).toContain('openapi: 3.1.0');
@@ -74,7 +82,11 @@ components: {}`;
     });
   });
 
-  test('Handle API service unavailability', ({ given, when, then }) => {
+  test('IF the API service is unavailable, THEN the client shall handle the outage', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('the ESI API is unavailable', () => {
@@ -82,7 +94,7 @@ components: {}`;
       jest.spyOn(client.meta, 'getOpenApiJson').mockRejectedValue(serviceError);
     });
 
-    when('I request the OpenAPI specification', async () => {
+    when('the client requests the OpenAPI specification', async () => {
       try {
         await client.meta.getOpenApiJson();
       } catch (e) {
@@ -90,13 +102,17 @@ components: {}`;
       }
     });
 
-    then('I should receive a service unavailable error', () => {
+    then('the client shall return a service unavailable error', () => {
       expect(caughtError).toBeDefined();
       expect(caughtError.message).toContain('Service Unavailable');
     });
   });
 
-  test('Compare JSON and YAML specifications', ({ given, when, then }) => {
+  test('WHEN comparing JSON and YAML specifications, the client shall return the analysis', ({
+    given,
+    when,
+    then,
+  }) => {
     let jsonResult: any;
     let yamlResult: any;
 
@@ -123,14 +139,14 @@ paths:
       jest.spyOn(client.meta, 'getOpenApiYaml').mockResolvedValue(yamlSpec);
     });
 
-    when('I retrieve both formats', async () => {
+    when('the client retrieves both formats', async () => {
       [jsonResult, yamlResult] = await Promise.all([
         client.meta.getOpenApiJson(),
         client.meta.getOpenApiYaml(),
       ]);
     });
 
-    then('they should contain equivalent information', () => {
+    then('they shall contain equivalent information', () => {
       expect(jsonResult.openapi).toBe('3.1.0');
       expect(yamlResult).toContain('openapi: 3.1.0');
       expect(jsonResult.info.title).toContain('ESI');

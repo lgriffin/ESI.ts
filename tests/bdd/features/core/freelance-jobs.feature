@@ -1,51 +1,61 @@
 Feature: Freelance Jobs Management
 
-  Scenario: Get freelance jobs listing
+  # EARS: Event-driven
+  Scenario: WHEN getting freelance jobs listing, the client shall return the data
     Given publicly available freelance jobs exist
-    When I request the job listing
-    Then I should receive jobs with pagination cursors
+    When the client requests the job listing
+    Then the client shall return jobs with pagination cursors
 
-  Scenario: No freelance jobs available
+  # EARS: State-driven
+  Scenario: WHILE no freelance jobs available, the client shall return an empty result
     Given no freelance jobs exist
-    When I request the empty job listing
-    Then I should receive an empty listing
+    When the client requests the empty job listing
+    Then the client shall return an empty listing
 
-  Scenario: Get a specific freelance job by ID
+  # EARS: Event-driven
+  Scenario: WHEN getting a specific freelance job by ID, the client shall return the data
     Given a valid job ID
-    When I request the job details
-    Then I should receive the full job information
+    When the client requests the job details
+    Then the client shall return the full job information
 
-  Scenario: Request a non-existent job
+  # EARS: Unwanted
+  Scenario: IF requesting a non-existent job, THEN the client shall return a not-found error
     Given an invalid job ID
-    When I request details for the invalid job
-    Then I should receive a 404 error for the job
+    When the client requests details for the invalid job
+    Then the client shall return a 404 error for the job
 
-  Scenario: Get character freelance jobs
+  # EARS: Event-driven
+  Scenario: WHEN getting character freelance jobs, the client shall return the data
     Given an authenticated character with freelance jobs
-    When I request their job listing
-    Then I should receive the character jobs with cursors
+    When the client requests their job listing
+    Then the client shall return the character jobs with cursors
 
-  Scenario: Get character participation in a specific job
+  # EARS: Event-driven
+  Scenario: WHEN getting character participation in a specific job, the client shall return the data
     Given a character participating in a job
-    When I request their participation details
-    Then I should receive contribution data
+    When the client requests their participation details
+    Then the client shall return contribution data
 
-  Scenario: Get corporation freelance jobs
+  # EARS: Event-driven
+  Scenario: WHEN getting corporation freelance jobs, the client shall return the data
     Given an authenticated corporation for freelance jobs
-    When I request their freelance jobs
-    Then I should receive the corporation jobs listing
+    When the client requests their freelance jobs
+    Then the client shall return the corporation jobs listing
 
-  Scenario: Paginate forward through freelance jobs
+  # EARS: Event-driven
+  Scenario: WHEN paginating forward through freelance jobs, the client shall return the correct page
     Given a first page with an after cursor
-    When I request the next page using the after token
-    Then I should receive the second page of results
+    When the client requests the next page using the after token
+    Then the client shall return the second page of results
 
-  Scenario: Paginate backward through freelance jobs
+  # EARS: Event-driven
+  Scenario: WHEN paginating backward through freelance jobs, the client shall return the correct page
     Given a second page with a before cursor
-    When I request the previous page using the before token
-    Then I should receive the first page of results
+    When the client requests the previous page using the before token
+    Then the client shall return the first page of results
 
-  Scenario: Unauthorized access to character freelance jobs
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to character freelance jobs, THEN the client shall return a forbidden error
     Given an invalid token for freelance jobs
-    When I request character freelance jobs with invalid token
-    Then I should receive a 403 forbidden error for freelance jobs
+    When the client requests character freelance jobs with invalid token
+    Then the client shall return a 403 forbidden error for freelance jobs

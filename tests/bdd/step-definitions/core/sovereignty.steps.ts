@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get active sovereignty campaigns', ({ given, when, then }) => {
+  test('WHEN getting active sovereignty campaigns, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('active sovereignty contests exist', () => {
@@ -50,11 +54,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedCampaigns as any);
     });
 
-    when('I request campaigns', async () => {
+    when('the client requests campaigns', async () => {
       result = await client.sovereignty.getSovereigntyCampaigns();
     });
 
-    then('I should receive campaign details with scores', () => {
+    then('the client shall return campaign details with scores', () => {
       expect(result).toBeDefined();
       expect(result).toHaveLength(2);
       expect(result[0].campaign_id).toBe(1001);
@@ -65,7 +69,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('No active sovereignty campaigns', ({ given, when, then }) => {
+  test('WHILE no active sovereignty campaigns, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('no active campaigns exist', () => {
@@ -74,17 +82,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue([]);
     });
 
-    when('I request campaigns', async () => {
+    when('the client requests campaigns', async () => {
       result = await client.sovereignty.getSovereigntyCampaigns();
     });
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Service unavailable error for sovereignty', ({ given, when, then }) => {
+  test('IF service unavailable error for sovereignty, THEN the client shall handle the service outage', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('the ESI service is down', () => {
@@ -95,7 +107,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(error);
     });
 
-    when('I request sovereignty data', async () => {
+    when('the client requests sovereignty data', async () => {
       try {
         await client.sovereignty.getSovereigntyCampaigns();
       } catch (e) {
@@ -103,12 +115,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 503 error', () => {
+    then('the client shall return a 503 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Get combined sovereignty systems with ADM indices', ({
+  test('WHEN getting combined sovereignty systems with ADM indices, the client shall return the data', ({
     given,
     when,
     then,
@@ -148,12 +160,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedSystems as any);
     });
 
-    when('I request sovereignty systems', async () => {
+    when('the client requests sovereignty systems', async () => {
       result = await client.sovereignty.getSovereigntySystems();
     });
 
     then(
-      'I should receive occupancy, structures, and separate ADM indices',
+      'the client shall return occupancy, structures, and separate ADM indices',
       () => {
         expect(result).toBeDefined();
         expect(result).toHaveLength(2);
@@ -166,7 +178,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Combined route replaces separate map and structures endpoints', ({
+  test('WHEN fetching combined sovereignty data, the client shall replace separate map and structures calls', ({
     given,
     when,
     then,
@@ -200,11 +212,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(systemsData as any);
     });
 
-    when('I fetch systems', async () => {
+    when('the client fetches systems', async () => {
       result = await client.sovereignty.getSovereigntySystems();
     });
 
-    then('it should contain data from both map and structures', () => {
+    then('it shall contain data from both map and structures', () => {
       expect(result[0].system_id).toBeDefined();
       expect(result[0].alliance_id).toBeDefined();
       expect(result[0].military_index).toBeDefined();
@@ -213,7 +225,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Concurrent fetch of campaigns and systems', ({ given, when, then }) => {
+  test('The client shall handle concurrent fetch of campaigns and systems', ({
+    given,
+    when,
+    then,
+  }) => {
     let campaigns: any;
     let systems: any;
 
@@ -257,14 +273,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(systemsData as any);
     });
 
-    when('I fetch all data concurrently', async () => {
+    when('the client fetches all data concurrently', async () => {
       [campaigns, systems] = await Promise.all([
         client.sovereignty.getSovereigntyCampaigns(),
         client.sovereignty.getSovereigntySystems(),
       ]);
     });
 
-    then('both should return valid data', () => {
+    then('both shall return valid data', () => {
       expect(campaigns).toHaveLength(1);
       expect(campaigns[0].campaign_id).toBe(1001);
       expect(systems).toHaveLength(1);

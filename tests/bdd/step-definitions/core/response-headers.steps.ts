@@ -31,7 +31,11 @@ defineFeature(feature, (test) => {
     statusClient = new StatusClient(apiClient);
   });
 
-  test('Deprecated endpoint returns 299 warning', ({ given, when, then }) => {
+  test('WHEN a deprecated endpoint returns a 299 warning, the client shall expose the warning', ({
+    given,
+    when,
+    then,
+  }) => {
     given('a deprecated endpoint that returns a 299 warning header', () => {
       fetchMock.mockResponseOnce(STATUS_BODY, {
         headers: {
@@ -41,22 +45,23 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I call it with metadata', async () => {
+    when('the client calls it with metadata', async () => {
       const metaClient = statusClient.withMetadata();
       result = await metaClient.getStatus();
     });
 
-    then(
-      'the meta should contain the deprecation warning with code 299',
-      () => {
-        expect(result.meta.warning).toBeDefined();
-        expect(result.meta.warning!.code).toBe(299);
-        expect(result.meta.warning!.message).toBe('This route is deprecated');
-      },
-    );
+    then('the meta shall contain the deprecation warning with code 299', () => {
+      expect(result.meta.warning).toBeDefined();
+      expect(result.meta.warning!.code).toBe(299);
+      expect(result.meta.warning!.message).toBe('This route is deprecated');
+    });
   });
 
-  test('Endpoint returns 199 upgrade notice', ({ given, when, then }) => {
+  test('WHEN an endpoint returns a 199 upgrade notice, the client shall expose the notice', ({
+    given,
+    when,
+    then,
+  }) => {
     given('an endpoint that returns a 199 upgrade warning header', () => {
       fetchMock.mockResponseOnce(STATUS_BODY, {
         headers: {
@@ -66,12 +71,12 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I call it with metadata', async () => {
+    when('the client calls it with metadata', async () => {
       const metaClient = statusClient.withMetadata();
       result = await metaClient.getStatus();
     });
 
-    then('the meta should contain the upgrade warning with code 199', () => {
+    then('the meta shall contain the upgrade warning with code 199', () => {
       expect(result.meta.warning).toBeDefined();
       expect(result.meta.warning!.code).toBe(199);
       expect(result.meta.warning!.message).toBe(
@@ -80,24 +85,32 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Endpoint returns no warning', ({ given, when, then }) => {
+  test('WHILE endpoint returns no warning, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     given('a normal endpoint with no warning header', () => {
       fetchMock.mockResponseOnce(STATUS_BODY, {
         headers: { 'content-type': 'application/json' },
       });
     });
 
-    when('I call it with metadata', async () => {
+    when('the client calls it with metadata', async () => {
       const metaClient = statusClient.withMetadata();
       result = await metaClient.getStatus();
     });
 
-    then('the meta should not contain a warning', () => {
+    then('the meta shall not contain a warning', () => {
       expect(result.meta.warning).toBeUndefined();
     });
   });
 
-  test('Request ID exposed in metadata', ({ given, when, then }) => {
+  test('WHEN a response includes a request ID, the client shall expose it in metadata', ({
+    given,
+    when,
+    then,
+  }) => {
     given('an API response with x-esi-request-id header', () => {
       fetchMock.mockResponseOnce(STATUS_BODY, {
         headers: {
@@ -107,17 +120,20 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I call it with metadata', async () => {
+    when('the client calls it with metadata', async () => {
       const metaClient = statusClient.withMetadata();
       result = await metaClient.getStatus();
     });
 
-    then('the meta should contain the request ID', () => {
+    then('the meta shall contain the request ID', () => {
       expect(result.meta.requestId).toBe('abc-123-def-456');
     });
   });
 
-  test('Request ID included in EsiError on failure', ({ given, then }) => {
+  test('IF requesting ID included in EsiError on failure, THEN the client shall handle it gracefully', ({
+    given,
+    then,
+  }) => {
     given('an EsiError created with a request ID', () => {
       error = new EsiError(
         404,
@@ -128,7 +144,7 @@ defineFeature(feature, (test) => {
     });
 
     then(
-      'the EsiError should contain the request ID and status code and url',
+      'the EsiError shall contain the request ID and status code and url',
       () => {
         expect(error.requestId).toBe('abc-123-def-456');
         expect(error.statusCode).toBe(404);
@@ -139,7 +155,11 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Date header exposed in metadata', ({ given, when, then }) => {
+  test('WHEN a response includes a date header, the client shall expose it in metadata', ({
+    given,
+    when,
+    then,
+  }) => {
     given('an API response with a Date header', () => {
       fetchMock.mockResponseOnce(STATUS_BODY, {
         headers: {
@@ -149,17 +169,21 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I call it with metadata', async () => {
+    when('the client calls it with metadata', async () => {
       const metaClient = statusClient.withMetadata();
       result = await metaClient.getStatus();
     });
 
-    then('the meta should contain the date', () => {
+    then('the meta shall contain the date', () => {
       expect(result.meta.date).toBe('Tue, 29 Apr 2026 12:00:00 GMT');
     });
   });
 
-  test('Content-Language exposed in metadata', ({ given, when, then }) => {
+  test('WHEN a response includes a content-language header, the client shall expose it in metadata', ({
+    given,
+    when,
+    then,
+  }) => {
     given('an API response with a Content-Language header', () => {
       fetchMock.mockResponseOnce(STATUS_BODY, {
         headers: {
@@ -169,12 +193,12 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('I call it with metadata', async () => {
+    when('the client calls it with metadata', async () => {
       const metaClient = statusClient.withMetadata();
       result = await metaClient.getStatus();
     });
 
-    then('the meta should contain the language', () => {
+    then('the meta shall contain the language', () => {
       expect(result.meta.contentLanguage).toBe('en-us');
     });
   });

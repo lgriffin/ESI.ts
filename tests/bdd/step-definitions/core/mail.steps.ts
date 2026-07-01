@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve mail inbox headers', ({ given, when, then }) => {
+  test('WHEN retrieving mail inbox headers, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -68,11 +72,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedHeaders);
     });
 
-    when('I request their inbox headers', async () => {
+    when('the client requests their inbox headers', async () => {
       result = await client.mail.getMailHeaders(characterId);
     });
 
-    then('I should receive a list of mail summaries', () => {
+    then('the client shall return a list of mail summaries', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(3);
       result.forEach((header: any) => {
@@ -85,7 +89,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Empty inbox', ({ given, when, then }) => {
+  test('WHILE empty inbox, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 111111111;
     let result: any;
 
@@ -93,17 +101,21 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mail, 'getMailHeaders').mockResolvedValue([]);
     });
 
-    when('I request their empty inbox headers', async () => {
+    when('the client requests their empty inbox headers', async () => {
       result = await client.mail.getMailHeaders(characterId);
     });
 
-    then('I should receive an empty mail list', () => {
+    then('the client shall return an empty mail list', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(0);
     });
   });
 
-  test('Read a single mail message', ({ given, when, then }) => {
+  test('WHEN reading a single mail message, the client shall return the full content', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const mailId = 1;
     let result: any;
@@ -124,11 +136,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mail, 'getMail').mockResolvedValue(expectedMail);
     });
 
-    when('I request the full mail', async () => {
+    when('the client requests the full mail', async () => {
       result = await client.mail.getMail(characterId, mailId);
     });
 
-    then('I should receive the complete message with body', () => {
+    then('the client shall return the complete message with body', () => {
       expect(result).toBeDefined();
       expect(result.mail_id).toBe(mailId);
       expect(result.subject).toBe('Fleet Operation Tonight');
@@ -138,7 +150,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve mail labels with unread counts', ({ given, when, then }) => {
+  test('WHEN retrieving mail labels with unread counts, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -158,11 +174,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLabels);
     });
 
-    when('I request their mail labels', async () => {
+    when('the client requests their mail labels', async () => {
       result = await client.mail.getMailLabels(characterId);
     });
 
-    then('I should receive labels with unread counts', () => {
+    then('the client shall return labels with unread counts', () => {
       expect(result).toBeDefined();
       expect(result.total_unread_count).toBe(5);
       expect(result.labels).toBeInstanceOf(Array);
@@ -182,7 +198,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Create a custom mail label', ({ given, when, then }) => {
+  test('WHEN creating a custom mail label, the client shall create the resource', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -190,18 +210,22 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mail, 'createMailLabel').mockResolvedValue(100);
     });
 
-    when('I create a new mail label', async () => {
+    when('the client creates a new mail label', async () => {
       const newLabel = { name: 'Important', color: '#FF0000' };
       result = await client.mail.createMailLabel(characterId, newLabel);
     });
 
-    then('I should receive the new label ID', () => {
+    then('the client shall return the new label ID', () => {
       expect(result).toBe(100);
       expect(typeof result).toBe('number');
     });
   });
 
-  test('Delete a custom mail label', ({ given, when, then }) => {
+  test('WHEN deleting a custom mail label, the client shall complete the operation', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const labelId = 100;
 
@@ -209,11 +233,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mail, 'deleteMailLabel').mockResolvedValue(undefined);
     });
 
-    when('I delete the mail label', async () => {
+    when('the client deletes the mail label', async () => {
       await client.mail.deleteMailLabel(characterId, labelId);
     });
 
-    then('the delete label operation should complete without error', () => {
+    then('the delete label operation shall complete without error', () => {
       expect(client.mail.deleteMailLabel).toHaveBeenCalledWith(
         characterId,
         labelId,
@@ -221,7 +245,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve subscribed mailing lists', ({ given, when, then }) => {
+  test('WHEN retrieving subscribed mailing lists, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -237,11 +265,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedLists);
     });
 
-    when('I request their mailing lists', async () => {
+    when('the client requests their mailing lists', async () => {
       result = await client.mail.getMailingLists(characterId);
     });
 
-    then('I should receive the mailing list details', () => {
+    then('the client shall return the mailing list details', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(3);
       result.forEach((list: any) => {
@@ -253,7 +281,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Send a new mail', ({ given, when, then }) => {
+  test('WHEN sending a new mail, the client shall deliver the message', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -261,7 +293,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mail, 'sendMail').mockResolvedValue(42);
     });
 
-    when('I send a mail to another character', async () => {
+    when('the client sends a mail to another character', async () => {
       const mailBody = {
         recipients: [{ recipient_id: 123456789, recipient_type: 'character' }],
         subject: 'Fleet Invitation',
@@ -270,13 +302,17 @@ defineFeature(feature, (test) => {
       result = await client.mail.sendMail(characterId, mailBody);
     });
 
-    then('I should receive the new mail ID', () => {
+    then('the client shall return the new mail ID', () => {
       expect(result).toBe(42);
       expect(typeof result).toBe('number');
     });
   });
 
-  test('Delete a mail', ({ given, when, then }) => {
+  test('WHEN deleting a mail, the client shall complete the operation', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const mailId = 1;
 
@@ -284,16 +320,20 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mail, 'deleteMail').mockResolvedValue(undefined);
     });
 
-    when('I delete the mail', async () => {
+    when('the client deletes the mail', async () => {
       await client.mail.deleteMail(characterId, mailId);
     });
 
-    then('the delete mail operation should complete without error', () => {
+    then('the delete mail operation shall complete without error', () => {
       expect(client.mail.deleteMail).toHaveBeenCalledWith(characterId, mailId);
     });
   });
 
-  test('Update mail metadata to mark as read', ({ given, when, then }) => {
+  test('WHEN updating mail metadata to mark as read, the client shall apply the changes', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     const mailId = 1;
     const metadata = { read: true, labels: [3] };
@@ -304,11 +344,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(undefined);
     });
 
-    when('I update its metadata to mark it as read', async () => {
+    when('the client updates its metadata to mark it as read', async () => {
       await client.mail.updateMailMetadata(characterId, mailId, metadata);
     });
 
-    then('the update metadata operation should complete without error', () => {
+    then('the update metadata operation shall complete without error', () => {
       expect(client.mail.updateMailMetadata).toHaveBeenCalledWith(
         characterId,
         mailId,
@@ -317,7 +357,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Fetch headers, labels, and mailing lists simultaneously', ({
+  test('WHEN fetching headers, labels, and mailing lists simultaneously, the client shall return the data', ({
     given,
     when,
     then,
@@ -356,15 +396,18 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mail, 'getMailingLists').mockResolvedValue(mockLists);
     });
 
-    when('I fetch headers, labels, and lists concurrently', async () => {
-      [headers, labels, lists] = await Promise.all([
-        client.mail.getMailHeaders(characterId),
-        client.mail.getMailLabels(characterId),
-        client.mail.getMailingLists(characterId),
-      ]);
-    });
+    when(
+      'the client fetches headers, labels, and lists concurrently',
+      async () => {
+        [headers, labels, lists] = await Promise.all([
+          client.mail.getMailHeaders(characterId),
+          client.mail.getMailLabels(characterId),
+          client.mail.getMailingLists(characterId),
+        ]);
+      },
+    );
 
-    then('all three mail requests should resolve successfully', () => {
+    then('all three mail requests shall resolve successfully', () => {
       expect(headers).toBeInstanceOf(Array);
       expect(headers.length).toBe(1);
       expect(headers[0].subject).toBe('Test Mail');
@@ -378,7 +421,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle unauthorized access to mail', ({ given, when, then }) => {
+  test('IF unauthorized access to mail, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let caughtError: any;
 
@@ -390,7 +437,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request mail headers without auth', async () => {
+    when('the client requests mail headers without auth', async () => {
       try {
         await client.mail.getMailHeaders(characterId);
       } catch (error) {
@@ -398,12 +445,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for mail', () => {
+    then('the client shall return a 403 forbidden error for mail', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle not found error for non-existent mail', ({
+  test('IF not found error for non-existent mail, THEN the client shall return a not-found error', ({
     given,
     when,
     then,
@@ -418,7 +465,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.mail, 'getMail').mockRejectedValue(notFoundError);
     });
 
-    when('I request the non-existent mail', async () => {
+    when('the client requests the non-existent mail', async () => {
       try {
         await client.mail.getMail(characterId, nonExistentMailId);
       } catch (error) {
@@ -426,7 +473,7 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 404 not found error for mail', () => {
+    then('the client shall return a 404 not found error for mail', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });

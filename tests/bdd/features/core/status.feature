@@ -1,41 +1,49 @@
 Feature: Status Management
 
-  Scenario: Get current server status
+  # EARS: Event-driven
+  Scenario: WHEN getting current server status, the client shall return the data
     Given the Tranquility server is online
-    When I request the server status
-    Then I should receive current status information
+    When the client requests the server status
+    Then the client shall return current status information
 
-  Scenario: Verify player count is reasonable
+  # EARS: Event-driven
+  Scenario: WHEN verifying player count is reasonable, the client shall validate the data
     Given the server is online with a typical player count
-    When I check the player count
-    Then the player count should be within expected bounds
+    When the client checks the player count
+    Then the player count shall be within expected bounds
 
-  Scenario: Verify start time is a valid timestamp
+  # EARS: Event-driven
+  Scenario: WHEN verifying start time is a valid timestamp, the client shall validate the data
     Given the server is online
-    When I check the start time
-    Then the start time should be a valid ISO timestamp
+    When the client checks the start time
+    Then the start time shall be a valid ISO timestamp
 
-  Scenario: VIP mode is active
+  # EARS: Event-driven
+  Scenario: WHEN VIP mode is active, the client shall report the VIP status
     Given the server is in VIP mode
-    When I request the status
-    Then the VIP flag should be true and player count should be low
+    When the client requests the status
+    Then the VIP flag should be true and player count shall be low
 
-  Scenario: VIP mode is inactive during normal operations
+  # EARS: Event-driven
+  Scenario: WHEN VIP mode is inactive, the client shall report normal operations
     Given the server is operating normally
-    When I request the status for VIP check
-    Then the VIP flag should be false
+    When the client requests the status for VIP check
+    Then the VIP flag shall be false
 
-  Scenario: Server is unavailable (503)
+  # EARS: Unwanted
+  Scenario: IF server is unavailable (503), THEN the client shall handle the service outage
     Given the ESI API is unavailable
-    When I request the server status
-    Then I should receive a 503 service unavailable error
+    When the client requests the server status
+    Then the client shall return a 503 service unavailable error
 
-  Scenario: Internal server error (500)
+  # EARS: Unwanted
+  Scenario: IF internal server error (500), THEN the client shall return a server error
     Given the ESI API encounters an internal error
-    When I request the server status for error check
-    Then I should receive a 500 error
+    When the client requests the server status for error check
+    Then the client shall return a 500 error
 
-  Scenario: Monitor server status over multiple checks
+  # EARS: Ubiquitous
+  Scenario: The client shall monitor server status over multiple checks
     Given the server is online with gradually changing player counts
-    When I check the status multiple times
-    Then each check should return valid data with consistent server version
+    When the client checks the status multiple times
+    Then each check shall return valid data with consistent server version

@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve insurance prices for all ship types', ({
+  test('WHEN retrieving insurance prices for all ship types, the client shall return the data', ({
     given,
     when,
     then,
@@ -54,23 +54,26 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedPrices);
     });
 
-    when('I request insurance prices', async () => {
+    when('the client requests insurance prices', async () => {
       result = await client.insurance.getInsurancePrices();
     });
 
-    then('I should receive pricing data for available ship types', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('type_id');
-      expect(result[0]).toHaveProperty('levels');
-      expect(result[0].levels).toBeInstanceOf(Array);
-      expect(result[0].levels[0]).toHaveProperty('cost');
-      expect(result[0].levels[0]).toHaveProperty('name');
-      expect(result[0].levels[0]).toHaveProperty('payout');
-    });
+    then(
+      'the client shall return pricing data for available ship types',
+      () => {
+        expect(result).toBeInstanceOf(Array);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0]).toHaveProperty('type_id');
+        expect(result[0]).toHaveProperty('levels');
+        expect(result[0].levels).toBeInstanceOf(Array);
+        expect(result[0].levels[0]).toHaveProperty('cost');
+        expect(result[0].levels[0]).toHaveProperty('name');
+        expect(result[0].levels[0]).toHaveProperty('payout');
+      },
+    );
   });
 
-  test('Verify insurance price tiers are ordered correctly', ({
+  test('WHEN verifying insurance price tiers are ordered correctly, the client shall validate the data', ({
     given,
     when,
     then,
@@ -97,12 +100,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(shipPrices);
     });
 
-    when('I examine the tiers for a ship type', async () => {
+    when('the client examines the tiers for a ship type', async () => {
       const result = await client.insurance.getInsurancePrices();
       levels = result[0].levels;
     });
 
-    then('higher tiers should have increasing costs and payouts', () => {
+    then('higher tiers shall have increasing costs and payouts', () => {
       for (let i = 1; i < levels.length; i++) {
         expect(levels[i].cost).toBeGreaterThan(levels[i - 1].cost);
         expect(levels[i].payout).toBeGreaterThan(levels[i - 1].payout);
@@ -110,7 +113,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Verify payout always exceeds cost for each tier', ({
+  test('WHEN verifying payout always exceeds cost for each tier, the client shall validate the data', ({
     given,
     when,
     then,
@@ -137,11 +140,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(shipPrices);
     });
 
-    when('I check each tier', async () => {
+    when('the client checks each tier', async () => {
       result = await client.insurance.getInsurancePrices();
     });
 
-    then('the payout should always be greater than the cost', () => {
+    then('the payout shall always be greater than the cost', () => {
       result.forEach((ship: any) => {
         ship.levels.forEach((level: any) => {
           expect(level.payout).toBeGreaterThan(level.cost);
@@ -150,7 +153,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle large insurance dataset', ({ given, when, then }) => {
+  test('The client shall handle large insurance dataset', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     let startTime: number;
     let endTime: number;
@@ -193,20 +200,20 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(largeDataset);
     });
 
-    when('I process the large insurance response', async () => {
+    when('the client processes the large insurance response', async () => {
       startTime = Date.now();
       result = await client.insurance.getInsurancePrices();
       endTime = Date.now();
     });
 
-    then('the system should handle it efficiently', () => {
+    then('the client shall handle it efficiently', () => {
       expect(result.length).toBe(500);
       expect(endTime - startTime).toBeLessThan(1000);
       expect(result.every((item: any) => item.levels.length === 6)).toBe(true);
     });
   });
 
-  test('Each ship type has exactly six insurance tiers', ({
+  test('WHEN listing insurance tiers, the client shall return exactly six per ship type', ({
     given,
     when,
     then,
@@ -246,11 +253,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(prices);
     });
 
-    when('I inspect each ship type', async () => {
+    when('the client inspects each ship type', async () => {
       result = await client.insurance.getInsurancePrices();
     });
 
-    then('every entry should contain six named tiers', () => {
+    then('every entry shall contain six named tiers', () => {
       result.forEach((entry: any) => {
         expect(entry.levels.length).toBe(6);
         const tierNames = entry.levels.map((l: any) => l.name);
@@ -259,7 +266,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle ESI service unavailable error', ({ given, when, then }) => {
+  test('IF eSI service unavailable error, THEN the client shall handle the service outage', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('the ESI service is temporarily unavailable', () => {
@@ -270,20 +281,23 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(serviceError);
     });
 
-    when('I request insurance prices expecting an error', async () => {
-      try {
-        await client.insurance.getInsurancePrices();
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests insurance prices expecting an error',
+      async () => {
+        try {
+          await client.insurance.getInsurancePrices();
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a 503 service unavailable error', () => {
+    then('the client shall return a 503 service unavailable error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Handle rate limiting on insurance endpoint', ({
+  test('IF rate limiting on insurance endpoint, THEN the client shall respect the rate limit', ({
     given,
     when,
     then,
@@ -298,15 +312,18 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(rateLimitError);
     });
 
-    when('I request insurance prices expecting rate limit error', async () => {
-      try {
-        await client.insurance.getInsurancePrices();
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests insurance prices expecting rate limit error',
+      async () => {
+        try {
+          await client.insurance.getInsurancePrices();
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a 429 rate limit error', () => {
+    then('the client shall return a 429 rate limit error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });

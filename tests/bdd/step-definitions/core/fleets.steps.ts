@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get character fleet info when in a fleet', ({ given, when, then }) => {
+  test('WHEN getting character fleet info when in a fleet, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -33,18 +37,22 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockFleetInfo);
     });
 
-    when('I request their fleet info', async () => {
+    when('the client requests their fleet info', async () => {
       result = await client.fleets.getCharacterFleetInfo(characterId);
     });
 
-    then('I should receive their fleet assignment details', () => {
+    then('the client shall return their fleet assignment details', () => {
       expect(result).toBeDefined();
       expect(result.fleet_id).toBe(1234567890);
       expect(result.role).toBe('fleet_commander');
     });
   });
 
-  test('Character is not in any fleet', ({ given, when, then }) => {
+  test('WHILE the character is not in any fleet, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let caughtError: any;
 
@@ -56,20 +64,27 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(notFoundError);
     });
 
-    when('I request fleet info for the character not in a fleet', async () => {
-      try {
-        await client.fleets.getCharacterFleetInfo(characterId);
-      } catch (error) {
-        caughtError = error;
-      }
-    });
+    when(
+      'the client requests fleet info for the character not in a fleet',
+      async () => {
+        try {
+          await client.fleets.getCharacterFleetInfo(characterId);
+        } catch (error) {
+          caughtError = error;
+        }
+      },
+    );
 
-    then('I should receive a 404 error', () => {
+    then('the client shall return a 404 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Get fleet information', ({ given, when, then }) => {
+  test('WHEN getting fleet information, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const fleetId = 1234567890;
 
@@ -85,11 +100,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockFleet);
     });
 
-    when('I request fleet details', async () => {
+    when('the client requests fleet details', async () => {
       result = await client.fleets.getFleetInformation(fleetId);
     });
 
-    then('I should receive the fleet MOTD, boss, and settings', () => {
+    then('the client shall return the fleet MOTD, boss, and settings', () => {
       expect(result).toBeDefined();
       expect(result.fleet_id).toBe(fleetId);
       expect(result.motd).toBe('Form up on titan');
@@ -98,7 +113,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Update fleet settings', ({ given, when, then }) => {
+  test('WHEN updating fleet settings, the client shall apply the changes', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const fleetId = 1234567890;
 
@@ -106,20 +125,27 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.fleets, 'updateFleet').mockResolvedValue(undefined);
     });
 
-    when('I update the fleet MOTD and free-move setting', async () => {
-      const updateBody = {
-        motd: 'Updated MOTD: Align to gate',
-        is_free_move: true,
-      };
-      result = await client.fleets.updateFleet(fleetId, updateBody);
-    });
+    when(
+      'the client updates the fleet MOTD and free-move setting',
+      async () => {
+        const updateBody = {
+          motd: 'Updated MOTD: Align to gate',
+          is_free_move: true,
+        };
+        result = await client.fleets.updateFleet(fleetId, updateBody);
+      },
+    );
 
-    then('the fleet update should complete without error', () => {
+    then('the fleet update shall complete without error', () => {
       expect(result).toBeUndefined();
     });
   });
 
-  test('List all fleet members', ({ given, when, then }) => {
+  test('WHEN listing all fleet members, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const fleetId = 1234567890;
 
@@ -147,21 +173,28 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockMembers);
     });
 
-    when('I request the member list', async () => {
+    when('the client requests the member list', async () => {
       result = await client.fleets.getFleetMembers(fleetId);
     });
 
-    then('I should receive member details including ships and roles', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(3);
-      expect(result[0]).toHaveProperty('character_id');
-      expect(result[0]).toHaveProperty('role');
-      expect(result[0]).toHaveProperty('ship_type_id');
-      expect(result[0]).toHaveProperty('solar_system_id');
-    });
+    then(
+      'the client shall return member details including ships and roles',
+      () => {
+        expect(result).toBeInstanceOf(Array);
+        expect(result).toHaveLength(3);
+        expect(result[0]).toHaveProperty('character_id');
+        expect(result[0]).toHaveProperty('role');
+        expect(result[0]).toHaveProperty('ship_type_id');
+        expect(result[0]).toHaveProperty('solar_system_id');
+      },
+    );
   });
 
-  test('Kick a member from the fleet', ({ given, when, then }) => {
+  test('WHEN kicking a member from the fleet, the client shall complete the operation', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const fleetId = 1234567890;
     const memberId = 123456789;
@@ -170,16 +203,20 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.fleets, 'kickFleetMember').mockResolvedValue(undefined);
     });
 
-    when('I kick a member from the fleet', async () => {
+    when('the client kicks a member from the fleet', async () => {
       result = await client.fleets.kickFleetMember(fleetId, memberId);
     });
 
-    then('the kick operation should complete without error', () => {
+    then('the kick operation shall complete without error', () => {
       expect(result).toBeUndefined();
     });
   });
 
-  test('Move a member to a different squad', ({ given, when, then }) => {
+  test('WHEN moving a member to a different squad, the client shall complete the move', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const fleetId = 1234567890;
     const memberId = 123456789;
@@ -188,7 +225,7 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.fleets, 'moveFleetMember').mockResolvedValue(undefined);
     });
 
-    when('I move the member to a new wing and squad', async () => {
+    when('the client moves the member to a new wing and squad', async () => {
       const moveBody = {
         role: 'squad_member',
         wing_id: 987654321,
@@ -197,12 +234,16 @@ defineFeature(feature, (test) => {
       result = await client.fleets.moveFleetMember(fleetId, memberId, moveBody);
     });
 
-    then('the move operation should complete without error', () => {
+    then('the move operation shall complete without error', () => {
       expect(result).toBeUndefined();
     });
   });
 
-  test('Get fleet wings structure', ({ given, when, then }) => {
+  test('WHEN getting fleet wings structure, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const fleetId = 1234567890;
 
@@ -226,11 +267,11 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.fleets, 'getFleetWings').mockResolvedValue(mockWings);
     });
 
-    when('I request the fleet wings', async () => {
+    when('the client requests the fleet wings', async () => {
       result = await client.fleets.getFleetWings(fleetId);
     });
 
-    then('I should receive wings with nested squads', () => {
+    then('the client shall return wings with nested squads', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('wing_id', 100);
@@ -241,7 +282,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Create a new fleet wing', ({ given, when, then }) => {
+  test('WHEN creating a new fleet wing, the client shall create the resource', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const fleetId = 1234567890;
 
@@ -251,18 +296,22 @@ defineFeature(feature, (test) => {
         .mockResolvedValue({ wing_id: 555 });
     });
 
-    when('I create a new wing', async () => {
+    when('the client creates a new wing', async () => {
       const wingBody = { name: 'Tackle Wing' };
       result = await client.fleets.createFleetWing(fleetId, wingBody);
     });
 
-    then('I should receive the new wing ID', () => {
+    then('the client shall return the new wing ID', () => {
       expect(result).toBeDefined();
       expect(result.wing_id).toBe(555);
     });
   });
 
-  test('Create a new squad under a wing', ({ given, when, then }) => {
+  test('WHEN creating a new squad under a wing, the client shall create the resource', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
     const fleetId = 1234567890;
     const wingId = 555;
@@ -273,17 +322,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue({ squad_id: 777 });
     });
 
-    when('I create a squad under that wing', async () => {
+    when('the client creates a squad under that wing', async () => {
       result = await client.fleets.createFleetSquad(fleetId, wingId);
     });
 
-    then('I should receive the new squad ID', () => {
+    then('the client shall return the new squad ID', () => {
       expect(result).toBeDefined();
       expect(result.squad_id).toBe(777);
     });
   });
 
-  test('Unauthorized fleet access', ({ given, when, then }) => {
+  test('IF unauthorized fleet access, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const fleetId = 1234567890;
     let caughtError: any;
 
@@ -295,7 +348,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I attempt to modify fleet settings', async () => {
+    when('the client attempts to modify fleet settings', async () => {
       try {
         await client.fleets.updateFleet(fleetId, { motd: 'Unauthorized' });
       } catch (error) {
@@ -303,12 +356,12 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for fleet', () => {
+    then('the client shall return a 403 forbidden error for fleet', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Fetch fleet info, members, and wings concurrently', ({
+  test('The client shall fetch fleet info, members, and wings concurrently', ({
     given,
     when,
     then,
@@ -339,15 +392,18 @@ defineFeature(feature, (test) => {
       jest.spyOn(client.fleets, 'getFleetWings').mockResolvedValue(mockWings);
     });
 
-    when('I fetch fleet details, members, and wings in parallel', async () => {
-      [fleet, members, wings] = await Promise.all([
-        client.fleets.getFleetInformation(fleetId),
-        client.fleets.getFleetMembers(fleetId),
-        client.fleets.getFleetWings(fleetId),
-      ]);
-    });
+    when(
+      'the client fetches fleet details, members, and wings in parallel',
+      async () => {
+        [fleet, members, wings] = await Promise.all([
+          client.fleets.getFleetInformation(fleetId),
+          client.fleets.getFleetMembers(fleetId),
+          client.fleets.getFleetWings(fleetId),
+        ]);
+      },
+    );
 
-    then('all three requests should resolve successfully', () => {
+    then('all three requests shall resolve successfully', () => {
       expect(fleet).toBeDefined();
       expect(fleet.fleet_id).toBe(fleetId);
 

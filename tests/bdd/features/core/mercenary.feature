@@ -1,26 +1,31 @@
 Feature: Mercenary Operations
 
-  Scenario: Get mercenary dens with development data
+  # EARS: Event-driven
+  Scenario: WHEN getting mercenary dens with development data, the client shall return the data
     Given mercenary dens exist
-    When I request dens
-    Then I should receive development and anarchy parameters
+    When the client requests dens
+    Then the client shall return development and anarchy parameters
 
-  Scenario: No mercenary dens available
+  # EARS: State-driven
+  Scenario: WHILE no mercenary dens available, the client shall return an empty result
     Given no dens exist in the area
-    When I request dens
-    Then I should receive an empty array
+    When the client requests dens
+    Then the client shall return an empty array
 
-  Scenario: Get active MTOs spawned from dens
+  # EARS: Event-driven
+  Scenario: WHEN getting active MTOs spawned from dens, the client shall return the data
     Given MTOs are active
-    When I request operations
-    Then I should receive operation details with status
+    When the client requests operations
+    Then the client shall return operation details with status
 
-  Scenario: Cross-reference dens with their operations
+  # EARS: Event-driven
+  Scenario: WHEN cross-referencing dens with their operations, the client shall return the analysis
     Given dens and MTOs exist
-    When I fetch both
-    Then I can correlate operations to their parent dens
+    When the client fetches both
+    Then the client shall correlate operations to their parent dens
 
-  Scenario: Service unavailable error
+  # EARS: Unwanted
+  Scenario: IF service unavailable error, THEN the client shall handle the service outage
     Given the ESI service is down
-    When I request mercenary data
-    Then I should receive a 503 error
+    When the client requests mercenary data
+    Then the client shall return a 503 error

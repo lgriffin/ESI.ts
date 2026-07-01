@@ -1,21 +1,25 @@
 Feature: Access Lists Management
 
-  Scenario: Get access list with mixed entity types
+  # EARS: Event-driven
+  Scenario: WHEN getting access list with mixed entity types, the client shall return the data
     Given an access list exists with characters, corporations, and alliances
-    When I request the access list
-    Then I should receive all entries with their access types
+    When the client requests the access list
+    Then the client shall return all entries with their access types
 
-  Scenario: Access list with no entries
+  # EARS: State-driven
+  Scenario: WHILE access list with no entries, the client shall return an empty result
     Given an empty access list exists
-    When I request the empty access list
-    Then I should receive the list with an empty entries array
+    When the client requests the empty access list
+    Then the client shall return the list with an empty entries array
 
-  Scenario: Unauthorized access to access list
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to access list, THEN the client shall return a forbidden error
     Given no valid token is provided
-    When I request an access list without auth
-    Then I should receive a 401 error
+    When the client requests an access list without auth
+    Then the client shall return a 401 error
 
-  Scenario: Access list not found
+  # EARS: Unwanted
+  Scenario: IF access list not found, THEN the client shall return a not-found error
     Given an access list does not exist
-    When I request a non-existent access list
-    Then I should receive a 404 error
+    When the client requests a non-existent access list
+    Then the client shall return a 404 error

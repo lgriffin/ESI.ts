@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get character industry jobs', ({ given, when, then }) => {
+  test('WHEN getting character industry jobs, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -43,12 +47,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockJobs);
     });
 
-    when('I request their industry jobs', async () => {
+    when('the client requests their industry jobs', async () => {
       result = await client.industry.getCharacterIndustryJobs(characterId);
     });
 
     then(
-      'I should receive job details including status and blueprint info',
+      'the client shall return job details including status and blueprint info',
       () => {
         expect(result).toBeInstanceOf(Array);
         expect(result).toHaveLength(2);
@@ -63,7 +67,11 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Character has no industry jobs', ({ given, when, then }) => {
+  test('WHILE the character has no industry jobs, the client shall return an empty result', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -73,17 +81,21 @@ defineFeature(feature, (test) => {
         .mockResolvedValue([]);
     });
 
-    when('I request their industry jobs', async () => {
+    when('the client requests their industry jobs', async () => {
       result = await client.industry.getCharacterIndustryJobs(characterId);
     });
 
-    then('I should receive an empty array', () => {
+    then('the client shall return an empty array', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(0);
     });
   });
 
-  test('Get corporation industry jobs', ({ given, when, then }) => {
+  test('WHEN getting corporation industry jobs, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1344654522;
     let result: any;
 
@@ -114,11 +126,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockJobs);
     });
 
-    when('I request the corporation industry jobs', async () => {
+    when('the client requests the corporation industry jobs', async () => {
       result = await client.industry.getCorporationIndustryJobs(corporationId);
     });
 
-    then('I should receive the full list of corporation jobs', () => {
+    then('the client shall return the full list of corporation jobs', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('installer_id');
@@ -126,7 +138,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get publicly available industry facilities', ({
+  test('WHEN getting publicly available industry facilities, the client shall return the data', ({
     given,
     when,
     then,
@@ -158,23 +170,30 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockFacilities);
     });
 
-    when('I request the facility list', async () => {
+    when('the client requests the facility list', async () => {
       result = await client.industry.getIndustryFacilities();
     });
 
-    then('I should receive facilities with location and tax info', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('facility_id', 60003760);
-      expect(result[0]).toHaveProperty('owner_id');
-      expect(result[0]).toHaveProperty('region_id');
-      expect(result[0]).toHaveProperty('solar_system_id');
-      expect(result[0]).toHaveProperty('tax');
-      expect(result[0]).toHaveProperty('type_id');
-    });
+    then(
+      'the client shall return facilities with location and tax info',
+      () => {
+        expect(result).toBeInstanceOf(Array);
+        expect(result).toHaveLength(2);
+        expect(result[0]).toHaveProperty('facility_id', 60003760);
+        expect(result[0]).toHaveProperty('owner_id');
+        expect(result[0]).toHaveProperty('region_id');
+        expect(result[0]).toHaveProperty('solar_system_id');
+        expect(result[0]).toHaveProperty('tax');
+        expect(result[0]).toHaveProperty('type_id');
+      },
+    );
   });
 
-  test('Get industry system cost indices', ({ given, when, then }) => {
+  test('WHEN getting industry system cost indices, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('solar systems with industry activity', () => {
@@ -206,11 +225,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockSystems);
     });
 
-    when('I request system indices', async () => {
+    when('the client requests system indices', async () => {
       result = await client.industry.getIndustrySystems();
     });
 
-    then('I should receive cost index data per activity', () => {
+    then('the client shall return cost index data per activity', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('solar_system_id', 30000142);
@@ -225,7 +244,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get character mining ledger', ({ given, when, then }) => {
+  test('WHEN getting character mining ledger, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -256,11 +279,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockLedger);
     });
 
-    when('I request their mining ledger', async () => {
+    when('the client requests their mining ledger', async () => {
       result = await client.industry.getCharacterMiningLedger(characterId);
     });
 
-    then('I should receive daily ore quantities', () => {
+    then('the client shall return daily ore quantities', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('date', '2026-04-22');
@@ -271,7 +294,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get corporation mining observers', ({ given, when, then }) => {
+  test('WHEN getting corporation mining observers, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1344654522;
     let result: any;
 
@@ -294,12 +321,12 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockObservers);
     });
 
-    when('I request the observer list', async () => {
+    when('the client requests the observer list', async () => {
       result =
         await client.industry.getCorporationMiningObservers(corporationId);
     });
 
-    then('I should receive observer details', () => {
+    then('the client shall return observer details', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('observer_id');
@@ -308,7 +335,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Get mining observer details', ({ given, when, then }) => {
+  test('WHEN getting mining observer details, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const corporationId = 1344654522;
     const observerId = 1021975535893;
     let result: any;
@@ -336,14 +367,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockEntries);
     });
 
-    when('I request the observer activity', async () => {
+    when('the client requests the observer activity', async () => {
       result = await client.industry.getCorporationMiningObserver(
         corporationId,
         observerId,
       );
     });
 
-    then('I should receive character mining entries', () => {
+    then('the client shall return character mining entries', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('character_id');
@@ -354,7 +385,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Unauthorized access to industry jobs', ({ given, when, then }) => {
+  test('IF unauthorized access to industry jobs, THEN the client shall return a forbidden error', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let caughtError: any;
 
@@ -366,7 +401,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request character industry jobs', async () => {
+    when('the client requests character industry jobs', async () => {
       try {
         await client.industry.getCharacterIndustryJobs(characterId);
       } catch (error) {
@@ -374,12 +409,15 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for industry jobs', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-    });
+    then(
+      'the client shall return a 403 forbidden error for industry jobs',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+      },
+    );
   });
 
-  test('Unauthorized access to corporation mining data', ({
+  test('IF unauthorized access to corporation mining data, THEN the client shall return a forbidden error', ({
     given,
     when,
     then,
@@ -395,7 +433,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(forbiddenError);
     });
 
-    when('I request mining observers', async () => {
+    when('the client requests mining observers', async () => {
       try {
         await client.industry.getCorporationMiningObservers(corporationId);
       } catch (error) {
@@ -403,12 +441,15 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a 403 forbidden error for mining observers', () => {
-      expect(caughtError).toBeInstanceOf(EsiError);
-    });
+    then(
+      'the client shall return a 403 forbidden error for mining observers',
+      () => {
+        expect(caughtError).toBeInstanceOf(EsiError);
+      },
+    );
   });
 
-  test('Fetch character jobs, facilities, and systems concurrently', ({
+  test('The client shall fetch character jobs, facilities, and systems concurrently', ({
     given,
     when,
     then,
@@ -454,7 +495,7 @@ defineFeature(feature, (test) => {
     });
 
     when(
-      'I fetch industry jobs, facilities, and systems in parallel',
+      'the client fetches industry jobs, facilities, and systems in parallel',
       async () => {
         [jobs, facilities, systems] = await Promise.all([
           client.industry.getCharacterIndustryJobs(characterId),
@@ -464,7 +505,7 @@ defineFeature(feature, (test) => {
       },
     );
 
-    then('all three industry requests should resolve successfully', () => {
+    then('all three industry requests shall resolve successfully', () => {
       expect(jobs).toBeInstanceOf(Array);
       expect(jobs).toHaveLength(1);
       expect(jobs[0].status).toBe('active');

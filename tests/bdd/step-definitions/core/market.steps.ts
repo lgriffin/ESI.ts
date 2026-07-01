@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve current market prices', ({ given, when, then }) => {
+  test('WHEN retrieving current market prices, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     let result: any;
 
     given('the market system is operational', () => {
@@ -38,11 +42,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedPrices);
     });
 
-    when('I request current market prices', async () => {
+    when('the client requests current market prices', async () => {
       result = await client.market.getMarketPrices();
     });
 
-    then('I should receive price data for all tradeable items', () => {
+    then('the client shall return price data for all tradeable items', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('type_id');
@@ -53,7 +57,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle market data unavailability', ({ given, when, then }) => {
+  test('IF market data is unavailable, THEN the client shall handle the outage', ({
+    given,
+    when,
+    then,
+  }) => {
     let caughtError: any;
 
     given('market data is temporarily unavailable', () => {
@@ -64,7 +72,7 @@ defineFeature(feature, (test) => {
         .mockRejectedValue(serviceError);
     });
 
-    when('I request market prices expecting error', async () => {
+    when('the client requests market prices expecting error', async () => {
       try {
         await client.market.getMarketPrices();
       } catch (error) {
@@ -72,12 +80,16 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('I should receive a market service error', () => {
+    then('the client shall return a market service error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
     });
   });
 
-  test('Retrieve market orders for a region', ({ given, when, then }) => {
+  test('WHEN retrieving market orders for a region, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const regionId = 10000002;
     const typeId = 34;
     let result: any;
@@ -117,11 +129,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedOrders);
     });
 
-    when('I request market orders for the region', async () => {
+    when('the client requests market orders for the region', async () => {
       result = await client.market.getMarketOrders(regionId);
     });
 
-    then('I should receive current buy and sell orders', () => {
+    then('the client shall return current buy and sell orders', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(2);
       expect(result[0]).toHaveProperty('order_id');
@@ -133,7 +145,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Filter buy and sell orders', ({ given, when, then }) => {
+  test('WHEN filtering buy and sell orders, the client shall return filtered results', ({
+    given,
+    when,
+    then,
+  }) => {
     const regionId = 10000002;
     let buyOrders: any;
     let sellOrders: any;
@@ -167,13 +183,13 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mixedOrders);
     });
 
-    when('I analyze the market orders', async () => {
+    when('the client analyzes the market orders', async () => {
       const result = await client.market.getMarketOrders(regionId);
       buyOrders = result.filter((order: any) => order.is_buy_order);
       sellOrders = result.filter((order: any) => !order.is_buy_order);
     });
 
-    then('I should be able to distinguish between buy and sell orders', () => {
+    then('the client shall distinguish between buy and sell orders', () => {
       expect(buyOrders.length).toBe(2);
       expect(sellOrders.length).toBe(2);
       expect(buyOrders.every((order: any) => order.is_buy_order)).toBe(true);
@@ -184,7 +200,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve historical market data', ({ given, when, then }) => {
+  test('WHEN retrieving historical market data, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const regionId = 10000002;
     const typeId = 34;
     let result: any;
@@ -214,11 +234,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedHistory);
     });
 
-    when('I request market history', async () => {
+    when('the client requests market history', async () => {
       result = await client.market.getMarketHistory(regionId, typeId);
     });
 
-    then('I should receive historical price and volume data', () => {
+    then('the client shall return historical price and volume data', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('date');
@@ -231,7 +251,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Analyze price trends', ({ given, when, then }) => {
+  test('WHEN analyzing price trends, the client shall return the analysis', ({
+    given,
+    when,
+    then,
+  }) => {
     const regionId = 10000002;
     const typeId = 34;
     let result: any;
@@ -266,14 +290,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(trendingHistory);
     });
 
-    when('I analyze price trends', async () => {
+    when('the client analyzes price trends', async () => {
       result = await client.market.getMarketHistory(regionId, typeId);
       priceChanges = result
         .slice(1)
         .map((day: any, index: number) => day.average - result[index].average);
     });
 
-    then('I should be able to identify market patterns', () => {
+    then('the client shall identify market patterns', () => {
       expect(result.length).toBe(5);
       expect(priceChanges.every((change: any) => change > 0)).toBe(true); // Upward trend
       expect(result[result.length - 1].average).toBeGreaterThan(
@@ -286,7 +310,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve character market orders', ({ given, when, then }) => {
+  test('WHEN retrieving character market orders, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -314,11 +342,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedOrders);
     });
 
-    when('I request their market orders', async () => {
+    when('the client requests their market orders', async () => {
       result = await client.market.getCharacterOrders(characterId);
     });
 
-    then('I should receive their active orders', () => {
+    then('the client shall return their active orders', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result[0]).toHaveProperty('order_id');
       expect(result[0]).toHaveProperty('type_id');
@@ -328,7 +356,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Retrieve character order history', ({ given, when, then }) => {
+  test('WHEN retrieving character order history, the client shall return the data', ({
+    given,
+    when,
+    then,
+  }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -356,11 +388,11 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedHistory);
     });
 
-    when('I request their order history', async () => {
+    when('the client requests their order history', async () => {
       result = await client.market.getCharacterOrderHistory(characterId);
     });
 
-    then('I should receive completed and cancelled orders', () => {
+    then('the client shall return completed and cancelled orders', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result[0]).toHaveProperty('order_id');
       expect(result[0]).toHaveProperty('state');
@@ -373,7 +405,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle high-frequency market data requests', ({
+  test('The client shall handle high-frequency market data requests', ({
     given,
     when,
     then,
@@ -399,14 +431,14 @@ defineFeature(feature, (test) => {
         );
     });
 
-    when('I make them simultaneously', async () => {
+    when('the client makes them simultaneously', async () => {
       const promises = regionIds.map((regionId) =>
         client.market.getMarketOrders(regionId),
       );
       results = await Promise.all(promises);
     });
 
-    then('all market requests should complete successfully', () => {
+    then('all market requests shall complete successfully', () => {
       expect(results).toHaveLength(3);
       results.forEach((result: any, index: number) => {
         expect(result).toBeInstanceOf(Array);
@@ -415,7 +447,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Handle market data with large volumes', ({ given, when, then }) => {
+  test('The client shall handle market data with large volumes', ({
+    given,
+    when,
+    then,
+  }) => {
     const regionId = 10000002;
     const typeId = 34;
     let result: any;
@@ -438,13 +474,13 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(largeOrderSet);
     });
 
-    when('I process the large market data', async () => {
+    when('the client processes the large market data', async () => {
       startTime = Date.now();
       result = await client.market.getMarketOrders(regionId);
       endTime = Date.now();
     });
 
-    then('the system should handle large market datasets efficiently', () => {
+    then('the client shall handle large market datasets efficiently', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(5000);
       expect(endTime - startTime).toBeLessThan(1000);
@@ -456,7 +492,11 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Complete market analysis workflow', ({ given, when, then }) => {
+  test('WHEN completing market analysis workflow, the client shall complete all steps', ({
+    given,
+    when,
+    then,
+  }) => {
     const regionId = 10000002;
     const typeId = 34;
     let prices: any;
@@ -500,7 +540,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(mockHistory);
     });
 
-    when('I gather comprehensive market data', async () => {
+    when('the client gathers comprehensive market data', async () => {
       [prices, orders, history] = await Promise.all([
         client.market.getMarketPrices(),
         client.market.getMarketOrders(regionId),
@@ -508,38 +548,41 @@ defineFeature(feature, (test) => {
       ]);
     });
 
-    then('I should successfully retrieve all market information', () => {
-      expect(prices).toBeInstanceOf(Array);
-      expect(prices[0].type_id).toBe(typeId);
+    then(
+      'the client shall successfully retrieve all market information',
+      () => {
+        expect(prices).toBeInstanceOf(Array);
+        expect(prices[0].type_id).toBe(typeId);
 
-      expect(orders).toBeInstanceOf(Array);
-      expect(orders[0].type_id).toBe(typeId);
+        expect(orders).toBeInstanceOf(Array);
+        expect(orders[0].type_id).toBe(typeId);
 
-      expect(history).toBeInstanceOf(Array);
-      expect(history[0].date).toBe('2024-01-15');
+        expect(history).toBeInstanceOf(Array);
+        expect(history[0].date).toBe('2024-01-15');
 
-      // Verify market analysis capabilities
-      const currentPrice = prices.find(
-        (p: any) => p.type_id === typeId,
-      )?.average_price;
-      const buyOrders = orders.filter((o: any) => o.is_buy_order);
-      const sellOrders = orders.filter((o: any) => !o.is_buy_order);
-      const bestBuyOrder =
-        buyOrders.length > 0
-          ? buyOrders.reduce((best: any, current: any) =>
-              current.price > best.price ? current : best,
-            )
-          : null;
-      const bestSellOrder =
-        sellOrders.length > 0
-          ? sellOrders.reduce((best: any, current: any) =>
-              current.price < best.price ? current : best,
-            )
-          : null;
+        // Verify market analysis capabilities
+        const currentPrice = prices.find(
+          (p: any) => p.type_id === typeId,
+        )?.average_price;
+        const buyOrders = orders.filter((o: any) => o.is_buy_order);
+        const sellOrders = orders.filter((o: any) => !o.is_buy_order);
+        const bestBuyOrder =
+          buyOrders.length > 0
+            ? buyOrders.reduce((best: any, current: any) =>
+                current.price > best.price ? current : best,
+              )
+            : null;
+        const bestSellOrder =
+          sellOrders.length > 0
+            ? sellOrders.reduce((best: any, current: any) =>
+                current.price < best.price ? current : best,
+              )
+            : null;
 
-      expect(currentPrice).toBeDefined();
-      expect(bestBuyOrder).toBeDefined();
-      expect(bestSellOrder).toBeDefined();
-    });
+        expect(currentPrice).toBeDefined();
+        expect(bestBuyOrder).toBeDefined();
+        expect(bestSellOrder).toBeDefined();
+      },
+    );
   });
 });

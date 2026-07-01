@@ -1,41 +1,49 @@
 Feature: Fittings Management
 
-  Scenario: List all saved fittings for a character
+  # EARS: Event-driven
+  Scenario: WHEN listing all saved fittings for a character, the client shall return the data
     Given a character with saved fittings
-    When I request their fittings
-    Then I should receive an array of fitting details
+    When the client requests their fittings
+    Then the client shall return an array of fitting details
 
-  Scenario: Character has no saved fittings
+  # EARS: State-driven
+  Scenario: WHILE the character has no saved fittings, the client shall return an empty result
     Given a character with no saved fittings
-    When I request their fittings list
-    Then I should receive an empty array
+    When the client requests their fittings list
+    Then the client shall return an empty array
 
-  Scenario: Successfully create a new fitting
+  # EARS: Event-driven
+  Scenario: WHEN creating a new fitting, the client shall create the resource
     Given valid fitting data
-    When I create a new fitting
-    Then I should receive the new fitting ID
+    When the client creates a new fitting
+    Then the client shall return the new fitting ID
 
-  Scenario: Create fitting with maximum items
+  # EARS: Event-driven
+  Scenario: WHEN creating fitting with maximum items, the client shall create the resource
     Given a fully fitted ship
-    When I save the fitting
-    Then the fitting should be created with all module slots populated
+    When the client saves the fitting
+    Then the fitting shall be created with all module slots populated
 
-  Scenario: Successfully delete an existing fitting
+  # EARS: Event-driven
+  Scenario: WHEN deleting an existing fitting, the client shall complete the operation
     Given a valid fitting ID
-    When I delete the fitting
-    Then the operation should complete without error
+    When the client deletes the fitting
+    Then the operation shall complete without error
 
-  Scenario: Unauthorized access to fittings
+  # EARS: Unwanted
+  Scenario: IF unauthorized access to fittings, THEN the client shall return a forbidden error
     Given an invalid or expired token for fittings
-    When I request fittings with invalid token
-    Then I should receive a 403 forbidden error for fittings
+    When the client requests fittings with invalid token
+    Then the client shall return a 403 forbidden error for fittings
 
-  Scenario: Unauthorized access when creating a fitting
+  # EARS: Unwanted
+  Scenario: IF unauthorized access when creating a fitting, THEN the client shall return a forbidden error
     Given insufficient permissions for fitting creation
-    When I attempt to create a fitting
-    Then I should receive a 403 forbidden error for creation
+    When the client attempts to create a fitting
+    Then the client shall return a 403 forbidden error for creation
 
-  Scenario: Full fitting lifecycle - create, list, and delete
+  # EARS: Event-driven
+  Scenario: WHEN performing full fitting lifecycle - create, list, and delete, the client shall complete all steps
     Given a character for fitting lifecycle
-    When I create a fitting then list fittings then delete it
-    Then each operation should succeed in sequence
+    When the client creates a fitting then list fittings then delete it
+    Then each operation shall succeed in sequence
