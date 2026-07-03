@@ -26,6 +26,7 @@ describe('IndustryClient', () => {
         job_id: 1,
         installer_id: 2,
         facility_id: 3,
+        station_id: 60003760,
         location_id: 4,
         activity_id: 5,
         blueprint_id: 6,
@@ -174,6 +175,7 @@ describe('IndustryClient', () => {
     const mockResponse = [
       {
         observer_id: 1,
+        observer_type: 'structure',
         type: 'structure',
         last_updated: '2024-01-01T00:00:00Z',
       },
@@ -240,6 +242,7 @@ describe('IndustryClient', () => {
         job_id: 1,
         installer_id: 2,
         facility_id: 3,
+        station_id: 60003760,
         location_id: 4,
         activity_id: 5,
         blueprint_id: 6,
@@ -321,6 +324,7 @@ describe('IndustryClient', () => {
     const mockResponse = [
       {
         facility_id: 1,
+        owner_id: 98000001,
         type_id: 2,
         solar_system_id: 3,
         region_id: 4,

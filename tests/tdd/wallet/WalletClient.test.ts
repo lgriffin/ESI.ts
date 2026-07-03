@@ -40,8 +40,11 @@ describe('WalletClient', () => {
   it('should return character wallet journal', async () => {
     const mockResponse = [
       {
+        id: 1,
         date: '2024-01-01T00:00:00Z',
         ref_id: 1,
+        ref_type: 'market_transaction',
+        description: 'Market buy order fulfilled',
         amount: 123.45,
         balance: 123456.78,
         reason: 'Transaction',
@@ -166,8 +169,11 @@ describe('WalletClient', () => {
   it('should return corporation wallet journal', async () => {
     const mockResponse = [
       {
+        id: 1,
         date: '2024-01-01T00:00:00Z',
         ref_id: 1,
+        ref_type: 'corporation_account_withdrawal',
+        description: 'Corporation account withdrawal',
         amount: 123.45,
         balance: 123456.78,
         reason: 'Transaction',

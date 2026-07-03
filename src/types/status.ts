@@ -1,6 +1,4 @@
-export interface ServerStatus {
-  players: number;
-  server_version: string;
-  start_time: string;
-  vip?: boolean;
-}
+import { z } from 'zod';
+import { ServerStatusSchema } from '../schemas/status';
+
+export type ServerStatus = z.infer<typeof ServerStatusSchema>;

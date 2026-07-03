@@ -29,6 +29,7 @@ describe('AssetsClient', () => {
         location_type: 'station',
         quantity: 100,
         type_id: 6789,
+        is_singleton: false,
       },
     ];
 
@@ -147,6 +148,7 @@ describe('AssetsClient', () => {
         location_type: 'station',
         quantity: 100,
         type_id: 6789,
+        is_singleton: false,
       },
     ];
 

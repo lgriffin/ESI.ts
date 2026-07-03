@@ -109,14 +109,17 @@ describe('AllianceClient', () => {
       const mockResponse = [
         {
           label_id: 1,
+          label_name: 'Allies',
           name: 'Allies',
         },
         {
           label_id: 2,
+          label_name: 'Neutrals',
           name: 'Neutrals',
         },
         {
           label_id: 3,
+          label_name: 'Enemies',
           name: 'Enemies',
         },
       ];

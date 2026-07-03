@@ -88,6 +88,10 @@ tests/
 │   │   ├── tokenRefresh.test.ts
 │   │   ├── validation.test.ts
 │   │   └── WithMetadata.test.ts
+│   ├── schemas/                  # Schema validation tests (Zod)
+│   │   ├── common-schemas.test.ts
+│   │   ├── schema-validation.test.ts
+│   │   └── validation-integration.test.ts
 │   ├── corporations/CorporationsClient.test.ts
 │   ├── dogma/DogmaClient.test.ts
 │   ├── factions/FactionClient.test.ts
@@ -118,20 +122,22 @@ tests/
 │   └── wars/WarsClient.test.ts
 ├── bdd/                          # BDD tests (Gherkin features + step definitions)
 │   ├── features/
-│   │   ├── core/                 # 35 domain feature files
+│   │   ├── core/                 # 36 domain feature files
 │   │   │   ├── alliance.feature
 │   │   │   ├── market.feature
+│   │   │   ├── runtime-validation.feature
 │   │   │   ├── universe.feature
-│   │   │   └── ... (35 total)
+│   │   │   └── ... (36 total)
 │   │   ├── integration/
 │   │   │   └── integration-workflows.feature
 │   │   └── performance/
 │   │       └── performance.feature
 │   ├── step-definitions/
-│   │   ├── core/                 # 35 domain step files
+│   │   ├── core/                 # 36 domain step files
 │   │   │   ├── alliance.steps.ts
 │   │   │   ├── market.steps.ts
-│   │   │   └── ... (35 total)
+│   │   │   ├── runtime-validation.steps.ts
+│   │   │   └── ... (36 total)
 │   │   ├── integration/
 │   │   │   └── integration-workflows.steps.ts
 │   │   ├── performance/
@@ -152,7 +158,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All unit + BDD tests (default) — 117 suites, 3,119 tests
+# All unit + BDD tests (default) — 121 suites, 3,222 tests
 npm test
 
 # Watch mode for development
@@ -642,6 +648,22 @@ TDD tests cover implementation details (internal functions, edge cases, error pa
 ### Why snapshot the public API surface?
 
 `publicApiSurface.test.ts` acts as a breaking-change detector. If someone renames a method, removes an export, or changes a class hierarchy, this test fails immediately — before the change ships as a semver-violating release.
+
+## Schema Validation Tests
+
+Zod schema validation is tested at multiple levels:
+
+### Schema Parsing Tests (`tests/tdd/schemas/`)
+
+Schema parsing tests validate that each Zod schema in `src/schemas/` correctly matches the expected ESI response shapes. Tests verify that valid ESI response payloads parse successfully, that required fields are enforced, and that `z.looseObject()` preserves extra fields not yet in the schema.
+
+### Validation Integration Tests
+
+Integration-level tests verify that `EsiValidationError` is thrown when `createClient()` receives a response that does not conform to the endpoint's Zod schema. These tests exercise the full validation pipeline: `createClient()` calls `def.responseSchema.safeParse(body)` and converts Zod parse failures into `EsiValidationError` instances with structured error details.
+
+### BDD Validation Scenarios
+
+BDD scenarios cover the validation feature from a consumer perspective, verifying that consumers receive validated, type-safe data from domain client methods when `validateResponse` is enabled (the default), and that invalid responses produce meaningful error messages.
 
 ## Adding New Tests
 

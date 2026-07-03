@@ -304,12 +304,25 @@ describe('Config Validation', () => {
         status: 401,
         headers: standardHeaders(),
       });
-      fetchMock.mockResponseOnce(JSON.stringify([{ order_id: 1 }]), {
+      const mockOrder = {
+        order_id: 1,
+        type_id: 34,
+        location_id: 60003760,
+        volume_total: 100,
+        volume_remain: 50,
+        min_volume: 1,
+        price: 10.5,
+        is_buy_order: false,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'region',
+      };
+      fetchMock.mockResponseOnce(JSON.stringify([mockOrder]), {
         headers: standardHeaders(),
       });
 
       const result = await client.market.getCharacterOrders(12345);
-      expect(result).toEqual([{ order_id: 1 }]);
+      expect(result).toEqual([mockOrder]);
       expect(callCount).toBe(1);
 
       const retryHeaders = fetchMock.mock.calls[1][1]?.headers as Record<

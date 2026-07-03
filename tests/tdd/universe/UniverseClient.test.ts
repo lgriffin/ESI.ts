@@ -23,6 +23,7 @@ describe('UniverseClient', () => {
   it('should return valid ancestries', async () => {
     const mockResponse = [
       {
+        id: 1,
         ancestry_id: 1,
         name: 'Ancestry 1',
         bloodline_id: 1,
@@ -54,6 +55,7 @@ describe('UniverseClient', () => {
       asteroid_belt_id: 1,
       name: 'Asteroid Belt 1',
       system_id: 30000001,
+      position: { x: -123456789.0, y: 987654321.0, z: 456789123.0 },
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
@@ -78,6 +80,13 @@ describe('UniverseClient', () => {
         name: 'Bloodline 1',
         description: 'Description 1',
         race_id: 1,
+        corporation_id: 1000006,
+        ship_type_id: 601,
+        charisma: 6,
+        intelligence: 7,
+        memory: 7,
+        perception: 5,
+        willpower: 5,
       },
     ];
 
@@ -105,6 +114,7 @@ describe('UniverseClient', () => {
       name: 'Constellation 1',
       region_id: 10000001,
       systems: [30000001, 30000002],
+      position: { x: -1.5e17, y: 6.8e16, z: -8.4e16 },
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
@@ -168,6 +178,10 @@ describe('UniverseClient', () => {
         faction_id: 1,
         name: 'Faction 1',
         description: 'Description 1',
+        size_factor: 5.0,
+        station_count: 1503,
+        station_system_count: 508,
+        is_unique: true,
       },
     ];
 
@@ -241,6 +255,7 @@ describe('UniverseClient', () => {
   it('should return valid schematic information', async () => {
     const mockResponse = {
       schematic_id: 1,
+      schematic_name: 'Test Schematic',
       name: 'Test Schematic',
       description: 'A test schematic description',
       cycle_time: 300,
@@ -307,7 +322,12 @@ describe('UniverseClient', () => {
 
   it('should return valid item category by ID', async () => {
     fetchMock.mockResponseOnce(
-      JSON.stringify({ category_id: 6, name: 'Ship', groups: [25, 26] }),
+      JSON.stringify({
+        category_id: 6,
+        name: 'Ship',
+        groups: [25, 26],
+        published: true,
+      }),
     );
     const result = await getBody(() => universeClient.getItemCategoryById(6));
     expect(result.category_id).toBe(6);
@@ -318,7 +338,13 @@ describe('UniverseClient', () => {
 
   it('should return valid item group by ID', async () => {
     fetchMock.mockResponseOnce(
-      JSON.stringify({ group_id: 25, name: 'Frigate', types: [587, 603] }),
+      JSON.stringify({
+        group_id: 25,
+        name: 'Frigate',
+        category_id: 6,
+        types: [587, 603],
+        published: true,
+      }),
     );
     const result = await getBody(() => universeClient.getItemGroupById(25));
     expect(result.group_id).toBe(25);
@@ -342,6 +368,7 @@ describe('UniverseClient', () => {
         moon_id: 40000001,
         name: 'Moon I',
         system_id: 30000001,
+        position: { x: 1.6e11, y: -2.3e10, z: 5.7e10 },
       }),
     );
     const result = await getBody(() => universeClient.getMoonById(40000001));
@@ -357,6 +384,8 @@ describe('UniverseClient', () => {
         planet_id: 40000002,
         name: 'Planet I',
         system_id: 30000001,
+        type_id: 2015,
+        position: { x: 2.1e12, y: -3.4e10, z: 8.9e11 },
       }),
     );
     const result = await getBody(() => universeClient.getPlanetById(40000002));
@@ -368,7 +397,14 @@ describe('UniverseClient', () => {
 
   it('should return valid races', async () => {
     fetchMock.mockResponseOnce(
-      JSON.stringify([{ race_id: 1, name: 'Caldari', description: 'A race' }]),
+      JSON.stringify([
+        {
+          race_id: 1,
+          name: 'Caldari',
+          description: 'A race',
+          alliance_id: 500001,
+        },
+      ]),
     );
     const result = await getBody(() => universeClient.getRaces());
     expect(Array.isArray(result)).toBe(true);
@@ -397,8 +433,14 @@ describe('UniverseClient', () => {
     fetchMock.mockResponseOnce(
       JSON.stringify({
         star_id: 40000099,
+        solar_system_id: 30000142,
         name: 'Jita Star',
+        type_id: 45041,
+        age: 1.28e17,
+        luminosity: 0.0661,
+        radius: 346600000,
         spectral_class: 'K2 V',
+        temperature: 3953,
       }),
     );
     const result = await getBody(() => universeClient.getStarById(40000099));
@@ -414,6 +456,9 @@ describe('UniverseClient', () => {
         stargate_id: 50000001,
         name: 'Jita-Perimeter',
         system_id: 30000142,
+        type_id: 29624,
+        position: { x: 1.3e11, y: -4.5e9, z: 6.7e10 },
+        destination: { system_id: 30000144, stargate_id: 50000002 },
       }),
     );
     const result = await getBody(() =>
@@ -431,6 +476,26 @@ describe('UniverseClient', () => {
         station_id: 60003760,
         name: 'Jita IV - Moon 4',
         system_id: 30000142,
+        type_id: 52678,
+        reprocessing_efficiency: 0.5,
+        reprocessing_stations_take: 0.05,
+        max_dockable_ship_volume: 50000000,
+        office_rental_cost: 10000,
+        services: [
+          'bounty-missions',
+          'courier-missions',
+          'reprocessing-plant',
+          'market',
+          'repair-facilities',
+          'fitting',
+          'news',
+          'insurance',
+          'docking',
+          'office-rental',
+          'loyalty-point-store',
+          'navy-offices',
+        ],
+        position: { x: 4.6e11, y: 7.8e10, z: -1.2e11 },
       }),
     );
     const result = await getBody(() => universeClient.getStationById(60003760));
@@ -445,6 +510,7 @@ describe('UniverseClient', () => {
       JSON.stringify({
         structure_id: 1000000001,
         name: 'My Citadel',
+        owner_id: 98000001,
         solar_system_id: 30000142,
       }),
     );
@@ -471,6 +537,7 @@ describe('UniverseClient', () => {
       JSON.stringify({
         system_id: 30000142,
         name: 'Jita',
+        constellation_id: 20000020,
         security_status: 0.9459,
       }),
     );
@@ -495,7 +562,9 @@ describe('UniverseClient', () => {
 
   it('should return valid system kills', async () => {
     fetchMock.mockResponseOnce(
-      JSON.stringify([{ system_id: 30000142, ship_kills: 50, npc_kills: 200 }]),
+      JSON.stringify([
+        { system_id: 30000142, ship_kills: 50, npc_kills: 200, pod_kills: 15 },
+      ]),
     );
     const result = await getBody(() => universeClient.getSystemKills());
     expect(Array.isArray(result)).toBe(true);
@@ -520,6 +589,8 @@ describe('UniverseClient', () => {
         type_id: 587,
         name: 'Rifter',
         description: 'A frigate',
+        published: true,
+        group_id: 25,
       }),
     );
     const result = await getBody(() => universeClient.getTypeById(587));

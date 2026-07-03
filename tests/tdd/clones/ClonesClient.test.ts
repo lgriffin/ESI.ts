@@ -28,6 +28,7 @@ describe('ClonesClient', () => {
       },
       jump_clones: [
         {
+          jump_clone_id: 1,
           implants: [1, 2, 3],
           location_id: 654321,
           location_type: 'station',

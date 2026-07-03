@@ -27,6 +27,10 @@ describe('CorporationsClient', () => {
       corporation_id: 123,
       name: 'Test Corporation',
       ticker: 'TEST',
+      ceo_id: 95465499,
+      creator_id: 95465499,
+      member_count: 150,
+      tax_rate: 0.1,
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
@@ -150,6 +154,9 @@ describe('CorporationsClient', () => {
         location_flag: 'Hangar',
         location_id: 789,
         quantity: 1,
+        logged_at: '2024-07-01T12:00:00Z',
+        container_id: 1000000001,
+        container_type_id: 17366,
       },
     ];
 
@@ -480,7 +487,13 @@ describe('CorporationsClient', () => {
   it('should return valid structure for getCorporationMedals', async () => {
     fetchMock.mockResponseOnce(
       JSON.stringify([
-        { medal_id: 1, title: 'Valor', description: 'For bravery' },
+        {
+          medal_id: 1,
+          title: 'Valor',
+          description: 'For bravery',
+          creator_id: 95465499,
+          date: '2023-01-15T00:00:00Z',
+        },
       ]),
     );
     const result = await getBody(() =>
@@ -495,7 +508,16 @@ describe('CorporationsClient', () => {
   it('should return valid structure for getCorporationIssuedMedals', async () => {
     fetchMock.mockResponseOnce(
       JSON.stringify([
-        { medal_id: 1, character_id: 99, issued_at: '2024-01-01T00:00:00Z' },
+        {
+          medal_id: 1,
+          character_id: 99,
+          issued_at: '2024-01-01T00:00:00Z',
+          title: 'Valor',
+          description: 'For bravery in combat',
+          issuer_id: 95465499,
+          reason: 'Distinguished service',
+          status: 'public' as const,
+        },
       ]),
     );
     const result = await getBody(() =>
@@ -523,7 +545,12 @@ describe('CorporationsClient', () => {
   it('should return valid structure for getCorporationMemberTracking', async () => {
     fetchMock.mockResponseOnce(
       JSON.stringify([
-        { character_id: 99, location_id: 60003760, ship_type_id: 587 },
+        {
+          character_id: 99,
+          location_id: 60003760,
+          ship_type_id: 587,
+          start_date: '2023-06-01T00:00:00Z',
+        },
       ]),
     );
     const result = await getBody(() =>
@@ -542,6 +569,9 @@ describe('CorporationsClient', () => {
           character_id: 99,
           changed_at: '2024-01-01T00:00:00Z',
           role_type: 'roles',
+          issuer_id: 95465499,
+          before: ['Director'],
+          after: ['Director', 'Personnel_Manager'],
         },
       ]),
     );
@@ -571,7 +601,14 @@ describe('CorporationsClient', () => {
 
   it('should return valid structure for getCorporationStarbases', async () => {
     fetchMock.mockResponseOnce(
-      JSON.stringify([{ starbase_id: 1, type_id: 16213, system_id: 30000142 }]),
+      JSON.stringify([
+        {
+          starbase_id: 1,
+          type_id: 16213,
+          system_id: 30000142,
+          state: 'online' as const,
+        },
+      ]),
     );
     const result = await getBody(() =>
       corporationsClient.getCorporationStarbases(123456789),
@@ -607,6 +644,7 @@ describe('CorporationsClient', () => {
           type_id: 35832,
           system_id: 30000142,
           corporation_id: 123456789,
+          profile_id: 12345,
           state: 'shield_vulnerable',
         },
       ]),

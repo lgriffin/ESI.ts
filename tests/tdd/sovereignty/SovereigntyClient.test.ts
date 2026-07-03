@@ -23,6 +23,7 @@ describe('SovereigntyClient', () => {
       {
         attacker_score: 0.6,
         campaign_id: 1,
+        structure_id: 1018253388776,
         constellation_id: 20000125,
         defender_id: 2000001,
         defender_score: 0.4,

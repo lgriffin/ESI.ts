@@ -28,8 +28,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 1000,
         volume_remain: 500,
+        min_volume: 1,
         price: 5.27,
         is_buy_order: true,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'station',
       },
       {
         order_id: 2,
@@ -37,8 +41,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 2000,
         volume_remain: 1500,
+        min_volume: 1,
         price: 15.43,
         is_buy_order: false,
+        duration: 30,
+        issued: '2024-01-02T00:00:00Z',
+        range: 'region',
       },
     ];
 
@@ -86,8 +94,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 1000,
         volume_remain: 0,
+        min_volume: 1,
         price: 5.27,
         is_buy_order: true,
+        duration: 90,
+        issued: '2023-12-01T00:00:00Z',
+        range: 'station',
       },
     ];
 
@@ -137,8 +149,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 1000,
         volume_remain: 500,
+        min_volume: 1,
         price: 5.27,
         is_buy_order: true,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'station',
       },
       {
         order_id: 2,
@@ -146,8 +162,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 2000,
         volume_remain: 1500,
+        min_volume: 1,
         price: 15.43,
         is_buy_order: false,
+        duration: 30,
+        issued: '2024-01-02T00:00:00Z',
+        range: 'region',
       },
     ];
 
@@ -197,8 +217,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 1000,
         volume_remain: 0,
+        min_volume: 1,
         price: 5.27,
         is_buy_order: true,
+        duration: 90,
+        issued: '2023-12-01T00:00:00Z',
+        range: 'station',
       },
     ];
 
@@ -295,8 +319,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 1000,
         volume_remain: 500,
+        min_volume: 1,
         price: 5.27,
         is_buy_order: true,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'station',
       },
       {
         order_id: 2,
@@ -304,8 +332,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 2000,
         volume_remain: 1500,
+        min_volume: 1,
         price: 15.43,
         is_buy_order: false,
+        duration: 30,
+        issued: '2024-01-02T00:00:00Z',
+        range: 'region',
       },
     ];
 
@@ -471,8 +503,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 1000,
         volume_remain: 500,
+        min_volume: 1,
         price: 5.27,
         is_buy_order: true,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'station',
       },
       {
         order_id: 2,
@@ -480,8 +516,12 @@ describe('MarketClient', () => {
         location_id: 60003760,
         volume_total: 2000,
         volume_remain: 1500,
+        min_volume: 1,
         price: 15.43,
         is_buy_order: false,
+        duration: 30,
+        issued: '2024-01-02T00:00:00Z',
+        range: 'region',
       },
     ];
 

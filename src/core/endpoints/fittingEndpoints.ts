@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import { FittingSchema } from '../../schemas/fittings';
 
 export const fittingEndpoints = {
   getFittings: {
@@ -6,6 +8,7 @@ export const fittingEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    responseSchema: z.array(FittingSchema),
   },
   createFitting: {
     path: 'characters/{characterId}/fittings',

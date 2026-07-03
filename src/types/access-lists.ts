@@ -1,11 +1,8 @@
-export interface AccessListEntry {
-  entity_id: number;
-  entity_type: 'character' | 'corporation' | 'alliance';
-  access_type: 'allowed' | 'blocked';
-}
+import { z } from 'zod';
+import {
+  AccessListEntrySchema,
+  AccessListSchema,
+} from '../schemas/access-lists';
 
-export interface AccessList {
-  access_list_id: number;
-  name: string;
-  entries: AccessListEntry[];
-}
+export type AccessListEntry = z.infer<typeof AccessListEntrySchema>;
+export type AccessList = z.infer<typeof AccessListSchema>;

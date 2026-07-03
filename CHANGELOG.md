@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-07-03
+
+### Added
+
+- **Runtime response validation** via [Zod](https://zod.dev/) schemas — every ESI endpoint response is validated at runtime, catching shape mismatches before they propagate to consumer code
+- Zod schemas for all 31 domain modules (133 interfaces) in `src/schemas/`, exported under the `schemas` namespace
+- `EsiValidationError` class (extends `EsiError`) thrown when response data doesn't match the expected schema
+- `isValidationError()` type guard for catching validation errors
+- `validateResponse` option on `EsiClientConfig` — on by default, can be disabled globally
+- `responseSchema` field on `EndpointDefinition` — wires schemas into the request pipeline via `createClient()`
+- New developer guide: `guides/RUNTIME-VALIDATION.md`
+- Response Validation Pipeline diagram in `guides/ARCHITECTURE.md`
+- Comprehensive TDD tests for schema parsing, validation integration, and common schemas (94 new tests)
+- BDD feature and step definitions for 9 runtime validation scenarios
+
+### Changed
+
+- All TypeScript types in `src/types/` are now derived from Zod schemas via `z.infer<>` — schemas are the single source of truth
+- Schemas use `.passthrough()` mode so extra fields from ESI are preserved, not rejected
+- Test mock data across 25 test files updated to be spec-accurate (required by runtime validation)
+- Path-parameter IDs (e.g., `character_id`, `alliance_id`) are now optional in schemas, matching ESI which omits them from response bodies
+
+### Dependencies
+
+- Added `zod` as a production dependency
+
 ## [5.3.0] - 2026-06-30
 
 ### Added

@@ -1,8 +1,4 @@
-export interface InsurancePrice {
-  type_id: number;
-  levels: {
-    cost: number;
-    payout: number;
-    name: string;
-  }[];
-}
+import { z } from 'zod';
+import { InsurancePriceSchema } from '../schemas/insurance';
+
+export type InsurancePrice = z.infer<typeof InsurancePriceSchema>;

@@ -50,10 +50,17 @@ describe('LoyaltyClient', () => {
     const mockResponse = [
       {
         offer_id: 1,
+        type_id: 12345,
         lp_cost: 100,
         isk_cost: 1000,
         item_id: 12345,
         quantity: 10,
+        required_items: [
+          {
+            type_id: 587,
+            quantity: 5,
+          },
+        ],
       },
     ];
 

@@ -1,12 +1,5 @@
-export interface Contact {
-  contact_id: number;
-  contact_type: 'character' | 'corporation' | 'alliance' | 'faction';
-  standing: number;
-  label_ids?: number[];
-  is_watched?: boolean;
-}
+import { z } from 'zod';
+import { ContactSchema, ContactLabelSchema } from '../schemas/contacts';
 
-export interface ContactLabel {
-  label_id: number;
-  label_name: string;
-}
+export type Contact = z.infer<typeof ContactSchema>;
+export type ContactLabel = z.infer<typeof ContactLabelSchema>;

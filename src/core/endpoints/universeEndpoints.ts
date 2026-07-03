@@ -1,21 +1,50 @@
+import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import {
+  AncestrySchema,
+  AsteroidBeltInfoSchema,
+  BloodlineSchema,
+  BulkIdResultSchema,
+  ConstellationInfoSchema,
+  FactionSchema,
+  GraphicInfoSchema,
+  ItemCategorySchema,
+  ItemGroupSchema,
+  MoonInfoSchema,
+  NameAndCategorySchema,
+  PlanetInfoSchema,
+  RaceSchema,
+  RegionInfoSchema,
+  SchematicInfoSchema,
+  SolarSystemInfoSchema,
+  StarInfoSchema,
+  StargateInfoSchema,
+  StationInfoSchema,
+  StructureInfoSchema,
+  SystemJumpSchema,
+  SystemKillSchema,
+  TypeInfoSchema,
+} from '../../schemas/universe';
 
 export const universeEndpoints = {
   getAncestries: {
     path: 'universe/ancestries',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(AncestrySchema),
   },
   getAsteroidBeltInfo: {
     path: 'universe/asteroid_belts/{asteroidBeltId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['asteroidBeltId'],
+    responseSchema: AsteroidBeltInfoSchema,
   },
   getBloodlines: {
     path: 'universe/bloodlines',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(BloodlineSchema),
   },
   getCategories: {
     path: 'universe/categories',
@@ -27,6 +56,7 @@ export const universeEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['categoryId'],
+    responseSchema: ItemCategorySchema,
   },
   getConstellations: {
     path: 'universe/constellations',
@@ -38,11 +68,13 @@ export const universeEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['constellationId'],
+    responseSchema: ConstellationInfoSchema,
   },
   getFactions: {
     path: 'universe/factions',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(FactionSchema),
   },
   getGraphics: {
     path: 'universe/graphics',
@@ -54,6 +86,7 @@ export const universeEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['graphicId'],
+    responseSchema: GraphicInfoSchema,
   },
   getItemGroups: {
     path: 'universe/groups',
@@ -65,35 +98,41 @@ export const universeEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['groupId'],
+    responseSchema: ItemGroupSchema,
   },
   postBulkNamesToIds: {
     path: 'universe/ids',
     method: 'POST',
     requiresAuth: false,
     bodyBuilder: (names: string[]) => names,
+    responseSchema: BulkIdResultSchema,
   },
   getMoonById: {
     path: 'universe/moons/{moonId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['moonId'],
+    responseSchema: MoonInfoSchema,
   },
   postNamesAndCategories: {
     path: 'universe/names',
     method: 'POST',
     requiresAuth: false,
     bodyBuilder: (ids: number[]) => ids,
+    responseSchema: z.array(NameAndCategorySchema),
   },
   getPlanetById: {
     path: 'universe/planets/{planetId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['planetId'],
+    responseSchema: PlanetInfoSchema,
   },
   getRaces: {
     path: 'universe/races',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(RaceSchema),
   },
   getRegions: {
     path: 'universe/regions',
@@ -105,30 +144,35 @@ export const universeEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['regionId'],
+    responseSchema: RegionInfoSchema,
   },
   getSchematicById: {
     path: 'universe/schematics/{schematicId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['schematicId'],
+    responseSchema: SchematicInfoSchema,
   },
   getStargateById: {
     path: 'universe/stargates/{stargateId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['stargateId'],
+    responseSchema: StargateInfoSchema,
   },
   getStarById: {
     path: 'universe/stars/{starId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['starId'],
+    responseSchema: StarInfoSchema,
   },
   getStationById: {
     path: 'universe/stations/{stationId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['stationId'],
+    responseSchema: StationInfoSchema,
   },
   getStructures: {
     path: 'universe/structures',
@@ -140,16 +184,19 @@ export const universeEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['structureId'],
+    responseSchema: StructureInfoSchema,
   },
   getSystemJumps: {
     path: 'universe/system_jumps',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(SystemJumpSchema),
   },
   getSystemKills: {
     path: 'universe/system_kills',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(SystemKillSchema),
   },
   getSystems: {
     path: 'universe/systems',
@@ -161,6 +208,7 @@ export const universeEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['systemId'],
+    responseSchema: SolarSystemInfoSchema,
   },
   getTypes: {
     path: 'universe/types',
@@ -172,5 +220,6 @@ export const universeEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['typeId'],
+    responseSchema: TypeInfoSchema,
   },
 } as const satisfies EndpointMap;

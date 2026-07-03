@@ -1,18 +1,10 @@
-export interface CharacterLocation {
-  solar_system_id: number;
-  station_id?: number;
-  structure_id?: number;
-}
+import { z } from 'zod';
+import {
+  CharacterLocationSchema,
+  CharacterOnlineSchema,
+  CharacterShipSchema,
+} from '../schemas/location';
 
-export interface CharacterOnline {
-  online: boolean;
-  last_login?: string;
-  last_logout?: string;
-  logins?: number;
-}
-
-export interface CharacterShip {
-  ship_item_id: number;
-  ship_name: string;
-  ship_type_id: number;
-}
+export type CharacterLocation = z.infer<typeof CharacterLocationSchema>;
+export type CharacterOnline = z.infer<typeof CharacterOnlineSchema>;
+export type CharacterShip = z.infer<typeof CharacterShipSchema>;

@@ -26,6 +26,7 @@ describe('MailClient', () => {
         subject: 'Test Mail',
         from: 123456,
         timestamp: '2024-01-01T00:00:00Z',
+        recipients: [{ recipient_id: 95465499, recipient_type: 'character' }],
       },
     ];
 
@@ -96,6 +97,7 @@ describe('MailClient', () => {
       body: 'This is a test mail',
       from: 123456,
       timestamp: '2024-01-01T00:00:00Z',
+      recipients: [{ recipient_id: 95465499, recipient_type: 'character' }],
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));

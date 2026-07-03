@@ -203,7 +203,12 @@ describe('FreelanceJobsClient', () => {
       );
       authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
-      const mockParticipation = { status: 'committed', contributions: 5 };
+      const mockParticipation = {
+        job_id: 'job-1',
+        character_id: 12345,
+        status: 'committed',
+        contributions: 5,
+      };
 
       fetchMock.mockResponseOnce(JSON.stringify(mockParticipation));
 
@@ -257,7 +262,20 @@ describe('FreelanceJobsClient', () => {
       );
       authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
-      const mockParticipants = [{ character_id: 111 }, { character_id: 222 }];
+      const mockParticipants = [
+        {
+          character_id: 111,
+          corporation_id: 98574078,
+          status: 'committed',
+          contributions: 10,
+        },
+        {
+          character_id: 222,
+          corporation_id: 98574078,
+          status: 'committed',
+          contributions: 3,
+        },
+      ];
 
       fetchMock.mockResponseOnce(JSON.stringify(mockParticipants));
 

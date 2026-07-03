@@ -25,6 +25,10 @@ describe('CharacterClient', () => {
       character_id: 123,
       name: 'Test Character',
       corporation_id: 456,
+      bloodline_id: 7,
+      race_id: 2,
+      gender: 'male',
+      birthday: '2003-05-01T12:00:00Z',
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
@@ -213,7 +217,19 @@ describe('CharacterClient', () => {
 
   it('should return valid structure for getCharacterMedals', async () => {
     fetchMock.mockResponseOnce(
-      JSON.stringify([{ medal_id: 1, title: 'Medal', description: 'A medal' }]),
+      JSON.stringify([
+        {
+          medal_id: 1,
+          title: 'Medal',
+          description: 'A medal',
+          date: '2024-01-15T10:00:00Z',
+          issuer_id: 98000001,
+          corporation_id: 98000001,
+          reason: 'Outstanding service',
+          status: 'public',
+          graphics: [{ part: 1, layer: 0, graphic: 'caldari.1_1' }],
+        },
+      ]),
     );
     const result = await getBody(() => characterClient.getCharacterMedals(123));
     expect(Array.isArray(result)).toBe(true);
@@ -225,7 +241,13 @@ describe('CharacterClient', () => {
   it('should return valid structure for getCharacterNotifications', async () => {
     fetchMock.mockResponseOnce(
       JSON.stringify([
-        { notification_id: 1, type: 'AllWarDeclaredMsg', sender_id: 123 },
+        {
+          notification_id: 1,
+          type: 'AllWarDeclaredMsg',
+          sender_id: 123,
+          sender_type: 'corporation',
+          timestamp: '2024-06-15T08:30:00Z',
+        },
       ]),
     );
     const result = await getBody(() =>

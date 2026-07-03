@@ -24,6 +24,7 @@ export class ApiClient {
   private timeout: number = 30_000;
   private deduplicator: RequestDeduplicator | null = null;
   private retryConfig: RetryConfig | null = null;
+  private validateResponse: boolean = true;
   private language?: string;
 
   constructor(
@@ -80,6 +81,14 @@ export class ApiClient {
 
   setRetryConfig(config: RetryConfig | null): void {
     this.retryConfig = config;
+  }
+
+  getValidateResponse(): boolean {
+    return this.validateResponse;
+  }
+
+  setValidateResponse(validate: boolean): void {
+    this.validateResponse = validate;
   }
 
   getMiddleware(): MiddlewareManager {

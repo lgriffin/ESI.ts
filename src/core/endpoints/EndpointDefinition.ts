@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 export interface DeprecationInfo {
@@ -26,6 +28,8 @@ export interface EndpointDefinition {
   cursorPagination?: boolean;
   /** Mark an endpoint as deprecated with optional migration guidance */
   deprecated?: DeprecationInfo;
+  /** Zod schema for runtime response validation */
+  responseSchema?: z.ZodTypeAny;
 }
 
 export type EndpointMap = Record<string, EndpointDefinition>;
