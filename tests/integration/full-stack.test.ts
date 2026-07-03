@@ -125,9 +125,16 @@ describe('Integration: ETag Cache Round-Trip', () => {
   });
 
   it('should report cache stats after caching', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-      headers: standardHeaders({ etag: '"etag1"' }),
-    });
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        players: 1,
+        server_version: '1',
+        start_time: '2024-01-01T00:00:00Z',
+      }),
+      {
+        headers: standardHeaders({ etag: '"etag1"' }),
+      },
+    );
     await client.status.getStatus();
 
     const stats = client.getCacheStats();
@@ -230,9 +237,16 @@ describe('Integration: Middleware Pipeline', () => {
       headers: { ...ctx.headers, 'X-Trace-Id': 'trace-abc-123' },
     }));
 
-    fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-      headers: standardHeaders(),
-    });
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        players: 1,
+        server_version: '1',
+        start_time: '2024-01-01T00:00:00Z',
+      }),
+      {
+        headers: standardHeaders(),
+      },
+    );
     await client.status.getStatus();
 
     const sentHeaders = fetchMock.mock.calls[0][1]?.headers as Record<
@@ -248,9 +262,16 @@ describe('Integration: Middleware Pipeline', () => {
       body: { ...(ctx.body as Record<string, unknown>), injected: true },
     }));
 
-    fetchMock.mockResponseOnce(JSON.stringify({ players: 100 }), {
-      headers: standardHeaders(),
-    });
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        players: 100,
+        server_version: '1',
+        start_time: '2024-01-01T00:00:00Z',
+      }),
+      {
+        headers: standardHeaders(),
+      },
+    );
     const result = (await client.status.getStatus()) as unknown as Record<
       string,
       unknown
@@ -278,9 +299,16 @@ describe('Integration: Middleware Pipeline', () => {
       return ctx;
     });
 
-    fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-      headers: standardHeaders(),
-    });
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        players: 1,
+        server_version: '1',
+        start_time: '2024-01-01T00:00:00Z',
+      }),
+      {
+        headers: standardHeaders(),
+      },
+    );
     await client.status.getStatus();
 
     expect(order).toEqual(['req-1', 'req-2', 'res-1', 'res-2']);
@@ -295,9 +323,16 @@ describe('Integration: Middleware Pipeline', () => {
 
     remove();
 
-    fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-      headers: standardHeaders(),
-    });
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        players: 1,
+        server_version: '1',
+        start_time: '2024-01-01T00:00:00Z',
+      }),
+      {
+        headers: standardHeaders(),
+      },
+    );
     await client.status.getStatus();
     expect(called).toBe(false);
   });
@@ -326,12 +361,25 @@ describe('Integration: Token Refresh Flow', () => {
       status: 401,
       headers: standardHeaders(),
     });
-    fetchMock.mockResponseOnce(JSON.stringify([{ order_id: 1 }]), {
+    const mockOrder = {
+      order_id: 1,
+      type_id: 34,
+      location_id: 60003760,
+      volume_total: 100,
+      volume_remain: 50,
+      min_volume: 1,
+      price: 10.5,
+      is_buy_order: false,
+      duration: 90,
+      issued: '2024-01-01T00:00:00Z',
+      range: 'station',
+    };
+    fetchMock.mockResponseOnce(JSON.stringify([mockOrder]), {
       headers: standardHeaders(),
     });
 
     const result = await client.market.getCharacterOrders(12345);
-    expect(result).toEqual([{ order_id: 1 }]);
+    expect(result).toEqual([mockOrder]);
 
     const retryHeaders = fetchMock.mock.calls[1][1]?.headers as Record<
       string,
@@ -466,9 +514,16 @@ describe('Integration: Client Creation Patterns', () => {
       unsafeAllowCustomHost: true,
       enableETagCache: false,
     });
-    fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-      headers: standardHeaders(),
-    });
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        players: 1,
+        server_version: '1',
+        start_time: '2024-01-01T00:00:00Z',
+      }),
+      {
+        headers: standardHeaders(),
+      },
+    );
     const result = await client.status.getStatus();
     expect(result.players).toBe(1);
     client.shutdown();
@@ -488,9 +543,16 @@ describe('Integration: Client Creation Patterns', () => {
     expect(custom.hasClient('market')).toBe(true);
     expect(custom.hasClient('alliance')).toBe(false);
 
-    fetchMock.mockResponseOnce(JSON.stringify({ players: 42 }), {
-      headers: standardHeaders(),
-    });
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        players: 42,
+        server_version: '1',
+        start_time: '2024-01-01T00:00:00Z',
+      }),
+      {
+        headers: standardHeaders(),
+      },
+    );
     const result = await custom.status!.getStatus();
     expect(result.players).toBe(42);
     custom.shutdown();
