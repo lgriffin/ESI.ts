@@ -97,8 +97,20 @@ describe('KillmailsClient', () => {
       killmail_id: 12345,
       killmail_hash: 'abcdef1234567890',
       killmail_time: '2024-01-01T00:00:00Z',
-      victim: { character_id: 67890 },
-      attackers: [{ character_id: 54321 }],
+      solar_system_id: 30000142,
+      victim: {
+        character_id: 67890,
+        ship_type_id: 587,
+        damage_taken: 4521,
+      },
+      attackers: [
+        {
+          character_id: 54321,
+          damage_done: 4521,
+          final_blow: true,
+          security_status: -2.5,
+        },
+      ],
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));

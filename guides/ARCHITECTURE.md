@@ -33,6 +33,12 @@ graph TB
         Registry["ClientRegistry"]
     end
 
+    subgraph SchemaLayer["Schema Validation Layer (Zod)"]
+        Schemas["src/schemas/ (32 files)"]
+        SchemaIndex["schemas/index.ts barrel"]
+        SchemaValidation["Runtime Validation"]
+    end
+
     subgraph CoreLayer["Core Request Orchestration"]
         Handler["ApiRequestHandler"]
         SpecTtlCache["Spec-Aware Cache (TTL bypass)"]
@@ -61,7 +67,7 @@ graph TB
         ApiClient["ApiClient"]
         HeadersUtil["parseHeaders()"]
         Validation["validation"]
-        ErrorUtil["EsiError"]
+        ErrorUtil["EsiError, EsiValidationError"]
         Logger["Winston Logger"]
         Constants["constants"]
     end
@@ -84,7 +90,12 @@ graph TB
 
     CreateClient --> EndpointDef
     CreateClient --> EndpointFiles
+    CreateClient --> SchemaValidation
     CreateClient --> Handler
+
+    SchemaValidation --> Schemas
+    SchemaIndex --> Schemas
+    Schemas -->|"z.infer<> derives"| GenTypes
 
     Registry --> Alliance
     Registry --> Character
@@ -119,6 +130,7 @@ graph TB
     style PublicAPI fill:#e3f2fd,stroke:#1565c0
     style DomainClients fill:#e8f5e9,stroke:#2e7d32
     style EndpointLayer fill:#fff3e0,stroke:#e65100
+    style SchemaLayer fill:#e0f7fa,stroke:#00838f
     style CoreLayer fill:#fce4ec,stroke:#c62828
     style Interfaces fill:#f3e5f5,stroke:#6a1b9a
     style Infrastructure fill:#eceff1,stroke:#37474f
@@ -577,3 +589,46 @@ graph TB
     style LegacySystem fill:#fff3e0,stroke:#e65100
     style Decision fill:#e8f5e9,stroke:#2e7d32
 ```
+
+## 10. Response Validation Pipeline
+
+Runtime response validation is powered by Zod schemas in `src/schemas/`. Validation is enabled by default and runs inside `createClient()` after the HTTP response is received but before the data is returned to the domain client.
+
+```mermaid
+sequenceDiagram
+    participant Consumer
+    participant Client as Domain Client
+    participant CreateClient as createClient()
+    participant Handler as ApiRequestHandler
+    participant ESI as ESI API
+    participant Schema as Zod Schema
+
+    Consumer->>Client: client.alliance.getAllianceById(id)
+    Client->>CreateClient: invoke endpoint method
+    CreateClient->>Handler: handleRequest(endpoint, method, ...)
+    Handler->>ESI: HTTP GET /alliances/{id}/
+    ESI-->>Handler: JSON response
+    Handler-->>CreateClient: { headers, body }
+
+    alt validateResponse enabled (default)
+        CreateClient->>Schema: def.responseSchema.safeParse(body)
+        alt Valid response
+            Schema-->>CreateClient: { success: true, data }
+            CreateClient-->>Client: validated data
+            Client-->>Consumer: AllianceInfo
+        else Invalid response
+            Schema-->>CreateClient: { success: false, error }
+            CreateClient-->>Consumer: throw EsiValidationError
+        end
+    else validateResponse disabled
+        CreateClient-->>Client: raw body (no validation)
+        Client-->>Consumer: unvalidated data
+    end
+```
+
+**Key design points:**
+
+- **Validation location**: Validation happens in `createClient()` (in `src/core/endpoints/createClient.ts`), after the HTTP response from `ApiRequestHandler`, before returning data to the domain client. This keeps validation centralized rather than scattered across 35 domain clients.
+- **Loose object mode**: All Zod schemas use `z.looseObject()` so extra fields returned by ESI that are not yet in the schema are preserved in the output. This prevents breakage when CCP adds new fields to ESI responses.
+- **Type derivation**: Types in `src/types/` are derived from schemas via `z.infer<>`, ensuring that compile-time types and runtime validation always agree.
+- **Generated spec file**: The generated spec file (`esi-spec.generated.ts` with 147 interfaces) is NOT validated through Zod at runtime. It remains a CI contract-check tool for detecting ESI schema drift, separate from the runtime validation pipeline.

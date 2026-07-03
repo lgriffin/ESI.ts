@@ -135,9 +135,16 @@ describe('Cross-Cutting Concerns', () => {
         etagCacheConfig: { maxEntries: 100, defaultTtl: 60000 },
       });
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-        headers: standardHeaders({ etag: '"clear-etag"' }),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 1,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders({ etag: '"clear-etag"' }),
+        },
+      );
       await client.status.getStatus();
 
       expect(client.getCacheStats()!.totalEntries).toBeGreaterThanOrEqual(1);
@@ -228,9 +235,16 @@ describe('Cross-Cutting Concerns', () => {
         return ctx;
       });
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 1,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
       await client.status.getStatus();
 
       expect(order).toEqual([1, 2, 3]);
@@ -259,9 +273,16 @@ describe('Cross-Cutting Concerns', () => {
         return ctx;
       });
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 1,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
       await client.status.getStatus();
 
       expect(order).toEqual([1, 2, 3]);
@@ -294,9 +315,16 @@ describe('Cross-Cutting Concerns', () => {
         return ctx;
       });
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 1,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
       await client.status.getStatus();
 
       expect(order).toEqual([
@@ -320,9 +348,16 @@ describe('Cross-Cutting Concerns', () => {
         url: ctx.url + (ctx.url.includes('?') ? '&' : '?') + 'custom=true',
       }));
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 1,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
       await client.status.getStatus();
 
       const calledUrl = fetchMock.mock.calls[0][0] as string;
@@ -345,9 +380,16 @@ describe('Cross-Cutting Concerns', () => {
         },
       }));
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 42 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 42,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
 
       const result = (await client.status.getStatus()) as unknown as Record<
         string,
@@ -371,17 +413,31 @@ describe('Cross-Cutting Concerns', () => {
         return ctx;
       });
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 1,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
       await client.status.getStatus();
       expect(callCount).toBe(1);
 
       remove();
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 2 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 2,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
       await client.status.getStatus();
       expect(callCount).toBe(1);
     });
@@ -413,9 +469,16 @@ describe('Cross-Cutting Concerns', () => {
         ],
       });
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 1,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
       await client.status.getStatus();
 
       expect(reqOrder).toEqual(['ctor-req-1', 'ctor-req-2']);
@@ -449,9 +512,16 @@ describe('Cross-Cutting Concerns', () => {
         enableETagCache: false,
       });
 
-      fetchMock.mockResponseOnce(JSON.stringify({ players: 1 }), {
-        headers: standardHeaders(),
-      });
+      fetchMock.mockResponseOnce(
+        JSON.stringify({
+          players: 1,
+          server_version: '1.0',
+          start_time: '2024-01-01T00:00:00Z',
+        }),
+        {
+          headers: standardHeaders(),
+        },
+      );
 
       await client.status.getStatus();
 

@@ -81,6 +81,7 @@ export interface EsiClientConfig {
   rateLimiterConfig?: RateLimiterConfig;
   requestInterceptors?: RequestInterceptor[];
   responseInterceptors?: ResponseInterceptor[];
+  validateResponse?: boolean;
 }
 
 export class EsiClient {
@@ -154,6 +155,10 @@ export class EsiClient {
       for (const interceptor of config.responseInterceptors) {
         this.apiClient.addResponseInterceptor(interceptor);
       }
+    }
+
+    if (config?.validateResponse !== undefined) {
+      this.apiClient.setValidateResponse(config.validateResponse);
     }
 
     logger.info('EsiClient initialized successfully');

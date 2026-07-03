@@ -22,14 +22,14 @@ describe('FactionClient', () => {
   it('should return valid structure for getLeaderboardsCharacters', async () => {
     const mockResponse = {
       kills: {
-        yesterday: [{ character_id: 1, amount: 100 }],
-        last_week: [{ character_id: 1, amount: 500 }],
-        total: [{ character_id: 1, amount: 1000 }],
+        yesterday: [{ amount: 100, id: 1 }],
+        last_week: [{ amount: 500, id: 1 }],
+        active_total: [{ amount: 1000, id: 1 }],
       },
       victory_points: {
-        yesterday: [{ character_id: 1, amount: 10 }],
-        last_week: [{ character_id: 1, amount: 50 }],
-        total: [{ character_id: 1, amount: 100 }],
+        yesterday: [{ amount: 10, id: 1 }],
+        last_week: [{ amount: 50, id: 1 }],
+        active_total: [{ amount: 100, id: 1 }],
       },
     };
 
@@ -42,11 +42,11 @@ describe('FactionClient', () => {
     expect(result).toHaveProperty('kills');
     expect(result.kills).toHaveProperty('yesterday');
     expect(result.kills).toHaveProperty('last_week');
-    expect(result.kills).toHaveProperty('total');
+    expect(result.kills).toHaveProperty('active_total');
     expect(result).toHaveProperty('victory_points');
     expect(result.victory_points).toHaveProperty('yesterday');
     expect(result.victory_points).toHaveProperty('last_week');
-    expect(result.victory_points).toHaveProperty('total');
+    expect(result.victory_points).toHaveProperty('active_total');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fw/leaderboards/characters',
     );
@@ -55,14 +55,14 @@ describe('FactionClient', () => {
   it('should return valid structure for getLeaderboardsCorporations', async () => {
     const mockResponse = {
       kills: {
-        yesterday: [{ corporation_id: 1, amount: 100 }],
-        last_week: [{ corporation_id: 1, amount: 500 }],
-        total: [{ corporation_id: 1, amount: 1000 }],
+        yesterday: [{ amount: 100, id: 1 }],
+        last_week: [{ amount: 500, id: 1 }],
+        active_total: [{ amount: 1000, id: 1 }],
       },
       victory_points: {
-        yesterday: [{ corporation_id: 1, amount: 10 }],
-        last_week: [{ corporation_id: 1, amount: 50 }],
-        total: [{ corporation_id: 1, amount: 100 }],
+        yesterday: [{ amount: 10, id: 1 }],
+        last_week: [{ amount: 50, id: 1 }],
+        active_total: [{ amount: 100, id: 1 }],
       },
     };
 
@@ -75,11 +75,11 @@ describe('FactionClient', () => {
     expect(result).toHaveProperty('kills');
     expect(result.kills).toHaveProperty('yesterday');
     expect(result.kills).toHaveProperty('last_week');
-    expect(result.kills).toHaveProperty('total');
+    expect(result.kills).toHaveProperty('active_total');
     expect(result).toHaveProperty('victory_points');
     expect(result.victory_points).toHaveProperty('yesterday');
     expect(result.victory_points).toHaveProperty('last_week');
-    expect(result.victory_points).toHaveProperty('total');
+    expect(result.victory_points).toHaveProperty('active_total');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fw/leaderboards/corporations',
     );
@@ -88,14 +88,14 @@ describe('FactionClient', () => {
   it('should return valid structure for getLeaderboardsOverall', async () => {
     const mockResponse = {
       kills: {
-        yesterday: [{ faction_id: 1, amount: 100 }],
-        last_week: [{ faction_id: 1, amount: 500 }],
-        total: [{ faction_id: 1, amount: 1000 }],
+        yesterday: [{ amount: 100, id: 1 }],
+        last_week: [{ amount: 500, id: 1 }],
+        active_total: [{ amount: 1000, id: 1 }],
       },
       victory_points: {
-        yesterday: [{ faction_id: 1, amount: 10 }],
-        last_week: [{ faction_id: 1, amount: 50 }],
-        total: [{ faction_id: 1, amount: 100 }],
+        yesterday: [{ amount: 10, id: 1 }],
+        last_week: [{ amount: 50, id: 1 }],
+        active_total: [{ amount: 100, id: 1 }],
       },
     };
 
@@ -106,11 +106,11 @@ describe('FactionClient', () => {
     expect(result).toHaveProperty('kills');
     expect(result.kills).toHaveProperty('yesterday');
     expect(result.kills).toHaveProperty('last_week');
-    expect(result.kills).toHaveProperty('total');
+    expect(result.kills).toHaveProperty('active_total');
     expect(result).toHaveProperty('victory_points');
     expect(result.victory_points).toHaveProperty('yesterday');
     expect(result.victory_points).toHaveProperty('last_week');
-    expect(result.victory_points).toHaveProperty('total');
+    expect(result.victory_points).toHaveProperty('active_total');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fw/leaderboards',
     );
@@ -126,6 +126,7 @@ describe('FactionClient', () => {
           yesterday: 50,
         },
         pilots: 300,
+        systems_controlled: 45,
         victory_points: {
           last_week: 1500,
           total: 30000,
@@ -303,8 +304,8 @@ describe('FactionClient', () => {
   it('should return valid structure for getWars', async () => {
     const mockResponse = [
       {
-        against_id: 500002,
-        faction_id: 500001,
+        aggressor_id: 500001,
+        defender_id: 500002,
       },
     ];
 
@@ -313,11 +314,11 @@ describe('FactionClient', () => {
     const result = await getBody(() => factionClient.getWars());
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach((war: { against_id: number; faction_id: number }) => {
-      expect(war).toHaveProperty('against_id');
-      expect(typeof war.against_id).toBe('number');
-      expect(war).toHaveProperty('faction_id');
-      expect(typeof war.faction_id).toBe('number');
+    result.forEach((war: { aggressor_id: number; defender_id: number }) => {
+      expect(war).toHaveProperty('aggressor_id');
+      expect(typeof war.aggressor_id).toBe('number');
+      expect(war).toHaveProperty('defender_id');
+      expect(typeof war.defender_id).toBe('number');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fw/wars',

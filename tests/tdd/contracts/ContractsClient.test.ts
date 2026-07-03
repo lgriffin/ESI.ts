@@ -25,8 +25,14 @@ describe('ContractClient', () => {
       {
         contract_id: 1,
         issuer_id: 123,
+        issuer_corporation_id: 98000001,
         start_location_id: 456,
         type: 'item_exchange',
+        status: 'outstanding',
+        for_corporation: false,
+        availability: 'personal',
+        date_issued: '2024-07-01T12:00:00Z',
+        date_expired: '2024-07-15T12:00:00Z',
       },
     ];
 
@@ -56,6 +62,7 @@ describe('ContractClient', () => {
     const mockResponse = [
       {
         bid_id: 1,
+        bidder_id: 98000002,
         amount: 1000000,
         date_bid: '2024-07-01T12:00:00Z',
       },
@@ -84,9 +91,12 @@ describe('ContractClient', () => {
   it('should return valid structure for getContractItems', async () => {
     const mockResponse = [
       {
+        record_id: 1,
         item_id: 1,
         type_id: 2,
         quantity: 3,
+        is_singleton: false,
+        is_included: true,
       },
     ];
 
@@ -115,8 +125,14 @@ describe('ContractClient', () => {
       {
         contract_id: 1,
         issuer_id: 123,
+        issuer_corporation_id: 98000001,
         start_location_id: 456,
         type: 'item_exchange',
+        status: 'outstanding',
+        for_corporation: false,
+        availability: 'public',
+        date_issued: '2024-07-01T12:00:00Z',
+        date_expired: '2024-07-15T12:00:00Z',
       },
     ];
 
@@ -144,6 +160,7 @@ describe('ContractClient', () => {
     const mockResponse = [
       {
         bid_id: 1,
+        bidder_id: 98000002,
         amount: 1000000,
         date_bid: '2024-07-01T12:00:00Z',
       },
@@ -170,9 +187,12 @@ describe('ContractClient', () => {
   it('should return valid structure for getPublicContractItems', async () => {
     const mockResponse = [
       {
+        record_id: 1,
         item_id: 1,
         type_id: 2,
         quantity: 3,
+        is_singleton: false,
+        is_included: true,
       },
     ];
 
@@ -201,8 +221,14 @@ describe('ContractClient', () => {
       {
         contract_id: 1,
         issuer_id: 123,
+        issuer_corporation_id: 98000001,
         start_location_id: 456,
         type: 'item_exchange',
+        status: 'outstanding',
+        for_corporation: true,
+        availability: 'corporation',
+        date_issued: '2024-07-01T12:00:00Z',
+        date_expired: '2024-07-15T12:00:00Z',
       },
     ];
 
@@ -232,6 +258,7 @@ describe('ContractClient', () => {
     const mockResponse = [
       {
         bid_id: 1,
+        bidder_id: 98000002,
         amount: 1000000,
         date_bid: '2024-07-01T12:00:00Z',
       },
@@ -260,9 +287,12 @@ describe('ContractClient', () => {
   it('should return valid structure for getCorporationContractItems', async () => {
     const mockResponse = [
       {
+        record_id: 1,
         item_id: 1,
         type_id: 2,
         quantity: 3,
+        is_singleton: false,
+        is_included: true,
       },
     ];
 

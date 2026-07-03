@@ -22,14 +22,26 @@ describe('InsuranceClient', () => {
   it('should return valid insurance prices', async () => {
     const mockResponse = [
       {
+        type_id: 587,
         name: 'Basic',
         cost: 1000,
         payout: 5000,
+        levels: [
+          { cost: 10, payout: 40, name: 'Basic' },
+          { cost: 30, payout: 120, name: 'Standard' },
+          { cost: 60, payout: 240, name: 'Bronze' },
+        ],
       },
       {
+        type_id: 621,
         name: 'Standard',
         cost: 2000,
         payout: 10000,
+        levels: [
+          { cost: 20, payout: 80, name: 'Basic' },
+          { cost: 60, payout: 240, name: 'Standard' },
+          { cost: 120, payout: 480, name: 'Bronze' },
+        ],
       },
     ];
 

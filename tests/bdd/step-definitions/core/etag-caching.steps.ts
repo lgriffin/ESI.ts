@@ -145,7 +145,14 @@ defineFeature(feature, (test) => {
     given('multiple cached responses exist', async () => {
       const endpoints = [
         { endpoint: 'alliances', data: [{ id: 1 }] },
-        { endpoint: 'status', data: { status: 'ok' } },
+        {
+          endpoint: 'status',
+          data: {
+            players: 12345,
+            server_version: '1.0',
+            start_time: '2024-01-01T00:00:00Z',
+          },
+        },
       ];
 
       for (let i = 0; i < endpoints.length; i++) {

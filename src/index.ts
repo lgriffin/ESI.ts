@@ -68,6 +68,7 @@ export { CursorTokens } from './core/pagination/CursorPaginationHandler';
 export {
   EsiError,
   TimeoutError,
+  EsiValidationError,
   isEsiError,
   isRateLimited,
   isNotFound,
@@ -76,6 +77,7 @@ export {
   isServerError,
   isTimeout,
   isRetryable,
+  isValidationError,
 } from './core/util/error';
 
 // Endpoint definition types
@@ -152,3 +154,6 @@ export { setLogger } from './core/logger/loggerUtil';
 
 // Types
 export * from './types/api-responses';
+
+// Schemas (Zod runtime validation)
+export * as schemas from './schemas';

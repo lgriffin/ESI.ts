@@ -1,4 +1,9 @@
 import { EndpointMap } from './EndpointDefinition';
+import {
+  DogmaAttributeSchema,
+  DogmaEffectSchema,
+  DogmaDynamicItemSchema,
+} from '../../schemas/dogma';
 
 export const dogmaEndpoints = {
   getAttributes: {
@@ -11,6 +16,7 @@ export const dogmaEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['attributeId'],
+    responseSchema: DogmaAttributeSchema,
   },
   getEffects: {
     path: 'dogma/effects',
@@ -22,11 +28,13 @@ export const dogmaEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['effectId'],
+    responseSchema: DogmaEffectSchema,
   },
   getDynamicItemInfo: {
     path: 'dogma/dynamic/items/{typeId}/{itemId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['typeId', 'itemId'],
+    responseSchema: DogmaDynamicItemSchema,
   },
 } as const satisfies EndpointMap;

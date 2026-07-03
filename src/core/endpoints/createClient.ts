@@ -6,6 +6,7 @@ import { EsiResponse, EsiResponseMeta } from '../../types/api-responses';
 import { buildEndpointPath } from './buildEndpointPath';
 import { parseWarning } from '../util/headersUtil';
 import { logWarn } from '../logger/loggerUtil';
+import { EsiValidationError } from '../util/error';
 
 export interface CursorOptions {
   before?: string;
@@ -145,10 +146,21 @@ export function createClient<T extends EndpointMap>(
         true,
         def.path,
       );
-      if (returnMetadata) {
-        return { data: response.body, meta: buildMeta(response) };
+      let responseBody = response.body;
+      if (def.responseSchema && apiClient.getValidateResponse()) {
+        const result = def.responseSchema.safeParse(responseBody);
+        if (!result.success) {
+          throw new EsiValidationError(
+            `${apiClient.getLink()}/${path}`,
+            result.error,
+          );
+        }
+        responseBody = result.data;
       }
-      return response.body;
+      if (returnMetadata) {
+        return { data: responseBody, meta: buildMeta(response) };
+      }
+      return responseBody;
     };
   }
 

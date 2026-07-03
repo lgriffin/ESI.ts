@@ -1,4 +1,11 @@
+import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import {
+  FleetInfoSchema,
+  FleetMemberSchema,
+  FleetWingSchema,
+  CharacterFleetInfoSchema,
+} from '../../schemas/fleet';
 
 export const fleetEndpoints = {
   getCharacterFleetInfo: {
@@ -6,12 +13,14 @@ export const fleetEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    responseSchema: CharacterFleetInfoSchema,
   },
   getFleetInfo: {
     path: 'fleets/{fleetId}',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['fleetId'],
+    responseSchema: FleetInfoSchema,
   },
   updateFleet: {
     path: 'fleets/{fleetId}',
@@ -25,6 +34,7 @@ export const fleetEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['fleetId'],
+    responseSchema: z.array(FleetMemberSchema),
   },
   createFleetInvitation: {
     path: 'fleets/{fleetId}/members/',
@@ -64,6 +74,7 @@ export const fleetEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['fleetId'],
+    responseSchema: z.array(FleetWingSchema),
   },
   createFleetWing: {
     path: 'fleets/{fleetId}/wings/',

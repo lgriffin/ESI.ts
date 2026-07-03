@@ -1,4 +1,10 @@
+import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import {
+  CharacterAssetSchema,
+  AssetLocationSchema,
+  AssetNameSchema,
+} from '../../schemas/assets';
 
 export const assetEndpoints = {
   getCharacterAssets: {
@@ -6,6 +12,7 @@ export const assetEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    responseSchema: z.array(CharacterAssetSchema),
   },
   getCorporationAssets: {
     path: 'corporations/{corporationId}/assets/',
@@ -19,6 +26,7 @@ export const assetEndpoints = {
     requiresAuth: true,
     pathParams: ['characterId'],
     bodyBuilder: (itemIds: number[]) => itemIds,
+    responseSchema: z.array(AssetLocationSchema),
   },
   postCharacterAssetNames: {
     path: 'characters/{characterId}/assets/names/',
@@ -26,6 +34,7 @@ export const assetEndpoints = {
     requiresAuth: true,
     pathParams: ['characterId'],
     bodyBuilder: (itemIds: number[]) => itemIds,
+    responseSchema: z.array(AssetNameSchema),
   },
   postCorporationAssetLocations: {
     path: 'corporations/{corporationId}/assets/locations/',

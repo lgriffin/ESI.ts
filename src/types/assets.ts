@@ -1,24 +1,10 @@
-export interface CharacterAsset {
-  item_id: number;
-  type_id: number;
-  quantity: number;
-  location_id: number;
-  location_type: 'station' | 'solar_system' | 'other';
-  location_flag: string;
-  is_singleton: boolean;
-  is_blueprint_copy?: boolean;
-}
+import { z } from 'zod';
+import {
+  CharacterAssetSchema,
+  AssetLocationSchema,
+  AssetNameSchema,
+} from '../schemas/assets';
 
-export interface AssetLocation {
-  item_id: number;
-  position: {
-    x: number;
-    y: number;
-    z: number;
-  };
-}
-
-export interface AssetName {
-  item_id: number;
-  name: string;
-}
+export type CharacterAsset = z.infer<typeof CharacterAssetSchema>;
+export type AssetLocation = z.infer<typeof AssetLocationSchema>;
+export type AssetName = z.infer<typeof AssetNameSchema>;

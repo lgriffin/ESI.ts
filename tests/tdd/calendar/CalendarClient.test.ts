@@ -26,12 +26,14 @@ describe('CalendarClient', () => {
       event_date: string;
       title: string;
       importance: number;
+      event_response: string;
     }[] = [
       {
         event_id: 1,
         event_date: '2024-07-01T12:00:00Z',
         title: 'Event Title',
         importance: 1,
+        event_response: 'accepted',
       },
     ];
 
@@ -68,13 +70,29 @@ describe('CalendarClient', () => {
     const mockResponse: {
       event_id: number;
       event_date: string;
+      date: string;
       title: string;
       description: string;
+      text: string;
+      owner_id: number;
+      owner_name: string;
+      owner_type: string;
+      duration: number;
+      importance: number;
+      response: string;
     } = {
       event_id: 1,
       event_date: '2024-07-01T12:00:00Z',
+      date: '2024-07-01T12:00:00Z',
       title: 'Event Title',
       description: 'Event Description',
+      text: 'Event Description',
+      owner_id: 987654321,
+      owner_name: 'Test Corporation',
+      owner_type: 'corporation',
+      duration: 60,
+      importance: 1,
+      response: 'accepted',
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
@@ -115,9 +133,14 @@ describe('CalendarClient', () => {
   });
 
   it('should return valid structure for getEventAttendees', async () => {
-    const mockResponse: { character_id: number; response: string }[] = [
+    const mockResponse: {
+      character_id: number;
+      event_response: string;
+      response: string;
+    }[] = [
       {
         character_id: 123,
+        event_response: 'accepted',
         response: 'accepted',
       },
     ];

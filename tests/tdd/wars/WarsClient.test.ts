@@ -52,13 +52,22 @@ describe('WarsClient', () => {
 
   it('should return valid war by ID', async () => {
     const mockResponse = {
+      id: 1,
       war_id: 1,
       declared: '2024-06-25T00:00:00Z',
-      finished: null,
       mutual: false,
       open_for_allies: true,
-      retracted: null,
       started: '2024-06-26T00:00:00Z',
+      aggressor: {
+        corporation_id: 98000001,
+        isk_destroyed: 125000000.5,
+        ships_killed: 42,
+      },
+      defender: {
+        corporation_id: 98000002,
+        isk_destroyed: 78000000.25,
+        ships_killed: 15,
+      },
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));

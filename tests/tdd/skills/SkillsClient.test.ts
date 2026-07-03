@@ -97,6 +97,7 @@ describe('SkillsClient', () => {
       {
         skill_id: 1,
         finished_level: 5,
+        queue_position: 0,
         start_sp: 5000,
         end_sp: 10000,
         start_time: '2024-07-01T12:00:00Z',

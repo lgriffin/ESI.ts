@@ -119,3 +119,17 @@ export const buildError = (
   }
   return error;
 };
+
+export class EsiValidationError extends EsiError {
+  public readonly validationError: unknown;
+
+  constructor(url: string, zodError: unknown, requestId?: string) {
+    super(0, `Response validation failed for ${url}`, url, requestId);
+    this.name = 'EsiValidationError';
+    this.validationError = zodError;
+  }
+}
+
+export function isValidationError(error: unknown): error is EsiValidationError {
+  return error instanceof EsiValidationError;
+}

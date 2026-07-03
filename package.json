@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "5.3.0",
+  "version": "6.0.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -180,6 +180,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "winston": "^3.13.0"
+    "winston": "^3.13.0",
+    "zod": "^4.4.3"
   }
 }

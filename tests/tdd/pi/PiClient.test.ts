@@ -22,11 +22,13 @@ describe('PiClient', () => {
   it('should return valid structure for getColonies', async () => {
     const mockResponse = [
       {
+        solar_system_id: 30000142,
         planet_id: 123456,
         planet_type: 'temperate',
         owner_id: 987654,
         system_id: 654321,
         last_update: '2024-01-01T00:00:00Z',
+        upgrade_level: 4,
         num_pins: 10,
       },
     ];

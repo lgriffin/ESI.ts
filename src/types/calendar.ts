@@ -1,26 +1,10 @@
-export interface CalendarEvent {
-  event_id: number;
-  event_date: string;
-  title: string;
-  importance: number;
-  event_response: 'declined' | 'not_responded' | 'accepted' | 'tentative';
-}
+import { z } from 'zod';
+import {
+  CalendarEventSchema,
+  CalendarEventDetailSchema,
+  CalendarEventAttendeeSchema,
+} from '../schemas/calendar';
 
-export interface CalendarEventDetail {
-  event_id: number;
-  date: string;
-  title: string;
-  text: string;
-  owner_id: number;
-  owner_name: string;
-  owner_type:
-    'eve_server' | 'corporation' | 'faction' | 'character' | 'alliance';
-  duration: number;
-  importance: number;
-  response: string;
-}
-
-export interface CalendarEventAttendee {
-  character_id: number;
-  event_response: 'declined' | 'not_responded' | 'accepted' | 'tentative';
-}
+export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
+export type CalendarEventDetail = z.infer<typeof CalendarEventDetailSchema>;
+export type CalendarEventAttendee = z.infer<typeof CalendarEventAttendeeSchema>;

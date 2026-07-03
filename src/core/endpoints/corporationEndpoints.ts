@@ -1,4 +1,23 @@
+import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
+import {
+  CorporationInfoSchema,
+  CorporationAllianceHistorySchema,
+  ContainerLogSchema,
+  CorporationDivisionsSchema,
+  CorporationFacilitySchema,
+  CorporationMedalSchema,
+  CorporationIssuedMedalSchema,
+  CorporationMemberTitleSchema,
+  CorporationMemberTrackingSchema,
+  CorporationMemberRoleSchema,
+  CorporationRoleHistorySchema,
+  CorporationShareholderSchema,
+  CorporationStarbaseSchema,
+  CorporationStarbaseDetailSchema,
+  CorporationStructureSchema,
+  CorporationTitleSchema,
+} from '../../schemas/corporation';
 
 export const corporationEndpoints = {
   getCorporationInfo: {
@@ -6,12 +25,14 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['corporationId'],
+    responseSchema: CorporationInfoSchema,
   },
   getCorporationAllianceHistory: {
     path: 'corporations/{corporationId}/alliancehistory',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationAllianceHistorySchema),
   },
   getCorporationBlueprints: {
     path: 'corporations/{corporationId}/blueprints',
@@ -24,18 +45,21 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(ContainerLogSchema),
   },
   getCorporationDivisions: {
     path: 'corporations/{corporationId}/divisions',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: CorporationDivisionsSchema,
   },
   getCorporationFacilities: {
     path: 'corporations/{corporationId}/facilities',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationFacilitySchema),
   },
   getCorporationIcon: {
     path: 'corporations/{corporationId}/icons',
@@ -48,12 +72,14 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationMedalSchema),
   },
   getCorporationIssuedMedals: {
     path: 'corporations/{corporationId}/medals/issued',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationIssuedMedalSchema),
   },
   getCorporationMembers: {
     path: 'corporations/{corporationId}/members',
@@ -72,30 +98,35 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationMemberTitleSchema),
   },
   getCorporationMemberTracking: {
     path: 'corporations/{corporationId}/membertracking',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationMemberTrackingSchema),
   },
   getCorporationMemberRoles: {
     path: 'corporations/{corporationId}/roles',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationMemberRoleSchema),
   },
   getCorporationMemberRolesHistory: {
     path: 'corporations/{corporationId}/roles/history',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationRoleHistorySchema),
   },
   getCorporationShareholders: {
     path: 'corporations/{corporationId}/shareholders',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationShareholderSchema),
   },
   getCorporationStandings: {
     path: 'corporations/{corporationId}/standings',
@@ -108,24 +139,28 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationStarbaseSchema),
   },
   getCorporationStarbaseDetail: {
     path: 'corporations/{corporationId}/starbases/{starbaseId}',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId', 'starbaseId'],
+    responseSchema: CorporationStarbaseDetailSchema,
   },
   getCorporationStructures: {
     path: 'corporations/{corporationId}/structures',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationStructureSchema),
   },
   getCorporationTitles: {
     path: 'corporations/{corporationId}/titles',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationTitleSchema),
   },
   getNpcCorporations: {
     path: 'corporations/npccorps',

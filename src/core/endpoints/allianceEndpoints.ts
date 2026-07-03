@@ -1,4 +1,5 @@
 import { EndpointMap } from './EndpointDefinition';
+import { AllianceInfoSchema, AllianceIconSchema } from '../../schemas/alliance';
 
 export const allianceEndpoints = {
   getAllianceById: {
@@ -6,6 +7,7 @@ export const allianceEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['allianceId'],
+    responseSchema: AllianceInfoSchema,
   },
   getCorporations: {
     path: 'alliances/{allianceId}/corporations/',
@@ -18,6 +20,7 @@ export const allianceEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['allianceId'],
+    responseSchema: AllianceIconSchema,
   },
   getAlliances: {
     path: 'alliances',

@@ -30,7 +30,7 @@ describe('FittingsClient', () => {
         ship_type_id: 123,
         items: [
           {
-            flag: 'HIGH_SLOT_1',
+            flag: 27,
             quantity: 1,
             type_id: 456,
           },
@@ -81,7 +81,7 @@ describe('FittingsClient', () => {
       ship_type_id: 123,
       items: [
         {
-          flag: 'HIGH_SLOT_1',
+          flag: 27,
           quantity: 1,
           type_id: 456,
         },

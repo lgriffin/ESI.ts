@@ -10,7 +10,7 @@
 
 A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/).
 
-- Typed responses for all endpoints
+- Typed responses for all endpoints with **runtime validation** via Zod schemas
 - Spec-driven type generation from ESI swagger spec (147 interfaces)
 - ETag caching with Cache-Control TTL, stale-on-error, and write invalidation
 - Spec-aware cache TTLs — zero-request cache hits within ESI-specified windows
@@ -91,6 +91,7 @@ const client = new EsiClient({
     defaultTtl: 300000, // Fallback TTL in ms (default: 5 min)
     cleanupInterval: 60000, // Expired entry cleanup interval (default: 1 min)
   },
+  validateResponse: true, // Runtime Zod validation of ESI responses (default: true)
 });
 ```
 
@@ -322,6 +323,37 @@ const allNames = await client.batchPost(
 );
 ```
 
+## Runtime Response Validation
+
+ESI.ts validates every API response at runtime using [Zod](https://zod.dev/) schemas. If CCP changes the ESI API and the response no longer matches the expected shape, you get an immediate `EsiValidationError` instead of silent data corruption.
+
+Validation is **on by default**. Extra fields from ESI are preserved (passthrough mode), so new fields added by CCP won't break your application.
+
+```typescript
+import {
+  EsiClient,
+  EsiValidationError,
+  isValidationError,
+  schemas,
+} from '@lgriffin/esi.ts';
+
+const client = new EsiClient();
+
+// Validation happens automatically on every request
+const character = await client.characters.getCharacterPublicInfo(12345);
+
+// Disable validation globally if needed
+const rawClient = new EsiClient({ validateResponse: false });
+
+// Use schemas directly for your own validation
+const result = schemas.CharacterInfoSchema.safeParse(someData);
+if (result.success) {
+  console.log(result.data.name);
+}
+```
+
+See [guides/RUNTIME-VALIDATION.md](guides/RUNTIME-VALIDATION.md) for the full guide on schemas, error handling, and extending schemas.
+
 ## Generated Types
 
 The library includes TypeScript interfaces generated directly from the ESI swagger spec, available as the `EsiSpec` namespace. These are guaranteed to match the live spec and complement the hand-written types:
@@ -471,15 +503,19 @@ API errors throw `EsiError` with `statusCode`, `message`, and `url` properties:
 import {
   EsiError,
   TimeoutError,
+  EsiValidationError,
   isTimeout,
   isRetryable,
+  isValidationError,
 } from '@lgriffin/esi.ts';
 
 try {
   const alliance = await client.alliance.getAllianceById(99999999);
   console.log('Alliance:', alliance.name);
 } catch (err) {
-  if (isTimeout(err)) {
+  if (isValidationError(err)) {
+    console.log('Response validation failed:', err.validationError);
+  } else if (isTimeout(err)) {
     console.log(`Request timed out after ${err.timeoutMs}ms`);
   } else if (err instanceof EsiError) {
     console.log(`ESI error ${err.statusCode}: ${err.message}`);
@@ -494,6 +530,7 @@ try {
 - **5xx with cache** — returns stale cached data instead of throwing
 - **Timeout** — throws `TimeoutError` (extends `EsiError` with `statusCode: 0` and `timeoutMs`)
 - **Retryable errors** — `EsiError.retryable` returns `true` for 502, 503, 504, 420, 429, and timeouts
+- **Validation errors** — throws `EsiValidationError` (extends `EsiError`) when response data doesn't match the expected Zod schema
 
 ## Response Metadata
 

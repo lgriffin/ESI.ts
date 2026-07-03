@@ -55,6 +55,7 @@ describe('ContactsClient', () => {
       const mockResponse = [
         {
           label_id: 1,
+          label_name: 'VIPs',
           name: 'VIPs',
         },
       ];
@@ -128,14 +129,17 @@ describe('ContactsClient', () => {
       const mockResponse = [
         {
           label_id: 1,
+          label_name: 'Friends',
           name: 'Friends',
         },
         {
           label_id: 2,
+          label_name: 'Enemies',
           name: 'Enemies',
         },
         {
           label_id: 3,
+          label_name: 'Neutrals',
           name: 'Neutrals',
         },
       ];
@@ -279,10 +283,12 @@ describe('ContactsClient', () => {
       const mockResponse = [
         {
           label_id: 1,
+          label_name: 'Corporate Allies',
           name: 'Corporate Allies',
         },
         {
           label_id: 2,
+          label_name: 'Trade Partners',
           name: 'Trade Partners',
         },
       ];
