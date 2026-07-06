@@ -23,7 +23,7 @@ export const FreelanceJobSummarySchema = z.looseObject({
 });
 
 export const FreelanceJobsListingSchema = z.looseObject({
-  cursor: EsiCursorSchema,
+  cursor: EsiCursorSchema.optional(),
   freelance_jobs: z.array(FreelanceJobSummarySchema),
 });
 
@@ -65,8 +65,8 @@ export const FreelanceJobDetailSchema = z.looseObject({
   }),
   contribution: z.looseObject({
     max_committed_participants: z.number(),
-    reward_per_contribution: z.number(),
-    submission_multiplier: z.number(),
+    reward_per_contribution: z.number().optional(),
+    submission_multiplier: z.number().optional(),
   }),
   access_and_visibility: z.looseObject({
     acl_protected: z.boolean(),
@@ -80,7 +80,7 @@ export const FreelanceJobDetailSchema = z.looseObject({
 });
 
 export const CharacterFreelanceJobsListingSchema = z.looseObject({
-  cursor: EsiCursorSchema,
+  cursor: EsiCursorSchema.optional(),
   freelance_jobs: z.array(FreelanceJobSummarySchema),
 });
 
@@ -93,7 +93,7 @@ export const FreelanceJobParticipationSchema = z.looseObject({
 });
 
 export const CorporationFreelanceJobsListingSchema = z.looseObject({
-  cursor: EsiCursorSchema,
+  cursor: EsiCursorSchema.optional(),
   freelance_jobs: z.array(FreelanceJobSummarySchema),
 });
 

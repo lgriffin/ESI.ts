@@ -28,8 +28,8 @@ async function fetchFirstPage() {
         const result: FreelanceJobsListing = await client.freelanceJobs.getFreelanceJobs();
 
         console.log(`  Fetched ${result.freelance_jobs.length} jobs`);
-        console.log(`  Cursor before: ${result.cursor.before}`);
-        console.log(`  Cursor after:  ${result.cursor.after}`);
+        console.log(`  Cursor before: ${result.cursor?.before}`);
+        console.log(`  Cursor after:  ${result.cursor?.after}`);
         console.log();
 
         for (const job of result.freelance_jobs.slice(0, 3)) {
@@ -72,12 +72,12 @@ async function manualCursorPagination() {
 
             totalJobs += result.freelance_jobs.length;
 
-            if (!result.cursor.after) {
+            if (!result.cursor?.after) {
                 console.log('  No more pages.');
                 break;
             }
 
-            afterToken = result.cursor.after;
+            afterToken = result.cursor?.after ?? undefined;
         }
 
         console.log(`\n  Total jobs fetched: ${totalJobs} across ${pageCount} pages`);
@@ -97,7 +97,7 @@ async function autoFetchAll() {
         const allJobs = await fetchAllCursorPages(
             (before, after) => client.freelanceJobs.getFreelanceJobs(before, after),
             (response) => response.freelance_jobs,
-            (response) => response.cursor,
+            (response) => response.cursor ?? { before: null, after: null },
         );
 
         console.log(`  Fetched ${allJobs.length} total freelance jobs`);
