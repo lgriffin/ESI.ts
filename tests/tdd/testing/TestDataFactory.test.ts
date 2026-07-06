@@ -4,19 +4,40 @@ describe('TestDataFactory', () => {
   describe('Sovereignty/Equinox factories', () => {
     it('should create a sovereignty system with defaults', () => {
       const system = TestDataFactory.createSovereigntySystem();
-      expect(system.system_id).toBe(30000142);
-      expect(system.alliance_id).toBe(99005338);
-      expect(system.structures).toHaveLength(1);
+      expect(system.solar_systems).toHaveLength(1);
+      expect(system.solar_systems[0]!.solar_system_id).toBe(30000142);
+      expect(system.solar_systems[0]!.claim.alliance?.alliance_id).toBe(
+        99005338,
+      );
     });
 
     it('should create a sovereignty system with overrides', () => {
       const system = TestDataFactory.createSovereigntySystem({
-        system_id: 99999,
-        military_index: 10.0,
+        solar_systems: [
+          {
+            solar_system_id: 99999,
+            claim: {
+              alliance: {
+                alliance_id: 99005338,
+                corporation_id: 1344654522,
+                claimed_since: '2020-10-08T00:38:16Z',
+                is_capital_system: false,
+                development: {
+                  activity_defense_multiplier: 10.0,
+                  military_level: 5,
+                  industrial_level: 3,
+                  strategic_level: 1,
+                },
+              },
+            },
+          },
+        ],
       });
-      expect(system.system_id).toBe(99999);
-      expect(system.military_index).toBe(10.0);
-      expect(system.alliance_id).toBe(99005338);
+      expect(system.solar_systems[0]!.solar_system_id).toBe(99999);
+      expect(
+        system.solar_systems[0]!.claim.alliance?.development
+          ?.activity_defense_multiplier,
+      ).toBe(10.0);
     });
 
     it('should create a sovereignty hub with defaults', () => {

@@ -621,17 +621,23 @@ export class TestDataFactory {
     overrides: Partial<SovereigntySystem> = {},
   ): SovereigntySystem {
     return {
-      system_id: 30000142,
-      alliance_id: 99005338,
-      corporation_id: 1344654522,
-      military_index: 5.0,
-      industry_index: 3.2,
-      strategic_index: 1.0,
-      structures: [
+      solar_systems: [
         {
-          structure_id: 8001,
-          structure_type_id: 32226,
-          vulnerability_occupancy_level: 4.5,
+          solar_system_id: 30000142,
+          claim: {
+            alliance: {
+              alliance_id: 99005338,
+              corporation_id: 1344654522,
+              claimed_since: '2020-10-08T00:38:16Z',
+              is_capital_system: false,
+              development: {
+                activity_defense_multiplier: 4.5,
+                military_level: 5,
+                industrial_level: 3,
+                strategic_level: 1,
+              },
+            },
+          },
         },
       ],
       ...overrides,

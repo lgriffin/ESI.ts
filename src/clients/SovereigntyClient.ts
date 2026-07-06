@@ -24,7 +24,7 @@ export class SovereigntyClient extends BaseEsiClient<
    *
    * @returns A list of sovereignty systems with ownership, ADM indices, and anchored structures
    */
-  getSovereigntySystems(): Promise<SovereigntySystem[]> {
-    return this.api.getSovereigntySystems() as Promise<SovereigntySystem[]>;
+  getSovereigntySystems(): Promise<SovereigntySystem> {
+    return this.api.getSovereigntySystems() as Promise<SovereigntySystem>;
   }
 }

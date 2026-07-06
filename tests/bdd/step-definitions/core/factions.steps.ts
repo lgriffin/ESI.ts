@@ -280,12 +280,12 @@ defineFeature(feature, (test) => {
     given('faction warfare is active', () => {
       const expectedWars = [
         {
-          aggressor_id: 500001,
-          defender_id: 500002,
+          faction_id: 500001,
+          against_id: 500002,
         },
         {
-          aggressor_id: 500003,
-          defender_id: 500004,
+          faction_id: 500003,
+          against_id: 500004,
         },
       ];
 
@@ -299,10 +299,10 @@ defineFeature(feature, (test) => {
     then('the client shall return the list of faction conflicts', () => {
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('aggressor_id', 500001);
-      expect(result[0]).toHaveProperty('defender_id', 500002);
-      expect(result[1]).toHaveProperty('aggressor_id', 500003);
-      expect(result[1]).toHaveProperty('defender_id', 500004);
+      expect(result[0]).toHaveProperty('faction_id', 500001);
+      expect(result[0]).toHaveProperty('against_id', 500002);
+      expect(result[1]).toHaveProperty('faction_id', 500003);
+      expect(result[1]).toHaveProperty('against_id', 500004);
     });
   });
 
@@ -476,7 +476,7 @@ defineFeature(feature, (test) => {
         },
       ];
 
-      const wars = [{ aggressor_id: 500001, defender_id: 500002 }];
+      const wars = [{ faction_id: 500001, against_id: 500002 }];
 
       jest.spyOn(client.factions, 'getStats').mockResolvedValue(overallStats);
       jest
@@ -515,8 +515,8 @@ defineFeature(feature, (test) => {
       expect(fwSystems).toHaveLength(1);
 
       expect(fwWars).toBeInstanceOf(Array);
-      expect(fwWars[0].aggressor_id).toBe(500001);
-      expect(fwWars[0].defender_id).toBe(500002);
+      expect(fwWars[0].faction_id).toBe(500001);
+      expect(fwWars[0].against_id).toBe(500002);
     });
   });
 });

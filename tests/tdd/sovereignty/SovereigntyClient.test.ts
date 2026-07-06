@@ -49,36 +49,39 @@ describe('SovereigntyClient', () => {
   });
 
   it('should get sovereignty systems (combined route)', async () => {
-    const mockResponse = [
-      {
-        system_id: 30000142,
-        alliance_id: 99000006,
-        corporation_id: 98000002,
-        military_index: 3.5,
-        industry_index: 2.1,
-        strategic_index: 1.0,
-        structures: [
-          {
-            structure_id: 1018253388776,
-            structure_type_id: 32226,
-            vulnerability_occupancy_level: 4.5,
+    const mockResponse = {
+      solar_systems: [
+        {
+          solar_system_id: 30000142,
+          claim: {
+            alliance: {
+              alliance_id: 99000006,
+              corporation_id: 98000002,
+              claimed_since: '2020-10-08T00:38:16Z',
+              is_capital_system: false,
+              development: {
+                activity_defense_multiplier: 4.5,
+                military_level: 3,
+                industrial_level: 2,
+                strategic_level: 1,
+              },
+            },
           },
-        ],
-      },
-    ];
+        },
+      ],
+    };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
       sovereigntyClient.getSovereigntySystems(),
     );
-    expect(Array.isArray(result)).toBe(true);
-    result.forEach((system: any) => {
-      expect(system).toHaveProperty('system_id');
-      expect(typeof system.system_id).toBe('number');
-      expect(system).toHaveProperty('military_index');
-      expect(system).toHaveProperty('industry_index');
-      expect(system).toHaveProperty('strategic_index');
+    expect(result).toHaveProperty('solar_systems');
+    expect(Array.isArray(result.solar_systems)).toBe(true);
+    result.solar_systems.forEach((system: any) => {
+      expect(system).toHaveProperty('solar_system_id');
+      expect(typeof system.solar_system_id).toBe('number');
+      expect(system).toHaveProperty('claim');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/sovereignty/systems',
