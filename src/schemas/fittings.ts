@@ -8,7 +8,7 @@ export const FittingSchema = z.looseObject({
   items: z.array(
     z.looseObject({
       type_id: z.number(),
-      flag: z.number(),
+      flag: z.union([z.number(), z.string()]),
       quantity: z.number(),
     }),
   ),

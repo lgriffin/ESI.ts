@@ -83,8 +83,8 @@ describe('FreelanceJobsClient', () => {
 
       const result = await client.getFreelanceJobs();
 
-      expect(result.cursor.before).toBe('b1');
-      expect(result.cursor.after).toBe('a1');
+      expect(result.cursor?.before).toBe('b1');
+      expect(result.cursor?.after).toBe('a1');
       expect(result.freelance_jobs).toHaveLength(2);
       expect(result.freelance_jobs[0].name).toBe('Veldspar Collection');
       expect(fetchMock.mock.calls[0][0]).toBe(
@@ -122,7 +122,7 @@ describe('FreelanceJobsClient', () => {
       const result = await client.getFreelanceJobs(undefined, 'last-cursor');
 
       expect(result.freelance_jobs).toHaveLength(0);
-      expect(result.cursor.after).toBeNull();
+      expect(result.cursor?.after).toBeNull();
     });
   });
 
