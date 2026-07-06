@@ -5,7 +5,7 @@ export const CharacterAssetSchema = z.looseObject({
   type_id: z.number(),
   quantity: z.number(),
   location_id: z.number(),
-  location_type: z.enum(['station', 'solar_system', 'other']),
+  location_type: z.enum(['station', 'solar_system', 'item', 'other']),
   location_flag: z.string(),
   is_singleton: z.boolean(),
   is_blueprint_copy: z.boolean().optional(),

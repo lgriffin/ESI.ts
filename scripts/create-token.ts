@@ -189,7 +189,7 @@ type CallbackResult =
 
 function parseInvalidScope(description: string): string | null {
   const match = description.match(/'([^']+)'/);
-  return match ? match[1] : null;
+  return match?.[1] ?? null;
 }
 
 function waitForCallback(

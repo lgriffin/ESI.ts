@@ -1,6 +1,6 @@
 # ESI.ts Examples Guide
 
-This guide documents all 30 examples included with ESI.ts, complete with real console output captured from live runs against the EVE Online ESI API. The examples are organized into three categories: **Public** (no authentication required), **Hybrid** (partially public, partially authenticated), and **Authenticated** (require an ESI access token with specific scopes).
+This guide documents all 40 examples included with ESI.ts, complete with real console output captured from live runs against the EVE Online ESI API. The examples are organized into three categories: **Public** (no authentication required), **Hybrid** (partially public, partially authenticated), and **Authenticated** (require an ESI access token with specific scopes).
 
 > **Note:** Values such as player counts, ISK prices, market volumes, sovereignty campaigns, and dates reflect a point-in-time snapshot and will vary on each run.
 
@@ -26,26 +26,36 @@ This guide documents all 30 examples included with ESI.ts, complete with real co
 14. [Mercenary](#mercenary)
 15. [Skyhooks](#skyhooks)
 16. [Streaming Pagination](#streaming-pagination)
+17. [Universe Encyclopedia](#universe-encyclopedia)
+18. [Dogma, Meta & Sovereignty](#dogma-meta--sovereignty)
 
 ### Hybrid Examples
 
-17. [Character Profile](#character-profile)
-18. [Contracts Browser](#contracts-browser)
-19. [Cursor Pagination](#cursor-pagination)
+19. [Character Profile](#character-profile)
+20. [Contracts Browser](#contracts-browser)
+21. [Cursor Pagination](#cursor-pagination)
+22. [Faction Warfare Details](#faction-warfare-details)
 
 ### Authenticated Examples
 
-20. [Wallet Overview](#wallet-overview)
-21. [Skills Overview](#skills-overview)
-22. [Assets Inventory](#assets-inventory)
-23. [Killmails](#killmails)
-24. [Fleet Operations](#fleet-operations)
-25. [Mail Inbox](#mail-inbox)
-26. [Location Tracker](#location-tracker)
-27. [Fittings and Clones](#fittings-and-clones)
-28. [Contacts](#contacts)
-29. [Access Lists](#access-lists)
-30. [Token Refresh](#token-refresh)
+23. [Wallet Overview](#wallet-overview)
+24. [Skills Overview](#skills-overview)
+25. [Assets Inventory](#assets-inventory)
+26. [Killmails](#killmails)
+27. [Fleet Operations](#fleet-operations)
+28. [Mail Inbox](#mail-inbox)
+29. [Location Tracker](#location-tracker)
+30. [Fittings and Clones](#fittings-and-clones)
+31. [Contacts](#contacts)
+32. [Access Lists](#access-lists)
+33. [Token Refresh](#token-refresh)
+34. [Character Details](#character-details)
+35. [Calendar & Search](#calendar--search)
+36. [Loyalty & Planetary Interaction](#loyalty--planetary-interaction)
+37. [Industry & Mining](#industry--mining)
+38. [Market Orders & Groups](#market-orders--groups)
+39. [Corporation Details](#corporation-details)
+40. [Corp Contracts & Wallet](#corp-contracts--wallet)
 
 ---
 
@@ -573,6 +583,102 @@ The full run continues through all pages until the complete dataset is retrieved
 
 ---
 
+### Universe Encyclopedia
+
+> Explores EVE's lore data (ancestries, bloodlines, races, factions), item database (categories, groups, graphics), galaxy statistics (system jumps, kills), and celestial objects (stars, planets, stargates, moons, asteroid belts).
+
+**Run:** `npm run example:universe-encyclopedia`
+
+```
+Universe Encyclopedia
+
+Fetching lore data...
+Lore Data
+--------------------------------------------------
+  Ancestries:  43
+  Bloodlines:  18
+  Races:       6
+  Factions:    27
+
+  Race: Caldari
+    Bloodline: Deteis
+    Bloodline: Achura
+    Bloodline: Civire
+  ...
+
+Fetching categories & groups...
+
+Item Database
+--------------------------------------------------
+  Categories: 48
+  Groups:     1605
+
+Graphics
+--------------------------------------------------
+  Total graphics: 6108
+
+Fetching system data...
+
+Galaxy Statistics
+--------------------------------------------------
+  Systems:        8490
+  Constellations: 1184
+  Systems with jumps reported: 5082
+  Systems with kills reported: 3299
+
+  Jita traffic: 3,437 jumps
+  Jita kills: 21 ships, 75 NPCs, 7 pods
+
+Fetching celestial objects...
+
+Celestial Objects (Jita)
+--------------------------------------------------
+  Star: Jita - Star (type 3796)
+  Planet: Jita I (type 2016)
+  Stargate: Stargate (Maurasi) -> system 30000140
+```
+
+---
+
+### Dogma, Meta & Sovereignty
+
+> Fetches dogma effects, the ESI OpenAPI specification, sovereignty system ownership, and war killmails.
+
+**Run:** `npm run example:dogma-meta-sov`
+
+```
+Dogma Effects, Meta & Sovereignty
+
+Dogma Effects
+--------------------------------------------------
+  Total effects: 3413
+  Sample effect: rigBasCapCompManufactureMaterialBonus
+    Category: 0
+
+Sovereignty Systems
+--------------------------------------------------
+  Total sovereignty entries: 5485
+  Systems claimed by alliances: 2711
+  Top 5 alliances by systems held:
+    Alliance 1354830081: 509 systems
+    Alliance 99003581: 344 systems
+    Alliance 1900696668: 180 systems
+    Alliance 99009163: 122 systems
+    Alliance 99012042: 107 systems
+
+ESI Meta
+--------------------------------------------------
+  OpenAPI version: 3.1.0
+  API title: EVE Spring Inebriation (ESI) - tranquility
+  Paths: 203
+
+War Killmails
+--------------------------------------------------
+  War 761500: 0 killmails
+```
+
+---
+
 ## Hybrid Examples
 
 These examples combine public and authenticated endpoints. The public portions work without tokens; authenticated sections are skipped gracefully when credentials are not available.
@@ -728,6 +834,49 @@ Character/Corporation endpoints require ESI_ACCESS_TOKEN.
   const updates = await client.freelanceJobs.getFreelanceJobs(undefined, savedCursor);
 
 Done!
+```
+
+---
+
+### Faction Warfare Details
+
+> Fetches FW leaderboards (overall, character, corporation), active faction wars, and character/corporation FW enlistment stats. Auth endpoints gracefully report when not enlisted.
+
+**Run:** `npm run example:faction-details`
+
+**Scopes:** `esi-characters.read_fw_stats.v1`, `esi-corporations.read_fw_stats.v1`
+
+```
+Faction Warfare Details
+
+Fetching leaderboards...
+Overall Leaderboard
+--------------------------------------------------
+  ["kills","victory_points"]
+
+Character Leaderboard
+--------------------------------------------------
+  ["kills","victory_points"]
+
+Corporation Leaderboard
+--------------------------------------------------
+  ["kills","victory_points"]
+
+Faction Wars
+--------------------------------------------------
+  Active wars: 12
+    Faction 500004 vs 500001
+    Faction 500010 vs 500001
+    Faction 500003 vs 500002
+    ...
+
+Character FW Stats
+--------------------------------------------------
+  Character is not enlisted in faction warfare
+
+Corporation FW Stats
+--------------------------------------------------
+  Corporation is not enlisted in faction warfare
 ```
 
 ---

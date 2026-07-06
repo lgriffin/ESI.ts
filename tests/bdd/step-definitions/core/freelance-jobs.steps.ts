@@ -64,8 +64,8 @@ defineFeature(feature, (test) => {
       expect(result.freelance_jobs[0]).toHaveProperty('state');
       expect(result.freelance_jobs[0]).toHaveProperty('progress');
       expect(result.cursor).toBeDefined();
-      expect(result.cursor.before).toBeNull();
-      expect(result.cursor.after).toBe('cursor_abc123');
+      expect(result.cursor?.before).toBeNull();
+      expect(result.cursor?.after).toBe('cursor_abc123');
     });
   });
 
@@ -94,8 +94,8 @@ defineFeature(feature, (test) => {
     then('the client shall return an empty listing', () => {
       expect(result.freelance_jobs).toBeInstanceOf(Array);
       expect(result.freelance_jobs).toHaveLength(0);
-      expect(result.cursor.before).toBeNull();
-      expect(result.cursor.after).toBeNull();
+      expect(result.cursor?.before).toBeNull();
+      expect(result.cursor?.after).toBeNull();
     });
   });
 
@@ -229,7 +229,7 @@ defineFeature(feature, (test) => {
       expect(result.freelance_jobs).toHaveLength(1);
       expect(result.freelance_jobs[0].id).toBe('job-010');
       expect(result.freelance_jobs[0].state).toBe('in_progress');
-      expect(result.cursor.after).toBe('char_cursor_xyz');
+      expect(result.cursor?.after).toBe('char_cursor_xyz');
     });
   });
 
@@ -309,7 +309,7 @@ defineFeature(feature, (test) => {
       expect(result).toBeDefined();
       expect(result.freelance_jobs).toHaveLength(1);
       expect(result.freelance_jobs[0].id).toBe('job-050');
-      expect(result.cursor.after).toBeNull();
+      expect(result.cursor?.after).toBeNull();
     });
   });
 
@@ -354,11 +354,11 @@ defineFeature(feature, (test) => {
       'the client requests the next page using the after token',
       async () => {
         const page1 = await client.freelanceJobs.getFreelanceJobs();
-        expect(page1.cursor.after).toBe('page2_token');
+        expect(page1.cursor?.after).toBe('page2_token');
 
         page2 = await client.freelanceJobs.getFreelanceJobs(
           undefined,
-          page1.cursor.after!,
+          page1.cursor!.after!,
         );
       },
     );
@@ -366,8 +366,8 @@ defineFeature(feature, (test) => {
     then('the client shall return the second page of results', () => {
       expect(page2.freelance_jobs).toHaveLength(1);
       expect(page2.freelance_jobs[0].id).toBe('job-002');
-      expect(page2.cursor.before).toBe('page2_token');
-      expect(page2.cursor.after).toBeNull();
+      expect(page2.cursor?.before).toBe('page2_token');
+      expect(page2.cursor?.after).toBeNull();
     });
   });
 
@@ -405,7 +405,7 @@ defineFeature(feature, (test) => {
     then('the client shall return the first page of results', () => {
       expect(firstPage.freelance_jobs).toHaveLength(1);
       expect(firstPage.freelance_jobs[0].id).toBe('job-001');
-      expect(firstPage.cursor.before).toBeNull();
+      expect(firstPage.cursor?.before).toBeNull();
     });
   });
 

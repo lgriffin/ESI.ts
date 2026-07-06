@@ -44,7 +44,7 @@ async function main() {
       if (entries.length > 10) console.log(`  ... and ${entries.length - 10} more`);
     }
   } catch (err) {
-    if (err instanceof EsiError && err.status === 401) {
+    if (err instanceof EsiError && err.statusCode === 401) {
       console.error('Authentication required. Set ESI_ACCESS_TOKEN to a valid SSO token.');
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);

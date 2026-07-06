@@ -7,6 +7,7 @@ export const MailMessageSchema = z.looseObject({
   timestamp: z.string().optional(),
   labels: z.array(z.number()).optional(),
   is_read: z.boolean().optional(),
+  body: z.string().optional(),
   recipients: z
     .array(
       z.looseObject({

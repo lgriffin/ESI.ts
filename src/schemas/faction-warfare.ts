@@ -43,8 +43,8 @@ export const FactionWarfareSystemSchema = z.looseObject({
 });
 
 export const FactionWarfareWarSchema = z.looseObject({
-  aggressor_id: z.number(),
-  defender_id: z.number(),
+  faction_id: z.number(),
+  against_id: z.number(),
 });
 
 export const FactionWarfareLeaderboardSchema = z.looseObject({

@@ -304,8 +304,8 @@ describe('FactionClient', () => {
   it('should return valid structure for getWars', async () => {
     const mockResponse = [
       {
-        aggressor_id: 500001,
-        defender_id: 500002,
+        faction_id: 500001,
+        against_id: 500002,
       },
     ];
 
@@ -314,11 +314,11 @@ describe('FactionClient', () => {
     const result = await getBody(() => factionClient.getWars());
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach((war: { aggressor_id: number; defender_id: number }) => {
-      expect(war).toHaveProperty('aggressor_id');
-      expect(typeof war.aggressor_id).toBe('number');
-      expect(war).toHaveProperty('defender_id');
-      expect(typeof war.defender_id).toBe('number');
+    result.forEach((war: { faction_id: number; against_id: number }) => {
+      expect(war).toHaveProperty('faction_id');
+      expect(typeof war.faction_id).toBe('number');
+      expect(war).toHaveProperty('against_id');
+      expect(typeof war.against_id).toBe('number');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fw/wars',

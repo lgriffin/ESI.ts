@@ -49,23 +49,23 @@ async function main() {
       console.log('  No contacts');
     } else {
       // Group by standing
-      const standingGroups: Record<string, typeof contacts> = {
-        'Excellent (+10)': [],
-        'Good (+5)': [],
-        'Neutral (0)': [],
-        'Bad (-5)': [],
-        'Terrible (-10)': [],
-      };
+      const standingGroups = new Map<string, typeof contacts>([
+        ['Excellent (+10)', []],
+        ['Good (+5)', []],
+        ['Neutral (0)', []],
+        ['Bad (-5)', []],
+        ['Terrible (-10)', []],
+      ]);
 
       for (const c of contacts) {
-        if (c.standing >= 10) standingGroups['Excellent (+10)'].push(c);
-        else if (c.standing > 0) standingGroups['Good (+5)'].push(c);
-        else if (c.standing === 0) standingGroups['Neutral (0)'].push(c);
-        else if (c.standing > -10) standingGroups['Bad (-5)'].push(c);
-        else standingGroups['Terrible (-10)'].push(c);
+        if (c.standing >= 10) standingGroups.get('Excellent (+10)')!.push(c);
+        else if (c.standing > 0) standingGroups.get('Good (+5)')!.push(c);
+        else if (c.standing === 0) standingGroups.get('Neutral (0)')!.push(c);
+        else if (c.standing > -10) standingGroups.get('Bad (-5)')!.push(c);
+        else standingGroups.get('Terrible (-10)')!.push(c);
       }
 
-      for (const [group, members] of Object.entries(standingGroups)) {
+      for (const [group, members] of standingGroups) {
         if (members.length > 0) {
           console.log(`\n  ${group}: ${members.length} contact${members.length > 1 ? 's' : ''}`);
           for (const c of members.slice(0, 5)) {
