@@ -10,7 +10,7 @@
 
 A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), with runtime validation, intelligent caching, and full endpoint coverage.
 
-**All 210 ESI endpoints are defined, tested, and validated against live Tranquility.**
+**208 endpoint definitions — 185 from the public ESI swagger spec, plus 23 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs) that CCP has deployed but not yet added to the public spec. All validated against live Tranquility.**
 
 ## Why ESI.ts vs. OpenAPI-Generated Clients?
 
@@ -26,7 +26,7 @@ Tools like `openapi-typescript` or `openapi-generator` can produce a typed clien
 
 | Capability                      | openapi-typescript                                                                                                  | ESI.ts                                                                                                                                                                                                   |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Runtime response validation** | None — types are erased at compile time. If CCP changes a field, you get silent data corruption.                    | Every response is validated at runtime via [Zod](https://zod.dev/) schemas (146 of 210 endpoints). Schema mismatches throw `EsiValidationError` immediately.                                             |
+| **Runtime response validation** | None — types are erased at compile time. If CCP changes a field, you get silent data corruption.                    | Every response is validated at runtime via [Zod](https://zod.dev/) schemas (146 of 208 endpoints). Schema mismatches throw `EsiValidationError` immediately.                                             |
 | **Intelligent caching**         | None — you build your own.                                                                                          | Three-tier: spec-aware TTL (zero HTTP calls within ESI's `x-cached-seconds` window), ETag conditional GETs, stale-on-error fallback on 5xx. Write operations auto-invalidate related GET caches.         |
 | **Rate limiting**               | None — you build your own.                                                                                          | 36 per-group token buckets extracted from the ESI spec at build time. Market requests can't starve wallet requests. Optional per-user bucketing for multi-character apps.                                |
 | **Pagination**                  | Manual — you write the page loop.                                                                                   | Automatic offset pagination, cursor-based pagination (Equinox-era endpoints), and streaming `AsyncGenerator` pagination for memory-efficient processing of large datasets.                               |
@@ -274,7 +274,7 @@ All clients are accessed as properties on the `EsiClient` instance. Authenticate
 
 ## Runtime Response Validation
 
-ESI.ts validates every API response at runtime using [Zod](https://zod.dev/) schemas. 146 of 210 endpoints have schemas attached. If CCP changes the ESI API and the response no longer matches the expected shape, you get an immediate `EsiValidationError` instead of silent data corruption.
+ESI.ts validates every API response at runtime using [Zod](https://zod.dev/) schemas. 146 of 208 endpoints have schemas attached. If CCP changes the ESI API and the response no longer matches the expected shape, you get an immediate `EsiValidationError` instead of silent data corruption.
 
 Validation is **on by default**. Extra fields from ESI are preserved via `z.looseObject()` passthrough mode, so new fields added by CCP won't break your application — they flow through to your code untouched.
 
@@ -657,7 +657,7 @@ const prices = await marketClient.getMarketPrices();
 
 ## Endpoint Coverage
 
-All 210 ESI endpoint definitions have been validated against live Tranquility. This table summarizes the validation approach:
+All 208 endpoint definitions have been validated against live Tranquility — 185 from the public ESI spec plus 23 for newer EVE features not yet in the public swagger. This table summarizes the validation approach:
 
 | Category                    | Endpoints | Method                                             |
 | --------------------------- | --------- | -------------------------------------------------- |
