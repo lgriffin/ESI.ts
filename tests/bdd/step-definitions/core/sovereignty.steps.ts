@@ -128,32 +128,44 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('the combined systems endpoint is available', () => {
-      const expectedSystems = [
-        {
-          system_id: 30000142,
-          alliance_id: 99005338,
-          corporation_id: 1344654522,
-          military_index: 5.0,
-          industry_index: 3.2,
-          strategic_index: 1.0,
-          structures: [
-            {
-              structure_id: 8001,
-              structure_type_id: 32226,
-              vulnerability_occupancy_level: 4.5,
+      const expectedSystems = {
+        solar_systems: [
+          {
+            solar_system_id: 30000142,
+            claim: {
+              alliance: {
+                alliance_id: 99005338,
+                corporation_id: 1344654522,
+                claimed_since: '2020-10-08T00:38:16Z',
+                is_capital_system: false,
+                development: {
+                  activity_defense_multiplier: 4.5,
+                  military_level: 5,
+                  industrial_level: 3,
+                  strategic_level: 1,
+                },
+              },
             },
-          ],
-        },
-        {
-          system_id: 30004759,
-          alliance_id: 99000001,
-          corporation_id: 987654321,
-          military_index: 2.0,
-          industry_index: 4.5,
-          strategic_index: 3.0,
-          structures: [],
-        },
-      ];
+          },
+          {
+            solar_system_id: 30004759,
+            claim: {
+              alliance: {
+                alliance_id: 99000001,
+                corporation_id: 987654321,
+                claimed_since: '2021-01-01T00:00:00Z',
+                is_capital_system: false,
+                development: {
+                  activity_defense_multiplier: 3.0,
+                  military_level: 2,
+                  industrial_level: 4,
+                  strategic_level: 3,
+                },
+              },
+            },
+          },
+        ],
+      };
 
       jest
         .spyOn(client.sovereignty, 'getSovereigntySystems')
@@ -168,12 +180,11 @@ defineFeature(feature, (test) => {
       'the client shall return occupancy, structures, and separate ADM indices',
       () => {
         expect(result).toBeDefined();
-        expect(result).toHaveLength(2);
-        expect(result[0].military_index).toBe(5.0);
-        expect(result[0].industry_index).toBe(3.2);
-        expect(result[0].strategic_index).toBe(1.0);
-        expect(result[0].structures).toHaveLength(1);
-        expect(result[1].structures).toHaveLength(0);
+        expect(result.solar_systems).toHaveLength(2);
+        const first = result.solar_systems[0];
+        expect(first.claim.alliance.development.military_level).toBe(5);
+        expect(first.claim.alliance.development.industrial_level).toBe(3);
+        expect(first.claim.alliance.development.strategic_level).toBe(1);
       },
     );
   });
@@ -186,26 +197,34 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('the combined systems endpoint exists', () => {
-      const systemsData = [
-        {
-          system_id: 30000142,
-          alliance_id: 99005338,
-          corporation_id: 1344654522,
-          faction_id: undefined,
-          military_index: 5.0,
-          industry_index: 3.2,
-          strategic_index: 1.0,
-          structures: [
-            {
-              structure_id: 8001,
-              structure_type_id: 32226,
-              vulnerability_occupancy_level: 4.5,
-              vulnerable_start_time: '2026-05-20T17:00:00Z',
-              vulnerable_end_time: '2026-05-20T20:00:00Z',
+      const systemsData = {
+        solar_systems: [
+          {
+            solar_system_id: 30000142,
+            claim: {
+              alliance: {
+                alliance_id: 99005338,
+                corporation_id: 1344654522,
+                claimed_since: '2020-10-08T00:38:16Z',
+                sovereignty_hub: {
+                  id: 1034510825648,
+                  vulnerability_window: {
+                    start: '2026-05-20T17:00:00Z',
+                    end: '2026-05-20T20:00:00Z',
+                  },
+                },
+                is_capital_system: false,
+                development: {
+                  activity_defense_multiplier: 4.5,
+                  military_level: 5,
+                  industrial_level: 3,
+                  strategic_level: 1,
+                },
+              },
             },
-          ],
-        },
-      ];
+          },
+        ],
+      };
 
       jest
         .spyOn(client.sovereignty, 'getSovereigntySystems')
@@ -217,11 +236,13 @@ defineFeature(feature, (test) => {
     });
 
     then('it shall contain data from both map and structures', () => {
-      expect(result[0].system_id).toBeDefined();
-      expect(result[0].alliance_id).toBeDefined();
-      expect(result[0].military_index).toBeDefined();
-      expect(result[0].structures![0].structure_id).toBeDefined();
-      expect(result[0].structures![0].vulnerable_start_time).toBeDefined();
+      const sys = result.solar_systems[0];
+      expect(sys.solar_system_id).toBeDefined();
+      expect(sys.claim.alliance.alliance_id).toBeDefined();
+      expect(sys.claim.alliance.development.military_level).toBeDefined();
+      expect(
+        sys.claim.alliance.sovereignty_hub.vulnerability_window.start,
+      ).toBeDefined();
     });
   });
 
@@ -247,23 +268,27 @@ defineFeature(feature, (test) => {
           defender_id: 99005338,
         },
       ];
-      const systemsData = [
-        {
-          system_id: 30004759,
-          alliance_id: 99005338,
-          corporation_id: 1344654522,
-          military_index: 5.0,
-          industry_index: 3.2,
-          strategic_index: 1.0,
-          structures: [
-            {
-              structure_id: 8001,
-              structure_type_id: 32226,
-              vulnerability_occupancy_level: 4.5,
+      const systemsData = {
+        solar_systems: [
+          {
+            solar_system_id: 30004759,
+            claim: {
+              alliance: {
+                alliance_id: 99005338,
+                corporation_id: 1344654522,
+                claimed_since: '2020-10-08T00:38:16Z',
+                is_capital_system: false,
+                development: {
+                  activity_defense_multiplier: 4.5,
+                  military_level: 5,
+                  industrial_level: 3,
+                  strategic_level: 1,
+                },
+              },
             },
-          ],
-        },
-      ];
+          },
+        ],
+      };
 
       jest
         .spyOn(client.sovereignty, 'getSovereigntyCampaigns')
@@ -283,11 +308,13 @@ defineFeature(feature, (test) => {
     then('both shall return valid data', () => {
       expect(campaigns).toHaveLength(1);
       expect(campaigns[0].campaign_id).toBe(1001);
-      expect(systems).toHaveLength(1);
-      expect(systems[0].system_id).toBe(30004759);
+      expect(systems.solar_systems).toHaveLength(1);
+      expect(systems.solar_systems[0].solar_system_id).toBe(30004759);
 
       // Cross-reference: campaign and system in same solar system
-      expect(campaigns[0].solar_system_id).toBe(systems[0].system_id);
+      expect(campaigns[0].solar_system_id).toBe(
+        systems.solar_systems[0].solar_system_id,
+      );
     });
   });
 });

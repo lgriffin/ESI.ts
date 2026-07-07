@@ -16,6 +16,6 @@ export const sovereigntyEndpoints = {
     path: 'sovereignty/systems',
     method: 'GET',
     requiresAuth: false,
-    responseSchema: z.array(SovereigntySystemSchema),
+    responseSchema: SovereigntySystemSchema,
   },
 } as const satisfies EndpointMap;

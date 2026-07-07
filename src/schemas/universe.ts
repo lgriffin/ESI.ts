@@ -56,7 +56,7 @@ export const BloodlineSchema = z.looseObject({
   description: z.string(),
   race_id: z.number(),
   corporation_id: z.number(),
-  ship_type_id: z.number(),
+  ship_type_id: z.number().nullable(),
   charisma: z.number(),
   intelligence: z.number(),
   memory: z.number(),

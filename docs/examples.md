@@ -1,6 +1,6 @@
 # ESI.ts Examples Guide
 
-This guide documents all 30 examples included with ESI.ts, complete with real console output captured from live runs against the EVE Online ESI API. The examples are organized into three categories: **Public** (no authentication required), **Hybrid** (partially public, partially authenticated), and **Authenticated** (require an ESI access token with specific scopes).
+This guide documents all 40 examples included with ESI.ts, complete with real console output captured from live runs against the EVE Online ESI API. The examples are organized into three categories: **Public** (no authentication required), **Hybrid** (partially public, partially authenticated), and **Authenticated** (require an ESI access token with specific scopes).
 
 > **Note:** Values such as player counts, ISK prices, market volumes, sovereignty campaigns, and dates reflect a point-in-time snapshot and will vary on each run.
 
@@ -26,26 +26,36 @@ This guide documents all 30 examples included with ESI.ts, complete with real co
 14. [Mercenary](#mercenary)
 15. [Skyhooks](#skyhooks)
 16. [Streaming Pagination](#streaming-pagination)
+17. [Universe Encyclopedia](#universe-encyclopedia)
+18. [Dogma, Meta & Sovereignty](#dogma-meta--sovereignty)
 
 ### Hybrid Examples
 
-17. [Character Profile](#character-profile)
-18. [Contracts Browser](#contracts-browser)
-19. [Cursor Pagination](#cursor-pagination)
+19. [Character Profile](#character-profile)
+20. [Contracts Browser](#contracts-browser)
+21. [Cursor Pagination](#cursor-pagination)
+22. [Faction Warfare Details](#faction-warfare-details)
 
 ### Authenticated Examples
 
-20. [Wallet Overview](#wallet-overview)
-21. [Skills Overview](#skills-overview)
-22. [Assets Inventory](#assets-inventory)
-23. [Killmails](#killmails)
-24. [Fleet Operations](#fleet-operations)
-25. [Mail Inbox](#mail-inbox)
-26. [Location Tracker](#location-tracker)
-27. [Fittings and Clones](#fittings-and-clones)
-28. [Contacts](#contacts)
-29. [Access Lists](#access-lists)
-30. [Token Refresh](#token-refresh)
+23. [Wallet Overview](#wallet-overview)
+24. [Skills Overview](#skills-overview)
+25. [Assets Inventory](#assets-inventory)
+26. [Killmails](#killmails)
+27. [Fleet Operations](#fleet-operations)
+28. [Mail Inbox](#mail-inbox)
+29. [Location Tracker](#location-tracker)
+30. [Fittings and Clones](#fittings-and-clones)
+31. [Contacts](#contacts)
+32. [Access Lists](#access-lists)
+33. [Token Refresh](#token-refresh)
+34. [Character Details](#character-details)
+35. [Calendar & Search](#calendar--search)
+36. [Loyalty & Planetary Interaction](#loyalty--planetary-interaction)
+37. [Industry & Mining](#industry--mining)
+38. [Market Orders & Groups](#market-orders--groups)
+39. [Corporation Details](#corporation-details)
+40. [Corp Contracts & Wallet](#corp-contracts--wallet)
 
 ---
 
@@ -573,6 +583,102 @@ The full run continues through all pages until the complete dataset is retrieved
 
 ---
 
+### Universe Encyclopedia
+
+> Explores EVE's lore data (ancestries, bloodlines, races, factions), item database (categories, groups, graphics), galaxy statistics (system jumps, kills), and celestial objects (stars, planets, stargates, moons, asteroid belts).
+
+**Run:** `npm run example:universe-encyclopedia`
+
+```
+Universe Encyclopedia
+
+Fetching lore data...
+Lore Data
+--------------------------------------------------
+  Ancestries:  43
+  Bloodlines:  18
+  Races:       6
+  Factions:    27
+
+  Race: Caldari
+    Bloodline: Deteis
+    Bloodline: Achura
+    Bloodline: Civire
+  ...
+
+Fetching categories & groups...
+
+Item Database
+--------------------------------------------------
+  Categories: 48
+  Groups:     1605
+
+Graphics
+--------------------------------------------------
+  Total graphics: 6108
+
+Fetching system data...
+
+Galaxy Statistics
+--------------------------------------------------
+  Systems:        8490
+  Constellations: 1184
+  Systems with jumps reported: 5082
+  Systems with kills reported: 3299
+
+  Jita traffic: 3,437 jumps
+  Jita kills: 21 ships, 75 NPCs, 7 pods
+
+Fetching celestial objects...
+
+Celestial Objects (Jita)
+--------------------------------------------------
+  Star: Jita - Star (type 3796)
+  Planet: Jita I (type 2016)
+  Stargate: Stargate (Maurasi) -> system 30000140
+```
+
+---
+
+### Dogma, Meta & Sovereignty
+
+> Fetches dogma effects, the ESI OpenAPI specification, sovereignty system ownership, and war killmails.
+
+**Run:** `npm run example:dogma-meta-sov`
+
+```
+Dogma Effects, Meta & Sovereignty
+
+Dogma Effects
+--------------------------------------------------
+  Total effects: 3413
+  Sample effect: rigBasCapCompManufactureMaterialBonus
+    Category: 0
+
+Sovereignty Systems
+--------------------------------------------------
+  Total sovereignty entries: 5485
+  Systems claimed by alliances: 2711
+  Top 5 alliances by systems held:
+    Alliance 1354830081: 509 systems
+    Alliance 99003581: 344 systems
+    Alliance 1900696668: 180 systems
+    Alliance 99009163: 122 systems
+    Alliance 99012042: 107 systems
+
+ESI Meta
+--------------------------------------------------
+  OpenAPI version: 3.1.0
+  API title: EVE Spring Inebriation (ESI) - tranquility
+  Paths: 203
+
+War Killmails
+--------------------------------------------------
+  War 761500: 0 killmails
+```
+
+---
+
 ## Hybrid Examples
 
 These examples combine public and authenticated endpoints. The public portions work without tokens; authenticated sections are skipped gracefully when credentials are not available.
@@ -728,6 +834,49 @@ Character/Corporation endpoints require ESI_ACCESS_TOKEN.
   const updates = await client.freelanceJobs.getFreelanceJobs(undefined, savedCursor);
 
 Done!
+```
+
+---
+
+### Faction Warfare Details
+
+> Fetches FW leaderboards (overall, character, corporation), active faction wars, and character/corporation FW enlistment stats. Auth endpoints gracefully report when not enlisted.
+
+**Run:** `npm run example:faction-details`
+
+**Scopes:** `esi-characters.read_fw_stats.v1`, `esi-corporations.read_fw_stats.v1`
+
+```
+Faction Warfare Details
+
+Fetching leaderboards...
+Overall Leaderboard
+--------------------------------------------------
+  ["kills","victory_points"]
+
+Character Leaderboard
+--------------------------------------------------
+  ["kills","victory_points"]
+
+Corporation Leaderboard
+--------------------------------------------------
+  ["kills","victory_points"]
+
+Faction Wars
+--------------------------------------------------
+  Active wars: 12
+    Faction 500004 vs 500001
+    Faction 500010 vs 500001
+    Faction 500003 vs 500002
+    ...
+
+Character FW Stats
+--------------------------------------------------
+  Character is not enlisted in faction warfare
+
+Corporation FW Stats
+--------------------------------------------------
+  Corporation is not enlisted in faction warfare
 ```
 
 ---
@@ -1077,4 +1226,329 @@ Token Refresh Demo
    Request succeeded after token refresh.
 
 Token refresh flow completed successfully.
+```
+
+---
+
+### Character Details
+
+> Fetches 10 character-specific endpoints: agent research, blueprints, roles, standings, titles, contact notifications, corporation history, jump fatigue, medals, and notifications.
+
+**Run:** `npm run example:character-details`
+
+**Scopes:** `esi-characters.read_agents_research.v1`, `esi-characters.read_blueprints.v1`, `esi-characters.read_corporation_roles.v1`, `esi-characters.read_standings.v1`, `esi-characters.read_titles.v1`, `esi-characters.read_notifications.v1`, `esi-characters.read_fatigue.v1`, `esi-characters.read_medals.v1`
+
+```
+Character Details
+
+Fetching character data...
+Agent Research
+--------------------------------------------------
+  Active research agents: 0
+
+Blueprints
+--------------------------------------------------
+  Total blueprints: 6
+  Originals: 1, Copies: 5
+
+Roles
+--------------------------------------------------
+  Roles: 54
+  Roles at HQ: 54
+  Roles at base: 54
+  Roles at other: 54
+
+Standings
+--------------------------------------------------
+  Total standings: 21
+    faction 500001: 0.032385497
+    faction 500002: -0.023137860000000003
+    ... and 16 more
+
+Corporation History
+--------------------------------------------------
+  Corporations joined: 4
+    6/12/2012: Corp 98135622 (record 21308888)
+    11/6/2011: Corp 1000072 (record 17056852)
+    ...
+
+Jump Fatigue
+--------------------------------------------------
+  No jump fatigue
+
+Medals
+--------------------------------------------------
+  Medals earned: 0
+
+Notifications
+--------------------------------------------------
+  Recent notifications: 16
+    15/9/2025 | GameTimeAdded | from corporation 1000125
+    ...
+```
+
+---
+
+### Calendar & Search
+
+> Demonstrates calendar event listing, event detail, event attendees, and character search.
+
+**Run:** `npm run example:calendar-search`
+
+**Scopes:** `esi-calendar.read_calendar_events.v1`
+
+```
+Calendar & Search
+
+Calendar Events
+--------------------------------------------------
+  Upcoming events: 0
+  No upcoming calendar events
+
+Character Search
+--------------------------------------------------
+  Search for "Chribba": 26 result(s)
+    Character ID: 90404873
+    Character ID: 90946549
+    Character ID: 1277406816
+    Character ID: 95649518
+    Character ID: 91204021
+```
+
+---
+
+### Loyalty & Planetary Interaction
+
+> Shows loyalty point balances, LP store offers, planetary colonies with layouts, customs offices, and PI schematics.
+
+**Run:** `npm run example:loyalty-pi`
+
+**Scopes:** `esi-characters.read_loyalty.v1`, `esi-planets.manage_planets.v1`, `esi-corporations.read_customs_offices.v1` (optional)
+
+```
+Loyalty Points & Planetary Interaction
+
+Loyalty Points
+--------------------------------------------------
+  LP balances with 0 corporation(s)
+
+LP Store Offers (CONCORD)
+--------------------------------------------------
+  Total offers: 234
+    Offer 15360: type 3089, 37500 LP + 37,500,000 ISK
+    Offer 15361: type 3092, 250000 LP + 250,000,000 ISK
+    ... and 229 more
+
+Planetary Colonies
+--------------------------------------------------
+  Active colonies: 0
+
+Corporation Customs Offices
+--------------------------------------------------
+  Customs offices: 0
+
+PI Schematic
+--------------------------------------------------
+  Schematic 65: Superconductors
+  Cycle time: 3600s
+```
+
+---
+
+### Industry & Mining
+
+> Demonstrates character industry jobs, mining ledger, corporation industry jobs, moon extraction timers, mining observers, and corporation killmails. Director-only endpoints are gracefully skipped.
+
+**Run:** `npm run example:industry-mining`
+
+**Scopes:** `esi-industry.read_character_jobs.v1`, `esi-industry.read_character_mining.v1`, `esi-industry.read_corporation_jobs.v1`, `esi-industry.read_corporation_mining.v1`, `esi-killmails.read_corporation_killmails.v1`
+
+```
+Industry Jobs & Mining
+
+Character Industry Jobs
+--------------------------------------------------
+  Total jobs: 0
+  Active: 0
+
+Mining Ledger
+--------------------------------------------------
+  Entries: 0
+
+Corporation Industry Jobs
+--------------------------------------------------
+  Total corp jobs: 0
+
+Moon Extraction Timers
+--------------------------------------------------
+  Moon extractions: endpoint not available — skipped
+
+Mining Observers
+--------------------------------------------------
+  Mining observers: endpoint not available — skipped
+
+Corporation Killmails
+--------------------------------------------------
+  Recent killmails: 0
+```
+
+---
+
+### Market Orders & Groups
+
+> Shows character and corporation market orders, order history, market group hierarchy, and structure market orders.
+
+**Run:** `npm run example:market-orders`
+
+**Scopes:** `esi-markets.read_character_orders.v1`, `esi-markets.read_corporation_orders.v1`, `esi-markets.structure_markets.v1` (optional)
+
+```
+Market Orders & Groups
+
+Character Orders
+--------------------------------------------------
+  Active orders: 0
+
+  Order history: 0 orders
+
+Corporation Orders
+--------------------------------------------------
+  Active corp orders: 0
+  Corp order history: 0
+
+Market Groups
+--------------------------------------------------
+  Total market groups: 2102
+
+  Sample group: Blueprints & Reactions (ID: 2)
+    Description: Blueprints are data items used in industry for manufacturing...
+    Types: 0
+
+Structure Market Orders
+--------------------------------------------------
+  Requires structure access — skipped
+```
+
+---
+
+### Corporation Details
+
+> Comprehensive corporation data: alliance history, icon, NPC corps (public), plus 18 authenticated director-level endpoints including blueprints, divisions, facilities, medals, members, roles, shareholders, standings, starbases, structures, and titles.
+
+**Run:** `npm run example:corporation-details`
+
+**Scopes:** `esi-corporations.read_blueprints.v1`, `esi-corporations.read_container_logs.v1`, `esi-corporations.read_divisions.v1`, `esi-corporations.read_facilities.v1`, `esi-corporations.read_medals.v1`, `esi-corporations.read_corporation_membership.v1`, `esi-corporations.read_standings.v1`, `esi-corporations.read_starbases.v1`, `esi-corporations.read_structures.v1`, `esi-corporations.read_titles.v1`
+
+```
+Corporation Details
+
+Public Data
+==================================================
+
+Alliance History (1 entries)
+--------------------------------------------------
+  2012-09-02T20:30:00Z: alliance none
+
+Corporation Icon
+--------------------------------------------------
+  64x64:   https://images.evetech.net/corporations/98135622/logo?...&size=64
+  128x128: https://images.evetech.net/corporations/98135622/logo?...&size=128
+  256x256: https://images.evetech.net/corporations/98135622/logo?...&size=256
+
+NPC Corporations
+--------------------------------------------------
+  Total NPC corps: 283
+
+Authenticated Data (director roles required)
+==================================================
+
+Blueprints
+--------------------------------------------------
+  Corporation blueprints: 0
+
+Divisions
+--------------------------------------------------
+  Hangar divisions: 7
+  Wallet divisions: 7
+
+Members
+--------------------------------------------------
+  Member count: 9
+  Member limit: 20
+  Members with titles: 9
+  Tracked members: 9
+
+Roles
+--------------------------------------------------
+  Members with roles: 9
+  Role change history: 0
+
+Shareholders
+--------------------------------------------------
+  Shareholders: 1
+
+Standings
+--------------------------------------------------
+  Corporation standings: 210
+
+Titles
+--------------------------------------------------
+  Defined titles: 16
+```
+
+---
+
+### Corp Contracts & Wallet
+
+> Demonstrates character contract bids/items, corporation contracts, alliance and corporation contacts, corporation assets, corporation wallets with journal and transactions, and public structure lookup.
+
+**Run:** `npm run example:corp-contracts-wallet`
+
+**Scopes:** `esi-contracts.read_character_contracts.v1`, `esi-contracts.read_corporation_contracts.v1`, `esi-alliances.read_contacts.v1`, `esi-corporations.read_contacts.v1`, `esi-assets.read_corporation_assets.v1`, `esi-wallet.read_corporation_wallets.v1`
+
+```
+Contracts, Contacts, Assets & Wallet
+
+Character Contract Bids & Items
+--------------------------------------------------
+  Character contracts: 0
+  No contracts found
+
+Corporation Contracts
+--------------------------------------------------
+  Corporation contracts: 0
+
+Alliance Contacts
+--------------------------------------------------
+  Alliance contacts: requires corporation/alliance roles — skipped
+  Alliance contact labels: requires corporation/alliance roles — skipped
+
+Corporation Contacts
+--------------------------------------------------
+  Corporation contacts: 2
+  Corporation contact labels: 0
+
+Corporation Assets
+--------------------------------------------------
+  Corporation assets: 0
+
+Corporation Wallets
+--------------------------------------------------
+  Wallet divisions: 7
+    Division 1: 647,999 ISK
+    Division 2: 0 ISK
+    Division 3: 0 ISK
+    Division 4: 0 ISK
+    Division 5: 0 ISK
+    Division 6: 0 ISK
+    Division 7: 0 ISK
+
+  Division 1 journal entries: 0
+  Division 1 transactions: 0
+
+Public Structures
+--------------------------------------------------
+  Public structure IDs: 939
+  Structure 1053825884161: Shihuken - Prestige R&D
+    System: 30000130, Type: 35825
 ```

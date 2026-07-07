@@ -33,13 +33,47 @@ export const SovereigntySystemStructureSchema = z.looseObject({
   vulnerable_end_time: z.string().optional(),
 });
 
-export const SovereigntySystemSchema = z.looseObject({
-  system_id: z.number(),
-  alliance_id: z.number().optional(),
+const SovereigntyVulnerabilityWindowSchema = z.looseObject({
+  start: z.string(),
+  end: z.string(),
+});
+
+const SovereigntyHubSchema = z.looseObject({
+  id: z.number(),
+  vulnerability_window: SovereigntyVulnerabilityWindowSchema.optional(),
+});
+
+const SovereigntyDevelopmentSchema = z.looseObject({
+  activity_defense_multiplier: z.number().optional(),
+  military_level: z.number().optional(),
+  industrial_level: z.number().optional(),
+  strategic_level: z.number().optional(),
+});
+
+const SovereigntyAllianceClaimSchema = z.looseObject({
+  alliance_id: z.number(),
   corporation_id: z.number().optional(),
-  faction_id: z.number().optional(),
-  military_index: z.number().optional(),
-  industry_index: z.number().optional(),
-  strategic_index: z.number().optional(),
-  structures: z.array(SovereigntySystemStructureSchema).optional(),
+  claimed_since: z.string().optional(),
+  sovereignty_hub: SovereigntyHubSchema.optional(),
+  is_capital_system: z.boolean().optional(),
+  development: SovereigntyDevelopmentSchema.optional(),
+});
+
+const SovereigntyFactionClaimSchema = z.looseObject({
+  faction_id: z.number(),
+});
+
+const SovereigntyClaimSchema = z.looseObject({
+  alliance: SovereigntyAllianceClaimSchema.optional(),
+  faction: SovereigntyFactionClaimSchema.optional(),
+  unclaimed: z.boolean().optional(),
+});
+
+const SovereigntySystemEntrySchema = z.looseObject({
+  solar_system_id: z.number(),
+  claim: SovereigntyClaimSchema,
+});
+
+export const SovereigntySystemSchema = z.looseObject({
+  solar_systems: z.array(SovereigntySystemEntrySchema),
 });
