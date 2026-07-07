@@ -10,47 +10,57 @@ export class UiClient extends BaseEsiClient<typeof uiEndpoints> {
   /**
    * Sets a solar system as an autopilot waypoint in the EVE client.
    *
-   * @param body - The waypoint configuration including destination, whether to add to beginning, and whether to clear other waypoints
+   * @param destinationId - The solar system, station, or structure ID to set as waypoint
+   * @param addToBeginning - Whether to add the waypoint to the beginning of the route
+   * @param clearOtherWaypoints - Whether to clear existing waypoints first
    * @requires Authentication
    */
-  setAutopilotWaypoint(body: object): Promise<void> {
-    return this.api.setAutopilotWaypoint(body) as Promise<void>;
+  setAutopilotWaypoint(
+    destinationId: number,
+    addToBeginning: boolean,
+    clearOtherWaypoints: boolean,
+  ): Promise<void> {
+    return this.api.setAutopilotWaypoint(
+      destinationId,
+      addToBeginning,
+      clearOtherWaypoints,
+    ) as Promise<void>;
   }
 
   /**
    * Opens the contract window for a specific contract in the EVE client.
    *
-   * @param body - The contract details including the contract ID to display
+   * @param contractId - The contract ID to display
    * @requires Authentication
    */
-  openContractWindow(body: object): Promise<void> {
-    return this.api.openContractWindow(body) as Promise<void>;
+  openContractWindow(contractId: number): Promise<void> {
+    return this.api.openContractWindow(contractId) as Promise<void>;
   }
 
   /**
    * Opens the information window for a specific entity in the EVE client.
    *
-   * @param body - The target entity details including the target ID to display
+   * @param targetId - The character, corporation, alliance, or type ID to display
    * @requires Authentication
    */
-  openInformationWindow(body: object): Promise<void> {
-    return this.api.openInformationWindow(body) as Promise<void>;
+  openInformationWindow(targetId: number): Promise<void> {
+    return this.api.openInformationWindow(targetId) as Promise<void>;
   }
 
   /**
    * Opens the market details window for a specific type in the EVE client.
    *
-   * @param body - The market item details including the type ID to display
+   * @param typeId - The inventory type ID to display market details for
    * @requires Authentication
    */
-  openMarketDetailsWindow(body: object): Promise<void> {
-    return this.api.openMarketDetailsWindow(body) as Promise<void>;
+  openMarketDetailsWindow(typeId: number): Promise<void> {
+    return this.api.openMarketDetailsWindow(typeId) as Promise<void>;
   }
 
   /**
    * Opens the new mail composition window in the EVE client with pre-filled fields.
    *
-   * @param body - The mail details including recipients, subject, and body text
+   * @param body - The mail details including recipients (integer array), subject, and body text
    * @requires Authentication
    */
   openNewMailWindow(body: object): Promise<void> {

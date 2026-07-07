@@ -185,7 +185,8 @@ defineFeature(feature, (test) => {
     when('the client adds contacts', async () => {
       result = await client.contacts.postCharacterContacts(
         characterId,
-        newContacts,
+        5,
+        [111111111, 222222222],
       );
     });
 
@@ -338,12 +339,6 @@ defineFeature(feature, (test) => {
     });
 
     when('the client lists contacts then add new ones and verify', async () => {
-      const newContactData = {
-        contact_ids: [333333333],
-        standing: 5.0,
-        label_ids: [1],
-      };
-
       const [contacts, contactLabels] = await Promise.all([
         client.contacts.getCharacterContacts(characterId),
         client.contacts.getCharacterContactLabels(characterId),
@@ -352,7 +347,7 @@ defineFeature(feature, (test) => {
       expect(contacts).toHaveLength(1);
       expect(contactLabels).toHaveLength(1);
 
-      await client.contacts.postCharacterContacts(characterId, newContactData);
+      await client.contacts.postCharacterContacts(characterId, 5, [333333333]);
 
       finalContacts = await client.contacts.getCharacterContacts(characterId);
     });

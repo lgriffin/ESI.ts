@@ -49,16 +49,24 @@ export type EndpointArgs<D> = D extends {
   pathParams: infer P extends readonly string[];
 }
   ? D extends { bodyBuilder: (...args: infer BA) => unknown }
-    ? [...PathParamArgs<P>, ...BA]
+    ? D extends { queryParams: Record<string, string> }
+      ? [
+          ...PathParamArgs<P>,
+          ...(string | number | boolean | undefined)[],
+          ...BA,
+        ]
+      : [...PathParamArgs<P>, ...BA]
     : D extends { hasBody: true }
       ? [...PathParamArgs<P>, body: object]
       : D extends { queryParams: Record<string, string> }
-        ? [...PathParamArgs<P>, ...(string | number | undefined)[]]
+        ? [...PathParamArgs<P>, ...(string | number | boolean | undefined)[]]
         : PathParamArgs<P>
   : D extends { bodyBuilder: (...args: infer BA) => unknown }
-    ? BA
+    ? D extends { queryParams: Record<string, string> }
+      ? [...(string | number | boolean | undefined)[], ...BA]
+      : BA
     : D extends { hasBody: true }
       ? [body: object]
       : D extends { queryParams: Record<string, string> }
-        ? (string | number | undefined)[]
+        ? (string | number | boolean | undefined)[]
         : [];

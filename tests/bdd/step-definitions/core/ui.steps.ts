@@ -22,12 +22,6 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const waypointBody = {
-      destination_id: 30000142,
-      add_to_beginning: false,
-      clear_other_waypoints: false,
-    };
-
     given('an authenticated character for waypoint', () => {
       jest
         .spyOn(client.ui, 'setAutopilotWaypoint')
@@ -37,13 +31,17 @@ defineFeature(feature, (test) => {
     when(
       'the client sets an autopilot waypoint to a solar system',
       async () => {
-        result = await client.ui.setAutopilotWaypoint(waypointBody);
+        result = await client.ui.setAutopilotWaypoint(30000142, false, false);
       },
     );
 
     then('the waypoint shall be set successfully', () => {
       expect(result).toBeUndefined();
-      expect(client.ui.setAutopilotWaypoint).toHaveBeenCalledWith(waypointBody);
+      expect(client.ui.setAutopilotWaypoint).toHaveBeenCalledWith(
+        30000142,
+        false,
+        false,
+      );
     });
   });
 
@@ -53,12 +51,6 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const waypointBody = {
-      destination_id: 30002187,
-      add_to_beginning: false,
-      clear_other_waypoints: true,
-    };
-
     given('an authenticated character with existing waypoints', () => {
       jest
         .spyOn(client.ui, 'setAutopilotWaypoint')
@@ -66,13 +58,15 @@ defineFeature(feature, (test) => {
     });
 
     when('the client sets a waypoint with clear flag', async () => {
-      result = await client.ui.setAutopilotWaypoint(waypointBody);
+      result = await client.ui.setAutopilotWaypoint(30002187, false, true);
     });
 
     then('existing waypoints shall be cleared', () => {
       expect(result).toBeUndefined();
       expect(client.ui.setAutopilotWaypoint).toHaveBeenCalledWith(
-        expect.objectContaining({ clear_other_waypoints: true }),
+        30002187,
+        false,
+        true,
       );
     });
   });
@@ -83,10 +77,6 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const contractBody = {
-      contract_id: 123456789,
-    };
-
     given('an authenticated character for contracts', () => {
       jest.spyOn(client.ui, 'openContractWindow').mockResolvedValue(undefined);
     });
@@ -94,13 +84,13 @@ defineFeature(feature, (test) => {
     when(
       'the client opens a contract window for a specific contract',
       async () => {
-        result = await client.ui.openContractWindow(contractBody);
+        result = await client.ui.openContractWindow(123456789);
       },
     );
 
     then('the contract window shall open successfully', () => {
       expect(result).toBeUndefined();
-      expect(client.ui.openContractWindow).toHaveBeenCalledWith(contractBody);
+      expect(client.ui.openContractWindow).toHaveBeenCalledWith(123456789);
     });
   });
 
@@ -110,10 +100,6 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const infoBody = {
-      target_id: 1689391488,
-    };
-
     given('an authenticated character for info window', () => {
       jest
         .spyOn(client.ui, 'openInformationWindow')
@@ -121,12 +107,12 @@ defineFeature(feature, (test) => {
     });
 
     when('the client opens an info window for another character', async () => {
-      result = await client.ui.openInformationWindow(infoBody);
+      result = await client.ui.openInformationWindow(1689391488);
     });
 
     then('the information window shall display successfully', () => {
       expect(result).toBeUndefined();
-      expect(client.ui.openInformationWindow).toHaveBeenCalledWith(infoBody);
+      expect(client.ui.openInformationWindow).toHaveBeenCalledWith(1689391488);
     });
   });
 
@@ -136,10 +122,6 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const marketBody = {
-      type_id: 34,
-    };
-
     given('an authenticated character for market', () => {
       jest
         .spyOn(client.ui, 'openMarketDetailsWindow')
@@ -147,14 +129,12 @@ defineFeature(feature, (test) => {
     });
 
     when('the client opens the market details for an item type', async () => {
-      result = await client.ui.openMarketDetailsWindow(marketBody);
+      result = await client.ui.openMarketDetailsWindow(34);
     });
 
     then('the market window shall display successfully', () => {
       expect(result).toBeUndefined();
-      expect(client.ui.openMarketDetailsWindow).toHaveBeenCalledWith(
-        marketBody,
-      );
+      expect(client.ui.openMarketDetailsWindow).toHaveBeenCalledWith(34);
     });
   });
 
@@ -204,7 +184,7 @@ defineFeature(feature, (test) => {
 
     when('the client attempts to set a waypoint', async () => {
       try {
-        await client.ui.setAutopilotWaypoint({ destination_id: 30000142 });
+        await client.ui.setAutopilotWaypoint(30000142, false, false);
       } catch (e) {
         caughtError = e;
       }
@@ -232,7 +212,7 @@ defineFeature(feature, (test) => {
 
     when('the client attempts to open a contract window', async () => {
       try {
-        await client.ui.openContractWindow({ contract_id: 123456789 });
+        await client.ui.openContractWindow(123456789);
       } catch (e) {
         caughtError = e;
       }
@@ -268,10 +248,10 @@ defineFeature(feature, (test) => {
       'the client performs multiple UI operations concurrently',
       async () => {
         results = await Promise.all([
-          client.ui.setAutopilotWaypoint({ destination_id: 30000142 }),
-          client.ui.openContractWindow({ contract_id: 123456789 }),
-          client.ui.openInformationWindow({ target_id: 1689391488 }),
-          client.ui.openMarketDetailsWindow({ type_id: 34 }),
+          client.ui.setAutopilotWaypoint(30000142, false, false),
+          client.ui.openContractWindow(123456789),
+          client.ui.openInformationWindow(1689391488),
+          client.ui.openMarketDetailsWindow(34),
           client.ui.openNewMailWindow({
             recipients: [1689391488],
             subject: 'Test',
