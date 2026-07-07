@@ -113,7 +113,7 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    *
    * @param fleetId - The ID of the fleet
    * @param squadId - The ID of the squad to rename
-   * @param name - The new name for the squad
+   * @param name - The new name for the squad (max 10 characters)
    * @requires Authentication
    */
   renameFleetSquad(
@@ -121,6 +121,13 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     squadId: number,
     name: string,
   ): Promise<void> {
+    if (name.length > 10) {
+      return Promise.reject(
+        new Error(
+          `Fleet squad name "${name}" exceeds ESI maximum of 10 characters`,
+        ),
+      );
+    }
     return this.api.renameFleetSquad(fleetId, squadId, name) as Promise<void>;
   }
 
@@ -165,7 +172,7 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    *
    * @param fleetId - The ID of the fleet
    * @param wingId - The ID of the wing to rename
-   * @param name - The new name for the wing
+   * @param name - The new name for the wing (max 10 characters)
    * @requires Authentication
    */
   renameFleetWing(
@@ -173,6 +180,13 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     wingId: number,
     name: string,
   ): Promise<void> {
+    if (name.length > 10) {
+      return Promise.reject(
+        new Error(
+          `Fleet wing name "${name}" exceeds ESI maximum of 10 characters`,
+        ),
+      );
+    }
     return this.api.renameFleetWing(fleetId, wingId, name) as Promise<void>;
   }
 
