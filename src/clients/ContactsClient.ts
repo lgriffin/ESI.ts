@@ -45,7 +45,7 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
   ): Promise<void> {
     return this.api.deleteCharacterContacts(
       characterId,
-      contactIds,
+      contactIds.join(','),
     ) as Promise<void>;
   }
 
@@ -64,26 +64,39 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
    * Add contacts to a character's contact list via a POST request.
    *
    * @param characterId - The ID of the character to add contacts for
-   * @param contacts - Contact data including IDs, standings, and optional labels
+   * @param standing - Standing value for the contacts (-10 to 10)
+   * @param contactIds - Array of character/corporation/alliance IDs to add
    * @returns An array of contact IDs that were successfully added
    * @requires Authentication
    */
   postCharacterContacts(
     characterId: number,
-    contacts: object,
+    standing: number,
+    contactIds: number[],
   ): Promise<number[]> {
-    return this.api.addContacts(characterId, contacts) as Promise<number[]>;
+    return this.api.addContacts(characterId, standing, contactIds) as Promise<
+      number[]
+    >;
   }
 
   /**
    * Update existing contacts in a character's contact list via a PUT request.
    *
    * @param characterId - The ID of the character whose contacts to update
-   * @param contacts - Updated contact data including IDs, standings, and optional labels
+   * @param standing - New standing value for the contacts (-10 to 10)
+   * @param contactIds - Array of contact IDs to update
    * @requires Authentication
    */
-  putCharacterContacts(characterId: number, contacts: object): Promise<void> {
-    return this.api.editContacts(characterId, contacts) as Promise<void>;
+  putCharacterContacts(
+    characterId: number,
+    standing: number,
+    contactIds: number[],
+  ): Promise<void> {
+    return this.api.editContacts(
+      characterId,
+      standing,
+      contactIds,
+    ) as Promise<void>;
   }
 
   /**
