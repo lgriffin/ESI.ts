@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -67,6 +67,9 @@
     "example:universe-encyclopedia": "ts-node examples/universe-encyclopedia.ts",
     "example:corp-contracts-wallet": "ts-node examples/corp-contracts-wallet.ts",
     "example:dogma-meta-sov": "ts-node examples/dogma-meta-sov.ts",
+    "example:universe-posts": "ts-node examples/universe-post-helpers.ts",
+    "example:freelance-jobs": "ts-node examples/freelance-jobs.ts",
+    "example:write-ops": "ts-node examples/write-operations.ts",
     "token:create": "ts-node scripts/create-token.ts",
     "token:refresh": "ts-node scripts/refresh-token.ts",
     "lint": "eslint src --ext .ts",

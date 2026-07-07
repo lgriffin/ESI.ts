@@ -8,17 +8,44 @@
 [![Coverage](https://img.shields.io/badge/coverage-65%25%2B-brightgreen)](https://github.com/lgriffin/ESI.ts)
 [![npm downloads](https://img.shields.io/npm/dm/%40lgriffin/esi.ts)](https://www.npmjs.com/package/@lgriffin/esi.ts)
 
-A type-safe TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/).
+A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), with runtime validation, intelligent caching, and full endpoint coverage.
 
-- Typed responses for all endpoints with **runtime validation** via Zod schemas
-- Spec-driven type generation from ESI swagger spec (147 interfaces)
-- ETag caching with Cache-Control TTL, stale-on-error, and write invalidation
-- Spec-aware cache TTLs — zero-request cache hits within ESI-specified windows
-- Batch requests with bounded concurrency and auto-chunking
-- Automatic offset-based pagination, cursor-based pagination, and streaming pagination support
-- Rate limiting with header-driven backoff
-- Automatic token refresh with 401 retry and concurrent coalescing
-- 35 domain clients covering the full ESI surface
+**All 210 ESI endpoints are defined, tested, and validated against live Tranquility.**
+
+## Why ESI.ts vs. OpenAPI-Generated Clients?
+
+Tools like `openapi-typescript` or `openapi-generator` can produce a typed client from the ESI swagger spec in minutes. They're a reasonable starting point — but they stop at type generation. ESI.ts is a purpose-built SDK that handles the problems you hit _after_ the types compile.
+
+### What generators give you
+
+- TypeScript interfaces from the swagger spec
+- Basic request/response typing
+- A thin HTTP wrapper
+
+### What ESI.ts gives you on top of that
+
+| Capability                      | openapi-typescript                                                                                                  | ESI.ts                                                                                                                                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Runtime response validation** | None — types are erased at compile time. If CCP changes a field, you get silent data corruption.                    | Every response is validated at runtime via [Zod](https://zod.dev/) schemas (146 of 210 endpoints). Schema mismatches throw `EsiValidationError` immediately.                                             |
+| **Intelligent caching**         | None — you build your own.                                                                                          | Three-tier: spec-aware TTL (zero HTTP calls within ESI's `x-cached-seconds` window), ETag conditional GETs, stale-on-error fallback on 5xx. Write operations auto-invalidate related GET caches.         |
+| **Rate limiting**               | None — you build your own.                                                                                          | 36 per-group token buckets extracted from the ESI spec at build time. Market requests can't starve wallet requests. Optional per-user bucketing for multi-character apps.                                |
+| **Pagination**                  | Manual — you write the page loop.                                                                                   | Automatic offset pagination, cursor-based pagination (Equinox-era endpoints), and streaming `AsyncGenerator` pagination for memory-efficient processing of large datasets.                               |
+| **Retry & resilience**          | None.                                                                                                               | Exponential backoff with jitter, circuit breaker (closed/open/half-open), automatic 401 token refresh with concurrent coalescing.                                                                        |
+| **Wire format correctness**     | Generates from spec, but ESI's spec has inconsistencies (query params documented as body, missing required fields). | Every endpoint tested against live ESI. Wire format bugs (query params vs. body, field naming) are caught and fixed — see the contacts and UI endpoint fixes in v6.1.0.                                  |
+| **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                            |
+| **Domain knowledge**            | None — generic HTTP client.                                                                                         | 35 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                       |
+| **Testing**                     | Whatever you write.                                                                                                 | 121 test suites, 3,224 tests across 7 tiers (TDD unit, BDD behavioral, mocked integration, live smoke, client integration, ESI spec contract, gated auth). 43 runnable example scripts with live output. |
+
+### The real problem with generated clients
+
+The ESI swagger spec is not a perfect source of truth. During live endpoint validation, we discovered:
+
+- `addContacts`, `editContacts`, and 4 UI endpoints document parameters as request body when ESI actually expects query parameters
+- `deleteCharacterContacts` expects comma-separated contact IDs as a query param, not a JSON body
+- Fleet wing/squad names have a 10-character limit not documented in the spec
+- The `updateMailMetadata` endpoint uses the field name `read`, not `is_read`
+
+A generated client faithfully reproduces these spec bugs. ESI.ts fixes them.
 
 ## Installation
 
@@ -44,7 +71,7 @@ Verify everything works:
 
 ```bash
 npm run example:status   # quick smoke test — checks ESI is reachable
-npm test                 # run the full test suite
+npm test                 # run the full test suite (121 suites, 3,224 tests)
 ```
 
 ## Quick Start
@@ -207,43 +234,74 @@ Key behaviors:
 
 All clients are accessed as properties on the `EsiClient` instance. Authenticated endpoints require an access token.
 
-| Client         | Property               | Auth | Examples                                                 |
-| -------------- | ---------------------- | ---- | -------------------------------------------------------- |
-| Alliance       | `client.alliance`      | Some | `getAlliances()`, `getAllianceById(id)`                  |
-| Assets         | `client.assets`        | Yes  | `getCharacterAssets(id)`                                 |
-| Calendar       | `client.calendar`      | Yes  | `getCharacterCalendar(id)`                               |
-| Characters     | `client.characters`    | Some | `getCharacterPublicInfo(id)`, `getCharacterPortrait(id)` |
-| Clones         | `client.clones`        | Yes  | `getCharacterClones(id)`                                 |
-| Contacts       | `client.contacts`      | Yes  | `getCharacterContacts(id)`                               |
-| Contracts      | `client.contracts`     | Yes  | `getCharacterContracts(id)`                              |
-| Corporations   | `client.corporations`  | Some | `getCorporationInfo(id)`, `getCorporationMembers(id)`    |
-| Dogma          | `client.dogma`         | No   | `getDogmaAttributes()`, `getDogmaEffects()`              |
-| Factions       | `client.factions`      | Some | `getFactionWarStats()`                                   |
-| Fittings       | `client.fittings`      | Yes  | `getFittings(id)`, `createFitting(id, body)`             |
-| Fleets         | `client.fleets`        | Yes  | `getFleet(id)`, `getFleetMembers(id)`                    |
-| Incursions     | `client.incursions`    | No   | `getIncursions()`                                        |
-| Industry       | `client.industry`      | Some | `getCharacterIndustryJobs(id)`                           |
-| Insurance      | `client.insurance`     | No   | `getInsurancePrices()`                                   |
-| Killmails      | `client.killmails`     | Some | `getKillmail(id, hash)`                                  |
-| Location       | `client.location`      | Yes  | `getCharacterLocation(id)`                               |
-| Loyalty        | `client.loyalty`       | Yes  | `getCharacterLoyaltyPoints(id)`                          |
-| Mail           | `client.mail`          | Yes  | `getCharacterMail(id)`                                   |
-| Market         | `client.market`        | Some | `getMarketPrices()`, `getMarketOrders(regionId)`         |
-| PI             | `client.pi`            | Yes  | `getCharacterPlanets(id)`                                |
-| Route          | `client.route`         | No   | `getRoute(origin, destination)`                          |
-| Search         | `client.search`        | Some | `search(characterId, query)`                             |
-| Skills         | `client.skills`        | Yes  | `getCharacterSkills(id)`                                 |
-| Sovereignty    | `client.sovereignty`   | No   | `getSovereigntySystems()`, `getSovereigntyMap()`         |
-| Skyhooks       | `client.skyhooks`      | No   | `getSovereigntyHubs()`, `getRaidableSkyhooks()`          |
-| Mercenary      | `client.mercenary`     | No   | `getMercenaryDens()`, `getMercenaryTacticalOperations()` |
-| Access Lists   | `client.accessLists`   | Yes  | `getAccessList(id)`                                      |
-| Status         | `client.status`        | No   | `getStatus()`                                            |
-| UI             | `client.ui`            | Yes  | `setWaypoint(id)`                                        |
-| Universe       | `client.universe`      | Some | `getSystemById(id)`, `getTypeById(id)`                   |
-| Wallet         | `client.wallet`        | Yes  | `getCharacterWallet(id)`                                 |
-| Wars           | `client.wars`          | No   | `getWars()`, `getWarById(id)`                            |
-| Freelance Jobs | `client.freelanceJobs` | Some | `getFreelanceJobs()`, `getFreelanceJobById(id)`          |
-| Meta           | `client.meta`          | No   | `getOpenApiJson()`, `getOpenApiYaml()`                   |
+| Client         | Property               | Auth | Examples                                                                         |
+| -------------- | ---------------------- | ---- | -------------------------------------------------------------------------------- |
+| Alliance       | `client.alliance`      | Some | `getAlliances()`, `getAllianceById(id)`                                          |
+| Assets         | `client.assets`        | Yes  | `getCharacterAssets(id)`                                                         |
+| Calendar       | `client.calendar`      | Yes  | `getCalendarEvents(id)`                                                          |
+| Characters     | `client.characters`    | Some | `getCharacterPublicInfo(id)`, `getCharacterPortrait(id)`                         |
+| Clones         | `client.clones`        | Yes  | `getCharacterClones(id)`                                                         |
+| Contacts       | `client.contacts`      | Yes  | `getCharacterContacts(id)`, `postCharacterContacts(id, standing, contactIds)`    |
+| Contracts      | `client.contracts`     | Yes  | `getCharacterContracts(id)`                                                      |
+| Corporations   | `client.corporations`  | Some | `getCorporationInfo(id)`, `getCorporationMembers(id)`                            |
+| Dogma          | `client.dogma`         | No   | `getDogmaAttributes()`, `getDynamicItemInfo(typeId, itemId)`                     |
+| Factions       | `client.factions`      | Some | `getFactionWarStats()`                                                           |
+| Fittings       | `client.fittings`      | Yes  | `getFittings(id)`, `createFitting(id, body)`                                     |
+| Fleets         | `client.fleets`        | Yes  | `getFleetInformation(id)`, `getFleetMembers(id)`                                 |
+| Incursions     | `client.incursions`    | No   | `getIncursions()`                                                                |
+| Industry       | `client.industry`      | Some | `getCharacterIndustryJobs(id)`                                                   |
+| Insurance      | `client.insurance`     | No   | `getInsurancePrices()`                                                           |
+| Killmails      | `client.killmails`     | Some | `getKillmail(id, hash)`                                                          |
+| Location       | `client.location`      | Yes  | `getCharacterLocation(id)`                                                       |
+| Loyalty        | `client.loyalty`       | Yes  | `getCharacterLoyaltyPoints(id)`                                                  |
+| Mail           | `client.mail`          | Yes  | `getCharacterMail(id)`, `sendMail(id, body)`                                     |
+| Market         | `client.market`        | Some | `getMarketPrices()`, `getMarketOrders(regionId)`                                 |
+| PI             | `client.pi`            | Yes  | `getCharacterPlanets(id)`                                                        |
+| Route          | `client.route`         | No   | `getRoute(origin, destination)`                                                  |
+| Search         | `client.search`        | Some | `search(characterId, query)`                                                     |
+| Skills         | `client.skills`        | Yes  | `getCharacterSkills(id)`                                                         |
+| Sovereignty    | `client.sovereignty`   | No   | `getSovereigntySystems()`, `getSovereigntyMap()`                                 |
+| Skyhooks       | `client.skyhooks`      | No   | `getSovereigntyHubs()`, `getRaidableSkyhooks()`                                  |
+| Mercenary      | `client.mercenary`     | No   | `getMercenaryDens()`, `getMercenaryTacticalOperations()`                         |
+| Access Lists   | `client.accessLists`   | Yes  | `getAccessList(id)`                                                              |
+| Status         | `client.status`        | No   | `getStatus()`                                                                    |
+| UI             | `client.ui`            | Yes  | `setAutopilotWaypoint(destId, addToBeginning, clear)`, `openNewMailWindow(body)` |
+| Universe       | `client.universe`      | Some | `getSystemById(id)`, `getTypeById(id)`                                           |
+| Wallet         | `client.wallet`        | Yes  | `getCharacterWallet(id)`                                                         |
+| Wars           | `client.wars`          | No   | `getWars()`, `getWarById(id)`                                                    |
+| Freelance Jobs | `client.freelanceJobs` | Some | `getFreelanceJobs()`, `getFreelanceJobById(id)`                                  |
+| Meta           | `client.meta`          | No   | `getOpenApiJson()`, `getOpenApiYaml()`                                           |
+
+## Runtime Response Validation
+
+ESI.ts validates every API response at runtime using [Zod](https://zod.dev/) schemas. 146 of 210 endpoints have schemas attached. If CCP changes the ESI API and the response no longer matches the expected shape, you get an immediate `EsiValidationError` instead of silent data corruption.
+
+Validation is **on by default**. Extra fields from ESI are preserved via `z.looseObject()` passthrough mode, so new fields added by CCP won't break your application — they flow through to your code untouched.
+
+```typescript
+import {
+  EsiClient,
+  EsiValidationError,
+  isValidationError,
+  schemas,
+} from '@lgriffin/esi.ts';
+
+const client = new EsiClient();
+
+// Validation happens automatically on every request
+const character = await client.characters.getCharacterPublicInfo(12345);
+
+// Disable validation globally if needed
+const rawClient = new EsiClient({ validateResponse: false });
+
+// Use schemas directly for your own validation
+const result = schemas.CharacterInfoSchema.safeParse(someData);
+if (result.success) {
+  console.log(result.data.name);
+}
+```
+
+See [guides/RUNTIME-VALIDATION.md](guides/RUNTIME-VALIDATION.md) for the full guide on schemas, error handling, and extending schemas.
 
 ## Caching
 
@@ -321,82 +379,6 @@ const allNames = await client.batchPost(
   (chunk) => client.universe.postUniverseNames(chunk),
   1000, // chunk size
 );
-```
-
-## Runtime Response Validation
-
-ESI.ts validates every API response at runtime using [Zod](https://zod.dev/) schemas. If CCP changes the ESI API and the response no longer matches the expected shape, you get an immediate `EsiValidationError` instead of silent data corruption.
-
-Validation is **on by default**. Extra fields from ESI are preserved (passthrough mode), so new fields added by CCP won't break your application.
-
-```typescript
-import {
-  EsiClient,
-  EsiValidationError,
-  isValidationError,
-  schemas,
-} from '@lgriffin/esi.ts';
-
-const client = new EsiClient();
-
-// Validation happens automatically on every request
-const character = await client.characters.getCharacterPublicInfo(12345);
-
-// Disable validation globally if needed
-const rawClient = new EsiClient({ validateResponse: false });
-
-// Use schemas directly for your own validation
-const result = schemas.CharacterInfoSchema.safeParse(someData);
-if (result.success) {
-  console.log(result.data.name);
-}
-```
-
-See [guides/RUNTIME-VALIDATION.md](guides/RUNTIME-VALIDATION.md) for the full guide on schemas, error handling, and extending schemas.
-
-## Generated Types
-
-The library includes TypeScript interfaces generated directly from the ESI swagger spec, available as the `EsiSpec` namespace. These are guaranteed to match the live spec and complement the hand-written types:
-
-```typescript
-import { EsiSpec } from '@lgriffin/esi.ts';
-
-// Generated type — exact spec field names and optionality
-const order: EsiSpec.GetMarketsRegionIdOrders200Ok = {
-  order_id: 123,
-  type_id: 34,
-  price: 5.5,
-  volume_remain: 1000,
-  volume_total: 5000,
-  is_buy_order: false,
-  // ...
-};
-```
-
-To regenerate types from the latest ESI spec:
-
-```bash
-npm run generate:types    # fetches spec, generates 147 interfaces + cache TTL map + rate limit groups + scope map
-npm run validate:esi      # reports type drift between hand-written and generated types
-```
-
-## ESI Scopes
-
-The library includes a generated scope-to-endpoint mapping extracted from the ESI swagger spec. Use it to check which OAuth scopes an endpoint requires before making a request:
-
-```typescript
-import { esiEndpointScopes, EsiScope } from '@lgriffin/esi.ts';
-
-// Look up scopes for a specific endpoint
-const walletScopes = esiEndpointScopes['GET:characters/{character_id}/wallet'];
-// → ['esi-wallet.read_character_wallet.v1']
-
-// Check if an endpoint requires auth
-const isPublic = !esiEndpointScopes['GET:universe/types/{type_id}'];
-// → true (public endpoint, no scopes needed)
-
-// Type-safe scope values
-const scope: EsiScope = 'esi-assets.read_assets.v1';
 ```
 
 ## Streaming Pagination
@@ -494,6 +476,51 @@ Key points:
 - An **empty result array** signals the end of the dataset (not a short page)
 - **Duplicates across pages** are expected when records are modified between requests
 - Existing offset-based routes (`getMarketOrders`, etc.) are unchanged
+
+## Generated Types
+
+The library includes TypeScript interfaces generated directly from the ESI swagger spec, available as the `EsiSpec` namespace. These are guaranteed to match the live spec and complement the hand-written types:
+
+```typescript
+import { EsiSpec } from '@lgriffin/esi.ts';
+
+// Generated type — exact spec field names and optionality
+const order: EsiSpec.GetMarketsRegionIdOrders200Ok = {
+  order_id: 123,
+  type_id: 34,
+  price: 5.5,
+  volume_remain: 1000,
+  volume_total: 5000,
+  is_buy_order: false,
+  // ...
+};
+```
+
+To regenerate types from the latest ESI spec:
+
+```bash
+npm run generate:types    # fetches spec, generates 147 interfaces + cache TTL map + rate limit groups + scope map
+npm run validate:esi      # reports type drift between hand-written and generated types
+```
+
+## ESI Scopes
+
+The library includes a generated scope-to-endpoint mapping extracted from the ESI swagger spec. Use it to check which OAuth scopes an endpoint requires before making a request:
+
+```typescript
+import { esiEndpointScopes, EsiScope } from '@lgriffin/esi.ts';
+
+// Look up scopes for a specific endpoint
+const walletScopes = esiEndpointScopes['GET:characters/{character_id}/wallet'];
+// → ['esi-wallet.read_character_wallet.v1']
+
+// Check if an endpoint requires auth
+const isPublic = !esiEndpointScopes['GET:universe/types/{type_id}'];
+// → true (public endpoint, no scopes needed)
+
+// Type-safe scope values
+const scope: EsiScope = 'esi-assets.read_assets.v1';
+```
 
 ## Error Handling
 
@@ -628,9 +655,29 @@ const marketClient = EsiApiFactory.createMarketClient({
 const prices = await marketClient.getMarketPrices();
 ```
 
+## Endpoint Coverage
+
+All 210 ESI endpoint definitions have been validated against live Tranquility. This table summarizes the validation approach:
+
+| Category                    | Endpoints | Method                                             |
+| --------------------------- | --------- | -------------------------------------------------- |
+| Public GETs                 | 78        | 43 runnable example scripts with captured output   |
+| Authenticated GETs          | 72        | Example scripts + live testing with EVE SSO tokens |
+| Contacts (POST/PUT/DELETE)  | 3         | Live create/edit/delete lifecycle                  |
+| Fittings (POST/DELETE)      | 2         | Live create/delete lifecycle                       |
+| Mail (POST/PUT/DELETE)      | 5         | Live send/label/metadata/delete lifecycle          |
+| UI (POST)                   | 5         | Live testing with EVE client running               |
+| Calendar (PUT)              | 1         | Live RSVP to event                                 |
+| Fleet (GET/POST/PUT/DELETE) | 14        | Live fleet with two characters                     |
+| Assets POST                 | 3         | Live asset location/name queries                   |
+| CSPA (POST)                 | 1         | Live charge cost calculation                       |
+| Dogma dynamic (GET)         | 1         | Live mutaplasmid item query                        |
+| Universe POST helpers       | 3         | Live name resolution and affiliation               |
+| Freelance Jobs (GET)        | 4         | Live queries (graceful 404 for no active jobs)     |
+
 ## Examples
 
-Runnable examples are in the `examples/` directory.
+43 runnable examples are in the `examples/` directory.
 
 ### Public Endpoints (no auth needed)
 
@@ -651,23 +698,39 @@ npm run example:rate-limiting      # Rate limiter & pagination demonstration
 npm run example:cursor-pagination  # Freelance Jobs with cursor pagination
 npm run example:streaming          # Streaming pagination for large datasets
 npm run example:token-refresh      # Automatic token refresh on 401
+npm run example:universe-encyclopedia  # Ancestries, bloodlines, races, celestials
+npm run example:dogma-meta-sov         # Dogma effects, sovereignty, meta endpoint
+npm run example:faction-details        # Faction warfare leaderboards and stats
 ```
 
 ### Authenticated Endpoints (require ESI_ACCESS_TOKEN)
 
-These examples require an EVE SSO token with the listed scopes. Set `ESI_ACCESS_TOKEN` in your environment or `.env` file.
-
 ```bash
 npm run example                    # Full character profile assembly
-npm run example:wallet       # Wallet balance, journal, transactions    (esi-wallet.read_character_wallet.v1)
-npm run example:skills       # Trained skills, queue, attributes        (esi-skills.read_skills.v1, esi-skills.read_skillqueue.v1)
-npm run example:assets       # Asset inventory with bulk name lookup    (esi-assets.read_assets.v1)
-npm run example:killmails    # Recent killmails + full details          (esi-killmails.read_killmails.v1)
-npm run example:fleet        # Fleet info, members, wing/squad structure (esi-fleets.read_fleet.v1)
-npm run example:mail         # Inbox headers, labels, mailing lists    (esi-mail.read_mail.v1)
-npm run example:location     # Current system, online status, ship     (esi-location.read_location.v1)
-npm run example:fittings     # Saved fittings + clone state + implants (esi-fittings.read_fittings.v1, esi-clones.read_clones.v1)
-npm run example:contacts     # Contact list with standings + labels    (esi-characters.read_contacts.v1)
+npm run example:wallet       # Wallet balance, journal, transactions
+npm run example:skills       # Trained skills, queue, attributes
+npm run example:assets       # Asset inventory with bulk name lookup
+npm run example:killmails    # Recent killmails + full details
+npm run example:fleet        # Fleet info, members, wing/squad structure
+npm run example:mail         # Inbox headers, labels, mailing lists
+npm run example:location     # Current system, online status, ship
+npm run example:fittings     # Saved fittings + clone state + implants
+npm run example:contacts     # Contact list with standings + labels
+npm run example:character-details  # Blueprints, roles, standings, medals
+npm run example:corporation-details  # Corp members, divisions, structures
+npm run example:calendar-search      # Calendar events + character search
+npm run example:loyalty-pi           # Loyalty points + planetary interaction
+npm run example:industry-mining      # Industry jobs + mining ledger
+npm run example:market-orders        # Character/corp market orders
+npm run example:corp-contracts-wallet # Corp contracts, contacts, wallets
+```
+
+### Write Operations (require specific scopes + caution)
+
+```bash
+npm run example:write-ops          # Contacts, fittings, mail, UI lifecycle tests
+npm run example:universe-posts     # Name resolution + character affiliation (public)
+npm run example:freelance-jobs     # Freelance job queries
 ```
 
 ### Parallel Requests
@@ -711,6 +774,29 @@ try {
 }
 ```
 
+## Testing
+
+ESI.ts has a comprehensive multi-tier testing strategy:
+
+| Tier                   | Tests            | Purpose                                                          |
+| ---------------------- | ---------------- | ---------------------------------------------------------------- |
+| **TDD unit tests**     | 81 files         | Every client method, endpoint path, query param, and body format |
+| **BDD scenario tests** | 40 feature files | Behavioral specifications in Gherkin (Given/When/Then)           |
+| **Mocked integration** | Full suite       | Cross-layer request flow with jest-fetch-mock                    |
+| **Live smoke tests**   | 43 examples      | Every endpoint against live Tranquility                          |
+| **ESI spec contract**  | 10 tests         | Endpoint definitions validated against live swagger spec         |
+| **Gated auth tests**   | 33 tests         | Authenticated endpoints with real tokens                         |
+
+```bash
+npm test          # Unit + BDD tests (121 suites, 3,224 tests)
+npm run coverage  # Tests with coverage report (thresholds enforced)
+npm run bdd       # BDD scenario tests only
+```
+
+Coverage thresholds are enforced in CI: branches 50%, functions 50%, lines 65%, statements 65%.
+
+See [guides/TESTING.md](guides/TESTING.md) for the full testing guide, and [guides/ARCHITECTURE.md](guides/ARCHITECTURE.md) for architecture diagrams.
+
 ## Development
 
 ### Prerequisites
@@ -743,7 +829,7 @@ npm run format             # Format code with Prettier
 npm run format:check       # Check formatting without modifying
 
 # Testing
-npm test                   # Unit tests
+npm test                   # Unit tests (121 suites, 3,224 tests)
 npm run test:all           # Unit + improved + BDD tests
 npm run coverage           # Tests with coverage report (thresholds enforced)
 npm run bdd                # BDD scenario tests
@@ -792,20 +878,6 @@ Every pull request runs the full validation suite:
 - npm security audit
 
 See [.github/workflows/README.md](.github/workflows/README.md) for full workflow details.
-
-## Testing
-
-```bash
-npm test          # Unit + BDD tests (108 suites, 2836 tests)
-npm run coverage  # Tests with coverage report (thresholds enforced)
-npm run bdd       # BDD scenario tests only
-```
-
-To verify against the live ESI API:
-
-```bash
-npm run example:status    # Confirms ESI connectivity and server status
-```
 
 ## Contributing
 

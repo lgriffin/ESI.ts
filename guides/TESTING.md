@@ -6,12 +6,12 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 
 | Tier                 |     Tests |  Suites | Purpose                                                                     |
 | -------------------- | --------: | ------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |     2,784 |      78 | Per-module unit tests with mocked HTTP                                      |
-| BDD (behavioral)     |       335 |      39 | Gherkin-style scenarios covering user-facing behaviors                      |
+| TDD (unit)           |           |      81 | Per-module unit tests with mocked HTTP                                      |
+| BDD (behavioral)     |           |      40 | Gherkin-style scenarios covering user-facing behaviors                      |
 | Integration (mocked) |        20 |       1 | Full request lifecycle with mocked fetch                                    |
 | Integration (live)   |        61 |       3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
 | Integration (gated)  |        33 |       1 | Authenticated endpoints with real OAuth token                               |
-| **Total**            | **3,233** | **122** |                                                                             |
+| **Total**            | **3,224** | **121** | (`npm test` runs TDD + BDD)                                                 |
 
 ## Coverage
 
@@ -158,7 +158,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All unit + BDD tests (default) — 121 suites, 3,222 tests
+# All unit + BDD tests (default) — 121 suites, 3,224 tests
 npm test
 
 # Watch mode for development
@@ -201,7 +201,7 @@ npm run bdd:performance
 **Config:** `jest.unit.config.cjs`
 **Run:** `npm test`
 
-78 test files covering:
+81 test files covering:
 
 - **Domain clients** (35 files) — One per ESI API module (AllianceClient, MarketClient, etc.). Each mocks `fetch` and verifies correct URL construction, response parsing, and type safety.
 - **Core infrastructure** (35+ files) — Circuit breaker, rate limiter, pagination (offset + cursor), ETag cache, request deduplication, retry with backoff, middleware pipeline, endpoint definitions, validation, error handling, timeout behavior, diagnostics, and configuration.
@@ -217,7 +217,7 @@ npm run bdd:performance
 **Config:** `jest.unit.config.cjs` (same runner as TDD)
 **Run:** `npm run bdd`
 
-39 feature files written in Gherkin, with matching step definitions. Covers:
+40 feature files written in Gherkin, with matching step definitions. Covers:
 
 - All 35 domain API modules (alliance, market, universe, etc.)
 - Cross-cutting behaviors: ETag caching, response header extraction, deprecation warnings
@@ -378,6 +378,9 @@ npm run example:industry     # Industry facilities + insurance
 npm run example:incursions   # Incursions + faction warfare
 npm run example:dogma        # Item types + dogma attributes
 npm run example:contracts    # Public region contracts + auction details
+npm run example:universe-encyclopedia  # Ancestries, bloodlines, races, celestials
+npm run example:dogma-meta-sov         # Dogma effects, sovereignty, meta endpoint
+npm run example:faction-details        # Faction warfare leaderboards and stats
 
 # Authenticated endpoints (require ESI_ACCESS_TOKEN with listed scopes)
 npm run example:wallet       # Wallet balance, journal, transactions
@@ -390,6 +393,18 @@ npm run example:location     # Current system, online, ship
 npm run example:fittings     # Ship fittings + clones + implants
 npm run example:contacts     # Contact list with standings
 npm run example:access-lists # Access list entries (requires ACL scope)
+npm run example:character-details      # Blueprints, roles, standings, medals
+npm run example:corporation-details    # Corp members, divisions, structures
+npm run example:calendar-search        # Calendar events + character search
+npm run example:loyalty-pi             # Loyalty points + planetary interaction
+npm run example:industry-mining        # Industry jobs + mining ledger
+npm run example:market-orders          # Character/corp market orders
+npm run example:corp-contracts-wallet  # Corp contracts, contacts, wallets
+
+# Write operation examples (require specific scopes + caution)
+npm run example:write-ops              # Contacts, fittings, mail, UI lifecycle tests
+npm run example:universe-posts         # Name resolution + character affiliation
+npm run example:freelance-jobs         # Freelance job queries
 
 # Utility / advanced pattern examples
 npm run example:rate-limiting      # Rate limiter behavior demo
@@ -729,9 +744,9 @@ npm run generate:types
 | ---------------------------------------------- | -------------------------------------------- |
 | `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds) |
 | `jest.integration.config.cjs`                  | Integration test config (30s timeout)        |
-| `tests/tdd/`                                   | 78 TDD test files                            |
-| `tests/bdd/features/`                          | 39 Gherkin feature files                     |
-| `tests/bdd/step-definitions/`                  | 39 step definition files + shared helpers    |
+| `tests/tdd/`                                   | 81 TDD test files                            |
+| `tests/bdd/features/`                          | 40 Gherkin feature files                     |
+| `tests/bdd/step-definitions/`                  | 40 step definition files + shared helpers    |
 | `tests/integration/full-stack.test.ts`         | Mocked full-lifecycle integration (20 tests) |
 | `tests/integration/live-esi.test.ts`           | Live API smoke tests (40 tests)              |
 | `tests/integration/client-integration.test.ts` | Live EsiClient integration (11 tests)        |

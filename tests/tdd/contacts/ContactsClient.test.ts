@@ -165,59 +165,44 @@ describe('ContactsClient', () => {
     });
 
     it('should handle postCharacterContacts (add contacts)', async () => {
-      const mockResponse = [123456789, 987654321]; // Contact IDs that were added
-      const contactsToAdd = [
-        {
-          contact_id: 123456789,
-          contact_type: 'character',
-          standing: 5.0,
-          label_ids: [1],
-        },
-        {
-          contact_id: 987654321,
-          contact_type: 'corporation',
-          standing: -5.0,
-          label_ids: [2],
-        },
-      ];
+      const mockResponse = [123456789, 987654321];
+      const contactIds = [123456789, 987654321];
 
       fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
       const result = await getBody(() =>
-        contactsClient.postCharacterContacts(123456, contactsToAdd),
+        contactsClient.postCharacterContacts(123456, 5, contactIds),
       );
 
       expect(Array.isArray(result)).toBe(true);
       expect(result).toEqual([123456789, 987654321]);
       expect(fetchMock.mock.calls[0][0]).toBe(
-        'https://esi.evetech.net/latest/characters/123456/contacts',
+        'https://esi.evetech.net/latest/characters/123456/contacts?standing=5',
       );
+      const sentBody = fetchMock.mock.calls[0][1]?.body;
+      expect(sentBody).toBe(JSON.stringify([123456789, 987654321]));
     });
 
     it('should handle putCharacterContacts (edit contacts)', async () => {
-      const mockResponse = {}; // PUT typically returns empty response on success
-      const contactsToUpdate = [
-        {
-          contact_id: 123456789,
-          standing: 10.0,
-          label_ids: [1, 2],
-        },
-      ];
+      const mockResponse = {};
+      const contactIds = [123456789];
 
       fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
       const result = await getBody(() =>
-        contactsClient.putCharacterContacts(123456, contactsToUpdate),
+        contactsClient.putCharacterContacts(123456, 10, contactIds),
       );
 
       expect(result).toEqual({});
       expect(fetchMock.mock.calls[0][0]).toBe(
-        'https://esi.evetech.net/latest/characters/123456/contacts',
+        'https://esi.evetech.net/latest/characters/123456/contacts?standing=10',
       );
+      const sentBody = fetchMock.mock.calls[0][1]?.body;
+      expect(sentBody).toBe(JSON.stringify([123456789]));
     });
 
     it('should handle deleteCharacterContacts', async () => {
-      const mockResponse = {}; // DELETE typically returns empty response on success
+      const mockResponse = {};
       const contactIdsToDelete = [123456789, 987654321];
 
       fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
@@ -228,10 +213,8 @@ describe('ContactsClient', () => {
 
       expect(result).toEqual({});
       expect(fetchMock.mock.calls[0][0]).toBe(
-        'https://esi.evetech.net/latest/characters/123456/contacts',
+        'https://esi.evetech.net/latest/characters/123456/contacts?contact_ids=123456789%2C987654321',
       );
-      const sentBody = fetchMock.mock.calls[0][1]?.body;
-      expect(sentBody).toBe(JSON.stringify([123456789, 987654321]));
     });
   });
 

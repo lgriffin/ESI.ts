@@ -103,18 +103,16 @@ describe('FleetClient', () => {
     const result = await getBody(() => fleetClient.getFleetMembers(1234567890));
 
     expect(Array.isArray(result)).toBe(true);
-    (result as any[]).forEach((member) => {
-      expect(member).toHaveProperty('character_id');
-      expect(member).toHaveProperty('join_time');
-      expect(member).toHaveProperty('role');
-      expect(member).toHaveProperty('role_name');
-      expect(member).toHaveProperty('ship_type_id');
-      expect(member).toHaveProperty('solar_system_id');
-      expect(member).toHaveProperty('squad_id');
-      expect(member).toHaveProperty('station_id');
-      expect(member).toHaveProperty('takes_fleet_warp');
-      expect(member).toHaveProperty('wing_id');
-    });
+    expect(result[0]).toHaveProperty('character_id');
+    expect(result[0]).toHaveProperty('join_time');
+    expect(result[0]).toHaveProperty('role');
+    expect(result[0]).toHaveProperty('role_name');
+    expect(result[0]).toHaveProperty('ship_type_id');
+    expect(result[0]).toHaveProperty('solar_system_id');
+    expect(result[0]).toHaveProperty('squad_id');
+    expect(result[0]).toHaveProperty('station_id');
+    expect(result[0]).toHaveProperty('takes_fleet_warp');
+    expect(result[0]).toHaveProperty('wing_id');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fleets/1234567890/members',
     );
@@ -180,7 +178,7 @@ describe('FleetClient', () => {
     fetchMock.mockResponseOnce('', { status: 204 });
 
     const result = await getBody(() =>
-      fleetClient.renameFleetSquad(1234567890, 1, 'New Squad Name'),
+      fleetClient.renameFleetSquad(1234567890, 1, 'New Squad'),
     );
 
     expect(result).toBeUndefined();
@@ -208,15 +206,12 @@ describe('FleetClient', () => {
     const result = await getBody(() => fleetClient.getFleetWings(1234567890));
 
     expect(Array.isArray(result)).toBe(true);
-    (result as any[]).forEach((wing) => {
-      expect(wing).toHaveProperty('id');
-      expect(wing).toHaveProperty('name');
-      expect(Array.isArray(wing.squads)).toBe(true);
-      wing.squads.forEach((squad: any) => {
-        expect(squad).toHaveProperty('id');
-        expect(squad).toHaveProperty('name');
-      });
-    });
+    const wings = result;
+    expect(wings[0]).toHaveProperty('id');
+    expect(wings[0]).toHaveProperty('name');
+    expect(Array.isArray(wings[0].squads)).toBe(true);
+    expect(wings[0].squads[0]).toHaveProperty('id');
+    expect(wings[0].squads[0]).toHaveProperty('name');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fleets/1234567890/wings/',
     );
@@ -254,13 +249,25 @@ describe('FleetClient', () => {
     fetchMock.mockResponseOnce('', { status: 204 });
 
     const result = await getBody(() =>
-      fleetClient.renameFleetWing(1234567890, 1, 'New Wing Name'),
+      fleetClient.renameFleetWing(1234567890, 1, 'New Wing'),
     );
 
     expect(result).toBeUndefined();
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/fleets/1234567890/wings/1/',
     );
+  });
+
+  it('should reject squad names exceeding 10 characters', async () => {
+    await expect(
+      fleetClient.renameFleetSquad(1234567890, 1, 'Way Too Long Name'),
+    ).rejects.toThrow('exceeds ESI maximum of 10 characters');
+  });
+
+  it('should reject wing names exceeding 10 characters', async () => {
+    await expect(
+      fleetClient.renameFleetWing(1234567890, 1, 'Way Too Long Name'),
+    ).rejects.toThrow('exceeds ESI maximum of 10 characters');
   });
 
   it('should create a fleet squad', async () => {
