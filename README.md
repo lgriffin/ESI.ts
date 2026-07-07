@@ -10,7 +10,7 @@
 
 A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), with runtime validation, intelligent caching, and full endpoint coverage.
 
-**208 endpoint definitions — 185 from the public ESI swagger spec, plus 23 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs) that CCP has deployed but not yet added to the public spec. All validated against live Tranquility.**
+**208 endpoint definitions — 194 from the public ESI swagger spec, plus 14 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs) that CCP has deployed but not yet added to the public spec. All validated against live Tranquility.**
 
 ## Why ESI.ts vs. OpenAPI-Generated Clients?
 
@@ -657,7 +657,7 @@ const prices = await marketClient.getMarketPrices();
 
 ## Endpoint Coverage
 
-All 208 endpoint definitions have been validated against live Tranquility — 185 from the public ESI spec plus 23 for newer EVE features not yet in the public swagger. This table summarizes the validation approach:
+All 208 endpoint definitions have been validated against live Tranquility — 194 from the public ESI spec plus 14 for newer EVE features not yet in the public swagger. This table summarizes the validation approach:
 
 | Category                    | Endpoints | Method                                             |
 | --------------------------- | --------- | -------------------------------------------------- |
