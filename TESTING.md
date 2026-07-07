@@ -6,19 +6,19 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 
 | Tier                 |     Tests |  Suites | Purpose                                                                     |
 | -------------------- | --------: | ------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |     2,784 |      78 | Per-module unit tests with mocked HTTP                                      |
-| BDD (behavioral)     |       335 |      39 | Gherkin-style scenarios covering user-facing behaviors                      |
+| TDD (unit)           |           |      81 | Per-module unit tests with mocked HTTP                                      |
+| BDD (behavioral)     |           |      40 | Gherkin-style scenarios covering user-facing behaviors                      |
 | Integration (mocked) |        20 |       1 | Full request lifecycle with mocked fetch                                    |
 | Integration (live)   |        61 |       3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
 | Integration (gated)  |        33 |       1 | Authenticated endpoints with real OAuth token                               |
-| **Total**            | **3,233** | **122** |                                                                             |
+| **Total**            | **3,224** | **121** | (`npm test` runs TDD + BDD)                                                 |
 
 ### Before / After This Effort
 
 | Metric      | Before |  After |   Delta |
 | ----------- | -----: | -----: | ------: |
-| Test suites |    112 |    122 |     +10 |
-| Total tests |  2,901 |  3,233 |    +332 |
+| Test suites |    112 |    121 |      +9 |
+| Total tests |  2,901 |  3,224 |    +323 |
 | Statements  | 90.32% | 96.35% | +6.03pp |
 | Branches    | 86.92% | 87.40% | +0.48pp |
 | Functions   | 84.37% | 93.20% | +8.83pp |
@@ -59,7 +59,7 @@ Coverage is collected from `src/**/*.ts` (excluding `.d.ts` and `src/types/`).
 **Config:** `jest.unit.config.cjs`
 **Run:** `npm test`
 
-78 test files covering:
+81 test files covering:
 
 - **Domain clients** (35 files) — One per ESI API module (AllianceClient, MarketClient, etc.). Each mocks `fetch` and verifies correct URL construction, response parsing, and type safety.
 - **Core infrastructure** (35+ files) — Circuit breaker, rate limiter, pagination (offset + cursor), ETag cache, request deduplication, retry with backoff, middleware pipeline, endpoint definitions, validation, error handling, timeout behavior, diagnostics, and configuration.
@@ -95,7 +95,7 @@ expect(result.players).toBe(12345);
 **Config:** `jest.unit.config.cjs` (same runner as TDD)
 **Run:** `npm run bdd`
 
-39 feature files written in Gherkin, with matching step definitions. Covers:
+40 feature files written in Gherkin, with matching step definitions. Covers:
 
 - All 35 domain API modules (alliance, market, universe, etc.)
 - Cross-cutting behaviors: ETag caching, response header extraction, deprecation warnings
@@ -270,9 +270,9 @@ TDD tests cover implementation details (internal functions, edge cases, error pa
 | ---------------------------------------------- | -------------------------------------------- |
 | `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds) |
 | `jest.integration.config.cjs`                  | Integration test config (30s timeout)        |
-| `tests/tdd/`                                   | 78 TDD test files                            |
-| `tests/bdd/features/`                          | 39 Gherkin feature files                     |
-| `tests/bdd/step-definitions/`                  | 39 step definition files                     |
+| `tests/tdd/`                                   | 81 TDD test files                            |
+| `tests/bdd/features/`                          | 40 Gherkin feature files                     |
+| `tests/bdd/step-definitions/`                  | 40 step definition files                     |
 | `tests/integration/full-stack.test.ts`         | Mocked full-lifecycle integration            |
 | `tests/integration/live-esi.test.ts`           | Live API smoke tests (40 tests)              |
 | `tests/integration/client-integration.test.ts` | Live EsiClient integration (11 tests)        |

@@ -18,7 +18,7 @@ graph TB
         Index["index.ts exports"]
     end
 
-    subgraph DomainClients["Domain Client Layer (35 clients)"]
+    subgraph DomainClients["Domain Client Layer (35 domain clients)"]
         Alliance["AllianceClient"]
         Character["CharacterClient"]
         Market["MarketClient"]
@@ -465,13 +465,13 @@ graph LR
 
 ## 8. Test Architecture
 
-3,233 tests across 122 suites in 7 tiers. Coverage: 96.35% statements, 87.40% branches, 93.20% functions, 96.38% lines.
+3,224 tests across 121 suites in 7 tiers. Coverage: 96.35% statements, 87.40% branches, 93.20% functions, 96.38% lines.
 
 ```mermaid
 graph TB
-    subgraph TestTypes["Test Types (3,233 tests, 122 suites)"]
-        TDD["TDD Unit Tests<br/>(tests/tdd/ — 78 files, 2,784 tests)"]
-        BDD["BDD Scenarios<br/>(tests/bdd/ — 39 features, 335 tests)"]
+    subgraph TestTypes["Test Types (3,224 tests, 121 suites)"]
+        TDD["TDD Unit Tests<br/>(tests/tdd/ — 81 files)"]
+        BDD["BDD Scenarios<br/>(tests/bdd/ — 40 features)"]
         IntMocked["Mocked Integration<br/>(full-stack.test.ts — 20 tests)"]
         IntLive["Live Integration<br/>(3 files — 61 tests)"]
         IntGated["Gated Auth<br/>(gated-auth.test.ts — 33 tests)"]
