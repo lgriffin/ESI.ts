@@ -163,10 +163,10 @@ async function main() {
     console.log('\nUI Endpoints (require EVE client running)');
     console.log('='.repeat(50));
 
-    // Autopilot waypoint to Jita
-    console.log('\n  Setting autopilot to Jita...');
+    // Autopilot waypoint to Rens
+    console.log('\n  Setting autopilot to Rens...');
     try {
-      await client.ui.setAutopilotWaypoint(30000142, false, true);
+      await client.ui.setAutopilotWaypoint(30002510, false, true);
       console.log('    Waypoint set');
     } catch (err) {
       if (err instanceof EsiError && [401, 403, 502].includes(err.statusCode ?? 0)) {
