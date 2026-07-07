@@ -7,6 +7,19 @@ export const CharacterSkillSchema = z.looseObject({
   active_skill_level: z.number(),
 });
 
+export const CharacterSkillsResponseSchema = z.looseObject({
+  skills: z.array(
+    z.looseObject({
+      skill_id: z.number(),
+      skillpoints_in_skill: z.number(),
+      trained_skill_level: z.number(),
+      active_skill_level: z.number(),
+    }),
+  ),
+  total_sp: z.number(),
+  unallocated_sp: z.number().optional(),
+});
+
 export const SkillQueueSchema = z.looseObject({
   skill_id: z.number(),
   finished_level: z.number(),

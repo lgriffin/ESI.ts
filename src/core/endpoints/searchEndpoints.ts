@@ -1,4 +1,5 @@
 import { EndpointMap } from './EndpointDefinition';
+import { SearchResultSchema } from '../../schemas/universe';
 
 export const searchEndpoints = {
   searchCharacter: {
@@ -7,5 +8,6 @@ export const searchEndpoints = {
     requiresAuth: true,
     pathParams: ['characterId'],
     queryParams: { searchString: 'search', categories: 'categories' },
+    responseSchema: SearchResultSchema,
   },
 } as const satisfies EndpointMap;

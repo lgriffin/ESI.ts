@@ -12,6 +12,7 @@ import {
   StandingSchema,
   CharacterTitleSchema,
   CharacterRoleSchema,
+  ContactNotificationSchema,
 } from '../../schemas/character';
 
 export const characterEndpoints = {
@@ -62,6 +63,7 @@ export const characterEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    responseSchema: z.array(ContactNotificationSchema),
   },
   getCorporationHistory: {
     path: 'characters/{characterId}/corporationhistory/',

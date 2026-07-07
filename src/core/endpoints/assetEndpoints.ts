@@ -19,6 +19,7 @@ export const assetEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CharacterAssetSchema),
   },
   postCharacterAssetLocations: {
     path: 'characters/{characterId}/assets/locations/',

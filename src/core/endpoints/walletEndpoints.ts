@@ -4,6 +4,7 @@ import {
   WalletJournalSchema,
   WalletTransactionSchema,
 } from '../../schemas/wallet';
+import { CorporationWalletDivisionSchema } from '../../schemas/corporation';
 
 export const walletEndpoints = {
   getCharacterWallet: {
@@ -11,6 +12,7 @@ export const walletEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    responseSchema: z.number(),
   },
   getCharacterWalletJournal: {
     path: 'characters/{characterId}/wallet/journal',
@@ -31,6 +33,7 @@ export const walletEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationWalletDivisionSchema),
   },
   getCorporationWalletJournal: {
     path: 'corporations/{corporationId}/wallets/{division}/journal',

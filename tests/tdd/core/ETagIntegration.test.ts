@@ -28,7 +28,7 @@ describe('ETag Integration Tests', () => {
 
   describe('ETag Caching Flow', () => {
     it('should cache response with ETag on first request', async () => {
-      const mockData = [{ alliance_id: 1, name: 'Test Alliance' }];
+      const mockData = [99005338, 99005551];
       const etag = '"abc123def456"';
 
       fetchMock.mockResponseOnce(JSON.stringify(mockData), {
@@ -48,7 +48,7 @@ describe('ETag Integration Tests', () => {
     });
 
     it('should return cached data on 304 Not Modified', async () => {
-      const mockData = [{ alliance_id: 1, name: 'Test Alliance' }];
+      const mockData = [99005338, 99005551];
       const etag = '"abc123def456"';
 
       // First request - populate cache
@@ -70,8 +70,8 @@ describe('ETag Integration Tests', () => {
     });
 
     it('should update cache when ETag changes', async () => {
-      const oldData = [{ alliance_id: 1, name: 'Old Alliance' }];
-      const newData = [{ alliance_id: 1, name: 'Updated Alliance' }];
+      const oldData = [99005338];
+      const newData = [99005338, 99005551];
       const oldETag = '"old123"';
       const newETag = '"new456"';
 
@@ -95,7 +95,7 @@ describe('ETag Integration Tests', () => {
 
   describe('Cache Management', () => {
     it('should provide cache statistics', async () => {
-      const mockData = [{ alliance_id: 1, name: 'Test Alliance' }];
+      const mockData = [99005338, 99005551];
 
       fetchMock.mockResponseOnce(JSON.stringify(mockData), {
         headers: { ETag: '"test123"' },
@@ -110,7 +110,7 @@ describe('ETag Integration Tests', () => {
     });
 
     it('should clear cache', async () => {
-      const mockData = [{ alliance_id: 1, name: 'Test Alliance' }];
+      const mockData = [99005338, 99005551];
 
       fetchMock.mockResponseOnce(JSON.stringify(mockData), {
         headers: { ETag: '"test123"' },
@@ -142,7 +142,7 @@ describe('ETag Integration Tests', () => {
         enableETagCache: false,
       });
 
-      const mockData = [{ alliance_id: 1, name: 'Test Alliance' }];
+      const mockData = [99005338, 99005551];
 
       fetchMock.mockResponseOnce(JSON.stringify(mockData), {
         headers: { ETag: '"test123"' },
@@ -159,7 +159,7 @@ describe('ETag Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle requests when cache returns null', async () => {
-      const mockData = [{ alliance_id: 1, name: 'Test Alliance' }];
+      const mockData = [99005338, 99005551];
 
       // Mock 304 response but no cached data (edge case)
       fetchMock.mockResponseOnce('', {

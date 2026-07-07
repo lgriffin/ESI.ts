@@ -394,37 +394,16 @@ describe('MarketClient', () => {
   });
 
   it('should return market groups', async () => {
-    const mockResponse = [
-      {
-        market_group_id: 1,
-        name: 'Group 1',
-        description: 'Description 1',
-        types: [123, 456],
-      },
-    ];
+    const mockResponse = [1, 2, 3];
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() => marketClient.getMarketGroups());
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach(
-      (group: {
-        market_group_id: number;
-        name: string;
-        description: string;
-        types: number[];
-      }) => {
-        expect(group).toHaveProperty('market_group_id');
-        expect(typeof group.market_group_id).toBe('number');
-        expect(group).toHaveProperty('name');
-        expect(typeof group.name).toBe('string');
-        expect(group).toHaveProperty('description');
-        expect(typeof group.description).toBe('string');
-        expect(group).toHaveProperty('types');
-        expect(Array.isArray(group.types)).toBe(true);
-      },
-    );
+    result.forEach((groupId: number) => {
+      expect(typeof groupId).toBe('number');
+    });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/markets/groups/',
     );

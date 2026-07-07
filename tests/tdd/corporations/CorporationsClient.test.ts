@@ -309,20 +309,8 @@ describe('CorporationsClient', () => {
     );
   });
 
-  // Adding tests for key missing methods
   it('should return valid structure for getCorporationMembers', async () => {
-    const mockResponse = [
-      {
-        character_id: 123456789,
-        name: 'John Doe',
-        title: 'CEO',
-      },
-      {
-        character_id: 987654321,
-        name: 'Jane Smith',
-        title: 'Director',
-      },
-    ];
+    const mockResponse = [123456789, 987654321];
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
@@ -331,16 +319,9 @@ describe('CorporationsClient', () => {
     );
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach(
-      (member: { character_id: number; name: string; title: string }) => {
-        expect(member).toHaveProperty('character_id');
-        expect(typeof member.character_id).toBe('number');
-        expect(member).toHaveProperty('name');
-        expect(typeof member.name).toBe('string');
-        expect(member).toHaveProperty('title');
-        expect(typeof member.title).toBe('string');
-      },
-    );
+    result.forEach((memberId: number) => {
+      expect(typeof memberId).toBe('number');
+    });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/123456789/members',
     );

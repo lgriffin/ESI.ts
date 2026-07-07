@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
-import { SkillQueueSchema } from '../../schemas/skills';
+import {
+  SkillQueueSchema,
+  CharacterSkillsResponseSchema,
+} from '../../schemas/skills';
 import { CharacterAttributesSchema } from '../../schemas/character';
 
 export const skillEndpoints = {
@@ -23,5 +26,6 @@ export const skillEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    responseSchema: CharacterSkillsResponseSchema,
   },
 } as const satisfies EndpointMap;

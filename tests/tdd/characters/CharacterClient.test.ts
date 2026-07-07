@@ -261,7 +261,15 @@ describe('CharacterClient', () => {
 
   it('should return valid structure for getCharacterNotificationsContacts', async () => {
     fetchMock.mockResponseOnce(
-      JSON.stringify([{ notification_id: 1, sender_character_id: 456 }]),
+      JSON.stringify([
+        {
+          notification_id: 1,
+          sender_character_id: 456,
+          message: 'Contact standing change',
+          send_date: '2024-06-15T08:30:00Z',
+          standing_level: 5.0,
+        },
+      ]),
     );
     const result = await getBody(() =>
       characterClient.getCharacterNotificationsContacts(123),

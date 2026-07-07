@@ -20,30 +20,15 @@ describe('WarsClient', () => {
   });
 
   it('should return valid wars', async () => {
-    const mockResponse = [
-      {
-        war_id: 1,
-        declared: '2024-06-25T00:00:00Z',
-        finished: null,
-        mutual: false,
-        open_for_allies: true,
-        retracted: null,
-        started: '2024-06-26T00:00:00Z',
-      },
-    ];
+    const mockResponse = [1, 2, 3];
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() => warsClient.getWars());
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach((war: any) => {
-      expect(war).toHaveProperty('war_id');
-      expect(typeof war.war_id).toBe('number');
-      expect(war).toHaveProperty('declared');
-      expect(typeof war.declared).toBe('string');
-      expect(war).toHaveProperty('started');
-      expect(typeof war.started).toBe('string');
+    result.forEach((warId: any) => {
+      expect(typeof warId).toBe('number');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/wars',

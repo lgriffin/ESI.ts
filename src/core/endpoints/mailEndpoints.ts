@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
-import { MailMessageSchema, MailLabelSchema } from '../../schemas/mail';
+import {
+  MailMessageSchema,
+  MailLabelSchema,
+  MailLabelsResponseSchema,
+  MailingListSchema,
+} from '../../schemas/mail';
 
 export const mailEndpoints = {
   getCharacterMailHeaders: {
@@ -42,6 +47,7 @@ export const mailEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    responseSchema: MailLabelsResponseSchema,
   },
   createMailLabel: {
     path: 'characters/{characterId}/mail/labels/',
@@ -61,5 +67,6 @@ export const mailEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    responseSchema: z.array(MailingListSchema),
   },
 } as const satisfies EndpointMap;
