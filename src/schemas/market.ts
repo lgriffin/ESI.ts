@@ -23,3 +23,17 @@ export const MarketHistorySchema = z.looseObject({
   average: z.number(),
   lowest: z.number(),
 });
+
+export const MarketGroupSchema = z.looseObject({
+  market_group_id: z.number(),
+  name: z.string(),
+  description: z.string(),
+  types: z.array(z.number()),
+  parent_group_id: z.number().optional(),
+});
+
+export const MarketPriceSchema = z.looseObject({
+  type_id: z.number(),
+  average_price: z.number().optional(),
+  adjusted_price: z.number().optional(),
+});

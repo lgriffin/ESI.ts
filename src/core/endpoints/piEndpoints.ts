@@ -5,6 +5,7 @@ import {
   CustomsOfficeSchema,
   ColonyLayoutSchema,
 } from '../../schemas/pi';
+import { SchematicInfoSchema } from '../../schemas/universe';
 
 export const piEndpoints = {
   getColonies: {
@@ -33,5 +34,6 @@ export const piEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['schematicId'],
+    responseSchema: SchematicInfoSchema,
   },
 } as const satisfies EndpointMap;

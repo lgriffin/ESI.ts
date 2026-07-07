@@ -33,14 +33,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const allianceData = [
-      {
-        alliance_id: 99005338,
-        name: 'Goonswarm Federation',
-        ticker: 'CONDI',
-      },
-      { alliance_id: 99005551, name: 'Pandemic Horde', ticker: 'REKTD' },
-    ];
+    const allianceData = [99005338, 99005551];
     const etag = '"1234567890abcdef"';
 
     given('a fresh client with no cached data', () => {
@@ -77,9 +70,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let cachedResult: any;
-    const allianceData = [
-      { alliance_id: 99005338, name: 'Goonswarm Federation' },
-    ];
+    const allianceData = [99005338];
     const etag = '"cached123"';
 
     given('cached data with an ETag', async () => {
@@ -112,7 +103,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let updatedResult: any;
-    const oldData = [{ alliance_id: 1, name: 'Old Alliance' }];
+    const oldData = [99005338];
     const oldETag = '"old-etag-123"';
 
     given('cached data with an ETag for update', async () => {
@@ -144,7 +135,7 @@ defineFeature(feature, (test) => {
 
     given('multiple cached responses exist', async () => {
       const endpoints = [
-        { endpoint: 'alliances', data: [{ id: 1 }] },
+        { endpoint: 'alliances', data: [99005338] },
         {
           endpoint: 'status',
           data: {
@@ -233,7 +224,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let errorResult: any;
-    const validData = [{ alliance_id: 1, name: 'Test Alliance' }];
+    const validData = [99005338, 99005551];
     const etag = '"valid-etag"';
 
     given('a cached response exists', async () => {
@@ -262,7 +253,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const data = [{ alliance_id: 1, name: 'Test Alliance' }];
+    const data = [99005338, 99005551];
 
     given('a server response without ETag headers', () => {
       fetchMock.mockResponseOnce(JSON.stringify(data), {
@@ -287,7 +278,7 @@ defineFeature(feature, (test) => {
   }) => {
     let clientWithoutCache: EsiClient;
     let result: any;
-    const data = [{ alliance_id: 1, name: 'Test Alliance' }];
+    const data = [99005338, 99005551];
 
     given('a client with ETag caching disabled', () => {
       clientWithoutCache = new EsiClient({

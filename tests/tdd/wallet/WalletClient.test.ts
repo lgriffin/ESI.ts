@@ -20,9 +20,7 @@ describe('WalletClient', () => {
   });
 
   it('should return character wallet balance', async () => {
-    const mockResponse = {
-      balance: 123456.78,
-    };
+    const mockResponse = 123456.78;
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
@@ -30,8 +28,8 @@ describe('WalletClient', () => {
       walletClient.getCharacterWallet(123456789),
     );
 
-    expect(result).toHaveProperty('balance');
-    expect(typeof result.balance).toBe('number');
+    expect(typeof result).toBe('number');
+    expect(result).toBe(123456.78);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456789/wallet',
     );

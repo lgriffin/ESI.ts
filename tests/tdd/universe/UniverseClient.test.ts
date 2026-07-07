@@ -138,32 +138,15 @@ describe('UniverseClient', () => {
   });
 
   it('should return valid constellations', async () => {
-    const mockResponse = [
-      {
-        constellation_id: 1,
-        name: 'Constellation 1',
-        region_id: 10000001,
-        systems: [30000001, 30000002],
-      },
-    ];
+    const mockResponse = [20000001, 20000002, 20000003];
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() => universeClient.getConstellations());
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach((constellation: any) => {
-      expect(constellation).toHaveProperty('constellation_id');
-      expect(typeof constellation.constellation_id).toBe('number');
-      expect(constellation).toHaveProperty('name');
-      expect(typeof constellation.name).toBe('string');
-      expect(constellation).toHaveProperty('region_id');
-      expect(typeof constellation.region_id).toBe('number');
-      expect(constellation).toHaveProperty('systems');
-      expect(Array.isArray(constellation.systems)).toBe(true);
-      constellation.systems.forEach((system: any) => {
-        expect(typeof system).toBe('number');
-      });
+    result.forEach((constellationId: number) => {
+      expect(typeof constellationId).toBe('number');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/universe/constellations',
@@ -204,26 +187,15 @@ describe('UniverseClient', () => {
   });
 
   it('should return valid graphics', async () => {
-    const mockResponse = [
-      {
-        graphic_id: 1,
-        url: 'https://example.com/graphic1.png',
-        description: 'Description 1',
-      },
-    ];
+    const mockResponse = [1, 2, 3];
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() => universeClient.getGraphics());
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach((graphic: any) => {
-      expect(graphic).toHaveProperty('graphic_id');
-      expect(typeof graphic.graphic_id).toBe('number');
-      expect(graphic).toHaveProperty('url');
-      expect(typeof graphic.url).toBe('string');
-      expect(graphic).toHaveProperty('description');
-      expect(typeof graphic.description).toBe('string');
+    result.forEach((graphicId: number) => {
+      expect(typeof graphicId).toBe('number');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/universe/graphics',

@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
-import { MarketOrderSchema, MarketHistorySchema } from '../../schemas/market';
+import {
+  MarketOrderSchema,
+  MarketHistorySchema,
+  MarketGroupSchema,
+  MarketPriceSchema,
+} from '../../schemas/market';
 
 export const marketEndpoints = {
   getCharacterOrders: {
@@ -35,17 +40,20 @@ export const marketEndpoints = {
     path: 'markets/groups/',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getMarketGroupInformation: {
     path: 'markets/groups/{marketGroupId}/',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['marketGroupId'],
+    responseSchema: MarketGroupSchema,
   },
   getMarketPrices: {
     path: 'markets/prices/',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(MarketPriceSchema),
   },
   getMarketOrdersInStructure: {
     path: 'markets/structures/{structureId}/',
@@ -75,5 +83,6 @@ export const marketEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['regionId'],
+    responseSchema: z.array(z.number()),
   },
 } as const satisfies EndpointMap;

@@ -118,6 +118,14 @@ export const CharacterAffiliationSchema = z.looseObject({
   faction_id: z.number().optional(),
 });
 
+export const ContactNotificationSchema = z.looseObject({
+  notification_id: z.number(),
+  sender_character_id: z.number(),
+  message: z.string(),
+  send_date: z.string(),
+  standing_level: z.number(),
+});
+
 export const CharacterRoleSchema = z.looseObject({
   roles: z.array(z.string()).optional(),
   roles_at_hq: z.array(z.string()).optional(),

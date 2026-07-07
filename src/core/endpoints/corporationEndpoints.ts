@@ -17,7 +17,11 @@ import {
   CorporationStarbaseDetailSchema,
   CorporationStructureSchema,
   CorporationTitleSchema,
+  CorporationIconSchema,
+  CorporationStandingSchema,
+  CorporationWalletDivisionSchema,
 } from '../../schemas/corporation';
+import { BlueprintSchema } from '../../schemas/character';
 
 export const corporationEndpoints = {
   getCorporationInfo: {
@@ -39,6 +43,7 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(BlueprintSchema),
   },
   getCorporationAlscLogs: {
     path: 'corporations/{corporationId}/containers/logs',
@@ -66,6 +71,7 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['corporationId'],
+    responseSchema: CorporationIconSchema,
   },
   getCorporationMedals: {
     path: 'corporations/{corporationId}/medals',
@@ -86,12 +92,14 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(z.number()),
   },
   getCorporationMemberLimit: {
     path: 'corporations/{corporationId}/members/limit',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.number(),
   },
   getCorporationMembersTitles: {
     path: 'corporations/{corporationId}/members/titles',
@@ -133,6 +141,7 @@ export const corporationEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationStandingSchema),
   },
   getCorporationStarbases: {
     path: 'corporations/{corporationId}/starbases',
@@ -166,5 +175,6 @@ export const corporationEndpoints = {
     path: 'corporations/npccorps',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
 } as const satisfies EndpointMap;

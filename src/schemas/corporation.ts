@@ -183,6 +183,23 @@ export const CorporationTitleSchema = z.looseObject({
   grantable_roles_at_other: z.array(z.string()).optional(),
 });
 
+export const CorporationIconSchema = z.looseObject({
+  px64x64: z.string().optional(),
+  px128x128: z.string().optional(),
+  px256x256: z.string().optional(),
+});
+
+export const CorporationStandingSchema = z.looseObject({
+  from_id: z.number(),
+  from_type: z.enum(['agent', 'npc_corp', 'faction']),
+  standing: z.number(),
+});
+
+export const CorporationWalletDivisionSchema = z.looseObject({
+  division: z.number(),
+  balance: z.number(),
+});
+
 export const ContainerLogSchema = z.looseObject({
   logged_at: z.string(),
   container_id: z.number(),

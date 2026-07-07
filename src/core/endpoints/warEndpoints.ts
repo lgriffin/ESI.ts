@@ -8,6 +8,7 @@ export const warEndpoints = {
     path: 'wars',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getWarById: {
     path: 'wars/{warId}',

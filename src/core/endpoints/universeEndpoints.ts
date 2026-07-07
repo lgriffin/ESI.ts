@@ -50,6 +50,7 @@ export const universeEndpoints = {
     path: 'universe/categories',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getCategoryById: {
     path: 'universe/categories/{categoryId}',
@@ -62,6 +63,7 @@ export const universeEndpoints = {
     path: 'universe/constellations',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getConstellationById: {
     path: 'universe/constellations/{constellationId}',
@@ -80,6 +82,7 @@ export const universeEndpoints = {
     path: 'universe/graphics',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getGraphicById: {
     path: 'universe/graphics/{graphicId}',
@@ -92,6 +95,7 @@ export const universeEndpoints = {
     path: 'universe/groups',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getItemGroupById: {
     path: 'universe/groups/{groupId}',
@@ -138,6 +142,7 @@ export const universeEndpoints = {
     path: 'universe/regions',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getRegionById: {
     path: 'universe/regions/{regionId}',
@@ -178,6 +183,7 @@ export const universeEndpoints = {
     path: 'universe/structures',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getStructureById: {
     path: 'universe/structures/{structureId}',
@@ -202,6 +208,7 @@ export const universeEndpoints = {
     path: 'universe/systems',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getSystemById: {
     path: 'universe/systems/{systemId}',
@@ -214,6 +221,7 @@ export const universeEndpoints = {
     path: 'universe/types',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getTypeById: {
     path: 'universe/types/{typeId}',

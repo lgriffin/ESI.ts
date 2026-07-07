@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
   DogmaAttributeSchema,
@@ -10,6 +11,7 @@ export const dogmaEndpoints = {
     path: 'dogma/attributes',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getAttributeById: {
     path: 'dogma/attributes/{attributeId}',
@@ -22,6 +24,7 @@ export const dogmaEndpoints = {
     path: 'dogma/effects',
     method: 'GET',
     requiresAuth: false,
+    responseSchema: z.array(z.number()),
   },
   getEffectById: {
     path: 'dogma/effects/{effectId}',
