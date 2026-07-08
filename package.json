@@ -143,7 +143,12 @@
     "clean": "rm -rf dist coverage docs",
     "clean:docs": "rm -rf docs",
     "prepare": "husky && npm run build",
-    "health-check": "ts-node -e \"import('./src/EsiClient').then(({EsiClient}) => new EsiClient().healthCheck().then(console.log))\""
+    "health-check": "ts-node -e \"import('./src/EsiClient').then(({EsiClient}) => new EsiClient().healthCheck().then(console.log))\"",
+    "mutation": "stryker run",
+    "mutation:report": "stryker run --reporters html,clear-text",
+    "api-report": "api-extractor run --local --verbose",
+    "api-report:check": "api-extractor run --verbose",
+    "schema:drift": "ts-node scripts/generate-schema-drift-report.ts"
   },
   "lint-staged": {
     "src/**/*.ts": [
@@ -180,8 +185,12 @@
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.1.0",
+    "@microsoft/api-extractor": "^7.58.9",
     "@redocly/cli": "^2.38.0",
     "@stoplight/prism-cli": "^5.14.2",
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/jest-runner": "^9.6.1",
+    "@stryker-mutator/typescript-checker": "^9.6.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+REPORT_DIR="${1:-./reports/schemathesis}"
+mkdir -p "$REPORT_DIR"
+
 PRISM_PID=""
 
 cleanup() {
@@ -31,12 +34,16 @@ for i in $(seq 1 30); do
 done
 
 echo "Running Schemathesis..."
+SCHEMATHESIS_EXIT=0
 docker run --rm --network host \
+  -v "$(cd "$REPORT_DIR" && pwd):/reports" \
   schemathesis/schemathesis \
   run http://localhost:4010/openapi.json \
   --checks all \
-  --hypothesis-max-examples 50 \
-  --stateful=links \
-  --base-url http://localhost:4010
+  --max-examples 50 \
+  --url http://localhost:4010 \
+  --junit-xml /reports/schemathesis-junit.xml \
+  || SCHEMATHESIS_EXIT=$?
 
-echo "Schemathesis completed."
+echo "Schemathesis completed with exit code: ${SCHEMATHESIS_EXIT}"
+exit "${SCHEMATHESIS_EXIT}"
