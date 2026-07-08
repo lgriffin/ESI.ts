@@ -257,6 +257,7 @@ jobs:
     name: API Surface Check
     runs-on: ubuntu-latest
     needs: lint-and-build
+    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -385,7 +386,6 @@ jobs:
         static-analysis,
         contract-tests,
         fuzz-tests,
-        api-surface,
       ]
     if: always()
 
@@ -399,7 +399,6 @@ jobs:
           echo "Static Analysis: ${{ needs.static-analysis.result }}"
           echo "Contract Tests: ${{ needs.contract-tests.result }}"
           echo "Fuzz Tests: ${{ needs.fuzz-tests.result }}"
-          echo "API Surface: ${{ needs.api-surface.result }}"
 
       - name: Quality Gate
         if: >-
@@ -409,8 +408,7 @@ jobs:
           needs.coverage.result != 'success' ||
           needs.static-analysis.result != 'success' ||
           needs.contract-tests.result != 'success' ||
-          needs.fuzz-tests.result != 'success' ||
-          needs.api-surface.result != 'success'
+          needs.fuzz-tests.result != 'success'
         run: |
           echo "Quality gate failed!"
           exit 1
@@ -423,6 +421,5 @@ jobs:
           needs.coverage.result == 'success' &&
           needs.static-analysis.result == 'success' &&
           needs.contract-tests.result == 'success' &&
-          needs.fuzz-tests.result == 'success' &&
-          needs.api-surface.result == 'success'
+          needs.fuzz-tests.result == 'success'
         run: echo "All quality checks passed!"

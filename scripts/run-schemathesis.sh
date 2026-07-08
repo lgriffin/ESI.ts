@@ -41,7 +41,7 @@ docker run --rm --network host \
   run http://localhost:4010/openapi.json \
   --checks all \
   --max-examples 50 \
-  --base-url http://localhost:4010 \
+  --url http://localhost:4010 \
   --junit-xml /reports/schemathesis-junit.xml \
   || SCHEMATHESIS_EXIT=$?
 
