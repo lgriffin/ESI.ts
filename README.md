@@ -8,17 +8,19 @@
 [![Coverage](https://img.shields.io/badge/coverage-65%25%2B-brightgreen)](https://github.com/lgriffin/ESI.ts)
 [![npm downloads](https://img.shields.io/npm/dm/%40lgriffin/esi.ts)](https://www.npmjs.com/package/@lgriffin/esi.ts)
 
-A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), with runtime validation, intelligent caching, and full endpoint coverage.
+A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built on the **OpenAPI 3.1 spec**, with runtime validation, intelligent caching, and full endpoint coverage.
 
-**208 endpoint definitions — 194 from the public ESI swagger spec, plus 14 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs) that CCP has deployed but not yet added to the public spec. All validated against live Tranquility.**
+**v7.0.0** — Fully migrated from the deprecated Swagger 2.0 spec to OpenAPI 3.1 (`/meta/openapi.json`). All generated types, cache TTLs, scopes, and rate limit groups are now sourced from a single OpenAPI fetch. See [esi-issues#1490](https://github.com/esi/esi-issues/issues/1490) for the deprecation notice.
+
+**208 endpoint definitions — 194 from the public ESI OpenAPI spec, plus 14 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs). All 206 exercisable endpoints validated against live Tranquility on 2026-07-08.**
 
 ## Why ESI.ts vs. OpenAPI-Generated Clients?
 
-Tools like `openapi-typescript` or `openapi-generator` can produce a typed client from the ESI swagger spec in minutes. They're a reasonable starting point — but they stop at type generation. ESI.ts is a purpose-built SDK that handles the problems you hit _after_ the types compile.
+Tools like `openapi-typescript` or `openapi-generator` can produce a typed client from the ESI OpenAPI spec in minutes. They're a reasonable starting point — but they stop at type generation. ESI.ts is a purpose-built SDK that handles the problems you hit _after_ the types compile.
 
 ### What generators give you
 
-- TypeScript interfaces from the swagger spec
+- TypeScript interfaces from the OpenAPI spec
 - Basic request/response typing
 - A thin HTTP wrapper
 
@@ -38,7 +40,7 @@ Tools like `openapi-typescript` or `openapi-generator` can produce a typed clien
 
 ### The real problem with generated clients
 
-The ESI swagger spec is not a perfect source of truth. During live endpoint validation, we discovered:
+The ESI OpenAPI spec is not a perfect source of truth. During live endpoint validation against the OpenAPI 3.1 spec, we discovered:
 
 - `addContacts`, `editContacts`, and 4 UI endpoints document parameters as request body when ESI actually expects query parameters
 - `deleteCharacterContacts` expects comma-separated contact IDs as a query param, not a JSON body
@@ -329,7 +331,7 @@ const uncachedClient = new EsiClient({ enableETagCache: false });
 
 ### Spec-Aware Cache TTLs
 
-The library reads `x-cached-seconds` from the ESI swagger spec (119 of 195 endpoints). Within the TTL window, repeated GET requests return cached data with **zero HTTP calls** — not even a conditional GET.
+The library reads `x-cache-age` from the ESI OpenAPI spec (126 of 195 endpoints). Within the TTL window, repeated GET requests return cached data with **zero HTTP calls** — not even a conditional GET.
 
 This layers on top of ETag caching in three tiers:
 
@@ -479,13 +481,13 @@ Key points:
 
 ## Generated Types
 
-The library includes TypeScript interfaces generated directly from the ESI swagger spec, available as the `EsiSpec` namespace. These are guaranteed to match the live spec and complement the hand-written types:
+The library includes TypeScript interfaces generated directly from the ESI OpenAPI 3.1 spec, available as the `EsiSpec` namespace. These are guaranteed to match the live spec and complement the hand-written types:
 
 ```typescript
 import { EsiSpec } from '@lgriffin/esi.ts';
 
-// Generated type — exact spec field names and optionality
-const order: EsiSpec.GetMarketsRegionIdOrders200Ok = {
+// Generated type — uses OpenAPI schema names (v7.0.0+)
+const order: EsiSpec.MarketsRegionIdOrdersGet = {
   order_id: 123,
   type_id: 34,
   price: 5.5,
@@ -499,13 +501,13 @@ const order: EsiSpec.GetMarketsRegionIdOrders200Ok = {
 To regenerate types from the latest ESI spec:
 
 ```bash
-npm run generate:types    # fetches spec, generates 147 interfaces + cache TTL map + rate limit groups + scope map
+npm run generate:types    # fetches OpenAPI spec, generates 161 interfaces + cache TTL map + rate limit groups + scope map
 npm run validate:esi      # reports type drift between hand-written and generated types
 ```
 
 ## ESI Scopes
 
-The library includes a generated scope-to-endpoint mapping extracted from the ESI swagger spec. Use it to check which OAuth scopes an endpoint requires before making a request:
+The library includes a generated scope-to-endpoint mapping extracted from the ESI OpenAPI spec. Use it to check which OAuth scopes an endpoint requires before making a request:
 
 ```typescript
 import { esiEndpointScopes, EsiScope } from '@lgriffin/esi.ts';
@@ -657,7 +659,7 @@ const prices = await marketClient.getMarketPrices();
 
 ## Endpoint Coverage
 
-All 208 endpoint definitions have been validated against live Tranquility — 194 from the public ESI spec plus 14 for newer EVE features not yet in the public swagger. This table summarizes the validation approach:
+All 208 endpoint definitions have been validated against live Tranquility using the **OpenAPI 3.1 spec** — 194 from the public ESI spec plus 14 for newer EVE features. 206 endpoints are exercisable (2 mercenary den endpoints await CCP deployment). Full output is captured in [`openapi.output.md`](openapi.output.md).
 
 | Category                    | Endpoints | Method                                             |
 | --------------------------- | --------- | -------------------------------------------------- |
@@ -668,10 +670,10 @@ All 208 endpoint definitions have been validated against live Tranquility — 19
 | Mail (POST/PUT/DELETE)      | 5         | Live send/label/metadata/delete lifecycle          |
 | UI (POST)                   | 5         | Live testing with EVE client running               |
 | Calendar (PUT)              | 1         | Live RSVP to event                                 |
-| Fleet (GET/POST/PUT/DELETE) | 14        | Live fleet with two characters                     |
+| Fleet (GET/POST/PUT/DELETE) | 14        | Live fleet with fleet commander + squad members    |
 | Assets POST                 | 3         | Live asset location/name queries                   |
 | CSPA (POST)                 | 1         | Live charge cost calculation                       |
-| Dogma dynamic (GET)         | 1         | Live mutaplasmid item query                        |
+| Dogma dynamic (GET)         | 1         | Live mutaplasmid (Abyssal) item query              |
 | Universe POST helpers       | 3         | Live name resolution and affiliation               |
 | Freelance Jobs (GET)        | 4         | Live queries (graceful 404 for no active jobs)     |
 
@@ -784,7 +786,7 @@ ESI.ts has a comprehensive multi-tier testing strategy:
 | **BDD scenario tests** | 40 feature files | Behavioral specifications in Gherkin (Given/When/Then)           |
 | **Mocked integration** | Full suite       | Cross-layer request flow with jest-fetch-mock                    |
 | **Live smoke tests**   | 43 examples      | Every endpoint against live Tranquility                          |
-| **ESI spec contract**  | 10 tests         | Endpoint definitions validated against live swagger spec         |
+| **ESI spec contract**  | 10 tests         | Endpoint definitions validated against live OpenAPI spec         |
 | **Gated auth tests**   | 33 tests         | Authenticated endpoints with real tokens                         |
 
 ```bash
@@ -836,9 +838,9 @@ npm run bdd                # BDD scenario tests
 
 # Static Analysis
 npm run knip               # Detect dead code and unused exports
-npm run validate:esi       # Validate endpoints against live ESI swagger spec
+npm run validate:esi       # Validate endpoints against live ESI OpenAPI spec
 npm run validate           # Run all checks: lint, format, build, coverage, knip
-npm run generate:types     # Regenerate TypeScript interfaces from ESI swagger spec
+npm run generate:types     # Regenerate TypeScript interfaces from ESI OpenAPI spec
 
 # Documentation
 npm run docs               # Generate TypeDoc API documentation
@@ -847,13 +849,13 @@ npm run docs:serve         # Serve docs locally on port 8080
 
 ### ESI Endpoint Validation
 
-To verify that the codebase endpoint definitions match the live ESI swagger spec:
+To verify that the codebase endpoint definitions match the live ESI OpenAPI spec:
 
 ```bash
 npm run validate:esi
 ```
 
-This fetches `https://esi.evetech.net/latest/swagger.json` and reports:
+This fetches the ESI OpenAPI spec and reports:
 
 - Endpoints in the codebase that are no longer in the ESI spec
 - Endpoints in the ESI spec that the codebase doesn't cover
@@ -870,7 +872,7 @@ Every pull request runs the full validation suite:
 - ESLint (with security and sonarjs plugins)
 - Prettier formatting check
 - TypeScript compilation
-- Generated types staleness check (regenerates from live ESI spec and verifies no diff)
+- Generated types staleness check (regenerates from live ESI OpenAPI spec and verifies no diff)
 - Unit tests across Node.js 18, 20, and 22
 - BDD scenario tests
 - Coverage threshold enforcement (branches: 50%, functions: 50%, lines: 65%, statements: 65%)

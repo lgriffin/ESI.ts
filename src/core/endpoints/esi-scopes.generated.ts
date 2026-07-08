@@ -1,8 +1,10 @@
-// Auto-generated from ESI Swagger spec — do not edit manually
-// Total scopes: 63
-// Endpoints requiring scopes: 119
+// Auto-generated from ESI OpenAPI spec — do not edit manually
+// Total scopes: 70
+// Endpoints requiring scopes: 127
 
 export type EsiScope =
+  | 'esi-access.read_lists.v1'
+  | 'esi-activities.read_character.v1'
   | 'esi-alliances.read_contacts.v1'
   | 'esi-assets.read_assets.v1'
   | 'esi-assets.read_corporation_assets.v1'
@@ -13,6 +15,7 @@ export type EsiScope =
   | 'esi-characters.read_contacts.v1'
   | 'esi-characters.read_corporation_roles.v1'
   | 'esi-characters.read_fatigue.v1'
+  | 'esi-characters.read_freelance_jobs.v1'
   | 'esi-characters.read_fw_stats.v1'
   | 'esi-characters.read_loyalty.v1'
   | 'esi-characters.read_medals.v1'
@@ -30,8 +33,10 @@ export type EsiScope =
   | 'esi-corporations.read_corporation_membership.v1'
   | 'esi-corporations.read_divisions.v1'
   | 'esi-corporations.read_facilities.v1'
+  | 'esi-corporations.read_freelance_jobs.v1'
   | 'esi-corporations.read_fw_stats.v1'
   | 'esi-corporations.read_medals.v1'
+  | 'esi-corporations.read_projects.v1'
   | 'esi-corporations.read_standings.v1'
   | 'esi-corporations.read_starbases.v1'
   | 'esi-corporations.read_structures.v1'
@@ -61,6 +66,8 @@ export type EsiScope =
   | 'esi-search.search_structures.v1'
   | 'esi-skills.read_skillqueue.v1'
   | 'esi-skills.read_skills.v1'
+  | 'esi-structures.read_character.v1'
+  | 'esi-structures.read_corporation.v1'
   | 'esi-ui.open_window.v1'
   | 'esi-ui.write_waypoint.v1'
   | 'esi-universe.read_structures.v1'
@@ -95,6 +102,8 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'POST:characters/{character_id}/fittings': ['esi-fittings.write_fittings.v1'],
   'DELETE:characters/{character_id}/fittings/{fitting_id}': ['esi-fittings.write_fittings.v1'],
   'GET:characters/{character_id}/fleet': ['esi-fleets.read_fleet.v1'],
+  'GET:characters/{character_id}/freelance-jobs': ['esi-characters.read_freelance_jobs.v1'],
+  'GET:characters/{character_id}/freelance-jobs/{job_id}/participation': ['esi-characters.read_freelance_jobs.v1'],
   'GET:characters/{character_id}/fw/stats': ['esi-characters.read_fw_stats.v1'],
   'GET:characters/{character_id}/implants': ['esi-clones.read_implants.v1'],
   'GET:characters/{character_id}/industry/jobs': ['esi-industry.read_character_jobs.v1'],
@@ -145,6 +154,8 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'GET:corporations/{corporation_id}/customs_offices': ['esi-planets.read_customs_offices.v1'],
   'GET:corporations/{corporation_id}/divisions': ['esi-corporations.read_divisions.v1'],
   'GET:corporations/{corporation_id}/facilities': ['esi-corporations.read_facilities.v1'],
+  'GET:corporations/{corporation_id}/freelance-jobs': ['esi-corporations.read_freelance_jobs.v1'],
+  'GET:corporations/{corporation_id}/freelance-jobs/{job_id}/participants': ['esi-corporations.read_freelance_jobs.v1'],
   'GET:corporations/{corporation_id}/fw/stats': ['esi-corporations.read_fw_stats.v1'],
   'GET:corporations/{corporation_id}/industry/jobs': ['esi-industry.read_corporation_jobs.v1'],
   'GET:corporations/{corporation_id}/killmails/recent': ['esi-killmails.read_corporation_killmails.v1'],
@@ -156,6 +167,10 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'GET:corporations/{corporation_id}/membertracking': ['esi-corporations.track_members.v1'],
   'GET:corporations/{corporation_id}/orders': ['esi-markets.read_corporation_orders.v1'],
   'GET:corporations/{corporation_id}/orders/history': ['esi-markets.read_corporation_orders.v1'],
+  'GET:corporations/{corporation_id}/projects': ['esi-corporations.read_projects.v1'],
+  'GET:corporations/{corporation_id}/projects/{project_id}': ['esi-corporations.read_projects.v1'],
+  'GET:corporations/{corporation_id}/projects/{project_id}/contribution/{character_id}': ['esi-corporations.read_projects.v1'],
+  'GET:corporations/{corporation_id}/projects/{project_id}/contributors': ['esi-corporations.read_projects.v1'],
   'GET:corporations/{corporation_id}/roles': ['esi-corporations.read_corporation_membership.v1'],
   'GET:corporations/{corporation_id}/roles/history': ['esi-corporations.read_corporation_membership.v1'],
   'GET:corporations/{corporation_id}/shareholders': ['esi-wallet.read_corporation_wallets.v1'],

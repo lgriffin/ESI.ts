@@ -18,22 +18,30 @@ import * as http from 'http';
 import * as path from 'path';
 import { exec } from 'child_process';
 
-const ESI_SWAGGER_URL = 'https://esi.evetech.net/latest/swagger.json';
+const ESI_OPENAPI_URL =
+  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
 const EVE_SSO_AUTH_URL = 'https://login.eveonline.com/v2/oauth/authorize';
 const EVE_SSO_TOKEN_URL = 'https://login.eveonline.com/v2/oauth/token';
 const ENV_FILE = path.resolve(__dirname, '..', '.env');
 const DEFAULT_PORT = 3000;
 const DEFAULT_CALLBACK_PATH = '/sso_callback';
 
-interface SwaggerSpec {
+interface OpenApiSpec {
   paths: Record<
     string,
     Record<string, { security?: Array<Record<string, string[]>> }>
   >;
-  securityDefinitions?: Record<
-    string,
-    { scopes?: Record<string, string> }
-  >;
+  components?: {
+    securitySchemes?: Record<
+      string,
+      {
+        flows?: Record<
+          string,
+          { scopes?: Record<string, string> }
+        >;
+      }
+    >;
+  };
 }
 
 interface TokenResponse {
@@ -116,20 +124,24 @@ function generateState(): string {
 // ---------------------------------------------------------------------------
 
 async function fetchAllScopes(): Promise<string[]> {
-  console.log('Fetching all ESI scopes from swagger spec...');
-  const response = await fetch(ESI_SWAGGER_URL);
+  console.log('Fetching all ESI scopes from OpenAPI spec...');
+  const response = await fetch(ESI_OPENAPI_URL);
   if (!response.ok) {
-    throw new Error(`Failed to fetch swagger spec: HTTP ${response.status}`);
+    throw new Error(`Failed to fetch OpenAPI spec: HTTP ${response.status}`);
   }
 
-  const spec = (await response.json()) as SwaggerSpec;
+  const spec = (await response.json()) as OpenApiSpec;
   const scopes = new Set<string>();
 
-  if (spec.securityDefinitions) {
-    for (const def of Object.values(spec.securityDefinitions)) {
-      if (def.scopes) {
-        for (const scope of Object.keys(def.scopes)) {
-          scopes.add(scope);
+  if (spec.components?.securitySchemes) {
+    for (const scheme of Object.values(spec.components.securitySchemes)) {
+      if (scheme.flows) {
+        for (const flow of Object.values(scheme.flows)) {
+          if (flow.scopes) {
+            for (const scope of Object.keys(flow.scopes)) {
+              scopes.add(scope);
+            }
+          }
         }
       }
     }

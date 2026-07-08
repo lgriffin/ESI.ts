@@ -1,7 +1,7 @@
 /**
  * ESI Endpoint Validation Script
  *
- * Fetches the canonical ESI swagger spec and compares it against
+ * Fetches the canonical ESI OpenAPI spec and compares it against
  * the endpoint definitions in this codebase. Reports mismatches,
  * missing coverage, and deprecated endpoints.
  *
@@ -12,7 +12,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const ESI_SWAGGER_URL = 'https://esi.evetech.net/latest/swagger.json';
+const ESI_OPENAPI_URL =
+  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
 const ENDPOINTS_DIR = path.resolve(__dirname, '../src/core/endpoints');
 const TYPES_DIR = path.resolve(__dirname, '../src/types');
 const GENERATED_TYPES_FILE = path.resolve(
@@ -20,7 +21,7 @@ const GENERATED_TYPES_FILE = path.resolve(
   'generated/esi-spec.generated.ts',
 );
 
-interface SwaggerSpec {
+interface OpenApiSpec {
   paths: Record<string, Record<string, unknown>>;
 }
 
@@ -75,8 +76,8 @@ function parseEndpointFiles(): EndpointEntry[] {
   return entries;
 }
 
-function parseSwaggerPaths(
-  spec: SwaggerSpec
+function parseOpenApiPaths(
+  spec: OpenApiSpec
 ): { method: string; path: string; tags: string[] }[] {
   const entries: { method: string; path: string; tags: string[] }[] = [];
   const httpMethods = ['get', 'post', 'put', 'delete'];
@@ -464,24 +465,24 @@ function printTypeDriftReport(drift: TypeDriftResult): void {
 }
 
 async function main(): Promise<void> {
-  console.log(`Fetching ESI swagger spec from ${ESI_SWAGGER_URL}...`);
+  console.log(`Fetching ESI OpenAPI spec from ${ESI_OPENAPI_URL}...`);
 
-  let spec: SwaggerSpec;
+  let spec: OpenApiSpec;
   try {
-    const response = await fetch(ESI_SWAGGER_URL);
+    const response = await fetch(ESI_OPENAPI_URL);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    spec = (await response.json()) as SwaggerSpec;
+    spec = (await response.json()) as OpenApiSpec;
   } catch (err) {
-    console.error(`Failed to fetch ESI swagger spec: ${err}`);
+    console.error(`Failed to fetch ESI OpenAPI spec: ${err}`);
     console.error('Check your network connection and try again.');
     process.exit(1);
   }
 
   console.log('Parsing codebase endpoint definitions...');
   const codebaseEntries = parseEndpointFiles();
-  const specEntries = parseSwaggerPaths(spec);
+  const specEntries = parseOpenApiPaths(spec);
 
   console.log(`Found ${codebaseEntries.length} endpoints in codebase`);
   console.log(`Found ${specEntries.length} endpoints in ESI spec`);

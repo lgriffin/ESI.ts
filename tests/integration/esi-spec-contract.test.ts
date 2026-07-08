@@ -2,7 +2,7 @@
  * ESI Spec Contract Tests
  *
  * Validates that this codebase's endpoint definitions, types, cache TTLs,
- * and scope mappings stay in sync with the live ESI swagger spec.
+ * and scope mappings stay in sync with the live ESI OpenAPI spec.
  *
  * Gated behind ESI_LIVE_TESTS=true since it fetches from the live API.
  *
@@ -17,7 +17,8 @@ import { esiEndpointScopes } from '../../src/core/endpoints/esi-scopes.generated
 const LIVE_TESTS_ENABLED = process.env.ESI_LIVE_TESTS === 'true';
 const describeIfLive = LIVE_TESTS_ENABLED ? describe : describe.skip;
 
-const ESI_SWAGGER_URL = 'https://esi.evetech.net/latest/swagger.json';
+const ESI_OPENAPI_URL =
+  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
 const ENDPOINTS_DIR = path.resolve(__dirname, '../../src/core/endpoints');
 const TYPES_DIR = path.resolve(__dirname, '../../src/types');
 const GENERATED_TYPES_FILE = path.resolve(
@@ -27,13 +28,13 @@ const GENERATED_TYPES_FILE = path.resolve(
 
 // --- Shared types ---
 
-interface SwaggerSpec {
-  paths: Record<string, Record<string, SwaggerOperation>>;
+interface OpenApiSpec {
+  paths: Record<string, Record<string, OpenApiOperation>>;
 }
 
-interface SwaggerOperation {
+interface OpenApiOperation {
   tags?: string[];
-  'x-cached-seconds'?: number;
+  'x-cache-age'?: number;
   security?: Array<Record<string, string[]>>;
 }
 
@@ -92,8 +93,8 @@ function parseEndpointFiles(): EndpointEntry[] {
   return entries;
 }
 
-function parseSwaggerPaths(
-  spec: SwaggerSpec,
+function parseOpenApiPaths(
+  spec: OpenApiSpec,
 ): { method: string; path: string; tags: string[] }[] {
   const entries: { method: string; path: string; tags: string[] }[] = [];
   const httpMethods = ['get', 'post', 'put', 'delete'];
@@ -147,25 +148,25 @@ function normalizeTypeName(name: string): string {
 
 // --- Spec fetch (cached across all test suites) ---
 
-let cachedSpec: SwaggerSpec | null = null;
+let cachedSpec: OpenApiSpec | null = null;
 
-async function fetchSpec(): Promise<SwaggerSpec> {
+async function fetchSpec(): Promise<OpenApiSpec> {
   if (cachedSpec) return cachedSpec;
 
-  const response = await fetch(ESI_SWAGGER_URL);
+  const response = await fetch(ESI_OPENAPI_URL);
   if (!response.ok) {
     throw new Error(
-      `Failed to fetch ESI swagger spec: HTTP ${response.status} ${response.statusText}`,
+      `Failed to fetch ESI OpenAPI spec: HTTP ${response.status} ${response.statusText}`,
     );
   }
-  cachedSpec = (await response.json()) as SwaggerSpec;
+  cachedSpec = (await response.json()) as OpenApiSpec;
   return cachedSpec;
 }
 
 // --- Test Suites ---
 
 describeIfLive('ESI Spec Contract', () => {
-  let spec: SwaggerSpec;
+  let spec: OpenApiSpec;
 
   beforeAll(async () => {
     spec = await fetchSpec();
@@ -180,7 +181,7 @@ describeIfLive('ESI Spec Contract', () => {
 
     beforeAll(() => {
       codebaseEntries = parseEndpointFiles();
-      specEntries = parseSwaggerPaths(spec);
+      specEntries = parseOpenApiPaths(spec);
     });
 
     it('should parse at least one endpoint from the codebase', () => {
@@ -498,18 +499,17 @@ describeIfLive('ESI Spec Contract', () => {
   // 3. Cache TTL Drift
   // =========================================================================
   describe('Cache TTL Drift', () => {
-    it('should have cache TTL entries that match x-cached-seconds in the live spec', () => {
+    it('should have cache TTL entries that match x-cache-age in the live spec', () => {
       const httpMethods = ['get', 'post', 'put', 'delete'];
       const specTtls = new Map<string, number>();
 
       for (const [routePath, methods] of Object.entries(spec.paths)) {
         for (const method of httpMethods) {
-          const operation = methods[method] as SwaggerOperation | undefined;
-          if (operation && operation['x-cached-seconds'] !== undefined) {
-            // Key format matches esi-cache-ttls.generated.ts: "METHOD:path" (no leading/trailing slashes)
+          const operation = methods[method] as OpenApiOperation | undefined;
+          if (operation && operation['x-cache-age'] !== undefined) {
             const cleanPath = routePath.replace(/^\//, '').replace(/\/$/, '');
             const key = `${method.toUpperCase()}:${cleanPath}`;
-            specTtls.set(key, operation['x-cached-seconds']);
+            specTtls.set(key, operation['x-cache-age']);
           }
         }
       }
@@ -564,7 +564,7 @@ describeIfLive('ESI Spec Contract', () => {
 
       for (const [routePath, methods] of Object.entries(spec.paths)) {
         for (const method of httpMethods) {
-          const operation = methods[method] as SwaggerOperation | undefined;
+          const operation = methods[method] as OpenApiOperation | undefined;
           if (
             operation &&
             operation.security &&
@@ -572,7 +572,7 @@ describeIfLive('ESI Spec Contract', () => {
           ) {
             const cleanPath = routePath.replace(/^\//, '').replace(/\/$/, '');
             const key = `${method.toUpperCase()}:${cleanPath}`;
-            // ESI security uses evesso with an array of scope strings
+            // ESI security uses OAuth2 with an array of scope strings
             const scopes: string[] = [];
             for (const secReq of operation.security) {
               for (const scopeList of Object.values(secReq)) {

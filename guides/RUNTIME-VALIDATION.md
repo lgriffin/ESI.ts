@@ -115,7 +115,7 @@ export type CharacterInfo = z.infer<typeof CharacterInfoSchema>;
 
 ### Generated types are separate
 
-The auto-generated types in `src/types/generated/esi-spec.generated.ts` (148 interfaces from the ESI Swagger spec) are **not** converted to Zod schemas. They serve as a ground-truth reference for CI contract validation, not as consumer-facing types. The hand-written schemas in `src/schemas/` are what the library uses at runtime.
+The auto-generated types in `src/types/generated/esi-spec.generated.ts` (161 interfaces from the ESI OpenAPI spec) are **not** converted to Zod schemas. They serve as a ground-truth reference for CI contract validation, not as consumer-facing types. The hand-written schemas in `src/schemas/` are what the library uses at runtime.
 
 ## Available Schemas
 

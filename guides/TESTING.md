@@ -35,7 +35,7 @@ Coverage is collected from `src/**/*.ts` (excluding `.d.ts` and `src/types/`).
 | `configValidation.test.ts`    |    33 | Builder, factory, config combos, shutdown       |
 | `publicApiSurface.test.ts`    |   135 | Export snapshot — breaking-change detector      |
 | `crossCutting.test.ts`        |    15 | Diagnostics, middleware ordering, logger        |
-| `esi-spec-contract.test.ts`   |    10 | Live swagger drift detection                    |
+| `esi-spec-contract.test.ts`   |    10 | Live OpenAPI drift detection                    |
 | `client-integration.test.ts`  |    11 | Full EsiClient against live ESI                 |
 | `live-esi.test.ts` (expanded) |    40 | Smoke tests across 42 endpoints                 |
 
@@ -298,7 +298,7 @@ Each test validates HTTP 200, response shape (required properties, correct types
 **Location:** `tests/integration/esi-spec-contract.test.ts`
 **Run:** `ESI_LIVE_TESTS=true npm run test:integration`
 
-10 tests that fetch the live ESI swagger spec and validate:
+10 tests that fetch the live ESI OpenAPI spec and validate:
 
 - **Endpoint coverage** — Phantom endpoints, HTTP method mismatches, and uncovered spec endpoints are reported as warnings (known drift from newer EVE features not yet in public spec)
 - **Type drift** — Missing fields and optionality mismatches are reported as warnings (known gap: ~45 fields, ~14 optionality mismatches)
@@ -653,7 +653,7 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 - **Mocked integration** (`full-stack.test.ts`) — verifies the full request pipeline (cache → rate limit → circuit breaker → fetch → middleware) with deterministic mocked responses. Run on every push.
 - **Live smoke tests** (`live-esi.test.ts`) — catches URL construction bugs, response shape changes, and real HTTP behavior that mocks can't replicate. Run on-demand or scheduled.
 - **Client integration** (`client-integration.test.ts`) — verifies the full `EsiClient` facade works end-to-end against live ESI, including pagination and ETag caching. Run on-demand.
-- **Spec contract tests** (`esi-spec-contract.test.ts`) — catches API drift by comparing the codebase against the live ESI swagger spec before it causes runtime failures. Run weekly.
+- **Spec contract tests** (`esi-spec-contract.test.ts`) — catches API drift by comparing the codebase against the live ESI OpenAPI spec before it causes runtime failures. Run weekly.
 - **Gated auth tests** (`gated-auth.test.ts`) — verifies authenticated endpoints with a real OAuth token. Run weekly with token refresh.
 
 ### Why both TDD and BDD?
