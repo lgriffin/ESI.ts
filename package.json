@@ -209,5 +209,9 @@
   "dependencies": {
     "winston": "^3.13.0",
     "zod": "^4.4.3"
+  },
+  "overrides": {
+    "lodash": "4.18.1",
+    "fast-xml-parser": ">=5.7.0"
   }
 }
