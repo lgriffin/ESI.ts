@@ -5,6 +5,10 @@ on:
     branches: [master, main, develop]
     types: [opened, synchronize, reopened, ready_for_review]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   pr-info:
     name: PR Information
@@ -132,6 +136,13 @@ jobs:
 
       - name: Run tests with coverage
         run: npm run coverage
+
+      - name: Post coverage comment
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          coverage-summary-path: coverage/unit/coverage-summary.json
+          title: Test Coverage
+          badge-title: Coverage
 
       - name: Coverage Summary
         run: |

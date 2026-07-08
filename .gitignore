@@ -81,5 +81,8 @@ report/
 docs/*
 !docs/*.md
 
+# Stryker mutation testing
+.stryker-tmp/
+
 # Local planning docs
 ideas.md

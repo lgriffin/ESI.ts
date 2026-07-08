@@ -21,7 +21,7 @@ module.exports = {
   ],
   verbose: true,
   coverageDirectory: 'coverage/unit',
-  coverageReporters: ['text', 'lcov'],
+  coverageReporters: ['text', 'lcov', 'json-summary'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
