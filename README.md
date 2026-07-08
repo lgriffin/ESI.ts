@@ -26,17 +26,17 @@ Tools like `openapi-typescript` or `openapi-generator` can produce a typed clien
 
 ### What ESI.ts gives you on top of that
 
-| Capability                      | openapi-typescript                                                                                                  | ESI.ts                                                                                                                                                                                                   |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Runtime response validation** | None — types are erased at compile time. If CCP changes a field, you get silent data corruption.                    | Every GET response is validated at runtime via [Zod](https://zod.dev/) schemas — all 173 GET endpoints have schemas. Schema mismatches throw `EsiValidationError` immediately.                           |
-| **Intelligent caching**         | None — you build your own.                                                                                          | Three-tier: spec-aware TTL (zero HTTP calls within ESI's `x-cached-seconds` window), ETag conditional GETs, stale-on-error fallback on 5xx. Write operations auto-invalidate related GET caches.         |
-| **Rate limiting**               | None — you build your own.                                                                                          | 36 per-group token buckets extracted from the ESI spec at build time. Market requests can't starve wallet requests. Optional per-user bucketing for multi-character apps.                                |
-| **Pagination**                  | Manual — you write the page loop.                                                                                   | Automatic offset pagination, cursor-based pagination (Equinox-era endpoints), and streaming `AsyncGenerator` pagination for memory-efficient processing of large datasets.                               |
-| **Retry & resilience**          | None.                                                                                                               | Exponential backoff with jitter, circuit breaker (closed/open/half-open), automatic 401 token refresh with concurrent coalescing.                                                                        |
-| **Wire format correctness**     | Generates from spec, but ESI's spec has inconsistencies (query params documented as body, missing required fields). | Every endpoint tested against live ESI. Wire format bugs (query params vs. body, field naming) are caught and fixed — see the contacts and UI endpoint fixes in v6.1.0.                                  |
-| **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                            |
-| **Domain knowledge**            | None — generic HTTP client.                                                                                         | 35 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                       |
-| **Testing**                     | Whatever you write.                                                                                                 | 121 test suites, 3,224 tests across 7 tiers (TDD unit, BDD behavioral, mocked integration, live smoke, client integration, ESI spec contract, gated auth). 43 runnable example scripts with live output. |
+| Capability                      | openapi-typescript                                                                                                  | ESI.ts                                                                                                                                                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Runtime response validation** | None — types are erased at compile time. If CCP changes a field, you get silent data corruption.                    | Every GET response is validated at runtime via [Zod](https://zod.dev/) schemas — all 173 GET endpoints have schemas. Schema mismatches throw `EsiValidationError` immediately.                          |
+| **Intelligent caching**         | None — you build your own.                                                                                          | Three-tier: spec-aware TTL (zero HTTP calls within ESI's `x-cached-seconds` window), ETag conditional GETs, stale-on-error fallback on 5xx. Write operations auto-invalidate related GET caches.        |
+| **Rate limiting**               | None — you build your own.                                                                                          | 36 per-group token buckets extracted from the ESI spec at build time. Market requests can't starve wallet requests. Optional per-user bucketing for multi-character apps.                               |
+| **Pagination**                  | Manual — you write the page loop.                                                                                   | Automatic offset pagination, cursor-based pagination (Equinox-era endpoints), and streaming `AsyncGenerator` pagination for memory-efficient processing of large datasets.                              |
+| **Retry & resilience**          | None.                                                                                                               | Exponential backoff with jitter, circuit breaker (closed/open/half-open), automatic 401 token refresh with concurrent coalescing.                                                                       |
+| **Wire format correctness**     | Generates from spec, but ESI's spec has inconsistencies (query params documented as body, missing required fields). | Every endpoint tested against live ESI. Wire format bugs (query params vs. body, field naming) are caught and fixed — see the contacts and UI endpoint fixes in v6.1.0.                                 |
+| **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                           |
+| **Domain knowledge**            | None — generic HTTP client.                                                                                         | 35 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                      |
+| **Testing**                     | Whatever you write.                                                                                                 | 121+ test suites, 3,800+ tests across 9 tiers including property-based fuzzing (fast-check), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 43 runnable example scripts. |
 
 ### The real problem with generated clients
 
@@ -780,19 +780,25 @@ try {
 
 ESI.ts has a comprehensive multi-tier testing strategy:
 
-| Tier                   | Tests            | Purpose                                                          |
-| ---------------------- | ---------------- | ---------------------------------------------------------------- |
-| **TDD unit tests**     | 81 files         | Every client method, endpoint path, query param, and body format |
-| **BDD scenario tests** | 40 feature files | Behavioral specifications in Gherkin (Given/When/Then)           |
-| **Mocked integration** | Full suite       | Cross-layer request flow with jest-fetch-mock                    |
-| **Live smoke tests**   | 43 examples      | Every endpoint against live Tranquility                          |
-| **ESI spec contract**  | 10 tests         | Endpoint definitions validated against live OpenAPI spec         |
-| **Gated auth tests**   | 33 tests         | Authenticated endpoints with real tokens                         |
+| Tier                       | Tests            | Purpose                                                            |
+| -------------------------- | ---------------- | ------------------------------------------------------------------ |
+| **TDD unit tests**         | 81 files         | Every client method, endpoint path, query param, and body format   |
+| **BDD scenario tests**     | 40 feature files | Behavioral specifications in Gherkin (Given/When/Then)             |
+| **Mocked integration**     | Full suite       | Cross-layer request flow with jest-fetch-mock                      |
+| **Live smoke tests**       | 43 examples      | Every endpoint against live Tranquility                            |
+| **ESI spec contract**      | 15 tests         | Endpoint definitions validated against live OpenAPI spec           |
+| **Deep contract tests**    | 8 categories     | Path params, query params, body, auth, schemas, pagination vs spec |
+| **Property-based fuzzing** | 601 tests        | fast-check fuzzing of validation, URL construction, Zod schemas    |
+| **Type-level tests**       | tsd              | Consumer API type correctness via tsd                              |
+| **Gated auth tests**       | 33 tests         | Authenticated endpoints with real tokens                           |
 
 ```bash
 npm test          # Unit + BDD tests (121 suites, 3,224 tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
+npm run contract  # Contract tests (skipped without ESI_LIVE_TESTS=true)
+npm run fuzz      # Property-based fuzz tests (601 tests)
+npm run test:types # tsd consumer type tests
 ```
 
 Coverage thresholds are enforced in CI: branches 50%, functions 50%, lines 65%, statements 65%.
@@ -833,9 +839,13 @@ npm run format:check       # Check formatting without modifying
 
 # Testing
 npm test                   # Unit tests (121 suites, 3,224 tests)
-npm run test:all           # Unit + improved + BDD tests
+npm run test:all           # Unit + BDD + integration + fuzz + type tests
 npm run coverage           # Tests with coverage report (thresholds enforced)
 npm run bdd                # BDD scenario tests
+npm run contract:live      # Deep contract tests against live ESI spec
+npm run fuzz               # Property-based fuzz tests (fast-check)
+npm run test:types         # Consumer type tests (tsd)
+npm run mock:esi           # Start Prism mock ESI server on port 4010
 
 # Static Analysis
 npm run knip               # Detect dead code and unused exports
