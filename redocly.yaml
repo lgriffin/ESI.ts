@@ -1,0 +1,23 @@
+extends:
+  - recommended
+
+apis:
+  esi@latest:
+    root: https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16
+
+rules:
+  # Structural rules — catch real spec breakage
+  operation-operationId: error
+  path-parameters-defined: error
+
+  # Downgraded from error — these are valid ESI design choices, not bugs:
+  # - Public endpoints intentionally omit security (81 endpoints)
+  # - /markets/groups/{id} vs /markets/{region_id}/history is unambiguous in practice
+  security-defined: warn
+  no-ambiguous-paths: warn
+
+  # Informational — CCP spec quality issues we can't fix
+  no-unused-components: warn
+  operation-summary: warn
+  operation-4xx-response: warn
+  tag-description: warn

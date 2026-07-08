@@ -819,6 +819,7 @@ The project uses a comprehensive suite of static analysis and code quality tools
 | [eslint-plugin-sonarjs](https://github.com/SonarSource/eslint-plugin-sonarjs)        | Cognitive complexity and code smell detection           | Integrated into `npm run lint` |
 | [husky](https://typicode.github.io/husky/)                                           | Git pre-commit hooks                                    | Automatic on commit            |
 | [lint-staged](https://github.com/lint-staged/lint-staged)                            | Run linters on staged files only                        | Automatic on commit            |
+| [Redocly CLI](https://redocly.com/docs/cli/)                                         | OpenAPI spec validation and linting                     | `npm run validate:spec`        |
 
 ### Available Scripts
 
@@ -839,6 +840,7 @@ npm run bdd                # BDD scenario tests
 # Static Analysis
 npm run knip               # Detect dead code and unused exports
 npm run validate:esi       # Validate endpoints against live ESI OpenAPI spec
+npm run validate:spec      # Lint ESI OpenAPI spec with Redocly (structural + best practices)
 npm run validate           # Run all checks: lint, format, build, coverage, knip
 npm run generate:types     # Regenerate TypeScript interfaces from ESI OpenAPI spec
 

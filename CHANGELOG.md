@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.1.0] - 2026-07-08
+
+### Added
+
+- **Redocly CLI integration** — lints the live ESI OpenAPI spec for structural validity and best-practice compliance (`npm run validate:spec`). Catches spec breakage from CCP before it breaks generated types, cache TTLs, or scopes. Baseline: 0 errors, 328 warnings (all known CCP spec issues).
+- `redocly.yaml` config with tuned rulesets for ESI — structural rules as errors, CCP spec quirks as warnings
+- `validate:spec` npm script added to `check:all` pipeline
+
 ## [7.0.0] - 2026-07-08
 
 ### Breaking Changes
