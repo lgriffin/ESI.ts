@@ -227,11 +227,59 @@ jobs:
           path: health-report.md
           retention-days: 30
 
-  # Job 5: Summary
+  # Job 5: Spec Drift Detection
+  spec-drift:
+    name: ESI Spec Drift
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Snapshot current spec
+        run: npm run contract:snapshot
+
+      - name: Run contract tests against live spec
+        run: npm run contract:live
+
+      - name: Check for breaking changes (oasdiff)
+        run: |
+          npm run contract:diff > spec-drift-report.txt 2>&1 || true
+          echo "# ESI Spec Drift Report" > spec-drift-summary.md
+          echo "Generated on: $(date)" >> spec-drift-summary.md
+          echo "" >> spec-drift-summary.md
+          cat spec-drift-report.txt >> spec-drift-summary.md
+
+      - name: Upload spec drift report
+        uses: actions/upload-artifact@v7
+        with:
+          name: spec-drift-report
+          path: |
+            spec-drift-summary.md
+            spec-drift-report.txt
+          retention-days: 30
+
+  # Job 6: Summary
   maintenance-summary:
     name: 📋 Maintenance Summary
     runs-on: ubuntu-latest
-    needs: [dependency-updates, security-audit, code-quality, health-check]
+    needs:
+      [
+        dependency-updates,
+        security-audit,
+        code-quality,
+        health-check,
+        spec-drift,
+      ]
     if: always()
 
     steps:
@@ -245,6 +293,7 @@ jobs:
           echo "- Security Audit: ${{ needs.security-audit.result }}" >> maintenance-summary.md
           echo "- Code Quality: ${{ needs.code-quality.result }}" >> maintenance-summary.md
           echo "- Health Check: ${{ needs.health-check.result }}" >> maintenance-summary.md
+          echo "- Spec Drift: ${{ needs.spec-drift.result }}" >> maintenance-summary.md
           echo "" >> maintenance-summary.md
           echo "## Next Steps" >> maintenance-summary.md
           echo "1. Review dependency report for outdated packages" >> maintenance-summary.md

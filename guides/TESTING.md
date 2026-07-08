@@ -4,14 +4,17 @@
 
 ESI.ts uses a multi-tier testing strategy to ensure correctness at every level — from individual functions to live API contract validation.
 
-| Tier                 |     Tests |  Suites | Purpose                                                                     |
-| -------------------- | --------: | ------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |           |      81 | Per-module unit tests with mocked HTTP                                      |
-| BDD (behavioral)     |           |      40 | Gherkin-style scenarios covering user-facing behaviors                      |
-| Integration (mocked) |        20 |       1 | Full request lifecycle with mocked fetch                                    |
-| Integration (live)   |        61 |       3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
-| Integration (gated)  |        33 |       1 | Authenticated endpoints with real OAuth token                               |
-| **Total**            | **3,224** | **121** | (`npm test` runs TDD + BDD)                                                 |
+| Tier                 |      Tests |   Suites | Purpose                                                                     |
+| -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
+| TDD (unit)           |            |       81 | Per-module unit tests with mocked HTTP                                      |
+| BDD (behavioral)     |            |       40 | Gherkin-style scenarios covering user-facing behaviors                      |
+| Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
+| Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
+| Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                               |
+| Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
+| Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
+| Type (tsd)           |            |        1 | Consumer API type correctness                                               |
+| **Total**            | **3,800+** | **125+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
 
@@ -307,7 +310,45 @@ Each test validates HTTP 200, response shape (required properties, correct types
 
 Known-drift tests warn rather than fail because the discrepancies are tracked debt, not regressions. Cache TTL and scope drift remain hard failures because they indicate the generated files need regeneration (`npm run generate:types`).
 
-### Tier 7: Gated Auth Tests (Live)
+### Tier 7: Deep Contract Tests (Live)
+
+**Location:** `tests/contract/`
+**Config:** `jest.contract.config.cjs`
+**Run:** `ESI_LIVE_TESTS=true npm run contract` or `npm run contract:live`
+
+15 tests across 2 suites that fetch the live ESI OpenAPI spec and structurally validate every endpoint definition:
+
+- **Path parameter alignment** — `{param}` names in path template match spec's `parameters` where `in: "path"`
+- **Query parameter alignment** — required spec query params present in SDK `queryParams`
+- **Request body alignment** — `hasBody`/`bodyBuilder` matches spec `requestBody`
+- **Auth alignment** — `requiresAuth` matches spec `security` scopes
+- **Response schema coverage** — GET endpoints with JSON responses have Zod schemas (advisory)
+- **HTTP method match** — SDK method matches spec operation
+- **Pagination contract** — endpoints with `X-Pages` header flagged if missing pagination metadata (advisory)
+- **Deprecation sync** — spec-deprecated endpoints flagged if missing SDK `deprecated` metadata (advisory)
+- **Spec snapshot comparison** — detects upstream changes since last snapshot (path/operation/schema counts, cache TTL changes)
+
+Known contract deviations are tracked in the test file and reported as warnings. Unknown mismatches hard-fail.
+
+Related tools:
+
+- `npm run contract:snapshot` — saves a baseline spec for drift comparison
+- `npm run contract:diff` — runs oasdiff (Docker) to detect breaking spec changes
+
+### Tier 8: Property-Based Fuzz Tests
+
+**Location:** `tests/fuzz/`
+**Config:** `jest.fuzz.config.cjs`
+**Run:** `npm run fuzz`
+
+601 tests using [fast-check](https://github.com/dubzzz/fast-check) for property-based testing:
+
+- **Parameter validation fuzzing** (`parameter-fuzz.test.ts`) — `validatePathParam()` and `validateQueryParam()` with random strings, numbers, null/undefined, NaN/Infinity, objects with broken `toString`. Verifies: unsafe chars always rejected, valid integers always accepted, non-finite numbers always rejected.
+- **URL construction fuzzing** (`url-construction-fuzz.test.ts`) — `buildEndpointPath()` with adversarial path params, path traversal strings, and random inputs. Verifies: no unsubstituted `{param}` placeholders, slashes always rejected, special chars safely encoded.
+- **Schema fuzzing** (`schema-fuzz.test.ts`) — all Zod schemas in `src/schemas/` tested with `fc.anything()`. Verifies: `safeParse()` never throws (returns `{success: false}` instead), all primitive edge cases handled.
+- **Pagination fuzzing** (`pagination-fuzz.test.ts`) — page parameter via `buildEndpointPath()` with zero, negative, float, NaN, Infinity, and large values. Verifies: NaN/Infinity rejected, valid page numbers accepted.
+
+### Tier 9: Gated Auth Tests (Live)
 
 **Location:** `tests/integration/gated-auth.test.ts`
 **Run:** `ESI_GATED_TESTS=true ESI_ACCESS_TOKEN=... npm run test:integration:gated`
@@ -416,10 +457,12 @@ npm run example:token-refresh      # Token refresh flow demo
 
 ### Configuration
 
-Two Jest configs drive the test suites:
+Four Jest configs drive the test suites:
 
 - **Unit + BDD**: `jest.unit.config.cjs` — runs TDD and BDD tests with `jest-fetch-mock`
 - **Integration**: `jest.integration.config.cjs` — runs integration tests against live ESI (30s timeout)
+- **Contract**: `jest.contract.config.cjs` — runs deep contract tests against live spec (60s timeout)
+- **Fuzz**: `jest.fuzz.config.cjs` — runs property-based fuzz tests with fast-check (30s timeout)
 
 Common setup:
 
@@ -646,7 +689,7 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 
 ## Test Architecture Decisions
 
-### Why seven tiers?
+### Why nine tiers?
 
 - **TDD unit tests** — fast, deterministic, cover every code path with mocked fetch. Run on every push.
 - **BDD behavioral tests** — Gherkin scenarios readable by non-engineers, verify user-facing behaviors. Run on every push.
@@ -654,6 +697,8 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 - **Live smoke tests** (`live-esi.test.ts`) — catches URL construction bugs, response shape changes, and real HTTP behavior that mocks can't replicate. Run on-demand or scheduled.
 - **Client integration** (`client-integration.test.ts`) — verifies the full `EsiClient` facade works end-to-end against live ESI, including pagination and ETag caching. Run on-demand.
 - **Spec contract tests** (`esi-spec-contract.test.ts`) — catches API drift by comparing the codebase against the live ESI OpenAPI spec before it causes runtime failures. Run weekly.
+- **Deep contract tests** (`tests/contract/`) — structural validation of all endpoint definitions against the live OpenAPI spec: path params, query params, request bodies, auth, schemas, pagination, deprecation. Run on every PR.
+- **Property-based fuzz tests** (`tests/fuzz/`) — fast-check fuzzing of `validatePathParam()`, `validateQueryParam()`, `buildEndpointPath()`, and all Zod schemas with random/adversarial inputs. 601 tests. Run on every PR.
 - **Gated auth tests** (`gated-auth.test.ts`) — verifies authenticated endpoints with a real OAuth token. Run weekly with token refresh.
 
 ### Why both TDD and BDD?
@@ -704,13 +749,16 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 
 ### Recommended CI schedule
 
-| Job                      | Frequency                   | Config                                                                                |
-| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------- |
-| Unit + BDD               | Every push                  | `npm test`                                                                            |
-| Mocked integration       | Every push                  | `npm run test:integration`                                                            |
-| Live smoke tests         | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`                                        |
-| Spec contract validation | Weekly                      | `ESI_LIVE_TESTS=true npm run test:integration -- --testPathPattern=esi-spec-contract` |
-| Gated auth tests         | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated`                                 |
+| Job                       | Frequency                   | Config                                                |
+| ------------------------- | --------------------------- | ----------------------------------------------------- |
+| Unit + BDD                | Every push                  | `npm test`                                            |
+| Mocked integration        | Every push                  | `npm run test:integration`                            |
+| Deep contract tests       | Every PR                    | `npm run contract:live`                               |
+| Property-based fuzz tests | Every PR                    | `npm run fuzz`                                        |
+| Consumer type tests       | Every PR                    | `npm run test:types`                                  |
+| Live smoke tests          | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
+| Spec drift detection      | Weekly                      | `npm run contract:snapshot && npm run contract:diff`  |
+| Gated auth tests          | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated` |
 
 ## Debugging
 
@@ -744,6 +792,8 @@ npm run generate:types
 | ---------------------------------------------- | -------------------------------------------- |
 | `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds) |
 | `jest.integration.config.cjs`                  | Integration test config (30s timeout)        |
+| `jest.contract.config.cjs`                     | Contract test config (60s timeout)           |
+| `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)               |
 | `tests/tdd/`                                   | 81 TDD test files                            |
 | `tests/bdd/features/`                          | 40 Gherkin feature files                     |
 | `tests/bdd/step-definitions/`                  | 40 step definition files + shared helpers    |
@@ -752,6 +802,14 @@ npm run generate:types
 | `tests/integration/client-integration.test.ts` | Live EsiClient integration (11 tests)        |
 | `tests/integration/esi-spec-contract.test.ts`  | ESI spec drift detection (10 tests)          |
 | `tests/integration/gated-auth.test.ts`         | Authenticated endpoint tests (33 tests)      |
+| `tests/contract/esi-contract.test.ts`          | Deep contract validation (8 categories)      |
+| `tests/contract/esi-snapshot.test.ts`          | Spec snapshot comparison                     |
+| `tests/contract/helpers.ts`                    | Shared spec parsing utilities                |
+| `tests/fuzz/parameter-fuzz.test.ts`            | Validation function fuzzing                  |
+| `tests/fuzz/url-construction-fuzz.test.ts`     | URL construction fuzzing                     |
+| `tests/fuzz/schema-fuzz.test.ts`               | Zod schema fuzzing                           |
+| `tests/fuzz/pagination-fuzz.test.ts`           | Pagination parameter fuzzing                 |
+| `tests/typetests/index.test-d.ts`              | Consumer type tests (tsd)                    |
 | `src/testing/TestDataFactory.ts`               | Mock data factory for tests                  |
 | `scripts/validate-esi-endpoints.ts`            | Standalone ESI spec validation script        |
 | `scripts/generate-esi-types.ts`                | Type/cache/scope generator from live spec    |

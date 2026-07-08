@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Contract testing infrastructure** — deep validation of all endpoint definitions against the live ESI OpenAPI spec (`npm run contract:live`). Checks path parameter alignment, required query params, request body consistency, auth requirements, response schema coverage, HTTP methods, pagination metadata, and deprecation sync. 8 contract validation categories with known-exception tracking.
+- **Property-based fuzz testing** with [fast-check](https://github.com/dubzzz/fast-check) — 601 tests fuzzing `validatePathParam()`, `validateQueryParam()`, `buildEndpointPath()`, and all Zod schemas with random/adversarial inputs (`npm run fuzz`)
+- **OpenAPI spec snapshot & diff** — `npm run contract:snapshot` saves a baseline; `npm run contract:diff` detects breaking changes via [oasdiff](https://github.com/Tufin/oasdiff) (Docker)
+- **Consumer type tests** with [tsd](https://github.com/tsdjs/tsd) — verifies public API type correctness (`npm run test:types`)
+- **Prism mock server** — `npm run mock:esi` starts a spec-conformant ESI mock on port 4010 via [@stoplight/prism-cli](https://stoplight.io/open-source/prism)
+- **Schemathesis fuzz runner** — `npm run fuzz:api` runs Schemathesis against the Prism mock (Docker, weekly CI)
+- Contract and fuzz test CI jobs added to `ci.yml` quality gate
+- Weekly spec drift detection job added to `maintenance.yml`
+- `jest.contract.config.cjs` and `jest.fuzz.config.cjs` test configurations
+
+### Dependencies
+
+- Added `fast-check` (dev) — property-based testing framework
+- Added `@stoplight/prism-cli` (dev) — OpenAPI mock server
+- Added `tsd` (dev) — TypeScript type testing
+
 ## [7.1.0] - 2026-07-08
 
 ### Added
