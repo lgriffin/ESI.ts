@@ -52,9 +52,9 @@ graph TB
         TokenRefresh["Token Refresh"]
     end
 
-    subgraph GeneratedLayer["Generated (from ESI Swagger Spec)"]
-        GenTypes["esi-spec.generated.ts (147 interfaces)"]
-        GenTtls["esi-cache-ttls.generated.ts (119 TTLs)"]
+    subgraph GeneratedLayer["Generated (from ESI OpenAPI Spec)"]
+        GenTypes["esi-spec.generated.ts (161 interfaces)"]
+        GenTtls["esi-cache-ttls.generated.ts (126 TTLs)"]
     end
 
     subgraph Interfaces["Interface Contracts"]
@@ -496,7 +496,7 @@ graph TB
     subgraph LiveTests["Live Integration Suites"]
         Smoke["Smoke Tests (40 tests)<br/>42 public endpoints"]
         ClientInt["Client Integration (11 tests)<br/>EsiClient end-to-end"]
-        SpecContract["Spec Contract (10 tests)<br/>Swagger drift detection"]
+        SpecContract["Spec Contract (10 tests)<br/>OpenAPI drift detection"]
     end
 
     subgraph Coverage["Coverage Enforcement"]

@@ -33,7 +33,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | `configValidation.test.ts`    |      33 | Builder, factory, config combos, shutdown       |
 | `publicApiSurface.test.ts`    |     135 | Export snapshot — breaking-change detector      |
 | `crossCutting.test.ts`        |      15 | Diagnostics, middleware ordering, logger        |
-| `esi-spec-contract.test.ts`   |      10 | Live swagger drift detection                    |
+| `esi-spec-contract.test.ts`   |      10 | Live OpenAPI drift detection                    |
 | `client-integration.test.ts`  |      11 | Full EsiClient against live ESI                 |
 | `live-esi.test.ts` (expanded) |      40 | Smoke tests across 42 endpoints                 |
 | **New/expanded total**        | **279** |                                                 |
@@ -170,7 +170,7 @@ Each test validates HTTP 200, response shape (required properties, correct types
 **Location:** `tests/integration/esi-spec-contract.test.ts`
 **Run:** `ESI_LIVE_TESTS=true npm run test:integration`
 
-10 tests that fetch the live ESI swagger spec and validate:
+10 tests that fetch the live ESI OpenAPI spec and validate:
 
 - **Endpoint coverage** — Phantom endpoints, HTTP method mismatches, and uncovered spec endpoints are reported as warnings (known drift from newer EVE features not yet in public spec)
 - **Type drift** — Missing fields and optionality mismatches are reported as warnings (known gap: ~45 fields, ~14 optionality mismatches)

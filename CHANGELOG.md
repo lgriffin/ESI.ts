@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.0] - 2026-07-08
+
+### Breaking Changes
+
+- **Swagger 2.0 → OpenAPI 3.1 migration** — all generated types, cache TTLs, scopes, and rate limit groups are now sourced from the ESI OpenAPI 3.1 spec (`/meta/openapi.json`) instead of the deprecated Swagger 2.0 spec (`/latest/swagger.json`). See [esi-issues#1490](https://github.com/esi/esi-issues/issues/1490).
+- **Generated interface names changed** — `EsiSpec` namespace types now use OpenAPI schema names (e.g., `AllianceDetail` instead of `GetAlliancesAllianceIdOk`). These are generated types; hand-written consumer types are unchanged.
+- **Cache TTL metadata key** — internally changed from `x-cached-seconds` to `x-cache-age`. No consumer-facing impact (cache behavior is identical).
+
+### Changed
+
+- Single OpenAPI spec fetch instead of dual Swagger + OpenAPI fetches
+- Updated all scripts, tests, and documentation to reference OpenAPI spec
+- Generated types now include 161 interfaces (up from 147), 126 cache TTLs, 70 scopes
+
 ## [6.1.0] - 2026-07-07
 
 ### Added

@@ -1,10 +1,11 @@
 /**
- * ESI Type, Cache TTL & Rate Limit Group Generator
+ * ESI Type, Cache TTL, Rate Limit Group & Scope Generator
  *
- * Fetches the ESI Swagger 2.0 spec and OpenAPI 3.x meta spec, generates:
+ * Fetches the ESI OpenAPI 3.1 spec and generates:
  * 1. TypeScript interfaces for all ESI response types
- * 2. A cache TTL map from x-cached-seconds metadata
+ * 2. A cache TTL map from x-cache-age metadata
  * 3. A rate limit group map from x-rate-limit metadata
+ * 4. Endpoint scope metadata from OAuth2 security schemes
  *
  * Usage: npx ts-node scripts/generate-esi-types.ts
  *        npm run generate:types
@@ -14,7 +15,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 
-const ESI_SWAGGER_URL = 'https://esi.evetech.net/latest/swagger.json';
 const ESI_OPENAPI_URL =
   'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
 const TYPES_OUTPUT = path.resolve(
@@ -34,58 +34,101 @@ const SCOPES_OUTPUT = path.resolve(
   '../src/core/endpoints/esi-scopes.generated.ts',
 );
 
-interface SwaggerSchema {
+// --- OpenAPI 3.1 type definitions ---
+
+interface OpenApiSchema {
   type?: string;
   format?: string;
   description?: string;
   title?: string;
-  properties?: Record<string, SwaggerSchema>;
-  items?: SwaggerSchema;
+  properties?: Record<string, OpenApiSchema>;
+  items?: OpenApiSchema;
   required?: string[];
   enum?: (string | number)[];
   maxItems?: number;
+  $ref?: string;
 }
 
-interface SwaggerOperation {
+interface OpenApiRateLimitExtension {
+  group: string;
+  'max-tokens'?: number;
+  'window-size'?: string;
+}
+
+interface OpenApiOperation {
   operationId?: string;
   tags?: string[];
   description?: string;
-  'x-cached-seconds'?: number;
-  parameters?: SwaggerParameter[];
+  'x-cache-age'?: number;
+  'x-rate-limit'?: OpenApiRateLimitExtension;
+  parameters?: OpenApiParameter[];
   responses?: Record<
     string,
     {
       description?: string;
-      schema?: SwaggerSchema;
+      content?: Record<string, { schema?: OpenApiSchema }>;
       headers?: Record<string, unknown>;
     }
   >;
   security?: Record<string, string[]>[];
 }
 
-interface SwaggerParameter {
+interface OpenApiParameter {
   name: string;
   in: string;
-  type?: string;
-  format?: string;
+  schema?: { type?: string; format?: string; enum?: string[] };
   required?: boolean;
   description?: string;
-  enum?: string[];
   $ref?: string;
 }
 
-interface SwaggerSpec {
-  basePath: string;
-  host: string;
+interface OpenApiSpec {
   info: { title: string; version: string };
-  paths: Record<string, Record<string, SwaggerOperation>>;
-  definitions?: Record<string, SwaggerSchema>;
-  parameters?: Record<string, SwaggerParameter>;
-  securityDefinitions?: Record<
-    string,
-    { scopes?: Record<string, string> }
-  >;
+  servers?: Array<{ url: string }>;
+  paths: Record<string, Record<string, OpenApiOperation>>;
+  components?: {
+    schemas?: Record<string, OpenApiSchema>;
+    securitySchemes?: Record<
+      string,
+      {
+        type?: string;
+        flows?: Record<
+          string,
+          {
+            scopes?: Record<string, string>;
+            authorizationUrl?: string;
+            tokenUrl?: string;
+          }
+        >;
+      }
+    >;
+  };
 }
+
+// --- $ref resolution ---
+
+function resolveRef(
+  spec: OpenApiSpec,
+  ref: string,
+): OpenApiSchema | undefined {
+  const prefix = '#/components/schemas/';
+  if (!ref.startsWith(prefix)) return undefined;
+  const schemaName = ref.slice(prefix.length);
+  return spec.components?.schemas?.[schemaName];
+}
+
+function resolveSchema(
+  spec: OpenApiSpec,
+  schema: OpenApiSchema,
+): OpenApiSchema {
+  if (schema.$ref) {
+    const resolved = resolveRef(spec, schema.$ref);
+    if (resolved) return resolveSchema(spec, resolved);
+  }
+  return schema;
+}
+
+// --- Type mapping ---
 
 function snakeToPascal(s: string): string {
   return s
@@ -94,13 +137,25 @@ function snakeToPascal(s: string): string {
     .join('');
 }
 
-function swaggerTypeToTs(schema: SwaggerSchema, indent: number = 0): string {
+function schemaTypeToTs(
+  schema: OpenApiSchema,
+  spec: OpenApiSpec,
+  indent: number = 0,
+): string {
+  if (schema.$ref) {
+    const resolved = resolveRef(spec, schema.$ref);
+    if (resolved) return schemaTypeToTs(resolved, spec, indent);
+    return 'unknown';
+  }
+
   if (schema.enum) {
-    return schema.enum.map((v) => (typeof v === 'string' ? `'${v}'` : v)).join(' | ');
+    return schema.enum
+      .map((v) => (typeof v === 'string' ? `'${v}'` : v))
+      .join(' | ');
   }
 
   if (schema.type === 'array' && schema.items) {
-    const itemType = swaggerTypeToTs(schema.items, indent);
+    const itemType = schemaTypeToTs(schema.items, spec, indent);
     if (itemType.includes('\n') || itemType.includes('{')) {
       return `(${itemType})[]`;
     }
@@ -108,7 +163,7 @@ function swaggerTypeToTs(schema: SwaggerSchema, indent: number = 0): string {
   }
 
   if (schema.type === 'object' && schema.properties) {
-    return generateInlineObject(schema, indent);
+    return generateInlineObject(schema, spec, indent);
   }
 
   if (schema.type === 'object') {
@@ -128,7 +183,11 @@ function swaggerTypeToTs(schema: SwaggerSchema, indent: number = 0): string {
   }
 }
 
-function generateInlineObject(schema: SwaggerSchema, indent: number): string {
+function generateInlineObject(
+  schema: OpenApiSchema,
+  spec: OpenApiSpec,
+  indent: number,
+): string {
   if (!schema.properties) return 'Record<string, unknown>';
 
   const pad = '  '.repeat(indent + 1);
@@ -138,13 +197,16 @@ function generateInlineObject(schema: SwaggerSchema, indent: number): string {
 
   for (const [name, prop] of Object.entries(schema.properties)) {
     const opt = required.has(name) ? '' : '?';
-    const tsType = swaggerTypeToTs(prop, indent + 1);
+    const resolvedProp = resolveSchema(spec, prop);
+    const tsType = schemaTypeToTs(resolvedProp, spec, indent + 1);
     lines.push(`${pad}${name}${opt}: ${tsType};`);
   }
 
   lines.push(`${closePad}}`);
   return lines.join('\n');
 }
+
+// --- Interface generation ---
 
 interface GeneratedInterface {
   name: string;
@@ -159,20 +221,41 @@ interface GeneratedInterface {
 function generateInterface(
   opPath: string,
   method: string,
-  op: SwaggerOperation,
+  op: OpenApiOperation,
+  spec: OpenApiSpec,
 ): GeneratedInterface | null {
   const response200 = op.responses?.['200'];
-  if (!response200?.schema) return null;
+  if (!response200) return null;
 
-  const schema = response200.schema;
+  const mediaType = response200.content?.['application/json'];
+  if (!mediaType?.schema) return null;
+
+  let schema = mediaType.schema;
+  let schemaName: string | undefined;
+
+  if (schema.$ref) {
+    const prefix = '#/components/schemas/';
+    if (schema.$ref.startsWith(prefix)) {
+      schemaName = schema.$ref.slice(prefix.length);
+    }
+    schema = resolveSchema(spec, schema);
+  }
+
   const tag = op.tags?.[0] ?? 'Uncategorized';
   const operationId = op.operationId ?? `${method}_${opPath}`;
 
-  let itemSchema: SwaggerSchema;
+  let itemSchema: OpenApiSchema;
   let isArray = false;
 
   if (schema.type === 'array' && schema.items) {
-    itemSchema = schema.items;
+    const items = schema.items;
+    if (items.$ref && !schemaName) {
+      const prefix = '#/components/schemas/';
+      if (items.$ref.startsWith(prefix)) {
+        schemaName = items.$ref.slice(prefix.length);
+      }
+    }
+    itemSchema = resolveSchema(spec, items);
     isArray = true;
   } else if (schema.type === 'object' && schema.properties) {
     itemSchema = schema;
@@ -182,15 +265,17 @@ function generateInterface(
 
   if (!itemSchema.properties) return null;
 
-  const title = itemSchema.title ?? operationId + '_200_ok';
-  const name = snakeToPascal(title);
+  const name =
+    schemaName ??
+    snakeToPascal((itemSchema.title ?? operationId) + '_200_ok');
 
   const required = new Set(itemSchema.required ?? []);
   const propLines: string[] = [];
 
   for (const [propName, prop] of Object.entries(itemSchema.properties)) {
     const opt = required.has(propName) ? '' : '?';
-    const tsType = swaggerTypeToTs(prop, 1);
+    const resolvedProp = resolveSchema(spec, prop);
+    const tsType = schemaTypeToTs(resolvedProp, spec, 1);
     propLines.push(`  ${propName}${opt}: ${tsType};`);
   }
 
@@ -199,6 +284,8 @@ function generateInterface(
   return { name, tag, operationId, path: opPath, method, body, isArray };
 }
 
+// --- Cache TTL extraction ---
+
 interface CacheTtlEntry {
   path: string;
   method: string;
@@ -206,16 +293,16 @@ interface CacheTtlEntry {
   operationId: string;
 }
 
-function extractCacheTtls(spec: SwaggerSpec): CacheTtlEntry[] {
+function extractCacheTtls(spec: OpenApiSpec): CacheTtlEntry[] {
   const entries: CacheTtlEntry[] = [];
   const httpMethods = ['get', 'post', 'put', 'delete'];
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as SwaggerOperation | undefined;
+      const op = methods[method] as OpenApiOperation | undefined;
       if (!op) continue;
 
-      const seconds = op['x-cached-seconds'];
+      const seconds = op['x-cache-age'];
       if (typeof seconds === 'number' && seconds > 0) {
         entries.push({
           path: routePath.replace(/^\//, '').replace(/\/$/, ''),
@@ -230,6 +317,8 @@ function extractCacheTtls(spec: SwaggerSpec): CacheTtlEntry[] {
   return entries;
 }
 
+// --- Generated file writers ---
+
 function writeTypesFile(
   interfaces: GeneratedInterface[],
   specHash: string,
@@ -243,7 +332,7 @@ function writeTypesFile(
 
   const lines: string[] = [
     '/* eslint-disable */',
-    '// Auto-generated from ESI Swagger spec — do not edit manually',
+    '// Auto-generated from ESI OpenAPI spec — do not edit manually',
     `// Spec hash: ${specHash}`,
     `// Total interfaces: ${interfaces.length}`,
     '',
@@ -281,7 +370,7 @@ function writeTypesFile(
 
 function writeTtlFile(entries: CacheTtlEntry[]): void {
   const lines: string[] = [
-    '// Auto-generated from ESI Swagger spec — do not edit manually',
+    '// Auto-generated from ESI OpenAPI spec — do not edit manually',
     `// Endpoints with cache TTLs: ${entries.length}`,
     '',
     'export const esiCacheTtls: Record<string, number> = {',
@@ -300,21 +389,7 @@ function writeTtlFile(entries: CacheTtlEntry[]): void {
   fs.writeFileSync(TTL_OUTPUT, lines.join('\n'), 'utf-8');
 }
 
-// --- OpenAPI 3.x rate limit group extraction ---
-
-interface OpenApiRateLimitExtension {
-  group: string;
-  'max-tokens'?: number;
-  'window-size'?: string;
-}
-
-interface OpenApiOperation {
-  'x-rate-limit'?: OpenApiRateLimitExtension;
-}
-
-interface OpenApiSpec {
-  paths: Record<string, Record<string, OpenApiOperation>>;
-}
+// --- Rate limit group extraction ---
 
 interface RateLimitGroupEntry {
   path: string;
@@ -402,13 +477,18 @@ interface EndpointScopeEntry {
   scopes: string[];
 }
 
-function extractAllScopes(spec: SwaggerSpec): string[] {
+function extractAllScopes(spec: OpenApiSpec): string[] {
   const scopes = new Set<string>();
-  if (spec.securityDefinitions) {
-    for (const def of Object.values(spec.securityDefinitions)) {
-      if (def.scopes) {
-        for (const scope of Object.keys(def.scopes)) {
-          scopes.add(scope);
+  const schemes = spec.components?.securitySchemes;
+  if (schemes) {
+    for (const scheme of Object.values(schemes)) {
+      if (scheme.flows) {
+        for (const flow of Object.values(scheme.flows)) {
+          if (flow.scopes) {
+            for (const scope of Object.keys(flow.scopes)) {
+              scopes.add(scope);
+            }
+          }
         }
       }
     }
@@ -416,13 +496,13 @@ function extractAllScopes(spec: SwaggerSpec): string[] {
   return Array.from(scopes).sort();
 }
 
-function extractEndpointScopes(spec: SwaggerSpec): EndpointScopeEntry[] {
+function extractEndpointScopes(spec: OpenApiSpec): EndpointScopeEntry[] {
   const entries: EndpointScopeEntry[] = [];
   const httpMethods = ['get', 'post', 'put', 'delete'];
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as SwaggerOperation | undefined;
+      const op = methods[method] as OpenApiOperation | undefined;
       if (!op?.security?.length) continue;
 
       const scopes = new Set<string>();
@@ -452,7 +532,7 @@ function writeScopesFile(
   entries: EndpointScopeEntry[],
 ): void {
   const lines: string[] = [
-    '// Auto-generated from ESI Swagger spec — do not edit manually',
+    '// Auto-generated from ESI OpenAPI spec — do not edit manually',
     `// Total scopes: ${allScopes.length}`,
     `// Endpoints requiring scopes: ${entries.length}`,
     '',
@@ -483,18 +563,20 @@ function writeScopesFile(
   fs.writeFileSync(SCOPES_OUTPUT, lines.join('\n'), 'utf-8');
 }
 
-async function main(): Promise<void> {
-  console.log(`Fetching ESI swagger spec from ${ESI_SWAGGER_URL}...`);
+// --- Main ---
 
-  let spec: SwaggerSpec;
+async function main(): Promise<void> {
+  console.log(`Fetching ESI OpenAPI spec from ${ESI_OPENAPI_URL}...`);
+
+  let spec: OpenApiSpec;
   try {
-    const response = await fetch(ESI_SWAGGER_URL);
+    const response = await fetch(ESI_OPENAPI_URL);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    spec = (await response.json()) as SwaggerSpec;
+    spec = (await response.json()) as OpenApiSpec;
   } catch (err) {
-    console.error(`Failed to fetch ESI swagger spec: ${err}`);
+    console.error(`Failed to fetch ESI OpenAPI spec: ${err}`);
     process.exit(1);
   }
 
@@ -512,10 +594,10 @@ async function main(): Promise<void> {
 
   for (const [routePath, methods] of Object.entries(spec.paths)) {
     for (const method of httpMethods) {
-      const op = methods[method] as SwaggerOperation | undefined;
+      const op = methods[method] as OpenApiOperation | undefined;
       if (!op) continue;
 
-      const iface = generateInterface(routePath, method, op);
+      const iface = generateInterface(routePath, method, op, spec);
       if (iface) interfaces.push(iface);
     }
   }
@@ -530,22 +612,8 @@ async function main(): Promise<void> {
   writeTtlFile(ttls);
   console.log(`Cache TTLs written to ${TTL_OUTPUT}`);
 
-  // Generate rate limit groups from the OpenAPI 3.x meta spec
-  console.log(`\nFetching ESI OpenAPI meta spec from ${ESI_OPENAPI_URL}...`);
-  let openApiSpec: OpenApiSpec;
-  try {
-    const oaResponse = await fetch(ESI_OPENAPI_URL);
-    if (!oaResponse.ok) {
-      throw new Error(`HTTP ${oaResponse.status}: ${oaResponse.statusText}`);
-    }
-    openApiSpec = (await oaResponse.json()) as OpenApiSpec;
-  } catch (err) {
-    console.error(`Failed to fetch ESI OpenAPI meta spec: ${err}`);
-    console.error('Rate limit groups will not be updated.');
-    return;
-  }
-
-  const rateLimitGroups = extractRateLimitGroups(openApiSpec);
+  // Generate rate limit groups
+  const rateLimitGroups = extractRateLimitGroups(spec);
   console.log(
     `Found ${rateLimitGroups.length} endpoints with rate limit groups`,
   );
@@ -554,7 +622,7 @@ async function main(): Promise<void> {
   writeRateLimitGroupsFile(rateLimitGroups);
   console.log(`Rate limit groups written to ${RATE_LIMIT_GROUPS_OUTPUT}`);
 
-  // Generate endpoint scope metadata from swagger spec
+  // Generate endpoint scope metadata
   const allScopes = extractAllScopes(spec);
   console.log(`\nFound ${allScopes.length} unique ESI scopes`);
   const endpointScopes = extractEndpointScopes(spec);
