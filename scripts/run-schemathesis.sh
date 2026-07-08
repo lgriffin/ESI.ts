@@ -40,7 +40,7 @@ docker run --rm --network host \
   schemathesis/schemathesis \
   run http://localhost:4010/openapi.json \
   --checks all \
-  --hypothesis-max-examples 50 \
+  --max-examples 50 \
   --stateful=links \
   --base-url http://localhost:4010 \
   --junit-xml /reports/schemathesis-junit.xml \
