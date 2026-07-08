@@ -275,7 +275,9 @@ jobs:
         run: npm run build
 
       - name: Check API report is up to date
-        run: npm run api-report:check
+        run: |
+          npm run api-report
+          git diff --exit-code etc/esi.ts.api.md || (echo "API surface report is out of date. Run 'npm run api-report' locally and commit." && exit 1)
 
   mutation-testing:
     name: Mutation Testing
