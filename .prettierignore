@@ -4,3 +4,4 @@ node_modules/
 docs/
 *.tgz
 *.generated.ts
+etc/*.api.md
