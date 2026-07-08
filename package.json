@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -125,9 +125,10 @@
     "generate:types": "ts-node scripts/generate-esi-types.ts",
     "knip": "knip",
     "validate:esi": "ts-node scripts/validate-esi-endpoints.ts",
+    "validate:spec": "redocly lint",
     "validate": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code",
     "validate:versions": "ts-node scripts/validate-versions.ts",
-    "check:all": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code && npm run validate:esi && npm run validate:versions",
+    "check:all": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code && npm run validate:esi && npm run validate:spec && npm run validate:versions",
     "docs": "typedoc --options typedoc.json",
     "docs:watch": "typedoc --options typedoc.json --watch",
     "docs:serve": "npx http-server docs -p 8080 -o",
@@ -171,6 +172,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.1.0",
+    "@redocly/cli": "^2.38.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
