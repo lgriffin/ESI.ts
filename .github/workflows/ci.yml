@@ -203,7 +203,9 @@ jobs:
         run: npm ci
 
       - name: Run contract tests
-        run: npm run contract:live
+        run: npm run contract
+        env:
+          ESI_LIVE_TESTS: 'true'
 
   fuzz-tests:
     name: Fuzz Tests

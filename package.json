@@ -123,7 +123,7 @@
     "test:integration:gated": "node --env-file=.env -e \"require('child_process').execSync('npx jest --config jest.integration.config.cjs --testPathPatterns=gated-auth',{stdio:'inherit',env:Object.assign({},process.env,{ESI_GATED_TESTS:'true'})})\"",
     "test:all": "npm run test && npm run bdd && npm run test:integration && npm run fuzz && npm run test:types",
     "contract": "jest --config jest.contract.config.cjs",
-    "contract:live": "cross-env ESI_LIVE_TESTS=true jest --config jest.contract.config.cjs",
+    "contract:live": "ESI_LIVE_TESTS=true jest --config jest.contract.config.cjs",
     "contract:snapshot": "ts-node scripts/snapshot-openapi.ts",
     "contract:diff": "docker run --rm -v ./tests/contract/snapshots:/specs tufin/oasdiff breaking /specs/esi-openapi.snapshot.json https://esi.evetech.net/meta/openapi.json",
     "fuzz": "jest --config jest.fuzz.config.cjs",

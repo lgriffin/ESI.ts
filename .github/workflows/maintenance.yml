@@ -249,7 +249,9 @@ jobs:
         run: npm run contract:snapshot
 
       - name: Run contract tests against live spec
-        run: npm run contract:live
+        run: npm run contract
+        env:
+          ESI_LIVE_TESTS: 'true'
 
       - name: Check for breaking changes (oasdiff)
         run: |
