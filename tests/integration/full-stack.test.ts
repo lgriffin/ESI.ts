@@ -370,6 +370,7 @@ describe('Integration: Token Refresh Flow', () => {
       min_volume: 1,
       price: 10.5,
       is_buy_order: false,
+      system_id: 30000142,
       duration: 90,
       issued: '2024-01-01T00:00:00Z',
       range: 'station',

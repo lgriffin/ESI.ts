@@ -9,6 +9,7 @@ export const MarketOrderSchema = z.looseObject({
   min_volume: z.number(),
   price: z.number(),
   is_buy_order: z.boolean(),
+  system_id: z.number(),
   duration: z.number(),
   issued: z.string(),
   range: z.string(),

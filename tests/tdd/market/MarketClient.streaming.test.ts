@@ -27,6 +27,7 @@ function mockOrder(overrides: Partial<MarketOrder> = {}): MarketOrder {
     min_volume: 1,
     price: 5.5,
     is_buy_order: false,
+    system_id: 30000142,
     duration: 90,
     issued: '2024-01-01T00:00:00Z',
     range: 'region',
