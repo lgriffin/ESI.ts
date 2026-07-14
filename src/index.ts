@@ -60,6 +60,7 @@ export {
   CursorResult,
   CreateClientOptions,
   WithMetadata,
+  WithSafeMode,
   fetchAllCursorPages,
 } from './core/endpoints/createClient';
 export { CursorTokens } from './core/pagination/CursorPaginationHandler';
