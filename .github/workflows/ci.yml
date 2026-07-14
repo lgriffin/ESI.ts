@@ -256,7 +256,6 @@ jobs:
     name: API Surface Check
     runs-on: ubuntu-latest
     needs: lint-and-build
-    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -283,7 +282,6 @@ jobs:
     name: Mutation Testing
     runs-on: ubuntu-latest
     needs: lint-and-build
-    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -314,7 +312,6 @@ jobs:
     name: Schemathesis API Fuzz
     runs-on: ubuntu-latest
     needs: lint-and-build
-    continue-on-error: true
 
     steps:
       - name: Checkout code
