@@ -6,6 +6,7 @@ export const CharacterInfoSchema = z.looseObject({
   description: z.string().optional(),
   corporation_id: z.number(),
   alliance_id: z.number().optional(),
+  faction_id: z.number().optional(),
   ancestry_id: z.number().optional(),
   bloodline_id: z.number(),
   race_id: z.number(),
