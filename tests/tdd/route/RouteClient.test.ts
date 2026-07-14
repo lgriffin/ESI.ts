@@ -2,6 +2,7 @@ import { RouteClient } from '../../../src/clients/RouteClient';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -86,4 +87,8 @@ describe('RouteClient', () => {
     const sentBody = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
     expect(sentBody).toEqual({});
   });
+
+  describeClientErrors('RouteClient', () =>
+    client.getRoute(30000142, 30000144),
+  );
 });

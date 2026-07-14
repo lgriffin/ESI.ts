@@ -5,8 +5,12 @@
  * to detect field-level drift: missing fields, extra fields, and type mismatches.
  *
  * Usage: npx ts-node scripts/generate-schema-drift-report.ts
+ *        npx ts-node scripts/generate-schema-drift-report.ts --ci
  *        npm run schema:drift
+ *        npm run schema:drift:ci
  */
+
+const ciMode = process.argv.includes('--ci');
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -228,7 +232,7 @@ async function main(): Promise<void> {
   const response = await fetch(ESI_OPENAPI_URL);
   if (!response.ok) {
     console.error(`Failed to fetch spec: ${response.status} ${response.statusText}`);
-    process.exit(0);
+    process.exit(ciMode ? 1 : 0);
   }
   const spec = (await response.json()) as OpenApiSpec;
   console.log(`Spec loaded: ${Object.keys(spec.paths).length} paths\n`);
@@ -334,10 +338,14 @@ async function main(): Promise<void> {
     console.log(
       '\nTo suppress known drift, add field names to scripts/schema-drift-exceptions.json',
     );
+
+    if (ciMode) {
+      process.exit(1);
+    }
   }
 }
 
 main().catch((err) => {
   console.error('Schema drift detection failed:', err);
-  process.exit(0);
+  process.exit(ciMode ? 1 : 0);
 });

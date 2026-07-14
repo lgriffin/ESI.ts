@@ -2,6 +2,7 @@ import { InsuranceClient } from '../../../src/clients/InsuranceClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -62,4 +63,8 @@ describe('InsuranceClient', () => {
       'https://esi.evetech.net/latest/insurance/prices',
     );
   });
+
+  describeClientErrors('InsuranceClient', () =>
+    insuranceClient.getInsurancePrices(),
+  );
 });

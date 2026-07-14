@@ -4,6 +4,7 @@ import { FittingsClient } from '../../../src/clients/FittingsClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -109,4 +110,8 @@ describe('FittingsClient', () => {
       'https://esi.evetech.net/latest/characters/123456/fittings/1',
     );
   });
+
+  describeClientErrors('FittingsClient', () =>
+    fittingsClient.getFittings(123456),
+  );
 });

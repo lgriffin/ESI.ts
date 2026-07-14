@@ -78,6 +78,9 @@ jobs:
       - name: Security audit
         run: npm audit --audit-level=high
 
+      - name: Check schema drift
+        run: npm run schema:drift:ci
+
   tests:
     name: Tests (${{ matrix.test-type }})
     runs-on: ubuntu-latest

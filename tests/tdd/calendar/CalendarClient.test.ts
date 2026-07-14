@@ -2,6 +2,7 @@ import { CalendarClient } from '../../../src/clients/CalendarClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -164,4 +165,8 @@ describe('CalendarClient', () => {
       'https://esi.evetech.net/latest/characters/123456789/calendar/1/attendees/',
     );
   });
+
+  describeClientErrors('CalendarClient', () =>
+    calendarClient.getCalendarEvents(123456789),
+  );
 });

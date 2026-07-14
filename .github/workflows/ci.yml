@@ -72,8 +72,7 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Check schema drift
-        run: npm run schema:drift
-        continue-on-error: true
+        run: npm run schema:drift:ci
 
   unit-tests:
     name: Unit Tests (Node ${{ matrix.node-version }})

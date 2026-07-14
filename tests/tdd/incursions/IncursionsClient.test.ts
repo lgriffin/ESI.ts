@@ -2,6 +2,7 @@ import { IncursionsClient } from '../../../src/clients/IncursionsClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -63,4 +64,8 @@ describe('IncursionsClient', () => {
       'https://esi.evetech.net/latest/incursions',
     );
   });
+
+  describeClientErrors('IncursionsClient', () =>
+    incursionsClient.getIncursions(),
+  );
 });

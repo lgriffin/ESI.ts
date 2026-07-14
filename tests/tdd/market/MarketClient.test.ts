@@ -2,6 +2,7 @@ import { MarketClient } from '../../../src/clients/MarketClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -551,4 +552,6 @@ describe('MarketClient', () => {
       'https://esi.evetech.net/latest/markets/structures/123456789/',
     );
   });
+
+  describeClientErrors('MarketClient', () => marketClient.getMarketPrices());
 });

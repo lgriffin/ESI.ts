@@ -2,6 +2,7 @@ import { MailClient } from '../../../src/clients/MailClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -228,4 +229,8 @@ describe('MailClient', () => {
       'https://esi.evetech.net/latest/characters/123456789/mail/lists/',
     );
   });
+
+  describeClientErrors('MailClient', () =>
+    mailClient.getMailHeaders(123456789),
+  );
 });

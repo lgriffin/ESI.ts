@@ -126,10 +126,11 @@
     "contract:live": "ESI_LIVE_TESTS=true jest --config jest.contract.config.cjs",
     "contract:snapshot": "ts-node scripts/snapshot-openapi.ts",
     "contract:diff": "docker run --rm -v ./tests/contract/snapshots:/specs tufin/oasdiff breaking /specs/esi-openapi.snapshot.json https://esi.evetech.net/meta/openapi.json",
+    "benchmark": "jest --config jest.benchmark.config.cjs",
     "fuzz": "jest --config jest.fuzz.config.cjs",
     "fuzz:api": "bash scripts/run-schemathesis.sh",
     "mock:esi": "prism mock https://esi.evetech.net/meta/openapi.json -p 4010",
-    "test:types": "tsd --files tests/typetests/index.test-d.ts",
+    "test:types": "tsd --files 'tests/typetests/*.test-d.ts'",
     "generate:types": "ts-node scripts/generate-esi-types.ts",
     "knip": "knip",
     "validate:esi": "ts-node scripts/validate-esi-endpoints.ts",
@@ -148,7 +149,8 @@
     "mutation:report": "stryker run --reporters html,clear-text",
     "api-report": "api-extractor run --local --verbose",
     "api-report:check": "api-extractor run --verbose",
-    "schema:drift": "ts-node scripts/generate-schema-drift-report.ts"
+    "schema:drift": "ts-node scripts/generate-schema-drift-report.ts",
+    "schema:drift:ci": "ts-node scripts/generate-schema-drift-report.ts --ci"
   },
   "lint-staged": {
     "src/**/*.ts": [
