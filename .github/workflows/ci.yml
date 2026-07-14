@@ -276,9 +276,9 @@ jobs:
       - name: Check API report is up to date
         run: |
           npm run api-report
-          # Sort both committed and regenerated files before comparing to ignore
-          # enum member ordering differences across Node.js / platform versions
-          if ! diff <(git show HEAD:etc/esi.ts.api.md | sort) <(sort etc/esi.ts.api.md) > /dev/null 2>&1; then
+          # Normalize CRLF→LF and sort to ignore line-ending and enum-ordering
+          # differences across Windows (dev) and Linux (CI) platforms
+          if ! diff <(git show HEAD:etc/esi.ts.api.md | tr -d '\r' | sort) <(tr -d '\r' < etc/esi.ts.api.md | sort) > /dev/null 2>&1; then
             echo "API surface report is out of date. Run 'npm run api-report' locally and commit."
             git diff etc/esi.ts.api.md
             exit 1

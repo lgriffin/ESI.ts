@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPORT_DIR="${1:-./reports/schemathesis}"
 mkdir -p "$REPORT_DIR"
+chmod 777 "$REPORT_DIR"
 
 PRISM_PID=""
 
