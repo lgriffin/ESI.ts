@@ -42,7 +42,7 @@ docker run --rm --network host \
   --checks all \
   --max-examples 50 \
   --url http://localhost:4010 \
-  --report junit --report-junit-path /reports/schemathesis-junit.xml \
+  --report junit --report-dir /reports \
   || SCHEMATHESIS_EXIT=$?
 
 echo "Schemathesis completed with exit code: ${SCHEMATHESIS_EXIT}"
