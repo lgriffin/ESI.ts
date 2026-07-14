@@ -148,7 +148,8 @@
     "mutation:report": "stryker run --reporters html,clear-text",
     "api-report": "api-extractor run --local --verbose",
     "api-report:check": "api-extractor run --verbose",
-    "schema:drift": "ts-node scripts/generate-schema-drift-report.ts"
+    "schema:drift": "ts-node scripts/generate-schema-drift-report.ts",
+    "schema:drift:ci": "ts-node scripts/generate-schema-drift-report.ts --ci"
   },
   "lint-staged": {
     "src/**/*.ts": [
