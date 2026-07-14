@@ -2,6 +2,7 @@ import { UiClient } from '../../../src/clients/UiClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -85,4 +86,8 @@ describe('UiClient', () => {
       'https://esi.evetech.net/latest/ui/openwindow/newmail',
     );
   });
+
+  describeClientErrors('UiClient', () =>
+    uiClient.openInformationWindow(123456789),
+  );
 });

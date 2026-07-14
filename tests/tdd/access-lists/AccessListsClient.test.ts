@@ -2,6 +2,7 @@ import { ApiClient } from '../../../src/core/ApiClient';
 import { AccessListsClient } from '../../../src/clients/AccessListsClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -49,4 +50,8 @@ describe('AccessListsClient', () => {
       'https://esi.evetech.net/access-lists/42',
     );
   });
+
+  describeClientErrors('AccessListsClient', () =>
+    accessListsClient.getAccessList(42),
+  );
 });

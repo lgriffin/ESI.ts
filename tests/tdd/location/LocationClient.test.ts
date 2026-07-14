@@ -2,6 +2,7 @@ import { LocationClient } from '../../../src/clients/LocationClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -92,4 +93,8 @@ describe('LocationClient', () => {
       'https://esi.evetech.net/latest/characters/123456/ship',
     );
   });
+
+  describeClientErrors('LocationClient', () =>
+    locationClient.getCharacterLocation(123456),
+  );
 });

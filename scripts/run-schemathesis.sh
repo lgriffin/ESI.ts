@@ -42,7 +42,7 @@ docker run --rm --network host \
   --checks all \
   --max-examples 50 \
   --url http://localhost:4010 \
-  --junit-xml /reports/schemathesis-junit.xml \
+  --report ndjson \
   || SCHEMATHESIS_EXIT=$?
 
 echo "Schemathesis completed with exit code: ${SCHEMATHESIS_EXIT}"

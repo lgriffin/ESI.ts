@@ -126,6 +126,7 @@
     "contract:live": "ESI_LIVE_TESTS=true jest --config jest.contract.config.cjs",
     "contract:snapshot": "ts-node scripts/snapshot-openapi.ts",
     "contract:diff": "docker run --rm -v ./tests/contract/snapshots:/specs tufin/oasdiff breaking /specs/esi-openapi.snapshot.json https://esi.evetech.net/meta/openapi.json",
+    "benchmark": "jest --config jest.benchmark.config.cjs",
     "fuzz": "jest --config jest.fuzz.config.cjs",
     "fuzz:api": "bash scripts/run-schemathesis.sh",
     "mock:esi": "prism mock https://esi.evetech.net/meta/openapi.json -p 4010",

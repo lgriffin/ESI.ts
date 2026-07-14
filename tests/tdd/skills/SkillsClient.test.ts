@@ -2,6 +2,7 @@ import { CharacterSkillsClient } from '../../../src/clients/SkillsClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -139,4 +140,8 @@ describe('SkillsClient', () => {
       'https://esi.evetech.net/latest/characters/123456/skillqueue',
     );
   });
+
+  describeClientErrors('SkillsClient', () =>
+    skillsClient.getCharacterAttributes(123456),
+  );
 });

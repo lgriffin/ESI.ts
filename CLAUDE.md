@@ -24,6 +24,7 @@ npm run test:integration  # Integration tests
 npm run contract       # Contract tests against live ESI spec
 npm run fuzz           # Property-based fuzz tests (fast-check)
 npm run fuzz:api       # Schemathesis API fuzzing (requires Docker)
+npm run benchmark      # Performance benchmark tests (jest.benchmark.config.cjs)
 npm run test:types     # Type tests (tsd)
 npm run test:all       # All test suites
 npm run mutation       # Mutation testing (Stryker)
@@ -49,6 +50,8 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `src/schemas/` — 33 hand-written Zod v4 schemas for runtime validation
 - `src/types/` — Hand-written response types + `generated/esi-spec.generated.ts`
 - `tests/tdd/` — Unit tests
+- `tests/tdd/helpers/` — Shared test utilities (e.g., `clientErrorTests.ts`)
+- `tests/benchmark/` — Performance benchmark tests
 - `tests/bdd/` — BDD features + step definitions (jest-cucumber)
 - `tests/integration/` — Integration tests (live ESI optional)
 - `tests/contract/` — Contract tests against live OpenAPI spec
