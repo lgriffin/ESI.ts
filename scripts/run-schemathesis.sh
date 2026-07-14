@@ -42,7 +42,7 @@ docker run --rm --network host \
   --checks all \
   --max-examples 50 \
   --url http://localhost:4010 \
-  --report /reports/schemathesis-report.tar.gz \
+  --report ndjson \
   || SCHEMATHESIS_EXIT=$?
 
 echo "Schemathesis completed with exit code: ${SCHEMATHESIS_EXIT}"
