@@ -2,11 +2,15 @@ import { ApiClient } from '../ApiClient';
 import { handleRequest, EsiHandlerResponse } from '../ApiRequestHandler';
 import { EndpointMap, EndpointArgs } from './EndpointDefinition';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
-import { EsiResponse, EsiResponseMeta } from '../../types/api-responses';
+import {
+  EsiResponse,
+  EsiResult,
+  EsiResponseMeta,
+} from '../../types/api-responses';
 import { buildEndpointPath } from './buildEndpointPath';
 import { parseWarning } from '../util/headersUtil';
 import { logWarn } from '../logger/loggerUtil';
-import { EsiValidationError } from '../util/error';
+import { EsiError, EsiValidationError } from '../util/error';
 
 export interface CursorOptions {
   before?: string;
@@ -20,6 +24,7 @@ export interface CursorResult<T = unknown> {
 
 export interface CreateClientOptions {
   returnMetadata?: boolean;
+  safeMode?: boolean;
 }
 
 type ClientMethods<T extends EndpointMap> = {
@@ -29,6 +34,12 @@ type ClientMethods<T extends EndpointMap> = {
 export type WithMetadata<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R>
     ? (...args: A) => Promise<EsiResponse<R>>
+    : T[K];
+};
+
+export type WithSafeMode<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R>
+    ? (...args: A) => Promise<EsiResult<R>>
     : T[K];
 };
 
@@ -67,45 +78,80 @@ export function createClient<T extends EndpointMap>(
 ): ClientMethods<T> {
   const client = {} as ClientMethods<T>;
   const returnMetadata = options?.returnMetadata ?? false;
+  const safeMode = options?.safeMode ?? false;
 
   for (const [methodName, def] of Object.entries(endpoints)) {
     // eslint-disable-next-line security/detect-object-injection
     (client as Record<string, (...args: unknown[]) => Promise<unknown>>)[
       methodName
     ] = async (...args: unknown[]) => {
-      if (def.deprecated) {
-        const parts = [`Endpoint '${methodName}' is deprecated.`];
-        if (def.deprecated.message) parts.push(def.deprecated.message);
-        if (def.deprecated.replacedBy)
-          parts.push(`Use '${def.deprecated.replacedBy}' instead.`);
-        if (def.deprecated.sunsetDate)
-          parts.push(`Sunset date: ${def.deprecated.sunsetDate}.`);
-        logWarn(parts.join(' '));
-      }
+      try {
+        if (def.deprecated) {
+          const parts = [`Endpoint '${methodName}' is deprecated.`];
+          if (def.deprecated.message) parts.push(def.deprecated.message);
+          if (def.deprecated.replacedBy)
+            parts.push(`Use '${def.deprecated.replacedBy}' instead.`);
+          if (def.deprecated.sunsetDate)
+            parts.push(`Sunset date: ${def.deprecated.sunsetDate}.`);
+          logWarn(parts.join(' '));
+        }
 
-      const built = buildEndpointPath(def, args, apiClient.getDatasource());
-      let path = built.path;
-      const body = built.body;
+        const built = buildEndpointPath(def, args, apiClient.getDatasource());
+        let path = built.path;
+        const body = built.body;
 
-      if (def.cursorPagination) {
-        const lastArg = args[args.length - 1];
-        const isCursorArg =
-          lastArg != null &&
-          typeof lastArg === 'object' &&
-          ('before' in lastArg || 'after' in lastArg);
-        const cursorOpts: CursorOptions | undefined = isCursorArg
-          ? (lastArg as CursorOptions)
-          : undefined;
+        if (def.cursorPagination) {
+          const lastArg = args[args.length - 1];
+          const isCursorArg =
+            lastArg != null &&
+            typeof lastArg === 'object' &&
+            ('before' in lastArg || 'after' in lastArg);
+          const cursorOpts: CursorOptions | undefined = isCursorArg
+            ? (lastArg as CursorOptions)
+            : undefined;
 
-        if (cursorOpts) {
-          const parts: string[] = [];
-          if (cursorOpts.before)
-            parts.push(`before=${encodeURIComponent(cursorOpts.before)}`);
-          if (cursorOpts.after)
-            parts.push(`after=${encodeURIComponent(cursorOpts.after)}`);
-          if (parts.length > 0) {
-            path += (path.includes('?') ? '&' : '?') + parts.join('&');
+          if (cursorOpts) {
+            const parts: string[] = [];
+            if (cursorOpts.before)
+              parts.push(`before=${encodeURIComponent(cursorOpts.before)}`);
+            if (cursorOpts.after)
+              parts.push(`after=${encodeURIComponent(cursorOpts.after)}`);
+            if (parts.length > 0) {
+              path += (path.includes('?') ? '&' : '?') + parts.join('&');
+            }
           }
+
+          const response = await handleRequest(
+            apiClient,
+            path,
+            def.method,
+            body,
+            def.requiresAuth,
+            true,
+            def.path,
+          );
+          const responseBody = response.body;
+          let data: unknown[];
+          if (Array.isArray(responseBody)) {
+            data = responseBody as unknown[];
+          } else if (responseBody !== null && responseBody !== undefined) {
+            data = [responseBody];
+          } else {
+            data = [];
+          }
+          const cursorResult: CursorResult = {
+            data,
+            cursors: response.cursors ?? { before: null, after: null },
+          };
+
+          if (returnMetadata || safeMode) {
+            const meta = buildMeta(response);
+            if (safeMode) {
+              return { ok: true, data: cursorResult, meta };
+            }
+            return { data: cursorResult, meta };
+          }
+          return cursorResult;
         }
 
         const response = await handleRequest(
@@ -117,50 +163,37 @@ export function createClient<T extends EndpointMap>(
           true,
           def.path,
         );
-        const responseBody = response.body;
-        let data: unknown[];
-        if (Array.isArray(responseBody)) {
-          data = responseBody as unknown[];
-        } else if (responseBody !== null && responseBody !== undefined) {
-          data = [responseBody];
-        } else {
-          data = [];
+        let responseBody = response.body;
+        if (def.responseSchema && apiClient.getValidateResponse()) {
+          const result = def.responseSchema.safeParse(responseBody);
+          if (!result.success) {
+            throw new EsiValidationError(
+              `${apiClient.getLink()}/${path}`,
+              result.error,
+            );
+          }
+          responseBody = result.data;
         }
-        const cursorResult: CursorResult = {
-          data,
-          cursors: response.cursors ?? { before: null, after: null },
-        };
-
+        if (safeMode) {
+          return { ok: true, data: responseBody, meta: buildMeta(response) };
+        }
         if (returnMetadata) {
-          return { data: cursorResult, meta: buildMeta(response) };
+          return { data: responseBody, meta: buildMeta(response) };
         }
-        return cursorResult;
-      }
-
-      const response = await handleRequest(
-        apiClient,
-        path,
-        def.method,
-        body,
-        def.requiresAuth,
-        true,
-        def.path,
-      );
-      let responseBody = response.body;
-      if (def.responseSchema && apiClient.getValidateResponse()) {
-        const result = def.responseSchema.safeParse(responseBody);
-        if (!result.success) {
-          throw new EsiValidationError(
-            `${apiClient.getLink()}/${path}`,
-            result.error,
-          );
+        return responseBody;
+      } catch (err) {
+        if (safeMode) {
+          const error =
+            err instanceof EsiError
+              ? err
+              : new EsiError(
+                  0,
+                  err instanceof Error ? err.message : String(err),
+                );
+          return { ok: false, error };
         }
-        responseBody = result.data;
+        throw err;
       }
-      if (returnMetadata) {
-        return { data: responseBody, meta: buildMeta(response) };
-      }
-      return responseBody;
     };
   }
 
