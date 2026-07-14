@@ -2,6 +2,7 @@ import { IndustryClient } from '../../../src/clients/IndustryClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -391,4 +392,8 @@ describe('IndustryClient', () => {
       'https://esi.evetech.net/latest/industry/systems',
     );
   });
+
+  describeClientErrors('IndustryClient', () =>
+    industryClient.getIndustryFacilities(),
+  );
 });

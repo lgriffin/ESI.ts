@@ -3,6 +3,7 @@ import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import { getBody } from '../../../src/core/util/testHelpers';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -40,4 +41,6 @@ describe('StatusClient', () => {
       'https://esi.evetech.net/latest/status',
     );
   });
+
+  describeClientErrors('StatusClient', () => statusClient.getStatus());
 });

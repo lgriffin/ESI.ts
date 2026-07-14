@@ -2,6 +2,7 @@ import { ApiClient } from '../../../src/core/ApiClient';
 import { SkyhooksClient } from '../../../src/clients/SkyhooksClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -99,4 +100,8 @@ describe('SkyhooksClient', () => {
       'https://esi.evetech.net/sovereignty/skyhooks/raidable',
     );
   });
+
+  describeClientErrors('SkyhooksClient', () =>
+    skyhooksClient.getSovereigntyHubs(),
+  );
 });

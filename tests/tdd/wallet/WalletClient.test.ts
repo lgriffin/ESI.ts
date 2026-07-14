@@ -2,6 +2,7 @@ import { WalletClient } from '../../../src/clients/WalletClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -266,4 +267,8 @@ describe('WalletClient', () => {
       'https://esi.evetech.net/latest/corporations/123456789/wallets/1/transactions',
     );
   });
+
+  describeClientErrors('WalletClient', () =>
+    walletClient.getCharacterWallet(123456789),
+  );
 });

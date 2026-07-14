@@ -3,6 +3,7 @@ import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import { getBody } from '../../../src/core/util/testHelpers';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -611,4 +612,6 @@ describe('UniverseClient', () => {
     const sentBody = fetchMock.mock.calls[0][1]?.body;
     expect(sentBody).toBe(JSON.stringify([123]));
   });
+
+  describeClientErrors('UniverseClient', () => universeClient.getAncestries());
 });

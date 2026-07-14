@@ -2,6 +2,7 @@ import { KillmailsClient } from '../../../src/clients/KillmailsClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -134,4 +135,8 @@ describe('KillmailsClient', () => {
       'https://esi.evetech.net/latest/killmails/12345/abcdef1234567890',
     );
   });
+
+  describeClientErrors('KillmailsClient', () =>
+    killmailsClient.getCharacterRecentKillmails(123456),
+  );
 });

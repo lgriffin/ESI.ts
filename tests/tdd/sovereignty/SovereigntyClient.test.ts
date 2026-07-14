@@ -2,6 +2,7 @@ import { ApiClient } from '../../../src/core/ApiClient';
 import { SovereigntyClient } from '../../../src/clients/SovereigntyClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -87,4 +88,8 @@ describe('SovereigntyClient', () => {
       'https://esi.evetech.net/sovereignty/systems',
     );
   });
+
+  describeClientErrors('SovereigntyClient', () =>
+    sovereigntyClient.getSovereigntyCampaigns(),
+  );
 });

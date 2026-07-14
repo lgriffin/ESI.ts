@@ -2,6 +2,7 @@ import { AssetsClient } from '../../../src/clients/AssetsClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -257,4 +258,8 @@ describe('AssetsClient', () => {
     const sentBody = fetchMock.mock.calls[0][1]?.body;
     expect(sentBody).toBe(JSON.stringify([1, 2, 3]));
   });
+
+  describeClientErrors('AssetsClient', () =>
+    assetsClient.getCharacterAssets(123456789),
+  );
 });

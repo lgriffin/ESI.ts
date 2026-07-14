@@ -2,6 +2,7 @@ import { FreelanceJobsClient } from '../../../src/clients/FreelanceJobsClient';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -290,4 +291,6 @@ describe('FreelanceJobsClient', () => {
       );
     });
   });
+
+  describeClientErrors('FreelanceJobsClient', () => client.getFreelanceJobs());
 });

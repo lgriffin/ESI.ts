@@ -2,6 +2,7 @@ import { ApiClient } from '../../../src/core/ApiClient';
 import { SearchClient } from '../../../src/clients/SearchClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
@@ -54,4 +55,8 @@ describe('SearchClient', () => {
       'https://esi.evetech.net/latest/characters/1689391488/search/',
     );
   });
+
+  describeClientErrors('SearchClient', () =>
+    searchClient.characterSearch(1689391488, 'test', ['character']),
+  );
 });
