@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPORT_DIR="${1:-./reports/schemathesis}"
 mkdir -p "$REPORT_DIR"
+chmod 777 "$REPORT_DIR"
 
 PRISM_PID=""
 
@@ -42,7 +43,7 @@ docker run --rm --network host \
   --checks all \
   --max-examples 50 \
   --url http://localhost:4010 \
-  --report ndjson \
+  --report junit --report-dir /reports \
   || SCHEMATHESIS_EXIT=$?
 
 echo "Schemathesis completed with exit code: ${SCHEMATHESIS_EXIT}"

@@ -136,6 +136,11 @@ const AllianceIconSchema: z.ZodObject<{
     px128x128: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
+// Warning: (ae-forgotten-export) The symbol "Brand" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type AllianceId = Brand<number, 'AllianceId'>;
+
 // @public (undocumented)
 export type AllianceInfo = z.infer<typeof AllianceInfoSchema>;
 
@@ -405,6 +410,9 @@ const BlueprintSchema: z.ZodObject<{
     runs: z.ZodNumber;
 }, z.core.$loose>;
 
+// @public (undocumented)
+export function brand<T>(value: number): T;
+
 // Warning: (ae-forgotten-export) The symbol "EndpointDefinition" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "EndpointPathResult" needs to be exported by the entry point index.d.ts
 //
@@ -650,6 +658,9 @@ const CharacterFreelanceJobsListingSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type CharacterId = Brand<number, 'CharacterId'>;
+
+// @public (undocumented)
 export type CharacterInfo = z.infer<typeof CharacterInfoSchema>;
 
 // @public (undocumented)
@@ -659,6 +670,7 @@ const CharacterInfoSchema: z.ZodObject<{
     description: z.ZodOptional<z.ZodString>;
     corporation_id: z.ZodNumber;
     alliance_id: z.ZodOptional<z.ZodNumber>;
+    faction_id: z.ZodOptional<z.ZodNumber>;
     ancestry_id: z.ZodOptional<z.ZodNumber>;
     bloodline_id: z.ZodNumber;
     race_id: z.ZodNumber;
@@ -1949,6 +1961,9 @@ const ContractBidSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type ContractId = Brand<number, 'ContractId'>;
+
+// @public (undocumented)
 export type ContractItem = z.infer<typeof ContractItemSchema>;
 
 // @public (undocumented)
@@ -2112,6 +2127,9 @@ const CorporationAllianceHistorySchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type CorporationAllianceId = Brand<number, 'CorporationAllianceId'>;
+
+// @public (undocumented)
 interface CorporationCorporationIdMiningExtractionsGet {
     // (undocumented)
     chunk_arrival_time: string;
@@ -2216,6 +2234,9 @@ const CorporationIconSchema: z.ZodObject<{
     px128x128: z.ZodOptional<z.ZodString>;
     px256x256: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
+
+// @public (undocumented)
+export type CorporationId = Brand<number, 'CorporationId'>;
 
 // @public (undocumented)
 export type CorporationInfo = z.infer<typeof CorporationInfoSchema>;
@@ -3351,6 +3372,8 @@ const CorporationWalletDivisionSchema: z.ZodObject<{
 export interface CreateClientOptions {
     // (undocumented)
     returnMetadata?: boolean;
+    // (undocumented)
+    safeMode?: boolean;
 }
 
 // @public (undocumented)
@@ -4290,6 +4313,17 @@ const EsiResponseMetaSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type EsiResult<T> = {
+    ok: true;
+    data: T;
+    meta: EsiResponseMeta;
+} | {
+    ok: false;
+    error: EsiError;
+    meta?: EsiResponseMeta;
+};
+
+// @public (undocumented)
 export type EsiScope = 'esi-access.read_lists.v1' | 'esi-activities.read_character.v1' | 'esi-alliances.read_contacts.v1' | 'esi-assets.read_assets.v1' | 'esi-assets.read_corporation_assets.v1' | 'esi-calendar.read_calendar_events.v1' | 'esi-calendar.respond_calendar_events.v1' | 'esi-characters.read_agents_research.v1' | 'esi-characters.read_blueprints.v1' | 'esi-characters.read_contacts.v1' | 'esi-characters.read_corporation_roles.v1' | 'esi-characters.read_fatigue.v1' | 'esi-characters.read_freelance_jobs.v1' | 'esi-characters.read_fw_stats.v1' | 'esi-characters.read_loyalty.v1' | 'esi-characters.read_medals.v1' | 'esi-characters.read_notifications.v1' | 'esi-characters.read_standings.v1' | 'esi-characters.read_titles.v1' | 'esi-characters.write_contacts.v1' | 'esi-clones.read_clones.v1' | 'esi-clones.read_implants.v1' | 'esi-contracts.read_character_contracts.v1' | 'esi-contracts.read_corporation_contracts.v1' | 'esi-corporations.read_blueprints.v1' | 'esi-corporations.read_contacts.v1' | 'esi-corporations.read_container_logs.v1' | 'esi-corporations.read_corporation_membership.v1' | 'esi-corporations.read_divisions.v1' | 'esi-corporations.read_facilities.v1' | 'esi-corporations.read_freelance_jobs.v1' | 'esi-corporations.read_fw_stats.v1' | 'esi-corporations.read_medals.v1' | 'esi-corporations.read_projects.v1' | 'esi-corporations.read_standings.v1' | 'esi-corporations.read_starbases.v1' | 'esi-corporations.read_structures.v1' | 'esi-corporations.read_titles.v1' | 'esi-corporations.track_members.v1' | 'esi-fittings.read_fittings.v1' | 'esi-fittings.write_fittings.v1' | 'esi-fleets.read_fleet.v1' | 'esi-fleets.write_fleet.v1' | 'esi-industry.read_character_jobs.v1' | 'esi-industry.read_character_mining.v1' | 'esi-industry.read_corporation_jobs.v1' | 'esi-industry.read_corporation_mining.v1' | 'esi-killmails.read_corporation_killmails.v1' | 'esi-killmails.read_killmails.v1' | 'esi-location.read_location.v1' | 'esi-location.read_online.v1' | 'esi-location.read_ship_type.v1' | 'esi-mail.organize_mail.v1' | 'esi-mail.read_mail.v1' | 'esi-mail.send_mail.v1' | 'esi-markets.read_character_orders.v1' | 'esi-markets.read_corporation_orders.v1' | 'esi-markets.structure_markets.v1' | 'esi-planets.manage_planets.v1' | 'esi-planets.read_customs_offices.v1' | 'esi-search.search_structures.v1' | 'esi-skills.read_skillqueue.v1' | 'esi-skills.read_skills.v1' | 'esi-structures.read_character.v1' | 'esi-structures.read_corporation.v1' | 'esi-ui.open_window.v1' | 'esi-ui.write_waypoint.v1' | 'esi-universe.read_structures.v1' | 'esi-wallet.read_character_wallet.v1' | 'esi-wallet.read_corporation_wallets.v1';
 
 declare namespace EsiSpec {
@@ -4520,6 +4554,9 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
 }
 
 // @public (undocumented)
+export type FactionId = Brand<number, 'FactionId'>;
+
+// @public (undocumented)
 const FactionSchema: z.ZodObject<{
     faction_id: z.ZodNumber;
     name: z.ZodString;
@@ -4717,6 +4754,9 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     renameFleetWing(fleetId: number, wingId: number, name: string): Promise<void>;
     updateFleet(fleetId: number, body: object): Promise<void>;
 }
+
+// @public (undocumented)
+export type FleetId = Brand<number, 'FleetId'>;
 
 // @public (undocumented)
 export type FleetInfo = z.infer<typeof FleetInfoSchema>;
@@ -5517,6 +5557,9 @@ const JumpFatigueSchema: z.ZodObject<{
 export type Killmail = z.infer<typeof KillmailSchema>;
 
 // @public (undocumented)
+export type KillmailId = Brand<number, 'KillmailId'>;
+
+// @public (undocumented)
 const KillmailSchema: z.ZodObject<{
     killmail_id: z.ZodNumber;
     killmail_time: z.ZodString;
@@ -5841,16 +5884,20 @@ const MarketOrderSchema: z.ZodObject<{
     min_volume: z.ZodNumber;
     price: z.ZodNumber;
     is_buy_order: z.ZodBoolean;
+    system_id: z.ZodNumber;
     duration: z.ZodNumber;
     issued: z.ZodString;
     range: z.ZodString;
     state: z.ZodOptional<z.ZodEnum<{
-        cancelled: "cancelled";
         open: "open";
         closed: "closed";
         expired: "expired";
+        cancelled: "cancelled";
     }>>;
 }, z.core.$loose>;
+
+// @public (undocumented)
+export type MarketPrice = z.infer<typeof MarketPriceSchema>;
 
 // @public (undocumented)
 const MarketPriceSchema: z.ZodObject<{
@@ -6166,6 +6213,9 @@ const OrbitalSkyhookSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type OrderId = Brand<number, 'OrderId'>;
+
+// @public (undocumented)
 export interface PageResult<T = unknown> {
     // (undocumented)
     data: T[];
@@ -6208,6 +6258,9 @@ const PlanetaryColonySchema: z.ZodObject<{
     upgrade_level: z.ZodNumber;
     num_pins: z.ZodNumber;
 }, z.core.$loose>;
+
+// @public (undocumented)
+export type PlanetId = Brand<number, 'PlanetId'>;
 
 // @public (undocumented)
 export type PlanetInfo = z.infer<typeof PlanetInfoSchema>;
@@ -6340,6 +6393,9 @@ const RateLimitMetaSchema: z.ZodObject<{
     used: z.ZodNumber;
     group: z.ZodNullable<z.ZodString>;
 }, z.core.$strip>;
+
+// @public (undocumented)
+export type RegionId = Brand<number, 'RegionId'>;
 
 // @public (undocumented)
 export type RegionInfo = z.infer<typeof RegionInfoSchema>;
@@ -6887,6 +6943,9 @@ const StarInfoSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type StationId = Brand<number, 'StationId'>;
+
+// @public (undocumented)
 export type StationInfo = z.infer<typeof StationInfoSchema>;
 
 // @public (undocumented)
@@ -6930,6 +6989,9 @@ interface StatusGet {
 }
 
 // @public (undocumented)
+export type StructureId = Brand<number, 'StructureId'>;
+
+// @public (undocumented)
 export type StructureInfo = z.infer<typeof StructureInfoSchema>;
 
 // @public (undocumented)
@@ -6945,6 +7007,9 @@ const StructureInfoSchema: z.ZodObject<{
         z: z.ZodNumber;
     }, z.core.$loose>>;
 }, z.core.$loose>;
+
+// @public (undocumented)
+export type SystemId = Brand<number, 'SystemId'>;
 
 // @public (undocumented)
 export type SystemJump = z.infer<typeof SystemJumpSchema>;
@@ -6975,6 +7040,9 @@ export class TimeoutError extends EsiError {
 
 // @public (undocumented)
 export type TokenProvider = () => Promise<string>;
+
+// @public (undocumented)
+export type TypeId = Brand<number, 'TypeId'>;
 
 // @public (undocumented)
 export type TypeInfo = z.infer<typeof TypeInfoSchema>;
@@ -7576,6 +7644,9 @@ const WalletTransactionSchema: z.ZodObject<{
 export type War = z.infer<typeof WarSchema>;
 
 // @public (undocumented)
+export type WarId = Brand<number, 'WarId'>;
+
+// @public (undocumented)
 const WarSchema: z.ZodObject<{
     id: z.ZodNumber;
     declared: z.ZodString;
@@ -7660,6 +7731,11 @@ interface WarsWarIdKillmailsGet {
 // @public (undocumented)
 export type WithMetadata<T> = {
     [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R> ? (...args: A) => Promise<EsiResponse<R>> : T[K];
+};
+
+// @public (undocumented)
+export type WithSafeMode<T> = {
+    [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R> ? (...args: A) => Promise<EsiResult<R>> : T[K];
 };
 
 // (No @packageDocumentation comment for this package)

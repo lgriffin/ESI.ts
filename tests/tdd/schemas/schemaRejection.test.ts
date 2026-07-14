@@ -1734,6 +1734,7 @@ const schemaCases: SchemaTestCase[] = [
       order_id: 1,
       type_id: 587,
       location_id: 60003760,
+      system_id: 30000142,
       volume_total: 100,
       volume_remain: 50,
       min_volume: 1,

@@ -256,7 +256,6 @@ jobs:
     name: API Surface Check
     runs-on: ubuntu-latest
     needs: lint-and-build
-    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -277,13 +276,18 @@ jobs:
       - name: Check API report is up to date
         run: |
           npm run api-report
-          git diff --exit-code etc/esi.ts.api.md || (echo "API surface report is out of date. Run 'npm run api-report' locally and commit." && exit 1)
+          # Normalize CRLF→LF and sort to ignore line-ending and enum-ordering
+          # differences across Windows (dev) and Linux (CI) platforms
+          if ! diff <(git show HEAD:etc/esi.ts.api.md | tr -d '\r' | sort) <(tr -d '\r' < etc/esi.ts.api.md | sort) > /dev/null 2>&1; then
+            echo "API surface report is out of date. Run 'npm run api-report' locally and commit."
+            git diff etc/esi.ts.api.md
+            exit 1
+          fi
 
   mutation-testing:
     name: Mutation Testing
     runs-on: ubuntu-latest
     needs: lint-and-build
-    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -314,7 +318,6 @@ jobs:
     name: Schemathesis API Fuzz
     runs-on: ubuntu-latest
     needs: lint-and-build
-    continue-on-error: true
 
     steps:
       - name: Checkout code

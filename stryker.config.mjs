@@ -11,7 +11,7 @@ export default {
   testRunner: 'jest',
   jest: {
     configFile: 'jest.unit.config.cjs',
-    enableFindRelatedTests: false,
+    enableFindRelatedTests: true,
     config: {
       roots: [
         '<rootDir>/src',
@@ -41,7 +41,8 @@ export default {
     low: 60,
     break: 65,
   },
-  timeoutMS: 60000,
+  concurrency: 2,
+  timeoutMS: 30000,
   tempDirName: '.stryker-tmp',
   cleanTempDir: true,
 };
