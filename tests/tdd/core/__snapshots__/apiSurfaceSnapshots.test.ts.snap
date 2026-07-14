@@ -99,6 +99,7 @@ exports[`API surface snapshots public API exports should match snapshot 1`] = `
   "WarsClient",
   "batchFetch",
   "batchPost",
+  "brand",
   "buildEndpointPath",
   "esiEndpointScopes",
   "fetchAllCursorPages",
