@@ -55,7 +55,9 @@ npm run lint
 ## Testing
 
 - **TDD tests** live in `tests/tdd/` and mirror the source structure.
-- **BDD scenarios** live in `tests/bdd-scenarios/`.
+- **BDD scenarios** live in `tests/bdd/`.
+- **Benchmark tests** live in `tests/benchmark/`.
+- **Shared test helpers** live in `tests/tdd/helpers/` (e.g., `clientErrorTests.ts` for HTTP error path testing).
 - Run all tests:
   ```bash
   npm test
@@ -64,8 +66,12 @@ npm run lint
   ```bash
   npm run coverage
   ```
+- Run benchmarks:
+  ```bash
+  npm run benchmark
+  ```
 
-All pull requests must include tests for new or changed functionality. Coverage thresholds are enforced in CI.
+All pull requests must include tests for new or changed functionality. Coverage thresholds are enforced in CI. See `guides/TESTING.md` for the full testing guide.
 
 ## Pull Requests
 
