@@ -30,4 +30,5 @@ export * from './freelance-jobs';
 export * from './skyhooks';
 export * from './mercenary';
 export * from './access-lists';
+export * from './branded';
 export * as EsiSpec from './generated/esi-spec.generated';
