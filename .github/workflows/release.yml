@@ -50,6 +50,17 @@ jobs:
       - name: 🏗️ Build project
         run: npm run build
 
+      - name: 🔍 Schema drift check
+        run: npm run schema:drift:ci
+
+      - name: 🔍 Verify generated types are fresh
+        run: |
+          npm run generate:types
+          git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts || {
+            echo "Generated types are stale — run 'npm run generate:types' and commit the result"
+            exit 1
+          }
+
       - name: 🧪 Run full test suite
         run: npm run test:all
 

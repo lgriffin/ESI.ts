@@ -121,7 +121,7 @@ describe('CalendarClient', () => {
   });
 
   it('should handle respondToCalendarEvent correctly', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const response = await getBody(() =>
       calendarClient.respondToCalendarEvent(123456789, 1, 'accepted'),

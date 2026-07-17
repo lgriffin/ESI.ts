@@ -162,9 +162,7 @@ describe('ETag Integration Tests', () => {
       const mockData = [99005338, 99005551];
 
       // Mock 304 response but no cached data (edge case)
-      fetchMock.mockResponseOnce('', {
-        status: 304,
-      });
+      fetchMock.mockResponseOnce(new Response(null, { status: 304 }));
 
       // Should throw since there's no cached data for this 304
       await expect(client.alliance.getAlliances()).rejects.toThrow(

@@ -68,7 +68,7 @@ describe('FleetClient', () => {
   });
 
   it('should update the fleet information', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const body = { is_free_move: true };
 
@@ -119,7 +119,7 @@ describe('FleetClient', () => {
   });
 
   it('should create a fleet invitation', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const body = { character_id: 123456, role: 'squad_member' };
 
@@ -134,7 +134,7 @@ describe('FleetClient', () => {
   });
 
   it('should kick a fleet member', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       fleetClient.kickFleetMember(1234567890, 123456789),
@@ -147,7 +147,7 @@ describe('FleetClient', () => {
   });
 
   it('should move a fleet member', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const body = { role: 'squad_member', squad_id: 1, wing_id: 2 };
 
@@ -162,7 +162,7 @@ describe('FleetClient', () => {
   });
 
   it('should delete a fleet squad', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       fleetClient.deleteFleetSquad(1234567890, 1),
@@ -175,7 +175,7 @@ describe('FleetClient', () => {
   });
 
   it('should rename a fleet squad', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       fleetClient.renameFleetSquad(1234567890, 1, 'New Squad'),
@@ -218,7 +218,7 @@ describe('FleetClient', () => {
   });
 
   it('should create a fleet wing', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const body = { name: 'New Wing' };
 
@@ -233,7 +233,7 @@ describe('FleetClient', () => {
   });
 
   it('should delete a fleet wing', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       fleetClient.deleteFleetWing(1234567890, 1),
@@ -246,7 +246,7 @@ describe('FleetClient', () => {
   });
 
   it('should rename a fleet wing', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       fleetClient.renameFleetWing(1234567890, 1, 'New Wing'),
@@ -271,7 +271,7 @@ describe('FleetClient', () => {
   });
 
   it('should create a fleet squad', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       fleetClient.createFleetSquad(1234567890, 1),

@@ -79,7 +79,9 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
     constructor(client: ApiClient);
     getAllianceById(allianceId: number): Promise<AllianceInfo>;
     getAlliances(): Promise<number[]>;
+    // @deprecated
     getContactLabels(allianceId: number): Promise<AllianceContactLabel[]>;
+    // @deprecated
     getContacts(allianceId: number): Promise<AllianceContact[]>;
     getCorporations(allianceId: number): Promise<number[]>;
     getIcons(allianceId: number): Promise<AllianceIcon>;
@@ -352,7 +354,9 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     // (undocumented)
     protected streamEndpoint<R>(endpointName: string & keyof T, ...args: unknown[]): AsyncGenerator<PageResult<R>, void, undefined>;
     // (undocumented)
-    withMetadata(): WithMetadata<Omit<this, 'withMetadata'>>;
+    withMetadata(): WithMetadata<Omit<this, 'withMetadata' | 'withSafeMode'>>;
+    // (undocumented)
+    withSafeMode(): WithSafeMode<Omit<this, 'withMetadata' | 'withSafeMode'>>;
 }
 
 // @public (undocumented)
@@ -570,10 +574,10 @@ const CharacterAssetSchema: z.ZodObject<{
     quantity: z.ZodNumber;
     location_id: z.ZodNumber;
     location_type: z.ZodEnum<{
-        station: "station";
-        solar_system: "solar_system";
-        item: "item";
         other: "other";
+        solar_system: "solar_system";
+        station: "station";
+        item: "item";
     }>;
     location_flag: z.ZodString;
     is_singleton: z.ZodBoolean;
@@ -1994,12 +1998,12 @@ const ContractSchema: z.ZodObject<{
         loan: "loan";
     }>;
     status: z.ZodOptional<z.ZodEnum<{
+        cancelled: "cancelled";
         outstanding: "outstanding";
         in_progress: "in_progress";
         finished_issuer: "finished_issuer";
         finished_contractor: "finished_contractor";
         finished: "finished";
-        cancelled: "cancelled";
         rejected: "rejected";
         failed: "failed";
         deleted: "deleted";
@@ -3276,8 +3280,8 @@ export type CorporationStarbaseDetail = z.infer<typeof CorporationStarbaseDetail
 // @public (undocumented)
 const CorporationStarbaseDetailSchema: z.ZodObject<{
     state: z.ZodEnum<{
-        online: "online";
         offline: "offline";
+        online: "online";
         onlining: "onlining";
         reinforced: "reinforced";
         unanchoring: "unanchoring";
@@ -3306,8 +3310,8 @@ const CorporationStarbaseSchema: z.ZodObject<{
     type_id: z.ZodNumber;
     system_id: z.ZodNumber;
     state: z.ZodEnum<{
-        online: "online";
         offline: "offline";
+        online: "online";
         onlining: "onlining";
         reinforced: "reinforced";
         unanchoring: "unanchoring";
@@ -3331,8 +3335,8 @@ const CorporationStructureSchema: z.ZodObject<{
     services: z.ZodOptional<z.ZodArray<z.ZodObject<{
         name: z.ZodString;
         state: z.ZodEnum<{
-            online: "online";
             offline: "offline";
+            online: "online";
             cleanup: "cleanup";
         }>;
     }, z.core.$loose>>>;
@@ -5889,8 +5893,8 @@ const MarketOrderSchema: z.ZodObject<{
     issued: z.ZodString;
     range: z.ZodString;
     state: z.ZodOptional<z.ZodEnum<{
-        open: "open";
         closed: "closed";
+        open: "open";
         expired: "expired";
         cancelled: "cancelled";
     }>>;
@@ -6057,10 +6061,10 @@ const MercenaryTacticalOperationSchema: z.ZodObject<{
     system_id: z.ZodNumber;
     site_type: z.ZodString;
     status: z.ZodEnum<{
+        expired: "expired";
         active: "active";
         spawning: "spawning";
         completed: "completed";
-        expired: "expired";
     }>;
     started_at: z.ZodOptional<z.ZodString>;
     expires_at: z.ZodOptional<z.ZodString>;
@@ -6169,11 +6173,11 @@ const NameAndCategorySchema: z.ZodObject<{
         corporation: "corporation";
         alliance: "alliance";
         faction: "faction";
-        station: "station";
-        solar_system: "solar_system";
         constellation: "constellation";
         inventory_type: "inventory_type";
         region: "region";
+        solar_system: "solar_system";
+        station: "station";
     }>;
 }, z.core.$loose>;
 

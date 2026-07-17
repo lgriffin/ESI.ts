@@ -31,6 +31,7 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
   /**
    * Retrieve contacts for an alliance.
    *
+   * @deprecated Use ContactsClient.getAllianceContacts() instead
    * @param allianceId - The ID of the alliance whose contacts to retrieve
    * @returns A list of alliance contacts with standings and contact types
    * @requires Authentication
@@ -44,6 +45,7 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
   /**
    * Retrieve custom contact labels for an alliance.
    *
+   * @deprecated Use ContactsClient.getAllianceContactLabels() instead
    * @param allianceId - The ID of the alliance whose contact labels to retrieve
    * @returns A list of custom labels used to categorize alliance contacts
    * @requires Authentication

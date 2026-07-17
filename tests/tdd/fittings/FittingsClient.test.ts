@@ -101,7 +101,7 @@ describe('FittingsClient', () => {
   });
 
   it('should delete a fitting', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() => fittingsClient.deleteFitting(123456, 1));
 

@@ -155,10 +155,12 @@ describe('withMetadata()', () => {
 
       await handleRequest(apiClient, 'v1/test-endpoint/', 'GET');
 
-      fetchMock.mockResponseOnce('', {
-        status: 304,
-        headers: standardHeaders({ etag: '"test-etag"' }),
-      });
+      fetchMock.mockResponseOnce(
+        new Response(null, {
+          status: 304,
+          headers: standardHeaders({ etag: '"test-etag"' }),
+        }),
+      );
 
       const response = await handleRequest(
         apiClient,
