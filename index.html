@@ -1,4 +1,14 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@lgriffin/esi.ts - EVE Online ESI API Client - v6.1.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v6.1.0</a><div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/><ul role="listbox" id="tsd-search-results"></ul><div id="tsd-search-status" aria-live="polite" aria-atomic="true"><div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><h1>@lgriffin/esi.ts - EVE Online ESI API Client - v6.1.0</h1></div><div class="tsd-panel tsd-typography"><h1 id="esits" class="tsd-anchor-link">ESI.ts<a href="#esits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@lgriffin/esi.ts - EVE Online ESI API Client - v7.4.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v7.4.0</a>
+<div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>@lgriffin/esi.ts - EVE Online ESI API Client - v7.4.0</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="esits" class="tsd-anchor-link">ESI.ts<a href="#esits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <p><a href="https://badge.fury.io/js/%40lgriffin%2Fesi.ts"><img src="https://badge.fury.io/js/%40lgriffin%2Fesi.ts.svg" alt="npm version"></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
 <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-6.0%2B-blue" alt="TypeScript"></a>
@@ -6,13 +16,14 @@
 <a href="https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml"><img src="https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml/badge.svg" alt="PR Validation"></a>
 <a href="https://github.com/lgriffin/ESI.ts"><img src="https://img.shields.io/badge/coverage-65%25%2B-brightgreen" alt="Coverage"></a>
 <a href="https://www.npmjs.com/package/@lgriffin/esi.ts"><img src="https://img.shields.io/npm/dm/%40lgriffin/esi.ts" alt="npm downloads"></a></p>
-<p>A production-grade TypeScript client for the <a href="https://esi.evetech.net/">EVE Online ESI API</a>, with runtime validation, intelligent caching, and full endpoint coverage.</p>
-<p><strong>All 210 ESI endpoints are defined, tested, and validated against live Tranquility.</strong></p>
+<p>A production-grade TypeScript client for the <a href="https://esi.evetech.net/">EVE Online ESI API</a>, built on the <strong>OpenAPI 3.1 spec</strong>, with runtime validation, intelligent caching, and full endpoint coverage.</p>
+<p><strong>v7.0.0</strong> — Fully migrated from the deprecated Swagger 2.0 spec to OpenAPI 3.1 (<code>/meta/openapi.json</code>). All generated types, cache TTLs, scopes, and rate limit groups are now sourced from a single OpenAPI fetch. See <a href="https://github.com/esi/esi-issues/issues/1490">esi-issues#1490</a> for the deprecation notice.</p>
+<p><strong>208 endpoint definitions — 194 from the public ESI OpenAPI spec, plus 14 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs). All 206 exercisable endpoints validated against live Tranquility on 2026-07-08.</strong></p>
 <h2 id="why-esits-vs-openapi-generated-clients" class="tsd-anchor-link">Why ESI.ts vs. OpenAPI-Generated Clients?<a href="#why-esits-vs-openapi-generated-clients" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>Tools like <code>openapi-typescript</code> or <code>openapi-generator</code> can produce a typed client from the ESI swagger spec in minutes. They're a reasonable starting point — but they stop at type generation. ESI.ts is a purpose-built SDK that handles the problems you hit <em>after</em> the types compile.</p>
+<p>Tools like <code>openapi-typescript</code> or <code>openapi-generator</code> can produce a typed client from the ESI OpenAPI spec in minutes. They're a reasonable starting point — but they stop at type generation. ESI.ts is a purpose-built SDK that handles the problems you hit <em>after</em> the types compile.</p>
 <h3 id="what-generators-give-you" class="tsd-anchor-link">What generators give you<a href="#what-generators-give-you" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul>
-<li>TypeScript interfaces from the swagger spec</li>
+<li>TypeScript interfaces from the OpenAPI spec</li>
 <li>Basic request/response typing</li>
 <li>A thin HTTP wrapper</li>
 </ul>
@@ -29,7 +40,7 @@
 <tr>
 <td><strong>Runtime response validation</strong></td>
 <td>None — types are erased at compile time. If CCP changes a field, you get silent data corruption.</td>
-<td>Every response is validated at runtime via <a href="https://zod.dev/">Zod</a> schemas (146 of 210 endpoints). Schema mismatches throw <code>EsiValidationError</code> immediately.</td>
+<td>Every GET response is validated at runtime via <a href="https://zod.dev/">Zod</a> schemas — all 173 GET endpoints have schemas. Schema mismatches throw <code>EsiValidationError</code> immediately.</td>
 </tr>
 <tr>
 <td><strong>Intelligent caching</strong></td>
@@ -69,12 +80,12 @@
 <tr>
 <td><strong>Testing</strong></td>
 <td>Whatever you write.</td>
-<td>121 test suites, 3,224 tests across 7 tiers (TDD unit, BDD behavioral, mocked integration, live smoke, client integration, ESI spec contract, gated auth). 43 runnable example scripts with live output.</td>
+<td>121+ test suites, 3,800+ tests across 9 tiers including property-based fuzzing (fast-check), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 43 runnable example scripts.</td>
 </tr>
 </tbody>
 </table>
 <h3 id="the-real-problem-with-generated-clients" class="tsd-anchor-link">The real problem with generated clients<a href="#the-real-problem-with-generated-clients" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>The ESI swagger spec is not a perfect source of truth. During live endpoint validation, we discovered:</p>
+<p>The ESI OpenAPI spec is not a perfect source of truth. During live endpoint validation against the OpenAPI 3.1 spec, we discovered:</p>
 <ul>
 <li><code>addContacts</code>, <code>editContacts</code>, and 4 UI endpoints document parameters as request body when ESI actually expects query parameters</li>
 <li><code>deleteCharacterContacts</code> expects comma-separated contact IDs as a query param, not a JSON body</li>
@@ -416,7 +427,7 @@ ESI_CLIENT_ID=my-app-name
 </tbody>
 </table>
 <h2 id="runtime-response-validation" class="tsd-anchor-link">Runtime Response Validation<a href="#runtime-response-validation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>ESI.ts validates every API response at runtime using <a href="https://zod.dev/">Zod</a> schemas. 146 of 210 endpoints have schemas attached. If CCP changes the ESI API and the response no longer matches the expected shape, you get an immediate <code>EsiValidationError</code> instead of silent data corruption.</p>
+<p>ESI.ts validates API responses at runtime using <a href="https://zod.dev/">Zod</a> schemas. All GET endpoints have schemas — these are the endpoints that return data your application consumes, where a silent shape change from CCP would cause bugs. POST/PUT/DELETE mutations typically return <code>204 No Content</code> (no body to validate) or simple confirmation values, so schemas are omitted where there is nothing meaningful to validate.</p>
 <p>Validation is <strong>on by default</strong>. Extra fields from ESI are preserved via <code>z.looseObject()</code> passthrough mode, so new fields added by CCP won't break your application — they flow through to your code untouched.</p>
 <pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">EsiClient</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">EsiValidationError</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">isValidationError</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">schemas</span><span class="hl-1">,</span><br/><span class="hl-1">} </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">client</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">EsiClient</span><span class="hl-1">();</span><br/><br/><span class="hl-3">// Validation happens automatically on every request</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">character</span><span class="hl-1"> = </span><span class="hl-4">await</span><span class="hl-1"> </span><span class="hl-5">client</span><span class="hl-1">.</span><span class="hl-5">characters</span><span class="hl-1">.</span><span class="hl-0">getCharacterPublicInfo</span><span class="hl-1">(</span><span class="hl-8">12345</span><span class="hl-1">);</span><br/><br/><span class="hl-3">// Disable validation globally if needed</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">rawClient</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">EsiClient</span><span class="hl-1">({ </span><span class="hl-5">validateResponse:</span><span class="hl-1"> </span><span class="hl-6">false</span><span class="hl-1"> });</span><br/><br/><span class="hl-3">// Use schemas directly for your own validation</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">result</span><span class="hl-1"> = </span><span class="hl-5">schemas</span><span class="hl-1">.</span><span class="hl-5">CharacterInfoSchema</span><span class="hl-1">.</span><span class="hl-0">safeParse</span><span class="hl-1">(</span><span class="hl-5">someData</span><span class="hl-1">);</span><br/><span class="hl-4">if</span><span class="hl-1"> (</span><span class="hl-5">result</span><span class="hl-1">.</span><span class="hl-5">success</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">result</span><span class="hl-1">.</span><span class="hl-5">data</span><span class="hl-1">.</span><span class="hl-5">name</span><span class="hl-1">);</span><br/><span class="hl-1">}</span>
 </code><button type="button">Copy</button></pre>
@@ -436,7 +447,7 @@ ESI_CLIENT_ID=my-app-name
 </code><button type="button">Copy</button></pre>
 
 <h3 id="spec-aware-cache-ttls" class="tsd-anchor-link">Spec-Aware Cache TTLs<a href="#spec-aware-cache-ttls" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>The library reads <code>x-cached-seconds</code> from the ESI swagger spec (119 of 195 endpoints). Within the TTL window, repeated GET requests return cached data with <strong>zero HTTP calls</strong> — not even a conditional GET.</p>
+<p>The library reads <code>x-cache-age</code> from the ESI OpenAPI spec (126 of 195 endpoints). Within the TTL window, repeated GET requests return cached data with <strong>zero HTTP calls</strong> — not even a conditional GET.</p>
 <p>This layers on top of ETag caching in three tiers:</p>
 <ol>
 <li><strong>Spec TTL</strong> — data can't have changed yet, return cached data immediately</li>
@@ -486,16 +497,16 @@ ESI_CLIENT_ID=my-app-name
 <li>Existing offset-based routes (<code>getMarketOrders</code>, etc.) are unchanged</li>
 </ul>
 <h2 id="generated-types" class="tsd-anchor-link">Generated Types<a href="#generated-types" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>The library includes TypeScript interfaces generated directly from the ESI swagger spec, available as the <code>EsiSpec</code> namespace. These are guaranteed to match the live spec and complement the hand-written types:</p>
-<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">EsiSpec</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-3">// Generated type — exact spec field names and optionality</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">order</span><span class="hl-1">: </span><span class="hl-10">EsiSpec</span><span class="hl-1">.</span><span class="hl-10">GetMarketsRegionIdOrders200Ok</span><span class="hl-1"> = {</span><br/><span class="hl-1">  </span><span class="hl-5">order_id:</span><span class="hl-1"> </span><span class="hl-8">123</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">type_id:</span><span class="hl-1"> </span><span class="hl-8">34</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">price:</span><span class="hl-1"> </span><span class="hl-8">5.5</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">volume_remain:</span><span class="hl-1"> </span><span class="hl-8">1000</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">volume_total:</span><span class="hl-1"> </span><span class="hl-8">5000</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">is_buy_order:</span><span class="hl-1"> </span><span class="hl-6">false</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-3">// ...</span><br/><span class="hl-1">};</span>
+<p>The library includes TypeScript interfaces generated directly from the ESI OpenAPI 3.1 spec, available as the <code>EsiSpec</code> namespace. These are guaranteed to match the live spec and complement the hand-written types:</p>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">EsiSpec</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-3">// Generated type — uses OpenAPI schema names (v7.0.0+)</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">order</span><span class="hl-1">: </span><span class="hl-10">EsiSpec</span><span class="hl-1">.</span><span class="hl-10">MarketsRegionIdOrdersGet</span><span class="hl-1"> = {</span><br/><span class="hl-1">  </span><span class="hl-5">order_id:</span><span class="hl-1"> </span><span class="hl-8">123</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">type_id:</span><span class="hl-1"> </span><span class="hl-8">34</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">price:</span><span class="hl-1"> </span><span class="hl-8">5.5</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">volume_remain:</span><span class="hl-1"> </span><span class="hl-8">1000</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">volume_total:</span><span class="hl-1"> </span><span class="hl-8">5000</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">is_buy_order:</span><span class="hl-1"> </span><span class="hl-6">false</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-3">// ...</span><br/><span class="hl-1">};</span>
 </code><button type="button">Copy</button></pre>
 
 <p>To regenerate types from the latest ESI spec:</p>
-<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">generate:types</span><span class="hl-1">    </span><span class="hl-3"># fetches spec, generates 147 interfaces + cache TTL map + rate limit groups + scope map</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">validate:esi</span><span class="hl-1">      </span><span class="hl-3"># reports type drift between hand-written and generated types</span>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">generate:types</span><span class="hl-1">    </span><span class="hl-3"># fetches OpenAPI spec, generates 161 interfaces + cache TTL map + rate limit groups + scope map</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">validate:esi</span><span class="hl-1">      </span><span class="hl-3"># reports type drift between hand-written and generated types</span>
 </code><button type="button">Copy</button></pre>
 
 <h2 id="esi-scopes" class="tsd-anchor-link">ESI Scopes<a href="#esi-scopes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>The library includes a generated scope-to-endpoint mapping extracted from the ESI swagger spec. Use it to check which OAuth scopes an endpoint requires before making a request:</p>
+<p>The library includes a generated scope-to-endpoint mapping extracted from the ESI OpenAPI spec. Use it to check which OAuth scopes an endpoint requires before making a request:</p>
 <pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">esiEndpointScopes</span><span class="hl-1">, </span><span class="hl-5">EsiScope</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@lgriffin/esi.ts&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-3">// Look up scopes for a specific endpoint</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">walletScopes</span><span class="hl-1"> = </span><span class="hl-5">esiEndpointScopes</span><span class="hl-1">[</span><span class="hl-2">&#39;GET:characters/{character_id}/wallet&#39;</span><span class="hl-1">];</span><br/><span class="hl-3">// → [&#39;esi-wallet.read_character_wallet.v1&#39;]</span><br/><br/><span class="hl-3">// Check if an endpoint requires auth</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">isPublic</span><span class="hl-1"> = !</span><span class="hl-5">esiEndpointScopes</span><span class="hl-1">[</span><span class="hl-2">&#39;GET:universe/types/{type_id}&#39;</span><span class="hl-1">];</span><br/><span class="hl-3">// → true (public endpoint, no scopes needed)</span><br/><br/><span class="hl-3">// Type-safe scope values</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">scope</span><span class="hl-1">: </span><span class="hl-10">EsiScope</span><span class="hl-1"> = </span><span class="hl-2">&#39;esi-assets.read_assets.v1&#39;</span><span class="hl-1">;</span>
 </code><button type="button">Copy</button></pre>
 
@@ -590,7 +601,7 @@ ESI_CLIENT_ID=my-app-name
 </code><button type="button">Copy</button></pre>
 
 <h2 id="endpoint-coverage" class="tsd-anchor-link">Endpoint Coverage<a href="#endpoint-coverage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>All 210 ESI endpoint definitions have been validated against live Tranquility. This table summarizes the validation approach:</p>
+<p>All 208 endpoint definitions have been validated against live Tranquility using the <strong>OpenAPI 3.1 spec</strong> — 194 from the public ESI spec plus 14 for newer EVE features. 206 endpoints are exercisable (2 mercenary den endpoints await CCP deployment). Full output is captured in <a href="media/openapi.output.md"><code>openapi.output.md</code></a>.</p>
 <table>
 <thead>
 <tr>
@@ -638,7 +649,7 @@ ESI_CLIENT_ID=my-app-name
 <tr>
 <td>Fleet (GET/POST/PUT/DELETE)</td>
 <td>14</td>
-<td>Live fleet with two characters</td>
+<td>Live fleet with fleet commander + squad members</td>
 </tr>
 <tr>
 <td>Assets POST</td>
@@ -653,7 +664,7 @@ ESI_CLIENT_ID=my-app-name
 <tr>
 <td>Dogma dynamic (GET)</td>
 <td>1</td>
-<td>Live mutaplasmid item query</td>
+<td>Live mutaplasmid (Abyssal) item query</td>
 </tr>
 <tr>
 <td>Universe POST helpers</td>
@@ -727,8 +738,23 @@ ESI_CLIENT_ID=my-app-name
 </tr>
 <tr>
 <td><strong>ESI spec contract</strong></td>
-<td>10 tests</td>
-<td>Endpoint definitions validated against live swagger spec</td>
+<td>15 tests</td>
+<td>Endpoint definitions validated against live OpenAPI spec</td>
+</tr>
+<tr>
+<td><strong>Deep contract tests</strong></td>
+<td>8 categories</td>
+<td>Path params, query params, body, auth, schemas, pagination vs spec</td>
+</tr>
+<tr>
+<td><strong>Property-based fuzzing</strong></td>
+<td>601 tests</td>
+<td>fast-check fuzzing of validation, URL construction, Zod schemas</td>
+</tr>
+<tr>
+<td><strong>Type-level tests</strong></td>
+<td>tsd</td>
+<td>Consumer API type correctness via tsd</td>
 </tr>
 <tr>
 <td><strong>Gated auth tests</strong></td>
@@ -737,7 +763,7 @@ ESI_CLIENT_ID=my-app-name
 </tr>
 </tbody>
 </table>
-<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1">          </span><span class="hl-3"># Unit + BDD tests (121 suites, 3,224 tests)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">coverage</span><span class="hl-1">  </span><span class="hl-3"># Tests with coverage report (thresholds enforced)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">bdd</span><span class="hl-1">       </span><span class="hl-3"># BDD scenario tests only</span>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1">          </span><span class="hl-3"># Unit + BDD tests (121 suites, 3,224 tests)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">coverage</span><span class="hl-1">  </span><span class="hl-3"># Tests with coverage report (thresholds enforced)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">bdd</span><span class="hl-1">       </span><span class="hl-3"># BDD scenario tests only</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">contract</span><span class="hl-1">  </span><span class="hl-3"># Contract tests (skipped without ESI_LIVE_TESTS=true)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">fuzz</span><span class="hl-1">      </span><span class="hl-3"># Property-based fuzz tests (601 tests)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:types</span><span class="hl-1"> </span><span class="hl-3"># tsd consumer type tests</span>
 </code><button type="button">Copy</button></pre>
 
 <p>Coverage thresholds are enforced in CI: branches 50%, functions 50%, lines 65%, statements 65%.</p>
@@ -794,18 +820,23 @@ ESI_CLIENT_ID=my-app-name
 <td>Run linters on staged files only</td>
 <td>Automatic on commit</td>
 </tr>
+<tr>
+<td><a href="https://redocly.com/docs/cli/">Redocly CLI</a></td>
+<td>OpenAPI spec validation and linting</td>
+<td><code>npm run validate:spec</code></td>
+</tr>
 </tbody>
 </table>
 <h3 id="available-scripts" class="tsd-anchor-link">Available Scripts<a href="#available-scripts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<pre><code class="bash"><span class="hl-3"># Development</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">build</span><span class="hl-1">              </span><span class="hl-3"># Compile TypeScript</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">lint</span><span class="hl-1">               </span><span class="hl-3"># Run ESLint</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">lint:fix</span><span class="hl-1">           </span><span class="hl-3"># Run ESLint with auto-fix</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">format</span><span class="hl-1">             </span><span class="hl-3"># Format code with Prettier</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">format:check</span><span class="hl-1">       </span><span class="hl-3"># Check formatting without modifying</span><br/><br/><span class="hl-3"># Testing</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1">                   </span><span class="hl-3"># Unit tests (121 suites, 3,224 tests)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:all</span><span class="hl-1">           </span><span class="hl-3"># Unit + improved + BDD tests</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">coverage</span><span class="hl-1">           </span><span class="hl-3"># Tests with coverage report (thresholds enforced)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">bdd</span><span class="hl-1">                </span><span class="hl-3"># BDD scenario tests</span><br/><br/><span class="hl-3"># Static Analysis</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">knip</span><span class="hl-1">               </span><span class="hl-3"># Detect dead code and unused exports</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">validate:esi</span><span class="hl-1">       </span><span class="hl-3"># Validate endpoints against live ESI swagger spec</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">validate</span><span class="hl-1">           </span><span class="hl-3"># Run all checks: lint, format, build, coverage, knip</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">generate:types</span><span class="hl-1">     </span><span class="hl-3"># Regenerate TypeScript interfaces from ESI swagger spec</span><br/><br/><span class="hl-3"># Documentation</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">docs</span><span class="hl-1">               </span><span class="hl-3"># Generate TypeDoc API documentation</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">docs:serve</span><span class="hl-1">         </span><span class="hl-3"># Serve docs locally on port 8080</span>
+<pre><code class="bash"><span class="hl-3"># Development</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">build</span><span class="hl-1">              </span><span class="hl-3"># Compile TypeScript</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">lint</span><span class="hl-1">               </span><span class="hl-3"># Run ESLint</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">lint:fix</span><span class="hl-1">           </span><span class="hl-3"># Run ESLint with auto-fix</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">format</span><span class="hl-1">             </span><span class="hl-3"># Format code with Prettier</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">format:check</span><span class="hl-1">       </span><span class="hl-3"># Check formatting without modifying</span><br/><br/><span class="hl-3"># Testing</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1">                   </span><span class="hl-3"># Unit tests (121 suites, 3,224 tests)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:all</span><span class="hl-1">           </span><span class="hl-3"># Unit + BDD + integration + fuzz + type tests</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">coverage</span><span class="hl-1">           </span><span class="hl-3"># Tests with coverage report (thresholds enforced)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">bdd</span><span class="hl-1">                </span><span class="hl-3"># BDD scenario tests</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">contract:live</span><span class="hl-1">      </span><span class="hl-3"># Deep contract tests against live ESI spec</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">fuzz</span><span class="hl-1">               </span><span class="hl-3"># Property-based fuzz tests (fast-check)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:types</span><span class="hl-1">         </span><span class="hl-3"># Consumer type tests (tsd)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">mock:esi</span><span class="hl-1">           </span><span class="hl-3"># Start Prism mock ESI server on port 4010</span><br/><br/><span class="hl-3"># Static Analysis</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">knip</span><span class="hl-1">               </span><span class="hl-3"># Detect dead code and unused exports</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">validate:esi</span><span class="hl-1">       </span><span class="hl-3"># Validate endpoints against live ESI OpenAPI spec</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">validate:spec</span><span class="hl-1">      </span><span class="hl-3"># Lint ESI OpenAPI spec with Redocly (structural + best practices)</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">validate</span><span class="hl-1">           </span><span class="hl-3"># Run all checks: lint, format, build, coverage, knip</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">generate:types</span><span class="hl-1">     </span><span class="hl-3"># Regenerate TypeScript interfaces from ESI OpenAPI spec</span><br/><br/><span class="hl-3"># Documentation</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">docs</span><span class="hl-1">               </span><span class="hl-3"># Generate TypeDoc API documentation</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">docs:serve</span><span class="hl-1">         </span><span class="hl-3"># Serve docs locally on port 8080</span>
 </code><button type="button">Copy</button></pre>
 
 <h3 id="esi-endpoint-validation" class="tsd-anchor-link">ESI Endpoint Validation<a href="#esi-endpoint-validation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>To verify that the codebase endpoint definitions match the live ESI swagger spec:</p>
+<p>To verify that the codebase endpoint definitions match the live ESI OpenAPI spec:</p>
 <pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">validate:esi</span>
 </code><button type="button">Copy</button></pre>
 
-<p>This fetches <code>https://esi.evetech.net/latest/swagger.json</code> and reports:</p>
+<p>This fetches the ESI OpenAPI spec and reports:</p>
 <ul>
 <li>Endpoints in the codebase that are no longer in the ESI spec</li>
 <li>Endpoints in the ESI spec that the codebase doesn't cover</li>
@@ -819,7 +850,7 @@ ESI_CLIENT_ID=my-app-name
 <li>ESLint (with security and sonarjs plugins)</li>
 <li>Prettier formatting check</li>
 <li>TypeScript compilation</li>
-<li>Generated types staleness check (regenerates from live ESI spec and verifies no diff)</li>
+<li>Generated types staleness check (regenerates from live ESI OpenAPI spec and verifies no diff)</li>
 <li>Unit tests across Node.js 18, 20, and 22</li>
 <li>BDD scenario tests</li>
 <li>Coverage threshold enforcement (branches: 50%, functions: 50%, lines: 65%, statements: 65%)</li>
@@ -839,4 +870,84 @@ ESI_CLIENT_ID=my-app-name
 <p>GPL-3.0-or-later - see the <a href="media/LICENSE">LICENSE</a> file for details.</p>
 <hr>
 <p><strong>o7</strong></p>
-</div></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg><h3>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg><h3>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#esits"><span>ESI.ts</span></a><ul><li><a href="#why-esits-vs-openapi-generated-clients"><span>Why <wbr/>ESI.ts vs. <wbr/>Open<wbr/>API-<wbr/>Generated <wbr/>Clients?</span></a></li><li><ul><li><a href="#what-generators-give-you"><span>What generators give you</span></a></li><li><a href="#what-esits-gives-you-on-top-of-that"><span>What <wbr/>ESI.ts gives you on top of that</span></a></li><li><a href="#the-real-problem-with-generated-clients"><span>The real problem with generated clients</span></a></li></ul></li><li><a href="#installation"><span>Installation</span></a></li><li><ul><li><a href="#building-from-source"><span>Building from <wbr/>Source</span></a></li></ul></li><li><a href="#quick-start"><span>Quick <wbr/>Start</span></a></li><li><a href="#configuration"><span>Configuration</span></a></li><li><a href="#authentication"><span>Authentication</span></a></li><li><ul><li><a href="#1-environment-variable-recommended"><span>1. <wbr/>Environment variable (recommended)</span></a></li><li><a href="#2-constructor-parameter"><span>2. <wbr/>Constructor parameter</span></a></li><li><a href="#3-runtime-update"><span>3. <wbr/>Runtime update</span></a></li><li><a href="#getting-an-eve-sso-token"><span>Getting an <wbr/>EVE <wbr/>SSO token</span></a></li><li><a href="#automatic-token-refresh"><span>Automatic <wbr/>Token <wbr/>Refresh</span></a></li><li><a href="#environment-variables-reference"><span>Environment variables reference</span></a></li></ul></li><li><a href="#available-apis"><span>Available <wbr/>AP<wbr/>Is</span></a></li><li><a href="#runtime-response-validation"><span>Runtime <wbr/>Response <wbr/>Validation</span></a></li><li><a href="#caching"><span>Caching</span></a></li><li><ul><li><a href="#spec-aware-cache-ttls"><span>Spec-<wbr/>Aware <wbr/>Cache <wbr/>TT<wbr/>Ls</span></a></li></ul></li><li><a href="#batch-requests"><span>Batch <wbr/>Requests</span></a></li><li><a href="#streaming-pagination"><span>Streaming <wbr/>Pagination</span></a></li><li><a href="#cursor-based-pagination"><span>Cursor-<wbr/>based <wbr/>Pagination</span></a></li><li><a href="#generated-types"><span>Generated <wbr/>Types</span></a></li><li><a href="#esi-scopes"><span>ESI <wbr/>Scopes</span></a></li><li><a href="#error-handling"><span>Error <wbr/>Handling</span></a></li><li><a href="#response-metadata"><span>Response <wbr/>Metadata</span></a></li><li><a href="#rate-limiting"><span>Rate <wbr/>Limiting</span></a></li><li><a href="#lightweight-clients"><span>Lightweight <wbr/>Clients</span></a></li><li><a href="#endpoint-coverage"><span>Endpoint <wbr/>Coverage</span></a></li><li><a href="#examples"><span>Examples</span></a></li><li><ul><li><a href="#public-endpoints-no-auth-needed"><span>Public <wbr/>Endpoints (no auth needed)</span></a></li><li><a href="#authenticated-endpoints-require-esi_access_token"><span>Authenticated <wbr/>Endpoints (require <wbr/>ESI_<wbr/>ACCESS_<wbr/>TOKEN)</span></a></li><li><a href="#write-operations-require-specific-scopes-caution"><span>Write <wbr/>Operations (require specific scopes + caution)</span></a></li><li><a href="#parallel-requests"><span>Parallel <wbr/>Requests</span></a></li><li><a href="#market-analysis"><span>Market <wbr/>Analysis</span></a></li></ul></li><li><a href="#resource-management"><span>Resource <wbr/>Management</span></a></li><li><a href="#testing"><span>Testing</span></a></li><li><a href="#development"><span>Development</span></a></li><li><ul><li><a href="#prerequisites"><span>Prerequisites</span></a></li><li><a href="#code-quality-tools"><span>Code <wbr/>Quality <wbr/>Tools</span></a></li><li><a href="#available-scripts"><span>Available <wbr/>Scripts</span></a></li><li><a href="#esi-endpoint-validation"><span>ESI <wbr/>Endpoint <wbr/>Validation</span></a></li><li><a href="#pre-commit-hooks"><span>Pre-<wbr/>commit <wbr/>Hooks</span></a></li><li><a href="#cicd"><span>CI/<wbr/>CD</span></a></li></ul></li><li><a href="#contributing"><span>Contributing</span></a></li><li><a href="#license"><span>License</span></a></li></ul></div></details></div><div class="site-menu"><nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav><nav class="tsd-navigation"><a href="modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v6.1.0</a><ul class="tsd-small-nested-navigation" id="tsd-nav-container"><li>Loading...</li></ul></nav></div></div></div><footer><p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer><div class="overlay"></div></body></html>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#esits"><span>ESI.ts</span></a>
+<ul>
+<li><a href="#why-esits-vs-openapi-generated-clients"><span>Why <wbr/>ESI.ts vs. <wbr/>Open<wbr/>API-<wbr/>Generated <wbr/>Clients?</span></a></li>
+<li>
+<ul>
+<li><a href="#what-generators-give-you"><span>What generators give you</span></a></li>
+<li><a href="#what-esits-gives-you-on-top-of-that"><span>What <wbr/>ESI.ts gives you on top of that</span></a></li>
+<li><a href="#the-real-problem-with-generated-clients"><span>The real problem with generated clients</span></a></li></ul></li>
+<li><a href="#installation"><span>Installation</span></a></li>
+<li>
+<ul>
+<li><a href="#building-from-source"><span>Building from <wbr/>Source</span></a></li></ul></li>
+<li><a href="#quick-start"><span>Quick <wbr/>Start</span></a></li>
+<li><a href="#configuration"><span>Configuration</span></a></li>
+<li><a href="#authentication"><span>Authentication</span></a></li>
+<li>
+<ul>
+<li><a href="#1-environment-variable-recommended"><span>1. <wbr/>Environment variable (recommended)</span></a></li>
+<li><a href="#2-constructor-parameter"><span>2. <wbr/>Constructor parameter</span></a></li>
+<li><a href="#3-runtime-update"><span>3. <wbr/>Runtime update</span></a></li>
+<li><a href="#getting-an-eve-sso-token"><span>Getting an <wbr/>EVE <wbr/>SSO token</span></a></li>
+<li><a href="#automatic-token-refresh"><span>Automatic <wbr/>Token <wbr/>Refresh</span></a></li>
+<li><a href="#environment-variables-reference"><span>Environment variables reference</span></a></li></ul></li>
+<li><a href="#available-apis"><span>Available <wbr/>AP<wbr/>Is</span></a></li>
+<li><a href="#runtime-response-validation"><span>Runtime <wbr/>Response <wbr/>Validation</span></a></li>
+<li><a href="#caching"><span>Caching</span></a></li>
+<li>
+<ul>
+<li><a href="#spec-aware-cache-ttls"><span>Spec-<wbr/>Aware <wbr/>Cache <wbr/>TT<wbr/>Ls</span></a></li></ul></li>
+<li><a href="#batch-requests"><span>Batch <wbr/>Requests</span></a></li>
+<li><a href="#streaming-pagination"><span>Streaming <wbr/>Pagination</span></a></li>
+<li><a href="#cursor-based-pagination"><span>Cursor-<wbr/>based <wbr/>Pagination</span></a></li>
+<li><a href="#generated-types"><span>Generated <wbr/>Types</span></a></li>
+<li><a href="#esi-scopes"><span>ESI <wbr/>Scopes</span></a></li>
+<li><a href="#error-handling"><span>Error <wbr/>Handling</span></a></li>
+<li><a href="#response-metadata"><span>Response <wbr/>Metadata</span></a></li>
+<li><a href="#rate-limiting"><span>Rate <wbr/>Limiting</span></a></li>
+<li><a href="#lightweight-clients"><span>Lightweight <wbr/>Clients</span></a></li>
+<li><a href="#endpoint-coverage"><span>Endpoint <wbr/>Coverage</span></a></li>
+<li><a href="#examples"><span>Examples</span></a></li>
+<li>
+<ul>
+<li><a href="#public-endpoints-no-auth-needed"><span>Public <wbr/>Endpoints (no auth needed)</span></a></li>
+<li><a href="#authenticated-endpoints-require-esi_access_token"><span>Authenticated <wbr/>Endpoints (require <wbr/>ESI_<wbr/>ACCESS_<wbr/>TOKEN)</span></a></li>
+<li><a href="#write-operations-require-specific-scopes-caution"><span>Write <wbr/>Operations (require specific scopes + caution)</span></a></li>
+<li><a href="#parallel-requests"><span>Parallel <wbr/>Requests</span></a></li>
+<li><a href="#market-analysis"><span>Market <wbr/>Analysis</span></a></li></ul></li>
+<li><a href="#resource-management"><span>Resource <wbr/>Management</span></a></li>
+<li><a href="#testing"><span>Testing</span></a></li>
+<li><a href="#development"><span>Development</span></a></li>
+<li>
+<ul>
+<li><a href="#prerequisites"><span>Prerequisites</span></a></li>
+<li><a href="#code-quality-tools"><span>Code <wbr/>Quality <wbr/>Tools</span></a></li>
+<li><a href="#available-scripts"><span>Available <wbr/>Scripts</span></a></li>
+<li><a href="#esi-endpoint-validation"><span>ESI <wbr/>Endpoint <wbr/>Validation</span></a></li>
+<li><a href="#pre-commit-hooks"><span>Pre-<wbr/>commit <wbr/>Hooks</span></a></li>
+<li><a href="#cicd"><span>CI/<wbr/>CD</span></a></li></ul></li>
+<li><a href="#contributing"><span>Contributing</span></a></li>
+<li><a href="#license"><span>License</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav>
+<nav class="tsd-navigation"><a href="modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v7.4.0</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
