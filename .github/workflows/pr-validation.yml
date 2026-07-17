@@ -141,7 +141,7 @@ jobs:
         run: npm run coverage
 
       - name: Post coverage comment
-        uses: MishaKav/jest-coverage-comment@main
+        uses: MishaKav/jest-coverage-comment@v1.0.34
         with:
           coverage-summary-path: coverage/unit/coverage-summary.json
           title: Test Coverage

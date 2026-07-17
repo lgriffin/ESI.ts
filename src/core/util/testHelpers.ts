@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const getBody = async (apiCall: () => Promise<any>): Promise<any> => {
   return apiCall();
 };
-/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return */
+/* eslint-enable @typescript-eslint/no-explicit-any */

@@ -22,7 +22,7 @@ describe('UiClient', () => {
   });
 
   it('should set autopilot waypoint', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       uiClient.setAutopilotWaypoint(30002505, false, true),
@@ -35,7 +35,7 @@ describe('UiClient', () => {
   });
 
   it('should open contract window', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() => uiClient.openContractWindow(123456789));
 
@@ -46,7 +46,7 @@ describe('UiClient', () => {
   });
 
   it('should open information window', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       uiClient.openInformationWindow(123456789),
@@ -59,7 +59,7 @@ describe('UiClient', () => {
   });
 
   it('should open market details window', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() =>
       uiClient.openMarketDetailsWindow(123456),
@@ -72,7 +72,7 @@ describe('UiClient', () => {
   });
 
   it('should open new mail window', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
     const body = {
       to: [123456789],
       subject: 'Test Subject',

@@ -145,7 +145,7 @@ describe('Dependency Injection', () => {
       );
       client.setCache(mockCache);
 
-      fetchMock.mockResponseOnce('', { status: 304 });
+      fetchMock.mockResponseOnce(new Response(null, { status: 304 }));
 
       const result = await handleRequest(client, 'v1/status/', 'GET');
 

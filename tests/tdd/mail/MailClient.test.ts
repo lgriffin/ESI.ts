@@ -81,7 +81,7 @@ describe('MailClient', () => {
   });
 
   it('should delete a mail', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() => mailClient.deleteMail(123456, 1));
 
@@ -121,7 +121,7 @@ describe('MailClient', () => {
   });
 
   it('should update mail metadata', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const body = {
       labels: [1, 2],
@@ -196,7 +196,7 @@ describe('MailClient', () => {
   });
 
   it('should delete a mail label', async () => {
-    fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
     const result = await getBody(() => mailClient.deleteMailLabel(123456, 1));
 
