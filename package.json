@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "7.3.0",
+  "version": "7.4.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
