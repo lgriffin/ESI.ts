@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.4.0] - 2026-07-17
+
+### Added
+
+- **`withSafeMode()` on all domain clients** — mirrors existing `withMetadata()`, surfaces the `EsiResult<T>` discriminated union (`{ ok: true, data, meta } | { ok: false, error }`) without needing to call `createClient()` directly
+- **`responseSchema` on `routeEndpoints`** — was the only endpoint file without runtime response validation; now validated with `z.looseObject({ route: z.array(z.number()) })`
+
+### Changed
+
+- **ESLint 8 → 10 flat config migration** — replaced `.eslintrc.cjs` with `eslint.config.mjs`, switched to unified `typescript-eslint` package, dropped `eslint-plugin-prettier` (redundant with lint-staged)
+- **jest-fetch-mock 3 → 4** — updated null-body status mocks (204/304) to use `new Response(null, ...)` per Fetch spec
+- Updated 11 minor/patch dependencies: @commitlint/cli, @microsoft/api-extractor, @redocly/cli, @types/node, @typescript-eslint/*, eslint-plugin-sonarjs, fast-check, knip, prettier, typedoc
+
+### Fixed
+
+- CI: aligned `codeql.yml` branch targets to `[master, main, develop]`
+- CI: pinned `jest-coverage-comment@main` → `@v1.0.34` (supply-chain risk)
+- CI: added schema drift and generated types freshness checks to release pipeline
+
+### Deprecated
+
+- `AllianceClient.getContacts()` — use `ContactsClient.getAllianceContacts()` instead
+- `AllianceClient.getContactLabels()` — use `ContactsClient.getAllianceContactLabels()` instead
+
+## [7.3.0] - 2026-07-14
+
+### Added
+
+- **`EsiResult<T>` discriminated union** and `safeMode` option for error-safe API calls
+- **Branded ID types** (16 types) for type-safe ESI entity references
+- **Expanded type-level tests** with tsd for error guards, endpoints, and domain types
+- **Compile-time spec-to-Zod type alignment checks**
+- **Schema drift detection** as a blocking CI check
+- **Comprehensive testing gap closure** (+1233 tests)
+
+### Fixed
+
+- Resolved three CI jobs failing with continue-on-error
+- Normalized CRLF in API surface check
+- Fixed schemathesis report permissions and `--url` flag
+- Fixed API surface ordering issues
+- Added missing `system_id` to `MarketOrderSchema` test data
+
 ## [7.2.0] - 2026-07-08
 
 ### Added
