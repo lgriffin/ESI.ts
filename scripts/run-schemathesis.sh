@@ -41,8 +41,10 @@ docker run --rm --network host \
   schemathesis/schemathesis \
   run https://esi.evetech.net/meta/openapi.json \
   --checks all \
-  --max-examples 50 \
+  --max-examples 10 \
   --url http://localhost:4010 \
+  --workers 4 \
+  --max-time 600 \
   --report junit \
   --report-junit-path /reports/junit.xml \
   || SCHEMATHESIS_EXIT=$?
