@@ -43,8 +43,7 @@ docker run --rm --network host \
   --checks all \
   --max-examples 10 \
   --url http://localhost:4010 \
-  --workers 4 \
-  --max-time 600 \
+  --workers auto \
   --report junit \
   --report-junit-path /reports/junit.xml \
   || SCHEMATHESIS_EXIT=$?
