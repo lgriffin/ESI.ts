@@ -95,11 +95,15 @@ async function main() {
           console.log(`  Subject: ${fullMail.subject || '(no subject)'}`);
           console.log(`  From:    ${fullMail.from}`);
           if (fullMail.body) {
-            const preview = fullMail.body
-              .substring(0, 200)
-              .replace(/<[^>]*>/g, '');
+            let stripped = fullMail.body;
+            let prev = '';
+            while (prev !== stripped) {
+              prev = stripped;
+              stripped = stripped.replace(/<[^>]*?>/g, '');
+            }
+            const preview = stripped.substring(0, 200);
             console.log(
-              `  Body:    ${preview}${fullMail.body.length > 200 ? '...' : ''}`,
+              `  Body:    ${preview}${stripped.length > 200 ? '...' : ''}`,
             );
           }
         } catch {

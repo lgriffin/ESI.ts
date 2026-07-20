@@ -18,6 +18,14 @@ import * as http from 'http';
 import * as path from 'path';
 import { exec } from 'child_process';
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 const ESI_OPENAPI_URL =
   'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
 const EVE_SSO_AUTH_URL = 'https://login.eveonline.com/v2/oauth/authorize';
@@ -236,10 +244,12 @@ function waitForCallback(
             resolve({ kind: 'error', error, description: errorDesc });
           }
         } else {
+          const safeError = escapeHtml(error);
+          const safeDesc = escapeHtml(errorDesc);
           res.writeHead(400, { 'Content-Type': 'text/html' });
           res.end(
             '<html><body style="font-family:sans-serif;text-align:center;padding:3em">' +
-              `<h2>OAuth error: ${error}</h2><p>${errorDesc}</p>` +
+              `<h2>OAuth error: ${safeError}</h2><p>${safeDesc}</p>` +
               '</body></html>',
           );
           server.close();
