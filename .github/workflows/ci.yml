@@ -304,7 +304,7 @@ jobs:
 
       - name: Run mutation testing
         run: npm run mutation
-        timeout-minutes: 30
+        timeout-minutes: 60
 
       - name: Upload mutation report
         uses: actions/upload-artifact@v7

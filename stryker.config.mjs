@@ -36,7 +36,7 @@ export default {
     low: 60,
     break: 65,
   },
-  concurrency: 2,
+  concurrency: 4,
   timeoutMS: 30000,
   tempDirName: '.stryker-tmp',
   cleanTempDir: true,
