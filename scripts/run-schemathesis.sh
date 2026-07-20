@@ -23,8 +23,7 @@ PRISM_PID=$!
 
 echo "Waiting for Prism to be ready..."
 for i in $(seq 1 30); do
-  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4010/status/ 2>/dev/null || echo "000")
-  if [ "$HTTP_CODE" = "200" ]; then
+  if curl -s -o /dev/null http://localhost:4010/status 2>/dev/null; then
     echo "Prism is ready."
     break
   fi
