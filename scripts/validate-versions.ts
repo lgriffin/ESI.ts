@@ -13,7 +13,13 @@ function getPackageJsonVersion(): string {
 }
 
 function getConstantsVersion(): string {
-  const constantsPath = path.join(__dirname, '..', 'src', 'core', 'constants.ts');
+  const constantsPath = path.join(
+    __dirname,
+    '..',
+    'src',
+    'core',
+    'constants.ts',
+  );
   const content = readFileSync(constantsPath, 'utf-8');
   const match = content.match(/PACKAGE_VERSION\s*=\s*['"]([^'"]+)['"]/);
   if (!match) {

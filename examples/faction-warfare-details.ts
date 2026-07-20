@@ -22,12 +22,14 @@ async function main() {
 
     // --- Public leaderboards ---
     console.log('Fetching leaderboards...');
-    const [overall, charLeaderboard, corpLeaderboard, wars] = await Promise.all([
-      client.factions.getLeaderboardsOverall(),
-      client.factions.getLeaderboardsCharacters(),
-      client.factions.getLeaderboardsCorporations(),
-      client.factions.getWars(),
-    ]);
+    const [overall, charLeaderboard, corpLeaderboard, wars] = await Promise.all(
+      [
+        client.factions.getLeaderboardsOverall(),
+        client.factions.getLeaderboardsCharacters(),
+        client.factions.getLeaderboardsCorporations(),
+        client.factions.getWars(),
+      ],
+    );
 
     console.log('Overall Leaderboard');
     console.log('-'.repeat(50));
@@ -57,7 +59,10 @@ async function main() {
       console.log(`  Kills:       ${JSON.stringify(charStats.kills)}`);
       console.log(`  VP:          ${JSON.stringify(charStats.victory_points)}`);
     } catch (err) {
-      if (err instanceof EsiError && (err.statusCode === 404 || err.statusCode === 403)) {
+      if (
+        err instanceof EsiError &&
+        (err.statusCode === 404 || err.statusCode === 403)
+      ) {
         console.log('  Character is not enlisted in faction warfare');
       } else {
         throw err;
@@ -72,7 +77,10 @@ async function main() {
       console.log(`  Faction ID:  ${corpStats.faction_id ?? 'not enlisted'}`);
       console.log(`  Kills:       ${JSON.stringify(corpStats.kills)}`);
     } catch (err) {
-      if (err instanceof EsiError && (err.statusCode === 403 || err.statusCode === 401)) {
+      if (
+        err instanceof EsiError &&
+        (err.statusCode === 403 || err.statusCode === 401)
+      ) {
         console.log('  Requires corporation roles — skipped');
       } else if (err instanceof EsiError && err.statusCode === 404) {
         console.log('  Corporation is not enlisted in faction warfare');
@@ -80,7 +88,6 @@ async function main() {
         throw err;
       }
     }
-
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

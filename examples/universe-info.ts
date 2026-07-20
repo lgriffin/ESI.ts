@@ -33,7 +33,9 @@ async function main() {
     console.log(`  Stations:         ${system.stations?.length ?? 0}`);
 
     // Look up the constellation
-    const constellation = await client.universe.getConstellationById(system.constellation_id);
+    const constellation = await client.universe.getConstellationById(
+      system.constellation_id,
+    );
 
     console.log(`\nConstellation: ${constellation.name}`);
     console.log('-'.repeat(40));

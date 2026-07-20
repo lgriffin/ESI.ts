@@ -19,7 +19,9 @@ async function main() {
     console.log('Mercenary Dens & Tactical Operations\n');
 
     let dens: Awaited<ReturnType<typeof client.mercenary.getMercenaryDens>>;
-    let operations: Awaited<ReturnType<typeof client.mercenary.getMercenaryTacticalOperations>>;
+    let operations: Awaited<
+      ReturnType<typeof client.mercenary.getMercenaryTacticalOperations>
+    >;
 
     try {
       [dens, operations] = await Promise.all([
@@ -28,8 +30,12 @@ async function main() {
       ]);
     } catch (err) {
       if (isNotFound(err)) {
-        console.log('Mercenary endpoints are not currently available on this ESI version.');
-        console.log('These endpoints may be deployed in a future EVE Online patch.');
+        console.log(
+          'Mercenary endpoints are not currently available on this ESI version.',
+        );
+        console.log(
+          'These endpoints may be deployed in a future EVE Online patch.',
+        );
         return;
       }
       throw err;
@@ -44,19 +50,24 @@ async function main() {
 
     console.log('Mercenary Dens by Region');
     console.log('-'.repeat(60));
-    const sortedRegions = [...byRegion.entries()].sort((a, b) => b[1].length - a[1].length);
+    const sortedRegions = [...byRegion.entries()].sort(
+      (a, b) => b[1].length - a[1].length,
+    );
 
     for (const [regionId, regionDens] of sortedRegions.slice(0, 10)) {
       const avgDev =
-        regionDens.reduce((sum, d) => sum + (d.development_level ?? 0), 0) / regionDens.length;
+        regionDens.reduce((sum, d) => sum + (d.development_level ?? 0), 0) /
+        regionDens.length;
       const avgAnarchy =
-        regionDens.reduce((sum, d) => sum + (d.anarchy_level ?? 0), 0) / regionDens.length;
+        regionDens.reduce((sum, d) => sum + (d.anarchy_level ?? 0), 0) /
+        regionDens.length;
       console.log(
         `  Region ${regionId}: ${regionDens.length} den(s) — ` +
           `Avg Dev: ${avgDev.toFixed(1)} — Avg Anarchy: ${avgAnarchy.toFixed(1)}`,
       );
     }
-    if (sortedRegions.length > 10) console.log(`  ... and ${sortedRegions.length - 10} more`);
+    if (sortedRegions.length > 10)
+      console.log(`  ... and ${sortedRegions.length - 10} more`);
 
     console.log(`\nTactical Operations (${operations.length} total)`);
     console.log('-'.repeat(60));
@@ -69,13 +80,15 @@ async function main() {
       console.log(`  ${status.padEnd(12)} ${count}`);
     }
 
-    const active = operations.filter(op => op.status === 'active');
+    const active = operations.filter((op) => op.status === 'active');
     if (active.length > 0) {
       console.log('\nActive Operations (first 5)');
       console.log('-'.repeat(60));
       for (const op of active.slice(0, 5)) {
         const expires = op.expires_at ? ` — Expires: ${op.expires_at}` : '';
-        console.log(`  Den ${op.den_id} → System ${op.system_id} — ${op.site_type}${expires}`);
+        console.log(
+          `  Den ${op.den_id} → System ${op.system_id} — ${op.site_type}${expires}`,
+        );
       }
     }
   } catch (err) {

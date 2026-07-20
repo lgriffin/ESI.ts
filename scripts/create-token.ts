@@ -35,10 +35,7 @@ interface OpenApiSpec {
     securitySchemes?: Record<
       string,
       {
-        flows?: Record<
-          string,
-          { scopes?: Record<string, string> }
-        >;
+        flows?: Record<string, { scopes?: Record<string, string> }>;
       }
     >;
   };
@@ -280,17 +277,26 @@ function waitForCallback(
     });
 
     server.listen(port, () => {
-      console.log(`Callback server listening on http://localhost:${port}${DEFAULT_CALLBACK_PATH}`);
+      console.log(
+        `Callback server listening on http://localhost:${port}${DEFAULT_CALLBACK_PATH}`,
+      );
     });
 
     server.on('error', (err) => {
-      reject(new Error(`Could not start callback server on port ${port}: ${err.message}`));
+      reject(
+        new Error(
+          `Could not start callback server on port ${port}: ${err.message}`,
+        ),
+      );
     });
 
-    setTimeout(() => {
-      server.close();
-      reject(new Error('Timed out waiting for OAuth callback (5 minutes)'));
-    }, 5 * 60 * 1000);
+    setTimeout(
+      () => {
+        server.close();
+        reject(new Error('Timed out waiting for OAuth callback (5 minutes)'));
+      },
+      5 * 60 * 1000,
+    );
   });
 }
 
@@ -347,10 +353,14 @@ async function main(): Promise<void> {
     console.log('To create a token you need an EVE developer application:\n');
     console.log('  1. Go to https://developers.eveonline.com/');
     console.log('  2. Create a new application');
-    console.log(`  3. Set callback URL to: http://localhost:${port}${DEFAULT_CALLBACK_PATH}`);
+    console.log(
+      `  3. Set callback URL to: http://localhost:${port}${DEFAULT_CALLBACK_PATH}`,
+    );
     console.log('  4. Under "Permissions", select ALL ESI scopes');
     console.log('  5. Copy the Client ID');
-    console.log(`  6. Add to your .env file:  ESI_SSO_CLIENT_ID=<your-client-id>\n`);
+    console.log(
+      `  6. Add to your .env file:  ESI_SSO_CLIENT_ID=<your-client-id>\n`,
+    );
     console.log('Then re-run:  npm run token:create');
     process.exit(1);
   }
@@ -380,7 +390,9 @@ async function main(): Promise<void> {
       console.log(`\nRequesting ${scopes.length} scopes (all access)`);
       console.log('Opening browser for EVE SSO login...\n');
     } else {
-      console.log(`\nRetrying with ${scopes.length} scopes (attempt ${attempt + 1})...`);
+      console.log(
+        `\nRetrying with ${scopes.length} scopes (attempt ${attempt + 1})...`,
+      );
     }
     openBrowser(authUrl.toString());
 
@@ -388,7 +400,9 @@ async function main(): Promise<void> {
     try {
       result = await waitForCallback(port, state);
     } catch (err) {
-      console.error(`\nCallback failed: ${err instanceof Error ? err.message : err}`);
+      console.error(
+        `\nCallback failed: ${err instanceof Error ? err.message : err}`,
+      );
       process.exit(1);
     }
 
@@ -397,9 +411,16 @@ async function main(): Promise<void> {
 
       let tokens: TokenResponse;
       try {
-        tokens = await exchangeCode(result.code, clientId, codeVerifier, redirectUri);
+        tokens = await exchangeCode(
+          result.code,
+          clientId,
+          codeVerifier,
+          redirectUri,
+        );
       } catch (err) {
-        console.error(`\nToken exchange failed: ${err instanceof Error ? err.message : err}`);
+        console.error(
+          `\nToken exchange failed: ${err instanceof Error ? err.message : err}`,
+        );
         process.exit(1);
       }
 
@@ -411,11 +432,15 @@ async function main(): Promise<void> {
       const grantedCount = scopes.length;
       console.log('\n' + '='.repeat(50));
       console.log('Token created successfully!');
-      console.log(`  Access token:  written to .env (expires in ${tokens.expires_in}s)`);
+      console.log(
+        `  Access token:  written to .env (expires in ${tokens.expires_in}s)`,
+      );
       console.log('  Refresh token: written to .env');
       console.log(`  Scopes:        ${grantedCount} granted`);
       if (rejectedScopes.length > 0) {
-        console.log(`  Rejected:      ${rejectedScopes.length} scopes removed (not valid for this character/app)`);
+        console.log(
+          `  Rejected:      ${rejectedScopes.length} scopes removed (not valid for this character/app)`,
+        );
         for (const s of rejectedScopes) {
           console.log(`                   - ${s}`);
         }
@@ -425,15 +450,21 @@ async function main(): Promise<void> {
       console.log('  export $(grep -v "^#" .env | xargs)');
       console.log('  npm run test:integration:live');
       console.log('\n  # Or use Node --env-file flag (Node 20.6+)');
-      console.log('  node --env-file=.env -e "console.log(process.env.ESI_ACCESS_TOKEN)"');
+      console.log(
+        '  node --env-file=.env -e "console.log(process.env.ESI_ACCESS_TOKEN)"',
+      );
       console.log('\nNote: Access tokens expire after ~20 minutes.');
-      console.log('Use the refresh token or re-run this script to get a new one.');
+      console.log(
+        'Use the refresh token or re-run this script to get a new one.',
+      );
       code = result.code;
       break;
     }
 
     if (result.kind === 'invalid_scope') {
-      console.log(`  Scope rejected by SSO: ${result.scope} — removing and retrying`);
+      console.log(
+        `  Scope rejected by SSO: ${result.scope} — removing and retrying`,
+      );
       rejectedScopes.push(result.scope);
       scopes = scopes.filter((s) => s !== result.scope);
       continue;
@@ -445,7 +476,9 @@ async function main(): Promise<void> {
   }
 
   if (!code) {
-    console.error(`\nToo many invalid scopes (${rejectedScopes.length}). Giving up.`);
+    console.error(
+      `\nToo many invalid scopes (${rejectedScopes.length}). Giving up.`,
+    );
     process.exit(1);
   }
 }

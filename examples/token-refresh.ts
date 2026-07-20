@@ -36,18 +36,15 @@ const clientId = process.env.ESI_SSO_CLIENT_ID || '';
 async function refreshAccessToken(): Promise<string> {
   console.log('  [Token Refresh] Refreshing access token via EVE SSO...');
 
-  const response = await fetch(
-    'https://login.eveonline.com/v2/oauth/token',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: clientId,
-      }),
-    },
-  );
+  const response = await fetch('https://login.eveonline.com/v2/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: clientId,
+    }),
+  });
 
   if (!response.ok) {
     const body = await response.text();

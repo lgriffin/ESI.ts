@@ -46,7 +46,9 @@ async function main() {
     for (const entry of recentJournal) {
       const amount = entry.amount ?? 0;
       const sign = amount >= 0 ? '+' : '';
-      console.log(`  ${entry.date} | ${sign}${amount.toLocaleString()} ISK | ${entry.ref_type}`);
+      console.log(
+        `  ${entry.date} | ${sign}${amount.toLocaleString()} ISK | ${entry.ref_type}`,
+      );
       if (entry.description) {
         console.log(`    ${entry.description}`);
       }
@@ -62,7 +64,9 @@ async function main() {
     for (const tx of recentTx) {
       const action = tx.is_buy ? 'BUY' : 'SELL';
       const total = tx.unit_price * tx.quantity;
-      console.log(`  ${tx.date} | ${action} | ${tx.quantity}x type ${tx.type_id} @ ${tx.unit_price.toLocaleString()} ISK (${total.toLocaleString()} ISK total)`);
+      console.log(
+        `  ${tx.date} | ${action} | ${tx.quantity}x type ${tx.type_id} @ ${tx.unit_price.toLocaleString()} ISK (${total.toLocaleString()} ISK total)`,
+      );
     }
     if (transactions.length > 5) {
       console.log(`  ... and ${transactions.length - 5} more transactions`);
@@ -70,21 +74,27 @@ async function main() {
 
     // Summary
     const totalIncome = journal
-      .filter(e => (e.amount ?? 0) > 0)
+      .filter((e) => (e.amount ?? 0) > 0)
       .reduce((sum, e) => sum + (e.amount ?? 0), 0);
     const totalExpenses = journal
-      .filter(e => (e.amount ?? 0) < 0)
+      .filter((e) => (e.amount ?? 0) < 0)
       .reduce((sum, e) => sum + Math.abs(e.amount ?? 0), 0);
 
     console.log('\nSummary');
     console.log('-'.repeat(40));
     console.log(`  Total income:   +${totalIncome.toLocaleString()} ISK`);
     console.log(`  Total expenses: -${totalExpenses.toLocaleString()} ISK`);
-    console.log(`  Net change:     ${(totalIncome - totalExpenses).toLocaleString()} ISK`);
-
+    console.log(
+      `  Net change:     ${(totalIncome - totalExpenses).toLocaleString()} ISK`,
+    );
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN with scope esi-wallet.read_character_wallet.v1');
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
+      console.error(
+        'Authentication required. Set ESI_ACCESS_TOKEN with scope esi-wallet.read_character_wallet.v1',
+      );
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);
     }

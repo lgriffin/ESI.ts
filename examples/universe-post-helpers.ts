@@ -12,7 +12,13 @@
  */
 import { EsiClient } from '../src/EsiClient';
 
-const SAMPLE_NAMES = ['Chribba', 'Jita', 'Tritanium', 'Goonswarm Federation', 'CCP Games'];
+const SAMPLE_NAMES = [
+  'Chribba',
+  'Jita',
+  'Tritanium',
+  'Goonswarm Federation',
+  'CCP Games',
+];
 const SAMPLE_CHARACTER_IDS = [90404873, 90439768, 1689391488];
 
 async function main() {
@@ -27,7 +33,18 @@ async function main() {
     console.log(`  Looking up: ${SAMPLE_NAMES.join(', ')}`);
     const idResult = await client.universe.postBulkNamesToIds(SAMPLE_NAMES);
 
-    const categories = ['characters', 'systems', 'inventory_types', 'alliances', 'corporations', 'agents', 'constellations', 'factions', 'regions', 'stations'] as const;
+    const categories = [
+      'characters',
+      'systems',
+      'inventory_types',
+      'alliances',
+      'corporations',
+      'agents',
+      'constellations',
+      'factions',
+      'regions',
+      'stations',
+    ] as const;
     for (const cat of categories) {
       const items = idResult[cat];
       if (items && items.length > 0) {
@@ -60,14 +77,14 @@ async function main() {
     console.log('\nCharacter Affiliation (POST /characters/affiliation)');
     console.log('-'.repeat(50));
     console.log(`  Looking up ${SAMPLE_CHARACTER_IDS.length} characters...`);
-    const affiliations = await client.characters.postCharacterAffiliation(SAMPLE_CHARACTER_IDS);
+    const affiliations =
+      await client.characters.postCharacterAffiliation(SAMPLE_CHARACTER_IDS);
     for (const aff of affiliations) {
       const parts = [`char ${aff.character_id}`, `corp ${aff.corporation_id}`];
       if (aff.alliance_id) parts.push(`alliance ${aff.alliance_id}`);
       if (aff.faction_id) parts.push(`faction ${aff.faction_id}`);
       console.log(`    ${parts.join(' | ')}`);
     }
-
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

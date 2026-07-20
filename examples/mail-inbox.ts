@@ -42,7 +42,9 @@ async function main() {
     }
     if (labelsData.labels && labelsData.labels.length > 0) {
       for (const label of labelsData.labels) {
-        const unread = label.unread_count ? ` (${label.unread_count} unread)` : '';
+        const unread = label.unread_count
+          ? ` (${label.unread_count} unread)`
+          : '';
         console.log(`  [${label.label_id}] ${label.name}${unread}`);
       }
     } else {
@@ -68,9 +70,13 @@ async function main() {
     } else {
       const recent = headers.slice(0, 10);
       for (const mail of recent) {
-        const date = mail.timestamp ? new Date(mail.timestamp).toLocaleDateString() : 'unknown';
+        const date = mail.timestamp
+          ? new Date(mail.timestamp).toLocaleDateString()
+          : 'unknown';
         const read = mail.is_read ? ' ' : '*';
-        console.log(`  ${read} ${date} | From ${mail.from || 'unknown'} | ${mail.subject || '(no subject)'}`);
+        console.log(
+          `  ${read} ${date} | From ${mail.from || 'unknown'} | ${mail.subject || '(no subject)'}`,
+        );
       }
       if (headers.length > 10) {
         console.log(`  ... and ${headers.length - 10} more messages`);
@@ -82,12 +88,19 @@ async function main() {
         console.log(`\nReading mail #${recent[0].mail_id}...`);
         console.log('-'.repeat(40));
         try {
-          const fullMail = await client.mail.getMail(CHARACTER_ID, recent[0].mail_id);
+          const fullMail = await client.mail.getMail(
+            CHARACTER_ID,
+            recent[0].mail_id,
+          );
           console.log(`  Subject: ${fullMail.subject || '(no subject)'}`);
           console.log(`  From:    ${fullMail.from}`);
           if (fullMail.body) {
-            const preview = fullMail.body.substring(0, 200).replace(/<[^>]*>/g, '');
-            console.log(`  Body:    ${preview}${fullMail.body.length > 200 ? '...' : ''}`);
+            const preview = fullMail.body
+              .substring(0, 200)
+              .replace(/<[^>]*>/g, '');
+            console.log(
+              `  Body:    ${preview}${fullMail.body.length > 200 ? '...' : ''}`,
+            );
           }
         } catch {
           console.log('  Could not read mail body');
@@ -101,11 +114,17 @@ async function main() {
     // client.mail.createMailLabel(characterId, { name, color })          — Scope: esi-mail.organize_mail.v1
     // client.mail.deleteMailLabel(characterId, labelId)                  — Scope: esi-mail.organize_mail.v1
     // client.mail.updateMailMetadata(characterId, mailId, { read, labels }) — Scope: esi-mail.organize_mail.v1
-    console.log('\nNote: write operations (sendMail, deleteMail, createMailLabel) require additional scopes');
-
+    console.log(
+      '\nNote: write operations (sendMail, deleteMail, createMailLabel) require additional scopes',
+    );
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN with scope esi-mail.read_mail.v1');
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
+      console.error(
+        'Authentication required. Set ESI_ACCESS_TOKEN with scope esi-mail.read_mail.v1',
+      );
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);
     }

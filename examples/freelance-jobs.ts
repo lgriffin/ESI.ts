@@ -26,7 +26,10 @@ async function tryOrSkip<T>(
   try {
     return await fn();
   } catch (err) {
-    if (err instanceof EsiError && [401, 403, 404].includes(err.statusCode ?? 0)) {
+    if (
+      err instanceof EsiError &&
+      [401, 403, 404].includes(err.statusCode ?? 0)
+    ) {
       console.log(`  ${label}: endpoint not available — skipped`);
       return null;
     }
@@ -53,9 +56,13 @@ async function main() {
 
       for (const job of jobs.slice(0, 5)) {
         console.log(`    ${job.name} (${job.state})`);
-        console.log(`      Progress: ${job.progress.current}/${job.progress.desired}`);
+        console.log(
+          `      Progress: ${job.progress.current}/${job.progress.desired}`,
+        );
         if (job.reward) {
-          console.log(`      Reward: ${job.reward.remaining.toLocaleString()} ISK remaining`);
+          console.log(
+            `      Reward: ${job.reward.remaining.toLocaleString()} ISK remaining`,
+          );
         }
       }
       if (jobs.length > 5) {
@@ -67,13 +74,18 @@ async function main() {
         const firstJob = jobs[0]!;
         console.log(`\n  Participation in "${firstJob.name}":`);
         const participation = await tryOrSkip('Participation', () =>
-          client.freelanceJobs.getCharacterFreelanceJobParticipation(CHARACTER_ID, firstJob.id),
+          client.freelanceJobs.getCharacterFreelanceJobParticipation(
+            CHARACTER_ID,
+            firstJob.id,
+          ),
         );
         if (participation) {
           console.log(`    Status: ${participation.status}`);
           console.log(`    Contributions: ${participation.contributions}`);
           if (participation.last_contribution) {
-            console.log(`    Last contribution: ${participation.last_contribution}`);
+            console.log(
+              `    Last contribution: ${participation.last_contribution}`,
+            );
           }
         }
       }
@@ -92,7 +104,9 @@ async function main() {
 
       for (const job of jobs.slice(0, 5)) {
         console.log(`    ${job.name} (${job.state})`);
-        console.log(`      Progress: ${job.progress.current}/${job.progress.desired}`);
+        console.log(
+          `      Progress: ${job.progress.current}/${job.progress.desired}`,
+        );
       }
       if (jobs.length > 5) {
         console.log(`    ... and ${jobs.length - 5} more`);
@@ -103,17 +117,21 @@ async function main() {
         const firstJob = jobs[0]!;
         console.log(`\n  Participants in "${firstJob.name}":`);
         const participants = await tryOrSkip('Participants', () =>
-          client.freelanceJobs.getCorporationFreelanceJobParticipants(CORP_ID, firstJob.id),
+          client.freelanceJobs.getCorporationFreelanceJobParticipants(
+            CORP_ID,
+            firstJob.id,
+          ),
         );
         if (participants) {
           console.log(`    Total participants: ${participants.length}`);
           for (const p of participants.slice(0, 5)) {
-            console.log(`      Character ${p.character_id}: ${p.contributions} contributions (${p.status})`);
+            console.log(
+              `      Character ${p.character_id}: ${p.contributions} contributions (${p.status})`,
+            );
           }
         }
       }
     }
-
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

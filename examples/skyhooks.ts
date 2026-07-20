@@ -19,8 +19,12 @@ async function main() {
     console.log('Skyhooks & Sovereignty Hubs\n');
 
     let hubs: Awaited<ReturnType<typeof client.skyhooks.getSovereigntyHubs>>;
-    let skyhooks: Awaited<ReturnType<typeof client.skyhooks.getOrbitalSkyhooks>>;
-    let raidable: Awaited<ReturnType<typeof client.skyhooks.getRaidableSkyhooks>>;
+    let skyhooks: Awaited<
+      ReturnType<typeof client.skyhooks.getOrbitalSkyhooks>
+    >;
+    let raidable: Awaited<
+      ReturnType<typeof client.skyhooks.getRaidableSkyhooks>
+    >;
 
     try {
       [hubs, skyhooks, raidable] = await Promise.all([
@@ -30,8 +34,12 @@ async function main() {
       ]);
     } catch (err) {
       if (isNotFound(err)) {
-        console.log('Skyhook endpoints are not currently available on this ESI version.');
-        console.log('These endpoints may be deployed in a future EVE Online patch.');
+        console.log(
+          'Skyhook endpoints are not currently available on this ESI version.',
+        );
+        console.log(
+          'These endpoints may be deployed in a future EVE Online patch.',
+        );
         return;
       }
       throw err;
@@ -39,7 +47,7 @@ async function main() {
 
     console.log('Sovereignty Hubs');
     console.log('-'.repeat(60));
-    const onlineHubs = hubs.filter(h => h.online);
+    const onlineHubs = hubs.filter((h) => h.online);
     console.log(`  Total: ${hubs.length}   Online: ${onlineHubs.length}`);
     for (const hub of hubs.slice(0, 5)) {
       const upgrades = hub.installed_upgrades?.length ?? 0;
@@ -58,14 +66,17 @@ async function main() {
         sk.reagent_silo_capacity && sk.reagent_silo_level
           ? `${((sk.reagent_silo_level / sk.reagent_silo_capacity) * 100).toFixed(0)}% full`
           : 'N/A';
-      console.log(`  System ${sk.system_id} — Corp ${sk.corporation_id} — Silo: ${fill}`);
+      console.log(
+        `  System ${sk.system_id} — Corp ${sk.corporation_id} — Silo: ${fill}`,
+      );
     }
-    if (skyhooks.length > 5) console.log(`  ... and ${skyhooks.length - 5} more`);
+    if (skyhooks.length > 5)
+      console.log(`  ... and ${skyhooks.length - 5} more`);
 
     console.log('\nRaidable Skyhooks');
     console.log('-'.repeat(60));
-    const nowRaidable = raidable.filter(r => r.is_raidable);
-    const upcoming = raidable.filter(r => !r.is_raidable && r.raidable_at);
+    const nowRaidable = raidable.filter((r) => r.is_raidable);
+    const upcoming = raidable.filter((r) => !r.is_raidable && r.raidable_at);
     console.log(`  Currently raidable: ${nowRaidable.length}`);
     console.log(`  Becoming raidable:  ${upcoming.length}`);
 

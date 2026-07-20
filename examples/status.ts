@@ -21,7 +21,10 @@ async function main() {
     if (status.vip) console.log('  VIP mode:       ACTIVE');
     console.log('\nESI is reachable and working.');
   } catch (err) {
-    console.error('Failed to reach ESI:', err instanceof Error ? err.message : err);
+    console.error(
+      'Failed to reach ESI:',
+      err instanceof Error ? err.message : err,
+    );
     process.exit(1);
   } finally {
     await client.shutdown();

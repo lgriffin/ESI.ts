@@ -13,13 +13,8 @@ export default {
     configFile: 'jest.unit.config.cjs',
     enableFindRelatedTests: true,
     config: {
-      roots: [
-        '<rootDir>/src',
-        path.join(projectRoot, 'tests'),
-      ],
-      testMatch: [
-        path.join(projectRoot, 'tests/tdd/**/*.test.ts'),
-      ],
+      roots: ['<rootDir>/src', path.join(projectRoot, 'tests')],
+      testMatch: [path.join(projectRoot, 'tests/tdd/**/*.test.ts')],
       moduleNameMapper: {
         '^(?:\\.\\./)+src/(.*)$': '<rootDir>/src/$1',
       },

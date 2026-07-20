@@ -24,7 +24,9 @@ async function main() {
     console.log('Alliance Info');
     console.log('-'.repeat(40));
     console.log(`  Name:          ${info.name} [${info.ticker}]`);
-    console.log(`  Founded:       ${new Date(info.date_founded).toLocaleDateString()}`);
+    console.log(
+      `  Founded:       ${new Date(info.date_founded).toLocaleDateString()}`,
+    );
     console.log(`  Creator Corp:  ${info.creator_corporation_id}`);
     console.log(`  Executor Corp: ${info.executor_corporation_id}`);
     console.log(`  Member Corps:  ${corps.length}`);
@@ -39,10 +41,14 @@ async function main() {
     console.log('-'.repeat(40));
     const sampleCorps = corps.slice(0, 3);
     const corpInfos = await Promise.all(
-      sampleCorps.map((id: number) => client.corporations.getCorporationInfo(id))
+      sampleCorps.map((id: number) =>
+        client.corporations.getCorporationInfo(id),
+      ),
     );
     for (const corp of corpInfos) {
-      console.log(`  ${corp.name} [${corp.ticker}] - ${corp.member_count?.toLocaleString()} members`);
+      console.log(
+        `  ${corp.name} [${corp.ticker}] - ${corp.member_count?.toLocaleString()} members`,
+      );
     }
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);

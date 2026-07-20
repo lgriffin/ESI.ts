@@ -107,10 +107,7 @@ interface OpenApiSpec {
 
 // --- $ref resolution ---
 
-function resolveRef(
-  spec: OpenApiSpec,
-  ref: string,
-): OpenApiSchema | undefined {
+function resolveRef(spec: OpenApiSpec, ref: string): OpenApiSchema | undefined {
   const prefix = '#/components/schemas/';
   if (!ref.startsWith(prefix)) return undefined;
   const schemaName = ref.slice(prefix.length);
@@ -266,8 +263,7 @@ function generateInterface(
   if (!itemSchema.properties) return null;
 
   const name =
-    schemaName ??
-    snakeToPascal((itemSchema.title ?? operationId) + '_200_ok');
+    schemaName ?? snakeToPascal((itemSchema.title ?? operationId) + '_200_ok');
 
   const required = new Set(itemSchema.required ?? []);
   const propLines: string[] = [];
@@ -545,9 +541,7 @@ function writeScopesFile(
   }
   lines.push('');
 
-  lines.push(
-    'export const esiEndpointScopes: Record<string, EsiScope[]> = {',
-  );
+  lines.push('export const esiEndpointScopes: Record<string, EsiScope[]> = {');
 
   const sorted = entries.sort((a, b) => a.path.localeCompare(b.path));
   for (const entry of sorted) {

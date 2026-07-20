@@ -83,11 +83,15 @@ async function main() {
   const refreshToken = envVars.get('ESI_REFRESH_TOKEN');
 
   if (!clientId) {
-    console.error('ESI_SSO_CLIENT_ID not found in .env — run `npm run token:create` first.');
+    console.error(
+      'ESI_SSO_CLIENT_ID not found in .env — run `npm run token:create` first.',
+    );
     process.exit(1);
   }
   if (!refreshToken) {
-    console.error('ESI_REFRESH_TOKEN not found in .env — run `npm run token:create` first.');
+    console.error(
+      'ESI_REFRESH_TOKEN not found in .env — run `npm run token:create` first.',
+    );
     process.exit(1);
   }
 
@@ -105,14 +109,16 @@ async function main() {
     body: params.toString(),
   });
 
-  const body = await response.json() as TokenResponse | TokenError;
+  const body = (await response.json()) as TokenResponse | TokenError;
 
   if ('error' in body) {
     console.error(`Token refresh failed: ${body.error}`);
     if (body.error_description) {
       console.error(`  ${body.error_description}`);
     }
-    console.error('\nYour refresh token may have expired. Run `npm run token:create` to get a new one.');
+    console.error(
+      '\nYour refresh token may have expired. Run `npm run token:create` to get a new one.',
+    );
     process.exit(1);
   }
 

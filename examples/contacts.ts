@@ -67,11 +67,15 @@ async function main() {
 
       for (const [group, members] of standingGroups) {
         if (members.length > 0) {
-          console.log(`\n  ${group}: ${members.length} contact${members.length > 1 ? 's' : ''}`);
+          console.log(
+            `\n  ${group}: ${members.length} contact${members.length > 1 ? 's' : ''}`,
+          );
           for (const c of members.slice(0, 5)) {
             const type = c.contact_type || 'unknown';
             const labelIds = c.label_ids?.join(', ') || 'none';
-            console.log(`    ${type} ${c.contact_id} | standing ${c.standing} | labels: ${labelIds}`);
+            console.log(
+              `    ${type} ${c.contact_id} | standing ${c.standing} | labels: ${labelIds}`,
+            );
           }
           if (members.length > 5) {
             console.log(`    ... and ${members.length - 5} more`);
@@ -96,11 +100,17 @@ async function main() {
     // client.contacts.postCharacterContacts(characterId, { ... })      — Scope: esi-characters.write_contacts.v1
     // client.contacts.putCharacterContacts(characterId, { ... })       — Scope: esi-characters.write_contacts.v1
     // client.contacts.deleteCharacterContacts(characterId, [ids])      — Scope: esi-characters.write_contacts.v1
-    console.log('\nNote: write operations (add/edit/delete contacts) require scope esi-characters.write_contacts.v1');
-
+    console.log(
+      '\nNote: write operations (add/edit/delete contacts) require scope esi-characters.write_contacts.v1',
+    );
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN with scope esi-characters.read_contacts.v1');
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
+      console.error(
+        'Authentication required. Set ESI_ACCESS_TOKEN with scope esi-characters.read_contacts.v1',
+      );
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);
     }

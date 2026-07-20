@@ -24,7 +24,9 @@ async function main() {
     console.log('Character Info');
     console.log('-'.repeat(40));
     console.log(`  Name:            ${character.name}`);
-    console.log(`  Birthday:        ${new Date(character.birthday).toLocaleDateString()}`);
+    console.log(
+      `  Birthday:        ${new Date(character.birthday).toLocaleDateString()}`,
+    );
     console.log(`  Security Status: ${character.security_status?.toFixed(2)}`);
     console.log(`  Corporation ID:  ${character.corporation_id}`);
     if (character.alliance_id) {
@@ -39,7 +41,9 @@ async function main() {
     console.log(`  512x512: ${portrait.px512x512}`);
 
     // Fetch corporation info
-    const corp = await client.corporations.getCorporationInfo(character.corporation_id);
+    const corp = await client.corporations.getCorporationInfo(
+      character.corporation_id,
+    );
     console.log('\nCorporation');
     console.log('-'.repeat(40));
     console.log(`  Name:    ${corp.name} [${corp.ticker}]`);

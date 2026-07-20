@@ -21,7 +21,10 @@ async function tryOrSkip(
   try {
     await fn();
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 403 || err.statusCode === 401)) {
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 403 || err.statusCode === 401)
+    ) {
       console.log(`  ${label}: requires corporation roles — skipped`);
     } else {
       throw err;
@@ -45,16 +48,21 @@ async function main() {
     console.log(`  Active orders: ${orders.length}`);
     for (const order of orders.slice(0, 5)) {
       const side = order.is_buy_order ? 'BUY' : 'SELL';
-      console.log(`    ${side} ${order.volume_remain}/${order.volume_total} x type ${order.type_id} @ ${order.price.toLocaleString()} ISK`);
+      console.log(
+        `    ${side} ${order.volume_remain}/${order.volume_total} x type ${order.type_id} @ ${order.price.toLocaleString()} ISK`,
+      );
     }
     if (orders.length > 5) console.log(`    ... and ${orders.length - 5} more`);
 
     console.log(`\n  Order history: ${history.length} orders`);
     for (const order of history.slice(0, 3)) {
       const side = order.is_buy_order ? 'BUY' : 'SELL';
-      console.log(`    ${side} type ${order.type_id} @ ${order.price.toLocaleString()} ISK (${order.state || 'completed'})`);
+      console.log(
+        `    ${side} type ${order.type_id} @ ${order.price.toLocaleString()} ISK (${order.state || 'completed'})`,
+      );
     }
-    if (history.length > 3) console.log(`    ... and ${history.length - 3} more`);
+    if (history.length > 3)
+      console.log(`    ... and ${history.length - 3} more`);
 
     // --- Corporation Orders (may 403) ---
     console.log('\nCorporation Orders');
@@ -64,7 +72,8 @@ async function main() {
       console.log(`  Active corp orders: ${corpOrders.length}`);
     });
     await tryOrSkip('Corp order history', async () => {
-      const corpHistory = await client.market.getCorporationOrderHistory(CORP_ID);
+      const corpHistory =
+        await client.market.getCorporationOrderHistory(CORP_ID);
       console.log(`  Corp order history: ${corpHistory.length}`);
     });
 
@@ -74,9 +83,15 @@ async function main() {
     const groupIds = await client.market.getMarketGroups();
     console.log(`  Total market groups: ${groupIds.length}`);
 
-    const sampleGroup = await client.market.getMarketGroupInformation(groupIds[0]!);
-    console.log(`\n  Sample group: ${sampleGroup.name} (ID: ${sampleGroup.market_group_id})`);
-    console.log(`    Description: ${sampleGroup.description?.substring(0, 100) ?? ''}...`);
+    const sampleGroup = await client.market.getMarketGroupInformation(
+      groupIds[0]!,
+    );
+    console.log(
+      `\n  Sample group: ${sampleGroup.name} (ID: ${sampleGroup.market_group_id})`,
+    );
+    console.log(
+      `    Description: ${sampleGroup.description?.substring(0, 100) ?? ''}...`,
+    );
     console.log(`    Types: ${sampleGroup.types?.length ?? 0}`);
     if (sampleGroup.parent_group_id) {
       console.log(`    Parent group: ${sampleGroup.parent_group_id}`);
@@ -88,21 +103,30 @@ async function main() {
     try {
       const structures = await client.universe.getStructures();
       if (structures.length > 0) {
-        const structOrders = await client.market.getMarketOrdersInStructure(structures[0]!);
-        console.log(`  Structure ${structures[0]}: ${structOrders.length} orders`);
+        const structOrders = await client.market.getMarketOrdersInStructure(
+          structures[0]!,
+        );
+        console.log(
+          `  Structure ${structures[0]}: ${structOrders.length} orders`,
+        );
       } else {
         console.log('  No public structures available');
       }
     } catch (err) {
-      if (err instanceof EsiError && (err.statusCode === 403 || err.statusCode === 401)) {
+      if (
+        err instanceof EsiError &&
+        (err.statusCode === 403 || err.statusCode === 401)
+      ) {
         console.log('  Requires structure access — skipped');
       } else {
         throw err;
       }
     }
-
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
       console.error('Authentication required. Set ESI_ACCESS_TOKEN.');
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);
