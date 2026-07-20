@@ -23,7 +23,8 @@ PRISM_PID=$!
 
 echo "Waiting for Prism to be ready..."
 for i in $(seq 1 30); do
-  if curl -s http://localhost:4010/ > /dev/null 2>&1; then
+  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4010/status/ 2>/dev/null || echo "000")
+  if [ "$HTTP_CODE" = "200" ]; then
     echo "Prism is ready."
     break
   fi
@@ -39,10 +40,10 @@ SCHEMATHESIS_EXIT=0
 docker run --rm --network host \
   -v "$(cd "$REPORT_DIR" && pwd):/reports" \
   schemathesis/schemathesis \
-  run http://localhost:4010/openapi.json \
+  run https://esi.evetech.net/meta/openapi.json \
   --checks all \
   --max-examples 50 \
-  --url http://localhost:4010 \
+  --base-url http://localhost:4010 \
   --report junit --report-dir /reports \
   || SCHEMATHESIS_EXIT=$?
 
