@@ -33,7 +33,8 @@ async function tryEndpoint(
     if (err instanceof EsiError) {
       return {
         label,
-        status: err.statusCode === 404 ? 'PASS (404)' : `FAIL (${err.statusCode})`,
+        status:
+          err.statusCode === 404 ? 'PASS (404)' : `FAIL (${err.statusCode})`,
         detail: err.message.slice(0, 100),
       };
     }
@@ -66,9 +67,10 @@ async function main() {
   console.log('-'.repeat(40));
   results.push(
     await tryEndpoint('POST characters/{id}/cspa/', async () => {
-      return await client.characters.postCspaChargeCost(CHARACTER_ID, [
-        90404873,
-      ]);
+      return await client.characters.postCspaChargeCost(
+        CHARACTER_ID,
+        [90404873],
+      );
     }),
   );
 
@@ -89,15 +91,11 @@ async function main() {
 
   if (assetItemId) {
     results.push(
-      await tryEndpoint(
-        'POST characters/{id}/assets/locations/',
-        async () => {
-          return await client.assets.postCharacterAssetLocations(
-            CHARACTER_ID,
-            [assetItemId!],
-          );
-        },
-      ),
+      await tryEndpoint('POST characters/{id}/assets/locations/', async () => {
+        return await client.assets.postCharacterAssetLocations(CHARACTER_ID, [
+          assetItemId!,
+        ]);
+      }),
     );
   } else {
     results.push({
@@ -108,21 +106,15 @@ async function main() {
   }
 
   results.push(
-    await tryEndpoint(
-      'POST corporations/{id}/assets/locations/',
-      async () => {
-        return await client.assets.postCorporationAssetLocations(CORP_ID, [1]);
-      },
-    ),
+    await tryEndpoint('POST corporations/{id}/assets/locations/', async () => {
+      return await client.assets.postCorporationAssetLocations(CORP_ID, [1]);
+    }),
   );
 
   results.push(
-    await tryEndpoint(
-      'POST corporations/{id}/assets/names/',
-      async () => {
-        return await client.assets.postCorporationAssetNames(CORP_ID, [1]);
-      },
-    ),
+    await tryEndpoint('POST corporations/{id}/assets/names/', async () => {
+      return await client.assets.postCorporationAssetNames(CORP_ID, [1]);
+    }),
   );
 
   // --- 4. Calendar: Respond to Event ---
@@ -130,16 +122,13 @@ async function main() {
   console.log('-'.repeat(40));
   // Event 3267240 exists from earlier calendar-search run
   results.push(
-    await tryEndpoint(
-      'PUT characters/{id}/calendar/{eventId}/',
-      async () => {
-        return await client.calendar.respondToCalendarEvent(
-          CHARACTER_ID,
-          3267240,
-          'accepted',
-        );
-      },
-    ),
+    await tryEndpoint('PUT characters/{id}/calendar/{eventId}/', async () => {
+      return await client.calendar.respondToCalendarEvent(
+        CHARACTER_ID,
+        3267240,
+        'accepted',
+      );
+    }),
   );
 
   // --- 5. Fleet Write Operations ---
@@ -152,8 +141,7 @@ async function main() {
 
   // Get fleet info
   try {
-    const fleetInfo =
-      await client.fleets.getCharacterFleetInfo(CHARACTER_ID);
+    const fleetInfo = await client.fleets.getCharacterFleetInfo(CHARACTER_ID);
     fleetId = fleetInfo.fleet_id;
     console.log(`  Fleet ID: ${fleetId}`);
   } catch (err) {
@@ -264,15 +252,11 @@ async function main() {
         await tryEndpoint(
           'PUT fleets/{fleetId}/members/{memberId}/ (moveFleetMember)',
           async () => {
-            return await client.fleets.moveFleetMember(
-              fleetId!,
-              CHARACTER_ID,
-              {
-                role: 'squad_commander',
-                wing_id: wings[0]!.id,
-                squad_id: existingSquad.id,
-              },
-            );
+            return await client.fleets.moveFleetMember(fleetId!, CHARACTER_ID, {
+              role: 'squad_commander',
+              wing_id: wings[0]!.id,
+              squad_id: existingSquad.id,
+            });
           },
         ),
       );

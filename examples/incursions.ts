@@ -25,9 +25,15 @@ async function main() {
       console.log('  No active incursions.');
     } else {
       for (const inc of incursions) {
-        console.log(`  Constellation ${inc.constellation_id}: ${inc.state} (influence: ${inc.influence.toFixed(2)})`);
-        console.log(`    Staging system: ${inc.staging_solar_system_id}, Boss: ${inc.has_boss ? 'Yes' : 'No'}`);
-        console.log(`    Infested systems: ${inc.infested_solar_systems?.length ?? 0}`);
+        console.log(
+          `  Constellation ${inc.constellation_id}: ${inc.state} (influence: ${inc.influence.toFixed(2)})`,
+        );
+        console.log(
+          `    Staging system: ${inc.staging_solar_system_id}, Boss: ${inc.has_boss ? 'Yes' : 'No'}`,
+        );
+        console.log(
+          `    Infested systems: ${inc.infested_solar_systems?.length ?? 0}`,
+        );
       }
     }
 
@@ -35,12 +41,16 @@ async function main() {
     console.log('-'.repeat(50));
     for (const faction of fwStats.slice(0, 4)) {
       console.log(`  Faction ${faction.faction_id}:`);
-      console.log(`    Pilots: ${faction.pilots}  Systems controlled: ${faction.systems_controlled}`);
+      console.log(
+        `    Pilots: ${faction.pilots}  Systems controlled: ${faction.systems_controlled}`,
+      );
       console.log(`    Kills (yesterday): ${faction.kills?.yesterday ?? 0}`);
     }
 
     console.log(`\nContested Systems: ${fwSystems.length}`);
-    const contested = fwSystems.filter((s: any) => s.contested !== 'uncontested');
+    const contested = fwSystems.filter(
+      (s: any) => s.contested !== 'uncontested',
+    );
     console.log(`  Actively contested: ${contested.length}`);
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);

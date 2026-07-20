@@ -2,7 +2,10 @@ const path = require('path');
 
 console.log('Jest Integration Config Loaded');
 console.log('Root Directory:', path.resolve(__dirname));
-console.log('Looking for integration tests in:', path.resolve(__dirname, 'tests/integration'));
+console.log(
+  'Looking for integration tests in:',
+  path.resolve(__dirname, 'tests/integration'),
+);
 
 module.exports = {
   preset: 'ts-jest',
@@ -12,9 +15,7 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
   },
-  testMatch: [
-    '<rootDir>/tests/integration/**/*.test.ts',
-  ],
+  testMatch: ['<rootDir>/tests/integration/**/*.test.ts'],
   verbose: true,
   testTimeout: 30000,
 };

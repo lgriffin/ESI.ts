@@ -120,7 +120,9 @@ async function exampleTimeoutWithRetry() {
     console.log('  Succeeded (possibly after a retry)');
   } catch (err) {
     if (err instanceof TimeoutError) {
-      console.log(`  Timed out after all retries (${err.timeoutMs}ms per attempt)`);
+      console.log(
+        `  Timed out after all retries (${err.timeoutMs}ms per attempt)`,
+      );
     } else {
       console.error('  Error:', (err as Error).message);
     }
@@ -145,13 +147,17 @@ async function exampleMetadata() {
     console.log(`  Players: ${result.data.players.toLocaleString()}`);
     console.log('  ---');
     console.log(`  fromCache:      ${result.meta.fromCache}`);
-    console.log(`  cacheHitType:   ${result.meta.cacheHitType ?? '(none — fresh fetch)'}`);
+    console.log(
+      `  cacheHitType:   ${result.meta.cacheHitType ?? '(none — fresh fetch)'}`,
+    );
     console.log(`  responseTimeMs: ${result.meta.responseTimeMs}ms`);
     console.log(`  requestId:      ${result.meta.requestId ?? '(none)'}`);
 
     if (result.meta.rateLimit) {
       const rl = result.meta.rateLimit;
-      console.log(`  rateLimit:      ${rl.used}/${rl.limit} used, ${rl.remaining} remaining`);
+      console.log(
+        `  rateLimit:      ${rl.used}/${rl.limit} used, ${rl.remaining} remaining`,
+      );
     }
 
     // Second call hits the spec-aware cache — no HTTP request
@@ -159,7 +165,9 @@ async function exampleMetadata() {
     console.log('  ---');
     console.log(`  Second call cacheHitType: ${cached.meta.cacheHitType}`);
     console.log(`  Second call fromCache:    ${cached.meta.fromCache}`);
-    console.log(`  Second call timing:       ${cached.meta.responseTimeMs}ms\n`);
+    console.log(
+      `  Second call timing:       ${cached.meta.responseTimeMs}ms\n`,
+    );
   } catch (err) {
     console.error('  Error:', (err as Error).message);
   } finally {

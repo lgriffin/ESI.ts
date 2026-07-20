@@ -37,7 +37,9 @@ async function main() {
     const pagElapsed = Date.now() - pagStart;
 
     console.log(`   Fetched ${types?.length || 0} types in ${pagElapsed}ms`);
-    console.log(`   Average time per item: ${((pagElapsed) / (types?.length || 1)).toFixed(2)}ms\n`);
+    console.log(
+      `   Average time per item: ${(pagElapsed / (types?.length || 1)).toFixed(2)}ms\n`,
+    );
 
     // Test 3: Error handling — requesting a resource that doesn't exist
     console.log('3. Testing error handling...');

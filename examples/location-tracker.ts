@@ -39,10 +39,14 @@ async function main() {
     console.log('-'.repeat(40));
     console.log(`  Online:       ${online.online ? 'YES' : 'NO'}`);
     if (online.last_login) {
-      console.log(`  Last login:   ${new Date(online.last_login).toLocaleString()}`);
+      console.log(
+        `  Last login:   ${new Date(online.last_login).toLocaleString()}`,
+      );
     }
     if (online.last_logout) {
-      console.log(`  Last logout:  ${new Date(online.last_logout).toLocaleString()}`);
+      console.log(
+        `  Last logout:  ${new Date(online.last_logout).toLocaleString()}`,
+      );
     }
     if (online.logins) {
       console.log(`  Total logins: ${online.logins.toLocaleString()}`);
@@ -54,15 +58,21 @@ async function main() {
     console.log(`  Solar system ID: ${location.solar_system_id}`);
 
     try {
-      const system = await client.universe.getSystemById(location.solar_system_id);
+      const system = await client.universe.getSystemById(
+        location.solar_system_id,
+      );
       console.log(`  System name:     ${system.name}`);
       console.log(`  Security:        ${system.security_status?.toFixed(2)}`);
 
       if (system.constellation_id) {
-        const constellation = await client.universe.getConstellationById(system.constellation_id);
+        const constellation = await client.universe.getConstellationById(
+          system.constellation_id,
+        );
         console.log(`  Constellation:   ${constellation.name}`);
         if (constellation.region_id) {
-          const region = await client.universe.getRegionById(constellation.region_id);
+          const region = await client.universe.getRegionById(
+            constellation.region_id,
+          );
           console.log(`  Region:          ${region.name}`);
         }
       }
@@ -73,7 +83,9 @@ async function main() {
     if (location.station_id) {
       console.log(`  Station ID:      ${location.station_id}`);
       try {
-        const station = await client.universe.getStationById(location.station_id);
+        const station = await client.universe.getStationById(
+          location.station_id,
+        );
         console.log(`  Station name:    ${station.name}`);
       } catch {
         console.log('  (could not resolve station name)');
@@ -100,10 +112,14 @@ async function main() {
     } catch {
       console.log('  (could not resolve ship type name)');
     }
-
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN with the following scopes:');
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
+      console.error(
+        'Authentication required. Set ESI_ACCESS_TOKEN with the following scopes:',
+      );
       console.error('  - esi-location.read_location.v1');
       console.error('  - esi-location.read_online.v1');
       console.error('  - esi-location.read_ship_type.v1');

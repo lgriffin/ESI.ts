@@ -36,16 +36,23 @@ async function main() {
     }
 
     for (const [entityType, entries] of byType) {
-      console.log(`\n${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s (${entries.length})`);
+      console.log(
+        `\n${entityType.charAt(0).toUpperCase() + entityType.slice(1)}s (${entries.length})`,
+      );
       for (const entry of entries.slice(0, 10)) {
         const icon = entry.access_type === 'allowed' ? '+' : '-';
-        console.log(`  [${icon}] ${entry.entity_type} ${entry.entity_id} — ${entry.access_type}`);
+        console.log(
+          `  [${icon}] ${entry.entity_type} ${entry.entity_id} — ${entry.access_type}`,
+        );
       }
-      if (entries.length > 10) console.log(`  ... and ${entries.length - 10} more`);
+      if (entries.length > 10)
+        console.log(`  ... and ${entries.length - 10} more`);
     }
   } catch (err) {
     if (err instanceof EsiError && err.statusCode === 401) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN to a valid SSO token.');
+      console.error(
+        'Authentication required. Set ESI_ACCESS_TOKEN to a valid SSO token.',
+      );
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);
     }

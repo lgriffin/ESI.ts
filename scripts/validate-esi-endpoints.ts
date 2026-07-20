@@ -55,12 +55,15 @@ function normalizePath(p: string): string {
 
 function parseEndpointFiles(): EndpointEntry[] {
   const entries: EndpointEntry[] = [];
-  const files = fs.readdirSync(ENDPOINTS_DIR).filter((f) => f.endsWith('Endpoints.ts'));
+  const files = fs
+    .readdirSync(ENDPOINTS_DIR)
+    .filter((f) => f.endsWith('Endpoints.ts'));
 
   for (const file of files) {
     const content = fs.readFileSync(path.join(ENDPOINTS_DIR, file), 'utf-8');
 
-    const pathRegex = /(\w+):\s*\{[^}]*?path:\s*'([^']+)'[^}]*?method:\s*'(GET|POST|PUT|DELETE)'/gs;
+    const pathRegex =
+      /(\w+):\s*\{[^}]*?path:\s*'([^']+)'[^}]*?method:\s*'(GET|POST|PUT|DELETE)'/gs;
     let match;
 
     while ((match = pathRegex.exec(content)) !== null) {
@@ -77,7 +80,7 @@ function parseEndpointFiles(): EndpointEntry[] {
 }
 
 function parseOpenApiPaths(
-  spec: OpenApiSpec
+  spec: OpenApiSpec,
 ): { method: string; path: string; tags: string[] }[] {
   const entries: { method: string; path: string; tags: string[] }[] = [];
   const httpMethods = ['get', 'post', 'put', 'delete'];
@@ -100,7 +103,7 @@ function parseOpenApiPaths(
 
 function validate(
   codebaseEntries: EndpointEntry[],
-  specEntries: { method: string; path: string; tags: string[] }[]
+  specEntries: { method: string; path: string; tags: string[] }[],
 ): ValidationResult {
   const result: ValidationResult = {
     inCodebaseOnly: [],
@@ -109,7 +112,10 @@ function validate(
     matched: 0,
   };
 
-  const specMap = new Map<string, { method: string; path: string; tags: string[] }[]>();
+  const specMap = new Map<
+    string,
+    { method: string; path: string; tags: string[] }[]
+  >();
   for (const entry of specEntries) {
     const key = normalizePath(entry.path);
     if (!specMap.has(key)) specMap.set(key, []);
@@ -134,9 +140,7 @@ function validate(
       continue;
     }
 
-    const methodMatch = specMatches.find(
-      (s) => s.method === entry.method
-    );
+    const methodMatch = specMatches.find((s) => s.method === entry.method);
 
     if (methodMatch) {
       result.matched++;
@@ -169,7 +173,11 @@ function validate(
   return result;
 }
 
-function printReport(result: ValidationResult, codebaseCount: number, specCount: number): void {
+function printReport(
+  result: ValidationResult,
+  codebaseCount: number,
+  specCount: number,
+): void {
   console.log('\n========================================');
   console.log('  ESI Endpoint Validation Report');
   console.log('========================================\n');
@@ -196,7 +204,9 @@ function printReport(result: ValidationResult, codebaseCount: number, specCount:
   if (result.inCodebaseOnly.length > 0) {
     hasIssues = true;
     console.log('--- IN CODEBASE BUT NOT IN ESI SPEC ---');
-    console.log('  (May be newer endpoints not yet in public spec, or removed endpoints)');
+    console.log(
+      '  (May be newer endpoints not yet in public spec, or removed endpoints)',
+    );
     for (const e of result.inCodebaseOnly) {
       console.log(`  [EXTRA] ${e.method} ${e.path}  (${e.name} in ${e.file})`);
     }
@@ -429,14 +439,20 @@ function printTypeDriftReport(drift: TypeDriftResult): void {
   console.log(`Matched interfaces: ${drift.matches.length}`);
 
   if (drift.missingFields.length > 0) {
-    console.log(`\n--- MISSING FIELDS (in spec but not in hand-written types) ---`);
+    console.log(
+      `\n--- MISSING FIELDS (in spec but not in hand-written types) ---`,
+    );
     for (const m of drift.missingFields) {
-      console.log(`  ${m.iface} (${m.file}): missing '${m.field}' (${m.specType})`);
+      console.log(
+        `  ${m.iface} (${m.file}): missing '${m.field}' (${m.specType})`,
+      );
     }
   }
 
   if (drift.extraFields.length > 0) {
-    console.log(`\n--- EXTRA FIELDS (in hand-written types but not in spec) ---`);
+    console.log(
+      `\n--- EXTRA FIELDS (in hand-written types but not in spec) ---`,
+    );
     for (const e of drift.extraFields) {
       console.log(`  ${e.iface} (${e.file}): extra '${e.field}'`);
     }

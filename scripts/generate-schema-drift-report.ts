@@ -18,10 +18,7 @@ import * as path from 'path';
 const ESI_OPENAPI_URL =
   'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
 
-const EXCEPTIONS_PATH = path.resolve(
-  __dirname,
-  'schema-drift-exceptions.json',
-);
+const EXCEPTIONS_PATH = path.resolve(__dirname, 'schema-drift-exceptions.json');
 
 // --- OpenAPI types (mirrored from generate-esi-types.ts) ---
 
@@ -58,10 +55,7 @@ interface OpenApiSpec {
 
 // --- $ref resolution ---
 
-function resolveRef(
-  spec: OpenApiSpec,
-  ref: string,
-): OpenApiSchema | undefined {
+function resolveRef(spec: OpenApiSpec, ref: string): OpenApiSchema | undefined {
   const prefix = '#/components/schemas/';
   if (!ref.startsWith(prefix)) return undefined;
   const schemaName = ref.slice(prefix.length);
@@ -77,7 +71,11 @@ function resolveSchema(
     if (resolved) return resolveSchema(spec, resolved);
   }
   if (schema.allOf) {
-    const merged: OpenApiSchema = { type: 'object', properties: {}, required: [] };
+    const merged: OpenApiSchema = {
+      type: 'object',
+      properties: {},
+      required: [],
+    };
     for (const sub of schema.allOf) {
       const resolved = resolveSchema(spec, sub);
       if (resolved.properties) {
@@ -98,7 +96,8 @@ function openApiTypeToSimple(schema: OpenApiSchema, spec: OpenApiSpec): string {
   const resolved = resolveSchema(spec, schema);
 
   if (resolved.enum) return 'enum';
-  if (resolved.type === 'integer' || resolved.type === 'number') return 'number';
+  if (resolved.type === 'integer' || resolved.type === 'number')
+    return 'number';
   if (resolved.type === 'string') return 'string';
   if (resolved.type === 'boolean') return 'boolean';
   if (resolved.type === 'array') {
@@ -184,9 +183,9 @@ function loadEndpointMappings(): EndpointSchemaMapping[] {
   const endpointsDir = path.resolve(__dirname, '../src/core/endpoints');
   const mappings: EndpointSchemaMapping[] = [];
 
-  const files = fs.readdirSync(endpointsDir).filter(
-    (f) => f.endsWith('Endpoints.ts') && !f.endsWith('.generated.ts'),
-  );
+  const files = fs
+    .readdirSync(endpointsDir)
+    .filter((f) => f.endsWith('Endpoints.ts') && !f.endsWith('.generated.ts'));
 
   for (const file of files) {
     const content = fs.readFileSync(path.join(endpointsDir, file), 'utf-8');
@@ -231,7 +230,9 @@ async function main(): Promise<void> {
   console.log('Fetching ESI OpenAPI spec...');
   const response = await fetch(ESI_OPENAPI_URL);
   if (!response.ok) {
-    console.error(`Failed to fetch spec: ${response.status} ${response.statusText}`);
+    console.error(
+      `Failed to fetch spec: ${response.status} ${response.statusText}`,
+    );
     process.exit(ciMode ? 1 : 0);
   }
   const spec = (await response.json()) as OpenApiSpec;
@@ -269,9 +270,11 @@ async function main(): Promise<void> {
     if (!specPath) continue;
 
     const specOp = specPath[mapping.method];
-    if (!specOp?.responses?.['200']?.content?.['application/json']?.schema) continue;
+    if (!specOp?.responses?.['200']?.content?.['application/json']?.schema)
+      continue;
 
-    const responseSchema = specOp.responses['200'].content['application/json'].schema;
+    const responseSchema =
+      specOp.responses['200'].content['application/json'].schema;
     const specFields = extractSpecFields(responseSchema, spec);
     if (!specFields) continue;
 

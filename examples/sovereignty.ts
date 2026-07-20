@@ -34,7 +34,9 @@ async function main() {
 
     console.log('Campaigns by Type');
     console.log('-'.repeat(50));
-    for (const [type, count] of [...byType.entries()].sort((a, b) => b[1] - a[1])) {
+    for (const [type, count] of [...byType.entries()].sort(
+      (a, b) => b[1] - a[1],
+    )) {
       console.log(`  ${type}: ${count}`);
     }
 
@@ -45,8 +47,8 @@ async function main() {
       const defendPct = ((c.defender_score ?? 0) * 100).toFixed(1);
       console.log(
         `  System ${c.solar_system_id} | ${c.event_type}` +
-        ` | Attack: ${attackPct}% | Defense: ${defendPct}%` +
-        ` | Defender: ${c.defender_id}`,
+          ` | Attack: ${attackPct}% | Defense: ${defendPct}%` +
+          ` | Defender: ${c.defender_id}`,
       );
     }
   } catch (err) {

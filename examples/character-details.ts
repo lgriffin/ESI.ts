@@ -50,7 +50,9 @@ async function main() {
     console.log('-'.repeat(50));
     console.log(`  Active research agents: ${research.length}`);
     for (const agent of research.slice(0, 3)) {
-      console.log(`    Agent ${agent.agent_id}: skill ${agent.skill_type_id}, ${agent.points_per_day?.toFixed(2) ?? 0} pts/day`);
+      console.log(
+        `    Agent ${agent.agent_id}: skill ${agent.skill_type_id}, ${agent.points_per_day?.toFixed(2) ?? 0} pts/day`,
+      );
     }
 
     // Blueprints
@@ -76,7 +78,8 @@ async function main() {
     for (const s of standings.slice(0, 5)) {
       console.log(`    ${s.from_type} ${s.from_id}: ${s.standing}`);
     }
-    if (standings.length > 5) console.log(`    ... and ${standings.length - 5} more`);
+    if (standings.length > 5)
+      console.log(`    ... and ${standings.length - 5} more`);
 
     // Titles
     console.log(`\nTitles`);
@@ -97,9 +100,12 @@ async function main() {
     console.log(`  Corporations joined: ${corpHistory.length}`);
     for (const entry of corpHistory.slice(0, 5)) {
       const date = new Date(entry.start_date).toLocaleDateString();
-      console.log(`    ${date}: Corp ${entry.corporation_id} (record ${entry.record_id})`);
+      console.log(
+        `    ${date}: Corp ${entry.corporation_id} (record ${entry.record_id})`,
+      );
     }
-    if (corpHistory.length > 5) console.log(`    ... and ${corpHistory.length - 5} more`);
+    if (corpHistory.length > 5)
+      console.log(`    ... and ${corpHistory.length - 5} more`);
 
     // Jump Fatigue
     console.log(`\nJump Fatigue`);
@@ -107,7 +113,9 @@ async function main() {
     if (fatigue.jump_fatigue_expire_date) {
       console.log(`  Fatigue expires: ${fatigue.jump_fatigue_expire_date}`);
       console.log(`  Last jump:       ${fatigue.last_jump_date || 'unknown'}`);
-      console.log(`  Last update:     ${fatigue.last_update_date || 'unknown'}`);
+      console.log(
+        `  Last update:     ${fatigue.last_update_date || 'unknown'}`,
+      );
     } else {
       console.log('  No jump fatigue');
     }
@@ -117,7 +125,9 @@ async function main() {
     console.log('-'.repeat(50));
     console.log(`  Medals earned: ${medals.length}`);
     for (const m of medals.slice(0, 3)) {
-      console.log(`    Medal ${m.medal_id} from corp ${m.corporation_id} (${m.status})`);
+      console.log(
+        `    Medal ${m.medal_id} from corp ${m.corporation_id} (${m.status})`,
+      );
     }
 
     // Notifications
@@ -126,12 +136,17 @@ async function main() {
     console.log(`  Recent notifications: ${notifications.length}`);
     for (const n of notifications.slice(0, 5)) {
       const date = new Date(n.timestamp).toLocaleDateString();
-      console.log(`    ${date} | ${n.type} | from ${n.sender_type} ${n.sender_id}`);
+      console.log(
+        `    ${date} | ${n.type} | from ${n.sender_type} ${n.sender_id}`,
+      );
     }
-    if (notifications.length > 5) console.log(`    ... and ${notifications.length - 5} more`);
-
+    if (notifications.length > 5)
+      console.log(`    ... and ${notifications.length - 5} more`);
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
       console.error('Authentication required. Set ESI_ACCESS_TOKEN.');
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);

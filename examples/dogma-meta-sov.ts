@@ -23,7 +23,9 @@ async function main() {
     console.log(`  Total effects: ${effectIds.length}`);
 
     const sampleEffect = await client.dogma.getEffectById(effectIds[0]!);
-    console.log(`  Sample effect: ${sampleEffect.display_name || sampleEffect.name || `ID ${sampleEffect.effect_id}`}`);
+    console.log(
+      `  Sample effect: ${sampleEffect.display_name || sampleEffect.name || `ID ${sampleEffect.effect_id}`}`,
+    );
     console.log(`    Category: ${sampleEffect.effect_category}`);
     console.log(`    Published: ${sampleEffect.published}`);
 
@@ -67,7 +69,9 @@ async function main() {
       const killmails = await client.wars.getWarKillmails(SAMPLE_WAR_ID);
       console.log(`  War ${SAMPLE_WAR_ID}: ${killmails.length} killmails`);
       for (const km of killmails.slice(0, 3)) {
-        console.log(`    Killmail ${km.killmail_id} (hash: ${km.killmail_hash})`);
+        console.log(
+          `    Killmail ${km.killmail_id} (hash: ${km.killmail_hash})`,
+        );
       }
       if (killmails.length > 3) {
         console.log(`    ... and ${killmails.length - 3} more`);
@@ -75,7 +79,6 @@ async function main() {
     } catch {
       console.log(`  War ${SAMPLE_WAR_ID}: no killmails found`);
     }
-
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

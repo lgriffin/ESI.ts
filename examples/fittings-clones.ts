@@ -49,7 +49,9 @@ async function main() {
       }
 
       for (const [shipTypeId, fits] of byShip) {
-        console.log(`\n  Ship Type ${shipTypeId} (${fits.length} fitting${fits.length > 1 ? 's' : ''}):`);
+        console.log(
+          `\n  Ship Type ${shipTypeId} (${fits.length} fitting${fits.length > 1 ? 's' : ''}):`,
+        );
         for (const fit of fits) {
           console.log(`    "${fit.name}" (ID: ${fit.fitting_id})`);
           if (fit.items && fit.items.length > 0) {
@@ -84,7 +86,9 @@ async function main() {
       console.log(`\n  Jump Clones (${clones.jump_clones.length}):`);
       for (const jc of clones.jump_clones) {
         const implantCount = jc.implants?.length || 0;
-        console.log(`    Clone ${jc.jump_clone_id} @ ${jc.location_type} ${jc.location_id} (${implantCount} implants)`);
+        console.log(
+          `    Clone ${jc.jump_clone_id} @ ${jc.location_type} ${jc.location_id} (${implantCount} implants)`,
+        );
         if (jc.implants && jc.implants.length > 0) {
           for (const imp of jc.implants.slice(0, 3)) {
             console.log(`      Implant type ${imp}`);
@@ -107,10 +111,14 @@ async function main() {
         console.log(`    Type ${typeId}`);
       }
     }
-
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN with scopes:');
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
+      console.error(
+        'Authentication required. Set ESI_ACCESS_TOKEN with scopes:',
+      );
       console.error('  - esi-fittings.read_fittings.v1');
       console.error('  - esi-clones.read_clones.v1');
       console.error('  - esi-clones.read_implants.v1');

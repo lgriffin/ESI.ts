@@ -32,19 +32,24 @@ async function main() {
     console.log(`  Published:   ${rifter.published}`);
 
     if (rifter.dogma_attributes?.length) {
-      console.log(`\nDogma Attributes on Rifter (first 5 of ${rifter.dogma_attributes.length})`);
+      console.log(
+        `\nDogma Attributes on Rifter (first 5 of ${rifter.dogma_attributes.length})`,
+      );
       console.log('-'.repeat(40));
 
       // Look up the first 5 attribute names
       const sampleAttrs = rifter.dogma_attributes.slice(0, 5);
       const attrDetails = await Promise.all(
-        sampleAttrs.map((a: any) => client.dogma.getAttributeById(a.attribute_id))
+        sampleAttrs.map((a: any) =>
+          client.dogma.getAttributeById(a.attribute_id),
+        ),
       );
 
       for (let i = 0; i < sampleAttrs.length; i++) {
         const attr = attrDetails[i]!;
         const sample = sampleAttrs[i]!;
-        const name = attr.display_name || attr.name || `attr_${sample.attribute_id}`;
+        const name =
+          attr.display_name || attr.name || `attr_${sample.attribute_id}`;
         console.log(`  ${name}: ${sample.value}`);
       }
     }

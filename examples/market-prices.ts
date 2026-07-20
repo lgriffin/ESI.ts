@@ -37,16 +37,26 @@ async function main() {
     for (const item of notableItems) {
       const price = prices.find((p: any) => p.type_id === item.id);
       if (price) {
-        const avg = price.average_price?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? 'N/A';
-        const adj = price.adjusted_price?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? 'N/A';
-        console.log(`  ${item.name.padEnd(22)} avg: ${avg.padStart(18)}  adj: ${adj.padStart(18)}`);
+        const avg =
+          price.average_price?.toLocaleString(undefined, {
+            maximumFractionDigits: 2,
+          }) ?? 'N/A';
+        const adj =
+          price.adjusted_price?.toLocaleString(undefined, {
+            maximumFractionDigits: 2,
+          }) ?? 'N/A';
+        console.log(
+          `  ${item.name.padEnd(22)} avg: ${avg.padStart(18)}  adj: ${adj.padStart(18)}`,
+        );
       }
     }
 
     // Show recent Tritanium history in The Forge
     console.log('\nTritanium Price History (The Forge, last 5 days)');
     console.log('-'.repeat(70));
-    console.log('  Date          Average       Lowest       Highest      Volume');
+    console.log(
+      '  Date          Average       Lowest       Highest      Volume',
+    );
     const recent = tritHistory.slice(-5);
     for (const day of recent) {
       const date = day.date;

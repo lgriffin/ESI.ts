@@ -25,7 +25,8 @@ async function main() {
     // Step 1: Get recent killmail summaries (IDs + hashes)
     // Scope: esi-killmails.read_killmails.v1
     console.log('Fetching recent killmail summaries...');
-    const summaries = await client.killmails.getCharacterRecentKillmails(CHARACTER_ID);
+    const summaries =
+      await client.killmails.getCharacterRecentKillmails(CHARACTER_ID);
     console.log(`  Found ${summaries.length} recent killmails\n`);
 
     if (summaries.length === 0) {
@@ -39,7 +40,9 @@ async function main() {
     console.log(`Fetching details for ${batch.length} killmails...\n`);
 
     const details = await Promise.all(
-      batch.map(s => client.killmails.getKillmail(s.killmail_id, s.killmail_hash)),
+      batch.map((s) =>
+        client.killmails.getKillmail(s.killmail_id, s.killmail_hash),
+      ),
     );
 
     console.log('Recent Killmails');
@@ -58,26 +61,39 @@ async function main() {
       }
       console.log(`  Attackers:   ${km.attackers.length}`);
 
-      const finalBlow = km.attackers.find(a => a.final_blow);
+      const finalBlow = km.attackers.find((a) => a.final_blow);
       if (finalBlow) {
-        console.log(`  Final blow:  Character ${finalBlow.character_id || 'NPC'} (Type ${finalBlow.ship_type_id || 'unknown'})`);
+        console.log(
+          `  Final blow:  Character ${finalBlow.character_id || 'NPC'} (Type ${finalBlow.ship_type_id || 'unknown'})`,
+        );
         console.log(`  Damage:      ${finalBlow.damage_done.toLocaleString()}`);
       }
 
-      const totalDamage = km.attackers.reduce((sum, a) => sum + a.damage_done, 0);
+      const totalDamage = km.attackers.reduce(
+        (sum, a) => sum + a.damage_done,
+        0,
+      );
       console.log(`  Total dmg:   ${totalDamage.toLocaleString()}`);
       if (km.victim.items) {
-        console.log(`  Items:       ${km.victim.items.length} item types involved`);
+        console.log(
+          `  Items:       ${km.victim.items.length} item types involved`,
+        );
       }
     }
 
     // Summary
     console.log('\n' + '='.repeat(60));
-    console.log(`Displayed ${details.length} of ${summaries.length} total killmails`);
-
+    console.log(
+      `Displayed ${details.length} of ${summaries.length} total killmails`,
+    );
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN with scope esi-killmails.read_killmails.v1');
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
+      console.error(
+        'Authentication required. Set ESI_ACCESS_TOKEN with scope esi-killmails.read_killmails.v1',
+      );
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);
     }

@@ -17,16 +17,12 @@ module.exports = {
   },
   testMatch: [
     '<rootDir>/tests/tdd/**/*.test.ts',
-    '<rootDir>/tests/bdd/step-definitions/**/*.steps.ts'
+    '<rootDir>/tests/bdd/step-definitions/**/*.steps.ts',
   ],
   verbose: true,
   coverageDirectory: 'coverage/unit',
   coverageReporters: ['text', 'lcov', 'json-summary'],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/types/**/*.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/types/**/*.ts'],
   coverageThreshold: {
     global: {
       branches: 80,

@@ -102,9 +102,7 @@ async function streamMarketTypes() {
 
     let totalTypes = 0;
 
-    for await (const page of client.market.streamMarketTypes(
-      FORGE_REGION_ID,
-    )) {
+    for await (const page of client.market.streamMarketTypes(FORGE_REGION_ID)) {
       totalTypes += page.data.length;
       console.log(
         `  Page ${page.page}/${page.totalPages}: ` +
@@ -127,10 +125,7 @@ async function main() {
     await streamMarketTypes();
     await streamAllOrders();
   } catch (err) {
-    console.error(
-      '\nError:',
-      err instanceof Error ? err.message : String(err),
-    );
+    console.error('\nError:', err instanceof Error ? err.message : String(err));
     process.exit(1);
   }
 }

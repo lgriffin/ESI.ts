@@ -27,7 +27,7 @@ async function main() {
 
     // Resolve system names by looking up each system
     const systems = await Promise.all(
-      route.map((id: number) => client.universe.getSystemById(id))
+      route.map((id: number) => client.universe.getSystemById(id)),
     );
 
     console.log('Route (Shortest)');
@@ -36,18 +36,26 @@ async function main() {
       const sys = systems[i]!;
       const name = sys.name ?? `System ${route[i]}`;
       const sec = sys.security_status?.toFixed(2) ?? '?';
-      const prefix = i === 0 ? 'START' : i === route.length - 1 ? 'END  ' : `  ${String(i).padStart(3)}`;
+      const prefix =
+        i === 0
+          ? 'START'
+          : i === route.length - 1
+            ? 'END  '
+            : `  ${String(i).padStart(3)}`;
       console.log(`  ${prefix}  ${name} (${sec})`);
     }
 
     // Safer route
     console.log('\nRoute (Safer)');
     console.log('-'.repeat(40));
-    const saferRoute = await client.route.getRoute(JITA_SYSTEM_ID, AMARR_SYSTEM_ID, {
-      preference: 'Safer',
-    });
+    const saferRoute = await client.route.getRoute(
+      JITA_SYSTEM_ID,
+      AMARR_SYSTEM_ID,
+      {
+        preference: 'Safer',
+      },
+    );
     console.log(`  ${saferRoute.length - 1} jumps`);
-
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

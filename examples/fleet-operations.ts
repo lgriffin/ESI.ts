@@ -32,7 +32,9 @@ async function main() {
     } catch (err) {
       if (err instanceof EsiError && err.statusCode === 404) {
         console.log('Character is not currently in a fleet.\n');
-        console.log('To see fleet operations in action, join a fleet in-game and re-run this example.');
+        console.log(
+          'To see fleet operations in action, join a fleet in-game and re-run this example.',
+        );
         return;
       }
       throw err;
@@ -65,7 +67,9 @@ async function main() {
     console.log('-'.repeat(40));
     for (const member of members.slice(0, 10)) {
       const role = member.role.padEnd(12);
-      console.log(`  ${role} | Character ${member.character_id} | Ship type ${member.ship_type_id} | System ${member.solar_system_id}`);
+      console.log(
+        `  ${role} | Character ${member.character_id} | Ship type ${member.ship_type_id} | System ${member.solar_system_id}`,
+      );
     }
     if (members.length > 10) {
       console.log(`  ... and ${members.length - 10} more members`);
@@ -78,7 +82,9 @@ async function main() {
     }
     console.log('\nShip Composition');
     console.log('-'.repeat(40));
-    for (const [typeId, count] of [...shipTypes.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+    for (const [typeId, count] of [...shipTypes.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)) {
       console.log(`  Type ${typeId}: ${count} pilot${count > 1 ? 's' : ''}`);
     }
 
@@ -99,11 +105,17 @@ async function main() {
     // client.fleets.updateFleet(fleetId, { motd: 'New MOTD' })       — Scope: esi-fleets.write_fleet.v1
     // client.fleets.createFleetWing(fleetId, {})                     — Scope: esi-fleets.write_fleet.v1
     // client.fleets.createFleetInvitation(fleetId, { character_id }) — Scope: esi-fleets.write_fleet.v1
-    console.log('\nNote: write operations (updateFleet, createFleetWing, createFleetInvitation) require scope esi-fleets.write_fleet.v1');
-
+    console.log(
+      '\nNote: write operations (updateFleet, createFleetWing, createFleetInvitation) require scope esi-fleets.write_fleet.v1',
+    );
   } catch (err) {
-    if (err instanceof EsiError && (err.statusCode === 401 || err.statusCode === 403)) {
-      console.error('Authentication required. Set ESI_ACCESS_TOKEN with scope esi-fleets.read_fleet.v1');
+    if (
+      err instanceof EsiError &&
+      (err.statusCode === 401 || err.statusCode === 403)
+    ) {
+      console.error(
+        'Authentication required. Set ESI_ACCESS_TOKEN with scope esi-fleets.read_fleet.v1',
+      );
     } else {
       console.error('Error:', err instanceof Error ? err.message : err);
     }

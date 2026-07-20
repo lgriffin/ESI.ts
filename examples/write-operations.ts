@@ -37,24 +37,37 @@ async function main() {
     // Add contact
     console.log('\n  Adding contact...');
     try {
-      const addResult = await client.contacts.postCharacterContacts(CHARACTER_ID, 5, [TEST_CONTACT_ID]);
+      const addResult = await client.contacts.postCharacterContacts(
+        CHARACTER_ID,
+        5,
+        [TEST_CONTACT_ID],
+      );
       console.log(`    Added: ${JSON.stringify(addResult)}`);
 
       // Edit contact standing
       console.log('  Editing contact standing...');
-      await client.contacts.putCharacterContacts(CHARACTER_ID, 10, [TEST_CONTACT_ID]);
+      await client.contacts.putCharacterContacts(CHARACTER_ID, 10, [
+        TEST_CONTACT_ID,
+      ]);
       console.log('    Updated standing to 10');
 
       // Delete contact
       console.log('  Deleting contact...');
-      await client.contacts.deleteCharacterContacts(CHARACTER_ID, [TEST_CONTACT_ID]);
+      await client.contacts.deleteCharacterContacts(CHARACTER_ID, [
+        TEST_CONTACT_ID,
+      ]);
       console.log('    Deleted successfully');
 
       console.log('  Contacts lifecycle: PASS');
     } catch (err) {
       if (err instanceof EsiError && err.statusCode === 520) {
-        console.log('    Contact already exists or conflict — skipping lifecycle');
-      } else if (err instanceof EsiError && [401, 403].includes(err.statusCode ?? 0)) {
+        console.log(
+          '    Contact already exists or conflict — skipping lifecycle',
+        );
+      } else if (
+        err instanceof EsiError &&
+        [401, 403].includes(err.statusCode ?? 0)
+      ) {
         console.log('    Missing scope — skipped');
       } else {
         console.log(`    Error: ${err instanceof Error ? err.message : err}`);
@@ -78,7 +91,10 @@ async function main() {
           { type_id: 10190, flag: 'HiSlot0', quantity: 1 }, // 125mm Gatling AutoCannon I
         ],
       };
-      const createResult = await client.fittings.createFitting(CHARACTER_ID, fitting);
+      const createResult = await client.fittings.createFitting(
+        CHARACTER_ID,
+        fitting,
+      );
       const fittingId = createResult.fitting_id;
       console.log(`    Created fitting ID: ${fittingId}`);
 
@@ -132,7 +148,9 @@ async function main() {
     try {
       console.log('\n  Sending test mail (to self)...');
       const mailId = await client.mail.sendMail(CHARACTER_ID, {
-        recipients: [{ recipient_id: CHARACTER_ID, recipient_type: 'character' }],
+        recipients: [
+          { recipient_id: CHARACTER_ID, recipient_type: 'character' },
+        ],
         subject: 'ESI.ts Write Test',
         body: 'Automated test mail from ESI.ts — safe to delete.',
       });
@@ -169,7 +187,10 @@ async function main() {
       await client.ui.setAutopilotWaypoint(30002510, false, true);
       console.log('    Waypoint set');
     } catch (err) {
-      if (err instanceof EsiError && [401, 403, 502].includes(err.statusCode ?? 0)) {
+      if (
+        err instanceof EsiError &&
+        [401, 403, 502].includes(err.statusCode ?? 0)
+      ) {
         console.log('    Not available (client offline or missing scope)');
       } else {
         console.log(`    Error: ${err instanceof Error ? err.message : err}`);
@@ -182,7 +203,10 @@ async function main() {
       await client.ui.openInformationWindow(90404873);
       console.log('    Info window opened');
     } catch (err) {
-      if (err instanceof EsiError && [401, 403, 502].includes(err.statusCode ?? 0)) {
+      if (
+        err instanceof EsiError &&
+        [401, 403, 502].includes(err.statusCode ?? 0)
+      ) {
         console.log('    Not available (client offline or missing scope)');
       } else {
         console.log(`    Error: ${err instanceof Error ? err.message : err}`);
@@ -195,7 +219,10 @@ async function main() {
       await client.ui.openMarketDetailsWindow(34);
       console.log('    Market window opened');
     } catch (err) {
-      if (err instanceof EsiError && [401, 403, 502].includes(err.statusCode ?? 0)) {
+      if (
+        err instanceof EsiError &&
+        [401, 403, 502].includes(err.statusCode ?? 0)
+      ) {
         console.log('    Not available (client offline or missing scope)');
       } else {
         console.log(`    Error: ${err instanceof Error ? err.message : err}`);
@@ -212,7 +239,10 @@ async function main() {
       });
       console.log('    Mail compose window opened');
     } catch (err) {
-      if (err instanceof EsiError && [401, 403, 502].includes(err.statusCode ?? 0)) {
+      if (
+        err instanceof EsiError &&
+        [401, 403, 502].includes(err.statusCode ?? 0)
+      ) {
         console.log('    Not available (client offline or missing scope)');
       } else {
         console.log(`    Error: ${err instanceof Error ? err.message : err}`);
@@ -225,7 +255,10 @@ async function main() {
       await client.ui.openContractWindow(1);
       console.log('    Contract window opened');
     } catch (err) {
-      if (err instanceof EsiError && [401, 403, 502].includes(err.statusCode ?? 0)) {
+      if (
+        err instanceof EsiError &&
+        [401, 403, 502].includes(err.statusCode ?? 0)
+      ) {
         console.log('    Not available (client offline or missing scope)');
       } else {
         console.log(`    Error: ${err instanceof Error ? err.message : err}`);
@@ -234,7 +267,6 @@ async function main() {
 
     console.log('\n' + '='.repeat(50));
     console.log('All write operation tests complete.');
-
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);
