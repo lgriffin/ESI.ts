@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "project": ["src/**/*.ts"],
-  "ignoreDependencies": ["jest-junit"],
+  "ignoreDependencies": ["jest-junit", "lint-staged", "@stryker-mutator/api"],
+  "ignore": ["src/types/generated/spec-alignment.check.ts"],
+  "ignoreExportsUsedInFile": true,
+  "ignoreMembers": ["HttpMethod"],
   "exclude": ["unresolved"]
 }
