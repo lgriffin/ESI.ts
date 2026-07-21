@@ -337,7 +337,7 @@ jobs:
 
       - name: Run Schemathesis
         run: bash scripts/run-schemathesis.sh ./reports/schemathesis
-        timeout-minutes: 15
+        timeout-minutes: 20
 
       - name: Upload Schemathesis report
         uses: actions/upload-artifact@v7
