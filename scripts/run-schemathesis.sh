@@ -70,7 +70,7 @@ const fs = require('fs');
 PREPROCESS
 
 echo "Starting Prism mock server on port 4010..."
-npx prism mock "$MODIFIED_SPEC" -p 4010 --errors &
+npx prism mock "$MODIFIED_SPEC" -p 4010 &
 PRISM_PID=$!
 
 echo "Waiting for Prism to be ready..."
