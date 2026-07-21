@@ -97,9 +97,8 @@ docker run --rm --network host \
   --exclude-checks negative_data_rejection,positive_data_acceptance,use_after_free,unsupported_method,response_schema_conformance,status_code_conformance \
   --max-examples 10 \
   --url http://localhost:4010 \
-  --workers 2 \
-  --request-timeout 30 \
-  --request-retries 2 \
+  --workers auto \
+  --request-retries 1 \
   --header "X-Compatibility-Date: 2025-12-16" \
   --report junit \
   --report-junit-path /reports/junit.xml \
