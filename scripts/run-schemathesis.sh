@@ -50,11 +50,17 @@ const fs = require('fs');
     delete spec.components.parameters.AcceptLanguage.schema?.enum;
   }
 
-  // Remove int32 format + maximum from Page parameter so fuzzed values
-  // beyond 2^31-1 don't trigger Prism 422 rejections
-  if (spec.components?.parameters?.Page?.schema) {
-    delete spec.components.parameters.Page.schema.format;
-    delete spec.components.parameters.Page.schema.maximum;
+  // Remove int32 format from all inline page query parameters so fuzzed
+  // values beyond 2^31-1 don't trigger Prism 422 rejections
+  for (const methods of Object.values(spec.paths || {})) {
+    for (const m of ['get', 'post', 'put', 'delete', 'patch']) {
+      for (const param of methods[m]?.parameters || []) {
+        if (param.in === 'query' && param.name === 'page' && param.schema) {
+          delete param.schema.format;
+          delete param.schema.maximum;
+        }
+      }
+    }
   }
 
   fs.writeFileSync(process.env.MODIFIED_SPEC, JSON.stringify(spec, null, 2));
