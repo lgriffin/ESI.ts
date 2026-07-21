@@ -45,6 +45,11 @@ const fs = require('fs');
     spec.components.parameters.CompatibilityDate.required = false;
   }
 
+  // Remove Accept-Language enum constraint so fuzzed values don't cause 422
+  if (spec.components?.parameters?.AcceptLanguage) {
+    delete spec.components.parameters.AcceptLanguage.schema?.enum;
+  }
+
   fs.writeFileSync(process.env.MODIFIED_SPEC, JSON.stringify(spec, null, 2));
   console.log(`Preprocessed spec: ${Object.keys(spec.paths).length} paths`);
 })();
