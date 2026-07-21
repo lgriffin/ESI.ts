@@ -17,8 +17,41 @@ cleanup() {
 
 trap cleanup EXIT
 
+# --- Download & preprocess the ESI OpenAPI spec ---
+SPEC_URL="https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16"
+MODIFIED_SPEC="$(cd "$REPORT_DIR" && pwd)/esi-openapi-fuzz.json"
+export SPEC_URL MODIFIED_SPEC
+
+echo "Downloading and preprocessing ESI OpenAPI spec..."
+node <<'PREPROCESS'
+const fs = require('fs');
+(async () => {
+  const res = await fetch(process.env.SPEC_URL);
+  if (!res.ok) throw new Error(`Failed to download spec: ${res.status}`);
+  const spec = await res.json();
+
+  // Strip security from every operation so Prism serves all endpoints
+  for (const methods of Object.values(spec.paths || {})) {
+    for (const m of ['get', 'post', 'put', 'delete', 'patch']) {
+      if (methods[m]) delete methods[m].security;
+    }
+  }
+
+  // Remove securitySchemes definition
+  if (spec.components) delete spec.components.securitySchemes;
+
+  // Make X-Compatibility-Date header non-required so Prism won't 422
+  if (spec.components?.parameters?.CompatibilityDate) {
+    spec.components.parameters.CompatibilityDate.required = false;
+  }
+
+  fs.writeFileSync(process.env.MODIFIED_SPEC, JSON.stringify(spec, null, 2));
+  console.log(`Preprocessed spec: ${Object.keys(spec.paths).length} paths`);
+})();
+PREPROCESS
+
 echo "Starting Prism mock server on port 4010..."
-npx prism mock https://esi.evetech.net/meta/openapi.json -p 4010 &
+npx prism mock "$MODIFIED_SPEC" -p 4010 &
 PRISM_PID=$!
 
 echo "Waiting for Prism to be ready..."
@@ -38,19 +71,20 @@ echo "Running Schemathesis..."
 SCHEMATHESIS_EXIT=0
 docker run --rm --network host \
   -v "$(cd "$REPORT_DIR" && pwd):/reports" \
+  -v "$MODIFIED_SPEC:/spec/esi-openapi-fuzz.json:ro" \
   schemathesis/schemathesis \
-  run https://esi.evetech.net/meta/openapi.json \
+  run /spec/esi-openapi-fuzz.json \
   --checks all \
   --max-examples 10 \
   --url http://localhost:4010 \
   --workers auto \
+  --header "X-Compatibility-Date: 2025-12-16" \
   --report junit \
   --report-junit-path /reports/junit.xml \
   || SCHEMATHESIS_EXIT=$?
 
 echo "Schemathesis completed with exit code: ${SCHEMATHESIS_EXIT}"
 if [ "${SCHEMATHESIS_EXIT}" -ne 0 ]; then
-  echo "Note: Non-zero exit is expected — Prism mock cannot simulate auth, rejects fuzzed HTTP methods, etc."
-  echo "Review the JUnit report for genuine findings."
+  echo "Schemathesis found schema violations. Review the JUnit report."
 fi
-exit 0
+exit "${SCHEMATHESIS_EXIT}"
