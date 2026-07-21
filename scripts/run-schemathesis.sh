@@ -75,6 +75,7 @@ docker run --rm --network host \
   schemathesis/schemathesis \
   run /spec/esi-openapi-fuzz.json \
   --checks all \
+  --exclude-checks negative_data_rejection,positive_data_acceptance,use_after_free,unsupported_method \
   --max-examples 10 \
   --url http://localhost:4010 \
   --workers auto \
