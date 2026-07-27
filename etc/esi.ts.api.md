@@ -130,6 +130,17 @@ interface AllianceDetail {
 }
 
 // @public (undocumented)
+const AllianceDetailSchema: z.ZodObject<{
+    creator_corporation_id: z.ZodNumber;
+    creator_id: z.ZodNumber;
+    date_founded: z.ZodString;
+    executor_corporation_id: z.ZodOptional<z.ZodNumber>;
+    faction_id: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodString;
+    ticker: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type AllianceIcon = z.infer<typeof AllianceIconSchema>;
 
 // @public (undocumented)
@@ -171,6 +182,19 @@ interface AlliancesAllianceIdContactsGet {
 }
 
 // @public (undocumented)
+const AlliancesAllianceIdContactsGetSchema: z.ZodObject<{
+    contact_id: z.ZodNumber;
+    contact_type: z.ZodEnum<{
+        character: "character";
+        corporation: "corporation";
+        alliance: "alliance";
+        faction: "faction";
+    }>;
+    label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    standing: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface AlliancesAllianceIdContactsLabelsGet {
     // (undocumented)
     label_id: number;
@@ -179,12 +203,24 @@ interface AlliancesAllianceIdContactsLabelsGet {
 }
 
 // @public (undocumented)
+const AlliancesAllianceIdContactsLabelsGetSchema: z.ZodObject<{
+    label_id: z.ZodNumber;
+    label_name: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface AlliancesAllianceIdIconsGet {
     // (undocumented)
     px128x128?: string;
     // (undocumented)
     px64x64?: string;
 }
+
+// @public (undocumented)
+const AlliancesAllianceIdIconsGetSchema: z.ZodObject<{
+    px128x128: z.ZodOptional<z.ZodString>;
+    px64x64: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type Ancestry = z.infer<typeof AncestrySchema>;
@@ -211,13 +247,13 @@ export class ApiClient {
     // (undocumented)
     getCache(): ICache | null;
     // (undocumented)
-    getCircuitBreaker(): CircuitBreaker | null;
+    getCircuitBreaker(): ICircuitBreaker | null;
     // Warning: (ae-forgotten-export) The symbol "EsiDatasource_2" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     getDatasource(): EsiDatasource_2 | undefined;
     // (undocumented)
-    getDeduplicator(): RequestDeduplicator | null;
+    getDeduplicator(): IDeduplicator | null;
     // (undocumented)
     getLanguage(): string | undefined;
     // (undocumented)
@@ -243,11 +279,11 @@ export class ApiClient {
     // (undocumented)
     setCache(cache: ICache | null): void;
     // (undocumented)
-    setCircuitBreaker(cb: CircuitBreaker | null): void;
+    setCircuitBreaker(cb: ICircuitBreaker | null): void;
     // (undocumented)
     setDatasource(datasource: EsiDatasource_2 | undefined): void;
     // (undocumented)
-    setDeduplicator(dedup: RequestDeduplicator | null): void;
+    setDeduplicator(dedup: IDeduplicator | null): void;
     // (undocumented)
     setLanguage(language: string | undefined): void;
     // (undocumented)
@@ -743,6 +779,14 @@ interface CharactersAffiliationPost {
 }
 
 // @public (undocumented)
+const CharactersAffiliationPostSchema: z.ZodObject<{
+    alliance_id: z.ZodOptional<z.ZodNumber>;
+    character_id: z.ZodNumber;
+    corporation_id: z.ZodNumber;
+    faction_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdAgentsResearchGet {
     // (undocumented)
     agent_id: number;
@@ -755,6 +799,15 @@ interface CharactersCharacterIdAgentsResearchGet {
     // (undocumented)
     started_at: string;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdAgentsResearchGetSchema: z.ZodObject<{
+    agent_id: z.ZodNumber;
+    points_per_day: z.ZodNumber;
+    remainder_points: z.ZodNumber;
+    skill_type_id: z.ZodNumber;
+    started_at: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdAssetsGet {
@@ -777,6 +830,113 @@ interface CharactersCharacterIdAssetsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdAssetsGetSchema: z.ZodObject<{
+    is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
+    is_singleton: z.ZodBoolean;
+    item_id: z.ZodNumber;
+    location_flag: z.ZodEnum<{
+        AssetSafety: "AssetSafety";
+        AutoFit: "AutoFit";
+        BoosterBay: "BoosterBay";
+        CapsuleerDeliveries: "CapsuleerDeliveries";
+        Cargo: "Cargo";
+        CorporationGoalDeliveries: "CorporationGoalDeliveries";
+        CorpseBay: "CorpseBay";
+        Deliveries: "Deliveries";
+        DroneBay: "DroneBay";
+        ExpeditionHold: "ExpeditionHold";
+        FighterBay: "FighterBay";
+        FighterTube0: "FighterTube0";
+        FighterTube1: "FighterTube1";
+        FighterTube2: "FighterTube2";
+        FighterTube3: "FighterTube3";
+        FighterTube4: "FighterTube4";
+        FleetHangar: "FleetHangar";
+        FrigateEscapeBay: "FrigateEscapeBay";
+        Hangar: "Hangar";
+        HangarAll: "HangarAll";
+        HiSlot0: "HiSlot0";
+        HiSlot1: "HiSlot1";
+        HiSlot2: "HiSlot2";
+        HiSlot3: "HiSlot3";
+        HiSlot4: "HiSlot4";
+        HiSlot5: "HiSlot5";
+        HiSlot6: "HiSlot6";
+        HiSlot7: "HiSlot7";
+        HiddenModifiers: "HiddenModifiers";
+        Implant: "Implant";
+        InfrastructureHangar: "InfrastructureHangar";
+        LoSlot0: "LoSlot0";
+        LoSlot1: "LoSlot1";
+        LoSlot2: "LoSlot2";
+        LoSlot3: "LoSlot3";
+        LoSlot4: "LoSlot4";
+        LoSlot5: "LoSlot5";
+        LoSlot6: "LoSlot6";
+        LoSlot7: "LoSlot7";
+        Locked: "Locked";
+        MedSlot0: "MedSlot0";
+        MedSlot1: "MedSlot1";
+        MedSlot2: "MedSlot2";
+        MedSlot3: "MedSlot3";
+        MedSlot4: "MedSlot4";
+        MedSlot5: "MedSlot5";
+        MedSlot6: "MedSlot6";
+        MedSlot7: "MedSlot7";
+        MobileDepotHold: "MobileDepotHold";
+        MoonMaterialBay: "MoonMaterialBay";
+        QuafeBay: "QuafeBay";
+        RigSlot0: "RigSlot0";
+        RigSlot1: "RigSlot1";
+        RigSlot2: "RigSlot2";
+        RigSlot3: "RigSlot3";
+        RigSlot4: "RigSlot4";
+        RigSlot5: "RigSlot5";
+        RigSlot6: "RigSlot6";
+        RigSlot7: "RigSlot7";
+        ShipHangar: "ShipHangar";
+        Skill: "Skill";
+        SpecializedAmmoHold: "SpecializedAmmoHold";
+        SpecializedAsteroidHold: "SpecializedAsteroidHold";
+        SpecializedCommandCenterHold: "SpecializedCommandCenterHold";
+        SpecializedFuelBay: "SpecializedFuelBay";
+        SpecializedGasHold: "SpecializedGasHold";
+        SpecializedIceHold: "SpecializedIceHold";
+        SpecializedIndustrialShipHold: "SpecializedIndustrialShipHold";
+        SpecializedLargeShipHold: "SpecializedLargeShipHold";
+        SpecializedMaterialBay: "SpecializedMaterialBay";
+        SpecializedMediumShipHold: "SpecializedMediumShipHold";
+        SpecializedMineralHold: "SpecializedMineralHold";
+        SpecializedOreHold: "SpecializedOreHold";
+        SpecializedPlanetaryCommoditiesHold: "SpecializedPlanetaryCommoditiesHold";
+        SpecializedSalvageHold: "SpecializedSalvageHold";
+        SpecializedShipHold: "SpecializedShipHold";
+        SpecializedSmallShipHold: "SpecializedSmallShipHold";
+        StructureDeedBay: "StructureDeedBay";
+        SubSystemBay: "SubSystemBay";
+        SubSystemSlot0: "SubSystemSlot0";
+        SubSystemSlot1: "SubSystemSlot1";
+        SubSystemSlot2: "SubSystemSlot2";
+        SubSystemSlot3: "SubSystemSlot3";
+        SubSystemSlot4: "SubSystemSlot4";
+        SubSystemSlot5: "SubSystemSlot5";
+        SubSystemSlot6: "SubSystemSlot6";
+        SubSystemSlot7: "SubSystemSlot7";
+        Unlocked: "Unlocked";
+        Wardrobe: "Wardrobe";
+    }>;
+    location_id: z.ZodNumber;
+    location_type: z.ZodEnum<{
+        other: "other";
+        solar_system: "solar_system";
+        station: "station";
+        item: "item";
+    }>;
+    quantity: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdAssetsLocationsPost {
     // (undocumented)
     item_id: number;
@@ -789,12 +949,28 @@ interface CharactersCharacterIdAssetsLocationsPost {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdAssetsLocationsPostSchema: z.ZodObject<{
+    item_id: z.ZodNumber;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdAssetsNamesPost {
     // (undocumented)
     item_id: number;
     // (undocumented)
     name: string;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdAssetsNamesPostSchema: z.ZodObject<{
+    item_id: z.ZodNumber;
+    name: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdAttributesGet {
@@ -817,6 +993,18 @@ interface CharactersCharacterIdAttributesGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdAttributesGetSchema: z.ZodObject<{
+    accrued_remap_cooldown_date: z.ZodOptional<z.ZodString>;
+    bonus_remaps: z.ZodOptional<z.ZodNumber>;
+    charisma: z.ZodNumber;
+    intelligence: z.ZodNumber;
+    last_remap_date: z.ZodOptional<z.ZodString>;
+    memory: z.ZodNumber;
+    perception: z.ZodNumber;
+    willpower: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdBlueprintsGet {
     // (undocumented)
     item_id: number;
@@ -837,12 +1025,112 @@ interface CharactersCharacterIdBlueprintsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdBlueprintsGetSchema: z.ZodObject<{
+    item_id: z.ZodNumber;
+    location_flag: z.ZodEnum<{
+        AssetSafety: "AssetSafety";
+        AutoFit: "AutoFit";
+        Cargo: "Cargo";
+        CorpseBay: "CorpseBay";
+        Deliveries: "Deliveries";
+        DroneBay: "DroneBay";
+        FighterBay: "FighterBay";
+        FighterTube0: "FighterTube0";
+        FighterTube1: "FighterTube1";
+        FighterTube2: "FighterTube2";
+        FighterTube3: "FighterTube3";
+        FighterTube4: "FighterTube4";
+        FleetHangar: "FleetHangar";
+        Hangar: "Hangar";
+        HangarAll: "HangarAll";
+        HiSlot0: "HiSlot0";
+        HiSlot1: "HiSlot1";
+        HiSlot2: "HiSlot2";
+        HiSlot3: "HiSlot3";
+        HiSlot4: "HiSlot4";
+        HiSlot5: "HiSlot5";
+        HiSlot6: "HiSlot6";
+        HiSlot7: "HiSlot7";
+        HiddenModifiers: "HiddenModifiers";
+        Implant: "Implant";
+        LoSlot0: "LoSlot0";
+        LoSlot1: "LoSlot1";
+        LoSlot2: "LoSlot2";
+        LoSlot3: "LoSlot3";
+        LoSlot4: "LoSlot4";
+        LoSlot5: "LoSlot5";
+        LoSlot6: "LoSlot6";
+        LoSlot7: "LoSlot7";
+        Locked: "Locked";
+        MedSlot0: "MedSlot0";
+        MedSlot1: "MedSlot1";
+        MedSlot2: "MedSlot2";
+        MedSlot3: "MedSlot3";
+        MedSlot4: "MedSlot4";
+        MedSlot5: "MedSlot5";
+        MedSlot6: "MedSlot6";
+        MedSlot7: "MedSlot7";
+        QuafeBay: "QuafeBay";
+        RigSlot0: "RigSlot0";
+        RigSlot1: "RigSlot1";
+        RigSlot2: "RigSlot2";
+        RigSlot3: "RigSlot3";
+        RigSlot4: "RigSlot4";
+        RigSlot5: "RigSlot5";
+        RigSlot6: "RigSlot6";
+        RigSlot7: "RigSlot7";
+        ShipHangar: "ShipHangar";
+        SpecializedAmmoHold: "SpecializedAmmoHold";
+        SpecializedCommandCenterHold: "SpecializedCommandCenterHold";
+        SpecializedFuelBay: "SpecializedFuelBay";
+        SpecializedGasHold: "SpecializedGasHold";
+        SpecializedIndustrialShipHold: "SpecializedIndustrialShipHold";
+        SpecializedLargeShipHold: "SpecializedLargeShipHold";
+        SpecializedMaterialBay: "SpecializedMaterialBay";
+        SpecializedMediumShipHold: "SpecializedMediumShipHold";
+        SpecializedMineralHold: "SpecializedMineralHold";
+        SpecializedOreHold: "SpecializedOreHold";
+        SpecializedPlanetaryCommoditiesHold: "SpecializedPlanetaryCommoditiesHold";
+        SpecializedSalvageHold: "SpecializedSalvageHold";
+        SpecializedShipHold: "SpecializedShipHold";
+        SpecializedSmallShipHold: "SpecializedSmallShipHold";
+        SubSystemSlot0: "SubSystemSlot0";
+        SubSystemSlot1: "SubSystemSlot1";
+        SubSystemSlot2: "SubSystemSlot2";
+        SubSystemSlot3: "SubSystemSlot3";
+        SubSystemSlot4: "SubSystemSlot4";
+        SubSystemSlot5: "SubSystemSlot5";
+        SubSystemSlot6: "SubSystemSlot6";
+        SubSystemSlot7: "SubSystemSlot7";
+        Unlocked: "Unlocked";
+        Module: "Module";
+    }>;
+    location_id: z.ZodNumber;
+    material_efficiency: z.ZodNumber;
+    quantity: z.ZodNumber;
+    runs: z.ZodNumber;
+    time_efficiency: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdCalendarEventIdAttendeesGet {
     // (undocumented)
     character_id?: number;
     // (undocumented)
     event_response?: 'declined' | 'not_responded' | 'accepted' | 'tentative';
 }
+
+// @public (undocumented)
+const CharactersCharacterIdCalendarEventIdAttendeesGetSchema: z.ZodObject<{
+    character_id: z.ZodOptional<z.ZodNumber>;
+    event_response: z.ZodOptional<z.ZodEnum<{
+        declined: "declined";
+        not_responded: "not_responded";
+        accepted: "accepted";
+        tentative: "tentative";
+    }>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdCalendarEventIdGet {
@@ -869,6 +1157,26 @@ interface CharactersCharacterIdCalendarEventIdGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdCalendarEventIdGetSchema: z.ZodObject<{
+    date: z.ZodString;
+    duration: z.ZodNumber;
+    event_id: z.ZodNumber;
+    importance: z.ZodNumber;
+    owner_id: z.ZodNumber;
+    owner_name: z.ZodString;
+    owner_type: z.ZodEnum<{
+        character: "character";
+        corporation: "corporation";
+        alliance: "alliance";
+        faction: "faction";
+        eve_server: "eve_server";
+    }>;
+    response: z.ZodString;
+    text: z.ZodString;
+    title: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdCalendarGet {
     // (undocumented)
     event_date?: string;
@@ -881,6 +1189,20 @@ interface CharactersCharacterIdCalendarGet {
     // (undocumented)
     title?: string;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdCalendarGetSchema: z.ZodObject<{
+    event_date: z.ZodOptional<z.ZodString>;
+    event_id: z.ZodOptional<z.ZodNumber>;
+    event_response: z.ZodOptional<z.ZodEnum<{
+        declined: "declined";
+        not_responded: "not_responded";
+        accepted: "accepted";
+        tentative: "tentative";
+    }>>;
+    importance: z.ZodOptional<z.ZodNumber>;
+    title: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdClonesGet {
@@ -904,6 +1226,29 @@ interface CharactersCharacterIdClonesGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdClonesGetSchema: z.ZodObject<{
+    home_location: z.ZodOptional<z.ZodObject<{
+        location_id: z.ZodOptional<z.ZodNumber>;
+        location_type: z.ZodOptional<z.ZodEnum<{
+            station: "station";
+            structure: "structure";
+        }>>;
+    }, z.core.$loose>>;
+    jump_clones: z.ZodArray<z.ZodObject<{
+        implants: z.ZodArray<z.ZodNumber>;
+        jump_clone_id: z.ZodNumber;
+        location_id: z.ZodNumber;
+        location_type: z.ZodEnum<{
+            station: "station";
+            structure: "structure";
+        }>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    last_clone_jump_date: z.ZodOptional<z.ZodString>;
+    last_station_change_date: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdContactsGet {
     // (undocumented)
     contact_id: number;
@@ -920,12 +1265,33 @@ interface CharactersCharacterIdContactsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdContactsGetSchema: z.ZodObject<{
+    contact_id: z.ZodNumber;
+    contact_type: z.ZodEnum<{
+        character: "character";
+        corporation: "corporation";
+        alliance: "alliance";
+        faction: "faction";
+    }>;
+    is_blocked: z.ZodOptional<z.ZodBoolean>;
+    is_watched: z.ZodOptional<z.ZodBoolean>;
+    label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    standing: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdContactsLabelsGet {
     // (undocumented)
     label_id: number;
     // (undocumented)
     label_name: string;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdContactsLabelsGetSchema: z.ZodObject<{
+    label_id: z.ZodNumber;
+    label_name: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdContractsContractIdBidsGet {
@@ -938,6 +1304,14 @@ interface CharactersCharacterIdContractsContractIdBidsGet {
     // (undocumented)
     date_bid: string;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdContractsContractIdBidsGetSchema: z.ZodObject<{
+    amount: z.ZodNumber;
+    bid_id: z.ZodNumber;
+    bidder_id: z.ZodNumber;
+    date_bid: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdContractsContractIdItemsGet {
@@ -954,6 +1328,16 @@ interface CharactersCharacterIdContractsContractIdItemsGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdContractsContractIdItemsGetSchema: z.ZodObject<{
+    is_included: z.ZodBoolean;
+    is_singleton: z.ZodBoolean;
+    quantity: z.ZodNumber;
+    raw_quantity: z.ZodOptional<z.ZodNumber>;
+    record_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdContractsGet {
@@ -1004,6 +1388,54 @@ interface CharactersCharacterIdContractsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdContractsGetSchema: z.ZodObject<{
+    acceptor_id: z.ZodNumber;
+    assignee_id: z.ZodNumber;
+    availability: z.ZodEnum<{
+        corporation: "corporation";
+        alliance: "alliance";
+        public: "public";
+        personal: "personal";
+    }>;
+    buyout: z.ZodOptional<z.ZodNumber>;
+    collateral: z.ZodOptional<z.ZodNumber>;
+    contract_id: z.ZodNumber;
+    date_accepted: z.ZodOptional<z.ZodString>;
+    date_completed: z.ZodOptional<z.ZodString>;
+    date_expired: z.ZodString;
+    date_issued: z.ZodString;
+    days_to_complete: z.ZodOptional<z.ZodNumber>;
+    end_location_id: z.ZodOptional<z.ZodNumber>;
+    for_corporation: z.ZodBoolean;
+    issuer_corporation_id: z.ZodNumber;
+    issuer_id: z.ZodNumber;
+    price: z.ZodOptional<z.ZodNumber>;
+    reward: z.ZodOptional<z.ZodNumber>;
+    start_location_id: z.ZodOptional<z.ZodNumber>;
+    status: z.ZodEnum<{
+        cancelled: "cancelled";
+        outstanding: "outstanding";
+        in_progress: "in_progress";
+        finished_issuer: "finished_issuer";
+        finished_contractor: "finished_contractor";
+        finished: "finished";
+        rejected: "rejected";
+        failed: "failed";
+        deleted: "deleted";
+        reversed: "reversed";
+    }>;
+    title: z.ZodOptional<z.ZodString>;
+    type: z.ZodEnum<{
+        unknown: "unknown";
+        item_exchange: "item_exchange";
+        auction: "auction";
+        courier: "courier";
+        loan: "loan";
+    }>;
+    volume: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdCorporationhistoryGet {
     // (undocumented)
     corporation_id: number;
@@ -1016,6 +1448,14 @@ interface CharactersCharacterIdCorporationhistoryGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdCorporationhistoryGetSchema: z.ZodObject<{
+    corporation_id: z.ZodNumber;
+    is_deleted: z.ZodOptional<z.ZodBoolean>;
+    record_id: z.ZodNumber;
+    start_date: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdFatigueGet {
     // (undocumented)
     jump_fatigue_expire_date?: string;
@@ -1024,6 +1464,13 @@ interface CharactersCharacterIdFatigueGet {
     // (undocumented)
     last_update_date?: string;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdFatigueGetSchema: z.ZodObject<{
+    jump_fatigue_expire_date: z.ZodOptional<z.ZodString>;
+    last_jump_date: z.ZodOptional<z.ZodString>;
+    last_update_date: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdFittingsGet {
@@ -1044,6 +1491,63 @@ interface CharactersCharacterIdFittingsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdFittingsGetSchema: z.ZodObject<{
+    description: z.ZodString;
+    fitting_id: z.ZodNumber;
+    items: z.ZodArray<z.ZodObject<{
+        flag: z.ZodEnum<{
+            Cargo: "Cargo";
+            DroneBay: "DroneBay";
+            FighterBay: "FighterBay";
+            HiSlot0: "HiSlot0";
+            HiSlot1: "HiSlot1";
+            HiSlot2: "HiSlot2";
+            HiSlot3: "HiSlot3";
+            HiSlot4: "HiSlot4";
+            HiSlot5: "HiSlot5";
+            HiSlot6: "HiSlot6";
+            HiSlot7: "HiSlot7";
+            LoSlot0: "LoSlot0";
+            LoSlot1: "LoSlot1";
+            LoSlot2: "LoSlot2";
+            LoSlot3: "LoSlot3";
+            LoSlot4: "LoSlot4";
+            LoSlot5: "LoSlot5";
+            LoSlot6: "LoSlot6";
+            LoSlot7: "LoSlot7";
+            MedSlot0: "MedSlot0";
+            MedSlot1: "MedSlot1";
+            MedSlot2: "MedSlot2";
+            MedSlot3: "MedSlot3";
+            MedSlot4: "MedSlot4";
+            MedSlot5: "MedSlot5";
+            MedSlot6: "MedSlot6";
+            MedSlot7: "MedSlot7";
+            RigSlot0: "RigSlot0";
+            RigSlot1: "RigSlot1";
+            RigSlot2: "RigSlot2";
+            SubSystemSlot0: "SubSystemSlot0";
+            SubSystemSlot1: "SubSystemSlot1";
+            SubSystemSlot2: "SubSystemSlot2";
+            SubSystemSlot3: "SubSystemSlot3";
+            ServiceSlot0: "ServiceSlot0";
+            ServiceSlot1: "ServiceSlot1";
+            ServiceSlot2: "ServiceSlot2";
+            ServiceSlot3: "ServiceSlot3";
+            ServiceSlot4: "ServiceSlot4";
+            ServiceSlot5: "ServiceSlot5";
+            ServiceSlot6: "ServiceSlot6";
+            ServiceSlot7: "ServiceSlot7";
+            Invalid: "Invalid";
+        }>;
+        quantity: z.ZodNumber;
+        type_id: z.ZodNumber;
+    }, z.core.$loose>>;
+    name: z.ZodString;
+    ship_type_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdFleetGet {
     // (undocumented)
     fleet_boss_id: number;
@@ -1056,6 +1560,20 @@ interface CharactersCharacterIdFleetGet {
     // (undocumented)
     wing_id: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdFleetGetSchema: z.ZodObject<{
+    fleet_boss_id: z.ZodNumber;
+    fleet_id: z.ZodNumber;
+    role: z.ZodEnum<{
+        fleet_commander: "fleet_commander";
+        wing_commander: "wing_commander";
+        squad_commander: "squad_commander";
+        squad_member: "squad_member";
+    }>;
+    squad_id: z.ZodNumber;
+    wing_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdFwStatsGet {
@@ -1080,6 +1598,24 @@ interface CharactersCharacterIdFwStatsGet {
         yesterday: number;
     };
 }
+
+// @public (undocumented)
+const CharactersCharacterIdFwStatsGetSchema: z.ZodObject<{
+    current_rank: z.ZodOptional<z.ZodNumber>;
+    enlisted_on: z.ZodOptional<z.ZodString>;
+    faction_id: z.ZodOptional<z.ZodNumber>;
+    highest_rank: z.ZodOptional<z.ZodNumber>;
+    kills: z.ZodObject<{
+        last_week: z.ZodNumber;
+        total: z.ZodNumber;
+        yesterday: z.ZodNumber;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        last_week: z.ZodNumber;
+        total: z.ZodNumber;
+        yesterday: z.ZodNumber;
+    }, z.core.$loose>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdIndustryJobsGet {
@@ -1130,12 +1666,51 @@ interface CharactersCharacterIdIndustryJobsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdIndustryJobsGetSchema: z.ZodObject<{
+    activity_id: z.ZodNumber;
+    blueprint_id: z.ZodNumber;
+    blueprint_location_id: z.ZodNumber;
+    blueprint_type_id: z.ZodNumber;
+    completed_character_id: z.ZodOptional<z.ZodNumber>;
+    completed_date: z.ZodOptional<z.ZodString>;
+    cost: z.ZodOptional<z.ZodNumber>;
+    duration: z.ZodNumber;
+    end_date: z.ZodString;
+    facility_id: z.ZodNumber;
+    installer_id: z.ZodNumber;
+    job_id: z.ZodNumber;
+    licensed_runs: z.ZodOptional<z.ZodNumber>;
+    output_location_id: z.ZodNumber;
+    pause_date: z.ZodOptional<z.ZodString>;
+    probability: z.ZodOptional<z.ZodNumber>;
+    product_type_id: z.ZodOptional<z.ZodNumber>;
+    runs: z.ZodNumber;
+    start_date: z.ZodString;
+    station_id: z.ZodNumber;
+    status: z.ZodEnum<{
+        cancelled: "cancelled";
+        active: "active";
+        delivered: "delivered";
+        paused: "paused";
+        ready: "ready";
+        reverted: "reverted";
+    }>;
+    successful_runs: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdKillmailsRecentGet {
     // (undocumented)
     killmail_hash: string;
     // (undocumented)
     killmail_id: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdKillmailsRecentGetSchema: z.ZodObject<{
+    killmail_hash: z.ZodString;
+    killmail_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdLocationGet {
@@ -1148,12 +1723,25 @@ interface CharactersCharacterIdLocationGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdLocationGetSchema: z.ZodObject<{
+    solar_system_id: z.ZodNumber;
+    station_id: z.ZodOptional<z.ZodNumber>;
+    structure_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdLoyaltyPointsGet {
     // (undocumented)
     corporation_id: number;
     // (undocumented)
     loyalty_points: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdLoyaltyPointsGetSchema: z.ZodObject<{
+    corporation_id: z.ZodNumber;
+    loyalty_points: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdMailGet {
@@ -1177,6 +1765,25 @@ interface CharactersCharacterIdMailGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdMailGetSchema: z.ZodObject<{
+    from: z.ZodOptional<z.ZodNumber>;
+    is_read: z.ZodOptional<z.ZodBoolean>;
+    labels: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    mail_id: z.ZodOptional<z.ZodNumber>;
+    recipients: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        recipient_id: z.ZodNumber;
+        recipient_type: z.ZodEnum<{
+            character: "character";
+            corporation: "corporation";
+            alliance: "alliance";
+            mailing_list: "mailing_list";
+        }>;
+    }, z.core.$loose>>>;
+    subject: z.ZodOptional<z.ZodString>;
+    timestamp: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdMailLabelsGet {
     // (undocumented)
     labels?: ({
@@ -1190,12 +1797,48 @@ interface CharactersCharacterIdMailLabelsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdMailLabelsGetSchema: z.ZodObject<{
+    labels: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        color: z.ZodOptional<z.ZodEnum<{
+            "#0000fe": "#0000fe";
+            "#006634": "#006634";
+            "#0099ff": "#0099ff";
+            "#00ff33": "#00ff33";
+            "#01ffff": "#01ffff";
+            "#349800": "#349800";
+            "#660066": "#660066";
+            "#666666": "#666666";
+            "#999999": "#999999";
+            "#99ffff": "#99ffff";
+            "#9a0000": "#9a0000";
+            "#ccff9a": "#ccff9a";
+            "#e6e6e6": "#e6e6e6";
+            "#fe0000": "#fe0000";
+            "#ff6600": "#ff6600";
+            "#ffff01": "#ffff01";
+            "#ffffcd": "#ffffcd";
+            "#ffffff": "#ffffff";
+        }>>;
+        label_id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+        unread_count: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>>;
+    total_unread_count: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdMailListsGet {
     // (undocumented)
     mailing_list_id: number;
     // (undocumented)
     name: string;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdMailListsGetSchema: z.ZodObject<{
+    mailing_list_id: z.ZodNumber;
+    name: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdMailMailIdGet {
@@ -1217,6 +1860,25 @@ interface CharactersCharacterIdMailMailIdGet {
     // (undocumented)
     timestamp?: string;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdMailMailIdGetSchema: z.ZodObject<{
+    body: z.ZodOptional<z.ZodString>;
+    from: z.ZodOptional<z.ZodNumber>;
+    labels: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    read: z.ZodOptional<z.ZodBoolean>;
+    recipients: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        recipient_id: z.ZodNumber;
+        recipient_type: z.ZodEnum<{
+            character: "character";
+            corporation: "corporation";
+            alliance: "alliance";
+            mailing_list: "mailing_list";
+        }>;
+    }, z.core.$loose>>>;
+    subject: z.ZodOptional<z.ZodString>;
+    timestamp: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdMedalsGet {
@@ -1246,6 +1908,27 @@ interface CharactersCharacterIdMedalsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdMedalsGetSchema: z.ZodObject<{
+    corporation_id: z.ZodNumber;
+    date: z.ZodString;
+    description: z.ZodString;
+    graphics: z.ZodArray<z.ZodObject<{
+        color: z.ZodOptional<z.ZodNumber>;
+        graphic: z.ZodString;
+        layer: z.ZodNumber;
+        part: z.ZodNumber;
+    }, z.core.$loose>>;
+    issuer_id: z.ZodNumber;
+    medal_id: z.ZodNumber;
+    reason: z.ZodString;
+    status: z.ZodEnum<{
+        private: "private";
+        public: "public";
+    }>;
+    title: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdMiningGet {
     // (undocumented)
     date: string;
@@ -1256,6 +1939,14 @@ interface CharactersCharacterIdMiningGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdMiningGetSchema: z.ZodObject<{
+    date: z.ZodString;
+    quantity: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdNotificationsContactsGet {
@@ -1270,6 +1961,15 @@ interface CharactersCharacterIdNotificationsContactsGet {
     // (undocumented)
     standing_level: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdNotificationsContactsGetSchema: z.ZodObject<{
+    message: z.ZodString;
+    notification_id: z.ZodNumber;
+    send_date: z.ZodString;
+    sender_character_id: z.ZodNumber;
+    standing_level: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdNotificationsGet {
@@ -1290,6 +1990,278 @@ interface CharactersCharacterIdNotificationsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdNotificationsGetSchema: z.ZodObject<{
+    is_read: z.ZodOptional<z.ZodBoolean>;
+    notification_id: z.ZodNumber;
+    sender_id: z.ZodNumber;
+    sender_type: z.ZodEnum<{
+        character: "character";
+        corporation: "corporation";
+        alliance: "alliance";
+        faction: "faction";
+        other: "other";
+    }>;
+    text: z.ZodOptional<z.ZodString>;
+    timestamp: z.ZodString;
+    type: z.ZodEnum<{
+        AcceptedAlly: "AcceptedAlly";
+        AcceptedSurrender: "AcceptedSurrender";
+        AgentRetiredTrigravian: "AgentRetiredTrigravian";
+        AllAnchoringMsg: "AllAnchoringMsg";
+        AllMaintenanceBillMsg: "AllMaintenanceBillMsg";
+        AllStrucInvulnerableMsg: "AllStrucInvulnerableMsg";
+        AllStructVulnerableMsg: "AllStructVulnerableMsg";
+        AllWarCorpJoinedAllianceMsg: "AllWarCorpJoinedAllianceMsg";
+        AllWarDeclaredMsg: "AllWarDeclaredMsg";
+        AllWarInvalidatedMsg: "AllWarInvalidatedMsg";
+        AllWarRetractedMsg: "AllWarRetractedMsg";
+        AllWarSurrenderMsg: "AllWarSurrenderMsg";
+        AllianceCapitalChanged: "AllianceCapitalChanged";
+        AllianceWarDeclaredV2: "AllianceWarDeclaredV2";
+        AllyContractCancelled: "AllyContractCancelled";
+        AllyJoinedWarAggressorMsg: "AllyJoinedWarAggressorMsg";
+        AllyJoinedWarAllyMsg: "AllyJoinedWarAllyMsg";
+        AllyJoinedWarDefenderMsg: "AllyJoinedWarDefenderMsg";
+        BattlePunishFriendlyFire: "BattlePunishFriendlyFire";
+        BillOutOfMoneyMsg: "BillOutOfMoneyMsg";
+        BillPaidCorpAllMsg: "BillPaidCorpAllMsg";
+        BountyClaimMsg: "BountyClaimMsg";
+        BountyESSShared: "BountyESSShared";
+        BountyESSTaken: "BountyESSTaken";
+        BountyPlacedAlliance: "BountyPlacedAlliance";
+        BountyPlacedChar: "BountyPlacedChar";
+        BountyPlacedCorp: "BountyPlacedCorp";
+        BountyYourBountyClaimed: "BountyYourBountyClaimed";
+        BuddyConnectContactAdd: "BuddyConnectContactAdd";
+        CharAppAcceptMsg: "CharAppAcceptMsg";
+        CharAppRejectMsg: "CharAppRejectMsg";
+        CharAppWithdrawMsg: "CharAppWithdrawMsg";
+        CharLeftCorpMsg: "CharLeftCorpMsg";
+        CharMedalMsg: "CharMedalMsg";
+        CharTerminationMsg: "CharTerminationMsg";
+        CloneActivationMsg: "CloneActivationMsg";
+        CloneActivationMsg2: "CloneActivationMsg2";
+        CloneMovedMsg: "CloneMovedMsg";
+        CloneRevokedMsg1: "CloneRevokedMsg1";
+        CloneRevokedMsg2: "CloneRevokedMsg2";
+        CombatOperationFinished: "CombatOperationFinished";
+        ContactAdd: "ContactAdd";
+        ContactEdit: "ContactEdit";
+        ContainerPasswordMsg: "ContainerPasswordMsg";
+        ContractRegionChangedToPochven: "ContractRegionChangedToPochven";
+        CorpAllBillMsg: "CorpAllBillMsg";
+        CorpAppAcceptMsg: "CorpAppAcceptMsg";
+        CorpAppInvitedMsg: "CorpAppInvitedMsg";
+        CorpAppNewMsg: "CorpAppNewMsg";
+        CorpAppRejectCustomMsg: "CorpAppRejectCustomMsg";
+        CorpAppRejectMsg: "CorpAppRejectMsg";
+        CorpBecameWarEligible: "CorpBecameWarEligible";
+        CorpDividendMsg: "CorpDividendMsg";
+        CorpFriendlyFireDisableTimerCompleted: "CorpFriendlyFireDisableTimerCompleted";
+        CorpFriendlyFireDisableTimerStarted: "CorpFriendlyFireDisableTimerStarted";
+        CorpFriendlyFireEnableTimerCompleted: "CorpFriendlyFireEnableTimerCompleted";
+        CorpFriendlyFireEnableTimerStarted: "CorpFriendlyFireEnableTimerStarted";
+        CorpKicked: "CorpKicked";
+        CorpLiquidationMsg: "CorpLiquidationMsg";
+        CorpNewCEOMsg: "CorpNewCEOMsg";
+        CorpNewsMsg: "CorpNewsMsg";
+        CorpNoLongerWarEligible: "CorpNoLongerWarEligible";
+        CorpOfficeExpirationMsg: "CorpOfficeExpirationMsg";
+        CorpStructLostMsg: "CorpStructLostMsg";
+        CorpTaxChangeMsg: "CorpTaxChangeMsg";
+        CorpVoteCEORevokedMsg: "CorpVoteCEORevokedMsg";
+        CorpVoteMsg: "CorpVoteMsg";
+        CorpWarDeclaredMsg: "CorpWarDeclaredMsg";
+        CorpWarDeclaredV2: "CorpWarDeclaredV2";
+        CorpWarFightingLegalMsg: "CorpWarFightingLegalMsg";
+        CorpWarInvalidatedMsg: "CorpWarInvalidatedMsg";
+        CorpWarRetractedMsg: "CorpWarRetractedMsg";
+        CorpWarSurrenderMsg: "CorpWarSurrenderMsg";
+        CorporationGoalClosed: "CorporationGoalClosed";
+        CorporationGoalCompleted: "CorporationGoalCompleted";
+        CorporationGoalCreated: "CorporationGoalCreated";
+        CorporationGoalExpired: "CorporationGoalExpired";
+        CorporationGoalLimitReached: "CorporationGoalLimitReached";
+        CorporationGoalNameChange: "CorporationGoalNameChange";
+        CorporationLeft: "CorporationLeft";
+        CustomsMsg: "CustomsMsg";
+        DailyItemRewardAutoClaimed: "DailyItemRewardAutoClaimed";
+        DeclareWar: "DeclareWar";
+        DistrictAttacked: "DistrictAttacked";
+        DustAppAcceptedMsg: "DustAppAcceptedMsg";
+        ESSMainBankLink: "ESSMainBankLink";
+        EntosisCaptureStarted: "EntosisCaptureStarted";
+        ExpertSystemExpired: "ExpertSystemExpired";
+        ExpertSystemExpiryImminent: "ExpertSystemExpiryImminent";
+        FWAllianceKickCeoIndividualStandingWarning: "FWAllianceKickCeoIndividualStandingWarning";
+        FWAllianceKickMsg: "FWAllianceKickMsg";
+        FWAllianceKickedCeoIndividualStanding: "FWAllianceKickedCeoIndividualStanding";
+        FWAllianceWarningMsg: "FWAllianceWarningMsg";
+        FWCharKickMsg: "FWCharKickMsg";
+        FWCharRankGainMsg: "FWCharRankGainMsg";
+        FWCharRankLossMsg: "FWCharRankLossMsg";
+        FWCharWarningMsg: "FWCharWarningMsg";
+        FWCharacterKickFromCorpIndividualStandingWarning: "FWCharacterKickFromCorpIndividualStandingWarning";
+        FWCharacterKickedFromCorpIndividualStanding: "FWCharacterKickedFromCorpIndividualStanding";
+        FWCorpJoinMsg: "FWCorpJoinMsg";
+        FWCorpKickMsg: "FWCorpKickMsg";
+        FWCorpLeaveMsg: "FWCorpLeaveMsg";
+        FWCorpWarningMsg: "FWCorpWarningMsg";
+        FWCorporationKickCeoIndividualStandingWarning: "FWCorporationKickCeoIndividualStandingWarning";
+        FWCorporationKickedCeoIndividualStanding: "FWCorporationKickedCeoIndividualStanding";
+        FacWarCorpJoinRequestMsg: "FacWarCorpJoinRequestMsg";
+        FacWarCorpJoinWithdrawMsg: "FacWarCorpJoinWithdrawMsg";
+        FacWarCorpLeaveRequestMsg: "FacWarCorpLeaveRequestMsg";
+        FacWarCorpLeaveWithdrawMsg: "FacWarCorpLeaveWithdrawMsg";
+        FacWarDirectEnlistmentRevoked: "FacWarDirectEnlistmentRevoked";
+        FacWarLPDisqualifiedEvent: "FacWarLPDisqualifiedEvent";
+        FacWarLPDisqualifiedKill: "FacWarLPDisqualifiedKill";
+        FacWarLPPayoutEvent: "FacWarLPPayoutEvent";
+        FacWarLPPayoutKill: "FacWarLPPayoutKill";
+        FreelanceProjectACLDeleted: "FreelanceProjectACLDeleted";
+        FreelanceProjectClosed: "FreelanceProjectClosed";
+        FreelanceProjectCompleted: "FreelanceProjectCompleted";
+        FreelanceProjectCreated: "FreelanceProjectCreated";
+        FreelanceProjectExpired: "FreelanceProjectExpired";
+        FreelanceProjectLimitReached: "FreelanceProjectLimitReached";
+        FreelanceProjectParticipantKicked: "FreelanceProjectParticipantKicked";
+        GameTimeAdded: "GameTimeAdded";
+        GameTimeReceived: "GameTimeReceived";
+        GameTimeSent: "GameTimeSent";
+        GiftReceived: "GiftReceived";
+        IHubDestroyedByBillFailure: "IHubDestroyedByBillFailure";
+        IncursionCompletedMsg: "IncursionCompletedMsg";
+        IndustryOperationFinished: "IndustryOperationFinished";
+        IndustryTeamAuctionLost: "IndustryTeamAuctionLost";
+        IndustryTeamAuctionWon: "IndustryTeamAuctionWon";
+        InfrastructureHubBillAboutToExpire: "InfrastructureHubBillAboutToExpire";
+        InsuranceExpirationMsg: "InsuranceExpirationMsg";
+        InsuranceFirstShipMsg: "InsuranceFirstShipMsg";
+        InsuranceInvalidatedMsg: "InsuranceInvalidatedMsg";
+        InsuranceIssuedMsg: "InsuranceIssuedMsg";
+        InsurancePayoutMsg: "InsurancePayoutMsg";
+        InvasionCompletedMsg: "InvasionCompletedMsg";
+        InvasionSystemLogin: "InvasionSystemLogin";
+        InvasionSystemStart: "InvasionSystemStart";
+        JumpCloneDeletedMsg1: "JumpCloneDeletedMsg1";
+        JumpCloneDeletedMsg2: "JumpCloneDeletedMsg2";
+        KillReportFinalBlow: "KillReportFinalBlow";
+        KillReportVictim: "KillReportVictim";
+        KillRightAvailable: "KillRightAvailable";
+        KillRightAvailableOpen: "KillRightAvailableOpen";
+        KillRightEarned: "KillRightEarned";
+        KillRightUnavailable: "KillRightUnavailable";
+        KillRightUnavailableOpen: "KillRightUnavailableOpen";
+        KillRightUsed: "KillRightUsed";
+        LPAutoRedeemed: "LPAutoRedeemed";
+        LocateCharMsg: "LocateCharMsg";
+        MadeWarMutual: "MadeWarMutual";
+        MercOfferRetractedMsg: "MercOfferRetractedMsg";
+        MercOfferedNegotiationMsg: "MercOfferedNegotiationMsg";
+        MercenaryDenAttacked: "MercenaryDenAttacked";
+        MercenaryDenNewMTO: "MercenaryDenNewMTO";
+        MercenaryDenReinforced: "MercenaryDenReinforced";
+        MissionCanceledTriglavian: "MissionCanceledTriglavian";
+        MissionOfferExpirationMsg: "MissionOfferExpirationMsg";
+        MissionTimeoutMsg: "MissionTimeoutMsg";
+        MoonminingAutomaticFracture: "MoonminingAutomaticFracture";
+        MoonminingExtractionCancelled: "MoonminingExtractionCancelled";
+        MoonminingExtractionFinished: "MoonminingExtractionFinished";
+        MoonminingExtractionStarted: "MoonminingExtractionStarted";
+        MoonminingLaserFired: "MoonminingLaserFired";
+        MutualWarExpired: "MutualWarExpired";
+        MutualWarInviteAccepted: "MutualWarInviteAccepted";
+        MutualWarInviteRejected: "MutualWarInviteRejected";
+        MutualWarInviteSent: "MutualWarInviteSent";
+        NPCStandingsGained: "NPCStandingsGained";
+        NPCStandingsLost: "NPCStandingsLost";
+        OfferToAllyRetracted: "OfferToAllyRetracted";
+        OfferedSurrender: "OfferedSurrender";
+        OfferedToAlly: "OfferedToAlly";
+        OfficeLeaseCanceledInsufficientStandings: "OfficeLeaseCanceledInsufficientStandings";
+        OldLscMessages: "OldLscMessages";
+        OperationFinished: "OperationFinished";
+        OrbitalAttacked: "OrbitalAttacked";
+        OrbitalReinforced: "OrbitalReinforced";
+        OwnershipTransferred: "OwnershipTransferred";
+        RaffleCreated: "RaffleCreated";
+        RaffleExpired: "RaffleExpired";
+        RaffleFinished: "RaffleFinished";
+        ReimbursementMsg: "ReimbursementMsg";
+        ResearchMissionAvailableMsg: "ResearchMissionAvailableMsg";
+        RetractsWar: "RetractsWar";
+        SPAutoRedeemed: "SPAutoRedeemed";
+        SeasonalChallengeCompleted: "SeasonalChallengeCompleted";
+        SkinSequencingCompleted: "SkinSequencingCompleted";
+        SkyhookDeployed: "SkyhookDeployed";
+        SkyhookDestroyed: "SkyhookDestroyed";
+        SkyhookLostShields: "SkyhookLostShields";
+        SkyhookOnline: "SkyhookOnline";
+        SkyhookUnderAttack: "SkyhookUnderAttack";
+        SovAllClaimAquiredMsg: "SovAllClaimAquiredMsg";
+        SovAllClaimLostMsg: "SovAllClaimLostMsg";
+        SovCommandNodeEventStarted: "SovCommandNodeEventStarted";
+        SovCorpBillLateMsg: "SovCorpBillLateMsg";
+        SovCorpClaimFailMsg: "SovCorpClaimFailMsg";
+        SovDisruptorMsg: "SovDisruptorMsg";
+        SovStationEnteredFreeport: "SovStationEnteredFreeport";
+        SovStructureDestroyed: "SovStructureDestroyed";
+        SovStructureReinforced: "SovStructureReinforced";
+        SovStructureSelfDestructCancel: "SovStructureSelfDestructCancel";
+        SovStructureSelfDestructFinished: "SovStructureSelfDestructFinished";
+        SovStructureSelfDestructRequested: "SovStructureSelfDestructRequested";
+        SovereigntyIHDamageMsg: "SovereigntyIHDamageMsg";
+        SovereigntySBUDamageMsg: "SovereigntySBUDamageMsg";
+        SovereigntyTCUDamageMsg: "SovereigntyTCUDamageMsg";
+        StationAggressionMsg1: "StationAggressionMsg1";
+        StationAggressionMsg2: "StationAggressionMsg2";
+        StationConquerMsg: "StationConquerMsg";
+        StationServiceDisabled: "StationServiceDisabled";
+        StationServiceEnabled: "StationServiceEnabled";
+        StationStateChangeMsg: "StationStateChangeMsg";
+        StoryLineMissionAvailableMsg: "StoryLineMissionAvailableMsg";
+        StructureAnchoring: "StructureAnchoring";
+        StructureCourierContractChanged: "StructureCourierContractChanged";
+        StructureDestroyed: "StructureDestroyed";
+        StructureFuelAlert: "StructureFuelAlert";
+        StructureImpendingAbandonmentAssetsAtRisk: "StructureImpendingAbandonmentAssetsAtRisk";
+        StructureItemsDelivered: "StructureItemsDelivered";
+        StructureItemsMovedToSafety: "StructureItemsMovedToSafety";
+        StructureLostArmor: "StructureLostArmor";
+        StructureLostShields: "StructureLostShields";
+        StructureLowReagentsAlert: "StructureLowReagentsAlert";
+        StructureNoReagentsAlert: "StructureNoReagentsAlert";
+        StructureOnline: "StructureOnline";
+        StructurePaintPurchased: "StructurePaintPurchased";
+        StructureServicesOffline: "StructureServicesOffline";
+        StructureUnanchoring: "StructureUnanchoring";
+        StructureUnderAttack: "StructureUnderAttack";
+        StructureWentHighPower: "StructureWentHighPower";
+        StructureWentLowPower: "StructureWentLowPower";
+        StructuresJobsCancelled: "StructuresJobsCancelled";
+        StructuresJobsPaused: "StructuresJobsPaused";
+        StructuresReinforcementChanged: "StructuresReinforcementChanged";
+        TowerAlertMsg: "TowerAlertMsg";
+        TowerResourceAlertMsg: "TowerResourceAlertMsg";
+        TransactionReversalMsg: "TransactionReversalMsg";
+        TutorialMsg: "TutorialMsg";
+        "WarAdopted ": "WarAdopted ";
+        WarAllyInherited: "WarAllyInherited";
+        WarAllyOfferDeclinedMsg: "WarAllyOfferDeclinedMsg";
+        WarConcordInvalidates: "WarConcordInvalidates";
+        WarDeclared: "WarDeclared";
+        WarEndedHqSecurityDrop: "WarEndedHqSecurityDrop";
+        WarHQRemovedFromSpace: "WarHQRemovedFromSpace";
+        WarInherited: "WarInherited";
+        WarInvalid: "WarInvalid";
+        WarRetracted: "WarRetracted";
+        WarRetractedByConcord: "WarRetractedByConcord";
+        WarSurrenderDeclinedMsg: "WarSurrenderDeclinedMsg";
+        WarSurrenderOfferMsg: "WarSurrenderOfferMsg";
+    }>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdOnlineGet {
     // (undocumented)
     last_login?: string;
@@ -1300,6 +2272,14 @@ interface CharactersCharacterIdOnlineGet {
     // (undocumented)
     online: boolean;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdOnlineGetSchema: z.ZodObject<{
+    last_login: z.ZodOptional<z.ZodString>;
+    last_logout: z.ZodOptional<z.ZodString>;
+    logins: z.ZodOptional<z.ZodNumber>;
+    online: z.ZodBoolean;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdOrdersGet {
@@ -1332,6 +2312,37 @@ interface CharactersCharacterIdOrdersGet {
     // (undocumented)
     volume_total: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdOrdersGetSchema: z.ZodObject<{
+    duration: z.ZodNumber;
+    escrow: z.ZodOptional<z.ZodNumber>;
+    is_buy_order: z.ZodOptional<z.ZodBoolean>;
+    is_corporation: z.ZodBoolean;
+    issued: z.ZodString;
+    location_id: z.ZodNumber;
+    min_volume: z.ZodOptional<z.ZodNumber>;
+    order_id: z.ZodNumber;
+    price: z.ZodNumber;
+    range: z.ZodEnum<{
+        1: "1";
+        2: "2";
+        3: "3";
+        4: "4";
+        region: "region";
+        5: "5";
+        station: "station";
+        10: "10";
+        20: "20";
+        30: "30";
+        40: "40";
+        solarsystem: "solarsystem";
+    }>;
+    region_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    volume_total: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdOrdersHistoryGet {
@@ -1368,6 +2379,41 @@ interface CharactersCharacterIdOrdersHistoryGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdOrdersHistoryGetSchema: z.ZodObject<{
+    duration: z.ZodNumber;
+    escrow: z.ZodOptional<z.ZodNumber>;
+    is_buy_order: z.ZodOptional<z.ZodBoolean>;
+    is_corporation: z.ZodBoolean;
+    issued: z.ZodString;
+    location_id: z.ZodNumber;
+    min_volume: z.ZodOptional<z.ZodNumber>;
+    order_id: z.ZodNumber;
+    price: z.ZodNumber;
+    range: z.ZodEnum<{
+        1: "1";
+        2: "2";
+        3: "3";
+        4: "4";
+        region: "region";
+        5: "5";
+        station: "station";
+        10: "10";
+        20: "20";
+        30: "30";
+        40: "40";
+        solarsystem: "solarsystem";
+    }>;
+    region_id: z.ZodNumber;
+    state: z.ZodEnum<{
+        expired: "expired";
+        cancelled: "cancelled";
+    }>;
+    type_id: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    volume_total: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdPlanetsGet {
     // (undocumented)
     last_update: string;
@@ -1384,6 +2430,26 @@ interface CharactersCharacterIdPlanetsGet {
     // (undocumented)
     upgrade_level: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdPlanetsGetSchema: z.ZodObject<{
+    last_update: z.ZodString;
+    num_pins: z.ZodNumber;
+    owner_id: z.ZodNumber;
+    planet_id: z.ZodNumber;
+    planet_type: z.ZodEnum<{
+        temperate: "temperate";
+        barren: "barren";
+        oceanic: "oceanic";
+        ice: "ice";
+        gas: "gas";
+        lava: "lava";
+        storm: "storm";
+        plasma: "plasma";
+    }>;
+    solar_system_id: z.ZodNumber;
+    upgrade_level: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdPlanetsPlanetIdGet {
@@ -1434,6 +2500,51 @@ interface CharactersCharacterIdPlanetsPlanetIdGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdPlanetsPlanetIdGetSchema: z.ZodObject<{
+    links: z.ZodArray<z.ZodObject<{
+        destination_pin_id: z.ZodNumber;
+        link_level: z.ZodNumber;
+        source_pin_id: z.ZodNumber;
+    }, z.core.$loose>>;
+    pins: z.ZodArray<z.ZodObject<{
+        contents: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            amount: z.ZodNumber;
+            type_id: z.ZodNumber;
+        }, z.core.$loose>>>;
+        expiry_time: z.ZodOptional<z.ZodString>;
+        extractor_details: z.ZodOptional<z.ZodObject<{
+            cycle_time: z.ZodOptional<z.ZodNumber>;
+            head_radius: z.ZodOptional<z.ZodNumber>;
+            heads: z.ZodArray<z.ZodObject<{
+                head_id: z.ZodNumber;
+                latitude: z.ZodNumber;
+                longitude: z.ZodNumber;
+            }, z.core.$loose>>;
+            product_type_id: z.ZodOptional<z.ZodNumber>;
+            qty_per_cycle: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        factory_details: z.ZodOptional<z.ZodObject<{
+            schematic_id: z.ZodNumber;
+        }, z.core.$loose>>;
+        install_time: z.ZodOptional<z.ZodString>;
+        last_cycle_start: z.ZodOptional<z.ZodString>;
+        latitude: z.ZodNumber;
+        longitude: z.ZodNumber;
+        pin_id: z.ZodNumber;
+        schematic_id: z.ZodOptional<z.ZodNumber>;
+        type_id: z.ZodNumber;
+    }, z.core.$loose>>;
+    routes: z.ZodArray<z.ZodObject<{
+        content_type_id: z.ZodNumber;
+        destination_pin_id: z.ZodNumber;
+        quantity: z.ZodNumber;
+        route_id: z.ZodNumber;
+        source_pin_id: z.ZodNumber;
+        waypoints: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdPortraitGet {
     // (undocumented)
     px128x128?: string;
@@ -1446,6 +2557,14 @@ interface CharactersCharacterIdPortraitGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdPortraitGetSchema: z.ZodObject<{
+    px128x128: z.ZodOptional<z.ZodString>;
+    px256x256: z.ZodOptional<z.ZodString>;
+    px512x512: z.ZodOptional<z.ZodString>;
+    px64x64: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdRolesGet {
     // (undocumented)
     roles?: 'Account_Take_1' | 'Account_Take_2' | 'Account_Take_3' | 'Account_Take_4' | 'Account_Take_5' | 'Account_Take_6' | 'Account_Take_7' | 'Accountant' | 'Auditor' | 'Brand_Manager' | 'Communications_Officer' | 'Config_Equipment' | 'Config_Starbase_Equipment' | 'Container_Take_1' | 'Container_Take_2' | 'Container_Take_3' | 'Container_Take_4' | 'Container_Take_5' | 'Container_Take_6' | 'Container_Take_7' | 'Contract_Manager' | 'Deliveries_Container_Take' | 'Deliveries_Query' | 'Deliveries_Take' | 'Diplomat' | 'Director' | 'Factory_Manager' | 'Fitting_Manager' | 'Hangar_Query_1' | 'Hangar_Query_2' | 'Hangar_Query_3' | 'Hangar_Query_4' | 'Hangar_Query_5' | 'Hangar_Query_6' | 'Hangar_Query_7' | 'Hangar_Take_1' | 'Hangar_Take_2' | 'Hangar_Take_3' | 'Hangar_Take_4' | 'Hangar_Take_5' | 'Hangar_Take_6' | 'Hangar_Take_7' | 'Junior_Accountant' | 'Personnel_Manager' | 'Project_Manager' | 'Rent_Factory_Facility' | 'Rent_Office' | 'Rent_Research_Facility' | 'Security_Officer' | 'Skill_Plan_Manager' | 'Starbase_Defense_Operator' | 'Starbase_Fuel_Technician' | 'Station_Manager' | 'Trader'[];
@@ -1456,6 +2575,234 @@ interface CharactersCharacterIdRolesGet {
     // (undocumented)
     roles_at_other?: 'Account_Take_1' | 'Account_Take_2' | 'Account_Take_3' | 'Account_Take_4' | 'Account_Take_5' | 'Account_Take_6' | 'Account_Take_7' | 'Accountant' | 'Auditor' | 'Brand_Manager' | 'Communications_Officer' | 'Config_Equipment' | 'Config_Starbase_Equipment' | 'Container_Take_1' | 'Container_Take_2' | 'Container_Take_3' | 'Container_Take_4' | 'Container_Take_5' | 'Container_Take_6' | 'Container_Take_7' | 'Contract_Manager' | 'Deliveries_Container_Take' | 'Deliveries_Query' | 'Deliveries_Take' | 'Diplomat' | 'Director' | 'Factory_Manager' | 'Fitting_Manager' | 'Hangar_Query_1' | 'Hangar_Query_2' | 'Hangar_Query_3' | 'Hangar_Query_4' | 'Hangar_Query_5' | 'Hangar_Query_6' | 'Hangar_Query_7' | 'Hangar_Take_1' | 'Hangar_Take_2' | 'Hangar_Take_3' | 'Hangar_Take_4' | 'Hangar_Take_5' | 'Hangar_Take_6' | 'Hangar_Take_7' | 'Junior_Accountant' | 'Personnel_Manager' | 'Project_Manager' | 'Rent_Factory_Facility' | 'Rent_Office' | 'Rent_Research_Facility' | 'Security_Officer' | 'Skill_Plan_Manager' | 'Starbase_Defense_Operator' | 'Starbase_Fuel_Technician' | 'Station_Manager' | 'Trader'[];
 }
+
+// @public (undocumented)
+const CharactersCharacterIdRolesGetSchema: z.ZodObject<{
+    roles: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_base: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_hq: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_other: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdSearchGet {
@@ -1484,6 +2831,21 @@ interface CharactersCharacterIdSearchGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdSearchGetSchema: z.ZodObject<{
+    agent: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    alliance: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    character: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    constellation: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    corporation: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    faction: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    inventory_type: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    region: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    solar_system: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    station: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    structure: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdShipGet {
     // (undocumented)
     ship_item_id: number;
@@ -1492,6 +2854,13 @@ interface CharactersCharacterIdShipGet {
     // (undocumented)
     ship_type_id: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdShipGetSchema: z.ZodObject<{
+    ship_item_id: z.ZodNumber;
+    ship_name: z.ZodString;
+    ship_type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdStandingsGet {
@@ -1504,12 +2873,29 @@ interface CharactersCharacterIdStandingsGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdStandingsGetSchema: z.ZodObject<{
+    from_id: z.ZodNumber;
+    from_type: z.ZodEnum<{
+        faction: "faction";
+        agent: "agent";
+        npc_corp: "npc_corp";
+    }>;
+    standing: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdTitlesGet {
     // (undocumented)
     name?: string;
     // (undocumented)
     title_id?: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdTitlesGetSchema: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    title_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersCharacterIdWalletJournalGet {
@@ -1542,6 +2928,199 @@ interface CharactersCharacterIdWalletJournalGet {
 }
 
 // @public (undocumented)
+const CharactersCharacterIdWalletJournalGetSchema: z.ZodObject<{
+    amount: z.ZodOptional<z.ZodNumber>;
+    balance: z.ZodOptional<z.ZodNumber>;
+    context_id: z.ZodOptional<z.ZodNumber>;
+    context_id_type: z.ZodOptional<z.ZodEnum<{
+        alliance_id: "alliance_id";
+        character_id: "character_id";
+        corporation_id: "corporation_id";
+        type_id: "type_id";
+        system_id: "system_id";
+        structure_id: "structure_id";
+        planet_id: "planet_id";
+        station_id: "station_id";
+        contract_id: "contract_id";
+        market_transaction_id: "market_transaction_id";
+        eve_system: "eve_system";
+        industry_job_id: "industry_job_id";
+    }>>;
+    date: z.ZodString;
+    description: z.ZodString;
+    first_party_id: z.ZodOptional<z.ZodNumber>;
+    id: z.ZodNumber;
+    reason: z.ZodOptional<z.ZodString>;
+    ref_type: z.ZodEnum<{
+        shares: "shares";
+        copying: "copying";
+        manufacturing: "manufacturing";
+        reaction: "reaction";
+        researching_technology: "researching_technology";
+        reverse_engineering: "reverse_engineering";
+        insurance: "insurance";
+        acceleration_gate_fee: "acceleration_gate_fee";
+        achievement_category_milestone_reward: "achievement_category_milestone_reward";
+        achievement_milestone_reward: "achievement_milestone_reward";
+        advertisement_listing_fee: "advertisement_listing_fee";
+        agent_donation: "agent_donation";
+        agent_location_services: "agent_location_services";
+        agent_miscellaneous: "agent_miscellaneous";
+        agent_mission_collateral_paid: "agent_mission_collateral_paid";
+        agent_mission_collateral_refunded: "agent_mission_collateral_refunded";
+        agent_mission_reward: "agent_mission_reward";
+        agent_mission_reward_corporation_tax: "agent_mission_reward_corporation_tax";
+        agent_mission_security_tax: "agent_mission_security_tax";
+        agent_mission_time_bonus_reward: "agent_mission_time_bonus_reward";
+        agent_mission_time_bonus_reward_corporation_tax: "agent_mission_time_bonus_reward_corporation_tax";
+        agent_security_services: "agent_security_services";
+        agent_services_rendered: "agent_services_rendered";
+        agents_preward: "agents_preward";
+        air_career_program_reward: "air_career_program_reward";
+        alliance_maintainance_fee: "alliance_maintainance_fee";
+        alliance_registration_fee: "alliance_registration_fee";
+        allignment_based_gate_toll: "allignment_based_gate_toll";
+        asset_safety_recovery_tax: "asset_safety_recovery_tax";
+        bounty: "bounty";
+        bounty_prize: "bounty_prize";
+        bounty_prize_corporation_tax: "bounty_prize_corporation_tax";
+        bounty_prizes: "bounty_prizes";
+        bounty_reimbursement: "bounty_reimbursement";
+        bounty_surcharge: "bounty_surcharge";
+        brokers_fee: "brokers_fee";
+        campaign_objective_isk_reward: "campaign_objective_isk_reward";
+        clone_activation: "clone_activation";
+        clone_transfer: "clone_transfer";
+        contraband_fine: "contraband_fine";
+        contract_auction_bid: "contract_auction_bid";
+        contract_auction_bid_corp: "contract_auction_bid_corp";
+        contract_auction_bid_refund: "contract_auction_bid_refund";
+        contract_auction_sold: "contract_auction_sold";
+        contract_brokers_fee: "contract_brokers_fee";
+        contract_brokers_fee_corp: "contract_brokers_fee_corp";
+        contract_collateral: "contract_collateral";
+        contract_collateral_deposited_corp: "contract_collateral_deposited_corp";
+        contract_collateral_payout: "contract_collateral_payout";
+        contract_collateral_refund: "contract_collateral_refund";
+        contract_deposit: "contract_deposit";
+        contract_deposit_corp: "contract_deposit_corp";
+        contract_deposit_refund: "contract_deposit_refund";
+        contract_deposit_sales_tax: "contract_deposit_sales_tax";
+        contract_price: "contract_price";
+        contract_price_payment_corp: "contract_price_payment_corp";
+        contract_reversal: "contract_reversal";
+        contract_reward: "contract_reward";
+        contract_reward_deposited: "contract_reward_deposited";
+        contract_reward_deposited_corp: "contract_reward_deposited_corp";
+        contract_reward_refund: "contract_reward_refund";
+        contract_sales_tax: "contract_sales_tax";
+        corporate_reward_payout: "corporate_reward_payout";
+        corporate_reward_tax: "corporate_reward_tax";
+        corporation_account_withdrawal: "corporation_account_withdrawal";
+        corporation_bulk_payment: "corporation_bulk_payment";
+        corporation_dividend_payment: "corporation_dividend_payment";
+        corporation_liquidation: "corporation_liquidation";
+        corporation_logo_change_cost: "corporation_logo_change_cost";
+        corporation_payment: "corporation_payment";
+        corporation_registration_fee: "corporation_registration_fee";
+        cosmetic_market_component_item_purchase: "cosmetic_market_component_item_purchase";
+        cosmetic_market_skin_purchase: "cosmetic_market_skin_purchase";
+        cosmetic_market_skin_sale: "cosmetic_market_skin_sale";
+        cosmetic_market_skin_sale_broker_fee: "cosmetic_market_skin_sale_broker_fee";
+        cosmetic_market_skin_sale_tax: "cosmetic_market_skin_sale_tax";
+        cosmetic_market_skin_transaction: "cosmetic_market_skin_transaction";
+        courier_mission_escrow: "courier_mission_escrow";
+        cspa: "cspa";
+        cspaofflinerefund: "cspaofflinerefund";
+        daily_challenge_reward: "daily_challenge_reward";
+        daily_goal_payouts: "daily_goal_payouts";
+        daily_goal_payouts_tax: "daily_goal_payouts_tax";
+        datacore_fee: "datacore_fee";
+        dna_modification_fee: "dna_modification_fee";
+        docking_fee: "docking_fee";
+        duel_wager_escrow: "duel_wager_escrow";
+        duel_wager_payment: "duel_wager_payment";
+        duel_wager_refund: "duel_wager_refund";
+        ess_escrow_transfer: "ess_escrow_transfer";
+        external_trade_delivery: "external_trade_delivery";
+        external_trade_freeze: "external_trade_freeze";
+        external_trade_thaw: "external_trade_thaw";
+        factory_slot_rental_fee: "factory_slot_rental_fee";
+        flux_payout: "flux_payout";
+        flux_tax: "flux_tax";
+        flux_ticket_repayment: "flux_ticket_repayment";
+        flux_ticket_sale: "flux_ticket_sale";
+        freelance_jobs_broadcasting_fee: "freelance_jobs_broadcasting_fee";
+        freelance_jobs_duration_fee: "freelance_jobs_duration_fee";
+        freelance_jobs_escrow_refund: "freelance_jobs_escrow_refund";
+        freelance_jobs_reward: "freelance_jobs_reward";
+        freelance_jobs_reward_corporation_tax: "freelance_jobs_reward_corporation_tax";
+        freelance_jobs_reward_escrow: "freelance_jobs_reward_escrow";
+        gm_cash_transfer: "gm_cash_transfer";
+        gm_plex_fee_refund: "gm_plex_fee_refund";
+        industry_job_tax: "industry_job_tax";
+        industry_security_tax: "industry_security_tax";
+        infrastructure_hub_maintenance: "infrastructure_hub_maintenance";
+        inheritance: "inheritance";
+        insurgency_corruption_contribution_reward: "insurgency_corruption_contribution_reward";
+        insurgency_suppression_contribution_reward: "insurgency_suppression_contribution_reward";
+        item_trader_payment: "item_trader_payment";
+        jump_clone_activation_fee: "jump_clone_activation_fee";
+        jump_clone_installation_fee: "jump_clone_installation_fee";
+        kill_right_fee: "kill_right_fee";
+        lp_store: "lp_store";
+        market_escrow: "market_escrow";
+        market_fine_paid: "market_fine_paid";
+        market_provider_tax: "market_provider_tax";
+        market_security_tax: "market_security_tax";
+        market_transaction: "market_transaction";
+        medal_creation: "medal_creation";
+        medal_issued: "medal_issued";
+        milestone_reward_payment: "milestone_reward_payment";
+        mission_completion: "mission_completion";
+        mission_cost: "mission_cost";
+        mission_expiration: "mission_expiration";
+        mission_reward: "mission_reward";
+        npc_bounty_security_tax: "npc_bounty_security_tax";
+        office_rental_fee: "office_rental_fee";
+        operation_bonus: "operation_bonus";
+        opportunity_reward: "opportunity_reward";
+        planetary_construction: "planetary_construction";
+        planetary_export_tax: "planetary_export_tax";
+        planetary_import_tax: "planetary_import_tax";
+        player_donation: "player_donation";
+        player_trading: "player_trading";
+        project_discovery_reward: "project_discovery_reward";
+        project_discovery_tax: "project_discovery_tax";
+        project_payouts: "project_payouts";
+        redeemed_isk_token: "redeemed_isk_token";
+        release_of_impounded_property: "release_of_impounded_property";
+        repair_bill: "repair_bill";
+        reprocessing_tax: "reprocessing_tax";
+        researching_material_productivity: "researching_material_productivity";
+        researching_time_productivity: "researching_time_productivity";
+        resource_wars_reward: "resource_wars_reward";
+        season_challenge_reward: "season_challenge_reward";
+        security_processing_fee: "security_processing_fee";
+        skill_purchase: "skill_purchase";
+        skyhook_claim_fee: "skyhook_claim_fee";
+        sovereignity_bill: "sovereignity_bill";
+        store_purchase: "store_purchase";
+        store_purchase_refund: "store_purchase_refund";
+        structure_gate_jump: "structure_gate_jump";
+        transaction_tax: "transaction_tax";
+        under_construction: "under_construction";
+        upkeep_adjustment_fee: "upkeep_adjustment_fee";
+        war_ally_contract: "war_ally_contract";
+        war_fee: "war_fee";
+        war_fee_surrender: "war_fee_surrender";
+    }>;
+    second_party_id: z.ZodOptional<z.ZodNumber>;
+    tax: z.ZodOptional<z.ZodNumber>;
+    tax_receiver_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersCharacterIdWalletTransactionsGet {
     // (undocumented)
     client_id: number;
@@ -1564,6 +3143,20 @@ interface CharactersCharacterIdWalletTransactionsGet {
     // (undocumented)
     unit_price: number;
 }
+
+// @public (undocumented)
+const CharactersCharacterIdWalletTransactionsGetSchema: z.ZodObject<{
+    client_id: z.ZodNumber;
+    date: z.ZodString;
+    is_buy: z.ZodBoolean;
+    is_personal: z.ZodBoolean;
+    journal_ref_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    quantity: z.ZodNumber;
+    transaction_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    unit_price: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CharactersDetail {
@@ -1592,6 +3185,24 @@ interface CharactersDetail {
 }
 
 // @public (undocumented)
+const CharactersDetailSchema: z.ZodObject<{
+    alliance_id: z.ZodOptional<z.ZodNumber>;
+    birthday: z.ZodString;
+    bloodline_id: z.ZodNumber;
+    corporation_id: z.ZodNumber;
+    description: z.ZodOptional<z.ZodString>;
+    faction_id: z.ZodOptional<z.ZodNumber>;
+    gender: z.ZodEnum<{
+        male: "male";
+        female: "female";
+    }>;
+    name: z.ZodString;
+    race_id: z.ZodNumber;
+    security_status: z.ZodOptional<z.ZodNumber>;
+    title: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersFreelanceJobsListing {
     // (undocumented)
     freelance_jobs: ({
@@ -1611,6 +3222,31 @@ interface CharactersFreelanceJobsListing {
 }
 
 // @public (undocumented)
+const CharactersFreelanceJobsListingSchema: z.ZodObject<{
+    freelance_jobs: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        last_modified: z.ZodString;
+        name: z.ZodString;
+        progress: z.ZodObject<{
+            current: z.ZodNumber;
+            desired: z.ZodNumber;
+        }, z.core.$loose>;
+        reward: z.ZodOptional<z.ZodObject<{
+            initial: z.ZodNumber;
+            remaining: z.ZodNumber;
+        }, z.core.$loose>>;
+        state: z.ZodEnum<{
+            Unspecified: "Unspecified";
+            Active: "Active";
+            Closed: "Closed";
+            Completed: "Completed";
+            Expired: "Expired";
+            Deleted: "Deleted";
+        }>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersFreelanceJobsParticipation {
     // (undocumented)
     contributed: number;
@@ -1619,6 +3255,18 @@ interface CharactersFreelanceJobsParticipation {
     // (undocumented)
     state: 'Unspecified' | 'Committed' | 'Kicked' | 'Resigned';
 }
+
+// @public (undocumented)
+const CharactersFreelanceJobsParticipationSchema: z.ZodObject<{
+    contributed: z.ZodNumber;
+    last_modified: z.ZodString;
+    state: z.ZodEnum<{
+        Unspecified: "Unspecified";
+        Committed: "Committed";
+        Kicked: "Kicked";
+        Resigned: "Resigned";
+    }>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type CharacterShip = z.infer<typeof CharacterShipSchema>;
@@ -1688,6 +3336,18 @@ interface CharactersSkillqueueSkill {
 }
 
 // @public (undocumented)
+const CharactersSkillqueueSkillSchema: z.ZodObject<{
+    finish_date: z.ZodOptional<z.ZodString>;
+    finished_level: z.ZodNumber;
+    level_end_sp: z.ZodOptional<z.ZodNumber>;
+    level_start_sp: z.ZodOptional<z.ZodNumber>;
+    queue_position: z.ZodNumber;
+    skill_id: z.ZodNumber;
+    start_date: z.ZodOptional<z.ZodString>;
+    training_start_sp: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CharactersSkills {
     // (undocumented)
     skills: ({
@@ -1703,6 +3363,18 @@ interface CharactersSkills {
 }
 
 // @public (undocumented)
+const CharactersSkillsSchema: z.ZodObject<{
+    skills: z.ZodArray<z.ZodObject<{
+        active_skill_level: z.ZodNumber;
+        skill_id: z.ZodNumber;
+        skillpoints_in_skill: z.ZodNumber;
+        trained_skill_level: z.ZodNumber;
+    }, z.core.$loose>>;
+    total_sp: z.ZodNumber;
+    unallocated_sp: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type CharacterTitle = z.infer<typeof CharacterTitleSchema>;
 
 // @public (undocumented)
@@ -1712,7 +3384,7 @@ const CharacterTitleSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
-export class CircuitBreaker {
+export class CircuitBreaker implements ICircuitBreaker {
     constructor(config?: CircuitBreakerConfig);
     // (undocumented)
     checkCircuit(endpoint: string): void;
@@ -2062,6 +3734,13 @@ interface ContractsPublicBidsContractIdGet {
 }
 
 // @public (undocumented)
+const ContractsPublicBidsContractIdGetSchema: z.ZodObject<{
+    amount: z.ZodNumber;
+    bid_id: z.ZodNumber;
+    date_bid: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface ContractsPublicItemsContractIdGet {
     // (undocumented)
     is_blueprint_copy?: boolean;
@@ -2082,6 +3761,19 @@ interface ContractsPublicItemsContractIdGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const ContractsPublicItemsContractIdGetSchema: z.ZodObject<{
+    is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
+    is_included: z.ZodBoolean;
+    item_id: z.ZodOptional<z.ZodNumber>;
+    material_efficiency: z.ZodOptional<z.ZodNumber>;
+    quantity: z.ZodNumber;
+    record_id: z.ZodNumber;
+    runs: z.ZodOptional<z.ZodNumber>;
+    time_efficiency: z.ZodOptional<z.ZodNumber>;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface ContractsPublicRegionIdGet {
@@ -2120,6 +3812,32 @@ interface ContractsPublicRegionIdGet {
 }
 
 // @public (undocumented)
+const ContractsPublicRegionIdGetSchema: z.ZodObject<{
+    buyout: z.ZodOptional<z.ZodNumber>;
+    collateral: z.ZodOptional<z.ZodNumber>;
+    contract_id: z.ZodNumber;
+    date_expired: z.ZodString;
+    date_issued: z.ZodString;
+    days_to_complete: z.ZodOptional<z.ZodNumber>;
+    end_location_id: z.ZodOptional<z.ZodNumber>;
+    for_corporation: z.ZodOptional<z.ZodBoolean>;
+    issuer_corporation_id: z.ZodNumber;
+    issuer_id: z.ZodNumber;
+    price: z.ZodOptional<z.ZodNumber>;
+    reward: z.ZodOptional<z.ZodNumber>;
+    start_location_id: z.ZodOptional<z.ZodNumber>;
+    title: z.ZodOptional<z.ZodString>;
+    type: z.ZodEnum<{
+        unknown: "unknown";
+        item_exchange: "item_exchange";
+        auction: "auction";
+        courier: "courier";
+        loan: "loan";
+    }>;
+    volume: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type CorporationAllianceHistory = z.infer<typeof CorporationAllianceHistorySchema>;
 
 // @public (undocumented)
@@ -2148,6 +3866,15 @@ interface CorporationCorporationIdMiningExtractionsGet {
 }
 
 // @public (undocumented)
+const CorporationCorporationIdMiningExtractionsGetSchema: z.ZodObject<{
+    chunk_arrival_time: z.ZodString;
+    extraction_start_time: z.ZodString;
+    moon_id: z.ZodNumber;
+    natural_decay_time: z.ZodString;
+    structure_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationCorporationIdMiningObserversGet {
     // (undocumented)
     last_updated: string;
@@ -2156,6 +3883,15 @@ interface CorporationCorporationIdMiningObserversGet {
     // (undocumented)
     observer_type: 'structure';
 }
+
+// @public (undocumented)
+const CorporationCorporationIdMiningObserversGetSchema: z.ZodObject<{
+    last_updated: z.ZodString;
+    observer_id: z.ZodNumber;
+    observer_type: z.ZodEnum<{
+        structure: "structure";
+    }>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationCorporationIdMiningObserversObserverIdGet {
@@ -2170,6 +3906,15 @@ interface CorporationCorporationIdMiningObserversObserverIdGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const CorporationCorporationIdMiningObserversObserverIdGetSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    last_updated: z.ZodString;
+    quantity: z.ZodNumber;
+    recorded_corporation_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type CorporationDivisions = z.infer<typeof CorporationDivisionsSchema>;
@@ -2393,6 +4138,14 @@ interface CorporationsCorporationIdAlliancehistoryGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdAlliancehistoryGetSchema: z.ZodObject<{
+    alliance_id: z.ZodOptional<z.ZodNumber>;
+    is_deleted: z.ZodOptional<z.ZodBoolean>;
+    record_id: z.ZodNumber;
+    start_date: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdAssetsGet {
     // (undocumented)
     is_blueprint_copy?: boolean;
@@ -2413,6 +4166,149 @@ interface CorporationsCorporationIdAssetsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdAssetsGetSchema: z.ZodObject<{
+    is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
+    is_singleton: z.ZodBoolean;
+    item_id: z.ZodNumber;
+    location_flag: z.ZodEnum<{
+        AssetSafety: "AssetSafety";
+        AutoFit: "AutoFit";
+        BoosterBay: "BoosterBay";
+        CapsuleerDeliveries: "CapsuleerDeliveries";
+        Cargo: "Cargo";
+        CorporationGoalDeliveries: "CorporationGoalDeliveries";
+        Deliveries: "Deliveries";
+        DroneBay: "DroneBay";
+        ExpeditionHold: "ExpeditionHold";
+        FighterBay: "FighterBay";
+        FighterTube0: "FighterTube0";
+        FighterTube1: "FighterTube1";
+        FighterTube2: "FighterTube2";
+        FighterTube3: "FighterTube3";
+        FighterTube4: "FighterTube4";
+        FleetHangar: "FleetHangar";
+        FrigateEscapeBay: "FrigateEscapeBay";
+        Hangar: "Hangar";
+        HangarAll: "HangarAll";
+        HiSlot0: "HiSlot0";
+        HiSlot1: "HiSlot1";
+        HiSlot2: "HiSlot2";
+        HiSlot3: "HiSlot3";
+        HiSlot4: "HiSlot4";
+        HiSlot5: "HiSlot5";
+        HiSlot6: "HiSlot6";
+        HiSlot7: "HiSlot7";
+        HiddenModifiers: "HiddenModifiers";
+        Implant: "Implant";
+        InfrastructureHangar: "InfrastructureHangar";
+        LoSlot0: "LoSlot0";
+        LoSlot1: "LoSlot1";
+        LoSlot2: "LoSlot2";
+        LoSlot3: "LoSlot3";
+        LoSlot4: "LoSlot4";
+        LoSlot5: "LoSlot5";
+        LoSlot6: "LoSlot6";
+        LoSlot7: "LoSlot7";
+        Locked: "Locked";
+        MedSlot0: "MedSlot0";
+        MedSlot1: "MedSlot1";
+        MedSlot2: "MedSlot2";
+        MedSlot3: "MedSlot3";
+        MedSlot4: "MedSlot4";
+        MedSlot5: "MedSlot5";
+        MedSlot6: "MedSlot6";
+        MedSlot7: "MedSlot7";
+        MobileDepotHold: "MobileDepotHold";
+        MoonMaterialBay: "MoonMaterialBay";
+        QuafeBay: "QuafeBay";
+        RigSlot0: "RigSlot0";
+        RigSlot1: "RigSlot1";
+        RigSlot2: "RigSlot2";
+        RigSlot3: "RigSlot3";
+        RigSlot4: "RigSlot4";
+        RigSlot5: "RigSlot5";
+        RigSlot6: "RigSlot6";
+        RigSlot7: "RigSlot7";
+        ShipHangar: "ShipHangar";
+        Skill: "Skill";
+        SpecializedAmmoHold: "SpecializedAmmoHold";
+        SpecializedAsteroidHold: "SpecializedAsteroidHold";
+        SpecializedCommandCenterHold: "SpecializedCommandCenterHold";
+        SpecializedFuelBay: "SpecializedFuelBay";
+        SpecializedGasHold: "SpecializedGasHold";
+        SpecializedIceHold: "SpecializedIceHold";
+        SpecializedIndustrialShipHold: "SpecializedIndustrialShipHold";
+        SpecializedLargeShipHold: "SpecializedLargeShipHold";
+        SpecializedMaterialBay: "SpecializedMaterialBay";
+        SpecializedMediumShipHold: "SpecializedMediumShipHold";
+        SpecializedMineralHold: "SpecializedMineralHold";
+        SpecializedOreHold: "SpecializedOreHold";
+        SpecializedPlanetaryCommoditiesHold: "SpecializedPlanetaryCommoditiesHold";
+        SpecializedSalvageHold: "SpecializedSalvageHold";
+        SpecializedShipHold: "SpecializedShipHold";
+        SpecializedSmallShipHold: "SpecializedSmallShipHold";
+        SubSystemBay: "SubSystemBay";
+        SubSystemSlot0: "SubSystemSlot0";
+        SubSystemSlot1: "SubSystemSlot1";
+        SubSystemSlot2: "SubSystemSlot2";
+        SubSystemSlot3: "SubSystemSlot3";
+        SubSystemSlot4: "SubSystemSlot4";
+        SubSystemSlot5: "SubSystemSlot5";
+        SubSystemSlot6: "SubSystemSlot6";
+        SubSystemSlot7: "SubSystemSlot7";
+        Unlocked: "Unlocked";
+        Wardrobe: "Wardrobe";
+        Bonus: "Bonus";
+        Booster: "Booster";
+        Capsule: "Capsule";
+        CorpDeliveries: "CorpDeliveries";
+        CorpSAG1: "CorpSAG1";
+        CorpSAG2: "CorpSAG2";
+        CorpSAG3: "CorpSAG3";
+        CorpSAG4: "CorpSAG4";
+        CorpSAG5: "CorpSAG5";
+        CorpSAG6: "CorpSAG6";
+        CorpSAG7: "CorpSAG7";
+        CrateLoot: "CrateLoot";
+        DustBattle: "DustBattle";
+        DustDatabank: "DustDatabank";
+        Impounded: "Impounded";
+        JunkyardReprocessed: "JunkyardReprocessed";
+        JunkyardTrashed: "JunkyardTrashed";
+        OfficeFolder: "OfficeFolder";
+        Pilot: "Pilot";
+        PlanetSurface: "PlanetSurface";
+        QuantumCoreRoom: "QuantumCoreRoom";
+        Reward: "Reward";
+        SecondaryStorage: "SecondaryStorage";
+        ServiceSlot0: "ServiceSlot0";
+        ServiceSlot1: "ServiceSlot1";
+        ServiceSlot2: "ServiceSlot2";
+        ServiceSlot3: "ServiceSlot3";
+        ServiceSlot4: "ServiceSlot4";
+        ServiceSlot5: "ServiceSlot5";
+        ServiceSlot6: "ServiceSlot6";
+        ServiceSlot7: "ServiceSlot7";
+        ShipOffline: "ShipOffline";
+        SkillInTraining: "SkillInTraining";
+        StructureActive: "StructureActive";
+        StructureFuel: "StructureFuel";
+        StructureInactive: "StructureInactive";
+        StructureOffline: "StructureOffline";
+        Wallet: "Wallet";
+    }>;
+    location_id: z.ZodNumber;
+    location_type: z.ZodEnum<{
+        other: "other";
+        solar_system: "solar_system";
+        station: "station";
+        item: "item";
+    }>;
+    quantity: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdAssetsLocationsPost {
     // (undocumented)
     item_id: number;
@@ -2425,12 +4321,28 @@ interface CorporationsCorporationIdAssetsLocationsPost {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdAssetsLocationsPostSchema: z.ZodObject<{
+    item_id: z.ZodNumber;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdAssetsNamesPost {
     // (undocumented)
     item_id: number;
     // (undocumented)
     name: string;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdAssetsNamesPostSchema: z.ZodObject<{
+    item_id: z.ZodNumber;
+    name: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdBlueprintsGet {
@@ -2453,6 +4365,144 @@ interface CorporationsCorporationIdBlueprintsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdBlueprintsGetSchema: z.ZodObject<{
+    item_id: z.ZodNumber;
+    location_flag: z.ZodEnum<{
+        AssetSafety: "AssetSafety";
+        AutoFit: "AutoFit";
+        BoosterBay: "BoosterBay";
+        CapsuleerDeliveries: "CapsuleerDeliveries";
+        Cargo: "Cargo";
+        CorporationGoalDeliveries: "CorporationGoalDeliveries";
+        Deliveries: "Deliveries";
+        DroneBay: "DroneBay";
+        ExpeditionHold: "ExpeditionHold";
+        FighterBay: "FighterBay";
+        FighterTube0: "FighterTube0";
+        FighterTube1: "FighterTube1";
+        FighterTube2: "FighterTube2";
+        FighterTube3: "FighterTube3";
+        FighterTube4: "FighterTube4";
+        FleetHangar: "FleetHangar";
+        FrigateEscapeBay: "FrigateEscapeBay";
+        Hangar: "Hangar";
+        HangarAll: "HangarAll";
+        HiSlot0: "HiSlot0";
+        HiSlot1: "HiSlot1";
+        HiSlot2: "HiSlot2";
+        HiSlot3: "HiSlot3";
+        HiSlot4: "HiSlot4";
+        HiSlot5: "HiSlot5";
+        HiSlot6: "HiSlot6";
+        HiSlot7: "HiSlot7";
+        HiddenModifiers: "HiddenModifiers";
+        Implant: "Implant";
+        InfrastructureHangar: "InfrastructureHangar";
+        LoSlot0: "LoSlot0";
+        LoSlot1: "LoSlot1";
+        LoSlot2: "LoSlot2";
+        LoSlot3: "LoSlot3";
+        LoSlot4: "LoSlot4";
+        LoSlot5: "LoSlot5";
+        LoSlot6: "LoSlot6";
+        LoSlot7: "LoSlot7";
+        Locked: "Locked";
+        MedSlot0: "MedSlot0";
+        MedSlot1: "MedSlot1";
+        MedSlot2: "MedSlot2";
+        MedSlot3: "MedSlot3";
+        MedSlot4: "MedSlot4";
+        MedSlot5: "MedSlot5";
+        MedSlot6: "MedSlot6";
+        MedSlot7: "MedSlot7";
+        MobileDepotHold: "MobileDepotHold";
+        MoonMaterialBay: "MoonMaterialBay";
+        QuafeBay: "QuafeBay";
+        RigSlot0: "RigSlot0";
+        RigSlot1: "RigSlot1";
+        RigSlot2: "RigSlot2";
+        RigSlot3: "RigSlot3";
+        RigSlot4: "RigSlot4";
+        RigSlot5: "RigSlot5";
+        RigSlot6: "RigSlot6";
+        RigSlot7: "RigSlot7";
+        ShipHangar: "ShipHangar";
+        Skill: "Skill";
+        SpecializedAmmoHold: "SpecializedAmmoHold";
+        SpecializedAsteroidHold: "SpecializedAsteroidHold";
+        SpecializedCommandCenterHold: "SpecializedCommandCenterHold";
+        SpecializedFuelBay: "SpecializedFuelBay";
+        SpecializedGasHold: "SpecializedGasHold";
+        SpecializedIceHold: "SpecializedIceHold";
+        SpecializedIndustrialShipHold: "SpecializedIndustrialShipHold";
+        SpecializedLargeShipHold: "SpecializedLargeShipHold";
+        SpecializedMaterialBay: "SpecializedMaterialBay";
+        SpecializedMediumShipHold: "SpecializedMediumShipHold";
+        SpecializedMineralHold: "SpecializedMineralHold";
+        SpecializedOreHold: "SpecializedOreHold";
+        SpecializedPlanetaryCommoditiesHold: "SpecializedPlanetaryCommoditiesHold";
+        SpecializedSalvageHold: "SpecializedSalvageHold";
+        SpecializedShipHold: "SpecializedShipHold";
+        SpecializedSmallShipHold: "SpecializedSmallShipHold";
+        SubSystemBay: "SubSystemBay";
+        SubSystemSlot0: "SubSystemSlot0";
+        SubSystemSlot1: "SubSystemSlot1";
+        SubSystemSlot2: "SubSystemSlot2";
+        SubSystemSlot3: "SubSystemSlot3";
+        SubSystemSlot4: "SubSystemSlot4";
+        SubSystemSlot5: "SubSystemSlot5";
+        SubSystemSlot6: "SubSystemSlot6";
+        SubSystemSlot7: "SubSystemSlot7";
+        Unlocked: "Unlocked";
+        Wardrobe: "Wardrobe";
+        Bonus: "Bonus";
+        Booster: "Booster";
+        Capsule: "Capsule";
+        CorpDeliveries: "CorpDeliveries";
+        CorpSAG1: "CorpSAG1";
+        CorpSAG2: "CorpSAG2";
+        CorpSAG3: "CorpSAG3";
+        CorpSAG4: "CorpSAG4";
+        CorpSAG5: "CorpSAG5";
+        CorpSAG6: "CorpSAG6";
+        CorpSAG7: "CorpSAG7";
+        CrateLoot: "CrateLoot";
+        DustBattle: "DustBattle";
+        DustDatabank: "DustDatabank";
+        Impounded: "Impounded";
+        JunkyardReprocessed: "JunkyardReprocessed";
+        JunkyardTrashed: "JunkyardTrashed";
+        OfficeFolder: "OfficeFolder";
+        Pilot: "Pilot";
+        PlanetSurface: "PlanetSurface";
+        QuantumCoreRoom: "QuantumCoreRoom";
+        Reward: "Reward";
+        SecondaryStorage: "SecondaryStorage";
+        ServiceSlot0: "ServiceSlot0";
+        ServiceSlot1: "ServiceSlot1";
+        ServiceSlot2: "ServiceSlot2";
+        ServiceSlot3: "ServiceSlot3";
+        ServiceSlot4: "ServiceSlot4";
+        ServiceSlot5: "ServiceSlot5";
+        ServiceSlot6: "ServiceSlot6";
+        ServiceSlot7: "ServiceSlot7";
+        ShipOffline: "ShipOffline";
+        SkillInTraining: "SkillInTraining";
+        StructureActive: "StructureActive";
+        StructureFuel: "StructureFuel";
+        StructureInactive: "StructureInactive";
+        StructureOffline: "StructureOffline";
+        Wallet: "Wallet";
+    }>;
+    location_id: z.ZodNumber;
+    material_efficiency: z.ZodNumber;
+    quantity: z.ZodNumber;
+    runs: z.ZodNumber;
+    time_efficiency: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdContactsGet {
     // (undocumented)
     contact_id: number;
@@ -2467,12 +4517,32 @@ interface CorporationsCorporationIdContactsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdContactsGetSchema: z.ZodObject<{
+    contact_id: z.ZodNumber;
+    contact_type: z.ZodEnum<{
+        character: "character";
+        corporation: "corporation";
+        alliance: "alliance";
+        faction: "faction";
+    }>;
+    is_watched: z.ZodOptional<z.ZodBoolean>;
+    label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    standing: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdContactsLabelsGet {
     // (undocumented)
     label_id: number;
     // (undocumented)
     label_name: string;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdContactsLabelsGetSchema: z.ZodObject<{
+    label_id: z.ZodNumber;
+    label_name: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdContainersLogsGet {
@@ -2503,6 +4573,162 @@ interface CorporationsCorporationIdContainersLogsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdContainersLogsGetSchema: z.ZodObject<{
+    action: z.ZodEnum<{
+        add: "add";
+        assemble: "assemble";
+        configure: "configure";
+        enter_password: "enter_password";
+        lock: "lock";
+        move: "move";
+        repackage: "repackage";
+        set_name: "set_name";
+        set_password: "set_password";
+        unlock: "unlock";
+    }>;
+    character_id: z.ZodNumber;
+    container_id: z.ZodNumber;
+    container_type_id: z.ZodNumber;
+    location_flag: z.ZodEnum<{
+        AssetSafety: "AssetSafety";
+        AutoFit: "AutoFit";
+        BoosterBay: "BoosterBay";
+        CapsuleerDeliveries: "CapsuleerDeliveries";
+        Cargo: "Cargo";
+        CorporationGoalDeliveries: "CorporationGoalDeliveries";
+        Deliveries: "Deliveries";
+        DroneBay: "DroneBay";
+        ExpeditionHold: "ExpeditionHold";
+        FighterBay: "FighterBay";
+        FighterTube0: "FighterTube0";
+        FighterTube1: "FighterTube1";
+        FighterTube2: "FighterTube2";
+        FighterTube3: "FighterTube3";
+        FighterTube4: "FighterTube4";
+        FleetHangar: "FleetHangar";
+        FrigateEscapeBay: "FrigateEscapeBay";
+        Hangar: "Hangar";
+        HangarAll: "HangarAll";
+        HiSlot0: "HiSlot0";
+        HiSlot1: "HiSlot1";
+        HiSlot2: "HiSlot2";
+        HiSlot3: "HiSlot3";
+        HiSlot4: "HiSlot4";
+        HiSlot5: "HiSlot5";
+        HiSlot6: "HiSlot6";
+        HiSlot7: "HiSlot7";
+        HiddenModifiers: "HiddenModifiers";
+        Implant: "Implant";
+        InfrastructureHangar: "InfrastructureHangar";
+        LoSlot0: "LoSlot0";
+        LoSlot1: "LoSlot1";
+        LoSlot2: "LoSlot2";
+        LoSlot3: "LoSlot3";
+        LoSlot4: "LoSlot4";
+        LoSlot5: "LoSlot5";
+        LoSlot6: "LoSlot6";
+        LoSlot7: "LoSlot7";
+        Locked: "Locked";
+        MedSlot0: "MedSlot0";
+        MedSlot1: "MedSlot1";
+        MedSlot2: "MedSlot2";
+        MedSlot3: "MedSlot3";
+        MedSlot4: "MedSlot4";
+        MedSlot5: "MedSlot5";
+        MedSlot6: "MedSlot6";
+        MedSlot7: "MedSlot7";
+        MobileDepotHold: "MobileDepotHold";
+        MoonMaterialBay: "MoonMaterialBay";
+        QuafeBay: "QuafeBay";
+        RigSlot0: "RigSlot0";
+        RigSlot1: "RigSlot1";
+        RigSlot2: "RigSlot2";
+        RigSlot3: "RigSlot3";
+        RigSlot4: "RigSlot4";
+        RigSlot5: "RigSlot5";
+        RigSlot6: "RigSlot6";
+        RigSlot7: "RigSlot7";
+        ShipHangar: "ShipHangar";
+        Skill: "Skill";
+        SpecializedAmmoHold: "SpecializedAmmoHold";
+        SpecializedAsteroidHold: "SpecializedAsteroidHold";
+        SpecializedCommandCenterHold: "SpecializedCommandCenterHold";
+        SpecializedFuelBay: "SpecializedFuelBay";
+        SpecializedGasHold: "SpecializedGasHold";
+        SpecializedIceHold: "SpecializedIceHold";
+        SpecializedIndustrialShipHold: "SpecializedIndustrialShipHold";
+        SpecializedLargeShipHold: "SpecializedLargeShipHold";
+        SpecializedMaterialBay: "SpecializedMaterialBay";
+        SpecializedMediumShipHold: "SpecializedMediumShipHold";
+        SpecializedMineralHold: "SpecializedMineralHold";
+        SpecializedOreHold: "SpecializedOreHold";
+        SpecializedPlanetaryCommoditiesHold: "SpecializedPlanetaryCommoditiesHold";
+        SpecializedSalvageHold: "SpecializedSalvageHold";
+        SpecializedShipHold: "SpecializedShipHold";
+        SpecializedSmallShipHold: "SpecializedSmallShipHold";
+        SubSystemBay: "SubSystemBay";
+        SubSystemSlot0: "SubSystemSlot0";
+        SubSystemSlot1: "SubSystemSlot1";
+        SubSystemSlot2: "SubSystemSlot2";
+        SubSystemSlot3: "SubSystemSlot3";
+        SubSystemSlot4: "SubSystemSlot4";
+        SubSystemSlot5: "SubSystemSlot5";
+        SubSystemSlot6: "SubSystemSlot6";
+        SubSystemSlot7: "SubSystemSlot7";
+        Unlocked: "Unlocked";
+        Wardrobe: "Wardrobe";
+        Bonus: "Bonus";
+        Booster: "Booster";
+        Capsule: "Capsule";
+        CorpDeliveries: "CorpDeliveries";
+        CorpSAG1: "CorpSAG1";
+        CorpSAG2: "CorpSAG2";
+        CorpSAG3: "CorpSAG3";
+        CorpSAG4: "CorpSAG4";
+        CorpSAG5: "CorpSAG5";
+        CorpSAG6: "CorpSAG6";
+        CorpSAG7: "CorpSAG7";
+        CrateLoot: "CrateLoot";
+        DustBattle: "DustBattle";
+        DustDatabank: "DustDatabank";
+        Impounded: "Impounded";
+        JunkyardReprocessed: "JunkyardReprocessed";
+        JunkyardTrashed: "JunkyardTrashed";
+        OfficeFolder: "OfficeFolder";
+        Pilot: "Pilot";
+        PlanetSurface: "PlanetSurface";
+        QuantumCoreRoom: "QuantumCoreRoom";
+        Reward: "Reward";
+        SecondaryStorage: "SecondaryStorage";
+        ServiceSlot0: "ServiceSlot0";
+        ServiceSlot1: "ServiceSlot1";
+        ServiceSlot2: "ServiceSlot2";
+        ServiceSlot3: "ServiceSlot3";
+        ServiceSlot4: "ServiceSlot4";
+        ServiceSlot5: "ServiceSlot5";
+        ServiceSlot6: "ServiceSlot6";
+        ServiceSlot7: "ServiceSlot7";
+        ShipOffline: "ShipOffline";
+        SkillInTraining: "SkillInTraining";
+        StructureActive: "StructureActive";
+        StructureFuel: "StructureFuel";
+        StructureInactive: "StructureInactive";
+        StructureOffline: "StructureOffline";
+        Wallet: "Wallet";
+    }>;
+    location_id: z.ZodNumber;
+    logged_at: z.ZodString;
+    new_config_bitmask: z.ZodOptional<z.ZodNumber>;
+    old_config_bitmask: z.ZodOptional<z.ZodNumber>;
+    password_type: z.ZodOptional<z.ZodEnum<{
+        config: "config";
+        general: "general";
+    }>>;
+    quantity: z.ZodOptional<z.ZodNumber>;
+    type_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdContractsContractIdBidsGet {
     // (undocumented)
     amount: number;
@@ -2513,6 +4739,14 @@ interface CorporationsCorporationIdContractsContractIdBidsGet {
     // (undocumented)
     date_bid: string;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdContractsContractIdBidsGetSchema: z.ZodObject<{
+    amount: z.ZodNumber;
+    bid_id: z.ZodNumber;
+    bidder_id: z.ZodNumber;
+    date_bid: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdContractsContractIdItemsGet {
@@ -2529,6 +4763,16 @@ interface CorporationsCorporationIdContractsContractIdItemsGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdContractsContractIdItemsGetSchema: z.ZodObject<{
+    is_included: z.ZodBoolean;
+    is_singleton: z.ZodBoolean;
+    quantity: z.ZodNumber;
+    raw_quantity: z.ZodOptional<z.ZodNumber>;
+    record_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdContractsGet {
@@ -2579,6 +4823,54 @@ interface CorporationsCorporationIdContractsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdContractsGetSchema: z.ZodObject<{
+    acceptor_id: z.ZodNumber;
+    assignee_id: z.ZodNumber;
+    availability: z.ZodEnum<{
+        corporation: "corporation";
+        alliance: "alliance";
+        public: "public";
+        personal: "personal";
+    }>;
+    buyout: z.ZodOptional<z.ZodNumber>;
+    collateral: z.ZodOptional<z.ZodNumber>;
+    contract_id: z.ZodNumber;
+    date_accepted: z.ZodOptional<z.ZodString>;
+    date_completed: z.ZodOptional<z.ZodString>;
+    date_expired: z.ZodString;
+    date_issued: z.ZodString;
+    days_to_complete: z.ZodOptional<z.ZodNumber>;
+    end_location_id: z.ZodOptional<z.ZodNumber>;
+    for_corporation: z.ZodBoolean;
+    issuer_corporation_id: z.ZodNumber;
+    issuer_id: z.ZodNumber;
+    price: z.ZodOptional<z.ZodNumber>;
+    reward: z.ZodOptional<z.ZodNumber>;
+    start_location_id: z.ZodOptional<z.ZodNumber>;
+    status: z.ZodEnum<{
+        cancelled: "cancelled";
+        outstanding: "outstanding";
+        in_progress: "in_progress";
+        finished_issuer: "finished_issuer";
+        finished_contractor: "finished_contractor";
+        finished: "finished";
+        rejected: "rejected";
+        failed: "failed";
+        deleted: "deleted";
+        reversed: "reversed";
+    }>;
+    title: z.ZodOptional<z.ZodString>;
+    type: z.ZodEnum<{
+        unknown: "unknown";
+        item_exchange: "item_exchange";
+        auction: "auction";
+        courier: "courier";
+        loan: "loan";
+    }>;
+    volume: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdCustomsOfficesGet {
     // (undocumented)
     alliance_tax_rate?: number;
@@ -2613,6 +4905,31 @@ interface CorporationsCorporationIdCustomsOfficesGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdCustomsOfficesGetSchema: z.ZodObject<{
+    alliance_tax_rate: z.ZodOptional<z.ZodNumber>;
+    allow_access_with_standings: z.ZodBoolean;
+    allow_alliance_access: z.ZodBoolean;
+    bad_standing_tax_rate: z.ZodOptional<z.ZodNumber>;
+    corporation_tax_rate: z.ZodOptional<z.ZodNumber>;
+    excellent_standing_tax_rate: z.ZodOptional<z.ZodNumber>;
+    good_standing_tax_rate: z.ZodOptional<z.ZodNumber>;
+    neutral_standing_tax_rate: z.ZodOptional<z.ZodNumber>;
+    office_id: z.ZodNumber;
+    reinforce_exit_end: z.ZodNumber;
+    reinforce_exit_start: z.ZodNumber;
+    standing_level: z.ZodOptional<z.ZodEnum<{
+        bad: "bad";
+        excellent: "excellent";
+        good: "good";
+        neutral: "neutral";
+        terrible: "terrible";
+    }>>;
+    system_id: z.ZodNumber;
+    terrible_standing_tax_rate: z.ZodOptional<z.ZodNumber>;
+    type_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdDivisionsGet {
     // (undocumented)
     hangar?: ({
@@ -2627,6 +4944,18 @@ interface CorporationsCorporationIdDivisionsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdDivisionsGetSchema: z.ZodObject<{
+    hangar: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        division: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    wallet: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        division: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdFacilitiesGet {
     // (undocumented)
     facility_id: number;
@@ -2635,6 +4964,13 @@ interface CorporationsCorporationIdFacilitiesGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdFacilitiesGetSchema: z.ZodObject<{
+    facility_id: z.ZodNumber;
+    system_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdFwStatsGet {
@@ -2659,6 +4995,23 @@ interface CorporationsCorporationIdFwStatsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdFwStatsGetSchema: z.ZodObject<{
+    enlisted_on: z.ZodOptional<z.ZodString>;
+    faction_id: z.ZodOptional<z.ZodNumber>;
+    kills: z.ZodObject<{
+        last_week: z.ZodNumber;
+        total: z.ZodNumber;
+        yesterday: z.ZodNumber;
+    }, z.core.$loose>;
+    pilots: z.ZodOptional<z.ZodNumber>;
+    victory_points: z.ZodObject<{
+        last_week: z.ZodNumber;
+        total: z.ZodNumber;
+        yesterday: z.ZodNumber;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdIconsGet {
     // (undocumented)
     px128x128?: string;
@@ -2667,6 +5020,13 @@ interface CorporationsCorporationIdIconsGet {
     // (undocumented)
     px64x64?: string;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdIconsGetSchema: z.ZodObject<{
+    px128x128: z.ZodOptional<z.ZodString>;
+    px256x256: z.ZodOptional<z.ZodString>;
+    px64x64: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdIndustryJobsGet {
@@ -2717,12 +5077,51 @@ interface CorporationsCorporationIdIndustryJobsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdIndustryJobsGetSchema: z.ZodObject<{
+    activity_id: z.ZodNumber;
+    blueprint_id: z.ZodNumber;
+    blueprint_location_id: z.ZodNumber;
+    blueprint_type_id: z.ZodNumber;
+    completed_character_id: z.ZodOptional<z.ZodNumber>;
+    completed_date: z.ZodOptional<z.ZodString>;
+    cost: z.ZodOptional<z.ZodNumber>;
+    duration: z.ZodNumber;
+    end_date: z.ZodString;
+    facility_id: z.ZodNumber;
+    installer_id: z.ZodNumber;
+    job_id: z.ZodNumber;
+    licensed_runs: z.ZodOptional<z.ZodNumber>;
+    location_id: z.ZodNumber;
+    output_location_id: z.ZodNumber;
+    pause_date: z.ZodOptional<z.ZodString>;
+    probability: z.ZodOptional<z.ZodNumber>;
+    product_type_id: z.ZodOptional<z.ZodNumber>;
+    runs: z.ZodNumber;
+    start_date: z.ZodString;
+    status: z.ZodEnum<{
+        cancelled: "cancelled";
+        active: "active";
+        delivered: "delivered";
+        paused: "paused";
+        ready: "ready";
+        reverted: "reverted";
+    }>;
+    successful_runs: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdKillmailsRecentGet {
     // (undocumented)
     killmail_hash: string;
     // (undocumented)
     killmail_id: number;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdKillmailsRecentGetSchema: z.ZodObject<{
+    killmail_hash: z.ZodString;
+    killmail_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdMedalsGet {
@@ -2737,6 +5136,15 @@ interface CorporationsCorporationIdMedalsGet {
     // (undocumented)
     title: string;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdMedalsGetSchema: z.ZodObject<{
+    created_at: z.ZodString;
+    creator_id: z.ZodNumber;
+    description: z.ZodString;
+    medal_id: z.ZodNumber;
+    title: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdMedalsIssuedGet {
@@ -2755,12 +5163,31 @@ interface CorporationsCorporationIdMedalsIssuedGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdMedalsIssuedGetSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    issued_at: z.ZodString;
+    issuer_id: z.ZodNumber;
+    medal_id: z.ZodNumber;
+    reason: z.ZodString;
+    status: z.ZodEnum<{
+        private: "private";
+        public: "public";
+    }>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdMembersTitlesGet {
     // (undocumented)
     character_id: number;
     // (undocumented)
     titles: number[];
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdMembersTitlesGetSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    titles: z.ZodArray<z.ZodNumber>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdMembertrackingGet {
@@ -2779,6 +5206,17 @@ interface CorporationsCorporationIdMembertrackingGet {
     // (undocumented)
     start_date?: string;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdMembertrackingGetSchema: z.ZodObject<{
+    base_id: z.ZodOptional<z.ZodNumber>;
+    character_id: z.ZodNumber;
+    location_id: z.ZodOptional<z.ZodNumber>;
+    logoff_date: z.ZodOptional<z.ZodString>;
+    logon_date: z.ZodOptional<z.ZodString>;
+    ship_type_id: z.ZodOptional<z.ZodNumber>;
+    start_date: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdOrdersGet {
@@ -2813,6 +5251,38 @@ interface CorporationsCorporationIdOrdersGet {
     // (undocumented)
     wallet_division: number;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdOrdersGetSchema: z.ZodObject<{
+    duration: z.ZodNumber;
+    escrow: z.ZodOptional<z.ZodNumber>;
+    is_buy_order: z.ZodOptional<z.ZodBoolean>;
+    issued: z.ZodString;
+    issued_by: z.ZodNumber;
+    location_id: z.ZodNumber;
+    min_volume: z.ZodOptional<z.ZodNumber>;
+    order_id: z.ZodNumber;
+    price: z.ZodNumber;
+    range: z.ZodEnum<{
+        1: "1";
+        2: "2";
+        3: "3";
+        4: "4";
+        region: "region";
+        5: "5";
+        station: "station";
+        10: "10";
+        20: "20";
+        30: "30";
+        40: "40";
+        solarsystem: "solarsystem";
+    }>;
+    region_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    volume_total: z.ZodNumber;
+    wallet_division: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdOrdersHistoryGet {
@@ -2851,6 +5321,42 @@ interface CorporationsCorporationIdOrdersHistoryGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdOrdersHistoryGetSchema: z.ZodObject<{
+    duration: z.ZodNumber;
+    escrow: z.ZodOptional<z.ZodNumber>;
+    is_buy_order: z.ZodOptional<z.ZodBoolean>;
+    issued: z.ZodString;
+    issued_by: z.ZodOptional<z.ZodNumber>;
+    location_id: z.ZodNumber;
+    min_volume: z.ZodOptional<z.ZodNumber>;
+    order_id: z.ZodNumber;
+    price: z.ZodNumber;
+    range: z.ZodEnum<{
+        1: "1";
+        2: "2";
+        3: "3";
+        4: "4";
+        region: "region";
+        5: "5";
+        station: "station";
+        10: "10";
+        20: "20";
+        30: "30";
+        40: "40";
+        solarsystem: "solarsystem";
+    }>;
+    region_id: z.ZodNumber;
+    state: z.ZodEnum<{
+        expired: "expired";
+        cancelled: "cancelled";
+    }>;
+    type_id: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    volume_total: z.ZodNumber;
+    wallet_division: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdRolesGet {
     // (undocumented)
     character_id: number;
@@ -2873,6 +5379,459 @@ interface CorporationsCorporationIdRolesGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdRolesGetSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    grantable_roles: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    grantable_roles_at_base: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    grantable_roles_at_hq: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    grantable_roles_at_other: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_base: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_hq: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_other: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdRolesHistoryGet {
     // (undocumented)
     changed_at: string;
@@ -2889,6 +5848,135 @@ interface CorporationsCorporationIdRolesHistoryGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdRolesHistoryGetSchema: z.ZodObject<{
+    changed_at: z.ZodString;
+    character_id: z.ZodNumber;
+    issuer_id: z.ZodNumber;
+    new_roles: z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>;
+    old_roles: z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>;
+    role_type: z.ZodEnum<{
+        roles: "roles";
+        roles_at_hq: "roles_at_hq";
+        roles_at_base: "roles_at_base";
+        roles_at_other: "roles_at_other";
+        grantable_roles: "grantable_roles";
+        grantable_roles_at_hq: "grantable_roles_at_hq";
+        grantable_roles_at_base: "grantable_roles_at_base";
+        grantable_roles_at_other: "grantable_roles_at_other";
+    }>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdShareholdersGet {
     // (undocumented)
     share_count: number;
@@ -2899,6 +5987,16 @@ interface CorporationsCorporationIdShareholdersGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdShareholdersGetSchema: z.ZodObject<{
+    share_count: z.ZodNumber;
+    shareholder_id: z.ZodNumber;
+    shareholder_type: z.ZodEnum<{
+        character: "character";
+        corporation: "corporation";
+    }>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdStandingsGet {
     // (undocumented)
     from_id: number;
@@ -2907,6 +6005,17 @@ interface CorporationsCorporationIdStandingsGet {
     // (undocumented)
     standing: number;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdStandingsGetSchema: z.ZodObject<{
+    from_id: z.ZodNumber;
+    from_type: z.ZodEnum<{
+        faction: "faction";
+        agent: "agent";
+        npc_corp: "npc_corp";
+    }>;
+    standing: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdStarbasesGet {
@@ -2927,6 +6036,24 @@ interface CorporationsCorporationIdStarbasesGet {
     // (undocumented)
     unanchor_at?: string;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdStarbasesGetSchema: z.ZodObject<{
+    moon_id: z.ZodOptional<z.ZodNumber>;
+    onlined_since: z.ZodOptional<z.ZodString>;
+    reinforced_until: z.ZodOptional<z.ZodString>;
+    starbase_id: z.ZodNumber;
+    state: z.ZodOptional<z.ZodEnum<{
+        offline: "offline";
+        online: "online";
+        onlining: "onlining";
+        reinforced: "reinforced";
+        unanchoring: "unanchoring";
+    }>>;
+    system_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    unanchor_at: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdStarbasesStarbaseIdGet {
@@ -2962,6 +6089,57 @@ interface CorporationsCorporationIdStarbasesStarbaseIdGet {
     // (undocumented)
     use_alliance_standings: boolean;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdStarbasesStarbaseIdGetSchema: z.ZodObject<{
+    allow_alliance_members: z.ZodBoolean;
+    allow_corporation_members: z.ZodBoolean;
+    anchor: z.ZodEnum<{
+        alliance_member: "alliance_member";
+        config_starbase_equipment_role: "config_starbase_equipment_role";
+        corporation_member: "corporation_member";
+        starbase_fuel_technician_role: "starbase_fuel_technician_role";
+    }>;
+    attack_if_at_war: z.ZodBoolean;
+    attack_if_other_security_status_dropping: z.ZodBoolean;
+    attack_security_status_threshold: z.ZodOptional<z.ZodNumber>;
+    attack_standing_threshold: z.ZodOptional<z.ZodNumber>;
+    fuel_bay_take: z.ZodEnum<{
+        alliance_member: "alliance_member";
+        config_starbase_equipment_role: "config_starbase_equipment_role";
+        corporation_member: "corporation_member";
+        starbase_fuel_technician_role: "starbase_fuel_technician_role";
+    }>;
+    fuel_bay_view: z.ZodEnum<{
+        alliance_member: "alliance_member";
+        config_starbase_equipment_role: "config_starbase_equipment_role";
+        corporation_member: "corporation_member";
+        starbase_fuel_technician_role: "starbase_fuel_technician_role";
+    }>;
+    fuels: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        quantity: z.ZodNumber;
+        type_id: z.ZodNumber;
+    }, z.core.$loose>>>;
+    offline: z.ZodEnum<{
+        alliance_member: "alliance_member";
+        config_starbase_equipment_role: "config_starbase_equipment_role";
+        corporation_member: "corporation_member";
+        starbase_fuel_technician_role: "starbase_fuel_technician_role";
+    }>;
+    online: z.ZodEnum<{
+        alliance_member: "alliance_member";
+        config_starbase_equipment_role: "config_starbase_equipment_role";
+        corporation_member: "corporation_member";
+        starbase_fuel_technician_role: "starbase_fuel_technician_role";
+    }>;
+    unanchor: z.ZodEnum<{
+        alliance_member: "alliance_member";
+        config_starbase_equipment_role: "config_starbase_equipment_role";
+        corporation_member: "corporation_member";
+        starbase_fuel_technician_role: "starbase_fuel_technician_role";
+    }>;
+    use_alliance_standings: z.ZodBoolean;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdStructuresGet {
@@ -3001,6 +6179,46 @@ interface CorporationsCorporationIdStructuresGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdStructuresGetSchema: z.ZodObject<{
+    corporation_id: z.ZodNumber;
+    fuel_expires: z.ZodOptional<z.ZodString>;
+    name: z.ZodOptional<z.ZodString>;
+    next_reinforce_apply: z.ZodOptional<z.ZodString>;
+    next_reinforce_hour: z.ZodOptional<z.ZodNumber>;
+    profile_id: z.ZodNumber;
+    reinforce_hour: z.ZodOptional<z.ZodNumber>;
+    services: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        state: z.ZodEnum<{
+            offline: "offline";
+            online: "online";
+            cleanup: "cleanup";
+        }>;
+    }, z.core.$loose>>>;
+    state: z.ZodEnum<{
+        unknown: "unknown";
+        anchor_vulnerable: "anchor_vulnerable";
+        anchoring: "anchoring";
+        armor_reinforce: "armor_reinforce";
+        armor_vulnerable: "armor_vulnerable";
+        deploy_vulnerable: "deploy_vulnerable";
+        fitting_invulnerable: "fitting_invulnerable";
+        hull_reinforce: "hull_reinforce";
+        hull_vulnerable: "hull_vulnerable";
+        online_deprecated: "online_deprecated";
+        onlining_vulnerable: "onlining_vulnerable";
+        shield_vulnerable: "shield_vulnerable";
+        unanchored: "unanchored";
+    }>;
+    state_timer_end: z.ZodOptional<z.ZodString>;
+    state_timer_start: z.ZodOptional<z.ZodString>;
+    structure_id: z.ZodNumber;
+    system_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    unanchors_at: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdTitlesGet {
     // (undocumented)
     grantable_roles?: 'Account_Take_1' | 'Account_Take_2' | 'Account_Take_3' | 'Account_Take_4' | 'Account_Take_5' | 'Account_Take_6' | 'Account_Take_7' | 'Accountant' | 'Auditor' | 'Brand_Manager' | 'Communications_Officer' | 'Config_Equipment' | 'Config_Starbase_Equipment' | 'Container_Take_1' | 'Container_Take_2' | 'Container_Take_3' | 'Container_Take_4' | 'Container_Take_5' | 'Container_Take_6' | 'Container_Take_7' | 'Contract_Manager' | 'Deliveries_Container_Take' | 'Deliveries_Query' | 'Deliveries_Take' | 'Diplomat' | 'Director' | 'Factory_Manager' | 'Fitting_Manager' | 'Hangar_Query_1' | 'Hangar_Query_2' | 'Hangar_Query_3' | 'Hangar_Query_4' | 'Hangar_Query_5' | 'Hangar_Query_6' | 'Hangar_Query_7' | 'Hangar_Take_1' | 'Hangar_Take_2' | 'Hangar_Take_3' | 'Hangar_Take_4' | 'Hangar_Take_5' | 'Hangar_Take_6' | 'Hangar_Take_7' | 'Junior_Accountant' | 'Personnel_Manager' | 'Project_Manager' | 'Rent_Factory_Facility' | 'Rent_Office' | 'Rent_Research_Facility' | 'Security_Officer' | 'Skill_Plan_Manager' | 'Starbase_Defense_Operator' | 'Starbase_Fuel_Technician' | 'Station_Manager' | 'Trader'[];
@@ -3023,6 +6241,460 @@ interface CorporationsCorporationIdTitlesGet {
     // (undocumented)
     title_id?: number;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdTitlesGetSchema: z.ZodObject<{
+    grantable_roles: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    grantable_roles_at_base: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    grantable_roles_at_hq: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    grantable_roles_at_other: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    name: z.ZodOptional<z.ZodString>;
+    roles: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_base: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_hq: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    roles_at_other: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Account_Take_1: "Account_Take_1";
+        Account_Take_2: "Account_Take_2";
+        Account_Take_3: "Account_Take_3";
+        Account_Take_4: "Account_Take_4";
+        Account_Take_5: "Account_Take_5";
+        Account_Take_6: "Account_Take_6";
+        Account_Take_7: "Account_Take_7";
+        Accountant: "Accountant";
+        Auditor: "Auditor";
+        Brand_Manager: "Brand_Manager";
+        Communications_Officer: "Communications_Officer";
+        Config_Equipment: "Config_Equipment";
+        Config_Starbase_Equipment: "Config_Starbase_Equipment";
+        Container_Take_1: "Container_Take_1";
+        Container_Take_2: "Container_Take_2";
+        Container_Take_3: "Container_Take_3";
+        Container_Take_4: "Container_Take_4";
+        Container_Take_5: "Container_Take_5";
+        Container_Take_6: "Container_Take_6";
+        Container_Take_7: "Container_Take_7";
+        Contract_Manager: "Contract_Manager";
+        Deliveries_Container_Take: "Deliveries_Container_Take";
+        Deliveries_Query: "Deliveries_Query";
+        Deliveries_Take: "Deliveries_Take";
+        Diplomat: "Diplomat";
+        Director: "Director";
+        Factory_Manager: "Factory_Manager";
+        Fitting_Manager: "Fitting_Manager";
+        Hangar_Query_1: "Hangar_Query_1";
+        Hangar_Query_2: "Hangar_Query_2";
+        Hangar_Query_3: "Hangar_Query_3";
+        Hangar_Query_4: "Hangar_Query_4";
+        Hangar_Query_5: "Hangar_Query_5";
+        Hangar_Query_6: "Hangar_Query_6";
+        Hangar_Query_7: "Hangar_Query_7";
+        Hangar_Take_1: "Hangar_Take_1";
+        Hangar_Take_2: "Hangar_Take_2";
+        Hangar_Take_3: "Hangar_Take_3";
+        Hangar_Take_4: "Hangar_Take_4";
+        Hangar_Take_5: "Hangar_Take_5";
+        Hangar_Take_6: "Hangar_Take_6";
+        Hangar_Take_7: "Hangar_Take_7";
+        Junior_Accountant: "Junior_Accountant";
+        Personnel_Manager: "Personnel_Manager";
+        Project_Manager: "Project_Manager";
+        Rent_Factory_Facility: "Rent_Factory_Facility";
+        Rent_Office: "Rent_Office";
+        Rent_Research_Facility: "Rent_Research_Facility";
+        Security_Officer: "Security_Officer";
+        Skill_Plan_Manager: "Skill_Plan_Manager";
+        Starbase_Defense_Operator: "Starbase_Defense_Operator";
+        Starbase_Fuel_Technician: "Starbase_Fuel_Technician";
+        Station_Manager: "Station_Manager";
+        Trader: "Trader";
+    }>>>;
+    title_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsCorporationIdWalletsDivisionJournalGet {
@@ -3055,6 +6727,199 @@ interface CorporationsCorporationIdWalletsDivisionJournalGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdWalletsDivisionJournalGetSchema: z.ZodObject<{
+    amount: z.ZodOptional<z.ZodNumber>;
+    balance: z.ZodOptional<z.ZodNumber>;
+    context_id: z.ZodOptional<z.ZodNumber>;
+    context_id_type: z.ZodOptional<z.ZodEnum<{
+        alliance_id: "alliance_id";
+        character_id: "character_id";
+        corporation_id: "corporation_id";
+        type_id: "type_id";
+        system_id: "system_id";
+        structure_id: "structure_id";
+        planet_id: "planet_id";
+        station_id: "station_id";
+        contract_id: "contract_id";
+        market_transaction_id: "market_transaction_id";
+        eve_system: "eve_system";
+        industry_job_id: "industry_job_id";
+    }>>;
+    date: z.ZodString;
+    description: z.ZodString;
+    first_party_id: z.ZodOptional<z.ZodNumber>;
+    id: z.ZodNumber;
+    reason: z.ZodOptional<z.ZodString>;
+    ref_type: z.ZodEnum<{
+        shares: "shares";
+        copying: "copying";
+        manufacturing: "manufacturing";
+        reaction: "reaction";
+        researching_technology: "researching_technology";
+        reverse_engineering: "reverse_engineering";
+        insurance: "insurance";
+        acceleration_gate_fee: "acceleration_gate_fee";
+        achievement_category_milestone_reward: "achievement_category_milestone_reward";
+        achievement_milestone_reward: "achievement_milestone_reward";
+        advertisement_listing_fee: "advertisement_listing_fee";
+        agent_donation: "agent_donation";
+        agent_location_services: "agent_location_services";
+        agent_miscellaneous: "agent_miscellaneous";
+        agent_mission_collateral_paid: "agent_mission_collateral_paid";
+        agent_mission_collateral_refunded: "agent_mission_collateral_refunded";
+        agent_mission_reward: "agent_mission_reward";
+        agent_mission_reward_corporation_tax: "agent_mission_reward_corporation_tax";
+        agent_mission_security_tax: "agent_mission_security_tax";
+        agent_mission_time_bonus_reward: "agent_mission_time_bonus_reward";
+        agent_mission_time_bonus_reward_corporation_tax: "agent_mission_time_bonus_reward_corporation_tax";
+        agent_security_services: "agent_security_services";
+        agent_services_rendered: "agent_services_rendered";
+        agents_preward: "agents_preward";
+        air_career_program_reward: "air_career_program_reward";
+        alliance_maintainance_fee: "alliance_maintainance_fee";
+        alliance_registration_fee: "alliance_registration_fee";
+        allignment_based_gate_toll: "allignment_based_gate_toll";
+        asset_safety_recovery_tax: "asset_safety_recovery_tax";
+        bounty: "bounty";
+        bounty_prize: "bounty_prize";
+        bounty_prize_corporation_tax: "bounty_prize_corporation_tax";
+        bounty_prizes: "bounty_prizes";
+        bounty_reimbursement: "bounty_reimbursement";
+        bounty_surcharge: "bounty_surcharge";
+        brokers_fee: "brokers_fee";
+        campaign_objective_isk_reward: "campaign_objective_isk_reward";
+        clone_activation: "clone_activation";
+        clone_transfer: "clone_transfer";
+        contraband_fine: "contraband_fine";
+        contract_auction_bid: "contract_auction_bid";
+        contract_auction_bid_corp: "contract_auction_bid_corp";
+        contract_auction_bid_refund: "contract_auction_bid_refund";
+        contract_auction_sold: "contract_auction_sold";
+        contract_brokers_fee: "contract_brokers_fee";
+        contract_brokers_fee_corp: "contract_brokers_fee_corp";
+        contract_collateral: "contract_collateral";
+        contract_collateral_deposited_corp: "contract_collateral_deposited_corp";
+        contract_collateral_payout: "contract_collateral_payout";
+        contract_collateral_refund: "contract_collateral_refund";
+        contract_deposit: "contract_deposit";
+        contract_deposit_corp: "contract_deposit_corp";
+        contract_deposit_refund: "contract_deposit_refund";
+        contract_deposit_sales_tax: "contract_deposit_sales_tax";
+        contract_price: "contract_price";
+        contract_price_payment_corp: "contract_price_payment_corp";
+        contract_reversal: "contract_reversal";
+        contract_reward: "contract_reward";
+        contract_reward_deposited: "contract_reward_deposited";
+        contract_reward_deposited_corp: "contract_reward_deposited_corp";
+        contract_reward_refund: "contract_reward_refund";
+        contract_sales_tax: "contract_sales_tax";
+        corporate_reward_payout: "corporate_reward_payout";
+        corporate_reward_tax: "corporate_reward_tax";
+        corporation_account_withdrawal: "corporation_account_withdrawal";
+        corporation_bulk_payment: "corporation_bulk_payment";
+        corporation_dividend_payment: "corporation_dividend_payment";
+        corporation_liquidation: "corporation_liquidation";
+        corporation_logo_change_cost: "corporation_logo_change_cost";
+        corporation_payment: "corporation_payment";
+        corporation_registration_fee: "corporation_registration_fee";
+        cosmetic_market_component_item_purchase: "cosmetic_market_component_item_purchase";
+        cosmetic_market_skin_purchase: "cosmetic_market_skin_purchase";
+        cosmetic_market_skin_sale: "cosmetic_market_skin_sale";
+        cosmetic_market_skin_sale_broker_fee: "cosmetic_market_skin_sale_broker_fee";
+        cosmetic_market_skin_sale_tax: "cosmetic_market_skin_sale_tax";
+        cosmetic_market_skin_transaction: "cosmetic_market_skin_transaction";
+        courier_mission_escrow: "courier_mission_escrow";
+        cspa: "cspa";
+        cspaofflinerefund: "cspaofflinerefund";
+        daily_challenge_reward: "daily_challenge_reward";
+        daily_goal_payouts: "daily_goal_payouts";
+        daily_goal_payouts_tax: "daily_goal_payouts_tax";
+        datacore_fee: "datacore_fee";
+        dna_modification_fee: "dna_modification_fee";
+        docking_fee: "docking_fee";
+        duel_wager_escrow: "duel_wager_escrow";
+        duel_wager_payment: "duel_wager_payment";
+        duel_wager_refund: "duel_wager_refund";
+        ess_escrow_transfer: "ess_escrow_transfer";
+        external_trade_delivery: "external_trade_delivery";
+        external_trade_freeze: "external_trade_freeze";
+        external_trade_thaw: "external_trade_thaw";
+        factory_slot_rental_fee: "factory_slot_rental_fee";
+        flux_payout: "flux_payout";
+        flux_tax: "flux_tax";
+        flux_ticket_repayment: "flux_ticket_repayment";
+        flux_ticket_sale: "flux_ticket_sale";
+        freelance_jobs_broadcasting_fee: "freelance_jobs_broadcasting_fee";
+        freelance_jobs_duration_fee: "freelance_jobs_duration_fee";
+        freelance_jobs_escrow_refund: "freelance_jobs_escrow_refund";
+        freelance_jobs_reward: "freelance_jobs_reward";
+        freelance_jobs_reward_corporation_tax: "freelance_jobs_reward_corporation_tax";
+        freelance_jobs_reward_escrow: "freelance_jobs_reward_escrow";
+        gm_cash_transfer: "gm_cash_transfer";
+        gm_plex_fee_refund: "gm_plex_fee_refund";
+        industry_job_tax: "industry_job_tax";
+        industry_security_tax: "industry_security_tax";
+        infrastructure_hub_maintenance: "infrastructure_hub_maintenance";
+        inheritance: "inheritance";
+        insurgency_corruption_contribution_reward: "insurgency_corruption_contribution_reward";
+        insurgency_suppression_contribution_reward: "insurgency_suppression_contribution_reward";
+        item_trader_payment: "item_trader_payment";
+        jump_clone_activation_fee: "jump_clone_activation_fee";
+        jump_clone_installation_fee: "jump_clone_installation_fee";
+        kill_right_fee: "kill_right_fee";
+        lp_store: "lp_store";
+        market_escrow: "market_escrow";
+        market_fine_paid: "market_fine_paid";
+        market_provider_tax: "market_provider_tax";
+        market_security_tax: "market_security_tax";
+        market_transaction: "market_transaction";
+        medal_creation: "medal_creation";
+        medal_issued: "medal_issued";
+        milestone_reward_payment: "milestone_reward_payment";
+        mission_completion: "mission_completion";
+        mission_cost: "mission_cost";
+        mission_expiration: "mission_expiration";
+        mission_reward: "mission_reward";
+        npc_bounty_security_tax: "npc_bounty_security_tax";
+        office_rental_fee: "office_rental_fee";
+        operation_bonus: "operation_bonus";
+        opportunity_reward: "opportunity_reward";
+        planetary_construction: "planetary_construction";
+        planetary_export_tax: "planetary_export_tax";
+        planetary_import_tax: "planetary_import_tax";
+        player_donation: "player_donation";
+        player_trading: "player_trading";
+        project_discovery_reward: "project_discovery_reward";
+        project_discovery_tax: "project_discovery_tax";
+        project_payouts: "project_payouts";
+        redeemed_isk_token: "redeemed_isk_token";
+        release_of_impounded_property: "release_of_impounded_property";
+        repair_bill: "repair_bill";
+        reprocessing_tax: "reprocessing_tax";
+        researching_material_productivity: "researching_material_productivity";
+        researching_time_productivity: "researching_time_productivity";
+        resource_wars_reward: "resource_wars_reward";
+        season_challenge_reward: "season_challenge_reward";
+        security_processing_fee: "security_processing_fee";
+        skill_purchase: "skill_purchase";
+        skyhook_claim_fee: "skyhook_claim_fee";
+        sovereignity_bill: "sovereignity_bill";
+        store_purchase: "store_purchase";
+        store_purchase_refund: "store_purchase_refund";
+        structure_gate_jump: "structure_gate_jump";
+        transaction_tax: "transaction_tax";
+        under_construction: "under_construction";
+        upkeep_adjustment_fee: "upkeep_adjustment_fee";
+        war_ally_contract: "war_ally_contract";
+        war_fee: "war_fee";
+        war_fee_surrender: "war_fee_surrender";
+    }>;
+    second_party_id: z.ZodOptional<z.ZodNumber>;
+    tax: z.ZodOptional<z.ZodNumber>;
+    tax_receiver_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdWalletsDivisionTransactionsGet {
     // (undocumented)
     client_id: number;
@@ -3077,12 +6942,31 @@ interface CorporationsCorporationIdWalletsDivisionTransactionsGet {
 }
 
 // @public (undocumented)
+const CorporationsCorporationIdWalletsDivisionTransactionsGetSchema: z.ZodObject<{
+    client_id: z.ZodNumber;
+    date: z.ZodString;
+    is_buy: z.ZodBoolean;
+    journal_ref_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    quantity: z.ZodNumber;
+    transaction_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    unit_price: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsCorporationIdWalletsGet {
     // (undocumented)
     balance: number;
     // (undocumented)
     division: number;
 }
+
+// @public (undocumented)
+const CorporationsCorporationIdWalletsGetSchema: z.ZodObject<{
+    balance: z.ZodNumber;
+    division: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsDetail {
@@ -3117,6 +7001,24 @@ interface CorporationsDetail {
 }
 
 // @public (undocumented)
+const CorporationsDetailSchema: z.ZodObject<{
+    alliance_id: z.ZodOptional<z.ZodNumber>;
+    ceo_id: z.ZodNumber;
+    creator_id: z.ZodNumber;
+    date_founded: z.ZodOptional<z.ZodString>;
+    description: z.ZodOptional<z.ZodString>;
+    faction_id: z.ZodOptional<z.ZodNumber>;
+    home_station_id: z.ZodOptional<z.ZodNumber>;
+    member_count: z.ZodNumber;
+    name: z.ZodString;
+    shares: z.ZodOptional<z.ZodNumber>;
+    tax_rate: z.ZodNumber;
+    ticker: z.ZodString;
+    url: z.ZodOptional<z.ZodString>;
+    war_eligible: z.ZodOptional<z.ZodBoolean>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsFreelanceJobsListing {
     // (undocumented)
     cursor?: {
@@ -3141,6 +7043,35 @@ interface CorporationsFreelanceJobsListing {
 }
 
 // @public (undocumented)
+const CorporationsFreelanceJobsListingSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        after: z.ZodOptional<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    freelance_jobs: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        last_modified: z.ZodString;
+        name: z.ZodString;
+        progress: z.ZodObject<{
+            current: z.ZodNumber;
+            desired: z.ZodNumber;
+        }, z.core.$loose>;
+        reward: z.ZodOptional<z.ZodObject<{
+            initial: z.ZodNumber;
+            remaining: z.ZodNumber;
+        }, z.core.$loose>>;
+        state: z.ZodEnum<{
+            Unspecified: "Unspecified";
+            Active: "Active";
+            Closed: "Closed";
+            Completed: "Completed";
+            Expired: "Expired";
+            Deleted: "Deleted";
+        }>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsFreelanceJobsParticipants {
     // (undocumented)
     cursor?: {
@@ -3155,6 +7086,25 @@ interface CorporationsFreelanceJobsParticipants {
         state: 'Unspecified' | 'Committed' | 'Kicked' | 'Resigned';
     })[];
 }
+
+// @public (undocumented)
+const CorporationsFreelanceJobsParticipantsSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        after: z.ZodOptional<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    participants: z.ZodArray<z.ZodObject<{
+        contributed: z.ZodNumber;
+        id: z.ZodNumber;
+        name: z.ZodString;
+        state: z.ZodEnum<{
+            Unspecified: "Unspecified";
+            Committed: "Committed";
+            Kicked: "Kicked";
+            Resigned: "Resigned";
+        }>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type CorporationShareholder = z.infer<typeof CorporationShareholderSchema>;
@@ -3178,6 +7128,12 @@ interface CorporationsProjectsContribution {
 }
 
 // @public (undocumented)
+const CorporationsProjectsContributionSchema: z.ZodObject<{
+    contributed: z.ZodNumber;
+    last_modified: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsProjectsContributors {
     // (undocumented)
     contributors: ({
@@ -3191,6 +7147,19 @@ interface CorporationsProjectsContributors {
         before?: string;
     };
 }
+
+// @public (undocumented)
+const CorporationsProjectsContributorsSchema: z.ZodObject<{
+    contributors: z.ZodArray<z.ZodObject<{
+        contributed: z.ZodNumber;
+        id: z.ZodNumber;
+        name: z.ZodString;
+    }, z.core.$loose>>;
+    cursor: z.ZodOptional<z.ZodObject<{
+        after: z.ZodOptional<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface CorporationsProjectsDetail {
@@ -3237,6 +7206,53 @@ interface CorporationsProjectsDetail {
 }
 
 // @public (undocumented)
+const CorporationsProjectsDetailSchema: z.ZodObject<{
+    configuration: z.ZodUnknown;
+    contribution: z.ZodOptional<z.ZodObject<{
+        participation_limit: z.ZodOptional<z.ZodNumber>;
+        reward_per_contribution: z.ZodOptional<z.ZodNumber>;
+        submission_limit: z.ZodOptional<z.ZodNumber>;
+        submission_multiplier: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>;
+    creator: z.ZodObject<{
+        id: z.ZodNumber;
+        name: z.ZodString;
+    }, z.core.$loose>;
+    details: z.ZodObject<{
+        career: z.ZodEnum<{
+            Unspecified: "Unspecified";
+            Explorer: "Explorer";
+            Industrialist: "Industrialist";
+            Enforcer: "Enforcer";
+            "Soldier of Fortune": "Soldier of Fortune";
+        }>;
+        created: z.ZodString;
+        description: z.ZodString;
+        expires: z.ZodOptional<z.ZodString>;
+        finished: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>;
+    id: z.ZodString;
+    last_modified: z.ZodString;
+    name: z.ZodString;
+    progress: z.ZodObject<{
+        current: z.ZodNumber;
+        desired: z.ZodNumber;
+    }, z.core.$loose>;
+    reward: z.ZodOptional<z.ZodObject<{
+        initial: z.ZodNumber;
+        remaining: z.ZodNumber;
+    }, z.core.$loose>>;
+    state: z.ZodEnum<{
+        Unspecified: "Unspecified";
+        Active: "Active";
+        Closed: "Closed";
+        Completed: "Completed";
+        Expired: "Expired";
+        Deleted: "Deleted";
+    }>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface CorporationsProjectsListing {
     // (undocumented)
     cursor?: {
@@ -3259,6 +7275,35 @@ interface CorporationsProjectsListing {
         state: 'Unspecified' | 'Active' | 'Closed' | 'Completed' | 'Expired' | 'Deleted';
     })[];
 }
+
+// @public (undocumented)
+const CorporationsProjectsListingSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        after: z.ZodOptional<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    projects: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        last_modified: z.ZodString;
+        name: z.ZodString;
+        progress: z.ZodObject<{
+            current: z.ZodNumber;
+            desired: z.ZodNumber;
+        }, z.core.$loose>;
+        reward: z.ZodOptional<z.ZodObject<{
+            initial: z.ZodNumber;
+            remaining: z.ZodNumber;
+        }, z.core.$loose>>;
+        state: z.ZodEnum<{
+            Unspecified: "Unspecified";
+            Active: "Active";
+            Closed: "Closed";
+            Completed: "Completed";
+            Expired: "Expired";
+            Deleted: "Deleted";
+        }>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const CorporationStandingSchema: z.ZodObject<{
@@ -3548,6 +7593,20 @@ interface DogmaAttributesAttributeIdGet {
 }
 
 // @public (undocumented)
+const DogmaAttributesAttributeIdGetSchema: z.ZodObject<{
+    attribute_id: z.ZodNumber;
+    default_value: z.ZodOptional<z.ZodNumber>;
+    description: z.ZodOptional<z.ZodString>;
+    display_name: z.ZodOptional<z.ZodString>;
+    high_is_good: z.ZodOptional<z.ZodBoolean>;
+    icon_id: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodOptional<z.ZodString>;
+    published: z.ZodOptional<z.ZodBoolean>;
+    stackable: z.ZodOptional<z.ZodBoolean>;
+    unit_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 const DogmaAttributeSchema: z.ZodObject<{
     attribute_id: z.ZodNumber;
     name: z.ZodString;
@@ -3610,6 +7669,21 @@ interface DogmaDynamicItemsTypeIdItemIdGet {
     // (undocumented)
     source_type_id: number;
 }
+
+// @public (undocumented)
+const DogmaDynamicItemsTypeIdItemIdGetSchema: z.ZodObject<{
+    created_by: z.ZodNumber;
+    dogma_attributes: z.ZodArray<z.ZodObject<{
+        attribute_id: z.ZodNumber;
+        value: z.ZodNumber;
+    }, z.core.$loose>>;
+    dogma_effects: z.ZodArray<z.ZodObject<{
+        effect_id: z.ZodNumber;
+        is_default: z.ZodBoolean;
+    }, z.core.$loose>>;
+    mutator_type_id: z.ZodNumber;
+    source_type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type DogmaEffect = z.infer<typeof DogmaEffectSchema>;
@@ -3681,6 +7755,38 @@ interface DogmaEffectsEffectIdGet {
     // (undocumented)
     tracking_speed_attribute_id?: number;
 }
+
+// @public (undocumented)
+const DogmaEffectsEffectIdGetSchema: z.ZodObject<{
+    description: z.ZodOptional<z.ZodString>;
+    disallow_auto_repeat: z.ZodOptional<z.ZodBoolean>;
+    discharge_attribute_id: z.ZodOptional<z.ZodNumber>;
+    display_name: z.ZodOptional<z.ZodString>;
+    duration_attribute_id: z.ZodOptional<z.ZodNumber>;
+    effect_category: z.ZodOptional<z.ZodNumber>;
+    effect_id: z.ZodNumber;
+    electronic_chance: z.ZodOptional<z.ZodBoolean>;
+    falloff_attribute_id: z.ZodOptional<z.ZodNumber>;
+    icon_id: z.ZodOptional<z.ZodNumber>;
+    is_assistance: z.ZodOptional<z.ZodBoolean>;
+    is_offensive: z.ZodOptional<z.ZodBoolean>;
+    is_warp_safe: z.ZodOptional<z.ZodBoolean>;
+    modifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        domain: z.ZodOptional<z.ZodString>;
+        effect_id: z.ZodOptional<z.ZodNumber>;
+        func: z.ZodString;
+        modified_attribute_id: z.ZodOptional<z.ZodNumber>;
+        modifying_attribute_id: z.ZodOptional<z.ZodNumber>;
+        operator: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>>;
+    name: z.ZodOptional<z.ZodString>;
+    post_expression: z.ZodOptional<z.ZodNumber>;
+    pre_expression: z.ZodOptional<z.ZodNumber>;
+    published: z.ZodOptional<z.ZodBoolean>;
+    range_attribute_id: z.ZodOptional<z.ZodNumber>;
+    range_chance: z.ZodOptional<z.ZodBoolean>;
+    tracking_speed_attribute_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export class EsiApiFactory {
@@ -4810,6 +8916,14 @@ interface FleetsFleetIdGet {
 }
 
 // @public (undocumented)
+const FleetsFleetIdGetSchema: z.ZodObject<{
+    is_free_move: z.ZodBoolean;
+    is_registered: z.ZodBoolean;
+    is_voice_enabled: z.ZodBoolean;
+    motd: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface FleetsFleetIdMembersGet {
     // (undocumented)
     character_id: number;
@@ -4834,6 +8948,25 @@ interface FleetsFleetIdMembersGet {
 }
 
 // @public (undocumented)
+const FleetsFleetIdMembersGetSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    join_time: z.ZodString;
+    role: z.ZodEnum<{
+        fleet_commander: "fleet_commander";
+        wing_commander: "wing_commander";
+        squad_commander: "squad_commander";
+        squad_member: "squad_member";
+    }>;
+    role_name: z.ZodString;
+    ship_type_id: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+    squad_id: z.ZodNumber;
+    station_id: z.ZodOptional<z.ZodNumber>;
+    takes_fleet_warp: z.ZodBoolean;
+    wing_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface FleetsFleetIdWingsGet {
     // (undocumented)
     id: number;
@@ -4845,6 +8978,16 @@ interface FleetsFleetIdWingsGet {
         name: string;
     })[];
 }
+
+// @public (undocumented)
+const FleetsFleetIdWingsGetSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    name: z.ZodString;
+    squads: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        name: z.ZodString;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type FleetWing = z.infer<typeof FleetWingSchema>;
@@ -5015,6 +9158,75 @@ interface FreelanceJobsDetail {
 }
 
 // @public (undocumented)
+const FreelanceJobsDetailSchema: z.ZodObject<{
+    access_and_visibility: z.ZodObject<{
+        acl_protected: z.ZodBoolean;
+        broadcast_locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            id: z.ZodNumber;
+            name: z.ZodString;
+        }, z.core.$loose>>>;
+        restrictions: z.ZodOptional<z.ZodObject<{
+            maximum_age: z.ZodOptional<z.ZodNumber>;
+            minimum_age: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    configuration: z.ZodObject<{
+        method: z.ZodString;
+        parameters: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+        version: z.ZodNumber;
+    }, z.core.$loose>;
+    contribution: z.ZodOptional<z.ZodObject<{
+        contribution_per_participant_limit: z.ZodOptional<z.ZodNumber>;
+        max_committed_participants: z.ZodNumber;
+        reward_per_contribution: z.ZodOptional<z.ZodNumber>;
+        submission_limit: z.ZodOptional<z.ZodNumber>;
+        submission_multiplier: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>;
+    details: z.ZodObject<{
+        career: z.ZodEnum<{
+            Unspecified: "Unspecified";
+            Explorer: "Explorer";
+            Industrialist: "Industrialist";
+            Enforcer: "Enforcer";
+            "Soldier of Fortune": "Soldier of Fortune";
+        }>;
+        created: z.ZodString;
+        creator: z.ZodObject<{
+            character: z.ZodObject<{
+                id: z.ZodNumber;
+                name: z.ZodString;
+            }, z.core.$loose>;
+            corporation: z.ZodObject<{
+                id: z.ZodNumber;
+                name: z.ZodString;
+            }, z.core.$loose>;
+        }, z.core.$loose>;
+        description: z.ZodString;
+        expires: z.ZodOptional<z.ZodString>;
+        finished: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>;
+    id: z.ZodString;
+    last_modified: z.ZodString;
+    name: z.ZodString;
+    progress: z.ZodObject<{
+        current: z.ZodNumber;
+        desired: z.ZodNumber;
+    }, z.core.$loose>;
+    reward: z.ZodOptional<z.ZodObject<{
+        initial: z.ZodNumber;
+        remaining: z.ZodNumber;
+    }, z.core.$loose>>;
+    state: z.ZodEnum<{
+        Unspecified: "Unspecified";
+        Active: "Active";
+        Closed: "Closed";
+        Completed: "Completed";
+        Expired: "Expired";
+        Deleted: "Deleted";
+    }>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type FreelanceJobsListing = z.infer<typeof FreelanceJobsListingSchema>;
 
 // @public (undocumented)
@@ -5060,6 +9272,35 @@ const FreelanceJobsListingSchema: z.ZodObject<{
             initial: z.ZodNumber;
             remaining: z.ZodNumber;
         }, z.core.$loose>>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const FreelanceJobsListingSchema_2: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        after: z.ZodOptional<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    freelance_jobs: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        last_modified: z.ZodString;
+        name: z.ZodString;
+        progress: z.ZodObject<{
+            current: z.ZodNumber;
+            desired: z.ZodNumber;
+        }, z.core.$loose>;
+        reward: z.ZodOptional<z.ZodObject<{
+            initial: z.ZodNumber;
+            remaining: z.ZodNumber;
+        }, z.core.$loose>>;
+        state: z.ZodEnum<{
+            Unspecified: "Unspecified";
+            Active: "Active";
+            Closed: "Closed";
+            Completed: "Completed";
+            Expired: "Expired";
+            Deleted: "Deleted";
+        }>;
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
@@ -5117,6 +9358,38 @@ interface FwLeaderboardsCharactersGet {
 }
 
 // @public (undocumented)
+const FwLeaderboardsCharactersGetSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface FwLeaderboardsCorporationsGet {
     // (undocumented)
     kills: {
@@ -5149,6 +9422,38 @@ interface FwLeaderboardsCorporationsGet {
         })[];
     };
 }
+
+// @public (undocumented)
+const FwLeaderboardsCorporationsGetSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface FwLeaderboardsGet {
@@ -5185,6 +9490,38 @@ interface FwLeaderboardsGet {
 }
 
 // @public (undocumented)
+const FwLeaderboardsGetSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface FwStatsGet {
     // (undocumented)
     faction_id: number;
@@ -5207,6 +9544,23 @@ interface FwStatsGet {
 }
 
 // @public (undocumented)
+const FwStatsGetSchema: z.ZodObject<{
+    faction_id: z.ZodNumber;
+    kills: z.ZodObject<{
+        last_week: z.ZodNumber;
+        total: z.ZodNumber;
+        yesterday: z.ZodNumber;
+    }, z.core.$loose>;
+    pilots: z.ZodNumber;
+    systems_controlled: z.ZodNumber;
+    victory_points: z.ZodObject<{
+        last_week: z.ZodNumber;
+        total: z.ZodNumber;
+        yesterday: z.ZodNumber;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface FwSystemsGet {
     // (undocumented)
     contested: 'captured' | 'contested' | 'uncontested' | 'vulnerable';
@@ -5223,11 +9577,198 @@ interface FwSystemsGet {
 }
 
 // @public (undocumented)
+const FwSystemsGetSchema: z.ZodObject<{
+    contested: z.ZodEnum<{
+        contested: "contested";
+        captured: "captured";
+        uncontested: "uncontested";
+        vulnerable: "vulnerable";
+    }>;
+    occupier_faction_id: z.ZodNumber;
+    owner_faction_id: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+    victory_points: z.ZodNumber;
+    victory_points_threshold: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface FwWarsGet {
     // (undocumented)
     against_id: number;
     // (undocumented)
     faction_id: number;
+}
+
+// @public (undocumented)
+const FwWarsGetSchema: z.ZodObject<{
+    against_id: z.ZodNumber;
+    faction_id: z.ZodNumber;
+}, z.core.$loose>;
+
+declare namespace generatedSchemas {
+    export {
+        AllianceDetailSchema,
+        AlliancesAllianceIdIconsGetSchema,
+        CharactersCharacterIdAssetsGetSchema,
+        CharactersCharacterIdAssetsLocationsPostSchema,
+        CharactersCharacterIdAssetsNamesPostSchema,
+        CorporationsCorporationIdAssetsGetSchema,
+        CorporationsCorporationIdAssetsLocationsPostSchema,
+        CorporationsCorporationIdAssetsNamesPostSchema,
+        CharactersCharacterIdCalendarEventIdAttendeesGetSchema,
+        CharactersCharacterIdCalendarEventIdGetSchema,
+        CharactersCharacterIdCalendarGetSchema,
+        CharactersAffiliationPostSchema,
+        CharactersCharacterIdAgentsResearchGetSchema,
+        CharactersCharacterIdBlueprintsGetSchema,
+        CharactersCharacterIdCorporationhistoryGetSchema,
+        CharactersCharacterIdFatigueGetSchema,
+        CharactersCharacterIdMedalsGetSchema,
+        CharactersCharacterIdNotificationsContactsGetSchema,
+        CharactersCharacterIdNotificationsGetSchema,
+        CharactersCharacterIdPortraitGetSchema,
+        CharactersCharacterIdRolesGetSchema,
+        CharactersCharacterIdStandingsGetSchema,
+        CharactersCharacterIdTitlesGetSchema,
+        CharactersDetailSchema,
+        CharactersCharacterIdClonesGetSchema,
+        AlliancesAllianceIdContactsGetSchema,
+        AlliancesAllianceIdContactsLabelsGetSchema,
+        CharactersCharacterIdContactsGetSchema,
+        CharactersCharacterIdContactsLabelsGetSchema,
+        CorporationsCorporationIdContactsGetSchema,
+        CorporationsCorporationIdContactsLabelsGetSchema,
+        CharactersCharacterIdContractsContractIdBidsGetSchema,
+        CharactersCharacterIdContractsContractIdItemsGetSchema,
+        CharactersCharacterIdContractsGetSchema,
+        ContractsPublicBidsContractIdGetSchema,
+        ContractsPublicItemsContractIdGetSchema,
+        ContractsPublicRegionIdGetSchema,
+        CorporationsCorporationIdContractsContractIdBidsGetSchema,
+        CorporationsCorporationIdContractsContractIdItemsGetSchema,
+        CorporationsCorporationIdContractsGetSchema,
+        CorporationsProjectsContributionSchema,
+        CorporationsProjectsContributorsSchema,
+        CorporationsProjectsDetailSchema,
+        CorporationsProjectsListingSchema,
+        CorporationsCorporationIdAlliancehistoryGetSchema,
+        CorporationsCorporationIdBlueprintsGetSchema,
+        CorporationsCorporationIdContainersLogsGetSchema,
+        CorporationsCorporationIdDivisionsGetSchema,
+        CorporationsCorporationIdFacilitiesGetSchema,
+        CorporationsCorporationIdIconsGetSchema,
+        CorporationsCorporationIdMedalsGetSchema,
+        CorporationsCorporationIdMedalsIssuedGetSchema,
+        CorporationsCorporationIdMembersTitlesGetSchema,
+        CorporationsCorporationIdMembertrackingGetSchema,
+        CorporationsCorporationIdRolesGetSchema,
+        CorporationsCorporationIdRolesHistoryGetSchema,
+        CorporationsCorporationIdShareholdersGetSchema,
+        CorporationsCorporationIdStandingsGetSchema,
+        CorporationsCorporationIdStarbasesGetSchema,
+        CorporationsCorporationIdStarbasesStarbaseIdGetSchema,
+        CorporationsCorporationIdStructuresGetSchema,
+        CorporationsCorporationIdTitlesGetSchema,
+        CorporationsDetailSchema,
+        DogmaAttributesAttributeIdGetSchema,
+        DogmaDynamicItemsTypeIdItemIdGetSchema,
+        DogmaEffectsEffectIdGetSchema,
+        CharactersCharacterIdFwStatsGetSchema,
+        CorporationsCorporationIdFwStatsGetSchema,
+        FwLeaderboardsCharactersGetSchema,
+        FwLeaderboardsCorporationsGetSchema,
+        FwLeaderboardsGetSchema,
+        FwStatsGetSchema,
+        FwSystemsGetSchema,
+        FwWarsGetSchema,
+        CharactersCharacterIdFittingsGetSchema,
+        CharactersCharacterIdFleetGetSchema,
+        FleetsFleetIdGetSchema,
+        FleetsFleetIdMembersGetSchema,
+        FleetsFleetIdWingsGetSchema,
+        CharactersFreelanceJobsListingSchema,
+        CharactersFreelanceJobsParticipationSchema,
+        CorporationsFreelanceJobsListingSchema,
+        CorporationsFreelanceJobsParticipantsSchema,
+        FreelanceJobsDetailSchema,
+        FreelanceJobsListingSchema_2 as FreelanceJobsListingSchema,
+        IncursionsGetSchema,
+        CharactersCharacterIdIndustryJobsGetSchema,
+        CharactersCharacterIdMiningGetSchema,
+        CorporationCorporationIdMiningExtractionsGetSchema,
+        CorporationCorporationIdMiningObserversGetSchema,
+        CorporationCorporationIdMiningObserversObserverIdGetSchema,
+        CorporationsCorporationIdIndustryJobsGetSchema,
+        IndustryFacilitiesGetSchema,
+        IndustrySystemsGetSchema,
+        InsurancePricesGetSchema,
+        CharactersCharacterIdKillmailsRecentGetSchema,
+        CorporationsCorporationIdKillmailsRecentGetSchema,
+        KillmailsKillmailIdKillmailHashGetSchema,
+        CharactersCharacterIdLocationGetSchema,
+        CharactersCharacterIdOnlineGetSchema,
+        CharactersCharacterIdShipGetSchema,
+        CharactersCharacterIdLoyaltyPointsGetSchema,
+        LoyaltyStoresCorporationIdOffersGetSchema,
+        CharactersCharacterIdMailGetSchema,
+        CharactersCharacterIdMailLabelsGetSchema,
+        CharactersCharacterIdMailListsGetSchema,
+        CharactersCharacterIdMailMailIdGetSchema,
+        CharactersCharacterIdOrdersGetSchema,
+        CharactersCharacterIdOrdersHistoryGetSchema,
+        CorporationsCorporationIdOrdersGetSchema,
+        CorporationsCorporationIdOrdersHistoryGetSchema,
+        MarketsGroupsMarketGroupIdGetSchema,
+        MarketsPricesGetSchema,
+        MarketsRegionIdHistoryGetSchema,
+        MarketsRegionIdOrdersGetSchema,
+        MarketsStructuresStructureIdGetSchema,
+        MetaChangelogSchema,
+        MetaCompatibilityDatesSchema,
+        MetaStatusSchema,
+        CharactersCharacterIdPlanetsGetSchema,
+        CharactersCharacterIdPlanetsPlanetIdGetSchema,
+        CorporationsCorporationIdCustomsOfficesGetSchema,
+        UniverseSchematicsSchematicIdGetSchema,
+        RouteSchema,
+        CharactersCharacterIdSearchGetSchema,
+        CharactersCharacterIdAttributesGetSchema,
+        CharactersSkillqueueSkillSchema,
+        CharactersSkillsSchema,
+        SovereigntyCampaignsGetSchema,
+        SovereigntyMapGetSchema,
+        SovereigntyStructuresGetSchema,
+        StatusGetSchema,
+        UniverseAncestriesGetSchema,
+        UniverseAsteroidBeltsAsteroidBeltIdGetSchema,
+        UniverseBloodlinesGetSchema,
+        UniverseCategoriesCategoryIdGetSchema,
+        UniverseConstellationsConstellationIdGetSchema,
+        UniverseFactionsGetSchema,
+        UniverseGraphicsGraphicIdGetSchema,
+        UniverseGroupsGroupIdGetSchema,
+        UniverseIdsPostSchema,
+        UniverseMoonsMoonIdGetSchema,
+        UniverseNamesPostSchema,
+        UniversePlanetsPlanetIdGetSchema,
+        UniverseRacesGetSchema,
+        UniverseRegionsRegionIdGetSchema,
+        UniverseStargatesStargateIdGetSchema,
+        UniverseStarsStarIdGetSchema,
+        UniverseStationsStationIdGetSchema,
+        UniverseStructuresStructureIdGetSchema,
+        UniverseSystemJumpsGetSchema,
+        UniverseSystemKillsGetSchema,
+        UniverseSystemsSystemIdGetSchema,
+        UniverseTypesTypeIdGetSchema,
+        CharactersCharacterIdWalletJournalGetSchema,
+        CharactersCharacterIdWalletTransactionsGetSchema,
+        CorporationsCorporationIdWalletsDivisionJournalGetSchema,
+        CorporationsCorporationIdWalletsDivisionTransactionsGetSchema,
+        CorporationsCorporationIdWalletsGetSchema,
+        WarsWarIdGetSchema,
+        WarsWarIdKillmailsGetSchema
+    }
 }
 
 // @public (undocumented)
@@ -5273,6 +9814,43 @@ export interface ICache {
     set(url: string, etag: string, data: unknown, headers: Record<string, string>, customTtl?: number): void;
     // (undocumented)
     shutdown(): void;
+}
+
+// @public (undocumented)
+export interface ICircuitBreaker {
+    // (undocumented)
+    checkCircuit(endpoint: string): void;
+    // (undocumented)
+    cleanup(): number;
+    // (undocumented)
+    getState(endpoint: string): CircuitState;
+    // (undocumented)
+    getStats(): {
+        totalCircuits: number;
+        openCircuits: number;
+        circuits: Record<string, {
+            state: CircuitState;
+            failures: number;
+        }>;
+    };
+    // (undocumented)
+    recordFailure(endpoint: string, statusCode: number): void;
+    // (undocumented)
+    recordSuccess(endpoint: string): void;
+    // (undocumented)
+    reset(endpoint?: string): void;
+    // (undocumented)
+    shutdown(): void;
+}
+
+// @public (undocumented)
+export interface IDeduplicator {
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    dedupe<T>(key: string, execute: () => Promise<T>): Promise<T>;
+    // (undocumented)
+    readonly pending: number;
 }
 
 // @public (undocumented)
@@ -5334,6 +9912,22 @@ interface IncursionsGet {
     type: string;
 }
 
+// @public (undocumented)
+const IncursionsGetSchema: z.ZodObject<{
+    constellation_id: z.ZodNumber;
+    faction_id: z.ZodNumber;
+    has_boss: z.ZodBoolean;
+    infested_solar_systems: z.ZodArray<z.ZodNumber>;
+    influence: z.ZodNumber;
+    staging_solar_system_id: z.ZodNumber;
+    state: z.ZodEnum<{
+        withdrawing: "withdrawing";
+        mobilizing: "mobilizing";
+        established: "established";
+    }>;
+    type: z.ZodString;
+}, z.core.$loose>;
+
 // Warning: (ae-forgotten-export) The symbol "industryEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -5364,6 +9958,16 @@ interface IndustryFacilitiesGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const IndustryFacilitiesGetSchema: z.ZodObject<{
+    facility_id: z.ZodNumber;
+    owner_id: z.ZodNumber;
+    region_id: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+    tax: z.ZodOptional<z.ZodNumber>;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type IndustryFacility = z.infer<typeof IndustryFacilitySchema>;
@@ -5437,6 +10041,26 @@ interface IndustrySystemsGet {
     solar_system_id: number;
 }
 
+// @public (undocumented)
+const IndustrySystemsGetSchema: z.ZodObject<{
+    cost_indices: z.ZodArray<z.ZodObject<{
+        activity: z.ZodEnum<{
+            copying: "copying";
+            duplicating: "duplicating";
+            invention: "invention";
+            manufacturing: "manufacturing";
+            none: "none";
+            reaction: "reaction";
+            researching_material_efficiency: "researching_material_efficiency";
+            researching_technology: "researching_technology";
+            researching_time_efficiency: "researching_time_efficiency";
+            reverse_engineering: "reverse_engineering";
+        }>;
+        cost_index: z.ZodNumber;
+    }, z.core.$loose>>;
+    solar_system_id: z.ZodNumber;
+}, z.core.$loose>;
+
 // Warning: (ae-forgotten-export) The symbol "insuranceEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -5469,6 +10093,16 @@ interface InsurancePricesGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const InsurancePricesGetSchema: z.ZodObject<{
+    levels: z.ZodArray<z.ZodObject<{
+        cost: z.ZodNumber;
+        name: z.ZodString;
+        payout: z.ZodNumber;
+    }, z.core.$loose>>;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export interface IRateLimiter {
@@ -5666,6 +10300,53 @@ interface KillmailsKillmailIdKillmailHashGet {
 }
 
 // @public (undocumented)
+const KillmailsKillmailIdKillmailHashGetSchema: z.ZodObject<{
+    attackers: z.ZodArray<z.ZodObject<{
+        alliance_id: z.ZodOptional<z.ZodNumber>;
+        character_id: z.ZodOptional<z.ZodNumber>;
+        corporation_id: z.ZodOptional<z.ZodNumber>;
+        damage_done: z.ZodNumber;
+        faction_id: z.ZodOptional<z.ZodNumber>;
+        final_blow: z.ZodBoolean;
+        security_status: z.ZodNumber;
+        ship_type_id: z.ZodOptional<z.ZodNumber>;
+        weapon_type_id: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>;
+    killmail_id: z.ZodNumber;
+    killmail_time: z.ZodString;
+    moon_id: z.ZodOptional<z.ZodNumber>;
+    solar_system_id: z.ZodNumber;
+    victim: z.ZodObject<{
+        alliance_id: z.ZodOptional<z.ZodNumber>;
+        character_id: z.ZodOptional<z.ZodNumber>;
+        corporation_id: z.ZodOptional<z.ZodNumber>;
+        damage_taken: z.ZodNumber;
+        faction_id: z.ZodOptional<z.ZodNumber>;
+        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            flag: z.ZodNumber;
+            item_type_id: z.ZodNumber;
+            items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                flag: z.ZodNumber;
+                item_type_id: z.ZodNumber;
+                quantity_destroyed: z.ZodOptional<z.ZodNumber>;
+                quantity_dropped: z.ZodOptional<z.ZodNumber>;
+                singleton: z.ZodNumber;
+            }, z.core.$loose>>>;
+            quantity_destroyed: z.ZodOptional<z.ZodNumber>;
+            quantity_dropped: z.ZodOptional<z.ZodNumber>;
+            singleton: z.ZodNumber;
+        }, z.core.$loose>>>;
+        position: z.ZodOptional<z.ZodObject<{
+            x: z.ZodNumber;
+            y: z.ZodNumber;
+            z: z.ZodNumber;
+        }, z.core.$loose>>;
+        ship_type_id: z.ZodNumber;
+    }, z.core.$loose>;
+    war_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type KillmailSummary = z.infer<typeof KillmailSummarySchema>;
 
 // @public (undocumented)
@@ -5739,6 +10420,20 @@ interface LoyaltyStoresCorporationIdOffersGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const LoyaltyStoresCorporationIdOffersGetSchema: z.ZodObject<{
+    ak_cost: z.ZodOptional<z.ZodNumber>;
+    isk_cost: z.ZodNumber;
+    lp_cost: z.ZodNumber;
+    offer_id: z.ZodNumber;
+    quantity: z.ZodNumber;
+    required_items: z.ZodArray<z.ZodObject<{
+        quantity: z.ZodNumber;
+        type_id: z.ZodNumber;
+    }, z.core.$loose>>;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "mailEndpoints" needs to be exported by the entry point index.d.ts
 //
@@ -5925,6 +10620,15 @@ interface MarketsGroupsMarketGroupIdGet {
 }
 
 // @public (undocumented)
+const MarketsGroupsMarketGroupIdGetSchema: z.ZodObject<{
+    description: z.ZodString;
+    market_group_id: z.ZodNumber;
+    name: z.ZodString;
+    parent_group_id: z.ZodOptional<z.ZodNumber>;
+    types: z.ZodArray<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface MarketsPricesGet {
     // (undocumented)
     adjusted_price?: number;
@@ -5933,6 +10637,13 @@ interface MarketsPricesGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const MarketsPricesGetSchema: z.ZodObject<{
+    adjusted_price: z.ZodOptional<z.ZodNumber>;
+    average_price: z.ZodOptional<z.ZodNumber>;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface MarketsRegionIdHistoryGet {
@@ -5949,6 +10660,16 @@ interface MarketsRegionIdHistoryGet {
     // (undocumented)
     volume: number;
 }
+
+// @public (undocumented)
+const MarketsRegionIdHistoryGetSchema: z.ZodObject<{
+    average: z.ZodNumber;
+    date: z.ZodString;
+    highest: z.ZodNumber;
+    lowest: z.ZodNumber;
+    order_count: z.ZodNumber;
+    volume: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface MarketsRegionIdOrdersGet {
@@ -5979,6 +10700,35 @@ interface MarketsRegionIdOrdersGet {
 }
 
 // @public (undocumented)
+const MarketsRegionIdOrdersGetSchema: z.ZodObject<{
+    duration: z.ZodNumber;
+    is_buy_order: z.ZodBoolean;
+    issued: z.ZodString;
+    location_id: z.ZodNumber;
+    min_volume: z.ZodNumber;
+    order_id: z.ZodNumber;
+    price: z.ZodNumber;
+    range: z.ZodEnum<{
+        1: "1";
+        2: "2";
+        3: "3";
+        4: "4";
+        region: "region";
+        5: "5";
+        station: "station";
+        10: "10";
+        20: "20";
+        30: "30";
+        40: "40";
+        solarsystem: "solarsystem";
+    }>;
+    system_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    volume_total: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface MarketsStructuresStructureIdGet {
     // (undocumented)
     duration: number;
@@ -6003,6 +10753,34 @@ interface MarketsStructuresStructureIdGet {
     // (undocumented)
     volume_total: number;
 }
+
+// @public (undocumented)
+const MarketsStructuresStructureIdGetSchema: z.ZodObject<{
+    duration: z.ZodNumber;
+    is_buy_order: z.ZodBoolean;
+    issued: z.ZodString;
+    location_id: z.ZodNumber;
+    min_volume: z.ZodNumber;
+    order_id: z.ZodNumber;
+    price: z.ZodNumber;
+    range: z.ZodEnum<{
+        1: "1";
+        2: "2";
+        3: "3";
+        4: "4";
+        region: "region";
+        5: "5";
+        station: "station";
+        10: "10";
+        20: "20";
+        30: "30";
+        40: "40";
+        solarsystem: "solarsystem";
+    }>;
+    type_id: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    volume_total: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type Medal = z.infer<typeof MedalSchema>;
@@ -6076,6 +10854,11 @@ interface MetaChangelog {
     changelog: Record<string, unknown>;
 }
 
+// @public (undocumented)
+const MetaChangelogSchema: z.ZodObject<{
+    changelog: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+}, z.core.$loose>;
+
 // Warning: (ae-forgotten-export) The symbol "metaEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -6092,6 +10875,11 @@ interface MetaCompatibilityDates {
 }
 
 // @public (undocumented)
+const MetaCompatibilityDatesSchema: z.ZodObject<{
+    compatibility_dates: z.ZodArray<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface MetaStatus {
     // (undocumented)
     routes: ({
@@ -6100,6 +10888,26 @@ interface MetaStatus {
         status: 'Unknown' | 'OK' | 'Degraded' | 'Down' | 'Recovering';
     })[];
 }
+
+// @public (undocumented)
+const MetaStatusSchema: z.ZodObject<{
+    routes: z.ZodArray<z.ZodObject<{
+        method: z.ZodEnum<{
+            GET: "GET";
+            POST: "POST";
+            PUT: "PUT";
+            DELETE: "DELETE";
+        }>;
+        path: z.ZodString;
+        status: z.ZodEnum<{
+            Unknown: "Unknown";
+            OK: "OK";
+            Degraded: "Degraded";
+            Down: "Down";
+            Recovering: "Recovering";
+        }>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type MiningLedgerEntry = z.infer<typeof MiningLedgerEntrySchema>;
@@ -6427,7 +11235,7 @@ export interface RequestContext {
 }
 
 // @public (undocumented)
-export class RequestDeduplicator {
+export class RequestDeduplicator implements IDeduplicator {
     // (undocumented)
     clear(): void;
     // (undocumented)
@@ -6475,6 +11283,27 @@ export interface RetryConfig {
 }
 
 // @public (undocumented)
+export interface RetryContext {
+    // (undocumented)
+    endpoint: string;
+    // (undocumented)
+    method: string;
+    // (undocumented)
+    refreshToken?: () => Promise<void>;
+    // (undocumented)
+    requiresAuth: boolean;
+    // (undocumented)
+    retryOperation: () => Promise<unknown>;
+}
+
+// @public (undocumented)
+export class RetryStrategy {
+    constructor(config?: RetryConfig);
+    // (undocumented)
+    execute<T>(operation: () => Promise<T>, context: RetryContext): Promise<T>;
+}
+
+// @public (undocumented)
 interface Route {
     // (undocumented)
     route: number[];
@@ -6503,8 +11332,14 @@ export interface RouteOptions {
     security_penalty?: number;
 }
 
+// @public (undocumented)
+const RouteSchema: z.ZodObject<{
+    route: z.ZodArray<z.ZodNumber>;
+}, z.core.$loose>;
+
 declare namespace schemas {
     export {
+        generatedSchemas,
         esiResponse,
         RateLimitMetaSchema,
         EsiResponseMetaSchema,
@@ -6796,6 +11631,28 @@ interface SovereigntyCampaignsGet {
     structure_id: number;
 }
 
+// @public (undocumented)
+const SovereigntyCampaignsGetSchema: z.ZodObject<{
+    attackers_score: z.ZodOptional<z.ZodNumber>;
+    campaign_id: z.ZodNumber;
+    constellation_id: z.ZodNumber;
+    defender_id: z.ZodOptional<z.ZodNumber>;
+    defender_score: z.ZodOptional<z.ZodNumber>;
+    event_type: z.ZodEnum<{
+        tcu_defense: "tcu_defense";
+        ihub_defense: "ihub_defense";
+        station_defense: "station_defense";
+        station_freeport: "station_freeport";
+    }>;
+    participants: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        alliance_id: z.ZodNumber;
+        score: z.ZodNumber;
+    }, z.core.$loose>>>;
+    solar_system_id: z.ZodNumber;
+    start_time: z.ZodString;
+    structure_id: z.ZodNumber;
+}, z.core.$loose>;
+
 // Warning: (ae-forgotten-export) The symbol "sovereigntyEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -6832,6 +11689,14 @@ interface SovereigntyMapGet {
 }
 
 // @public (undocumented)
+const SovereigntyMapGetSchema: z.ZodObject<{
+    alliance_id: z.ZodOptional<z.ZodNumber>;
+    corporation_id: z.ZodOptional<z.ZodNumber>;
+    faction_id: z.ZodOptional<z.ZodNumber>;
+    system_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface SovereigntyStructuresGet {
     // (undocumented)
     alliance_id: number;
@@ -6848,6 +11713,17 @@ interface SovereigntyStructuresGet {
     // (undocumented)
     vulnerable_start_time?: string;
 }
+
+// @public (undocumented)
+const SovereigntyStructuresGetSchema: z.ZodObject<{
+    alliance_id: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+    structure_id: z.ZodNumber;
+    structure_type_id: z.ZodNumber;
+    vulnerability_occupancy_level: z.ZodOptional<z.ZodNumber>;
+    vulnerable_end_time: z.ZodOptional<z.ZodString>;
+    vulnerable_start_time: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type SovereigntySystem = z.infer<typeof SovereigntySystemSchema>;
@@ -6993,6 +11869,14 @@ interface StatusGet {
 }
 
 // @public (undocumented)
+const StatusGetSchema: z.ZodObject<{
+    players: z.ZodNumber;
+    server_version: z.ZodString;
+    start_time: z.ZodString;
+    vip: z.ZodOptional<z.ZodBoolean>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type StructureId = Brand<number, 'StructureId'>;
 
 // @public (undocumented)
@@ -7105,6 +11989,16 @@ interface UniverseAncestriesGet {
 }
 
 // @public (undocumented)
+const UniverseAncestriesGetSchema: z.ZodObject<{
+    bloodline_id: z.ZodNumber;
+    description: z.ZodString;
+    icon_id: z.ZodOptional<z.ZodNumber>;
+    id: z.ZodNumber;
+    name: z.ZodString;
+    short_description: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseAsteroidBeltsAsteroidBeltIdGet {
     // (undocumented)
     name: string;
@@ -7117,6 +12011,17 @@ interface UniverseAsteroidBeltsAsteroidBeltIdGet {
     // (undocumented)
     system_id: number;
 }
+
+// @public (undocumented)
+const UniverseAsteroidBeltsAsteroidBeltIdGetSchema: z.ZodObject<{
+    name: z.ZodString;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+    system_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniverseBloodlinesGet {
@@ -7145,6 +12050,21 @@ interface UniverseBloodlinesGet {
 }
 
 // @public (undocumented)
+const UniverseBloodlinesGetSchema: z.ZodObject<{
+    bloodline_id: z.ZodNumber;
+    charisma: z.ZodNumber;
+    corporation_id: z.ZodNumber;
+    description: z.ZodString;
+    intelligence: z.ZodNumber;
+    memory: z.ZodNumber;
+    name: z.ZodString;
+    perception: z.ZodNumber;
+    race_id: z.ZodNumber;
+    ship_type_id: z.ZodNumber;
+    willpower: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseCategoriesCategoryIdGet {
     // (undocumented)
     category_id: number;
@@ -7155,6 +12075,14 @@ interface UniverseCategoriesCategoryIdGet {
     // (undocumented)
     published: boolean;
 }
+
+// @public (undocumented)
+const UniverseCategoriesCategoryIdGetSchema: z.ZodObject<{
+    category_id: z.ZodNumber;
+    groups: z.ZodArray<z.ZodNumber>;
+    name: z.ZodString;
+    published: z.ZodBoolean;
+}, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "universeEndpoints" needs to be exported by the entry point index.d.ts
 //
@@ -7213,6 +12141,19 @@ interface UniverseConstellationsConstellationIdGet {
 }
 
 // @public (undocumented)
+const UniverseConstellationsConstellationIdGetSchema: z.ZodObject<{
+    constellation_id: z.ZodNumber;
+    name: z.ZodString;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+    region_id: z.ZodNumber;
+    systems: z.ZodArray<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseFactionsGet {
     // (undocumented)
     corporation_id?: number;
@@ -7237,6 +12178,20 @@ interface UniverseFactionsGet {
 }
 
 // @public (undocumented)
+const UniverseFactionsGetSchema: z.ZodObject<{
+    corporation_id: z.ZodOptional<z.ZodNumber>;
+    description: z.ZodString;
+    faction_id: z.ZodNumber;
+    is_unique: z.ZodBoolean;
+    militia_corporation_id: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodString;
+    size_factor: z.ZodNumber;
+    solar_system_id: z.ZodOptional<z.ZodNumber>;
+    station_count: z.ZodNumber;
+    station_system_count: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseGraphicsGraphicIdGet {
     // (undocumented)
     collision_file?: string;
@@ -7257,6 +12212,18 @@ interface UniverseGraphicsGraphicIdGet {
 }
 
 // @public (undocumented)
+const UniverseGraphicsGraphicIdGetSchema: z.ZodObject<{
+    collision_file: z.ZodOptional<z.ZodString>;
+    graphic_file: z.ZodOptional<z.ZodString>;
+    graphic_id: z.ZodNumber;
+    icon_folder: z.ZodOptional<z.ZodString>;
+    sof_dna: z.ZodOptional<z.ZodString>;
+    sof_fation_name: z.ZodOptional<z.ZodString>;
+    sof_hull_name: z.ZodOptional<z.ZodString>;
+    sof_race_name: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseGroupsGroupIdGet {
     // (undocumented)
     category_id: number;
@@ -7269,6 +12236,15 @@ interface UniverseGroupsGroupIdGet {
     // (undocumented)
     types: number[];
 }
+
+// @public (undocumented)
+const UniverseGroupsGroupIdGetSchema: z.ZodObject<{
+    category_id: z.ZodNumber;
+    group_id: z.ZodNumber;
+    name: z.ZodString;
+    published: z.ZodBoolean;
+    types: z.ZodArray<z.ZodNumber>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniverseIdsPost {
@@ -7325,6 +12301,50 @@ interface UniverseIdsPost {
 }
 
 // @public (undocumented)
+const UniverseIdsPostSchema: z.ZodObject<{
+    agents: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    alliances: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    characters: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    constellations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    corporations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    factions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    inventory_types: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    regions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    stations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+    systems: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseMoonsMoonIdGet {
     // (undocumented)
     moon_id: number;
@@ -7341,6 +12361,18 @@ interface UniverseMoonsMoonIdGet {
 }
 
 // @public (undocumented)
+const UniverseMoonsMoonIdGetSchema: z.ZodObject<{
+    moon_id: z.ZodNumber;
+    name: z.ZodString;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+    system_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseNamesPost {
     // (undocumented)
     category: 'alliance' | 'character' | 'constellation' | 'corporation' | 'inventory_type' | 'region' | 'solar_system' | 'station' | 'faction';
@@ -7349,6 +12381,23 @@ interface UniverseNamesPost {
     // (undocumented)
     name: string;
 }
+
+// @public (undocumented)
+const UniverseNamesPostSchema: z.ZodObject<{
+    category: z.ZodEnum<{
+        character: "character";
+        corporation: "corporation";
+        alliance: "alliance";
+        faction: "faction";
+        constellation: "constellation";
+        inventory_type: "inventory_type";
+        region: "region";
+        solar_system: "solar_system";
+        station: "station";
+    }>;
+    id: z.ZodNumber;
+    name: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniversePlanetsPlanetIdGet {
@@ -7369,6 +12418,19 @@ interface UniversePlanetsPlanetIdGet {
 }
 
 // @public (undocumented)
+const UniversePlanetsPlanetIdGetSchema: z.ZodObject<{
+    name: z.ZodString;
+    planet_id: z.ZodNumber;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+    system_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseRacesGet {
     // (undocumented)
     alliance_id: number;
@@ -7379,6 +12441,14 @@ interface UniverseRacesGet {
     // (undocumented)
     race_id: number;
 }
+
+// @public (undocumented)
+const UniverseRacesGetSchema: z.ZodObject<{
+    alliance_id: z.ZodNumber;
+    description: z.ZodString;
+    name: z.ZodString;
+    race_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniverseRegionsRegionIdGet {
@@ -7393,12 +12463,26 @@ interface UniverseRegionsRegionIdGet {
 }
 
 // @public (undocumented)
+const UniverseRegionsRegionIdGetSchema: z.ZodObject<{
+    constellations: z.ZodArray<z.ZodNumber>;
+    description: z.ZodOptional<z.ZodString>;
+    name: z.ZodString;
+    region_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseSchematicsSchematicIdGet {
     // (undocumented)
     cycle_time: number;
     // (undocumented)
     schematic_name: string;
 }
+
+// @public (undocumented)
+const UniverseSchematicsSchematicIdGetSchema: z.ZodObject<{
+    cycle_time: z.ZodNumber;
+    schematic_name: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniverseStargatesStargateIdGet {
@@ -7424,6 +12508,23 @@ interface UniverseStargatesStargateIdGet {
 }
 
 // @public (undocumented)
+const UniverseStargatesStargateIdGetSchema: z.ZodObject<{
+    destination: z.ZodObject<{
+        stargate_id: z.ZodNumber;
+        system_id: z.ZodNumber;
+    }, z.core.$loose>;
+    name: z.ZodString;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+    stargate_id: z.ZodNumber;
+    system_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseStarsStarIdGet {
     // (undocumented)
     age: number;
@@ -7442,6 +12543,108 @@ interface UniverseStarsStarIdGet {
     // (undocumented)
     type_id: number;
 }
+
+// @public (undocumented)
+const UniverseStarsStarIdGetSchema: z.ZodObject<{
+    age: z.ZodNumber;
+    luminosity: z.ZodNumber;
+    name: z.ZodString;
+    radius: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+    spectral_class: z.ZodEnum<{
+        "K2 V": "K2 V";
+        "K4 V": "K4 V";
+        "G2 V": "G2 V";
+        "G8 V": "G8 V";
+        "M7 V": "M7 V";
+        "K7 V": "K7 V";
+        "M2 V": "M2 V";
+        "K5 V": "K5 V";
+        "M3 V": "M3 V";
+        "G0 V": "G0 V";
+        "G7 V": "G7 V";
+        "G3 V": "G3 V";
+        "F9 V": "F9 V";
+        "G5 V": "G5 V";
+        "F6 V": "F6 V";
+        "K8 V": "K8 V";
+        "K9 V": "K9 V";
+        "K6 V": "K6 V";
+        "G9 V": "G9 V";
+        "G6 V": "G6 V";
+        "G4 VI": "G4 VI";
+        "G4 V": "G4 V";
+        "F8 V": "F8 V";
+        "F2 V": "F2 V";
+        "F1 V": "F1 V";
+        "K3 V": "K3 V";
+        "F0 VI": "F0 VI";
+        "G1 VI": "G1 VI";
+        "G0 VI": "G0 VI";
+        "K1 V": "K1 V";
+        "M4 V": "M4 V";
+        "M1 V": "M1 V";
+        "M6 V": "M6 V";
+        "M0 V": "M0 V";
+        "K2 IV": "K2 IV";
+        "G2 VI": "G2 VI";
+        "K0 V": "K0 V";
+        "K5 IV": "K5 IV";
+        "F5 VI": "F5 VI";
+        "G6 VI": "G6 VI";
+        "F6 VI": "F6 VI";
+        "F2 IV": "F2 IV";
+        "G3 VI": "G3 VI";
+        "M8 V": "M8 V";
+        "F1 VI": "F1 VI";
+        "K1 IV": "K1 IV";
+        "F7 V": "F7 V";
+        "G5 VI": "G5 VI";
+        "M5 V": "M5 V";
+        "G7 VI": "G7 VI";
+        "F5 V": "F5 V";
+        "F4 VI": "F4 VI";
+        "F8 VI": "F8 VI";
+        "K3 IV": "K3 IV";
+        "F4 IV": "F4 IV";
+        "F0 V": "F0 V";
+        "G7 IV": "G7 IV";
+        "G8 VI": "G8 VI";
+        "F2 VI": "F2 VI";
+        "F4 V": "F4 V";
+        "F7 VI": "F7 VI";
+        "F3 V": "F3 V";
+        "G1 V": "G1 V";
+        "G9 VI": "G9 VI";
+        "F3 IV": "F3 IV";
+        "F9 VI": "F9 VI";
+        "M9 V": "M9 V";
+        "K0 IV": "K0 IV";
+        "F1 IV": "F1 IV";
+        "G4 IV": "G4 IV";
+        "F3 VI": "F3 VI";
+        "K4 IV": "K4 IV";
+        "G5 IV": "G5 IV";
+        "G3 IV": "G3 IV";
+        "G1 IV": "G1 IV";
+        "K7 IV": "K7 IV";
+        "G0 IV": "G0 IV";
+        "K6 IV": "K6 IV";
+        "K9 IV": "K9 IV";
+        "G2 IV": "G2 IV";
+        "F9 IV": "F9 IV";
+        "F0 IV": "F0 IV";
+        "K8 IV": "K8 IV";
+        "G8 IV": "G8 IV";
+        "F6 IV": "F6 IV";
+        "F5 IV": "F5 IV";
+        A0: "A0";
+        A0IV: "A0IV";
+        A0IV2: "A0IV2";
+    }>;
+    temperature: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniverseStationsStationIdGet {
@@ -7476,6 +12679,54 @@ interface UniverseStationsStationIdGet {
 }
 
 // @public (undocumented)
+const UniverseStationsStationIdGetSchema: z.ZodObject<{
+    max_dockable_ship_volume: z.ZodNumber;
+    name: z.ZodString;
+    office_rental_cost: z.ZodNumber;
+    owner: z.ZodOptional<z.ZodNumber>;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+    race_id: z.ZodOptional<z.ZodNumber>;
+    reprocessing_efficiency: z.ZodNumber;
+    reprocessing_stations_take: z.ZodNumber;
+    services: z.ZodArray<z.ZodEnum<{
+        "bounty-missions": "bounty-missions";
+        "assasination-missions": "assasination-missions";
+        "courier-missions": "courier-missions";
+        interbus: "interbus";
+        "reprocessing-plant": "reprocessing-plant";
+        refinery: "refinery";
+        market: "market";
+        "black-market": "black-market";
+        "stock-exchange": "stock-exchange";
+        cloning: "cloning";
+        surgery: "surgery";
+        "dna-therapy": "dna-therapy";
+        "repair-facilities": "repair-facilities";
+        factory: "factory";
+        labratory: "labratory";
+        gambling: "gambling";
+        fitting: "fitting";
+        paintshop: "paintshop";
+        news: "news";
+        storage: "storage";
+        insurance: "insurance";
+        docking: "docking";
+        "office-rental": "office-rental";
+        "jump-clone-facility": "jump-clone-facility";
+        "loyalty-point-store": "loyalty-point-store";
+        "navy-offices": "navy-offices";
+        "security-offices": "security-offices";
+    }>>;
+    station_id: z.ZodNumber;
+    system_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseStructuresStructureIdGet {
     // (undocumented)
     name: string;
@@ -7494,12 +12745,31 @@ interface UniverseStructuresStructureIdGet {
 }
 
 // @public (undocumented)
+const UniverseStructuresStructureIdGetSchema: z.ZodObject<{
+    name: z.ZodString;
+    owner_id: z.ZodNumber;
+    position: z.ZodOptional<z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>>;
+    solar_system_id: z.ZodNumber;
+    type_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface UniverseSystemJumpsGet {
     // (undocumented)
     ship_jumps: number;
     // (undocumented)
     system_id: number;
 }
+
+// @public (undocumented)
+const UniverseSystemJumpsGetSchema: z.ZodObject<{
+    ship_jumps: z.ZodNumber;
+    system_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniverseSystemKillsGet {
@@ -7512,6 +12782,14 @@ interface UniverseSystemKillsGet {
     // (undocumented)
     system_id: number;
 }
+
+// @public (undocumented)
+const UniverseSystemKillsGetSchema: z.ZodObject<{
+    npc_kills: z.ZodNumber;
+    pod_kills: z.ZodNumber;
+    ship_kills: z.ZodNumber;
+    system_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniverseSystemsSystemIdGet {
@@ -7544,6 +12822,28 @@ interface UniverseSystemsSystemIdGet {
     // (undocumented)
     system_id: number;
 }
+
+// @public (undocumented)
+const UniverseSystemsSystemIdGetSchema: z.ZodObject<{
+    constellation_id: z.ZodNumber;
+    name: z.ZodString;
+    planets: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        asteroid_belts: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+        moons: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+        planet_id: z.ZodNumber;
+    }, z.core.$loose>>>;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
+    security_class: z.ZodOptional<z.ZodString>;
+    security_status: z.ZodNumber;
+    star_id: z.ZodOptional<z.ZodNumber>;
+    stargates: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    stations: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    system_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 interface UniverseTypesTypeIdGet {
@@ -7586,6 +12886,32 @@ interface UniverseTypesTypeIdGet {
     // (undocumented)
     volume?: number;
 }
+
+// @public (undocumented)
+const UniverseTypesTypeIdGetSchema: z.ZodObject<{
+    capacity: z.ZodOptional<z.ZodNumber>;
+    description: z.ZodString;
+    dogma_attributes: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        attribute_id: z.ZodNumber;
+        value: z.ZodNumber;
+    }, z.core.$loose>>>;
+    dogma_effects: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        effect_id: z.ZodNumber;
+        is_default: z.ZodBoolean;
+    }, z.core.$loose>>>;
+    graphic_id: z.ZodOptional<z.ZodNumber>;
+    group_id: z.ZodNumber;
+    icon_id: z.ZodOptional<z.ZodNumber>;
+    market_group_id: z.ZodOptional<z.ZodNumber>;
+    mass: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodString;
+    packaged_volume: z.ZodOptional<z.ZodNumber>;
+    portion_size: z.ZodOptional<z.ZodNumber>;
+    published: z.ZodBoolean;
+    radius: z.ZodOptional<z.ZodNumber>;
+    type_id: z.ZodNumber;
+    volume: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "walletEndpoints" needs to be exported by the entry point index.d.ts
 //
@@ -7725,12 +13051,45 @@ interface WarsWarIdGet {
 }
 
 // @public (undocumented)
+const WarsWarIdGetSchema: z.ZodObject<{
+    aggressor: z.ZodObject<{
+        alliance_id: z.ZodOptional<z.ZodNumber>;
+        corporation_id: z.ZodOptional<z.ZodNumber>;
+        isk_destroyed: z.ZodNumber;
+        ships_killed: z.ZodNumber;
+    }, z.core.$loose>;
+    allies: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        alliance_id: z.ZodOptional<z.ZodNumber>;
+        corporation_id: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>>;
+    declared: z.ZodString;
+    defender: z.ZodObject<{
+        alliance_id: z.ZodOptional<z.ZodNumber>;
+        corporation_id: z.ZodOptional<z.ZodNumber>;
+        isk_destroyed: z.ZodNumber;
+        ships_killed: z.ZodNumber;
+    }, z.core.$loose>;
+    finished: z.ZodOptional<z.ZodString>;
+    id: z.ZodNumber;
+    mutual: z.ZodBoolean;
+    open_for_allies: z.ZodBoolean;
+    retracted: z.ZodOptional<z.ZodString>;
+    started: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 interface WarsWarIdKillmailsGet {
     // (undocumented)
     killmail_hash: string;
     // (undocumented)
     killmail_id: number;
 }
+
+// @public (undocumented)
+const WarsWarIdKillmailsGetSchema: z.ZodObject<{
+    killmail_hash: z.ZodString;
+    killmail_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type WithMetadata<T> = {

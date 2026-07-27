@@ -22,7 +22,14 @@ module.exports = {
   verbose: true,
   coverageDirectory: 'coverage/unit',
   coverageReporters: ['text', 'lcov', 'json-summary'],
-  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/types/**/*.ts'],
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/types/**/*.ts',
+    '!src/**/*.generated.ts',
+    '!src/clients/generated/**',
+    '!src/schemas/generated/**',
+  ],
   coverageThreshold: {
     global: {
       branches: 80,
