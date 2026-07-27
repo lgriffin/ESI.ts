@@ -1,8 +1,6 @@
 name: CI/CD Pipeline
 
 on:
-  push:
-    branches: [master, main, develop]
   pull_request:
     branches: [master, main, develop]
 
@@ -32,6 +30,9 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+      - name: Type check
+        run: npm run typecheck
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
@@ -132,45 +133,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint-and-build
 
-    strategy:
-      matrix:
-        test-suite:
-          - alliance
-          - assets
-          - calendar
-          - character
-          - clones
-          - contacts
-          - contracts
-          - corporation
-          - dogma
-          - etag-caching
-          - factions
-          - fittings
-          - fleets
-          - freelance
-          - incursions
-          - industry
-          - insurance
-          - killmails
-          - location
-          - loyalty
-          - mail
-          - market
-          - meta
-          - pi
-          - route
-          - search
-          - skills
-          - sovereignty
-          - status
-          - ui
-          - universe
-          - wallet
-          - wars
-          - integration
-          - performance
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -184,8 +146,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run BDD tests - ${{ matrix.test-suite }}
-        run: npm run bdd:${{ matrix.test-suite }}
+      - name: Run all BDD tests
+        run: npm run bdd
 
   contract-tests:
     name: Contract Tests
@@ -288,7 +250,6 @@ jobs:
     name: Mutation Testing
     runs-on: ubuntu-latest
     needs: lint-and-build
-    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -389,6 +350,7 @@ jobs:
         static-analysis,
         contract-tests,
         fuzz-tests,
+        mutation-testing,
       ]
     if: always()
 
@@ -402,6 +364,7 @@ jobs:
           echo "Static Analysis: ${{ needs.static-analysis.result }}"
           echo "Contract Tests: ${{ needs.contract-tests.result }}"
           echo "Fuzz Tests: ${{ needs.fuzz-tests.result }}"
+          echo "Mutation Testing: ${{ needs.mutation-testing.result }}"
 
       - name: Quality Gate
         if: >-
@@ -411,7 +374,8 @@ jobs:
           needs.coverage.result != 'success' ||
           needs.static-analysis.result != 'success' ||
           needs.contract-tests.result != 'success' ||
-          needs.fuzz-tests.result != 'success'
+          needs.fuzz-tests.result != 'success' ||
+          needs.mutation-testing.result != 'success'
         run: |
           echo "Quality gate failed!"
           exit 1
@@ -424,5 +388,6 @@ jobs:
           needs.coverage.result == 'success' &&
           needs.static-analysis.result == 'success' &&
           needs.contract-tests.result == 'success' &&
-          needs.fuzz-tests.result == 'success'
+          needs.fuzz-tests.result == 'success' &&
+          needs.mutation-testing.result == 'success'
         run: echo "All quality checks passed!"

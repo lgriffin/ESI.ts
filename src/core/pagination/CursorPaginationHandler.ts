@@ -30,6 +30,11 @@ export interface CursorPage<T = unknown> {
   cursors: CursorTokens;
 }
 
+export type CursorPageFetcher = (
+  endpoint: string,
+  cursor?: { before?: string; after?: string },
+) => Promise<CursorPage>;
+
 export interface CursorPaginationOptions {
   maxPages?: number;
   maxRetries?: number;
@@ -53,7 +58,13 @@ export class CursorPaginationHandler {
     requiresAuth: boolean,
     cursor?: { before?: string; after?: string },
     body?: unknown,
+    pageFetch?: CursorPageFetcher,
   ): Promise<CursorPage> {
+    if (pageFetch) {
+      logInfo(`Cursor fetch via pipeline: ${endpoint}`);
+      return pageFetch(endpoint, cursor);
+    }
+
     const url = this.buildUrl(client, endpoint, cursor);
 
     logInfo(`Cursor fetch: ${url}`);
@@ -104,6 +115,7 @@ export class CursorPaginationHandler {
     firstCursors: CursorTokens,
     body?: unknown,
     options: CursorPaginationOptions = {},
+    pageFetch?: CursorPageFetcher,
   ): Promise<unknown[]> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
     const rateLimiter = client.getRateLimiter();
@@ -125,6 +137,7 @@ export class CursorPaginationHandler {
           { after: afterToken },
           body,
           opts,
+          pageFetch,
         );
 
         consecutiveFailures = 0;
@@ -171,6 +184,7 @@ export class CursorPaginationHandler {
     cursor: { before?: string; after?: string },
     body: unknown,
     options: Required<CursorPaginationOptions>,
+    pageFetch?: CursorPageFetcher,
   ): Promise<CursorPage> {
     let lastError: Error | null = null;
 
@@ -183,6 +197,7 @@ export class CursorPaginationHandler {
           requiresAuth,
           cursor,
           body,
+          pageFetch,
         );
       } catch (error) {
         lastError = error as Error;

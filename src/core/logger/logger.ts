@@ -1,18 +1,21 @@
-import { createLogger, format, transports } from 'winston';
+import pino from 'pino';
+import { ILogger } from './ILogger';
 
-const { combine, timestamp, printf, colorize } = format;
+const pinoLogger = pino({ level: process.env.ESI_LOG_LEVEL || 'warn' });
 
-// Define custom log format
-const logFormat = printf(({ level, message, timestamp }) => {
-  return `${String(timestamp)} [${String(level)}]: ${String(message)}`;
-});
-
-// Create Winston logger instance — console only by default.
-// Libraries should not write to files; the consuming application controls logging.
-const logger = createLogger({
-  level: process.env.ESI_LOG_LEVEL || 'warn',
-  format: combine(colorize(), timestamp(), logFormat),
-  transports: [new transports.Console()],
-});
+const logger: ILogger = {
+  info: (msg: string) => {
+    pinoLogger.info(msg);
+  },
+  warn: (msg: string) => {
+    pinoLogger.warn(msg);
+  },
+  error: (msg: string) => {
+    pinoLogger.error(msg);
+  },
+  debug: (msg: string) => {
+    pinoLogger.debug(msg);
+  },
+};
 
 export default logger;

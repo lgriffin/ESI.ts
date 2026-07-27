@@ -30,3 +30,6 @@ export * from './status';
 export * from './universe';
 export * from './wallet';
 export * from './wars';
+
+// Auto-generated schemas from OpenAPI spec
+export * as generatedSchemas from './generated';

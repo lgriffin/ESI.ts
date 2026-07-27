@@ -99,6 +99,7 @@ export {
   CircuitState,
   CircuitOpenError,
 } from './core/circuitBreaker/CircuitBreaker';
+export type { ICircuitBreaker } from './core/circuitBreaker/ICircuitBreaker';
 
 // Rate limiter & cache (for direct instantiation)
 export {
@@ -113,9 +114,12 @@ export {
 
 // Retry
 export { RetryConfig } from './core/util/retry';
+export { RetryStrategy } from './core/RetryStrategy';
+export type { RetryContext } from './core/RetryStrategy';
 
 // Request deduplication
 export { RequestDeduplicator } from './core/RequestDeduplicator';
+export type { IDeduplicator } from './core/IDeduplicator';
 
 // Batch operations
 export {

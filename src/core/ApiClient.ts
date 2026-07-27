@@ -5,8 +5,8 @@ import {
 } from './middleware/Middleware';
 import { ICache } from './cache/ICache';
 import { IRateLimiter } from './rateLimiter/IRateLimiter';
-import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
-import { RequestDeduplicator } from './RequestDeduplicator';
+import { ICircuitBreaker } from './circuitBreaker/ICircuitBreaker';
+import { IDeduplicator } from './IDeduplicator';
 import { RetryConfig } from './util/retry';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
@@ -20,9 +20,9 @@ export class ApiClient {
   private middleware: MiddlewareManager = new MiddlewareManager();
   private cache: ICache | null = null;
   private rateLimiter: IRateLimiter | null = null;
-  private circuitBreaker: CircuitBreaker | null = null;
+  private circuitBreaker: ICircuitBreaker | null = null;
   private timeout: number = 30_000;
-  private deduplicator: RequestDeduplicator | null = null;
+  private deduplicator: IDeduplicator | null = null;
   private retryConfig: RetryConfig | null = null;
   private validateResponse: boolean = true;
   private language?: string;
@@ -59,19 +59,19 @@ export class ApiClient {
     this.rateLimiter = limiter;
   }
 
-  getCircuitBreaker(): CircuitBreaker | null {
+  getCircuitBreaker(): ICircuitBreaker | null {
     return this.circuitBreaker;
   }
 
-  setCircuitBreaker(cb: CircuitBreaker | null): void {
+  setCircuitBreaker(cb: ICircuitBreaker | null): void {
     this.circuitBreaker = cb;
   }
 
-  getDeduplicator(): RequestDeduplicator | null {
+  getDeduplicator(): IDeduplicator | null {
     return this.deduplicator;
   }
 
-  setDeduplicator(dedup: RequestDeduplicator | null): void {
+  setDeduplicator(dedup: IDeduplicator | null): void {
     this.deduplicator = dedup;
   }
 
