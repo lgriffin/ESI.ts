@@ -5893,8 +5893,8 @@ const MarketOrderSchema: z.ZodObject<{
     issued: z.ZodString;
     range: z.ZodString;
     state: z.ZodOptional<z.ZodEnum<{
-        closed: "closed";
         open: "open";
+        closed: "closed";
         expired: "expired";
         cancelled: "cancelled";
     }>>;
