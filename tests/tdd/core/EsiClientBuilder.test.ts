@@ -105,6 +105,87 @@ describe('EsiClientBuilder (src/)', () => {
       client.shutdown();
     });
 
+    it('should provide getter access to all 35 domain clients', () => {
+      const allTypes = [
+        'alliance',
+        'assets',
+        'calendar',
+        'characters',
+        'clones',
+        'contacts',
+        'contracts',
+        'corporations',
+        'dogma',
+        'factions',
+        'fittings',
+        'fleets',
+        'incursions',
+        'industry',
+        'insurance',
+        'killmails',
+        'location',
+        'loyalty',
+        'mail',
+        'market',
+        'pi',
+        'route',
+        'search',
+        'skills',
+        'sovereignty',
+        'status',
+        'ui',
+        'universe',
+        'wallet',
+        'wars',
+        'meta',
+        'freelanceJobs',
+        'skyhooks',
+        'mercenary',
+        'accessLists',
+      ] as const;
+
+      const client = new EsiClientBuilder().addClients([...allTypes]).build();
+
+      expect(client.alliance).toBeDefined();
+      expect(client.assets).toBeDefined();
+      expect(client.calendar).toBeDefined();
+      expect(client.characters).toBeDefined();
+      expect(client.clones).toBeDefined();
+      expect(client.contacts).toBeDefined();
+      expect(client.contracts).toBeDefined();
+      expect(client.corporations).toBeDefined();
+      expect(client.dogma).toBeDefined();
+      expect(client.factions).toBeDefined();
+      expect(client.fittings).toBeDefined();
+      expect(client.fleets).toBeDefined();
+      expect(client.incursions).toBeDefined();
+      expect(client.industry).toBeDefined();
+      expect(client.insurance).toBeDefined();
+      expect(client.killmails).toBeDefined();
+      expect(client.location).toBeDefined();
+      expect(client.loyalty).toBeDefined();
+      expect(client.mail).toBeDefined();
+      expect(client.market).toBeDefined();
+      expect(client.pi).toBeDefined();
+      expect(client.route).toBeDefined();
+      expect(client.search).toBeDefined();
+      expect(client.skills).toBeDefined();
+      expect(client.sovereignty).toBeDefined();
+      expect(client.status).toBeDefined();
+      expect(client.ui).toBeDefined();
+      expect(client.universe).toBeDefined();
+      expect(client.wallet).toBeDefined();
+      expect(client.wars).toBeDefined();
+      expect(client.meta).toBeDefined();
+      expect(client.freelanceJobs).toBeDefined();
+      expect(client.skyhooks).toBeDefined();
+      expect(client.mercenary).toBeDefined();
+      expect(client.accessLists).toBeDefined();
+
+      expect(client.getEnabledClients()).toHaveLength(35);
+      client.shutdown();
+    });
+
     it('should clear clients on shutdown', () => {
       const client = new EsiClientBuilder().addClient('alliance').build();
 

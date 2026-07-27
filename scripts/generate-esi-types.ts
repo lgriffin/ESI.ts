@@ -33,6 +33,10 @@ const SCOPES_OUTPUT = path.resolve(
   __dirname,
   '../src/core/endpoints/esi-scopes.generated.ts',
 );
+const ZOD_SCHEMAS_DIR = path.resolve(
+  __dirname,
+  '../src/schemas/generated',
+);
 
 // --- OpenAPI 3.1 type definitions ---
 
@@ -557,6 +561,201 @@ function writeScopesFile(
   fs.writeFileSync(SCOPES_OUTPUT, lines.join('\n'), 'utf-8');
 }
 
+// --- Zod schema generation ---
+
+function schemaTypeToZod(
+  schema: OpenApiSchema,
+  spec: OpenApiSpec,
+  indent: number = 1,
+): string {
+  if (schema.$ref) {
+    const resolved = resolveRef(spec, schema.$ref);
+    if (resolved) return schemaTypeToZod(resolved, spec, indent);
+    return 'z.unknown()';
+  }
+
+  if (schema.enum) {
+    const values = schema.enum.map((v) =>
+      typeof v === 'string' ? `'${v}'` : String(v),
+    );
+    if (values.every((v) => v.startsWith("'"))) {
+      return `z.enum([${values.join(', ')}])`;
+    }
+    return `z.union([${values.map((v) => (v.startsWith("'") ? `z.literal(${v})` : `z.literal(${v})`)).join(', ')}])`;
+  }
+
+  if (schema.type === 'array' && schema.items) {
+    const itemZod = schemaTypeToZod(schema.items, spec, indent);
+    return `z.array(${itemZod})`;
+  }
+
+  if (schema.type === 'object' && schema.properties) {
+    return generateZodObject(schema, spec, indent);
+  }
+
+  if (schema.type === 'object') {
+    return 'z.record(z.string(), z.unknown())';
+  }
+
+  switch (schema.type) {
+    case 'integer':
+    case 'number':
+      return 'z.number()';
+    case 'string':
+      return 'z.string()';
+    case 'boolean':
+      return 'z.boolean()';
+    default:
+      return 'z.unknown()';
+  }
+}
+
+function generateZodObject(
+  schema: OpenApiSchema,
+  spec: OpenApiSpec,
+  indent: number,
+): string {
+  if (!schema.properties) return 'z.record(z.string(), z.unknown())';
+
+  const pad = '  '.repeat(indent + 1);
+  const closePad = '  '.repeat(indent);
+  const required = new Set(schema.required ?? []);
+  const lines: string[] = ['z.looseObject({'];
+
+  for (const [name, prop] of Object.entries(schema.properties)) {
+    const resolvedProp = resolveSchema(spec, prop);
+    let zodType = schemaTypeToZod(resolvedProp, spec, indent + 1);
+    if (!required.has(name)) {
+      zodType += '.optional()';
+    }
+    lines.push(`${pad}${name}: ${zodType},`);
+  }
+
+  lines.push(`${closePad}})`);
+  return lines.join('\n');
+}
+
+interface GeneratedZodSchema {
+  name: string;
+  tag: string;
+  operationId: string;
+  body: string;
+}
+
+function generateZodSchema(
+  opPath: string,
+  method: string,
+  op: OpenApiOperation,
+  spec: OpenApiSpec,
+): GeneratedZodSchema | null {
+  const response200 = op.responses?.['200'];
+  if (!response200) return null;
+
+  const mediaType = response200.content?.['application/json'];
+  if (!mediaType?.schema) return null;
+
+  let schema = mediaType.schema;
+  let schemaName: string | undefined;
+
+  if (schema.$ref) {
+    const prefix = '#/components/schemas/';
+    if (schema.$ref.startsWith(prefix)) {
+      schemaName = schema.$ref.slice(prefix.length);
+    }
+    schema = resolveSchema(spec, schema);
+  }
+
+  const tag = op.tags?.[0] ?? 'Uncategorized';
+  const operationId = op.operationId ?? `${method}_${opPath}`;
+
+  let itemSchema: OpenApiSchema;
+
+  if (schema.type === 'array' && schema.items) {
+    const items = schema.items;
+    if (items.$ref && !schemaName) {
+      const prefix = '#/components/schemas/';
+      if (items.$ref.startsWith(prefix)) {
+        schemaName = items.$ref.slice(prefix.length);
+      }
+    }
+    itemSchema = resolveSchema(spec, items);
+  } else if (schema.type === 'object' && schema.properties) {
+    itemSchema = schema;
+  } else {
+    return null;
+  }
+
+  if (!itemSchema.properties) return null;
+
+  const baseName =
+    schemaName ?? snakeToPascal((itemSchema.title ?? operationId) + '_200_ok');
+  const name = baseName + 'Schema';
+
+  const zodBody = generateZodObject(itemSchema, spec, 0);
+  const body = `export const ${name} = ${zodBody};`;
+
+  return { name, tag, operationId, body };
+}
+
+function tagToFileName(tag: string): string {
+  return tag
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
+}
+
+function writeZodSchemas(schemas: GeneratedZodSchema[], specHash: string): void {
+  const byTag = new Map<string, GeneratedZodSchema[]>();
+  for (const schema of schemas) {
+    const group = byTag.get(schema.tag) ?? [];
+    group.push(schema);
+    byTag.set(schema.tag, group);
+  }
+
+  fs.mkdirSync(ZOD_SCHEMAS_DIR, { recursive: true });
+
+  const indexExports: string[] = [];
+
+  for (const [tag, group] of Array.from(byTag.entries()).sort((a, b) =>
+    a[0].localeCompare(b[0]),
+  )) {
+    const fileName = `${tagToFileName(tag)}.generated.ts`;
+    const lines: string[] = [
+      '/* eslint-disable */',
+      '// Auto-generated Zod schemas from ESI OpenAPI spec — do not edit manually',
+      `// Spec hash: ${specHash}`,
+      '',
+      "import { z } from 'zod';",
+      '',
+    ];
+
+    const seen = new Set<string>();
+    for (const schema of group.sort((a, b) => a.name.localeCompare(b.name))) {
+      if (seen.has(schema.name)) continue;
+      seen.add(schema.name);
+      lines.push(schema.body);
+      lines.push('');
+    }
+
+    const filePath = path.join(ZOD_SCHEMAS_DIR, fileName);
+    fs.writeFileSync(filePath, lines.join('\n'), 'utf-8');
+    indexExports.push(`export * from './${fileName.replace('.ts', '')}';`);
+  }
+
+  const indexLines = [
+    '/* eslint-disable */',
+    '// Auto-generated barrel — do not edit manually',
+    '',
+    ...indexExports.sort(),
+    '',
+  ];
+  fs.writeFileSync(
+    path.join(ZOD_SCHEMAS_DIR, 'index.ts'),
+    indexLines.join('\n'),
+    'utf-8',
+  );
+}
+
 // --- Main ---
 
 async function main(): Promise<void> {
@@ -599,6 +798,22 @@ async function main(): Promise<void> {
   console.log(`Generated ${interfaces.length} interfaces`);
   writeTypesFile(interfaces, specHash);
   console.log(`Types written to ${TYPES_OUTPUT}`);
+
+  // Generate Zod schemas
+  const zodSchemas: GeneratedZodSchema[] = [];
+  for (const [routePath, methods] of Object.entries(spec.paths)) {
+    for (const method of httpMethods) {
+      const op = methods[method] as OpenApiOperation | undefined;
+      if (!op) continue;
+
+      const schema = generateZodSchema(routePath, method, op, spec);
+      if (schema) zodSchemas.push(schema);
+    }
+  }
+
+  console.log(`Generated ${zodSchemas.length} Zod schemas`);
+  writeZodSchemas(zodSchemas, specHash);
+  console.log(`Zod schemas written to ${ZOD_SCHEMAS_DIR}`);
 
   // Generate cache TTLs
   const ttls = extractCacheTtls(spec);

@@ -1,4 +1,5 @@
 import { logWarn, logInfo } from '../logger/loggerUtil';
+import { ICircuitBreaker } from './ICircuitBreaker';
 
 export type CircuitState = 'closed' | 'open' | 'half-open';
 
@@ -16,7 +17,7 @@ interface CircuitRecord {
   halfOpenAttempts: number;
 }
 
-export class CircuitBreaker {
+export class CircuitBreaker implements ICircuitBreaker {
   private circuits: Map<string, CircuitRecord> = new Map();
   private readonly failureThreshold: number;
   private readonly resetTimeoutMs: number;

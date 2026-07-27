@@ -1,0 +1,37 @@
+// Auto-generated barrel — do not edit manually
+
+export { GeneratedAccessListClient } from './accessList.generated';
+export { GeneratedAllianceClient } from './alliance.generated';
+export { GeneratedAssetClient } from './asset.generated';
+export { GeneratedCalendarClient } from './calendar.generated';
+export { GeneratedCharacterClient } from './character.generated';
+export { GeneratedCloneClient } from './clone.generated';
+export { GeneratedContactClient } from './contact.generated';
+export { GeneratedContractClient } from './contract.generated';
+export { GeneratedCorporationClient } from './corporation.generated';
+export { GeneratedDogmaClient } from './dogma.generated';
+export { GeneratedFactionClient } from './faction.generated';
+export { GeneratedFittingClient } from './fitting.generated';
+export { GeneratedFleetClient } from './fleet.generated';
+export { GeneratedFreelanceJobsClient } from './freelanceJobs.generated';
+export { GeneratedIncursionClient } from './incursion.generated';
+export { GeneratedIndustryClient } from './industry.generated';
+export { GeneratedInsuranceClient } from './insurance.generated';
+export { GeneratedKillmailClient } from './killmail.generated';
+export { GeneratedLocationClient } from './location.generated';
+export { GeneratedLoyaltyClient } from './loyalty.generated';
+export { GeneratedMailClient } from './mail.generated';
+export { GeneratedMarketClient } from './market.generated';
+export { GeneratedMercenaryClient } from './mercenary.generated';
+export { GeneratedMetaClient } from './meta.generated';
+export { GeneratedPiClient } from './pi.generated';
+export { GeneratedRouteClient } from './route.generated';
+export { GeneratedSearchClient } from './search.generated';
+export { GeneratedSkillClient } from './skill.generated';
+export { GeneratedSkyhookClient } from './skyhook.generated';
+export { GeneratedSovereigntyClient } from './sovereignty.generated';
+export { GeneratedStatusClient } from './status.generated';
+export { GeneratedUiClient } from './ui.generated';
+export { GeneratedUniverseClient } from './universe.generated';
+export { GeneratedWalletClient } from './wallet.generated';
+export { GeneratedWarClient } from './war.generated';

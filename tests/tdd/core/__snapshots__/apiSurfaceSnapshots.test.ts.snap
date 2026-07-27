@@ -87,6 +87,7 @@ exports[`API surface snapshots public API exports should match snapshot 1`] = `
   "PiClient",
   "RateLimiter",
   "RequestDeduplicator",
+  "RetryStrategy",
   "RouteClient",
   "SearchClient",
   "SkyhooksClient",
@@ -263,5 +264,6 @@ exports[`API surface snapshots schema exports should match snapshot 1`] = `
   "WalletTransactionSchema",
   "WarSchema",
   "esiResponse",
+  "generatedSchemas",
 ]
 `;

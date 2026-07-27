@@ -1,6 +1,7 @@
 import { logDebug } from './logger/loggerUtil';
+import { IDeduplicator } from './IDeduplicator';
 
-export class RequestDeduplicator {
+export class RequestDeduplicator implements IDeduplicator {
   private inflight = new Map<string, Promise<unknown>>();
 
   async dedupe<T>(key: string, execute: () => Promise<T>): Promise<T> {

@@ -13,11 +13,10 @@ import { PaginationHandler, PageFetcher } from './pagination/PaginationHandler';
 import { CursorTokens } from './pagination/CursorPaginationHandler';
 import { USER_AGENT, COMPATIBILITY_DATE } from './constants';
 import { RequestContext, ResponseContext } from './middleware/Middleware';
-import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
+import { ICircuitBreaker } from './circuitBreaker/ICircuitBreaker';
 import { esiCacheTtls } from './endpoints/esi-cache-ttls.generated';
-import { retryDelay } from './util/retry';
-import { sleep } from './util/sleep';
 import { CircuitOpenError } from './circuitBreaker/CircuitBreaker';
+import { RetryStrategy } from './RetryStrategy';
 
 export interface EsiHandlerResponse {
   headers: Record<string, string>;
@@ -64,7 +63,7 @@ function resolveRateLimiter(client: ApiClient): IRateLimiter {
   return limiter;
 }
 
-function resolveCircuitBreaker(client: ApiClient): CircuitBreaker | null {
+function resolveCircuitBreaker(client: ApiClient): ICircuitBreaker | null {
   return client.getCircuitBreaker();
 }
 
@@ -286,7 +285,7 @@ async function handleOffsetPagination(
   body: unknown,
   url: string,
   useETag: boolean,
-  pageFetch?: PageFetcher,
+  pageFetch: PageFetcher,
   templatePath?: string,
 ): Promise<EsiHandlerResponse> {
   const totalPages = parsed.xPages;
@@ -723,78 +722,29 @@ export const handleRequest = async (
   const dedup = client.getDeduplicator();
   const canDedup = dedup && method === 'GET' && !body;
 
-  const retryConfig = client.getRetryConfig();
-  const maxRetries = retryConfig?.maxRetries ?? 0;
-  const canRetryMethod =
-    method === 'GET' || retryConfig?.retryMutations === true;
-  const baseDelayMs = retryConfig?.baseDelayMs ?? 1000;
-  const maxDelayMs = retryConfig?.maxDelayMs ?? 30000;
+  const operation = () =>
+    canDedup
+      ? dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
+      : doExecute();
 
-  let lastError: unknown;
+  const retryStrategy = new RetryStrategy(client.getRetryConfig() ?? undefined);
 
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return canDedup
-        ? await dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
-        : await doExecute();
-    } catch (error: unknown) {
-      if (error instanceof CircuitOpenError) {
-        throw error;
-      }
-
-      if (
-        error instanceof EsiError &&
-        error.statusCode === 401 &&
-        requiresAuth &&
-        client.hasTokenProvider()
-      ) {
-        logInfo('Received 401, attempting token refresh...');
-        try {
-          await client.refreshToken();
-          logInfo('Token refreshed, retrying request');
-          return await executeRequest(
-            client,
-            endpoint,
-            method,
-            body,
-            requiresAuth,
-            useETag,
-            requestTimeout,
-          );
-        } catch (refreshError: unknown) {
-          if (refreshError instanceof EsiError) {
-            throw refreshError;
-          }
-          const msg =
-            refreshError instanceof Error
-              ? refreshError.message
-              : String(refreshError);
-          logError(`Token refresh failed: ${msg}`);
-          throw buildError(
-            `Token refresh failed: ${msg}`,
-            'TOKEN_REFRESH_FAILED',
-          );
-        }
-      }
-
-      if (
-        error instanceof EsiError &&
-        error.retryable &&
-        canRetryMethod &&
-        attempt < maxRetries
-      ) {
-        const delay = retryDelay(attempt, baseDelayMs, maxDelayMs);
-        logWarn(
-          `Request to ${endpoint} failed (${error.statusCode}), retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`,
-        );
-        await sleep(delay);
-        lastError = error;
-        continue;
-      }
-
-      throw error;
-    }
-  }
-
-  throw lastError;
+  return retryStrategy.execute<EsiHandlerResponse>(operation, {
+    endpoint,
+    method,
+    requiresAuth,
+    refreshToken: client.hasTokenProvider()
+      ? () => client.refreshToken().then(() => {})
+      : undefined,
+    retryOperation: () =>
+      executeRequest(
+        client,
+        endpoint,
+        method,
+        body,
+        requiresAuth,
+        useETag,
+        requestTimeout,
+      ),
+  });
 };

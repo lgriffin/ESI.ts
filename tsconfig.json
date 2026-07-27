@@ -15,8 +15,7 @@
     "typeRoots": ["./node_modules/@types", "./types"],
     "types": ["jest", "node"],
     "rootDir": "./src",
-    "outDir": "./dist",
-    "incremental": true
+    "outDir": "./dist"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

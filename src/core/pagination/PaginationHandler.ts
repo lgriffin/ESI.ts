@@ -5,7 +5,6 @@
 
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
-import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
 import { sleep } from '../util/sleep';
 
 export interface PaginationOptions {
@@ -36,9 +35,9 @@ export class PaginationHandler {
     requiresAuth: boolean,
     firstPageData: unknown[],
     totalPages: number,
-    body?: unknown,
-    options: PaginationOptions = {},
-    pageFetch?: PageFetcher,
+    body: unknown,
+    options: PaginationOptions,
+    pageFetch: PageFetcher,
     templatePath?: string,
   ): Promise<unknown[]> {
     const opts = { ...this.DEFAULT_OPTIONS, ...options };
@@ -60,12 +59,8 @@ export class PaginationHandler {
         if (rateLimiter) await rateLimiter.checkRateLimit(templatePath, method);
 
         const pageData = await this.fetchPageWithRetry(
-          client,
           endpoint,
-          method,
           page,
-          requiresAuth,
-          body,
           opts,
           pageFetch,
         );
@@ -106,28 +101,16 @@ export class PaginationHandler {
    * Fetch a single page with retry logic
    */
   private static async fetchPageWithRetry(
-    client: ApiClient,
     endpoint: string,
-    method: string,
     page: number,
-    requiresAuth: boolean,
-    body: unknown,
     options: Required<PaginationOptions>,
-    pageFetch?: PageFetcher,
+    pageFetch: PageFetcher,
   ): Promise<unknown[]> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
       try {
-        return await this.fetchSinglePage(
-          client,
-          endpoint,
-          method,
-          page,
-          requiresAuth,
-          body,
-          pageFetch,
-        );
+        return await this.fetchSinglePage(endpoint, page, pageFetch);
       } catch (error) {
         lastError = error as Error;
         logWarn(
@@ -153,52 +136,14 @@ export class PaginationHandler {
    * Preserves any existing query params on the endpoint and appends page=N.
    */
   private static async fetchSinglePage(
-    client: ApiClient,
     endpoint: string,
-    method: string,
     page: number,
-    requiresAuth: boolean,
-    body: unknown,
-    pageFetch?: PageFetcher,
+    pageFetch: PageFetcher,
   ): Promise<unknown[]> {
     const separator = endpoint.includes('?') ? '&' : '?';
     const paginatedEndpoint = `${endpoint}${separator}page=${page}`;
 
-    if (pageFetch) {
-      logInfo(`Fetching page ${page} via pipeline: ${paginatedEndpoint}`);
-      return pageFetch(paginatedEndpoint);
-    }
-
-    const url = `${client.getLink()}/${paginatedEndpoint}`;
-
-    logInfo(`Fetching page ${page}: ${url}`);
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        accept: 'gzip, deflate, br',
-        'User-Agent': USER_AGENT,
-        'X-Compatibility-Date': COMPATIBILITY_DATE,
-        ...(requiresAuth
-          ? { Authorization: client.getAuthorizationHeader() }
-          : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    let data: unknown;
-    try {
-      data = (await response.json()) as unknown;
-    } catch (jsonError) {
-      throw new Error(
-        `Invalid JSON response for page ${page}: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`,
-      );
-    }
-
-    return Array.isArray(data) ? (data as unknown[]) : [data];
+    logInfo(`Fetching page ${page} via pipeline: ${paginatedEndpoint}`);
+    return pageFetch(paginatedEndpoint);
   }
 }
