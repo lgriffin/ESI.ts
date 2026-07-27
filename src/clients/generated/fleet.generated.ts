@@ -33,8 +33,8 @@ export class GeneratedFleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * PUT updateFleet
    * @requires Authentication
    */
-  updateFleet(fleetId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.updateFleet as any)(fleetId, body) as Promise<unknown>;
+  updateFleet(...args: Parameters<(typeof this.api)['updateFleet']>): Promise<unknown> {
+    return this.api.updateFleet(...args) as Promise<unknown>;
   }
 
   /**
@@ -49,8 +49,8 @@ export class GeneratedFleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * POST createFleetInvitation
    * @requires Authentication
    */
-  createFleetInvitation(fleetId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.createFleetInvitation as any)(fleetId, body) as Promise<unknown>;
+  createFleetInvitation(...args: Parameters<(typeof this.api)['createFleetInvitation']>): Promise<unknown> {
+    return this.api.createFleetInvitation(...args) as Promise<unknown>;
   }
 
   /**
@@ -65,8 +65,8 @@ export class GeneratedFleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * PUT moveFleetMember
    * @requires Authentication
    */
-  moveFleetMember(fleetId: number | string, memberId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.moveFleetMember as any)(fleetId, memberId, body) as Promise<unknown>;
+  moveFleetMember(...args: Parameters<(typeof this.api)['moveFleetMember']>): Promise<unknown> {
+    return this.api.moveFleetMember(...args) as Promise<unknown>;
   }
 
   /**
@@ -81,8 +81,8 @@ export class GeneratedFleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * PUT renameFleetSquad
    * @requires Authentication
    */
-  renameFleetSquad(fleetId: number | string, squadId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.renameFleetSquad as any)(fleetId, squadId, body) as Promise<unknown>;
+  renameFleetSquad(...args: Parameters<(typeof this.api)['renameFleetSquad']>): Promise<unknown> {
+    return this.api.renameFleetSquad(...args) as Promise<unknown>;
   }
 
   /**
@@ -97,8 +97,8 @@ export class GeneratedFleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * POST createFleetWing
    * @requires Authentication
    */
-  createFleetWing(fleetId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.createFleetWing as any)(fleetId, body) as Promise<unknown>;
+  createFleetWing(...args: Parameters<(typeof this.api)['createFleetWing']>): Promise<unknown> {
+    return this.api.createFleetWing(...args) as Promise<unknown>;
   }
 
   /**
@@ -113,8 +113,8 @@ export class GeneratedFleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * PUT renameFleetWing
    * @requires Authentication
    */
-  renameFleetWing(fleetId: number | string, wingId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.renameFleetWing as any)(fleetId, wingId, body) as Promise<unknown>;
+  renameFleetWing(...args: Parameters<(typeof this.api)['renameFleetWing']>): Promise<unknown> {
+    return this.api.renameFleetWing(...args) as Promise<unknown>;
   }
 
   /**

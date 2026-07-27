@@ -186,13 +186,7 @@ function generateMethodParams(ep: ParsedEndpoint): string {
   }
 
   for (const [paramName] of Object.entries(ep.queryParams)) {
-    params.push(`${paramName}: string | number`);
-  }
-
-  if (ep.hasBody) {
-    params.push('body: unknown');
-  } else if (ep.hasBodyBuilder) {
-    params.push('body: unknown');
+    params.push(`${paramName}?: string | number | boolean`);
   }
 
   return params.join(', ');
@@ -251,10 +245,9 @@ function generateClient(parsed: ParsedEndpointFile): string {
     for (const name of schemaImportList) {
       const importPath = parsed.schemaImports.get(name);
       if (importPath) {
-        const relativePath = importPath.replace(/^\.\.\/\.\.\//, '../../');
-        const group = schemasByPath.get(relativePath) ?? [];
+        const group = schemasByPath.get(importPath) ?? [];
         group.push(name);
-        schemasByPath.set(relativePath, group);
+        schemasByPath.set(importPath, group);
       }
     }
 
@@ -275,8 +268,6 @@ function generateClient(parsed: ParsedEndpointFile): string {
 
   for (const ep of parsed.endpoints) {
     const returnType = inferReturnType(ep);
-    const params = generateMethodParams(ep);
-    const args = generateMethodArgs(ep);
     const authTag = ep.requiresAuth ? '\n   * @requires Authentication' : '';
 
     lines.push('');
@@ -285,14 +276,20 @@ function generateClient(parsed: ParsedEndpointFile): string {
       `   * ${ep.method} ${ep.name}${authTag}`,
     );
     lines.push(`   */`);
-    lines.push(
-      `  ${ep.name}(${params}): Promise<${returnType}> {`,
-    );
+
     if (ep.hasBody || ep.hasBodyBuilder) {
       lines.push(
-        `    return (this.api.${ep.name} as any)(${args}) as Promise<${returnType}>;`,
+        `  ${ep.name}(...args: Parameters<(typeof this.api)['${ep.name}']>): Promise<${returnType}> {`,
+      );
+      lines.push(
+        `    return this.api.${ep.name}(...args) as Promise<${returnType}>;`,
       );
     } else {
+      const params = generateMethodParams(ep);
+      const args = generateMethodArgs(ep);
+      lines.push(
+        `  ${ep.name}(${params}): Promise<${returnType}> {`,
+      );
       lines.push(
         `    return this.api.${ep.name}(${args}) as Promise<${returnType}>;`,
       );

@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 // Auto-generated client wrapper — do not edit manually
 // Hand-written clients in src/clients/ take precedence
 
@@ -100,8 +100,8 @@ export class GeneratedUniverseClient extends BaseEsiClient<typeof universeEndpoi
   /**
    * POST postBulkNamesToIds
    */
-  postBulkNamesToIds(body: unknown): Promise<z.infer<typeof BulkIdResultSchema>> {
-    return (this.api.postBulkNamesToIds as any)(body) as Promise<z.infer<typeof BulkIdResultSchema>>;
+  postBulkNamesToIds(...args: Parameters<(typeof this.api)['postBulkNamesToIds']>): Promise<z.infer<typeof BulkIdResultSchema>> {
+    return this.api.postBulkNamesToIds(...args) as Promise<z.infer<typeof BulkIdResultSchema>>;
   }
 
   /**
@@ -114,8 +114,8 @@ export class GeneratedUniverseClient extends BaseEsiClient<typeof universeEndpoi
   /**
    * POST postNamesAndCategories
    */
-  postNamesAndCategories(body: unknown): Promise<(z.infer<typeof NameAndCategorySchema>)[]> {
-    return (this.api.postNamesAndCategories as any)(body) as Promise<(z.infer<typeof NameAndCategorySchema>)[]>;
+  postNamesAndCategories(...args: Parameters<(typeof this.api)['postNamesAndCategories']>): Promise<(z.infer<typeof NameAndCategorySchema>)[]> {
+    return this.api.postNamesAndCategories(...args) as Promise<(z.infer<typeof NameAndCategorySchema>)[]>;
   }
 
   /**

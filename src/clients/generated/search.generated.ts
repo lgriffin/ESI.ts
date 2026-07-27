@@ -17,7 +17,7 @@ export class GeneratedSearchClient extends BaseEsiClient<typeof searchEndpoints>
    * GET searchCharacter
    * @requires Authentication
    */
-  searchCharacter(characterId: number | string, searchString: string | number, categories: string | number): Promise<z.infer<typeof SearchResultSchema>> {
+  searchCharacter(characterId: number | string, searchString?: string | number | boolean, categories?: string | number | boolean): Promise<z.infer<typeof SearchResultSchema>> {
     return this.api.searchCharacter(characterId, searchString, categories) as Promise<z.infer<typeof SearchResultSchema>>;
   }
 }

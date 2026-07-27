@@ -33,31 +33,31 @@ export class GeneratedAssetClient extends BaseEsiClient<typeof assetEndpoints> {
    * POST postCharacterAssetLocations
    * @requires Authentication
    */
-  postCharacterAssetLocations(characterId: number | string, body: unknown): Promise<(z.infer<typeof AssetLocationSchema>)[]> {
-    return (this.api.postCharacterAssetLocations as any)(characterId, body) as Promise<(z.infer<typeof AssetLocationSchema>)[]>;
+  postCharacterAssetLocations(...args: Parameters<(typeof this.api)['postCharacterAssetLocations']>): Promise<(z.infer<typeof AssetLocationSchema>)[]> {
+    return this.api.postCharacterAssetLocations(...args) as Promise<(z.infer<typeof AssetLocationSchema>)[]>;
   }
 
   /**
    * POST postCharacterAssetNames
    * @requires Authentication
    */
-  postCharacterAssetNames(characterId: number | string, body: unknown): Promise<(z.infer<typeof AssetNameSchema>)[]> {
-    return (this.api.postCharacterAssetNames as any)(characterId, body) as Promise<(z.infer<typeof AssetNameSchema>)[]>;
+  postCharacterAssetNames(...args: Parameters<(typeof this.api)['postCharacterAssetNames']>): Promise<(z.infer<typeof AssetNameSchema>)[]> {
+    return this.api.postCharacterAssetNames(...args) as Promise<(z.infer<typeof AssetNameSchema>)[]>;
   }
 
   /**
    * POST postCorporationAssetLocations
    * @requires Authentication
    */
-  postCorporationAssetLocations(corporationId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.postCorporationAssetLocations as any)(corporationId, body) as Promise<unknown>;
+  postCorporationAssetLocations(...args: Parameters<(typeof this.api)['postCorporationAssetLocations']>): Promise<unknown> {
+    return this.api.postCorporationAssetLocations(...args) as Promise<unknown>;
   }
 
   /**
    * POST postCorporationAssetNames
    * @requires Authentication
    */
-  postCorporationAssetNames(corporationId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.postCorporationAssetNames as any)(corporationId, body) as Promise<unknown>;
+  postCorporationAssetNames(...args: Parameters<(typeof this.api)['postCorporationAssetNames']>): Promise<unknown> {
+    return this.api.postCorporationAssetNames(...args) as Promise<unknown>;
   }
 }

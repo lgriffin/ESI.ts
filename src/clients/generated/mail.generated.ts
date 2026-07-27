@@ -25,8 +25,8 @@ export class GeneratedMailClient extends BaseEsiClient<typeof mailEndpoints> {
    * POST sendMail
    * @requires Authentication
    */
-  sendMail(characterId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.sendMail as any)(characterId, body) as Promise<unknown>;
+  sendMail(...args: Parameters<(typeof this.api)['sendMail']>): Promise<unknown> {
+    return this.api.sendMail(...args) as Promise<unknown>;
   }
 
   /**
@@ -49,8 +49,8 @@ export class GeneratedMailClient extends BaseEsiClient<typeof mailEndpoints> {
    * PUT updateMailMetadata
    * @requires Authentication
    */
-  updateMailMetadata(characterId: number | string, mailId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.updateMailMetadata as any)(characterId, mailId, body) as Promise<unknown>;
+  updateMailMetadata(...args: Parameters<(typeof this.api)['updateMailMetadata']>): Promise<unknown> {
+    return this.api.updateMailMetadata(...args) as Promise<unknown>;
   }
 
   /**
@@ -65,8 +65,8 @@ export class GeneratedMailClient extends BaseEsiClient<typeof mailEndpoints> {
    * POST createMailLabel
    * @requires Authentication
    */
-  createMailLabel(characterId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.createMailLabel as any)(characterId, body) as Promise<unknown>;
+  createMailLabel(...args: Parameters<(typeof this.api)['createMailLabel']>): Promise<unknown> {
+    return this.api.createMailLabel(...args) as Promise<unknown>;
   }
 
   /**

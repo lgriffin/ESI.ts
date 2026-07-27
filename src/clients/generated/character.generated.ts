@@ -110,15 +110,15 @@ export class GeneratedCharacterClient extends BaseEsiClient<typeof characterEndp
   /**
    * POST postCharacterAffiliation
    */
-  postCharacterAffiliation(body: unknown): Promise<unknown> {
-    return (this.api.postCharacterAffiliation as any)(body) as Promise<unknown>;
+  postCharacterAffiliation(...args: Parameters<(typeof this.api)['postCharacterAffiliation']>): Promise<unknown> {
+    return this.api.postCharacterAffiliation(...args) as Promise<unknown>;
   }
 
   /**
    * POST calculateCspaChargeCost
    * @requires Authentication
    */
-  calculateCspaChargeCost(characterId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.calculateCspaChargeCost as any)(characterId, body) as Promise<unknown>;
+  calculateCspaChargeCost(...args: Parameters<(typeof this.api)['calculateCspaChargeCost']>): Promise<unknown> {
+    return this.api.calculateCspaChargeCost(...args) as Promise<unknown>;
   }
 }

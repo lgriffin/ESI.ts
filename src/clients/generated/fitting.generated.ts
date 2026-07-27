@@ -25,8 +25,8 @@ export class GeneratedFittingClient extends BaseEsiClient<typeof fittingEndpoint
    * POST createFitting
    * @requires Authentication
    */
-  createFitting(characterId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.createFitting as any)(characterId, body) as Promise<unknown>;
+  createFitting(...args: Parameters<(typeof this.api)['createFitting']>): Promise<unknown> {
+    return this.api.createFitting(...args) as Promise<unknown>;
   }
 
   /**

@@ -15,7 +15,7 @@ export class GeneratedRouteClient extends BaseEsiClient<typeof routeEndpoints> {
   /**
    * POST getRoute
    */
-  getRoute(origin: number | string, destination: number | string, body: unknown): Promise<unknown> {
-    return (this.api.getRoute as any)(origin, destination, body) as Promise<unknown>;
+  getRoute(...args: Parameters<(typeof this.api)['getRoute']>): Promise<unknown> {
+    return this.api.getRoute(...args) as Promise<unknown>;
   }
 }

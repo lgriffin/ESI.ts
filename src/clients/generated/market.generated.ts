@@ -76,14 +76,14 @@ export class GeneratedMarketClient extends BaseEsiClient<typeof marketEndpoints>
   /**
    * GET getMarketHistory
    */
-  getMarketHistory(regionId: number | string, typeId: string | number): Promise<(z.infer<typeof MarketHistorySchema>)[]> {
+  getMarketHistory(regionId: number | string, typeId?: string | number | boolean): Promise<(z.infer<typeof MarketHistorySchema>)[]> {
     return this.api.getMarketHistory(regionId, typeId) as Promise<(z.infer<typeof MarketHistorySchema>)[]>;
   }
 
   /**
    * GET getMarketOrders
    */
-  getMarketOrders(regionId: number | string, orderType: string | number): Promise<(z.infer<typeof MarketOrderSchema>)[]> {
+  getMarketOrders(regionId: number | string, orderType?: string | number | boolean): Promise<(z.infer<typeof MarketOrderSchema>)[]> {
     return this.api.getMarketOrders(regionId, orderType) as Promise<(z.infer<typeof MarketOrderSchema>)[]>;
   }
 

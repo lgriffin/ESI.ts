@@ -65,23 +65,23 @@ export class GeneratedContactClient extends BaseEsiClient<typeof contactEndpoint
    * POST addContacts
    * @requires Authentication
    */
-  addContacts(characterId: number | string, standing: string | number, body: unknown): Promise<unknown> {
-    return (this.api.addContacts as any)(characterId, standing, body) as Promise<unknown>;
+  addContacts(...args: Parameters<(typeof this.api)['addContacts']>): Promise<unknown> {
+    return this.api.addContacts(...args) as Promise<unknown>;
   }
 
   /**
    * PUT editContacts
    * @requires Authentication
    */
-  editContacts(characterId: number | string, standing: string | number, body: unknown): Promise<unknown> {
-    return (this.api.editContacts as any)(characterId, standing, body) as Promise<unknown>;
+  editContacts(...args: Parameters<(typeof this.api)['editContacts']>): Promise<unknown> {
+    return this.api.editContacts(...args) as Promise<unknown>;
   }
 
   /**
    * DELETE deleteCharacterContacts
    * @requires Authentication
    */
-  deleteCharacterContacts(characterId: number | string, contactIds: string | number): Promise<unknown> {
+  deleteCharacterContacts(characterId: number | string, contactIds?: string | number | boolean): Promise<unknown> {
     return this.api.deleteCharacterContacts(characterId, contactIds) as Promise<unknown>;
   }
 }

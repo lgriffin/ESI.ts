@@ -16,7 +16,7 @@ export class GeneratedUiClient extends BaseEsiClient<typeof uiEndpoints> {
    * POST setAutopilotWaypoint
    * @requires Authentication
    */
-  setAutopilotWaypoint(destinationId: string | number, addToBeginning: string | number, clearOtherWaypoints: string | number): Promise<unknown> {
+  setAutopilotWaypoint(destinationId?: string | number | boolean, addToBeginning?: string | number | boolean, clearOtherWaypoints?: string | number | boolean): Promise<unknown> {
     return this.api.setAutopilotWaypoint(destinationId, addToBeginning, clearOtherWaypoints) as Promise<unknown>;
   }
 
@@ -24,7 +24,7 @@ export class GeneratedUiClient extends BaseEsiClient<typeof uiEndpoints> {
    * POST openContractWindow
    * @requires Authentication
    */
-  openContractWindow(contractId: string | number): Promise<unknown> {
+  openContractWindow(contractId?: string | number | boolean): Promise<unknown> {
     return this.api.openContractWindow(contractId) as Promise<unknown>;
   }
 
@@ -32,7 +32,7 @@ export class GeneratedUiClient extends BaseEsiClient<typeof uiEndpoints> {
    * POST openInformationWindow
    * @requires Authentication
    */
-  openInformationWindow(targetId: string | number): Promise<unknown> {
+  openInformationWindow(targetId?: string | number | boolean): Promise<unknown> {
     return this.api.openInformationWindow(targetId) as Promise<unknown>;
   }
 
@@ -40,7 +40,7 @@ export class GeneratedUiClient extends BaseEsiClient<typeof uiEndpoints> {
    * POST openMarketDetailsWindow
    * @requires Authentication
    */
-  openMarketDetailsWindow(typeId: string | number): Promise<unknown> {
+  openMarketDetailsWindow(typeId?: string | number | boolean): Promise<unknown> {
     return this.api.openMarketDetailsWindow(typeId) as Promise<unknown>;
   }
 
@@ -48,7 +48,7 @@ export class GeneratedUiClient extends BaseEsiClient<typeof uiEndpoints> {
    * POST openNewMailWindow
    * @requires Authentication
    */
-  openNewMailWindow(body: unknown): Promise<unknown> {
-    return (this.api.openNewMailWindow as any)(body) as Promise<unknown>;
+  openNewMailWindow(...args: Parameters<(typeof this.api)['openNewMailWindow']>): Promise<unknown> {
+    return this.api.openNewMailWindow(...args) as Promise<unknown>;
   }
 }

@@ -1,4 +1,4 @@
- 
+/* eslint-disable */
 // Auto-generated client wrapper — do not edit manually
 // Hand-written clients in src/clients/ take precedence
 
@@ -16,7 +16,7 @@ export class GeneratedFreelanceJobsClient extends BaseEsiClient<typeof freelance
   /**
    * GET getFreelanceJobs
    */
-  getFreelanceJobs(before: string | number, after: string | number): Promise<z.infer<typeof FreelanceJobsListingSchema>> {
+  getFreelanceJobs(before?: string | number | boolean, after?: string | number | boolean): Promise<z.infer<typeof FreelanceJobsListingSchema>> {
     return this.api.getFreelanceJobs(before, after) as Promise<z.infer<typeof FreelanceJobsListingSchema>>;
   }
 
@@ -31,7 +31,7 @@ export class GeneratedFreelanceJobsClient extends BaseEsiClient<typeof freelance
    * GET getCharacterFreelanceJobs
    * @requires Authentication
    */
-  getCharacterFreelanceJobs(characterId: number | string, before: string | number, after: string | number): Promise<z.infer<typeof CharacterFreelanceJobsListingSchema>> {
+  getCharacterFreelanceJobs(characterId: number | string, before?: string | number | boolean, after?: string | number | boolean): Promise<z.infer<typeof CharacterFreelanceJobsListingSchema>> {
     return this.api.getCharacterFreelanceJobs(characterId, before, after) as Promise<z.infer<typeof CharacterFreelanceJobsListingSchema>>;
   }
 
@@ -47,7 +47,7 @@ export class GeneratedFreelanceJobsClient extends BaseEsiClient<typeof freelance
    * GET getCorporationFreelanceJobs
    * @requires Authentication
    */
-  getCorporationFreelanceJobs(corporationId: number | string, before: string | number, after: string | number): Promise<z.infer<typeof CorporationFreelanceJobsListingSchema>> {
+  getCorporationFreelanceJobs(corporationId: number | string, before?: string | number | boolean, after?: string | number | boolean): Promise<z.infer<typeof CorporationFreelanceJobsListingSchema>> {
     return this.api.getCorporationFreelanceJobs(corporationId, before, after) as Promise<z.infer<typeof CorporationFreelanceJobsListingSchema>>;
   }
 

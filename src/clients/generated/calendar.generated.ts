@@ -41,7 +41,7 @@ export class GeneratedCalendarClient extends BaseEsiClient<typeof calendarEndpoi
    * PUT respondToCalendarEvent
    * @requires Authentication
    */
-  respondToCalendarEvent(characterId: number | string, eventId: number | string, body: unknown): Promise<unknown> {
-    return (this.api.respondToCalendarEvent as any)(characterId, eventId, body) as Promise<unknown>;
+  respondToCalendarEvent(...args: Parameters<(typeof this.api)['respondToCalendarEvent']>): Promise<unknown> {
+    return this.api.respondToCalendarEvent(...args) as Promise<unknown>;
   }
 }
