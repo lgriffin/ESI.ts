@@ -19,6 +19,7 @@ import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
 import { sleep } from '../util/sleep';
+import { buildError, TimeoutError } from '../util/error';
 
 export interface CursorTokens {
   before: string | null;
@@ -69,18 +70,50 @@ export class CursorPaginationHandler {
 
     logInfo(`Cursor fetch: ${url}`);
 
-    const response = await fetch(url, {
-      method,
-      headers: {
-        accept: 'gzip, deflate, br',
-        'User-Agent': USER_AGENT,
-        'X-Compatibility-Date': COMPATIBILITY_DATE,
-        ...(requiresAuth
-          ? { Authorization: client.getAuthorizationHeader() }
-          : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    const headers: Record<string, string> = {
+      accept: 'gzip, deflate, br',
+      'User-Agent': USER_AGENT,
+      'X-Compatibility-Date': COMPATIBILITY_DATE,
+    };
+
+    if (requiresAuth) {
+      const authHeader = client.getAuthorizationHeader();
+      if (!authHeader) {
+        throw buildError(
+          'Authorization header is required but not provided',
+          'NO_AUTH_TOKEN',
+        );
+      }
+      headers['Authorization'] = authHeader;
+    }
+
+    const timeoutMs = client.getTimeout();
+    const controller = new AbortController();
+    const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+    } catch (err: unknown) {
+      clearTimeout(timer);
+      const isAbort =
+        err instanceof Error
+          ? err.name === 'AbortError'
+          : err != null &&
+            typeof err === 'object' &&
+            'name' in err &&
+            (err as { name: string }).name === 'AbortError';
+      if (isAbort) {
+        throw new TimeoutError(timeoutMs, url);
+      }
+      throw err;
+    }
+    clearTimeout(timer);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);

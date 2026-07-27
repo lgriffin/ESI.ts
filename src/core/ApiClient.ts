@@ -128,6 +128,9 @@ export class ApiClient {
   }
 
   setAccessToken(token: string): void {
+    if (this.accessToken !== token) {
+      this.cache?.clear();
+    }
     this.accessToken = token;
   }
 
@@ -137,6 +140,21 @@ export class ApiClient {
 
   hasTokenProvider(): boolean {
     return this.tokenProvider !== undefined;
+  }
+
+  toJSON(): Record<string, unknown> {
+    return {
+      link: this.link,
+      datasource: this.datasource,
+      timeout: this.timeout,
+      hasCache: this.cache !== null,
+      hasRateLimiter: this.rateLimiter !== null,
+      hasCircuitBreaker: this.circuitBreaker !== null,
+      hasDeduplicator: this.deduplicator !== null,
+      hasTokenProvider: this.tokenProvider !== undefined,
+      validateResponse: this.validateResponse,
+      language: this.language,
+    };
   }
 
   async refreshToken(): Promise<string> {
@@ -150,6 +168,9 @@ export class ApiClient {
 
     this.refreshInFlight = this.tokenProvider().then(
       (token) => {
+        if (this.accessToken !== token) {
+          this.cache?.clear();
+        }
         this.accessToken = token;
         this.refreshInFlight = undefined;
         return token;
