@@ -19,7 +19,7 @@ import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
 import { sleep } from '../util/sleep';
-import { buildError } from '../util/error';
+import { buildError, TimeoutError } from '../util/error';
 
 export interface CursorTokens {
   before: string | null;
@@ -99,10 +99,17 @@ export class CursorPaginationHandler {
         body: body ? JSON.stringify(body) : undefined,
         signal: controller.signal,
       });
-    } catch (err) {
+    } catch (err: unknown) {
       clearTimeout(timer);
-      if (err instanceof Error && err.name === 'AbortError') {
-        throw new Error(`Cursor fetch timed out after ${timeoutMs}ms`);
+      const isAbort =
+        err instanceof Error
+          ? err.name === 'AbortError'
+          : err != null &&
+            typeof err === 'object' &&
+            'name' in err &&
+            (err as { name: string }).name === 'AbortError';
+      if (isAbort) {
+        throw new TimeoutError(timeoutMs, url);
       }
       throw err;
     }

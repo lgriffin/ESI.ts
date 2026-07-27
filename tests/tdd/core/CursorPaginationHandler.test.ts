@@ -1,6 +1,7 @@
 import { CursorPaginationHandler } from '../../../src/core/pagination/CursorPaginationHandler';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { TimeoutError, isTimeout } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -170,6 +171,32 @@ describe('CursorPaginationHandler', () => {
 
       const fetchOptions = fetchMock.mock.calls[0][1];
       expect(fetchOptions?.signal).toBeInstanceOf(AbortSignal);
+    });
+
+    it('should throw TimeoutError on abort', async () => {
+      fetchMock.disableMocks();
+      const abortError = new DOMException(
+        'The operation was aborted.',
+        'AbortError',
+      );
+      jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(abortError);
+
+      try {
+        await CursorPaginationHandler.fetchPage(
+          client,
+          'some/endpoint',
+          'GET',
+          false,
+        );
+        fail('Expected TimeoutError');
+      } catch (err) {
+        expect(err).toBeInstanceOf(TimeoutError);
+        expect(isTimeout(err)).toBe(true);
+        expect((err as TimeoutError).timeoutMs).toBe(30000);
+      } finally {
+        jest.restoreAllMocks();
+        fetchMock.enableMocks();
+      }
     });
 
     it('should throw on HTTP error', async () => {
