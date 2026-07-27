@@ -143,6 +143,35 @@ describe('CursorPaginationHandler', () => {
       expect(headers['Authorization']).toBe('Bearer my-token');
     });
 
+    it('should throw auth error when requiresAuth is true but no token set', async () => {
+      await expect(
+        CursorPaginationHandler.fetchPage(
+          client,
+          'corporations/123/projects',
+          'GET',
+          true,
+        ),
+      ).rejects.toThrow('Authorization header is required but not provided');
+    });
+
+    it('should set abort signal on fetch request', async () => {
+      const resp = cursorResponse([{ id: 1 }], null, null);
+      fetchMock.mockResponseOnce(resp.body, {
+        status: resp.status,
+        headers: resp.headers,
+      });
+
+      await CursorPaginationHandler.fetchPage(
+        client,
+        'some/endpoint',
+        'GET',
+        false,
+      );
+
+      const fetchOptions = fetchMock.mock.calls[0][1];
+      expect(fetchOptions?.signal).toBeInstanceOf(AbortSignal);
+    });
+
     it('should throw on HTTP error', async () => {
       fetchMock.mockResponseOnce('Server Error', { status: 500 });
 

@@ -296,6 +296,8 @@ export class ApiClient {
     setTokenProvider(provider: TokenProvider | undefined): void;
     // (undocumented)
     setValidateResponse(validate: boolean): void;
+    // (undocumented)
+    toJSON(): Record<string, unknown>;
 }
 
 // @public (undocumented)
@@ -11336,6 +11338,9 @@ export interface RouteOptions {
 const RouteSchema: z.ZodObject<{
     route: z.ZodArray<z.ZodNumber>;
 }, z.core.$loose>;
+
+// @public (undocumented)
+export function sanitizeUrl(url?: string): string | undefined;
 
 declare namespace schemas {
     export {

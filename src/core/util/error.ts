@@ -1,9 +1,22 @@
-function sanitizeUrl(url?: string): string | undefined {
+const SENSITIVE_PARAMS = [
+  'token',
+  'access_token',
+  'api_key',
+  'refresh_token',
+  'client_secret',
+  'code',
+  'key',
+  'secret',
+  'auth',
+  'password',
+  'bearer',
+];
+
+export function sanitizeUrl(url?: string): string | undefined {
   if (!url) return url;
   try {
     const parsed = new URL(url);
-    const sensitiveParams = ['token', 'access_token', 'api_key'];
-    for (const param of sensitiveParams) {
+    for (const param of SENSITIVE_PARAMS) {
       if (parsed.searchParams.has(param)) {
         parsed.searchParams.set(param, '[REDACTED]');
       }
@@ -124,7 +137,8 @@ export class EsiValidationError extends EsiError {
   public readonly validationError: unknown;
 
   constructor(url: string, zodError: unknown, requestId?: string) {
-    super(0, `Response validation failed for ${url}`, url, requestId);
+    const safeUrl = sanitizeUrl(url) ?? url;
+    super(0, `Response validation failed for ${safeUrl}`, url, requestId);
     this.name = 'EsiValidationError';
     this.validationError = zodError;
   }

@@ -79,6 +79,7 @@ export {
   isTimeout,
   isRetryable,
   isValidationError,
+  sanitizeUrl,
 } from './core/util/error';
 
 // Endpoint definition types
