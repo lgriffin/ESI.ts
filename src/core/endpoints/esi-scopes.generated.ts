@@ -1,5 +1,5 @@
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Total scopes: 70
+// Total scopes: 71
 // Endpoints requiring scopes: 127
 
 export type EsiScope =
@@ -72,7 +72,8 @@ export type EsiScope =
   | 'esi-ui.write_waypoint.v1'
   | 'esi-universe.read_structures.v1'
   | 'esi-wallet.read_character_wallet.v1'
-  | 'esi-wallet.read_corporation_wallets.v1';
+  | 'esi-wallet.read_corporation_wallets.v1'
+  | 'esi.activity.char:read';
 
 export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'GET:alliances/{alliance_id}/contacts': ['esi-alliances.read_contacts.v1'],
