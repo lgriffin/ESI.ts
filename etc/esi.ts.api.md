@@ -736,6 +736,52 @@ const CharacterLocationSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type CharacterMarketOrder = z.infer<typeof CharacterMarketOrderSchema>;
+
+// @public (undocumented)
+export type CharacterMarketOrderHistory = z.infer<typeof CharacterMarketOrderHistorySchema>;
+
+// @public
+const CharacterMarketOrderHistorySchema: z.ZodObject<{
+    order_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    volume_total: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    min_volume: z.ZodOptional<z.ZodNumber>;
+    price: z.ZodNumber;
+    is_buy_order: z.ZodOptional<z.ZodBoolean>;
+    is_corporation: z.ZodBoolean;
+    region_id: z.ZodNumber;
+    duration: z.ZodNumber;
+    issued: z.ZodString;
+    range: z.ZodString;
+    state: z.ZodEnum<{
+        cancelled: "cancelled";
+        expired: "expired";
+    }>;
+    escrow: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public
+const CharacterMarketOrderSchema: z.ZodObject<{
+    order_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    volume_total: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    min_volume: z.ZodOptional<z.ZodNumber>;
+    price: z.ZodNumber;
+    is_buy_order: z.ZodOptional<z.ZodBoolean>;
+    is_corporation: z.ZodBoolean;
+    region_id: z.ZodNumber;
+    duration: z.ZodNumber;
+    issued: z.ZodString;
+    range: z.ZodString;
+    escrow: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type CharacterOnline = z.infer<typeof CharacterOnlineSchema>;
 
 // @public (undocumented)
@@ -2407,8 +2453,8 @@ const CharactersCharacterIdOrdersHistoryGetSchema: z.ZodObject<{
     }>;
     region_id: z.ZodNumber;
     state: z.ZodEnum<{
-        expired: "expired";
         cancelled: "cancelled";
+        expired: "expired";
     }>;
     type_id: z.ZodNumber;
     volume_remain: z.ZodNumber;
@@ -4030,6 +4076,54 @@ const CorporationIssuedMedalSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type CorporationMarketOrder = z.infer<typeof CorporationMarketOrderSchema>;
+
+// @public (undocumented)
+export type CorporationMarketOrderHistory = z.infer<typeof CorporationMarketOrderHistorySchema>;
+
+// @public
+const CorporationMarketOrderHistorySchema: z.ZodObject<{
+    order_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    volume_total: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    min_volume: z.ZodOptional<z.ZodNumber>;
+    price: z.ZodNumber;
+    is_buy_order: z.ZodOptional<z.ZodBoolean>;
+    issued_by: z.ZodOptional<z.ZodNumber>;
+    region_id: z.ZodNumber;
+    wallet_division: z.ZodNumber;
+    duration: z.ZodNumber;
+    issued: z.ZodString;
+    range: z.ZodString;
+    state: z.ZodEnum<{
+        cancelled: "cancelled";
+        expired: "expired";
+    }>;
+    escrow: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public
+const CorporationMarketOrderSchema: z.ZodObject<{
+    order_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    volume_total: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    min_volume: z.ZodOptional<z.ZodNumber>;
+    price: z.ZodNumber;
+    is_buy_order: z.ZodOptional<z.ZodBoolean>;
+    issued_by: z.ZodNumber;
+    region_id: z.ZodNumber;
+    wallet_division: z.ZodNumber;
+    duration: z.ZodNumber;
+    issued: z.ZodString;
+    range: z.ZodString;
+    escrow: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type CorporationMedal = z.infer<typeof CorporationMedalSchema>;
 
 // @public (undocumented)
@@ -5349,8 +5443,8 @@ const CorporationsCorporationIdOrdersHistoryGetSchema: z.ZodObject<{
     }>;
     region_id: z.ZodNumber;
     state: z.ZodEnum<{
-        expired: "expired";
         cancelled: "cancelled";
+        expired: "expired";
     }>;
     type_id: z.ZodNumber;
     volume_remain: z.ZodNumber;
@@ -8436,7 +8530,7 @@ export type EsiResult<T> = {
 };
 
 // @public (undocumented)
-export type EsiScope = 'esi-access.read_lists.v1' | 'esi-activities.read_character.v1' | 'esi-alliances.read_contacts.v1' | 'esi-assets.read_assets.v1' | 'esi-assets.read_corporation_assets.v1' | 'esi-calendar.read_calendar_events.v1' | 'esi-calendar.respond_calendar_events.v1' | 'esi-characters.read_agents_research.v1' | 'esi-characters.read_blueprints.v1' | 'esi-characters.read_contacts.v1' | 'esi-characters.read_corporation_roles.v1' | 'esi-characters.read_fatigue.v1' | 'esi-characters.read_freelance_jobs.v1' | 'esi-characters.read_fw_stats.v1' | 'esi-characters.read_loyalty.v1' | 'esi-characters.read_medals.v1' | 'esi-characters.read_notifications.v1' | 'esi-characters.read_standings.v1' | 'esi-characters.read_titles.v1' | 'esi-characters.write_contacts.v1' | 'esi-clones.read_clones.v1' | 'esi-clones.read_implants.v1' | 'esi-contracts.read_character_contracts.v1' | 'esi-contracts.read_corporation_contracts.v1' | 'esi-corporations.read_blueprints.v1' | 'esi-corporations.read_contacts.v1' | 'esi-corporations.read_container_logs.v1' | 'esi-corporations.read_corporation_membership.v1' | 'esi-corporations.read_divisions.v1' | 'esi-corporations.read_facilities.v1' | 'esi-corporations.read_freelance_jobs.v1' | 'esi-corporations.read_fw_stats.v1' | 'esi-corporations.read_medals.v1' | 'esi-corporations.read_projects.v1' | 'esi-corporations.read_standings.v1' | 'esi-corporations.read_starbases.v1' | 'esi-corporations.read_structures.v1' | 'esi-corporations.read_titles.v1' | 'esi-corporations.track_members.v1' | 'esi-fittings.read_fittings.v1' | 'esi-fittings.write_fittings.v1' | 'esi-fleets.read_fleet.v1' | 'esi-fleets.write_fleet.v1' | 'esi-industry.read_character_jobs.v1' | 'esi-industry.read_character_mining.v1' | 'esi-industry.read_corporation_jobs.v1' | 'esi-industry.read_corporation_mining.v1' | 'esi-killmails.read_corporation_killmails.v1' | 'esi-killmails.read_killmails.v1' | 'esi-location.read_location.v1' | 'esi-location.read_online.v1' | 'esi-location.read_ship_type.v1' | 'esi-mail.organize_mail.v1' | 'esi-mail.read_mail.v1' | 'esi-mail.send_mail.v1' | 'esi-markets.read_character_orders.v1' | 'esi-markets.read_corporation_orders.v1' | 'esi-markets.structure_markets.v1' | 'esi-planets.manage_planets.v1' | 'esi-planets.read_customs_offices.v1' | 'esi-search.search_structures.v1' | 'esi-skills.read_skillqueue.v1' | 'esi-skills.read_skills.v1' | 'esi-structures.read_character.v1' | 'esi-structures.read_corporation.v1' | 'esi-ui.open_window.v1' | 'esi-ui.write_waypoint.v1' | 'esi-universe.read_structures.v1' | 'esi-wallet.read_character_wallet.v1' | 'esi-wallet.read_corporation_wallets.v1' | 'esi.activity.char:read';
+export type EsiScope = 'esi-access.read_lists.v1' | 'esi-activities.read_character.v1' | 'esi-alliances.read_contacts.v1' | 'esi-assets.read_assets.v1' | 'esi-assets.read_corporation_assets.v1' | 'esi-calendar.read_calendar_events.v1' | 'esi-calendar.respond_calendar_events.v1' | 'esi-characters.read_agents_research.v1' | 'esi-characters.read_blueprints.v1' | 'esi-characters.read_contacts.v1' | 'esi-characters.read_corporation_roles.v1' | 'esi-characters.read_fatigue.v1' | 'esi-characters.read_freelance_jobs.v1' | 'esi-characters.read_fw_stats.v1' | 'esi-characters.read_loyalty.v1' | 'esi-characters.read_medals.v1' | 'esi-characters.read_notifications.v1' | 'esi-characters.read_standings.v1' | 'esi-characters.read_titles.v1' | 'esi-characters.write_contacts.v1' | 'esi-clones.read_clones.v1' | 'esi-clones.read_implants.v1' | 'esi-contracts.read_character_contracts.v1' | 'esi-contracts.read_corporation_contracts.v1' | 'esi-corporations.read_blueprints.v1' | 'esi-corporations.read_contacts.v1' | 'esi-corporations.read_container_logs.v1' | 'esi-corporations.read_corporation_membership.v1' | 'esi-corporations.read_divisions.v1' | 'esi-corporations.read_facilities.v1' | 'esi-corporations.read_freelance_jobs.v1' | 'esi-corporations.read_fw_stats.v1' | 'esi-corporations.read_medals.v1' | 'esi-corporations.read_projects.v1' | 'esi-corporations.read_standings.v1' | 'esi-corporations.read_starbases.v1' | 'esi-corporations.read_structures.v1' | 'esi-corporations.read_titles.v1' | 'esi-corporations.track_members.v1' | 'esi-fittings.read_fittings.v1' | 'esi-fittings.write_fittings.v1' | 'esi-fleets.read_fleet.v1' | 'esi-fleets.write_fleet.v1' | 'esi-industry.read_character_jobs.v1' | 'esi-industry.read_character_mining.v1' | 'esi-industry.read_corporation_jobs.v1' | 'esi-industry.read_corporation_mining.v1' | 'esi-killmails.read_corporation_killmails.v1' | 'esi-killmails.read_killmails.v1' | 'esi-location.read_location.v1' | 'esi-location.read_online.v1' | 'esi-location.read_ship_type.v1' | 'esi-mail.organize_mail.v1' | 'esi-mail.read_mail.v1' | 'esi-mail.send_mail.v1' | 'esi-markets.read_character_orders.v1' | 'esi-markets.read_corporation_orders.v1' | 'esi-markets.structure_markets.v1' | 'esi-planets.manage_planets.v1' | 'esi-planets.read_customs_offices.v1' | 'esi-search.search_structures.v1' | 'esi-skills.read_skillqueue.v1' | 'esi-skills.read_skills.v1' | 'esi-structures.read_character.v1' | 'esi-structures.read_corporation.v1' | 'esi-ui.open_window.v1' | 'esi-ui.write_waypoint.v1' | 'esi-universe.read_structures.v1' | 'esi-wallet.read_character_wallet.v1' | 'esi-wallet.read_corporation_wallets.v1' | 'esi.activity.char:read' | 'esi.cosmetic.char:read';
 
 declare namespace EsiSpec {
     export {
@@ -8811,8 +8905,10 @@ export function fetchAllCursorPages<TResponse, TItem = unknown>(fetcher: (before
     after?: string | null;
 }): Promise<TItem[]>;
 
+// Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export function fetchPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown): AsyncGenerator<PageResult<T>, void, undefined>;
+export function fetchPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema): AsyncGenerator<PageResult<T>, void, undefined>;
 
 // @public (undocumented)
 export type Fitting = z.infer<typeof FittingSchema>;
@@ -10515,40 +10611,33 @@ const MailMessageSchema: z.ZodObject<{
 // @public (undocumented)
 export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
     constructor(client: ApiClient);
-    getCharacterOrderHistory(characterId: number): Promise<MarketOrder[]>;
-    getCharacterOrders(characterId: number): Promise<MarketOrder[]>;
-    getCorporationOrderHistory(corporationId: number): Promise<MarketOrder[]>;
-    getCorporationOrders(corporationId: number): Promise<MarketOrder[]>;
-    getMarketGroupInformation(marketGroupId: number): Promise<{
-        market_group_id: number;
-        name: string;
-        description: string;
-        types: number[];
-        parent_group_id?: number;
-    }>;
+    getCharacterOrderHistory(characterId: number): Promise<CharacterMarketOrderHistory[]>;
+    getCharacterOrders(characterId: number): Promise<CharacterMarketOrder[]>;
+    getCorporationOrderHistory(corporationId: number): Promise<CorporationMarketOrderHistory[]>;
+    getCorporationOrders(corporationId: number): Promise<CorporationMarketOrder[]>;
+    getMarketGroupInformation(marketGroupId: number): Promise<MarketGroup>;
     getMarketGroups(): Promise<number[]>;
     getMarketHistory(regionId: number, typeId: number): Promise<MarketHistory[]>;
     getMarketOrders(regionId: number): Promise<MarketOrder[]>;
-    getMarketOrdersInStructure(structureId: number): Promise<MarketOrder[]>;
-    getMarketPrices(): Promise<{
-        type_id: number;
-        average_price?: number;
-        adjusted_price?: number;
-    }[]>;
+    getMarketOrdersInStructure(structureId: number): Promise<StructureMarketOrder[]>;
+    getMarketPrices(): Promise<MarketPrice[]>;
     getMarketTypes(regionId: number): Promise<number[]>;
     // (undocumented)
-    streamCharacterOrderHistory(characterId: number): AsyncGenerator<PageResult<MarketOrder>, void, undefined>;
+    streamCharacterOrderHistory(characterId: number): AsyncGenerator<PageResult<CharacterMarketOrderHistory>, void, undefined>;
     // (undocumented)
-    streamCorporationOrderHistory(corporationId: number): AsyncGenerator<PageResult<MarketOrder>, void, undefined>;
+    streamCorporationOrderHistory(corporationId: number): AsyncGenerator<PageResult<CorporationMarketOrderHistory>, void, undefined>;
     // (undocumented)
-    streamCorporationOrders(corporationId: number): AsyncGenerator<PageResult<MarketOrder>, void, undefined>;
+    streamCorporationOrders(corporationId: number): AsyncGenerator<PageResult<CorporationMarketOrder>, void, undefined>;
     // (undocumented)
     streamMarketOrders(regionId: number): AsyncGenerator<PageResult<MarketOrder>, void, undefined>;
     // (undocumented)
-    streamMarketOrdersInStructure(structureId: number): AsyncGenerator<PageResult<MarketOrder>, void, undefined>;
+    streamMarketOrdersInStructure(structureId: number): AsyncGenerator<PageResult<StructureMarketOrder>, void, undefined>;
     // (undocumented)
     streamMarketTypes(regionId: number): AsyncGenerator<PageResult<number>, void, undefined>;
 }
+
+// @public (undocumented)
+export type MarketGroup = z.infer<typeof MarketGroupSchema>;
 
 // @public (undocumented)
 const MarketGroupSchema: z.ZodObject<{
@@ -10575,7 +10664,7 @@ const MarketHistorySchema: z.ZodObject<{
 // @public (undocumented)
 export type MarketOrder = z.infer<typeof MarketOrderSchema>;
 
-// @public (undocumented)
+// @public
 const MarketOrderSchema: z.ZodObject<{
     order_id: z.ZodNumber;
     type_id: z.ZodNumber;
@@ -10589,12 +10678,6 @@ const MarketOrderSchema: z.ZodObject<{
     duration: z.ZodNumber;
     issued: z.ZodString;
     range: z.ZodString;
-    state: z.ZodOptional<z.ZodEnum<{
-        closed: "closed";
-        open: "open";
-        expired: "expired";
-        cancelled: "cancelled";
-    }>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -11294,8 +11377,8 @@ export interface RetryContext {
     refreshToken?: () => Promise<void>;
     // (undocumented)
     requiresAuth: boolean;
-    // (undocumented)
-    retryOperation: () => Promise<unknown>;
+    // @deprecated (undocumented)
+    retryOperation?: () => Promise<unknown>;
 }
 
 // @public (undocumented)
@@ -11442,6 +11525,11 @@ declare namespace schemas {
         MailLabelsResponseSchema,
         MailingListSchema,
         MarketOrderSchema,
+        CharacterMarketOrderSchema,
+        CharacterMarketOrderHistorySchema,
+        CorporationMarketOrderSchema,
+        CorporationMarketOrderHistorySchema,
+        StructureMarketOrderSchema,
         MarketHistorySchema,
         MarketGroupSchema,
         MarketPriceSchema,
@@ -11899,6 +11987,24 @@ const StructureInfoSchema: z.ZodObject<{
         y: z.ZodNumber;
         z: z.ZodNumber;
     }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type StructureMarketOrder = z.infer<typeof StructureMarketOrderSchema>;
+
+// @public
+const StructureMarketOrderSchema: z.ZodObject<{
+    order_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    volume_total: z.ZodNumber;
+    volume_remain: z.ZodNumber;
+    min_volume: z.ZodNumber;
+    price: z.ZodNumber;
+    is_buy_order: z.ZodBoolean;
+    duration: z.ZodNumber;
+    issued: z.ZodString;
+    range: z.ZodString;
 }, z.core.$loose>;
 
 // @public (undocumented)

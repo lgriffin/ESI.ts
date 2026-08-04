@@ -1,6 +1,6 @@
  
 // Auto-generated Zod schemas from ESI OpenAPI spec — do not edit manually
-// Spec hash: 68191d093493
+// Spec hash: a0ec73787c55
 
 import { z } from 'zod';
 
