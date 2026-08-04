@@ -6,6 +6,7 @@ import {
 import { camelToSnake } from '../util/stringUtil';
 import { logWarn } from '../logger/loggerUtil';
 import { sleep } from '../util/sleep';
+import { EsiError } from '../util/error';
 
 export interface RateLimitInfo {
   remaining: number;
@@ -268,10 +269,15 @@ export class RateLimiter implements IRateLimiter {
 
     // Re-check after sleeping on a block so a concurrent response that
     // re-blocked the group is respected (bounded to avoid infinite waits).
+    let stillBlockedBucket: GroupBucket | undefined;
     for (let i = 0; i < 10; i++) {
       const bucket = this.getBucket(templatePath, method, requestHeaders);
       const now = Date.now();
-      if (bucket.blockedUntil <= now) break;
+      if (bucket.blockedUntil <= now) {
+        stillBlockedBucket = undefined;
+        break;
+      }
+      stillBlockedBucket = bucket;
       const waitedUntil = bucket.blockedUntil;
       const waitTime = waitedUntil - now;
       logWarn(
@@ -282,6 +288,19 @@ export class RateLimiter implements IRateLimiter {
       if (bucket.blockedUntil <= waitedUntil) {
         bucket.blockedUntil = 0;
       }
+    }
+    // Never proceed while still blocked: if concurrent responses kept
+    // re-extending blockedUntil past the retry budget above, fail fast
+    // with a retryable rate-limit error rather than sending the request.
+    if (stillBlockedBucket && stillBlockedBucket.blockedUntil > Date.now()) {
+      const waitTime = stillBlockedBucket.blockedUntil - Date.now();
+      logWarn(
+        `[ESI Rate Limit] Group '${stillBlockedBucket.group}' still blocked after retry budget exhausted; aborting request instead of sending while blocked`,
+      );
+      throw new EsiError(
+        429,
+        `Rate limit group '${stillBlockedBucket.group}' still blocked for ${Math.ceil(waitTime / 1000)}s`,
+      );
     }
 
     const errorLimit = this.resolveErrorLimit(requestHeaders);

@@ -326,9 +326,16 @@ async function handleOffsetPagination(
         ? paginationError.message
         : String(paginationError);
     logWarn(`Pagination failed for ${url}: ${msg}`);
+    if (
+      paginationError instanceof EsiError ||
+      paginationError instanceof CircuitOpenError
+    ) {
+      throw paginationError;
+    }
     throw buildError(
       `Pagination incomplete for ${url}: ${msg}`,
       'PAGINATION_INCOMPLETE',
+      url,
     );
   }
 }

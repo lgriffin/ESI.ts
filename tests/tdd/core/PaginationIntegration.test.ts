@@ -1,6 +1,7 @@
 import { handleRequest } from '../../../src/core/ApiRequestHandler';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { EsiError } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -99,7 +100,7 @@ describe('Pagination Integration (handleRequest)', () => {
     );
   });
 
-  it('should throw if pagination fails after first page', async () => {
+  it('should throw the underlying EsiError if pagination fails after first page', async () => {
     // Page 1 succeeds
     fetchMock.mockResponseOnce(JSON.stringify([1, 2]), {
       headers: { 'x-pages': '2' },
@@ -107,9 +108,17 @@ describe('Pagination Integration (handleRequest)', () => {
     // Page 2 always fails — PaginationHandler will retry and eventually give up
     fetchMock.mockResponse('Server Error', { status: 500 });
 
-    await expect(
-      handleRequest(client, 'alliances', 'GET', undefined, false, false),
-    ).rejects.toThrow(/Pagination incomplete/);
+    // The original EsiError (with statusCode/retryable metadata intact) must
+    // propagate rather than being collapsed into a generic wrapped error, so
+    // that callers/RetryStrategy can still classify the failure correctly.
+    let caught: unknown;
+    try {
+      await handleRequest(client, 'alliances', 'GET', undefined, false, false);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(EsiError);
+    expect((caught as EsiError).statusCode).toBe(500);
   }, 15000);
 
   it('should handle x-pages header absent (defaults to 1 page)', async () => {
