@@ -187,26 +187,26 @@ describe('PaginationHandler', () => {
       expect(pageFetch).toHaveBeenCalledTimes(2);
     });
 
-    it('should stop after maxRetries consecutive failures', async () => {
+    it('should throw after maxRetries consecutive failures', async () => {
       const firstPageData = [{ id: 1 }];
       pageFetch.mockRejectedValue(new Error('HTTP 500: Internal Server Error'));
 
-      const result = await PaginationHandler.fetchRemainingPages(
-        client,
-        'alliances',
-        'GET',
-        false,
-        firstPageData,
-        5,
-        undefined,
-        { maxRetries: 3, retryDelayMs: 1 },
-        pageFetch,
-      );
-
-      expect(result).toEqual([{ id: 1 }]);
+      await expect(
+        PaginationHandler.fetchRemainingPages(
+          client,
+          'alliances',
+          'GET',
+          false,
+          firstPageData,
+          5,
+          undefined,
+          { maxRetries: 3, retryDelayMs: 1 },
+          pageFetch,
+        ),
+      ).rejects.toThrow('HTTP 500: Internal Server Error');
     });
 
-    it('should reset consecutive failure count on success', async () => {
+    it('should retry failed pages and continue on success', async () => {
       const firstPageData = [{ id: 1 }];
       pageFetch
         .mockRejectedValueOnce(new Error('HTTP 500: Internal Server Error'))

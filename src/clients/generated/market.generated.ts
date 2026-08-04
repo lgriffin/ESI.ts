@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { ApiClient } from '../../core/ApiClient';
 import { BaseEsiClient } from '../BaseEsiClient';
 import { marketEndpoints } from '../../core/endpoints/marketEndpoints';
-import { MarketGroupSchema, MarketHistorySchema, MarketOrderSchema, MarketPriceSchema } from '../../schemas/market';
+import { CharacterMarketOrderHistorySchema, CharacterMarketOrderSchema, CorporationMarketOrderHistorySchema, CorporationMarketOrderSchema, MarketGroupSchema, MarketHistorySchema, MarketOrderSchema, MarketPriceSchema, StructureMarketOrderSchema } from '../../schemas/market';
 
 export class GeneratedMarketClient extends BaseEsiClient<typeof marketEndpoints> {
   constructor(client: ApiClient) {
@@ -17,32 +17,32 @@ export class GeneratedMarketClient extends BaseEsiClient<typeof marketEndpoints>
    * GET getCharacterOrders
    * @requires Authentication
    */
-  getCharacterOrders(characterId: number | string): Promise<(z.infer<typeof MarketOrderSchema>)[]> {
-    return this.api.getCharacterOrders(characterId) as Promise<(z.infer<typeof MarketOrderSchema>)[]>;
+  getCharacterOrders(characterId: number | string): Promise<(z.infer<typeof CharacterMarketOrderSchema>)[]> {
+    return this.api.getCharacterOrders(characterId) as Promise<(z.infer<typeof CharacterMarketOrderSchema>)[]>;
   }
 
   /**
    * GET getCharacterOrderHistory
    * @requires Authentication
    */
-  getCharacterOrderHistory(characterId: number | string): Promise<(z.infer<typeof MarketOrderSchema>)[]> {
-    return this.api.getCharacterOrderHistory(characterId) as Promise<(z.infer<typeof MarketOrderSchema>)[]>;
+  getCharacterOrderHistory(characterId: number | string): Promise<(z.infer<typeof CharacterMarketOrderHistorySchema>)[]> {
+    return this.api.getCharacterOrderHistory(characterId) as Promise<(z.infer<typeof CharacterMarketOrderHistorySchema>)[]>;
   }
 
   /**
    * GET getCorporationOrders
    * @requires Authentication
    */
-  getCorporationOrders(corporationId: number | string): Promise<(z.infer<typeof MarketOrderSchema>)[]> {
-    return this.api.getCorporationOrders(corporationId) as Promise<(z.infer<typeof MarketOrderSchema>)[]>;
+  getCorporationOrders(corporationId: number | string): Promise<(z.infer<typeof CorporationMarketOrderSchema>)[]> {
+    return this.api.getCorporationOrders(corporationId) as Promise<(z.infer<typeof CorporationMarketOrderSchema>)[]>;
   }
 
   /**
    * GET getCorporationOrderHistory
    * @requires Authentication
    */
-  getCorporationOrderHistory(corporationId: number | string): Promise<(z.infer<typeof MarketOrderSchema>)[]> {
-    return this.api.getCorporationOrderHistory(corporationId) as Promise<(z.infer<typeof MarketOrderSchema>)[]>;
+  getCorporationOrderHistory(corporationId: number | string): Promise<(z.infer<typeof CorporationMarketOrderHistorySchema>)[]> {
+    return this.api.getCorporationOrderHistory(corporationId) as Promise<(z.infer<typeof CorporationMarketOrderHistorySchema>)[]>;
   }
 
   /**
@@ -68,9 +68,10 @@ export class GeneratedMarketClient extends BaseEsiClient<typeof marketEndpoints>
 
   /**
    * GET getMarketOrdersInStructure
+   * @requires Authentication
    */
-  getMarketOrdersInStructure(structureId: number | string): Promise<(z.infer<typeof MarketOrderSchema>)[]> {
-    return this.api.getMarketOrdersInStructure(structureId) as Promise<(z.infer<typeof MarketOrderSchema>)[]>;
+  getMarketOrdersInStructure(structureId: number | string): Promise<(z.infer<typeof StructureMarketOrderSchema>)[]> {
+    return this.api.getMarketOrdersInStructure(structureId) as Promise<(z.infer<typeof StructureMarketOrderSchema>)[]>;
   }
 
   /**

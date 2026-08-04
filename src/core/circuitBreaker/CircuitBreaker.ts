@@ -90,7 +90,15 @@ export class CircuitBreaker implements ICircuitBreaker {
   }
 
   recordFailure(endpoint: string, statusCode: number): void {
-    if (statusCode < 500 && statusCode !== 420 && statusCode !== 429) return;
+    // statusCode 0 = network/timeout; 420/429 = rate limited; >=500 = server errors
+    if (
+      statusCode !== 0 &&
+      statusCode < 500 &&
+      statusCode !== 420 &&
+      statusCode !== 429
+    ) {
+      return;
+    }
 
     const key = this.getKey(endpoint);
     const record = this.getOrCreate(key);

@@ -2,6 +2,11 @@ import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
   MarketOrderSchema,
+  CharacterMarketOrderSchema,
+  CharacterMarketOrderHistorySchema,
+  CorporationMarketOrderSchema,
+  CorporationMarketOrderHistorySchema,
+  StructureMarketOrderSchema,
   MarketHistorySchema,
   MarketGroupSchema,
   MarketPriceSchema,
@@ -13,28 +18,28 @@ export const marketEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    responseSchema: z.array(MarketOrderSchema),
+    responseSchema: z.array(CharacterMarketOrderSchema),
   },
   getCharacterOrderHistory: {
     path: 'characters/{characterId}/orders/history/',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    responseSchema: z.array(MarketOrderSchema),
+    responseSchema: z.array(CharacterMarketOrderHistorySchema),
   },
   getCorporationOrders: {
     path: 'corporations/{corporationId}/orders/',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
-    responseSchema: z.array(MarketOrderSchema),
+    responseSchema: z.array(CorporationMarketOrderSchema),
   },
   getCorporationOrderHistory: {
     path: 'corporations/{corporationId}/orders/history/',
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
-    responseSchema: z.array(MarketOrderSchema),
+    responseSchema: z.array(CorporationMarketOrderHistorySchema),
   },
   getMarketGroups: {
     path: 'markets/groups/',
@@ -58,9 +63,9 @@ export const marketEndpoints = {
   getMarketOrdersInStructure: {
     path: 'markets/structures/{structureId}/',
     method: 'GET',
-    requiresAuth: false,
+    requiresAuth: true,
     pathParams: ['structureId'],
-    responseSchema: z.array(MarketOrderSchema),
+    responseSchema: z.array(StructureMarketOrderSchema),
   },
   getMarketHistory: {
     path: 'markets/{regionId}/history/',

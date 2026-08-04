@@ -56,11 +56,10 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
   }
 
   /**
-   * Retrieve the corporation membership history of a character.
+   * Retrieve the corporation membership history of a character (public endpoint).
    *
    * @param characterId - The ID of the character whose corporation history to retrieve
    * @returns A chronological list of corporations the character has been a member of
-   * @requires Authentication
    */
   getCharacterCorporationHistory(
     characterId: number,

@@ -10,7 +10,8 @@ export interface RetryContext {
   method: string;
   requiresAuth: boolean;
   refreshToken?: () => Promise<void>;
-  retryOperation: () => Promise<unknown>;
+  /** @deprecated Unused — after refresh the strategy re-enters the main operation loop. */
+  retryOperation?: () => Promise<unknown>;
 }
 
 export class RetryStrategy {
@@ -33,6 +34,7 @@ export class RetryStrategy {
     const canRetryMethod = context.method === 'GET' || this.retryMutations;
 
     let lastError: unknown;
+    let refreshAttempted = false;
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
       try {
@@ -43,18 +45,21 @@ export class RetryStrategy {
         }
 
         if (
+          !refreshAttempted &&
           error instanceof EsiError &&
           error.statusCode === 401 &&
           context.requiresAuth &&
           context.refreshToken
         ) {
+          refreshAttempted = true;
           logInfo('Received 401, attempting token refresh...');
           try {
             await context.refreshToken();
-            logInfo('Token refreshed, retrying request');
-            return (await context.retryOperation()) as T;
           } catch (refreshError: unknown) {
-            if (refreshError instanceof EsiError) {
+            if (
+              refreshError instanceof EsiError ||
+              refreshError instanceof CircuitOpenError
+            ) {
               throw refreshError;
             }
             const msg =
@@ -67,6 +72,11 @@ export class RetryStrategy {
               'TOKEN_REFRESH_FAILED',
             );
           }
+          logInfo('Token refreshed, retrying request');
+          // Re-enter the loop so post-refresh failures use normal retry/error handling
+          // (and are never mislabeled as TOKEN_REFRESH_FAILED).
+          attempt--;
+          continue;
         }
 
         if (

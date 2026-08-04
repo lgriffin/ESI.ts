@@ -177,15 +177,16 @@ defineFeature(feature, (test) => {
     when('the client makes an authenticated request', async () => {
       const operation = jest
         .fn()
-        .mockRejectedValue(new EsiError(401, 'Unauthorized', 'test/endpoint'));
+        .mockRejectedValueOnce(
+          new EsiError(401, 'Unauthorized', 'test/endpoint'),
+        )
+        .mockResolvedValueOnce({ data: 'authed' });
       const refreshToken = jest.fn().mockResolvedValue(undefined);
-      const retryOperation = jest.fn().mockResolvedValue({ data: 'authed' });
       const context: RetryContext = {
         endpoint: 'test/endpoint',
         method: 'GET',
         requiresAuth: true,
         refreshToken,
-        retryOperation,
       };
       result = await strategy.execute(operation, context);
     });

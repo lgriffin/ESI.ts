@@ -129,7 +129,8 @@ function buildRequestHeaders(
   body: unknown,
 ): HeadersInit {
   const headers: HeadersInit = {
-    accept: 'gzip, deflate, br',
+    Accept: 'application/json',
+    'Accept-Encoding': 'gzip, deflate, br',
     'User-Agent': USER_AGENT,
     'X-Compatibility-Date': COMPATIBILITY_DATE,
   };
@@ -324,8 +325,18 @@ async function handleOffsetPagination(
       paginationError instanceof Error
         ? paginationError.message
         : String(paginationError);
-    logWarn(`Pagination failed, returning first page only: ${msg}`);
-    return { headers: parsed.raw, body: data };
+    logWarn(`Pagination failed for ${url}: ${msg}`);
+    if (
+      paginationError instanceof EsiError ||
+      paginationError instanceof CircuitOpenError
+    ) {
+      throw paginationError;
+    }
+    throw buildError(
+      `Pagination incomplete for ${url}: ${msg}`,
+      'PAGINATION_INCOMPLETE',
+      url,
+    );
   }
 }
 
@@ -491,6 +502,10 @@ async function executeSingleFetch(
     response = await fetch(url, options);
   } catch (err) {
     clearTimeout(timer);
+    if (cb) {
+      // Status 0 = network/timeout failure — counts toward opening the circuit
+      cb.recordFailure(endpoint, 0);
+    }
     if (err instanceof Error && err.name === 'AbortError') {
       throw new TimeoutError(timeoutMs, url);
     }
@@ -682,15 +697,34 @@ export const handleSinglePageRequest = async (
   method: string,
   body?: unknown,
   requiresAuth: boolean = false,
+  templatePath?: string,
+  requestTimeout?: number,
 ): Promise<EsiHandlerResponse> => {
-  const { data, parsed } = await fetchOnePage(
-    client,
+  const doExecute = () =>
+    fetchOnePage(
+      client,
+      endpoint,
+      method,
+      body,
+      requiresAuth,
+      true,
+      requestTimeout,
+      templatePath,
+    ).then(({ data, parsed }) => ({
+      headers: parsed.raw,
+      body: data,
+    }));
+
+  const retryStrategy = new RetryStrategy(client.getRetryConfig() ?? undefined);
+
+  return retryStrategy.execute<EsiHandlerResponse>(doExecute, {
     endpoint,
     method,
-    body,
     requiresAuth,
-  );
-  return { headers: parsed.raw, body: data };
+    refreshToken: client.hasTokenProvider()
+      ? () => client.refreshToken().then(() => {})
+      : undefined,
+  });
 };
 
 export const handleRequest = async (
@@ -704,8 +738,18 @@ export const handleRequest = async (
   requestTimeout?: number,
 ): Promise<EsiHandlerResponse> => {
   const rawUrl = `${client.getLink()}/${endpoint}`;
+  const startTime = Date.now();
   const specHit = trySpecAwareCacheHit(client, rawUrl, method, templatePath);
-  if (specHit) return specHit;
+  if (specHit) {
+    return applyResponseInterceptors(
+      client,
+      specHit,
+      rawUrl,
+      endpoint,
+      method,
+      startTime,
+    );
+  }
 
   const doExecute = () =>
     executeRequest(
@@ -736,15 +780,5 @@ export const handleRequest = async (
     refreshToken: client.hasTokenProvider()
       ? () => client.refreshToken().then(() => {})
       : undefined,
-    retryOperation: () =>
-      executeRequest(
-        client,
-        endpoint,
-        method,
-        body,
-        requiresAuth,
-        useETag,
-        requestTimeout,
-      ),
   });
 };

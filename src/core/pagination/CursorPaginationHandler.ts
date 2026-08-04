@@ -71,7 +71,8 @@ export class CursorPaginationHandler {
     logInfo(`Cursor fetch: ${url}`);
 
     const headers: Record<string, string> = {
-      accept: 'gzip, deflate, br',
+      Accept: 'application/json',
+      'Accept-Encoding': 'gzip, deflate, br',
       'User-Agent': USER_AGENT,
       'X-Compatibility-Date': COMPATIBILITY_DATE,
     };

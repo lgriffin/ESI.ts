@@ -68,7 +68,7 @@ export const characterEndpoints = {
   getCorporationHistory: {
     path: 'characters/{characterId}/corporationhistory/',
     method: 'GET',
-    requiresAuth: true,
+    requiresAuth: false,
     pathParams: ['characterId'],
     responseSchema: z.array(CorporationHistorySchema),
   },
