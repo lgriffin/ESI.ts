@@ -165,6 +165,7 @@ describe('streamEndpoint', () => {
       'GET',
       undefined,
       false,
+      'test/{regionId}/items/',
     );
   });
 
@@ -185,6 +186,7 @@ describe('streamEndpoint', () => {
       'GET',
       undefined,
       false,
+      'test/{regionId}/items/',
     );
   });
 
@@ -206,6 +208,7 @@ describe('streamEndpoint', () => {
       'GET',
       undefined,
       false,
+      'test/{regionId}/items/',
     );
   });
 
@@ -226,6 +229,7 @@ describe('streamEndpoint', () => {
       'GET',
       undefined,
       true,
+      'secure/{characterId}/items/',
     );
   });
 
@@ -274,6 +278,7 @@ describe('streamEndpoint', () => {
       'GET',
       undefined,
       false,
+      'test/{regionId}/items/',
     );
   });
 });

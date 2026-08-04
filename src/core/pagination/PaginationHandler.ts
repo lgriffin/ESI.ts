@@ -52,8 +52,6 @@ export class PaginationHandler {
 
     logInfo(`Fetching pages 2-${effectiveMaxPage} for ${endpoint}...`);
 
-    let consecutiveFailures = 0;
-
     for (let page = 2; page <= effectiveMaxPage; page++) {
       try {
         if (rateLimiter) await rateLimiter.checkRateLimit(templatePath, method);
@@ -65,8 +63,6 @@ export class PaginationHandler {
           pageFetch,
         );
 
-        consecutiveFailures = 0;
-
         if (opts.stopOnEmptyPage && (!pageData || pageData.length === 0)) {
           logWarn(`Page ${page} is empty. Stopping pagination.`);
           break;
@@ -77,17 +73,12 @@ export class PaginationHandler {
           `Fetched page ${page}/${effectiveMaxPage} (${pageData.length} items)`,
         );
       } catch (error) {
-        consecutiveFailures++;
         logError(
           `Failed to fetch page ${page}: ${error instanceof Error ? error.message : String(error)}`,
         );
-
-        if (consecutiveFailures >= opts.maxRetries) {
-          logWarn(
-            `${consecutiveFailures} consecutive failures. Stopping pagination.`,
-          );
-          break;
-        }
+        throw error instanceof Error
+          ? error
+          : new Error(`Failed to fetch page ${page}: ${String(error)}`);
       }
     }
 

@@ -99,7 +99,7 @@ describe('Pagination Integration (handleRequest)', () => {
     );
   });
 
-  it('should return first page data if pagination fails', async () => {
+  it('should throw if pagination fails after first page', async () => {
     // Page 1 succeeds
     fetchMock.mockResponseOnce(JSON.stringify([1, 2]), {
       headers: { 'x-pages': '2' },
@@ -107,17 +107,9 @@ describe('Pagination Integration (handleRequest)', () => {
     // Page 2 always fails — PaginationHandler will retry and eventually give up
     fetchMock.mockResponse('Server Error', { status: 500 });
 
-    const result = await handleRequest(
-      client,
-      'alliances',
-      'GET',
-      undefined,
-      false,
-      false,
-    );
-
-    // Should still get page 1 data (graceful degradation)
-    expect(result.body).toEqual([1, 2]);
+    await expect(
+      handleRequest(client, 'alliances', 'GET', undefined, false, false),
+    ).rejects.toThrow(/Pagination incomplete/);
   }, 15000);
 
   it('should handle x-pages header absent (defaults to 1 page)', async () => {

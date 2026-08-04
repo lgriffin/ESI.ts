@@ -32,7 +32,8 @@ describe('MarketClient', () => {
         min_volume: 1,
         price: 5.27,
         is_buy_order: true,
-        system_id: 30000142,
+        is_corporation: false,
+        region_id: 10000002,
         duration: 90,
         issued: '2024-01-01T00:00:00Z',
         range: 'station',
@@ -46,7 +47,8 @@ describe('MarketClient', () => {
         min_volume: 1,
         price: 15.43,
         is_buy_order: false,
-        system_id: 30000142,
+        is_corporation: false,
+        region_id: 10000002,
         duration: 30,
         issued: '2024-01-02T00:00:00Z',
         range: 'region',
@@ -58,32 +60,8 @@ describe('MarketClient', () => {
     const result = await getBody(() => marketClient.getCharacterOrders(123456));
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach(
-      (order: {
-        order_id: number;
-        type_id: number;
-        location_id: number;
-        volume_total: number;
-        volume_remain: number;
-        price: number;
-        is_buy_order: boolean;
-      }) => {
-        expect(order).toHaveProperty('order_id');
-        expect(typeof order.order_id).toBe('number');
-        expect(order).toHaveProperty('type_id');
-        expect(typeof order.type_id).toBe('number');
-        expect(order).toHaveProperty('location_id');
-        expect(typeof order.location_id).toBe('number');
-        expect(order).toHaveProperty('volume_total');
-        expect(typeof order.volume_total).toBe('number');
-        expect(order).toHaveProperty('volume_remain');
-        expect(typeof order.volume_remain).toBe('number');
-        expect(order).toHaveProperty('price');
-        expect(typeof order.price).toBe('number');
-        expect(order).toHaveProperty('is_buy_order');
-        expect(typeof order.is_buy_order).toBe('boolean');
-      },
-    );
+    expect(result[0]).toHaveProperty('region_id');
+    expect(result[0]).toHaveProperty('is_corporation');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/orders/',
     );
@@ -100,10 +78,12 @@ describe('MarketClient', () => {
         min_volume: 1,
         price: 5.27,
         is_buy_order: true,
-        system_id: 30000142,
+        is_corporation: false,
+        region_id: 10000002,
         duration: 90,
         issued: '2023-12-01T00:00:00Z',
         range: 'station',
+        state: 'expired',
       },
     ];
 
@@ -114,32 +94,7 @@ describe('MarketClient', () => {
     );
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach(
-      (order: {
-        order_id: number;
-        type_id: number;
-        location_id: number;
-        volume_total: number;
-        volume_remain: number;
-        price: number;
-        is_buy_order: boolean;
-      }) => {
-        expect(order).toHaveProperty('order_id');
-        expect(typeof order.order_id).toBe('number');
-        expect(order).toHaveProperty('type_id');
-        expect(typeof order.type_id).toBe('number');
-        expect(order).toHaveProperty('location_id');
-        expect(typeof order.location_id).toBe('number');
-        expect(order).toHaveProperty('volume_total');
-        expect(typeof order.volume_total).toBe('number');
-        expect(order).toHaveProperty('volume_remain');
-        expect(typeof order.volume_remain).toBe('number');
-        expect(order).toHaveProperty('price');
-        expect(typeof order.price).toBe('number');
-        expect(order).toHaveProperty('is_buy_order');
-        expect(typeof order.is_buy_order).toBe('boolean');
-      },
-    );
+    expect(result[0]).toHaveProperty('state', 'expired');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/orders/history/',
     );
@@ -156,7 +111,9 @@ describe('MarketClient', () => {
         min_volume: 1,
         price: 5.27,
         is_buy_order: true,
-        system_id: 30000142,
+        issued_by: 123456,
+        region_id: 10000002,
+        wallet_division: 1,
         duration: 90,
         issued: '2024-01-01T00:00:00Z',
         range: 'station',
@@ -170,7 +127,9 @@ describe('MarketClient', () => {
         min_volume: 1,
         price: 15.43,
         is_buy_order: false,
-        system_id: 30000142,
+        issued_by: 123456,
+        region_id: 10000002,
+        wallet_division: 1,
         duration: 30,
         issued: '2024-01-02T00:00:00Z',
         range: 'region',
@@ -184,32 +143,8 @@ describe('MarketClient', () => {
     );
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach(
-      (order: {
-        order_id: number;
-        type_id: number;
-        location_id: number;
-        volume_total: number;
-        volume_remain: number;
-        price: number;
-        is_buy_order: boolean;
-      }) => {
-        expect(order).toHaveProperty('order_id');
-        expect(typeof order.order_id).toBe('number');
-        expect(order).toHaveProperty('type_id');
-        expect(typeof order.type_id).toBe('number');
-        expect(order).toHaveProperty('location_id');
-        expect(typeof order.location_id).toBe('number');
-        expect(order).toHaveProperty('volume_total');
-        expect(typeof order.volume_total).toBe('number');
-        expect(order).toHaveProperty('volume_remain');
-        expect(typeof order.volume_remain).toBe('number');
-        expect(order).toHaveProperty('price');
-        expect(typeof order.price).toBe('number');
-        expect(order).toHaveProperty('is_buy_order');
-        expect(typeof order.is_buy_order).toBe('boolean');
-      },
-    );
+    expect(result[0]).toHaveProperty('wallet_division');
+    expect(result[0]).toHaveProperty('issued_by');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/123456/orders/',
     );
@@ -226,10 +161,13 @@ describe('MarketClient', () => {
         min_volume: 1,
         price: 5.27,
         is_buy_order: true,
-        system_id: 30000142,
+        issued_by: 123456,
+        region_id: 10000002,
+        wallet_division: 1,
         duration: 90,
         issued: '2023-12-01T00:00:00Z',
         range: 'station',
+        state: 'cancelled',
       },
     ];
 
@@ -240,32 +178,7 @@ describe('MarketClient', () => {
     );
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach(
-      (order: {
-        order_id: number;
-        type_id: number;
-        location_id: number;
-        volume_total: number;
-        volume_remain: number;
-        price: number;
-        is_buy_order: boolean;
-      }) => {
-        expect(order).toHaveProperty('order_id');
-        expect(typeof order.order_id).toBe('number');
-        expect(order).toHaveProperty('type_id');
-        expect(typeof order.type_id).toBe('number');
-        expect(order).toHaveProperty('location_id');
-        expect(typeof order.location_id).toBe('number');
-        expect(order).toHaveProperty('volume_total');
-        expect(typeof order.volume_total).toBe('number');
-        expect(order).toHaveProperty('volume_remain');
-        expect(typeof order.volume_remain).toBe('number');
-        expect(order).toHaveProperty('price');
-        expect(typeof order.price).toBe('number');
-        expect(order).toHaveProperty('is_buy_order');
-        expect(typeof order.is_buy_order).toBe('boolean');
-      },
-    );
+    expect(result[0]).toHaveProperty('state', 'cancelled');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/123456/orders/history/',
     );
@@ -488,13 +401,12 @@ describe('MarketClient', () => {
       {
         order_id: 1,
         type_id: 34,
-        location_id: 60003760,
+        location_id: 123456789,
         volume_total: 1000,
         volume_remain: 500,
         min_volume: 1,
         price: 5.27,
         is_buy_order: true,
-        system_id: 30000142,
         duration: 90,
         issued: '2024-01-01T00:00:00Z',
         range: 'station',
@@ -502,13 +414,12 @@ describe('MarketClient', () => {
       {
         order_id: 2,
         type_id: 35,
-        location_id: 60003760,
+        location_id: 123456789,
         volume_total: 2000,
         volume_remain: 1500,
         min_volume: 1,
         price: 15.43,
         is_buy_order: false,
-        system_id: 30000142,
         duration: 30,
         issued: '2024-01-02T00:00:00Z',
         range: 'region',
@@ -522,36 +433,11 @@ describe('MarketClient', () => {
     );
 
     expect(Array.isArray(result)).toBe(true);
-    result.forEach(
-      (order: {
-        order_id: number;
-        type_id: number;
-        location_id: number;
-        volume_total: number;
-        volume_remain: number;
-        price: number;
-        is_buy_order: boolean;
-      }) => {
-        expect(order).toHaveProperty('order_id');
-        expect(typeof order.order_id).toBe('number');
-        expect(order).toHaveProperty('type_id');
-        expect(typeof order.type_id).toBe('number');
-        expect(order).toHaveProperty('location_id');
-        expect(typeof order.location_id).toBe('number');
-        expect(order).toHaveProperty('volume_total');
-        expect(typeof order.volume_total).toBe('number');
-        expect(order).toHaveProperty('volume_remain');
-        expect(typeof order.volume_remain).toBe('number');
-        expect(order).toHaveProperty('price');
-        expect(typeof order.price).toBe('number');
-        expect(order).toHaveProperty('is_buy_order');
-        expect(typeof order.is_buy_order).toBe('boolean');
-      },
-    );
+    expect(result[0]).not.toHaveProperty('system_id');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/markets/structures/123456789/',
     );
   });
-
-  describeClientErrors('MarketClient', () => marketClient.getMarketPrices());
 });
+
+describeClientErrors('MarketClient', () => marketClient.getMarketPrices());

@@ -42,12 +42,19 @@ interface GroupBucket {
   lastUpdated: number;
 }
 
+interface ErrorLimitState {
+  remain: number;
+  reset: number;
+}
+
 interface UserBucketSet {
   groups: Map<string, GroupBucket>;
+  errorLimit: ErrorLimitState;
   lastAccessed: number;
 }
 
 const DEFAULT_WINDOW_MS = 900_000;
+const DEFAULT_ERROR_LIMIT: ErrorLimitState = { remain: 100, reset: 0 };
 
 export class RateLimiter implements IRateLimiter {
   private readonly minDelayMs: number;
@@ -57,10 +64,10 @@ export class RateLimiter implements IRateLimiter {
   ) => string;
 
   private lastRequestTime: number = 0;
+  private minDelayChain: Promise<void> = Promise.resolve();
   private isTestMode: boolean = false;
 
-  private errorLimitRemain: number = 100;
-  private errorLimitReset: number = 0;
+  private globalErrorLimit: ErrorLimitState = { ...DEFAULT_ERROR_LIMIT };
 
   private defaultBuckets: Map<string, GroupBucket> = new Map();
   private userBuckets: Map<string, UserBucketSet> | null = null;
@@ -127,21 +134,39 @@ export class RateLimiter implements IRateLimiter {
     return esiRateLimitGroups[key];
   }
 
-  private resolveBucketMap(
+  private resolveUserSet(
     requestHeaders?: Record<string, string>,
-  ): Map<string, GroupBucket> {
+  ): UserBucketSet | null {
     if (!this.userBuckets || !this.userKeyExtractor || !requestHeaders) {
-      return this.defaultBuckets;
+      return null;
     }
 
     const userKey = this.userKeyExtractor(requestHeaders);
     let userSet = this.userBuckets.get(userKey);
     if (!userSet) {
-      userSet = { groups: new Map(), lastAccessed: Date.now() };
+      userSet = {
+        groups: new Map(),
+        errorLimit: { ...DEFAULT_ERROR_LIMIT },
+        lastAccessed: Date.now(),
+      };
       this.userBuckets.set(userKey, userSet);
     }
     userSet.lastAccessed = Date.now();
-    return userSet.groups;
+    return userSet;
+  }
+
+  private resolveBucketMap(
+    requestHeaders?: Record<string, string>,
+  ): Map<string, GroupBucket> {
+    const userSet = this.resolveUserSet(requestHeaders);
+    return userSet ? userSet.groups : this.defaultBuckets;
+  }
+
+  private resolveErrorLimit(
+    requestHeaders?: Record<string, string>,
+  ): ErrorLimitState {
+    const userSet = this.resolveUserSet(requestHeaders);
+    return userSet ? userSet.errorLimit : this.globalErrorLimit;
   }
 
   private getBucket(
@@ -219,11 +244,12 @@ export class RateLimiter implements IRateLimiter {
       }
     }
 
+    const errorLimit = this.resolveErrorLimit(requestHeaders);
     if ('x-esi-error-limit-remain' in headers) {
-      this.errorLimitRemain = parseInt(headers['x-esi-error-limit-remain'], 10);
+      errorLimit.remain = parseInt(headers['x-esi-error-limit-remain'], 10);
     }
     if ('x-esi-error-limit-reset' in headers) {
-      this.errorLimitReset = parseInt(headers['x-esi-error-limit-reset'], 10);
+      errorLimit.reset = parseInt(headers['x-esi-error-limit-reset'], 10);
     }
   }
 
@@ -240,40 +266,43 @@ export class RateLimiter implements IRateLimiter {
 
     this.cleanupStaleUsers();
 
-    const bucket = this.getBucket(templatePath, method, requestHeaders);
-    const now = Date.now();
-
-    if (bucket.blockedUntil > now) {
-      const waitTime = bucket.blockedUntil - now;
+    // Re-check after sleeping on a block so a concurrent response that
+    // re-blocked the group is respected (bounded to avoid infinite waits).
+    for (let i = 0; i < 10; i++) {
+      const bucket = this.getBucket(templatePath, method, requestHeaders);
+      const now = Date.now();
+      if (bucket.blockedUntil <= now) break;
+      const waitedUntil = bucket.blockedUntil;
+      const waitTime = waitedUntil - now;
       logWarn(
         `[ESI Rate Limit] Group '${bucket.group}' blocked for ${Math.ceil(waitTime / 1000)}s (420/429 received)`,
       );
       await sleep(waitTime);
-      bucket.blockedUntil = 0;
-      return;
-    }
-
-    if (this.errorLimitRemain <= 10 && this.errorLimitRemain > 0) {
-      const resetMs = this.errorLimitReset * 1000;
-      const delay = Math.min(resetMs, 5000);
-      if (delay > 0) {
-        logWarn(
-          `[ESI Rate Limit] Legacy error limit low (${this.errorLimitRemain}), waiting ${delay}ms`,
-        );
-        await sleep(delay);
-        return;
+      // Clear the block we waited for; leave intact if another response extended it
+      if (bucket.blockedUntil <= waitedUntil) {
+        bucket.blockedUntil = 0;
       }
     }
 
-    if (this.errorLimitRemain <= 0 && this.errorLimitReset > 0) {
-      const waitTime = this.errorLimitReset * 1000;
+    const errorLimit = this.resolveErrorLimit(requestHeaders);
+    if (errorLimit.remain <= 10 && errorLimit.remain > 0) {
+      const resetMs = errorLimit.reset * 1000;
+      const delay = Math.min(resetMs, 5000);
+      if (delay > 0) {
+        logWarn(
+          `[ESI Rate Limit] Legacy error limit low (${errorLimit.remain}), waiting ${delay}ms`,
+        );
+        await sleep(delay);
+      }
+    } else if (errorLimit.remain <= 0 && errorLimit.reset > 0) {
+      const waitTime = errorLimit.reset * 1000;
       logWarn(
         `[ESI Rate Limit] Legacy error limit exhausted, waiting ${Math.ceil(waitTime / 1000)}s`,
       );
       await sleep(waitTime);
-      return;
     }
 
+    const bucket = this.getBucket(templatePath, method, requestHeaders);
     if (bucket.remaining >= 0 && bucket.limit > 0) {
       const ratio = bucket.remaining / bucket.limit;
 
@@ -282,35 +311,42 @@ export class RateLimiter implements IRateLimiter {
           `[ESI Rate Limit] Group '${bucket.group}' token bucket empty, waiting 1s`,
         );
         await sleep(1000);
-        return;
-      }
-
-      if (ratio <= this.decelerationThreshold) {
+      } else if (ratio <= this.decelerationThreshold) {
         const extraDelay = Math.ceil(
           (1 - ratio / this.decelerationThreshold) * 1000,
         );
         await sleep(extraDelay);
-        return;
       }
     }
 
     await this.enforceMinDelay();
   }
 
+  /**
+   * Serializes min-delay waits so concurrent callers cannot all read the same
+   * lastRequestTime and fire together after sleeping.
+   */
   private async enforceMinDelay(): Promise<void> {
     if (this.isTestMode) {
       this.lastRequestTime = Date.now();
       return;
     }
 
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
+    const run = async (): Promise<void> => {
+      const now = Date.now();
+      const timeSinceLastRequest = now - this.lastRequestTime;
+      if (timeSinceLastRequest < this.minDelayMs) {
+        await sleep(this.minDelayMs - timeSinceLastRequest);
+      }
+      this.lastRequestTime = Date.now();
+    };
 
-    if (timeSinceLastRequest < this.minDelayMs) {
-      await sleep(this.minDelayMs - timeSinceLastRequest);
-    }
-
-    this.lastRequestTime = Date.now();
+    const scheduled = this.minDelayChain.then(run, run);
+    this.minDelayChain = scheduled.then(
+      () => undefined,
+      () => undefined,
+    );
+    await scheduled;
   }
 
   getStatus(): RateLimitInfo {
@@ -344,8 +380,8 @@ export class RateLimiter implements IRateLimiter {
       limit: worstBucket.limit,
       used: worstBucket.used,
       group: worstBucket.group === '__fallback__' ? null : worstBucket.group,
-      errorLimitRemain: this.errorLimitRemain,
-      errorLimitReset: this.errorLimitReset,
+      errorLimitRemain: this.globalErrorLimit.remain,
+      errorLimitReset: this.globalErrorLimit.reset,
       retryAfter:
         worstBucket.blockedUntil > Date.now()
           ? Math.ceil((worstBucket.blockedUntil - Date.now()) / 1000)
@@ -409,9 +445,9 @@ export class RateLimiter implements IRateLimiter {
     this.defaultBuckets.clear();
     if (this.userBuckets) this.userBuckets.clear();
     this.fallbackBucket = this.createFallbackBucket();
-    this.errorLimitRemain = 100;
-    this.errorLimitReset = 0;
+    this.globalErrorLimit = { ...DEFAULT_ERROR_LIMIT };
     this.lastRequestTime = 0;
+    this.minDelayChain = Promise.resolve();
     this.lastCleanup = 0;
   }
 }

@@ -70,7 +70,6 @@ export class GeneratedCharacterClient extends BaseEsiClient<typeof characterEndp
 
   /**
    * GET getCorporationHistory
-   * @requires Authentication
    */
   getCorporationHistory(characterId: number | string): Promise<(z.infer<typeof CorporationHistorySchema>)[]> {
     return this.api.getCorporationHistory(characterId) as Promise<(z.infer<typeof CorporationHistorySchema>)[]>;

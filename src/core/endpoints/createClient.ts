@@ -130,7 +130,17 @@ export function createClient<T extends EndpointMap>(
             true,
             def.path,
           );
-          const responseBody = response.body;
+          let responseBody = response.body;
+          if (def.responseSchema && apiClient.getValidateResponse()) {
+            const result = def.responseSchema.safeParse(responseBody);
+            if (!result.success) {
+              throw new EsiValidationError(
+                `${apiClient.getLink()}/${path}`,
+                result.error,
+              );
+            }
+            responseBody = result.data;
+          }
           let data: unknown[];
           if (Array.isArray(responseBody)) {
             data = responseBody as unknown[];

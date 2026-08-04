@@ -202,10 +202,9 @@ export class TestDataFactory {
       min_volume: 1,
       price: 4.5,
       is_buy_order: true,
-      system_id: 30000142,
+      is_corporation: false,
       duration: 90,
       issued: '2024-01-15T12:00:00Z',
-      state: 'open',
       ...overrides,
     };
   }
@@ -222,10 +221,10 @@ export class TestDataFactory {
       min_volume: 1,
       price: 4.5,
       is_buy_order: true,
-      system_id: 30000142,
+      is_corporation: false,
       duration: 90,
       issued: '2024-01-10T12:00:00Z',
-      state: 'closed',
+      state: 'expired',
       ...overrides,
     };
   }

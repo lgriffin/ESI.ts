@@ -333,7 +333,6 @@ defineFeature(feature, (test) => {
           is_buy_order: true,
           duration: 90,
           issued: '2024-01-15T12:00:00Z',
-          state: 'open',
         }),
       ];
 
@@ -351,8 +350,8 @@ defineFeature(feature, (test) => {
       expect(result[0]).toHaveProperty('order_id');
       expect(result[0]).toHaveProperty('type_id');
       expect(result[0]).toHaveProperty('price');
-      expect(result[0]).toHaveProperty('state');
-      expect(result[0].state).toBe('open');
+      expect(result[0]).toHaveProperty('region_id');
+      expect(result[0]).toHaveProperty('is_corporation');
     });
   });
 

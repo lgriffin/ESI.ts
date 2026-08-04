@@ -1,7 +1,17 @@
 import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { marketEndpoints } from '../core/endpoints/marketEndpoints';
-import { MarketOrder, MarketHistory } from '../types/api-responses';
+import {
+  MarketOrder,
+  CharacterMarketOrder,
+  CharacterMarketOrderHistory,
+  CorporationMarketOrder,
+  CorporationMarketOrderHistory,
+  StructureMarketOrder,
+  MarketHistory,
+  MarketGroup,
+  MarketPrice,
+} from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
@@ -16,8 +26,10 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
    * @returns A list of the character's open market orders
    * @requires Authentication
    */
-  getCharacterOrders(characterId: number): Promise<MarketOrder[]> {
-    return this.api.getCharacterOrders(characterId) as Promise<MarketOrder[]>;
+  getCharacterOrders(characterId: number): Promise<CharacterMarketOrder[]> {
+    return this.api.getCharacterOrders(characterId) as Promise<
+      CharacterMarketOrder[]
+    >;
   }
 
   /**
@@ -27,9 +39,11 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
    * @returns A list of the character's historical market orders
    * @requires Authentication
    */
-  getCharacterOrderHistory(characterId: number): Promise<MarketOrder[]> {
+  getCharacterOrderHistory(
+    characterId: number,
+  ): Promise<CharacterMarketOrderHistory[]> {
     return this.api.getCharacterOrderHistory(characterId) as Promise<
-      MarketOrder[]
+      CharacterMarketOrderHistory[]
     >;
   }
 
@@ -40,9 +54,11 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
    * @returns A list of the corporation's open market orders
    * @requires Authentication
    */
-  getCorporationOrders(corporationId: number): Promise<MarketOrder[]> {
+  getCorporationOrders(
+    corporationId: number,
+  ): Promise<CorporationMarketOrder[]> {
     return this.api.getCorporationOrders(corporationId) as Promise<
-      MarketOrder[]
+      CorporationMarketOrder[]
     >;
   }
 
@@ -53,9 +69,11 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
    * @returns A list of the corporation's historical market orders
    * @requires Authentication
    */
-  getCorporationOrderHistory(corporationId: number): Promise<MarketOrder[]> {
+  getCorporationOrderHistory(
+    corporationId: number,
+  ): Promise<CorporationMarketOrderHistory[]> {
     return this.api.getCorporationOrderHistory(corporationId) as Promise<
-      MarketOrder[]
+      CorporationMarketOrderHistory[]
     >;
   }
 
@@ -107,20 +125,10 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
    * @param marketGroupId - The ID of the market group to look up
    * @returns The market group details including name, description, types, and optional parent group
    */
-  getMarketGroupInformation(marketGroupId: number): Promise<{
-    market_group_id: number;
-    name: string;
-    description: string;
-    types: number[];
-    parent_group_id?: number;
-  }> {
-    return this.api.getMarketGroupInformation(marketGroupId) as Promise<{
-      market_group_id: number;
-      name: string;
-      description: string;
-      types: number[];
-      parent_group_id?: number;
-    }>;
+  getMarketGroupInformation(marketGroupId: number): Promise<MarketGroup> {
+    return this.api.getMarketGroupInformation(
+      marketGroupId,
+    ) as Promise<MarketGroup>;
   }
 
   /**
@@ -128,12 +136,8 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
    *
    * @returns A list of item types with their average and adjusted market prices
    */
-  getMarketPrices(): Promise<
-    { type_id: number; average_price?: number; adjusted_price?: number }[]
-  > {
-    return this.api.getMarketPrices() as Promise<
-      { type_id: number; average_price?: number; adjusted_price?: number }[]
-    >;
+  getMarketPrices(): Promise<MarketPrice[]> {
+    return this.api.getMarketPrices() as Promise<MarketPrice[]>;
   }
 
   /**
@@ -141,10 +145,13 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
    *
    * @param structureId - The ID of the structure to fetch orders for
    * @returns A list of active market orders in the structure
+   * @requires Authentication
    */
-  getMarketOrdersInStructure(structureId: number): Promise<MarketOrder[]> {
+  getMarketOrdersInStructure(
+    structureId: number,
+  ): Promise<StructureMarketOrder[]> {
     return this.api.getMarketOrdersInStructure(structureId) as Promise<
-      MarketOrder[]
+      StructureMarketOrder[]
     >;
   }
 
@@ -162,8 +169,8 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
 
   streamCharacterOrderHistory(
     characterId: number,
-  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
-    return this.streamEndpoint<MarketOrder>(
+  ): AsyncGenerator<PageResult<CharacterMarketOrderHistory>, void, undefined> {
+    return this.streamEndpoint<CharacterMarketOrderHistory>(
       'getCharacterOrderHistory',
       characterId,
     );
@@ -171,8 +178,8 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
 
   streamCorporationOrders(
     corporationId: number,
-  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
-    return this.streamEndpoint<MarketOrder>(
+  ): AsyncGenerator<PageResult<CorporationMarketOrder>, void, undefined> {
+    return this.streamEndpoint<CorporationMarketOrder>(
       'getCorporationOrders',
       corporationId,
     );
@@ -180,8 +187,12 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
 
   streamCorporationOrderHistory(
     corporationId: number,
-  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
-    return this.streamEndpoint<MarketOrder>(
+  ): AsyncGenerator<
+    PageResult<CorporationMarketOrderHistory>,
+    void,
+    undefined
+  > {
+    return this.streamEndpoint<CorporationMarketOrderHistory>(
       'getCorporationOrderHistory',
       corporationId,
     );
@@ -189,8 +200,8 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
 
   streamMarketOrdersInStructure(
     structureId: number,
-  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
-    return this.streamEndpoint<MarketOrder>(
+  ): AsyncGenerator<PageResult<StructureMarketOrder>, void, undefined> {
+    return this.streamEndpoint<StructureMarketOrder>(
       'getMarketOrdersInStructure',
       structureId,
     );

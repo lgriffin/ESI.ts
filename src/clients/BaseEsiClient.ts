@@ -43,6 +43,8 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
       def.method,
       def.requiresAuth,
       body,
+      def.path,
+      def.responseSchema,
     );
   }
 

@@ -163,6 +163,15 @@ describe('CircuitBreaker', () => {
       expect(cb.getState('v1/status/')).toBe('closed');
     });
 
+    it('should count network failures (status 0) as failures', () => {
+      const cb = new CircuitBreaker({ failureThreshold: 2 });
+
+      cb.recordFailure('v1/status/', 0);
+      cb.recordFailure('v1/status/', 0);
+
+      expect(cb.getState('v1/status/')).toBe('open');
+    });
+
     it('should open circuit with mixed rate-limit and 5xx failures', () => {
       const cb = new CircuitBreaker({ failureThreshold: 3 });
 

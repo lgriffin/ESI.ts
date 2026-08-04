@@ -224,6 +224,7 @@ describe('AsyncPaginationIterator', () => {
         'POST',
         requestBody,
         true,
+        undefined,
       );
     });
   });

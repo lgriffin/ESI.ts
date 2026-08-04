@@ -66,6 +66,7 @@ describe('MarketClient streaming', () => {
         'GET',
         undefined,
         false,
+        'markets/{regionId}/orders/',
       );
     });
 
@@ -161,6 +162,7 @@ describe('MarketClient streaming', () => {
         'GET',
         undefined,
         false,
+        'markets/{regionId}/types/',
       );
       expect(pages[0].data).toEqual([34, 35, 36]);
     });
@@ -185,7 +187,8 @@ describe('MarketClient streaming', () => {
         'markets/structures/1234567890/',
         'GET',
         undefined,
-        false,
+        true,
+        'markets/structures/{structureId}/',
       );
     });
   });

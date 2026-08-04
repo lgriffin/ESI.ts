@@ -18,6 +18,7 @@ import {
 import {
   MarketOrderSchema,
   MarketHistorySchema,
+  CharacterMarketOrderHistorySchema,
 } from '../../../src/schemas/market';
 import {
   SolarSystemInfoSchema,
@@ -581,7 +582,7 @@ describe('Schema Validation', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should accept valid MarketOrder state enum values', () => {
+    it('should accept valid CharacterMarketOrderHistory state enum values', () => {
       const baseOrder = {
         order_id: 1,
         type_id: 34,
@@ -591,20 +592,24 @@ describe('Schema Validation', () => {
         min_volume: 1,
         price: 5.0,
         is_buy_order: false,
-        system_id: 30000142,
+        is_corporation: false,
+        region_id: 10000002,
         duration: 90,
         issued: '2023-01-15T12:00:00Z',
         range: 'region',
       };
 
-      const validStates = ['open', 'closed', 'expired', 'cancelled'];
+      const validStates = ['expired', 'cancelled'] as const;
       for (const state of validStates) {
-        const result = MarketOrderSchema.safeParse({ ...baseOrder, state });
+        const result = CharacterMarketOrderHistorySchema.safeParse({
+          ...baseOrder,
+          state,
+        });
         expect(result.success).toBe(true);
       }
     });
 
-    it('should reject invalid MarketOrder state enum values', () => {
+    it('should reject invalid CharacterMarketOrderHistory state enum values', () => {
       const data = {
         order_id: 1,
         type_id: 34,
@@ -614,14 +619,15 @@ describe('Schema Validation', () => {
         min_volume: 1,
         price: 5.0,
         is_buy_order: false,
-        system_id: 30000142,
+        is_corporation: false,
+        region_id: 10000002,
         duration: 90,
         issued: '2023-01-15T12:00:00Z',
         range: 'region',
         state: 'pending',
       };
 
-      const result = MarketOrderSchema.safeParse(data);
+      const result = CharacterMarketOrderHistorySchema.safeParse(data);
       expect(result.success).toBe(false);
     });
 

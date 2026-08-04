@@ -137,22 +137,43 @@ describe('RetryStrategy', () => {
     it('should refresh token on 401 and retry', async () => {
       const strategy = new RetryStrategy();
       const refreshToken = jest.fn().mockResolvedValue(undefined);
-      const retryOperation = jest.fn().mockResolvedValue({ data: 'authed' });
       const operation = jest
         .fn()
-        .mockRejectedValue(new EsiError(401, 'Unauthorized', 'test/endpoint'));
+        .mockRejectedValueOnce(
+          new EsiError(401, 'Unauthorized', 'test/endpoint'),
+        )
+        .mockResolvedValueOnce({ data: 'authed' });
       const context: RetryContext = {
         ...baseContext,
         requiresAuth: true,
         refreshToken,
-        retryOperation,
       };
 
       const result = await strategy.execute(operation, context);
 
       expect(refreshToken).toHaveBeenCalledTimes(1);
-      expect(retryOperation).toHaveBeenCalledTimes(1);
+      expect(operation).toHaveBeenCalledTimes(2);
       expect(result).toEqual({ data: 'authed' });
+    });
+
+    it('should propagate CircuitOpenError from post-refresh request', async () => {
+      const strategy = new RetryStrategy();
+      const refreshToken = jest.fn().mockResolvedValue(undefined);
+      const operation = jest
+        .fn()
+        .mockRejectedValueOnce(
+          new EsiError(401, 'Unauthorized', 'test/endpoint'),
+        )
+        .mockRejectedValueOnce(new CircuitOpenError('test/endpoint', 5, 30000));
+      const context: RetryContext = {
+        ...baseContext,
+        requiresAuth: true,
+        refreshToken,
+      };
+
+      await expect(strategy.execute(operation, context)).rejects.toBeInstanceOf(
+        CircuitOpenError,
+      );
     });
 
     it('should throw TOKEN_REFRESH_FAILED when refresh fails', async () => {
