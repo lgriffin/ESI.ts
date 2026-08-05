@@ -236,4 +236,220 @@ describe('Spec-Aware Caching', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('TTL / ETag reconciliation', () => {
+    it('should preserve ETag after default TTL expires when spec TTL is longer', async () => {
+      // Use a short defaultTtl (100ms) to simulate the bug scenario:
+      // spec TTL (3600s for alliances/) >> defaultTtl (100ms)
+      const shortTtlCache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 100, // 100ms — very short
+        cleanupInterval: 600000, // disable automatic cleanup
+      });
+      client.setCache(shortTtlCache);
+
+      const mockData = [{ alliance_id: 1 }];
+      // First request — populates cache with ETag
+      fetchMock.mockResponseOnce(JSON.stringify(mockData), {
+        headers: {
+          ETag: '"etag-reconcile-1"',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      await handleRequest(
+        client,
+        'v1/alliances/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'alliances/',
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      // Wait for the default TTL to expire (100ms) but stay within spec TTL (3600s)
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      // Second request — spec-aware cache hit should still work because the
+      // entry TTL was set to spec TTL (3600s), not defaultTtl (100ms).
+      // Before the fix, the entry would have been evicted at 100ms, losing the ETag.
+      const second = await handleRequest(
+        client,
+        'v1/alliances/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'alliances/',
+      );
+      expect(second.fromCache).toBe(true);
+      expect(second.cacheHitType).toBe('spec-ttl');
+      // No additional fetch should have been made
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use spec TTL even when Cache-Control header provides a shorter TTL', async () => {
+      const mockData = [{ alliance_id: 1 }];
+      // Respond with a short Cache-Control max-age (1s) but the spec TTL for
+      // alliances/ is 3600s — the entry should be cached with the spec TTL.
+      fetchMock.mockResponseOnce(JSON.stringify(mockData), {
+        headers: {
+          ETag: '"etag-reconcile-2"',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'max-age=1',
+        },
+      });
+
+      await handleRequest(
+        client,
+        'v1/alliances/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'alliances/',
+      );
+
+      // Wait beyond the Cache-Control max-age (1s) but within spec TTL (3600s)
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+
+      // Spec-aware cache hit should still work — entry TTL = spec TTL
+      const second = await handleRequest(
+        client,
+        'v1/alliances/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'alliances/',
+      );
+      expect(second.fromCache).toBe(true);
+      expect(second.cacheHitType).toBe('spec-ttl');
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fall back to header TTL when no spec TTL exists', async () => {
+      // Use a short-lived cache with a very short defaultTtl
+      const shortTtlCache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 100, // 100ms
+        cleanupInterval: 600000,
+      });
+      client.setCache(shortTtlCache);
+
+      const mockData = { name: 'Unknown Endpoint' };
+      // Endpoint with no spec TTL, and a Cache-Control header of 2s
+      fetchMock.mockResponseOnce(JSON.stringify(mockData), {
+        headers: {
+          ETag: '"etag-reconcile-3"',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'max-age=2',
+        },
+      });
+
+      await handleRequest(
+        client,
+        'v1/fake/unknown/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'fake/unknown/',
+      );
+
+      // Wait beyond the defaultTtl (100ms) but within Cache-Control (2s)
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      // With no spec TTL, the entry TTL should be from Cache-Control (2000ms),
+      // so it should still be present and the ETag should be retrievable.
+      // The second request should include If-None-Match (ETag preserved).
+      fetchMock.mockResponseOnce(JSON.stringify(mockData), {
+        headers: {
+          ETag: '"etag-reconcile-3"',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'max-age=2',
+        },
+      });
+
+      await handleRequest(
+        client,
+        'v1/fake/unknown/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'fake/unknown/',
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      // Verify If-None-Match was sent (ETag was preserved, not evicted)
+      const secondCallHeaders = fetchMock.mock.calls[1]![1]!.headers as Record<
+        string,
+        string
+      >;
+      expect(secondCallHeaders['If-None-Match']).toBe('"etag-reconcile-3"');
+    });
+
+    it('should fall back to defaultTtl when no spec TTL and no Cache-Control exist', async () => {
+      // Use a short-lived cache
+      const shortTtlCache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 100, // 100ms
+        cleanupInterval: 600000,
+      });
+      client.setCache(shortTtlCache);
+
+      const mockData = { name: 'No Headers' };
+      // Endpoint with no spec TTL and no Cache-Control header
+      fetchMock.mockResponseOnce(JSON.stringify(mockData), {
+        headers: {
+          ETag: '"etag-reconcile-4"',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      await handleRequest(
+        client,
+        'v1/fake/noheaders/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'fake/noheaders/',
+      );
+
+      // Wait beyond the defaultTtl (100ms)
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      // With no spec TTL and no Cache-Control, the entry uses defaultTtl (100ms).
+      // After 150ms it should be expired and evicted — ETag lost, full GET.
+      fetchMock.mockResponseOnce(JSON.stringify(mockData), {
+        headers: {
+          ETag: '"etag-reconcile-4b"',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const second = await handleRequest(
+        client,
+        'v1/fake/noheaders/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'fake/noheaders/',
+      );
+      // Should NOT be from cache — entry expired at defaultTtl
+      expect(second.fromCache).toBeUndefined();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      // Verify If-None-Match was NOT sent (ETag was lost)
+      const secondCallHeaders = fetchMock.mock.calls[1]![1]!.headers as Record<
+        string,
+        string
+      >;
+      expect(secondCallHeaders['If-None-Match']).toBeUndefined();
+    });
+  });
 });
