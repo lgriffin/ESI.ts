@@ -1,5 +1,4 @@
 import { ApiClient } from './core/ApiClient';
-import { RateLimiter } from './core/rateLimiter/RateLimiter';
 import { validateBaseUrl } from './core/util/validation';
 import {
   ApiClientType,
@@ -42,6 +41,9 @@ import {
   AccessListsClient,
 } from './core/ClientRegistry';
 import { EsiClientConfig } from './EsiClient';
+import { configureApiClient } from './core/configureApiClient';
+import { ETagCacheManager } from './core/cache/ETagCacheManager';
+import { RequestDeduplicator } from './core/RequestDeduplicator';
 import logger from './core/logger/logger';
 
 export { ApiClientType, ClientInstance };
@@ -50,6 +52,7 @@ export class CustomEsiClient {
   private apiClient: ApiClient;
   private clients: Map<string, ClientInstance> = new Map();
   private enabledClients: Set<ApiClientType>;
+  private deduplicator: RequestDeduplicator | null = null;
 
   constructor(config: EsiClientConfig & { clients: ApiClientType[] }) {
     this.enabledClients = new Set(config.clients);
@@ -62,7 +65,22 @@ export class CustomEsiClient {
       baseUrl,
       config.accessToken || process.env.ESI_ACCESS_TOKEN,
     );
-    this.apiClient.setRateLimiter(new RateLimiter());
+
+    if (config.language) {
+      this.apiClient.setLanguage(config.language);
+    }
+
+    if (config.onTokenRefresh) {
+      this.apiClient.setTokenProvider(config.onTokenRefresh);
+    }
+
+    const datasource = config.datasource;
+    if (datasource) {
+      this.apiClient.setDatasource(datasource);
+    }
+
+    const result = configureApiClient(this.apiClient, config);
+    this.deduplicator = result.deduplicator;
 
     for (const name of this.enabledClients) {
       this.clients.set(name, createClientInstance(name, this.apiClient));
@@ -192,6 +210,17 @@ export class CustomEsiClient {
   }
 
   shutdown(): void {
+    const cache = this.apiClient.getCache();
+    if (cache) {
+      (cache as ETagCacheManager).shutdown();
+    }
+    const cb = this.apiClient.getCircuitBreaker();
+    if (cb) {
+      cb.shutdown();
+    }
+    if (this.deduplicator) {
+      this.deduplicator.clear();
+    }
     this.clients.clear();
     logger.info('CustomEsiClient shutdown completed');
   }
@@ -278,7 +307,21 @@ export class EsiApiFactory {
       baseUrl,
       config?.accessToken || process.env.ESI_ACCESS_TOKEN,
     );
-    client.setRateLimiter(new RateLimiter());
+
+    if (config?.language) {
+      client.setLanguage(config.language);
+    }
+
+    if (config?.onTokenRefresh) {
+      client.setTokenProvider(config.onTokenRefresh);
+    }
+
+    const datasource = config?.datasource;
+    if (datasource) {
+      client.setDatasource(datasource);
+    }
+
+    configureApiClient(client, config);
     return client;
   }
 }
