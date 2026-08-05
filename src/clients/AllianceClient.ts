@@ -26,7 +26,7 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    * @returns Public alliance information including name, ticker, and founding date
    */
   getAllianceById(allianceId: number): Promise<AllianceInfo> {
-    return this.api.getAllianceById(allianceId) as Promise<AllianceInfo>;
+    return this.api.getAllianceById(allianceId);
   }
 
   /**
@@ -41,9 +41,11 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
     logWarn(
       'AllianceClient.getContacts() is deprecated. Use ContactsClient.getAllianceContacts() instead. Planned removal in next major version.',
     );
-    return this.contactApi.getAllianceContacts(allianceId) as Promise<
-      AllianceContact[]
-    >;
+    // Schema mismatch: ContactSchema uses a wider contact_type enum than AllianceContactSchema.
+    // Cast through unknown until schemas are unified.
+    return this.contactApi.getAllianceContacts(
+      allianceId,
+    ) as unknown as Promise<AllianceContact[]>;
   }
 
   /**
@@ -58,9 +60,9 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
     logWarn(
       'AllianceClient.getContactLabels() is deprecated. Use ContactsClient.getAllianceContactLabels() instead. Planned removal in next major version.',
     );
-    return this.contactApi.getAllianceContactLabels(allianceId) as Promise<
-      AllianceContactLabel[]
-    >;
+    // Schema mismatch: ContactLabelSchema vs AllianceContactLabelSchema are structurally
+    // identical but TypeScript treats them as distinct nominal types from different schemas.
+    return this.contactApi.getAllianceContactLabels(allianceId);
   }
 
   /**
@@ -70,7 +72,7 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    * @returns An array of corporation IDs belonging to the alliance
    */
   getCorporations(allianceId: number): Promise<number[]> {
-    return this.api.getCorporations(allianceId) as Promise<number[]>;
+    return this.api.getCorporations(allianceId);
   }
 
   /**
@@ -80,7 +82,7 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    * @returns Icon URLs at various resolutions for the alliance
    */
   getIcons(allianceId: number): Promise<AllianceIcon> {
-    return this.api.getIcons(allianceId) as Promise<AllianceIcon>;
+    return this.api.getIcons(allianceId);
   }
 
   /**
@@ -89,6 +91,6 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    * @returns An array of all active alliance IDs
    */
   getAlliances(): Promise<number[]> {
-    return this.api.getAlliances() as Promise<number[]>;
+    return this.api.getAlliances();
   }
 }

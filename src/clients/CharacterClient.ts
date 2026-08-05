@@ -28,9 +28,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @returns Public character information including name, corporation, and birthday
    */
   getCharacterPublicInfo(characterId: number): Promise<CharacterInfo> {
-    return this.api.getCharacterPublicInfo(
-      characterId,
-    ) as Promise<CharacterInfo>;
+    return this.api.getCharacterPublicInfo(characterId);
   }
 
   /**
@@ -41,7 +39,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @requires Authentication
    */
   getCharacterAgentsResearch(characterId: number): Promise<AgentResearch[]> {
-    return this.api.getAgentsResearch(characterId) as Promise<AgentResearch[]>;
+    return this.api.getAgentsResearch(characterId);
   }
 
   /**
@@ -52,7 +50,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @requires Authentication
    */
   getCharacterBlueprints(characterId: number): Promise<Blueprint[]> {
-    return this.api.getBlueprints(characterId) as Promise<Blueprint[]>;
+    return this.api.getBlueprints(characterId);
   }
 
   /**
@@ -64,9 +62,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
   getCharacterCorporationHistory(
     characterId: number,
   ): Promise<CorporationHistory[]> {
-    return this.api.getCorporationHistory(characterId) as Promise<
-      CorporationHistory[]
-    >;
+    return this.api.getCorporationHistory(characterId);
   }
 
   /**
@@ -95,7 +91,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @requires Authentication
    */
   getCharacterFatigue(characterId: number): Promise<JumpFatigue> {
-    return this.api.getJumpFatigue(characterId) as Promise<JumpFatigue>;
+    return this.api.getJumpFatigue(characterId);
   }
 
   /**
@@ -106,7 +102,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @requires Authentication
    */
   getCharacterMedals(characterId: number): Promise<Medal[]> {
-    return this.api.getMedals(characterId) as Promise<Medal[]>;
+    return this.api.getMedals(characterId);
   }
 
   /**
@@ -117,7 +113,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @requires Authentication
    */
   getCharacterNotifications(characterId: number): Promise<Notification[]> {
-    return this.api.getNotifications(characterId) as Promise<Notification[]>;
+    return this.api.getNotifications(characterId);
   }
 
   /**
@@ -130,7 +126,9 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
   getCharacterNotificationsContacts(
     characterId: number,
   ): Promise<Notification[]> {
-    return this.api.getContactNotifications(characterId) as Promise<
+    // Schema mismatch: ContactNotification schema differs from Notification type.
+    // Cast through unknown until schema is aligned with the type.
+    return this.api.getContactNotifications(characterId) as unknown as Promise<
       Notification[]
     >;
   }
@@ -142,7 +140,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @returns Portrait URLs at different resolutions (64x64, 128x128, 256x256, 512x512)
    */
   getCharacterPortrait(characterId: number): Promise<CharacterPortrait> {
-    return this.api.getPortrait(characterId) as Promise<CharacterPortrait>;
+    return this.api.getPortrait(characterId);
   }
 
   /**
@@ -153,7 +151,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @requires Authentication
    */
   getCharacterRoles(characterId: number): Promise<CharacterRole> {
-    return this.api.getRoles(characterId) as Promise<CharacterRole>;
+    return this.api.getRoles(characterId);
   }
 
   /**
@@ -164,7 +162,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @requires Authentication
    */
   getCharacterStandings(characterId: number): Promise<Standing[]> {
-    return this.api.getStandings(characterId) as Promise<Standing[]>;
+    return this.api.getStandings(characterId);
   }
 
   /**
@@ -175,7 +173,7 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
    * @requires Authentication
    */
   getCharacterTitles(characterId: number): Promise<CharacterTitle[]> {
-    return this.api.getTitles(characterId) as Promise<CharacterTitle[]>;
+    return this.api.getTitles(characterId);
   }
 
   /**
