@@ -6,7 +6,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 
 | Tier                 |      Tests |   Suites | Purpose                                                                     |
 | -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |      3,238 |       85 | Per-module unit tests with mocked HTTP                                      |
+| TDD (unit)           |      3,480 |       99 | Per-module unit tests with mocked HTTP                                      |
 | BDD (behavioral)     |        600 |       40 | Gherkin-style scenarios covering user-facing behaviors                      |
 | Benchmark (perf)     |         17 |        4 | Performance regression guards for core infrastructure                       |
 | Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
@@ -15,7 +15,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
-| **Total**            | **4,400+** | **130+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
+| **Total**            | **4,600+** | **140+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
 
@@ -23,30 +23,33 @@ Current coverage (unit + BDD, measured by Jest):
 
 | Metric     |  Value | Threshold |
 | ---------- | -----: | --------: |
-| Statements | 96.35% |       90% |
-| Branches   | 87.40% |       80% |
-| Functions  | 93.20% |       75% |
-| Lines      | 96.38% |       90% |
+| Statements | 98.47% |       90% |
+| Branches   | 90.10% |       80% |
+| Functions  | 97.54% |       75% |
+| Lines      | 98.59% |       90% |
 
 Coverage is collected from `src/**/*.ts` (excluding `.d.ts` and `src/types/`).
 
 ### Per-File Test Breakdown (Notable Test Suites)
 
-| File                           | Tests | Category                                        |
-| ------------------------------ | ----: | ----------------------------------------------- |
-| `resilience.test.ts`           |    12 | Rate limits, malformed responses, retry, dedup  |
-| `security.test.ts`             |    23 | Token leakage, HTTPS, host allowlist, injection |
-| `configValidation.test.ts`     |    33 | Builder, factory, config combos, shutdown       |
-| `publicApiSurface.test.ts`     |   135 | Export snapshot — breaking-change detector      |
-| `crossCutting.test.ts`         |    15 | Diagnostics, middleware ordering, logger        |
-| `apiSurfaceSnapshots.test.ts`  |     5 | API export & shape snapshot regression          |
-| `concurrency.test.ts`          |    11 | Deduplicator, batch fetch, rate limiter races   |
-| `utilFunctions.test.ts`        |    25 | camelToSnake, sleep, retryDelay, buildError     |
-| `schemaRejection.test.ts`      |   423 | Valid/invalid/extra-field for all 33 schemas    |
-| `clientErrorTests.ts` (helper) |   150 | HTTP 401/403/404/429/500 across 30 clients      |
-| `esi-spec-contract.test.ts`    |    10 | Live OpenAPI drift detection                    |
-| `client-integration.test.ts`   |    11 | Full EsiClient against live ESI                 |
-| `live-esi.test.ts` (expanded)  |    40 | Smoke tests across 42 endpoints                 |
+| File                           | Tests | Category                                          |
+| ------------------------------ | ----: | ------------------------------------------------- |
+| `resilience.test.ts`           |    12 | Rate limits, malformed responses, retry, dedup    |
+| `security.test.ts`             |    23 | Token leakage, HTTPS, host allowlist, injection   |
+| `configValidation.test.ts`     |    33 | Builder, factory, config combos, shutdown         |
+| `publicApiSurface.test.ts`     |   135 | Export snapshot — breaking-change detector        |
+| `crossCutting.test.ts`         |    15 | Diagnostics, middleware ordering, logger          |
+| `apiSurfaceSnapshots.test.ts`  |     5 | API export & shape snapshot regression            |
+| `concurrency.test.ts`          |    11 | Deduplicator, batch fetch, rate limiter races     |
+| `utilFunctions.test.ts`        |    25 | camelToSnake, sleep, retryDelay, buildError       |
+| `schemaRejection.test.ts`      |   423 | Valid/invalid/extra-field for all 33 schemas      |
+| `clientErrorTests.ts` (helper) |   150 | HTTP 401/403/404/429/500 across 30 clients        |
+| `esi-spec-contract.test.ts`    |    10 | Live OpenAPI drift detection                      |
+| `client-integration.test.ts`   |    11 | Full EsiClient against live ESI                   |
+| `live-esi.test.ts` (expanded)  |    40 | Smoke tests across 42 endpoints                   |
+| `streamMethods.test.ts`        |    71 | Stream method delegation across 19 domain clients |
+| `coverageBranches.test.ts`     |    13 | BaseEsiClient, EsiClient, builder branch coverage |
+| `paginationBranches.test.ts`   |    12 | Pagination handler edge case branches             |
 
 ## Test Structure
 
@@ -100,7 +103,11 @@ tests/
 │   │   ├── tokenRefresh.test.ts
 │   │   ├── utilFunctions.test.ts           # Core utility functions (25 tests)
 │   │   ├── validation.test.ts
-│   │   └── WithMetadata.test.ts
+│   │   ├── WithMetadata.test.ts
+│   │   ├── coverageBranches.test.ts        # BaseEsiClient, EsiClient, builder branches (13 tests)
+│   │   └── paginationBranches.test.ts      # Pagination handler edge cases (12 tests)
+│   ├── clients/
+│   │   └── streamMethods.test.ts           # Stream method delegation across 19 clients (71 tests)
 │   ├── helpers/                  # Shared test utilities
 │   │   └── clientErrorTests.ts             # Reusable HTTP error test generator
 │   ├── schemas/                  # Schema validation tests (Zod)
@@ -174,7 +181,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All unit + BDD tests (default) — 125 suites, 3,838 tests
+# All unit + BDD tests (default) — 139 suites, 4,080 tests
 npm test
 
 # Watch mode for development
@@ -220,7 +227,7 @@ npm run bdd:performance
 **Config:** `jest.unit.config.cjs`
 **Run:** `npm test`
 
-85 test files covering:
+99 test files covering:
 
 - **Domain clients** (35 files) — One per ESI API module (AllianceClient, MarketClient, etc.). Each mocks `fetch` and verifies correct URL construction, response parsing, and type safety. All 30 non-trivial clients include HTTP error path coverage (401, 403, 404, 429, 500) via the shared `describeClientErrors` helper.
 - **Core infrastructure** (35+ files) — Circuit breaker, rate limiter, pagination (offset + cursor), ETag cache, request deduplication, retry with backoff, middleware pipeline, endpoint definitions, validation, error handling, timeout behavior, diagnostics, and configuration.
@@ -233,6 +240,9 @@ npm run bdd:performance
 - **Configuration** (`configValidation.test.ts`) — Default config, all features enabled simultaneously, EsiClientBuilder selective/full client registration, EsiApiFactory methods, token provider, datasource/language config, shutdown idempotency, legacy retry config.
 - **Public API Surface** (`publicApiSurface.test.ts`) — Snapshot of all 35 domain client exports, 21 class/function exports, 8 type guard functions, 35 domain accessors on EsiClient, and 13 EsiClient methods. Acts as a contract — if a public export is accidentally removed, this test breaks.
 - **Cross-Cutting** (`crossCutting.test.ts`) — Diagnostics accuracy (cache stats, circuit breaker stats, clearCache, resetCircuitBreaker), middleware ordering (request before response, registration order, remove at runtime, constructor config), and custom logger integration.
+- **Stream methods** (`streamMethods.test.ts`) — 71 tests verifying all `stream*()` methods across 19 domain clients delegate correctly to `BaseEsiClient.streamEndpoint()` with the right endpoint name and arguments.
+- **Pagination branches** (`paginationBranches.test.ts`) — Edge case branches in `PaginationHandler` (no rate limiter, non-Error thrown values, null page data), `CursorPaginationHandler` (pageFetch delegate, non-abort errors, invalid JSON, body passthrough), `resolveRateLimiter` error path, and `handleOffsetPagination` generic error wrapping.
+- **Coverage branches** (`coverageBranches.test.ts`) — `BaseEsiClient.withSafeMode()` and `withMetadata()` memoization, `EsiClient.batch()` and `batchPost()` delegation, `EsiApiFactory` static factory config branches, and `CustomEsiClient` constructor config branches.
 
 ### Tier 2: BDD Behavioral Tests
 
@@ -860,7 +870,7 @@ npm run generate:types
 | `jest.integration.config.cjs`                  | Integration test config (30s timeout)             |
 | `jest.contract.config.cjs`                     | Contract test config (60s timeout)                |
 | `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)                    |
-| `tests/tdd/`                                   | 85 TDD test files                                 |
+| `tests/tdd/`                                   | 99 TDD test files                                 |
 | `tests/tdd/helpers/clientErrorTests.ts`        | Shared HTTP error test generator (5 status codes) |
 | `tests/tdd/core/apiSurfaceSnapshots.test.ts`   | API export & shape snapshot tests (5 tests)       |
 | `tests/tdd/core/concurrency.test.ts`           | Async scheduling correctness (11 tests)           |

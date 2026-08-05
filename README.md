@@ -37,7 +37,7 @@ Tools like `openapi-typescript` or `openapi-generator` can produce a typed clien
 | **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                                                      |
 | **Domain knowledge**            | None — generic HTTP client.                                                                                         | 35 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                                                 |
 | **Streaming pagination**        | None.                                                                                                               | 21 domain clients with 73+ `stream*` methods via `AsyncGenerator` — process large datasets page-by-page without loading everything into memory.                                                                                    |
-| **Testing**                     | Whatever you write.                                                                                                 | 95+ test suites, 3,800+ tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 43 runnable example scripts. |
+| **Testing**                     | Whatever you write.                                                                                                 | 139 test suites, 4,080+ tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 43 runnable example scripts. |
 
 ### The real problem with generated clients
 
@@ -74,7 +74,7 @@ Verify everything works:
 
 ```bash
 npm run example:status   # quick smoke test — checks ESI is reachable
-npm test                 # run the full test suite (95+ suites, 3,800+ tests)
+npm test                 # run the full test suite (139 suites, 4,080+ tests)
 ```
 
 ## Quick Start
@@ -821,7 +821,7 @@ try {
 
 ## Testing
 
-ESI.ts has a comprehensive multi-tier testing strategy with 95+ suites and 3,800+ tests:
+ESI.ts has a comprehensive multi-tier testing strategy with 139 suites and 4,080+ tests:
 
 | Tier                       | Tests            | Purpose                                                            |
 | -------------------------- | ---------------- | ------------------------------------------------------------------ |
@@ -839,7 +839,7 @@ ESI.ts has a comprehensive multi-tier testing strategy with 95+ suites and 3,800
 | **Spec-alignment**         | Type assertions  | Ensures hand-written types align with generated OpenAPI types      |
 
 ```bash
-npm test          # Unit + BDD tests (95+ suites, 3,800+ tests)
+npm test          # Unit + BDD tests (139 suites, 4,080+ tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 npm run contract  # Contract tests (skipped without ESI_LIVE_TESTS=true)
@@ -849,7 +849,7 @@ npm run benchmark # Performance benchmark tests
 npm run test:types # tsd consumer type tests
 ```
 
-Coverage thresholds are enforced in CI: branches 80%, functions 75%, lines 90%, statements 90%.
+Coverage: statements 98.47%, branches 90.10%, functions 97.54%, lines 98.59%. Thresholds enforced in CI: branches 80%, functions 75%, lines 90%, statements 90%.
 
 See [guides/TESTING.md](guides/TESTING.md) for the full testing guide, and [guides/ARCHITECTURE.md](guides/ARCHITECTURE.md) for architecture diagrams.
 
@@ -886,7 +886,7 @@ npm run format             # Format code with Prettier
 npm run format:check       # Check formatting without modifying
 
 # Testing
-npm test                   # Unit tests (95+ suites, 3,800+ tests)
+npm test                   # Unit tests (139 suites, 4,080+ tests)
 npm run test:all           # Unit + BDD + integration + fuzz + type tests
 npm run coverage           # Tests with coverage report (thresholds enforced)
 npm run bdd                # BDD scenario tests
