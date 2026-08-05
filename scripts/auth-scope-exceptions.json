@@ -1,0 +1,18 @@
+[
+  {
+    "key": "GET:access-lists/{access_list_id}",
+    "reason": "Newer endpoint; esi-access.read_lists.v1 scope exists but scope map not yet generated for this path"
+  },
+  {
+    "key": "GET:corporations/{corporation_id}/mining/extractions",
+    "reason": "ESI uses singular 'corporation/' prefix for mining endpoints; scope map has 'corporation/{corporation_id}/mining/extractions'"
+  },
+  {
+    "key": "GET:corporations/{corporation_id}/mining/observers",
+    "reason": "ESI uses singular 'corporation/' prefix for mining endpoints; scope map has 'corporation/{corporation_id}/mining/observers'"
+  },
+  {
+    "key": "GET:corporations/{corporation_id}/mining/observers/{observer_id}",
+    "reason": "ESI uses singular 'corporation/' prefix for mining endpoints; scope map has 'corporation/{corporation_id}/mining/observers/{observer_id}'"
+  }
+]
