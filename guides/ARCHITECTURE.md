@@ -2,132 +2,209 @@
 
 ## C4 Model
 
-### C4 Context Diagram
+### C4 Level 1 — System Context
 
 System context showing ESI.ts in its operating environment.
 
+| Element                  | Description                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| **Consumer Application** | Node.js or browser app that needs EVE Online data                                       |
+| **ESI.ts**               | TypeScript SDK — auth, caching, rate limiting, circuit breaking, pagination, validation |
+| **EVE Online ESI API**   | CCP's public REST API at esi.evetech.net (35 domains, OAuth2)                           |
+| **EVE SSO**              | OAuth2 authorization server — issues and refreshes access tokens                        |
+| **ESI OpenAPI Spec**     | Machine-readable API spec used at build time for code generation                        |
+
 ```mermaid
-C4Context
-    title ESI.ts — System Context Diagram
+flowchart TB
+    consumer(["Consumer App"])
 
-    Person(consumer, "Consumer Application", "Node.js / browser app that needs EVE Online data")
+    subgraph boundary [" "]
+        esits["ESI.ts SDK"]
+    end
 
-    System(esits, "ESI.ts", "TypeScript SDK wrapping the EVE Online ESI API. Handles auth, caching, rate limiting, circuit breaking, pagination, and response validation.")
+    esi[/"ESI API"/]
+    sso[/"EVE SSO"/]
+    spec[/"OpenAPI Spec"/]
 
-    System_Ext(esi, "EVE Online ESI API", "CCP's public REST API at esi.evetech.net. OpenAPI-specified, 35 domains, OAuth2 for authenticated endpoints.")
-    System_Ext(sso, "EVE SSO", "OAuth2 authorization server for EVE Online. Issues and refreshes access tokens.")
-    System_Ext(spec, "ESI OpenAPI Spec", "Machine-readable API specification used at build time to generate types, schemas, TTLs, rate limits, and scopes.")
+    consumer -- "TypeScript API" --> esits
+    esits -- "HTTPS + JSON" --> esi
+    esits -- "OAuth2 refresh" --> sso
+    spec -. "Build-time codegen" .-> esits
 
-    Rel(consumer, esits, "Calls domain methods", "TypeScript API")
-    Rel(esits, esi, "HTTP GET/POST/PUT/DELETE", "HTTPS + JSON")
-    Rel(esits, sso, "Token refresh", "OAuth2")
-    Rel(spec, esits, "Generates types, schemas, TTLs, scopes", "Build-time code generation")
+    style consumer fill:#08427b,color:#fff,stroke:#073b6f
+    style esits fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style esi fill:#999,color:#fff,stroke:#888
+    style sso fill:#999,color:#fff,stroke:#888
+    style spec fill:#999,color:#fff,stroke:#888
+    style boundary fill:none,stroke:#1168bd,stroke-width:2px,stroke-dasharray:5
 ```
 
-### C4 Container Diagram
+### C4 Level 2 — Container Diagram
 
 Major containers (layers) within ESI.ts and their relationships.
 
+| Container          | Technology                                               | Purpose                                                                               |
+| ------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Public API**     | EsiClient, EsiClientBuilder, EsiApiFactory               | Three entry points, all wired via `configureApiClient()`                              |
+| **Domain Clients** | 35 hand-written clients                                  | AllianceClient, CharacterClient, MarketClient, etc. Typed methods + `stream*` methods |
+| **Endpoint Defs**  | EndpointDefinition + `createClient()`                    | Path, method, auth, schemas. Returns typed `InferEndpointResult<D>`                   |
+| **Schemas**        | 33 hand-written + 33 generated Zod schemas               | Runtime validation (hand-written) and drift detection (generated, internal-only)      |
+| **Pipeline**       | ApiRequestHandler + 7 modules                            | Headers, caching, status handling, fetch, pagination, middleware                      |
+| **Resilience**     | CircuitBreaker, RateLimiter, RetryStrategy, Deduplicator | Per-endpoint CB, per-group rate limits, exponential backoff, GET coalescing           |
+| **Infrastructure** | ApiClient, pino Logger, error utilities                  | HTTP client, logging, error types                                                     |
+| **Generated**      | Types, TTLs, rate limits, scopes                         | Auto-generated from ESI OpenAPI spec, CI-verified freshness                           |
+
 ```mermaid
-C4Container
-    title ESI.ts — Container Diagram
+flowchart TB
+    consumer(["Consumer App"])
 
-    Person(consumer, "Consumer Application", "")
+    subgraph esits ["ESI.ts Library"]
+        direction TB
+        publicApi["Public API"]
+        domainClients["Domain Clients"]
+        endpointDefs["Endpoint Defs"]
+        schemas["Schemas"]
+        pipeline["Request Pipeline"]
+        resilience["Resilience"]
+        infra["Infrastructure"]
+        generated["Generated Artifacts"]
+    end
 
-    System_Boundary(esits, "ESI.ts Library") {
-        Container(publicApi, "Public API Layer", "EsiClient, EsiClientBuilder, EsiApiFactory", "Three entry points for consumers. All use configureApiClient() for unified middleware wiring.")
-        Container(domainClients, "Domain Client Layer", "35 hand-written clients", "AllianceClient, CharacterClient, MarketClient, etc. Each extends BaseEsiClient with typed methods and stream* methods.")
-        Container(endpointDefs, "Endpoint Definition Layer", "EndpointDefinition + createClient()", "Wires path, method, auth, responseSchema, requestSchema. createClient() returns typed InferEndpointResult<D>.")
-        Container(schemas, "Schema Validation Layer", "33 hand-written Zod schemas + 33 generated", "Hand-written schemas for runtime validation. Generated schemas are internal-only for drift detection.")
-        Container(pipeline, "Core Request Pipeline", "ApiRequestHandler + 7 requestPipeline modules", "Coordinates headers, caching, status handling, fetch, pagination, middleware, and dependency resolution.")
-        Container(resilience, "Resilience Layer", "CircuitBreaker, RateLimiter, RetryStrategy, Deduplicator", "Per-endpoint circuit breaking, per-group rate limiting, exponential backoff retry, in-flight GET coalescing.")
-        Container(infra, "Infrastructure", "ApiClient, pino Logger, error utilities", "HTTP client, logging, error types, header parsing, constants.")
-        Container(generated, "Generated Artifacts", "Types, TTLs, rate limits, scopes", "Auto-generated from ESI OpenAPI spec. CI verifies freshness.")
-    }
+    esi[/"ESI API"/]
 
-    System_Ext(esi, "EVE Online ESI API", "")
+    consumer --> publicApi
+    publicApi --> domainClients
+    domainClients --> endpointDefs
+    endpointDefs --> schemas
+    endpointDefs --> pipeline
+    pipeline --> resilience
+    pipeline --> infra
+    pipeline -. "TTLs" .-> generated
+    infra -- "HTTPS" --> esi
 
-    Rel(consumer, publicApi, "Creates client, calls methods")
-    Rel(publicApi, domainClients, "Delegates to domain clients")
-    Rel(domainClients, endpointDefs, "Uses createClient() + endpoint definitions")
-    Rel(endpointDefs, schemas, "Validates request/response bodies")
-    Rel(endpointDefs, pipeline, "Calls handleRequest()")
-    Rel(pipeline, resilience, "Applies CB, rate limit, retry, dedup")
-    Rel(pipeline, infra, "Uses ApiClient for HTTP, logger for observability")
-    Rel(pipeline, generated, "Reads TTLs for spec-aware caching")
-    Rel(infra, esi, "HTTP requests", "HTTPS")
+    style consumer fill:#08427b,color:#fff,stroke:#073b6f
+    style publicApi fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style domainClients fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style endpointDefs fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style schemas fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style pipeline fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style resilience fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style infra fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style generated fill:#438dd5,color:#fff,stroke:#3c7fc0
+    style esi fill:#999,color:#fff,stroke:#888
+    style esits fill:#e8e8e8,stroke:#aaa
 ```
 
-### C4 Component Diagram — Core Request Pipeline
+### C4 Level 3 — Component: Core Request Pipeline
 
 Components within the `src/core/requestPipeline/` module and the coordinator.
 
+| Component                   | File                       | Exports                                                                               |
+| --------------------------- | -------------------------- | ------------------------------------------------------------------------------------- |
+| **handleRequest**           | ApiRequestHandler.ts       | Spec-cache check, deduplication, retry wrapping, delegates to executeRequest          |
+| **handleSinglePageRequest** | ApiRequestHandler.ts       | Per-page fetches with retry (used by AsyncPaginationIterator)                         |
+| **executeRequest**          | ApiRequestHandler.ts       | Full fetch-parse-cache-paginate cycle                                                 |
+| **dependencies**            | dependencies.ts            | `resolveCache`, `resolveRateLimiter`, `resolveCircuitBreaker`, `resolveRetryStrategy` |
+| **headers**                 | headers.ts                 | `buildRequestHeaders`, `parseCacheControlTtl`                                         |
+| **cachePolicy**             | cachePolicy.ts             | `lookupSpecTtl`, `trySpecAwareCacheHit`, `cacheResponse`                              |
+| **statusHandling**          | statusHandling.ts          | `handleEarlyStatus` (304/201), `handleErrorResponse` (4xx/5xx), `wrapError`           |
+| **middlewareBridge**        | middlewareBridge.ts        | `applyRequestMiddleware`, `applyResponseInterceptors`                                 |
+| **fetchExecution**          | fetchExecution.ts          | `executeSingleFetch`, `fetchOnePage`, `parseJsonBody`                                 |
+| **pagination**              | paginationOrchestration.ts | `handleCursorPagination`, `handleOffsetPagination`                                    |
+
 ```mermaid
-C4Component
-    title Core Request Pipeline — Component Diagram
+flowchart TB
+    subgraph coordinator ["ApiRequestHandler.ts"]
+        direction LR
+        handleReq["handleRequest"]
+        handleSingle["handleSinglePage"]
+        execReq["executeRequest"]
+    end
 
-    Container_Boundary(coordinator, "ApiRequestHandler.ts (~250 lines)") {
-        Component(handleReq, "handleRequest()", "Entry point", "Spec-cache check, deduplication, retry strategy wrapping, delegates to executeRequest()")
-        Component(handleSingle, "handleSinglePageRequest()", "Single-page entry", "Used by AsyncPaginationIterator for per-page fetches with retry")
-        Component(execReq, "executeRequest()", "Core execution", "Orchestrates the full fetch-parse-cache-paginate cycle")
-    }
+    subgraph pipelineMods ["requestPipeline/"]
+        deps["dependencies"]
+        headers["headers"]
+        cache["cachePolicy"]
+        status["statusHandling"]
+        mwBridge["middlewareBridge"]
+        fetchExec["fetchExecution"]
+        pagOrch["pagination"]
+    end
 
-    Container_Boundary(pipelineMods, "src/core/requestPipeline/") {
-        Component(deps, "dependencies.ts", "Dependency resolution", "resolveCache(), resolveRateLimiter(), resolveCircuitBreaker(), resolveRetryStrategy()")
-        Component(headers, "headers.ts", "Header construction", "buildRequestHeaders() — auth token, ETag, User-Agent, content type. parseCacheControlTtl().")
-        Component(cache, "cachePolicy.ts", "Cache operations", "lookupSpecTtl(), trySpecAwareCacheHit(), tryStaleCacheResponse(), cacheResponse(). Spec TTL is authoritative entry TTL.")
-        Component(status, "statusHandling.ts", "HTTP status handling", "handleEarlyStatus() — 304/201. handleErrorResponse() — 4xx/5xx with stale fallback. wrapError().")
-        Component(mwBridge, "middlewareBridge.ts", "Middleware bridge", "applyRequestMiddleware() — runs request interceptors. applyResponseInterceptors() — runs response interceptors.")
-        Component(fetchExec, "fetchExecution.ts", "Fetch execution", "executeSingleFetch() — CB check, rate limit, fetch, parse headers. fetchOnePage(), parseJsonBody().")
-        Component(pagOrch, "paginationOrchestration.ts", "Pagination", "handleCursorPagination() — cursor token extraction. handleOffsetPagination() — parallel page fetches.")
-    }
+    handleReq --> cache
+    handleReq --> deps
+    handleReq --> execReq
+    handleSingle --> fetchExec
+    handleSingle --> deps
+    execReq --> headers
+    execReq --> mwBridge
+    execReq --> fetchExec
+    execReq --> status
+    execReq --> cache
+    execReq --> pagOrch
+    fetchExec --> deps
 
-    Rel(handleReq, cache, "Spec-cache check before HTTP")
-    Rel(handleReq, deps, "Resolve retry strategy, deduplicator")
-    Rel(handleReq, execReq, "Delegates execution")
-    Rel(handleSingle, fetchExec, "Single page fetch")
-    Rel(handleSingle, deps, "Resolve retry strategy")
-    Rel(execReq, headers, "Build request headers")
-    Rel(execReq, mwBridge, "Apply request/response interceptors")
-    Rel(execReq, fetchExec, "Execute HTTP fetch")
-    Rel(execReq, status, "Handle non-2xx responses")
-    Rel(execReq, cache, "Cache successful responses")
-    Rel(execReq, pagOrch, "Handle multi-page responses")
-    Rel(fetchExec, deps, "Resolve CB, rate limiter, cache")
+    style coordinator fill:#e3f2fd,stroke:#1565c0
+    style pipelineMods fill:#e8f5e9,stroke:#2e7d32
+    style handleReq fill:#bbdefb,stroke:#1565c0
+    style handleSingle fill:#bbdefb,stroke:#1565c0
+    style execReq fill:#bbdefb,stroke:#1565c0
+    style deps fill:#c8e6c9,stroke:#2e7d32
+    style headers fill:#c8e6c9,stroke:#2e7d32
+    style cache fill:#c8e6c9,stroke:#2e7d32
+    style status fill:#c8e6c9,stroke:#2e7d32
+    style mwBridge fill:#c8e6c9,stroke:#2e7d32
+    style fetchExec fill:#c8e6c9,stroke:#2e7d32
+    style pagOrch fill:#c8e6c9,stroke:#2e7d32
 ```
 
-### C4 Component Diagram — Resilience Components
+### C4 Level 3 — Component: Resilience
 
 How the resilience components compose in the request path.
 
+| Component               | Interface         | Purpose                                                                                    |
+| ----------------------- | ----------------- | ------------------------------------------------------------------------------------------ |
+| **RetryStrategy**       | `IRetryStrategy`  | Exponential backoff + jitter. Retries 5xx, 429, timeouts. 401 token refresh callback.      |
+| **CircuitBreaker**      | `ICircuitBreaker` | Per-endpoint state machine (closed/open/half-open). keyStrategy: `resolved` or `template`. |
+| **RateLimiter**         | `IRateLimiter`    | 36 per-group token buckets from spec. Per-user opt-in. Decelerate at 20% remaining.        |
+| **RequestDeduplicator** | `IDeduplicator`   | In-flight coalescing for identical GET requests.                                           |
+| **ETagCacheManager**    | `ICache`          | Spec-aware TTL cache + If-None-Match conditionals. Stale fallback on 5xx.                  |
+
 ```mermaid
-C4Component
-    title Resilience Components — Component Diagram
-
-    Container_Boundary(pipeline, "Request Pipeline") {
-        Component(handler, "handleRequest()", "", "Entry point — wraps operation in RetryStrategy.execute()")
-        Component(dedup, "RequestDeduplicator", "IDeduplicator", "In-flight coalescing for identical GET requests. Same URL+method → single fetch, shared promise.")
-        Component(execReq, "executeRequest()", "", "Core execution — calls CB, rate limiter, then fetch")
-    }
-
-    Container_Boundary(resilienceLayer, "Resilience Components") {
-        Component(retry, "RetryStrategy", "IRetryStrategy", "Exponential backoff with jitter. Retries 5xx, 429, timeouts. Skips non-retryable errors. Supports 401 token refresh callback.")
-        Component(cb, "CircuitBreaker", "ICircuitBreaker", "Per-endpoint state machine (closed/open/half-open). keyStrategy: 'resolved' (per-URL) or 'template' (per-endpoint-group). Configurable cleanup timer + destroy().")
-        Component(rl, "RateLimiter", "IRateLimiter", "Per-group token buckets (36 groups from spec). Per-user bucketing opt-in. Proactive deceleration at 20% remaining. Server-synced via response headers.")
+flowchart LR
+    subgraph pipeline ["Request Pipeline"]
+        handler["handleRequest"]
+        dedup["Deduplicator"]
+        execReq["executeRequest"]
     end
 
-    Container_Boundary(caching, "Caching") {
-        Component(etag, "ETagCacheManager", "ICache", "Spec-aware TTL cache + conditional requests via If-None-Match. Spec TTL is authoritative entry TTL. Stale fallback on 5xx.")
-    }
+    subgraph resilienceLayer ["Resilience"]
+        retry["RetryStrategy"]
+        cb["CircuitBreaker"]
+        rl["RateLimiter"]
+    end
 
-    Rel(handler, retry, "1. Wraps operation in retry loop")
-    Rel(handler, dedup, "2. Deduplicates GET requests")
-    Rel(retry, execReq, "3. Executes operation (with retries)")
-    Rel(execReq, cb, "4. Check circuit state")
-    Rel(execReq, rl, "5. Check/decelerate rate limit")
-    Rel(execReq, etag, "6. ETag cache lookup + store")
+    subgraph caching ["Caching"]
+        etag["ETagCache"]
+    end
 
-    UpdateRelStyle(handler, retry, $offsetX="-40", $offsetY="-10")
+    handler -- "1. Retry" --> retry
+    handler -- "2. Dedup" --> dedup
+    retry -- "3. Execute" --> execReq
+    execReq -- "4. Circuit" --> cb
+    execReq -- "5. Rate limit" --> rl
+    execReq -- "6. Cache" --> etag
+
+    style pipeline fill:#e3f2fd,stroke:#1565c0
+    style resilienceLayer fill:#fff3e0,stroke:#e65100
+    style caching fill:#e8f5e9,stroke:#2e7d32
+    style handler fill:#bbdefb,stroke:#1565c0
+    style dedup fill:#bbdefb,stroke:#1565c0
+    style execReq fill:#bbdefb,stroke:#1565c0
+    style retry fill:#ffe0b2,stroke:#e65100
+    style cb fill:#ffe0b2,stroke:#e65100
+    style rl fill:#ffe0b2,stroke:#e65100
+    style etag fill:#c8e6c9,stroke:#2e7d32
 ```
 
 ---
