@@ -31,5 +31,6 @@ export * from './universe';
 export * from './wallet';
 export * from './wars';
 
-// Auto-generated schemas from OpenAPI spec
-export * as generatedSchemas from './generated';
+// Generated schemas (src/schemas/generated/) are internal-only and used
+// exclusively by scripts/generate-schema-drift-report.ts for drift detection.
+// They are intentionally NOT re-exported from the public API surface.
