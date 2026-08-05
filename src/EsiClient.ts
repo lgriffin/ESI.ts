@@ -82,6 +82,7 @@ export interface EsiClientConfig {
   requestInterceptors?: RequestInterceptor[];
   responseInterceptors?: ResponseInterceptor[];
   validateResponse?: boolean;
+  validateRequest?: boolean;
 }
 
 export class EsiClient {

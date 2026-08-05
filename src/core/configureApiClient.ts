@@ -73,6 +73,11 @@ export function configureApiClient(
     client.setValidateResponse(config.validateResponse);
   }
 
+  // Validate request (opt-in, default false)
+  if (config?.validateRequest !== undefined) {
+    client.setValidateRequest(config.validateRequest);
+  }
+
   // Timeout
   if (config?.timeout !== undefined) {
     client.setTimeout(config.timeout);

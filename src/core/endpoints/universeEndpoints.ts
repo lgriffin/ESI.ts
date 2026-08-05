@@ -110,6 +110,7 @@ export const universeEndpoints = {
     requiresAuth: false,
     bodyBuilder: (names: string[]) => names,
     responseSchema: BulkIdResultSchema,
+    requestSchema: z.array(z.string().min(1)),
   },
   getMoonById: {
     path: 'universe/moons/{moonId}',
@@ -124,6 +125,7 @@ export const universeEndpoints = {
     requiresAuth: false,
     bodyBuilder: (ids: number[]) => ids,
     responseSchema: z.array(NameAndCategorySchema),
+    requestSchema: z.array(z.number().int()),
   },
   getPlanetById: {
     path: 'universe/planets/{planetId}',

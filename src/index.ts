@@ -87,6 +87,7 @@ export {
   isValidationError,
   sanitizeUrl,
 } from './core/util/error';
+export type { ValidationDirection } from './core/util/error';
 
 // Endpoint definition types
 export { DeprecationInfo } from './core/endpoints/EndpointDefinition';

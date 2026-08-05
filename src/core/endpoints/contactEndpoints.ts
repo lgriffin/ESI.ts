@@ -52,6 +52,7 @@ export const contactEndpoints = {
     pathParams: ['characterId'],
     queryParams: { standing: 'standing' },
     bodyBuilder: (contactIds: number[]) => contactIds,
+    requestSchema: z.array(z.number().int()),
   },
   editContacts: {
     path: 'characters/{characterId}/contacts',

@@ -27,6 +27,7 @@ export class ApiClient {
   private retryConfig: RetryConfig | null = null;
   private retryStrategy: IRetryStrategy | null = null;
   private validateResponse: boolean = true;
+  private validateRequest: boolean = false;
   private language?: string;
 
   constructor(
@@ -101,6 +102,14 @@ export class ApiClient {
     this.validateResponse = validate;
   }
 
+  getValidateRequest(): boolean {
+    return this.validateRequest;
+  }
+
+  setValidateRequest(validate: boolean): void {
+    this.validateRequest = validate;
+  }
+
   getMiddleware(): MiddlewareManager {
     return this.middleware;
   }
@@ -163,6 +172,7 @@ export class ApiClient {
       hasDeduplicator: this.deduplicator !== null,
       hasTokenProvider: this.tokenProvider !== undefined,
       validateResponse: this.validateResponse,
+      validateRequest: this.validateRequest,
       language: this.language,
     };
   }

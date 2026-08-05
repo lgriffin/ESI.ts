@@ -28,6 +28,10 @@ export const fleetEndpoints = {
     requiresAuth: true,
     pathParams: ['fleetId'],
     hasBody: true,
+    requestSchema: z.looseObject({
+      is_free_move: z.boolean().optional(),
+      motd: z.string().optional(),
+    }),
   },
   getFleetMembers: {
     path: 'fleets/{fleetId}/members',
