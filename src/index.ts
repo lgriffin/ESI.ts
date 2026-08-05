@@ -59,6 +59,8 @@ export {
   CursorOptions,
   CursorResult,
   CreateClientOptions,
+  InferEndpointResult,
+  UnwrapArray,
   WithMetadata,
   WithSafeMode,
   fetchAllCursorPages,

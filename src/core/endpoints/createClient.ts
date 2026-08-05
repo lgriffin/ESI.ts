@@ -11,6 +11,7 @@ import { buildEndpointPath } from './buildEndpointPath';
 import { parseWarning } from '../util/headersUtil';
 import { logWarn } from '../logger/loggerUtil';
 import { EsiError, EsiValidationError } from '../util/error';
+import type { z } from 'zod';
 
 export interface CursorOptions {
   before?: string;
@@ -27,8 +28,28 @@ export interface CreateClientOptions {
   safeMode?: boolean;
 }
 
+/** Extract the element type from an array type, or return T unchanged. */
+export type UnwrapArray<T> = T extends readonly (infer E)[] ? E : T;
+
+/**
+ * Infer the result type from an endpoint definition's responseSchema.
+ *
+ * - When `cursorPagination: true`, wraps in `CursorResult<ElementType>`.
+ * - When `responseSchema` is present, uses `z.infer` to extract the type.
+ * - Falls back to `unknown` when no `responseSchema` is defined.
+ */
+export type InferEndpointResult<D> = D extends { cursorPagination: true }
+  ? D extends { responseSchema: infer S extends z.ZodTypeAny }
+    ? CursorResult<UnwrapArray<z.infer<S>>>
+    : CursorResult
+  : D extends { responseSchema: infer S extends z.ZodTypeAny }
+    ? z.infer<S>
+    : unknown;
+
 type ClientMethods<T extends EndpointMap> = {
-  [K in keyof T]: (...args: EndpointArgs<T[K]>) => Promise<unknown>;
+  [K in keyof T]: (
+    ...args: EndpointArgs<T[K]>
+  ) => Promise<InferEndpointResult<T[K]>>;
 };
 
 export type WithMetadata<T> = {

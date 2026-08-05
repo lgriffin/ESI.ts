@@ -10148,6 +10148,15 @@ const IndustrySystemsGetSchema: z.ZodObject<{
     solar_system_id: z.ZodNumber;
 }, z.core.$loose>;
 
+// @public
+export type InferEndpointResult<D> = D extends {
+    cursorPagination: true;
+} ? D extends {
+    responseSchema: infer S extends z.ZodTypeAny;
+} ? CursorResult<UnwrapArray<z.infer<S>>> : CursorResult : D extends {
+    responseSchema: infer S extends z.ZodTypeAny;
+} ? z.infer<S> : unknown;
+
 // Warning: (ae-forgotten-export) The symbol "insuranceEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -13012,6 +13021,9 @@ const UniverseTypesTypeIdGetSchema: z.ZodObject<{
     type_id: z.ZodNumber;
     volume: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
+
+// @public
+export type UnwrapArray<T> = T extends readonly (infer E)[] ? E : T;
 
 // Warning: (ae-forgotten-export) The symbol "walletEndpoints" needs to be exported by the entry point index.d.ts
 //
