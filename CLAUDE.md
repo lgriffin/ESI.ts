@@ -37,7 +37,6 @@ Coverage thresholds: branches 80%, functions 75%, lines 90%, statements 90%.
 
 ```bash
 npm run generate:types    # Generate TS interfaces + Zod schemas + metadata from live ESI OpenAPI spec
-npm run generate:clients  # Generate typed client wrappers from endpoint definitions
 npm run generate:okf      # Generate OKF v0.2 knowledge bundle from live ESI OpenAPI spec
 npm run schema:drift      # Check hand-written Zod schemas against OpenAPI spec
 npm run api-report        # Update API surface report (etc/esi.ts.api.md)
@@ -48,7 +47,6 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 ## Project Structure
 
 - `src/clients/` — 35 hand-written domain clients (Alliance, Character, Market, etc.) extending `BaseEsiClient`
-- `src/clients/generated/` — Auto-generated client wrappers from endpoint definitions (supplementary)
 - `src/core/` — ApiRequestHandler, rate limiter, circuit breaker, caching, pagination, retry strategy
 - `src/core/endpoints/` — Endpoint definitions (`*Endpoints.ts`) + generated metadata
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
@@ -99,7 +97,6 @@ Key middleware in the pipeline:
 
 - `src/types/generated/` — auto-generated from OpenAPI spec
 - `src/schemas/generated/` — auto-generated Zod schemas from OpenAPI spec
-- `src/clients/generated/` — auto-generated client wrappers from endpoint definitions
 - `src/core/endpoints/esi-*.generated.ts` — auto-generated cache TTLs, rate limits, scopes
 - `dist/` — build output
 - `etc/esi.ts.api.md` — auto-generated API surface report

@@ -189,11 +189,7 @@ export const CorporationIconSchema = z.looseObject({
   px256x256: z.string().optional(),
 });
 
-export const CorporationStandingSchema = z.looseObject({
-  from_id: z.number(),
-  from_type: z.enum(['agent', 'npc_corp', 'faction']),
-  standing: z.number(),
-});
+export { StandingSchema as CorporationStandingSchema } from './common';
 
 export const CorporationWalletDivisionSchema = z.looseObject({
   division: z.number(),

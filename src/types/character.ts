@@ -9,11 +9,11 @@ import {
   JumpFatigueSchema,
   MedalSchema,
   NotificationSchema,
-  StandingSchema,
   CharacterTitleSchema,
   CharacterAffiliationSchema,
   CharacterRoleSchema,
 } from '../schemas/character';
+import { StandingSchema } from '../schemas/common';
 
 export type CharacterInfo = z.infer<typeof CharacterInfoSchema>;
 export type CharacterPortrait = z.infer<typeof CharacterPortraitSchema>;

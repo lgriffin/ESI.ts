@@ -9,6 +9,7 @@ import {
   AllianceContactLabel,
   AllianceIcon,
 } from '../types/api-responses';
+import { logWarn } from '../core/logger/loggerUtil';
 
 export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
   private contactApi: ReturnType<typeof createClient<typeof contactEndpoints>>;
@@ -37,6 +38,9 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    * @requires Authentication
    */
   getContacts(allianceId: number): Promise<AllianceContact[]> {
+    logWarn(
+      'AllianceClient.getContacts() is deprecated. Use ContactsClient.getAllianceContacts() instead. Planned removal in next major version.',
+    );
     return this.contactApi.getAllianceContacts(allianceId) as Promise<
       AllianceContact[]
     >;
@@ -51,6 +55,9 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    * @requires Authentication
    */
   getContactLabels(allianceId: number): Promise<AllianceContactLabel[]> {
+    logWarn(
+      'AllianceClient.getContactLabels() is deprecated. Use ContactsClient.getAllianceContactLabels() instead. Planned removal in next major version.',
+    );
     return this.contactApi.getAllianceContactLabels(allianceId) as Promise<
       AllianceContactLabel[]
     >;

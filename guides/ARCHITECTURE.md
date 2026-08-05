@@ -68,7 +68,7 @@ graph TB
         HeadersUtil["parseHeaders()"]
         Validation["validation"]
         ErrorUtil["EsiError, EsiValidationError"]
-        Logger["Winston Logger"]
+        Logger["pino Logger"]
         Constants["constants"]
     end
 
@@ -232,51 +232,44 @@ sequenceDiagram
 
 ## 3. Dependency Injection
 
-How dependencies are resolved: client-level first, then global fallback.
+Dependencies are scoped to each `ApiClient` instance. There are no global singletons or fallbacks — when a dependency is `null`, that feature is simply disabled for that client.
 
 ```mermaid
 graph LR
     subgraph ApiClient["ApiClient (per-instance)"]
         ClientCache["cache: ICache | null"]
         ClientRL["rateLimiter: IRateLimiter | null"]
-        ClientCB["circuitBreaker: CircuitBreaker | null"]
+        ClientCB["circuitBreaker: ICircuitBreaker | null"]
+        ClientDedup["deduplicator: IDeduplicator | null"]
         ClientMW["middleware: MiddlewareManager"]
     end
 
-    subgraph Globals["Global Singletons (fallback)"]
-        GlobalCache["globalCache: ETagCacheManager"]
-        GlobalCB["globalCircuitBreaker: CircuitBreaker"]
-        GlobalRL["RateLimiter.getInstance()"]
-    end
-
-    subgraph Resolution["Dependency Resolution"]
-        ResolveCache["resolveCache(client)"]
-        ResolveRL["resolveRateLimiter(client)"]
-        ResolveCB["resolveCircuitBreaker(client)"]
+    subgraph Resolution["Dependency Resolution (ApiRequestHandler)"]
+        ResolveCache["resolveCache(client)<br/>→ client.getCache() or null"]
+        ResolveRL["resolveRateLimiter(client)<br/>→ client.getRateLimiter() or null"]
+        ResolveCB["resolveCircuitBreaker(client)<br/>→ client.getCircuitBreaker() or null"]
     end
 
     subgraph Interfaces["Interface Contracts"]
         ICache["ICache"]
         IRateLimiter["IRateLimiter"]
+        ICB["ICircuitBreaker"]
+        IDedup["IDeduplicator"]
         ILogger["ILogger"]
     end
 
-    ResolveCache -->|"client.getCache() ??"| ClientCache
-    ResolveCache -->|fallback| GlobalCache
-    ResolveRL -->|"client.getRateLimiter() ??"| ClientRL
-    ResolveRL -->|fallback| GlobalRL
-    ResolveCB -->|"client.getCircuitBreaker() ??"| ClientCB
-    ResolveCB -->|fallback| GlobalCB
+    ResolveCache -->|"returns or null"| ClientCache
+    ResolveRL -->|"returns or null"| ClientRL
+    ResolveCB -->|"returns or null"| ClientCB
 
     ClientCache -.->|typed as| ICache
     ClientRL -.->|typed as| IRateLimiter
-    GlobalCache -.->|implements| ICache
-    GlobalRL -.->|implements| IRateLimiter
+    ClientCB -.->|typed as| ICB
+    ClientDedup -.->|typed as| IDedup
 
     style Interfaces fill:#f3e5f5,stroke:#6a1b9a
     style Resolution fill:#e8f5e9,stroke:#2e7d32
     style ApiClient fill:#e3f2fd,stroke:#1565c0
-    style Globals fill:#fff3e0,stroke:#e65100
 ```
 
 ## 4. Circuit Breaker State Machine
