@@ -75,6 +75,9 @@ jobs:
       - name: Check schema drift
         run: npm run schema:drift:ci
 
+      - name: Validate auth/scope alignment
+        run: npm run validate:auth-scopes
+
   unit-tests:
     name: Unit Tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
