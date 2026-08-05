@@ -26,6 +26,8 @@ export const SovereigntyCampaignSchema = z.looseObject({
 });
 
 export const SovereigntySystemStructureSchema = z.looseObject({
+  alliance_id: z.number(),
+  solar_system_id: z.number(),
   structure_id: z.number(),
   structure_type_id: z.number(),
   vulnerability_occupancy_level: z.number().optional(),

@@ -10,6 +10,7 @@ export const SolarSystemInfoSchema = z.looseObject({
   system_id: z.number(),
   name: z.string(),
   constellation_id: z.number(),
+  position: PositionSchema,
   security_class: z.string().optional(),
   security_status: z.number(),
   star_id: z.number().optional(),
@@ -108,6 +109,7 @@ export const TypeInfoSchema = z.looseObject({
   market_group_id: z.number().optional(),
   radius: z.number().optional(),
   volume: z.number().optional(),
+  packaged_volume: z.number().optional(),
   capacity: z.number().optional(),
   portion_size: z.number().optional(),
   mass: z.number().optional(),
@@ -142,7 +144,10 @@ export const GraphicInfoSchema = z.looseObject({
   collision_file: z.string().optional(),
   graphic_file: z.string().optional(),
   icon_folder: z.string().optional(),
-  sofico_folder: z.string().optional(),
+  sof_dna: z.string().optional(),
+  sof_fation_name: z.string().optional(),
+  sof_hull_name: z.string().optional(),
+  sof_race_name: z.string().optional(),
 });
 
 export const ItemCategorySchema = z.looseObject({
