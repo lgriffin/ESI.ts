@@ -8,6 +8,10 @@ export interface CircuitBreakerConfig {
   resetTimeoutMs?: number;
   halfOpenMaxAttempts?: number;
   staleThresholdMs?: number;
+  /** 'resolved' (default, current behavior) | 'template' (group by endpoint template path) */
+  keyStrategy?: 'resolved' | 'template';
+  /** Interval in ms for automatic cleanup of stale circuits. 0 or undefined disables. Recommended value: staleThresholdMs. */
+  cleanupIntervalMs?: number;
 }
 
 interface CircuitRecord {
@@ -23,12 +27,20 @@ export class CircuitBreaker implements ICircuitBreaker {
   private readonly resetTimeoutMs: number;
   private readonly halfOpenMaxAttempts: number;
   private readonly staleThresholdMs: number;
+  private readonly keyStrategy: 'resolved' | 'template';
+  private cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(config: CircuitBreakerConfig = {}) {
     this.failureThreshold = config.failureThreshold ?? 5;
     this.resetTimeoutMs = config.resetTimeoutMs ?? 30_000;
     this.halfOpenMaxAttempts = config.halfOpenMaxAttempts ?? 1;
     this.staleThresholdMs = config.staleThresholdMs ?? 3_600_000;
+    this.keyStrategy = config.keyStrategy ?? 'resolved';
+
+    const cleanupIntervalMs = config.cleanupIntervalMs;
+    if (cleanupIntervalMs !== undefined && cleanupIntervalMs > 0) {
+      this.startCleanupTimer(cleanupIntervalMs);
+    }
   }
 
   private getKey(endpoint: string): string {
@@ -188,8 +200,28 @@ export class CircuitBreaker implements ICircuitBreaker {
     return cleaned;
   }
 
-  shutdown(): void {
+  getKeyStrategy(): 'resolved' | 'template' {
+    return this.keyStrategy;
+  }
+
+  destroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
     this.circuits.clear();
+  }
+
+  shutdown(): void {
+    this.destroy();
+  }
+
+  private startCleanupTimer(intervalMs: number): void {
+    this.cleanupTimer = setInterval(() => {
+      this.cleanup();
+    }, intervalMs);
+    // Don't prevent process exit (important for test runners and CLI tools)
+    this.cleanupTimer.unref();
   }
 }
 

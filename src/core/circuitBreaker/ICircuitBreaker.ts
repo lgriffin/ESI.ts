@@ -13,4 +13,8 @@ export interface ICircuitBreaker {
   reset(endpoint?: string): void;
   cleanup(): number;
   shutdown(): void;
+  /** Release resources (timers). Optional for backward compatibility. */
+  destroy?(): void;
+  /** Returns the configured key strategy. Optional for backward compatibility. */
+  getKeyStrategy?(): 'resolved' | 'template';
 }
