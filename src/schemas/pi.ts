@@ -24,6 +24,8 @@ export const CustomsOfficeSchema = z.looseObject({
   system_id: z.number(),
   reinforce_exit_start: z.number(),
   reinforce_exit_end: z.number(),
+  allow_access_with_standings: z.boolean().optional(),
+  allow_alliance_access: z.boolean().optional(),
   alliance_tax_rate: z.number().optional(),
   corporation_tax_rate: z.number().optional(),
   standing_level: z.string().optional(),
@@ -32,6 +34,7 @@ export const CustomsOfficeSchema = z.looseObject({
   neutral_standing_tax_rate: z.number().optional(),
   good_standing_tax_rate: z.number().optional(),
   excellent_standing_tax_rate: z.number().optional(),
+  type_id: z.number().optional(),
 });
 
 export const ColonyLayoutSchema = z.looseObject({

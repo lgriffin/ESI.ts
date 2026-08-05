@@ -25,4 +25,6 @@ export const WalletJournalSchema = z.looseObject({
   description: z.string(),
   context_id: z.number().optional(),
   context_id_type: z.string().optional(),
+  tax: z.number().optional(),
+  tax_receiver_id: z.number().optional(),
 });

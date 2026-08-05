@@ -25,6 +25,27 @@ export const DogmaEffectSchema = z.looseObject({
   is_offensive: z.boolean().optional(),
   is_warp_safe: z.boolean().optional(),
   disallow_auto_repeat: z.boolean().optional(),
+  discharge_attribute_id: z.number().optional(),
+  duration_attribute_id: z.number().optional(),
+  electronic_chance: z.boolean().optional(),
+  falloff_attribute_id: z.number().optional(),
+  modifiers: z
+    .array(
+      z.looseObject({
+        domain: z.string().optional(),
+        effect_id: z.number().optional(),
+        func: z.string(),
+        modified_attribute_id: z.number().optional(),
+        modifying_attribute_id: z.number().optional(),
+        operator: z.number().optional(),
+      }),
+    )
+    .optional(),
+  post_expression: z.number().optional(),
+  pre_expression: z.number().optional(),
+  range_attribute_id: z.number().optional(),
+  range_chance: z.boolean().optional(),
+  tracking_speed_attribute_id: z.number().optional(),
 });
 
 export const DogmaDynamicItemSchema = z.looseObject({

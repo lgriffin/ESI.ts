@@ -139,6 +139,7 @@ export const CorporationStarbaseDetailSchema = z.looseObject({
   attack_if_at_war: z.boolean().optional(),
   attack_if_other_security_status_dropping: z.boolean().optional(),
   attack_security_status_threshold: z.number().optional(),
+  attack_standing_threshold: z.number().optional(),
   fuel_bay_take: z.string().optional(),
   fuel_bay_view: z.string().optional(),
   offline: z.string().optional(),
@@ -162,11 +163,13 @@ export const CorporationStructureSchema = z.looseObject({
     )
     .optional(),
   fuel_expires: z.string().optional(),
+  name: z.string().optional(),
   state: z.string(),
   state_timer_start: z.string().optional(),
   state_timer_end: z.string().optional(),
   unanchors_at: z.string().optional(),
   reinforce_hour: z.number().optional(),
+  next_reinforce_hour: z.number().optional(),
   next_reinforce_apply: z.string().optional(),
 });
 

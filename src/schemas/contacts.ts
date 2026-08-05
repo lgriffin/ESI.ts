@@ -5,6 +5,7 @@ export const ContactSchema = z.looseObject({
   contact_type: z.enum(['character', 'corporation', 'alliance', 'faction']),
   standing: z.number(),
   label_ids: z.array(z.number()).optional(),
+  is_blocked: z.boolean().optional(),
   is_watched: z.boolean().optional(),
 });
 
