@@ -664,7 +664,7 @@ export type CharacterFleetInfo = z.infer<typeof CharacterFleetInfoSchema>;
 // @public (undocumented)
 const CharacterFleetInfoSchema: z.ZodObject<{
     fleet_id: z.ZodNumber;
-    fleet_boss_id: z.ZodNumber;
+    fleet_boss_id: z.ZodOptional<z.ZodNumber>;
     role: z.ZodEnum<{
         fleet_commander: "fleet_commander";
         wing_commander: "wing_commander";
@@ -7635,8 +7635,8 @@ const CustomsOfficeSchema: z.ZodObject<{
     system_id: z.ZodNumber;
     reinforce_exit_start: z.ZodNumber;
     reinforce_exit_end: z.ZodNumber;
-    allow_access_with_standings: z.ZodBoolean;
-    allow_alliance_access: z.ZodBoolean;
+    allow_access_with_standings: z.ZodOptional<z.ZodBoolean>;
+    allow_alliance_access: z.ZodOptional<z.ZodBoolean>;
     alliance_tax_rate: z.ZodOptional<z.ZodNumber>;
     corporation_tax_rate: z.ZodOptional<z.ZodNumber>;
     standing_level: z.ZodOptional<z.ZodString>;
@@ -11686,11 +11686,11 @@ const SolarSystemInfoSchema: z.ZodObject<{
     system_id: z.ZodNumber;
     name: z.ZodString;
     constellation_id: z.ZodNumber;
-    position: z.ZodObject<{
+    position: z.ZodOptional<z.ZodObject<{
         x: z.ZodNumber;
         y: z.ZodNumber;
         z: z.ZodNumber;
-    }, z.core.$loose>;
+    }, z.core.$loose>>;
     security_class: z.ZodOptional<z.ZodString>;
     security_status: z.ZodNumber;
     star_id: z.ZodOptional<z.ZodNumber>;
@@ -11889,8 +11889,8 @@ export type SovereigntySystemStructure = z.infer<typeof SovereigntySystemStructu
 
 // @public (undocumented)
 const SovereigntySystemStructureSchema: z.ZodObject<{
-    alliance_id: z.ZodNumber;
-    solar_system_id: z.ZodNumber;
+    alliance_id: z.ZodOptional<z.ZodNumber>;
+    solar_system_id: z.ZodOptional<z.ZodNumber>;
     structure_id: z.ZodNumber;
     structure_type_id: z.ZodNumber;
     vulnerability_occupancy_level: z.ZodOptional<z.ZodNumber>;
