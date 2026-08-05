@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { mailEndpoints } from '../core/endpoints/mailEndpoints';
 import { MailMessage, MailLabel } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
   constructor(client: ApiClient) {
@@ -16,9 +17,7 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
    * @requires Authentication
    */
   getMailHeaders(characterId: number): Promise<MailMessage[]> {
-    return this.api.getCharacterMailHeaders(characterId) as Promise<
-      MailMessage[]
-    >;
+    return this.api.getCharacterMailHeaders(characterId);
   }
 
   /**
@@ -54,7 +53,7 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
    * @requires Authentication
    */
   getMail(characterId: number, mailId: number): Promise<MailMessage> {
-    return this.api.getMail(characterId, mailId) as Promise<MailMessage>;
+    return this.api.getMail(characterId, mailId);
   }
 
   /**
@@ -88,10 +87,7 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
   getMailLabels(
     characterId: number,
   ): Promise<{ total_unread_count?: number; labels?: MailLabel[] }> {
-    return this.api.getMailLabels(characterId) as Promise<{
-      total_unread_count?: number;
-      labels?: MailLabel[];
-    }>;
+    return this.api.getMailLabels(characterId);
   }
 
   /**
@@ -128,8 +124,28 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
   getMailingLists(
     characterId: number,
   ): Promise<{ mailing_list_id: number; name: string }[]> {
-    return this.api.getMailingLists(characterId) as Promise<
-      { mailing_list_id: number; name: string }[]
-    >;
+    return this.api.getMailingLists(characterId);
+  }
+
+  streamMailHeaders(
+    characterId: number,
+  ): AsyncGenerator<PageResult<MailMessage>, void, undefined> {
+    return this.streamEndpoint<MailMessage>(
+      'getCharacterMailHeaders',
+      characterId,
+    );
+  }
+
+  streamMailingLists(
+    characterId: number,
+  ): AsyncGenerator<
+    PageResult<{ mailing_list_id: number; name: string }>,
+    void,
+    undefined
+  > {
+    return this.streamEndpoint<{ mailing_list_id: number; name: string }>(
+      'getMailingLists',
+      characterId,
+    );
   }
 }

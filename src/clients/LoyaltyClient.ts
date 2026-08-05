@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { loyaltyEndpoints } from '../core/endpoints/loyaltyEndpoints';
 import { LoyaltyPoints, LoyaltyStoreOffer } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
   constructor(client: ApiClient) {
@@ -16,7 +17,7 @@ export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
    * @requires Authentication
    */
   getLoyaltyPoints(characterId: number): Promise<LoyaltyPoints[]> {
-    return this.api.getLoyaltyPoints(characterId) as Promise<LoyaltyPoints[]>;
+    return this.api.getLoyaltyPoints(characterId);
   }
 
   /**
@@ -26,8 +27,21 @@ export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
    * @returns A list of offers available in the loyalty store
    */
   getLoyaltyStoreOffers(corporationId: number): Promise<LoyaltyStoreOffer[]> {
-    return this.api.getLoyaltyStoreOffers(corporationId) as Promise<
-      LoyaltyStoreOffer[]
-    >;
+    return this.api.getLoyaltyStoreOffers(corporationId);
+  }
+
+  streamLoyaltyPoints(
+    characterId: number,
+  ): AsyncGenerator<PageResult<LoyaltyPoints>, void, undefined> {
+    return this.streamEndpoint<LoyaltyPoints>('getLoyaltyPoints', characterId);
+  }
+
+  streamLoyaltyStoreOffers(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<LoyaltyStoreOffer>, void, undefined> {
+    return this.streamEndpoint<LoyaltyStoreOffer>(
+      'getLoyaltyStoreOffers',
+      corporationId,
+    );
   }
 }

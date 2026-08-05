@@ -17,7 +17,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
    * @requires Authentication
    */
   getCharacterWallet(characterId: number): Promise<number> {
-    return this.api.getCharacterWallet(characterId) as Promise<number>;
+    return this.api.getCharacterWallet(characterId);
   }
 
   /**
@@ -28,9 +28,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
    * @requires Authentication
    */
   getCharacterWalletJournal(characterId: number): Promise<WalletJournal[]> {
-    return this.api.getCharacterWalletJournal(characterId) as Promise<
-      WalletJournal[]
-    >;
+    return this.api.getCharacterWalletJournal(characterId);
   }
 
   /**
@@ -43,9 +41,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
   getCharacterWalletTransactions(
     characterId: number,
   ): Promise<WalletTransaction[]> {
-    return this.api.getCharacterWalletTransactions(characterId) as Promise<
-      WalletTransaction[]
-    >;
+    return this.api.getCharacterWalletTransactions(characterId);
   }
 
   /**
@@ -58,9 +54,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
   getCorporationWallets(
     corporationId: number,
   ): Promise<{ division: number; balance: number }[]> {
-    return this.api.getCorporationWallets(corporationId) as Promise<
-      { division: number; balance: number }[]
-    >;
+    return this.api.getCorporationWallets(corporationId);
   }
 
   /**
@@ -75,10 +69,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     corporationId: number,
     division: number,
   ): Promise<WalletJournal[]> {
-    return this.api.getCorporationWalletJournal(
-      corporationId,
-      division,
-    ) as Promise<WalletJournal[]>;
+    return this.api.getCorporationWalletJournal(corporationId, division);
   }
 
   /**
@@ -93,10 +84,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     corporationId: number,
     division: number,
   ): Promise<WalletTransaction[]> {
-    return this.api.getCorporationWalletTransactions(
-      corporationId,
-      division,
-    ) as Promise<WalletTransaction[]>;
+    return this.api.getCorporationWalletTransactions(corporationId, division);
   }
 
   streamCharacterWalletJournal(
@@ -125,6 +113,17 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     return this.streamEndpoint<WalletTransaction>(
       'getCharacterWalletTransactions',
       characterId,
+    );
+  }
+
+  streamCorporationWalletTransactions(
+    corporationId: number,
+    division: number,
+  ): AsyncGenerator<PageResult<WalletTransaction>, void, undefined> {
+    return this.streamEndpoint<WalletTransaction>(
+      'getCorporationWalletTransactions',
+      corporationId,
+      division,
     );
   }
 }

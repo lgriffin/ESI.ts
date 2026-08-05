@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { fittingEndpoints } from '../core/endpoints/fittingEndpoints';
 import { Fitting } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
   constructor(client: ApiClient) {
@@ -16,7 +17,7 @@ export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
    * @requires Authentication
    */
   getFittings(characterId: number): Promise<Fitting[]> {
-    return this.api.getFittings(characterId) as Promise<Fitting[]>;
+    return this.api.getFittings(characterId);
   }
 
   /**
@@ -45,5 +46,11 @@ export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
    */
   deleteFitting(characterId: number, fittingId: number): Promise<void> {
     return this.api.deleteFitting(characterId, fittingId) as Promise<void>;
+  }
+
+  streamFittings(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Fitting>, void, undefined> {
+    return this.streamEndpoint<Fitting>('getFittings', characterId);
   }
 }

@@ -9,6 +9,7 @@ import {
   AllianceContactLabel,
   AllianceIcon,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 import { logWarn } from '../core/logger/loggerUtil';
 
 export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
@@ -92,5 +93,15 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    */
   getAlliances(): Promise<number[]> {
     return this.api.getAlliances();
+  }
+
+  streamAlliances(): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getAlliances');
+  }
+
+  streamCorporations(
+    allianceId: number,
+  ): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getCorporations', allianceId);
   }
 }

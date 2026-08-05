@@ -27,7 +27,7 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     this.api = createClient(client, endpoints);
   }
 
-  protected streamEndpoint<R>(
+  public streamEndpoint<R>(
     endpointName: string & keyof T,
     ...args: unknown[]
   ): AsyncGenerator<PageResult<R>, void, undefined> {

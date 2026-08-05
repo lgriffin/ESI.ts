@@ -10,6 +10,7 @@ import {
   MiningObserver,
   MiningObserverEntry,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
   constructor(client: ApiClient) {
@@ -24,9 +25,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
    * @requires Authentication
    */
   getCharacterIndustryJobs(characterId: number): Promise<IndustryJob[]> {
-    return this.api.getCharacterIndustryJobs(characterId) as Promise<
-      IndustryJob[]
-    >;
+    return this.api.getCharacterIndustryJobs(characterId);
   }
 
   /**
@@ -37,9 +36,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
    * @requires Authentication
    */
   getCharacterMiningLedger(characterId: number): Promise<MiningLedgerEntry[]> {
-    return this.api.getCharacterMiningLedger(characterId) as Promise<
-      MiningLedgerEntry[]
-    >;
+    return this.api.getCharacterMiningLedger(characterId);
   }
 
   /**
@@ -52,9 +49,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
   getMoonExtractionTimers(
     corporationId: number,
   ): Promise<MoonExtractionTimer[]> {
-    return this.api.getMoonExtractionTimers(corporationId) as Promise<
-      MoonExtractionTimer[]
-    >;
+    return this.api.getMoonExtractionTimers(corporationId);
   }
 
   /**
@@ -67,9 +62,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
   getCorporationMiningObservers(
     corporationId: number,
   ): Promise<MiningObserver[]> {
-    return this.api.getCorporationMiningObservers(corporationId) as Promise<
-      MiningObserver[]
-    >;
+    return this.api.getCorporationMiningObservers(corporationId);
   }
 
   /**
@@ -84,10 +77,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     corporationId: number,
     observerId: number,
   ): Promise<MiningObserverEntry[]> {
-    return this.api.getCorporationMiningObserver(
-      corporationId,
-      observerId,
-    ) as Promise<MiningObserverEntry[]>;
+    return this.api.getCorporationMiningObserver(corporationId, observerId);
   }
 
   /**
@@ -98,9 +88,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
    * @requires Authentication
    */
   getCorporationIndustryJobs(corporationId: number): Promise<IndustryJob[]> {
-    return this.api.getCorporationIndustryJobs(corporationId) as Promise<
-      IndustryJob[]
-    >;
+    return this.api.getCorporationIndustryJobs(corporationId);
   }
 
   /**
@@ -109,7 +97,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
    * @returns An array of industry facilities
    */
   getIndustryFacilities(): Promise<IndustryFacility[]> {
-    return this.api.getIndustryFacilities() as Promise<IndustryFacility[]>;
+    return this.api.getIndustryFacilities();
   }
 
   /**
@@ -118,6 +106,78 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
    * @returns An array of industry system cost indices
    */
   getIndustrySystems(): Promise<IndustrySystem[]> {
-    return this.api.getIndustrySystems() as Promise<IndustrySystem[]>;
+    return this.api.getIndustrySystems();
+  }
+
+  streamCharacterIndustryJobs(
+    characterId: number,
+  ): AsyncGenerator<PageResult<IndustryJob>, void, undefined> {
+    return this.streamEndpoint<IndustryJob>(
+      'getCharacterIndustryJobs',
+      characterId,
+    );
+  }
+
+  streamCharacterMiningLedger(
+    characterId: number,
+  ): AsyncGenerator<PageResult<MiningLedgerEntry>, void, undefined> {
+    return this.streamEndpoint<MiningLedgerEntry>(
+      'getCharacterMiningLedger',
+      characterId,
+    );
+  }
+
+  streamCorporationIndustryJobs(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<IndustryJob>, void, undefined> {
+    return this.streamEndpoint<IndustryJob>(
+      'getCorporationIndustryJobs',
+      corporationId,
+    );
+  }
+
+  streamMoonExtractionTimers(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<MoonExtractionTimer>, void, undefined> {
+    return this.streamEndpoint<MoonExtractionTimer>(
+      'getMoonExtractionTimers',
+      corporationId,
+    );
+  }
+
+  streamCorporationMiningObservers(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<MiningObserver>, void, undefined> {
+    return this.streamEndpoint<MiningObserver>(
+      'getCorporationMiningObservers',
+      corporationId,
+    );
+  }
+
+  streamCorporationMiningObserver(
+    corporationId: number,
+    observerId: number,
+  ): AsyncGenerator<PageResult<MiningObserverEntry>, void, undefined> {
+    return this.streamEndpoint<MiningObserverEntry>(
+      'getCorporationMiningObserver',
+      corporationId,
+      observerId,
+    );
+  }
+
+  streamIndustryFacilities(): AsyncGenerator<
+    PageResult<IndustryFacility>,
+    void,
+    undefined
+  > {
+    return this.streamEndpoint<IndustryFacility>('getIndustryFacilities');
+  }
+
+  streamIndustrySystems(): AsyncGenerator<
+    PageResult<IndustrySystem>,
+    void,
+    undefined
+  > {
+    return this.streamEndpoint<IndustrySystem>('getIndustrySystems');
   }
 }

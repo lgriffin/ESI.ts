@@ -85,6 +85,10 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
     getContacts(allianceId: number): Promise<AllianceContact[]>;
     getCorporations(allianceId: number): Promise<number[]>;
     getIcons(allianceId: number): Promise<AllianceIcon>;
+    // (undocumented)
+    streamAlliances(): AsyncGenerator<PageResult<number>, void, undefined>;
+    // (undocumented)
+    streamCorporations(allianceId: number): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -394,7 +398,7 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     // (undocumented)
     protected _endpoints: T;
     // (undocumented)
-    protected streamEndpoint<R>(endpointName: string & keyof T, ...args: unknown[]): AsyncGenerator<PageResult<R>, void, undefined>;
+    streamEndpoint<R>(endpointName: string & keyof T, ...args: unknown[]): AsyncGenerator<PageResult<R>, void, undefined>;
     // (undocumented)
     withMetadata(): WithMetadata<Omit<this, 'withMetadata' | 'withSafeMode'>>;
     // (undocumented)
@@ -539,6 +543,10 @@ export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
     getCalendarEvents(characterId: number): Promise<CalendarEvent[]>;
     getEventAttendees(characterId: number, eventId: number): Promise<CalendarEventAttendee[]>;
     respondToCalendarEvent(characterId: number, eventId: number, response: string): Promise<void>;
+    // (undocumented)
+    streamCalendarEvents(characterId: number): AsyncGenerator<PageResult<CalendarEvent>, void, undefined>;
+    // (undocumented)
+    streamEventAttendees(characterId: number, eventId: number): AsyncGenerator<PageResult<CalendarEventAttendee>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -660,6 +668,22 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
     getCharacterTitles(characterId: number): Promise<CharacterTitle[]>;
     postCharacterAffiliation(characters: number[]): Promise<CharacterAffiliation[]>;
     postCspaChargeCost(characterId: number, characters: number[]): Promise<number>;
+    // (undocumented)
+    streamCharacterAgentsResearch(characterId: number): AsyncGenerator<PageResult<AgentResearch>, void, undefined>;
+    // (undocumented)
+    streamCharacterBlueprints(characterId: number): AsyncGenerator<PageResult<Blueprint>, void, undefined>;
+    // (undocumented)
+    streamCharacterCorporationHistory(characterId: number): AsyncGenerator<PageResult<CorporationHistory>, void, undefined>;
+    // (undocumented)
+    streamCharacterMedals(characterId: number): AsyncGenerator<PageResult<Medal>, void, undefined>;
+    // (undocumented)
+    streamCharacterNotifications(characterId: number): AsyncGenerator<PageResult<Notification_2>, void, undefined>;
+    // (undocumented)
+    streamCharacterNotificationsContacts(characterId: number): AsyncGenerator<PageResult<Notification_2>, void, undefined>;
+    // (undocumented)
+    streamCharacterStandings(characterId: number): AsyncGenerator<PageResult<Standing>, void, undefined>;
+    // (undocumented)
+    streamCharacterTitles(characterId: number): AsyncGenerator<PageResult<CharacterTitle>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -3354,6 +3378,8 @@ export class CharacterSkillsClient extends BaseEsiClient<typeof skillEndpoints> 
         total_sp: number;
         unallocated_sp?: number;
     }>;
+    // (undocumented)
+    streamCharacterSkillQueue(characterId: number): AsyncGenerator<PageResult<SkillQueue>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -3542,6 +3568,8 @@ export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
     constructor(client: ApiClient);
     getClones(characterId: number): Promise<CloneInfo>;
     getImplants(characterId: number): Promise<number[]>;
+    // (undocumented)
+    streamImplants(characterId: number): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -3667,6 +3695,18 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
     getCorporationContacts(corporationId: number): Promise<Contact[]>;
     postCharacterContacts(characterId: number, standing: number, contactIds: number[]): Promise<number[]>;
     putCharacterContacts(characterId: number, standing: number, contactIds: number[]): Promise<void>;
+    // (undocumented)
+    streamAllianceContactLabels(allianceId: number): AsyncGenerator<PageResult<ContactLabel>, void, undefined>;
+    // (undocumented)
+    streamAllianceContacts(allianceId: number): AsyncGenerator<PageResult<Contact>, void, undefined>;
+    // (undocumented)
+    streamCharacterContactLabels(characterId: number): AsyncGenerator<PageResult<ContactLabel>, void, undefined>;
+    // (undocumented)
+    streamCharacterContacts(characterId: number): AsyncGenerator<PageResult<Contact>, void, undefined>;
+    // (undocumented)
+    streamCorporationContactLabels(corporationId: number): AsyncGenerator<PageResult<ContactLabel>, void, undefined>;
+    // (undocumented)
+    streamCorporationContacts(corporationId: number): AsyncGenerator<PageResult<Contact>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -4240,6 +4280,40 @@ export class CorporationsClient extends BaseEsiClient<typeof corporationEndpoint
     getCorporationStructures(corporationId: number): Promise<CorporationStructure[]>;
     getCorporationTitles(corporationId: number): Promise<CorporationTitle[]>;
     getNpcCorporations(): Promise<number[]>;
+    // (undocumented)
+    streamCorporationAllianceHistory(corporationId: number): AsyncGenerator<PageResult<CorporationAllianceHistory>, void, undefined>;
+    // (undocumented)
+    streamCorporationAlscLogs(corporationId: number): AsyncGenerator<PageResult<ContainerLog>, void, undefined>;
+    // (undocumented)
+    streamCorporationBlueprints(corporationId: number): AsyncGenerator<PageResult<Blueprint>, void, undefined>;
+    // (undocumented)
+    streamCorporationFacilities(corporationId: number): AsyncGenerator<PageResult<CorporationFacility>, void, undefined>;
+    // (undocumented)
+    streamCorporationIssuedMedals(corporationId: number): AsyncGenerator<PageResult<CorporationIssuedMedal>, void, undefined>;
+    // (undocumented)
+    streamCorporationMedals(corporationId: number): AsyncGenerator<PageResult<CorporationMedal>, void, undefined>;
+    // (undocumented)
+    streamCorporationMembers(corporationId: number): AsyncGenerator<PageResult<number>, void, undefined>;
+    // (undocumented)
+    streamCorporationMemberTitles(corporationId: number): AsyncGenerator<PageResult<CorporationMemberTitle>, void, undefined>;
+    // (undocumented)
+    streamCorporationMemberTracking(corporationId: number): AsyncGenerator<PageResult<CorporationMemberTracking>, void, undefined>;
+    // (undocumented)
+    streamCorporationRoles(corporationId: number): AsyncGenerator<PageResult<CorporationMemberRole>, void, undefined>;
+    // (undocumented)
+    streamCorporationRolesHistory(corporationId: number): AsyncGenerator<PageResult<CorporationRoleHistory>, void, undefined>;
+    // (undocumented)
+    streamCorporationShareholders(corporationId: number): AsyncGenerator<PageResult<CorporationShareholder>, void, undefined>;
+    // (undocumented)
+    streamCorporationStandings(corporationId: number): AsyncGenerator<PageResult<Standing>, void, undefined>;
+    // (undocumented)
+    streamCorporationStarbases(corporationId: number): AsyncGenerator<PageResult<CorporationStarbase>, void, undefined>;
+    // (undocumented)
+    streamCorporationStructures(corporationId: number): AsyncGenerator<PageResult<CorporationStructure>, void, undefined>;
+    // (undocumented)
+    streamCorporationTitles(corporationId: number): AsyncGenerator<PageResult<CorporationTitle>, void, undefined>;
+    // (undocumented)
+    streamNpcCorporations(): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -8971,6 +9045,8 @@ export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
     }>;
     deleteFitting(characterId: number, fittingId: number): Promise<void>;
     getFittings(characterId: number): Promise<Fitting[]>;
+    // (undocumented)
+    streamFittings(characterId: number): AsyncGenerator<PageResult<Fitting>, void, undefined>;
 }
 
 // Warning: (ae-forgotten-export) The symbol "fleetEndpoints" needs to be exported by the entry point index.d.ts
@@ -8995,6 +9071,10 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     moveFleetMember(fleetId: number, memberId: number, body: object): Promise<void>;
     renameFleetSquad(fleetId: number, squadId: number, name: string): Promise<void>;
     renameFleetWing(fleetId: number, wingId: number, name: string): Promise<void>;
+    // (undocumented)
+    streamFleetMembers(fleetId: number): AsyncGenerator<PageResult<FleetMember>, void, undefined>;
+    // (undocumented)
+    streamFleetWings(fleetId: number): AsyncGenerator<PageResult<FleetWing>, void, undefined>;
     updateFleet(fleetId: number, body: object): Promise<void>;
 }
 
@@ -10079,6 +10159,22 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     getIndustryFacilities(): Promise<IndustryFacility[]>;
     getIndustrySystems(): Promise<IndustrySystem[]>;
     getMoonExtractionTimers(corporationId: number): Promise<MoonExtractionTimer[]>;
+    // (undocumented)
+    streamCharacterIndustryJobs(characterId: number): AsyncGenerator<PageResult<IndustryJob>, void, undefined>;
+    // (undocumented)
+    streamCharacterMiningLedger(characterId: number): AsyncGenerator<PageResult<MiningLedgerEntry>, void, undefined>;
+    // (undocumented)
+    streamCorporationIndustryJobs(corporationId: number): AsyncGenerator<PageResult<IndustryJob>, void, undefined>;
+    // (undocumented)
+    streamCorporationMiningObserver(corporationId: number, observerId: number): AsyncGenerator<PageResult<MiningObserverEntry>, void, undefined>;
+    // (undocumented)
+    streamCorporationMiningObservers(corporationId: number): AsyncGenerator<PageResult<MiningObserver>, void, undefined>;
+    // (undocumented)
+    streamIndustryFacilities(): AsyncGenerator<PageResult<IndustryFacility>, void, undefined>;
+    // (undocumented)
+    streamIndustrySystems(): AsyncGenerator<PageResult<IndustrySystem>, void, undefined>;
+    // (undocumented)
+    streamMoonExtractionTimers(corporationId: number): AsyncGenerator<PageResult<MoonExtractionTimer>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -10525,6 +10621,10 @@ export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
     constructor(client: ApiClient);
     getLoyaltyPoints(characterId: number): Promise<LoyaltyPoints[]>;
     getLoyaltyStoreOffers(corporationId: number): Promise<LoyaltyStoreOffer[]>;
+    // (undocumented)
+    streamLoyaltyPoints(characterId: number): AsyncGenerator<PageResult<LoyaltyPoints>, void, undefined>;
+    // (undocumented)
+    streamLoyaltyStoreOffers(corporationId: number): AsyncGenerator<PageResult<LoyaltyStoreOffer>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -10607,6 +10707,13 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
         labels?: MailLabel[];
     }>;
     sendMail(characterId: number, body: object): Promise<number>;
+    // (undocumented)
+    streamMailHeaders(characterId: number): AsyncGenerator<PageResult<MailMessage>, void, undefined>;
+    // (undocumented)
+    streamMailingLists(characterId: number): AsyncGenerator<PageResult<{
+        mailing_list_id: number;
+        name: string;
+    }>, void, undefined>;
     updateMailMetadata(characterId: number, mailId: number, body: object): Promise<void>;
 }
 
@@ -11186,6 +11293,10 @@ export class PiClient extends BaseEsiClient<typeof piEndpoints> {
     getColonyLayout(characterId: number, planetId: number): Promise<ColonyLayout>;
     getCorporationCustomsOffices(corporationId: number): Promise<CustomsOffice[]>;
     getSchematicInformation(schematicId: number): Promise<SchematicInfo>;
+    // (undocumented)
+    streamColonies(characterId: number): AsyncGenerator<PageResult<PlanetaryColony>, void, undefined>;
+    // (undocumented)
+    streamCorporationCustomsOffices(corporationId: number): AsyncGenerator<PageResult<CustomsOffice>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -13110,6 +13221,8 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     streamCharacterWalletTransactions(characterId: number): AsyncGenerator<PageResult<WalletTransaction>, void, undefined>;
     // (undocumented)
     streamCorporationWalletJournal(corporationId: number, division: number): AsyncGenerator<PageResult<WalletJournal>, void, undefined>;
+    // (undocumented)
+    streamCorporationWalletTransactions(corporationId: number, division: number): AsyncGenerator<PageResult<WalletTransaction>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -13190,6 +13303,10 @@ export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
     getWarById(warId: number): Promise<War>;
     getWarKillmails(warId: number): Promise<KillmailSummary[]>;
     getWars(): Promise<number[]>;
+    // (undocumented)
+    streamWarKillmails(warId: number): AsyncGenerator<PageResult<KillmailSummary>, void, undefined>;
+    // (undocumented)
+    streamWars(): AsyncGenerator<PageResult<number>, void, undefined>;
 }
 
 // @public (undocumented)

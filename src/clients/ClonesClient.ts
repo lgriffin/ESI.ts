@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { cloneEndpoints } from '../core/endpoints/cloneEndpoints';
 import { CloneInfo } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
   constructor(client: ApiClient) {
@@ -16,7 +17,7 @@ export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
    * @requires Authentication
    */
   getClones(characterId: number): Promise<CloneInfo> {
-    return this.api.getClones(characterId) as Promise<CloneInfo>;
+    return this.api.getClones(characterId);
   }
 
   /**
@@ -27,6 +28,12 @@ export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
    * @requires Authentication
    */
   getImplants(characterId: number): Promise<number[]> {
-    return this.api.getImplants(characterId) as Promise<number[]>;
+    return this.api.getImplants(characterId);
+  }
+
+  streamImplants(
+    characterId: number,
+  ): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getImplants', characterId);
   }
 }
