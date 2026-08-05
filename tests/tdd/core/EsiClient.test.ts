@@ -3,6 +3,7 @@ import {
   RequestInterceptor,
   ResponseInterceptor,
 } from '../../../src/core/middleware/Middleware';
+import { IRetryStrategy } from '../../../src/core/IRetryStrategy';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -56,6 +57,27 @@ describe('EsiClient', () => {
 
     it('should set datasource from config', () => {
       const client = new EsiClient({ datasource: 'singularity' });
+      expect(client).toBeDefined();
+      client.shutdown();
+    });
+
+    it('should accept retryStrategy in config', () => {
+      const custom: IRetryStrategy = {
+        execute: jest.fn().mockResolvedValue('custom'),
+      };
+      const client = new EsiClient({ retryStrategy: custom });
+      expect(client).toBeDefined();
+      client.shutdown();
+    });
+
+    it('should accept both retryConfig and retryStrategy in config', () => {
+      const custom: IRetryStrategy = {
+        execute: jest.fn().mockResolvedValue('custom'),
+      };
+      const client = new EsiClient({
+        retryConfig: { maxRetries: 3 },
+        retryStrategy: custom,
+      });
       expect(client).toBeDefined();
       client.shutdown();
     });

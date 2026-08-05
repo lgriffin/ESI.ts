@@ -51,6 +51,7 @@ import {
 import { RateLimiter, RateLimiterConfig } from './core/rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './core/RequestDeduplicator';
 import { RetryConfig } from './core/util/retry';
+import { IRetryStrategy } from './core/IRetryStrategy';
 import { EsiDiagnostics } from './core/EsiDiagnostics';
 import {
   batchFetch,
@@ -71,6 +72,7 @@ export interface EsiClientConfig {
   timeout?: number;
   retryAttempts?: number;
   retryConfig?: RetryConfig;
+  retryStrategy?: IRetryStrategy;
   enableETagCache?: boolean;
   etagCacheConfig?: ETagCacheConfig;
   enableCircuitBreaker?: boolean;
@@ -144,6 +146,10 @@ export class EsiClient {
       this.apiClient.setRetryConfig(config.retryConfig);
     } else if (config?.retryAttempts !== undefined) {
       this.apiClient.setRetryConfig({ maxRetries: config.retryAttempts });
+    }
+
+    if (config?.retryStrategy) {
+      this.apiClient.setRetryStrategy(config.retryStrategy);
     }
 
     if (config?.requestInterceptors) {

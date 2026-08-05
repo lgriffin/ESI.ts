@@ -4,6 +4,7 @@ import { RetryConfig, retryDelay } from './util/retry';
 import { sleep } from './util/sleep';
 import { logInfo, logWarn, logError } from './logger/loggerUtil';
 import { buildError } from './util/error';
+import { IRetryStrategy } from './IRetryStrategy';
 
 export interface RetryContext {
   endpoint: string;
@@ -14,7 +15,7 @@ export interface RetryContext {
   retryOperation?: () => Promise<unknown>;
 }
 
-export class RetryStrategy {
+export class RetryStrategy implements IRetryStrategy {
   private readonly maxRetries: number;
   private readonly baseDelayMs: number;
   private readonly maxDelayMs: number;

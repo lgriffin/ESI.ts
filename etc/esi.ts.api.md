@@ -267,6 +267,8 @@ export class ApiClient {
     // (undocumented)
     getRetryConfig(): RetryConfig | null;
     // (undocumented)
+    getRetryStrategy(): IRetryStrategy | null;
+    // (undocumented)
     getTimeout(): number;
     // (undocumented)
     getValidateResponse(): boolean;
@@ -290,6 +292,8 @@ export class ApiClient {
     setRateLimiter(limiter: IRateLimiter | null): void;
     // (undocumented)
     setRetryConfig(config: RetryConfig | null): void;
+    // (undocumented)
+    setRetryStrategy(strategy: IRetryStrategy | null): void;
     // (undocumented)
     setTimeout(timeout: number): void;
     // (undocumented)
@@ -8074,6 +8078,8 @@ export interface EsiClientConfig {
     // (undocumented)
     retryConfig?: RetryConfig;
     // (undocumented)
+    retryStrategy?: IRetryStrategy;
+    // (undocumented)
     timeout?: number;
     // (undocumented)
     unsafeAllowCustomHost?: boolean;
@@ -10256,6 +10262,12 @@ export interface IRateLimiter {
 }
 
 // @public (undocumented)
+export interface IRetryStrategy {
+    // (undocumented)
+    execute<T>(operation: () => Promise<T>, context: RetryContext): Promise<T>;
+}
+
+// @public (undocumented)
 export function isEsiError(error: unknown): error is EsiError;
 
 // @public (undocumented)
@@ -11408,7 +11420,7 @@ export interface RetryContext {
 }
 
 // @public (undocumented)
-export class RetryStrategy {
+export class RetryStrategy implements IRetryStrategy {
     constructor(config?: RetryConfig);
     // (undocumented)
     execute<T>(operation: () => Promise<T>, context: RetryContext): Promise<T>;

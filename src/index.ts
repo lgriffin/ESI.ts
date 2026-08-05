@@ -119,6 +119,7 @@ export {
 export { RetryConfig } from './core/util/retry';
 export { RetryStrategy } from './core/RetryStrategy';
 export type { RetryContext } from './core/RetryStrategy';
+export type { IRetryStrategy } from './core/IRetryStrategy';
 
 // Request deduplication
 export { RequestDeduplicator } from './core/RequestDeduplicator';
