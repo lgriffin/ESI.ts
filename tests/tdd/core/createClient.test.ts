@@ -201,7 +201,7 @@ describe('createClient', () => {
       const client = createClient(apiClient, cursorEndpoints, {
         returnMetadata: true,
       });
-      const result = (await client.getItems()) as {
+      const result = (await client.getItems()) as unknown as {
         data: { data: number[] };
         meta: Record<string, unknown>;
       };
