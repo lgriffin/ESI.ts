@@ -16,6 +16,7 @@ import { RequestContext, ResponseContext } from './middleware/Middleware';
 import { ICircuitBreaker } from './circuitBreaker/ICircuitBreaker';
 import { esiCacheTtls } from './endpoints/esi-cache-ttls.generated';
 import { CircuitOpenError } from './circuitBreaker/CircuitBreaker';
+import { IRetryStrategy } from './IRetryStrategy';
 import { RetryStrategy } from './RetryStrategy';
 
 export interface EsiHandlerResponse {
@@ -65,6 +66,13 @@ function resolveRateLimiter(client: ApiClient): IRateLimiter {
 
 function resolveCircuitBreaker(client: ApiClient): ICircuitBreaker | null {
   return client.getCircuitBreaker();
+}
+
+function resolveRetryStrategy(client: ApiClient): IRetryStrategy {
+  return (
+    client.getRetryStrategy() ??
+    new RetryStrategy(client.getRetryConfig() ?? undefined)
+  );
 }
 
 // --- Pure helpers ---
@@ -738,7 +746,7 @@ export const handleSinglePageRequest = async (
       body: data,
     }));
 
-  const retryStrategy = new RetryStrategy(client.getRetryConfig() ?? undefined);
+  const retryStrategy = resolveRetryStrategy(client);
 
   return retryStrategy.execute<EsiHandlerResponse>(doExecute, {
     endpoint,
@@ -794,7 +802,7 @@ export const handleRequest = async (
       ? dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
       : doExecute();
 
-  const retryStrategy = new RetryStrategy(client.getRetryConfig() ?? undefined);
+  const retryStrategy = resolveRetryStrategy(client);
 
   return retryStrategy.execute<EsiHandlerResponse>(operation, {
     endpoint,

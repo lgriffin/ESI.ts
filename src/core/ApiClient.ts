@@ -7,6 +7,7 @@ import { ICache } from './cache/ICache';
 import { IRateLimiter } from './rateLimiter/IRateLimiter';
 import { ICircuitBreaker } from './circuitBreaker/ICircuitBreaker';
 import { IDeduplicator } from './IDeduplicator';
+import { IRetryStrategy } from './IRetryStrategy';
 import { RetryConfig } from './util/retry';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
@@ -24,6 +25,7 @@ export class ApiClient {
   private timeout: number = 30_000;
   private deduplicator: IDeduplicator | null = null;
   private retryConfig: RetryConfig | null = null;
+  private retryStrategy: IRetryStrategy | null = null;
   private validateResponse: boolean = true;
   private language?: string;
 
@@ -81,6 +83,14 @@ export class ApiClient {
 
   setRetryConfig(config: RetryConfig | null): void {
     this.retryConfig = config;
+  }
+
+  getRetryStrategy(): IRetryStrategy | null {
+    return this.retryStrategy;
+  }
+
+  setRetryStrategy(strategy: IRetryStrategy | null): void {
+    this.retryStrategy = strategy;
   }
 
   getValidateResponse(): boolean {
