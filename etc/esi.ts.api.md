@@ -3444,6 +3444,10 @@ export class CircuitBreaker implements ICircuitBreaker {
     // (undocumented)
     cleanup(): number;
     // (undocumented)
+    destroy(): void;
+    // (undocumented)
+    getKeyStrategy(): 'resolved' | 'template';
+    // (undocumented)
     getState(endpoint: string): CircuitState;
     // (undocumented)
     getStats(): {
@@ -3466,10 +3470,12 @@ export class CircuitBreaker implements ICircuitBreaker {
 
 // @public (undocumented)
 export interface CircuitBreakerConfig {
+    cleanupIntervalMs?: number;
     // (undocumented)
     failureThreshold?: number;
     // (undocumented)
     halfOpenMaxAttempts?: number;
+    keyStrategy?: 'resolved' | 'template';
     // (undocumented)
     resetTimeoutMs?: number;
     // (undocumented)
@@ -9952,6 +9958,8 @@ export interface ICircuitBreaker {
     checkCircuit(endpoint: string): void;
     // (undocumented)
     cleanup(): number;
+    destroy?(): void;
+    getKeyStrategy?(): 'resolved' | 'template';
     // (undocumented)
     getState(endpoint: string): CircuitState;
     // (undocumented)

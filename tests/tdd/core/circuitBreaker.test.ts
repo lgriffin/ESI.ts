@@ -1,6 +1,7 @@
 import {
   CircuitBreaker,
   CircuitOpenError,
+  CircuitBreakerConfig,
 } from '../../../src/core/circuitBreaker/CircuitBreaker';
 
 describe('CircuitBreaker', () => {
@@ -319,6 +320,164 @@ describe('CircuitBreaker', () => {
       cb.recordFailure('v1/universe/types/', 500);
 
       cb.reset();
+      expect(cb.getStats().totalCircuits).toBe(0);
+    });
+  });
+
+  describe('key strategy', () => {
+    it('should default to resolved key strategy', () => {
+      const cb = new CircuitBreaker();
+      expect(cb.getKeyStrategy()).toBe('resolved');
+    });
+
+    it('should accept template key strategy', () => {
+      const cb = new CircuitBreaker({ keyStrategy: 'template' });
+      cb.destroy();
+      expect(cb.getKeyStrategy()).toBe('template');
+    });
+
+    it('should isolate resolved paths by default (different characters)', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 2,
+        cleanupIntervalMs: 0,
+      });
+
+      cb.recordFailure('characters/1/orders/', 500);
+      cb.recordFailure('characters/1/orders/', 500);
+
+      expect(cb.getState('characters/1/orders/')).toBe('open');
+      expect(cb.getState('characters/2/orders/')).toBe('closed');
+    });
+
+    it('should group under same circuit when template key is used directly', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 2,
+        keyStrategy: 'template',
+        cleanupIntervalMs: 0,
+      });
+
+      // When keyStrategy is 'template', the caller (ApiRequestHandler)
+      // passes the template path. Here we simulate that by passing the
+      // template path directly to the CB methods.
+      const templateKey = 'characters/{character_id}/orders/';
+
+      cb.recordFailure(templateKey, 500);
+      cb.recordFailure(templateKey, 500);
+
+      expect(cb.getState(templateKey)).toBe('open');
+    });
+  });
+
+  describe('half-open probe slot release', () => {
+    it('should allow re-probing after failure releases slot', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 2,
+        resetTimeoutMs: 0,
+        halfOpenMaxAttempts: 1,
+      });
+
+      cb.recordFailure('v1/status/', 500);
+      cb.recordFailure('v1/status/', 500);
+
+      // Transitions to half-open and allows probe
+      cb.checkCircuit('v1/status/');
+
+      // Simulate an early throw: recordFailure with status 0 releases the slot
+      cb.recordFailure('v1/status/', 0);
+
+      // After the probe failure, circuit should re-open.
+      // With resetTimeoutMs=0, getState sees it as half-open again.
+      // A new probe should be allowed (half-open attempts reset on re-open).
+      cb.checkCircuit('v1/status/');
+      // The probe is allowed, verifying slot is not permanently wasted
+      cb.recordSuccess('v1/status/');
+      expect(cb.getState('v1/status/')).toBe('closed');
+    });
+  });
+
+  describe('scheduled cleanup', () => {
+    it('should automatically clean stale circuits on timer', async () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 5,
+        staleThresholdMs: 1,
+        cleanupIntervalMs: 10,
+      });
+
+      cb.recordFailure('v1/a/', 500);
+      cb.recordSuccess('v1/a/');
+
+      expect(cb.getStats().totalCircuits).toBe(1);
+
+      // Wait for the cleanup timer to fire
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(cb.getStats().totalCircuits).toBe(0);
+
+      cb.destroy();
+    });
+
+    it('should not start cleanup timer when cleanupIntervalMs is 0', () => {
+      const cb = new CircuitBreaker({ cleanupIntervalMs: 0 });
+
+      // Should not throw or have issues
+      cb.recordFailure('v1/a/', 500);
+      cb.recordSuccess('v1/a/');
+
+      cb.destroy();
+    });
+  });
+
+  describe('destroy', () => {
+    it('should clear the cleanup timer and circuits', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 2,
+        cleanupIntervalMs: 100,
+      });
+
+      cb.recordFailure('v1/status/', 500);
+      cb.recordFailure('v1/status/', 500);
+
+      expect(cb.getStats().totalCircuits).toBe(1);
+
+      cb.destroy();
+
+      expect(cb.getStats().totalCircuits).toBe(0);
+    });
+
+    it('should be safe to call destroy multiple times', () => {
+      const cb = new CircuitBreaker({ cleanupIntervalMs: 100 });
+
+      cb.destroy();
+      cb.destroy();
+      // No errors expected
+    });
+
+    it('should stop scheduled cleanup after destroy', async () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 5,
+        staleThresholdMs: 1,
+        cleanupIntervalMs: 10,
+      });
+
+      cb.destroy();
+
+      // Add a stale circuit after destroy
+      cb.recordFailure('v1/a/', 500);
+      cb.recordSuccess('v1/a/');
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Timer was cleared, so automatic cleanup should not have run
+      expect(cb.getStats().totalCircuits).toBe(1);
+    });
+
+    it('shutdown should delegate to destroy', () => {
+      const cb = new CircuitBreaker({ cleanupIntervalMs: 100 });
+
+      cb.recordFailure('v1/status/', 500);
+
+      cb.shutdown();
+
       expect(cb.getStats().totalCircuits).toBe(0);
     });
   });

@@ -68,61 +68,75 @@ export async function executeSingleFetch(
   logInfo(`Hitting endpoint: ${url}`);
 
   const cb = resolveCircuitBreaker(client);
-  if (cb) cb.checkCircuit(endpoint);
+  const cbKey =
+    cb && templatePath && cb.getKeyStrategy?.() === 'template'
+      ? templatePath
+      : endpoint;
 
-  const rateLimiter = resolveRateLimiter(client);
-  await rateLimiter.checkRateLimit(templatePath, method, req.headers);
+  if (cb) cb.checkCircuit(cbKey);
 
-  const timeoutMs = requestTimeout ?? client.getTimeout();
-  const controller = new AbortController();
-  const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
-  options.signal = controller.signal;
+  let cbRecorded = false;
 
-  let response: Response;
   try {
-    response = await fetch(url, options);
-  } catch (err) {
+    const rateLimiter = resolveRateLimiter(client);
+    await rateLimiter.checkRateLimit(templatePath, method, req.headers);
+
+    const timeoutMs = requestTimeout ?? client.getTimeout();
+    const controller = new AbortController();
+    const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+    options.signal = controller.signal;
+
+    let response: Response;
+    try {
+      response = await fetch(url, options);
+    } catch (err) {
+      clearTimeout(timer);
+      if (cb) {
+        cb.recordFailure(cbKey, 0);
+        cbRecorded = true;
+      }
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new TimeoutError(timeoutMs, url);
+      }
+      throw err;
+    }
     clearTimeout(timer);
-    if (cb) {
-      // Status 0 = network/timeout failure — counts toward opening the circuit
-      cb.recordFailure(endpoint, 0);
-    }
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw new TimeoutError(timeoutMs, url);
-    }
-    throw err;
-  }
-  clearTimeout(timer);
 
-  const parsed = parseHeaders(response.headers);
+    const parsed = parseHeaders(response.headers);
 
-  rateLimiter.updateFromResponse(
-    parsed.raw,
-    response.status,
-    templatePath,
-    method,
-    req.headers,
-  );
-
-  if (cb) {
-    if (
-      response.status >= 500 ||
-      response.status === 420 ||
-      response.status === 429
-    ) {
-      cb.recordFailure(endpoint, response.status);
-    } else {
-      cb.recordSuccess(endpoint);
-    }
-  }
-
-  if (parsed.warning) {
-    logWarn(
-      `ESI Warning ${parsed.warning.code} for ${url}: ${parsed.warning.message}`,
+    rateLimiter.updateFromResponse(
+      parsed.raw,
+      response.status,
+      templatePath,
+      method,
+      req.headers,
     );
-  }
 
-  return { response, parsed, url };
+    if (cb) {
+      if (
+        response.status >= 500 ||
+        response.status === 420 ||
+        response.status === 429
+      ) {
+        cb.recordFailure(cbKey, response.status);
+      } else {
+        cb.recordSuccess(cbKey);
+      }
+      cbRecorded = true;
+    }
+
+    if (parsed.warning) {
+      logWarn(
+        `ESI Warning ${parsed.warning.code} for ${url}: ${parsed.warning.message}`,
+      );
+    }
+
+    return { response, parsed, url };
+  } finally {
+    if (cb && !cbRecorded) {
+      cb.recordFailure(cbKey, 0);
+    }
+  }
 }
 
 /**
