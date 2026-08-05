@@ -664,6 +664,7 @@ export type CharacterFleetInfo = z.infer<typeof CharacterFleetInfoSchema>;
 // @public (undocumented)
 const CharacterFleetInfoSchema: z.ZodObject<{
     fleet_id: z.ZodNumber;
+    fleet_boss_id: z.ZodNumber;
     role: z.ZodEnum<{
         fleet_commander: "fleet_commander";
         wing_commander: "wing_commander";
@@ -3629,6 +3630,7 @@ const ContactSchema: z.ZodObject<{
     }>;
     standing: z.ZodNumber;
     label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    is_blocked: z.ZodOptional<z.ZodBoolean>;
     is_watched: z.ZodOptional<z.ZodBoolean>;
 }, z.core.$loose>;
 
@@ -7426,6 +7428,7 @@ const CorporationStarbaseDetailSchema: z.ZodObject<{
     attack_if_at_war: z.ZodOptional<z.ZodBoolean>;
     attack_if_other_security_status_dropping: z.ZodOptional<z.ZodBoolean>;
     attack_security_status_threshold: z.ZodOptional<z.ZodNumber>;
+    attack_standing_threshold: z.ZodOptional<z.ZodNumber>;
     fuel_bay_take: z.ZodOptional<z.ZodString>;
     fuel_bay_view: z.ZodOptional<z.ZodString>;
     offline: z.ZodOptional<z.ZodString>;
@@ -7471,11 +7474,13 @@ const CorporationStructureSchema: z.ZodObject<{
         }>;
     }, z.core.$loose>>>;
     fuel_expires: z.ZodOptional<z.ZodString>;
+    name: z.ZodOptional<z.ZodString>;
     state: z.ZodString;
     state_timer_start: z.ZodOptional<z.ZodString>;
     state_timer_end: z.ZodOptional<z.ZodString>;
     unanchors_at: z.ZodOptional<z.ZodString>;
     reinforce_hour: z.ZodOptional<z.ZodNumber>;
+    next_reinforce_hour: z.ZodOptional<z.ZodNumber>;
     next_reinforce_apply: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
@@ -7630,6 +7635,8 @@ const CustomsOfficeSchema: z.ZodObject<{
     system_id: z.ZodNumber;
     reinforce_exit_start: z.ZodNumber;
     reinforce_exit_end: z.ZodNumber;
+    allow_access_with_standings: z.ZodBoolean;
+    allow_alliance_access: z.ZodBoolean;
     alliance_tax_rate: z.ZodOptional<z.ZodNumber>;
     corporation_tax_rate: z.ZodOptional<z.ZodNumber>;
     standing_level: z.ZodOptional<z.ZodString>;
@@ -7638,6 +7645,7 @@ const CustomsOfficeSchema: z.ZodObject<{
     neutral_standing_tax_rate: z.ZodOptional<z.ZodNumber>;
     good_standing_tax_rate: z.ZodOptional<z.ZodNumber>;
     excellent_standing_tax_rate: z.ZodOptional<z.ZodNumber>;
+    type_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -7786,6 +7794,23 @@ const DogmaEffectSchema: z.ZodObject<{
     is_offensive: z.ZodOptional<z.ZodBoolean>;
     is_warp_safe: z.ZodOptional<z.ZodBoolean>;
     disallow_auto_repeat: z.ZodOptional<z.ZodBoolean>;
+    discharge_attribute_id: z.ZodOptional<z.ZodNumber>;
+    duration_attribute_id: z.ZodOptional<z.ZodNumber>;
+    electronic_chance: z.ZodOptional<z.ZodBoolean>;
+    falloff_attribute_id: z.ZodOptional<z.ZodNumber>;
+    modifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        domain: z.ZodOptional<z.ZodString>;
+        effect_id: z.ZodOptional<z.ZodNumber>;
+        func: z.ZodString;
+        modified_attribute_id: z.ZodOptional<z.ZodNumber>;
+        modifying_attribute_id: z.ZodOptional<z.ZodNumber>;
+        operator: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>>;
+    post_expression: z.ZodOptional<z.ZodNumber>;
+    pre_expression: z.ZodOptional<z.ZodNumber>;
+    range_attribute_id: z.ZodOptional<z.ZodNumber>;
+    range_chance: z.ZodOptional<z.ZodBoolean>;
+    tracking_speed_attribute_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -9870,7 +9895,10 @@ const GraphicInfoSchema: z.ZodObject<{
     collision_file: z.ZodOptional<z.ZodString>;
     graphic_file: z.ZodOptional<z.ZodString>;
     icon_folder: z.ZodOptional<z.ZodString>;
-    sofico_folder: z.ZodOptional<z.ZodString>;
+    sof_dna: z.ZodOptional<z.ZodString>;
+    sof_fation_name: z.ZodOptional<z.ZodString>;
+    sof_hull_name: z.ZodOptional<z.ZodString>;
+    sof_race_name: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -11658,6 +11686,11 @@ const SolarSystemInfoSchema: z.ZodObject<{
     system_id: z.ZodNumber;
     name: z.ZodString;
     constellation_id: z.ZodNumber;
+    position: z.ZodObject<{
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        z: z.ZodNumber;
+    }, z.core.$loose>;
     security_class: z.ZodOptional<z.ZodString>;
     security_status: z.ZodNumber;
     star_id: z.ZodOptional<z.ZodNumber>;
@@ -11856,6 +11889,8 @@ export type SovereigntySystemStructure = z.infer<typeof SovereigntySystemStructu
 
 // @public (undocumented)
 const SovereigntySystemStructureSchema: z.ZodObject<{
+    alliance_id: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
     structure_id: z.ZodNumber;
     structure_type_id: z.ZodNumber;
     vulnerability_occupancy_level: z.ZodOptional<z.ZodNumber>;
@@ -12054,6 +12089,7 @@ const TypeInfoSchema: z.ZodObject<{
     market_group_id: z.ZodOptional<z.ZodNumber>;
     radius: z.ZodOptional<z.ZodNumber>;
     volume: z.ZodOptional<z.ZodNumber>;
+    packaged_volume: z.ZodOptional<z.ZodNumber>;
     capacity: z.ZodOptional<z.ZodNumber>;
     portion_size: z.ZodOptional<z.ZodNumber>;
     mass: z.ZodOptional<z.ZodNumber>;
@@ -13063,6 +13099,8 @@ const WalletJournalSchema: z.ZodObject<{
     description: z.ZodString;
     context_id: z.ZodOptional<z.ZodNumber>;
     context_id_type: z.ZodOptional<z.ZodString>;
+    tax: z.ZodOptional<z.ZodNumber>;
+    tax_receiver_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
 // @public (undocumented)

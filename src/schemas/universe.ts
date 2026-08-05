@@ -10,7 +10,7 @@ export const SolarSystemInfoSchema = z.looseObject({
   system_id: z.number(),
   name: z.string(),
   constellation_id: z.number(),
-  position: PositionSchema,
+  position: PositionSchema.optional(),
   security_class: z.string().optional(),
   security_status: z.number(),
   star_id: z.number().optional(),
