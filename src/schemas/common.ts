@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+export const StandingSchema = z.looseObject({
+  from_id: z.number(),
+  from_type: z.enum(['agent', 'npc_corp', 'faction']),
+  standing: z.number(),
+});
+
 export const RateLimitMetaSchema = z.object({
   remaining: z.number(),
   limit: z.number(),

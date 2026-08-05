@@ -185,10 +185,10 @@ interface AlliancesAllianceIdContactsGet {
 const AlliancesAllianceIdContactsGetSchema: z.ZodObject<{
     contact_id: z.ZodNumber;
     contact_type: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
     }>;
     label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
     standing: z.ZodNumber;
@@ -566,10 +566,10 @@ const CalendarEventDetailSchema: z.ZodObject<{
     owner_id: z.ZodNumber;
     owner_name: z.ZodString;
     owner_type: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
         eve_server: "eve_server";
     }>;
     duration: z.ZodNumber;
@@ -1213,10 +1213,10 @@ const CharactersCharacterIdCalendarEventIdGetSchema: z.ZodObject<{
     owner_id: z.ZodNumber;
     owner_name: z.ZodString;
     owner_type: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
         eve_server: "eve_server";
     }>;
     response: z.ZodString;
@@ -1316,10 +1316,10 @@ interface CharactersCharacterIdContactsGet {
 const CharactersCharacterIdContactsGetSchema: z.ZodObject<{
     contact_id: z.ZodNumber;
     contact_type: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
     }>;
     is_blocked: z.ZodOptional<z.ZodBoolean>;
     is_watched: z.ZodOptional<z.ZodBoolean>;
@@ -2043,10 +2043,10 @@ const CharactersCharacterIdNotificationsGetSchema: z.ZodObject<{
     notification_id: z.ZodNumber;
     sender_id: z.ZodNumber;
     sender_type: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
         other: "other";
     }>;
     text: z.ZodOptional<z.ZodString>;
@@ -2924,9 +2924,9 @@ interface CharactersCharacterIdStandingsGet {
 const CharactersCharacterIdStandingsGetSchema: z.ZodObject<{
     from_id: z.ZodNumber;
     from_type: z.ZodEnum<{
-        faction: "faction";
         agent: "agent";
         npc_corp: "npc_corp";
+        faction: "faction";
     }>;
     standing: z.ZodNumber;
 }, z.core.$loose>;
@@ -3622,10 +3622,10 @@ const ContactNotificationSchema: z.ZodObject<{
 const ContactSchema: z.ZodObject<{
     contact_id: z.ZodNumber;
     contact_type: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
     }>;
     standing: z.ZodNumber;
     label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
@@ -4616,10 +4616,10 @@ interface CorporationsCorporationIdContactsGet {
 const CorporationsCorporationIdContactsGetSchema: z.ZodObject<{
     contact_id: z.ZodNumber;
     contact_type: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
     }>;
     is_watched: z.ZodOptional<z.ZodBoolean>;
     label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
@@ -6106,9 +6106,9 @@ interface CorporationsCorporationIdStandingsGet {
 const CorporationsCorporationIdStandingsGetSchema: z.ZodObject<{
     from_id: z.ZodNumber;
     from_type: z.ZodEnum<{
-        faction: "faction";
         agent: "agent";
         npc_corp: "npc_corp";
+        faction: "faction";
     }>;
     standing: z.ZodNumber;
 }, z.core.$loose>;
@@ -7399,17 +7399,6 @@ const CorporationsProjectsListingSchema: z.ZodObject<{
             Deleted: "Deleted";
         }>;
     }, z.core.$loose>>;
-}, z.core.$loose>;
-
-// @public (undocumented)
-const CorporationStandingSchema: z.ZodObject<{
-    from_id: z.ZodNumber;
-    from_type: z.ZodEnum<{
-        faction: "faction";
-        agent: "agent";
-        npc_corp: "npc_corp";
-    }>;
-    standing: z.ZodNumber;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -11062,10 +11051,10 @@ const NameAndCategorySchema: z.ZodObject<{
     id: z.ZodNumber;
     name: z.ZodString;
     category: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
         constellation: "constellation";
         inventory_type: "inventory_type";
         region: "region";
@@ -11084,10 +11073,10 @@ const NotificationSchema: z.ZodObject<{
     type: z.ZodString;
     sender_id: z.ZodNumber;
     sender_type: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
         other: "other";
     }>;
     timestamp: z.ZodString;
@@ -11429,6 +11418,7 @@ declare namespace schemas {
     export {
         generatedSchemas,
         esiResponse,
+        StandingSchema,
         RateLimitMetaSchema,
         EsiResponseMetaSchema,
         AccessListEntrySchema,
@@ -11452,7 +11442,6 @@ declare namespace schemas {
         JumpFatigueSchema,
         MedalSchema,
         NotificationSchema,
-        StandingSchema,
         CharacterTitleSchema,
         CharacterAffiliationSchema,
         ContactNotificationSchema,
@@ -11479,7 +11468,7 @@ declare namespace schemas {
         CorporationStructureSchema,
         CorporationTitleSchema,
         CorporationIconSchema,
-        CorporationStandingSchema,
+        StandingSchema as CorporationStandingSchema,
         CorporationWalletDivisionSchema,
         ContainerLogSchema,
         DogmaAttributeSchema,
@@ -11872,9 +11861,9 @@ export type Standing = z.infer<typeof StandingSchema>;
 const StandingSchema: z.ZodObject<{
     from_id: z.ZodNumber;
     from_type: z.ZodEnum<{
-        faction: "faction";
         agent: "agent";
         npc_corp: "npc_corp";
+        faction: "faction";
     }>;
     standing: z.ZodNumber;
 }, z.core.$loose>;
@@ -12496,10 +12485,10 @@ interface UniverseNamesPost {
 // @public (undocumented)
 const UniverseNamesPostSchema: z.ZodObject<{
     category: z.ZodEnum<{
+        faction: "faction";
         character: "character";
         corporation: "corporation";
         alliance: "alliance";
-        faction: "faction";
         constellation: "constellation";
         inventory_type: "inventory_type";
         region: "region";

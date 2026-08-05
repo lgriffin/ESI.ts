@@ -4,11 +4,11 @@ import {
   CharacterAttributesSchema,
   MedalSchema,
   NotificationSchema,
-  StandingSchema,
   CorporationHistorySchema,
   CharacterAffiliationSchema,
   CharacterRoleSchema,
 } from '../../../src/schemas/character';
+import { StandingSchema } from '../../../src/schemas/common';
 import {
   AllianceInfoSchema,
   AllianceContactSchema,

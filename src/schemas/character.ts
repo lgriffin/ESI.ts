@@ -101,12 +101,6 @@ export const NotificationSchema = z.looseObject({
   is_read: z.boolean().optional(),
 });
 
-export const StandingSchema = z.looseObject({
-  from_id: z.number(),
-  from_type: z.enum(['agent', 'npc_corp', 'faction']),
-  standing: z.number(),
-});
-
 export const CharacterTitleSchema = z.looseObject({
   title_id: z.number(),
   name: z.string(),

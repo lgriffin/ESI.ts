@@ -9,11 +9,11 @@ import {
   JumpFatigueSchema,
   MedalSchema,
   NotificationSchema,
-  StandingSchema,
   CharacterTitleSchema,
   CharacterRoleSchema,
   ContactNotificationSchema,
 } from '../../schemas/character';
+import { StandingSchema } from '../../schemas/common';
 
 export const characterEndpoints = {
   getCharacterPublicInfo: {
