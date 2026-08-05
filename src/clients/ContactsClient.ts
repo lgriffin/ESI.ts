@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { contactEndpoints } from '../core/endpoints/contactEndpoints';
 import { Contact, ContactLabel } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
   constructor(client: ApiClient) {
@@ -16,7 +17,7 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
    * @requires Authentication
    */
   getAllianceContacts(allianceId: number): Promise<Contact[]> {
-    return this.api.getAllianceContacts(allianceId) as Promise<Contact[]>;
+    return this.api.getAllianceContacts(allianceId);
   }
 
   /**
@@ -27,9 +28,7 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
    * @requires Authentication
    */
   getAllianceContactLabels(allianceId: number): Promise<ContactLabel[]> {
-    return this.api.getAllianceContactLabels(allianceId) as Promise<
-      ContactLabel[]
-    >;
+    return this.api.getAllianceContactLabels(allianceId);
   }
 
   /**
@@ -57,7 +56,7 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
    * @requires Authentication
    */
   getCharacterContacts(characterId: number): Promise<Contact[]> {
-    return this.api.getCharacterContacts(characterId) as Promise<Contact[]>;
+    return this.api.getCharacterContacts(characterId);
   }
 
   /**
@@ -107,9 +106,7 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
    * @requires Authentication
    */
   getCharacterContactLabels(characterId: number): Promise<ContactLabel[]> {
-    return this.api.getCharacterContactLabels(characterId) as Promise<
-      ContactLabel[]
-    >;
+    return this.api.getCharacterContactLabels(characterId);
   }
 
   /**
@@ -120,7 +117,7 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
    * @requires Authentication
    */
   getCorporationContacts(corporationId: number): Promise<Contact[]> {
-    return this.api.getCorporationContacts(corporationId) as Promise<Contact[]>;
+    return this.api.getCorporationContacts(corporationId);
   }
 
   /**
@@ -131,8 +128,54 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
    * @requires Authentication
    */
   getCorporationContactLabels(corporationId: number): Promise<ContactLabel[]> {
-    return this.api.getCorporationContactLabels(corporationId) as Promise<
-      ContactLabel[]
-    >;
+    return this.api.getCorporationContactLabels(corporationId);
+  }
+
+  streamAllianceContacts(
+    allianceId: number,
+  ): AsyncGenerator<PageResult<Contact>, void, undefined> {
+    return this.streamEndpoint<Contact>('getAllianceContacts', allianceId);
+  }
+
+  streamAllianceContactLabels(
+    allianceId: number,
+  ): AsyncGenerator<PageResult<ContactLabel>, void, undefined> {
+    return this.streamEndpoint<ContactLabel>(
+      'getAllianceContactLabels',
+      allianceId,
+    );
+  }
+
+  streamCharacterContacts(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Contact>, void, undefined> {
+    return this.streamEndpoint<Contact>('getCharacterContacts', characterId);
+  }
+
+  streamCharacterContactLabels(
+    characterId: number,
+  ): AsyncGenerator<PageResult<ContactLabel>, void, undefined> {
+    return this.streamEndpoint<ContactLabel>(
+      'getCharacterContactLabels',
+      characterId,
+    );
+  }
+
+  streamCorporationContacts(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<Contact>, void, undefined> {
+    return this.streamEndpoint<Contact>(
+      'getCorporationContacts',
+      corporationId,
+    );
+  }
+
+  streamCorporationContactLabels(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<ContactLabel>, void, undefined> {
+    return this.streamEndpoint<ContactLabel>(
+      'getCorporationContactLabels',
+      corporationId,
+    );
   }
 }

@@ -7,6 +7,7 @@ import {
   FleetMember,
   FleetWing,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
   constructor(client: ApiClient) {
@@ -21,9 +22,7 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * @requires Authentication
    */
   getCharacterFleetInfo(characterId: number): Promise<CharacterFleetInfo> {
-    return this.api.getCharacterFleetInfo(
-      characterId,
-    ) as Promise<CharacterFleetInfo>;
+    return this.api.getCharacterFleetInfo(characterId);
   }
 
   /**
@@ -34,7 +33,7 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * @requires Authentication
    */
   getFleetInformation(fleetId: number): Promise<FleetInfo> {
-    return this.api.getFleetInfo(fleetId) as Promise<FleetInfo>;
+    return this.api.getFleetInfo(fleetId);
   }
 
   /**
@@ -56,7 +55,7 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * @requires Authentication
    */
   getFleetMembers(fleetId: number): Promise<FleetMember[]> {
-    return this.api.getFleetMembers(fleetId) as Promise<FleetMember[]>;
+    return this.api.getFleetMembers(fleetId);
   }
 
   /**
@@ -139,7 +138,7 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
    * @requires Authentication
    */
   getFleetWings(fleetId: number): Promise<FleetWing[]> {
-    return this.api.getFleetWings(fleetId) as Promise<FleetWing[]>;
+    return this.api.getFleetWings(fleetId);
   }
 
   /**
@@ -205,5 +204,17 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     return this.api.createFleetSquad(fleetId, wingId) as Promise<{
       squad_id: number;
     }>;
+  }
+
+  streamFleetMembers(
+    fleetId: number,
+  ): AsyncGenerator<PageResult<FleetMember>, void, undefined> {
+    return this.streamEndpoint<FleetMember>('getFleetMembers', fleetId);
+  }
+
+  streamFleetWings(
+    fleetId: number,
+  ): AsyncGenerator<PageResult<FleetWing>, void, undefined> {
+    return this.streamEndpoint<FleetWing>('getFleetWings', fleetId);
   }
 }

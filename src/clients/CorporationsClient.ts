@@ -21,6 +21,7 @@ import {
   ContainerLog,
   Standing,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class CorporationsClient extends BaseEsiClient<
   typeof corporationEndpoints
@@ -36,9 +37,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @returns Public corporation information including name, ticker, member count, and CEO
    */
   getCorporationInfo(corporationId: number): Promise<CorporationInfo> {
-    return this.api.getCorporationInfo(
-      corporationId,
-    ) as Promise<CorporationInfo>;
+    return this.api.getCorporationInfo(corporationId);
   }
 
   /**
@@ -50,9 +49,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationAllianceHistory(
     corporationId: number,
   ): Promise<CorporationAllianceHistory[]> {
-    return this.api.getCorporationAllianceHistory(corporationId) as Promise<
-      CorporationAllianceHistory[]
-    >;
+    return this.api.getCorporationAllianceHistory(corporationId);
   }
 
   /**
@@ -63,9 +60,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCorporationBlueprints(corporationId: number): Promise<Blueprint[]> {
-    return this.api.getCorporationBlueprints(corporationId) as Promise<
-      Blueprint[]
-    >;
+    return this.api.getCorporationBlueprints(corporationId);
   }
 
   /**
@@ -76,9 +71,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCorporationAlscLogs(corporationId: number): Promise<ContainerLog[]> {
-    return this.api.getCorporationAlscLogs(corporationId) as Promise<
-      ContainerLog[]
-    >;
+    return this.api.getCorporationAlscLogs(corporationId);
   }
 
   /**
@@ -91,9 +84,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationDivisions(
     corporationId: number,
   ): Promise<CorporationDivisions> {
-    return this.api.getCorporationDivisions(
-      corporationId,
-    ) as Promise<CorporationDivisions>;
+    return this.api.getCorporationDivisions(corporationId);
   }
 
   /**
@@ -106,9 +97,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationFacilities(
     corporationId: number,
   ): Promise<CorporationFacility[]> {
-    return this.api.getCorporationFacilities(corporationId) as Promise<
-      CorporationFacility[]
-    >;
+    return this.api.getCorporationFacilities(corporationId);
   }
 
   /**
@@ -120,11 +109,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationIcon(
     corporationId: number,
   ): Promise<{ px64x64?: string; px128x128?: string; px256x256?: string }> {
-    return this.api.getCorporationIcon(corporationId) as Promise<{
-      px64x64?: string;
-      px128x128?: string;
-      px256x256?: string;
-    }>;
+    return this.api.getCorporationIcon(corporationId);
   }
 
   /**
@@ -135,9 +120,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCorporationMedals(corporationId: number): Promise<CorporationMedal[]> {
-    return this.api.getCorporationMedals(corporationId) as Promise<
-      CorporationMedal[]
-    >;
+    return this.api.getCorporationMedals(corporationId);
   }
 
   /**
@@ -150,9 +133,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationIssuedMedals(
     corporationId: number,
   ): Promise<CorporationIssuedMedal[]> {
-    return this.api.getCorporationIssuedMedals(corporationId) as Promise<
-      CorporationIssuedMedal[]
-    >;
+    return this.api.getCorporationIssuedMedals(corporationId);
   }
 
   /**
@@ -163,7 +144,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCorporationMembers(corporationId: number): Promise<number[]> {
-    return this.api.getCorporationMembers(corporationId) as Promise<number[]>;
+    return this.api.getCorporationMembers(corporationId);
   }
 
   /**
@@ -174,7 +155,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCorporationMemberLimit(corporationId: number): Promise<number> {
-    return this.api.getCorporationMemberLimit(corporationId) as Promise<number>;
+    return this.api.getCorporationMemberLimit(corporationId);
   }
 
   /**
@@ -187,9 +168,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationMemberTitles(
     corporationId: number,
   ): Promise<CorporationMemberTitle[]> {
-    return this.api.getCorporationMembersTitles(corporationId) as Promise<
-      CorporationMemberTitle[]
-    >;
+    return this.api.getCorporationMembersTitles(corporationId);
   }
 
   /**
@@ -202,9 +181,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationMemberTracking(
     corporationId: number,
   ): Promise<CorporationMemberTracking[]> {
-    return this.api.getCorporationMemberTracking(corporationId) as Promise<
-      CorporationMemberTracking[]
-    >;
+    return this.api.getCorporationMemberTracking(corporationId);
   }
 
   /**
@@ -215,9 +192,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCorporationRoles(corporationId: number): Promise<CorporationMemberRole[]> {
-    return this.api.getCorporationMemberRoles(corporationId) as Promise<
-      CorporationMemberRole[]
-    >;
+    return this.api.getCorporationMemberRoles(corporationId);
   }
 
   /**
@@ -230,9 +205,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationRolesHistory(
     corporationId: number,
   ): Promise<CorporationRoleHistory[]> {
-    return this.api.getCorporationMemberRolesHistory(corporationId) as Promise<
-      CorporationRoleHistory[]
-    >;
+    return this.api.getCorporationMemberRolesHistory(corporationId);
   }
 
   /**
@@ -245,9 +218,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationShareholders(
     corporationId: number,
   ): Promise<CorporationShareholder[]> {
-    return this.api.getCorporationShareholders(corporationId) as Promise<
-      CorporationShareholder[]
-    >;
+    return this.api.getCorporationShareholders(corporationId);
   }
 
   /**
@@ -258,9 +229,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCorporationStandings(corporationId: number): Promise<Standing[]> {
-    return this.api.getCorporationStandings(corporationId) as Promise<
-      Standing[]
-    >;
+    return this.api.getCorporationStandings(corporationId);
   }
 
   /**
@@ -273,9 +242,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationStarbases(
     corporationId: number,
   ): Promise<CorporationStarbase[]> {
-    return this.api.getCorporationStarbases(corporationId) as Promise<
-      CorporationStarbase[]
-    >;
+    return this.api.getCorporationStarbases(corporationId);
   }
 
   /**
@@ -290,10 +257,7 @@ export class CorporationsClient extends BaseEsiClient<
     corporationId: number,
     starbaseId: number,
   ): Promise<CorporationStarbaseDetail> {
-    return this.api.getCorporationStarbaseDetail(
-      corporationId,
-      starbaseId,
-    ) as Promise<CorporationStarbaseDetail>;
+    return this.api.getCorporationStarbaseDetail(corporationId, starbaseId);
   }
 
   /**
@@ -306,9 +270,7 @@ export class CorporationsClient extends BaseEsiClient<
   getCorporationStructures(
     corporationId: number,
   ): Promise<CorporationStructure[]> {
-    return this.api.getCorporationStructures(corporationId) as Promise<
-      CorporationStructure[]
-    >;
+    return this.api.getCorporationStructures(corporationId);
   }
 
   /**
@@ -319,9 +281,7 @@ export class CorporationsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCorporationTitles(corporationId: number): Promise<CorporationTitle[]> {
-    return this.api.getCorporationTitles(corporationId) as Promise<
-      CorporationTitle[]
-    >;
+    return this.api.getCorporationTitles(corporationId);
   }
 
   /**
@@ -330,6 +290,151 @@ export class CorporationsClient extends BaseEsiClient<
    * @returns An array of NPC corporation IDs
    */
   getNpcCorporations(): Promise<number[]> {
-    return this.api.getNpcCorporations() as Promise<number[]>;
+    return this.api.getNpcCorporations();
+  }
+
+  streamCorporationAllianceHistory(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationAllianceHistory>, void, undefined> {
+    return this.streamEndpoint<CorporationAllianceHistory>(
+      'getCorporationAllianceHistory',
+      corporationId,
+    );
+  }
+
+  streamCorporationBlueprints(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<Blueprint>, void, undefined> {
+    return this.streamEndpoint<Blueprint>(
+      'getCorporationBlueprints',
+      corporationId,
+    );
+  }
+
+  streamCorporationAlscLogs(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<ContainerLog>, void, undefined> {
+    return this.streamEndpoint<ContainerLog>(
+      'getCorporationAlscLogs',
+      corporationId,
+    );
+  }
+
+  streamCorporationFacilities(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationFacility>, void, undefined> {
+    return this.streamEndpoint<CorporationFacility>(
+      'getCorporationFacilities',
+      corporationId,
+    );
+  }
+
+  streamCorporationMedals(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMedal>, void, undefined> {
+    return this.streamEndpoint<CorporationMedal>(
+      'getCorporationMedals',
+      corporationId,
+    );
+  }
+
+  streamCorporationIssuedMedals(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationIssuedMedal>, void, undefined> {
+    return this.streamEndpoint<CorporationIssuedMedal>(
+      'getCorporationIssuedMedals',
+      corporationId,
+    );
+  }
+
+  streamCorporationMembers(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getCorporationMembers', corporationId);
+  }
+
+  streamCorporationMemberTitles(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMemberTitle>, void, undefined> {
+    return this.streamEndpoint<CorporationMemberTitle>(
+      'getCorporationMembersTitles',
+      corporationId,
+    );
+  }
+
+  streamCorporationMemberTracking(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMemberTracking>, void, undefined> {
+    return this.streamEndpoint<CorporationMemberTracking>(
+      'getCorporationMemberTracking',
+      corporationId,
+    );
+  }
+
+  streamCorporationRoles(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMemberRole>, void, undefined> {
+    return this.streamEndpoint<CorporationMemberRole>(
+      'getCorporationMemberRoles',
+      corporationId,
+    );
+  }
+
+  streamCorporationRolesHistory(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationRoleHistory>, void, undefined> {
+    return this.streamEndpoint<CorporationRoleHistory>(
+      'getCorporationMemberRolesHistory',
+      corporationId,
+    );
+  }
+
+  streamCorporationShareholders(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationShareholder>, void, undefined> {
+    return this.streamEndpoint<CorporationShareholder>(
+      'getCorporationShareholders',
+      corporationId,
+    );
+  }
+
+  streamCorporationStandings(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<Standing>, void, undefined> {
+    return this.streamEndpoint<Standing>(
+      'getCorporationStandings',
+      corporationId,
+    );
+  }
+
+  streamCorporationStarbases(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationStarbase>, void, undefined> {
+    return this.streamEndpoint<CorporationStarbase>(
+      'getCorporationStarbases',
+      corporationId,
+    );
+  }
+
+  streamCorporationStructures(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationStructure>, void, undefined> {
+    return this.streamEndpoint<CorporationStructure>(
+      'getCorporationStructures',
+      corporationId,
+    );
+  }
+
+  streamCorporationTitles(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationTitle>, void, undefined> {
+    return this.streamEndpoint<CorporationTitle>(
+      'getCorporationTitles',
+      corporationId,
+    );
+  }
+
+  streamNpcCorporations(): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getNpcCorporations');
   }
 }

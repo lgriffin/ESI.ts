@@ -2,6 +2,7 @@ import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { warEndpoints } from '../core/endpoints/warEndpoints';
 import { War, KillmailSummary } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
   constructor(client: ApiClient) {
@@ -14,7 +15,7 @@ export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
    * @returns A list of war IDs
    */
   getWars(): Promise<number[]> {
-    return this.api.getWars() as Promise<number[]>;
+    return this.api.getWars();
   }
 
   /**
@@ -24,7 +25,7 @@ export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
    * @returns Detailed war information
    */
   getWarById(warId: number): Promise<War> {
-    return this.api.getWarById(warId) as Promise<War>;
+    return this.api.getWarById(warId);
   }
 
   /**
@@ -34,6 +35,16 @@ export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
    * @returns A list of killmail summaries for the war
    */
   getWarKillmails(warId: number): Promise<KillmailSummary[]> {
-    return this.api.getWarKillmails(warId) as Promise<KillmailSummary[]>;
+    return this.api.getWarKillmails(warId);
+  }
+
+  streamWars(): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getWars');
+  }
+
+  streamWarKillmails(
+    warId: number,
+  ): AsyncGenerator<PageResult<KillmailSummary>, void, undefined> {
+    return this.streamEndpoint<KillmailSummary>('getWarKillmails', warId);
   }
 }

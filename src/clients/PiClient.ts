@@ -7,6 +7,7 @@ import {
   ColonyLayout,
   SchematicInfo,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class PiClient extends BaseEsiClient<typeof piEndpoints> {
   constructor(client: ApiClient) {
@@ -21,7 +22,7 @@ export class PiClient extends BaseEsiClient<typeof piEndpoints> {
    * @requires Authentication
    */
   getColonies(characterId: number): Promise<PlanetaryColony[]> {
-    return this.api.getColonies(characterId) as Promise<PlanetaryColony[]>;
+    return this.api.getColonies(characterId);
   }
 
   /**
@@ -36,10 +37,7 @@ export class PiClient extends BaseEsiClient<typeof piEndpoints> {
     characterId: number,
     planetId: number,
   ): Promise<ColonyLayout> {
-    return this.api.getColonyLayout(
-      characterId,
-      planetId,
-    ) as Promise<ColonyLayout>;
+    return this.api.getColonyLayout(characterId, planetId);
   }
 
   /**
@@ -52,9 +50,7 @@ export class PiClient extends BaseEsiClient<typeof piEndpoints> {
   getCorporationCustomsOffices(
     corporationId: number,
   ): Promise<CustomsOffice[]> {
-    return this.api.getCorporationCustomsOffices(corporationId) as Promise<
-      CustomsOffice[]
-    >;
+    return this.api.getCorporationCustomsOffices(corporationId);
   }
 
   /**
@@ -64,8 +60,21 @@ export class PiClient extends BaseEsiClient<typeof piEndpoints> {
    * @returns The schematic details including cycle time, inputs, and outputs
    */
   getSchematicInformation(schematicId: number): Promise<SchematicInfo> {
-    return this.api.getSchematicInformation(
-      schematicId,
-    ) as Promise<SchematicInfo>;
+    return this.api.getSchematicInformation(schematicId);
+  }
+
+  streamColonies(
+    characterId: number,
+  ): AsyncGenerator<PageResult<PlanetaryColony>, void, undefined> {
+    return this.streamEndpoint<PlanetaryColony>('getColonies', characterId);
+  }
+
+  streamCorporationCustomsOffices(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CustomsOffice>, void, undefined> {
+    return this.streamEndpoint<CustomsOffice>(
+      'getCorporationCustomsOffices',
+      corporationId,
+    );
   }
 }

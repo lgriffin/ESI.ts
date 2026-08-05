@@ -6,6 +6,7 @@ import {
   CharacterSkill,
   SkillQueue,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class CharacterSkillsClient extends BaseEsiClient<
   typeof skillEndpoints
@@ -22,9 +23,7 @@ export class CharacterSkillsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCharacterAttributes(characterId: number): Promise<CharacterAttributes> {
-    return this.api.getCharacterAttributes(
-      characterId,
-    ) as Promise<CharacterAttributes>;
+    return this.api.getCharacterAttributes(characterId);
   }
 
   /**
@@ -35,9 +34,7 @@ export class CharacterSkillsClient extends BaseEsiClient<
    * @requires Authentication
    */
   getCharacterSkillQueue(characterId: number): Promise<SkillQueue[]> {
-    return this.api.getCharacterSkillQueue(characterId) as Promise<
-      SkillQueue[]
-    >;
+    return this.api.getCharacterSkillQueue(characterId);
   }
 
   /**
@@ -52,10 +49,15 @@ export class CharacterSkillsClient extends BaseEsiClient<
     total_sp: number;
     unallocated_sp?: number;
   }> {
-    return this.api.getCharacterSkills(characterId) as Promise<{
-      skills: CharacterSkill[];
-      total_sp: number;
-      unallocated_sp?: number;
-    }>;
+    return this.api.getCharacterSkills(characterId);
+  }
+
+  streamCharacterSkillQueue(
+    characterId: number,
+  ): AsyncGenerator<PageResult<SkillQueue>, void, undefined> {
+    return this.streamEndpoint<SkillQueue>(
+      'getCharacterSkillQueue',
+      characterId,
+    );
   }
 }

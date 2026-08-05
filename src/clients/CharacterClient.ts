@@ -15,6 +15,7 @@ import {
   CharacterAffiliation,
   CharacterRole,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
   constructor(client: ApiClient) {
@@ -188,5 +189,59 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
     return this.api.postCharacterAffiliation(characters) as Promise<
       CharacterAffiliation[]
     >;
+  }
+
+  streamCharacterAgentsResearch(
+    characterId: number,
+  ): AsyncGenerator<PageResult<AgentResearch>, void, undefined> {
+    return this.streamEndpoint<AgentResearch>('getAgentsResearch', characterId);
+  }
+
+  streamCharacterBlueprints(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Blueprint>, void, undefined> {
+    return this.streamEndpoint<Blueprint>('getBlueprints', characterId);
+  }
+
+  streamCharacterCorporationHistory(
+    characterId: number,
+  ): AsyncGenerator<PageResult<CorporationHistory>, void, undefined> {
+    return this.streamEndpoint<CorporationHistory>(
+      'getCorporationHistory',
+      characterId,
+    );
+  }
+
+  streamCharacterMedals(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Medal>, void, undefined> {
+    return this.streamEndpoint<Medal>('getMedals', characterId);
+  }
+
+  streamCharacterNotifications(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Notification>, void, undefined> {
+    return this.streamEndpoint<Notification>('getNotifications', characterId);
+  }
+
+  streamCharacterNotificationsContacts(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Notification>, void, undefined> {
+    return this.streamEndpoint<Notification>(
+      'getContactNotifications',
+      characterId,
+    );
+  }
+
+  streamCharacterStandings(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Standing>, void, undefined> {
+    return this.streamEndpoint<Standing>('getStandings', characterId);
+  }
+
+  streamCharacterTitles(
+    characterId: number,
+  ): AsyncGenerator<PageResult<CharacterTitle>, void, undefined> {
+    return this.streamEndpoint<CharacterTitle>('getTitles', characterId);
   }
 }

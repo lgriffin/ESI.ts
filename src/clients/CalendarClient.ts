@@ -6,6 +6,7 @@ import {
   CalendarEventDetail,
   CalendarEventAttendee,
 } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
   constructor(client: ApiClient) {
@@ -20,7 +21,7 @@ export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
    * @requires Authentication
    */
   getCalendarEvents(characterId: number): Promise<CalendarEvent[]> {
-    return this.api.getCalendarEvents(characterId) as Promise<CalendarEvent[]>;
+    return this.api.getCalendarEvents(characterId);
   }
 
   /**
@@ -35,10 +36,7 @@ export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
     characterId: number,
     eventId: number,
   ): Promise<CalendarEventDetail> {
-    return this.api.getCalendarEventById(
-      characterId,
-      eventId,
-    ) as Promise<CalendarEventDetail>;
+    return this.api.getCalendarEventById(characterId, eventId);
   }
 
   /**
@@ -73,8 +71,23 @@ export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
     characterId: number,
     eventId: number,
   ): Promise<CalendarEventAttendee[]> {
-    return this.api.getEventAttendees(characterId, eventId) as Promise<
-      CalendarEventAttendee[]
-    >;
+    return this.api.getEventAttendees(characterId, eventId);
+  }
+
+  streamCalendarEvents(
+    characterId: number,
+  ): AsyncGenerator<PageResult<CalendarEvent>, void, undefined> {
+    return this.streamEndpoint<CalendarEvent>('getCalendarEvents', characterId);
+  }
+
+  streamEventAttendees(
+    characterId: number,
+    eventId: number,
+  ): AsyncGenerator<PageResult<CalendarEventAttendee>, void, undefined> {
+    return this.streamEndpoint<CalendarEventAttendee>(
+      'getEventAttendees',
+      characterId,
+      eventId,
+    );
   }
 }
