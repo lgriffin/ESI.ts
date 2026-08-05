@@ -84,5 +84,8 @@ docs/*
 # Stryker mutation testing
 .stryker-tmp/
 
+# Generated OKF knowledge bundle
+okf/
+
 # Local planning docs
 ideas.md

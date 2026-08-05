@@ -38,6 +38,7 @@ Coverage thresholds: branches 80%, functions 75%, lines 90%, statements 90%.
 ```bash
 npm run generate:types    # Generate TS interfaces + Zod schemas + metadata from live ESI OpenAPI spec
 npm run generate:clients  # Generate typed client wrappers from endpoint definitions
+npm run generate:okf      # Generate OKF v0.2 knowledge bundle from live ESI OpenAPI spec
 npm run schema:drift      # Check hand-written Zod schemas against OpenAPI spec
 npm run api-report        # Update API surface report (etc/esi.ts.api.md)
 ```
@@ -62,6 +63,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `tests/contract/` — Contract tests against live OpenAPI spec
 - `tests/fuzz/` — Property-based fuzz tests (fast-check)
 - `tests/typetests/` — Type-level tests (tsd)
+- `okf/` — Generated OKF v0.2 knowledge bundle (per-endpoint + per-schema concepts)
 
 ## Key Patterns
 
@@ -101,3 +103,4 @@ Key middleware in the pipeline:
 - `src/core/endpoints/esi-*.generated.ts` — auto-generated cache TTLs, rate limits, scopes
 - `dist/` — build output
 - `etc/esi.ts.api.md` — auto-generated API surface report
+- `okf/` — auto-generated OKF knowledge bundle from OpenAPI spec
