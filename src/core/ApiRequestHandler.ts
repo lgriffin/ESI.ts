@@ -234,10 +234,15 @@ function cacheResponse(
   parsed: ParsedHeaders,
   data: unknown,
   useETag: boolean,
+  templatePath?: string,
 ): void {
   const cache = resolveCache(client);
   if (useETag && method === 'GET' && cache && parsed.etag) {
-    const ttl = parseCacheControlTtl(parsed.raw);
+    const headerTtl = parseCacheControlTtl(parsed.raw);
+    const specTtlMs = templatePath
+      ? lookupSpecTtl(method, templatePath)
+      : undefined;
+    const ttl = specTtlMs ?? headerTtl;
     cache.set(url, parsed.etag, data, parsed.raw, ttl);
     const ttlInfo = ttl ? ` (ttl=${ttl}ms)` : '';
     logDebug(`Cached response for ${url} with ETag ${parsed.etag}${ttlInfo}`);
@@ -318,7 +323,16 @@ async function handleOffsetPagination(
       templatePath,
     );
 
-    cacheResponse(client, url, method, endpoint, parsed, allData, useETag);
+    cacheResponse(
+      client,
+      url,
+      method,
+      endpoint,
+      parsed,
+      allData,
+      useETag,
+      templatePath,
+    );
     return { headers: parsed.raw, body: allData };
   } catch (paginationError: unknown) {
     const msg =
@@ -651,7 +665,16 @@ const executeRequest = async (
     }
 
     const data = await parseJsonBody(response, url);
-    cacheResponse(client, url, method, endpoint, parsed, data, useETag);
+    cacheResponse(
+      client,
+      url,
+      method,
+      endpoint,
+      parsed,
+      data,
+      useETag,
+      templatePath,
+    );
 
     const cursorResult = handleCursorPagination(parsed, data);
     if (cursorResult) return finish(cursorResult);
