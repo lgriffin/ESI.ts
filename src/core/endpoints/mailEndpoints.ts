@@ -21,6 +21,21 @@ export const mailEndpoints = {
     requiresAuth: true,
     pathParams: ['characterId'],
     hasBody: true,
+    requestSchema: z.looseObject({
+      recipients: z.array(
+        z.looseObject({
+          recipient_id: z.number().int(),
+          recipient_type: z.enum([
+            'alliance',
+            'character',
+            'corporation',
+            'mailing_list',
+          ]),
+        }),
+      ),
+      subject: z.string().min(1),
+      body: z.string().min(1),
+    }),
   },
   getMail: {
     path: 'characters/{characterId}/mail/{mailId}/',

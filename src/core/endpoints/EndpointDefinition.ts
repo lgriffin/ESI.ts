@@ -30,6 +30,8 @@ export interface EndpointDefinition {
   deprecated?: DeprecationInfo;
   /** Zod schema for runtime response validation */
   responseSchema?: z.ZodTypeAny;
+  /** Zod schema for runtime request body validation (opt-in via validateRequest) */
+  requestSchema?: z.ZodTypeAny;
 }
 
 export type EndpointMap = Record<string, EndpointDefinition>;

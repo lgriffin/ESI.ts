@@ -121,6 +121,23 @@ export function createClient<T extends EndpointMap>(
         let path = built.path;
         const body = built.body;
 
+        // Opt-in request body validation
+        if (
+          apiClient.getValidateRequest() &&
+          def.requestSchema &&
+          body != null
+        ) {
+          const reqResult = def.requestSchema.safeParse(body);
+          if (!reqResult.success) {
+            throw new EsiValidationError(
+              `${apiClient.getLink()}/${path}`,
+              reqResult.error,
+              undefined,
+              'request',
+            );
+          }
+        }
+
         if (def.cursorPagination) {
           const lastArg = args[args.length - 1];
           const isCursorArg =

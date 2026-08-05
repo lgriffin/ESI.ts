@@ -235,6 +235,8 @@ export class ApiClient {
     // (undocumented)
     getTimeout(): number;
     // (undocumented)
+    getValidateRequest(): boolean;
+    // (undocumented)
     getValidateResponse(): boolean;
     // (undocumented)
     hasTokenProvider(): boolean;
@@ -262,6 +264,8 @@ export class ApiClient {
     setTimeout(timeout: number): void;
     // (undocumented)
     setTokenProvider(provider: TokenProvider | undefined): void;
+    // (undocumented)
+    setValidateRequest(validate: boolean): void;
     // (undocumented)
     setValidateResponse(validate: boolean): void;
     // (undocumented)
@@ -3993,6 +3997,8 @@ export interface EsiClientConfig {
     // (undocumented)
     unsafeAllowCustomHost?: boolean;
     // (undocumented)
+    validateRequest?: boolean;
+    // (undocumented)
     validateResponse?: boolean;
 }
 
@@ -4630,7 +4636,9 @@ declare namespace EsiSpec {
 
 // @public (undocumented)
 export class EsiValidationError extends EsiError {
-    constructor(url: string, zodError: unknown, requestId?: string);
+    constructor(url: string, zodError: unknown, requestId?: string, direction?: ValidationDirection);
+    // (undocumented)
+    readonly direction: ValidationDirection;
     // (undocumented)
     readonly validationError: unknown;
 }
@@ -7821,6 +7829,9 @@ interface UniverseTypesTypeIdGet {
 
 // @public
 export type UnwrapArray<T> = T extends readonly (infer E)[] ? E : T;
+
+// @public (undocumented)
+export type ValidationDirection = 'request' | 'response';
 
 // Warning: (ae-forgotten-export) The symbol "walletEndpoints" needs to be exported by the entry point index.d.ts
 //

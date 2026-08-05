@@ -133,14 +133,24 @@ export const buildError = (
   return error;
 };
 
+export type ValidationDirection = 'request' | 'response';
+
 export class EsiValidationError extends EsiError {
   public readonly validationError: unknown;
+  public readonly direction: ValidationDirection;
 
-  constructor(url: string, zodError: unknown, requestId?: string) {
+  constructor(
+    url: string,
+    zodError: unknown,
+    requestId?: string,
+    direction: ValidationDirection = 'response',
+  ) {
     const safeUrl = sanitizeUrl(url) ?? url;
-    super(0, `Response validation failed for ${safeUrl}`, url, requestId);
+    const label = direction === 'request' ? 'Request body' : 'Response';
+    super(0, `${label} validation failed for ${safeUrl}`, url, requestId);
     this.name = 'EsiValidationError';
     this.validationError = zodError;
+    this.direction = direction;
   }
 }
 
