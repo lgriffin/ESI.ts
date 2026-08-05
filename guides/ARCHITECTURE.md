@@ -370,166 +370,128 @@ graph TB
 
 ## 2. Request Lifecycle
 
-Complete flow from consumer call to ESI response, showing the decomposed pipeline modules.
+Every ESI call traverses the same pipeline: validation, caching, resilience, fetch, and response processing. The lifecycle is split into two diagrams for readability — the **happy path** (cache miss → fetch → respond) and the **error/edge-case handling** (304, 401, 5xx, pagination).
+
+**Entry path**: Consumer calls a domain client method (e.g. `client.market.getMarketPrices()`). The domain client validates parameters, builds the URL path, and delegates to `createClient()`. If `validateRequest` is enabled and the endpoint defines a `requestSchema`, the request body is validated via Zod before any HTTP call — invalid bodies throw `EsiValidationError` with `direction: 'request'`.
+
+**Spec-aware cache**: Before touching the network, `handleRequest()` checks the spec-aware cache. If the endpoint has a known TTL from the generated `esi-cache-ttls.generated.ts` and the cached entry is within that TTL, the response is returned immediately with zero HTTP calls. This is the fastest path through the system.
+
+**Retry wrapping**: The entire operation (from `executeRequest()` through the HTTP call) is wrapped in `RetryStrategy.execute()`, which provides exponential backoff with jitter on 5xx, 429, and timeout errors. On 401 errors with a configured token provider, it triggers a token refresh and retries once.
+
+#### Happy Path
 
 ```mermaid
 sequenceDiagram
     participant App as Consumer
-    participant Client as EsiClient
-    participant Domain as DomainClient
-    participant Create as createClient()
-    participant Handler as handleRequest()
-    participant Headers as headers.ts
-    participant MWBridge as middlewareBridge.ts
-    participant FetchExec as fetchExecution.ts
-    participant CacheP as cachePolicy.ts
-    participant PagOrch as paginationOrchestration.ts
-    participant StatusH as statusHandling.ts
-    participant CB as CircuitBreaker
-    participant RL as RateLimiter
-    participant Cache as ETagCache
+    participant DC as DomainClient
+    participant CC as createClient
+    participant HR as handleRequest
+    participant FE as fetchExecution
     participant ESI as ESI API
 
-    App->>Client: client.market.getMarketPrices()
-    Client->>Domain: MarketClient.getMarketPrices()
-    Domain->>Create: validate params, build path
-
-    Note over Create: Opt-in request body validation
-    alt validateRequest enabled + requestSchema defined
-        Create->>Create: def.requestSchema.safeParse(body)
-        alt Invalid request
-            Create-->>App: throw EsiValidationError(direction: 'request')
-        end
-    end
-
-    Create->>Handler: handleRequest(client, endpoint, method, templatePath)
-
-    Note over Handler: Spec-aware cache check (before any HTTP)
-    Handler->>CacheP: trySpecAwareCacheHit(url, method, templatePath)
-    alt Within spec TTL
-        CacheP-->>Handler: cached data (zero HTTP calls)
-        Handler-->>App: { body, fromCache: true }
-    end
-
-    Note over Handler: RetryStrategy.execute() wraps the operation
-
-    Note over Handler: executeRequest begins
-
-    Handler->>Headers: buildRequestHeaders(auth, ETag, UA)
-    Handler->>Cache: getETag(url)
-    Cache-->>Handler: If-None-Match header
-
-    Handler->>MWBridge: applyRequestMiddleware(context)
-    MWBridge-->>Handler: modified headers/url/body
-
-    Handler->>CB: checkCircuit(cbKey)
-    Note over CB: cbKey from keyStrategy:<br/>'resolved' (default) or 'template'
-    alt Circuit Open
-        CB-->>Handler: throw CircuitOpenError
-    end
-
-    Handler->>RL: checkRateLimit()
-    alt Rate Limited
-        RL-->>RL: sleep(waitTime)
-    end
-
-    Handler->>FetchExec: executeSingleFetch(client, endpoint, ...)
-    FetchExec->>ESI: HTTP request
-    ESI-->>FetchExec: HTTP response
-
-    FetchExec->>FetchExec: parseHeaders(response)
-    FetchExec->>RL: updateFromResponse(headers, status)
-
-    FetchExec->>CB: recordSuccess/Failure(cbKey)
-
-    alt Status 304
-        Handler->>StatusH: handleEarlyStatus()
-        StatusH->>Cache: get(url)
-        Cache-->>Handler: cached data + headers
-    else Status 2xx
-        Handler->>FetchExec: parseJsonBody()
-        Handler->>CacheP: cacheResponse(url, method, endpoint, ...)
-        Note over CacheP: Spec TTL is authoritative entry TTL
-        alt Multi-page (x-pages > 1)
-            Handler->>PagOrch: handleOffsetPagination()
-        else Cursor pagination
-            Handler->>PagOrch: handleCursorPagination()
-        end
-    else Status 401 + TokenProvider
-        Handler->>Handler: refreshToken()
-        Handler->>Handler: retry executeRequest
-    else Status 5xx + Cache
-        Handler->>StatusH: handleErrorResponse()
-        StatusH->>Cache: get(url) stale
-        Cache-->>Handler: stale cached data
-    else Status 4xx/5xx
-        Handler->>StatusH: handleErrorResponse()
-        StatusH-->>App: throw EsiError
-    end
-
-    Handler->>MWBridge: applyResponseInterceptors(context)
-    MWBridge-->>Handler: modified body/headers
-
-    Handler-->>App: { headers, body, fromCache?, cursors? }
+    App->>DC: getMarketPrices()
+    DC->>CC: validate + build path
+    CC->>HR: handleRequest()
+    Note over HR: Spec-cache check
+    HR->>HR: trySpecAwareCacheHit()
+    HR->>FE: executeSingleFetch()
+    Note over FE: CB check → rate limit → fetch
+    FE->>ESI: HTTP request
+    ESI-->>FE: 200 + JSON
+    FE-->>HR: response + headers
+    Note over HR: Cache response (spec TTL)
+    HR-->>App: { headers, body }
 ```
+
+#### Error and Edge-Case Handling
+
+```mermaid
+sequenceDiagram
+    participant HR as handleRequest
+    participant SH as statusHandling
+    participant Cache as ETagCache
+    participant PO as pagination
+
+    alt 304 Not Modified
+        HR->>SH: handleEarlyStatus()
+        SH->>Cache: get(url)
+        Cache-->>HR: cached data
+    else 401 + TokenProvider
+        HR->>HR: refreshToken() + retry
+    else 5xx + cached data
+        HR->>SH: handleErrorResponse()
+        SH->>Cache: stale fallback
+        Cache-->>HR: stale data
+    else 4xx / 5xx (no cache)
+        HR->>SH: handleErrorResponse()
+        SH-->>HR: throw EsiError
+    else Multi-page (x-pages > 1)
+        HR->>PO: handleOffsetPagination()
+        PO-->>HR: merged pages
+    else Cursor token present
+        HR->>PO: handleCursorPagination()
+        PO-->>HR: data + cursors
+    end
+```
+
+**Response interceptors**: After the response is assembled (whether from cache, a single fetch, or paginated fetches), `applyResponseInterceptors()` runs any registered response middleware — useful for logging, metrics, or response transformation.
+
+**Circuit breaker keying**: The `fetchExecution` module resolves the circuit breaker key based on `keyStrategy`. With `'resolved'` (default), each unique URL gets its own circuit. With `'template'`, all URLs matching the same endpoint template (e.g. `/characters/{character_id}/assets/`) share a circuit, which is better for detecting systemic ESI failures.
 
 ## 3. Dependency Injection
 
-Dependencies are scoped to each `ApiClient` instance. There are no global singletons or fallbacks -- when a dependency is `null`, that feature is simply disabled for that client.
+Every resilience feature in ESI.ts is behind an interface contract, making each component independently swappable. Dependencies are scoped to each `ApiClient` instance — there are no global singletons. When a dependency is `null`, that feature is simply disabled for that client (e.g., no circuit breaker means all requests pass through unchecked).
 
-`configureApiClient()` (`src/core/configureApiClient.ts`) is the single wiring point used by all three client construction surfaces (EsiClient, CustomEsiClient, EsiApiFactory).
+`configureApiClient()` (`src/core/configureApiClient.ts`) is the single wiring point used by all three client creation surfaces (EsiClient, CustomEsiClient, EsiApiFactory). This eliminates a previous class of bugs where different construction paths could silently produce clients with different middleware configurations.
+
+At request time, `requestPipeline/dependencies.ts` resolves each dependency from the `ApiClient` instance. The resolution semantics differ per dependency:
+
+| Dependency        | Resolution                                        | When null                                                  |
+| ----------------- | ------------------------------------------------- | ---------------------------------------------------------- |
+| `ICache`          | `resolveCache()` → returns or `null`              | No ETag caching, no spec-TTL bypass                        |
+| `IRateLimiter`    | `resolveRateLimiter()` → returns or **throws**    | Rate limiter is required — constructor always provides one |
+| `ICircuitBreaker` | `resolveCircuitBreaker()` → returns or `null`     | No circuit breaking (opt-in feature)                       |
+| `IRetryStrategy`  | `resolveRetryStrategy()` → returns or **default** | Falls back to built-in `RetryStrategy`                     |
+| `IDeduplicator`   | Read directly from client                         | No in-flight GET coalescing                                |
+| `ILogger`         | pino behind `ILogger`                             | Always present (level controlled by `ESI_LOG_LEVEL`)       |
 
 ```mermaid
-graph LR
-    subgraph ConfigFactory["configureApiClient()"]
-        Wire["Single source of truth<br/>for config → middleware mapping"]
+flowchart LR
+    subgraph ConfigFactory ["configureApiClient()"]
+        Wire["Config → Middleware"]
     end
 
-    subgraph ApiClient["ApiClient (per-instance)"]
-        ClientCache["cache: ICache | null"]
-        ClientRL["rateLimiter: IRateLimiter | null"]
-        ClientCB["circuitBreaker: ICircuitBreaker | null"]
-        ClientDedup["deduplicator: IDeduplicator | null"]
-        ClientRetry["retryStrategy: IRetryStrategy | null"]
-        ClientMW["middleware: MiddlewareManager"]
+    subgraph Client ["ApiClient instance"]
+        cache["ICache"]
+        rl["IRateLimiter"]
+        cb["ICircuitBreaker"]
+        dedup["IDeduplicator"]
+        retry["IRetryStrategy"]
     end
 
-    subgraph Resolution["Dependency Resolution (requestPipeline/dependencies.ts)"]
-        ResolveCache["resolveCache(client)<br/>→ client.getCache() or null"]
-        ResolveRL["resolveRateLimiter(client)<br/>→ client.getRateLimiter() or throw"]
-        ResolveCB["resolveCircuitBreaker(client)<br/>→ client.getCircuitBreaker() or null"]
-        ResolveRetry["resolveRetryStrategy(client)<br/>→ client.getRetryStrategy() or new RetryStrategy()"]
+    subgraph Resolution ["dependencies.ts"]
+        rc["resolveCache"]
+        rr["resolveRateLimiter"]
+        rcb["resolveCircuitBreaker"]
+        rrt["resolveRetryStrategy"]
     end
 
-    subgraph Interfaces["Interface Contracts"]
-        ICache["ICache"]
-        IRateLimiter["IRateLimiter"]
-        ICB["ICircuitBreaker"]
-        IDedup["IDeduplicator"]
-        IRetry["IRetryStrategy"]
-        ILogger["ILogger"]
-    end
+    Wire --> Client
+    rc --> cache
+    rr --> rl
+    rcb --> cb
+    rrt --> retry
 
-    Wire -->|"wires all"| ApiClient
-
-    ResolveCache -->|"returns or null"| ClientCache
-    ResolveRL -->|"returns or throw"| ClientRL
-    ResolveCB -->|"returns or null"| ClientCB
-    ResolveRetry -->|"returns or default"| ClientRetry
-
-    ClientCache -.->|typed as| ICache
-    ClientRL -.->|typed as| IRateLimiter
-    ClientCB -.->|typed as| ICB
-    ClientDedup -.->|typed as| IDedup
-    ClientRetry -.->|typed as| IRetry
-
-    style Interfaces fill:#f3e5f5,stroke:#6a1b9a
-    style Resolution fill:#e8f5e9,stroke:#2e7d32
-    style ApiClient fill:#e3f2fd,stroke:#1565c0
     style ConfigFactory fill:#fff3e0,stroke:#e65100
+    style Client fill:#e3f2fd,stroke:#1565c0
+    style Resolution fill:#e8f5e9,stroke:#2e7d32
 ```
 
 ## 4. Circuit Breaker State Machine
+
+The circuit breaker prevents cascading failures by tracking consecutive error responses per endpoint. When failures exceed the threshold, the circuit "opens" and all subsequent requests to that endpoint fail immediately with `CircuitOpenError` — no HTTP call is made. After a cooldown period, the circuit enters "half-open" state and allows a limited number of probe requests through. If the probe succeeds, the circuit closes and normal traffic resumes. If it fails, the circuit re-opens.
+
+The half-open state uses a `try/finally` pattern with a `cbRecorded` flag in `fetchExecution.ts` to ensure the probe slot is always released, even on early exceptions before the HTTP response is received.
 
 ```mermaid
 stateDiagram-v2
@@ -583,155 +545,145 @@ stateDiagram-v2
 
 ## 5. CI/CD Pipeline
 
+CI runs in two tiers. **ci-fast.yml** triggers on every push and runs lint, format, build, typecheck, and unit tests on Node 20 — this gives developers sub-5-minute feedback. **ci.yml** triggers on PRs to master and runs the full matrix: Node 18/20/22, BDD scenarios, contract tests against live ESI, fuzz testing (fast-check), mutation testing (Stryker), and the quality gate.
+
+The quality gate blocks merge unless all checks pass, including coverage thresholds (80% branches, 75% functions, 90% lines, 90% statements) and spec freshness (generated files must match `git diff --exit-code`).
+
 ```mermaid
-graph TB
-    subgraph Trigger["Triggers"]
-        Push["Push to branch"]
-        PR["Pull Request"]
-        Tag["Git Tag (v*.*.*)"]
+flowchart TB
+    subgraph Trigger ["Triggers"]
+        Push["Push"]
+        PR["PR to master"]
+        Tag["Git tag"]
     end
 
-    subgraph Validation["Validation Stage"]
+    subgraph Validation ["Validation"]
         Lint["ESLint"]
         Format["Prettier"]
-        Build["TypeScript Compile"]
-        Knip["Knip (dead code)"]
+        Build["tsc + tsup"]
+        Knip["Knip"]
         Audit["npm audit"]
-        AuthScopes["Auth/Scopes Validation<br/>(validate-auth-scopes.ts)"]
+        Auth["Auth/Scopes"]
     end
 
-    subgraph Testing["Test Stage"]
-        Unit["Unit Tests<br/>(jest.unit.config)"]
-        BDD["BDD Scenarios<br/>(37 domain suites)"]
-        SpecAlign["Spec Alignment<br/>(104 type assertions,<br/>24 domains)"]
-        Coverage["Coverage Check<br/>(80% branch, 75% fn,<br/>90% line, 90% stmt)"]
-        Matrix["Node 18, 20, 22"]
+    subgraph Testing ["Testing"]
+        Unit["Unit tests"]
+        BDD["BDD scenarios"]
+        Spec["Spec alignment"]
+        Cov["Coverage gate"]
+        Matrix["Node 18/20/22"]
     end
 
-    subgraph Quality["Quality Gate"]
-        Gate["All checks pass"]
+    subgraph QG ["Quality Gate"]
+        Gate["All pass"]
     end
 
-    subgraph Release["Release Stage (tags only)"]
+    subgraph Release ["Release"]
         NPM["npm publish"]
-        Docs["TypeDoc generation"]
-        Pages["GitHub Pages deploy"]
-        Assets["Release assets"]
+        Docs["TypeDoc"]
+        Pages["GitHub Pages"]
     end
 
     Push --> Validation
     PR --> Validation
     Tag --> Validation
-
-    Lint --> Testing
-    Format --> Testing
-    Build --> Testing
-    Knip --> Testing
-    Audit --> Testing
-    AuthScopes --> Testing
-
-    Unit --> Coverage
-    BDD --> Coverage
-    SpecAlign --> Coverage
+    Validation --> Testing
+    Unit --> Cov
+    BDD --> Cov
+    Spec --> Cov
     Unit --> Matrix
-
-    Coverage --> Gate
-
+    Cov --> Gate
     Tag --> Release
     Gate --> Release
 
     style Trigger fill:#e3f2fd,stroke:#1565c0
     style Validation fill:#fff3e0,stroke:#e65100
     style Testing fill:#e8f5e9,stroke:#2e7d32
-    style Quality fill:#fce4ec,stroke:#c62828
+    style QG fill:#fce4ec,stroke:#c62828
     style Release fill:#f3e5f5,stroke:#6a1b9a
 ```
 
 ## 6. Client Creation Patterns
 
-Three ways consumers can create clients, from simple to selective. All three use `configureApiClient()` as the single middleware wiring point, ensuring identical defaults.
+ESI.ts offers three construction patterns, from "give me everything" to "give me one client." All three flow through `configureApiClient()`, so middleware wiring is identical regardless of which pattern is used. This was a deliberate design choice after discovering that the previous architecture had silent middleware gaps between construction paths.
+
+| Pattern              | Use case                 | What you get                                                                                    |
+| -------------------- | ------------------------ | ----------------------------------------------------------------------------------------------- |
+| **EsiClient**        | Most consumers           | All 35 domain clients via property getters (`client.market`, `client.alliance`, etc.)           |
+| **EsiClientBuilder** | Tree-shaking / selective | Only the clients you request, with fluent configuration (`.addClients()`, `.withAccessToken()`) |
+| **EsiApiFactory**    | Single-domain scripts    | One domain client with a fresh `ApiClient` — lightest footprint                                 |
 
 ```mermaid
-graph TB
-    subgraph Pattern1["Pattern 1: Full Client (default)"]
-        P1Code["const client = new EsiClient()"]
-        P1Result["All 35 domain clients<br/>available via getters"]
-        P1Code --> P1Result
+flowchart TB
+    subgraph P1 ["EsiClient (full)"]
+        p1["new EsiClient()"]
+    end
+    subgraph P2 ["Builder (selective)"]
+        p2["EsiClientBuilder\n.addClients().build()"]
+    end
+    subgraph P3 ["Factory (single)"]
+        p3["EsiApiFactory\n.createMarketClient()"]
     end
 
-    subgraph Pattern2["Pattern 2: Builder (selective)"]
-        P2Code["new EsiClientBuilder()<br/>.addClients(['market', 'alliance'])<br/>.withAccessToken(token)<br/>.build()"]
-        P2Result["Only requested clients<br/>instantiated"]
-        P2Code --> P2Result
+    subgraph CW ["configureApiClient()"]
+        cw["Unified wiring"]
     end
 
-    subgraph Pattern3["Pattern 3: Factory (single client)"]
-        P3Code["EsiApiFactory<br/>.createMarketClient(config)"]
-        P3Result["Single domain client<br/>with fresh ApiClient"]
-        P3Code --> P3Result
+    subgraph Infra ["Shared Infrastructure"]
+        ac["ApiClient"]
+        cache["ETagCache"]
+        rl["RateLimiter"]
+        cb["CircuitBreaker"]
+        retry["RetryStrategy"]
+        dedup["Deduplicator"]
     end
 
-    subgraph ConfigWiring["configureApiClient() — Single Wiring Point"]
-        Configure["Identical middleware defaults<br/>for all three surfaces"]
-    end
+    p1 --> cw
+    p2 --> cw
+    p3 --> cw
+    cw --> ac
+    ac --> cache
+    ac --> rl
+    ac --> cb
+    ac --> retry
+    ac --> dedup
 
-    subgraph Shared["Shared Infrastructure"]
-        ApiClient["ApiClient"]
-        Cache["ETagCache"]
-        RL["RateLimiter"]
-        CB["CircuitBreaker (opt-in)"]
-        MW["Middleware"]
-        Retry["RetryStrategy"]
-        Dedup["RequestDeduplicator"]
-    end
-
-    P1Result --> Configure
-    P2Result --> Configure
-    P3Result --> Configure
-
-    Configure --> ApiClient
-
-    ApiClient --> Cache
-    ApiClient --> RL
-    ApiClient --> CB
-    ApiClient --> MW
-    ApiClient --> Retry
-    ApiClient --> Dedup
-
-    style Pattern1 fill:#e3f2fd,stroke:#1565c0
-    style Pattern2 fill:#e8f5e9,stroke:#2e7d32
-    style Pattern3 fill:#fff3e0,stroke:#e65100
-    style ConfigWiring fill:#fce4ec,stroke:#c62828
-    style Shared fill:#eceff1,stroke:#37474f
+    style P1 fill:#e3f2fd,stroke:#1565c0
+    style P2 fill:#e8f5e9,stroke:#2e7d32
+    style P3 fill:#fff3e0,stroke:#e65100
+    style CW fill:#fce4ec,stroke:#c62828
+    style Infra fill:#eceff1,stroke:#37474f
 ```
 
 ## 7. Middleware Pipeline
 
-How request and response processing flows through the decomposed pipeline modules.
+The request pipeline is split into three phases, each handled by dedicated modules in `src/core/requestPipeline/`. Request interceptors run before the HTTP call and can modify headers, URLs, or bodies — useful for trace IDs, custom auth headers, or request logging. Response interceptors run after the response is assembled and can transform the body or add metadata.
+
+The middleware system is pluggable via `MiddlewareManager`, which maintains ordered lists of request and response interceptors. Interceptors are registered through the `ApiClient` and are applied by `middlewareBridge.ts`.
 
 ```mermaid
-graph LR
-    subgraph Request["Request Phase (headers.ts + middlewareBridge.ts)"]
-        R1["buildRequestHeaders()<br/>(auth, ETag, UA)"]
-        R2["applyRequestMiddleware()<br/>(interceptors: trace ID,<br/>custom auth, etc.)"]
+flowchart LR
+    subgraph Request ["Request Phase"]
+        R1["Build headers"]
+        R2["Request middleware"]
     end
 
-    subgraph Execution["Execution (fetchExecution.ts)"]
-        CB["Circuit Breaker<br/>check"]
-        RL["Rate Limiter<br/>check"]
-        Fetch["executeSingleFetch()"]
+    subgraph Execution ["Execution"]
+        CB["CB check"]
+        RL["Rate limit"]
+        Fetch["Fetch"]
     end
 
-    subgraph Response["Response Phase (cachePolicy.ts + statusHandling.ts + paginationOrchestration.ts)"]
-        Status["handleEarlyStatus()<br/>(304, errors)"]
-        CacheResp["cacheResponse()<br/>(spec TTL authoritative)"]
-        Paginate["handleOffsetPagination()<br/>handleCursorPagination()"]
-        Intercept["applyResponseInterceptors()<br/>(middlewareBridge.ts)"]
+    subgraph Response ["Response Phase"]
+        Status["Status handling"]
+        Cache["Cache response"]
+        Page["Pagination"]
+        Intercept["Response middleware"]
     end
 
     R1 --> R2
     R2 --> CB --> RL --> Fetch
-    Fetch --> Status --> CacheResp --> Paginate --> Intercept
+    Fetch --> Status --> Cache --> Page --> Intercept
 
     style Request fill:#e3f2fd,stroke:#1565c0
     style Execution fill:#fce4ec,stroke:#c62828
@@ -740,83 +692,62 @@ graph LR
 
 ## 8. Test Architecture
 
-3,600+ tests across 95+ suites in multiple tiers. Coverage: branches 80%+, functions 75%+, lines 90%+, statements 90%+.
+The test suite is organized into tiers, each serving a different purpose in the confidence pyramid. The project currently has 3,900+ tests across 136+ suites, all runnable via `npm test`.
+
+**TDD unit tests** (`tests/tdd/`) form the base — fast, isolated, mocked at the HTTP boundary via `jest-fetch-mock`. These cover all 35 domain clients, core infrastructure (cache, rate limiter, circuit breaker, middleware), the decomposed request pipeline modules, construction parity between the three client creation surfaces, and request body validation.
+
+**BDD scenario tests** (`tests/bdd/`) use jest-cucumber with Gherkin-style `.feature` files. They cover 37 domain scenarios, performance scenarios (concurrency, memory, large datasets), and integration scenarios (cross-domain workflows). BDD tests use `TestDataFactory` for consistent fixture generation.
+
+**Integration tests** (`tests/integration/`) run against live ESI when `ESI_LIVE_TESTS=true`. Smoke tests cover 42 public endpoints, and gated auth tests require an access token.
+
+**Compile-time alignment** (`spec-alignment.check.ts`) uses 104 `AssertTrue<HasAllSpecKeys<>>` assertions across 24 domains to ensure hand-written Zod schemas don't drift from the OpenAPI spec at the type level.
+
+| Tier        | Location             | Count          | What it validates                                                                     |
+| ----------- | -------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| Unit (TDD)  | `tests/tdd/`         | ~3,500         | Domain clients, core infra, pipeline modules, construction parity, request validation |
+| BDD         | `tests/bdd/`         | ~400           | Domain scenarios, resilience, cross-domain workflows                                  |
+| Integration | `tests/integration/` | ~50            | Live ESI smoke tests, end-to-end client flows                                         |
+| Contract    | `tests/contract/`    | varies         | OpenAPI spec drift detection against live spec                                        |
+| Fuzz        | `tests/fuzz/`        | property-based | Edge cases via fast-check random generation                                           |
+| Type        | `tests/typetests/`   | compile-time   | tsd type-level assertions                                                             |
+| Mutation    | Stryker              | `src/core/**`  | Mutation score threshold (65% break, 80% high)                                        |
 
 ```mermaid
-graph TB
-    subgraph TestTypes["Test Types (3,600+ tests, 95+ suites)"]
-        TDD["TDD Unit Tests<br/>(tests/tdd/)"]
-        BDD["BDD Scenarios<br/>(tests/bdd/ — 40 features)"]
-        IntMocked["Mocked Integration<br/>(full-stack.test.ts)"]
-        IntLive["Live Integration<br/>(3 files)"]
-        IntGated["Gated Auth<br/>(gated-auth.test.ts)"]
+flowchart TB
+    subgraph Unit ["TDD Unit Tests"]
+        clients["35 domain clients"]
+        core["Core infrastructure"]
+        pipeline["Pipeline modules"]
+        parity["Construction parity"]
     end
 
-    subgraph TDDTests["TDD Test Suites"]
-        Core["Core Infrastructure<br/>ETagCache, RateLimiter,<br/>CircuitBreaker, Middleware,<br/>DI, TokenRefresh, Validation"]
-        Clients["Domain Clients<br/>35 client test files<br/>(GET, POST, PUT, DELETE)"]
-        Pipeline["Request Pipeline<br/>(requestPipeline module tests)"]
-        Resilience["Resilience<br/>Rate limits, retry, dedup"]
-        Security["Security<br/>Token, HTTPS, injection"]
-        Config["Config Validation<br/>Builder, factory, shutdown"]
-        Parity["Construction Parity<br/>(constructionParity tests)"]
-        ReqValidation["Request Body Validation<br/>(requestBodyValidation tests)"]
-        APISurface["API Surface<br/>Export snapshot detector"]
-        CrossCut["Cross-Cutting<br/>Diagnostics, middleware, logger"]
+    subgraph BDD ["BDD Scenarios"]
+        domain["37 domain features"]
+        perf["Performance"]
+        integ["Integration"]
     end
 
-    subgraph BDDTests["BDD Scenario Suites"]
-        DomainBDD["Domain Scenarios<br/>alliance, character, market,<br/>universe, wallet, ... (35)"]
-        PerfBDD["Performance Scenarios<br/>Concurrency, memory,<br/>large datasets"]
-        IntBDD["Integration Scenarios<br/>Cross-domain workflows"]
+    subgraph Live ["Live / Contract"]
+        smoke["42 endpoint smoke"]
+        contract["OpenAPI contract"]
+        fuzz["Fuzz (fast-check)"]
     end
 
-    subgraph LiveTests["Live Integration Suites"]
-        Smoke["Smoke Tests<br/>42 public endpoints"]
-        ClientInt["Client Integration<br/>EsiClient end-to-end"]
-        SpecContract["Spec Contract<br/>OpenAPI drift detection"]
+    subgraph Gates ["Quality Gates"]
+        cov["Coverage thresholds"]
+        spec["Spec alignment"]
+        mutation["Mutation score"]
     end
 
-    subgraph SpecAlignment["Compile-Time Alignment"]
-        SpecAssert["spec-alignment.check.ts<br/>104 AssertTrue&lt;HasAllSpecKeys&gt;<br/>24 domains covered"]
-    end
+    Unit --> cov
+    BDD --> cov
+    Live --> contract
+    Unit --> spec
 
-    subgraph Coverage["Coverage Enforcement"]
-        Branches["Branches: 80% threshold"]
-        Functions["Functions: 75% threshold"]
-        Lines["Lines: 90% threshold"]
-        Statements["Statements: 90% threshold"]
-    end
-
-    subgraph Tools["Test Infrastructure"]
-        Jest["Jest + ts-jest"]
-        FetchMock["jest-fetch-mock"]
-        Factory["TestDataFactory"]
-        CrossEnv["cross-env (Windows)"]
-    end
-
-    TDD --> TDDTests
-    BDD --> BDDTests
-    IntLive --> LiveTests
-    TDDTests --> Coverage
-    BDDTests --> Coverage
-    TDDTests --> SpecAlignment
-
-    Jest --> TDD
-    Jest --> BDD
-    Jest --> IntMocked
-    Jest --> IntLive
-    FetchMock --> Core
-    FetchMock --> Clients
-    Factory --> BDDTests
-
-    style TestTypes fill:#e3f2fd,stroke:#1565c0
-    style TDDTests fill:#e8f5e9,stroke:#2e7d32
-    style BDDTests fill:#fff3e0,stroke:#e65100
-    style LiveTests fill:#e8eaf6,stroke:#283593
-    style SpecAlignment fill:#e0f7fa,stroke:#00838f
-    style Coverage fill:#fce4ec,stroke:#c62828
-    style Tools fill:#eceff1,stroke:#37474f
+    style Unit fill:#e8f5e9,stroke:#2e7d32
+    style BDD fill:#fff3e0,stroke:#e65100
+    style Live fill:#e8eaf6,stroke:#283593
+    style Gates fill:#fce4ec,stroke:#c62828
 ```
 
 ## 9. Rate Limiting Strategy
@@ -829,49 +760,35 @@ ESI enforces 36 independent rate limit groups (e.g., `market-order: 12000 tokens
 
 **Server sync**: Response headers (`x-ratelimit-remaining`, `x-ratelimit-group`) are authoritative -- they override spec-derived initial values.
 
+**Token costs** vary by response status to account for the different impact each has on ESI's rate limit budget:
+
+| Status | Cost     | Rationale                                           |
+| ------ | -------- | --------------------------------------------------- |
+| 2xx    | 2 tokens | Normal successful request                           |
+| 3xx    | 1 token  | Cache hit (304) — low server cost                   |
+| 4xx    | 5 tokens | Client error — penalized to discourage bad requests |
+| 5xx    | 0 tokens | Server error — not the client's fault               |
+
 ```mermaid
-graph TB
-    subgraph PerGroup["Per-Group Token Buckets"]
-        Lookup["lookupGroupSpec()<br/>templatePath → group"]
-        Bucket["GroupBucket per group<br/>remaining, limit, blockedUntil"]
-        Costs["Token Costs:<br/>2xx = 2, 3xx = 1<br/>4xx = 5, 5xx = 0"]
-        Decel["Proactive Deceleration<br/>at 20% remaining"]
-        Block429["429 → block this group<br/>until Retry-After"]
+flowchart TB
+    subgraph Check ["Rate Limit Check"]
+        start["checkRateLimit()"]
+        resolve["Resolve group"]
+        blocked{"Blocked?"}
+        legacy{"Legacy < 10?"}
+        bucket{"Bucket < 20%?"}
+        pass["Proceed"]
     end
 
-    subgraph LegacySystem["Legacy System (x-esi-error-limit-*)"]
-        ErrorBudget["100 errors/minute<br/>(global, not per-group)"]
-        SlowDown["Slow down at<br/>10 remaining"]
-        Block420["420 → block until<br/>Retry-After"]
-    end
+    start --> resolve --> blocked
+    blocked -->|Yes| stop["Wait / throw"]
+    blocked -->|No| legacy
+    legacy -->|Yes| slow["Slow down"]
+    legacy -->|No| bucket
+    bucket -->|Yes| decel["Decelerate"]
+    bucket -->|No| pass
 
-    subgraph Decision["Rate Limit Check"]
-        Start["checkRateLimit(templatePath, method)"]
-        ResolveGroup["Resolve group bucket"]
-        IsBlocked{"Group blocked?<br/>(420/429)"}
-        LegacyLow{"Legacy errors<br/>< 10?"}
-        LegacyZero{"Legacy errors<br/>= 0?"}
-        BucketLow{"Group bucket < 20%<br/>remaining?"}
-        BucketEmpty{"Group bucket<br/>empty?"}
-        MinDelay["Enforce 50ms<br/>minimum delay"]
-    end
-
-    Start --> ResolveGroup
-    ResolveGroup --> IsBlocked
-    IsBlocked -->|Yes| Block429
-    IsBlocked -->|No| LegacyZero
-    LegacyZero -->|Yes| Block420
-    LegacyZero -->|No| LegacyLow
-    LegacyLow -->|Yes| SlowDown
-    LegacyLow -->|No| BucketEmpty
-    BucketEmpty -->|Yes| Decel
-    BucketEmpty -->|No| BucketLow
-    BucketLow -->|Yes| Decel
-    BucketLow -->|No| MinDelay
-
-    style PerGroup fill:#e3f2fd,stroke:#1565c0
-    style LegacySystem fill:#fff3e0,stroke:#e65100
-    style Decision fill:#e8f5e9,stroke:#2e7d32
+    style Check fill:#e8f5e9,stroke:#2e7d32
 ```
 
 ## 10. Response and Request Validation Pipeline
@@ -931,46 +848,41 @@ sequenceDiagram
 
 ## 11. Request Pipeline Decomposition
 
-`ApiRequestHandler.ts` (~250 lines) is a thin coordinator that delegates to seven focused modules in `src/core/requestPipeline/`.
+Prior to v8.0.0, `ApiRequestHandler.ts` was an 815-line monolith handling headers, caching, status codes, pagination, middleware, fetch execution, and dependency resolution in a single file. It was the most-changed file in the codebase and the primary source of merge conflicts.
 
-```
-src/core/requestPipeline/
-  index.ts                      — barrel re-export
-  dependencies.ts               — resolveCache, resolveRateLimiter,
-                                  resolveCircuitBreaker, resolveRetryStrategy
-  headers.ts                    — buildRequestHeaders, parseCacheControlTtl
-  cachePolicy.ts                — lookupSpecTtl, trySpecAwareCacheHit,
-                                  tryStaleCacheResponse, cacheResponse
-  statusHandling.ts             — handleEarlyStatus, handleErrorResponse, wrapError
-  middlewareBridge.ts            — applyRequestMiddleware, applyResponseInterceptors
-  fetchExecution.ts             — executeSingleFetch, fetchOnePage, parseJsonBody
-  paginationOrchestration.ts    — handleCursorPagination, handleOffsetPagination
-```
+The decomposition extracted seven focused modules into `src/core/requestPipeline/`, each with a single responsibility. The coordinator shrank to ~250 lines and now only orchestrates the call sequence — no business logic lives in the coordinator itself.
 
-The coordinator (`ApiRequestHandler.ts`) exposes three public functions:
+**Why this structure**: Each module is independently testable (see `tests/tdd/core/requestPipeline/`), and changes to caching policy don't risk breaking pagination or status handling. The barrel export (`index.ts`) preserves the existing import paths for consumers within the codebase.
 
-| Function                    | Purpose                                                                                 |
-| --------------------------- | --------------------------------------------------------------------------------------- |
-| `handleRequest()`           | Full request lifecycle: spec-cache check, deduplication, retry strategy, executeRequest |
-| `handleSinglePageRequest()` | Single-page fetch with retry strategy (used by `AsyncPaginationIterator`)               |
-| `executeRequest()`          | Core request execution: headers, middleware, CB, rate limit, fetch, cache, pagination   |
+| Module                       | Responsibility             | Key exports                                                                           |
+| ---------------------------- | -------------------------- | ------------------------------------------------------------------------------------- |
+| `dependencies.ts`            | DI resolution              | `resolveCache`, `resolveRateLimiter`, `resolveCircuitBreaker`, `resolveRetryStrategy` |
+| `headers.ts`                 | HTTP header construction   | `buildRequestHeaders`, `parseCacheControlTtl`                                         |
+| `cachePolicy.ts`             | Spec-aware caching         | `lookupSpecTtl`, `trySpecAwareCacheHit`, `cacheResponse`                              |
+| `statusHandling.ts`          | HTTP status interpretation | `handleEarlyStatus`, `handleErrorResponse`, `wrapError`                               |
+| `middlewareBridge.ts`        | Interceptor execution      | `applyRequestMiddleware`, `applyResponseInterceptors`                                 |
+| `fetchExecution.ts`          | HTTP fetch + CB/RL         | `executeSingleFetch`, `fetchOnePage`, `parseJsonBody`                                 |
+| `paginationOrchestration.ts` | Multi-page assembly        | `handleCursorPagination`, `handleOffsetPagination`                                    |
+
+This diagram is identical to the C4 Level 3 Pipeline component diagram above, repeated here for navigability:
 
 ```mermaid
-graph TB
-    subgraph Coordinator["ApiRequestHandler.ts (~250 lines)"]
-        HR["handleRequest()"]
-        HSPR["handleSinglePageRequest()"]
-        ER["executeRequest()"]
+flowchart TB
+    subgraph Coord ["ApiRequestHandler.ts"]
+        direction LR
+        HR["handleRequest"]
+        HSPR["handleSinglePage"]
+        ER["executeRequest"]
     end
 
-    subgraph Modules["src/core/requestPipeline/"]
-        Deps["dependencies.ts<br/>resolve{Cache,RateLimiter,<br/>CircuitBreaker,RetryStrategy}"]
-        Hdrs["headers.ts<br/>buildRequestHeaders,<br/>parseCacheControlTtl"]
-        CP["cachePolicy.ts<br/>lookupSpecTtl,<br/>trySpecAwareCacheHit,<br/>cacheResponse"]
-        SH["statusHandling.ts<br/>handleEarlyStatus,<br/>handleErrorResponse,<br/>wrapError"]
-        MB["middlewareBridge.ts<br/>applyRequestMiddleware,<br/>applyResponseInterceptors"]
-        FE["fetchExecution.ts<br/>executeSingleFetch,<br/>fetchOnePage,<br/>parseJsonBody"]
-        PO["paginationOrchestration.ts<br/>handleCursorPagination,<br/>handleOffsetPagination"]
+    subgraph Mods ["requestPipeline/"]
+        Deps["dependencies"]
+        Hdrs["headers"]
+        CP["cachePolicy"]
+        SH["statusHandling"]
+        MB["middlewareBridge"]
+        FE["fetchExecution"]
+        PO["pagination"]
     end
 
     HR --> CP
@@ -985,54 +897,58 @@ graph TB
     ER --> CP
     ER --> PO
 
-    style Coordinator fill:#e3f2fd,stroke:#1565c0
-    style Modules fill:#e8f5e9,stroke:#2e7d32
+    style Coord fill:#e3f2fd,stroke:#1565c0
+    style Mods fill:#e8f5e9,stroke:#2e7d32
 ```
 
 ## 12. Streaming Architecture
 
-`BaseEsiClient.streamEndpoint()` provides async iteration over paginated ESI endpoints. 19 domain clients expose 73 `stream*` methods as thin one-liner delegations.
+Many ESI endpoints return paginated data — market orders, corporation members, industry jobs. Rather than forcing consumers to manually loop over pages, ESI.ts provides `stream*` methods that return `AsyncGenerator<PageResult<T>>`. Consumers iterate with `for await...of` and get typed, validated data one page at a time.
+
+`BaseEsiClient.streamEndpoint()` is public and handles the mechanics: it calls `AsyncPaginationIterator.fetchPages()`, which fetches page 1 to discover `totalPages`, yields it, then fetches pages 2..N sequentially, yielding each. Each page goes through `handleSinglePageRequest()` with full retry strategy support. The iteration stops early if a page returns empty data.
+
+21 domain clients expose 73 `stream*` methods, each a thin one-liner delegation:
+
+```typescript
+streamMarketOrders(regionId: number, ...): AsyncGenerator<PageResult<MarketOrder>> {
+  return this.streamEndpoint('getRegionMarketOrders', regionId, ...);
+}
+```
 
 ```mermaid
-graph TB
-    subgraph Consumer["Consumer"]
-        ForAwait["for await (const page of<br/>client.market.streamMarketOrders(...))<br/>{ process(page.data) }"]
+flowchart TB
+    subgraph Consumer ["Consumer"]
+        fa["for await (page of stream...)"]
     end
 
-    subgraph DomainClient["Domain Client (e.g. MarketClient)"]
-        StreamMethod["streamMarketOrders(...)<br/>→ this.streamEndpoint('getMarketOrders', ...)"]
+    subgraph Domain ["Domain Client"]
+        sm["streamMarketOrders()"]
     end
 
-    subgraph BaseClient["BaseEsiClient"]
-        StreamEndpoint["streamEndpoint(endpointName, ...args)<br/>→ fetchPages(client, path, method, ...)"]
+    subgraph Base ["BaseEsiClient"]
+        se["streamEndpoint()"]
     end
 
-    subgraph AsyncIterator["AsyncPaginationIterator"]
-        FetchPages["fetchPages&lt;T&gt;()<br/>→ AsyncGenerator&lt;PageResult&lt;T&gt;&gt;"]
-        FirstPage["Fetch page 1<br/>→ yield { data, page: 1, totalPages }"]
-        NextPages["Fetch pages 2..N<br/>→ yield per page<br/>→ stop on empty"]
+    subgraph Iterator ["AsyncPaginationIterator"]
+        fp["fetchPages()"]
+        p1["Page 1 → yield"]
+        pn["Pages 2..N → yield"]
     end
 
-    subgraph Pipeline["Request Pipeline"]
-        SinglePage["handleSinglePageRequest()"]
-        Retry["RetryStrategy.execute()"]
-        Validate["responseSchema validation<br/>(per-page)"]
+    subgraph Pipeline ["Request Pipeline"]
+        sp["handleSinglePage"]
+        retry["RetryStrategy"]
     end
 
-    ForAwait --> StreamMethod
-    StreamMethod --> StreamEndpoint
-    StreamEndpoint --> FetchPages
-    FetchPages --> FirstPage
-    FirstPage --> NextPages
-    FirstPage --> SinglePage
-    NextPages --> SinglePage
-    SinglePage --> Retry
-    SinglePage --> Validate
+    fa --> sm --> se --> fp
+    fp --> p1 --> pn
+    p1 --> sp --> retry
+    pn --> sp
 
     style Consumer fill:#e3f2fd,stroke:#1565c0
-    style DomainClient fill:#e8f5e9,stroke:#2e7d32
-    style BaseClient fill:#fff3e0,stroke:#e65100
-    style AsyncIterator fill:#fce4ec,stroke:#c62828
+    style Domain fill:#e8f5e9,stroke:#2e7d32
+    style Base fill:#fff3e0,stroke:#e65100
+    style Iterator fill:#fce4ec,stroke:#c62828
     style Pipeline fill:#eceff1,stroke:#37474f
 ```
 
@@ -1050,42 +966,45 @@ streamMarketOrders(regionId: number, ...): AsyncGenerator<PageResult<MarketOrder
 
 ## 13. Code Generation and CI Gates
 
-The project auto-generates several artifacts from the live ESI OpenAPI spec, with CI gates to prevent drift.
+ESI.ts bridges the gap between CCP's OpenAPI spec and TypeScript by auto-generating five artifact categories from the live spec. This ensures the SDK stays aligned with upstream API changes without manual intervention. The generation pipeline runs via `npm run generate:types` and produces:
+
+- **161 TypeScript interfaces** (`esi-spec.generated.ts`) — one per ESI response shape
+- **33 Zod schemas** (`src/schemas/generated/`) — per-domain runtime validators used only for drift detection
+- **126 cache TTLs** (`esi-cache-ttls.generated.ts`) — per-endpoint TTLs for spec-aware caching
+- **36 rate limit groups** (`esi-rate-limit-groups.generated.ts`) — per-group token bucket configuration
+- **OAuth scope mappings** (`esi-scopes.generated.ts`) — per-endpoint required scopes
+
+CI enforces that generated files are fresh via `git diff --exit-code` — if the spec changes and someone forgets to regenerate, the build fails.
 
 ```mermaid
-graph TB
-    subgraph Source["ESI OpenAPI Spec (live)"]
-        Spec["https://esi.evetech.net/latest/swagger.json"]
+flowchart TB
+    subgraph Source ["ESI OpenAPI Spec"]
+        spec["swagger.json"]
     end
 
-    subgraph Generation["npm run generate:types"]
-        GenTypes["esi-spec.generated.ts<br/>(161 interfaces)"]
-        GenSchemas["src/schemas/generated/<br/>(33 per-domain Zod schemas)"]
-        GenTTLs["esi-cache-ttls.generated.ts<br/>(126 TTLs)"]
-        GenRateLimits["esi-rate-limit-groups.generated.ts"]
-        GenScopes["esi-scopes.generated.ts"]
+    subgraph Gen ["generate:types"]
+        types["161 interfaces"]
+        schemas["33 Zod schemas"]
+        ttls["126 TTLs"]
+        rates["36 rate groups"]
+        scopes["OAuth scopes"]
     end
 
-    subgraph Gates["CI Gates"]
-        FreshCheck["git diff --exit-code<br/>(generated files are fresh)"]
-        AuthValidation["validate-auth-scopes.ts<br/>(requiresAuth flags match<br/>esiEndpointScopes entries)"]
-        SpecAlign["spec-alignment.check.ts<br/>(104 AssertTrue&lt;HasAllSpecKeys&gt;<br/>across 24 domains)"]
-        SchemaDrift["npm run schema:drift<br/>(hand-written vs generated<br/>schema comparison)"]
+    subgraph Gates ["CI Gates"]
+        fresh["git diff freshness"]
+        auth["Auth/scopes check"]
+        align["Spec alignment"]
+        drift["Schema drift"]
     end
 
-    Spec --> GenTypes
-    Spec --> GenSchemas
-    Spec --> GenTTLs
-    Spec --> GenRateLimits
-    Spec --> GenScopes
-
-    GenTypes --> FreshCheck
-    GenScopes --> AuthValidation
-    GenTypes --> SpecAlign
-    GenSchemas --> SchemaDrift
+    spec --> types & schemas & ttls & rates & scopes
+    types --> fresh
+    scopes --> auth
+    types --> align
+    schemas --> drift
 
     style Source fill:#f5f5f5,stroke:#999
-    style Generation fill:#e3f2fd,stroke:#1565c0
+    style Gen fill:#e3f2fd,stroke:#1565c0
     style Gates fill:#fce4ec,stroke:#c62828
 ```
 
