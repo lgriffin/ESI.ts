@@ -44,11 +44,8 @@ import {
   ETagCacheManager,
   ETagCacheConfig,
 } from './core/cache/ETagCacheManager';
-import {
-  CircuitBreaker,
-  CircuitBreakerConfig,
-} from './core/circuitBreaker/CircuitBreaker';
-import { RateLimiter, RateLimiterConfig } from './core/rateLimiter/RateLimiter';
+import { CircuitBreakerConfig } from './core/circuitBreaker/CircuitBreaker';
+import { RateLimiterConfig } from './core/rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './core/RequestDeduplicator';
 import { RetryConfig } from './core/util/retry';
 import { IRetryStrategy } from './core/IRetryStrategy';
@@ -59,6 +56,7 @@ import {
   BatchOptions,
   BatchResult,
 } from './core/BatchRequestHandler';
+import { configureApiClient } from './core/configureApiClient';
 import logger from './core/logger/logger';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
@@ -116,56 +114,13 @@ export class EsiClient {
       this.apiClient.setLanguage(config.language);
     }
 
-    if (config?.timeout !== undefined) {
-      this.apiClient.setTimeout(config.timeout);
-    }
-
     if (config?.onTokenRefresh) {
       this.apiClient.setTokenProvider(config.onTokenRefresh);
     }
 
-    this.apiClient.setRateLimiter(new RateLimiter(config?.rateLimiterConfig));
-
-    if (config?.enableRequestDeduplication !== false) {
-      this.deduplicator = new RequestDeduplicator();
-      this.apiClient.setDeduplicator(this.deduplicator);
-    }
-
+    const result = configureApiClient(this.apiClient, config);
+    this.deduplicator = result.deduplicator;
     this.etagCacheEnabled = config?.enableETagCache !== false;
-    if (this.etagCacheEnabled) {
-      this.apiClient.setCache(new ETagCacheManager(config?.etagCacheConfig));
-    }
-
-    if (config?.enableCircuitBreaker) {
-      this.apiClient.setCircuitBreaker(
-        new CircuitBreaker(config.circuitBreakerConfig),
-      );
-    }
-
-    if (config?.retryConfig) {
-      this.apiClient.setRetryConfig(config.retryConfig);
-    } else if (config?.retryAttempts !== undefined) {
-      this.apiClient.setRetryConfig({ maxRetries: config.retryAttempts });
-    }
-
-    if (config?.retryStrategy) {
-      this.apiClient.setRetryStrategy(config.retryStrategy);
-    }
-
-    if (config?.requestInterceptors) {
-      for (const interceptor of config.requestInterceptors) {
-        this.apiClient.addRequestInterceptor(interceptor);
-      }
-    }
-    if (config?.responseInterceptors) {
-      for (const interceptor of config.responseInterceptors) {
-        this.apiClient.addResponseInterceptor(interceptor);
-      }
-    }
-
-    if (config?.validateResponse !== undefined) {
-      this.apiClient.setValidateResponse(config.validateResponse);
-    }
 
     logger.info('EsiClient initialized successfully');
   }

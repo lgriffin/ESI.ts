@@ -13,6 +13,10 @@ export { ApiClientType } from './core/ClientRegistry';
 // Core (for direct instantiation)
 export { ApiClient, TokenProvider } from './core/ApiClient';
 export { ApiClientBuilder } from './core/ApiClientBuilder';
+export {
+  configureApiClient,
+  ConfigureApiClientResult,
+} from './core/configureApiClient';
 
 // Base client (for custom domain client implementations)
 export { BaseEsiClient } from './clients/BaseEsiClient';

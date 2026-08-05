@@ -3586,6 +3586,15 @@ const ColonyLayoutSchema: z.ZodObject<{
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
+// @public
+export function configureApiClient(client: ApiClient, config?: EsiClientConfig): ConfigureApiClientResult;
+
+// @public (undocumented)
+export interface ConfigureApiClientResult {
+    // (undocumented)
+    deduplicator: RequestDeduplicator | null;
+}
+
 // @public (undocumented)
 export type ConstellationInfo = z.infer<typeof ConstellationInfoSchema>;
 
