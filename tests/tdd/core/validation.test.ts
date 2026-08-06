@@ -48,6 +48,12 @@ describe('validatePathParam', () => {
     expect(() => validatePathParam('id', Infinity)).toThrow('finite number');
     expect(() => validatePathParam('id', -Infinity)).toThrow('finite number');
   });
+
+  it('should include VALIDATION_ERROR code in thrown errors', () => {
+    expect(() => validatePathParam('id', '')).toThrow('VALIDATION_ERROR');
+    expect(() => validatePathParam('id', '../bad')).toThrow('VALIDATION_ERROR');
+    expect(() => validatePathParam('id', NaN)).toThrow('VALIDATION_ERROR');
+  });
 });
 
 describe('validateQueryParam', () => {
@@ -78,6 +84,14 @@ describe('validateQueryParam', () => {
     const longString = 'a'.repeat(2001);
     expect(() => validateQueryParam('search', longString)).toThrow(
       'exceeds maximum length',
+    );
+  });
+
+  it('should include VALIDATION_ERROR code in thrown errors', () => {
+    expect(() => validateQueryParam('x', null)).toThrow('VALIDATION_ERROR');
+    expect(() => validateQueryParam('x', NaN)).toThrow('VALIDATION_ERROR');
+    expect(() => validateQueryParam('x', 'a'.repeat(2001))).toThrow(
+      'VALIDATION_ERROR',
     );
   });
 
@@ -123,6 +137,16 @@ describe('validateBaseUrl', () => {
 
   it('should reject invalid URLs', () => {
     expect(() => validateBaseUrl('not-a-url')).toThrow('Invalid base URL');
+    expect(() => validateBaseUrl('not-a-url')).toThrow('VALIDATION_ERROR');
+  });
+
+  it('should include VALIDATION_ERROR code for all base URL failures', () => {
+    expect(() => validateBaseUrl('http://esi.evetech.net')).toThrow(
+      'VALIDATION_ERROR',
+    );
+    expect(() => validateBaseUrl('https://evil.com')).toThrow(
+      'VALIDATION_ERROR',
+    );
   });
 
   it('should allow custom hosts when unsafeAllowCustomHost is true', () => {

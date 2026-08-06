@@ -76,14 +76,35 @@ describe('Middleware', () => {
       expect(order).toEqual([1, 2]);
     });
 
-    it('should return removal function that unregisters interceptor', () => {
+    it('should return removal function that unregisters interceptor', async () => {
       const manager = new MiddlewareManager();
-      const remove = manager.addRequestInterceptor((ctx) => ctx);
+      const calls: number[] = [];
+      const remove = manager.addRequestInterceptor((ctx) => {
+        calls.push(1);
+        return ctx;
+      });
 
       expect(manager.hasInterceptors()).toBe(true);
 
+      await manager.applyRequestInterceptors({
+        url: 'http://test',
+        endpoint: 'test',
+        method: 'GET',
+        headers: {},
+      });
+      expect(calls).toEqual([1]);
+
       remove();
       expect(manager.hasInterceptors()).toBe(false);
+
+      calls.length = 0;
+      await manager.applyRequestInterceptors({
+        url: 'http://test',
+        endpoint: 'test',
+        method: 'GET',
+        headers: {},
+      });
+      expect(calls).toEqual([]);
     });
 
     it('should remove only the specified response interceptor', async () => {

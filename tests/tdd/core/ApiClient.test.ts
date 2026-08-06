@@ -1,5 +1,8 @@
 import { ApiClient } from '../../../src/core/ApiClient';
 import { ICache, CacheEntry } from '../../../src/core/cache/ICache';
+import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
+import { RequestDeduplicator } from '../../../src/core/RequestDeduplicator';
 
 function createMockCache(): ICache & { clearCalled: number } {
   const store = new Map<string, CacheEntry>();
@@ -137,6 +140,38 @@ describe('ApiClient', () => {
       await client.refreshToken();
 
       expect(cache.clearCalled).toBe(0);
+    });
+  });
+
+  describe('getStatus', () => {
+    it('should report no middleware when none configured', () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      const status = JSON.parse(JSON.stringify(client));
+
+      expect(status.hasCache).toBe(false);
+      expect(status.hasRateLimiter).toBe(false);
+      expect(status.hasCircuitBreaker).toBe(false);
+      expect(status.hasDeduplicator).toBe(false);
+      expect(status.hasTokenProvider).toBe(false);
+    });
+
+    it('should report true for each configured middleware', () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      const rateLimiter = new RateLimiter();
+      rateLimiter.setTestMode(true);
+      client.setRateLimiter(rateLimiter);
+      client.setCache(createMockCache());
+      client.setCircuitBreaker(new CircuitBreaker());
+      client.setDeduplicator(new RequestDeduplicator());
+      client.setTokenProvider(() => Promise.resolve('token'));
+
+      const status = JSON.parse(JSON.stringify(client));
+
+      expect(status.hasCache).toBe(true);
+      expect(status.hasRateLimiter).toBe(true);
+      expect(status.hasCircuitBreaker).toBe(true);
+      expect(status.hasDeduplicator).toBe(true);
+      expect(status.hasTokenProvider).toBe(true);
     });
   });
 

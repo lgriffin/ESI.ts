@@ -1,6 +1,7 @@
 import {
   STATUS_MESSAGES,
   handleEarlyStatus,
+  handleErrorResponse,
   wrapError,
 } from '../../../../src/core/requestPipeline/statusHandling';
 import { ApiClient } from '../../../../src/core/ApiClient';
@@ -144,6 +145,137 @@ describe('requestPipeline/statusHandling', () => {
     });
   });
 
+  describe('handleErrorResponse', () => {
+    let client: ApiClient;
+    const resolveCache = (c: ApiClient) => c.getCache();
+
+    beforeEach(() => {
+      client = new ApiClient('test', BASE_URL);
+    });
+
+    it('should throw EsiError for 420 status', () => {
+      const response = new Response(null, { status: 420 });
+      const parsed = { raw: {}, requestId: 'r1' } as unknown as ParsedHeaders;
+
+      expect(() =>
+        handleErrorResponse(
+          client,
+          response,
+          `${BASE_URL}/v1/test/`,
+          parsed,
+          false,
+          resolveCache,
+        ),
+      ).toThrow(EsiError);
+
+      try {
+        handleErrorResponse(
+          client,
+          response,
+          `${BASE_URL}/v1/test/`,
+          parsed,
+          false,
+          resolveCache,
+        );
+      } catch (e) {
+        expect((e as EsiError).statusCode).toBe(420);
+      }
+    });
+
+    it('should throw EsiError for 429 status', () => {
+      const response = new Response(null, { status: 429 });
+      const parsed = { raw: {}, requestId: 'r1' } as unknown as ParsedHeaders;
+
+      expect(() =>
+        handleErrorResponse(
+          client,
+          response,
+          `${BASE_URL}/v1/test/`,
+          parsed,
+          false,
+          resolveCache,
+        ),
+      ).toThrow(EsiError);
+
+      try {
+        handleErrorResponse(
+          client,
+          response,
+          `${BASE_URL}/v1/test/`,
+          parsed,
+          false,
+          resolveCache,
+        );
+      } catch (e) {
+        expect((e as EsiError).statusCode).toBe(429);
+      }
+    });
+
+    it('should serve stale cache on 500 when useETag is true and cache has data', () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+      client.setCache(cache);
+
+      const url = `${BASE_URL}/v1/status/`;
+      cache.set(url, '"etag"', { players: 50 }, { 'content-type': 'json' });
+
+      const response = new Response(null, { status: 500 });
+      const parsed = { raw: {} } as unknown as ParsedHeaders;
+
+      const result = handleErrorResponse(
+        client,
+        response,
+        url,
+        parsed,
+        true,
+        resolveCache,
+      );
+      expect(result.fromCache).toBe(true);
+      expect(result.stale).toBe(true);
+      expect(result.body).toEqual({ players: 50 });
+
+      cache.shutdown();
+    });
+
+    it('should not serve stale cache on 500 when useETag is false', () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+      client.setCache(cache);
+
+      const url = `${BASE_URL}/v1/status/`;
+      cache.set(url, '"etag"', { players: 50 }, { 'content-type': 'json' });
+
+      const response = new Response(null, { status: 500 });
+      const parsed = { raw: {} } as unknown as ParsedHeaders;
+
+      expect(() =>
+        handleErrorResponse(client, response, url, parsed, false, resolveCache),
+      ).toThrow(EsiError);
+
+      cache.shutdown();
+    });
+
+    it('should throw EsiError for 4xx that are not 420/429', () => {
+      const response = new Response(null, { status: 404 });
+      const parsed = { raw: {}, requestId: 'r1' } as unknown as ParsedHeaders;
+
+      expect(() =>
+        handleErrorResponse(
+          client,
+          response,
+          `${BASE_URL}/v1/test/`,
+          parsed,
+          false,
+          resolveCache,
+        ),
+      ).toThrow(EsiError);
+    });
+  });
+
   describe('wrapError', () => {
     it('should rethrow EsiError as-is', () => {
       const esiErr = new EsiError(404, 'Not found', '/test');
@@ -158,10 +290,12 @@ describe('requestPipeline/statusHandling', () => {
     it('should wrap generic Error into ESIJS_ERROR', () => {
       const err = new Error('something broke');
       expect(() => wrapError(err)).toThrow('something broke');
+      expect(() => wrapError(err)).toThrow('ESIJS_ERROR');
     });
 
     it('should wrap string errors', () => {
       expect(() => wrapError('string error')).toThrow('string error');
+      expect(() => wrapError('string error')).toThrow('ESIJS_ERROR');
     });
   });
 });
