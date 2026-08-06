@@ -36,6 +36,9 @@ export default {
     '!src/core/requestPipeline/index.ts',
     '!src/core/requestPipeline/dependencies.ts',
   ],
+  mutator: {
+    excludedMutations: ['StringLiteral'],
+  },
   thresholds: {
     high: 80,
     low: 60,

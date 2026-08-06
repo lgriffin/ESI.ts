@@ -114,6 +114,28 @@ describe('requestPipeline/cachePolicy', () => {
 
       cache.shutdown();
     });
+
+    it('should return null for POST method even with templatePath', () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+      client.setCache(cache);
+
+      const url = `${BASE_URL}/v1/status/`;
+      cache.set(url, '"etag"', { players: 100 }, { 'content-type': 'json' });
+
+      const result = trySpecAwareCacheHit(
+        client,
+        url,
+        'POST',
+        '/v1/status/',
+        resolveCache,
+      );
+
+      expect(result).toBeNull();
+      cache.shutdown();
+    });
   });
 
   describe('tryStaleCacheResponse', () => {

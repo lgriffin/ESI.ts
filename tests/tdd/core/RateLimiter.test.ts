@@ -234,6 +234,18 @@ describe('RateLimiter', () => {
       expect(RateLimiter.getTokenCost(0)).toBe(2);
       expect(RateLimiter.getTokenCost(-1)).toBe(2);
     });
+
+    it('should correctly classify exact boundary status codes', () => {
+      expect(RateLimiter.getTokenCost(199)).toBe(2); // below 2xx
+      expect(RateLimiter.getTokenCost(200)).toBe(2); // 2xx start
+      expect(RateLimiter.getTokenCost(299)).toBe(2); // 2xx end
+      expect(RateLimiter.getTokenCost(300)).toBe(1); // 3xx start
+      expect(RateLimiter.getTokenCost(399)).toBe(1); // 3xx end
+      expect(RateLimiter.getTokenCost(400)).toBe(5); // 4xx start
+      expect(RateLimiter.getTokenCost(499)).toBe(5); // 4xx end
+      expect(RateLimiter.getTokenCost(500)).toBe(0); // 5xx start
+      expect(RateLimiter.getTokenCost(599)).toBe(0); // 5xx end
+    });
   });
 
   describe('checkRateLimit delay paths', () => {
