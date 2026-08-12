@@ -36,10 +36,12 @@ Coverage thresholds: branches 80%, functions 75%, lines 90%, statements 90%.
 ### Code Generation
 
 ```bash
-npm run generate:types    # Generate TS interfaces + Zod schemas + metadata from live ESI OpenAPI spec
-npm run generate:okf      # Generate OKF v0.2 knowledge bundle from live ESI OpenAPI spec
-npm run schema:drift      # Check hand-written Zod schemas against OpenAPI spec
-npm run api-report        # Update API surface report (etc/esi.ts.api.md)
+npm run generate:types      # Generate TS interfaces + metadata from live ESI OpenAPI spec
+npm run generate:okf        # Generate OKF v0.2 knowledge bundle from live ESI OpenAPI spec
+npm run generate:endpoints  # Generate endpoint definition scaffold (etc/endpoint-scaffold.generated.ts)
+npm run generate:all        # Run all generation + validation in sequence
+npm run schema:drift        # Check hand-written Zod schemas against OpenAPI spec
+npm run api-report          # Update API surface report (etc/esi.ts.api.md)
 ```
 
 CI verifies generated types are fresh via `git diff --exit-code`.
@@ -51,7 +53,6 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `src/core/endpoints/` — Endpoint definitions (`*Endpoints.ts`) + generated metadata
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
 - `src/schemas/` — 33 hand-written Zod v4 schemas for runtime validation
-- `src/schemas/generated/` — Auto-generated Zod schemas from OpenAPI spec (per-domain files)
 - `src/types/` — Hand-written response types + `generated/esi-spec.generated.ts`
 - `tests/tdd/` — Unit tests
 - `tests/tdd/helpers/` — Shared test utilities (e.g., `clientErrorTests.ts`)
@@ -91,12 +92,11 @@ Key middleware in the pipeline:
 ### CI Workflows
 
 - **ci-fast.yml** — runs on all pushes: lint, format, build, typecheck, unit tests (Node 20)
-- **ci.yml** — runs on PRs to master: full matrix (Node 18/20/22), BDD, contract, fuzz, mutation testing, quality gate
+- **ci.yml** — runs on PRs to master: full matrix (Node 18/20/22), BDD, contract, fuzz, mutation testing, coverage with PR comment, quality gate
 
 ## Do Not Edit
 
 - `src/types/generated/` — auto-generated from OpenAPI spec
-- `src/schemas/generated/` — auto-generated Zod schemas from OpenAPI spec
 - `src/core/endpoints/esi-*.generated.ts` — auto-generated cache TTLs, rate limits, scopes
 - `dist/` — build output
 - `etc/esi.ts.api.md` — auto-generated API surface report

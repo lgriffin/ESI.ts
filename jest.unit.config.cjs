@@ -22,7 +22,7 @@ module.exports = {
     '!src/types/**/*.ts',
     '!src/**/*.generated.ts',
     '!src/clients/generated/**',
-    '!src/schemas/generated/**',
+
   ],
   coverageThreshold: {
     global: {

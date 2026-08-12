@@ -4,7 +4,28 @@ on:
   pull_request:
     branches: [master, main, develop]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
+  pr-info:
+    name: PR Information
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: PR Details
+        run: |
+          echo "## Pull Request Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Title:** ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author:** @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Base:** ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Head:** ${{ github.event.pull_request.head.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files Changed:** ${{ github.event.pull_request.changed_files }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Additions:** +${{ github.event.pull_request.additions }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deletions:** -${{ github.event.pull_request.deletions }}" >> $GITHUB_STEP_SUMMARY
+
   lint-and-build:
     name: Lint & Build
     runs-on: ubuntu-latest
@@ -123,6 +144,14 @@ jobs:
 
       - name: Run tests with coverage
         run: npm run coverage
+
+      - name: Post coverage comment
+        if: github.event_name == 'pull_request'
+        uses: MishaKav/jest-coverage-comment@v1.0.36
+        with:
+          coverage-summary-path: coverage/unit/coverage-summary.json
+          title: Test Coverage
+          badge-title: Coverage
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v7

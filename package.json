@@ -152,6 +152,8 @@
     "test:types": "tsd --files 'tests/typetests/*.test-d.ts'",
     "generate:types": "ts-node scripts/generate-esi-types.ts",
     "generate:okf": "ts-node scripts/generate-okf.ts",
+    "generate:endpoints": "ts-node scripts/generate-endpoint-scaffold.ts",
+    "generate:all": "npm run generate:types && npm run generate:okf && npm run contract:snapshot && npm run schema:drift && npm run validate:esi",
     "knip": "knip",
     "validate:esi": "ts-node scripts/validate-esi-endpoints.ts",
     "validate:auth-scopes": "ts-node scripts/validate-auth-scopes.ts",
