@@ -1,6 +1,6 @@
 /* eslint-disable */
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Spec hash: a0ec73787c55
+// Spec hash: 7c276650c715
 // Total interfaces: 161
 
 // --- Alliance ---
@@ -1660,11 +1660,11 @@ export interface SovereigntyStructuresGet {
 
 // --- Status ---
 
-export interface StatusGet {
+export interface Status {
   players: number;
   server_version: string;
   start_time: string;
-  vip?: boolean;
+  vip: boolean;
 }
 
 // --- Universe ---
@@ -2183,7 +2183,7 @@ export interface EsiOperationTypes {
   'GetSovereigntyCampaigns': SovereigntyCampaignsGet[];
   'GetSovereigntyMap': SovereigntyMapGet[];
   'GetSovereigntyStructures': SovereigntyStructuresGet[];
-  'GetStatus': StatusGet;
+  'GetStatus': Status;
   'GetUniverseAncestries': UniverseAncestriesGet[];
   'GetUniverseAsteroidBeltsAsteroidBeltId': UniverseAsteroidBeltsAsteroidBeltIdGet;
   'GetUniverseBloodlines': UniverseBloodlinesGet[];

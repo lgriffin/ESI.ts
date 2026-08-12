@@ -5792,6 +5792,9 @@ export interface IRetryStrategy {
 }
 
 // @public (undocumented)
+export function isCircuitOpen(error: unknown): error is CircuitOpenError;
+
+// @public (undocumented)
 export function isEsiError(error: unknown): error is EsiError;
 
 // @public (undocumented)
