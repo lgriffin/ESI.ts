@@ -20,7 +20,7 @@ const ESI_OPENAPI_URL =
   'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
 const OUTPUT_FILE = path.resolve(
   __dirname,
-  '../etc/endpoint-scaffold.generated.ts',
+  '../etc/endpoint-scaffold.generated.reference.ts',
 );
 
 // --- OpenAPI types ---

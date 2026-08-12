@@ -424,7 +424,7 @@ describe('CursorPaginationHandler', () => {
         firstPageData,
         firstCursors,
         undefined,
-        { maxRetries: 3, retryDelayMs: 1 },
+        {},
       );
 
       expect(result).toEqual([{ id: 1 }, { id: 2 }]);
@@ -445,7 +445,7 @@ describe('CursorPaginationHandler', () => {
         firstPageData,
         firstCursors,
         undefined,
-        { maxRetries: 3, retryDelayMs: 1 },
+        {},
       );
 
       expect(result).toEqual([{ id: 1 }]);

@@ -69,7 +69,6 @@ export async function handleOffsetPagination(
       {
         maxPages: Math.min(totalPages, 1000),
         stopOnEmptyPage: true,
-        maxRetries: 3,
       },
       pageFetch,
       templatePath,

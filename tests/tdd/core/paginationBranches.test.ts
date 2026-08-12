@@ -76,7 +76,7 @@ describe('PaginationHandler branch coverage', () => {
         [{ id: 1 }],
         2,
         undefined,
-        { maxRetries: 1, retryDelayMs: 1 },
+        {},
         pageFetch,
       ),
     ).rejects.toThrow('Failed to fetch page 2: string error');

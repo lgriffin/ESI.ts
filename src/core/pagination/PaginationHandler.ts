@@ -9,8 +9,6 @@ import { resolveRetryStrategy } from '../requestPipeline/dependencies';
 
 export interface PaginationOptions {
   maxPages?: number;
-  maxRetries?: number;
-  retryDelayMs?: number;
   stopOnEmptyPage?: boolean;
 }
 
@@ -18,9 +16,7 @@ export type PageFetcher = (paginatedEndpoint: string) => Promise<unknown[]>;
 
 export class PaginationHandler {
   private static readonly DEFAULT_OPTIONS: Required<PaginationOptions> = {
-    maxPages: 1000, // Reasonable limit to prevent infinite loops
-    maxRetries: 3,
-    retryDelayMs: 1000,
+    maxPages: 1000,
     stopOnEmptyPage: true,
   };
 
@@ -60,6 +56,7 @@ export class PaginationHandler {
           client,
           endpoint,
           method,
+          requiresAuth,
           page,
           pageFetch,
         );
@@ -99,6 +96,7 @@ export class PaginationHandler {
     client: ApiClient,
     endpoint: string,
     method: string,
+    requiresAuth: boolean,
     page: number,
     pageFetch: PageFetcher,
   ): Promise<unknown[]> {
@@ -113,7 +111,10 @@ export class PaginationHandler {
       {
         endpoint: paginatedEndpoint,
         method,
-        requiresAuth: false,
+        requiresAuth,
+        refreshToken: client.hasTokenProvider()
+          ? () => client.refreshToken().then(() => {})
+          : undefined,
       },
     );
   }

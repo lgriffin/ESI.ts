@@ -42,15 +42,11 @@ export type CursorPageFetcher = (
 
 export interface CursorPaginationOptions {
   maxPages?: number;
-  maxRetries?: number;
-  retryDelayMs?: number;
 }
 
 export class CursorPaginationHandler {
   private static readonly DEFAULT_OPTIONS: Required<CursorPaginationOptions> = {
     maxPages: 1000,
-    maxRetries: 3,
-    retryDelayMs: 1000,
   };
 
   /**
@@ -142,7 +138,6 @@ export class CursorPaginationHandler {
           requiresAuth,
           { after: afterToken },
           body,
-          opts,
           pageFetch,
         );
 
@@ -164,7 +159,7 @@ export class CursorPaginationHandler {
           `Cursor page fetch failed: ${error instanceof Error ? error.message : String(error)}`,
         );
 
-        if (consecutiveFailures >= opts.maxRetries) {
+        if (consecutiveFailures >= 3) {
           logWarn(
             `${consecutiveFailures} consecutive failures. Stopping cursor pagination.`,
           );
@@ -192,7 +187,6 @@ export class CursorPaginationHandler {
     requiresAuth: boolean,
     cursor: { before?: string; after?: string },
     body: unknown,
-    _options: Required<CursorPaginationOptions>,
     pageFetch?: CursorPageFetcher,
   ): Promise<CursorPage> {
     const retryStrategy = resolveRetryStrategy(client);
@@ -212,6 +206,9 @@ export class CursorPaginationHandler {
         endpoint,
         method,
         requiresAuth,
+        refreshToken: client.hasTokenProvider()
+          ? () => client.refreshToken().then(() => {})
+          : undefined,
       },
     );
   }
