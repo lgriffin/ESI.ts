@@ -37,12 +37,12 @@ export function handleEarlyStatus(
   resolveCache: (client: ApiClient) => ICache | null,
 ): EsiHandlerResponse | null {
   if (status === 201) {
-    return { headers: parsed.raw, body: undefined };
+    return { headers: parsed.raw, body: undefined, status: 201 };
   }
 
   if (status === 204) {
     logInfo(`No Content for endpoint: ${url}`);
-    return { headers: parsed.raw, body: undefined };
+    return { headers: parsed.raw, body: undefined, status: 204 };
   }
 
   if (status === 304) {
@@ -54,6 +54,7 @@ export function handleEarlyStatus(
         return {
           headers: { ...cachedEntry.headers, ...parsed.raw },
           body: cachedEntry.data,
+          status: 304,
           fromCache: true,
           cacheHitType: 'etag-304',
         };
@@ -92,7 +93,7 @@ export function handleErrorResponse(
     );
     if (staleResult) {
       logWarn(`${errorMessage} for ${url} — serving stale cache`);
-      return staleResult;
+      return { ...staleResult, status: response.status };
     }
   }
 

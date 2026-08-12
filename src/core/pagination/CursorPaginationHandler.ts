@@ -17,9 +17,13 @@
 
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
-import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
-import { sleep } from '../util/sleep';
-import { buildError, TimeoutError } from '../util/error';
+import { fetchOnePage } from '../requestPipeline/fetchExecution';
+import {
+  resolveCache,
+  resolveRateLimiter,
+  resolveCircuitBreaker,
+  resolveRetryStrategy,
+} from '../requestPipeline/dependencies';
 
 export interface CursorTokens {
   before: string | null;
@@ -38,19 +42,19 @@ export type CursorPageFetcher = (
 
 export interface CursorPaginationOptions {
   maxPages?: number;
-  maxRetries?: number;
-  retryDelayMs?: number;
 }
 
 export class CursorPaginationHandler {
   private static readonly DEFAULT_OPTIONS: Required<CursorPaginationOptions> = {
     maxPages: 1000,
-    maxRetries: 3,
-    retryDelayMs: 1000,
   };
 
   /**
    * Fetch a single cursor page, returning data + cursor tokens.
+   *
+   * When no `pageFetch` callback is provided, the request is routed
+   * through the standard request pipeline (rate limiter, circuit
+   * breaker, timeout, middleware) instead of a raw `fetch()`.
    */
   static async fetchPage(
     client: ApiClient,
@@ -62,77 +66,41 @@ export class CursorPaginationHandler {
     pageFetch?: CursorPageFetcher,
   ): Promise<CursorPage> {
     if (pageFetch) {
-      logInfo(`Cursor fetch via pipeline: ${endpoint}`);
+      logInfo(`Cursor fetch via callback: ${endpoint}`);
       return pageFetch(endpoint, cursor);
     }
 
-    const url = this.buildUrl(client, endpoint, cursor);
+    const endpointWithCursor = this.buildEndpointWithCursor(endpoint, cursor);
 
-    logInfo(`Cursor fetch: ${url}`);
+    logInfo(`Cursor fetch via pipeline: ${endpointWithCursor}`);
 
-    const headers: Record<string, string> = {
-      Accept: 'application/json',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'User-Agent': USER_AGENT,
-      'X-Compatibility-Date': COMPATIBILITY_DATE,
+    const { data, parsed } = await fetchOnePage(
+      client,
+      endpointWithCursor,
+      method,
+      body,
+      requiresAuth,
+      false, // useETag — cursor pagination doesn't use ETags
+      resolveCache,
+      resolveRateLimiter,
+      resolveCircuitBreaker,
+    );
+
+    const cursors: CursorTokens = {
+      before: parsed.cursorBefore,
+      after: parsed.cursorAfter,
     };
 
-    if (requiresAuth) {
-      const authHeader = client.getAuthorizationHeader();
-      if (!authHeader) {
-        throw buildError(
-          'Authorization header is required but not provided',
-          'NO_AUTH_TOKEN',
-        );
-      }
-      headers['Authorization'] = authHeader;
+    let dataArray: unknown[];
+    if (Array.isArray(data)) {
+      dataArray = data as unknown[];
+    } else if (data !== null && data !== undefined) {
+      dataArray = [data];
+    } else {
+      dataArray = [];
     }
 
-    const timeoutMs = client.getTimeout();
-    const controller = new AbortController();
-    const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
-
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-        signal: controller.signal,
-      });
-    } catch (err: unknown) {
-      clearTimeout(timer);
-      const isAbort =
-        err instanceof Error
-          ? err.name === 'AbortError'
-          : err != null &&
-            typeof err === 'object' &&
-            'name' in err &&
-            (err as { name: string }).name === 'AbortError';
-      if (isAbort) {
-        throw new TimeoutError(timeoutMs, url);
-      }
-      throw err;
-    }
-    clearTimeout(timer);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    let data: unknown[];
-    try {
-      const parsed: unknown = await response.json();
-      data = Array.isArray(parsed) ? (parsed as unknown[]) : [parsed];
-    } catch (jsonError) {
-      throw new Error(
-        `Invalid JSON response: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`,
-      );
-    }
-
-    const cursors = this.extractCursors(response.headers);
-
-    return { data, cursors };
+    return { data: dataArray, cursors };
   }
 
   /**
@@ -170,7 +138,6 @@ export class CursorPaginationHandler {
           requiresAuth,
           { after: afterToken },
           body,
-          opts,
           pageFetch,
         );
 
@@ -192,7 +159,7 @@ export class CursorPaginationHandler {
           `Cursor page fetch failed: ${error instanceof Error ? error.message : String(error)}`,
         );
 
-        if (consecutiveFailures >= opts.maxRetries) {
+        if (consecutiveFailures >= 3) {
           logWarn(
             `${consecutiveFailures} consecutive failures. Stopping cursor pagination.`,
           );
@@ -209,6 +176,9 @@ export class CursorPaginationHandler {
 
   /**
    * Fetch a single cursor page with retry logic.
+   *
+   * Delegates to the configured `IRetryStrategy` (exponential backoff
+   * with jitter) instead of implementing a custom retry loop.
    */
   private static async fetchPageWithRetry(
     client: ApiClient,
@@ -217,14 +187,13 @@ export class CursorPaginationHandler {
     requiresAuth: boolean,
     cursor: { before?: string; after?: string },
     body: unknown,
-    options: Required<CursorPaginationOptions>,
     pageFetch?: CursorPageFetcher,
   ): Promise<CursorPage> {
-    let lastError: Error | null = null;
+    const retryStrategy = resolveRetryStrategy(client);
 
-    for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
-      try {
-        return await this.fetchPage(
+    return retryStrategy.execute(
+      () =>
+        this.fetchPage(
           client,
           endpoint,
           method,
@@ -232,19 +201,16 @@ export class CursorPaginationHandler {
           cursor,
           body,
           pageFetch,
-        );
-      } catch (error) {
-        lastError = error as Error;
-        logWarn(
-          `Cursor fetch attempt ${attempt}/${options.maxRetries} failed: ${error instanceof Error ? error.message : String(error)}`,
-        );
-        if (attempt < options.maxRetries) {
-          await sleep(options.retryDelayMs * attempt);
-        }
-      }
-    }
-
-    throw lastError || new Error('Cursor page fetch failed after all retries');
+        ),
+      {
+        endpoint,
+        method,
+        requiresAuth,
+        refreshToken: client.hasTokenProvider()
+          ? () => client.refreshToken().then(() => {})
+          : undefined,
+      },
+    );
   }
 
   /**
@@ -259,15 +225,13 @@ export class CursorPaginationHandler {
   }
 
   /**
-   * Build a URL with cursor query parameters appended.
+   * Build an endpoint path with cursor query parameters appended.
    */
-  private static buildUrl(
-    client: ApiClient,
+  private static buildEndpointWithCursor(
     endpoint: string,
     cursor?: { before?: string; after?: string },
   ): string {
-    let url = `${client.getLink()}/${endpoint}`;
-    if (!cursor) return url;
+    if (!cursor) return endpoint;
 
     const parts: string[] = [];
     if (cursor.before)
@@ -275,9 +239,9 @@ export class CursorPaginationHandler {
     if (cursor.after) parts.push(`after=${encodeURIComponent(cursor.after)}`);
 
     if (parts.length > 0) {
-      const separator = url.includes('?') ? '&' : '?';
-      url += separator + parts.join('&');
+      const separator = endpoint.includes('?') ? '&' : '?';
+      return endpoint + separator + parts.join('&');
     }
-    return url;
+    return endpoint;
   }
 }

@@ -1,12 +1,3 @@
-const path = require('path');
-
-console.log('Jest Benchmark Config Loaded');
-console.log('Root Directory:', path.resolve(__dirname));
-console.log(
-  'Looking for benchmark tests in:',
-  path.resolve(__dirname, 'tests/benchmark'),
-);
-
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',

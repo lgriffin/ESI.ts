@@ -1,12 +1,3 @@
-const path = require('path');
-
-console.log('Jest Fuzz Config Loaded');
-console.log('Root Directory:', path.resolve(__dirname));
-console.log(
-  'Looking for fuzz tests in:',
-  path.resolve(__dirname, 'tests/fuzz'),
-);
-
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',

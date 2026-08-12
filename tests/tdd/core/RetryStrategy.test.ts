@@ -1,6 +1,8 @@
 import { RetryStrategy, RetryContext } from '../../../src/core/RetryStrategy';
 import { EsiError } from '../../../src/core/util/error';
 import { CircuitOpenError } from '../../../src/core/circuitBreaker/CircuitBreaker';
+import { ApiClient } from '../../../src/core/ApiClient';
+import { configureApiClient } from '../../../src/core/configureApiClient';
 
 describe('RetryStrategy', () => {
   const baseContext: RetryContext = {
@@ -209,6 +211,46 @@ describe('RetryStrategy', () => {
       await expect(strategy.execute(operation, context)).rejects.toThrow(
         'Unauthorized',
       );
+    });
+  });
+
+  describe('configureApiClient default retry', () => {
+    it('should set default retry config with 3 retries when none specified', () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      configureApiClient(client);
+
+      const retryConfig = client.getRetryConfig();
+      expect(retryConfig).not.toBeNull();
+      expect(retryConfig?.maxRetries).toBe(3);
+      expect(retryConfig?.baseDelayMs).toBe(1000);
+      expect(retryConfig?.maxDelayMs).toBe(30000);
+    });
+
+    it('should use explicit retryConfig when provided', () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      configureApiClient(client, {
+        retryConfig: { maxRetries: 5, baseDelayMs: 500 },
+      });
+
+      const retryConfig = client.getRetryConfig();
+      expect(retryConfig?.maxRetries).toBe(5);
+      expect(retryConfig?.baseDelayMs).toBe(500);
+    });
+
+    it('should use retryAttempts when provided for backward compatibility', () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      configureApiClient(client, { retryAttempts: 2 });
+
+      const retryConfig = client.getRetryConfig();
+      expect(retryConfig?.maxRetries).toBe(2);
+    });
+
+    it('should allow disabling retries via retryAttempts: 0', () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      configureApiClient(client, { retryAttempts: 0 });
+
+      const retryConfig = client.getRetryConfig();
+      expect(retryConfig?.maxRetries).toBe(0);
     });
   });
 });

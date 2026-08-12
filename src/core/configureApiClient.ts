@@ -44,11 +44,18 @@ export function configureApiClient(
     client.setCircuitBreaker(new CircuitBreaker(config.circuitBreakerConfig));
   }
 
-  // Retry config
+  // Retry config — default to 3 retries with exponential backoff so that
+  // transient ESI failures (502/503/504) are handled automatically.
   if (config?.retryConfig) {
     client.setRetryConfig(config.retryConfig);
   } else if (config?.retryAttempts !== undefined) {
     client.setRetryConfig({ maxRetries: config.retryAttempts });
+  } else {
+    client.setRetryConfig({
+      maxRetries: 3,
+      baseDelayMs: 1000,
+      maxDelayMs: 30000,
+    });
   }
 
   // Retry strategy

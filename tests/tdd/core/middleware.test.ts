@@ -205,6 +205,44 @@ describe('Middleware', () => {
       expect(capturedDuration).toBeGreaterThanOrEqual(0);
     });
 
+    it('should pass actual HTTP status code to response interceptor', async () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
+      let capturedStatus = -1;
+
+      client.addResponseInterceptor((ctx: ResponseContext) => {
+        capturedStatus = ctx.status;
+        return ctx;
+      });
+
+      fetchMock.mockResponseOnce(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+      });
+
+      await handleRequest(client, 'v1/status/', 'GET');
+
+      expect(capturedStatus).toBe(200);
+    });
+
+    it('should pass 201 status code to response interceptor for created responses', async () => {
+      const client = new ApiClient('test', 'https://esi.evetech.net');
+      client.setRateLimiter(rateLimiter);
+      let capturedStatus = -1;
+
+      client.addResponseInterceptor((ctx: ResponseContext) => {
+        capturedStatus = ctx.status;
+        return ctx;
+      });
+
+      fetchMock.mockResponseOnce(JSON.stringify({ id: 1 }), {
+        status: 201,
+      });
+
+      await handleRequest(client, 'v1/characters/1/mail/', 'POST');
+
+      expect(capturedStatus).toBe(201);
+    });
+
     it('should allow removing interceptor at runtime', async () => {
       const client = new ApiClient('test', 'https://esi.evetech.net');
       client.setRateLimiter(rateLimiter);

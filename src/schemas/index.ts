@@ -31,6 +31,6 @@ export * from './universe';
 export * from './wallet';
 export * from './wars';
 
-// Generated schemas (src/schemas/generated/) are internal-only and used
-// exclusively by scripts/generate-schema-drift-report.ts for drift detection.
-// They are intentionally NOT re-exported from the public API surface.
+// Drift detection (scripts/generate-schema-drift-report.ts) compares these
+// hand-written schemas directly against the live ESI OpenAPI spec at runtime.
+// No generated Zod schemas are needed.

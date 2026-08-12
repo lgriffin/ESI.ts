@@ -9,7 +9,9 @@ import {
   isServerError,
   isTimeout,
   isRetryable,
+  isCircuitOpen,
 } from '../../../src/core/util/error';
+import { CircuitOpenError } from '../../../src/core/circuitBreaker/CircuitBreaker';
 
 describe('EsiError', () => {
   describe('instance methods', () => {
@@ -136,6 +138,18 @@ describe('EsiError', () => {
       expect(isRetryable(new EsiError(400, 'Bad request'))).toBe(false);
       expect(isRetryable(new Error('not esi'))).toBe(false);
       expect(isRetryable(null)).toBe(false);
+    });
+
+    it('isCircuitOpen checks for CircuitOpenError instances', () => {
+      expect(isCircuitOpen(new CircuitOpenError('v1/status/', 5, 30000))).toBe(
+        true,
+      );
+      expect(isCircuitOpen(new EsiError(503, 'Service Unavailable'))).toBe(
+        false,
+      );
+      expect(isCircuitOpen(new Error('not circuit'))).toBe(false);
+      expect(isCircuitOpen(null)).toBe(false);
+      expect(isCircuitOpen(undefined)).toBe(false);
     });
   });
 

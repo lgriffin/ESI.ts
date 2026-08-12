@@ -1,9 +1,3 @@
-const path = require('path');
-
-console.log('Jest Unit Config Loaded');
-console.log('Root Directory:', path.resolve(__dirname));
-console.log('Looking for unit tests in:', path.resolve(__dirname, 'tests/tdd'));
-
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -28,7 +22,7 @@ module.exports = {
     '!src/types/**/*.ts',
     '!src/**/*.generated.ts',
     '!src/clients/generated/**',
-    '!src/schemas/generated/**',
+
   ],
   coverageThreshold: {
     global: {

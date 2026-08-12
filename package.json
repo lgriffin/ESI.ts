@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -17,6 +17,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "import": "./dist/schemas/index.mjs",
+      "require": "./dist/schemas/index.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.mjs",
+      "require": "./dist/errors.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.mjs",
+      "require": "./dist/testing/index.js"
     },
     "./package.json": "./package.json"
   },
@@ -137,6 +152,8 @@
     "test:types": "tsd --files 'tests/typetests/*.test-d.ts'",
     "generate:types": "ts-node scripts/generate-esi-types.ts",
     "generate:okf": "ts-node scripts/generate-okf.ts",
+    "generate:endpoints": "ts-node scripts/generate-endpoint-scaffold.ts",
+    "generate:all": "npm run generate:types && npm run generate:okf && npm run contract:snapshot && npm run schema:drift && npm run validate:esi",
     "knip": "knip",
     "validate:esi": "ts-node scripts/validate-esi-endpoints.ts",
     "validate:auth-scopes": "ts-node scripts/validate-auth-scopes.ts",
@@ -220,11 +237,12 @@
     "tsup": "^8.5.1",
     "typedoc": "^0.28.18",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.64.0"
+    "typescript-eslint": "^8.64.0",
+    "zod": "^4.4.3"
   },
   "dependencies": {
     "pino": "^9.6.0",
-    "zod": "^4.4.3"
+    "zod": "^4.0.0"
   },
   "overrides": {
     "lodash": "4.18.1",

@@ -1,6 +1,7 @@
 import { PaginationHandler } from '../../../src/core/pagination/PaginationHandler';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { EsiError } from '../../../src/core/util/error';
 
 describe('PaginationHandler', () => {
   let client: ApiClient;
@@ -166,9 +167,10 @@ describe('PaginationHandler', () => {
     });
 
     it('should retry failed page fetches', async () => {
+      client.setRetryConfig({ maxRetries: 3, baseDelayMs: 1, maxDelayMs: 10 });
       const firstPageData = [{ id: 1 }];
       pageFetch
-        .mockRejectedValueOnce(new Error('HTTP 500: Internal Server Error'))
+        .mockRejectedValueOnce(new EsiError(502, 'Bad Gateway'))
         .mockResolvedValueOnce([{ id: 2 }]);
 
       const result = await PaginationHandler.fetchRemainingPages(
@@ -179,7 +181,7 @@ describe('PaginationHandler', () => {
         firstPageData,
         2,
         undefined,
-        { maxRetries: 3, retryDelayMs: 1 },
+        {},
         pageFetch,
       );
 
@@ -188,8 +190,9 @@ describe('PaginationHandler', () => {
     });
 
     it('should throw after maxRetries consecutive failures', async () => {
+      client.setRetryConfig({ maxRetries: 3, baseDelayMs: 1, maxDelayMs: 10 });
       const firstPageData = [{ id: 1 }];
-      pageFetch.mockRejectedValue(new Error('HTTP 500: Internal Server Error'));
+      pageFetch.mockRejectedValue(new EsiError(502, 'Bad Gateway'));
 
       await expect(
         PaginationHandler.fetchRemainingPages(
@@ -200,18 +203,19 @@ describe('PaginationHandler', () => {
           firstPageData,
           5,
           undefined,
-          { maxRetries: 3, retryDelayMs: 1 },
+          {},
           pageFetch,
         ),
-      ).rejects.toThrow('HTTP 500: Internal Server Error');
+      ).rejects.toThrow('Bad Gateway');
     });
 
     it('should retry failed pages and continue on success', async () => {
+      client.setRetryConfig({ maxRetries: 3, baseDelayMs: 1, maxDelayMs: 10 });
       const firstPageData = [{ id: 1 }];
       pageFetch
-        .mockRejectedValueOnce(new Error('HTTP 500: Internal Server Error'))
+        .mockRejectedValueOnce(new EsiError(502, 'Bad Gateway'))
         .mockResolvedValueOnce([{ id: 2 }])
-        .mockRejectedValueOnce(new Error('HTTP 500: Internal Server Error'))
+        .mockRejectedValueOnce(new EsiError(502, 'Bad Gateway'))
         .mockResolvedValueOnce([{ id: 3 }]);
 
       const result = await PaginationHandler.fetchRemainingPages(
@@ -222,7 +226,7 @@ describe('PaginationHandler', () => {
         firstPageData,
         3,
         undefined,
-        { maxRetries: 3, retryDelayMs: 1 },
+        {},
         pageFetch,
       );
 
@@ -247,6 +251,57 @@ describe('PaginationHandler', () => {
       );
 
       expect(pageFetch).toHaveBeenCalledWith('universe/names?page=2');
+    });
+
+    it('should use IRetryStrategy instead of custom retry logic', async () => {
+      // With no retry config, default maxRetries is 0 — no retries
+      const firstPageData = [{ id: 1 }];
+      pageFetch.mockRejectedValue(new EsiError(502, 'Bad Gateway'));
+
+      // Should fail immediately (no retries) with default strategy
+      await expect(
+        PaginationHandler.fetchRemainingPages(
+          client,
+          'alliances',
+          'GET',
+          false,
+          firstPageData,
+          2,
+          undefined,
+          {},
+          pageFetch,
+        ),
+      ).rejects.toThrow('Bad Gateway');
+
+      // With default maxRetries=0, pageFetch called exactly once
+      expect(pageFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use custom retry strategy when set on client', async () => {
+      const executeMock = jest.fn();
+      const customStrategy = {
+        execute: async <T>(operation: () => Promise<T>): Promise<T> => {
+          executeMock();
+          return operation();
+        },
+      };
+      client.setRetryStrategy(customStrategy);
+      const firstPageData = [{ id: 1 }];
+      pageFetch.mockResolvedValueOnce([{ id: 2 }]);
+
+      await PaginationHandler.fetchRemainingPages(
+        client,
+        'alliances',
+        'GET',
+        false,
+        firstPageData,
+        2,
+        undefined,
+        {},
+        pageFetch,
+      );
+
+      expect(executeMock).toHaveBeenCalled();
     });
   });
 });

@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.0] - 2026-08-12
+
+### Breaking Changes
+
+- **Default retry count changed from 0 to 3** — transient failures (502, 503, 504, timeout, rate limit) now retry automatically with exponential backoff and jitter. Set `maxRetries: 0` in `retryConfig` to restore the previous behavior
+- **Generated Zod schemas removed** — the `src/schemas/generated/` directory has been removed; only hand-written schemas in `src/schemas/` remain
+
+### Added
+
+- **Sub-path exports** — targeted imports for reduced bundle size:
+  - `@lgriffin/esi.ts/schemas` — Zod schemas for runtime validation
+  - `@lgriffin/esi.ts/errors` — error classes and type guards
+  - `@lgriffin/esi.ts/testing` — `TestDataFactory` for test mock data
+- **`isCircuitOpen()` type guard** — checks whether an error is a `CircuitOpenError`, complementing the existing `isTimeout()`, `isRetryable()`, and `isValidationError()` guards
+- **`generate:all` script** — runs all generators (types, endpoints, OKF) in one command
+- **`generate:endpoints` script** — regenerates endpoint definitions from the ESI OpenAPI spec
+
+### Changed
+
+- **Cursor pagination routed through full pipeline** — cursor-based pagination now goes through the same middleware pipeline (rate limiter, circuit breaker, retry, caching) as offset pagination
+- **Pagination retry unified with `IRetryStrategy`** — pagination requests now use the injectable retry strategy instead of a separate retry path
+
+### Fixed
+
+- **Response interceptor status fix** — response interceptors previously received a hardcoded 200 status; they now receive the actual HTTP status code from the response
+- **CI consolidated** — `pr-validation.yml` merged into `ci.yml`; all PR validation now runs through the main CI pipeline
+
 ## [7.4.0] - 2026-07-17
 
 ### Added
