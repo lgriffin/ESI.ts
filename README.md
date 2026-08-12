@@ -9,7 +9,7 @@
 
 A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built on the **OpenAPI 3.1 spec**, with runtime validation, intelligent caching, and full endpoint coverage.
 
-**v9.0.0** — Zod is now a peer dependency, default retry count changed from 0 to 3, sub-path exports (`@lgriffin/esi.ts/schemas`, `/errors`, `/testing`), `isCircuitOpen()` type guard, cursor pagination routed through full pipeline, unified pagination retry via `IRetryStrategy`, response interceptor status fix, and CI consolidation.
+**v9.0.0** — Default retry count changed from 0 to 3, sub-path exports (`@lgriffin/esi.ts/schemas`, `/errors`, `/testing`), `isCircuitOpen()` type guard, cursor pagination routed through full pipeline, unified pagination retry via `IRetryStrategy`, response interceptor status fix, and CI consolidation.
 
 **208 endpoint definitions — 194 from the public ESI OpenAPI spec, plus 14 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs). All 206 exercisable endpoints validated against live Tranquility on 2026-07-08.**
 
@@ -52,10 +52,8 @@ A generated client faithfully reproduces these spec bugs. ESI.ts fixes them.
 ## Installation
 
 ```bash
-npm install @lgriffin/esi.ts zod
+npm install @lgriffin/esi.ts
 ```
-
-Zod is a **peer dependency** as of v9.0.0 — you must install it alongside ESI.ts. This lets you control the Zod version in your project and avoids duplicate copies in your bundle.
 
 ### Building from Source
 

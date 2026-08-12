@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
-- **Zod is now a peer dependency** — consumers must install `zod` alongside `@lgriffin/esi.ts`. This avoids duplicate Zod copies in bundles and lets consumers control their Zod version. Install with: `npm install @lgriffin/esi.ts zod`
 - **Default retry count changed from 0 to 3** — transient failures (502, 503, 504, timeout, rate limit) now retry automatically with exponential backoff and jitter. Set `maxRetries: 0` in `retryConfig` to restore the previous behavior
 - **Generated Zod schemas removed** — the `src/schemas/generated/` directory has been removed; only hand-written schemas in `src/schemas/` remain
 
