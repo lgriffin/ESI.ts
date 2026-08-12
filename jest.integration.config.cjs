@@ -1,12 +1,3 @@
-const path = require('path');
-
-console.log('Jest Integration Config Loaded');
-console.log('Root Directory:', path.resolve(__dirname));
-console.log(
-  'Looking for integration tests in:',
-  path.resolve(__dirname, 'tests/integration'),
-);
-
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',

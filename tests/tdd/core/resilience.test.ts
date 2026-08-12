@@ -36,6 +36,7 @@ describe('Resilience: Error Handling and Recovery', () => {
         unsafeAllowCustomHost: true,
         enableETagCache: false,
         enableRequestDeduplication: false,
+        retryAttempts: 0,
       });
     });
 
@@ -203,6 +204,7 @@ describe('Resilience: Error Handling and Recovery', () => {
         unsafeAllowCustomHost: true,
         enableETagCache: false,
         enableRequestDeduplication: false,
+        retryAttempts: 0,
       });
 
       fetchMock.mockResponseOnce('', {
@@ -235,6 +237,7 @@ describe('Resilience: Error Handling and Recovery', () => {
           resetTimeoutMs: 1000,
           halfOpenMaxAttempts: 1,
         },
+        retryAttempts: 0,
       });
 
       fetchMock.mockResponseOnce('', {

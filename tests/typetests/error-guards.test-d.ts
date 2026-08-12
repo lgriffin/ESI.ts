@@ -7,6 +7,8 @@ import {
   isServerError,
   isTimeout,
   isValidationError,
+  isCircuitOpen,
+  CircuitOpenError,
 } from '../../src';
 import { TimeoutError, EsiValidationError } from '../../src/core/util/error';
 
@@ -61,3 +63,11 @@ const timeout = new TimeoutError(5000, 'https://esi.evetech.net/test');
 expectAssignable<EsiError>(timeout);
 expectType<number>(timeout.timeoutMs);
 expectType<number>(timeout.statusCode);
+
+// isCircuitOpen narrows to CircuitOpenError
+if (isCircuitOpen(err)) {
+  expectType<CircuitOpenError>(err);
+  expectType<string>(err.endpoint);
+  expectType<number>(err.failures);
+  expectType<number>(err.retryAfterMs);
+}

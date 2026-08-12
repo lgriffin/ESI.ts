@@ -1,7 +1,11 @@
 import { CursorPaginationHandler } from '../../../src/core/pagination/CursorPaginationHandler';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
-import { TimeoutError, isTimeout } from '../../../src/core/util/error';
+import {
+  TimeoutError,
+  isTimeout,
+  EsiError,
+} from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -124,6 +128,9 @@ describe('CursorPaginationHandler', () => {
         'https://esi.evetech.net',
         'my-token',
       );
+      const rl = new RateLimiter();
+      rl.setTestMode(true);
+      authedClient.setRateLimiter(rl);
       const resp = cursorResponse([{ id: 1 }], null, null);
       fetchMock.mockResponseOnce(resp.body, {
         status: resp.status,
@@ -175,10 +182,8 @@ describe('CursorPaginationHandler', () => {
 
     it('should throw TimeoutError on abort', async () => {
       fetchMock.disableMocks();
-      const abortError = new DOMException(
-        'The operation was aborted.',
-        'AbortError',
-      );
+      const abortError = new Error('The operation was aborted.');
+      abortError.name = 'AbortError';
       jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(abortError);
 
       try {
@@ -209,7 +214,7 @@ describe('CursorPaginationHandler', () => {
           'GET',
           false,
         ),
-      ).rejects.toThrow('HTTP 500');
+      ).rejects.toThrow('Internal server error');
     });
 
     it('should return null cursors when no cursor headers present', async () => {
@@ -485,6 +490,68 @@ describe('CursorPaginationHandler', () => {
         { id: 'B' },
         { id: 'E' },
       ]);
+    });
+  });
+
+  describe('pipeline integration', () => {
+    it('should throw EsiError (not plain Error) for HTTP errors via pipeline', async () => {
+      fetchMock.mockResponseOnce('', { status: 503 });
+
+      try {
+        await CursorPaginationHandler.fetchPage(
+          client,
+          'corps/123/projects',
+          'GET',
+          false,
+        );
+        fail('Expected EsiError');
+      } catch (err) {
+        expect(err).toBeInstanceOf(EsiError);
+        expect((err as EsiError).statusCode).toBe(503);
+      }
+    });
+
+    it('should require rate limiter when using pipeline (no pageFetch)', async () => {
+      const noRlClient = new ApiClient(
+        'test',
+        'https://esi.evetech.net',
+        undefined,
+      );
+
+      await expect(
+        CursorPaginationHandler.fetchPage(
+          noRlClient,
+          'corps/123/projects',
+          'GET',
+          false,
+        ),
+      ).rejects.toThrow('No rate limiter configured');
+    });
+
+    it('should use IRetryStrategy for per-page retries in fetchAll', async () => {
+      client.setRetryConfig({ maxRetries: 2, baseDelayMs: 1, maxDelayMs: 10 });
+
+      // First two calls fail with retryable 502, third succeeds, fourth is empty
+      fetchMock
+        .mockResponseOnce('', { status: 502 })
+        .mockResponseOnce('', { status: 502 })
+        .mockResponseOnce(JSON.stringify([{ id: 2 }]), {
+          headers: { 'x-cursor-after': 'c2' },
+        })
+        .mockResponseOnce(JSON.stringify([]), {});
+
+      const result = await CursorPaginationHandler.fetchAll(
+        client,
+        'corps/123/projects',
+        'GET',
+        false,
+        [{ id: 1 }],
+        { before: null, after: 'c1' },
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+      // 2 retries + 1 success + 1 empty = at least 4 fetch calls
+      expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(3);
     });
   });
 

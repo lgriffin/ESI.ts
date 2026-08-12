@@ -50,7 +50,7 @@ export async function applyResponseInterceptors(
     url,
     endpoint,
     method,
-    status: 200,
+    status: result.status ?? 200,
     headers: result.headers,
     body: result.body,
     durationMs: Date.now() - startTime,

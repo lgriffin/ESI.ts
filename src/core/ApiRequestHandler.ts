@@ -68,7 +68,7 @@ const executeRequest = async (
       } catch {
         data = undefined;
       }
-      return finish({ headers: parsed.raw, body: data });
+      return finish({ headers: parsed.raw, body: data, status: 201 });
     }
 
     const earlyResult = handleEarlyStatus(

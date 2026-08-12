@@ -26,7 +26,7 @@ export function handleCursorPagination(
     after: parsed.cursorAfter,
   };
 
-  return { headers: parsed.raw, body: data, cursors };
+  return { headers: parsed.raw, body: data, status: 200, cursors };
 }
 
 /**
@@ -49,7 +49,7 @@ export async function handleOffsetPagination(
   const totalPages = parsed.xPages;
 
   if (totalPages <= 1) {
-    return { headers: parsed.raw, body: data };
+    return { headers: parsed.raw, body: data, status: 200 };
   }
 
   logInfo(
@@ -86,7 +86,7 @@ export async function handleOffsetPagination(
       resolveCache,
       templatePath,
     );
-    return { headers: parsed.raw, body: allData };
+    return { headers: parsed.raw, body: allData, status: 200 };
   } catch (paginationError: unknown) {
     const msg =
       paginationError instanceof Error

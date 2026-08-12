@@ -121,6 +121,14 @@ export function isRetryable(error: unknown): error is EsiError {
   return error instanceof EsiError && error.retryable;
 }
 
+// Re-export CircuitOpenError for the type guard — avoid forcing consumers
+// to import from the circuitBreaker subpath just for error checking.
+import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
+
+export function isCircuitOpen(error: unknown): error is CircuitOpenError {
+  return error instanceof CircuitOpenError;
+}
+
 export const buildError = (
   message: string,
   type: string = 'ERROR',

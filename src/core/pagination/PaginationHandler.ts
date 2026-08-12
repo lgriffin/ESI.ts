@@ -5,7 +5,7 @@
 
 import { ApiClient } from '../ApiClient';
 import { logInfo, logWarn, logError } from '../logger/loggerUtil';
-import { sleep } from '../util/sleep';
+import { resolveRetryStrategy } from '../requestPipeline/dependencies';
 
 export interface PaginationOptions {
   maxPages?: number;
@@ -57,9 +57,10 @@ export class PaginationHandler {
         if (rateLimiter) await rateLimiter.checkRateLimit(templatePath, method);
 
         const pageData = await this.fetchPageWithRetry(
+          client,
           endpoint,
+          method,
           page,
-          opts,
           pageFetch,
         );
 
@@ -89,52 +90,43 @@ export class PaginationHandler {
   }
 
   /**
-   * Fetch a single page with retry logic
+   * Fetch a single page with retry logic.
+   *
+   * Delegates to the configured `IRetryStrategy` (exponential backoff
+   * with jitter) instead of implementing a custom retry loop.
    */
   private static async fetchPageWithRetry(
+    client: ApiClient,
     endpoint: string,
+    method: string,
     page: number,
-    options: Required<PaginationOptions>,
     pageFetch: PageFetcher,
   ): Promise<unknown[]> {
-    let lastError: Error | null = null;
+    const retryStrategy = resolveRetryStrategy(client);
+    const paginatedEndpoint = this.buildPaginatedEndpoint(endpoint, page);
 
-    for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
-      try {
-        return await this.fetchSinglePage(endpoint, page, pageFetch);
-      } catch (error) {
-        lastError = error as Error;
-        logWarn(
-          `Attempt ${attempt}/${options.maxRetries} failed for page ${page}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-
-        if (attempt < options.maxRetries) {
-          await sleep(options.retryDelayMs * attempt);
-        }
-      }
-    }
-
-    throw (
-      lastError ||
-      new Error(
-        `Failed to fetch page ${page} after ${options.maxRetries} attempts`,
-      )
+    return retryStrategy.execute(
+      () => {
+        logInfo(`Fetching page ${page} via pipeline: ${paginatedEndpoint}`);
+        return pageFetch(paginatedEndpoint);
+      },
+      {
+        endpoint: paginatedEndpoint,
+        method,
+        requiresAuth: false,
+      },
     );
   }
 
   /**
-   * Fetch a single page.
+   * Build a paginated endpoint path.
    * Preserves any existing query params on the endpoint and appends page=N.
    */
-  private static async fetchSinglePage(
+  private static buildPaginatedEndpoint(
     endpoint: string,
     page: number,
-    pageFetch: PageFetcher,
-  ): Promise<unknown[]> {
+  ): string {
     const separator = endpoint.includes('?') ? '&' : '?';
-    const paginatedEndpoint = `${endpoint}${separator}page=${page}`;
-
-    logInfo(`Fetching page ${page} via pipeline: ${paginatedEndpoint}`);
-    return pageFetch(paginatedEndpoint);
+    return `${endpoint}${separator}page=${page}`;
   }
 }

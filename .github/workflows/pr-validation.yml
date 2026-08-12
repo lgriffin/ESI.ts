@@ -150,7 +150,7 @@ jobs:
       - name: Coverage Summary
         run: |
           echo "## Test Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage thresholds enforced (branches: 50%, functions: 50%, lines: 65%, statements: 65%)" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage thresholds enforced (branches: 80%, functions: 75%, lines: 90%, statements: 90%)" >> $GITHUB_STEP_SUMMARY
 
   pr-validation-summary:
     name: PR Validation Summary

@@ -85,6 +85,7 @@ export {
   isTimeout,
   isRetryable,
   isValidationError,
+  isCircuitOpen,
   sanitizeUrl,
 } from './core/util/error';
 export type { ValidationDirection } from './core/util/error';

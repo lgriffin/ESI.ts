@@ -9,6 +9,7 @@ import { parseCacheControlTtl } from './headers';
 export interface EsiHandlerResponse {
   headers: Record<string, string>;
   body: unknown;
+  status?: number;
   fromCache?: boolean;
   stale?: boolean;
   cacheHitType?: 'spec-ttl' | 'etag-304' | 'stale-on-error';
@@ -57,6 +58,7 @@ export function trySpecAwareCacheHit(
     return {
       headers: entry.headers,
       body: entry.data,
+      status: 200,
       fromCache: true,
       cacheHitType: 'spec-ttl',
     };
@@ -80,6 +82,7 @@ export function tryStaleCacheResponse(
   return {
     headers: { ...cachedEntry.headers, ...parsed.raw },
     body: cachedEntry.data,
+    status: 200,
     fromCache: true,
     stale: true,
     cacheHitType: 'stale-on-error',

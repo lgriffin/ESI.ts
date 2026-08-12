@@ -1,12 +1,3 @@
-const path = require('path');
-
-console.log('Jest Contract Config Loaded');
-console.log('Root Directory:', path.resolve(__dirname));
-console.log(
-  'Looking for contract tests in:',
-  path.resolve(__dirname, 'tests/contract'),
-);
-
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
