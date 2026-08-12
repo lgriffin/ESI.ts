@@ -4,13 +4,12 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0%2B-blue)](https://www.typescriptlang.org/)
 [![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
-[![PR Validation](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml)
 [![Coverage](https://img.shields.io/badge/coverage-90%25%2B-brightgreen)](https://github.com/lgriffin/ESI.ts)
 [![npm downloads](https://img.shields.io/npm/dm/%40lgriffin/esi.ts)](https://www.npmjs.com/package/@lgriffin/esi.ts)
 
 A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built on the **OpenAPI 3.1 spec**, with runtime validation, intelligent caching, and full endpoint coverage.
 
-**v8.0.0** — Architecture overhaul: unified client construction (all three client surfaces now get identical middleware defaults via `configureApiClient()`), decomposed request pipeline (`requestPipeline/` modules), 57 new streaming methods across 16 domain clients, opt-in request body validation, injectable `IRetryStrategy`, configurable circuit breaker keying, and typed `createClient()` return types.
+**v9.0.0** — Zod is now a peer dependency, default retry count changed from 0 to 3, sub-path exports (`@lgriffin/esi.ts/schemas`, `/errors`, `/testing`), `isCircuitOpen()` type guard, cursor pagination routed through full pipeline, unified pagination retry via `IRetryStrategy`, response interceptor status fix, and CI consolidation.
 
 **208 endpoint definitions — 194 from the public ESI OpenAPI spec, plus 14 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs). All 206 exercisable endpoints validated against live Tranquility on 2026-07-08.**
 
@@ -26,18 +25,18 @@ Tools like `openapi-typescript` or `openapi-generator` can produce a typed clien
 
 ### What ESI.ts gives you on top of that
 
-| Capability                      | openapi-typescript                                                                                                  | ESI.ts                                                                                                                                                                                                                             |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Runtime response validation** | None — types are erased at compile time. If CCP changes a field, you get silent data corruption.                    | Every GET response is validated at runtime via [Zod](https://zod.dev/) schemas — all 173 GET endpoints have schemas. Schema mismatches throw `EsiValidationError` immediately.                                                     |
-| **Intelligent caching**         | None — you build your own.                                                                                          | Three-tier: spec-aware TTL (zero HTTP calls within ESI's `x-cached-seconds` window), ETag conditional GETs, stale-on-error fallback on 5xx. Write operations auto-invalidate related GET caches.                                   |
-| **Rate limiting**               | None — you build your own.                                                                                          | 36 per-group token buckets extracted from the ESI spec at build time. Market requests can't starve wallet requests. Optional per-user bucketing for multi-character apps.                                                          |
-| **Pagination**                  | Manual — you write the page loop.                                                                                   | Automatic offset pagination, cursor-based pagination (Equinox-era endpoints), and streaming `AsyncGenerator` pagination for memory-efficient processing of large datasets.                                                         |
-| **Retry & resilience**          | None.                                                                                                               | Exponential backoff with jitter, circuit breaker (closed/open/half-open), automatic 401 token refresh with concurrent coalescing.                                                                                                  |
-| **Wire format correctness**     | Generates from spec, but ESI's spec has inconsistencies (query params documented as body, missing required fields). | Every endpoint tested against live ESI. Wire format bugs (query params vs. body, field naming) are caught and fixed — see the contacts and UI endpoint fixes in v6.1.0.                                                            |
-| **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                                                      |
-| **Domain knowledge**            | None — generic HTTP client.                                                                                         | 35 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                                                 |
-| **Streaming pagination**        | None.                                                                                                               | 21 domain clients with 73+ `stream*` methods via `AsyncGenerator` — process large datasets page-by-page without loading everything into memory.                                                                                    |
-| **Testing**                     | Whatever you write.                                                                                                 | 139 test suites, 4,080+ tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 43 runnable example scripts. |
+| Capability                      | openapi-typescript                                                                                                  | ESI.ts                                                                                                                                                                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Runtime response validation** | None — types are erased at compile time. If CCP changes a field, you get silent data corruption.                    | Every GET response is validated at runtime via [Zod](https://zod.dev/) schemas — all 173 GET endpoints have schemas. Schema mismatches throw `EsiValidationError` immediately.                                                    |
+| **Intelligent caching**         | None — you build your own.                                                                                          | Three-tier: spec-aware TTL (zero HTTP calls within ESI's `x-cached-seconds` window), ETag conditional GETs, stale-on-error fallback on 5xx. Write operations auto-invalidate related GET caches.                                  |
+| **Rate limiting**               | None — you build your own.                                                                                          | 36 per-group token buckets extracted from the ESI spec at build time. Market requests can't starve wallet requests. Optional per-user bucketing for multi-character apps.                                                         |
+| **Pagination**                  | Manual — you write the page loop.                                                                                   | Automatic offset pagination, cursor-based pagination (Equinox-era endpoints), and streaming `AsyncGenerator` pagination for memory-efficient processing of large datasets.                                                        |
+| **Retry & resilience**          | None.                                                                                                               | Exponential backoff with jitter, circuit breaker (closed/open/half-open), automatic 401 token refresh with concurrent coalescing.                                                                                                 |
+| **Wire format correctness**     | Generates from spec, but ESI's spec has inconsistencies (query params documented as body, missing required fields). | Every endpoint tested against live ESI. Wire format bugs (query params vs. body, field naming) are caught and fixed — see the contacts and UI endpoint fixes in v6.1.0.                                                           |
+| **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                                                     |
+| **Domain knowledge**            | None — generic HTTP client.                                                                                         | 35 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                                                |
+| **Streaming pagination**        | None.                                                                                                               | 21 domain clients with 73+ `stream*` methods via `AsyncGenerator` — process large datasets page-by-page without loading everything into memory.                                                                                   |
+| **Testing**                     | Whatever you write.                                                                                                 | 139 test suites, 4,104 tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 43 runnable example scripts. |
 
 ### The real problem with generated clients
 
@@ -53,8 +52,10 @@ A generated client faithfully reproduces these spec bugs. ESI.ts fixes them.
 ## Installation
 
 ```bash
-npm install @lgriffin/esi.ts
+npm install @lgriffin/esi.ts zod
 ```
+
+Zod is a **peer dependency** as of v9.0.0 — you must install it alongside ESI.ts. This lets you control the Zod version in your project and avoids duplicate copies in your bundle.
 
 ### Building from Source
 
@@ -74,7 +75,22 @@ Verify everything works:
 
 ```bash
 npm run example:status   # quick smoke test — checks ESI is reachable
-npm test                 # run the full test suite (139 suites, 4,080+ tests)
+npm test                 # run the full test suite (139 suites, 4,104 tests)
+```
+
+## Sub-path Exports
+
+ESI.ts provides sub-path exports for targeted imports, reducing bundle size when you only need specific parts of the library:
+
+```typescript
+// Zod schemas for runtime validation
+import { MarketOrderSchema } from '@lgriffin/esi.ts/schemas';
+
+// Error classes and type guards
+import { EsiError, isCircuitOpen } from '@lgriffin/esi.ts/errors';
+
+// Test utilities
+import { TestDataFactory } from '@lgriffin/esi.ts/testing';
 ```
 
 ## Quick Start
@@ -110,7 +126,7 @@ const client = new EsiClient({
   language: 'en', // Accept-Language header: en, de, fr, ja, ru, zh, ko, es (default: none)
   timeout: 30000, // Request timeout in ms (default: 30000)
   retryConfig: {
-    maxRetries: 3, // Max retry attempts for transient errors (default: 0)
+    maxRetries: 3, // Max retry attempts for transient errors (default: 3)
     baseDelayMs: 1000, // Initial backoff delay (default: 1000)
     maxDelayMs: 30000, // Maximum backoff delay (default: 30000)
     retryMutations: false, // Retry POST/PUT/DELETE (default: false, GET only)
@@ -131,7 +147,7 @@ const client = new EsiClient({
 });
 ```
 
-Retry is disabled by default (`maxRetries: 0`). When enabled, transient errors (502, 503, 504, timeout, rate limit) are retried with exponential backoff and jitter. The circuit breaker is respected — requests are not retried when the circuit is open.
+Retry is enabled by default (`maxRetries: 3`). Transient errors (502, 503, 504, timeout, rate limit) are retried with exponential backoff and jitter. The circuit breaker is respected — requests are not retried when the circuit is open. Set `maxRetries: 0` to disable retry.
 
 The access token can be updated at runtime:
 
@@ -577,13 +593,16 @@ import {
   isTimeout,
   isRetryable,
   isValidationError,
+  isCircuitOpen,
 } from '@lgriffin/esi.ts';
 
 try {
   const alliance = await client.alliance.getAllianceById(99999999);
   console.log('Alliance:', alliance.name);
 } catch (err) {
-  if (isValidationError(err)) {
+  if (isCircuitOpen(err)) {
+    console.log('Circuit breaker is open — endpoint temporarily unavailable');
+  } else if (isValidationError(err)) {
     console.log('Response validation failed:', err.validationError);
   } else if (isTimeout(err)) {
     console.log(`Request timed out after ${err.timeoutMs}ms`);
@@ -821,7 +840,7 @@ try {
 
 ## Testing
 
-ESI.ts has a comprehensive multi-tier testing strategy with 139 suites and 4,080+ tests:
+ESI.ts has a comprehensive multi-tier testing strategy with 139 suites and 4,104 tests:
 
 | Tier                       | Tests            | Purpose                                                            |
 | -------------------------- | ---------------- | ------------------------------------------------------------------ |
@@ -839,7 +858,7 @@ ESI.ts has a comprehensive multi-tier testing strategy with 139 suites and 4,080
 | **Spec-alignment**         | Type assertions  | Ensures hand-written types align with generated OpenAPI types      |
 
 ```bash
-npm test          # Unit + BDD tests (139 suites, 4,080+ tests)
+npm test          # Unit + BDD tests (139 suites, 4,104 tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 npm run contract  # Contract tests (skipped without ESI_LIVE_TESTS=true)
@@ -886,7 +905,7 @@ npm run format             # Format code with Prettier
 npm run format:check       # Check formatting without modifying
 
 # Testing
-npm test                   # Unit tests (139 suites, 4,080+ tests)
+npm test                   # Unit tests (139 suites, 4,104 tests)
 npm run test:all           # Unit + BDD + integration + fuzz + type tests
 npm run coverage           # Tests with coverage report (thresholds enforced)
 npm run bdd                # BDD scenario tests
@@ -905,6 +924,8 @@ npm run validate:auth-scopes  # Auth/scope cross-validation
 npm run schema:drift       # Schema drift detection (hand-written vs OpenAPI spec)
 npm run validate           # Run all checks: lint, format, build, coverage, knip
 npm run generate:types     # Regenerate TypeScript interfaces from ESI OpenAPI spec
+npm run generate:endpoints # Regenerate endpoint definitions from ESI OpenAPI spec
+npm run generate:all       # Run all generators (types + endpoints + OKF)
 npm run generate:okf       # Generate OKF knowledge bundle from ESI OpenAPI spec
 
 # Documentation

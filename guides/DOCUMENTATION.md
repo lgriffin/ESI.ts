@@ -1,7 +1,5 @@
 # ESI.ts Documentation Guide
 
-> **Version 5.1.0** - Latest documentation for the EVE Online ESI API TypeScript client
-
 ## Local Documentation
 
 The complete API documentation is automatically generated from the TypeScript source code using TypeDoc.

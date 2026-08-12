@@ -4,17 +4,17 @@
 
 ESI.ts uses a multi-tier testing strategy to ensure correctness at every level — from individual functions to live API contract validation.
 
-| Tier                 |      Tests |   Suites | Purpose                                                                     |
-| -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |            |       81 | Per-module unit tests with mocked HTTP                                      |
-| BDD (behavioral)     |            |       40 | Gherkin-style scenarios covering user-facing behaviors                      |
-| Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
-| Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
-| Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                               |
-| Deep contract        |         15 |        2 | Endpoint definitions validated against live OpenAPI spec                    |
-| Property-based fuzz  |        601 |        4 | Random/adversarial inputs via fast-check                                    |
-| Type-level (tsd)     |         15 |        1 | Compile-time type assertions on public API surface                          |
-| **Total**            | **3,800+** | **130+** | (`npm test` runs TDD + BDD)                                                 |
+| Tier                 |      Tests |  Suites | Purpose                                                                     |
+| -------------------- | ---------: | ------: | --------------------------------------------------------------------------- |
+| TDD (unit)           |            |      81 | Per-module unit tests with mocked HTTP                                      |
+| BDD (behavioral)     |            |      40 | Gherkin-style scenarios covering user-facing behaviors                      |
+| Integration (mocked) |         20 |       1 | Full request lifecycle with mocked fetch                                    |
+| Integration (live)   |         61 |       3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
+| Integration (gated)  |         33 |       1 | Authenticated endpoints with real OAuth token                               |
+| Deep contract        |         15 |       2 | Endpoint definitions validated against live OpenAPI spec                    |
+| Property-based fuzz  |        601 |       4 | Random/adversarial inputs via fast-check                                    |
+| Type-level (tsd)     |         15 |       1 | Compile-time type assertions on public API surface                          |
+| **Total**            | **4,100+** | **139** | (`npm test` runs TDD + BDD)                                                 |
 
 ### Before / After This Effort
 

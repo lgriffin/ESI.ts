@@ -14,23 +14,10 @@ This directory contains automated CI/CD workflows for the ESI.ts project.
 | Static Analysis | Dead code detection (knip), npm security audit                                          |
 | Unit Tests      | Test suite across Node.js 18, 20, 22                                                    |
 | Coverage        | Tests with coverage threshold enforcement                                               |
-| BDD Tests       | Behavior-driven development scenarios (31 suites)                                       |
+| BDD Tests       | Behavior-driven development scenarios (40 suites)                                       |
 | Full Test Suite | Complete test run                                                                       |
 | Documentation   | Auto-generate and deploy docs (master/main only)                                        |
 | Quality Gate    | All-or-nothing validation checkpoint                                                    |
-
-### Pull Request Validation (`pr-validation.yml`)
-
-**Triggers:** Pull request events on `master`/`main`/`develop`
-
-| Job                   | Description                              |
-| --------------------- | ---------------------------------------- |
-| PR Information        | Metadata summary                         |
-| Lint, Format & Build  | ESLint, Prettier check, TypeScript build |
-| Static Analysis       | knip dead code detection, npm audit      |
-| Tests                 | Unit + BDD test matrix                   |
-| Coverage              | Coverage with threshold enforcement      |
-| PR Validation Summary | Overall pass/fail gate                   |
 
 ### Release Pipeline (`release.yml`)
 
@@ -62,7 +49,7 @@ Every PR and CI run includes:
 - **Prettier** formatting verification
 - **knip** dead code and unused export detection
 - **npm audit** dependency vulnerability scanning
-- **Jest coverage** with enforced thresholds (branches: 50%, functions: 50%, lines: 65%, statements: 65%)
+- **Jest coverage** with enforced thresholds (branches: 80%, functions: 75%, lines: 90%, statements: 90%)
 
 ## Required Secrets
 
@@ -76,6 +63,5 @@ Every PR and CI run includes:
 ```markdown
 [![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
 [![Release Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/release.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/release.yml)
-[![PR Validation](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml)
 [![Maintenance](https://github.com/lgriffin/ESI.ts/actions/workflows/maintenance.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/maintenance.yml)
 ```
