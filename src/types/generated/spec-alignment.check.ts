@@ -626,9 +626,7 @@ type _SovereigntySystemStructure = AssertTrue<
 // >;
 
 // Status
-type _ServerStatus = AssertTrue<
-  HasAllSpecKeys<EsiSpec.StatusGet, ServerStatus>
->;
+type _ServerStatus = AssertTrue<HasAllSpecKeys<EsiSpec.Status, ServerStatus>>;
 
 // Universe
 type _SolarSystemInfo = AssertTrue<
