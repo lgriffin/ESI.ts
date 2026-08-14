@@ -8,7 +8,6 @@ import { $loose } from 'zod/v4/core';
 import { z } from 'zod';
 import { ZodArray } from 'zod';
 import { ZodBoolean } from 'zod';
-import { ZodEnum } from 'zod';
 import { ZodNumber } from 'zod';
 import { ZodObject } from 'zod';
 import { ZodOptional } from 'zod';
@@ -57,7 +56,8 @@ const AccessListSchema: z.ZodObject<{
 // @public (undocumented)
 export class AccessListsClient extends BaseEsiClient<typeof accessListEndpoints> {
     constructor(client: ApiClient);
-    getAccessList(accessListId: number): Promise<AccessList>;
+    getAccessList(characterId: number, accessListId: number): Promise<AccessList>;
+    getCharacterAccessLists(characterId: number): Promise<AccessList[]>;
 }
 
 // @public (undocumented)
@@ -297,7 +297,7 @@ export class ApiClientBuilder {
 }
 
 // @public (undocumented)
-export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'mercenary' | 'accessLists';
+export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'corporationProjects' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'mercenary' | 'accessLists';
 
 // @public (undocumented)
 export type AssetLocation = z.infer<typeof AssetLocationSchema>;
@@ -2496,6 +2496,47 @@ const CorporationMemberTrackingSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type CorporationProject = z.infer<typeof CorporationProjectSchema>;
+
+// @public (undocumented)
+export type CorporationProjectContribution = z.infer<typeof CorporationProjectContributionSchema>;
+
+// @public (undocumented)
+const CorporationProjectContributionSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    contribution: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CorporationProjectContributor = z.infer<typeof CorporationProjectContributorSchema>;
+
+// @public (undocumented)
+const CorporationProjectContributorSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    contribution: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const CorporationProjectSchema: z.ZodObject<{
+    project_id: z.ZodNumber;
+    state: z.ZodString;
+    progress: z.ZodNumber;
+    start_time: z.ZodString;
+    finish_time: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// Warning: (ae-forgotten-export) The symbol "corporationProjectEndpoints" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export class CorporationProjectsClient extends BaseEsiClient<typeof corporationProjectEndpoints> {
+    constructor(client: ApiClient);
+    getCorporationProject(corporationId: number, projectId: number): Promise<CorporationProject>;
+    getCorporationProjectContribution(corporationId: number, projectId: number, characterId: number): Promise<CorporationProjectContribution>;
+    getCorporationProjectContributors(corporationId: number, projectId: number): Promise<CorporationProjectContributor[]>;
+    getCorporationProjects(corporationId: number): Promise<CorporationProject[]>;
+}
+
+// @public (undocumented)
 export type CorporationRoleHistory = z.infer<typeof CorporationRoleHistorySchema>;
 
 // @public (undocumented)
@@ -3943,6 +3984,8 @@ export class EsiClient {
     // (undocumented)
     get contracts(): ContractsClient;
     // (undocumented)
+    get corporationProjects(): CorporationProjectsClient;
+    // (undocumented)
     get corporations(): CorporationsClient;
     // (undocumented)
     get diagnostics(): EsiDiagnostics;
@@ -4384,11 +4427,11 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetMarketsStructuresStructureId': MarketsStructuresStructureIdGet[];
     // (undocumented)
-    'GetMetaChangelog': MetaChangelog;
+    'GetMetaChangelog': MetaChangelog_2;
     // (undocumented)
-    'GetMetaCompatibilityDates': MetaCompatibilityDates;
+    'GetMetaCompatibilityDates': MetaCompatibilityDates_2;
     // (undocumented)
-    'GetMetaStatus': MetaStatus;
+    'GetMetaStatus': MetaStatus_2;
     // (undocumented)
     'GetSovereigntyCampaigns': SovereigntyCampaignsGet[];
     // (undocumented)
@@ -4659,9 +4702,9 @@ declare namespace EsiSpec {
         MarketsRegionIdHistoryGet,
         MarketsRegionIdOrdersGet,
         MarketsStructuresStructureIdGet,
-        MetaChangelog,
-        MetaCompatibilityDates,
-        MetaStatus,
+        MetaChangelog_2 as MetaChangelog,
+        MetaCompatibilityDates_2 as MetaCompatibilityDates,
+        MetaStatus_2 as MetaStatus,
         CharactersCharacterIdPlanetsGet,
         CharactersCharacterIdPlanetsPlanetIdGet,
         CorporationsCorporationIdCustomsOfficesGet,
@@ -6328,8 +6371,8 @@ const MedalSchema: z.ZodObject<{
 // @public (undocumented)
 export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
     constructor(client: ApiClient);
-    getMercenaryDens(): Promise<MercenaryDen[]>;
-    getMercenaryTacticalOperations(): Promise<MercenaryTacticalOperation[]>;
+    getMercenaryDens(characterId: number): Promise<MercenaryDen[]>;
+    getMercenaryTacticalOperations(characterId: number): Promise<MercenaryTacticalOperation[]>;
 }
 
 // @public (undocumented)
@@ -6366,28 +6409,75 @@ const MercenaryTacticalOperationSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
-interface MetaChangelog {
+export type MetaChangelog = z.infer<typeof MetaChangelogSchema>;
+
+// @public (undocumented)
+interface MetaChangelog_2 {
     // (undocumented)
     changelog: Record<string, unknown>;
 }
+
+// @public (undocumented)
+export type MetaChangelogEntry = z.infer<typeof MetaChangelogEntrySchema>;
+
+// @public (undocumented)
+const MetaChangelogEntrySchema: z.ZodObject<{
+    method: z.ZodString;
+    path: z.ZodString;
+    compatibility_date: z.ZodString;
+    is_breaking: z.ZodBoolean;
+    description: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const MetaChangelogSchema: z.ZodRecord<z.ZodString, z.ZodArray<z.ZodObject<{
+    method: z.ZodString;
+    path: z.ZodString;
+    compatibility_date: z.ZodString;
+    is_breaking: z.ZodBoolean;
+    description: z.ZodString;
+}, z.core.$loose>>>;
 
 // Warning: (ae-forgotten-export) The symbol "metaEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
     constructor(client: ApiClient);
+    getChangelog(): Promise<MetaChangelog>;
+    getCompatibilityDates(): Promise<MetaCompatibilityDates>;
+    getName(): Promise<MetaName>;
     getOpenApiJson(): Promise<Record<string, any>>;
     getOpenApiYaml(): Promise<string>;
+    getStatus(): Promise<MetaStatus>;
 }
 
 // @public (undocumented)
-interface MetaCompatibilityDates {
+export type MetaCompatibilityDates = z.infer<typeof MetaCompatibilityDatesSchema>;
+
+// @public (undocumented)
+interface MetaCompatibilityDates_2 {
     // (undocumented)
     compatibility_dates: string[];
 }
 
 // @public (undocumented)
-interface MetaStatus {
+const MetaCompatibilityDatesSchema: z.ZodObject<{
+    compatibility_dates: z.ZodArray<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type MetaName = z.infer<typeof MetaNameSchema>;
+
+// @public (undocumented)
+const MetaNameSchema: z.ZodObject<{
+    name: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type MetaStatus = z.infer<typeof MetaStatusSchema>;
+
+// @public (undocumented)
+interface MetaStatus_2 {
     // (undocumented)
     routes: ({
         method: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -6395,6 +6485,11 @@ interface MetaStatus {
         status: 'Unknown' | 'OK' | 'Degraded' | 'Down' | 'Recovering';
     })[];
 }
+
+// @public (undocumented)
+const MetaStatusSchema: z.ZodObject<{
+    status: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type MiningLedgerEntry = z.infer<typeof MiningLedgerEntrySchema>;
@@ -6882,6 +6977,9 @@ declare namespace schemas {
         StandingSchema as CorporationStandingSchema,
         CorporationWalletDivisionSchema,
         ContainerLogSchema,
+        CorporationProjectSchema,
+        CorporationProjectContributionSchema,
+        CorporationProjectContributorSchema,
         DogmaAttributeSchema,
         DogmaEffectSchema,
         DogmaDynamicItemSchema,
@@ -6935,6 +7033,11 @@ declare namespace schemas {
         MarketPriceSchema,
         MercenaryDenSchema,
         MercenaryTacticalOperationSchema,
+        MetaChangelogEntrySchema,
+        MetaChangelogSchema,
+        MetaCompatibilityDatesSchema,
+        MetaNameSchema,
+        MetaStatusSchema,
         PlanetaryColonySchema,
         CustomsOfficeSchema,
         ColonyLayoutSchema,
@@ -7047,9 +7150,9 @@ const SkillQueueSchema: z.ZodObject<{
 // @public (undocumented)
 export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
     constructor(client: ApiClient);
-    getOrbitalSkyhooks(): Promise<OrbitalSkyhook[]>;
+    getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhook[]>;
     getRaidableSkyhooks(): Promise<RaidableSkyhook[]>;
-    getSovereigntyHubs(): Promise<SovereigntyHub[]>;
+    getSovereigntyHubs(corporationId: number): Promise<SovereigntyHub[]>;
 }
 
 // @public (undocumented)

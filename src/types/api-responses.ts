@@ -27,6 +27,7 @@ export * from './pi';
 export * from './sovereignty';
 export * from './status';
 export * from './wars';
+export * from './corporation-projects';
 export * from './freelance-jobs';
 export * from './skyhooks';
 export * from './mercenary';
