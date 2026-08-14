@@ -7,6 +7,7 @@ const feature = loadFeature('tests/bdd/features/core/access-lists.feature');
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
+  const characterId = 1689391488;
 
   beforeEach(() => {
     client = new EsiClient({
@@ -56,7 +57,7 @@ defineFeature(feature, (test) => {
     );
 
     when('the client requests the access list', async () => {
-      result = await client.accessLists.getAccessList(42);
+      result = await client.accessLists.getAccessList(characterId, 42);
     });
 
     then('the client shall return all entries with their access types', () => {
@@ -96,7 +97,7 @@ defineFeature(feature, (test) => {
     });
 
     when('the client requests the empty access list', async () => {
-      result = await client.accessLists.getAccessList(99);
+      result = await client.accessLists.getAccessList(characterId, 99);
     });
 
     then('the client shall return the list with an empty entries array', () => {
@@ -121,7 +122,7 @@ defineFeature(feature, (test) => {
 
     when('the client requests an access list without auth', async () => {
       try {
-        await client.accessLists.getAccessList(42);
+        await client.accessLists.getAccessList(characterId, 42);
       } catch (e) {
         caughtError = e;
       }
@@ -147,7 +148,7 @@ defineFeature(feature, (test) => {
 
     when('the client requests a non-existent access list', async () => {
       try {
-        await client.accessLists.getAccessList(999999);
+        await client.accessLists.getAccessList(characterId, 999999);
       } catch (e) {
         caughtError = e;
       }
