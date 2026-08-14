@@ -30,6 +30,7 @@ export { ClonesClient } from './clients/ClonesClient';
 export { ContactsClient } from './clients/ContactsClient';
 export { ContractsClient } from './clients/ContractsClient';
 export { CorporationsClient } from './clients/CorporationsClient';
+export { CorporationProjectsClient } from './clients/CorporationProjectsClient';
 export { DogmaClient } from './clients/DogmaClient';
 export { FactionClient } from './clients/FactionClient';
 export { FittingsClient } from './clients/FittingsClient';

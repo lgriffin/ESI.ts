@@ -8,6 +8,7 @@ export * from './clones';
 export * from './contacts';
 export * from './contracts';
 export * from './corporation';
+export * from './corporation-projects';
 export * from './dogma';
 export * from './faction-warfare';
 export * from './fittings';
