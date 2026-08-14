@@ -168,7 +168,7 @@ describe('IndustryClient', () => {
       expect(typeof timer.natural_decay_time).toBe('string');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/latest/corporations/123456789/mining/extractions',
+      'https://esi.evetech.net/latest/corporation/123456789/mining/extractions',
     );
   });
 
@@ -198,7 +198,7 @@ describe('IndustryClient', () => {
       expect(typeof observer.last_updated).toBe('string');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/latest/corporations/123456789/mining/observers',
+      'https://esi.evetech.net/latest/corporation/123456789/mining/observers',
     );
   });
 
@@ -233,7 +233,7 @@ describe('IndustryClient', () => {
       expect(typeof record.last_updated).toBe('string');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/latest/corporations/123456789/mining/observers/987654321',
+      'https://esi.evetech.net/latest/corporation/123456789/mining/observers/987654321',
     );
   });
 
