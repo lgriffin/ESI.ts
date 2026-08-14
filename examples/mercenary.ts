@@ -4,8 +4,8 @@
  * Fetches mercenary dens across New Eden and their spawned
  * tactical operations (MTOs), showing development and anarchy levels.
  *
- * Note: These endpoints may return 404 if CCP has not yet deployed
- * mercenary content to the current server version.
+ * Note: These endpoints require authentication and may return 404 if CCP
+ * has not yet deployed mercenary content to the current server version.
  *
  * Usage: npm run example:mercenary
  */
@@ -14,6 +14,13 @@ import { isNotFound } from '../src/core/util/error';
 
 async function main() {
   const client = new EsiClient();
+
+  // Character ID to query mercenary data for
+  const characterId = parseInt(process.env.CHARACTER_ID || '0', 10);
+  if (!characterId) {
+    console.error('Set CHARACTER_ID environment variable to your character ID.');
+    process.exit(1);
+  }
 
   try {
     console.log('Mercenary Dens & Tactical Operations\n');
@@ -25,8 +32,8 @@ async function main() {
 
     try {
       [dens, operations] = await Promise.all([
-        client.mercenary.getMercenaryDens(),
-        client.mercenary.getMercenaryTacticalOperations(),
+        client.mercenary.getMercenaryDens(characterId),
+        client.mercenary.getMercenaryTacticalOperations(characterId),
       ]);
     } catch (err) {
       if (isNotFound(err)) {

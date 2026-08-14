@@ -14,20 +14,24 @@ export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
   /**
    * Retrieves all mercenary dens with their development and anarchy parameters.
    *
+   * @param characterId - The ID of the character to query mercenary dens for
    * @returns A list of mercenary dens
+   * @requires Authentication
    */
-  getMercenaryDens(): Promise<MercenaryDen[]> {
-    return this.api.getMercenaryDens() as Promise<MercenaryDen[]>;
+  getMercenaryDens(characterId: number): Promise<MercenaryDen[]> {
+    return this.api.getMercenaryDens(characterId);
   }
 
   /**
    * Retrieves all mercenary tactical operations (MTOs) spawned from mercenary dens.
    *
+   * @param characterId - The ID of the character to query tactical operations for
    * @returns A list of mercenary tactical operations
+   * @requires Authentication
    */
-  getMercenaryTacticalOperations(): Promise<MercenaryTacticalOperation[]> {
-    return this.api.getMercenaryTacticalOperations() as Promise<
-      MercenaryTacticalOperation[]
-    >;
+  getMercenaryTacticalOperations(
+    characterId: number,
+  ): Promise<MercenaryTacticalOperation[]> {
+    return this.api.getMercenaryTacticalOperations(characterId);
   }
 }

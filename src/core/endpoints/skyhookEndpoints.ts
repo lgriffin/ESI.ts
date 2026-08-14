@@ -8,19 +8,21 @@ import {
 
 export const skyhookEndpoints = {
   getSovereigntyHubs: {
-    path: 'sovereignty/hubs',
+    path: 'corporations/{corporationId}/structures/sovereignty-hubs',
     method: 'GET',
-    requiresAuth: false,
+    requiresAuth: true,
+    pathParams: ['corporationId'],
     responseSchema: z.array(SovereigntyHubSchema),
   },
   getOrbitalSkyhooks: {
-    path: 'sovereignty/skyhooks',
+    path: 'corporations/{corporationId}/structures/skyhooks',
     method: 'GET',
-    requiresAuth: false,
+    requiresAuth: true,
+    pathParams: ['corporationId'],
     responseSchema: z.array(OrbitalSkyhookSchema),
   },
   getRaidableSkyhooks: {
-    path: 'sovereignty/skyhooks/raidable',
+    path: 'skyhooks/raidable',
     method: 'GET',
     requiresAuth: false,
     responseSchema: z.array(RaidableSkyhookSchema),

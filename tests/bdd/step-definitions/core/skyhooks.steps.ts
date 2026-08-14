@@ -5,6 +5,8 @@ import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
 const feature = loadFeature('tests/bdd/features/core/skyhooks.feature');
 
+const TEST_CORPORATION_ID = 98000002;
+
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
@@ -50,7 +52,7 @@ defineFeature(feature, (test) => {
     });
 
     when('the client requests hubs', async () => {
-      result = await client.skyhooks.getSovereigntyHubs();
+      result = await client.skyhooks.getSovereigntyHubs(TEST_CORPORATION_ID);
     });
 
     then(
@@ -90,7 +92,7 @@ defineFeature(feature, (test) => {
     });
 
     when('the client requests skyhooks', async () => {
-      result = await client.skyhooks.getOrbitalSkyhooks();
+      result = await client.skyhooks.getOrbitalSkyhooks(TEST_CORPORATION_ID);
     });
 
     then('the client shall return silo capacity and levels', () => {
@@ -161,7 +163,7 @@ defineFeature(feature, (test) => {
 
     when('the client requests skyhook data', async () => {
       try {
-        await client.skyhooks.getSovereigntyHubs();
+        await client.skyhooks.getSovereigntyHubs(TEST_CORPORATION_ID);
       } catch (e) {
         caughtError = e;
       }
