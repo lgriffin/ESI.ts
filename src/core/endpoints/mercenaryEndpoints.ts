@@ -7,15 +7,17 @@ import {
 
 export const mercenaryEndpoints = {
   getMercenaryDens: {
-    path: 'mercenary/dens',
+    path: 'characters/{characterId}/structures/mercenary-dens',
     method: 'GET',
-    requiresAuth: false,
+    requiresAuth: true,
+    pathParams: ['characterId'],
     responseSchema: z.array(MercenaryDenSchema),
   },
   getMercenaryTacticalOperations: {
-    path: 'mercenary/operations',
+    path: 'characters/{characterId}/mercenary-tactical-operations',
     method: 'GET',
-    requiresAuth: false,
+    requiresAuth: true,
+    pathParams: ['characterId'],
     responseSchema: z.array(MercenaryTacticalOperationSchema),
   },
 } as const satisfies EndpointMap;

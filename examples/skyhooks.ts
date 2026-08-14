@@ -4,8 +4,9 @@
  * Queries Upwell sovereignty structures — sovereignty hubs,
  * orbital skyhooks with silo levels, and currently raidable skyhooks.
  *
- * Note: These endpoints may return 404 if CCP has not yet deployed
- * skyhook content to the current server version.
+ * Note: Sovereignty hub and skyhook endpoints require authentication.
+ * The raidable skyhooks endpoint is public. Some endpoints may return 404
+ * if CCP has not yet deployed skyhook content to the current server version.
  *
  * Usage: npm run example:skyhooks
  */
@@ -14,6 +15,15 @@ import { isNotFound } from '../src/core/util/error';
 
 async function main() {
   const client = new EsiClient();
+
+  // Corporation ID to query sovereignty structures for
+  const corporationId = parseInt(process.env.CORPORATION_ID || '0', 10);
+  if (!corporationId) {
+    console.error(
+      'Set CORPORATION_ID environment variable to your corporation ID.',
+    );
+    process.exit(1);
+  }
 
   try {
     console.log('Skyhooks & Sovereignty Hubs\n');
@@ -28,8 +38,8 @@ async function main() {
 
     try {
       [hubs, skyhooks, raidable] = await Promise.all([
-        client.skyhooks.getSovereigntyHubs(),
-        client.skyhooks.getOrbitalSkyhooks(),
+        client.skyhooks.getSovereigntyHubs(corporationId),
+        client.skyhooks.getOrbitalSkyhooks(corporationId),
         client.skyhooks.getRaidableSkyhooks(),
       ]);
     } catch (err) {

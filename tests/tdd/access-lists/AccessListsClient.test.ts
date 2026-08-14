@@ -40,18 +40,54 @@ describe('AccessListsClient', () => {
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-    const result = await getBody(() => accessListsClient.getAccessList(42));
+    const result = await getBody(() =>
+      accessListsClient.getAccessList(123456789, 42),
+    );
     expect(result).toHaveProperty('access_list_id', 42);
     expect(result).toHaveProperty('name', 'Corp Docking ACL');
     expect(result.entries).toHaveLength(2);
     expect(result.entries[0].entity_type).toBe('character');
     expect(result.entries[0].access_type).toBe('allowed');
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/access-lists/42',
+      'https://esi.evetech.net/characters/123456789/access-lists/42',
+    );
+  });
+
+  it('should get all access lists for a character', async () => {
+    const mockResponse = [
+      {
+        access_list_id: 42,
+        name: 'Corp Docking ACL',
+        entries: [
+          {
+            entity_id: 1689391488,
+            entity_type: 'character',
+            access_type: 'allowed',
+          },
+        ],
+      },
+      {
+        access_list_id: 43,
+        name: 'Alliance ACL',
+        entries: [],
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      accessListsClient.getCharacterAccessLists(123456789),
+    );
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toHaveLength(2);
+    expect(result[0]).toHaveProperty('access_list_id', 42);
+    expect(result[1]).toHaveProperty('access_list_id', 43);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/characters/123456789/access-lists',
     );
   });
 
   describeClientErrors('AccessListsClient', () =>
-    accessListsClient.getAccessList(42),
+    accessListsClient.getAccessList(123456789, 42),
   );
 });

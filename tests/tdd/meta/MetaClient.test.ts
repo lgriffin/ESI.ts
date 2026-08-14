@@ -83,4 +83,77 @@ describe('MetaClient', () => {
     fetchMock.mockRejectOnce('string error' as unknown as Error);
     await expect(metaClient.getOpenApiYaml()).rejects.toThrow('string error');
   });
+
+  it('should return the ESI changelog', async () => {
+    const mockResponse = {
+      '2025-12-16': [
+        {
+          method: 'GET',
+          path: '/characters/{character_id}/assets/',
+          compatibility_date: '2025-12-16',
+          is_breaking: true,
+          description: 'Asset location refactor',
+        },
+      ],
+    };
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => metaClient.getChangelog());
+
+    expect(result).toHaveProperty('2025-12-16');
+    expect(result['2025-12-16']).toHaveLength(1);
+    expect(result['2025-12-16'][0].method).toBe('GET');
+    expect(result['2025-12-16'][0].is_breaking).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/meta/changelog',
+    );
+  });
+
+  it('should return the ESI compatibility dates', async () => {
+    const mockResponse = {
+      compatibility_dates: ['2025-12-16', '2025-06-01', '2024-11-15'],
+    };
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => metaClient.getCompatibilityDates());
+
+    expect(result).toHaveProperty('compatibility_dates');
+    expect(result.compatibility_dates).toHaveLength(3);
+    expect(result.compatibility_dates[0]).toBe('2025-12-16');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/meta/compatibility-dates',
+    );
+  });
+
+  it('should return the ESI name', async () => {
+    const mockResponse = {
+      name: 'EVE Stable Infrastructure',
+    };
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => metaClient.getName());
+
+    expect(result).toHaveProperty('name', 'EVE Stable Infrastructure');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/meta/name',
+    );
+  });
+
+  it('should return the ESI status', async () => {
+    const mockResponse = {
+      status: 'ok',
+    };
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => metaClient.getStatus());
+
+    expect(result).toHaveProperty('status', 'ok');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/meta/status',
+    );
+  });
 });

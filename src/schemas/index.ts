@@ -22,6 +22,7 @@ export * from './loyalty';
 export * from './mail';
 export * from './market';
 export * from './mercenary';
+export * from './meta';
 export * from './military-campaigns';
 export * from './pi';
 export * from './skills';

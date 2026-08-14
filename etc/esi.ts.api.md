@@ -297,7 +297,7 @@ export class ApiClientBuilder {
 }
 
 // @public (undocumented)
-export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'mercenary' | 'accessLists';
+export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'corporationProjects' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'mercenary' | 'accessLists';
 
 // @public (undocumented)
 export type AssetLocation = z.infer<typeof AssetLocationSchema>;
@@ -2496,6 +2496,47 @@ const CorporationMemberTrackingSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type CorporationProject = z.infer<typeof CorporationProjectSchema>;
+
+// @public (undocumented)
+export type CorporationProjectContribution = z.infer<typeof CorporationProjectContributionSchema>;
+
+// @public (undocumented)
+const CorporationProjectContributionSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    contribution: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CorporationProjectContributor = z.infer<typeof CorporationProjectContributorSchema>;
+
+// @public (undocumented)
+const CorporationProjectContributorSchema: z.ZodObject<{
+    character_id: z.ZodNumber;
+    contribution: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const CorporationProjectSchema: z.ZodObject<{
+    project_id: z.ZodNumber;
+    state: z.ZodString;
+    progress: z.ZodNumber;
+    start_time: z.ZodString;
+    finish_time: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// Warning: (ae-forgotten-export) The symbol "corporationProjectEndpoints" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export class CorporationProjectsClient extends BaseEsiClient<typeof corporationProjectEndpoints> {
+    constructor(client: ApiClient);
+    getCorporationProject(corporationId: number, projectId: number): Promise<CorporationProject>;
+    getCorporationProjectContribution(corporationId: number, projectId: number, characterId: number): Promise<CorporationProjectContribution>;
+    getCorporationProjectContributors(corporationId: number, projectId: number): Promise<CorporationProjectContributor[]>;
+    getCorporationProjects(corporationId: number): Promise<CorporationProject[]>;
+}
+
+// @public (undocumented)
 export type CorporationRoleHistory = z.infer<typeof CorporationRoleHistorySchema>;
 
 // @public (undocumented)
@@ -3942,6 +3983,8 @@ export class EsiClient {
     get contacts(): ContactsClient;
     // (undocumented)
     get contracts(): ContractsClient;
+    // (undocumented)
+    get corporationProjects(): CorporationProjectsClient;
     // (undocumented)
     get corporations(): CorporationsClient;
     // (undocumented)
@@ -6882,6 +6925,9 @@ declare namespace schemas {
         StandingSchema as CorporationStandingSchema,
         CorporationWalletDivisionSchema,
         ContainerLogSchema,
+        CorporationProjectSchema,
+        CorporationProjectContributionSchema,
+        CorporationProjectContributorSchema,
         DogmaAttributeSchema,
         DogmaEffectSchema,
         DogmaDynamicItemSchema,

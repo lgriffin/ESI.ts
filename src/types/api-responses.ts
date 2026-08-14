@@ -4,6 +4,7 @@ export * from './character';
 export * from './corporation';
 export * from './universe';
 export * from './market';
+export * from './meta';
 export * from './assets';
 export * from './mail';
 export * from './wallet';

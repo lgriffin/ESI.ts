@@ -12,6 +12,7 @@
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
 
+const CHARACTER_ID = 90439768;
 const ACCESS_LIST_ID = 1;
 
 async function main() {
@@ -20,7 +21,7 @@ async function main() {
   try {
     console.log(`Access List #${ACCESS_LIST_ID}\n`);
 
-    const list = await client.accessLists.getAccessList(ACCESS_LIST_ID);
+    const list = await client.accessLists.getAccessList(CHARACTER_ID, ACCESS_LIST_ID);
 
     console.log(`Name:    ${list.name}`);
     console.log(`ID:      ${list.access_list_id}`);
