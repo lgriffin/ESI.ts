@@ -12,6 +12,7 @@ import { ClonesClient } from './clients/ClonesClient';
 import { ContactsClient } from './clients/ContactsClient';
 import { ContractsClient } from './clients/ContractsClient';
 import { CorporationsClient } from './clients/CorporationsClient';
+import { CorporationProjectsClient } from './clients/CorporationProjectsClient';
 import { DogmaClient } from './clients/DogmaClient';
 import { FactionClient } from './clients/FactionClient';
 import { FittingsClient } from './clients/FittingsClient';
@@ -158,6 +159,9 @@ export class EsiClient {
   }
   get corporations(): CorporationsClient {
     return this.getClient('corporations');
+  }
+  get corporationProjects(): CorporationProjectsClient {
+    return this.getClient('corporationProjects');
   }
   get dogma(): DogmaClient {
     return this.getClient('dogma');

@@ -7,6 +7,7 @@ import { ClonesClient } from '../clients/ClonesClient';
 import { ContactsClient } from '../clients/ContactsClient';
 import { ContractsClient } from '../clients/ContractsClient';
 import { CorporationsClient } from '../clients/CorporationsClient';
+import { CorporationProjectsClient } from '../clients/CorporationProjectsClient';
 import { DogmaClient } from '../clients/DogmaClient';
 import { FactionClient } from '../clients/FactionClient';
 import { FittingsClient } from '../clients/FittingsClient';
@@ -45,6 +46,7 @@ export type ApiClientType =
   | 'contacts'
   | 'contracts'
   | 'corporations'
+  | 'corporationProjects'
   | 'dogma'
   | 'factions'
   | 'fittings'
@@ -83,6 +85,7 @@ export type ClientInstance =
   | ContactsClient
   | ContractsClient
   | CorporationsClient
+  | CorporationProjectsClient
   | DogmaClient
   | FactionClient
   | FittingsClient
@@ -124,6 +127,7 @@ const clientFactories: Record<
   contacts: ContactsClient,
   contracts: ContractsClient,
   corporations: CorporationsClient,
+  corporationProjects: CorporationProjectsClient,
   dogma: DogmaClient,
   factions: FactionClient,
   fittings: FittingsClient,
@@ -176,6 +180,7 @@ export {
   ContactsClient,
   ContractsClient,
   CorporationsClient,
+  CorporationProjectsClient,
   DogmaClient,
   FactionClient,
   FittingsClient,
