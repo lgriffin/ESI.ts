@@ -56,6 +56,7 @@ export { MetaClient } from './clients/MetaClient';
 export { FreelanceJobsClient } from './clients/FreelanceJobsClient';
 export { SkyhooksClient } from './clients/SkyhooksClient';
 export { MercenaryClient } from './clients/MercenaryClient';
+export { MilitaryCampaignsClient } from './clients/MilitaryCampaignsClient';
 export { AccessListsClient } from './clients/AccessListsClient';
 
 // Cursor pagination & client utilities

@@ -34,6 +34,7 @@ import { FreelanceJobsClient } from '../clients/FreelanceJobsClient';
 import { SkyhooksClient } from '../clients/SkyhooksClient';
 import { MercenaryClient } from '../clients/MercenaryClient';
 import { AccessListsClient } from '../clients/AccessListsClient';
+import { MilitaryCampaignsClient } from '../clients/MilitaryCampaignsClient';
 
 export type ApiClientType =
   | 'alliance'
@@ -70,6 +71,7 @@ export type ApiClientType =
   | 'freelanceJobs'
   | 'skyhooks'
   | 'mercenary'
+  | 'militaryCampaigns'
   | 'accessLists';
 
 export type ClientInstance =
@@ -107,6 +109,7 @@ export type ClientInstance =
   | FreelanceJobsClient
   | SkyhooksClient
   | MercenaryClient
+  | MilitaryCampaignsClient
   | AccessListsClient;
 
 const clientFactories: Record<
@@ -147,6 +150,7 @@ const clientFactories: Record<
   freelanceJobs: FreelanceJobsClient,
   skyhooks: SkyhooksClient,
   mercenary: MercenaryClient,
+  militaryCampaigns: MilitaryCampaignsClient,
   accessLists: AccessListsClient,
 };
 
@@ -198,5 +202,6 @@ export {
   FreelanceJobsClient,
   SkyhooksClient,
   MercenaryClient,
+  MilitaryCampaignsClient,
   AccessListsClient,
 };
