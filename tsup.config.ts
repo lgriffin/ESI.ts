@@ -6,6 +6,7 @@ export default defineConfig({
     'src/schemas/index.ts',
     'src/errors.ts',
     'src/testing/index.ts',
+    'src/sde/index.ts',
   ],
   format: ['cjs', 'esm'],
   dts: false,
@@ -14,5 +15,5 @@ export default defineConfig({
   outDir: 'dist',
   target: 'es2022',
   sourcemap: true,
-  external: ['pino', 'zod'],
+  external: ['pino', 'zod', 'better-sqlite3'],
 });

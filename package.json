@@ -33,6 +33,11 @@
       "import": "./dist/testing/index.mjs",
       "require": "./dist/testing/index.js"
     },
+    "./sde": {
+      "types": "./dist/sde/index.d.ts",
+      "import": "./dist/sde/index.mjs",
+      "require": "./dist/sde/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -89,6 +94,9 @@
     "example:corporation-projects": "ts-node examples/corporation-projects.ts",
     "example:freelance-jobs": "ts-node examples/freelance-jobs.ts",
     "example:military-campaigns": "ts-node examples/military-campaigns.ts",
+    "example:sde-basic": "ts-node examples/sde-basic-lookup.ts",
+    "example:sde-cross-ref": "ts-node examples/sde-cross-reference.ts",
+    "sde:seed": "ts-node scripts/seed-sde-test-db.ts",
     "example:write-ops": "ts-node examples/write-operations.ts",
     "token:create": "ts-node scripts/create-token.ts",
     "token:refresh": "ts-node scripts/refresh-token.ts",
@@ -132,6 +140,7 @@
     "bdd:mercenary": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/mercenary",
     "bdd:military-campaigns": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/military-campaigns",
     "bdd:access-lists": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/access-lists",
+    "bdd:sde": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/sde",
     "bdd:status": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/status",
     "bdd:resilience": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/resilience",
     "bdd:ui": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/ui",
@@ -212,6 +221,8 @@
     "url": "https://github.com/lgriffin/ESI.ts"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "better-sqlite3": "^11.0.0",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.1.0",
     "@microsoft/api-extractor": "^7.58.9",
@@ -243,6 +254,14 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.64.0",
     "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "better-sqlite3": ">=9.0.0"
+  },
+  "peerDependenciesMeta": {
+    "better-sqlite3": {
+      "optional": true
+    }
   },
   "dependencies": {
     "pino": "^9.6.0",
