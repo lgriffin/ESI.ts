@@ -11,8 +11,11 @@ import {
 const uuidArb = fc.uuid();
 
 const dateArb = fc
-  .date({ min: new Date('2000-01-01'), max: new Date('2030-01-01') })
-  .map((d) => d.toISOString());
+  .integer({
+    min: new Date('2000-01-01').getTime(),
+    max: new Date('2030-01-01').getTime(),
+  })
+  .map((ts) => new Date(ts).toISOString());
 
 const militaryCampaignArb = fc.record({
   campaign_id: uuidArb,
