@@ -1,22 +1,30 @@
 import { ApiClient } from '../../../src/core/ApiClient';
 import { MercenaryClient } from '../../../src/clients/MercenaryClient';
+import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
+import { getConfig } from '../../../src/config/configManager';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
 import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
-describe('MercenaryClient', () => {
-  let client: ApiClient;
-  let mercenaryClient: MercenaryClient;
+const config = getConfig();
 
+const rateLimiter = new RateLimiter();
+rateLimiter.setTestMode(true);
+
+const client = new ApiClientBuilder()
+  .setClientId(config.projectName)
+  .setLink(config.link)
+  .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+  .setRateLimiter(rateLimiter)
+  .build();
+
+const mercenaryClient = new MercenaryClient(client);
+
+describe('MercenaryClient', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
-    client = new ApiClient('dummy-client-id', 'https://esi.evetech.net');
-    const rateLimiter = new RateLimiter();
-    rateLimiter.setTestMode(true);
-    client.setRateLimiter(rateLimiter);
-    mercenaryClient = new MercenaryClient(client);
   });
 
   it('should get mercenary dens', async () => {
@@ -34,7 +42,9 @@ describe('MercenaryClient', () => {
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-    const result = await getBody(() => mercenaryClient.getMercenaryDens());
+    const result = await getBody(() =>
+      mercenaryClient.getMercenaryDens(123456),
+    );
     expect(Array.isArray(result)).toBe(true);
     result.forEach((den: any) => {
       expect(den).toHaveProperty('den_id');
@@ -42,7 +52,7 @@ describe('MercenaryClient', () => {
       expect(den).toHaveProperty('system_id');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/mercenary/dens',
+      'https://esi.evetech.net/latest/characters/123456/structures/mercenary-dens',
     );
   });
 
@@ -62,7 +72,7 @@ describe('MercenaryClient', () => {
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
-      mercenaryClient.getMercenaryTacticalOperations(),
+      mercenaryClient.getMercenaryTacticalOperations(123456),
     );
     expect(Array.isArray(result)).toBe(true);
     result.forEach((op: any) => {
@@ -71,11 +81,33 @@ describe('MercenaryClient', () => {
       expect(op).toHaveProperty('status');
     });
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/mercenary/operations',
+      'https://esi.evetech.net/latest/characters/123456/mercenary-tactical-operations',
     );
   });
 
+  it('should send auth headers for mercenary dens', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await getBody(() => mercenaryClient.getMercenaryDens(123456));
+
+    const requestInit = fetchMock.mock.calls[0][1];
+    expect(requestInit?.headers).toBeDefined();
+    const headers = requestInit?.headers as Record<string, string>;
+    expect(headers['Authorization']).toMatch(/^Bearer /);
+  });
+
+  it('should send auth headers for mercenary tactical operations', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await getBody(() => mercenaryClient.getMercenaryTacticalOperations(123456));
+
+    const requestInit = fetchMock.mock.calls[0][1];
+    expect(requestInit?.headers).toBeDefined();
+    const headers = requestInit?.headers as Record<string, string>;
+    expect(headers['Authorization']).toMatch(/^Bearer /);
+  });
+
   describeClientErrors('MercenaryClient', () =>
-    mercenaryClient.getMercenaryDens(),
+    mercenaryClient.getMercenaryDens(123456),
   );
 });

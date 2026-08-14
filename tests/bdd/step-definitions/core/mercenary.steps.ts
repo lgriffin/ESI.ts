@@ -5,6 +5,8 @@ import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
 const feature = loadFeature('tests/bdd/features/core/mercenary.feature');
 
+const TEST_CHARACTER_ID = 123456;
+
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
@@ -50,7 +52,7 @@ defineFeature(feature, (test) => {
     });
 
     when('the client requests dens', async () => {
-      result = await client.mercenary.getMercenaryDens();
+      result = await client.mercenary.getMercenaryDens(TEST_CHARACTER_ID);
     });
 
     then('the client shall return development and anarchy parameters', () => {
@@ -75,7 +77,7 @@ defineFeature(feature, (test) => {
     });
 
     when('the client requests dens', async () => {
-      result = await client.mercenary.getMercenaryDens();
+      result = await client.mercenary.getMercenaryDens(TEST_CHARACTER_ID);
     });
 
     then('the client shall return an empty array', () => {
@@ -118,7 +120,10 @@ defineFeature(feature, (test) => {
     });
 
     when('the client requests operations', async () => {
-      result = await client.mercenary.getMercenaryTacticalOperations();
+      result =
+        await client.mercenary.getMercenaryTacticalOperations(
+          TEST_CHARACTER_ID,
+        );
     });
 
     then('the client shall return operation details with status', () => {
@@ -171,8 +176,8 @@ defineFeature(feature, (test) => {
 
     when('the client fetches both', async () => {
       [denResults, opResults] = await Promise.all([
-        client.mercenary.getMercenaryDens(),
-        client.mercenary.getMercenaryTacticalOperations(),
+        client.mercenary.getMercenaryDens(TEST_CHARACTER_ID),
+        client.mercenary.getMercenaryTacticalOperations(TEST_CHARACTER_ID),
       ]);
     });
 
@@ -197,7 +202,7 @@ defineFeature(feature, (test) => {
 
     when('the client requests mercenary data', async () => {
       try {
-        await client.mercenary.getMercenaryDens();
+        await client.mercenary.getMercenaryDens(TEST_CHARACTER_ID);
       } catch (e) {
         caughtError = e;
       }
