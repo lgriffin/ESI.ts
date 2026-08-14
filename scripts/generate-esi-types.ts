@@ -12,6 +12,8 @@
  * scripts/generate-schema-drift-report.ts (no generated Zod schemas needed).
  *
  * Usage: npx ts-node scripts/generate-esi-types.ts
+ *        npx ts-node scripts/generate-esi-types.ts --compatibility-date=2026-08-04
+ *        npx ts-node scripts/generate-esi-types.ts --latest
  *        npm run generate:types
  */
 
@@ -19,8 +21,43 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 
-const ESI_OPENAPI_URL =
-  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
+const DEFAULT_COMPATIBILITY_DATE = '2025-12-16';
+const ESI_OPENAPI_BASE = 'https://esi.evetech.net/meta/openapi.json';
+const ESI_COMPATIBILITY_DATES_URL =
+  'https://esi.evetech.net/meta/compatibility-dates';
+
+function parseCompatibilityDate(): string | 'latest' {
+  for (const arg of process.argv.slice(2)) {
+    if (arg === '--latest') return 'latest';
+    const match = arg.match(/^--compatibility-date=(\d{4}-\d{2}-\d{2})$/);
+    if (match) return match[1]!;
+  }
+  return DEFAULT_COMPATIBILITY_DATE;
+}
+
+async function resolveCompatibilityDate(
+  requested: string | 'latest',
+): Promise<string> {
+  if (requested !== 'latest') return requested;
+  const response = await fetch(ESI_COMPATIBILITY_DATES_URL);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch compatibility dates: HTTP ${response.status}`,
+    );
+  }
+  const data = (await response.json()) as {
+    compatibility_dates: string[];
+  };
+  const dates = data.compatibility_dates;
+  if (!dates || dates.length === 0) {
+    throw new Error('No compatibility dates returned from ESI');
+  }
+  return dates[0]!;
+}
+
+function buildSpecUrl(compatibilityDate: string): string {
+  return `${ESI_OPENAPI_BASE}?compatibility_date=${compatibilityDate}`;
+}
 const TYPES_OUTPUT = path.resolve(
   __dirname,
   '../src/types/generated/esi-spec.generated.ts',
@@ -564,11 +601,16 @@ function writeScopesFile(
 // --- Main ---
 
 async function main(): Promise<void> {
-  console.log(`Fetching ESI OpenAPI spec from ${ESI_OPENAPI_URL}...`);
+  const requested = parseCompatibilityDate();
+  const compatibilityDate = await resolveCompatibilityDate(requested);
+  const specUrl = buildSpecUrl(compatibilityDate);
+
+  console.log(`Compatibility date: ${compatibilityDate}`);
+  console.log(`Fetching ESI OpenAPI spec from ${specUrl}...`);
 
   let spec: OpenApiSpec;
   try {
-    const response = await fetch(ESI_OPENAPI_URL);
+    const response = await fetch(specUrl);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
