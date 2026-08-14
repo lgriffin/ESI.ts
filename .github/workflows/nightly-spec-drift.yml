@@ -35,10 +35,20 @@ jobs:
           EXIT_CODE=$?
           set -e
 
-          if [ $EXIT_CODE -eq 1 ]; then
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "drift_found=false" >> "$GITHUB_OUTPUT"
+          elif [ $EXIT_CODE -eq 1 ]; then
             echo "drift_found=true" >> "$GITHUB_OUTPUT"
           else
-            echo "drift_found=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Spec drift check failed with exit code $EXIT_CODE"
+            cat drift-errors.txt
+            exit $EXIT_CODE
+          fi
+
+          if ! jq -e . drift-report.json > /dev/null 2>&1; then
+            echo "::error::drift-report.json is missing or invalid"
+            cat drift-errors.txt
+            exit 1
           fi
 
           COMPAT_DATE=$(jq -r '.compatibilityDate' drift-report.json)

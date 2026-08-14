@@ -125,52 +125,22 @@ async function checkDrift(): Promise<DriftReport> {
     }
   }
 
-  const specMap = new Map<string, (typeof specEntries)[0][]>();
-  for (const entry of specEntries) {
-    const key = normalizePath(entry.path);
-    if (!specMap.has(key)) specMap.set(key, []);
-    specMap.get(key)!.push(entry);
-  }
+  const specKeys = new Set(
+    specEntries.map((e) => `${normalizePath(e.path)}:${e.method}`),
+  );
+  const codeKeys = new Set(
+    codebaseEntries.map((e) => `${normalizePath(e.path)}:${e.method}`),
+  );
 
-  const codebaseMap = new Map<string, (typeof codebaseEntries)[0][]>();
-  for (const entry of codebaseEntries) {
-    const key = normalizePath(entry.path);
-    if (!codebaseMap.has(key)) codebaseMap.set(key, []);
-    codebaseMap.get(key)!.push(entry);
-  }
+  const matched = [...codeKeys].filter((k) => specKeys.has(k)).length;
 
-  const matchedSpecKeys = new Set<string>();
-  const extra: DriftReport['extra'] = [];
-  let matched = 0;
+  const extra: DriftReport['extra'] = codebaseEntries.filter(
+    (e) => !specKeys.has(`${normalizePath(e.path)}:${e.method}`),
+  );
 
-  for (const entry of codebaseEntries) {
-    const key = normalizePath(entry.path);
-    const specMatches = specMap.get(key);
-    if (!specMatches) {
-      extra.push(entry);
-      continue;
-    }
-    const methodMatch = specMatches.find((s) => s.method === entry.method);
-    if (methodMatch) {
-      matched++;
-      matchedSpecKeys.add(`${key}:${entry.method}`);
-    } else {
-      for (const sm of specMatches) {
-        matchedSpecKeys.add(`${key}:${sm.method}`);
-      }
-    }
-  }
-
-  const missing: DriftReport['missing'] = [];
-  for (const entry of specEntries) {
-    const key = `${normalizePath(entry.path)}:${entry.method}`;
-    if (!matchedSpecKeys.has(key)) {
-      const codeKey = normalizePath(entry.path);
-      if (!codebaseMap.has(codeKey)) {
-        missing.push({ tag: entry.tag, method: entry.method, path: entry.path });
-      }
-    }
-  }
+  const missing: DriftReport['missing'] = specEntries.filter(
+    (e) => !codeKeys.has(`${normalizePath(e.path)}:${e.method}`),
+  );
 
   return {
     compatibilityDate,
@@ -183,9 +153,14 @@ async function checkDrift(): Promise<DriftReport> {
 }
 
 async function main(): Promise<void> {
-  const report = await checkDrift();
-  console.log(JSON.stringify(report, null, 2));
-  process.exit(report.missing.length > 0 ? 1 : 0);
+  try {
+    const report = await checkDrift();
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.missing.length > 0 ? 1 : 0);
+  } catch (err) {
+    console.error(`Spec drift check failed: ${err}`);
+    process.exit(2);
+  }
 }
 
 main();
