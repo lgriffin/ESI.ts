@@ -15,19 +15,23 @@ export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
   /**
    * Retrieves all sovereignty hubs exposed as Upwell structures, including online status and installed upgrades.
    *
+   * @param corporationId - The ID of the corporation to query sovereignty hubs for
    * @returns A list of sovereignty hubs
+   * @requires Authentication
    */
-  getSovereigntyHubs(): Promise<SovereigntyHub[]> {
-    return this.api.getSovereigntyHubs() as Promise<SovereigntyHub[]>;
+  getSovereigntyHubs(corporationId: number): Promise<SovereigntyHub[]> {
+    return this.api.getSovereigntyHubs(corporationId);
   }
 
   /**
    * Retrieves all orbital skyhooks with their silo capacity and levels.
    *
+   * @param corporationId - The ID of the corporation to query skyhooks for
    * @returns A list of orbital skyhooks
+   * @requires Authentication
    */
-  getOrbitalSkyhooks(): Promise<OrbitalSkyhook[]> {
-    return this.api.getOrbitalSkyhooks() as Promise<OrbitalSkyhook[]>;
+  getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhook[]> {
+    return this.api.getOrbitalSkyhooks(corporationId);
   }
 
   /**
@@ -36,6 +40,6 @@ export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
    * @returns A list of raidable skyhooks
    */
   getRaidableSkyhooks(): Promise<RaidableSkyhook[]> {
-    return this.api.getRaidableSkyhooks() as Promise<RaidableSkyhook[]>;
+    return this.api.getRaidableSkyhooks();
   }
 }
