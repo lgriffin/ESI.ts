@@ -4396,7 +4396,7 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetSovereigntyStructures': SovereigntyStructuresGet[];
     // (undocumented)
-    'GetStatus': StatusGet;
+    'GetStatus': Status;
     // (undocumented)
     'GetUniverseAncestries': UniverseAncestriesGet[];
     // (undocumented)
@@ -4674,7 +4674,7 @@ declare namespace EsiSpec {
         SovereigntyCampaignsGet,
         SovereigntyMapGet,
         SovereigntyStructuresGet,
-        StatusGet,
+        Status,
         UniverseAncestriesGet,
         UniverseAsteroidBeltsAsteroidBeltIdGet,
         UniverseBloodlinesGet,
@@ -7307,16 +7307,8 @@ const StationInfoSchema: z.ZodObject<{
     }, z.core.$loose>;
 }, z.core.$loose>;
 
-// Warning: (ae-forgotten-export) The symbol "statusEndpoints" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export class StatusClient extends BaseEsiClient<typeof statusEndpoints> {
-    constructor(client: ApiClient);
-    getStatus(): Promise<ServerStatus>;
-}
-
-// @public (undocumented)
-interface StatusGet {
+interface Status {
     // (undocumented)
     players: number;
     // (undocumented)
@@ -7324,7 +7316,15 @@ interface StatusGet {
     // (undocumented)
     start_time: string;
     // (undocumented)
-    vip?: boolean;
+    vip: boolean;
+}
+
+// Warning: (ae-forgotten-export) The symbol "statusEndpoints" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export class StatusClient extends BaseEsiClient<typeof statusEndpoints> {
+    constructor(client: ApiClient);
+    getStatus(): Promise<ServerStatus>;
 }
 
 // @public (undocumented)
