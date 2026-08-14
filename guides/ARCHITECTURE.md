@@ -10,7 +10,7 @@ System context showing ESI.ts in its operating environment.
 | ------------------------ | --------------------------------------------------------------------------------------- |
 | **Consumer Application** | Node.js or browser app that needs EVE Online data                                       |
 | **ESI.ts**               | TypeScript SDK — auth, caching, rate limiting, circuit breaking, pagination, validation |
-| **EVE Online ESI API**   | CCP's public REST API at esi.evetech.net (35 domains, OAuth2)                           |
+| **EVE Online ESI API**   | CCP's public REST API at esi.evetech.net (37 domains, OAuth2)                           |
 | **EVE SSO**              | OAuth2 authorization server — issues and refreshes access tokens                        |
 | **ESI OpenAPI Spec**     | Machine-readable API spec used at build time for code generation                        |
 
@@ -46,9 +46,9 @@ Major containers (layers) within ESI.ts and their relationships.
 | Container          | Technology                                               | Purpose                                                                               |
 | ------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | **Public API**     | EsiClient, EsiClientBuilder, EsiApiFactory               | Three entry points, all wired via `configureApiClient()`                              |
-| **Domain Clients** | 35 hand-written clients                                  | AllianceClient, CharacterClient, MarketClient, etc. Typed methods + `stream*` methods |
+| **Domain Clients** | 37 hand-written clients                                  | AllianceClient, CharacterClient, MarketClient, etc. Typed methods + `stream*` methods |
 | **Endpoint Defs**  | EndpointDefinition + `createClient()`                    | Path, method, auth, schemas. Returns typed `InferEndpointResult<D>`                   |
-| **Schemas**        | 33 hand-written + 33 generated Zod schemas               | Runtime validation (hand-written) and drift detection (generated, internal-only)      |
+| **Schemas**        | 35 hand-written + 33 generated Zod schemas               | Runtime validation (hand-written) and drift detection (generated, internal-only)      |
 | **Pipeline**       | ApiRequestHandler + 7 modules                            | Headers, caching, status handling, fetch, pagination, middleware                      |
 | **Resilience**     | CircuitBreaker, RateLimiter, RetryStrategy, Deduplicator | Per-endpoint CB, per-group rate limits, exponential backoff, GET coalescing           |
 | **Infrastructure** | ApiClient, pino Logger, error utilities                  | HTTP client, logging, error types                                                     |
@@ -227,7 +227,7 @@ graph TB
         Index["index.ts exports"]
     end
 
-    subgraph DomainClients["Domain Client Layer (35 domain clients)"]
+    subgraph DomainClients["Domain Client Layer (37 domain clients)"]
         Alliance["AllianceClient"]
         Character["CharacterClient"]
         Market["MarketClient"]
@@ -243,7 +243,7 @@ graph TB
     end
 
     subgraph SchemaLayer["Schema Validation Layer (Zod)"]
-        Schemas["src/schemas/ (33 hand-written)"]
+        Schemas["src/schemas/ (35 hand-written)"]
         GenSchemas["src/schemas/generated/<br/>(33 files, internal-only)"]
         SchemaValidation["Runtime Validation"]
     end
@@ -609,7 +609,7 @@ ESI.ts offers three construction patterns, from "give me everything" to "give me
 
 | Pattern              | Use case                 | What you get                                                                                    |
 | -------------------- | ------------------------ | ----------------------------------------------------------------------------------------------- |
-| **EsiClient**        | Most consumers           | All 35 domain clients via property getters (`client.market`, `client.alliance`, etc.)           |
+| **EsiClient**        | Most consumers           | All 37 domain clients via property getters (`client.market`, `client.alliance`, etc.)           |
 | **EsiClientBuilder** | Tree-shaking / selective | Only the clients you request, with fluent configuration (`.addClients()`, `.withAccessToken()`) |
 | **EsiApiFactory**    | Single-domain scripts    | One domain client with a fresh `ApiClient` — lightest footprint                                 |
 
@@ -692,11 +692,11 @@ flowchart LR
 
 ## 8. Test Architecture
 
-The test suite is organized into tiers, each serving a different purpose in the confidence pyramid. The project currently has 3,900+ tests across 136+ suites, all runnable via `npm test`.
+The test suite is organized into tiers, each serving a different purpose in the confidence pyramid. The project currently has 4,100+ tests across 143+ suites, all runnable via `npm test`.
 
-**TDD unit tests** (`tests/tdd/`) form the base — fast, isolated, mocked at the HTTP boundary via `jest-fetch-mock`. These cover all 35 domain clients, core infrastructure (cache, rate limiter, circuit breaker, middleware), the decomposed request pipeline modules, construction parity between the three client creation surfaces, and request body validation.
+**TDD unit tests** (`tests/tdd/`) form the base — fast, isolated, mocked at the HTTP boundary via `jest-fetch-mock`. These cover all 37 domain clients, core infrastructure (cache, rate limiter, circuit breaker, middleware), the decomposed request pipeline modules, construction parity between the three client creation surfaces, and request body validation.
 
-**BDD scenario tests** (`tests/bdd/`) use jest-cucumber with Gherkin-style `.feature` files. They cover 37 domain scenarios, performance scenarios (concurrency, memory, large datasets), and integration scenarios (cross-domain workflows). BDD tests use `TestDataFactory` for consistent fixture generation.
+**BDD scenario tests** (`tests/bdd/`) use jest-cucumber with Gherkin-style `.feature` files. They cover 39 domain scenarios, performance scenarios (concurrency, memory, large datasets), and integration scenarios (cross-domain workflows). BDD tests use `TestDataFactory` for consistent fixture generation.
 
 **Integration tests** (`tests/integration/`) run against live ESI when `ESI_LIVE_TESTS=true`. Smoke tests cover 42 public endpoints, and gated auth tests require an access token.
 
@@ -704,8 +704,8 @@ The test suite is organized into tiers, each serving a different purpose in the 
 
 | Tier        | Location             | Count          | What it validates                                                                     |
 | ----------- | -------------------- | -------------- | ------------------------------------------------------------------------------------- |
-| Unit (TDD)  | `tests/tdd/`         | ~3,500         | Domain clients, core infra, pipeline modules, construction parity, request validation |
-| BDD         | `tests/bdd/`         | ~400           | Domain scenarios, resilience, cross-domain workflows                                  |
+| Unit (TDD)  | `tests/tdd/`         | ~3,600         | Domain clients, core infra, pipeline modules, construction parity, request validation |
+| BDD         | `tests/bdd/`         | ~500           | Domain scenarios, resilience, cross-domain workflows                                  |
 | Integration | `tests/integration/` | ~50            | Live ESI smoke tests, end-to-end client flows                                         |
 | Contract    | `tests/contract/`    | varies         | OpenAPI spec drift detection against live spec                                        |
 | Fuzz        | `tests/fuzz/`        | property-based | Edge cases via fast-check random generation                                           |
@@ -715,7 +715,7 @@ The test suite is organized into tiers, each serving a different purpose in the 
 ```mermaid
 flowchart TB
     subgraph Unit ["TDD Unit Tests"]
-        clients["35 domain clients"]
+        clients["37 domain clients"]
         core["Core infrastructure"]
         pipeline["Pipeline modules"]
         parity["Construction parity"]
@@ -840,11 +840,11 @@ sequenceDiagram
 **Key design points:**
 
 - **Bidirectional validation**: Request bodies can be validated before HTTP calls (`requestSchema` + `validateRequest: true`), and response bodies are validated after (`responseSchema`, on by default). Both use `EsiValidationError` with a `direction` field.
-- **Validation location**: Validation happens in `createClient()` (in `src/core/endpoints/createClient.ts`), keeping validation centralized rather than scattered across 35 domain clients.
+- **Validation location**: Validation happens in `createClient()` (in `src/core/endpoints/createClient.ts`), keeping validation centralized rather than scattered across 37 domain clients.
 - **Typed returns via `InferEndpointResult<D>`**: The return type of each endpoint method is inferred from `z.infer<responseSchema>`. For cursor-paginated endpoints, the type is wrapped in `CursorResult<ElementType>`. This eliminates `as Promise<X>` casts.
 - **Loose object mode**: All Zod schemas use `z.looseObject()` so extra fields returned by ESI that are not yet in the schema are preserved in the output.
 - **Type derivation**: Types in `src/types/` are derived from schemas via `z.infer<>`, ensuring compile-time types and runtime validation always agree.
-- **Generated schemas are internal**: The 33 auto-generated schemas in `src/schemas/generated/` are not publicly exported. They serve as baselines for `npm run schema:drift`, which compares hand-written schemas against the generated ones.
+- **Generated schemas are internal**: The auto-generated schemas in `src/schemas/generated/` are not publicly exported. They serve as baselines for `npm run schema:drift`, which compares hand-written schemas against the generated ones.
 
 ## 11. Request Pipeline Decomposition
 
@@ -1015,4 +1015,4 @@ flowchart TB
 | **Spec-alignment type assertions** | `AssertTrue<HasAllSpecKeys<SpecType, ZodType>>` (compile-time) | Zod schema missing a field the spec defines (104 pairs, 24 domains)                                          |
 | **Schema drift detection**         | `npm run schema:drift`                                         | Hand-written schemas diverging from OpenAPI spec baselines                                                   |
 
-**Generated schemas are internal-only**: The 33 auto-generated Zod schemas in `src/schemas/generated/` are not exported from the public API surface (`src/index.ts`). They serve exclusively as baselines for drift detection. The 33 hand-written schemas in `src/schemas/` remain the source of truth for runtime validation.
+**Generated schemas are internal-only**: The auto-generated Zod schemas in `src/schemas/generated/` are not exported from the public API surface (`src/index.ts`). They serve exclusively as baselines for drift detection. The 35 hand-written schemas in `src/schemas/` remain the source of truth for runtime validation.

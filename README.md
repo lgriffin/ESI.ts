@@ -11,7 +11,7 @@ A production-grade TypeScript client for the [EVE Online ESI API](https://esi.ev
 
 **v9.0.0** — Default retry count changed from 0 to 3, sub-path exports (`@lgriffin/esi.ts/schemas`, `/errors`, `/testing`), `isCircuitOpen()` type guard, cursor pagination routed through full pipeline, unified pagination retry via `IRetryStrategy`, response interceptor status fix, and CI consolidation.
 
-**208 endpoint definitions — 194 from the public ESI OpenAPI spec, plus 14 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs). All 206 exercisable endpoints validated against live Tranquility on 2026-07-08.**
+**223 endpoint definitions — 194 from the public ESI OpenAPI spec, plus 29 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs, military campaigns, corporation projects). All 221 exercisable endpoints validated against live Tranquility on 2026-08-14.**
 
 ## Why ESI.ts vs. OpenAPI-Generated Clients?
 
@@ -34,9 +34,9 @@ Tools like `openapi-typescript` or `openapi-generator` can produce a typed clien
 | **Retry & resilience**          | None.                                                                                                               | Exponential backoff with jitter, circuit breaker (closed/open/half-open), automatic 401 token refresh with concurrent coalescing.                                                                                                 |
 | **Wire format correctness**     | Generates from spec, but ESI's spec has inconsistencies (query params documented as body, missing required fields). | Every endpoint tested against live ESI. Wire format bugs (query params vs. body, field naming) are caught and fixed — see the contacts and UI endpoint fixes in v6.1.0.                                                           |
 | **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                                                     |
-| **Domain knowledge**            | None — generic HTTP client.                                                                                         | 35 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                                                |
+| **Domain knowledge**            | None — generic HTTP client.                                                                                         | 37 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                                                |
 | **Streaming pagination**        | None.                                                                                                               | 21 domain clients with 73+ `stream*` methods via `AsyncGenerator` — process large datasets page-by-page without loading everything into memory.                                                                                   |
-| **Testing**                     | Whatever you write.                                                                                                 | 139 test suites, 4,104 tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 43 runnable example scripts. |
+| **Testing**                     | Whatever you write.                                                                                                 | 143 test suites, 4,182 tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 46 runnable example scripts. |
 
 ### The real problem with generated clients
 
@@ -73,7 +73,7 @@ Verify everything works:
 
 ```bash
 npm run example:status   # quick smoke test — checks ESI is reachable
-npm test                 # run the full test suite (139 suites, 4,104 tests)
+npm test                 # run the full test suite (143 suites, 4,182 tests)
 ```
 
 ## Sub-path Exports
@@ -257,43 +257,45 @@ Key behaviors:
 
 All clients are accessed as properties on the `EsiClient` instance. Authenticated endpoints require an access token.
 
-| Client         | Property               | Auth | Examples                                                                         |
-| -------------- | ---------------------- | ---- | -------------------------------------------------------------------------------- |
-| Alliance       | `client.alliance`      | Some | `getAlliances()`, `getAllianceById(id)`                                          |
-| Assets         | `client.assets`        | Yes  | `getCharacterAssets(id)`                                                         |
-| Calendar       | `client.calendar`      | Yes  | `getCalendarEvents(id)`                                                          |
-| Characters     | `client.characters`    | Some | `getCharacterPublicInfo(id)`, `getCharacterPortrait(id)`                         |
-| Clones         | `client.clones`        | Yes  | `getCharacterClones(id)`                                                         |
-| Contacts       | `client.contacts`      | Yes  | `getCharacterContacts(id)`, `postCharacterContacts(id, standing, contactIds)`    |
-| Contracts      | `client.contracts`     | Yes  | `getCharacterContracts(id)`                                                      |
-| Corporations   | `client.corporations`  | Some | `getCorporationInfo(id)`, `getCorporationMembers(id)`                            |
-| Dogma          | `client.dogma`         | No   | `getDogmaAttributes()`, `getDynamicItemInfo(typeId, itemId)`                     |
-| Factions       | `client.factions`      | Some | `getFactionWarStats()`                                                           |
-| Fittings       | `client.fittings`      | Yes  | `getFittings(id)`, `createFitting(id, body)`                                     |
-| Fleets         | `client.fleets`        | Yes  | `getFleetInformation(id)`, `getFleetMembers(id)`                                 |
-| Incursions     | `client.incursions`    | No   | `getIncursions()`                                                                |
-| Industry       | `client.industry`      | Some | `getCharacterIndustryJobs(id)`                                                   |
-| Insurance      | `client.insurance`     | No   | `getInsurancePrices()`                                                           |
-| Killmails      | `client.killmails`     | Some | `getKillmail(id, hash)`                                                          |
-| Location       | `client.location`      | Yes  | `getCharacterLocation(id)`                                                       |
-| Loyalty        | `client.loyalty`       | Yes  | `getCharacterLoyaltyPoints(id)`                                                  |
-| Mail           | `client.mail`          | Yes  | `getCharacterMail(id)`, `sendMail(id, body)`                                     |
-| Market         | `client.market`        | Some | `getMarketPrices()`, `getMarketOrders(regionId)`                                 |
-| PI             | `client.pi`            | Yes  | `getCharacterPlanets(id)`                                                        |
-| Route          | `client.route`         | No   | `getRoute(origin, destination)`                                                  |
-| Search         | `client.search`        | Some | `search(characterId, query)`                                                     |
-| Skills         | `client.skills`        | Yes  | `getCharacterSkills(id)`                                                         |
-| Sovereignty    | `client.sovereignty`   | No   | `getSovereigntySystems()`, `getSovereigntyMap()`                                 |
-| Skyhooks       | `client.skyhooks`      | No   | `getSovereigntyHubs()`, `getRaidableSkyhooks()`                                  |
-| Mercenary      | `client.mercenary`     | No   | `getMercenaryDens()`, `getMercenaryTacticalOperations()`                         |
-| Access Lists   | `client.accessLists`   | Yes  | `getAccessList(id)`                                                              |
-| Status         | `client.status`        | No   | `getStatus()`                                                                    |
-| UI             | `client.ui`            | Yes  | `setAutopilotWaypoint(destId, addToBeginning, clear)`, `openNewMailWindow(body)` |
-| Universe       | `client.universe`      | Some | `getSystemById(id)`, `getTypeById(id)`                                           |
-| Wallet         | `client.wallet`        | Yes  | `getCharacterWallet(id)`                                                         |
-| Wars           | `client.wars`          | No   | `getWars()`, `getWarById(id)`                                                    |
-| Freelance Jobs | `client.freelanceJobs` | Some | `getFreelanceJobs()`, `getFreelanceJobById(id)`                                  |
-| Meta           | `client.meta`          | No   | `getOpenApiJson()`, `getOpenApiYaml()`                                           |
+| Client             | Property                     | Auth | Examples                                                                         |
+| ------------------ | ---------------------------- | ---- | -------------------------------------------------------------------------------- |
+| Alliance           | `client.alliance`            | Some | `getAlliances()`, `getAllianceById(id)`                                          |
+| Assets             | `client.assets`              | Yes  | `getCharacterAssets(id)`                                                         |
+| Calendar           | `client.calendar`            | Yes  | `getCalendarEvents(id)`                                                          |
+| Characters         | `client.characters`          | Some | `getCharacterPublicInfo(id)`, `getCharacterPortrait(id)`                         |
+| Clones             | `client.clones`              | Yes  | `getCharacterClones(id)`                                                         |
+| Contacts           | `client.contacts`            | Yes  | `getCharacterContacts(id)`, `postCharacterContacts(id, standing, contactIds)`    |
+| Contracts          | `client.contracts`           | Yes  | `getCharacterContracts(id)`                                                      |
+| Corp Projects      | `client.corporationProjects` | Yes  | `getCorporationProjects(corpId)`, `getCorporationProject(corpId, projectId)`     |
+| Corporations       | `client.corporations`        | Some | `getCorporationInfo(id)`, `getCorporationMembers(id)`                            |
+| Dogma              | `client.dogma`               | No   | `getDogmaAttributes()`, `getDynamicItemInfo(typeId, itemId)`                     |
+| Factions           | `client.factions`            | Some | `getFactionWarStats()`                                                           |
+| Fittings           | `client.fittings`            | Yes  | `getFittings(id)`, `createFitting(id, body)`                                     |
+| Fleets             | `client.fleets`              | Yes  | `getFleetInformation(id)`, `getFleetMembers(id)`                                 |
+| Incursions         | `client.incursions`          | No   | `getIncursions()`                                                                |
+| Industry           | `client.industry`            | Some | `getCharacterIndustryJobs(id)`                                                   |
+| Insurance          | `client.insurance`           | No   | `getInsurancePrices()`                                                           |
+| Killmails          | `client.killmails`           | Some | `getKillmail(id, hash)`                                                          |
+| Location           | `client.location`            | Yes  | `getCharacterLocation(id)`                                                       |
+| Loyalty            | `client.loyalty`             | Yes  | `getCharacterLoyaltyPoints(id)`                                                  |
+| Mail               | `client.mail`                | Yes  | `getCharacterMail(id)`, `sendMail(id, body)`                                     |
+| Market             | `client.market`              | Some | `getMarketPrices()`, `getMarketOrders(regionId)`                                 |
+| Military Campaigns | `client.militaryCampaigns`   | Some | `getMilitaryCampaigns()`, `getMilitaryCampaignById(id)`                          |
+| PI                 | `client.pi`                  | Yes  | `getCharacterPlanets(id)`                                                        |
+| Route              | `client.route`               | No   | `getRoute(origin, destination)`                                                  |
+| Search             | `client.search`              | Some | `search(characterId, query)`                                                     |
+| Skills             | `client.skills`              | Yes  | `getCharacterSkills(id)`                                                         |
+| Sovereignty        | `client.sovereignty`         | No   | `getSovereigntySystems()`, `getSovereigntyMap()`                                 |
+| Skyhooks           | `client.skyhooks`            | No   | `getSovereigntyHubs()`, `getRaidableSkyhooks()`                                  |
+| Mercenary          | `client.mercenary`           | No   | `getMercenaryDens()`, `getMercenaryTacticalOperations()`                         |
+| Access Lists       | `client.accessLists`         | Yes  | `getAccessList(id)`                                                              |
+| Status             | `client.status`              | No   | `getStatus()`                                                                    |
+| UI                 | `client.ui`                  | Yes  | `setAutopilotWaypoint(destId, addToBeginning, clear)`, `openNewMailWindow(body)` |
+| Universe           | `client.universe`            | Some | `getSystemById(id)`, `getTypeById(id)`                                           |
+| Wallet             | `client.wallet`              | Yes  | `getCharacterWallet(id)`                                                         |
+| Wars               | `client.wars`                | No   | `getWars()`, `getWarById(id)`                                                    |
+| Freelance Jobs     | `client.freelanceJobs`       | Some | `getFreelanceJobs()`, `getFreelanceJobById(id)`                                  |
+| Meta               | `client.meta`                | No   | `getOpenApiJson()`, `getOpenApiYaml()`                                           |
 
 ## Runtime Response Validation
 
@@ -719,11 +721,11 @@ const prices = await marketClient.getMarketPrices();
 
 ## Endpoint Coverage
 
-All 208 endpoint definitions have been validated against live Tranquility using the **OpenAPI 3.1 spec** — 194 from the public ESI spec plus 14 for newer EVE features. 206 endpoints are exercisable (2 mercenary den endpoints await CCP deployment). Full output is captured in [`openapi.output.md`](openapi.output.md).
+All 223 endpoint definitions have been validated against live Tranquility using the **OpenAPI 3.1 spec** — 194 from the public ESI spec plus 29 for newer EVE features. 221 endpoints are exercisable (2 mercenary den endpoints await CCP deployment). Full output is captured in [`openapi.output.md`](openapi.output.md).
 
 | Category                    | Endpoints | Method                                             |
 | --------------------------- | --------- | -------------------------------------------------- |
-| Public GETs                 | 78        | 43 runnable example scripts with captured output   |
+| Public GETs                 | 78        | 46 runnable example scripts with captured output   |
 | Authenticated GETs          | 72        | Example scripts + live testing with EVE SSO tokens |
 | Contacts (POST/PUT/DELETE)  | 3         | Live create/edit/delete lifecycle                  |
 | Fittings (POST/DELETE)      | 2         | Live create/delete lifecycle                       |
@@ -739,7 +741,7 @@ All 208 endpoint definitions have been validated against live Tranquility using 
 
 ## Examples
 
-43 runnable examples are in the `examples/` directory.
+46 runnable examples are in the `examples/` directory.
 
 ### Public Endpoints (no auth needed)
 
@@ -842,10 +844,10 @@ ESI.ts has a comprehensive multi-tier testing strategy with 139 suites and 4,104
 
 | Tier                       | Tests            | Purpose                                                            |
 | -------------------------- | ---------------- | ------------------------------------------------------------------ |
-| **TDD unit tests**         | 81 files         | Every client method, endpoint path, query param, and body format   |
-| **BDD scenario tests**     | 40 feature files | Behavioral specifications in Gherkin (Given/When/Then)             |
+| **TDD unit tests**         | 100 files        | Every client method, endpoint path, query param, and body format   |
+| **BDD scenario tests**     | 41 feature files | Behavioral specifications in Gherkin (Given/When/Then)             |
 | **Mocked integration**     | Full suite       | Cross-layer request flow with jest-fetch-mock                      |
-| **Live smoke tests**       | 43 examples      | Every endpoint against live Tranquility                            |
+| **Live smoke tests**       | 46 examples      | Every endpoint against live Tranquility                            |
 | **ESI spec contract**      | 15 tests         | Endpoint definitions validated against live OpenAPI spec           |
 | **Deep contract tests**    | 8 categories     | Path params, query params, body, auth, schemas, pagination vs spec |
 | **Property-based fuzzing** | 601 tests        | fast-check fuzzing of validation, URL construction, Zod schemas    |
@@ -856,7 +858,7 @@ ESI.ts has a comprehensive multi-tier testing strategy with 139 suites and 4,104
 | **Spec-alignment**         | Type assertions  | Ensures hand-written types align with generated OpenAPI types      |
 
 ```bash
-npm test          # Unit + BDD tests (139 suites, 4,104 tests)
+npm test          # Unit + BDD tests (143 suites, 4,182 tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 npm run contract  # Contract tests (skipped without ESI_LIVE_TESTS=true)
@@ -903,7 +905,7 @@ npm run format             # Format code with Prettier
 npm run format:check       # Check formatting without modifying
 
 # Testing
-npm test                   # Unit tests (139 suites, 4,104 tests)
+npm test                   # Unit tests (143 suites, 4,182 tests)
 npm run test:all           # Unit + BDD + integration + fuzz + type tests
 npm run coverage           # Tests with coverage report (thresholds enforced)
 npm run bdd                # BDD scenario tests

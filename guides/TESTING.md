@@ -6,8 +6,8 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 
 | Tier                 |      Tests |   Suites | Purpose                                                                     |
 | -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |      3,480 |       99 | Per-module unit tests with mocked HTTP                                      |
-| BDD (behavioral)     |        600 |       40 | Gherkin-style scenarios covering user-facing behaviors                      |
+| TDD (unit)           |      3,580 |      100 | Per-module unit tests with mocked HTTP                                      |
+| BDD (behavioral)     |        600 |       41 | Gherkin-style scenarios covering user-facing behaviors                      |
 | Benchmark (perf)     |         17 |        4 | Performance regression guards for core infrastructure                       |
 | Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
 | Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
@@ -15,7 +15,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
-| **Total**            | **4,600+** | **140+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
+| **Total**            | **4,700+** | **143+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
 
@@ -42,7 +42,7 @@ Coverage is collected from `src/**/*.ts` (excluding `.d.ts` and `src/types/`).
 | `apiSurfaceSnapshots.test.ts`  |     5 | API export & shape snapshot regression            |
 | `concurrency.test.ts`          |    11 | Deduplicator, batch fetch, rate limiter races     |
 | `utilFunctions.test.ts`        |    25 | camelToSnake, sleep, retryDelay, buildError       |
-| `schemaRejection.test.ts`      |   423 | Valid/invalid/extra-field for all 33 schemas      |
+| `schemaRejection.test.ts`      |   423 | Valid/invalid/extra-field for all 35 schemas      |
 | `clientErrorTests.ts` (helper) |   150 | HTTP 401/403/404/429/500 across 30 clients        |
 | `esi-spec-contract.test.ts`    |    10 | Live OpenAPI drift detection                      |
 | `client-integration.test.ts`   |    11 | Full EsiClient against live ESI                   |
@@ -181,7 +181,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All unit + BDD tests (default) — 139 suites, 4,080 tests
+# All unit + BDD tests (default) — 143 suites, 4,182 tests
 npm test
 
 # Watch mode for development
@@ -227,18 +227,18 @@ npm run bdd:performance
 **Config:** `jest.unit.config.cjs`
 **Run:** `npm test`
 
-99 test files covering:
+100 test files covering:
 
-- **Domain clients** (35 files) — One per ESI API module (AllianceClient, MarketClient, etc.). Each mocks `fetch` and verifies correct URL construction, response parsing, and type safety. All 30 non-trivial clients include HTTP error path coverage (401, 403, 404, 429, 500) via the shared `describeClientErrors` helper.
+- **Domain clients** (37 files) — One per ESI API module (AllianceClient, MarketClient, etc.). Each mocks `fetch` and verifies correct URL construction, response parsing, and type safety. All 30 non-trivial clients include HTTP error path coverage (401, 403, 404, 429, 500) via the shared `describeClientErrors` helper.
 - **Core infrastructure** (35+ files) — Circuit breaker, rate limiter, pagination (offset + cursor), ETag cache, request deduplication, retry with backoff, middleware pipeline, endpoint definitions, validation, error handling, timeout behavior, diagnostics, and configuration.
 - **Core utilities** (`utilFunctions.test.ts`) — `camelToSnake` string conversion, `sleep` with fake timers, `retryDelay` exponential backoff with jitter bounds, `buildError` formatting, `EsiValidationError` construction and `isValidationError` type guard.
 - **Concurrency** (`concurrency.test.ts`) — `RequestDeduplicator` (100 concurrent same-key calls, 10-key fanout, error propagation, pending state cleanup), `batchFetch` (simultaneous batches, mixed resolve/reject, monotonic progress, empty keys), `RateLimiter` (50 concurrent checks, group isolation, concurrent update+check).
 - **API surface snapshots** (`apiSurfaceSnapshots.test.ts`) — Jest snapshots of public API exports, schema exports, `EsiError` shape, `RateLimiter` status shape, and `CircuitBreaker` stats shape. Catches accidental changes to public interfaces.
-- **Schema rejection** (`schemaRejection.test.ts`) — 423 table-driven tests covering all 141 schemas across 33 schema files. Each schema is tested for valid data acceptance, wrong-type rejection, and extra-field preservation (`looseObject` behavior).
+- **Schema rejection** (`schemaRejection.test.ts`) — 423 table-driven tests covering all 141 schemas across 35 schema files. Each schema is tested for valid data acceptance, wrong-type rejection, and extra-field preservation (`looseObject` behavior).
 - **Resilience** (`resilience.test.ts`) — 429/420 rate limit handling, malformed JSON, truncated responses, empty bodies, stale cache fallback on 5xx, retry with backoff, network timeout, request deduplication under concurrent load.
 - **Security** (`security.test.ts`) — Token not leaked to public endpoints, token sent only to authenticated endpoints, HTTPS enforcement, host allowlist, path parameter injection prevention, query parameter length limits, NaN/Infinity rejection.
 - **Configuration** (`configValidation.test.ts`) — Default config, all features enabled simultaneously, EsiClientBuilder selective/full client registration, EsiApiFactory methods, token provider, datasource/language config, shutdown idempotency, legacy retry config.
-- **Public API Surface** (`publicApiSurface.test.ts`) — Snapshot of all 35 domain client exports, 21 class/function exports, 8 type guard functions, 35 domain accessors on EsiClient, and 13 EsiClient methods. Acts as a contract — if a public export is accidentally removed, this test breaks.
+- **Public API Surface** (`publicApiSurface.test.ts`) — Snapshot of all 37 domain client exports, 21 class/function exports, 8 type guard functions, 37 domain accessors on EsiClient, and 13 EsiClient methods. Acts as a contract — if a public export is accidentally removed, this test breaks.
 - **Cross-Cutting** (`crossCutting.test.ts`) — Diagnostics accuracy (cache stats, circuit breaker stats, clearCache, resetCircuitBreaker), middleware ordering (request before response, registration order, remove at runtime, constructor config), and custom logger integration.
 - **Stream methods** (`streamMethods.test.ts`) — 71 tests verifying all `stream*()` methods across 19 domain clients delegate correctly to `BaseEsiClient.streamEndpoint()` with the right endpoint name and arguments.
 - **Pagination branches** (`paginationBranches.test.ts`) — Edge case branches in `PaginationHandler` (no rate limiter, non-Error thrown values, null page data), `CursorPaginationHandler` (pageFetch delegate, non-abort errors, invalid JSON, body passthrough), `resolveRateLimiter` error path, and `handleOffsetPagination` generic error wrapping.
@@ -250,9 +250,9 @@ npm run bdd:performance
 **Config:** `jest.unit.config.cjs` (same runner as TDD)
 **Run:** `npm run bdd`
 
-40 feature files written in Gherkin, with matching step definitions. Covers:
+41 feature files written in Gherkin, with matching step definitions. Covers:
 
-- All 35 domain API modules (alliance, market, universe, etc.)
+- All 37 domain API modules (alliance, market, universe, etc.)
 - Cross-cutting behaviors: ETag caching, response header extraction, deprecation warnings
 - Integration workflows: character profile assembly, market analysis, fleet operations
 - Performance scenarios: concurrency, large datasets, memory efficiency
@@ -261,7 +261,7 @@ Individual modules can be run selectively: `npm run bdd:market`, `npm run bdd:al
 
 #### BDD Test Categories
 
-- **Core** (`bdd/features/core/`): Domain-specific scenarios for all 35 domain clients plus cross-cutting concerns (ETag caching, response headers)
+- **Core** (`bdd/features/core/`): Domain-specific scenarios for all 37 domain clients plus cross-cutting concerns (ETag caching, response headers)
 - **Integration** (`bdd/features/integration/`): Cross-domain workflows — character profile assembly, market analysis, fleet operations
 - **Performance** (`bdd/features/performance/`): Concurrent requests, large dataset handling, memory efficiency, error handling performance
 
@@ -784,7 +784,7 @@ Schema parsing tests validate that each Zod schema in `src/schemas/` correctly m
 
 ### Schema Rejection Tests (`tests/tdd/schemas/schemaRejection.test.ts`)
 
-423 table-driven tests covering all 141 schemas across 33 schema files. Uses `describe.each` with test cases for:
+423 table-driven tests covering all 141 schemas across 35 schema files. Uses `describe.each` with test cases for:
 
 1. **Valid data** — `safeParse().success === true` with correctly shaped input
 2. **Wrong type rejection** — `safeParse().success === false` when a required field has the wrong type

@@ -7,6 +7,16 @@ import {
   AccessListEntrySchema,
   AccessListSchema,
 
+  // corporation-projects
+  CorporationProjectSchema,
+  CorporationProjectContributionSchema,
+  CorporationProjectContributorSchema,
+
+  // military-campaigns
+  MilitaryCampaignSchema,
+  MilitaryCampaignObjectiveSchema,
+  CharacterMilitaryCampaignObjectiveSchema,
+
   // alliance
   AllianceInfoSchema,
   AllianceContactSchema,
@@ -2520,6 +2530,100 @@ const schemaCases: SchemaTestCase[] = [
       open_for_allies: true,
       aggressor: { isk_destroyed: 100000, ships_killed: 5 },
       defender: { isk_destroyed: 50000, ships_killed: 2 },
+    },
+  },
+
+  // ── corporation-projects ──────────────────────────────────────────────────
+  {
+    name: 'CorporationProjectSchema',
+    schema: CorporationProjectSchema,
+    validData: {
+      project_id: 1001,
+      state: 'active',
+      progress: 0.45,
+      start_time: '2026-01-15T00:00:00Z',
+    },
+    invalidData: {
+      project_id: 'bad',
+      state: 'active',
+      progress: 0.45,
+      start_time: '2026-01-15T00:00:00Z',
+    },
+  },
+  {
+    name: 'CorporationProjectContributionSchema',
+    schema: CorporationProjectContributionSchema,
+    validData: {
+      character_id: 123456789,
+      contribution: 500,
+    },
+    invalidData: {
+      character_id: 'bad',
+      contribution: 500,
+    },
+  },
+  {
+    name: 'CorporationProjectContributorSchema',
+    schema: CorporationProjectContributorSchema,
+    validData: {
+      character_id: 987654321,
+      contribution: 1200,
+    },
+    invalidData: {
+      character_id: true,
+      contribution: 1200,
+    },
+  },
+
+  // ── military-campaigns ────────────────────────────────────────────────────
+  {
+    name: 'MilitaryCampaignSchema',
+    schema: MilitaryCampaignSchema,
+    validData: {
+      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      state: 'active',
+      progress: 0.75,
+      start_time: '2026-08-01T00:00:00Z',
+    },
+    invalidData: {
+      campaign_id: 12345,
+      state: 'active',
+      progress: 0.75,
+      start_time: '2026-08-01T00:00:00Z',
+    },
+  },
+  {
+    name: 'MilitaryCampaignObjectiveSchema',
+    schema: MilitaryCampaignObjectiveSchema,
+    validData: {
+      objective_id: 'obj-a1b2c3d4',
+      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      state: 'in_progress',
+      progress: 0.5,
+      participants: { total: 100, committed: 75, contributors: 50 },
+    },
+    invalidData: {
+      objective_id: 'obj-a1b2c3d4',
+      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      state: 'in_progress',
+      progress: 'bad',
+      participants: { total: 100, committed: 75, contributors: 50 },
+    },
+  },
+  {
+    name: 'CharacterMilitaryCampaignObjectiveSchema',
+    schema: CharacterMilitaryCampaignObjectiveSchema,
+    validData: {
+      objective_id: 'obj-a1b2c3d4',
+      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      committed: true,
+      contribution: 250,
+    },
+    invalidData: {
+      objective_id: 'obj-a1b2c3d4',
+      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      committed: 'bad',
+      contribution: 250,
     },
   },
 ];

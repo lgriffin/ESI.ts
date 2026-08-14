@@ -1,6 +1,6 @@
 # ESI.ts Examples Guide
 
-This guide documents all 40 examples included with ESI.ts, complete with real console output captured from live runs against the EVE Online ESI API. The examples are organized into three categories: **Public** (no authentication required), **Hybrid** (partially public, partially authenticated), and **Authenticated** (require an ESI access token with specific scopes).
+This guide documents all 42 examples included with ESI.ts, complete with real console output captured from live runs against the EVE Online ESI API. The examples are organized into three categories: **Public** (no authentication required), **Hybrid** (partially public, partially authenticated), and **Authenticated** (require an ESI access token with specific scopes).
 
 > **Note:** Values such as player counts, ISK prices, market volumes, sovereignty campaigns, and dates reflect a point-in-time snapshot and will vary on each run.
 
@@ -35,27 +35,29 @@ This guide documents all 40 examples included with ESI.ts, complete with real co
 20. [Contracts Browser](#contracts-browser)
 21. [Cursor Pagination](#cursor-pagination)
 22. [Faction Warfare Details](#faction-warfare-details)
+23. [Military Campaigns](#military-campaigns)
 
 ### Authenticated Examples
 
-23. [Wallet Overview](#wallet-overview)
-24. [Skills Overview](#skills-overview)
-25. [Assets Inventory](#assets-inventory)
-26. [Killmails](#killmails)
-27. [Fleet Operations](#fleet-operations)
-28. [Mail Inbox](#mail-inbox)
-29. [Location Tracker](#location-tracker)
-30. [Fittings and Clones](#fittings-and-clones)
-31. [Contacts](#contacts)
-32. [Access Lists](#access-lists)
-33. [Token Refresh](#token-refresh)
-34. [Character Details](#character-details)
-35. [Calendar & Search](#calendar--search)
-36. [Loyalty & Planetary Interaction](#loyalty--planetary-interaction)
-37. [Industry & Mining](#industry--mining)
-38. [Market Orders & Groups](#market-orders--groups)
-39. [Corporation Details](#corporation-details)
-40. [Corp Contracts & Wallet](#corp-contracts--wallet)
+24. [Wallet Overview](#wallet-overview)
+25. [Skills Overview](#skills-overview)
+26. [Assets Inventory](#assets-inventory)
+27. [Killmails](#killmails)
+28. [Fleet Operations](#fleet-operations)
+29. [Mail Inbox](#mail-inbox)
+30. [Location Tracker](#location-tracker)
+31. [Fittings and Clones](#fittings-and-clones)
+32. [Contacts](#contacts)
+33. [Access Lists](#access-lists)
+34. [Token Refresh](#token-refresh)
+35. [Character Details](#character-details)
+36. [Calendar & Search](#calendar--search)
+37. [Loyalty & Planetary Interaction](#loyalty--planetary-interaction)
+38. [Industry & Mining](#industry--mining)
+39. [Market Orders & Groups](#market-orders--groups)
+40. [Corporation Details](#corporation-details)
+41. [Corp Contracts & Wallet](#corp-contracts--wallet)
+42. [Corporation Projects](#corporation-projects)
 
 ---
 
@@ -881,6 +883,59 @@ Corporation FW Stats
 
 ---
 
+### Military Campaigns
+
+> Demonstrates the military campaign endpoints: listing all campaigns, fetching campaign details and objectives (public), and querying a character's campaign participation (authenticated).
+
+**Run:** `npm run example:military-campaigns`
+
+**Scopes:** `esi.activity.char:read` (for character participation endpoints)
+
+```
+Military Campaigns
+
+All Military Campaigns
+--------------------------------------------------
+  Campaigns found: 3
+    a1b2c3d4-e5f6-7890-abcd-ef1234567890 (active)
+      Progress: 45.2%
+      Started: 2026-06-01T00:00:00Z
+    b2c3d4e5-f6a7-8901-bcde-f12345678901 (active)
+      Progress: 72.8%
+      Started: 2026-05-15T00:00:00Z
+    c3d4e5f6-a7b8-9012-cdef-123456789012 (finished)
+      Progress: 100.0%
+      Started: 2026-04-01T00:00:00Z
+      Finished: 2026-05-01T00:00:00Z
+
+  Campaign Detail: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+    State: active
+    Progress: 45.2%
+
+  Objectives for campaign: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+    Objectives found: 2
+    obj-001 (active)
+      Progress: 60.0%
+      Participants: 150 total, 80 committed, 45 contributors
+    obj-002 (pending)
+      Progress: 0.0%
+      Participants: 30 total, 10 committed, 5 contributors
+
+Character Campaign Participation
+--------------------------------------------------
+  Participated objectives: 1
+    Objective: obj-001
+      Campaign: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+      Committed: true
+      Contribution: 1250
+
+  Detail for objective: obj-001
+    Committed: true
+    Contribution: 1250
+```
+
+---
+
 ## Authenticated Examples
 
 These examples require a valid `ESI_ACCESS_TOKEN` with the scopes listed for each example. Set your token in a `.env` file or as an environment variable before running.
@@ -1551,4 +1606,44 @@ Public Structures
   Public structure IDs: 939
   Structure 1053825884161: Shihuken - Prestige R&D
     System: 30000130, Type: 35825
+```
+
+---
+
+### Corporation Projects
+
+> Demonstrates corporation project endpoints: listing projects, fetching project details, viewing contributors, and checking a character's contribution to a specific project.
+
+**Run:** `npm run example:corporation-projects`
+
+**Scopes:** Corporation project scopes
+
+```
+Corporation Projects
+
+Corporation Projects
+--------------------------------------------------
+  Projects found: 2
+    Project 1001 (active)
+      Progress: 35.0%
+      Started: 2026-06-10T00:00:00Z
+    Project 1002 (finished)
+      Progress: 100.0%
+      Started: 2026-05-01T00:00:00Z
+      Finished: 2026-06-01T00:00:00Z
+
+  Details for Project 1001:
+    State: active
+    Progress: 35.0%
+
+  Contributors for Project 1001:
+    Total contributors: 5
+      Character 90439768: 500 contribution
+      Character 91234567: 350 contribution
+      Character 92345678: 200 contribution
+      Character 93456789: 150 contribution
+      Character 94567890: 100 contribution
+
+  Character 90439768 contribution to Project 1001:
+    Contribution: 500
 ```
