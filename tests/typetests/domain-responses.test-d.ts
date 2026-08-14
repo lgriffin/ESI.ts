@@ -13,6 +13,12 @@ import type {
   InsurancePrice,
   Incursion,
   SovereigntyCampaign,
+  MilitaryCampaign,
+  MilitaryCampaignObjective,
+  CharacterMilitaryCampaignObjective,
+  CorporationProject,
+  CorporationProjectContribution,
+  CorporationProjectContributor,
 } from '../../src';
 
 // --- EsiResponse shape ---
@@ -84,3 +90,37 @@ declare const campaign: SovereigntyCampaign;
 expectType<number>(campaign.campaign_id);
 expectType<number>(campaign.structure_id);
 expectType<number>(campaign.solar_system_id);
+
+// --- Military Campaigns ---
+
+declare const milCampaign: MilitaryCampaign;
+expectType<string>(milCampaign.campaign_id);
+expectType<string>(milCampaign.state);
+expectType<number>(milCampaign.progress);
+expectType<string>(milCampaign.start_time);
+
+declare const milObjective: MilitaryCampaignObjective;
+expectType<string>(milObjective.objective_id);
+expectType<string>(milObjective.campaign_id);
+expectType<number>(milObjective.progress);
+
+declare const charObjective: CharacterMilitaryCampaignObjective;
+expectType<string>(charObjective.objective_id);
+expectType<boolean>(charObjective.committed);
+expectType<number>(charObjective.contribution);
+
+// --- Corporation Projects ---
+
+declare const corpProject: CorporationProject;
+expectType<number>(corpProject.project_id);
+expectType<string>(corpProject.state);
+expectType<number>(corpProject.progress);
+expectType<string>(corpProject.start_time);
+
+declare const corpContribution: CorporationProjectContribution;
+expectType<number>(corpContribution.character_id);
+expectType<number>(corpContribution.contribution);
+
+declare const corpContributor: CorporationProjectContributor;
+expectType<number>(corpContributor.character_id);
+expectType<number>(corpContributor.contribution);
