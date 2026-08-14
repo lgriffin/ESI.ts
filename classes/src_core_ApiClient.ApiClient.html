@@ -1,5 +1,5 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>ApiClient | @lgriffin/esi.ts - EVE Online ESI API Client - v7.4.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
-<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v7.4.0</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>ApiClient | @lgriffin/esi.ts - EVE Online ESI API Client - v9.1.0</title><meta name="description" content="Documentation for @lgriffin/esi.ts - EVE Online ESI API Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="https://github.com/lgriffin/ESI.ts" class="title">@lgriffin/esi.ts - EVE Online ESI API Client - v9.1.0</a>
 <div id="tsd-toolbar-links"><a href="https://github.com/lgriffin/ESI.ts">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts">NPM</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
 <div id="tsd-search-status" aria-live="polite" aria-atomic="true">
@@ -12,7 +12,7 @@
 <li><a href="" aria-current="page">ApiClient</a></li></ul>
 <h1>Class ApiClient</h1></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L16">src/core/ApiClient.ts:16</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L17">src/core/ApiClient.ts:17</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -36,8 +36,12 @@
 <a href="#setdeduplicator" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Deduplicator</span></a>
 <a href="#getretryconfig" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Retry<wbr/>Config</span></a>
 <a href="#setretryconfig" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Retry<wbr/>Config</span></a>
+<a href="#getretrystrategy" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Retry<wbr/>Strategy</span></a>
+<a href="#setretrystrategy" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Retry<wbr/>Strategy</span></a>
 <a href="#getvalidateresponse" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Validate<wbr/>Response</span></a>
 <a href="#setvalidateresponse" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Validate<wbr/>Response</span></a>
+<a href="#getvalidaterequest" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Validate<wbr/>Request</span></a>
+<a href="#setvalidaterequest" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Validate<wbr/>Request</span></a>
 <a href="#getmiddleware" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Middleware</span></a>
 <a href="#addrequestinterceptor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Request<wbr/>Interceptor</span></a>
 <a href="#addresponseinterceptor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Response<wbr/>Interceptor</span></a>
@@ -50,6 +54,7 @@
 <a href="#setaccesstoken" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Access<wbr/>Token</span></a>
 <a href="#settokenprovider" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Token<wbr/>Provider</span></a>
 <a href="#hastokenprovider" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Token<wbr/>Provider</span></a>
+<a href="#tojson" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>to<wbr/>JSON</span></a>
 <a href="#refreshtoken" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Token</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -69,7 +74,7 @@
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">accessToken</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ApiClient</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L30">src/core/ApiClient.ts:30</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L33">src/core/ApiClient.ts:33</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -81,7 +86,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L38">src/core/ApiClient.ts:38</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L41">src/core/ApiClient.ts:41</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="settimeout"><span>set<wbr/>Timeout</span><a href="#settimeout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -94,7 +99,7 @@
 <li><span><span class="tsd-kind-parameter">timeout</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L42">src/core/ApiClient.ts:42</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L45">src/core/ApiClient.ts:45</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcache"><span>get<wbr/>Cache</span><a href="#getcache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -103,7 +108,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_core_cache_ICache.ICache.html" class="tsd-signature-type tsd-kind-interface">ICache</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L46">src/core/ApiClient.ts:46</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L49">src/core/ApiClient.ts:49</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setcache"><span>set<wbr/>Cache</span><a href="#setcache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -116,7 +121,7 @@
 <li><span><span class="tsd-kind-parameter">cache</span>: <a href="../interfaces/src_core_cache_ICache.ICache.html" class="tsd-signature-type tsd-kind-interface">ICache</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L50">src/core/ApiClient.ts:50</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L53">src/core/ApiClient.ts:53</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getratelimiter"><span>get<wbr/>Rate<wbr/>Limiter</span><a href="#getratelimiter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -125,7 +130,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_core_rateLimiter_IRateLimiter.IRateLimiter.html" class="tsd-signature-type tsd-kind-interface">IRateLimiter</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L54">src/core/ApiClient.ts:54</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L57">src/core/ApiClient.ts:57</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setratelimiter"><span>set<wbr/>Rate<wbr/>Limiter</span><a href="#setratelimiter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -138,51 +143,51 @@
 <li><span><span class="tsd-kind-parameter">limiter</span>: <a href="../interfaces/src_core_rateLimiter_IRateLimiter.IRateLimiter.html" class="tsd-signature-type tsd-kind-interface">IRateLimiter</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L58">src/core/ApiClient.ts:58</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L61">src/core/ApiClient.ts:61</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcircuitbreaker"><span>get<wbr/>Circuit<wbr/>Breaker</span><a href="#getcircuitbreaker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="getcircuitbreaker-1"><span class="tsd-kind-call-signature">getCircuitBreaker</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_core_circuitBreaker_CircuitBreaker.CircuitBreaker.html" class="tsd-signature-type tsd-kind-class">CircuitBreaker</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#getcircuitbreaker-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="getcircuitbreaker-1"><span class="tsd-kind-call-signature">getCircuitBreaker</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html" class="tsd-signature-type tsd-kind-interface">ICircuitBreaker</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#getcircuitbreaker-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="src_core_circuitBreaker_CircuitBreaker.CircuitBreaker.html" class="tsd-signature-type tsd-kind-class">CircuitBreaker</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html" class="tsd-signature-type tsd-kind-interface">ICircuitBreaker</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L62">src/core/ApiClient.ts:62</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L65">src/core/ApiClient.ts:65</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setcircuitbreaker"><span>set<wbr/>Circuit<wbr/>Breaker</span><a href="#setcircuitbreaker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="setcircuitbreaker-1"><span class="tsd-kind-call-signature">setCircuitBreaker</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">cb</span><span class="tsd-signature-symbol">:</span> <a href="src_core_circuitBreaker_CircuitBreaker.CircuitBreaker.html" class="tsd-signature-type tsd-kind-class">CircuitBreaker</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setcircuitbreaker-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="setcircuitbreaker-1"><span class="tsd-kind-call-signature">setCircuitBreaker</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">cb</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html" class="tsd-signature-type tsd-kind-interface">ICircuitBreaker</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setcircuitbreaker-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">cb</span>: <a href="src_core_circuitBreaker_CircuitBreaker.CircuitBreaker.html" class="tsd-signature-type tsd-kind-class">CircuitBreaker</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">cb</span>: <a href="../interfaces/src_core_circuitBreaker_ICircuitBreaker.ICircuitBreaker.html" class="tsd-signature-type tsd-kind-interface">ICircuitBreaker</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L66">src/core/ApiClient.ts:66</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L69">src/core/ApiClient.ts:69</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdeduplicator"><span>get<wbr/>Deduplicator</span><a href="#getdeduplicator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="getdeduplicator-1"><span class="tsd-kind-call-signature">getDeduplicator</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="src_core_RequestDeduplicator.RequestDeduplicator.html" class="tsd-signature-type tsd-kind-class">RequestDeduplicator</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#getdeduplicator-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="getdeduplicator-1"><span class="tsd-kind-call-signature">getDeduplicator</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/src_core_IDeduplicator.IDeduplicator.html" class="tsd-signature-type tsd-kind-interface">IDeduplicator</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#getdeduplicator-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="src_core_RequestDeduplicator.RequestDeduplicator.html" class="tsd-signature-type tsd-kind-class">RequestDeduplicator</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/src_core_IDeduplicator.IDeduplicator.html" class="tsd-signature-type tsd-kind-interface">IDeduplicator</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L70">src/core/ApiClient.ts:70</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L73">src/core/ApiClient.ts:73</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setdeduplicator"><span>set<wbr/>Deduplicator</span><a href="#setdeduplicator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="setdeduplicator-1"><span class="tsd-kind-call-signature">setDeduplicator</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">dedup</span><span class="tsd-signature-symbol">:</span> <a href="src_core_RequestDeduplicator.RequestDeduplicator.html" class="tsd-signature-type tsd-kind-class">RequestDeduplicator</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setdeduplicator-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="setdeduplicator-1"><span class="tsd-kind-call-signature">setDeduplicator</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">dedup</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/src_core_IDeduplicator.IDeduplicator.html" class="tsd-signature-type tsd-kind-interface">IDeduplicator</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setdeduplicator-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">dedup</span>: <a href="src_core_RequestDeduplicator.RequestDeduplicator.html" class="tsd-signature-type tsd-kind-class">RequestDeduplicator</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">dedup</span>: <a href="../interfaces/src_core_IDeduplicator.IDeduplicator.html" class="tsd-signature-type tsd-kind-interface">IDeduplicator</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L74">src/core/ApiClient.ts:74</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L77">src/core/ApiClient.ts:77</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getretryconfig"><span>get<wbr/>Retry<wbr/>Config</span><a href="#getretryconfig" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -191,7 +196,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/src_core_util_retry.RetryConfig.html" class="tsd-signature-type tsd-kind-interface">RetryConfig</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L78">src/core/ApiClient.ts:78</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L81">src/core/ApiClient.ts:81</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setretryconfig"><span>set<wbr/>Retry<wbr/>Config</span><a href="#setretryconfig" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -204,7 +209,29 @@
 <li><span><span class="tsd-kind-parameter">config</span>: <a href="../interfaces/src_core_util_retry.RetryConfig.html" class="tsd-signature-type tsd-kind-interface">RetryConfig</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L82">src/core/ApiClient.ts:82</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L85">src/core/ApiClient.ts:85</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getretrystrategy"><span>get<wbr/>Retry<wbr/>Strategy</span><a href="#getretrystrategy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getretrystrategy-1"><span class="tsd-kind-call-signature">getRetryStrategy</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/src_core_IRetryStrategy.IRetryStrategy.html" class="tsd-signature-type tsd-kind-interface">IRetryStrategy</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#getretrystrategy-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/src_core_IRetryStrategy.IRetryStrategy.html" class="tsd-signature-type tsd-kind-interface">IRetryStrategy</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L89">src/core/ApiClient.ts:89</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setretrystrategy"><span>set<wbr/>Retry<wbr/>Strategy</span><a href="#setretrystrategy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setretrystrategy-1"><span class="tsd-kind-call-signature">setRetryStrategy</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">strategy</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/src_core_IRetryStrategy.IRetryStrategy.html" class="tsd-signature-type tsd-kind-interface">IRetryStrategy</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setretrystrategy-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">strategy</span>: <a href="../interfaces/src_core_IRetryStrategy.IRetryStrategy.html" class="tsd-signature-type tsd-kind-interface">IRetryStrategy</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L93">src/core/ApiClient.ts:93</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getvalidateresponse"><span>get<wbr/>Validate<wbr/>Response</span><a href="#getvalidateresponse" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -213,7 +240,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L86">src/core/ApiClient.ts:86</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L97">src/core/ApiClient.ts:97</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setvalidateresponse"><span>set<wbr/>Validate<wbr/>Response</span><a href="#setvalidateresponse" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -226,7 +253,29 @@
 <li><span><span class="tsd-kind-parameter">validate</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L90">src/core/ApiClient.ts:90</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L101">src/core/ApiClient.ts:101</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getvalidaterequest"><span>get<wbr/>Validate<wbr/>Request</span><a href="#getvalidaterequest" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getvalidaterequest-1"><span class="tsd-kind-call-signature">getValidateRequest</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#getvalidaterequest-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L105">src/core/ApiClient.ts:105</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setvalidaterequest"><span>set<wbr/>Validate<wbr/>Request</span><a href="#setvalidaterequest" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setvalidaterequest-1"><span class="tsd-kind-call-signature">setValidateRequest</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">validate</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setvalidaterequest-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">validate</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L109">src/core/ApiClient.ts:109</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getmiddleware"><span>get<wbr/>Middleware</span><a href="#getmiddleware" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -235,7 +284,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="src_core_middleware_Middleware.MiddlewareManager.html" class="tsd-signature-type tsd-kind-class">MiddlewareManager</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L94">src/core/ApiClient.ts:94</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L113">src/core/ApiClient.ts:113</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addrequestinterceptor"><span>add<wbr/>Request<wbr/>Interceptor</span><a href="#addrequestinterceptor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -248,7 +297,7 @@
 <li><span><span class="tsd-kind-parameter">fn</span>: <a href="../types/src_core_middleware_Middleware.RequestInterceptor.html" class="tsd-signature-type tsd-kind-type-alias">RequestInterceptor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L98">src/core/ApiClient.ts:98</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L117">src/core/ApiClient.ts:117</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addresponseinterceptor"><span>add<wbr/>Response<wbr/>Interceptor</span><a href="#addresponseinterceptor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -261,7 +310,7 @@
 <li><span><span class="tsd-kind-parameter">fn</span>: <a href="../types/src_core_middleware_Middleware.ResponseInterceptor.html" class="tsd-signature-type tsd-kind-type-alias">ResponseInterceptor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L102">src/core/ApiClient.ts:102</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L121">src/core/ApiClient.ts:121</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getauthorizationheader"><span>get<wbr/>Authorization<wbr/>Header</span><a href="#getauthorizationheader" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -270,7 +319,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L106">src/core/ApiClient.ts:106</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L125">src/core/ApiClient.ts:125</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getlink"><span>get<wbr/>Link</span><a href="#getlink" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -279,7 +328,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L110">src/core/ApiClient.ts:110</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L129">src/core/ApiClient.ts:129</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdatasource"><span>get<wbr/>Datasource</span><a href="#getdatasource" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -288,7 +337,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="../types/src_core_ApiClient.EsiDatasource.html" class="tsd-signature-type tsd-kind-type-alias">EsiDatasource</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L114">src/core/ApiClient.ts:114</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L133">src/core/ApiClient.ts:133</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setdatasource"><span>set<wbr/>Datasource</span><a href="#setdatasource" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -301,7 +350,7 @@
 <li><span><span class="tsd-kind-parameter">datasource</span>: <a href="../types/src_core_ApiClient.EsiDatasource.html" class="tsd-signature-type tsd-kind-type-alias">EsiDatasource</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L118">src/core/ApiClient.ts:118</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L137">src/core/ApiClient.ts:137</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getlanguage"><span>get<wbr/>Language</span><a href="#getlanguage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -310,7 +359,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L122">src/core/ApiClient.ts:122</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L141">src/core/ApiClient.ts:141</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setlanguage"><span>set<wbr/>Language</span><a href="#setlanguage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -323,7 +372,7 @@
 <li><span><span class="tsd-kind-parameter">language</span>: <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L126">src/core/ApiClient.ts:126</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L145">src/core/ApiClient.ts:145</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setaccesstoken"><span>set<wbr/>Access<wbr/>Token</span><a href="#setaccesstoken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -336,7 +385,7 @@
 <li><span><span class="tsd-kind-parameter">token</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L130">src/core/ApiClient.ts:130</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L149">src/core/ApiClient.ts:149</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="settokenprovider"><span>set<wbr/>Token<wbr/>Provider</span><a href="#settokenprovider" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -349,7 +398,7 @@
 <li><span><span class="tsd-kind-parameter">provider</span>: <a href="../types/src_core_ApiClient.TokenProvider.html" class="tsd-signature-type tsd-kind-type-alias">TokenProvider</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L134">src/core/ApiClient.ts:134</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L156">src/core/ApiClient.ts:156</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="hastokenprovider"><span>has<wbr/>Token<wbr/>Provider</span><a href="#hastokenprovider" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -358,7 +407,16 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L138">src/core/ApiClient.ts:138</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L160">src/core/ApiClient.ts:160</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="tojson"><span>to<wbr/>JSON</span><a href="#tojson" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="tojson-1"><span class="tsd-kind-call-signature">toJSON</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><a href="#tojson-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L164">src/core/ApiClient.ts:164</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="refreshtoken"><span>refresh<wbr/>Token</span><a href="#refreshtoken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -367,7 +425,7 @@
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L142">src/core/ApiClient.ts:142</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/lgriffin/ESI.ts/blob/main/src/core/ApiClient.ts#L180">src/core/ApiClient.ts:180</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -385,10 +443,10 @@
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#gettimeout"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Timeout</span></a><a href="#settimeout"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Timeout</span></a><a href="#getcache"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Cache</span></a><a href="#setcache"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Cache</span></a><a href="#getratelimiter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Rate<wbr/>Limiter</span></a><a href="#setratelimiter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Rate<wbr/>Limiter</span></a><a href="#getcircuitbreaker"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Circuit<wbr/>Breaker</span></a><a href="#setcircuitbreaker"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Circuit<wbr/>Breaker</span></a><a href="#getdeduplicator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Deduplicator</span></a><a href="#setdeduplicator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Deduplicator</span></a><a href="#getretryconfig"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Retry<wbr/>Config</span></a><a href="#setretryconfig"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Retry<wbr/>Config</span></a><a href="#getvalidateresponse"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Validate<wbr/>Response</span></a><a href="#setvalidateresponse"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Validate<wbr/>Response</span></a><a href="#getmiddleware"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Middleware</span></a><a href="#addrequestinterceptor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Request<wbr/>Interceptor</span></a><a href="#addresponseinterceptor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Response<wbr/>Interceptor</span></a><a href="#getauthorizationheader"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Authorization<wbr/>Header</span></a><a href="#getlink"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Link</span></a><a href="#getdatasource"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Datasource</span></a><a href="#setdatasource"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Datasource</span></a><a href="#getlanguage"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Language</span></a><a href="#setlanguage"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Language</span></a><a href="#setaccesstoken"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Access<wbr/>Token</span></a><a href="#settokenprovider"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Token<wbr/>Provider</span></a><a href="#hastokenprovider"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Token<wbr/>Provider</span></a><a href="#refreshtoken"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Token</span></a></div></details></div></details></div>
+<div><a href="#gettimeout"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Timeout</span></a><a href="#settimeout"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Timeout</span></a><a href="#getcache"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Cache</span></a><a href="#setcache"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Cache</span></a><a href="#getratelimiter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Rate<wbr/>Limiter</span></a><a href="#setratelimiter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Rate<wbr/>Limiter</span></a><a href="#getcircuitbreaker"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Circuit<wbr/>Breaker</span></a><a href="#setcircuitbreaker"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Circuit<wbr/>Breaker</span></a><a href="#getdeduplicator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Deduplicator</span></a><a href="#setdeduplicator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Deduplicator</span></a><a href="#getretryconfig"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Retry<wbr/>Config</span></a><a href="#setretryconfig"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Retry<wbr/>Config</span></a><a href="#getretrystrategy"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Retry<wbr/>Strategy</span></a><a href="#setretrystrategy"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Retry<wbr/>Strategy</span></a><a href="#getvalidateresponse"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Validate<wbr/>Response</span></a><a href="#setvalidateresponse"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Validate<wbr/>Response</span></a><a href="#getvalidaterequest"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Validate<wbr/>Request</span></a><a href="#setvalidaterequest"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Validate<wbr/>Request</span></a><a href="#getmiddleware"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Middleware</span></a><a href="#addrequestinterceptor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Request<wbr/>Interceptor</span></a><a href="#addresponseinterceptor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Response<wbr/>Interceptor</span></a><a href="#getauthorizationheader"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Authorization<wbr/>Header</span></a><a href="#getlink"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Link</span></a><a href="#getdatasource"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Datasource</span></a><a href="#setdatasource"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Datasource</span></a><a href="#getlanguage"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Language</span></a><a href="#setlanguage"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Language</span></a><a href="#setaccesstoken"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Access<wbr/>Token</span></a><a href="#settokenprovider"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Token<wbr/>Provider</span></a><a href="#hastokenprovider"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Token<wbr/>Provider</span></a><a href="#tojson"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>to<wbr/>JSON</span></a><a href="#refreshtoken"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Token</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://esi.evetech.net/ui/">ESI Documentation</a><a href="https://www.eveonline.com/">EVE Online</a><a href="https://github.com/lgriffin/ESI.ts" class="tsd-nav-link">GitHub</a><a href="https://www.npmjs.com/package/@lgriffin/esi.ts" class="tsd-nav-link">NPM</a></nav>
-<nav class="tsd-navigation"><a href="../modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v7.4.0</a>
+<nav class="tsd-navigation"><a href="../modules.html">@lgriffin/esi.ts - EVE Online ESI API Client - v9.1.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
 <li>Loading...</li></ul></nav></div></div></div><footer>
 <p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
