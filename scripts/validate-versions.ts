@@ -26,7 +26,7 @@ function getConstantsVersion(): string {
     console.error('Could not find PACKAGE_VERSION in constants.ts');
     process.exit(1);
   }
-  return match[1];
+  return match[1]!;
 }
 
 function main(): void {

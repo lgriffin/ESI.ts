@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.1.0] - 2026-08-14
+
+### Added
+
+- **Schema rejection tests** — 104 new tests verifying Zod schemas correctly reject invalid input shapes
+- **Domain property fuzz tests** — property-based fuzz testing across domain clients using fast-check
+- **Schema validation benchmarks** — performance benchmarks for Zod schema validation paths
+- **Domain response type tests** — compile-time type tests for domain client response types via tsd
+
+### Changed
+
+- **Expanded documentation** — updated examples, architecture guide, and testing guide with broader coverage
+- **README refreshed** — updated feature descriptions and endpoint counts
+
+### Fixed
+
+- **Fuzz test date handling** — switched to integer-based date arbitrary to avoid invalid `Date` values in property-based tests
+
 ## [9.0.0] - 2026-08-12
 
 ### Breaking Changes
