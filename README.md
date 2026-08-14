@@ -9,7 +9,7 @@
 
 A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built on the **OpenAPI 3.1 spec**, with runtime validation, intelligent caching, and full endpoint coverage.
 
-**v9.0.0** — Default retry count changed from 0 to 3, sub-path exports (`@lgriffin/esi.ts/schemas`, `/errors`, `/testing`), `isCircuitOpen()` type guard, cursor pagination routed through full pipeline, unified pagination retry via `IRetryStrategy`, response interceptor status fix, and CI consolidation.
+**v9.1.0** — Expanded test pyramid (schema rejection, domain fuzz, benchmark, type tests), updated documentation and examples, fuzz test date handling fix.
 
 **223 endpoint definitions — 194 from the public ESI OpenAPI spec, plus 29 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs, military campaigns, corporation projects). All 221 exercisable endpoints validated against live Tranquility on 2026-08-14.**
 
