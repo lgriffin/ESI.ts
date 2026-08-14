@@ -36,6 +36,7 @@ import {
   SkyhooksClient,
   MercenaryClient,
   AccessListsClient,
+  MilitaryCampaignsClient,
 } from '../../../src/core/ClientRegistry';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
@@ -88,6 +89,7 @@ const expectedClasses: Record<ApiClientType, new (...args: any[]) => unknown> =
     skyhooks: SkyhooksClient,
     mercenary: MercenaryClient,
     accessLists: AccessListsClient,
+    militaryCampaigns: MilitaryCampaignsClient,
   };
 
 const allClientTypes: ApiClientType[] = [
@@ -126,6 +128,7 @@ const allClientTypes: ApiClientType[] = [
   'skyhooks',
   'mercenary',
   'accessLists',
+  'militaryCampaigns',
 ];
 
 describe('ClientRegistry', () => {
@@ -143,6 +146,6 @@ describe('ClientRegistry', () => {
   );
 
   it('should cover all ApiClientType values', () => {
-    expect(allClientTypes).toHaveLength(35);
+    expect(allClientTypes).toHaveLength(36);
   });
 });
