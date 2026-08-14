@@ -40,6 +40,7 @@ import { FreelanceJobsClient } from './clients/FreelanceJobsClient';
 import { SkyhooksClient } from './clients/SkyhooksClient';
 import { MercenaryClient } from './clients/MercenaryClient';
 import { AccessListsClient } from './clients/AccessListsClient';
+import { MilitaryCampaignsClient } from './clients/MilitaryCampaignsClient';
 import { validateBaseUrl } from './core/util/validation';
 import {
   ETagCacheManager,
@@ -239,6 +240,9 @@ export class EsiClient {
   }
   get mercenary(): MercenaryClient {
     return this.getClient('mercenary');
+  }
+  get militaryCampaigns(): MilitaryCampaignsClient {
+    return this.getClient('militaryCampaigns');
   }
   get accessLists(): AccessListsClient {
     return this.getClient('accessLists');

@@ -297,7 +297,7 @@ export class ApiClientBuilder {
 }
 
 // @public (undocumented)
-export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'corporationProjects' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'mercenary' | 'accessLists';
+export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'corporationProjects' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'mercenary' | 'militaryCampaigns' | 'accessLists';
 
 // @public (undocumented)
 export type AssetLocation = z.infer<typeof AssetLocationSchema>;
@@ -776,6 +776,17 @@ const CharacterMarketOrderSchema: z.ZodObject<{
     issued: z.ZodString;
     range: z.ZodString;
     escrow: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CharacterMilitaryCampaignObjective = z.infer<typeof CharacterMilitaryCampaignObjectiveSchema>;
+
+// @public (undocumented)
+const CharacterMilitaryCampaignObjectiveSchema: z.ZodObject<{
+    objective_id: z.ZodString;
+    campaign_id: z.ZodString;
+    committed: z.ZodBoolean;
+    contribution: z.ZodNumber;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -4024,6 +4035,8 @@ export class EsiClient {
     // (undocumented)
     get meta(): MetaClient;
     // (undocumented)
+    get militaryCampaigns(): MilitaryCampaignsClient;
+    // (undocumented)
     get pi(): PiClient;
     // (undocumented)
     resetCircuitBreaker(endpoint?: string): void;
@@ -6492,6 +6505,47 @@ const MetaStatusSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type MilitaryCampaign = z.infer<typeof MilitaryCampaignSchema>;
+
+// @public (undocumented)
+export type MilitaryCampaignObjective = z.infer<typeof MilitaryCampaignObjectiveSchema>;
+
+// @public (undocumented)
+const MilitaryCampaignObjectiveSchema: z.ZodObject<{
+    objective_id: z.ZodString;
+    campaign_id: z.ZodString;
+    state: z.ZodString;
+    progress: z.ZodNumber;
+    participants: z.ZodObject<{
+        total: z.ZodNumber;
+        committed: z.ZodNumber;
+        contributors: z.ZodNumber;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const MilitaryCampaignSchema: z.ZodObject<{
+    campaign_id: z.ZodString;
+    state: z.ZodString;
+    progress: z.ZodNumber;
+    start_time: z.ZodString;
+    finish_time: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// Warning: (ae-forgotten-export) The symbol "militaryCampaignEndpoints" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export class MilitaryCampaignsClient extends BaseEsiClient<typeof militaryCampaignEndpoints> {
+    constructor(client: ApiClient);
+    getCharacterMilitaryCampaignObjective(characterId: number, objectiveId: string): Promise<CharacterMilitaryCampaignObjective>;
+    getCharacterMilitaryCampaignObjectives(characterId: number): Promise<CharacterMilitaryCampaignObjective[]>;
+    getMilitaryCampaign(campaignId: string): Promise<MilitaryCampaign>;
+    getMilitaryCampaignObjective(campaignId: string, objectiveId: string): Promise<MilitaryCampaignObjective>;
+    getMilitaryCampaignObjectives(campaignId: string): Promise<MilitaryCampaignObjective[]>;
+    getMilitaryCampaigns(): Promise<MilitaryCampaign[]>;
+}
+
+// @public (undocumented)
 export type MiningLedgerEntry = z.infer<typeof MiningLedgerEntrySchema>;
 
 // @public (undocumented)
@@ -7038,6 +7092,9 @@ declare namespace schemas {
         MetaCompatibilityDatesSchema,
         MetaNameSchema,
         MetaStatusSchema,
+        MilitaryCampaignSchema,
+        MilitaryCampaignObjectiveSchema,
+        CharacterMilitaryCampaignObjectiveSchema,
         PlanetaryColonySchema,
         CustomsOfficeSchema,
         ColonyLayoutSchema,
