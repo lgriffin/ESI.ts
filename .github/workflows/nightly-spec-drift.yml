@@ -62,9 +62,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh label create "spec-drift" \
-            --description "Automated: ESI spec drift detected" \
-            --color "D93F0B" 2>/dev/null || true
+          if ! gh label view "spec-drift" >/dev/null 2>&1; then
+            gh label create "spec-drift" \
+              --description "Automated: ESI spec drift detected" \
+              --color "D93F0B"
+          fi
 
       - name: Check for existing drift issue
         if: steps.drift.outputs.drift_found == 'true'
