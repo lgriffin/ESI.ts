@@ -81,11 +81,17 @@ jobs:
 
       - name: Verify generated types are up to date
         run: |
-          npm run generate:types
-          git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts || {
-            echo "Generated types are stale — run 'npm run generate:types' and commit the result"
+          if npm run generate:types 2>&1 | tee /tmp/gen-types.log; then
+            git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts || {
+              echo "Generated types are stale — run 'npm run generate:types' and commit the result"
+              exit 1
+            }
+          elif grep -q "HTTP 503" /tmp/gen-types.log; then
+            echo "::warning::ESI API returned 503 — skipping generated types freshness check"
+          else
+            cat /tmp/gen-types.log
             exit 1
-          }
+          fi
 
       - name: Run dead code detection (knip)
         run: npx knip --no-exit-code
@@ -94,7 +100,15 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Check schema drift
-        run: npm run schema:drift:ci
+        run: |
+          if npm run schema:drift:ci 2>&1 | tee /tmp/schema-drift.log; then
+            true
+          elif grep -q "HTTP 503" /tmp/schema-drift.log; then
+            echo "::warning::ESI API returned 503 — skipping schema drift check"
+          else
+            cat /tmp/schema-drift.log
+            exit 1
+          fi
 
       - name: Validate auth/scope alignment
         run: npm run validate:auth-scopes
@@ -200,7 +214,15 @@ jobs:
         run: npm ci
 
       - name: Run contract tests
-        run: npm run contract
+        run: |
+          if npm run contract 2>&1 | tee /tmp/contract.log; then
+            true
+          elif grep -q "HTTP 503" /tmp/contract.log; then
+            echo "::warning::ESI API returned 503 — skipping contract tests"
+          else
+            cat /tmp/contract.log
+            exit 1
+          fi
         env:
           ESI_LIVE_TESTS: 'true'
 
