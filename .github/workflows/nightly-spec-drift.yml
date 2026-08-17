@@ -57,6 +57,15 @@ jobs:
           MISSING_COUNT=$(jq '.missing | length' drift-report.json)
           echo "missing_count=$MISSING_COUNT" >> "$GITHUB_OUTPUT"
 
+      - name: Ensure spec-drift label exists
+        if: steps.drift.outputs.drift_found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "spec-drift" \
+            --description "Automated: ESI spec drift detected" \
+            --color "D93F0B" 2>/dev/null || true
+
       - name: Check for existing drift issue
         if: steps.drift.outputs.drift_found == 'true'
         id: existing
