@@ -1,0 +1,44 @@
+name: Package Checks
+
+on:
+  pull_request:
+    branches: [master, main]
+
+permissions:
+  contents: read
+
+jobs:
+  attw:
+    name: Are The Types Wrong
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Pack package
+        run: npm pack
+
+      - name: Check types with attw
+        run: npx @arethetypeswrong/cli $(ls *.tgz) --format table
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Are The Types Wrong" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npx @arethetypeswrong/cli $(ls *.tgz) --format table 2>&1 >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
