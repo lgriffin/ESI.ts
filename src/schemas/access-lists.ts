@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const AccessListEntrySchema = z.looseObject({
   entity_id: z.number(),
-  entity_type: z.enum(['character', 'corporation', 'alliance']),
-  access_type: z.enum(['allowed', 'blocked']),
+  entity_type: esiEnum(['character', 'corporation', 'alliance']),
+  access_type: esiEnum(['allowed', 'blocked']),
 });
 
 export const AccessListSchema = z.looseObject({

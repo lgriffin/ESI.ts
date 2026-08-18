@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const AllianceInfoSchema = z.looseObject({
   alliance_id: z.number().optional(),
@@ -13,7 +14,7 @@ export const AllianceInfoSchema = z.looseObject({
 
 export const AllianceContactSchema = z.looseObject({
   contact_id: z.number(),
-  contact_type: z.enum(['character', 'corporation', 'alliance']),
+  contact_type: esiEnum(['character', 'corporation', 'alliance']),
   standing: z.number(),
   label_ids: z.array(z.number()).optional(),
 });

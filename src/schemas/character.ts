@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const CharacterInfoSchema = z.looseObject({
   character_id: z.number().optional(),
@@ -10,7 +11,7 @@ export const CharacterInfoSchema = z.looseObject({
   ancestry_id: z.number().optional(),
   bloodline_id: z.number(),
   race_id: z.number(),
-  gender: z.enum(['male', 'female']),
+  gender: esiEnum(['male', 'female']),
   security_status: z.number().optional(),
   title: z.string().optional(),
   birthday: z.string(),
@@ -74,7 +75,7 @@ export const MedalSchema = z.looseObject({
   issuer_id: z.number(),
   corporation_id: z.number(),
   reason: z.string(),
-  status: z.enum(['private', 'public']),
+  status: esiEnum(['private', 'public']),
   graphics: z.array(
     z.looseObject({
       part: z.number(),
@@ -89,7 +90,7 @@ export const NotificationSchema = z.looseObject({
   notification_id: z.number(),
   type: z.string(),
   sender_id: z.number(),
-  sender_type: z.enum([
+  sender_type: esiEnum([
     'character',
     'corporation',
     'alliance',

@@ -69,6 +69,35 @@ describe('requestPipeline/headers', () => {
       expect(headers['X-Compatibility-Date']).toBeDefined();
     });
 
+    it('should use custom compatibility date when set on client', () => {
+      client.setCompatibilityDate('2025-01-15');
+      const headers = buildRequestHeaders(
+        client,
+        `${BASE_URL}/v1/status/`,
+        'GET',
+        false,
+        false,
+        undefined,
+        nullCache,
+      ) as Record<string, string>;
+
+      expect(headers['X-Compatibility-Date']).toBe('2025-01-15');
+    });
+
+    it('should fall back to default compatibility date when not set', () => {
+      const headers = buildRequestHeaders(
+        client,
+        `${BASE_URL}/v1/status/`,
+        'GET',
+        false,
+        false,
+        undefined,
+        nullCache,
+      ) as Record<string, string>;
+
+      expect(headers['X-Compatibility-Date']).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
     it('should include Accept-Language when language is set', () => {
       client.setLanguage('de');
       const headers = buildRequestHeaders(

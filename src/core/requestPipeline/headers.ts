@@ -32,7 +32,7 @@ export function buildRequestHeaders(
     Accept: 'application/json',
     'Accept-Encoding': 'gzip, deflate, br',
     'User-Agent': USER_AGENT,
-    'X-Compatibility-Date': COMPATIBILITY_DATE,
+    'X-Compatibility-Date': client.getCompatibilityDate() ?? COMPATIBILITY_DATE,
   };
 
   const language = client.getLanguage();

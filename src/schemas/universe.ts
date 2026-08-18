@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 const PositionSchema = z.looseObject({
   x: z.number(),
@@ -246,7 +247,7 @@ export const BulkIdResultSchema = z.looseObject({
 export const NameAndCategorySchema = z.looseObject({
   id: z.number(),
   name: z.string(),
-  category: z.enum([
+  category: esiEnum([
     'alliance',
     'character',
     'constellation',

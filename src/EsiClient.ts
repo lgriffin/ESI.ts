@@ -80,6 +80,7 @@ export interface EsiClientConfig {
   unsafeAllowCustomHost?: boolean;
   enableRequestDeduplication?: boolean;
   language?: string;
+  compatibilityDate?: string;
   rateLimiterConfig?: RateLimiterConfig;
   requestInterceptors?: RequestInterceptor[];
   responseInterceptors?: ResponseInterceptor[];
@@ -115,6 +116,10 @@ export class EsiClient {
 
     if (config?.language) {
       this.apiClient.setLanguage(config.language);
+    }
+
+    if (config?.compatibilityDate) {
+      this.apiClient.setCompatibilityDate(config.compatibilityDate);
     }
 
     if (config?.onTokenRefresh) {

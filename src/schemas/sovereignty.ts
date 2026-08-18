@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const SovereigntyCampaignSchema = z.looseObject({
   campaign_id: z.number(),
   structure_id: z.number(),
   solar_system_id: z.number(),
   constellation_id: z.number(),
-  event_type: z.enum([
+  event_type: esiEnum([
     'tcu_defense',
     'ihub_defense',
     'station_defense',
