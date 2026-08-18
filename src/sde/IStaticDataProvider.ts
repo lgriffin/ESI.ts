@@ -6,6 +6,24 @@ import type {
   Constellation,
   SolarSystem,
   Stargate,
+  Star,
+  Planet,
+  Moon,
+  AsteroidBelt,
+  Faction,
+  Race,
+  Bloodline,
+  Ancestry,
+  NpcCorporation,
+  NpcStation,
+  MarketGroup,
+  MetaGroup,
+  Icon,
+  Graphic,
+  DogmaAttribute,
+  DogmaEffect,
+  Blueprint,
+  PlanetSchematic,
 } from './types';
 import type { SdeVersionInfo } from './version';
 
@@ -28,6 +46,58 @@ export interface IStaticDataProvider {
 
   searchTypesByName(query: string, limit?: number): EveType[];
   searchSolarSystemsByName(query: string, limit?: number): SolarSystem[];
+
+  // Universe
+  getStar(starId: number): Star | null;
+  getStarBySystem(systemId: number): Star | null;
+  getPlanet(planetId: number): Planet | null;
+  getPlanetsBySystem(systemId: number): Planet[];
+  getMoon(moonId: number): Moon | null;
+  getMoonsByPlanet(planetId: number): Moon[];
+  getAsteroidBelt(asteroidBeltId: number): AsteroidBelt | null;
+  getAsteroidBeltsBySystem(systemId: number): AsteroidBelt[];
+
+  // Character/Lore
+  getFaction(factionId: number): Faction | null;
+  getAllFactions(): Faction[];
+  getRace(raceId: number): Race | null;
+  getAllRaces(): Race[];
+  getBloodline(bloodlineId: number): Bloodline | null;
+  getBloodlinesByRace(raceId: number): Bloodline[];
+  getAncestry(ancestryId: number): Ancestry | null;
+  getAncestriesByBloodline(bloodlineId: number): Ancestry[];
+
+  // NPC Infrastructure
+  getNpcCorporation(corporationId: number): NpcCorporation | null;
+  getNpcCorporationsByFaction(factionId: number): NpcCorporation[];
+  getNpcStation(stationId: number): NpcStation | null;
+  getNpcStationsBySystem(systemId: number): NpcStation[];
+  getNpcStationsByCorporation(corporationId: number): NpcStation[];
+  searchNpcStationsByName(query: string, limit?: number): NpcStation[];
+
+  // Market
+  getMarketGroup(marketGroupId: number): MarketGroup | null;
+  getMarketGroupsByParent(parentGroupId: number): MarketGroup[];
+  getRootMarketGroups(): MarketGroup[];
+  getTypesByMarketGroup(marketGroupId: number): EveType[];
+  searchMarketGroupsByName(query: string, limit?: number): MarketGroup[];
+
+  // Meta/UI
+  getMetaGroup(metaGroupId: number): MetaGroup | null;
+  getAllMetaGroups(): MetaGroup[];
+  getIcon(iconId: number): Icon | null;
+  getGraphic(graphicId: number): Graphic | null;
+
+  // Dogma
+  getDogmaAttribute(attributeId: number): DogmaAttribute | null;
+  searchDogmaAttributesByName(query: string, limit?: number): DogmaAttribute[];
+  getDogmaEffect(effectId: number): DogmaEffect | null;
+  searchDogmaEffectsByName(query: string, limit?: number): DogmaEffect[];
+
+  // Industry
+  getBlueprint(blueprintTypeId: number): Blueprint | null;
+  getPlanetSchematic(planetSchematicId: number): PlanetSchematic | null;
+  getAllPlanetSchematics(): PlanetSchematic[];
 
   getVersion(): SdeVersionInfo;
 
