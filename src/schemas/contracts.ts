@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const ContractSchema = z.looseObject({
   contract_id: z.number(),
@@ -8,26 +9,27 @@ export const ContractSchema = z.looseObject({
   acceptor_id: z.number().optional(),
   start_location_id: z.number().optional(),
   end_location_id: z.number().optional(),
-  type: z.enum(['unknown', 'item_exchange', 'auction', 'courier', 'loan']),
-  status: z
-    .enum([
-      'outstanding',
-      'in_progress',
-      'finished_issuer',
-      'finished_contractor',
-      'finished',
-      'cancelled',
-      'rejected',
-      'failed',
-      'deleted',
-      'reversed',
-    ])
-    .optional(),
+  type: esiEnum(['unknown', 'item_exchange', 'auction', 'courier', 'loan']),
+  status: esiEnum([
+    'outstanding',
+    'in_progress',
+    'finished_issuer',
+    'finished_contractor',
+    'finished',
+    'cancelled',
+    'rejected',
+    'failed',
+    'deleted',
+    'reversed',
+  ]).optional(),
   title: z.string().optional(),
   for_corporation: z.boolean().optional(),
-  availability: z
-    .enum(['public', 'personal', 'corporation', 'alliance'])
-    .optional(),
+  availability: esiEnum([
+    'public',
+    'personal',
+    'corporation',
+    'alliance',
+  ]).optional(),
   date_issued: z.string(),
   date_expired: z.string(),
   date_accepted: z.string().optional(),

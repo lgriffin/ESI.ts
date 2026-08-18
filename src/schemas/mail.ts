@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const MailMessageSchema = z.looseObject({
   mail_id: z.number().optional(),
@@ -12,7 +13,7 @@ export const MailMessageSchema = z.looseObject({
     .array(
       z.looseObject({
         recipient_id: z.number(),
-        recipient_type: z.enum([
+        recipient_type: esiEnum([
           'alliance',
           'character',
           'corporation',

@@ -70,6 +70,10 @@ export class CustomEsiClient {
       this.apiClient.setLanguage(config.language);
     }
 
+    if (config.compatibilityDate) {
+      this.apiClient.setCompatibilityDate(config.compatibilityDate);
+    }
+
     if (config.onTokenRefresh) {
       this.apiClient.setTokenProvider(config.onTokenRefresh);
     }

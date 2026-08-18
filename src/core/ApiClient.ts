@@ -29,6 +29,7 @@ export class ApiClient {
   private validateResponse: boolean = true;
   private validateRequest: boolean = false;
   private language?: string;
+  private compatibilityDate?: string;
 
   constructor(
     private clientId: string,
@@ -146,6 +147,14 @@ export class ApiClient {
     this.language = language;
   }
 
+  getCompatibilityDate(): string | undefined {
+    return this.compatibilityDate;
+  }
+
+  setCompatibilityDate(date: string | undefined): void {
+    this.compatibilityDate = date;
+  }
+
   setAccessToken(token: string): void {
     if (this.accessToken !== token) {
       this.cache?.clear();
@@ -174,6 +183,7 @@ export class ApiClient {
       validateResponse: this.validateResponse,
       validateRequest: this.validateRequest,
       language: this.language,
+      compatibilityDate: this.compatibilityDate,
     };
   }
 

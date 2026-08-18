@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const StandingSchema = z.looseObject({
   from_id: z.number(),
-  from_type: z.enum(['agent', 'npc_corp', 'faction']),
+  from_type: esiEnum(['agent', 'npc_corp', 'faction']),
   standing: z.number(),
 });
 

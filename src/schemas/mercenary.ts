@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const MercenaryDenSchema = z.looseObject({
   den_id: z.number(),
@@ -15,7 +16,7 @@ export const MercenaryTacticalOperationSchema = z.looseObject({
   den_id: z.number(),
   system_id: z.number(),
   site_type: z.string(),
-  status: z.enum(['spawning', 'active', 'completed', 'expired']),
+  status: esiEnum(['spawning', 'active', 'completed', 'expired']),
   started_at: z.string().optional(),
   expires_at: z.string().optional(),
 });

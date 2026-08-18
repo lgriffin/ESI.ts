@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const PlanetaryColonySchema = z.looseObject({
   solar_system_id: z.number(),
   planet_id: z.number(),
-  planet_type: z.enum([
+  planet_type: esiEnum([
     'temperate',
     'barren',
     'oceanic',

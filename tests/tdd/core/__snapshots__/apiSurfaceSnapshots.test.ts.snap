@@ -284,6 +284,7 @@ exports[`API surface snapshots schema exports should match snapshot 1`] = `
   "WalletJournalSchema",
   "WalletTransactionSchema",
   "WarSchema",
+  "esiEnum",
   "esiResponse",
 ]
 `;

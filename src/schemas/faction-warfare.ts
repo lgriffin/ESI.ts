@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const FactionWarfareStatsSchema = z.looseObject({
   faction_id: z.number(),
@@ -37,7 +38,7 @@ export const FactionWarfareSystemSchema = z.looseObject({
   solar_system_id: z.number(),
   owner_faction_id: z.number(),
   occupier_faction_id: z.number(),
-  contested: z.enum(['captured', 'contested', 'uncontested', 'vulnerable']),
+  contested: esiEnum(['captured', 'contested', 'uncontested', 'vulnerable']),
   victory_points: z.number(),
   victory_points_threshold: z.number(),
 });

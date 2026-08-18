@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const IncursionSchema = z.looseObject({
   type: z.string(),
-  state: z.enum(['withdrawing', 'mobilizing', 'established']),
+  state: esiEnum(['withdrawing', 'mobilizing', 'established']),
   staging_solar_system_id: z.number(),
   constellation_id: z.number(),
   infested_solar_systems: z.array(z.number()),

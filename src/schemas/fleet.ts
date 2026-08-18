@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const FleetInfoSchema = z.looseObject({
   fleet_id: z.number().optional(),
@@ -14,7 +15,7 @@ export const FleetMemberSchema = z.looseObject({
   ship_type_id: z.number(),
   wing_id: z.number(),
   squad_id: z.number(),
-  role: z.enum([
+  role: esiEnum([
     'fleet_commander',
     'wing_commander',
     'squad_commander',
@@ -41,7 +42,7 @@ export const FleetWingSchema = z.looseObject({
 export const CharacterFleetInfoSchema = z.looseObject({
   fleet_id: z.number(),
   fleet_boss_id: z.number().optional(),
-  role: z.enum([
+  role: esiEnum([
     'fleet_commander',
     'wing_commander',
     'squad_commander',

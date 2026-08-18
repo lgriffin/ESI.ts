@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const CalendarEventSchema = z.looseObject({
   event_id: z.number(),
   event_date: z.string(),
   title: z.string(),
   importance: z.number(),
-  event_response: z.enum([
+  event_response: esiEnum([
     'declined',
     'not_responded',
     'accepted',
@@ -20,7 +21,7 @@ export const CalendarEventDetailSchema = z.looseObject({
   text: z.string(),
   owner_id: z.number(),
   owner_name: z.string(),
-  owner_type: z.enum([
+  owner_type: esiEnum([
     'eve_server',
     'corporation',
     'faction',
@@ -34,7 +35,7 @@ export const CalendarEventDetailSchema = z.looseObject({
 
 export const CalendarEventAttendeeSchema = z.looseObject({
   character_id: z.number(),
-  event_response: z.enum([
+  event_response: esiEnum([
     'declined',
     'not_responded',
     'accepted',

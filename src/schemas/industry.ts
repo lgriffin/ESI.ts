@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const IndustryJobSchema = z.looseObject({
   job_id: z.number(),
@@ -15,7 +16,7 @@ export const IndustryJobSchema = z.looseObject({
   licensed_runs: z.number().optional(),
   probability: z.number().optional(),
   product_type_id: z.number().optional(),
-  status: z.enum([
+  status: esiEnum([
     'active',
     'cancelled',
     'delivered',
