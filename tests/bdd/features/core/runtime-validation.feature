@@ -45,7 +45,7 @@ Feature: Runtime Response Validation
     When I validate data with valid nested objects
     Then schema validation shall succeed for the entire structure
 
-  Scenario: Schema shall reject invalid enum values
+  Scenario: Schema shall accept unknown enum values gracefully
     Given a Zod schema with enum constraints
-    When I validate data with an invalid enum value
-    Then schema validation shall fail with an enum error
+    When I validate data with an unknown enum value
+    Then schema validation shall succeed with the unknown value preserved

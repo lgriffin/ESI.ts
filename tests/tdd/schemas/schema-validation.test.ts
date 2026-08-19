@@ -567,7 +567,7 @@ describe('Schema Validation', () => {
       expect(CharacterInfoSchema.safeParse(femaleData).success).toBe(true);
     });
 
-    it('should reject invalid gender values', () => {
+    it('should accept unknown gender values gracefully', () => {
       const data = {
         character_id: 1,
         name: 'Test',
@@ -575,6 +575,21 @@ describe('Schema Validation', () => {
         bloodline_id: 1,
         race_id: 1,
         gender: 'other',
+        birthday: '2003-01-01T00:00:00Z',
+      };
+
+      const result = CharacterInfoSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject non-string gender values', () => {
+      const data = {
+        character_id: 1,
+        name: 'Test',
+        corporation_id: 1,
+        bloodline_id: 1,
+        race_id: 1,
+        gender: 42,
         birthday: '2003-01-01T00:00:00Z',
       };
 
@@ -609,7 +624,7 @@ describe('Schema Validation', () => {
       }
     });
 
-    it('should reject invalid CharacterMarketOrderHistory state enum values', () => {
+    it('should accept unknown CharacterMarketOrderHistory state enum values gracefully', () => {
       const data = {
         order_id: 1,
         type_id: 34,
@@ -628,7 +643,7 @@ describe('Schema Validation', () => {
       };
 
       const result = CharacterMarketOrderHistorySchema.safeParse(data);
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
     });
 
     it('should accept valid AllianceContact contact_type enum values', () => {
@@ -647,7 +662,7 @@ describe('Schema Validation', () => {
       }
     });
 
-    it('should reject invalid AllianceContact contact_type enum values', () => {
+    it('should accept unknown AllianceContact contact_type enum values gracefully', () => {
       const data = {
         contact_id: 1,
         contact_type: 'npc',
@@ -655,7 +670,7 @@ describe('Schema Validation', () => {
       };
 
       const result = AllianceContactSchema.safeParse(data);
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
     });
 
     it('should accept valid Notification sender_type enum values', () => {

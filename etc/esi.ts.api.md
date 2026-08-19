@@ -22,15 +22,8 @@ export type AccessListEntry = z.infer<typeof AccessListEntrySchema>;
 // @public (undocumented)
 const AccessListEntrySchema: z.ZodObject<{
     entity_id: z.ZodNumber;
-    entity_type: z.ZodEnum<{
-        character: "character";
-        corporation: "corporation";
-        alliance: "alliance";
-    }>;
-    access_type: z.ZodEnum<{
-        allowed: "allowed";
-        blocked: "blocked";
-    }>;
+    entity_type: z.ZodType<(string & {}) | "character" | "corporation" | "alliance", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation" | "alliance", unknown>>;
+    access_type: z.ZodType<(string & {}) | "allowed" | "blocked", unknown, z.core.$ZodTypeInternals<(string & {}) | "allowed" | "blocked", unknown>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -39,15 +32,8 @@ const AccessListSchema: z.ZodObject<{
     name: z.ZodString;
     entries: z.ZodArray<z.ZodObject<{
         entity_id: z.ZodNumber;
-        entity_type: z.ZodEnum<{
-            character: "character";
-            corporation: "corporation";
-            alliance: "alliance";
-        }>;
-        access_type: z.ZodEnum<{
-            allowed: "allowed";
-            blocked: "blocked";
-        }>;
+        entity_type: z.ZodType<(string & {}) | "character" | "corporation" | "alliance", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation" | "alliance", unknown>>;
+        access_type: z.ZodType<(string & {}) | "allowed" | "blocked", unknown, z.core.$ZodTypeInternals<(string & {}) | "allowed" | "blocked", unknown>>;
     }, z.core.$loose>>;
 }, z.core.$loose>;
 
@@ -106,11 +92,7 @@ const AllianceContactLabelSchema: z.ZodObject<{
 // @public (undocumented)
 const AllianceContactSchema: z.ZodObject<{
     contact_id: z.ZodNumber;
-    contact_type: z.ZodEnum<{
-        character: "character";
-        corporation: "corporation";
-        alliance: "alliance";
-    }>;
+    contact_type: z.ZodType<(string & {}) | "character" | "corporation" | "alliance", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation" | "alliance", unknown>>;
     standing: z.ZodNumber;
     label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
 }, z.core.$loose>;
@@ -216,6 +198,8 @@ export class ApiClient {
     getCache(): ICache | null;
     // (undocumented)
     getCircuitBreaker(): ICircuitBreaker | null;
+    // (undocumented)
+    getCompatibilityDate(): string | undefined;
     // Warning: (ae-forgotten-export) The symbol "EsiDatasource_2" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -252,6 +236,8 @@ export class ApiClient {
     setCache(cache: ICache | null): void;
     // (undocumented)
     setCircuitBreaker(cb: ICircuitBreaker | null): void;
+    // (undocumented)
+    setCompatibilityDate(date: string | undefined): void;
     // (undocumented)
     setDatasource(datasource: EsiDatasource_2 | undefined): void;
     // (undocumented)
@@ -526,12 +512,7 @@ export type CalendarEventAttendee = z.infer<typeof CalendarEventAttendeeSchema>;
 // @public (undocumented)
 const CalendarEventAttendeeSchema: z.ZodObject<{
     character_id: z.ZodNumber;
-    event_response: z.ZodEnum<{
-        declined: "declined";
-        not_responded: "not_responded";
-        accepted: "accepted";
-        tentative: "tentative";
-    }>;
+    event_response: z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -545,13 +526,7 @@ const CalendarEventDetailSchema: z.ZodObject<{
     text: z.ZodString;
     owner_id: z.ZodNumber;
     owner_name: z.ZodString;
-    owner_type: z.ZodEnum<{
-        faction: "faction";
-        character: "character";
-        corporation: "corporation";
-        alliance: "alliance";
-        eve_server: "eve_server";
-    }>;
+    owner_type: z.ZodType<(string & {}) | "faction" | "character" | "corporation" | "alliance" | "eve_server", unknown, z.core.$ZodTypeInternals<(string & {}) | "faction" | "character" | "corporation" | "alliance" | "eve_server", unknown>>;
     duration: z.ZodNumber;
     importance: z.ZodNumber;
     response: z.ZodString;
@@ -563,12 +538,7 @@ const CalendarEventSchema: z.ZodObject<{
     event_date: z.ZodString;
     title: z.ZodString;
     importance: z.ZodNumber;
-    event_response: z.ZodEnum<{
-        declined: "declined";
-        not_responded: "not_responded";
-        accepted: "accepted";
-        tentative: "tentative";
-    }>;
+    event_response: z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -591,12 +561,7 @@ const CharacterAssetSchema: z.ZodObject<{
     type_id: z.ZodNumber;
     quantity: z.ZodNumber;
     location_id: z.ZodNumber;
-    location_type: z.ZodEnum<{
-        other: "other";
-        solar_system: "solar_system";
-        station: "station";
-        item: "item";
-    }>;
+    location_type: z.ZodType<(string & {}) | "other" | "solar_system" | "station" | "item", unknown, z.core.$ZodTypeInternals<(string & {}) | "other" | "solar_system" | "station" | "item", unknown>>;
     location_flag: z.ZodString;
     is_singleton: z.ZodBoolean;
     is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
@@ -661,12 +626,7 @@ export type CharacterFleetInfo = z.infer<typeof CharacterFleetInfoSchema>;
 const CharacterFleetInfoSchema: z.ZodObject<{
     fleet_id: z.ZodNumber;
     fleet_boss_id: z.ZodOptional<z.ZodNumber>;
-    role: z.ZodEnum<{
-        fleet_commander: "fleet_commander";
-        wing_commander: "wing_commander";
-        squad_commander: "squad_commander";
-        squad_member: "squad_member";
-    }>;
+    role: z.ZodType<(string & {}) | "fleet_commander" | "wing_commander" | "squad_commander" | "squad_member", unknown, z.core.$ZodTypeInternals<(string & {}) | "fleet_commander" | "wing_commander" | "squad_commander" | "squad_member", unknown>>;
     squad_id: z.ZodNumber;
     wing_id: z.ZodNumber;
 }, z.core.$loose>;
@@ -713,10 +673,7 @@ const CharacterInfoSchema: z.ZodObject<{
     ancestry_id: z.ZodOptional<z.ZodNumber>;
     bloodline_id: z.ZodNumber;
     race_id: z.ZodNumber;
-    gender: z.ZodEnum<{
-        male: "male";
-        female: "female";
-    }>;
+    gender: z.ZodType<(string & {}) | "male" | "female", unknown, z.core.$ZodTypeInternals<(string & {}) | "male" | "female", unknown>>;
     security_status: z.ZodOptional<z.ZodNumber>;
     title: z.ZodOptional<z.ZodString>;
     birthday: z.ZodString;
@@ -753,10 +710,7 @@ const CharacterMarketOrderHistorySchema: z.ZodObject<{
     duration: z.ZodNumber;
     issued: z.ZodString;
     range: z.ZodString;
-    state: z.ZodEnum<{
-        cancelled: "cancelled";
-        expired: "expired";
-    }>;
+    state: z.ZodType<(string & {}) | "cancelled" | "expired", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "expired", unknown>>;
     escrow: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
@@ -1885,18 +1839,12 @@ export type CloneInfo = z.infer<typeof CloneInfoSchema>;
 const CloneInfoSchema: z.ZodObject<{
     home_location: z.ZodOptional<z.ZodObject<{
         location_id: z.ZodNumber;
-        location_type: z.ZodEnum<{
-            station: "station";
-            structure: "structure";
-        }>;
+        location_type: z.ZodType<(string & {}) | "station" | "structure", unknown, z.core.$ZodTypeInternals<(string & {}) | "station" | "structure", unknown>>;
     }, z.core.$loose>>;
     jump_clones: z.ZodArray<z.ZodObject<{
         jump_clone_id: z.ZodNumber;
         location_id: z.ZodNumber;
-        location_type: z.ZodEnum<{
-            station: "station";
-            structure: "structure";
-        }>;
+        location_type: z.ZodType<(string & {}) | "station" | "structure", unknown, z.core.$ZodTypeInternals<(string & {}) | "station" | "structure", unknown>>;
         implants: z.ZodArray<z.ZodNumber>;
         name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>;
@@ -2012,12 +1960,7 @@ const ContactNotificationSchema: z.ZodObject<{
 // @public (undocumented)
 const ContactSchema: z.ZodObject<{
     contact_id: z.ZodNumber;
-    contact_type: z.ZodEnum<{
-        faction: "faction";
-        character: "character";
-        corporation: "corporation";
-        alliance: "alliance";
-    }>;
+    contact_type: z.ZodType<(string & {}) | "faction" | "character" | "corporation" | "alliance", unknown, z.core.$ZodTypeInternals<(string & {}) | "faction" | "character" | "corporation" | "alliance", unknown>>;
     standing: z.ZodNumber;
     label_ids: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
     is_blocked: z.ZodOptional<z.ZodBoolean>;
@@ -2064,10 +2007,7 @@ const ContainerLogSchema: z.ZodObject<{
     location_id: z.ZodNumber;
     location_flag: z.ZodString;
     action: z.ZodString;
-    password_type: z.ZodOptional<z.ZodEnum<{
-        config: "config";
-        general: "general";
-    }>>;
+    password_type: z.ZodOptional<z.ZodType<(string & {}) | "config" | "general", unknown, z.core.$ZodTypeInternals<(string & {}) | "config" | "general", unknown>>>;
     type_id: z.ZodOptional<z.ZodNumber>;
     quantity: z.ZodOptional<z.ZodNumber>;
     old_config_bitmask: z.ZodOptional<z.ZodNumber>;
@@ -2114,33 +2054,11 @@ const ContractSchema: z.ZodObject<{
     acceptor_id: z.ZodOptional<z.ZodNumber>;
     start_location_id: z.ZodOptional<z.ZodNumber>;
     end_location_id: z.ZodOptional<z.ZodNumber>;
-    type: z.ZodEnum<{
-        unknown: "unknown";
-        item_exchange: "item_exchange";
-        auction: "auction";
-        courier: "courier";
-        loan: "loan";
-    }>;
-    status: z.ZodOptional<z.ZodEnum<{
-        cancelled: "cancelled";
-        outstanding: "outstanding";
-        in_progress: "in_progress";
-        finished_issuer: "finished_issuer";
-        finished_contractor: "finished_contractor";
-        finished: "finished";
-        rejected: "rejected";
-        failed: "failed";
-        deleted: "deleted";
-        reversed: "reversed";
-    }>>;
+    type: z.ZodType<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown, z.core.$ZodTypeInternals<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown>>;
+    status: z.ZodOptional<z.ZodType<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown>>>;
     title: z.ZodOptional<z.ZodString>;
     for_corporation: z.ZodOptional<z.ZodBoolean>;
-    availability: z.ZodOptional<z.ZodEnum<{
-        corporation: "corporation";
-        alliance: "alliance";
-        public: "public";
-        personal: "personal";
-    }>>;
+    availability: z.ZodOptional<z.ZodType<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown, z.core.$ZodTypeInternals<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown>>>;
     date_issued: z.ZodString;
     date_expired: z.ZodString;
     date_accepted: z.ZodOptional<z.ZodString>;
@@ -2400,10 +2318,7 @@ const CorporationIssuedMedalSchema: z.ZodObject<{
     issued_at: z.ZodString;
     issuer_id: z.ZodNumber;
     reason: z.ZodString;
-    status: z.ZodEnum<{
-        private: "private";
-        public: "public";
-    }>;
+    status: z.ZodType<(string & {}) | "private" | "public", unknown, z.core.$ZodTypeInternals<(string & {}) | "private" | "public", unknown>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -2428,10 +2343,7 @@ const CorporationMarketOrderHistorySchema: z.ZodObject<{
     duration: z.ZodNumber;
     issued: z.ZodString;
     range: z.ZodString;
-    state: z.ZodEnum<{
-        cancelled: "cancelled";
-        expired: "expired";
-    }>;
+    state: z.ZodType<(string & {}) | "cancelled" | "expired", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "expired", unknown>>;
     escrow: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
@@ -3409,10 +3321,7 @@ export type CorporationShareholder = z.infer<typeof CorporationShareholderSchema
 // @public (undocumented)
 const CorporationShareholderSchema: z.ZodObject<{
     shareholder_id: z.ZodNumber;
-    shareholder_type: z.ZodEnum<{
-        character: "character";
-        corporation: "corporation";
-    }>;
+    shareholder_type: z.ZodType<(string & {}) | "character" | "corporation", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation", unknown>>;
     share_count: z.ZodNumber;
 }, z.core.$loose>;
 
@@ -3515,13 +3424,7 @@ export type CorporationStarbaseDetail = z.infer<typeof CorporationStarbaseDetail
 
 // @public (undocumented)
 const CorporationStarbaseDetailSchema: z.ZodObject<{
-    state: z.ZodEnum<{
-        offline: "offline";
-        online: "online";
-        onlining: "onlining";
-        reinforced: "reinforced";
-        unanchoring: "unanchoring";
-    }>;
+    state: z.ZodType<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown>>;
     fuels: z.ZodOptional<z.ZodArray<z.ZodObject<{
         type_id: z.ZodNumber;
         quantity: z.ZodNumber;
@@ -3546,13 +3449,7 @@ const CorporationStarbaseSchema: z.ZodObject<{
     starbase_id: z.ZodNumber;
     type_id: z.ZodNumber;
     system_id: z.ZodNumber;
-    state: z.ZodEnum<{
-        offline: "offline";
-        online: "online";
-        onlining: "onlining";
-        reinforced: "reinforced";
-        unanchoring: "unanchoring";
-    }>;
+    state: z.ZodType<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown>>;
     moon_id: z.ZodOptional<z.ZodNumber>;
     onlined_since: z.ZodOptional<z.ZodString>;
     reinforced_until: z.ZodOptional<z.ZodString>;
@@ -3571,11 +3468,7 @@ const CorporationStructureSchema: z.ZodObject<{
     profile_id: z.ZodNumber;
     services: z.ZodOptional<z.ZodArray<z.ZodObject<{
         name: z.ZodString;
-        state: z.ZodEnum<{
-            offline: "offline";
-            online: "online";
-            cleanup: "cleanup";
-        }>;
+        state: z.ZodType<(string & {}) | "offline" | "online" | "cleanup", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "cleanup", unknown>>;
     }, z.core.$loose>>>;
     fuel_expires: z.ZodOptional<z.ZodString>;
     name: z.ZodOptional<z.ZodString>;
@@ -4097,6 +3990,8 @@ export interface EsiClientConfig {
     // (undocumented)
     clientId?: string;
     // (undocumented)
+    compatibilityDate?: string;
+    // (undocumented)
     datasource?: EsiDatasource;
     // (undocumented)
     enableCircuitBreaker?: boolean;
@@ -4165,6 +4060,9 @@ export class EsiDiagnostics {
 
 // @public (undocumented)
 export const esiEndpointScopes: Record<string, EsiScope[]>;
+
+// @public (undocumented)
+function esiEnum<const T extends readonly [string, ...string[]]>(values: T): z.ZodType<T[number] | (string & {})>;
 
 // @public (undocumented)
 export class EsiError extends Error {
@@ -4947,12 +4845,7 @@ const FactionWarfareSystemSchema: z.ZodObject<{
     solar_system_id: z.ZodNumber;
     owner_faction_id: z.ZodNumber;
     occupier_faction_id: z.ZodNumber;
-    contested: z.ZodEnum<{
-        contested: "contested";
-        captured: "captured";
-        uncontested: "uncontested";
-        vulnerable: "vulnerable";
-    }>;
+    contested: z.ZodType<(string & {}) | "contested" | "captured" | "uncontested" | "vulnerable", unknown, z.core.$ZodTypeInternals<(string & {}) | "contested" | "captured" | "uncontested" | "vulnerable", unknown>>;
     victory_points: z.ZodNumber;
     victory_points_threshold: z.ZodNumber;
 }, z.core.$loose>;
@@ -5061,12 +4954,7 @@ const FleetMemberSchema: z.ZodObject<{
     ship_type_id: z.ZodNumber;
     wing_id: z.ZodNumber;
     squad_id: z.ZodNumber;
-    role: z.ZodEnum<{
-        fleet_commander: "fleet_commander";
-        wing_commander: "wing_commander";
-        squad_commander: "squad_commander";
-        squad_member: "squad_member";
-    }>;
+    role: z.ZodType<(string & {}) | "fleet_commander" | "wing_commander" | "squad_commander" | "squad_member", unknown, z.core.$ZodTypeInternals<(string & {}) | "fleet_commander" | "wing_commander" | "squad_commander" | "squad_member", unknown>>;
     role_name: z.ZodString;
     join_time: z.ZodString;
     takes_fleet_warp: z.ZodBoolean;
@@ -5612,11 +5500,7 @@ export type Incursion = z.infer<typeof IncursionSchema>;
 // @public (undocumented)
 const IncursionSchema: z.ZodObject<{
     type: z.ZodString;
-    state: z.ZodEnum<{
-        withdrawing: "withdrawing";
-        mobilizing: "mobilizing";
-        established: "established";
-    }>;
+    state: z.ZodType<(string & {}) | "withdrawing" | "mobilizing" | "established", unknown, z.core.$ZodTypeInternals<(string & {}) | "withdrawing" | "mobilizing" | "established", unknown>>;
     staging_solar_system_id: z.ZodNumber;
     constellation_id: z.ZodNumber;
     infested_solar_systems: z.ZodArray<z.ZodNumber>;
@@ -5732,14 +5616,7 @@ const IndustryJobSchema: z.ZodObject<{
     licensed_runs: z.ZodOptional<z.ZodNumber>;
     probability: z.ZodOptional<z.ZodNumber>;
     product_type_id: z.ZodOptional<z.ZodNumber>;
-    status: z.ZodEnum<{
-        cancelled: "cancelled";
-        active: "active";
-        delivered: "delivered";
-        paused: "paused";
-        ready: "ready";
-        reverted: "reverted";
-    }>;
+    status: z.ZodType<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown>>;
     duration: z.ZodNumber;
     start_date: z.ZodString;
     end_date: z.ZodString;
@@ -6168,12 +6045,7 @@ const MailMessageSchema: z.ZodObject<{
     body: z.ZodOptional<z.ZodString>;
     recipients: z.ZodOptional<z.ZodArray<z.ZodObject<{
         recipient_id: z.ZodNumber;
-        recipient_type: z.ZodEnum<{
-            character: "character";
-            corporation: "corporation";
-            alliance: "alliance";
-            mailing_list: "mailing_list";
-        }>;
+        recipient_type: z.ZodType<(string & {}) | "character" | "corporation" | "alliance" | "mailing_list", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation" | "alliance" | "mailing_list", unknown>>;
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
@@ -6367,10 +6239,7 @@ const MedalSchema: z.ZodObject<{
     issuer_id: z.ZodNumber;
     corporation_id: z.ZodNumber;
     reason: z.ZodString;
-    status: z.ZodEnum<{
-        private: "private";
-        public: "public";
-    }>;
+    status: z.ZodType<(string & {}) | "private" | "public", unknown, z.core.$ZodTypeInternals<(string & {}) | "private" | "public", unknown>>;
     graphics: z.ZodArray<z.ZodObject<{
         part: z.ZodNumber;
         layer: z.ZodNumber;
@@ -6411,12 +6280,7 @@ const MercenaryTacticalOperationSchema: z.ZodObject<{
     den_id: z.ZodNumber;
     system_id: z.ZodNumber;
     site_type: z.ZodString;
-    status: z.ZodEnum<{
-        expired: "expired";
-        active: "active";
-        spawning: "spawning";
-        completed: "completed";
-    }>;
+    status: z.ZodType<(string & {}) | "expired" | "active" | "spawning" | "completed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "active" | "spawning" | "completed", unknown>>;
     started_at: z.ZodOptional<z.ZodString>;
     expires_at: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
@@ -6612,17 +6476,7 @@ export type NameAndCategory = z.infer<typeof NameAndCategorySchema>;
 const NameAndCategorySchema: z.ZodObject<{
     id: z.ZodNumber;
     name: z.ZodString;
-    category: z.ZodEnum<{
-        faction: "faction";
-        character: "character";
-        corporation: "corporation";
-        alliance: "alliance";
-        constellation: "constellation";
-        inventory_type: "inventory_type";
-        region: "region";
-        solar_system: "solar_system";
-        station: "station";
-    }>;
+    category: z.ZodType<(string & {}) | "faction" | "character" | "corporation" | "alliance" | "constellation" | "inventory_type" | "region" | "solar_system" | "station", unknown, z.core.$ZodTypeInternals<(string & {}) | "faction" | "character" | "corporation" | "alliance" | "constellation" | "inventory_type" | "region" | "solar_system" | "station", unknown>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -6634,13 +6488,7 @@ const NotificationSchema: z.ZodObject<{
     notification_id: z.ZodNumber;
     type: z.ZodString;
     sender_id: z.ZodNumber;
-    sender_type: z.ZodEnum<{
-        faction: "faction";
-        character: "character";
-        corporation: "corporation";
-        alliance: "alliance";
-        other: "other";
-    }>;
+    sender_type: z.ZodType<(string & {}) | "faction" | "character" | "corporation" | "alliance" | "other", unknown, z.core.$ZodTypeInternals<(string & {}) | "faction" | "character" | "corporation" | "alliance" | "other", unknown>>;
     timestamp: z.ZodString;
     text: z.ZodOptional<z.ZodString>;
     is_read: z.ZodOptional<z.ZodBoolean>;
@@ -6695,16 +6543,7 @@ export type PlanetaryColony = z.infer<typeof PlanetaryColonySchema>;
 const PlanetaryColonySchema: z.ZodObject<{
     solar_system_id: z.ZodNumber;
     planet_id: z.ZodNumber;
-    planet_type: z.ZodEnum<{
-        temperate: "temperate";
-        barren: "barren";
-        oceanic: "oceanic";
-        ice: "ice";
-        gas: "gas";
-        lava: "lava";
-        storm: "storm";
-        plasma: "plasma";
-    }>;
+    planet_type: z.ZodType<(string & {}) | "temperate" | "barren" | "oceanic" | "ice" | "gas" | "lava" | "storm" | "plasma", unknown, z.core.$ZodTypeInternals<(string & {}) | "temperate" | "barren" | "oceanic" | "ice" | "gas" | "lava" | "storm" | "plasma", unknown>>;
     owner_id: z.ZodNumber;
     last_update: z.ZodString;
     upgrade_level: z.ZodNumber;
@@ -6977,6 +6816,7 @@ export function sanitizeUrl(url?: string): string | undefined;
 
 declare namespace schemas {
     export {
+        esiEnum,
         esiResponse,
         StandingSchema,
         RateLimitMetaSchema,
@@ -7246,12 +7086,7 @@ const SovereigntyCampaignSchema: z.ZodObject<{
     structure_id: z.ZodNumber;
     solar_system_id: z.ZodNumber;
     constellation_id: z.ZodNumber;
-    event_type: z.ZodEnum<{
-        tcu_defense: "tcu_defense";
-        ihub_defense: "ihub_defense";
-        station_defense: "station_defense";
-        station_freeport: "station_freeport";
-    }>;
+    event_type: z.ZodType<(string & {}) | "tcu_defense" | "ihub_defense" | "station_defense" | "station_freeport", unknown, z.core.$ZodTypeInternals<(string & {}) | "tcu_defense" | "ihub_defense" | "station_defense" | "station_freeport", unknown>>;
     start_time: z.ZodString;
     defender_id: z.ZodOptional<z.ZodNumber>;
     defender_score: z.ZodOptional<z.ZodNumber>;
@@ -7397,11 +7232,7 @@ export type Standing = z.infer<typeof StandingSchema>;
 // @public (undocumented)
 const StandingSchema: z.ZodObject<{
     from_id: z.ZodNumber;
-    from_type: z.ZodEnum<{
-        agent: "agent";
-        npc_corp: "npc_corp";
-        faction: "faction";
-    }>;
+    from_type: z.ZodType<(string & {}) | "agent" | "npc_corp" | "faction", unknown, z.core.$ZodTypeInternals<(string & {}) | "agent" | "npc_corp" | "faction", unknown>>;
     standing: z.ZodNumber;
 }, z.core.$loose>;
 

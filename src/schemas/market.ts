@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 /** Region market order (`GET /markets/{region_id}/orders/`). */
 export const MarketOrderSchema = z.looseObject({
@@ -49,7 +50,7 @@ export const CharacterMarketOrderHistorySchema = z.looseObject({
   duration: z.number(),
   issued: z.string(),
   range: z.string(),
-  state: z.enum(['cancelled', 'expired']),
+  state: esiEnum(['cancelled', 'expired']),
   escrow: z.number().optional(),
 });
 
@@ -88,7 +89,7 @@ export const CorporationMarketOrderHistorySchema = z.looseObject({
   duration: z.number(),
   issued: z.string(),
   range: z.string(),
-  state: z.enum(['cancelled', 'expired']),
+  state: esiEnum(['cancelled', 'expired']),
   escrow: z.number().optional(),
 });
 

@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const CharacterAssetSchema = z.looseObject({
   item_id: z.number(),
   type_id: z.number(),
   quantity: z.number(),
   location_id: z.number(),
-  location_type: z.enum(['station', 'solar_system', 'item', 'other']),
+  location_type: esiEnum(['station', 'solar_system', 'item', 'other']),
   location_flag: z.string(),
   is_singleton: z.boolean(),
   is_blueprint_copy: z.boolean().optional(),

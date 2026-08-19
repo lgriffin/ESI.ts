@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const CorporationInfoSchema = z.looseObject({
   corporation_id: z.number().optional(),
@@ -37,7 +38,13 @@ export const CorporationStarbaseSchema = z.looseObject({
   starbase_id: z.number(),
   type_id: z.number(),
   system_id: z.number(),
-  state: z.enum(['offline', 'online', 'onlining', 'reinforced', 'unanchoring']),
+  state: esiEnum([
+    'offline',
+    'online',
+    'onlining',
+    'reinforced',
+    'unanchoring',
+  ]),
   moon_id: z.number().optional(),
   onlined_since: z.string().optional(),
   reinforced_until: z.string().optional(),
@@ -77,7 +84,7 @@ export const CorporationIssuedMedalSchema = z.looseObject({
   issued_at: z.string(),
   issuer_id: z.number(),
   reason: z.string(),
-  status: z.enum(['private', 'public']),
+  status: esiEnum(['private', 'public']),
 });
 
 export const CorporationMemberTitleSchema = z.looseObject({
@@ -119,12 +126,18 @@ export const CorporationRoleHistorySchema = z.looseObject({
 
 export const CorporationShareholderSchema = z.looseObject({
   shareholder_id: z.number(),
-  shareholder_type: z.enum(['character', 'corporation']),
+  shareholder_type: esiEnum(['character', 'corporation']),
   share_count: z.number(),
 });
 
 export const CorporationStarbaseDetailSchema = z.looseObject({
-  state: z.enum(['offline', 'online', 'onlining', 'reinforced', 'unanchoring']),
+  state: esiEnum([
+    'offline',
+    'online',
+    'onlining',
+    'reinforced',
+    'unanchoring',
+  ]),
   fuels: z
     .array(
       z.looseObject({
@@ -158,7 +171,7 @@ export const CorporationStructureSchema = z.looseObject({
     .array(
       z.looseObject({
         name: z.string(),
-        state: z.enum(['online', 'offline', 'cleanup']),
+        state: esiEnum(['online', 'offline', 'cleanup']),
       }),
     )
     .optional(),
@@ -207,7 +220,7 @@ export const ContainerLogSchema = z.looseObject({
   location_id: z.number(),
   location_flag: z.string(),
   action: z.string(),
-  password_type: z.enum(['config', 'general']).optional(),
+  password_type: esiEnum(['config', 'general']).optional(),
   type_id: z.number().optional(),
   quantity: z.number().optional(),
   old_config_bitmask: z.number().optional(),

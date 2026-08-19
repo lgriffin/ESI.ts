@@ -306,30 +306,32 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Schema shall reject invalid enum values', ({ given, when, then }) => {
+  test('Schema shall accept unknown enum values gracefully', ({
+    given,
+    when,
+    then,
+  }) => {
     let parseResult: any;
 
     given('a Zod schema with enum constraints', () => {
-      // AllianceContactSchema has contact_type enum
+      // AllianceContactSchema has contact_type enum via esiEnum()
     });
 
-    when('I validate data with an invalid enum value', () => {
-      const invalidEnumData = {
+    when('I validate data with an unknown enum value', () => {
+      const unknownEnumData = {
         contact_id: 1689391488,
-        contact_type: 'invalid_type',
+        contact_type: 'future_ccp_type',
         standing: 10.0,
       };
-      parseResult = AllianceContactSchema.safeParse(invalidEnumData);
+      parseResult = AllianceContactSchema.safeParse(unknownEnumData);
     });
 
-    then('schema validation shall fail with an enum error', () => {
-      expect(parseResult.success).toBe(false);
-      const enumIssue = parseResult.error.issues.find(
-        (i: any) =>
-          i.path.includes('contact_type') &&
-          (i.code === 'invalid_enum_value' || i.code === 'invalid_value'),
-      );
-      expect(enumIssue).toBeDefined();
-    });
+    then(
+      'schema validation shall succeed with the unknown value preserved',
+      () => {
+        expect(parseResult.success).toBe(true);
+        expect(parseResult.data.contact_type).toBe('future_ccp_type');
+      },
+    );
   });
 });
