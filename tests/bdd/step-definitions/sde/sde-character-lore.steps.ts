@@ -44,9 +44,9 @@ defineFeature(feature, (test) => {
       expect(result!.name).toBe(expectedName);
     });
 
-    and('the faction should have race IDs', () => {
-      expect(result!.raceIds).toBeDefined();
-      expect(result!.raceIds.length).toBeGreaterThanOrEqual(1);
+    and('the faction should have member races', () => {
+      expect(result!.memberRaces).toBeDefined();
+      expect(result!.memberRaces.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -109,16 +109,13 @@ defineFeature(feature, (test) => {
       result = provider.getNpcStation(60003760);
     });
 
-    then(
-      /^the station name should contain "(.*)"$/,
-      (expectedSubstring: string) => {
-        expect(result).not.toBeNull();
-        expect(result!.name).toContain(expectedSubstring);
-      },
-    );
+    then('the station should have an owner', () => {
+      expect(result).not.toBeNull();
+      expect(result!.ownerId).toBeGreaterThan(0);
+    });
 
-    and('the station should have security status greater than 0', () => {
-      expect(result!.security).toBeGreaterThan(0);
+    and('the station should have reprocessing efficiency', () => {
+      expect(result!.reprocessingEfficiency).toBeGreaterThan(0);
     });
   });
 });

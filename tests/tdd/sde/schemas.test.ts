@@ -40,7 +40,6 @@ describe('SDE Zod Schemas', () => {
 
     it('should accept nullable fields as null', () => {
       const data = SdeTestDataFactory.createEveType({
-        mass: null,
         volume: null,
         capacity: null,
         marketGroupId: null,
@@ -48,8 +47,8 @@ describe('SDE Zod Schemas', () => {
         graphicId: null,
       });
       const result = EveTypeSchema.parse(data);
-      expect(result.mass).toBeNull();
       expect(result.volume).toBeNull();
+      expect(result.capacity).toBeNull();
       expect(result.marketGroupId).toBeNull();
     });
 
@@ -114,10 +113,13 @@ describe('SDE Zod Schemas', () => {
       expect(result.name).toBe('The Forge');
     });
 
-    it('should accept null description', () => {
-      const data = SdeTestDataFactory.createRegion({ description: null });
+    it('should preserve extra fields (looseObject)', () => {
+      const data = {
+        ...SdeTestDataFactory.createRegion(),
+        extraField: 'test',
+      };
       const result = RegionSchema.parse(data);
-      expect(result.description).toBeNull();
+      expect((result as Record<string, unknown>).extraField).toBe('test');
     });
 
     it('should reject missing required fields', () => {
@@ -149,12 +151,12 @@ describe('SDE Zod Schemas', () => {
       expect(result.securityStatus).toBeCloseTo(0.946);
     });
 
-    it('should accept null securityClass', () => {
+    it('should accept nullable wormholeClassId', () => {
       const data = SdeTestDataFactory.createSolarSystem({
-        securityClass: null,
+        wormholeClassId: null,
       });
       const result = SolarSystemSchema.parse(data);
-      expect(result.securityClass).toBeNull();
+      expect(result.wormholeClassId).toBeNull();
     });
 
     it('should reject missing required fields', () => {
@@ -167,7 +169,7 @@ describe('SDE Zod Schemas', () => {
       const data = SdeTestDataFactory.createStargate();
       const result = StargateSchema.parse(data);
       expect(result.stargateId).toBe(50001248);
-      expect(result.destinationSystemId).toBe(30000144);
+      expect(result.destination.solarSystemId).toBe(30000144);
     });
 
     it('should reject missing required fields', () => {
@@ -180,8 +182,8 @@ describe('SDE Zod Schemas', () => {
       const data = SdeTestDataFactory.createStar();
       const result = StarSchema.parse(data);
       expect(result.starId).toBe(40009082);
-      expect(result.name).toBe('Jita - Star');
-      expect(result.spectralClass).toBe('K7 V');
+      expect(result.solarSystemId).toBe(30000142);
+      expect(result.statistics.spectralClass).toBe('K7 V');
     });
 
     it('should reject missing required fields', () => {
@@ -194,8 +196,8 @@ describe('SDE Zod Schemas', () => {
       const data = SdeTestDataFactory.createPlanet();
       const result = PlanetSchema.parse(data);
       expect(result.planetId).toBe(40009077);
-      expect(result.name).toBe('Jita I');
       expect(result.celestialIndex).toBe(1);
+      expect(result.solarSystemId).toBe(30000142);
     });
 
     it('should reject missing required fields', () => {
@@ -208,7 +210,7 @@ describe('SDE Zod Schemas', () => {
       const data = SdeTestDataFactory.createMoon();
       const result = MoonSchema.parse(data);
       expect(result.moonId).toBe(40009078);
-      expect(result.name).toBe('Jita I - Moon 1');
+      expect(result.solarSystemId).toBe(30000142);
       expect(result.celestialIndex).toBe(1);
     });
 
@@ -222,7 +224,7 @@ describe('SDE Zod Schemas', () => {
       const data = SdeTestDataFactory.createAsteroidBelt();
       const result = AsteroidBeltSchema.parse(data);
       expect(result.asteroidBeltId).toBe(40009079);
-      expect(result.name).toBe('Jita I - Asteroid Belt 1');
+      expect(result.solarSystemId).toBe(30000142);
       expect(result.celestialIndex).toBe(1);
     });
 
@@ -239,19 +241,16 @@ describe('SDE Zod Schemas', () => {
       const result = FactionSchema.parse(data);
       expect(result.factionId).toBe(500001);
       expect(result.name).toBe('Caldari State');
-      expect(result.raceIds).toEqual([1]);
+      expect(result.memberRaces).toEqual([1]);
     });
 
-    it('should accept nullable fields as null', () => {
-      const data = SdeTestDataFactory.createFaction({
-        solarSystemId: null,
-        corporationId: null,
-        militiaCorporationId: null,
-      });
+    it('should preserve extra fields (looseObject)', () => {
+      const data = {
+        ...SdeTestDataFactory.createFaction(),
+        extraField: 'test',
+      };
       const result = FactionSchema.parse(data);
-      expect(result.solarSystemId).toBeNull();
-      expect(result.corporationId).toBeNull();
-      expect(result.militiaCorporationId).toBeNull();
+      expect((result as Record<string, unknown>).extraField).toBe('test');
     });
 
     it('should reject missing required fields', () => {
@@ -265,12 +264,6 @@ describe('SDE Zod Schemas', () => {
       const result = RaceSchema.parse(data);
       expect(result.raceId).toBe(1);
       expect(result.name).toBe('Caldari');
-    });
-
-    it('should accept nullable fields as null', () => {
-      const data = SdeTestDataFactory.createRace({ iconId: null });
-      const result = RaceSchema.parse(data);
-      expect(result.iconId).toBeNull();
     });
 
     it('should reject missing required fields', () => {
@@ -287,12 +280,6 @@ describe('SDE Zod Schemas', () => {
       expect(result.raceId).toBe(1);
     });
 
-    it('should accept nullable fields as null', () => {
-      const data = SdeTestDataFactory.createBloodline({ iconId: null });
-      const result = BloodlineSchema.parse(data);
-      expect(result.iconId).toBeNull();
-    });
-
     it('should reject missing required fields', () => {
       expect(() => BloodlineSchema.parse({ bloodlineId: 1 })).toThrow();
     });
@@ -304,12 +291,6 @@ describe('SDE Zod Schemas', () => {
       const result = AncestrySchema.parse(data);
       expect(result.ancestryId).toBe(1);
       expect(result.name).toBe('Tube Child');
-    });
-
-    it('should accept nullable fields as null', () => {
-      const data = SdeTestDataFactory.createAncestry({ iconId: null });
-      const result = AncestrySchema.parse(data);
-      expect(result.iconId).toBeNull();
     });
 
     it('should reject missing required fields', () => {
@@ -329,14 +310,12 @@ describe('SDE Zod Schemas', () => {
       const data = SdeTestDataFactory.createNpcCorporation({
         factionId: null,
         solarSystemId: null,
-        stationId: null,
         iconId: null,
         raceId: null,
       });
       const result = NpcCorporationSchema.parse(data);
       expect(result.factionId).toBeNull();
       expect(result.solarSystemId).toBeNull();
-      expect(result.stationId).toBeNull();
       expect(result.iconId).toBeNull();
       expect(result.raceId).toBeNull();
     });
@@ -353,9 +332,7 @@ describe('SDE Zod Schemas', () => {
       const data = SdeTestDataFactory.createNpcStation();
       const result = NpcStationSchema.parse(data);
       expect(result.stationId).toBe(60003760);
-      expect(result.name).toBe(
-        'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
-      );
+      expect(result.ownerId).toBe(1000035);
     });
 
     it('should reject missing required fields', () => {
@@ -374,11 +351,9 @@ describe('SDE Zod Schemas', () => {
     it('should accept nullable fields as null', () => {
       const data = SdeTestDataFactory.createMarketGroup({
         parentGroupId: null,
-        iconId: null,
       });
       const result = MarketGroupSchema.parse(data);
       expect(result.parentGroupId).toBeNull();
-      expect(result.iconId).toBeNull();
     });
 
     it('should handle boolean fields', () => {
@@ -461,14 +436,14 @@ describe('SDE Zod Schemas', () => {
 
     it('should accept nullable fields as null', () => {
       const data = SdeTestDataFactory.createDogmaAttribute({
-        categoryId: null,
         unitId: null,
         iconId: null,
+        displayName: null,
       });
       const result = DogmaAttributeSchema.parse(data);
-      expect(result.categoryId).toBeNull();
       expect(result.unitId).toBeNull();
       expect(result.iconId).toBeNull();
+      expect(result.displayName).toBeNull();
     });
 
     it('should handle boolean fields', () => {
@@ -498,17 +473,14 @@ describe('SDE Zod Schemas', () => {
 
     it('should accept nullable fields as null', () => {
       const data = SdeTestDataFactory.createDogmaEffect({
-        categoryId: null,
         iconId: null,
-        dischargeAttributeId: null,
-        durationAttributeId: null,
         falloffAttributeId: null,
         rangeAttributeId: null,
         trackingSpeedAttributeId: null,
       });
       const result = DogmaEffectSchema.parse(data);
-      expect(result.categoryId).toBeNull();
       expect(result.iconId).toBeNull();
+      expect(result.falloffAttributeId).toBeNull();
     });
 
     it('should handle boolean fields', () => {
@@ -535,24 +507,18 @@ describe('SDE Zod Schemas', () => {
       const data = SdeTestDataFactory.createBlueprint();
       const result = BlueprintSchema.parse(data);
       expect(result.blueprintTypeId).toBe(787);
-      expect(result.manufacturing).not.toBeNull();
-      expect(result.manufacturing!.time).toBe(6000);
-      expect(result.manufacturing!.materials).toHaveLength(2);
-      expect(result.manufacturing!.products).toHaveLength(1);
+      expect(result.activities.manufacturing).toBeDefined();
+      expect(result.activities.manufacturing!.time).toBe(6000);
+      expect(result.activities.manufacturing!.materials).toHaveLength(2);
+      expect(result.activities.manufacturing!.products).toHaveLength(1);
     });
 
-    it('should accept nullable fields as null', () => {
+    it('should accept activities with optional fields', () => {
       const data = SdeTestDataFactory.createBlueprint({
-        manufacturing: null,
-        research: null,
-        copying: null,
-        invention: null,
+        activities: {},
       });
       const result = BlueprintSchema.parse(data);
-      expect(result.manufacturing).toBeNull();
-      expect(result.research).toBeNull();
-      expect(result.copying).toBeNull();
-      expect(result.invention).toBeNull();
+      expect(result.activities.manufacturing).toBeUndefined();
     });
 
     it('should reject missing required fields', () => {
@@ -567,14 +533,6 @@ describe('SDE Zod Schemas', () => {
       expect(result.planetSchematicId).toBe(65);
       expect(result.name).toBe('Bacteria');
       expect(result.cycleTime).toBe(1800);
-      expect(result.types).toHaveLength(2);
-    });
-
-    it('should handle boolean fields in types', () => {
-      const data = SdeTestDataFactory.createPlanetSchematic();
-      const result = PlanetSchematicSchema.parse(data);
-      expect(result.types[0]!.isInput).toBe(true);
-      expect(result.types[1]!.isInput).toBe(false);
     });
 
     it('should reject missing required fields', () => {

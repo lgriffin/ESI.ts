@@ -79,40 +79,45 @@ export class SdeDatabaseBuilder {
       const parsed = fileMap.get(spec.yamlFile);
       if (!parsed || parsed.records.size === 0) continue;
 
-      const sampleRecord = parsed.records.values().next().value as Record<
-        string,
-        unknown
-      >;
-      const transformed = transformRecord(
-        parsed.records.keys().next().value as number | string,
-        sampleRecord,
-        spec,
-      );
+      const mergedColumns = new Map<string, string>();
+      const sampleCount = Math.min(parsed.records.size, 50);
+      let i = 0;
+      for (const [entityId, raw] of parsed.records) {
+        if (i++ >= sampleCount) break;
+        const transformed = transformRecord(entityId, raw, spec);
+        for (const [col, val] of Object.entries(transformed)) {
+          if (!mergedColumns.has(col)) {
+            mergedColumns.set(
+              col,
+              typeof val === 'number'
+                ? Number.isInteger(val)
+                  ? 'INTEGER'
+                  : 'REAL'
+                : 'TEXT',
+            );
+          }
+        }
+      }
 
-      tableSql.push(this.generateCreateTable(spec, transformed));
+      tableSql.push(this.generateCreateTableFromColumns(spec, mergedColumns));
     }
 
     db.exec(tableSql.join('\n'));
   }
 
-  private generateCreateTable(
+  private generateCreateTableFromColumns(
     spec: SdeFileSpec,
-    sampleRow: Record<string, string | number | null>,
+    columnTypes: Map<string, string>,
   ): string {
     const columns: string[] = [];
     const pkType = spec.idType === 'string' ? 'TEXT' : 'INTEGER';
 
-    for (const [col, val] of Object.entries(sampleRow)) {
+    for (const [col, sqlType] of columnTypes) {
+      const qcol = /^\d/.test(col) ? `"${col}"` : col;
       if (col === spec.idAttribute) {
-        columns.push(`  ${col} ${pkType} PRIMARY KEY`);
-      } else if (typeof val === 'number') {
-        if (Number.isInteger(val)) {
-          columns.push(`  ${col} INTEGER`);
-        } else {
-          columns.push(`  ${col} REAL`);
-        }
+        columns.push(`  ${qcol} ${pkType} PRIMARY KEY`);
       } else {
-        columns.push(`  ${col} TEXT`);
+        columns.push(`  ${qcol} ${sqlType}`);
       }
     }
 
@@ -148,11 +153,19 @@ export class SdeDatabaseBuilder {
     const entries = Array.from(parsed.records.entries());
     if (entries.length === 0) return;
 
-    const [firstId, firstRaw] = entries[0]!;
-    const firstRow = transformRecord(firstId, firstRaw, spec);
-    const columns = Object.keys(firstRow);
+    const allColumns = new Set<string>();
+    const sampleCount = Math.min(entries.length, 50);
+    for (let i = 0; i < sampleCount; i++) {
+      const [id, raw] = entries[i]!;
+      const row = transformRecord(id, raw, spec);
+      for (const col of Object.keys(row)) {
+        allColumns.add(col);
+      }
+    }
+    const columns = Array.from(allColumns);
+    const quotedColumns = columns.map((c) => (/^\d/.test(c) ? `"${c}"` : c));
     const placeholders = columns.map(() => '?').join(', ');
-    const sql = `INSERT OR REPLACE INTO ${spec.tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
+    const sql = `INSERT OR REPLACE INTO ${spec.tableName} (${quotedColumns.join(', ')}) VALUES (${placeholders})`;
 
     let stmt: StatementLike;
     try {

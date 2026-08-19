@@ -38,15 +38,15 @@ defineFeature(feature, (test) => {
       result = provider.getStarBySystem(30000142);
     });
 
-    then(/^the star name should be "(.*)"$/, (expectedName: string) => {
+    then('the star should have a type ID', () => {
       expect(result).not.toBeNull();
-      expect(result!.name).toBe(expectedName);
+      expect(result!.typeId).toBeGreaterThan(0);
     });
 
     and(
       /^the star should have spectral class "(.*)"$/,
       (expectedClass: string) => {
-        expect(result!.spectralClass).toBe(expectedClass);
+        expect(result!.statistics.spectralClass).toBe(expectedClass);
       },
     );
   });
@@ -80,7 +80,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up moons for a planet, the provider shall return moons', ({
+  test('WHEN looking up moons for a system, the provider shall return moons', ({
     given,
     when,
     then,
@@ -94,16 +94,18 @@ defineFeature(feature, (test) => {
       );
     });
 
-    when('I look up moons for planet 40009077', () => {
-      results = provider.getMoonsByPlanet(40009077);
+    when('I look up moons for system 30000142', () => {
+      results = provider.getMoonsBySystem(30000142);
     });
 
     then('the result should contain at least 1 moon', () => {
       expect(results.length).toBeGreaterThanOrEqual(1);
     });
 
-    and(/^the first moon name should be "(.*)"$/, (expectedName: string) => {
-      expect(results[0]!.name).toBe(expectedName);
+    and('each moon should belong to system 30000142', () => {
+      for (const moon of results) {
+        expect(moon.solarSystemId).toBe(30000142);
+      }
     });
   });
 

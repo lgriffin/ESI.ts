@@ -192,8 +192,8 @@ defineFeature(feature, (test) => {
       'the provider shall return at least one stargate with a destination',
       () => {
         expect(stargates.length).toBeGreaterThanOrEqual(1);
-        expect(stargates[0]!.destinationSystemId).toBeDefined();
-        expect(stargates[0]!.destinationStargateId).toBeDefined();
+        expect(stargates[0]!.destination.solarSystemId).toBeDefined();
+        expect(stargates[0]!.destination.stargateId).toBeDefined();
       },
     );
   });

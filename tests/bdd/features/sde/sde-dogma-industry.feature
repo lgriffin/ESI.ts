@@ -9,7 +9,7 @@ Feature: Dogma and Industry Data
   Scenario: WHEN looking up a blueprint, the provider shall return manufacturing data
     Given a static data provider with hierarchical test data
     When I look up blueprint 787
-    Then the blueprint should have manufacturing data
+    Then the blueprint should have manufacturing activity
     And the manufacturing should have materials
     And the manufacturing time should be 6000
 
@@ -17,4 +17,4 @@ Feature: Dogma and Industry Data
     Given a static data provider with hierarchical test data
     When I look up planet schematic 65
     Then the schematic name should be "Bacteria"
-    And the schematic should have input and output types
+    And the schematic cycle time should be 1800

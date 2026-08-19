@@ -65,17 +65,19 @@ defineFeature(feature, (test) => {
       result = provider.getBlueprint(787);
     });
 
-    then('the blueprint should have manufacturing data', () => {
+    then('the blueprint should have manufacturing activity', () => {
       expect(result).not.toBeNull();
-      expect(result!.manufacturing).not.toBeNull();
+      expect(result!.activities.manufacturing).toBeDefined();
     });
 
     and('the manufacturing should have materials', () => {
-      expect(result!.manufacturing!.materials.length).toBeGreaterThanOrEqual(1);
+      const mfg = result!.activities.manufacturing;
+      expect(mfg).toBeDefined();
+      expect(mfg!.materials!.length).toBeGreaterThanOrEqual(1);
     });
 
     and('the manufacturing time should be 6000', () => {
-      expect(result!.manufacturing!.time).toBe(6000);
+      expect(result!.activities.manufacturing!.time).toBe(6000);
     });
   });
 
@@ -102,11 +104,8 @@ defineFeature(feature, (test) => {
       expect(result!.name).toBe(expectedName);
     });
 
-    and('the schematic should have input and output types', () => {
-      const inputs = result!.types.filter((t) => t.isInput);
-      const outputs = result!.types.filter((t) => !t.isInput);
-      expect(inputs.length).toBeGreaterThanOrEqual(1);
-      expect(outputs.length).toBeGreaterThanOrEqual(1);
+    and('the schematic cycle time should be 1800', () => {
+      expect(result!.cycleTime).toBe(1800);
     });
   });
 });

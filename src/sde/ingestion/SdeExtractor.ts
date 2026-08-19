@@ -79,6 +79,11 @@ export class SdeExtractor {
     return results;
   }
 
+  extractAll(zipPath: string, outputDir: string): void {
+    const zip = new AdmZip(zipPath);
+    zip.extractAllTo(outputDir, true);
+  }
+
   listFiles(zipPath: string): string[] {
     const zip = new AdmZip(zipPath);
     return zip

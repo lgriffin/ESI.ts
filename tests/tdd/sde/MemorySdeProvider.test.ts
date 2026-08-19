@@ -50,7 +50,7 @@ describe('MemorySdeProvider', () => {
       expect(provider.getSolarSystemsByConstellation(20000020)).toEqual([]);
       expect(provider.getStargatesBySystem(30000142)).toEqual([]);
       expect(provider.getPlanetsBySystem(30000142)).toEqual([]);
-      expect(provider.getMoonsByPlanet(40009077)).toEqual([]);
+      expect(provider.getMoonsBySystem(30000142)).toEqual([]);
       expect(provider.getAsteroidBeltsBySystem(30000142)).toEqual([]);
       expect(provider.getAllFactions()).toEqual([]);
       expect(provider.getAllRaces()).toEqual([]);
@@ -58,7 +58,7 @@ describe('MemorySdeProvider', () => {
       expect(provider.getAncestriesByBloodline(1)).toEqual([]);
       expect(provider.getNpcCorporationsByFaction(500001)).toEqual([]);
       expect(provider.getNpcStationsBySystem(30000142)).toEqual([]);
-      expect(provider.getNpcStationsByCorporation(1000035)).toEqual([]);
+      expect(provider.getNpcStationsByOwner(1000035)).toEqual([]);
       expect(provider.getMarketGroupsByParent(1031)).toEqual([]);
       expect(provider.getRootMarketGroups()).toEqual([]);
       expect(provider.getTypesByMarketGroup(1857)).toEqual([]);
@@ -70,7 +70,6 @@ describe('MemorySdeProvider', () => {
       const provider = new MemorySdeProvider();
       expect(provider.searchTypesByName('Trit')).toEqual([]);
       expect(provider.searchSolarSystemsByName('Jita')).toEqual([]);
-      expect(provider.searchNpcStationsByName('Jita')).toEqual([]);
       expect(provider.searchMarketGroupsByName('Minerals')).toEqual([]);
       expect(provider.searchDogmaAttributesByName('hp')).toEqual([]);
       expect(provider.searchDogmaEffectsByName('low')).toEqual([]);

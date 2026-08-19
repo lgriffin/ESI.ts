@@ -33,16 +33,22 @@ export class SdeTestDataFactory {
     return {
       typeId: 34,
       groupId: 18,
+      mass: 1,
       name: 'Tritanium',
-      description: 'The most common mineral in the known universe.',
-      mass: 1.0,
-      volume: 0.01,
-      capacity: 0,
       portionSize: 1,
       published: true,
-      marketGroupId: 1857,
-      iconId: null,
+      packagedVolume: null,
+      volume: 0.01,
+      radius: null,
+      description: 'The most common mineral in the known universe.',
       graphicId: 20,
+      soundId: null,
+      iconId: null,
+      raceId: null,
+      basePrice: 4,
+      marketGroupId: 1857,
+      capacity: null,
+      isRepackable: null,
       ...overrides,
     };
   }
@@ -50,9 +56,14 @@ export class SdeTestDataFactory {
   static createEveGroup(overrides: Partial<EveGroup> = {}): EveGroup {
     return {
       groupId: 18,
+      anchorable: false,
+      anchored: false,
       categoryId: 4,
+      fittableNonSingleton: false,
       name: 'Mineral',
       published: true,
+      useBasePrice: true,
+      iconId: null,
       ...overrides,
     };
   }
@@ -62,6 +73,7 @@ export class SdeTestDataFactory {
       categoryId: 4,
       name: 'Material',
       published: true,
+      iconId: null,
       ...overrides,
     };
   }
@@ -69,8 +81,13 @@ export class SdeTestDataFactory {
   static createRegion(overrides: Partial<Region> = {}): Region {
     return {
       regionId: 10000002,
-      name: 'The Forge',
+      constellationIDs: [20000020],
       description: 'The Forge is the industrial heart of the Caldari State.',
+      factionId: 500001,
+      name: 'The Forge',
+      nebulaId: 10,
+      position: { x: -9.6e16, y: 6.0e16, z: -1.1e17 },
+      wormholeClassId: 0,
       ...overrides,
     };
   }
@@ -80,8 +97,12 @@ export class SdeTestDataFactory {
   ): Constellation {
     return {
       constellationId: 20000020,
-      regionId: 10000002,
+      factionId: 500001,
       name: 'Kimotoro',
+      position: { x: -9.7e16, y: 6.1e16, z: -1.15e17 },
+      regionId: 10000002,
+      solarSystemIDs: [30000142, 30000144],
+      wormholeClassId: 0,
       ...overrides,
     };
   }
@@ -89,11 +110,26 @@ export class SdeTestDataFactory {
   static createSolarSystem(overrides: Partial<SolarSystem> = {}): SolarSystem {
     return {
       systemId: 30000142,
+      border: false,
       constellationId: 20000020,
-      regionId: 10000002,
+      hub: true,
+      international: false,
+      luminosity: 0.02142,
       name: 'Jita',
-      securityStatus: 0.9459991455078125,
+      planetIDs: [40009077],
+      position: { x: -1.29e17, y: 6.07e16, z: -1.12e17 },
+      position2D: { x: -1.29e17, y: -1.12e17 },
+      radius: 4.67e12,
+      regionId: 10000002,
+      regional: false,
       securityClass: 'B',
+      securityStatus: 0.9459991455078125,
+      starId: 40009082,
+      stargateIDs: [50001248],
+      corridor: null,
+      fringe: null,
+      wormholeClassId: null,
+      visualEffect: null,
       ...overrides,
     };
   }
@@ -101,10 +137,10 @@ export class SdeTestDataFactory {
   static createStargate(overrides: Partial<Stargate> = {}): Stargate {
     return {
       stargateId: 50001248,
-      systemId: 30000142,
+      destination: { solarSystemId: 30000144, stargateId: 50001249 },
+      position: { x: 1.5e12, y: 3.2e11, z: -8.7e11 },
+      solarSystemId: 30000142,
       typeId: 16,
-      destinationStargateId: 50001249,
-      destinationSystemId: 30000144,
       ...overrides,
     };
   }
@@ -112,14 +148,17 @@ export class SdeTestDataFactory {
   static createStar(overrides: Partial<Star> = {}): Star {
     return {
       starId: 40009082,
-      solarSystemId: 30000142,
-      name: 'Jita - Star',
-      typeId: 3796,
-      age: 76000000000,
-      luminosity: 0.02142,
       radius: 346600000,
-      spectralClass: 'K7 V',
-      temperature: 4000,
+      solarSystemId: 30000142,
+      statistics: {
+        age: 76000000000,
+        life: 100000000000,
+        luminosity: 0.02142,
+        locked: false,
+        spectralClass: 'K7 V',
+        temperature: 4000,
+      },
+      typeId: 3796,
       ...overrides,
     };
   }
@@ -127,10 +166,17 @@ export class SdeTestDataFactory {
   static createPlanet(overrides: Partial<Planet> = {}): Planet {
     return {
       planetId: 40009077,
-      solarSystemId: 30000142,
-      name: 'Jita I',
-      typeId: 2015,
+      asteroidBeltIDs: [40009079],
+      attributes: {},
       celestialIndex: 1,
+      moonIDs: [40009078],
+      orbitId: 40009082,
+      position: { x: 1.2e13, y: 1e11, z: -3.5e12 },
+      radius: 2330000,
+      solarSystemId: 30000142,
+      statistics: {},
+      typeId: 2015,
+      npcStationIDs: null,
       ...overrides,
     };
   }
@@ -138,10 +184,16 @@ export class SdeTestDataFactory {
   static createMoon(overrides: Partial<Moon> = {}): Moon {
     return {
       moonId: 40009078,
-      planetId: 40009077,
-      name: 'Jita I - Moon 1',
-      typeId: 14,
+      attributes: {},
       celestialIndex: 1,
+      orbitId: 40009077,
+      orbitIndex: 1,
+      position: { x: 1.21e13, y: 1.01e11, z: -3.51e12 },
+      radius: 240000,
+      solarSystemId: 30000142,
+      statistics: {},
+      typeId: 14,
+      npcStationIDs: null,
       ...overrides,
     };
   }
@@ -151,10 +203,14 @@ export class SdeTestDataFactory {
   ): AsteroidBelt {
     return {
       asteroidBeltId: 40009079,
-      solarSystemId: 30000142,
-      name: 'Jita I - Asteroid Belt 1',
-      typeId: 15,
       celestialIndex: 1,
+      orbitId: 40009077,
+      orbitIndex: 1,
+      position: { x: 1.19e13, y: 9.9e10, z: -3.49e12 },
+      radius: 50000,
+      solarSystemId: 30000142,
+      statistics: {},
+      typeId: 15,
       ...overrides,
     };
   }
@@ -162,13 +218,18 @@ export class SdeTestDataFactory {
   static createFaction(overrides: Partial<Faction> = {}): Faction {
     return {
       factionId: 500001,
-      name: 'Caldari State',
-      description: 'The Caldari State is a corporate dictatorship.',
-      raceIds: [1],
-      solarSystemId: 30000142,
       corporationId: 1000035,
+      description: 'The Caldari State is a corporate dictatorship.',
+      flatLogo: 'res:/ui/texture/corps/caldari.png',
+      flatLogoWithName: 'res:/ui/texture/corps/caldari_name.png',
+      iconId: 1439,
+      memberRaces: [1],
       militiaCorporationId: 1000180,
-      sizeFactor: 5.0,
+      name: 'Caldari State',
+      shortDescription: 'Caldari',
+      sizeFactor: 5,
+      solarSystemId: 30000142,
+      uniqueName: true,
       ...overrides,
     };
   }
@@ -176,9 +237,11 @@ export class SdeTestDataFactory {
   static createRace(overrides: Partial<Race> = {}): Race {
     return {
       raceId: 1,
-      name: 'Caldari',
       description: 'The Caldari State is a corporate dictatorship.',
       iconId: 1439,
+      name: 'Caldari',
+      shipTypeId: 601,
+      skills: {},
       ...overrides,
     };
   }
@@ -186,12 +249,16 @@ export class SdeTestDataFactory {
   static createBloodline(overrides: Partial<Bloodline> = {}): Bloodline {
     return {
       bloodlineId: 1,
-      raceId: 1,
-      name: 'Deteis',
-      description: 'The Deteis are regarded as the face of the Caldari State.',
-      shipTypeId: 601,
+      charisma: 3,
       corporationId: 1000006,
+      description: 'The Deteis are regarded as the face of the Caldari State.',
       iconId: 1383,
+      intelligence: 7,
+      memory: 7,
+      name: 'Deteis',
+      perception: 5,
+      raceId: 1,
+      willpower: 5,
       ...overrides,
     };
   }
@@ -200,9 +267,15 @@ export class SdeTestDataFactory {
     return {
       ancestryId: 1,
       bloodlineId: 1,
-      name: 'Tube Child',
+      charisma: 0,
       description: 'Born and raised in a capsule.',
       iconId: 1664,
+      intelligence: 0,
+      memory: 0,
+      name: 'Tube Child',
+      perception: 0,
+      shortDescription: 'Raised in a capsule.',
+      willpower: 2,
       ...overrides,
     };
   }
@@ -212,13 +285,37 @@ export class SdeTestDataFactory {
   ): NpcCorporation {
     return {
       corporationId: 1000035,
-      name: 'Caldari Navy',
-      factionId: 500001,
-      solarSystemId: 30000142,
-      stationId: 60003760,
+      ceoId: 3004451,
+      deleted: false,
       description: 'The Caldari Navy is the armed forces of the Caldari State.',
+      extent: 'G',
+      hasPlayerPersonnelManager: false,
+      initialPrice: 0,
+      memberLimit: 0,
+      minSecurity: 0,
+      minimumJoinStanding: 0,
+      name: 'Caldari Navy',
+      sendCharTerminationMessage: true,
+      shares: 100000,
+      size: 'H',
+      stationId: 60003760,
+      taxRate: 0,
+      tickerName: 'CN',
+      uniqueName: true,
+      allowedMemberRaces: null,
+      corporationTrades: null,
+      divisions: null,
+      enemyId: null,
+      factionId: 500001,
+      friendId: null,
       iconId: 1439,
+      investors: null,
+      lpOfferTables: null,
+      mainActivityId: null,
       raceId: 1,
+      sizeFactor: null,
+      solarSystemId: 30000142,
+      secondaryActivityId: null,
       ...overrides,
     };
   }
@@ -226,15 +323,18 @@ export class SdeTestDataFactory {
   static createNpcStation(overrides: Partial<NpcStation> = {}): NpcStation {
     return {
       stationId: 60003760,
-      name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
+      celestialIndex: 4,
+      operationId: 1,
+      orbitId: 40009081,
+      orbitIndex: 4,
+      ownerId: 1000035,
+      position: { x: 1.58e14, y: 9.63e12, z: 1.06e14 },
+      reprocessingEfficiency: 0.5,
+      reprocessingHangarFlag: 4,
+      reprocessingStationsTake: 0.05,
       solarSystemId: 30000142,
       typeId: 1529,
-      corporationId: 1000035,
-      regionId: 10000002,
-      constellationId: 20000020,
-      security: 0.9459991455078125,
-      reprocessingEfficiency: 0.5,
-      reprocessingStationsTake: 0.05,
+      useOperationName: true,
       ...overrides,
     };
   }
@@ -242,11 +342,11 @@ export class SdeTestDataFactory {
   static createMarketGroup(overrides: Partial<MarketGroup> = {}): MarketGroup {
     return {
       marketGroupId: 1857,
-      name: 'Minerals',
       description: 'Refined minerals used in manufacturing.',
-      parentGroupId: 1031,
-      iconId: 22,
       hasTypes: true,
+      iconId: 22,
+      name: 'Minerals',
+      parentGroupId: 1031,
       ...overrides,
     };
   }
@@ -254,9 +354,11 @@ export class SdeTestDataFactory {
   static createMetaGroup(overrides: Partial<MetaGroup> = {}): MetaGroup {
     return {
       metaGroupId: 1,
+      color: { r: 255, g: 255, b: 255, a: 255 },
       name: 'Tech I',
-      description: 'Standard technology.',
       iconId: null,
+      iconSuffix: null,
+      description: null,
       ...overrides,
     };
   }
@@ -265,7 +367,6 @@ export class SdeTestDataFactory {
     return {
       iconId: 22,
       iconFile: 'res:/UI/Texture/Icons/22_32_2.png',
-      description: 'Minerals',
       ...overrides,
     };
   }
@@ -274,7 +375,7 @@ export class SdeTestDataFactory {
     return {
       graphicId: 20,
       graphicFile: 'res:/dx9/model/worldobject/asteroid/oreveld001.red',
-      description: '',
+      iconFolder: null,
       sofFactionName: null,
       sofHullName: null,
       sofRaceName: null,
@@ -287,15 +388,23 @@ export class SdeTestDataFactory {
   ): DogmaAttribute {
     return {
       attributeId: 9,
-      name: 'hp',
-      description: 'Hit points for a ship.',
-      categoryId: 1,
+      attributeCategoryId: 1,
+      dataType: 2,
       defaultValue: 0,
+      description: 'Hit points for a ship.',
+      displayWhenZero: false,
       highIsGood: true,
-      stackable: false,
-      unitId: 1,
-      iconId: null,
+      name: 'hp',
       published: true,
+      stackable: false,
+      displayName: null,
+      iconId: null,
+      tooltipDescription: null,
+      tooltipTitle: null,
+      unitId: 1,
+      chargeRechargeTimeId: null,
+      maxAttributeId: null,
+      minAttributeId: null,
       ...overrides,
     };
   }
@@ -303,38 +412,45 @@ export class SdeTestDataFactory {
   static createDogmaEffect(overrides: Partial<DogmaEffect> = {}): DogmaEffect {
     return {
       effectId: 11,
-      name: 'lowSlotModifier',
-      description: 'Low slot passive effect.',
-      categoryId: 0,
+      disallowAutoRepeat: false,
+      dischargeAttributeId: 0,
+      durationAttributeId: 0,
+      effectCategoryId: 0,
+      electronicChance: false,
+      guid: 'effects.LowSlotModifier',
       isAssistance: false,
       isOffensive: false,
       isWarpSafe: true,
+      name: 'lowSlotModifier',
+      propulsionChance: false,
       published: true,
-      iconId: null,
-      dischargeAttributeId: null,
-      durationAttributeId: null,
+      rangeChance: false,
+      distribution: null,
       falloffAttributeId: null,
       rangeAttributeId: null,
       trackingSpeedAttributeId: null,
+      description: null,
+      displayName: null,
+      iconId: null,
+      modifierInfo: null,
       ...overrides,
     };
   }
 
   static createBlueprint(overrides: Partial<Blueprint> = {}): Blueprint {
     return {
+      activities: {
+        manufacturing: {
+          time: 6000,
+          materials: [
+            { typeId: 34, quantity: 100 },
+            { typeId: 35, quantity: 50 },
+          ],
+          products: [{ typeId: 587, quantity: 1 }],
+        },
+      },
       blueprintTypeId: 787,
       maxProductionLimit: 10,
-      manufacturing: {
-        time: 6000,
-        materials: [
-          { typeId: 34, quantity: 100 },
-          { typeId: 35, quantity: 50 },
-        ],
-        products: [{ typeId: 587, quantity: 1, probability: null }],
-      },
-      research: null,
-      copying: null,
-      invention: null,
       ...overrides,
     };
   }
@@ -344,12 +460,10 @@ export class SdeTestDataFactory {
   ): PlanetSchematic {
     return {
       planetSchematicId: 65,
-      name: 'Bacteria',
       cycleTime: 1800,
-      types: [
-        { typeId: 2393, isInput: true, quantity: 3000 },
-        { typeId: 2396, isInput: false, quantity: 20 },
-      ],
+      name: 'Bacteria',
+      pins: [],
+      types: [],
       ...overrides,
     };
   }
@@ -403,19 +517,19 @@ export class SdeTestDataFactory {
       securityStatus: 0.9,
     });
     const stargate = this.createStargate({
-      systemId: system1.systemId,
-      destinationSystemId: system2.systemId,
+      solarSystemId: system1.systemId,
+      destination: { solarSystemId: system2.systemId, stargateId: 50001249 },
     });
 
     const star = this.createStar({ solarSystemId: system1.systemId });
     const planet = this.createPlanet({ solarSystemId: system1.systemId });
-    const moon = this.createMoon({ planetId: planet.planetId });
+    const moon = this.createMoon({ solarSystemId: system1.systemId });
     const asteroidBelt = this.createAsteroidBelt({
       solarSystemId: system1.systemId,
     });
 
     const race = this.createRace();
-    const faction = this.createFaction({ raceIds: [race.raceId] });
+    const faction = this.createFaction({ memberRaces: [race.raceId] });
     const bloodline = this.createBloodline({ raceId: race.raceId });
     const ancestry = this.createAncestry({
       bloodlineId: bloodline.bloodlineId,
@@ -426,9 +540,7 @@ export class SdeTestDataFactory {
     });
     const npcStation = this.createNpcStation({
       solarSystemId: system1.systemId,
-      corporationId: npcCorp.corporationId,
-      regionId: region.regionId,
-      constellationId: constellation.constellationId,
+      ownerId: npcCorp.corporationId,
     });
 
     const rootMarketGroup = this.createMarketGroup({

@@ -585,4 +585,192 @@ export const SDE_FILE_REGISTRY: readonly SdeFileSpec[] = [
     idType: 'number',
     injectId: true,
   },
+
+  // --- Translation ---
+  {
+    yamlFile: 'translationLanguages.yaml',
+    tableName: 'eve_translation_languages',
+    idAttribute: 'translationLanguageId',
+    idType: 'string',
+    injectId: true,
+  },
+
+  // --- Industry (extended) ---
+  {
+    yamlFile: 'industryActivities.yaml',
+    tableName: 'eve_industry_activities',
+    idAttribute: 'industryActivityId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'industryAssemblyLines.yaml',
+    tableName: 'eve_industry_assembly_lines',
+    idAttribute: 'assemblyLineId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'industryInstallationTypes.yaml',
+    tableName: 'eve_industry_installation_types',
+    idAttribute: 'installationTypeId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'industryModifierSources.yaml',
+    tableName: 'eve_industry_modifier_sources',
+    idAttribute: 'modifierSourceId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'industryTargetFilters.yaml',
+    tableName: 'eve_industry_target_filters',
+    idAttribute: 'targetFilterId',
+    idType: 'number',
+    injectId: true,
+  },
+
+  // --- Fighters ---
+  {
+    yamlFile: 'fighterAbilities.yaml',
+    tableName: 'eve_fighter_abilities',
+    idAttribute: 'fighterAbilityId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'fighterAbilitiesByType.yaml',
+    tableName: 'eve_fighter_abilities_by_type',
+    idAttribute: 'typeId',
+    idType: 'number',
+    injectId: true,
+  },
+
+  // --- Corporation ---
+  {
+    yamlFile: 'corporationRoles.yaml',
+    tableName: 'eve_corporation_roles',
+    idAttribute: 'corporationRoleId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'corporationRoleGroups.yaml',
+    tableName: 'eve_corporation_role_groups',
+    idAttribute: 'corporationRoleGroupId',
+    idType: 'number',
+    injectId: true,
+  },
+
+  // --- Schools / Education ---
+  {
+    yamlFile: 'schools.yaml',
+    tableName: 'eve_schools',
+    idAttribute: 'schoolId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'schoolMap.yaml',
+    tableName: 'eve_school_map',
+    idAttribute: 'schoolMapId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'skillPlans.yaml',
+    tableName: 'eve_skill_plans',
+    idAttribute: 'skillPlanId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'expertSystems.yaml',
+    tableName: 'eve_expert_systems',
+    idAttribute: 'expertSystemId',
+    idType: 'number',
+    injectId: true,
+  },
+
+  // --- Notifications ---
+  {
+    yamlFile: 'notificationTypes.yaml',
+    tableName: 'eve_notification_types',
+    idAttribute: 'notificationTypeId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'accountingEntryTypes.yaml',
+    tableName: 'eve_accounting_entry_types',
+    idAttribute: 'accountingEntryTypeId',
+    idType: 'number',
+    injectId: true,
+  },
+
+  // --- Effects / Traps / Dbuffs ---
+  {
+    yamlFile: 'appliedProximityEffects.yaml',
+    tableName: 'eve_applied_proximity_effects',
+    idAttribute: 'appliedProximityEffectId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'proximityTrap.yaml',
+    tableName: 'eve_proximity_traps',
+    idAttribute: 'proximityTrapId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'systemDbuffEmitters.yaml',
+    tableName: 'eve_system_dbuff_emitters',
+    idAttribute: 'systemDbuffEmitterId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'systemWideEffects.yaml',
+    tableName: 'eve_system_wide_effects',
+    idAttribute: 'systemWideEffectId',
+    idType: 'number',
+    injectId: true,
+  },
+  {
+    yamlFile: 'linkWithShip.yaml',
+    tableName: 'eve_link_with_ship',
+    idAttribute: 'linkWithShipId',
+    idType: 'number',
+    injectId: true,
+  },
+
+  // --- Station (extended) ---
+  {
+    yamlFile: 'stationStandingsRestrictions.yaml',
+    tableName: 'eve_station_standings_restrictions',
+    idAttribute: 'stationStandingsRestrictionId',
+    idType: 'number',
+    injectId: true,
+  },
+
+  // --- SKINR (extended) ---
+  {
+    yamlFile: 'skinrSlotsToMaterials.yaml',
+    tableName: 'eve_skinr_slots_to_materials',
+    idAttribute: 'skinrSlotToMaterialId',
+    idType: 'number',
+    injectId: true,
+  },
+
+  // --- Metenox ---
+  {
+    yamlFile: 'metenoxMoonDrill.yaml',
+    tableName: 'eve_metenox_moon_drill',
+    idAttribute: 'metenoxMoonDrillId',
+    idType: 'number',
+    injectId: true,
+  },
 ] as const;

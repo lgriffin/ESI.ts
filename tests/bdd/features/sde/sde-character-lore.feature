@@ -4,7 +4,7 @@ Feature: Character and Lore Data Lookup
     Given a static data provider with hierarchical test data
     When I look up faction 500001
     Then the faction name should be "Caldari State"
-    And the faction should have race IDs
+    And the faction should have member races
 
   Scenario: WHEN navigating the character hierarchy, the provider shall return connected data
     Given a static data provider with hierarchical test data
@@ -18,5 +18,5 @@ Feature: Character and Lore Data Lookup
   Scenario: WHEN looking up NPC infrastructure, the provider shall return station details
     Given a static data provider with hierarchical test data
     When I look up NPC station 60003760
-    Then the station name should contain "Jita"
-    And the station should have security status greater than 0
+    Then the station should have an owner
+    And the station should have reprocessing efficiency

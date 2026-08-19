@@ -146,12 +146,12 @@ describe('SdeTestDataFactory', () => {
       const star = SdeTestDataFactory.createStar();
       expect(() => StarSchema.parse(star)).not.toThrow();
       expect(star.starId).toBe(40009082);
-      expect(star.name).toBe('Jita - Star');
+      expect(star.solarSystemId).toBe(30000142);
     });
 
     it('should accept overrides', () => {
-      const star = SdeTestDataFactory.createStar({ name: 'Amarr - Star' });
-      expect(star.name).toBe('Amarr - Star');
+      const star = SdeTestDataFactory.createStar({ typeId: 9999 });
+      expect(star.typeId).toBe(9999);
     });
   });
 
@@ -160,12 +160,12 @@ describe('SdeTestDataFactory', () => {
       const planet = SdeTestDataFactory.createPlanet();
       expect(() => PlanetSchema.parse(planet)).not.toThrow();
       expect(planet.planetId).toBe(40009077);
-      expect(planet.name).toBe('Jita I');
+      expect(planet.celestialIndex).toBe(1);
     });
 
     it('should accept overrides', () => {
-      const planet = SdeTestDataFactory.createPlanet({ name: 'Jita II' });
-      expect(planet.name).toBe('Jita II');
+      const planet = SdeTestDataFactory.createPlanet({ celestialIndex: 2 });
+      expect(planet.celestialIndex).toBe(2);
     });
   });
 
@@ -174,12 +174,12 @@ describe('SdeTestDataFactory', () => {
       const moon = SdeTestDataFactory.createMoon();
       expect(() => MoonSchema.parse(moon)).not.toThrow();
       expect(moon.moonId).toBe(40009078);
-      expect(moon.name).toBe('Jita I - Moon 1');
+      expect(moon.solarSystemId).toBe(30000142);
     });
 
     it('should accept overrides', () => {
-      const moon = SdeTestDataFactory.createMoon({ name: 'Jita I - Moon 2' });
-      expect(moon.name).toBe('Jita I - Moon 2');
+      const moon = SdeTestDataFactory.createMoon({ orbitIndex: 2 });
+      expect(moon.orbitIndex).toBe(2);
     });
   });
 
@@ -188,14 +188,14 @@ describe('SdeTestDataFactory', () => {
       const belt = SdeTestDataFactory.createAsteroidBelt();
       expect(() => AsteroidBeltSchema.parse(belt)).not.toThrow();
       expect(belt.asteroidBeltId).toBe(40009079);
-      expect(belt.name).toBe('Jita I - Asteroid Belt 1');
+      expect(belt.solarSystemId).toBe(30000142);
     });
 
     it('should accept overrides', () => {
       const belt = SdeTestDataFactory.createAsteroidBelt({
-        name: 'Jita II - Asteroid Belt 1',
+        orbitIndex: 2,
       });
-      expect(belt.name).toBe('Jita II - Asteroid Belt 1');
+      expect(belt.orbitIndex).toBe(2);
     });
   });
 
@@ -282,16 +282,14 @@ describe('SdeTestDataFactory', () => {
       const station = SdeTestDataFactory.createNpcStation();
       expect(() => NpcStationSchema.parse(station)).not.toThrow();
       expect(station.stationId).toBe(60003760);
-      expect(station.name).toBe(
-        'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
-      );
+      expect(station.ownerId).toBe(1000035);
     });
 
     it('should accept overrides', () => {
       const station = SdeTestDataFactory.createNpcStation({
-        name: 'Amarr Trade Hub',
+        ownerId: 999999,
       });
-      expect(station.name).toBe('Amarr Trade Hub');
+      expect(station.ownerId).toBe(999999);
     });
   });
 
@@ -387,7 +385,7 @@ describe('SdeTestDataFactory', () => {
       const bp = SdeTestDataFactory.createBlueprint();
       expect(() => BlueprintSchema.parse(bp)).not.toThrow();
       expect(bp.blueprintTypeId).toBe(787);
-      expect(bp.manufacturing).not.toBeNull();
+      expect(bp.activities.manufacturing).toBeDefined();
     });
 
     it('should accept overrides', () => {
@@ -494,8 +492,8 @@ describe('SdeTestDataFactory', () => {
       // Star -> SolarSystem
       expect(data.stars![0]!.solarSystemId).toBe(system.systemId);
 
-      // Moon -> Planet
-      expect(data.moons![0]!.planetId).toBe(planet.planetId);
+      // Moon -> SolarSystem
+      expect(data.moons![0]!.solarSystemId).toBe(system.systemId);
 
       // Bloodline -> Race
       expect(bloodline.raceId).toBe(race.raceId);
@@ -508,12 +506,10 @@ describe('SdeTestDataFactory', () => {
         data.factions![0]!.factionId,
       );
 
-      // NpcStation -> SolarSystem, Corporation
+      // NpcStation -> SolarSystem, Owner
       const station = data.npcStations![0]!;
       expect(station.solarSystemId).toBe(system.systemId);
-      expect(station.corporationId).toBe(
-        data.npcCorporations![0]!.corporationId,
-      );
+      expect(station.ownerId).toBe(data.npcCorporations![0]!.corporationId);
 
       // MarketGroup child -> parent
       const childGroup = data.marketGroups!.find(

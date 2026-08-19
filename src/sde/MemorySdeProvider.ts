@@ -25,6 +25,31 @@ import type {
   DogmaEffect,
   Blueprint,
   PlanetSchematic,
+  AgentType,
+  AgentInSpace,
+  Certificate,
+  CharacterAttribute,
+  CloneGrade,
+  CorporationActivity,
+  DogmaAttributeCategory,
+  DogmaUnit,
+  IndustryActivity,
+  Landmark,
+  NotificationType,
+  NpcCharacter,
+  NpcCorporationDivision,
+  School,
+  SecondarySun,
+  Skin,
+  SkinLicense,
+  StationOperation,
+  StationService,
+  TypeDogma,
+  TypeMaterial,
+  TypeBonus,
+  Mission,
+  Dungeon,
+  EpicArc,
 } from './types';
 import type { SdeVersionInfo } from './version';
 
@@ -54,93 +79,149 @@ export interface MemorySdeData {
   dogmaEffects?: DogmaEffect[];
   blueprints?: Blueprint[];
   planetSchematics?: PlanetSchematic[];
+  agentTypes?: AgentType[];
+  agentsInSpace?: AgentInSpace[];
+  certificates?: Certificate[];
+  characterAttributes?: CharacterAttribute[];
+  cloneGrades?: CloneGrade[];
+  corporationActivities?: CorporationActivity[];
+  dogmaAttributeCategories?: DogmaAttributeCategory[];
+  dogmaUnits?: DogmaUnit[];
+  industryActivities?: IndustryActivity[];
+  landmarks?: Landmark[];
+  notificationTypes?: NotificationType[];
+  npcCharacters?: NpcCharacter[];
+  npcCorporationDivisions?: NpcCorporationDivision[];
+  schools?: School[];
+  secondarySuns?: SecondarySun[];
+  skins?: Skin[];
+  skinLicenses?: SkinLicense[];
+  stationOperations?: StationOperation[];
+  stationServices?: StationService[];
+  typeDogma?: TypeDogma[];
+  typeMaterials?: TypeMaterial[];
+  typeBonuses?: TypeBonus[];
+  missions?: Mission[];
+  dungeons?: Dungeon[];
+  epicArcs?: EpicArc[];
   version?: Partial<SdeVersionInfo>;
 }
 
 export class MemorySdeProvider implements IStaticDataProvider {
-  private types: Map<number, EveType>;
-  private groups: Map<number, EveGroup>;
-  private categories: Map<number, EveCategory>;
-  private regions: Map<number, Region>;
-  private constellations: Map<number, Constellation>;
-  private solarSystems: Map<number, SolarSystem>;
-  private stargates: Map<number, Stargate>;
-  private stars: Map<number, Star>;
-  private planets: Map<number, Planet>;
-  private moons: Map<number, Moon>;
-  private asteroidBelts: Map<number, AsteroidBelt>;
-  private factions: Map<number, Faction>;
-  private racesMap: Map<number, Race>;
-  private bloodlines: Map<number, Bloodline>;
-  private ancestries: Map<number, Ancestry>;
-  private npcCorporations: Map<number, NpcCorporation>;
-  private npcStations: Map<number, NpcStation>;
-  private marketGroups: Map<number, MarketGroup>;
-  private metaGroups: Map<number, MetaGroup>;
-  private icons: Map<number, Icon>;
-  private graphics: Map<number, Graphic>;
-  private dogmaAttributes: Map<number, DogmaAttribute>;
-  private dogmaEffects: Map<number, DogmaEffect>;
-  private blueprints: Map<number, Blueprint>;
-  private planetSchematics: Map<number, PlanetSchematic>;
+  private data: Map<string, Map<number | string, unknown>> = new Map();
   private versionInfo: SdeVersionInfo;
 
   constructor(data: MemorySdeData = {}) {
-    this.types = new Map((data.types ?? []).map((t) => [t.typeId, t]));
-    this.groups = new Map((data.groups ?? []).map((g) => [g.groupId, g]));
-    this.categories = new Map(
-      (data.categories ?? []).map((c) => [c.categoryId, c]),
+    const register = <T>(
+      key: string,
+      items: T[] | undefined,
+      idFn: (item: T) => number | string,
+    ): void => {
+      this.data.set(
+        key,
+        new Map((items ?? []).map((item) => [idFn(item), item])),
+      );
+    };
+
+    register('eve_types', data.types, (t) => t.typeId);
+    register('eve_groups', data.groups, (g) => g.groupId);
+    register('eve_categories', data.categories, (c) => c.categoryId);
+    register('eve_regions', data.regions, (r) => r.regionId);
+    register(
+      'eve_constellations',
+      data.constellations,
+      (c) => c.constellationId,
     );
-    this.regions = new Map((data.regions ?? []).map((r) => [r.regionId, r]));
-    this.constellations = new Map(
-      (data.constellations ?? []).map((c) => [c.constellationId, c]),
+    register('eve_solar_systems', data.solarSystems, (s) => s.systemId);
+    register('eve_stargates', data.stargates, (s) => s.stargateId);
+    register('eve_stars', data.stars, (s) => s.starId);
+    register('eve_planets', data.planets, (p) => p.planetId);
+    register('eve_moons', data.moons, (m) => m.moonId);
+    register('eve_asteroid_belts', data.asteroidBelts, (a) => a.asteroidBeltId);
+    register('eve_factions', data.factions, (f) => f.factionId);
+    register('eve_races', data.races, (r) => r.raceId);
+    register('eve_bloodlines', data.bloodlines, (b) => b.bloodlineId);
+    register('eve_ancestries', data.ancestries, (a) => a.ancestryId);
+    register(
+      'eve_npc_corporations',
+      data.npcCorporations,
+      (c) => c.corporationId,
     );
-    this.solarSystems = new Map(
-      (data.solarSystems ?? []).map((s) => [s.systemId, s]),
+    register('eve_npc_stations', data.npcStations, (s) => s.stationId);
+    register('eve_market_groups', data.marketGroups, (g) => g.marketGroupId);
+    register('eve_meta_groups', data.metaGroups, (g) => g.metaGroupId);
+    register('eve_icons', data.icons, (i) => i.iconId);
+    register('eve_graphics', data.graphics, (g) => g.graphicId);
+    register(
+      'eve_dogma_attributes',
+      data.dogmaAttributes,
+      (a) => a.attributeId,
     );
-    this.stargates = new Map(
-      (data.stargates ?? []).map((s) => [s.stargateId, s]),
+    register('eve_dogma_effects', data.dogmaEffects, (e) => e.effectId);
+    register('eve_blueprints', data.blueprints, (b) => b.blueprintTypeId);
+    register(
+      'eve_planet_schematics',
+      data.planetSchematics,
+      (s) => s.planetSchematicId,
     );
-    this.stars = new Map((data.stars ?? []).map((s) => [s.starId, s]));
-    this.planets = new Map((data.planets ?? []).map((p) => [p.planetId, p]));
-    this.moons = new Map((data.moons ?? []).map((m) => [m.moonId, m]));
-    this.asteroidBelts = new Map(
-      (data.asteroidBelts ?? []).map((a) => [a.asteroidBeltId, a]),
+    register('eve_agent_types', data.agentTypes, (a) => a.agentTypeId);
+    register('eve_agents_in_space', data.agentsInSpace, (a) => a.characterId);
+    register('eve_certificates', data.certificates, (c) => c.certificateId);
+    register(
+      'eve_character_attributes',
+      data.characterAttributes,
+      (c) => c.attributeId,
     );
-    this.factions = new Map((data.factions ?? []).map((f) => [f.factionId, f]));
-    this.racesMap = new Map((data.races ?? []).map((r) => [r.raceId, r]));
-    this.bloodlines = new Map(
-      (data.bloodlines ?? []).map((b) => [b.bloodlineId, b]),
+    register('eve_clone_grades', data.cloneGrades, (c) => c.cloneGradeId);
+    register(
+      'eve_corporation_activities',
+      data.corporationActivities,
+      (c) => c.corporationActivityId,
     );
-    this.ancestries = new Map(
-      (data.ancestries ?? []).map((a) => [a.ancestryId, a]),
+    register(
+      'eve_dogma_attribute_categories',
+      data.dogmaAttributeCategories,
+      (d) => d.attributeCategoryId,
     );
-    this.npcCorporations = new Map(
-      (data.npcCorporations ?? []).map((c) => [c.corporationId, c]),
+    register('eve_dogma_units', data.dogmaUnits, (d) => d.unitId);
+    register(
+      'eve_industry_activities',
+      data.industryActivities,
+      (i) => i.industryActivityId,
     );
-    this.npcStations = new Map(
-      (data.npcStations ?? []).map((s) => [s.stationId, s]),
+    register('eve_landmarks', data.landmarks, (l) => l.landmarkId);
+    register(
+      'eve_notification_types',
+      data.notificationTypes,
+      (n) => n.notificationTypeId,
     );
-    this.marketGroups = new Map(
-      (data.marketGroups ?? []).map((g) => [g.marketGroupId, g]),
+    register('eve_npc_characters', data.npcCharacters, (n) => n.characterId);
+    register(
+      'eve_npc_corporation_divisions',
+      data.npcCorporationDivisions,
+      (n) => n.npcCorporationDivisionId,
     );
-    this.metaGroups = new Map(
-      (data.metaGroups ?? []).map((g) => [g.metaGroupId, g]),
+    register('eve_schools', data.schools, (s) => s.schoolId);
+    register('eve_secondary_suns', data.secondarySuns, (s) => s.secondarySunId);
+    register('eve_skins', data.skins, (s) => s.skinId);
+    register('eve_skin_licenses', data.skinLicenses, (s) => s.licenseTypeId);
+    register(
+      'eve_station_operations',
+      data.stationOperations,
+      (s) => s.stationOperationId,
     );
-    this.icons = new Map((data.icons ?? []).map((i) => [i.iconId, i]));
-    this.graphics = new Map((data.graphics ?? []).map((g) => [g.graphicId, g]));
-    this.dogmaAttributes = new Map(
-      (data.dogmaAttributes ?? []).map((a) => [a.attributeId, a]),
+    register(
+      'eve_station_services',
+      data.stationServices,
+      (s) => s.stationServiceId,
     );
-    this.dogmaEffects = new Map(
-      (data.dogmaEffects ?? []).map((e) => [e.effectId, e]),
-    );
-    this.blueprints = new Map(
-      (data.blueprints ?? []).map((b) => [b.blueprintTypeId, b]),
-    );
-    this.planetSchematics = new Map(
-      (data.planetSchematics ?? []).map((s) => [s.planetSchematicId, s]),
-    );
+    register('eve_type_dogma', data.typeDogma, (t) => t.typeId);
+    register('eve_type_materials', data.typeMaterials, (t) => t.typeId);
+    register('eve_type_bonuses', data.typeBonuses, (t) => t.typeId);
+    register('eve_missions', data.missions, (m) => m.missionId);
+    register('eve_dungeons', data.dungeons, (d) => d.dungeonId);
+    register('eve_epic_arcs', data.epicArcs, (e) => e.epicArcId);
+
     this.versionInfo = {
       version: data.version?.version ?? '1.0.0-test',
       buildDate: data.version?.buildDate ?? '2024-01-01T00:00:00Z',
@@ -149,339 +230,413 @@ export class MemorySdeProvider implements IStaticDataProvider {
     };
   }
 
+  private getById<T>(table: string, id: number | string): T | null {
+    return (this.data.get(table)?.get(id) as T) ?? null;
+  }
+
+  private getAllFrom<T>(table: string): T[] {
+    const map = this.data.get(table);
+    return map ? (Array.from(map.values()) as T[]) : [];
+  }
+
+  private filterBy<T>(table: string, field: string, value: unknown): T[] {
+    return this.getAllFrom<T>(table).filter(
+      (item) => (item as Record<string, unknown>)[field] === value,
+    );
+  }
+
+  private searchBy<T>(
+    table: string,
+    field: string,
+    query: string,
+    limit = 25,
+  ): T[] {
+    const lowerQuery = query.toLowerCase();
+    const results: T[] = [];
+    for (const item of this.getAllFrom<T>(table)) {
+      const val = (item as Record<string, unknown>)[field];
+      if (typeof val === 'string' && val.toLowerCase().includes(lowerQuery)) {
+        results.push(item);
+        if (results.length >= limit) break;
+      }
+    }
+    return results;
+  }
+
+  // --- Types, Groups, Categories ---
   getType(typeId: number): EveType | null {
-    return this.types.get(typeId) ?? null;
+    return this.getById('eve_types', typeId);
   }
-
   getTypesByGroup(groupId: number): EveType[] {
-    return Array.from(this.types.values()).filter((t) => t.groupId === groupId);
+    return this.filterBy('eve_types', 'groupId', groupId);
   }
-
   getGroup(groupId: number): EveGroup | null {
-    return this.groups.get(groupId) ?? null;
+    return this.getById('eve_groups', groupId);
   }
-
   getGroupsByCategory(categoryId: number): EveGroup[] {
-    return Array.from(this.groups.values()).filter(
-      (g) => g.categoryId === categoryId,
-    );
+    return this.filterBy('eve_groups', 'categoryId', categoryId);
   }
-
   getCategory(categoryId: number): EveCategory | null {
-    return this.categories.get(categoryId) ?? null;
+    return this.getById('eve_categories', categoryId);
   }
-
   getAllCategories(): EveCategory[] {
-    return Array.from(this.categories.values());
+    return this.getAllFrom('eve_categories');
   }
 
+  // --- Regions, Constellations, Solar Systems, Stargates ---
   getRegion(regionId: number): Region | null {
-    return this.regions.get(regionId) ?? null;
+    return this.getById('eve_regions', regionId);
   }
-
   getAllRegions(): Region[] {
-    return Array.from(this.regions.values());
+    return this.getAllFrom('eve_regions');
   }
-
   getConstellation(constellationId: number): Constellation | null {
-    return this.constellations.get(constellationId) ?? null;
+    return this.getById('eve_constellations', constellationId);
   }
-
   getConstellationsByRegion(regionId: number): Constellation[] {
-    return Array.from(this.constellations.values()).filter(
-      (c) => c.regionId === regionId,
-    );
+    return this.filterBy('eve_constellations', 'regionId', regionId);
   }
-
   getSolarSystem(systemId: number): SolarSystem | null {
-    return this.solarSystems.get(systemId) ?? null;
+    return this.getById('eve_solar_systems', systemId);
   }
-
   getSolarSystemsByConstellation(constellationId: number): SolarSystem[] {
-    return Array.from(this.solarSystems.values()).filter(
-      (s) => s.constellationId === constellationId,
+    return this.filterBy(
+      'eve_solar_systems',
+      'constellationId',
+      constellationId,
     );
   }
-
   getStargate(stargateId: number): Stargate | null {
-    return this.stargates.get(stargateId) ?? null;
+    return this.getById('eve_stargates', stargateId);
   }
-
   getStargatesBySystem(systemId: number): Stargate[] {
-    return Array.from(this.stargates.values()).filter(
-      (s) => s.systemId === systemId,
-    );
+    return this.filterBy('eve_stargates', 'solarSystemId', systemId);
   }
 
+  // --- Search ---
   searchTypesByName(query: string, limit = 25): EveType[] {
-    const lowerQuery = query.toLowerCase();
-    const results: EveType[] = [];
-    for (const type of this.types.values()) {
-      if (type.name.toLowerCase().includes(lowerQuery)) {
-        results.push(type);
-        if (results.length >= limit) break;
-      }
-    }
-    return results;
+    return this.searchBy('eve_types', 'name', query, limit);
   }
-
   searchSolarSystemsByName(query: string, limit = 25): SolarSystem[] {
-    const lowerQuery = query.toLowerCase();
-    const results: SolarSystem[] = [];
-    for (const system of this.solarSystems.values()) {
-      if (system.name.toLowerCase().includes(lowerQuery)) {
-        results.push(system);
-        if (results.length >= limit) break;
-      }
-    }
-    return results;
+    return this.searchBy('eve_solar_systems', 'name', query, limit);
   }
 
-  // Universe
+  // --- Universe ---
   getStar(starId: number): Star | null {
-    return this.stars.get(starId) ?? null;
+    return this.getById('eve_stars', starId);
   }
-
   getStarBySystem(systemId: number): Star | null {
-    for (const star of this.stars.values()) {
-      if (star.solarSystemId === systemId) return star;
-    }
-    return null;
+    return (
+      this.filterBy<Star>('eve_stars', 'solarSystemId', systemId)[0] ?? null
+    );
   }
-
   getPlanet(planetId: number): Planet | null {
-    return this.planets.get(planetId) ?? null;
+    return this.getById('eve_planets', planetId);
   }
-
   getPlanetsBySystem(systemId: number): Planet[] {
-    return Array.from(this.planets.values()).filter(
-      (p) => p.solarSystemId === systemId,
-    );
+    return this.filterBy('eve_planets', 'solarSystemId', systemId);
   }
-
   getMoon(moonId: number): Moon | null {
-    return this.moons.get(moonId) ?? null;
+    return this.getById('eve_moons', moonId);
   }
-
-  getMoonsByPlanet(planetId: number): Moon[] {
-    return Array.from(this.moons.values()).filter(
-      (m) => m.planetId === planetId,
-    );
+  getMoonsBySystem(systemId: number): Moon[] {
+    return this.filterBy('eve_moons', 'solarSystemId', systemId);
   }
-
   getAsteroidBelt(asteroidBeltId: number): AsteroidBelt | null {
-    return this.asteroidBelts.get(asteroidBeltId) ?? null;
+    return this.getById('eve_asteroid_belts', asteroidBeltId);
   }
-
   getAsteroidBeltsBySystem(systemId: number): AsteroidBelt[] {
-    return Array.from(this.asteroidBelts.values()).filter(
-      (a) => a.solarSystemId === systemId,
-    );
+    return this.filterBy('eve_asteroid_belts', 'solarSystemId', systemId);
   }
 
-  // Character/Lore
+  // --- Character/Lore ---
   getFaction(factionId: number): Faction | null {
-    return this.factions.get(factionId) ?? null;
+    return this.getById('eve_factions', factionId);
   }
-
   getAllFactions(): Faction[] {
-    return Array.from(this.factions.values());
+    return this.getAllFrom('eve_factions');
   }
-
   getRace(raceId: number): Race | null {
-    return this.racesMap.get(raceId) ?? null;
+    return this.getById('eve_races', raceId);
   }
-
   getAllRaces(): Race[] {
-    return Array.from(this.racesMap.values());
+    return this.getAllFrom('eve_races');
   }
-
   getBloodline(bloodlineId: number): Bloodline | null {
-    return this.bloodlines.get(bloodlineId) ?? null;
+    return this.getById('eve_bloodlines', bloodlineId);
   }
-
   getBloodlinesByRace(raceId: number): Bloodline[] {
-    return Array.from(this.bloodlines.values()).filter(
-      (b) => b.raceId === raceId,
-    );
+    return this.filterBy('eve_bloodlines', 'raceId', raceId);
   }
-
   getAncestry(ancestryId: number): Ancestry | null {
-    return this.ancestries.get(ancestryId) ?? null;
+    return this.getById('eve_ancestries', ancestryId);
   }
-
   getAncestriesByBloodline(bloodlineId: number): Ancestry[] {
-    return Array.from(this.ancestries.values()).filter(
-      (a) => a.bloodlineId === bloodlineId,
-    );
+    return this.filterBy('eve_ancestries', 'bloodlineId', bloodlineId);
   }
 
-  // NPC Infrastructure
+  // --- NPC Infrastructure ---
   getNpcCorporation(corporationId: number): NpcCorporation | null {
-    return this.npcCorporations.get(corporationId) ?? null;
+    return this.getById('eve_npc_corporations', corporationId);
   }
-
   getNpcCorporationsByFaction(factionId: number): NpcCorporation[] {
-    return Array.from(this.npcCorporations.values()).filter(
-      (c) => c.factionId === factionId,
-    );
+    return this.filterBy('eve_npc_corporations', 'factionId', factionId);
   }
-
   getNpcStation(stationId: number): NpcStation | null {
-    return this.npcStations.get(stationId) ?? null;
+    return this.getById('eve_npc_stations', stationId);
   }
-
   getNpcStationsBySystem(systemId: number): NpcStation[] {
-    return Array.from(this.npcStations.values()).filter(
-      (s) => s.solarSystemId === systemId,
-    );
+    return this.filterBy('eve_npc_stations', 'solarSystemId', systemId);
+  }
+  getNpcStationsByOwner(ownerId: number): NpcStation[] {
+    return this.filterBy('eve_npc_stations', 'ownerId', ownerId);
   }
 
-  getNpcStationsByCorporation(corporationId: number): NpcStation[] {
-    return Array.from(this.npcStations.values()).filter(
-      (s) => s.corporationId === corporationId,
-    );
-  }
-
-  searchNpcStationsByName(query: string, limit = 25): NpcStation[] {
-    const lowerQuery = query.toLowerCase();
-    const results: NpcStation[] = [];
-    for (const station of this.npcStations.values()) {
-      if (station.name.toLowerCase().includes(lowerQuery)) {
-        results.push(station);
-        if (results.length >= limit) break;
-      }
-    }
-    return results;
-  }
-
-  // Market
+  // --- Market ---
   getMarketGroup(marketGroupId: number): MarketGroup | null {
-    return this.marketGroups.get(marketGroupId) ?? null;
+    return this.getById('eve_market_groups', marketGroupId);
   }
-
   getMarketGroupsByParent(parentGroupId: number): MarketGroup[] {
-    return Array.from(this.marketGroups.values()).filter(
-      (g) => g.parentGroupId === parentGroupId,
-    );
+    return this.filterBy('eve_market_groups', 'parentGroupId', parentGroupId);
   }
-
   getRootMarketGroups(): MarketGroup[] {
-    return Array.from(this.marketGroups.values()).filter(
+    return this.getAllFrom<MarketGroup>('eve_market_groups').filter(
       (g) => g.parentGroupId === null,
     );
   }
-
   getTypesByMarketGroup(marketGroupId: number): EveType[] {
-    return Array.from(this.types.values()).filter(
-      (t) => t.marketGroupId === marketGroupId,
+    return this.filterBy('eve_types', 'marketGroupId', marketGroupId);
+  }
+  searchMarketGroupsByName(query: string, limit = 25): MarketGroup[] {
+    return this.searchBy('eve_market_groups', 'name', query, limit);
+  }
+
+  // --- Meta/UI ---
+  getMetaGroup(metaGroupId: number): MetaGroup | null {
+    return this.getById('eve_meta_groups', metaGroupId);
+  }
+  getAllMetaGroups(): MetaGroup[] {
+    return this.getAllFrom('eve_meta_groups');
+  }
+  getIcon(iconId: number): Icon | null {
+    return this.getById('eve_icons', iconId);
+  }
+  getGraphic(graphicId: number): Graphic | null {
+    return this.getById('eve_graphics', graphicId);
+  }
+
+  // --- Dogma ---
+  getDogmaAttribute(attributeId: number): DogmaAttribute | null {
+    return this.getById('eve_dogma_attributes', attributeId);
+  }
+  searchDogmaAttributesByName(query: string, limit = 25): DogmaAttribute[] {
+    return this.searchBy('eve_dogma_attributes', 'name', query, limit);
+  }
+  getDogmaEffect(effectId: number): DogmaEffect | null {
+    return this.getById('eve_dogma_effects', effectId);
+  }
+  searchDogmaEffectsByName(query: string, limit = 25): DogmaEffect[] {
+    return this.searchBy('eve_dogma_effects', 'name', query, limit);
+  }
+  getDogmaAttributeCategory(
+    attributeCategoryId: number,
+  ): DogmaAttributeCategory | null {
+    return this.getById('eve_dogma_attribute_categories', attributeCategoryId);
+  }
+  getAllDogmaAttributeCategories(): DogmaAttributeCategory[] {
+    return this.getAllFrom('eve_dogma_attribute_categories');
+  }
+  getDogmaUnit(unitId: number): DogmaUnit | null {
+    return this.getById('eve_dogma_units', unitId);
+  }
+  getAllDogmaUnits(): DogmaUnit[] {
+    return this.getAllFrom('eve_dogma_units');
+  }
+
+  // --- Industry ---
+  getBlueprint(blueprintTypeId: number): Blueprint | null {
+    return this.getById('eve_blueprints', blueprintTypeId);
+  }
+  getPlanetSchematic(planetSchematicId: number): PlanetSchematic | null {
+    return this.getById('eve_planet_schematics', planetSchematicId);
+  }
+  getAllPlanetSchematics(): PlanetSchematic[] {
+    return this.getAllFrom('eve_planet_schematics');
+  }
+  getIndustryActivity(industryActivityId: number): IndustryActivity | null {
+    return this.getById('eve_industry_activities', industryActivityId);
+  }
+  getAllIndustryActivities(): IndustryActivity[] {
+    return this.getAllFrom('eve_industry_activities');
+  }
+
+  // --- Agent System ---
+  getAgentType(agentTypeId: number): AgentType | null {
+    return this.getById('eve_agent_types', agentTypeId);
+  }
+  getAllAgentTypes(): AgentType[] {
+    return this.getAllFrom('eve_agent_types');
+  }
+  getAgentInSpace(characterId: number): AgentInSpace | null {
+    return this.getById('eve_agents_in_space', characterId);
+  }
+  getAgentsInSpaceBySystem(systemId: number): AgentInSpace[] {
+    return this.filterBy('eve_agents_in_space', 'solarSystemId', systemId);
+  }
+
+  // --- Certificates ---
+  getCertificate(certificateId: number): Certificate | null {
+    return this.getById('eve_certificates', certificateId);
+  }
+  getAllCertificates(): Certificate[] {
+    return this.getAllFrom('eve_certificates');
+  }
+
+  // --- Character Attributes ---
+  getCharacterAttribute(attributeId: number): CharacterAttribute | null {
+    return this.getById('eve_character_attributes', attributeId);
+  }
+  getAllCharacterAttributes(): CharacterAttribute[] {
+    return this.getAllFrom('eve_character_attributes');
+  }
+
+  // --- NPC Characters ---
+  getNpcCharacter(characterId: number): NpcCharacter | null {
+    return this.getById('eve_npc_characters', characterId);
+  }
+  getNpcCharactersByCorporation(corporationId: number): NpcCharacter[] {
+    return this.filterBy('eve_npc_characters', 'corporationId', corporationId);
+  }
+  searchNpcCharactersByName(query: string, limit = 25): NpcCharacter[] {
+    return this.searchBy('eve_npc_characters', 'name', query, limit);
+  }
+
+  // --- Clone Grades ---
+  getCloneGrade(cloneGradeId: number): CloneGrade | null {
+    return this.getById('eve_clone_grades', cloneGradeId);
+  }
+  getAllCloneGrades(): CloneGrade[] {
+    return this.getAllFrom('eve_clone_grades');
+  }
+
+  // --- Corporation Reference ---
+  getCorporationActivity(
+    corporationActivityId: number,
+  ): CorporationActivity | null {
+    return this.getById('eve_corporation_activities', corporationActivityId);
+  }
+  getAllCorporationActivities(): CorporationActivity[] {
+    return this.getAllFrom('eve_corporation_activities');
+  }
+  getNpcCorporationDivision(
+    npcCorporationDivisionId: number,
+  ): NpcCorporationDivision | null {
+    return this.getById(
+      'eve_npc_corporation_divisions',
+      npcCorporationDivisionId,
     );
   }
-
-  searchMarketGroupsByName(query: string, limit = 25): MarketGroup[] {
-    const lowerQuery = query.toLowerCase();
-    const results: MarketGroup[] = [];
-    for (const group of this.marketGroups.values()) {
-      if (group.name.toLowerCase().includes(lowerQuery)) {
-        results.push(group);
-        if (results.length >= limit) break;
-      }
-    }
-    return results;
+  getAllNpcCorporationDivisions(): NpcCorporationDivision[] {
+    return this.getAllFrom('eve_npc_corporation_divisions');
   }
 
-  // Meta/UI
-  getMetaGroup(metaGroupId: number): MetaGroup | null {
-    return this.metaGroups.get(metaGroupId) ?? null;
+  // --- Landmarks ---
+  getLandmark(landmarkId: number): Landmark | null {
+    return this.getById('eve_landmarks', landmarkId);
+  }
+  getAllLandmarks(): Landmark[] {
+    return this.getAllFrom('eve_landmarks');
   }
 
-  getAllMetaGroups(): MetaGroup[] {
-    return Array.from(this.metaGroups.values());
+  // --- Notifications ---
+  getNotificationType(notificationTypeId: number): NotificationType | null {
+    return this.getById('eve_notification_types', notificationTypeId);
   }
 
-  getIcon(iconId: number): Icon | null {
-    return this.icons.get(iconId) ?? null;
+  // --- Schools ---
+  getSchool(schoolId: number): School | null {
+    return this.getById('eve_schools', schoolId);
+  }
+  getAllSchools(): School[] {
+    return this.getAllFrom('eve_schools');
   }
 
-  getGraphic(graphicId: number): Graphic | null {
-    return this.graphics.get(graphicId) ?? null;
+  // --- Secondary Suns ---
+  getSecondarySun(secondarySunId: number): SecondarySun | null {
+    return this.getById('eve_secondary_suns', secondarySunId);
+  }
+  getSecondarySunsBySystem(systemId: number): SecondarySun[] {
+    return this.filterBy('eve_secondary_suns', 'solarSystemId', systemId);
   }
 
-  // Dogma
-  getDogmaAttribute(attributeId: number): DogmaAttribute | null {
-    return this.dogmaAttributes.get(attributeId) ?? null;
+  // --- Skins ---
+  getSkin(skinId: number): Skin | null {
+    return this.getById('eve_skins', skinId);
+  }
+  getSkinLicense(licenseTypeId: number): SkinLicense | null {
+    return this.getById('eve_skin_licenses', licenseTypeId);
+  }
+  getSkinLicensesBySkin(skinId: number): SkinLicense[] {
+    return this.filterBy('eve_skin_licenses', 'skinId', skinId);
   }
 
-  searchDogmaAttributesByName(query: string, limit = 25): DogmaAttribute[] {
-    const lowerQuery = query.toLowerCase();
-    const results: DogmaAttribute[] = [];
-    for (const attr of this.dogmaAttributes.values()) {
-      if (attr.name.toLowerCase().includes(lowerQuery)) {
-        results.push(attr);
-        if (results.length >= limit) break;
-      }
-    }
-    return results;
+  // --- Station Operations & Services ---
+  getStationOperation(stationOperationId: number): StationOperation | null {
+    return this.getById('eve_station_operations', stationOperationId);
+  }
+  getAllStationOperations(): StationOperation[] {
+    return this.getAllFrom('eve_station_operations');
+  }
+  getStationService(stationServiceId: number): StationService | null {
+    return this.getById('eve_station_services', stationServiceId);
+  }
+  getAllStationServices(): StationService[] {
+    return this.getAllFrom('eve_station_services');
   }
 
-  getDogmaEffect(effectId: number): DogmaEffect | null {
-    return this.dogmaEffects.get(effectId) ?? null;
+  // --- Type Extensions ---
+  getTypeDogma(typeId: number): TypeDogma | null {
+    return this.getById('eve_type_dogma', typeId);
+  }
+  getTypeMaterial(typeId: number): TypeMaterial | null {
+    return this.getById('eve_type_materials', typeId);
+  }
+  getTypeBonus(typeId: number): TypeBonus | null {
+    return this.getById('eve_type_bonuses', typeId);
   }
 
-  searchDogmaEffectsByName(query: string, limit = 25): DogmaEffect[] {
-    const lowerQuery = query.toLowerCase();
-    const results: DogmaEffect[] = [];
-    for (const effect of this.dogmaEffects.values()) {
-      if (effect.name.toLowerCase().includes(lowerQuery)) {
-        results.push(effect);
-        if (results.length >= limit) break;
-      }
-    }
-    return results;
+  // --- Missions & Content ---
+  getMission(missionId: number): Mission | null {
+    return this.getById('eve_missions', missionId);
+  }
+  getDungeon(dungeonId: number): Dungeon | null {
+    return this.getById('eve_dungeons', dungeonId);
+  }
+  getEpicArc(epicArcId: number): EpicArc | null {
+    return this.getById('eve_epic_arcs', epicArcId);
+  }
+  getAllEpicArcs(): EpicArc[] {
+    return this.getAllFrom('eve_epic_arcs');
   }
 
-  // Industry
-  getBlueprint(blueprintTypeId: number): Blueprint | null {
-    return this.blueprints.get(blueprintTypeId) ?? null;
+  // --- Generic accessor ---
+  getEntity<T = Record<string, unknown>>(
+    tableName: string,
+    id: number | string,
+  ): T | null {
+    return this.getById<T>(tableName, id);
   }
 
-  getPlanetSchematic(planetSchematicId: number): PlanetSchematic | null {
-    return this.planetSchematics.get(planetSchematicId) ?? null;
+  getAllEntities<T = Record<string, unknown>>(tableName: string): T[] {
+    return this.getAllFrom<T>(tableName);
   }
 
-  getAllPlanetSchematics(): PlanetSchematic[] {
-    return Array.from(this.planetSchematics.values());
-  }
-
+  // --- Version & Lifecycle ---
   getVersion(): SdeVersionInfo {
     return { ...this.versionInfo };
   }
 
   close(): void {
-    this.types.clear();
-    this.groups.clear();
-    this.categories.clear();
-    this.regions.clear();
-    this.constellations.clear();
-    this.solarSystems.clear();
-    this.stargates.clear();
-    this.stars.clear();
-    this.planets.clear();
-    this.moons.clear();
-    this.asteroidBelts.clear();
-    this.factions.clear();
-    this.racesMap.clear();
-    this.bloodlines.clear();
-    this.ancestries.clear();
-    this.npcCorporations.clear();
-    this.npcStations.clear();
-    this.marketGroups.clear();
-    this.metaGroups.clear();
-    this.icons.clear();
-    this.graphics.clear();
-    this.dogmaAttributes.clear();
-    this.dogmaEffects.clear();
-    this.blueprints.clear();
-    this.planetSchematics.clear();
+    this.data.clear();
   }
 }

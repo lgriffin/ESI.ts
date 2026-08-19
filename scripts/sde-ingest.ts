@@ -2,36 +2,30 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { SdeDownloader } from '../src/sde/ingestion/SdeDownloader';
 import { SdeExtractor } from '../src/sde/ingestion/SdeExtractor';
-import { SdeDatabaseBuilder } from '../src/sde/ingestion/SdeDatabaseBuilder';
-import { SDE_FILE_REGISTRY } from '../src/sde/ingestion/constants';
 
 interface CliOptions {
   output: string;
   check: boolean;
   force: boolean;
-  validate: boolean;
   verbose: boolean;
 }
 
 function parseArgs(args: string[]): CliOptions {
   const opts: CliOptions = {
-    output: './eve-sde.sqlite',
+    output: './sde-data',
     check: false,
     force: false,
-    validate: false,
     verbose: false,
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === '--output' || arg === '-o') {
-      opts.output = args[++i];
+      opts.output = args[++i] ?? opts.output;
     } else if (arg === '--check') {
       opts.check = true;
     } else if (arg === '--force') {
       opts.force = true;
-    } else if (arg === '--validate') {
-      opts.validate = true;
     } else if (arg === '--verbose') {
       opts.verbose = true;
     }
@@ -48,8 +42,6 @@ function log(message: string, verbose: boolean = false, opts?: CliOptions): void
 async function main(): Promise<void> {
   const opts = parseArgs(process.argv.slice(2));
   const downloader = new SdeDownloader();
-  const extractor = new SdeExtractor();
-  const builder = new SdeDatabaseBuilder();
 
   log('Checking latest SDE build...');
   const latestBuild = await downloader.getLatestBuild();
@@ -59,11 +51,11 @@ async function main(): Promise<void> {
     return;
   }
 
-  const zipPath = path.resolve(opts.output.replace(/\.sqlite$/, '.zip'));
-  const dbPath = path.resolve(opts.output);
+  const outDir = path.resolve(opts.output);
+  const zipPath = outDir + '.zip';
 
-  if (!opts.force && fs.existsSync(dbPath)) {
-    log(`Database already exists at ${dbPath}. Use --force to overwrite.`);
+  if (!opts.force && fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
+    log(`SDE data already exists at ${outDir}. Use --force to re-download.`);
     return;
   }
 
@@ -80,35 +72,24 @@ async function main(): Promise<void> {
   console.log('');
   log('Download complete.');
 
-  log('Reading SDE metadata...');
+  log('Extracting YAML files...');
+  const extractor = new SdeExtractor();
   const metadata = extractor.readMetadata(zipPath);
   log(`SDE build: ${metadata.buildNumber}, released: ${metadata.releaseDate}`);
 
-  log('Parsing YAML files...');
-  const yamlFiles = SDE_FILE_REGISTRY.map((spec) => spec.yamlFile);
-  const parsedFiles = extractor.parseFiles(zipPath, yamlFiles);
-  log(`Parsed ${parsedFiles.length} files.`);
-
-  log(`Building database at ${dbPath}...`);
-  builder.build({
-    outputPath: dbPath,
-    parsedFiles,
-    sdeVersion: metadata.buildNumber,
-    buildDate: metadata.releaseDate,
-    onProgress: (tableName, inserted, total) => {
-      log(`  ${tableName}: ${inserted}/${total} rows`, true, opts);
-    },
-  });
-
-  log(`SDE database built successfully at ${dbPath}`);
+  extractor.extractAll(zipPath, outDir);
+  log(`Extracted to ${outDir}`);
 
   if (fs.existsSync(zipPath)) {
     fs.unlinkSync(zipPath);
     log('Cleaned up zip file.', true, opts);
   }
+
+  log(`SDE data ready at ${outDir}`);
+  log('Usage: SdeDataProvider.fromDirectory(\'' + outDir + '\')');
 }
 
 main().catch((err) => {
-  console.error('SDE ingestion failed:', err);
+  console.error('SDE download failed:', err);
   process.exit(1);
 });

@@ -150,7 +150,7 @@ export function runProviderContractTests(
         const stargates = provider.getStargatesBySystem(30000142);
         expect(stargates.length).toBeGreaterThanOrEqual(1);
         for (const s of stargates) {
-          expect(s.systemId).toBe(30000142);
+          expect(s.solarSystemId).toBe(30000142);
         }
       });
     });
@@ -189,7 +189,7 @@ export function runProviderContractTests(
         const star = provider.getStar(40009082);
         expect(star).not.toBeNull();
         expect(star!.starId).toBe(40009082);
-        expect(star!.name).toBe('Jita - Star');
+        expect(star!.solarSystemId).toBe(30000142);
       });
 
       it('should return null for unknown star ID', () => {
@@ -210,7 +210,7 @@ export function runProviderContractTests(
         const planet = provider.getPlanet(40009077);
         expect(planet).not.toBeNull();
         expect(planet!.planetId).toBe(40009077);
-        expect(planet!.name).toBe('Jita I');
+        expect(planet!.celestialIndex).toBe(1);
       });
 
       it('should return null for unknown planet ID', () => {
@@ -233,30 +233,30 @@ export function runProviderContractTests(
         const moon = provider.getMoon(40009078);
         expect(moon).not.toBeNull();
         expect(moon!.moonId).toBe(40009078);
-        expect(moon!.name).toBe('Jita I - Moon 1');
+        expect(moon!.solarSystemId).toBe(30000142);
       });
 
       it('should return null for unknown moon ID', () => {
         expect(provider.getMoon(999999)).toBeNull();
       });
 
-      it('should find moons by planet', () => {
-        const moons = provider.getMoonsByPlanet(40009077);
+      it('should find moons by system', () => {
+        const moons = provider.getMoonsBySystem(30000142);
         expect(moons.length).toBeGreaterThanOrEqual(1);
         for (const m of moons) {
-          expect(m.planetId).toBe(40009077);
+          expect(m.solarSystemId).toBe(30000142);
         }
       });
 
-      it('should return empty array for moons of unknown planet', () => {
-        expect(provider.getMoonsByPlanet(999999)).toEqual([]);
+      it('should return empty array for moons of unknown system', () => {
+        expect(provider.getMoonsBySystem(999999)).toEqual([]);
       });
 
       it('should look up an asteroid belt by ID', () => {
         const belt = provider.getAsteroidBelt(40009079);
         expect(belt).not.toBeNull();
         expect(belt!.asteroidBeltId).toBe(40009079);
-        expect(belt!.name).toBe('Jita I - Asteroid Belt 1');
+        expect(belt!.solarSystemId).toBe(30000142);
       });
 
       it('should return null for unknown asteroid belt ID', () => {
@@ -384,9 +384,7 @@ export function runProviderContractTests(
         const station = provider.getNpcStation(60003760);
         expect(station).not.toBeNull();
         expect(station!.stationId).toBe(60003760);
-        expect(station!.name).toBe(
-          'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
-        );
+        expect(station!.solarSystemId).toBe(30000142);
       });
 
       it('should return null for unknown NPC station ID', () => {
@@ -405,14 +403,16 @@ export function runProviderContractTests(
         expect(provider.getNpcStationsBySystem(999999)).toEqual([]);
       });
 
-      it('should search NPC stations by name', () => {
-        const results = provider.searchNpcStationsByName('Jita');
-        expect(results.length).toBeGreaterThanOrEqual(1);
-        expect(results[0]!.name.toLowerCase()).toContain('jita');
+      it('should find NPC stations by owner', () => {
+        const stations = provider.getNpcStationsByOwner(1000035);
+        expect(stations.length).toBeGreaterThanOrEqual(1);
+        for (const s of stations) {
+          expect(s.ownerId).toBe(1000035);
+        }
       });
 
-      it('should return empty for non-matching station search', () => {
-        expect(provider.searchNpcStationsByName('zzzznonexistent')).toEqual([]);
+      it('should return empty for stations with unknown owner', () => {
+        expect(provider.getNpcStationsByOwner(999999)).toEqual([]);
       });
     });
 
@@ -489,7 +489,6 @@ export function runProviderContractTests(
       it('should look up a dogma attribute by ID', () => {
         const attr = provider.getDogmaAttribute(9);
         expect(attr).not.toBeNull();
-        expect(attr!.attributeId).toBe(9);
         expect(attr!.name).toBe('hp');
       });
 
@@ -512,7 +511,6 @@ export function runProviderContractTests(
       it('should look up a dogma effect by ID', () => {
         const effect = provider.getDogmaEffect(11);
         expect(effect).not.toBeNull();
-        expect(effect!.effectId).toBe(11);
         expect(effect!.name).toBe('lowSlotModifier');
       });
 
@@ -538,8 +536,8 @@ export function runProviderContractTests(
         const bp = provider.getBlueprint(787);
         expect(bp).not.toBeNull();
         expect(bp!.blueprintTypeId).toBe(787);
-        expect(bp!.manufacturing).not.toBeNull();
-        expect(bp!.manufacturing!.time).toBe(6000);
+        expect(bp!.activities.manufacturing).not.toBeUndefined();
+        expect(bp!.activities.manufacturing!.time).toBe(6000);
       });
 
       it('should return null for unknown blueprint type ID', () => {
