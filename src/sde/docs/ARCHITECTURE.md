@@ -13,11 +13,9 @@ C4Context
     System(sde, "SDE Module", "Typed in-memory provider for EVE static data. 109 entity types, ~100 query methods.")
 
     System_Ext(ccp_sde, "CCP SDE", "Static Data Export: 102 YAML files published by CCP (~200 MB ZIP)")
-    System_Ext(esi_client, "ESI Client", "ESI.ts live API client for EVE Swagger Interface")
 
     Rel(dev, sde, "Queries static data", "TypeScript API")
     Rel(sde, ccp_sde, "Downloads & parses", "HTTPS + js-yaml")
-    BiRel(dev, esi_client, "Queries live data", "TypeScript API")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```

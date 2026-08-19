@@ -360,13 +360,12 @@ Requires `sde-data/` to be populated. Tests against real CCP data:
 
 ## Examples
 
-| File                              | Description                                                                          |
-| --------------------------------- | ------------------------------------------------------------------------------------ |
-| `examples/sde-basic-lookup.ts`    | Type/group/category hierarchy, geography navigation, star/stargate traversal, search |
-| `examples/sde-cross-reference.ts` | SDE static data combined with live ESI market API calls                              |
-| `examples/sde-market-tree.ts`     | Recursive market group hierarchy walker with type counts                             |
-| `examples/sde-fitting.ts`         | Ship type + dogma attribute lookup for fitting stats                                 |
-| `examples/sde-industry.ts`        | Blueprint manufacturing requirements with material name resolution                   |
+| File                           | Description                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| `examples/sde-basic-lookup.ts` | Type/group/category hierarchy, geography navigation, star/stargate traversal, search |
+| `examples/sde-market-tree.ts`  | Recursive market group hierarchy walker with type counts                             |
+| `examples/sde-fitting.ts`      | Ship type + dogma attribute lookup for fitting stats                                 |
+| `examples/sde-industry.ts`     | Blueprint manufacturing requirements with material name resolution                   |
 
 Run any example:
 

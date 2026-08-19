@@ -128,29 +128,6 @@ const highsecSystems = sde.getAllEntities<SolarSystem>('eve_solar_systems')
   .filter(s => s.securityStatus >= 0.5);
 ```
 
-## Cross-Referencing with ESI
-
-The SDE module is independent from the ESI client. Use both together to enrich live API responses:
-
-```ts
-import { EsiClient } from '@lgriffin/esi.ts';
-import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
-
-const esi = new EsiClient();
-const sde = SdeDataProvider.fromDirectory('./sde-data');
-
-try {
-  const orders = await esi.market.getRegionOrders(10000002, 34);
-  const typeInfo = sde.getType(34);
-  const regionInfo = sde.getRegion(10000002);
-
-  console.log(`${typeInfo?.name} in ${regionInfo?.name}: ${orders.length} orders`);
-} finally {
-  sde.close();
-  esi.shutdown();
-}
-```
-
 ## Error Handling
 
 ```ts
