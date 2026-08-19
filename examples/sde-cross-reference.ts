@@ -4,25 +4,21 @@
  * Demonstrates using SDE static data alongside live ESI API calls
  * to enrich API responses with readable entity names and metadata.
  *
- * Usage: npm run example:sde-cross-ref
+ * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
+ * Usage: npx ts-node examples/sde-cross-reference.ts
  */
 import { EsiClient } from '../src/EsiClient';
-import { SdeLocalEngine, isSdeDatabaseError } from '../src/sde';
+import { SdeDataProvider, isSdeError } from '../src/sde';
 
 async function main() {
   const esi = new EsiClient();
 
-  let sde: SdeLocalEngine;
+  let sde: ReturnType<typeof SdeDataProvider.fromDirectory>;
   try {
-    sde = new SdeLocalEngine({
-      databasePath: process.env.SDE_DATABASE_PATH || './eve-sde.sqlite',
-    });
+    sde = SdeDataProvider.fromDirectory(process.env.SDE_DATA_PATH || './sde-data');
   } catch (err) {
-    if (isSdeDatabaseError(err)) {
-      console.error(
-        'SDE database not found. Set SDE_DATABASE_PATH or place eve-sde.sqlite in the project root.',
-      );
-      console.error('This example requires a pre-built SDE SQLite database.');
+    if (isSdeError(err)) {
+      console.error('SDE data not found. Run: npx ts-node scripts/sde-ingest.ts --output sde-data');
       process.exit(1);
     }
     throw err;
@@ -32,7 +28,6 @@ async function main() {
     const TRITANIUM_TYPE_ID = 34;
     const THE_FORGE_REGION_ID = 10000002;
 
-    // Enrich IDs with SDE context
     const typeInfo = sde.getType(TRITANIUM_TYPE_ID);
     const regionInfo = sde.getRegion(THE_FORGE_REGION_ID);
 
@@ -48,7 +43,6 @@ async function main() {
       console.log(`  Classification: ${category?.name} > ${group?.name}`);
     }
 
-    // Fetch live data from ESI
     console.log('\nFetching live market data from ESI...');
     try {
       const orders = await esi.market.getRegionOrders(
@@ -81,7 +75,6 @@ async function main() {
       );
     }
 
-    // SDE version
     const version = sde.getVersion();
     console.log(`\nSDE: v${version.version} (${version.buildDate})`);
   } finally {
