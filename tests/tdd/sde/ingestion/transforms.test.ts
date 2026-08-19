@@ -3,6 +3,7 @@ import {
   normalizeSdeFieldName,
   toSqliteValue,
   transformRecord,
+  transformRecordNative,
 } from '../../../../src/sde/ingestion/transforms';
 
 describe('extractLocale', () => {
@@ -179,5 +180,160 @@ describe('transformRecord', () => {
     expect(JSON.parse(result.activities as string)).toHaveProperty(
       'manufacturing',
     );
+  });
+});
+
+describe('transformRecordNative', () => {
+  it('should inject entity ID when injectId is true', () => {
+    const raw = { name: { en: 'Mineral' }, published: true };
+    const result = transformRecordNative(18, raw, {
+      idAttribute: 'groupId',
+      injectId: true,
+    });
+    expect(result.groupId).toBe(18);
+  });
+
+  it('should not inject entity ID when injectId is false', () => {
+    const raw = { name: { en: 'hp' }, value: 100 };
+    const result = transformRecordNative(9, raw, {
+      idAttribute: 'attributeId',
+      injectId: false,
+    });
+    expect(result).not.toHaveProperty('attributeId');
+  });
+
+  it('should extract locale from name fields', () => {
+    const raw = { name: { en: 'Tritanium', de: 'Tritanium' }, groupID: 18 };
+    const result = transformRecordNative(34, raw, {
+      idAttribute: 'typeId',
+      injectId: true,
+    });
+    expect(result.name).toBe('Tritanium');
+  });
+
+  it('should normalize field names', () => {
+    const raw = { groupID: 18, marketGroupID: 1857 };
+    const result = transformRecordNative(34, raw, {
+      idAttribute: 'typeId',
+      injectId: true,
+    });
+    expect(result).toHaveProperty('groupId', 18);
+    expect(result).toHaveProperty('marketGroupId', 1857);
+  });
+
+  it('should preserve booleans as native booleans', () => {
+    const raw = { published: true };
+    const result = transformRecordNative(1, raw, {
+      idAttribute: 'categoryId',
+      injectId: true,
+    });
+    expect(result.published).toBe(true);
+  });
+
+  it('should handle string entity IDs', () => {
+    const raw = { name: { en: 'English' } };
+    const result = transformRecordNative('en', raw, {
+      idAttribute: 'translationLanguageId',
+      injectId: true,
+    });
+    expect(result.translationLanguageId).toBe('en');
+  });
+
+  it('should preserve nested objects as native objects', () => {
+    const raw = {
+      activities: {
+        manufacturing: {
+          time: 6000,
+          materials: [{ typeID: 34, quantity: 100 }],
+        },
+      },
+    };
+    const result = transformRecordNative(787, raw, {
+      idAttribute: 'blueprintTypeId',
+      injectId: true,
+    });
+    expect(typeof result.activities).toBe('object');
+    expect(result.activities).not.toBeNull();
+  });
+
+  it('should recursively normalize nested object keys (normalizeNested)', () => {
+    const raw = {
+      destination: { solarSystemID: 30000140, stargateID: 50000802 },
+    };
+    const result = transformRecordNative(50001248, raw, {
+      idAttribute: 'stargateId',
+      injectId: true,
+    });
+    const dest = result.destination as Record<string, unknown>;
+    expect(dest).toHaveProperty('solarSystemId', 30000140);
+    expect(dest).toHaveProperty('stargateId', 50000802);
+    expect(dest).not.toHaveProperty('solarSystemID');
+    expect(dest).not.toHaveProperty('stargateID');
+  });
+
+  it('should recursively normalize keys in arrays of objects', () => {
+    const raw = {
+      items: [
+        { typeID: 34, groupID: 18 },
+        { typeID: 35, groupID: 18 },
+      ],
+    };
+    const result = transformRecordNative(1, raw, {
+      idAttribute: 'id',
+      injectId: true,
+    });
+    const items = result.items as Array<Record<string, unknown>>;
+    expect(items[0]).toHaveProperty('typeId', 34);
+    expect(items[0]).toHaveProperty('groupId', 18);
+    expect(items[1]).toHaveProperty('typeId', 35);
+  });
+
+  it('should extract locale from nested locale maps', () => {
+    const raw = {
+      details: { label: { en: 'Test Label', de: 'Testbezeichnung' } },
+    };
+    const result = transformRecordNative(1, raw, {
+      idAttribute: 'id',
+      injectId: true,
+    });
+    const details = result.details as Record<string, unknown>;
+    expect(details.label).toBe('Test Label');
+  });
+
+  it('should handle null/undefined values in nested normalization', () => {
+    const raw = {
+      destination: null,
+      status: undefined,
+      count: 42,
+      label: 'hello',
+    };
+    const result = transformRecordNative(1, raw, {
+      idAttribute: 'id',
+      injectId: true,
+    });
+    expect(result.destination).toBeNull();
+    expect(result.status).toBeUndefined();
+    expect(result.count).toBe(42);
+    expect(result.label).toBe('hello');
+  });
+
+  it('should handle deeply nested objects', () => {
+    const raw = {
+      level1: {
+        level2: {
+          solarSystemID: 30000142,
+          items: [{ typeID: 34 }],
+        },
+      },
+    };
+    const result = transformRecordNative(1, raw, {
+      idAttribute: 'id',
+      injectId: true,
+    });
+    const l1 = result.level1 as Record<string, unknown>;
+    const l2 = l1.level2 as Record<string, unknown>;
+    expect(l2).toHaveProperty('solarSystemId', 30000142);
+    const items = l2.items as Array<Record<string, unknown>>;
+    expect(items[0]).toHaveProperty('typeId', 34);
   });
 });
