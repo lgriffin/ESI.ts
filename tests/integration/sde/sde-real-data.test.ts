@@ -275,7 +275,7 @@ const canRun =
       const roots = sde.getRootMarketGroups();
       expect(roots.length).toBeGreaterThan(0);
       for (const g of roots) {
-        expect(g.parentGroupId).toBeNull();
+        expect(g.parentGroupId == null).toBe(true);
       }
     });
 
