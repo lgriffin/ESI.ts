@@ -1,328 +1,332 @@
 # SDE Developer Guide
 
-This guide walks through using the ESI.ts SDE module to access EVE Online static data in your application.
+Guide for contributors adding entities, writing tests, or modifying the SDE module internals.
 
-## Quick Start
+## Project Structure
 
-### 1. Install the optional dependency
-
-```bash
-npm install better-sqlite3
+```
+src/sde/
+├── docs/                      # Documentation
+│   ├── USAGE.md               # End-user guide
+│   ├── DEVELOPER_GUIDE.md     # This file
+│   ├── ARCHITECTURE.md        # System architecture and C4 diagrams
+│   └── API_CONTRACTS.md       # Complete method reference
+├── ingestion/                 # YAML download + parsing pipeline
+│   ├── constants.ts           # SDE_FILE_REGISTRY (102 YAML file specs)
+│   ├── SdeDownloader.ts       # HTTP download from CCP
+│   ├── SdeExtractor.ts        # ZIP parsing + YAML extraction
+│   ├── SdeDatabaseBuilder.ts  # (legacy, unused)
+│   └── transforms.ts          # Field normalization + locale extraction
+├── IStaticDataProvider.ts     # Provider interface (~97 methods)
+├── SdeDataProvider.ts         # YAML-backed provider (production)
+├── MemorySdeProvider.ts       # In-memory provider (testing)
+├── SdeTestDataFactory.ts      # Test data factories
+├── types.ts                   # 109 entity interfaces
+├── schemas.ts                 # 110 Zod schemas
+├── errors.ts                  # Error hierarchy
+├── version.ts                 # SdeVersionInfo type
+└── index.ts                   # Barrel exports
 ```
 
-### 2. Create or obtain an SDE database
+## Adding a New Entity Type
 
-You can seed a small test database using the included script:
+When CCP adds a new YAML file to the SDE, follow these steps:
 
-```bash
-npx ts-node scripts/seed-sde-test-db.ts ./eve-sde.sqlite
-```
-
-For production use, you'll need a database built from CCP's SDE release (full ingestion tooling is planned for a future release).
-
-### 3. Use the SDE in your code
+### 1. Define the interface in `types.ts`
 
 ```ts
-import { SdeLocalEngine } from '@lgriffin/esi.ts/sde';
-
-const sde = new SdeLocalEngine({ databasePath: './eve-sde.sqlite' });
-
-const tritanium = sde.getType(34);
-console.log(tritanium?.name); // "Tritanium"
-
-sde.close();
-```
-
-## Common Use Cases
-
-### Look up an item type and its classification
-
-```ts
-import { SdeLocalEngine } from '@lgriffin/esi.ts/sde';
-
-const sde = new SdeLocalEngine({ databasePath: './eve-sde.sqlite' });
-
-const type = sde.getType(587); // Rifter
-if (type) {
-  console.log(`${type.name} (ID: ${type.typeId})`);
-  console.log(`  Volume: ${type.volume} m³`);
-  console.log(`  Mass: ${type.mass} kg`);
-
-  // Navigate up the hierarchy
-  const group = sde.getGroup(type.groupId);
-  const category = group ? sde.getCategory(group.categoryId) : null;
-  console.log(`  ${category?.name} > ${group?.name} > ${type.name}`);
-  // "Ship > Frigate > Rifter"
-
-  // Find all items in the same group
-  const otherFrigates = sde.getTypesByGroup(type.groupId);
-  console.log(`  Other ${group?.name}s: ${otherFrigates.map(t => t.name).join(', ')}`);
+/** eve_new_things [row_count rows] */
+export interface NewThing {
+  newThingId: number;
+  name: string;
+  description: string | null;
+  categoryId: number;
 }
-
-sde.close();
 ```
 
-### Explore the EVE universe geography
+Use normalized field names (see Field Normalization below). Add a JSDoc comment with the table name and approximate row count for reference.
+
+### 2. Add the Zod schema in `schemas.ts`
 
 ```ts
-import { SdeLocalEngine } from '@lgriffin/esi.ts/sde';
-
-const sde = new SdeLocalEngine({ databasePath: './eve-sde.sqlite' });
-
-// Start from a region
-const forge = sde.getRegion(10000002);
-console.log(`Region: ${forge?.name}`);
-
-// Get its constellations
-const constellations = sde.getConstellationsByRegion(10000002);
-console.log(`Constellations: ${constellations.map(c => c.name).join(', ')}`);
-
-// Get systems in Kimotoro constellation
-const systems = sde.getSolarSystemsByConstellation(20000020);
-for (const system of systems) {
-  const stargates = sde.getStargatesBySystem(system.systemId);
-  const destinations = stargates.map(sg => {
-    const dest = sde.getSolarSystem(sg.destinationSystemId);
-    return dest?.name ?? 'Unknown';
-  });
-  console.log(`  ${system.name} (${system.securityStatus.toFixed(2)}) -> ${destinations.join(', ')}`);
-}
-
-sde.close();
-```
-
-### Search for items or systems by name
-
-```ts
-import { SdeLocalEngine } from '@lgriffin/esi.ts/sde';
-
-const sde = new SdeLocalEngine({ databasePath: './eve-sde.sqlite' });
-
-// Search types - case-insensitive, partial match
-const ships = sde.searchTypesByName('Rifter', 10);
-for (const ship of ships) {
-  console.log(`${ship.name} (${ship.typeId})`);
-}
-
-// Search solar systems
-const systems = sde.searchSolarSystemsByName('Jita');
-for (const system of systems) {
-  console.log(`${system.name} - security: ${system.securityStatus.toFixed(2)}`);
-}
-
-sde.close();
-```
-
-### Enrich ESI API responses with SDE data
-
-```ts
-import { EsiClient } from '@lgriffin/esi.ts';
-import { SdeLocalEngine } from '@lgriffin/esi.ts/sde';
-
-const esi = new EsiClient();
-const sde = new SdeLocalEngine({ databasePath: './eve-sde.sqlite' });
-
-// ESI returns numeric IDs - SDE resolves them to names
-const orders = await esi.market.getRegionOrders(10000002, 34);
-
-const typeInfo = sde.getType(34);
-const regionInfo = sde.getRegion(10000002);
-
-console.log(`Market: ${typeInfo?.name} in ${regionInfo?.name}`);
-console.log(`  Volume per unit: ${typeInfo?.volume} m³`);
-console.log(`  Active orders: ${orders.length}`);
-
-// Enrich each order with location names
-for (const order of orders.slice(0, 5)) {
-  const system = sde.getSolarSystem(order.system_id);
-  console.log(`  ${order.price} ISK x${order.volume_remain} at ${system?.name ?? order.system_id}`);
-}
-
-sde.close();
-esi.shutdown();
-```
-
-### Check SDE version
-
-```ts
-import { SdeLocalEngine } from '@lgriffin/esi.ts/sde';
-
-const sde = new SdeLocalEngine({ databasePath: './eve-sde.sqlite' });
-
-const version = sde.getVersion();
-console.log(`SDE Version: ${version.version}`);
-console.log(`Built: ${version.buildDate}`);
-console.log(`Imported: ${version.importedAt}`);
-if (version.checksum) {
-  console.log(`Checksum: ${version.checksum}`);
-}
-
-sde.close();
-```
-
-## Using MemorySdeProvider for Testing
-
-You don't need SQLite to test SDE-dependent code. Use `MemorySdeProvider` with `SdeTestDataFactory`:
-
-```ts
-import { MemorySdeProvider, SdeTestDataFactory } from '@lgriffin/esi.ts/sde';
-
-// Create a provider with a complete hierarchy of test data
-const sde = new MemorySdeProvider(SdeTestDataFactory.createHierarchicalTestData());
-
-// Use it the same way as SdeLocalEngine
-const type = sde.getType(34);
-console.log(type?.name); // "Tritanium"
-
-sde.close();
-```
-
-### Custom test data
-
-```ts
-import { MemorySdeProvider, SdeTestDataFactory } from '@lgriffin/esi.ts/sde';
-
-const sde = new MemorySdeProvider({
-  types: [
-    SdeTestDataFactory.createEveType({ typeId: 587, name: 'Rifter', groupId: 25 }),
-    SdeTestDataFactory.createEveType({ typeId: 603, name: 'Merlin', groupId: 25 }),
-  ],
-  groups: [
-    SdeTestDataFactory.createEveGroup({ groupId: 25, name: 'Frigate', categoryId: 6 }),
-  ],
-  categories: [
-    SdeTestDataFactory.createEveCategory({ categoryId: 6, name: 'Ship' }),
-  ],
-});
-
-const frigates = sde.getTypesByGroup(25);
-console.log(frigates.map(f => f.name)); // ['Rifter', 'Merlin']
-
-sde.close();
-```
-
-### In Jest tests
-
-```ts
-import { MemorySdeProvider, SdeTestDataFactory } from '@lgriffin/esi.ts/sde';
-import type { IStaticDataProvider } from '@lgriffin/esi.ts/sde';
-
-describe('MyMarketService', () => {
-  let sde: IStaticDataProvider;
-
-  beforeEach(() => {
-    sde = new MemorySdeProvider(SdeTestDataFactory.createHierarchicalTestData());
-  });
-
-  afterEach(() => {
-    sde.close();
-  });
-
-  it('should resolve type names', () => {
-    const type = sde.getType(34);
-    expect(type?.name).toBe('Tritanium');
-  });
-
-  it('should navigate type hierarchy', () => {
-    const type = sde.getType(34);
-    const group = sde.getGroup(type!.groupId);
-    const category = sde.getCategory(group!.categoryId);
-    expect(category?.name).toBe('Material');
-  });
+export const NewThingSchema = z.looseObject({
+  newThingId: z.int(),
+  name: z.string(),
+  description: z.string().nullable(),
+  categoryId: z.int(),
 });
 ```
 
-## Error Handling
+Always use `z.looseObject({})` so extra fields from the SDE are preserved rather than stripped.
+
+### 3. Register in `ingestion/constants.ts`
+
+Add an entry to `SDE_FILE_REGISTRY`:
 
 ```ts
-import {
-  SdeLocalEngine,
-  isSdeDatabaseError,
-  isSdeError,
-} from '@lgriffin/esi.ts/sde';
-
-// Handle missing database
-try {
-  const sde = new SdeLocalEngine({ databasePath: './missing.sqlite' });
-} catch (err) {
-  if (isSdeDatabaseError(err)) {
-    console.error('Could not open SDE database:', err.message);
-    console.error('Original error:', err.cause);
-  }
-}
-
-// Handle missing dependency
-try {
-  const sde = new SdeLocalEngine({ databasePath: './eve-sde.sqlite' });
-} catch (err) {
-  if (isSdeError(err) && err.message.includes('better-sqlite3')) {
-    console.error('Install better-sqlite3: npm install better-sqlite3');
-  }
-}
+{
+  yamlFile: 'newThings.yaml',
+  tableName: 'eve_new_things',
+  idAttribute: 'newThingId',
+  injectId: true,
+  idType: 'number',
+},
 ```
 
-## Writing a Custom Provider
+- `yamlFile` — filename as it appears in the SDE ZIP (case-sensitive)
+- `tableName` — internal table name (convention: `eve_<snake_case>`)
+- `idAttribute` — the PK field name after normalization
+- `injectId` — `true` if the YAML key IS the entity ID (most entities); `false` if the ID is already in the record body (e.g., dogma attributes)
+- `idType` — `'number'` or `'string'` for string-keyed entities
 
-Implement `IStaticDataProvider` to use any data source:
+### 4. Add methods to `IStaticDataProvider.ts`
 
 ```ts
-import type { IStaticDataProvider } from '@lgriffin/esi.ts/sde';
-import type {
-  EveType, EveGroup, EveCategory,
-  Region, Constellation, SolarSystem, Stargate,
-} from '@lgriffin/esi.ts/sde';
-import type { SdeVersionInfo } from '@lgriffin/esi.ts/sde';
+// --- New Things ---
+getNewThing(newThingId: number): NewThing | null;
+getAllNewThings(): NewThing[];
+getNewThingsByCategory(categoryId: number): NewThing[];  // if FK query needed
+```
 
-class JsonFileSdeProvider implements IStaticDataProvider {
-  private data: Record<string, unknown>;
+### 5. Implement in `SdeDataProvider.ts`
 
-  constructor(jsonPath: string) {
-    this.data = JSON.parse(require('fs').readFileSync(jsonPath, 'utf-8'));
-  }
+```ts
+getNewThing(newThingId: number): NewThing | null {
+  return this.getById<NewThing>('eve_new_things', newThingId);
+}
 
-  getType(typeId: number): EveType | null {
-    return (this.data.types as EveType[])?.find(t => t.typeId === typeId) ?? null;
-  }
+getAllNewThings(): NewThing[] {
+  return this.getAllRecords<NewThing>('eve_new_things');
+}
 
-  // ... implement remaining methods
-
-  close(): void {
-    this.data = {};
-  }
+getNewThingsByCategory(categoryId: number): NewThing[] {
+  return this.getByFk<NewThing>('eve_new_things', 'categoryId', categoryId);
 }
 ```
 
-## Configuration Options
+The generic helpers handle all the Map lookups and lazy FK indexing.
 
-### SdeLocalEngine
+### 6. Implement in `MemorySdeProvider.ts`
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `databasePath` | `string` | (required) | Path to the SQLite database file |
-| `walMode` | `boolean` | `true` | Enable WAL journal mode for better concurrent read performance |
-| `validateOnRead` | `boolean` | `false` | Validate each row against Zod schemas on read. Enable during development, disable in production for performance |
+Add the field to `MemorySdeData`:
 
-## Available Entities
+```ts
+export interface MemorySdeData {
+  // ... existing fields
+  newThings?: NewThing[];
+}
+```
 
-| Entity | Example | ID Field |
-|--------|---------|----------|
-| `EveType` | Tritanium, Rifter, Raven | `typeId` |
-| `EveGroup` | Mineral, Frigate, Cruiser | `groupId` |
-| `EveCategory` | Material, Ship, Module | `categoryId` |
-| `Region` | The Forge, Domain | `regionId` |
-| `Constellation` | Kimotoro, Throne Worlds | `constellationId` |
-| `SolarSystem` | Jita, Amarr, Dodixie | `systemId` |
-| `Stargate` | Jita-Perimeter gate | `stargateId` |
+Register in the constructor:
 
-## Hierarchy Relationships
+```ts
+register('eve_new_things', data.newThings, 'newThingId');
+```
+
+Add the query methods using the generic helpers:
+
+```ts
+getNewThing(newThingId: number): NewThing | null {
+  return this.getById<NewThing>('eve_new_things', newThingId);
+}
+```
+
+### 7. Add factory methods in `SdeTestDataFactory.ts`
+
+```ts
+static createNewThing(overrides: Partial<NewThing> = {}): NewThing {
+  return {
+    newThingId: 1,
+    name: 'Test Thing',
+    description: 'A test thing.',
+    categoryId: 1,
+    ...overrides,
+  };
+}
+```
+
+Use realistic default values based on actual SDE data when possible.
+
+### 8. Export from `index.ts`
+
+```ts
+export type { NewThing } from './types';
+```
+
+### 9. Write tests
+
+See Testing Patterns below.
+
+## Field Normalization
+
+CCP's YAML uses `ID` suffix in uppercase (e.g., `groupID`, `solarSystemID`). The `transformRecordNative()` function normalizes these to camelCase `Id`:
 
 ```
-EveCategory (e.g., "Ship")
-    └── EveGroup (e.g., "Frigate")
-            └── EveType (e.g., "Rifter")
-
-Region (e.g., "The Forge")
-    └── Constellation (e.g., "Kimotoro")
-            └── SolarSystem (e.g., "Jita")
-                    └── Stargate (e.g., Jita → Perimeter)
+groupID     → groupId
+solarSystemID → solarSystemId
+typeID      → typeId
 ```
+
+The regex is: `/ID(?=[A-Z]|$)/g` → `Id`
+
+Nested objects are recursively normalized. For example, a stargate's `destination` object:
+
+```yaml
+# CCP YAML
+destination:
+  solarSystemID: 30000140
+  stargateID: 50000802
+```
+
+Becomes:
+
+```ts
+{ destination: { solarSystemId: 30000140, stargateId: 50000802 } }
+```
+
+## Locale Extraction
+
+CCP YAML stores localized strings as maps:
+
+```yaml
+name:
+  en: "Tritanium"
+  de: "Tritanium"
+  fr: "Tritanium"
+  ja: "トリタニウム"
+```
+
+The transform extracts the `en` locale to a plain string. If no `en` key exists, falls back to an empty string.
+
+Detection: any object with an `en` key is treated as a locale map.
+
+## Zod Schema Conventions
+
+- **Always** use `z.looseObject({})` (never `z.object()`). This preserves extra fields CCP may add without breaking existing schemas.
+- Use `z.int()` for integer IDs, not `z.number()`.
+- Use `.nullable()` for fields that can be `null` in the SDE data.
+- Use `.optional()` only for fields that may be entirely absent from some records.
+- Schema names follow the pattern `<InterfaceName>Schema` (e.g., `EveTypeSchema`, `BlueprintSchema`).
+
+## Running the Ingestion Script
+
+```bash
+# Download and extract SDE data
+npx ts-node scripts/sde-ingest.ts --output sde-data
+
+# Check latest build without downloading
+npx ts-node scripts/sde-ingest.ts --check
+
+# Force re-download
+npx ts-node scripts/sde-ingest.ts --force --output sde-data
+```
+
+The script downloads from `https://developers.eveonline.com/static-data/eve-online-static-data-latest-yaml.zip`.
+
+## Testing Patterns
+
+### Unit tests (`tests/tdd/sde/`)
+
+Each entity domain has tests for:
+
+**Schema tests** (`schemas.test.ts`):
+```ts
+it('should accept valid data', () => {
+  const data = SdeTestDataFactory.createNewThing();
+  const result = NewThingSchema.parse(data);
+  expect(result.newThingId).toBe(1);
+});
+
+it('should accept nullable fields as null', () => {
+  const data = SdeTestDataFactory.createNewThing({ description: null });
+  const result = NewThingSchema.parse(data);
+  expect(result.description).toBeNull();
+});
+
+it('should preserve extra fields (looseObject)', () => {
+  const data = { ...SdeTestDataFactory.createNewThing(), extraField: 'test' };
+  const result = NewThingSchema.parse(data);
+  expect((result as Record<string, unknown>).extraField).toBe('test');
+});
+
+it('should reject missing required fields', () => {
+  expect(() => NewThingSchema.parse({ newThingId: 1 })).toThrow();
+});
+```
+
+**Provider contract tests** (`IStaticDataProvider.contract.test.ts`):
+```ts
+it('should return entity by ID', () => {
+  const result = provider.getNewThing(1);
+  expect(result).not.toBeNull();
+  expect(result!.name).toBe('Test Thing');
+});
+
+it('should return null for unknown ID', () => {
+  expect(provider.getNewThing(999999)).toBeNull();
+});
+```
+
+**Factory tests** (`SdeTestDataFactory.test.ts`):
+```ts
+it('should create with defaults', () => {
+  const thing = SdeTestDataFactory.createNewThing();
+  expect(thing.newThingId).toBe(1);
+});
+
+it('should accept overrides', () => {
+  const thing = SdeTestDataFactory.createNewThing({ name: 'Custom' });
+  expect(thing.name).toBe('Custom');
+});
+```
+
+### BDD tests (`tests/bdd/`)
+
+Feature files in `tests/bdd/features/sde/` with step definitions in `tests/bdd/step-definitions/sde/`:
+
+```gherkin
+Feature: New Thing Lookup
+
+  Scenario: WHEN looking up a new thing, the provider shall return details
+    Given a static data provider with hierarchical test data
+    When I look up new thing 1
+    Then the thing name should be "Test Thing"
+```
+
+All BDD tests use `MemorySdeProvider` with `SdeTestDataFactory` data.
+
+### Integration tests (`tests/integration/sde/`)
+
+Test against real CCP SDE data (gitignored, must be downloaded locally):
+
+```bash
+npx jest --config jest.integration.config.cjs -- tests/integration/sde/
+```
+
+Tests are wrapped in `(canRun ? describe : describe.skip)` and skip automatically when `sde-data/` is absent.
+
+## Validating Against Real Data
+
+After downloading SDE data, run the integration test suite:
+
+```bash
+# Download data
+npx ts-node scripts/sde-ingest.ts --output sde-data
+
+# Run integration tests (63 tests, ~60s)
+npx jest --config jest.integration.config.cjs -- tests/integration/sde/
+
+# Full validation (lint + format + build + coverage + all tests)
+npm run validate
+```
+
+The integration tests verify:
+- Well-known entity lookups (Tritanium, Jita, Caldari, etc.)
+- Minimum row counts (40K+ types, 8K+ systems, 200K+ moons, etc.)
+- Universe hierarchy navigation (star → planet → moon)
+- Cross-entity referential integrity
+- FK query methods
+- Text search
+- Blueprint activities
+- Data quality (published types have names, valid security status ranges, market group tree integrity)
+- SDE version metadata

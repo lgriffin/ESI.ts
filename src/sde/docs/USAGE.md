@@ -1,20 +1,31 @@
 # SDE Module Usage Guide
 
-## Installation
+## Prerequisites
 
-The SDE module requires `better-sqlite3` as an optional peer dependency:
+- Node.js 18+
+- SDE data downloaded locally (YAML files from CCP's Static Data Export)
+
+No additional runtime dependencies are required. The SDE module reads YAML files directly from disk into in-memory Maps.
+
+## Downloading SDE Data
 
 ```bash
-npm install better-sqlite3
+npx ts-node scripts/sde-ingest.ts --output sde-data
 ```
 
-No additional setup is needed if you only use the `MemorySdeProvider` (e.g., for testing).
+This downloads the latest SDE ZIP from CCP (~200 MB), extracts all YAML files to `./sde-data/`, and cleans up the archive. The directory is gitignored by default.
+
+Options:
+- `--output, -o` — output directory (default: `./sde-data`)
+- `--check` — check for the latest build without downloading
+- `--force` — re-download even if data already exists
+- `--verbose` — show detailed progress
 
 ## Importing
 
 ```ts
 import {
-  SdeLocalEngine,
+  SdeDataProvider,
   MemorySdeProvider,
   SdeTestDataFactory,
   type IStaticDataProvider,
@@ -23,168 +34,180 @@ import {
 } from '@lgriffin/esi.ts/sde';
 ```
 
-## Using SdeLocalEngine (SQLite)
+## Creating a Provider
 
-### Prerequisites
-
-You need a pre-built SQLite database file containing EVE SDE data. The database must use the schema defined by `SDE_SCHEMA_SQL` (exported from the module).
-
-### Basic Usage
+### From a directory of YAML files
 
 ```ts
-import { SdeLocalEngine } from '@lgriffin/esi.ts/sde';
+import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
 
-const sde = new SdeLocalEngine({
-  databasePath: './eve-sde.sqlite',
-});
-
-try {
-  // Look up an item type
-  const tritanium = sde.getType(34);
-  console.log(tritanium?.name); // "Tritanium"
-
-  // Navigate the type hierarchy
-  const group = sde.getGroup(tritanium!.groupId);
-  const category = sde.getCategory(group!.categoryId);
-  console.log(`${category?.name} > ${group?.name} > ${tritanium?.name}`);
-  // "Material > Mineral > Tritanium"
-
-  // Look up geography
-  const jita = sde.getSolarSystem(30000142);
-  console.log(`${jita?.name}: security ${jita?.securityStatus.toFixed(2)}`);
-
-  // Search
-  const results = sde.searchTypesByName('Rifter');
-  results.forEach((r) => console.log(r.name));
-
-  // Version info
-  const version = sde.getVersion();
-  console.log(`SDE v${version.version}, built ${version.buildDate}`);
-} finally {
-  sde.close();
-}
+const sde = SdeDataProvider.fromDirectory('./sde-data');
 ```
 
-### Configuration
+Reads all 102 YAML files from the directory. Takes 30-90 seconds depending on hardware, loading ~500K records into memory.
+
+### From a ZIP archive
 
 ```ts
-const sde = new SdeLocalEngine({
-  databasePath: './eve-sde.sqlite',
-  walMode: true,         // Enable WAL journal mode (default: true)
-  validateOnRead: false,  // Validate rows against Zod schemas (default: false)
-});
+const sde = SdeDataProvider.fromZip('./eve-online-static-data-latest-yaml.zip');
 ```
 
-Set `validateOnRead: true` during development to catch data integrity issues. Disable in production for performance.
+Parses YAML files directly from the ZIP without extracting to disk.
 
-## Using MemorySdeProvider (Testing)
+## Common Query Patterns
 
-The `MemorySdeProvider` implements the same `IStaticDataProvider` interface using in-memory Maps. Use it in tests to avoid SQLite dependencies:
+### Look up by primary key
+
+Every entity has a dedicated `getXxx(id)` method that returns `T | null`:
 
 ```ts
-import { MemorySdeProvider, SdeTestDataFactory } from '@lgriffin/esi.ts/sde';
-
-const provider = new MemorySdeProvider({
-  types: [
-    SdeTestDataFactory.createEveType({ typeId: 34, name: 'Tritanium' }),
-    SdeTestDataFactory.createEveType({ typeId: 35, name: 'Pyerite' }),
-  ],
-  groups: [SdeTestDataFactory.createEveGroup()],
-  categories: [SdeTestDataFactory.createEveCategory()],
-});
-
-const type = provider.getType(34);
-// { typeId: 34, name: 'Tritanium', ... }
+const tritanium = sde.getType(34);        // EveType | null
+const jita = sde.getSolarSystem(30000142); // SolarSystem | null
+const caldari = sde.getFaction(500001);    // Faction | null
 ```
 
-For a complete dataset with consistent foreign key relationships:
+### Query by foreign key
+
+Methods like `getXxxsByYyy(fkValue)` return arrays of related entities:
 
 ```ts
-const provider = new MemorySdeProvider(
-  SdeTestDataFactory.createHierarchicalTestData(),
-);
+const minerals = sde.getTypesByGroup(18);                 // EveType[]
+const forgeConstellations = sde.getConstellationsByRegion(10000002); // Constellation[]
+const jitaGates = sde.getStargatesBySystem(30000142);     // Stargate[]
+const caldariCorps = sde.getNpcCorporationsByFaction(500001); // NpcCorporation[]
 ```
 
-## Using SDE with ESI
+FK indexes are built lazily on first access and cached for subsequent queries.
 
-The SDE module is independent from the ESI client. Use both together for enriched data:
+### Search by name
+
+Text search methods do case-insensitive substring matching with an optional limit:
+
+```ts
+const results = sde.searchTypesByName('Rifter', 10);       // EveType[]
+const systems = sde.searchSolarSystemsByName('Jita');       // SolarSystem[]
+const attrs = sde.searchDogmaAttributesByName('hp', 5);     // DogmaAttribute[]
+```
+
+### Get all records
+
+Collection methods return every entity of a given type:
+
+```ts
+const allRegions = sde.getAllRegions();       // Region[]
+const allFactions = sde.getAllFactions();     // Faction[]
+const allMetaGroups = sde.getAllMetaGroups(); // MetaGroup[]
+```
+
+### Generic accessor
+
+For entities without dedicated methods, or when working with table names dynamically:
+
+```ts
+// Untyped — returns Record<string, unknown>
+const entity = sde.getEntity('eve_archetypes', 42);
+const all = sde.getAllEntities('eve_archetypes');
+
+// Typed — pass a generic parameter
+import type { Archetype } from '@lgriffin/esi.ts/sde';
+const typed = sde.getEntity<Archetype>('eve_archetypes', 42);
+const typedAll = sde.getAllEntities<Archetype>('eve_archetypes');
+```
+
+Table names follow the pattern `eve_<entity>` (e.g., `eve_types`, `eve_solar_systems`, `eve_blueprints`).
+
+### Filter by predicate
+
+Use `getAllEntities` with standard array methods:
+
+```ts
+const publishedTypes = sde.getAllEntities<EveType>('eve_types')
+  .filter(t => t.published === true);
+
+const highsecSystems = sde.getAllEntities<SolarSystem>('eve_solar_systems')
+  .filter(s => s.securityStatus >= 0.5);
+```
+
+## Cross-Referencing with ESI
+
+The SDE module is independent from the ESI client. Use both together to enrich live API responses:
 
 ```ts
 import { EsiClient } from '@lgriffin/esi.ts';
-import { SdeLocalEngine } from '@lgriffin/esi.ts/sde';
+import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
 
-const esi = new EsiClient({ accessToken: '...' });
-const sde = new SdeLocalEngine({ databasePath: './eve-sde.sqlite' });
+const esi = new EsiClient();
+const sde = SdeDataProvider.fromDirectory('./sde-data');
 
-// Get market orders from ESI
-const orders = await esi.market.getRegionOrders(10000002, 34);
+try {
+  const orders = await esi.market.getRegionOrders(10000002, 34);
+  const typeInfo = sde.getType(34);
+  const regionInfo = sde.getRegion(10000002);
 
-// Enrich with SDE data
-const typeInfo = sde.getType(34);
-console.log(`${typeInfo?.name}: ${orders.length} active orders`);
-
-sde.close();
-esi.shutdown();
+  console.log(`${typeInfo?.name} in ${regionInfo?.name}: ${orders.length} orders`);
+} finally {
+  sde.close();
+  esi.shutdown();
+}
 ```
 
 ## Error Handling
 
 ```ts
-import {
-  SdeLocalEngine,
-  SdeDatabaseError,
-  isSdeDatabaseError,
-  isSdeError,
-} from '@lgriffin/esi.ts/sde';
+import { SdeDataProvider, isSdeError } from '@lgriffin/esi.ts/sde';
 
 try {
-  const sde = new SdeLocalEngine({ databasePath: './missing.sqlite' });
+  const sde = SdeDataProvider.fromDirectory('./nonexistent');
 } catch (err) {
-  if (isSdeDatabaseError(err)) {
-    console.error('Database error:', err.message);
-    console.error('Cause:', err.cause);
-  } else if (isSdeError(err)) {
+  if (isSdeError(err)) {
     console.error('SDE error:', err.message);
   }
 }
 ```
 
-## Writing a Custom Provider
+Error types:
+- `SdeError` — base class for all SDE errors
+- `SdeDatabaseError` — data loading or parsing failure
+- `SdeValidationError` — Zod schema validation failure
+- `SdeVersionMismatchError` — version compatibility issue
 
-Implement `IStaticDataProvider` to create a custom data source:
+Type guards: `isSdeError()`, `isSdeDatabaseError()`, `isSdeValidationError()`, `isSdeVersionMismatch()`
+
+## Closing the Provider
+
+Always call `close()` when done. The provider is synchronous and holds data in memory:
 
 ```ts
-import type { IStaticDataProvider } from '@lgriffin/esi.ts/sde';
-
-class MyCustomProvider implements IStaticDataProvider {
-  getType(typeId: number) { /* ... */ }
-  getTypesByGroup(groupId: number) { /* ... */ }
-  // ... implement all methods
-  close() { /* cleanup */ }
+const sde = SdeDataProvider.fromDirectory('./sde-data');
+try {
+  // ... use provider
+} finally {
+  sde.close();
 }
 ```
 
-## API Reference
+## Using MemorySdeProvider for Testing
 
-### IStaticDataProvider Methods
+See [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) for testing patterns with `MemorySdeProvider` and `SdeTestDataFactory`.
 
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `getType(typeId)` | `EveType \| null` | Look up an item type |
-| `getTypesByGroup(groupId)` | `EveType[]` | All types in a group |
-| `getGroup(groupId)` | `EveGroup \| null` | Look up an item group |
-| `getGroupsByCategory(categoryId)` | `EveGroup[]` | All groups in a category |
-| `getCategory(categoryId)` | `EveCategory \| null` | Look up an item category |
-| `getAllCategories()` | `EveCategory[]` | All categories |
-| `getRegion(regionId)` | `Region \| null` | Look up a region |
-| `getAllRegions()` | `Region[]` | All regions |
-| `getConstellation(constellationId)` | `Constellation \| null` | Look up a constellation |
-| `getConstellationsByRegion(regionId)` | `Constellation[]` | Constellations in a region |
-| `getSolarSystem(systemId)` | `SolarSystem \| null` | Look up a solar system |
-| `getSolarSystemsByConstellation(constellationId)` | `SolarSystem[]` | Systems in a constellation |
-| `getStargate(stargateId)` | `Stargate \| null` | Look up a stargate |
-| `getStargatesBySystem(systemId)` | `Stargate[]` | Stargates in a system |
-| `searchTypesByName(query, limit?)` | `EveType[]` | Search types by name |
-| `searchSolarSystemsByName(query, limit?)` | `SolarSystem[]` | Search systems by name |
-| `getVersion()` | `SdeVersionInfo` | SDE version metadata |
-| `close()` | `void` | Release resources |
+## Entity Hierarchy
+
+```
+EveCategory (e.g., "Ship")
+  └── EveGroup (e.g., "Frigate")
+        └── EveType (e.g., "Rifter")
+
+Region (e.g., "The Forge")
+  └── Constellation (e.g., "Kimotoro")
+        └── SolarSystem (e.g., "Jita")
+              ├── Star
+              ├── Planet
+              │     └── Moon
+              ├── AsteroidBelt
+              └── Stargate → destination SolarSystem
+
+Race → Bloodline → Ancestry
+Faction → NpcCorporation → NpcStation
+```
+
+For the full API reference, see [API_CONTRACTS.md](API_CONTRACTS.md).
