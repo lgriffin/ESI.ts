@@ -89,3 +89,8 @@ okf/
 
 # Local planning docs
 ideas.md
+
+# SDE data files (downloaded/built locally)
+*.sqlite
+*.zip
+sde-data/

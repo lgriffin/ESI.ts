@@ -92,6 +92,35 @@ import { EsiError, isCircuitOpen } from '@lgriffin/esi.ts/errors';
 import { TestDataFactory } from '@lgriffin/esi.ts/testing';
 ```
 
+## Static Data Export (SDE) Module
+
+ESI.ts includes a standalone module for querying CCP's EVE Online Static Data Export — 102 YAML files loaded into in-memory Maps with 109 typed interfaces, Zod validation, and ~97 query methods. No database, no external services.
+
+```typescript
+import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
+
+const sde = SdeDataProvider.fromDirectory('./sde-data');
+
+const tritanium = sde.getType(34);
+console.log(tritanium?.name); // "Tritanium"
+
+const jita = sde.getSolarSystem(30000142);
+const minerals = sde.getTypesByGroup(18);
+const caldari = sde.getFaction(500001);
+
+sde.close();
+```
+
+Download SDE data with: `npx ts-node scripts/sde-ingest.ts --output sde-data`
+
+| Document                                           | Description                                                                                   |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [SDE README](src/sde/README.md)                    | Module overview, quick start, full API reference (~97 methods), entity coverage table         |
+| [Architecture](src/sde/docs/ARCHITECTURE.md)       | C4 diagrams (context, container, component), data flow sequence, ER diagram, design decisions |
+| [Usage Guide](src/sde/docs/USAGE.md)               | Provider patterns, query examples, error handling                                             |
+| [Developer Guide](src/sde/docs/DEVELOPER_GUIDE.md) | Project structure, new entity checklist, field normalization, testing patterns                |
+| [API Contracts](src/sde/docs/API_CONTRACTS.md)     | Complete method reference for all IStaticDataProvider methods                                 |
+
 ## Quick Start
 
 ```typescript
