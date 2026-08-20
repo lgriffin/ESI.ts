@@ -7,16 +7,34 @@ describe('buildCacheKey', () => {
 
   it('should return the raw URL when client has no access token', () => {
     const client = new ApiClient('test', 'https://esi.evetech.net');
-    expect(buildCacheKey(url, client)).toBe(url);
+    expect(buildCacheKey(url, client, true)).toBe(url);
   });
 
-  it('should prefix a token hash when client has an access token', () => {
+  it('should return the raw URL for public endpoints even with a token', () => {
     const client = new ApiClient(
       'test',
       'https://esi.evetech.net',
       'token-abc',
     );
-    const key = buildCacheKey(url, client);
+    expect(buildCacheKey(url, client, false)).toBe(url);
+  });
+
+  it('should return the raw URL when requiresAuth is omitted', () => {
+    const client = new ApiClient(
+      'test',
+      'https://esi.evetech.net',
+      'token-abc',
+    );
+    expect(buildCacheKey(url, client)).toBe(url);
+  });
+
+  it('should prefix a token hash for authenticated endpoints', () => {
+    const client = new ApiClient(
+      'test',
+      'https://esi.evetech.net',
+      'token-abc',
+    );
+    const key = buildCacheKey(url, client, true);
     expect(key).not.toBe(url);
     expect(key).toContain(url);
     expect(key).toMatch(/^[0-9a-f]{16}:/);
@@ -33,8 +51,8 @@ describe('buildCacheKey', () => {
       'https://esi.evetech.net',
       'token-user-b',
     );
-    const keyA = buildCacheKey(url, clientA);
-    const keyB = buildCacheKey(url, clientB);
+    const keyA = buildCacheKey(url, clientA, true);
+    const keyB = buildCacheKey(url, clientB, true);
     expect(keyA).not.toBe(keyB);
   });
 
@@ -49,7 +67,9 @@ describe('buildCacheKey', () => {
       'https://esi.evetech.net',
       'same-token',
     );
-    expect(buildCacheKey(url, client1)).toBe(buildCacheKey(url, client2));
+    expect(buildCacheKey(url, client1, true)).toBe(
+      buildCacheKey(url, client2, true),
+    );
   });
 
   it('should produce different keys for different URLs with the same token', () => {
@@ -59,7 +79,9 @@ describe('buildCacheKey', () => {
       'token-abc',
     );
     const url2 = 'https://esi.evetech.net/v1/characters/67890/assets/';
-    expect(buildCacheKey(url, client)).not.toBe(buildCacheKey(url2, client));
+    expect(buildCacheKey(url, client, true)).not.toBe(
+      buildCacheKey(url2, client, true),
+    );
   });
 
   it('should use a SHA-256 hash of the authorization header', () => {
@@ -69,7 +91,7 @@ describe('buildCacheKey', () => {
       .update(`Bearer ${token}`)
       .digest('hex')
       .slice(0, 16);
-    const key = buildCacheKey(url, client);
+    const key = buildCacheKey(url, client, true);
     expect(key).toBe(`${expectedHash}:${url}`);
   });
 
@@ -79,9 +101,26 @@ describe('buildCacheKey', () => {
       'https://esi.evetech.net',
       'original-token',
     );
-    const keyBefore = buildCacheKey(url, client);
+    const keyBefore = buildCacheKey(url, client, true);
     client.setAccessToken('new-token');
-    const keyAfter = buildCacheKey(url, client);
+    const keyAfter = buildCacheKey(url, client, true);
     expect(keyBefore).not.toBe(keyAfter);
+  });
+
+  it('should let public endpoints share cache across token-bearing clients', () => {
+    const clientA = new ApiClient(
+      'test',
+      'https://esi.evetech.net',
+      'token-user-a',
+    );
+    const clientB = new ApiClient(
+      'test',
+      'https://esi.evetech.net',
+      'token-user-b',
+    );
+    const publicUrl = 'https://esi.evetech.net/v1/status/';
+    expect(buildCacheKey(publicUrl, clientA, false)).toBe(
+      buildCacheKey(publicUrl, clientB, false),
+    );
   });
 });

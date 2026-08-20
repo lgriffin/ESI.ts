@@ -78,6 +78,7 @@ const executeRequest = async (
       parsed,
       useETag,
       resolveCache,
+      requiresAuth,
     );
     if (earlyResult) return finish(earlyResult);
 
@@ -89,6 +90,7 @@ const executeRequest = async (
         parsed,
         useETag,
         resolveCache,
+        requiresAuth,
       );
       return finish(staleOrThrow);
     }
@@ -104,6 +106,7 @@ const executeRequest = async (
       useETag,
       resolveCache,
       templatePath,
+      requiresAuth,
     );
 
     const cursorResult = handleCursorPagination(parsed, data);
@@ -205,6 +208,7 @@ export const handleRequest = async (
     method,
     templatePath,
     resolveCache,
+    requiresAuth,
   );
   if (specHit) {
     return applyResponseInterceptors(

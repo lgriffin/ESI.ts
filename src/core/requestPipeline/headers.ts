@@ -54,7 +54,7 @@ export function buildRequestHeaders(
 
   const cache = resolveCache(client);
   if (useETag && method === 'GET' && cache) {
-    const key = buildCacheKey(url, client);
+    const key = buildCacheKey(url, client, requiresAuth);
     const cachedETag = cache.getETag(key);
     if (cachedETag) {
       headers['If-None-Match'] = cachedETag;

@@ -156,9 +156,6 @@ export class ApiClient {
   }
 
   setAccessToken(token: string): void {
-    if (this.accessToken !== token) {
-      this.cache?.clear();
-    }
     this.accessToken = token;
   }
 
@@ -198,9 +195,6 @@ export class ApiClient {
 
     this.refreshInFlight = this.tokenProvider().then(
       (token) => {
-        if (this.accessToken !== token) {
-          this.cache?.clear();
-        }
         this.accessToken = token;
         this.refreshInFlight = undefined;
         return token;

@@ -43,13 +43,14 @@ export function trySpecAwareCacheHit(
   method: string,
   templatePath: string | undefined,
   resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
 ): EsiHandlerResponse | null {
   if (method !== 'GET' || !templatePath) return null;
   const specTtlMs = lookupSpecTtl(method, templatePath);
   if (!specTtlMs) return null;
   const cache = resolveCache(client);
   if (!cache) return null;
-  const key = buildCacheKey(url, client);
+  const key = buildCacheKey(url, client, requiresAuth);
   const entry = cache.get(key);
   if (!entry) return null;
   const age = Date.now() - entry.timestamp;
@@ -76,10 +77,11 @@ export function tryStaleCacheResponse(
   url: string,
   parsed: ParsedHeaders,
   resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
 ): EsiHandlerResponse | null {
   const cache = resolveCache(client);
   if (!cache) return null;
-  const key = buildCacheKey(url, client);
+  const key = buildCacheKey(url, client, requiresAuth);
   const cachedEntry = cache.get(key);
   if (!cachedEntry) return null;
   return {
@@ -105,10 +107,11 @@ export function cacheResponse(
   useETag: boolean,
   resolveCache: (client: ApiClient) => ICache | null,
   templatePath?: string,
+  requiresAuth: boolean = false,
 ): void {
   const cache = resolveCache(client);
   if (useETag && method === 'GET' && cache && parsed.etag) {
-    const key = buildCacheKey(url, client);
+    const key = buildCacheKey(url, client, requiresAuth);
     const headerTtl = parseCacheControlTtl(parsed.raw);
     const specTtlMs = templatePath
       ? lookupSpecTtl(method, templatePath)

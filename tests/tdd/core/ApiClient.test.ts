@@ -65,8 +65,8 @@ function createMockCache(): ICache & { clearCalled: number } {
 }
 
 describe('ApiClient', () => {
-  describe('setAccessToken cache clearing', () => {
-    it('should clear the cache when token changes', () => {
+  describe('setAccessToken', () => {
+    it('should not clear the cache on token change (keys are token-aware)', () => {
       const client = new ApiClient(
         'test',
         'https://esi.evetech.net',
@@ -83,20 +83,6 @@ describe('ApiClient', () => {
 
       client.setAccessToken('new-token');
 
-      expect(cache.clearCalled).toBe(1);
-    });
-
-    it('should not clear the cache when setting the same token', () => {
-      const client = new ApiClient(
-        'test',
-        'https://esi.evetech.net',
-        'same-token',
-      );
-      const cache = createMockCache();
-      client.setCache(cache);
-
-      client.setAccessToken('same-token');
-
       expect(cache.clearCalled).toBe(0);
     });
 
@@ -111,8 +97,8 @@ describe('ApiClient', () => {
     });
   });
 
-  describe('refreshToken cache clearing', () => {
-    it('should clear the cache when provider returns a new token', async () => {
+  describe('refreshToken', () => {
+    it('should not clear the cache on token refresh (keys are token-aware)', async () => {
       const client = new ApiClient(
         'test',
         'https://esi.evetech.net',
@@ -121,21 +107,6 @@ describe('ApiClient', () => {
       const cache = createMockCache();
       client.setCache(cache);
       client.setTokenProvider(() => Promise.resolve('new-token'));
-
-      await client.refreshToken();
-
-      expect(cache.clearCalled).toBe(1);
-    });
-
-    it('should not clear the cache when provider returns the same token', async () => {
-      const client = new ApiClient(
-        'test',
-        'https://esi.evetech.net',
-        'same-token',
-      );
-      const cache = createMockCache();
-      client.setCache(cache);
-      client.setTokenProvider(() => Promise.resolve('same-token'));
 
       await client.refreshToken();
 

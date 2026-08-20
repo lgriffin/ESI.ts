@@ -1,7 +1,12 @@
 import { createHash } from 'crypto';
 import { ApiClient } from '../ApiClient';
 
-export function buildCacheKey(url: string, client: ApiClient): string {
+export function buildCacheKey(
+  url: string,
+  client: ApiClient,
+  requiresAuth: boolean = false,
+): string {
+  if (!requiresAuth) return url;
   const authHeader = client.getAuthorizationHeader();
   if (!authHeader) return url;
   const hash = createHash('sha256')
