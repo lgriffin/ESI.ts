@@ -48,11 +48,11 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 
 ## Project Structure
 
-- `src/clients/` — 37 hand-written domain clients (Alliance, Character, Market, etc.) extending `BaseEsiClient`
+- `src/clients/` — 39 hand-written domain clients (Alliance, Character, Cosmetics, Market, ParagonHub, etc.) extending `BaseEsiClient`
 - `src/core/` — ApiRequestHandler, rate limiter, circuit breaker, caching, pagination, retry strategy
 - `src/core/endpoints/` — Endpoint definitions (`*Endpoints.ts`) + generated metadata
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
-- `src/schemas/` — 35 hand-written Zod v4 schemas for runtime validation
+- `src/schemas/` — 37 hand-written Zod v4 schemas for runtime validation
 - `src/types/` — Hand-written response types + `generated/esi-spec.generated.ts`
 - `tests/tdd/` — Unit tests
 - `tests/tdd/helpers/` — Shared test utilities (e.g., `clientErrorTests.ts`)
