@@ -35,6 +35,8 @@ import { FreelanceJobsClient } from '../clients/FreelanceJobsClient';
 import { SkyhooksClient } from '../clients/SkyhooksClient';
 import { MercenaryClient } from '../clients/MercenaryClient';
 import { AccessListsClient } from '../clients/AccessListsClient';
+import { CosmeticsClient } from '../clients/CosmeticsClient';
+import { ParagonHubClient } from '../clients/ParagonHubClient';
 import { MilitaryCampaignsClient } from '../clients/MilitaryCampaignsClient';
 
 export type ApiClientType =
@@ -72,6 +74,8 @@ export type ApiClientType =
   | 'meta'
   | 'freelanceJobs'
   | 'skyhooks'
+  | 'cosmetics'
+  | 'paragonHub'
   | 'mercenary'
   | 'militaryCampaigns'
   | 'accessLists';
@@ -111,6 +115,8 @@ export type ClientInstance =
   | MetaClient
   | FreelanceJobsClient
   | SkyhooksClient
+  | CosmeticsClient
+  | ParagonHubClient
   | MercenaryClient
   | MilitaryCampaignsClient
   | AccessListsClient;
@@ -153,6 +159,8 @@ const clientFactories: Record<
   meta: MetaClient,
   freelanceJobs: FreelanceJobsClient,
   skyhooks: SkyhooksClient,
+  cosmetics: CosmeticsClient,
+  paragonHub: ParagonHubClient,
   mercenary: MercenaryClient,
   militaryCampaigns: MilitaryCampaignsClient,
   accessLists: AccessListsClient,
@@ -206,6 +214,8 @@ export {
   MetaClient,
   FreelanceJobsClient,
   SkyhooksClient,
+  CosmeticsClient,
+  ParagonHubClient,
   MercenaryClient,
   MilitaryCampaignsClient,
   AccessListsClient,

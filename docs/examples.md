@@ -1,6 +1,6 @@
 # ESI.ts Examples Guide
 
-This guide documents all 42 examples included with ESI.ts, complete with real console output captured from live runs against the EVE Online ESI API. The examples are organized into three categories: **Public** (no authentication required), **Hybrid** (partially public, partially authenticated), and **Authenticated** (require an ESI access token with specific scopes).
+This guide documents all 44 examples included with ESI.ts, complete with real console output captured from live runs against the EVE Online ESI API. The examples are organized into three categories: **Public** (no authentication required), **Hybrid** (partially public, partially authenticated), and **Authenticated** (require an ESI access token with specific scopes).
 
 > **Note:** Values such as player counts, ISK prices, market volumes, sovereignty campaigns, and dates reflect a point-in-time snapshot and will vary on each run.
 
@@ -36,28 +36,30 @@ This guide documents all 42 examples included with ESI.ts, complete with real co
 21. [Cursor Pagination](#cursor-pagination)
 22. [Faction Warfare Details](#faction-warfare-details)
 23. [Military Campaigns](#military-campaigns)
+24. [Cosmetics (SKINR)](#cosmetics-skinr)
+25. [Paragon Hub](#paragon-hub)
 
 ### Authenticated Examples
 
-24. [Wallet Overview](#wallet-overview)
-25. [Skills Overview](#skills-overview)
-26. [Assets Inventory](#assets-inventory)
-27. [Killmails](#killmails)
-28. [Fleet Operations](#fleet-operations)
-29. [Mail Inbox](#mail-inbox)
-30. [Location Tracker](#location-tracker)
-31. [Fittings and Clones](#fittings-and-clones)
-32. [Contacts](#contacts)
-33. [Access Lists](#access-lists)
-34. [Token Refresh](#token-refresh)
-35. [Character Details](#character-details)
-36. [Calendar & Search](#calendar--search)
-37. [Loyalty & Planetary Interaction](#loyalty--planetary-interaction)
-38. [Industry & Mining](#industry--mining)
-39. [Market Orders & Groups](#market-orders--groups)
-40. [Corporation Details](#corporation-details)
-41. [Corp Contracts & Wallet](#corp-contracts--wallet)
-42. [Corporation Projects](#corporation-projects)
+26. [Wallet Overview](#wallet-overview)
+27. [Skills Overview](#skills-overview)
+28. [Assets Inventory](#assets-inventory)
+29. [Killmails](#killmails)
+30. [Fleet Operations](#fleet-operations)
+31. [Mail Inbox](#mail-inbox)
+32. [Location Tracker](#location-tracker)
+33. [Fittings and Clones](#fittings-and-clones)
+34. [Contacts](#contacts)
+35. [Access Lists](#access-lists)
+36. [Token Refresh](#token-refresh)
+37. [Character Details](#character-details)
+38. [Calendar & Search](#calendar--search)
+39. [Loyalty & Planetary Interaction](#loyalty--planetary-interaction)
+40. [Industry & Mining](#industry--mining)
+41. [Market Orders & Groups](#market-orders--groups)
+42. [Corporation Details](#corporation-details)
+43. [Corp Contracts & Wallet](#corp-contracts--wallet)
+44. [Corporation Projects](#corporation-projects)
 
 ---
 
@@ -932,6 +934,63 @@ Character Campaign Participation
   Detail for objective: obj-001
     Committed: true
     Contribution: 1250
+```
+
+---
+
+### Cosmetics (SKINR)
+
+> Looks up SKINR ship customization designs and a character's owned licenses and components. The public `getSkinr` endpoint works without auth; the character endpoints require an ESI token with the `esi.cosmetic.char:read` scope.
+
+**Run:** `npm run example:cosmetics`
+
+**Scopes:** `esi.cosmetic.char:read` (for character license/component endpoints)
+
+```
+SKINR Cosmetics
+
+Set SKINR_ID environment variable to look up a specific design.
+
+Character 1689391488 — SKINR Licenses
+------------------------------------------------------------
+  Total:       12
+  Activated:   8
+  Unactivated: 4
+
+  Unactivated licenses (first 5):
+    abc123-def456 — 3 copies available
+    ghi789-jkl012 — 1 copies available
+
+Character 1689391488 — SKINR Components
+------------------------------------------------------------
+  Total components: 25
+    nanocoating    18
+    pattern        7
+```
+
+---
+
+### Paragon Hub
+
+> Browses the Paragon Hub marketplace for SKINR ship customization designs. The public listings endpoint requires no authentication; character, alliance, and corporation targeted listings require the `esi.cosmetic.char:read` scope.
+
+**Run:** `npm run example:paragon-hub`
+
+**Scopes:** `esi.cosmetic.char:read` (for character/alliance/corp targeted listings)
+
+```
+Paragon Hub SKINR Marketplace
+
+Public SKINR Listings (first page)
+------------------------------------------------------------
+  [listed] SKINR abc123 — 45.2M ISK — Qty: 5 — Seller: 90439768
+  [listed] SKINR def456 — 12 PLEX — Qty: 1 — Seller: 91234567
+  [sold_out] SKINR ghi789 — 100.0M ISK — Qty: 0 — Seller: 92345678
+
+Fetching next page...
+  Page 2: 3 listing(s)
+
+Skipping character listings (set CHARACTER_ID env var to include).
 ```
 
 ---

@@ -24,6 +24,18 @@ Feature: Mercenary Operations
     When the client fetches both
     Then the client shall correlate operations to their parent dens
 
+  # EARS: Event-driven
+  Scenario: WHEN getting mercenary den detail, the client shall return den details
+    Given a mercenary den exists with detail data
+    When the client requests den detail
+    Then the client shall return the den evolution and infomorph data
+
+  # EARS: Event-driven
+  Scenario: WHEN getting MTO detail by operation ID, the client shall return operation details
+    Given an MTO exists with detail data
+    When the client requests operation detail
+    Then the client shall return the operation state and expiry
+
   # EARS: Unwanted
   Scenario: IF service unavailable error, THEN the client shall handle the service outage
     Given the ESI service is down
