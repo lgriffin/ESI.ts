@@ -2,6 +2,7 @@ import { ApiClient } from '../ApiClient';
 import { EsiError } from '../util/error';
 import { logInfo, logWarn } from '../logger/loggerUtil';
 import { ICache } from '../cache/ICache';
+import { buildCacheKey } from '../cache/cacheKey';
 import { ParsedHeaders } from '../util/headersUtil';
 import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
 import { buildError } from '../util/error';
@@ -35,6 +36,7 @@ export function handleEarlyStatus(
   parsed: ParsedHeaders,
   useETag: boolean,
   resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
 ): EsiHandlerResponse | null {
   if (status === 201) {
     return { headers: parsed.raw, body: undefined, status: 201 };
@@ -48,7 +50,8 @@ export function handleEarlyStatus(
   if (status === 304) {
     const cache = resolveCache(client);
     if (useETag && cache) {
-      const cachedEntry = cache.get(url);
+      const key = buildCacheKey(url, client, requiresAuth);
+      const cachedEntry = cache.get(key);
       if (cachedEntry) {
         logInfo(`Cache hit (304) for endpoint: ${url}`);
         return {
@@ -81,6 +84,7 @@ export function handleErrorResponse(
   parsed: ParsedHeaders,
   useETag: boolean,
   resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
 ): EsiHandlerResponse | never {
   const errorMessage = STATUS_MESSAGES[response.status] || response.statusText;
 
@@ -90,6 +94,7 @@ export function handleErrorResponse(
       url,
       parsed,
       resolveCache,
+      requiresAuth,
     );
     if (staleResult) {
       logWarn(`${errorMessage} for ${url} — serving stale cache`);

@@ -7,6 +7,7 @@ import {
 import { ApiClient } from '../../../../src/core/ApiClient';
 import { ICache } from '../../../../src/core/cache/ICache';
 import { ETagCacheManager } from '../../../../src/core/cache/ETagCacheManager';
+import { buildCacheKey } from '../../../../src/core/cache/cacheKey';
 import { ParsedHeaders } from '../../../../src/core/util/headersUtil';
 
 const BASE_URL = 'https://esi.evetech.net';
@@ -309,6 +310,146 @@ describe('requestPipeline/cachePolicy', () => {
       // Non-GET should invalidate, not store
       const entry = cache.get(url);
       expect(entry).toBeNull();
+    });
+  });
+
+  describe('cross-tenant cache isolation', () => {
+    const resolveCache = (c: ApiClient) => c.getCache();
+
+    it('should isolate cached responses between different access tokens', () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+
+      const clientA = new ApiClient('test', BASE_URL, 'token-user-a');
+      clientA.setCache(cache);
+
+      const clientB = new ApiClient('test', BASE_URL, 'token-user-b');
+      clientB.setCache(cache);
+
+      const url = `${BASE_URL}/v1/characters/12345/assets/`;
+      const parsed = {
+        raw: { 'content-type': 'application/json' },
+        etag: '"etag-a"',
+      } as unknown as ParsedHeaders;
+
+      cacheResponse(
+        clientA,
+        url,
+        'GET',
+        'v1/characters/12345/assets/',
+        parsed,
+        { assets: ['user-a-ship'] },
+        true,
+        resolveCache,
+        undefined,
+        true,
+      );
+
+      const keyA = buildCacheKey(url, clientA, true);
+      const keyB = buildCacheKey(url, clientB, true);
+      expect(cache.get(keyA)).not.toBeNull();
+      expect(cache.get(keyB)).toBeNull();
+
+      cache.shutdown();
+    });
+
+    it('should not return stale data from a different token', () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+
+      const clientA = new ApiClient('test', BASE_URL, 'token-user-a');
+      clientA.setCache(cache);
+
+      const clientB = new ApiClient('test', BASE_URL, 'token-user-b');
+      clientB.setCache(cache);
+
+      const url = `${BASE_URL}/v1/characters/12345/assets/`;
+      const keyA = buildCacheKey(url, clientA, true);
+      cache.set(keyA, '"etag-a"', { assets: ['user-a-ship'] }, {});
+
+      const parsed = { raw: {} } as unknown as ParsedHeaders;
+      const result = tryStaleCacheResponse(
+        clientB,
+        url,
+        parsed,
+        resolveCache,
+        true,
+      );
+      expect(result).toBeNull();
+
+      cache.shutdown();
+    });
+
+    it('should allow unauthenticated requests to share cache entries', () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+
+      const client1 = new ApiClient('test', BASE_URL);
+      client1.setCache(cache);
+
+      const client2 = new ApiClient('test', BASE_URL);
+      client2.setCache(cache);
+
+      const url = `${BASE_URL}/v1/status/`;
+      cache.set(url, '"etag"', { players: 100 }, {});
+
+      const parsed = { raw: {} } as unknown as ParsedHeaders;
+      const result = tryStaleCacheResponse(client2, url, parsed, resolveCache);
+      expect(result).not.toBeNull();
+      expect(result!.body).toEqual({ players: 100 });
+
+      cache.shutdown();
+    });
+
+    it('should share public endpoint cache across token-bearing clients', () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+
+      const clientA = new ApiClient('test', BASE_URL, 'token-user-a');
+      clientA.setCache(cache);
+
+      const clientB = new ApiClient('test', BASE_URL, 'token-user-b');
+      clientB.setCache(cache);
+
+      const url = `${BASE_URL}/v1/status/`;
+      const parsed = {
+        raw: { 'content-type': 'application/json' },
+        etag: '"etag-public"',
+      } as unknown as ParsedHeaders;
+
+      cacheResponse(
+        clientA,
+        url,
+        'GET',
+        'v1/status/',
+        parsed,
+        { players: 500 },
+        true,
+        resolveCache,
+        undefined,
+        false,
+      );
+
+      const staleParsed = { raw: {} } as unknown as ParsedHeaders;
+      const result = tryStaleCacheResponse(
+        clientB,
+        url,
+        staleParsed,
+        resolveCache,
+        false,
+      );
+      expect(result).not.toBeNull();
+      expect(result!.body).toEqual({ players: 500 });
+
+      cache.shutdown();
     });
   });
 });

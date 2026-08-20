@@ -2,6 +2,7 @@ import { ApiClient } from '../ApiClient';
 import { buildError } from '../util/error';
 import { logDebug } from '../logger/loggerUtil';
 import { ICache } from '../cache/ICache';
+import { buildCacheKey } from '../cache/cacheKey';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
 
 /**
@@ -53,7 +54,8 @@ export function buildRequestHeaders(
 
   const cache = resolveCache(client);
   if (useETag && method === 'GET' && cache) {
-    const cachedETag = cache.getETag(url);
+    const key = buildCacheKey(url, client, requiresAuth);
+    const cachedETag = cache.getETag(key);
     if (cachedETag) {
       headers['If-None-Match'] = cachedETag;
       logDebug(`Adding If-None-Match header: ${cachedETag}`);

@@ -1,6 +1,7 @@
 import { ApiClient } from '../ApiClient';
 import { logDebug } from '../logger/loggerUtil';
 import { ICache } from '../cache/ICache';
+import { buildCacheKey } from '../cache/cacheKey';
 import { ParsedHeaders } from '../util/headersUtil';
 import { camelToSnake } from '../util/stringUtil';
 import { esiCacheTtls } from '../endpoints/esi-cache-ttls.generated';
@@ -42,13 +43,15 @@ export function trySpecAwareCacheHit(
   method: string,
   templatePath: string | undefined,
   resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
 ): EsiHandlerResponse | null {
   if (method !== 'GET' || !templatePath) return null;
   const specTtlMs = lookupSpecTtl(method, templatePath);
   if (!specTtlMs) return null;
   const cache = resolveCache(client);
   if (!cache) return null;
-  const entry = cache.get(url);
+  const key = buildCacheKey(url, client, requiresAuth);
+  const entry = cache.get(key);
   if (!entry) return null;
   const age = Date.now() - entry.timestamp;
   if (age < specTtlMs) {
@@ -74,10 +77,12 @@ export function tryStaleCacheResponse(
   url: string,
   parsed: ParsedHeaders,
   resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
 ): EsiHandlerResponse | null {
   const cache = resolveCache(client);
   if (!cache) return null;
-  const cachedEntry = cache.get(url);
+  const key = buildCacheKey(url, client, requiresAuth);
+  const cachedEntry = cache.get(key);
   if (!cachedEntry) return null;
   return {
     headers: { ...cachedEntry.headers, ...parsed.raw },
@@ -102,15 +107,17 @@ export function cacheResponse(
   useETag: boolean,
   resolveCache: (client: ApiClient) => ICache | null,
   templatePath?: string,
+  requiresAuth: boolean = false,
 ): void {
   const cache = resolveCache(client);
   if (useETag && method === 'GET' && cache && parsed.etag) {
+    const key = buildCacheKey(url, client, requiresAuth);
     const headerTtl = parseCacheControlTtl(parsed.raw);
     const specTtlMs = templatePath
       ? lookupSpecTtl(method, templatePath)
       : undefined;
     const ttl = specTtlMs ?? headerTtl;
-    cache.set(url, parsed.etag, data, parsed.raw, ttl);
+    cache.set(key, parsed.etag, data, parsed.raw, ttl);
     const ttlInfo = ttl ? ` (ttl=${ttl}ms)` : '';
     logDebug(`Cached response for ${url} with ETag ${parsed.etag}${ttlInfo}`);
   }
