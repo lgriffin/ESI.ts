@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "9.5.2",
+  "version": "9.6.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -37,6 +37,11 @@
       "types": "./dist/sde/index.d.ts",
       "import": "./dist/sde/index.mjs",
       "require": "./dist/sde/index.js"
+    },
+    "./sde/memory": {
+      "types": "./dist/sde/memory.d.ts",
+      "import": "./dist/sde/memory.mjs",
+      "require": "./dist/sde/memory.js"
     },
     "./package.json": "./package.json"
   },
