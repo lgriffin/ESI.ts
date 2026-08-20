@@ -16,15 +16,23 @@ jobs:
 
     steps:
       - name: PR Details
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          PR_FILES: ${{ github.event.pull_request.changed_files }}
+          PR_ADDS: ${{ github.event.pull_request.additions }}
+          PR_DELS: ${{ github.event.pull_request.deletions }}
         run: |
           echo "## Pull Request Information" >> $GITHUB_STEP_SUMMARY
-          echo "- **Title:** ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Author:** @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Base:** ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Head:** ${{ github.event.pull_request.head.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Files Changed:** ${{ github.event.pull_request.changed_files }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Additions:** +${{ github.event.pull_request.additions }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Deletions:** -${{ github.event.pull_request.deletions }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Title:** $PR_TITLE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author:** @$PR_AUTHOR" >> $GITHUB_STEP_SUMMARY
+          echo "- **Base:** $PR_BASE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Head:** $PR_HEAD" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files Changed:** $PR_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- **Additions:** +$PR_ADDS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deletions:** -$PR_DELS" >> $GITHUB_STEP_SUMMARY
 
   lint-and-build:
     name: Lint & Build

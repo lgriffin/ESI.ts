@@ -4,6 +4,9 @@ on:
   push:
     branches: ['**']
 
+permissions:
+  contents: read
+
 jobs:
   lint-build-test:
     name: Lint, Build & Test
