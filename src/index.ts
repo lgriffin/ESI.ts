@@ -59,6 +59,8 @@ export { SkyhooksClient } from './clients/SkyhooksClient';
 export { MercenaryClient } from './clients/MercenaryClient';
 export { MilitaryCampaignsClient } from './clients/MilitaryCampaignsClient';
 export { AccessListsClient } from './clients/AccessListsClient';
+export { CosmeticsClient } from './clients/CosmeticsClient';
+export { ParagonHubClient } from './clients/ParagonHubClient';
 
 // Cursor pagination & client utilities
 export {

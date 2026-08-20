@@ -3533,6 +3533,19 @@ const CorporationWalletDivisionSchema: z.ZodObject<{
     balance: z.ZodNumber;
 }, z.core.$loose>;
 
+// Warning: (ae-forgotten-export) The symbol "cosmeticsEndpoints" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export class CosmeticsClient extends BaseEsiClient<typeof cosmeticsEndpoints> {
+    constructor(client: ApiClient);
+    // (undocumented)
+    getCharacterSkinr(characterId: number): Promise<CharacterSkinr>;
+    // (undocumented)
+    getCharacterSkinrComponents(characterId: number): Promise<CharacterSkinrComponents>;
+    // (undocumented)
+    getSkinr(skinrId: string): Promise<Skinr>;
+}
+
 // @public (undocumented)
 export interface CreateClientOptions {
     // (undocumented)
@@ -3920,8 +3933,6 @@ export class EsiClient {
     get corporationProjects(): CorporationProjectsClient;
     // (undocumented)
     get corporations(): CorporationsClient;
-    // Warning: (ae-forgotten-export) The symbol "CosmeticsClient" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     get cosmetics(): CosmeticsClient;
     // (undocumented)
@@ -3962,8 +3973,6 @@ export class EsiClient {
     get meta(): MetaClient;
     // (undocumented)
     get militaryCampaigns(): MilitaryCampaignsClient;
-    // Warning: (ae-forgotten-export) The symbol "ParagonHubClient" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     get paragonHub(): ParagonHubClient;
     // (undocumented)
@@ -6687,6 +6696,23 @@ const ParagonHubCharacterSkinrResponseSchema: z.ZodObject<{
         }, z.core.$loose>;
     }, z.core.$loose>>;
 }, z.core.$loose>;
+
+// Warning: (ae-forgotten-export) The symbol "paragonHubEndpoints" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export class ParagonHubClient extends BaseEsiClient<typeof paragonHubEndpoints> {
+    constructor(client: ApiClient);
+    // (undocumented)
+    getAllianceListings(allianceId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
+    // (undocumented)
+    getCharacterListings(characterId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubCharacterSkinrResponse>;
+    // (undocumented)
+    getCharacterTargetedListings(characterId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
+    // (undocumented)
+    getCorporationListings(corporationId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
+    // (undocumented)
+    getPublicListings(after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
+}
 
 // @public (undocumented)
 export type ParagonHubCursor = z.infer<typeof ParagonHubCursorSchema>;

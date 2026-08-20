@@ -14,5 +14,45 @@
   {
     "key": "GET:corporations/{corporation_id}/mining/observers/{observer_id}",
     "reason": "ESI uses singular 'corporation/' prefix for mining endpoints; scope map has 'corporation/{corporation_id}/mining/observers/{observer_id}'"
+  },
+  {
+    "key": "GET:characters/{character_id}/cosmetics/skinr",
+    "reason": "Newer endpoint (2026-08-18); requires esi.cosmetic.char:read scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:characters/{character_id}/cosmetics/skinr/components",
+    "reason": "Newer endpoint (2026-08-18); requires esi.cosmetic.char:read scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:characters/{character_id}/paragon-hub/skinr",
+    "reason": "Newer endpoint (2026-08-18); requires esi.cosmetic.char:read scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:paragon-hub/skinr/alliances/{alliance_id}",
+    "reason": "Newer endpoint (2026-08-18); requires esi.cosmetic.char:read scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:paragon-hub/skinr/characters/{character_id}",
+    "reason": "Newer endpoint (2026-08-18); requires esi.cosmetic.char:read scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:paragon-hub/skinr/corporations/{corporation_id}",
+    "reason": "Newer endpoint (2026-08-18); requires esi.cosmetic.char:read scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:characters/{character_id}/structures/mercenary-dens/{mercenary_den_id}",
+    "reason": "Newer endpoint (2026-08-18); requires esi-structures.read_character.v1 scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:characters/{character_id}/mercenary-tactical-operations/{operation_id}",
+    "reason": "Newer endpoint (2026-08-18); requires esi-activities.read_character.v1 scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:corporations/{corporation_id}/structures/skyhooks/{skyhook_id}",
+    "reason": "Newer endpoint (2026-08-18); requires esi-structures.read_corporation.v1 scope, not yet in generated scope map"
+  },
+  {
+    "key": "GET:corporations/{corporation_id}/structures/sovereignty-hubs/{sovereignty_hub_id}",
+    "reason": "Newer endpoint (2026-08-18); requires esi-structures.read_corporation.v1 scope, not yet in generated scope map"
   }
 ]
