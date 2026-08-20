@@ -10,6 +10,8 @@
 
 A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built on the **OpenAPI 3.1 spec**, with runtime validation, intelligent caching, and full endpoint coverage.
 
+**v9.5.2** — Supply chain security hardening: all GitHub Actions pinned by SHA, npm publish with SLSA provenance attestations, least-privilege workflow permissions, script injection prevention, and ETag cache cross-tenant isolation.
+
 **v9.5.0** — Adds 12 new ESI endpoints: CosmeticsClient (SKINR licenses, components, design lookup), ParagonHubClient (marketplace listings with cursor pagination), plus detail endpoints for Mercenary Dens, Tactical Operations, Skyhooks, and Sovereignty Hubs.
 
 **235 endpoint definitions — 206 from the public ESI OpenAPI spec, plus 29 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs, military campaigns, corporation projects, SKINR cosmetics, Paragon Hub marketplace). All exercisable endpoints validated against live Tranquility.**
@@ -1000,6 +1002,14 @@ Every pull request runs the full validation suite:
 - Mutation testing (Stryker)
 - Dead code detection via knip
 - npm security audit
+
+**Supply chain security:**
+
+- All GitHub Actions pinned by SHA hash (not mutable tags) to prevent supply chain attacks
+- Least-privilege `permissions:` on all workflows and jobs
+- Script injection prevention (user-controlled inputs passed via `env:`, never interpolated in `run:`)
+- npm publish with `--provenance` for SLSA attestations (verifiable build origin)
+- OpenSSF Scorecard runs weekly via the `scorecard.yml` workflow
 
 See [.github/workflows/README.md](.github/workflows/README.md) for full workflow details.
 

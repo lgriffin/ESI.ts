@@ -108,6 +108,28 @@ npx jest --config jest.unit.config.cjs tests/tdd/core/security.test.ts
 npm test
 ```
 
+## CI/CD Supply Chain Hardening
+
+### GitHub Actions Pinning
+
+All GitHub Actions across 11 workflow files are pinned by full commit SHA rather than mutable version tags. A compromised action author could retag `v4` to point at malicious code — SHA pinning prevents this.
+
+### Workflow Permissions
+
+Every workflow declares least-privilege `permissions:`. The top-level default is `contents: read`; individual jobs escalate only as needed (e.g., `id-token: write` for OIDC provenance during npm publish).
+
+### Script Injection Prevention
+
+GitHub Actions `run:` blocks never interpolate user-controlled expressions (`${{ github.event.pull_request.title }}`, etc.) directly. All such values are passed through `env:` bindings to prevent arbitrary command execution via crafted PR titles or branch names.
+
+### npm Provenance Attestations
+
+The npm publish step uses `--provenance` with OIDC `id-token: write` permission. This generates SLSA provenance attestations that let consumers verify a package was built from this repository's CI — not from a compromised local machine.
+
+### ETag Cache Tenant Isolation
+
+Cache keys for authenticated endpoints include a truncated SHA-256 hash of the `Authorization` header, preventing one user's cached responses from being served to another. Public endpoints remain shared for efficiency. See `src/core/cache/cacheKey.ts`.
+
 ## Dependency Security
 
 ### Automated Scanning

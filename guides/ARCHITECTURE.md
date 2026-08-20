@@ -964,7 +964,31 @@ streamMarketOrders(regionId: number, ...): AsyncGenerator<PageResult<MarketOrder
 
 **Cursor pagination**: Cursor-paginated endpoints use a separate path through `CursorPaginationHandler` and are accessed via `createClient()` rather than the streaming interface.
 
-## 13. Code Generation and CI Gates
+## 13. Supply Chain Security
+
+ESI.ts hardens its CI/CD pipeline against supply chain attacks following OpenSSF Scorecard recommendations.
+
+### Pinned Dependencies
+
+All GitHub Actions are pinned by full SHA hash rather than mutable version tags. This prevents a compromised upstream action from injecting malicious code into CI runs. 12 distinct actions across 11 workflow files are pinned.
+
+### Least-Privilege Permissions
+
+Every workflow declares explicit `permissions:` at both the top level and per-job. No workflow runs with the default `write-all` token. Each job requests only the permissions it needs (e.g., `id-token: write` only for the npm publish job that generates SLSA provenance).
+
+### Script Injection Prevention
+
+User-controlled inputs (PR titles, branch names, commit messages) are passed via `env:` bindings, never interpolated directly in `run:` blocks.
+
+### npm Provenance
+
+The release pipeline publishes with `--provenance`, generating SLSA provenance attestations via GitHub's OIDC token. Consumers can verify that a published package was built from this repository's CI.
+
+### ETag Cache Tenant Isolation
+
+Cache keys for authenticated endpoints include a SHA-256 hash of the `Authorization` header (`src/core/cache/cacheKey.ts`), preventing cross-tenant data leakage in multi-character applications. Public endpoints share cache entries across all clients for efficiency.
+
+## 14. Code Generation and CI Gates
 
 ESI.ts bridges the gap between CCP's OpenAPI spec and TypeScript by auto-generating five artifact categories from the live spec. This ensures the SDK stays aligned with upstream API changes without manual intervention. The generation pipeline runs via `npm run generate:types` and produces:
 
