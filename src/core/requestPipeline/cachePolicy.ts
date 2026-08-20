@@ -1,6 +1,7 @@
 import { ApiClient } from '../ApiClient';
 import { logDebug } from '../logger/loggerUtil';
 import { ICache } from '../cache/ICache';
+import { buildCacheKey } from '../cache/cacheKey';
 import { ParsedHeaders } from '../util/headersUtil';
 import { camelToSnake } from '../util/stringUtil';
 import { esiCacheTtls } from '../endpoints/esi-cache-ttls.generated';
@@ -48,7 +49,8 @@ export function trySpecAwareCacheHit(
   if (!specTtlMs) return null;
   const cache = resolveCache(client);
   if (!cache) return null;
-  const entry = cache.get(url);
+  const key = buildCacheKey(url, client);
+  const entry = cache.get(key);
   if (!entry) return null;
   const age = Date.now() - entry.timestamp;
   if (age < specTtlMs) {
@@ -77,7 +79,8 @@ export function tryStaleCacheResponse(
 ): EsiHandlerResponse | null {
   const cache = resolveCache(client);
   if (!cache) return null;
-  const cachedEntry = cache.get(url);
+  const key = buildCacheKey(url, client);
+  const cachedEntry = cache.get(key);
   if (!cachedEntry) return null;
   return {
     headers: { ...cachedEntry.headers, ...parsed.raw },
@@ -105,12 +108,13 @@ export function cacheResponse(
 ): void {
   const cache = resolveCache(client);
   if (useETag && method === 'GET' && cache && parsed.etag) {
+    const key = buildCacheKey(url, client);
     const headerTtl = parseCacheControlTtl(parsed.raw);
     const specTtlMs = templatePath
       ? lookupSpecTtl(method, templatePath)
       : undefined;
     const ttl = specTtlMs ?? headerTtl;
-    cache.set(url, parsed.etag, data, parsed.raw, ttl);
+    cache.set(key, parsed.etag, data, parsed.raw, ttl);
     const ttlInfo = ttl ? ` (ttl=${ttl}ms)` : '';
     logDebug(`Cached response for ${url} with ETag ${parsed.etag}${ttlInfo}`);
   }

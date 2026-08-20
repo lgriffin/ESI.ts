@@ -2,6 +2,7 @@ import { ApiClient } from '../ApiClient';
 import { EsiError } from '../util/error';
 import { logInfo, logWarn } from '../logger/loggerUtil';
 import { ICache } from '../cache/ICache';
+import { buildCacheKey } from '../cache/cacheKey';
 import { ParsedHeaders } from '../util/headersUtil';
 import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
 import { buildError } from '../util/error';
@@ -48,7 +49,8 @@ export function handleEarlyStatus(
   if (status === 304) {
     const cache = resolveCache(client);
     if (useETag && cache) {
-      const cachedEntry = cache.get(url);
+      const key = buildCacheKey(url, client);
+      const cachedEntry = cache.get(key);
       if (cachedEntry) {
         logInfo(`Cache hit (304) for endpoint: ${url}`);
         return {
