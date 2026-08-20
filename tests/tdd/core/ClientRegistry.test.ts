@@ -9,6 +9,7 @@ import {
   ContactsClient,
   ContractsClient,
   CorporationsClient,
+  CosmeticsClient,
   DogmaClient,
   FactionClient,
   FittingsClient,
@@ -21,6 +22,7 @@ import {
   LoyaltyClient,
   MailClient,
   MarketClient,
+  ParagonHubClient,
   PiClient,
   RouteClient,
   SearchClient,
@@ -92,6 +94,8 @@ const expectedClasses: Record<ApiClientType, new (...args: any[]) => unknown> =
     accessLists: AccessListsClient,
     corporationProjects: CorporationProjectsClient,
     militaryCampaigns: MilitaryCampaignsClient,
+    cosmetics: CosmeticsClient,
+    paragonHub: ParagonHubClient,
   };
 
 const allClientTypes: ApiClientType[] = [
@@ -132,6 +136,8 @@ const allClientTypes: ApiClientType[] = [
   'accessLists',
   'corporationProjects',
   'militaryCampaigns',
+  'cosmetics',
+  'paragonHub',
 ];
 
 describe('ClientRegistry', () => {
@@ -149,6 +155,6 @@ describe('ClientRegistry', () => {
   );
 
   it('should cover all ApiClientType values', () => {
-    expect(allClientTypes).toHaveLength(37);
+    expect(allClientTypes).toHaveLength(39);
   });
 });

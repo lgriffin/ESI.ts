@@ -96,6 +96,59 @@ async function main() {
     for (const r of upcoming.slice(0, 3)) {
       console.log(`  System ${r.system_id} — Raidable at ${r.raidable_at}`);
     }
+
+    // Fetch detail for the first skyhook
+    if (skyhooks.length > 0) {
+      console.log('\nSkyhook Detail');
+      console.log('-'.repeat(60));
+      const detail = await client.skyhooks.getSkyhookDetail(
+        corporationId,
+        skyhooks[0].structure_id,
+      );
+      console.log(
+        `  Skyhook ${detail.id} — Planet ${detail.planet_id} — State: ${detail.state}`,
+      );
+      console.log(
+        `  Active: ${detail.is_active} — Workforce: ${detail.effective_workforce ?? 'N/A'}`,
+      );
+      if (detail.reagents?.length) {
+        for (const r of detail.reagents) {
+          console.log(
+            `  Reagent ${r.type_id}: Secured ${r.secured_stock} / Unsecured ${r.unsecured_stock}`,
+          );
+        }
+      }
+      if (detail.theft_vulnerability) {
+        console.log(
+          `  Theft window: ${detail.theft_vulnerability.start} — ${detail.theft_vulnerability.end}`,
+        );
+      }
+    }
+
+    // Fetch detail for the first sovereignty hub
+    if (hubs.length > 0) {
+      console.log('\nSovereignty Hub Detail');
+      console.log('-'.repeat(60));
+      const hubDetail = await client.skyhooks.getSovereigntyHubDetail(
+        corporationId,
+        hubs[0].structure_id,
+      );
+      console.log(
+        `  Hub ${hubDetail.id} — System ${hubDetail.solar_system_id}`,
+      );
+      console.log(`  Upgrades: ${hubDetail.upgrades.length}`);
+      for (const u of hubDetail.upgrades.slice(0, 5)) {
+        console.log(`    Type ${u.type_id} — ${u.power_state}`);
+      }
+      console.log(
+        `  Reagent bay last updated: ${hubDetail.reagent_bay.last_updated}`,
+      );
+      if (hubDetail.vulnerability_window) {
+        console.log(
+          `  Vulnerability: ${hubDetail.vulnerability_window.start} — ${hubDetail.vulnerability_window.end}`,
+        );
+      }
+    }
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

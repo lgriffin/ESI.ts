@@ -188,6 +188,88 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('WHEN getting mercenary den detail, the client shall return den details', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const expectedDenDetail = {
+      id: 5001,
+      type_id: 81080,
+      state: 'Running',
+      skyhook: {
+        id: 200000001,
+        planet_id: 40000002,
+        corporation_id: 98000002,
+      },
+      infomorphs: { amount: 100 },
+      evolution: {
+        development: { level: 3, progress: 0.75 },
+        anarchy: { level: 2, progress: 0.4 },
+      },
+    };
+
+    given('a mercenary den exists with detail data', () => {
+      jest
+        .spyOn(client.mercenary, 'getMercenaryDenDetail')
+        .mockResolvedValue(expectedDenDetail as any);
+    });
+
+    when('the client requests den detail', async () => {
+      result = await client.mercenary.getMercenaryDenDetail(
+        TEST_CHARACTER_ID,
+        5001,
+      );
+    });
+
+    then('the client shall return the den evolution and infomorph data', () => {
+      expect(result).toBeDefined();
+      expect(result.id).toBe(5001);
+      expect(result.state).toBe('Running');
+      expect(result.infomorphs.amount).toBe(100);
+      expect(result.evolution.development.level).toBe(3);
+      expect(result.evolution.anarchy.level).toBe(2);
+      expect(result.skyhook.planet_id).toBe(40000002);
+    });
+  });
+
+  test('WHEN getting MTO detail by operation ID, the client shall return operation details', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const expectedOpDetail = {
+      id: '3868eaed-8278-4cb7-9709-7d7de9c20dc7',
+      mercenary_den_id: 5001,
+      state: 'Available',
+      dungeon_type_id: 12367,
+      expires: '2026-05-20T22:00:00Z',
+    };
+
+    given('an MTO exists with detail data', () => {
+      jest
+        .spyOn(client.mercenary, 'getMercenaryTacticalOperationDetail')
+        .mockResolvedValue(expectedOpDetail as any);
+    });
+
+    when('the client requests operation detail', async () => {
+      result = await client.mercenary.getMercenaryTacticalOperationDetail(
+        TEST_CHARACTER_ID,
+        '3868eaed-8278-4cb7-9709-7d7de9c20dc7',
+      );
+    });
+
+    then('the client shall return the operation state and expiry', () => {
+      expect(result).toBeDefined();
+      expect(result.id).toBe('3868eaed-8278-4cb7-9709-7d7de9c20dc7');
+      expect(result.state).toBe('Available');
+      expect(result.dungeon_type_id).toBe(12367);
+      expect(result.expires).toBe('2026-05-20T22:00:00Z');
+    });
+  });
+
   test('IF service unavailable error, THEN the client shall handle the service outage', ({
     given,
     when,

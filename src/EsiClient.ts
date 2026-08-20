@@ -37,6 +37,8 @@ import { WalletClient } from './clients/WalletClient';
 import { WarsClient } from './clients/WarsClient';
 import { MetaClient } from './clients/MetaClient';
 import { FreelanceJobsClient } from './clients/FreelanceJobsClient';
+import { CosmeticsClient } from './clients/CosmeticsClient';
+import { ParagonHubClient } from './clients/ParagonHubClient';
 import { SkyhooksClient } from './clients/SkyhooksClient';
 import { MercenaryClient } from './clients/MercenaryClient';
 import { AccessListsClient } from './clients/AccessListsClient';
@@ -239,6 +241,12 @@ export class EsiClient {
   }
   get freelanceJobs(): FreelanceJobsClient {
     return this.getClient('freelanceJobs');
+  }
+  get cosmetics(): CosmeticsClient {
+    return this.getClient('cosmetics');
+  }
+  get paragonHub(): ParagonHubClient {
+    return this.getClient('paragonHub');
   }
   get skyhooks(): SkyhooksClient {
     return this.getClient('skyhooks');

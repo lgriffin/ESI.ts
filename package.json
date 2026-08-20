@@ -1,6 +1,6 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "9.4.0",
+  "version": "9.5.0",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -62,6 +62,8 @@
     "example:skyhooks": "ts-node examples/skyhooks.ts",
     "example:mercenary": "ts-node examples/mercenary.ts",
     "example:access-lists": "ts-node examples/access-lists.ts",
+    "example:cosmetics": "ts-node examples/cosmetics.ts",
+    "example:paragon-hub": "ts-node examples/paragon-hub.ts",
     "example:industry": "ts-node examples/industry.ts",
     "example:incursions": "ts-node examples/incursions.ts",
     "example:dogma": "ts-node examples/dogma.ts",

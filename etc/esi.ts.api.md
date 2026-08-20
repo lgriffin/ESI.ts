@@ -5,6 +5,7 @@
 ```ts
 
 import { $loose } from 'zod/v4/core';
+import { $ZodTypeInternals } from 'zod/v4/core';
 import { z } from 'zod';
 import { ZodArray } from 'zod';
 import { ZodBoolean } from 'zod';
@@ -12,6 +13,7 @@ import { ZodNumber } from 'zod';
 import { ZodObject } from 'zod';
 import { ZodOptional } from 'zod';
 import { ZodString } from 'zod';
+import { ZodType } from 'zod';
 
 // @public (undocumented)
 export type AccessList = z.infer<typeof AccessListSchema>;
@@ -283,7 +285,7 @@ export class ApiClientBuilder {
 }
 
 // @public (undocumented)
-export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'corporationProjects' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'mercenary' | 'militaryCampaigns' | 'accessLists';
+export type ApiClientType = 'alliance' | 'assets' | 'calendar' | 'characters' | 'clones' | 'contacts' | 'contracts' | 'corporations' | 'corporationProjects' | 'dogma' | 'factions' | 'fittings' | 'fleets' | 'incursions' | 'industry' | 'insurance' | 'killmails' | 'location' | 'loyalty' | 'mail' | 'market' | 'pi' | 'route' | 'search' | 'skills' | 'sovereignty' | 'status' | 'ui' | 'universe' | 'wallet' | 'wars' | 'meta' | 'freelanceJobs' | 'skyhooks' | 'cosmetics' | 'paragonHub' | 'mercenary' | 'militaryCampaigns' | 'accessLists';
 
 // @public (undocumented)
 export type AssetLocation = z.infer<typeof AssetLocationSchema>;
@@ -1713,6 +1715,33 @@ const CharacterSkillsResponseSchema: z.ZodObject<{
     }, z.core.$loose>>;
     total_sp: z.ZodNumber;
     unallocated_sp: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CharacterSkinr = z.infer<typeof CharacterSkinrSchema>;
+
+// @public (undocumented)
+export type CharacterSkinrComponents = z.infer<typeof CharacterSkinrComponentsSchema>;
+
+// @public (undocumented)
+const CharacterSkinrComponentsSchema: z.ZodObject<{
+    licenses: z.ZodArray<z.ZodObject<{
+        component_id: z.ZodNumber;
+        type: z.ZodType<(string & {}) | "pattern" | "nanocoating", unknown, z.core.$ZodTypeInternals<(string & {}) | "pattern" | "nanocoating", unknown>>;
+        runs: z.ZodObject<{
+            remaining: z.ZodOptional<z.ZodNumber>;
+            unlimited: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$loose>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const CharacterSkinrSchema: z.ZodObject<{
+    licenses: z.ZodArray<z.ZodObject<{
+        skinr_id: z.ZodString;
+        activated: z.ZodBoolean;
+        unactivated: z.ZodNumber;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -3504,6 +3533,19 @@ const CorporationWalletDivisionSchema: z.ZodObject<{
     balance: z.ZodNumber;
 }, z.core.$loose>;
 
+// Warning: (ae-forgotten-export) The symbol "cosmeticsEndpoints" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export class CosmeticsClient extends BaseEsiClient<typeof cosmeticsEndpoints> {
+    constructor(client: ApiClient);
+    // (undocumented)
+    getCharacterSkinr(characterId: number): Promise<CharacterSkinr>;
+    // (undocumented)
+    getCharacterSkinrComponents(characterId: number): Promise<CharacterSkinrComponents>;
+    // (undocumented)
+    getSkinr(skinrId: string): Promise<Skinr>;
+}
+
 // @public (undocumented)
 export interface CreateClientOptions {
     // (undocumented)
@@ -3892,6 +3934,8 @@ export class EsiClient {
     // (undocumented)
     get corporations(): CorporationsClient;
     // (undocumented)
+    get cosmetics(): CosmeticsClient;
+    // (undocumented)
     get diagnostics(): EsiDiagnostics;
     // (undocumented)
     get dogma(): DogmaClient;
@@ -3929,6 +3973,8 @@ export class EsiClient {
     get meta(): MetaClient;
     // (undocumented)
     get militaryCampaigns(): MilitaryCampaignsClient;
+    // (undocumented)
+    get paragonHub(): ParagonHubClient;
     // (undocumented)
     get pi(): PiClient;
     // (undocumented)
@@ -6253,12 +6299,74 @@ const MedalSchema: z.ZodObject<{
 // @public (undocumented)
 export class MercenaryClient extends BaseEsiClient<typeof mercenaryEndpoints> {
     constructor(client: ApiClient);
+    getMercenaryDenDetail(characterId: number, mercenaryDenId: number): Promise<MercenaryDenDetail>;
     getMercenaryDens(characterId: number): Promise<MercenaryDen[]>;
+    getMercenaryTacticalOperationDetail(characterId: number, operationId: string): Promise<MercenaryTacticalOperationDetail>;
     getMercenaryTacticalOperations(characterId: number): Promise<MercenaryTacticalOperation[]>;
 }
 
 // @public (undocumented)
 export type MercenaryDen = z.infer<typeof MercenaryDenSchema>;
+
+// @public (undocumented)
+export type MercenaryDenDetail = z.infer<typeof MercenaryDenDetailSchema>;
+
+// @public (undocumented)
+const MercenaryDenDetailEvolutionSchema: z.ZodObject<{
+    development: z.ZodObject<{
+        level: z.ZodOptional<z.ZodNumber>;
+        progress: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>;
+    anarchy: z.ZodObject<{
+        level: z.ZodOptional<z.ZodNumber>;
+        progress: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const MercenaryDenDetailInfomorphsSchema: z.ZodObject<{
+    amount: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const MercenaryDenDetailReinforcementTimerSchema: z.ZodObject<{
+    end: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const MercenaryDenDetailSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Running" | "Paused" | "Disabled", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Running" | "Paused" | "Disabled", unknown>>;
+    skyhook: z.ZodObject<{
+        id: z.ZodNumber;
+        planet_id: z.ZodNumber;
+        corporation_id: z.ZodNumber;
+    }, z.core.$loose>;
+    infomorphs: z.ZodObject<{
+        amount: z.ZodNumber;
+    }, z.core.$loose>;
+    evolution: z.ZodObject<{
+        development: z.ZodObject<{
+            level: z.ZodOptional<z.ZodNumber>;
+            progress: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>;
+        anarchy: z.ZodObject<{
+            level: z.ZodOptional<z.ZodNumber>;
+            progress: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>;
+    }, z.core.$loose>;
+    reinforcement_timer: z.ZodOptional<z.ZodObject<{
+        end: z.ZodString;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const MercenaryDenDetailSkyhookSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    planet_id: z.ZodNumber;
+    corporation_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const MercenaryDenSchema: z.ZodObject<{
@@ -6273,6 +6381,18 @@ const MercenaryDenSchema: z.ZodObject<{
 
 // @public (undocumented)
 export type MercenaryTacticalOperation = z.infer<typeof MercenaryTacticalOperationSchema>;
+
+// @public (undocumented)
+export type MercenaryTacticalOperationDetail = z.infer<typeof MercenaryTacticalOperationDetailSchema>;
+
+// @public (undocumented)
+const MercenaryTacticalOperationDetailSchema: z.ZodObject<{
+    id: z.ZodString;
+    mercenary_den_id: z.ZodNumber;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Available" | "Started" | "Completed" | "Expired" | "Removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Available" | "Started" | "Completed" | "Expired" | "Removed", unknown>>;
+    dungeon_type_id: z.ZodNumber;
+    expires: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const MercenaryTacticalOperationSchema: z.ZodObject<{
@@ -6520,6 +6640,146 @@ export interface PageResult<T = unknown> {
     // (undocumented)
     totalPages: number;
 }
+
+// @public (undocumented)
+export type ParagonHubCharacterListing = z.infer<typeof ParagonHubCharacterListingSchema>;
+
+// @public (undocumented)
+const ParagonHubCharacterListingSchema: z.ZodObject<{
+    id: z.ZodString;
+    state: z.ZodType<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown>>;
+    last_modified: z.ZodString;
+    seller_id: z.ZodNumber;
+    skinr_id: z.ZodString;
+    created: z.ZodString;
+    expires: z.ZodString;
+    quantity: z.ZodNumber;
+    price: z.ZodObject<{
+        isk: z.ZodOptional<z.ZodNumber>;
+        plex: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>;
+    target: z.ZodObject<{
+        character_id: z.ZodOptional<z.ZodNumber>;
+        corporation_id: z.ZodOptional<z.ZodNumber>;
+        alliance_id: z.ZodOptional<z.ZodNumber>;
+        public: z.ZodOptional<z.ZodBoolean>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type ParagonHubCharacterSkinrResponse = z.infer<typeof ParagonHubCharacterSkinrResponseSchema>;
+
+// @public (undocumented)
+const ParagonHubCharacterSkinrResponseSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        after: z.ZodOptional<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    listings: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        state: z.ZodType<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown>>;
+        last_modified: z.ZodString;
+        seller_id: z.ZodNumber;
+        skinr_id: z.ZodString;
+        created: z.ZodString;
+        expires: z.ZodString;
+        quantity: z.ZodNumber;
+        price: z.ZodObject<{
+            isk: z.ZodOptional<z.ZodNumber>;
+            plex: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>;
+        target: z.ZodObject<{
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+            alliance_id: z.ZodOptional<z.ZodNumber>;
+            public: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$loose>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// Warning: (ae-forgotten-export) The symbol "paragonHubEndpoints" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export class ParagonHubClient extends BaseEsiClient<typeof paragonHubEndpoints> {
+    constructor(client: ApiClient);
+    // (undocumented)
+    getAllianceListings(allianceId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
+    // (undocumented)
+    getCharacterListings(characterId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubCharacterSkinrResponse>;
+    // (undocumented)
+    getCharacterTargetedListings(characterId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
+    // (undocumented)
+    getCorporationListings(corporationId: number, after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
+    // (undocumented)
+    getPublicListings(after?: string, before?: string, limit?: number): Promise<ParagonHubSkinrResponse>;
+}
+
+// @public (undocumented)
+export type ParagonHubCursor = z.infer<typeof ParagonHubCursorSchema>;
+
+// @public (undocumented)
+const ParagonHubCursorSchema: z.ZodObject<{
+    after: z.ZodOptional<z.ZodString>;
+    before: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type ParagonHubSkinrListing = z.infer<typeof ParagonHubSkinrListingSchema>;
+
+// @public (undocumented)
+const ParagonHubSkinrListingSchema: z.ZodObject<{
+    id: z.ZodString;
+    state: z.ZodType<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown>>;
+    last_modified: z.ZodString;
+    seller_id: z.ZodNumber;
+    skinr_id: z.ZodString;
+    created: z.ZodString;
+    expires: z.ZodString;
+    quantity: z.ZodNumber;
+    price: z.ZodObject<{
+        isk: z.ZodOptional<z.ZodNumber>;
+        plex: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const ParagonHubSkinrPriceSchema: z.ZodObject<{
+    isk: z.ZodOptional<z.ZodNumber>;
+    plex: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type ParagonHubSkinrResponse = z.infer<typeof ParagonHubSkinrResponseSchema>;
+
+// @public (undocumented)
+const ParagonHubSkinrResponseSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        after: z.ZodOptional<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    listings: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        state: z.ZodType<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown>>;
+        last_modified: z.ZodString;
+        seller_id: z.ZodNumber;
+        skinr_id: z.ZodString;
+        created: z.ZodString;
+        expires: z.ZodString;
+        quantity: z.ZodNumber;
+        price: z.ZodObject<{
+            isk: z.ZodOptional<z.ZodNumber>;
+            plex: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const ParagonHubSkinrTargetSchema: z.ZodObject<{
+    character_id: z.ZodOptional<z.ZodNumber>;
+    corporation_id: z.ZodOptional<z.ZodNumber>;
+    alliance_id: z.ZodOptional<z.ZodNumber>;
+    public: z.ZodOptional<z.ZodBoolean>;
+}, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "piEndpoints" needs to be exported by the entry point index.d.ts
 //
@@ -6852,6 +7112,15 @@ declare namespace schemas {
         ContractSchema,
         ContractItemSchema,
         ContractBidSchema,
+        SkinrLicenseSchema,
+        CharacterSkinrSchema,
+        SkinrComponentRunsSchema,
+        SkinrComponentLicenseSchema,
+        CharacterSkinrComponentsSchema,
+        SkinrTierSchema,
+        SkinrLayoutSlotSchema,
+        SkinrLayoutSchema,
+        SkinrSchema,
         CorporationInfoSchema,
         CorporationAllianceHistorySchema,
         CorporationMedalSchema,
@@ -6927,11 +7196,24 @@ declare namespace schemas {
         MarketPriceSchema,
         MercenaryDenSchema,
         MercenaryTacticalOperationSchema,
+        MercenaryDenDetailEvolutionSchema,
+        MercenaryDenDetailInfomorphsSchema,
+        MercenaryDenDetailReinforcementTimerSchema,
+        MercenaryDenDetailSkyhookSchema,
+        MercenaryDenDetailSchema,
+        MercenaryTacticalOperationDetailSchema,
         MetaChangelogEntrySchema,
         MetaChangelogSchema,
         MetaCompatibilityDatesSchema,
         MetaNameSchema,
         MetaStatusSchema,
+        ParagonHubCursorSchema,
+        ParagonHubSkinrPriceSchema,
+        ParagonHubSkinrListingSchema,
+        ParagonHubSkinrTargetSchema,
+        ParagonHubCharacterListingSchema,
+        ParagonHubSkinrResponseSchema,
+        ParagonHubCharacterSkinrResponseSchema,
         MilitaryCampaignSchema,
         MilitaryCampaignObjectiveSchema,
         CharacterMilitaryCampaignObjectiveSchema,
@@ -6944,6 +7226,18 @@ declare namespace schemas {
         SovereigntyHubSchema,
         OrbitalSkyhookSchema,
         RaidableSkyhookSchema,
+        SkyhookDetailReagentSchema,
+        SkyhookDetailReinforcementTimerSchema,
+        SkyhookDetailTheftVulnerabilitySchema,
+        SkyhookDetailSchema,
+        SovereigntyHubDetailReagentSchema,
+        SovereigntyHubDetailReagentBaySchema,
+        SovereigntyHubDetailResourceSchema,
+        SovereigntyHubDetailResourcesSchema,
+        SovereigntyHubDetailUpgradeSchema,
+        SovereigntyHubDetailVulnerabilityWindowSchema,
+        SovereigntyHubDetailTransportSchema,
+        SovereigntyHubDetailSchema,
         SovereigntyCampaignSchema,
         SovereigntySystemStructureSchema,
         SovereigntySystemSchema,
@@ -7042,6 +7336,112 @@ const SkillQueueSchema: z.ZodObject<{
     finish_date: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
+// @public (undocumented)
+export type Skinr = z.infer<typeof SkinrSchema>;
+
+// @public (undocumented)
+export type SkinrComponentLicense = z.infer<typeof SkinrComponentLicenseSchema>;
+
+// @public (undocumented)
+const SkinrComponentLicenseSchema: z.ZodObject<{
+    component_id: z.ZodNumber;
+    type: z.ZodType<(string & {}) | "pattern" | "nanocoating", unknown, z.core.$ZodTypeInternals<(string & {}) | "pattern" | "nanocoating", unknown>>;
+    runs: z.ZodObject<{
+        remaining: z.ZodOptional<z.ZodNumber>;
+        unlimited: z.ZodOptional<z.ZodBoolean>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SkinrComponentRunsSchema: z.ZodObject<{
+    remaining: z.ZodOptional<z.ZodNumber>;
+    unlimited: z.ZodOptional<z.ZodBoolean>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SkinrLayoutSchema: z.ZodObject<{
+    slots: z.ZodArray<z.ZodObject<{}, z.core.$loose>>;
+    pattern_blend_mode: z.ZodType<(string & {}) | "normal" | "subtract" | "exclusion" | "nested" | "nested_inverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "normal" | "subtract" | "exclusion" | "nested" | "nested_inverted", unknown>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SkinrLayoutSlotSchema: z.ZodObject<{}, z.core.$loose>;
+
+// @public (undocumented)
+export type SkinrLicense = z.infer<typeof SkinrLicenseSchema>;
+
+// @public (undocumented)
+const SkinrLicenseSchema: z.ZodObject<{
+    skinr_id: z.ZodString;
+    activated: z.ZodBoolean;
+    unactivated: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SkinrSchema: z.ZodObject<{
+    id: z.ZodString;
+    name: z.ZodString;
+    creator_id: z.ZodNumber;
+    ship_type_id: z.ZodNumber;
+    line: z.ZodOptional<z.ZodString>;
+    tier: z.ZodObject<{
+        level: z.ZodNumber;
+    }, z.core.$loose>;
+    layout: z.ZodObject<{
+        slots: z.ZodArray<z.ZodObject<{}, z.core.$loose>>;
+        pattern_blend_mode: z.ZodType<(string & {}) | "normal" | "subtract" | "exclusion" | "nested" | "nested_inverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "normal" | "subtract" | "exclusion" | "nested" | "nested_inverted", unknown>>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SkinrTierSchema: z.ZodObject<{
+    level: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type SkyhookDetail = z.infer<typeof SkyhookDetailSchema>;
+
+// @public (undocumented)
+const SkyhookDetailReagentSchema: z.ZodObject<{
+    type_id: z.ZodNumber;
+    secured_stock: z.ZodNumber;
+    unsecured_stock: z.ZodNumber;
+    last_cycle: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SkyhookDetailReinforcementTimerSchema: z.ZodObject<{
+    end: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SkyhookDetailSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    planet_id: z.ZodNumber;
+    state: z.ZodType<(string & {}) | "Unspecified" | "ShieldVulnerable" | "ArmorReinforced" | "ArmorVulnerable" | "HullReinforced" | "HullVulnerable", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "ShieldVulnerable" | "ArmorReinforced" | "ArmorVulnerable" | "HullReinforced" | "HullVulnerable", unknown>>;
+    is_active: z.ZodBoolean;
+    effective_workforce: z.ZodOptional<z.ZodNumber>;
+    reagents: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        type_id: z.ZodNumber;
+        secured_stock: z.ZodNumber;
+        unsecured_stock: z.ZodNumber;
+        last_cycle: z.ZodString;
+    }, z.core.$loose>>>;
+    reinforcement_timer: z.ZodOptional<z.ZodObject<{
+        end: z.ZodString;
+    }, z.core.$loose>>;
+    theft_vulnerability: z.ZodOptional<z.ZodObject<{
+        start: z.ZodString;
+        end: z.ZodString;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SkyhookDetailTheftVulnerabilitySchema: z.ZodObject<{
+    start: z.ZodString;
+    end: z.ZodString;
+}, z.core.$loose>;
+
 // Warning: (ae-forgotten-export) The symbol "skyhookEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -7049,6 +7449,8 @@ export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
     constructor(client: ApiClient);
     getOrbitalSkyhooks(corporationId: number): Promise<OrbitalSkyhook[]>;
     getRaidableSkyhooks(): Promise<RaidableSkyhook[]>;
+    getSkyhookDetail(corporationId: number, skyhookId: number): Promise<SkyhookDetail>;
+    getSovereigntyHubDetail(corporationId: number, sovereigntyHubId: number): Promise<SovereigntyHubDetail>;
     getSovereigntyHubs(corporationId: number): Promise<SovereigntyHub[]>;
 }
 
@@ -7135,6 +7537,93 @@ export class SovereigntyClient extends BaseEsiClient<typeof sovereigntyEndpoints
 
 // @public (undocumented)
 export type SovereigntyHub = z.infer<typeof SovereigntyHubSchema>;
+
+// @public (undocumented)
+export type SovereigntyHubDetail = z.infer<typeof SovereigntyHubDetailSchema>;
+
+// @public (undocumented)
+const SovereigntyHubDetailReagentBaySchema: z.ZodObject<{
+    last_updated: z.ZodString;
+    reagents: z.ZodArray<z.ZodObject<{
+        type_id: z.ZodNumber;
+        amount: z.ZodNumber;
+        burning_per_hour: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SovereigntyHubDetailReagentSchema: z.ZodObject<{
+    type_id: z.ZodNumber;
+    amount: z.ZodNumber;
+    burning_per_hour: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SovereigntyHubDetailResourceSchema: z.ZodObject<{
+    available: z.ZodOptional<z.ZodNumber>;
+    used: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SovereigntyHubDetailResourcesSchema: z.ZodObject<{
+    power: z.ZodObject<{
+        available: z.ZodOptional<z.ZodNumber>;
+        used: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>;
+    workforce: z.ZodObject<{
+        available: z.ZodOptional<z.ZodNumber>;
+        used: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SovereigntyHubDetailSchema: z.ZodObject<{
+    id: z.ZodNumber;
+    solar_system_id: z.ZodNumber;
+    upgrades: z.ZodArray<z.ZodObject<{
+        type_id: z.ZodNumber;
+        power_state: z.ZodType<(string & {}) | "Unspecified" | "Online" | "Offline" | "Low" | "Pending", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Online" | "Offline" | "Low" | "Pending", unknown>>;
+    }, z.core.$loose>>;
+    reagent_bay: z.ZodObject<{
+        last_updated: z.ZodString;
+        reagents: z.ZodArray<z.ZodObject<{
+            type_id: z.ZodNumber;
+            amount: z.ZodNumber;
+            burning_per_hour: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    resources: z.ZodObject<{
+        power: z.ZodObject<{
+            available: z.ZodOptional<z.ZodNumber>;
+            used: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>;
+        workforce: z.ZodObject<{
+            available: z.ZodOptional<z.ZodNumber>;
+            used: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>;
+    }, z.core.$loose>;
+    workforce_transport: z.ZodObject<{}, z.core.$loose>;
+    fuel_access_list_id: z.ZodOptional<z.ZodNumber>;
+    vulnerability_window: z.ZodOptional<z.ZodObject<{
+        start: z.ZodString;
+        end: z.ZodString;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SovereigntyHubDetailTransportSchema: z.ZodObject<{}, z.core.$loose>;
+
+// @public (undocumented)
+const SovereigntyHubDetailUpgradeSchema: z.ZodObject<{
+    type_id: z.ZodNumber;
+    power_state: z.ZodType<(string & {}) | "Unspecified" | "Online" | "Offline" | "Low" | "Pending", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Online" | "Offline" | "Low" | "Pending", unknown>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+const SovereigntyHubDetailVulnerabilityWindowSchema: z.ZodObject<{
+    start: z.ZodString;
+    end: z.ZodString;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const SovereigntyHubSchema: z.ZodObject<{

@@ -98,6 +98,41 @@ async function main() {
         );
       }
     }
+
+    // Fetch detail for the first den
+    if (dens.length > 0) {
+      console.log('\nMercenary Den Detail');
+      console.log('-'.repeat(60));
+      const denDetail = await client.mercenary.getMercenaryDenDetail(
+        characterId,
+        dens[0].den_id,
+      );
+      console.log(`  Den ${denDetail.id} — State: ${denDetail.state}`);
+      console.log(
+        `  Skyhook: Planet ${denDetail.skyhook.planet_id} (Corp ${denDetail.skyhook.corporation_id})`,
+      );
+      console.log(`  Infomorphs: ${denDetail.infomorphs.amount}`);
+      console.log(
+        `  Evolution: Dev ${denDetail.evolution.development.level ?? 'N/A'} / ` +
+          `Anarchy ${denDetail.evolution.anarchy.level ?? 'N/A'}`,
+      );
+    }
+
+    // Fetch detail for the first operation
+    if (operations.length > 0) {
+      console.log('\nMTO Detail');
+      console.log('-'.repeat(60));
+      const opDetail =
+        await client.mercenary.getMercenaryTacticalOperationDetail(
+          characterId,
+          String(operations[0].operation_id),
+        );
+      console.log(
+        `  Operation ${opDetail.id} — State: ${opDetail.state}`,
+      );
+      console.log(`  Dungeon Type: ${opDetail.dungeon_type_id}`);
+      console.log(`  Expires: ${opDetail.expires}`);
+    }
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

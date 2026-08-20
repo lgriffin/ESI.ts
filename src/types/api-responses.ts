@@ -28,6 +28,8 @@ export * from './sovereignty';
 export * from './status';
 export * from './wars';
 export * from './corporation-projects';
+export * from './cosmetics';
+export * from './paragon-hub';
 export * from './freelance-jobs';
 export * from './skyhooks';
 export * from './mercenary';
