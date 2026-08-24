@@ -159,13 +159,16 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
 
-  # Job 4: Create Release Assets
+  # Job 4: Create Release Assets (no OIDC — build only, hands off to sign-and-publish)
   create-assets:
     name: 📎 Create Release Assets
     runs-on: ubuntu-latest
     needs: validate-release
     permissions:
-      contents: write
+      contents: read
+
+    outputs:
+      tarball: ${{ steps.pack.outputs.tarball }}
 
     steps:
       - name: 📥 Checkout code
@@ -187,17 +190,79 @@ jobs:
         run: npm run docs
 
       - name: 📦 Create distribution package
-        run: npm pack
+        id: pack
+        run: |
+          npm pack
+          count=$(ls -1 *.tgz | wc -l)
+          if [ "$count" -ne 1 ]; then
+            echo "Expected exactly one tarball, found $count:" >&2
+            ls -1 *.tgz >&2
+            exit 1
+          fi
+          echo "tarball=$(ls -1 *.tgz)" >> "$GITHUB_OUTPUT"
 
       - name: 🗜️ Create documentation archive
         run: tar -czf docs.tar.gz docs/
+
+      - name: 🔢 Generate SHA256 checksums
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: sha256sum "$TARBALL" docs.tar.gz > checksums.txt
+
+      - name: ⬆️ Upload build artifacts for signing
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-artifacts
+          path: |
+            ${{ steps.pack.outputs.tarball }}
+            docs.tar.gz
+            checksums.txt
+          retention-days: 1
+          if-no-files-found: error
+
+  # Job 4b: Sign & publish release assets (isolated so only this job can mint OIDC tokens)
+  sign-and-publish-assets:
+    name: 🔏 Sign & Publish Release Assets
+    runs-on: ubuntu-latest
+    needs: create-assets
+    permissions:
+      contents: write # upload assets to the GitHub Release
+      id-token: write # keyless cosign signing (OIDC → Fulcio)
+
+    steps:
+      - name: 📥 Checkout code # for README.md / LICENSE
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: ⬇️ Download build artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: release-artifacts
+
+      - name: 🔏 Install Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: 🔏 Sign release artifacts (keyless)
+        env:
+          TARBALL: ${{ needs.create-assets.outputs.tarball }}
+        run: |
+          for artifact in "$TARBALL" docs.tar.gz; do
+            cosign sign-blob --yes \
+              --output-signature "${artifact}.sig" \
+              --output-certificate "${artifact}.pem" \
+              "$artifact"
+          done
 
       - name: 📎 Upload release assets
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         with:
           files: |
-            *.tgz
+            ${{ needs.create-assets.outputs.tarball }}
+            ${{ needs.create-assets.outputs.tarball }}.sig
+            ${{ needs.create-assets.outputs.tarball }}.pem
             docs.tar.gz
+            docs.tar.gz.sig
+            docs.tar.gz.pem
+            checksums.txt
             README.md
             LICENSE
         env:
@@ -207,7 +272,14 @@ jobs:
   notify-success:
     name: 🎉 Notify Success
     runs-on: ubuntu-latest
-    needs: [publish-npm, publish-github, deploy-docs, create-assets]
+    needs:
+      [
+        publish-npm,
+        publish-github,
+        deploy-docs,
+        create-assets,
+        sign-and-publish-assets,
+      ]
     if: always() && needs.publish-npm.result == 'success'
 
     steps:
