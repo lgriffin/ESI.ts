@@ -7,12 +7,14 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   check-spec-drift:
     name: Check ESI Spec Drift
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write # create/update the spec-drift issue
 
     steps:
       - name: Checkout code

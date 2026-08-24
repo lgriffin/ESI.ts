@@ -7,12 +7,14 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   audit:
     name: npm Security Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write # create/label the security-audit issue
 
     steps:
       - name: Checkout code

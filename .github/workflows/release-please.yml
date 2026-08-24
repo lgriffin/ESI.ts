@@ -5,13 +5,15 @@ on:
     branches: [master]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # create release commits/tags
+      pull-requests: write # open/update the release PR
 
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
