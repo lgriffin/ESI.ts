@@ -1009,6 +1009,7 @@ Every pull request runs the full validation suite:
 - Least-privilege `permissions:` on all workflows and jobs
 - Script injection prevention (user-controlled inputs passed via `env:`, never interpolated in `run:`)
 - npm publish with `--provenance` for SLSA attestations (verifiable build origin)
+- GitHub release artifacts signed with Cosign (keyless) and published with SHA256 checksums
 - OpenSSF Scorecard runs weekly via the `scorecard.yml` workflow
 
 See [.github/workflows/README.md](.github/workflows/README.md) for full workflow details.
