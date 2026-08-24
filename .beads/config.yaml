@@ -65,4 +65,7 @@
 # - linear.api_key  → use LINEAR_API_KEY env var instead
 # - github.token    → use GITHUB_TOKEN env var instead
 
-sync.remote: "git+https://github.com/lgriffin/ESI.ts.git"
+# sync.remote is intentionally NOT tracked here so forks and alternate remotes
+# work correctly. Set it locally instead, e.g.:
+#   bd config set sync.remote "git+https://github.com/<you>/ESI.ts.git"
+# See guides/BEADS.md ("Syncing issues") for details.
