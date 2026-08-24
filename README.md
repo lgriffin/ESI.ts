@@ -1021,6 +1021,10 @@ See [.github/workflows/README.md](.github/workflows/README.md) for full workflow
 4. Run `npm run validate` to check everything passes
 5. Open a Pull Request
 
+Work is tracked with [beads](https://github.com/gastownhall/beads) (`bd`). Run
+`bd ready` to see available work — see [guides/BEADS.md](guides/BEADS.md) for the
+full workflow.
+
 ## License
 
 GPL-3.0-or-later - see the [LICENSE](LICENSE) file for details.

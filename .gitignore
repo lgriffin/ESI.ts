@@ -94,3 +94,11 @@ ideas.md
 *.sqlite
 *.zip
 sde-data/
+
+# Beads / Dolt files (added by bd init)
+# Note: .beads/.gitignore already scopes DB/runtime files within .beads/;
+# keep these top-level rules narrow to avoid ignoring unrelated *.db fixtures.
+.dolt/
+.beads/**/*.db
+.beads-credential-key
+.beads/proxieddb/
