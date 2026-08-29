@@ -2,12 +2,12 @@ name: Workflow Security
 
 on:
   push:
-    branches: [master, main]
+    branches: [master, main, develop]
     paths:
       - '.github/workflows/**'
       - '.zizmor.yml'
   pull_request:
-    branches: [master, main]
+    branches: [master, main, develop]
     paths:
       - '.github/workflows/**'
       - '.zizmor.yml'
