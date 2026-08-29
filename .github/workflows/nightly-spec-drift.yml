@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -149,12 +151,16 @@ jobs:
           )"
 
       - name: Summary
+        env:
+          COMPAT_DATE: ${{ steps.drift.outputs.compat_date }}
+          DRIFT_FOUND: ${{ steps.drift.outputs.drift_found }}
+          MISSING_COUNT: ${{ steps.drift.outputs.missing_count }}
         run: |
           echo "## ESI Spec Drift Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Compatibility date:** ${{ steps.drift.outputs.compat_date }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Drift found:** ${{ steps.drift.outputs.drift_found }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Missing endpoints:** ${{ steps.drift.outputs.missing_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Compatibility date:** $COMPAT_DATE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Drift found:** $DRIFT_FOUND" >> $GITHUB_STEP_SUMMARY
+          echo "- **Missing endpoints:** $MISSING_COUNT" >> $GITHUB_STEP_SUMMARY
           if [ -f drift-report.json ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY

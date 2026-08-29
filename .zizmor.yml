@@ -1,38 +1,17 @@
 ---
 rules:
+  # setup-node in a release workflow is flagged regardless of cache settings.
+  # We removed explicit cache: 'npm' but zizmor still detects the action itself
+  # as a cache-poisoning vector in release-triggered workflows.
   cache-poisoning:
     ignore:
-      - 'ci.yml'
-      - 'ci-fast.yml'
       - 'release.yml'
-      - 'maintenance.yml'
-      - 'nightly-mutation.yml'
-      - 'nightly-audit.yml'
-      - 'nightly-spec-drift.yml'
-      - 'package-checks.yml'
-      - 'codeql.yml'
-  artipacked:
-    ignore:
-      - 'ci.yml'
-      - 'ci-fast.yml'
-      - 'release.yml'
-      - 'maintenance.yml'
-      - 'nightly-mutation.yml'
-      - 'nightly-audit.yml'
-      - 'nightly-spec-drift.yml'
-      - 'package-checks.yml'
-      - 'codeql.yml'
-      - 'scorecard.yml'
+  # Dependabot v2 does not support a cooldown configuration option.
   dependabot-cooldown:
     ignore:
       - 'dependabot.yml'
-  superfluous-actions:
-    ignore:
-      - 'release.yml'
-  template-injection:
-    ignore:
-      - 'nightly-audit.yml'
-      - 'nightly-spec-drift.yml'
+  # GitHub Packages publish uses GITHUB_TOKEN, not npm trusted publishing.
+  # OIDC-based trusted publishing only applies to the npm registry.
   use-trusted-publishing:
     ignore:
       - 'release.yml'

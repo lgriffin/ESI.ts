@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -100,6 +102,7 @@ jobs:
           HIGH: ${{ steps.audit.outputs.high }}
           MODERATE: ${{ steps.audit.outputs.moderate }}
           LOW: ${{ steps.audit.outputs.low }}
+          VULN_TABLE: ${{ steps.table.outputs.table }}
         run: |
           gh issue create \
             --title "security-audit: ${TOTAL} npm vulnerabilities detected" \
@@ -119,7 +122,7 @@ jobs:
 
           | Package | Severity | Affected | Fix Available |
           |---------|----------|----------|---------------|
-          ${{ steps.table.outputs.table }}
+          ${VULN_TABLE}
 
           ## How to Resolve
 
@@ -142,6 +145,7 @@ jobs:
           HIGH: ${{ steps.audit.outputs.high }}
           MODERATE: ${{ steps.audit.outputs.moderate }}
           LOW: ${{ steps.audit.outputs.low }}
+          VULN_TABLE: ${{ steps.table.outputs.table }}
         run: |
           ISSUE_NUMBER=$(gh issue list \
             --label "security-audit" \
@@ -162,7 +166,7 @@ jobs:
 
           | Package | Severity | Affected | Fix Available |
           |---------|----------|----------|---------------|
-          ${{ steps.table.outputs.table }}
+          ${VULN_TABLE}
           EOF
           )"
 
@@ -182,13 +186,19 @@ jobs:
           fi
 
       - name: Summary
+        env:
+          VULN_FOUND: ${{ steps.audit.outputs.vuln_found }}
+          CRITICAL: ${{ steps.audit.outputs.critical }}
+          HIGH: ${{ steps.audit.outputs.high }}
+          MODERATE: ${{ steps.audit.outputs.moderate }}
+          LOW: ${{ steps.audit.outputs.low }}
         run: |
           echo "## Nightly Security Audit" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Vulnerabilities found:** ${{ steps.audit.outputs.vuln_found }}" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.audit.outputs.vuln_found }}" == "true" ]; then
-            echo "- **Critical:** ${{ steps.audit.outputs.critical }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **High:** ${{ steps.audit.outputs.high }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Moderate:** ${{ steps.audit.outputs.moderate }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Low:** ${{ steps.audit.outputs.low }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vulnerabilities found:** $VULN_FOUND" >> $GITHUB_STEP_SUMMARY
+          if [ "$VULN_FOUND" == "true" ]; then
+            echo "- **Critical:** $CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **High:** $HIGH" >> $GITHUB_STEP_SUMMARY
+            echo "- **Moderate:** $MODERATE" >> $GITHUB_STEP_SUMMARY
+            echo "- **Low:** $LOW" >> $GITHUB_STEP_SUMMARY
           fi
