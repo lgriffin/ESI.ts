@@ -372,6 +372,29 @@ jobs:
           path: docs/
           retention-days: 30
 
+  lockfile:
+    name: Lockfile Consistency
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+
+      - name: Check lockfile is up to date
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          if ! git diff --exit-code package-lock.json; then
+            echo "::error::package-lock.json is out of sync with package.json. Run 'npm install' and commit the updated lockfile."
+            exit 1
+          fi
+
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
@@ -384,40 +407,21 @@ jobs:
         static-analysis,
         contract-tests,
         fuzz-tests,
+        api-surface,
+        schemathesis,
+        lockfile,
       ]
     if: always()
 
     steps:
-      - name: Check job results
+      - name: Check all jobs
+        env:
+          RESULTS: "${{ join(needs.*.result, ' ') }}"
         run: |
-          echo "Unit Tests: ${{ needs.unit-tests.result }}"
-          echo "BDD Tests: ${{ needs.bdd-tests.result }}"
-          echo "Full Test Suite: ${{ needs.full-test-suite.result }}"
-          echo "Coverage: ${{ needs.coverage.result }}"
-          echo "Static Analysis: ${{ needs.static-analysis.result }}"
-          echo "Contract Tests: ${{ needs.contract-tests.result }}"
-          echo "Fuzz Tests: ${{ needs.fuzz-tests.result }}"
-
-      - name: Quality Gate
-        if: >-
-          needs.unit-tests.result != 'success' ||
-          needs.bdd-tests.result != 'success' ||
-          needs.full-test-suite.result != 'success' ||
-          needs.coverage.result != 'success' ||
-          needs.static-analysis.result != 'success' ||
-          needs.contract-tests.result != 'success' ||
-          needs.fuzz-tests.result != 'success'
-        run: |
-          echo "Quality gate failed!"
-          exit 1
-
-      - name: Quality Gate Passed
-        if: >-
-          needs.unit-tests.result == 'success' &&
-          needs.bdd-tests.result == 'success' &&
-          needs.full-test-suite.result == 'success' &&
-          needs.coverage.result == 'success' &&
-          needs.static-analysis.result == 'success' &&
-          needs.contract-tests.result == 'success' &&
-          needs.fuzz-tests.result == 'success'
-        run: echo "All quality checks passed!"
+          for r in $RESULTS; do
+            if [[ "$r" != "success" ]]; then
+              echo "::error::One or more required jobs failed, were cancelled, or were skipped"
+              exit 1
+            fi
+          done
+          echo "All quality checks passed!"

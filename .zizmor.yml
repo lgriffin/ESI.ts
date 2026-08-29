@@ -1,0 +1,38 @@
+---
+rules:
+  cache-poisoning:
+    ignore:
+      - 'ci.yml'
+      - 'ci-fast.yml'
+      - 'release.yml'
+      - 'maintenance.yml'
+      - 'nightly-mutation.yml'
+      - 'nightly-audit.yml'
+      - 'nightly-spec-drift.yml'
+      - 'package-checks.yml'
+      - 'codeql.yml'
+  artipacked:
+    ignore:
+      - 'ci.yml'
+      - 'ci-fast.yml'
+      - 'release.yml'
+      - 'maintenance.yml'
+      - 'nightly-mutation.yml'
+      - 'nightly-audit.yml'
+      - 'nightly-spec-drift.yml'
+      - 'package-checks.yml'
+      - 'codeql.yml'
+      - 'scorecard.yml'
+  dependabot-cooldown:
+    ignore:
+      - 'dependabot.yml'
+  superfluous-actions:
+    ignore:
+      - 'release.yml'
+  template-injection:
+    ignore:
+      - 'nightly-audit.yml'
+      - 'nightly-spec-drift.yml'
+  use-trusted-publishing:
+    ignore:
+      - 'release.yml'
