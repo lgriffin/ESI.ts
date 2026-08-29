@@ -267,6 +267,56 @@ describe('CursorPaginationHandler', () => {
 
       expect(result.data).toEqual([{ id: 1, name: 'single' }]);
     });
+
+    it('should return empty array when response data is null', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(null));
+
+      const result = await CursorPaginationHandler.fetchPage(
+        client,
+        'some/endpoint',
+        'GET',
+        false,
+      );
+
+      expect(result.data).toEqual([]);
+    });
+
+    it('should delegate to pageFetch callback when provided', async () => {
+      const pageFetch = jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        cursors: { before: null, after: 'a1' },
+      });
+
+      const result = await CursorPaginationHandler.fetchPage(
+        client,
+        'some/endpoint',
+        'GET',
+        false,
+        { after: 'tok' },
+        undefined,
+        pageFetch,
+      );
+
+      expect(result.data).toEqual([{ id: 1 }]);
+      expect(pageFetch).toHaveBeenCalledWith('some/endpoint', { after: 'tok' });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('should return endpoint unchanged when cursor has no before or after', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([{ id: 1 }]));
+
+      await CursorPaginationHandler.fetchPage(
+        client,
+        'some/endpoint',
+        'GET',
+        false,
+        {},
+      );
+
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://esi.evetech.net/some/endpoint',
+      );
+    });
   });
 
   describe('fetchAll', () => {
@@ -449,6 +499,35 @@ describe('CursorPaginationHandler', () => {
       );
 
       expect(result).toEqual([{ id: 1 }]);
+    });
+
+    it('should pass refreshToken when client has token provider', async () => {
+      const authedClient = new ApiClient(
+        'test',
+        'https://esi.evetech.net',
+        'my-token',
+      );
+      const rl = new RateLimiter();
+      rl.setTestMode(true);
+      authedClient.setRateLimiter(rl);
+      authedClient.setTokenProvider(async () => 'refreshed-token');
+
+      const resp = cursorResponse([{ id: 2 }], null, null);
+      fetchMock.mockResponseOnce(resp.body, {
+        status: resp.status,
+        headers: resp.headers,
+      });
+
+      const result = await CursorPaginationHandler.fetchAll(
+        authedClient,
+        'corporations/123/projects',
+        'GET',
+        true,
+        [{ id: 1 }],
+        { before: null, after: 'c1' },
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
     });
 
     it('should handle duplicates across pages (per ESI spec)', async () => {

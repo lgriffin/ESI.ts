@@ -303,5 +303,26 @@ describe('PaginationHandler', () => {
 
       expect(executeMock).toHaveBeenCalled();
     });
+
+    it('should pass refreshToken when client has token provider', async () => {
+      client.setAccessToken('test-token');
+      client.setTokenProvider(async () => 'refreshed-token');
+      const firstPageData = [{ id: 1 }];
+      pageFetch.mockResolvedValueOnce([{ id: 2 }]);
+
+      const result = await PaginationHandler.fetchRemainingPages(
+        client,
+        'alliances',
+        'GET',
+        true,
+        firstPageData,
+        2,
+        undefined,
+        {},
+        pageFetch,
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+    });
   });
 });

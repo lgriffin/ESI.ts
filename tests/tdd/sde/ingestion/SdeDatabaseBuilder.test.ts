@@ -211,4 +211,56 @@ function createParsedFile(
     expect(row.name).toBe('Material');
     db.close();
   });
+
+  it('should call onProgress at 1000-record intervals and at end', () => {
+    const progress = jest.fn();
+    const records: Record<number, Record<string, unknown>> = {};
+    for (let i = 1; i <= 1001; i++) {
+      records[i] = { name: { en: `Type ${i}` }, published: true };
+    }
+    const parsedFiles = [createParsedFile('categories.yaml', records)];
+
+    builder.build({
+      outputPath: dbPath,
+      parsedFiles,
+      sdeVersion: '12345',
+      buildDate: '2026-01-15',
+      onProgress: progress,
+    });
+
+    const calls = progress.mock.calls as Array<[string, number, number]>;
+    const intervalCall = calls.find(([, inserted]) => inserted === 1000);
+    expect(intervalCall).toBeDefined();
+    expect(intervalCall![0]).toBe('eve_categories');
+    const finalCall = calls[calls.length - 1]!;
+    expect(finalCall[0]).toBe('eve_categories');
+    expect(finalCall[1]).toBe(1001);
+  });
+});
+
+describe('SdeDatabaseBuilder (no better-sqlite3)', () => {
+  it('should throw SdeError when better-sqlite3 is not available', () => {
+    const origRequire = jest.requireActual;
+    jest.doMock('better-sqlite3', () => {
+      throw new Error('Cannot find module');
+    });
+
+    jest.resetModules();
+    const {
+      SdeDatabaseBuilder: FreshBuilder,
+    } = require('../../../../src/sde/ingestion/SdeDatabaseBuilder');
+
+    const freshBuilder = new FreshBuilder();
+    expect(() =>
+      freshBuilder.build({
+        outputPath: '/tmp/test.db',
+        parsedFiles: [],
+        sdeVersion: '1',
+        buildDate: '2026-01-01',
+      }),
+    ).toThrow('better-sqlite3 is required');
+
+    jest.dontMock('better-sqlite3');
+    jest.resetModules();
+  });
 });
