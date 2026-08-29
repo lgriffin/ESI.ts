@@ -10,6 +10,8 @@
 
 A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built on the **OpenAPI 3.1 spec**, with runtime validation, intelligent caching, and full endpoint coverage.
 
+**[Documentation Site](https://lgriffin.github.io/ESI.ts/)** — guides, API reference, interactive endpoint explorer, and runnable examples.
+
 **v9.5.2** — Supply chain security hardening: all GitHub Actions pinned by SHA, npm publish with SLSA provenance attestations, least-privilege workflow permissions, script injection prevention, and ETag cache cross-tenant isolation.
 
 **v9.5.0** — Adds 12 new ESI endpoints: CosmeticsClient (SKINR licenses, components, design lookup), ParagonHubClient (marketplace listings with cursor pagination), plus detail endpoints for Mercenary Dens, Tactical Operations, Skyhooks, and Sovereignty Hubs.

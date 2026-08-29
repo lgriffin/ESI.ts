@@ -95,6 +95,11 @@ ideas.md
 *.zip
 sde-data/
 
+# Docs site build output
+docs-site/node_modules/
+docs-site/.vitepress/dist/
+docs-site/.vitepress/cache/
+
 # Beads / Dolt files (added by bd init)
 # Note: .beads/.gitignore already scopes DB/runtime files within .beads/;
 # keep these top-level rules narrow to avoid ignoring unrelated *.db fixtures.
