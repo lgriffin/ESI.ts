@@ -1,5 +1,8 @@
 import { ApiClient } from '../../../src/core/ApiClient';
-import { handleRequest } from '../../../src/core/ApiRequestHandler';
+import {
+  handleRequest,
+  handleSinglePageRequest,
+} from '../../../src/core/ApiRequestHandler';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
@@ -175,6 +178,80 @@ describe('ApiRequestHandler', () => {
       await expect(
         handleRequest(client, 'v1/characters/123/', 'GET'),
       ).rejects.toThrow(EsiError);
+    });
+  });
+
+  describe('handleSinglePageRequest', () => {
+    it('should fetch a single page and return data', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([{ id: 1 }, { id: 2 }]));
+
+      const result = await handleSinglePageRequest(
+        client,
+        'v1/alliances/',
+        'GET',
+      );
+
+      expect(result.body).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(result.headers).toBeDefined();
+    });
+
+    it('should include auth header when requiresAuth is true', async () => {
+      client.setAccessToken('single-page-token');
+      fetchMock.mockResponseOnce(JSON.stringify({ name: 'Test' }));
+
+      await handleSinglePageRequest(
+        client,
+        'v1/characters/123/',
+        'GET',
+        undefined,
+        true,
+      );
+
+      const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(headers['Authorization']).toBe('Bearer single-page-token');
+    });
+
+    it('should throw EsiError on HTTP error', async () => {
+      fetchMock.mockResponseOnce('Internal Server Error', { status: 500 });
+
+      await expect(
+        handleSinglePageRequest(client, 'v1/status/', 'GET'),
+      ).rejects.toThrow(EsiError);
+    });
+
+    it('should pass templatePath and requestTimeout', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({ status: 'ok' }));
+
+      const result = await handleSinglePageRequest(
+        client,
+        'v1/status/',
+        'GET',
+        undefined,
+        false,
+        'v1/status/',
+        5000,
+      );
+
+      expect(result.body).toEqual({ status: 'ok' });
+    });
+
+    it('should pass refreshToken when client has token provider', async () => {
+      client.setAccessToken('test-token');
+      client.setTokenProvider(async () => 'refreshed-token');
+      fetchMock.mockResponseOnce(JSON.stringify({ name: 'Test' }));
+
+      const result = await handleSinglePageRequest(
+        client,
+        'v1/characters/123/',
+        'GET',
+        undefined,
+        true,
+      );
+
+      expect(result.body).toEqual({ name: 'Test' });
     });
   });
 

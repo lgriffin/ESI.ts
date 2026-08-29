@@ -781,6 +781,98 @@ describe('RateLimiter', () => {
     });
   });
 
+  describe('checkRateLimit blocked retry budget exhaustion', () => {
+    let sleepSpy: jest.SpyInstance;
+    let dateNowSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      sleepSpy.mockRestore();
+      if (dateNowSpy) dateNowSpy.mockRestore();
+    });
+
+    it('should throw EsiError when block is re-extended past retry budget', async () => {
+      const baseTime = Date.now();
+      let currentTime = baseTime;
+      dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockImplementation(() => currentTime);
+
+      limiter.updateFromResponse({ 'retry-after': '5' }, 429);
+
+      sleepSpy.mockImplementation(async () => {
+        currentTime += 100;
+        limiter.updateFromResponse({ 'retry-after': '5' }, 429);
+      });
+
+      await expect(limiter.checkRateLimit()).rejects.toThrow(/still blocked/);
+    });
+  });
+
+  describe('isBlocked with fallback bucket', () => {
+    it('should return true when fallback bucket is blocked', () => {
+      limiter.updateFromResponse({ 'retry-after': '30' }, 429);
+      expect(limiter.isBlocked()).toBe(true);
+    });
+  });
+
+  describe('getStatus with user buckets', () => {
+    it('should check user bucket groups in getStatus', () => {
+      const userLimiter = new RateLimiter({
+        userKeyExtractor: (headers) => headers['authorization'] ?? 'anon',
+      });
+      userLimiter.setTestMode(false);
+
+      userLimiter.updateFromResponse(
+        {
+          'x-ratelimit-remaining': '3',
+          'x-ratelimit-limit': '15',
+          'x-ratelimit-used': '12',
+          'x-ratelimit-group': 'char-notification',
+        },
+        200,
+        'characters/{characterId}/notifications',
+        'GET',
+        { authorization: 'Bearer user-a' },
+      );
+
+      const status = userLimiter.getStatus();
+      expect(status.remaining).toBe(3);
+      expect(status.group).toBe('char-notification');
+
+      userLimiter.setTestMode(true);
+    });
+  });
+
+  describe('cleanup stale users', () => {
+    let sleepSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      sleepSpy.mockRestore();
+    });
+
+    it('should skip cleanup when interval has not elapsed', async () => {
+      const userLimiter = new RateLimiter({
+        userKeyExtractor: (headers) => headers['authorization'] ?? 'anon',
+      });
+
+      await userLimiter.checkRateLimit(undefined, undefined, {
+        authorization: 'Bearer user-a',
+      });
+      await userLimiter.checkRateLimit(undefined, undefined, {
+        authorization: 'Bearer user-a',
+      });
+      userLimiter.setTestMode(true);
+    });
+  });
+
   describe('response group header is authoritative', () => {
     it('should use x-ratelimit-group from response over spec lookup', () => {
       limiter.updateFromResponse(
