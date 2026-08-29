@@ -1,5 +1,15 @@
 ---
 rules:
+  # setup-node in a release workflow is flagged regardless of cache settings.
+  # We removed explicit cache: 'npm' but zizmor still detects the action itself
+  # as a cache-poisoning vector in release-triggered workflows.
+  cache-poisoning:
+    ignore:
+      - 'release.yml'
+  # Dependabot v2 does not support a cooldown configuration option.
+  dependabot-cooldown:
+    ignore:
+      - 'dependabot.yml'
   # GitHub Packages publish uses GITHUB_TOKEN, not npm trusted publishing.
   # OIDC-based trusted publishing only applies to the npm registry.
   use-trusted-publishing:

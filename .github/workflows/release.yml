@@ -230,6 +230,7 @@ jobs:
     name: 🔏 Sign & Publish Release Assets
     runs-on: ubuntu-latest
     needs: create-assets
+    if: github.event_name == 'release' && github.event.action == 'published'
     permissions:
       contents: write # upload assets to the GitHub Release
       id-token: write # keyless cosign signing (OIDC → Fulcio)
@@ -264,7 +265,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARBALL: ${{ needs.create-assets.outputs.tarball }}
         run: |
-          gh release upload "$GITHUB_REF_NAME" \
+          gh release upload "$GITHUB_REF_NAME" --clobber \
             "$TARBALL" \
             "${TARBALL}.sig" \
             "${TARBALL}.pem" \
