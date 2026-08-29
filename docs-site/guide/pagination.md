@@ -90,13 +90,11 @@ if (updates.freelance_jobs.length > 0) {
 ## Helper Functions
 
 ```typescript
-import { fetchPages, fetchAllCursorPages } from '@lgriffin/esi.ts';
+import { fetchAllCursorPages } from '@lgriffin/esi.ts';
 
-// fetchPages — helper for offset-based pagination
+// Streaming — the recommended way to handle offset-based pagination
 const allOrders = [];
-for await (const page of fetchPages((pageNum) =>
-  client.market.getMarketOrders(10000002, undefined, pageNum),
-)) {
+for await (const page of client.market.streamMarketOrders(10000002)) {
   allOrders.push(...page.data);
 }
 ```

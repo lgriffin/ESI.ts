@@ -8,7 +8,7 @@ Set `ESI_ACCESS_TOKEN` in your environment or a `.env` file. The client reads it
 
 ```bash
 # Copy the example and fill in your token
-cp .env.example .env
+cp -f .env.example .env
 ```
 
 ```env

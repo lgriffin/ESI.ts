@@ -26,7 +26,7 @@ const result = await client.{domain}.withSafeMode().{method}(args);
 ## Client Creation Options
 
 ```typescript
-// Full client — all 35 domain clients
+// Full client — all 36 domain clients
 const client = new EsiClient({ accessToken: 'token' });
 
 // Selective client — only what you need
@@ -40,6 +40,6 @@ import { EsiApiFactory } from '@lgriffin/esi.ts';
 const market = EsiApiFactory.createMarketClient();
 ```
 
-## 235 Endpoints Covered
+## Endpoint Coverage
 
-All endpoints from the public ESI OpenAPI spec (206) plus 29 for newer EVE features including Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs, military campaigns, corporation projects, SKINR cosmetics, and Paragon Hub marketplace.
+The explorer above showcases the most commonly used endpoints from the library's 235 endpoint definitions. Browse by client, filter by auth requirement, or search for specific methods. For the complete list, see the [Domain Clients](/reference/clients) reference.

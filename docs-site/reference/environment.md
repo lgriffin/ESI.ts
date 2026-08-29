@@ -17,7 +17,7 @@ ESI.ts reads these environment variables when no explicit config is provided.
 Copy the included example and fill in your values:
 
 ```bash
-cp .env.example .env
+cp -f .env.example .env
 ```
 
 ```env

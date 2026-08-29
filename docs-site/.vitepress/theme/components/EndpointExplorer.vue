@@ -13,14 +13,18 @@ interface Endpoint {
 }
 
 const endpoints: Endpoint[] = [
+  // Access Lists
+  { client: 'Access Lists', property: 'accessLists', method: 'getAccessList(charId, listId)', httpMethod: 'GET', description: 'Get an access list with entries', auth: 'Yes', snippet: `const list = await client.accessLists.getAccessList(characterId, accessListId);` },
+  { client: 'Access Lists', property: 'accessLists', method: 'getCharacterAccessLists(charId)', httpMethod: 'GET', description: 'Get all access lists for a character', auth: 'Yes', snippet: `const lists = await client.accessLists.getCharacterAccessLists(characterId);` },
+
   // Alliance
   { client: 'Alliance', property: 'alliance', method: 'getAlliances()', httpMethod: 'GET', description: 'List all active alliance IDs', auth: 'No', snippet: `const alliances = await client.alliance.getAlliances();` },
   { client: 'Alliance', property: 'alliance', method: 'getAllianceById(id)', httpMethod: 'GET', description: 'Get alliance info by ID', auth: 'No', snippet: `const alliance = await client.alliance.getAllianceById(99000001);
 console.log(alliance.name, alliance.ticker);` },
-  { client: 'Alliance', property: 'alliance', method: 'getAllianceCorporations(id)', httpMethod: 'GET', description: 'List member corporations of an alliance', auth: 'No', snippet: `const corps = await client.alliance.getAllianceCorporations(99000001);` },
-  { client: 'Alliance', property: 'alliance', method: 'getAllianceIcons(id)', httpMethod: 'GET', description: 'Get alliance icon URLs', auth: 'No', snippet: `const icons = await client.alliance.getAllianceIcons(99000001);
+  { client: 'Alliance', property: 'alliance', method: 'getCorporations(id)', httpMethod: 'GET', description: 'List member corporations of an alliance', auth: 'No', snippet: `const corps = await client.alliance.getCorporations(99000001);` },
+  { client: 'Alliance', property: 'alliance', method: 'getIcons(id)', httpMethod: 'GET', description: 'Get alliance icon URLs', auth: 'No', snippet: `const icons = await client.alliance.getIcons(99000001);
 console.log(icons.px128x128);` },
-  { client: 'Alliance', property: 'alliance', method: 'getAllianceContacts(id)', httpMethod: 'GET', description: 'Get alliance contacts', auth: 'Yes', snippet: `const contacts = await client.alliance.getAllianceContacts(allianceId);` },
+  { client: 'Alliance', property: 'alliance', method: 'getContacts(id)', httpMethod: 'GET', description: 'Get alliance contacts', auth: 'Yes', snippet: `const contacts = await client.alliance.getContacts(allianceId);` },
 
   // Assets
   { client: 'Assets', property: 'assets', method: 'getCharacterAssets(id)', httpMethod: 'GET', description: 'List character assets', auth: 'Yes', snippet: `const assets = await client.assets.getCharacterAssets(characterId);
@@ -173,7 +177,7 @@ console.log(\`\${status.players} online, started \${status.start_time}\`);` },
 
   // UI
   { client: 'UI', property: 'ui', method: 'setAutopilotWaypoint(destId, addToBeginning, clear)', httpMethod: 'POST', description: 'Set autopilot waypoint (in-game)', auth: 'Yes', snippet: `await client.ui.setAutopilotWaypoint(30000142, false, true);` },
-  { client: 'UI', property: 'ui', method: 'openMarketDetails(typeId)', httpMethod: 'POST', description: 'Open market details in-game', auth: 'Yes', snippet: `await client.ui.openMarketDetails(34); // Opens Tritanium market window` },
+  { client: 'UI', property: 'ui', method: 'openMarketDetailsWindow(typeId)', httpMethod: 'POST', description: 'Open market details in-game', auth: 'Yes', snippet: `await client.ui.openMarketDetailsWindow(34); // Opens Tritanium market window` },
 
   // Universe
   { client: 'Universe', property: 'universe', method: 'getSystemById(id)', httpMethod: 'GET', description: 'Get solar system info', auth: 'No', snippet: `const system = await client.universe.getSystemById(30000142);
@@ -235,10 +239,10 @@ const paginatedEndpoints = computed(() => {
   return filtered.value.slice(start, start + pageSize);
 });
 
-const expandedIndex = ref<number | null>(null);
+const expandedKey = ref<string | null>(null);
 
-function toggleExpand(index: number) {
-  expandedIndex.value = expandedIndex.value === index ? null : index;
+function toggleExpand(key: string) {
+  expandedKey.value = expandedKey.value === key ? null : key;
 }
 
 function copySnippet(snippet: string) {
@@ -283,7 +287,7 @@ function copySnippet(snippet: string) {
       v-for="(ep, i) in paginatedEndpoints"
       :key="`${ep.client}-${ep.method}`"
       class="endpoint-card"
-      @click="toggleExpand(i)"
+      @click="toggleExpand(`${ep.client}-${ep.method}`)"
       style="cursor: pointer"
     >
       <div class="endpoint-header">
@@ -307,7 +311,7 @@ function copySnippet(snippet: string) {
         <span v-if="ep.streaming" class="meta-tag">Streaming</span>
       </div>
 
-      <div v-if="expandedIndex === i" class="code-snippet" @click.stop>
+      <div v-if="expandedKey === `${ep.client}-${ep.method}`" class="code-snippet" @click.stop>
         <button class="copy-btn" @click="copySnippet(ep.snippet)">
           Copy
         </button>

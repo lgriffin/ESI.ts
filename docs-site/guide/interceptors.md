@@ -30,7 +30,7 @@ const client = new EsiClient({
   responseInterceptors: [
     async (context: ResponseContext) => {
       console.log(
-        `← ${context.status} ${context.url} (${context.responseTimeMs}ms)`,
+        `← ${context.status} ${context.url} (${context.durationMs}ms)`,
       );
       return context;
     },
@@ -74,7 +74,7 @@ client.addRequestInterceptor(async (ctx) => {
 
 ```typescript
 client.addResponseInterceptor(async (ctx) => {
-  myMetrics.histogram('esi.response_time', ctx.responseTimeMs, {
+  myMetrics.histogram('esi.response_time', ctx.durationMs, {
     endpoint: ctx.url,
     status: ctx.status,
   });

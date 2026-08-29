@@ -158,7 +158,7 @@ client.addRequestInterceptor(async (ctx) => {
 
 // Add response metrics
 client.addResponseInterceptor(async (ctx) => {
-  console.log(`← ${ctx.status} (${ctx.responseTimeMs}ms)`);
+  console.log(`← ${ctx.status} (${ctx.durationMs}ms)`);
   return ctx;
 });
 ```

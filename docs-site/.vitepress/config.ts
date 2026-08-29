@@ -24,7 +24,7 @@ export default defineConfig({
       { text: 'Examples', link: '/examples/' },
       { text: 'Explorer', link: '/explorer/' },
       {
-        text: 'v9.6.0',
+        text: 'v9.6.1',
         items: [
           {
             text: 'Changelog',
