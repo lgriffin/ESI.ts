@@ -242,7 +242,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.0.0",
     "adm-zip": "^0.6.0",
-    "better-sqlite3": "^11.0.0",
+    "better-sqlite3": "^13.0.3",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-security": "^4.0.0",
