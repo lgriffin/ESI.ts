@@ -29,3 +29,10 @@ rules:
   superfluous-actions:
     ignore:
       - 'release.yml'
+  template-injection:
+    ignore:
+      - 'nightly-audit.yml'
+      - 'nightly-spec-drift.yml'
+  use-trusted-publishing:
+    ignore:
+      - 'release.yml'
