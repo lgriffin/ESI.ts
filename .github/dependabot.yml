@@ -40,3 +40,7 @@ updates:
       prefix: 'chore(ci):'
     labels:
       - dependencies
+    groups:
+      codeql:
+        patterns:
+          - 'github/codeql-action'
