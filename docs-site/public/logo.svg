@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="24" fill="#1e293b"/>
+  <text x="64" y="52" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="36" fill="#60a5fa">ESI</text>
+  <text x="64" y="88" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="28" fill="#a78bfa">.ts</text>
+</svg>
