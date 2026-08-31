@@ -1,6 +1,6 @@
 /* eslint-disable */
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Spec hash: 6b05f68f07a2
+// Spec hash: 2aa65109f19c
 // Total interfaces: 161
 
 // --- Alliance ---
@@ -1261,20 +1261,20 @@ export interface KillmailsKillmailIdKillmailHashGet {
 
 // --- Location ---
 
-export interface CharactersCharacterIdLocationGet {
+export interface CharactersLocation {
   solar_system_id: number;
   station_id?: number;
   structure_id?: number;
 }
 
-export interface CharactersCharacterIdOnlineGet {
+export interface CharactersOnline {
   last_login?: string;
   last_logout?: string;
   logins?: number;
   online: boolean;
 }
 
-export interface CharactersCharacterIdShipGet {
+export interface CharactersShip {
   ship_item_id: number;
   ship_name: string;
   ship_type_id: number;
@@ -2079,7 +2079,7 @@ export interface EsiOperationTypes {
   'GetCharactersCharacterIdFwStats': CharactersCharacterIdFwStatsGet;
   'GetCharactersCharacterIdIndustryJobs': CharactersCharacterIdIndustryJobsGet[];
   'GetCharactersCharacterIdKillmailsRecent': CharactersCharacterIdKillmailsRecentGet[];
-  'GetCharactersCharacterIdLocation': CharactersCharacterIdLocationGet;
+  'GetCharactersCharacterIdLocation': CharactersLocation;
   'GetCharactersCharacterIdLoyaltyPoints': CharactersCharacterIdLoyaltyPointsGet[];
   'GetCharactersCharacterIdMail': CharactersCharacterIdMailGet[];
   'GetCharactersCharacterIdMailLabels': CharactersCharacterIdMailLabelsGet;
@@ -2089,7 +2089,7 @@ export interface EsiOperationTypes {
   'GetCharactersCharacterIdMining': CharactersCharacterIdMiningGet[];
   'GetCharactersCharacterIdNotifications': CharactersCharacterIdNotificationsGet[];
   'GetCharactersCharacterIdNotificationsContacts': CharactersCharacterIdNotificationsContactsGet[];
-  'GetCharactersCharacterIdOnline': CharactersCharacterIdOnlineGet;
+  'GetCharactersCharacterIdOnline': CharactersOnline;
   'GetCharactersCharacterIdOrders': CharactersCharacterIdOrdersGet[];
   'GetCharactersCharacterIdOrdersHistory': CharactersCharacterIdOrdersHistoryGet[];
   'GetCharactersCharacterIdPlanets': CharactersCharacterIdPlanetsGet[];
@@ -2097,7 +2097,7 @@ export interface EsiOperationTypes {
   'GetCharactersCharacterIdPortrait': CharactersCharacterIdPortraitGet;
   'GetCharactersCharacterIdRoles': CharactersCharacterIdRolesGet;
   'GetCharactersCharacterIdSearch': CharactersCharacterIdSearchGet;
-  'GetCharactersCharacterIdShip': CharactersCharacterIdShipGet;
+  'GetCharactersCharacterIdShip': CharactersShip;
   'GetCharactersCharacterIdSkillqueue': CharactersSkillqueueSkill[];
   'GetCharactersCharacterIdSkills': CharactersSkills;
   'GetCharactersCharacterIdStandings': CharactersCharacterIdStandingsGet[];
