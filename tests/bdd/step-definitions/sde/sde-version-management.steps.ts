@@ -5,7 +5,7 @@ import type { IStaticDataProvider } from '../../../../src/sde/IStaticDataProvide
 import type { SdeVersionInfo } from '../../../../src/sde/version';
 
 const feature = loadFeature(
-  'tests/bdd/features/sde/sde-version-management.feature',
+  'tests/bdd/features/sde/0006-sde-version-management.feature',
 );
 
 defineFeature(feature, (test) => {

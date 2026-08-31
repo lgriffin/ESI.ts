@@ -3,7 +3,7 @@ import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
-const feature = loadFeature('tests/bdd/features/core/universe.feature');
+const feature = loadFeature('tests/bdd/features/core/0036-universe.feature');
 
 defineFeature(feature, (test) => {
   let client: EsiClient;

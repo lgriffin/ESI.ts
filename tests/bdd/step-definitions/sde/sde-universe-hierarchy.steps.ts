@@ -10,7 +10,7 @@ import type {
 } from '../../../../src/sde/types';
 
 const feature = loadFeature(
-  'tests/bdd/features/sde/sde-universe-hierarchy.feature',
+  'tests/bdd/features/sde/0002-sde-universe-hierarchy.feature',
 );
 
 defineFeature(feature, (test) => {

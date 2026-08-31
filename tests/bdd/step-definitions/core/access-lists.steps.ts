@@ -3,7 +3,9 @@ import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
-const feature = loadFeature('tests/bdd/features/core/access-lists.feature');
+const feature = loadFeature(
+  'tests/bdd/features/core/0039-access-lists.feature',
+);
 
 defineFeature(feature, (test) => {
   let client: EsiClient;

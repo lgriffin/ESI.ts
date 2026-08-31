@@ -2,7 +2,7 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 
-const feature = loadFeature('tests/bdd/features/core/meta.feature');
+const feature = loadFeature('tests/bdd/features/core/0025-meta.feature');
 
 defineFeature(feature, (test) => {
   let client: EsiClient;

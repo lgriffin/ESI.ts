@@ -13,7 +13,7 @@ import {
 } from '../../../../src/schemas';
 
 const feature = loadFeature(
-  'tests/bdd/features/core/runtime-validation.feature',
+  'tests/bdd/features/core/0053-runtime-validation.feature',
 );
 
 defineFeature(feature, (test) => {

@@ -4,7 +4,7 @@ import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
 const feature = loadFeature(
-  'tests/bdd/features/integration/integration-workflows.feature',
+  'tests/bdd/features/integration/0001-integration-workflows.feature',
 );
 
 defineFeature(feature, (test) => {

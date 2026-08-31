@@ -4,7 +4,9 @@ import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const feature = loadFeature('tests/bdd/features/core/etag-caching.feature');
+const feature = loadFeature(
+  'tests/bdd/features/core/0050-etag-caching.feature',
+);
 
 defineFeature(feature, (test) => {
   let client: EsiClient;

@@ -4,7 +4,7 @@ import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
 const feature = loadFeature(
-  'tests/bdd/features/core/military-campaigns.feature',
+  'tests/bdd/features/core/0026-military-campaigns.feature',
 );
 
 defineFeature(feature, (test) => {

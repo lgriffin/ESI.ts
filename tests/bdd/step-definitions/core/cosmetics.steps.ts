@@ -3,7 +3,7 @@ import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
-const feature = loadFeature('tests/bdd/features/core/cosmetics.feature');
+const feature = loadFeature('tests/bdd/features/core/0010-cosmetics.feature');
 
 const TEST_CHARACTER_ID = 123456;
 

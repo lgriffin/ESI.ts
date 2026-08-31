@@ -9,7 +9,7 @@ import type {
 } from '../../../../src/sde/types';
 
 const feature = loadFeature(
-  'tests/bdd/features/sde/sde-dogma-industry.feature',
+  'tests/bdd/features/sde/0004-sde-dogma-industry.feature',
 );
 
 defineFeature(feature, (test) => {

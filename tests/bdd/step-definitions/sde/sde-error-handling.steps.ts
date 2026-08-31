@@ -12,7 +12,7 @@ import {
 import { EveTypeSchema } from '../../../../src/sde/schemas';
 
 const feature = loadFeature(
-  'tests/bdd/features/sde/sde-error-handling.feature',
+  'tests/bdd/features/sde/0007-sde-error-handling.feature',
 );
 
 defineFeature(feature, (test) => {

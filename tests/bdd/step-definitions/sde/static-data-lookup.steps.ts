@@ -11,7 +11,7 @@ import type {
 } from '../../../../src/sde/types';
 
 const feature = loadFeature(
-  'tests/bdd/features/sde/static-data-lookup.feature',
+  'tests/bdd/features/sde/0001-static-data-lookup.feature',
 );
 
 defineFeature(feature, (test) => {

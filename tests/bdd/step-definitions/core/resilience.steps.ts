@@ -11,7 +11,7 @@ import { EsiError, TimeoutError } from '../../../../src/core/util/error';
 import { EsiClient } from '../../../../src/EsiClient';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
-const feature = loadFeature('tests/bdd/features/core/resilience.feature');
+const feature = loadFeature('tests/bdd/features/core/0051-resilience.feature');
 
 defineFeature(feature, (test) => {
   test('IF an endpoint fails repeatedly, THEN the circuit breaker shall open', ({
