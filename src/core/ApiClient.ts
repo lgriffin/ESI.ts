@@ -14,6 +14,11 @@ export type EsiDatasource = 'tranquility' | 'singularity';
 
 export type TokenProvider = () => Promise<string>;
 
+export type FetchLike = (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>;
+
 export class ApiClient {
   private datasource?: EsiDatasource;
   private tokenProvider?: TokenProvider;
@@ -30,6 +35,7 @@ export class ApiClient {
   private validateRequest: boolean = false;
   private language?: string;
   private compatibilityDate?: string;
+  private fetchFn: FetchLike | null = null;
 
   constructor(
     private clientId: string,
@@ -109,6 +115,14 @@ export class ApiClient {
 
   setValidateRequest(validate: boolean): void {
     this.validateRequest = validate;
+  }
+
+  getFetch(): FetchLike {
+    return this.fetchFn ?? globalThis.fetch;
+  }
+
+  setFetch(fn: FetchLike): void {
+    this.fetchFn = fn;
   }
 
   getMiddleware(): MiddlewareManager {

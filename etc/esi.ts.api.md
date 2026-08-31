@@ -209,6 +209,8 @@ export class ApiClient {
     // (undocumented)
     getDeduplicator(): IDeduplicator | null;
     // (undocumented)
+    getFetch(): FetchLike;
+    // (undocumented)
     getLanguage(): string | undefined;
     // (undocumented)
     getLink(): string;
@@ -245,6 +247,8 @@ export class ApiClient {
     // (undocumented)
     setDeduplicator(dedup: IDeduplicator | null): void;
     // (undocumented)
+    setFetch(fn: FetchLike): void;
+    // (undocumented)
     setLanguage(language: string | undefined): void;
     // (undocumented)
     setRateLimiter(limiter: IRateLimiter | null): void;
@@ -276,6 +280,8 @@ export class ApiClientBuilder {
     setCircuitBreaker(cb: CircuitBreaker): ApiClientBuilder;
     // (undocumented)
     setClientId(clientId: string): ApiClientBuilder;
+    // (undocumented)
+    setFetch(fn: FetchLike): ApiClientBuilder;
     // (undocumented)
     setLink(link: string): ApiClientBuilder;
     // (undocumented)
@@ -1186,16 +1192,6 @@ interface CharactersCharacterIdKillmailsRecentGet {
 }
 
 // @public (undocumented)
-interface CharactersCharacterIdLocationGet {
-    // (undocumented)
-    solar_system_id: number;
-    // (undocumented)
-    station_id?: number;
-    // (undocumented)
-    structure_id?: number;
-}
-
-// @public (undocumented)
 interface CharactersCharacterIdLoyaltyPointsGet {
     // (undocumented)
     corporation_id: number;
@@ -1335,18 +1331,6 @@ interface CharactersCharacterIdNotificationsGet {
     timestamp: string;
     // (undocumented)
     type: 'AcceptedAlly' | 'AcceptedSurrender' | 'AgentRetiredTrigravian' | 'AllAnchoringMsg' | 'AllMaintenanceBillMsg' | 'AllStrucInvulnerableMsg' | 'AllStructVulnerableMsg' | 'AllWarCorpJoinedAllianceMsg' | 'AllWarDeclaredMsg' | 'AllWarInvalidatedMsg' | 'AllWarRetractedMsg' | 'AllWarSurrenderMsg' | 'AllianceCapitalChanged' | 'AllianceWarDeclaredV2' | 'AllyContractCancelled' | 'AllyJoinedWarAggressorMsg' | 'AllyJoinedWarAllyMsg' | 'AllyJoinedWarDefenderMsg' | 'BattlePunishFriendlyFire' | 'BillOutOfMoneyMsg' | 'BillPaidCorpAllMsg' | 'BountyClaimMsg' | 'BountyESSShared' | 'BountyESSTaken' | 'BountyPlacedAlliance' | 'BountyPlacedChar' | 'BountyPlacedCorp' | 'BountyYourBountyClaimed' | 'BuddyConnectContactAdd' | 'CharAppAcceptMsg' | 'CharAppRejectMsg' | 'CharAppWithdrawMsg' | 'CharLeftCorpMsg' | 'CharMedalMsg' | 'CharTerminationMsg' | 'CloneActivationMsg' | 'CloneActivationMsg2' | 'CloneMovedMsg' | 'CloneRevokedMsg1' | 'CloneRevokedMsg2' | 'CombatOperationFinished' | 'ContactAdd' | 'ContactEdit' | 'ContainerPasswordMsg' | 'ContractRegionChangedToPochven' | 'CorpAllBillMsg' | 'CorpAppAcceptMsg' | 'CorpAppInvitedMsg' | 'CorpAppNewMsg' | 'CorpAppRejectCustomMsg' | 'CorpAppRejectMsg' | 'CorpBecameWarEligible' | 'CorpDividendMsg' | 'CorpFriendlyFireDisableTimerCompleted' | 'CorpFriendlyFireDisableTimerStarted' | 'CorpFriendlyFireEnableTimerCompleted' | 'CorpFriendlyFireEnableTimerStarted' | 'CorpKicked' | 'CorpLiquidationMsg' | 'CorpNewCEOMsg' | 'CorpNewsMsg' | 'CorpNoLongerWarEligible' | 'CorpOfficeExpirationMsg' | 'CorpStructLostMsg' | 'CorpTaxChangeMsg' | 'CorpVoteCEORevokedMsg' | 'CorpVoteMsg' | 'CorpWarDeclaredMsg' | 'CorpWarDeclaredV2' | 'CorpWarFightingLegalMsg' | 'CorpWarInvalidatedMsg' | 'CorpWarRetractedMsg' | 'CorpWarSurrenderMsg' | 'CorporationGoalClosed' | 'CorporationGoalCompleted' | 'CorporationGoalCreated' | 'CorporationGoalExpired' | 'CorporationGoalLimitReached' | 'CorporationGoalNameChange' | 'CorporationLeft' | 'CustomsMsg' | 'DailyItemRewardAutoClaimed' | 'DeclareWar' | 'DistrictAttacked' | 'DustAppAcceptedMsg' | 'ESSMainBankLink' | 'EntosisCaptureStarted' | 'ExpertSystemExpired' | 'ExpertSystemExpiryImminent' | 'FWAllianceKickCeoIndividualStandingWarning' | 'FWAllianceKickMsg' | 'FWAllianceKickedCeoIndividualStanding' | 'FWAllianceWarningMsg' | 'FWCharKickMsg' | 'FWCharRankGainMsg' | 'FWCharRankLossMsg' | 'FWCharWarningMsg' | 'FWCharacterKickFromCorpIndividualStandingWarning' | 'FWCharacterKickedFromCorpIndividualStanding' | 'FWCorpJoinMsg' | 'FWCorpKickMsg' | 'FWCorpLeaveMsg' | 'FWCorpWarningMsg' | 'FWCorporationKickCeoIndividualStandingWarning' | 'FWCorporationKickedCeoIndividualStanding' | 'FacWarCorpJoinRequestMsg' | 'FacWarCorpJoinWithdrawMsg' | 'FacWarCorpLeaveRequestMsg' | 'FacWarCorpLeaveWithdrawMsg' | 'FacWarDirectEnlistmentRevoked' | 'FacWarLPDisqualifiedEvent' | 'FacWarLPDisqualifiedKill' | 'FacWarLPPayoutEvent' | 'FacWarLPPayoutKill' | 'FreelanceProjectACLDeleted' | 'FreelanceProjectClosed' | 'FreelanceProjectCompleted' | 'FreelanceProjectCreated' | 'FreelanceProjectExpired' | 'FreelanceProjectLimitReached' | 'FreelanceProjectParticipantKicked' | 'GameTimeAdded' | 'GameTimeReceived' | 'GameTimeSent' | 'GiftReceived' | 'IHubDestroyedByBillFailure' | 'IncursionCompletedMsg' | 'IndustryOperationFinished' | 'IndustryTeamAuctionLost' | 'IndustryTeamAuctionWon' | 'InfrastructureHubBillAboutToExpire' | 'InsuranceExpirationMsg' | 'InsuranceFirstShipMsg' | 'InsuranceInvalidatedMsg' | 'InsuranceIssuedMsg' | 'InsurancePayoutMsg' | 'InvasionCompletedMsg' | 'InvasionSystemLogin' | 'InvasionSystemStart' | 'JumpCloneDeletedMsg1' | 'JumpCloneDeletedMsg2' | 'KillReportFinalBlow' | 'KillReportVictim' | 'KillRightAvailable' | 'KillRightAvailableOpen' | 'KillRightEarned' | 'KillRightUnavailable' | 'KillRightUnavailableOpen' | 'KillRightUsed' | 'LPAutoRedeemed' | 'LocateCharMsg' | 'MadeWarMutual' | 'MercOfferRetractedMsg' | 'MercOfferedNegotiationMsg' | 'MercenaryDenAttacked' | 'MercenaryDenNewMTO' | 'MercenaryDenReinforced' | 'MissionCanceledTriglavian' | 'MissionOfferExpirationMsg' | 'MissionTimeoutMsg' | 'MoonminingAutomaticFracture' | 'MoonminingExtractionCancelled' | 'MoonminingExtractionFinished' | 'MoonminingExtractionStarted' | 'MoonminingLaserFired' | 'MutualWarExpired' | 'MutualWarInviteAccepted' | 'MutualWarInviteRejected' | 'MutualWarInviteSent' | 'NPCStandingsGained' | 'NPCStandingsLost' | 'OfferToAllyRetracted' | 'OfferedSurrender' | 'OfferedToAlly' | 'OfficeLeaseCanceledInsufficientStandings' | 'OldLscMessages' | 'OperationFinished' | 'OrbitalAttacked' | 'OrbitalReinforced' | 'OwnershipTransferred' | 'RaffleCreated' | 'RaffleExpired' | 'RaffleFinished' | 'ReimbursementMsg' | 'ResearchMissionAvailableMsg' | 'RetractsWar' | 'SPAutoRedeemed' | 'SeasonalChallengeCompleted' | 'SkinSequencingCompleted' | 'SkyhookDeployed' | 'SkyhookDestroyed' | 'SkyhookLostShields' | 'SkyhookOnline' | 'SkyhookUnderAttack' | 'SovAllClaimAquiredMsg' | 'SovAllClaimLostMsg' | 'SovCommandNodeEventStarted' | 'SovCorpBillLateMsg' | 'SovCorpClaimFailMsg' | 'SovDisruptorMsg' | 'SovStationEnteredFreeport' | 'SovStructureDestroyed' | 'SovStructureReinforced' | 'SovStructureSelfDestructCancel' | 'SovStructureSelfDestructFinished' | 'SovStructureSelfDestructRequested' | 'SovereigntyIHDamageMsg' | 'SovereigntySBUDamageMsg' | 'SovereigntyTCUDamageMsg' | 'StationAggressionMsg1' | 'StationAggressionMsg2' | 'StationConquerMsg' | 'StationServiceDisabled' | 'StationServiceEnabled' | 'StationStateChangeMsg' | 'StoryLineMissionAvailableMsg' | 'StructureAnchoring' | 'StructureCourierContractChanged' | 'StructureDestroyed' | 'StructureFuelAlert' | 'StructureImpendingAbandonmentAssetsAtRisk' | 'StructureItemsDelivered' | 'StructureItemsMovedToSafety' | 'StructureLostArmor' | 'StructureLostShields' | 'StructureLowReagentsAlert' | 'StructureNoReagentsAlert' | 'StructureOnline' | 'StructurePaintPurchased' | 'StructureServicesOffline' | 'StructureUnanchoring' | 'StructureUnderAttack' | 'StructureWentHighPower' | 'StructureWentLowPower' | 'StructuresJobsCancelled' | 'StructuresJobsPaused' | 'StructuresReinforcementChanged' | 'TowerAlertMsg' | 'TowerResourceAlertMsg' | 'TransactionReversalMsg' | 'TutorialMsg' | 'WarAdopted ' | 'WarAllyInherited' | 'WarAllyOfferDeclinedMsg' | 'WarConcordInvalidates' | 'WarDeclared' | 'WarEndedHqSecurityDrop' | 'WarHQRemovedFromSpace' | 'WarInherited' | 'WarInvalid' | 'WarRetracted' | 'WarRetractedByConcord' | 'WarSurrenderDeclinedMsg' | 'WarSurrenderOfferMsg';
-}
-
-// @public (undocumented)
-interface CharactersCharacterIdOnlineGet {
-    // (undocumented)
-    last_login?: string;
-    // (undocumented)
-    last_logout?: string;
-    // (undocumented)
-    logins?: number;
-    // (undocumented)
-    online: boolean;
 }
 
 // @public (undocumented)
@@ -1529,16 +1513,6 @@ interface CharactersCharacterIdSearchGet {
     station?: number[];
     // (undocumented)
     structure?: number[];
-}
-
-// @public (undocumented)
-interface CharactersCharacterIdShipGet {
-    // (undocumented)
-    ship_item_id: number;
-    // (undocumented)
-    ship_name: string;
-    // (undocumented)
-    ship_type_id: number;
 }
 
 // @public (undocumented)
@@ -1743,6 +1717,38 @@ const CharacterSkinrSchema: z.ZodObject<{
         unactivated: z.ZodNumber;
     }, z.core.$loose>>;
 }, z.core.$loose>;
+
+// @public (undocumented)
+interface CharactersLocation {
+    // (undocumented)
+    solar_system_id: number;
+    // (undocumented)
+    station_id?: number;
+    // (undocumented)
+    structure_id?: number;
+}
+
+// @public (undocumented)
+interface CharactersOnline {
+    // (undocumented)
+    last_login?: string;
+    // (undocumented)
+    last_logout?: string;
+    // (undocumented)
+    logins?: number;
+    // (undocumented)
+    online: boolean;
+}
+
+// @public (undocumented)
+interface CharactersShip {
+    // (undocumented)
+    ship_item_id: number;
+    // (undocumented)
+    ship_name: string;
+    // (undocumented)
+    ship_type_id: number;
+}
 
 // @public (undocumented)
 interface CharactersSkillqueueSkill {
@@ -3555,6 +3561,9 @@ export interface CreateClientOptions {
 }
 
 // @public (undocumented)
+export function createNoopLogger(): ILogger;
+
+// @public (undocumented)
 export interface CursorOptions {
     // (undocumented)
     after?: string;
@@ -4188,7 +4197,7 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetCharactersCharacterIdKillmailsRecent': CharactersCharacterIdKillmailsRecentGet[];
     // (undocumented)
-    'GetCharactersCharacterIdLocation': CharactersCharacterIdLocationGet;
+    'GetCharactersCharacterIdLocation': CharactersLocation;
     // (undocumented)
     'GetCharactersCharacterIdLoyaltyPoints': CharactersCharacterIdLoyaltyPointsGet[];
     // (undocumented)
@@ -4208,7 +4217,7 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetCharactersCharacterIdNotificationsContacts': CharactersCharacterIdNotificationsContactsGet[];
     // (undocumented)
-    'GetCharactersCharacterIdOnline': CharactersCharacterIdOnlineGet;
+    'GetCharactersCharacterIdOnline': CharactersOnline;
     // (undocumented)
     'GetCharactersCharacterIdOrders': CharactersCharacterIdOrdersGet[];
     // (undocumented)
@@ -4224,7 +4233,7 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetCharactersCharacterIdSearch': CharactersCharacterIdSearchGet;
     // (undocumented)
-    'GetCharactersCharacterIdShip': CharactersCharacterIdShipGet;
+    'GetCharactersCharacterIdShip': CharactersShip;
     // (undocumented)
     'GetCharactersCharacterIdSkillqueue': CharactersSkillqueueSkill[];
     // (undocumented)
@@ -4641,9 +4650,9 @@ declare namespace EsiSpec {
         CharactersCharacterIdKillmailsRecentGet,
         CorporationsCorporationIdKillmailsRecentGet,
         KillmailsKillmailIdKillmailHashGet,
-        CharactersCharacterIdLocationGet,
-        CharactersCharacterIdOnlineGet,
-        CharactersCharacterIdShipGet,
+        CharactersLocation,
+        CharactersOnline,
+        CharactersShip,
         CharactersCharacterIdLoyaltyPointsGet,
         LoyaltyStoresCorporationIdOffersGet,
         CharactersCharacterIdMailGet,
@@ -4910,6 +4919,9 @@ export function fetchAllCursorPages<TResponse, TItem = unknown>(fetcher: (before
     before?: string | null;
     after?: string | null;
 }): Promise<TItem[]>;
+
+// @public (undocumented)
+export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 // Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
 //

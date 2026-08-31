@@ -531,13 +531,13 @@ type _KillmailSummary = AssertTrue<
 
 // Location
 type _CharacterLocation = AssertTrue<
-  HasAllSpecKeys<EsiSpec.CharactersCharacterIdLocationGet, CharacterLocation>
+  HasAllSpecKeys<EsiSpec.CharactersLocation, CharacterLocation>
 >;
 type _CharacterOnline = AssertTrue<
-  HasAllSpecKeys<EsiSpec.CharactersCharacterIdOnlineGet, CharacterOnline>
+  HasAllSpecKeys<EsiSpec.CharactersOnline, CharacterOnline>
 >;
 type _CharacterShip = AssertTrue<
-  HasAllSpecKeys<EsiSpec.CharactersCharacterIdShipGet, CharacterShip>
+  HasAllSpecKeys<EsiSpec.CharactersShip, CharacterShip>
 >;
 
 // Loyalty

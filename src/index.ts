@@ -11,7 +11,7 @@ export {
 export { ApiClientType } from './core/ClientRegistry';
 
 // Core (for direct instantiation)
-export { ApiClient, TokenProvider } from './core/ApiClient';
+export { ApiClient, TokenProvider, FetchLike } from './core/ApiClient';
 export { ApiClientBuilder } from './core/ApiClientBuilder';
 export {
   configureApiClient,
@@ -170,6 +170,7 @@ export {
 } from './core/endpoints/esi-scopes.generated';
 export { ILogger } from './core/logger/ILogger';
 export { setLogger } from './core/logger/loggerUtil';
+export { createNoopLogger } from './core/logger/NoopLogger';
 
 // Types
 export * from './types/api-responses';
