@@ -30,6 +30,11 @@ export const EsiResponseMetaSchema = z.looseObject({
   contentLanguage: z.string().optional(),
   rateLimit: RateLimitMetaSchema.optional(),
   responseTimeMs: z.number().optional(),
+  etag: z.string().optional(),
+  pages: z.number().optional(),
+  expires: z.string().optional(),
+  errorLimitRemain: z.number().optional(),
+  errorLimitReset: z.number().optional(),
 });
 
 export function esiResponse<T extends z.ZodTypeAny>(dataSchema: T) {

@@ -4590,6 +4590,11 @@ function esiResponse<T extends z.ZodTypeAny>(dataSchema: T): z.ZodObject<{
             group: z.ZodNullable<z.ZodString>;
         }, z.core.$strip>>;
         responseTimeMs: z.ZodOptional<z.ZodNumber>;
+        etag: z.ZodOptional<z.ZodString>;
+        pages: z.ZodOptional<z.ZodNumber>;
+        expires: z.ZodOptional<z.ZodString>;
+        errorLimitRemain: z.ZodOptional<z.ZodNumber>;
+        errorLimitReset: z.ZodOptional<z.ZodNumber>;
     }, z.core.$loose>;
 }, z.core.$strip>;
 
@@ -4620,6 +4625,11 @@ const EsiResponseMetaSchema: z.ZodObject<{
         group: z.ZodNullable<z.ZodString>;
     }, z.core.$strip>>;
     responseTimeMs: z.ZodOptional<z.ZodNumber>;
+    etag: z.ZodOptional<z.ZodString>;
+    pages: z.ZodOptional<z.ZodNumber>;
+    expires: z.ZodOptional<z.ZodString>;
+    errorLimitRemain: z.ZodOptional<z.ZodNumber>;
+    errorLimitReset: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
 // @public (undocumented)
