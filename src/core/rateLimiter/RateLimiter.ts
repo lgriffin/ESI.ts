@@ -27,10 +27,16 @@ function getTokenCost(statusCode: number): number {
   return 2;
 }
 
+export interface RateLimitEndpointOverride {
+  maxTokens: number;
+  windowSizeMs: number;
+}
+
 export interface RateLimiterConfig {
   minDelayMs?: number;
   decelerationThreshold?: number;
   userKeyExtractor?: (headers: Record<string, string>) => string;
+  endpointOverrides?: Record<string, RateLimitEndpointOverride>;
 }
 
 interface GroupBucket {
@@ -63,6 +69,7 @@ export class RateLimiter implements IRateLimiter {
   private readonly userKeyExtractor?: (
     headers: Record<string, string>,
   ) => string;
+  private readonly endpointOverrides: Record<string, RateLimitEndpointOverride>;
 
   private lastRequestTime: number = 0;
   private minDelayChain: Promise<void> = Promise.resolve();
@@ -81,6 +88,7 @@ export class RateLimiter implements IRateLimiter {
     this.minDelayMs = config?.minDelayMs ?? 50;
     this.decelerationThreshold = config?.decelerationThreshold ?? 0.2;
     this.userKeyExtractor = config?.userKeyExtractor;
+    this.endpointOverrides = config?.endpointOverrides ?? {};
     if (this.userKeyExtractor) {
       this.userBuckets = new Map();
     }
@@ -132,6 +140,16 @@ export class RateLimiter implements IRateLimiter {
       .replace(/\/$/, '')
       .replace(/\{(\w+)\}/g, (_, name: string) => `{${camelToSnake(name)}}`);
     const key = `${method}:${normalized}`;
+
+    const override = this.endpointOverrides[key];
+    if (override) {
+      return {
+        group: `endpoint:${key}`,
+        maxTokens: override.maxTokens,
+        windowSizeMs: override.windowSizeMs,
+      };
+    }
+
     return esiRateLimitGroups[key];
   }
 
