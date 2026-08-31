@@ -63,6 +63,28 @@ export class PiClient extends BaseEsiClient<typeof piEndpoints> {
     return this.api.getSchematicInformation(schematicId);
   }
 
+  fetchAllColonies(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<PlanetaryColony[]> {
+    return this.fetchAllEndpoint<PlanetaryColony>(
+      'getColonies',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationCustomsOffices(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CustomsOffice[]> {
+    return this.fetchAllEndpoint<CustomsOffice>(
+      'getCorporationCustomsOffices',
+      [corporationId],
+      concurrency,
+    );
+  }
+
   streamColonies(
     characterId: number,
   ): AsyncGenerator<PageResult<PlanetaryColony>, void, undefined> {

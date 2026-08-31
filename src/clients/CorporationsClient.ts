@@ -293,6 +293,186 @@ export class CorporationsClient extends BaseEsiClient<
     return this.api.getNpcCorporations();
   }
 
+  fetchAllCorporationAllianceHistory(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationAllianceHistory[]> {
+    return this.fetchAllEndpoint<CorporationAllianceHistory>(
+      'getCorporationAllianceHistory',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationBlueprints(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<Blueprint[]> {
+    return this.fetchAllEndpoint<Blueprint>(
+      'getCorporationBlueprints',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationAlscLogs(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<ContainerLog[]> {
+    return this.fetchAllEndpoint<ContainerLog>(
+      'getCorporationAlscLogs',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationFacilities(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationFacility[]> {
+    return this.fetchAllEndpoint<CorporationFacility>(
+      'getCorporationFacilities',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMedals(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMedal[]> {
+    return this.fetchAllEndpoint<CorporationMedal>(
+      'getCorporationMedals',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationIssuedMedals(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationIssuedMedal[]> {
+    return this.fetchAllEndpoint<CorporationIssuedMedal>(
+      'getCorporationIssuedMedals',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMembers(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<number[]> {
+    return this.fetchAllEndpoint<number>(
+      'getCorporationMembers',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMemberTitles(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMemberTitle[]> {
+    return this.fetchAllEndpoint<CorporationMemberTitle>(
+      'getCorporationMembersTitles',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMemberTracking(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMemberTracking[]> {
+    return this.fetchAllEndpoint<CorporationMemberTracking>(
+      'getCorporationMemberTracking',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationRoles(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMemberRole[]> {
+    return this.fetchAllEndpoint<CorporationMemberRole>(
+      'getCorporationMemberRoles',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationRolesHistory(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationRoleHistory[]> {
+    return this.fetchAllEndpoint<CorporationRoleHistory>(
+      'getCorporationMemberRolesHistory',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationShareholders(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationShareholder[]> {
+    return this.fetchAllEndpoint<CorporationShareholder>(
+      'getCorporationShareholders',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationStandings(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<Standing[]> {
+    return this.fetchAllEndpoint<Standing>(
+      'getCorporationStandings',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationStarbases(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationStarbase[]> {
+    return this.fetchAllEndpoint<CorporationStarbase>(
+      'getCorporationStarbases',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationStructures(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationStructure[]> {
+    return this.fetchAllEndpoint<CorporationStructure>(
+      'getCorporationStructures',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationTitles(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationTitle[]> {
+    return this.fetchAllEndpoint<CorporationTitle>(
+      'getCorporationTitles',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllNpcCorporations(concurrency?: number): Promise<number[]> {
+    return this.fetchAllEndpoint<number>('getNpcCorporations', [], concurrency);
+  }
+
   streamCorporationAllianceHistory(
     corporationId: number,
   ): AsyncGenerator<PageResult<CorporationAllianceHistory>, void, undefined> {

@@ -50,6 +50,28 @@ class TestClient extends BaseEsiClient<typeof testEndpoints> {
   ): AsyncGenerator<PageResult<{ id: number }>, void, undefined> {
     return this.streamEndpoint<{ id: number }>('getSecureItems', characterId);
   }
+
+  fetchAllItems(
+    regionId: number,
+    concurrency?: number,
+  ): Promise<{ id: number }[]> {
+    return this.fetchAllEndpoint<{ id: number }>(
+      'getItems',
+      [regionId],
+      concurrency,
+    );
+  }
+
+  fetchAllSecureItems(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<{ id: number }[]> {
+    return this.fetchAllEndpoint<{ id: number }>(
+      'getSecureItems',
+      [characterId],
+      concurrency,
+    );
+  }
 }
 
 describe('streamEndpoint', () => {
@@ -280,5 +302,77 @@ describe('streamEndpoint', () => {
       false,
       'test/{regionId}/items/',
     );
+  });
+});
+
+describe('fetchAllEndpoint', () => {
+  let apiClient: ApiClient;
+  let testClient: TestClient;
+
+  beforeEach(() => {
+    mockHandleRequest.mockReset();
+    apiClient = new ApiClient('test', 'https://esi.evetech.net');
+    const rateLimiter = new RateLimiter();
+    rateLimiter.setTestMode(true);
+    apiClient.setRateLimiter(rateLimiter);
+    testClient = new TestClient(apiClient);
+  });
+
+  it('should return all items from a single page', async () => {
+    mockHandleRequest.mockResolvedValueOnce({
+      headers: { 'x-pages': '1' },
+      body: [{ id: 1 }, { id: 2 }],
+    });
+
+    const result = await testClient.fetchAllItems(100);
+    expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+    expect(mockHandleRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it('should merge all pages into a flat array', async () => {
+    mockHandleRequest
+      .mockResolvedValueOnce({
+        headers: { 'x-pages': '3' },
+        body: [{ id: 1 }],
+      })
+      .mockResolvedValueOnce({
+        headers: { 'x-pages': '3' },
+        body: [{ id: 2 }],
+      })
+      .mockResolvedValueOnce({
+        headers: { 'x-pages': '3' },
+        body: [{ id: 3 }],
+      });
+
+    const result = await testClient.fetchAllItems(100);
+    expect(result).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
+  });
+
+  it('should pass requiresAuth through for auth endpoints', async () => {
+    mockHandleRequest.mockResolvedValueOnce({
+      headers: { 'x-pages': '1' },
+      body: [{ id: 1 }],
+    });
+
+    await testClient.fetchAllSecureItems(999);
+
+    expect(mockHandleRequest).toHaveBeenCalledWith(
+      apiClient,
+      'secure/999/items/',
+      'GET',
+      undefined,
+      true,
+      'secure/{characterId}/items/',
+    );
+  });
+
+  it('should propagate errors', async () => {
+    mockHandleRequest.mockRejectedValueOnce(
+      Object.assign(new Error('Not Found'), { statusCode: 404 }),
+    );
+
+    await expect(testClient.fetchAllItems(100)).rejects.toMatchObject({
+      statusCode: 404,
+    });
   });
 });

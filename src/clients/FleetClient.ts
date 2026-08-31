@@ -206,6 +206,28 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     }>;
   }
 
+  fetchAllFleetMembers(
+    fleetId: number,
+    concurrency?: number,
+  ): Promise<FleetMember[]> {
+    return this.fetchAllEndpoint<FleetMember>(
+      'getFleetMembers',
+      [fleetId],
+      concurrency,
+    );
+  }
+
+  fetchAllFleetWings(
+    fleetId: number,
+    concurrency?: number,
+  ): Promise<FleetWing[]> {
+    return this.fetchAllEndpoint<FleetWing>(
+      'getFleetWings',
+      [fleetId],
+      concurrency,
+    );
+  }
+
   streamFleetMembers(
     fleetId: number,
   ): AsyncGenerator<PageResult<FleetMember>, void, undefined> {

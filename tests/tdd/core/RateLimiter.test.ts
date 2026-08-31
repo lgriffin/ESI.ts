@@ -895,4 +895,89 @@ describe('RateLimiter', () => {
       expect(specStatus).toBeUndefined();
     });
   });
+
+  describe('endpoint overrides', () => {
+    it('should use endpoint override instead of generated group spec', async () => {
+      const overrideLimiter = new RateLimiter({
+        endpointOverrides: {
+          'GET:markets/{region_id}/history': {
+            maxTokens: 5,
+            windowSizeMs: 1000,
+          },
+        },
+      });
+
+      await overrideLimiter.checkRateLimit(
+        'markets/{region_id}/history',
+        'GET',
+      );
+
+      const status = overrideLimiter.getGroupStatus(
+        'endpoint:GET:markets/{region_id}/history',
+      );
+      expect(status).toBeDefined();
+      expect(status!.limit).toBe(5);
+      expect(status!.windowSizeMs).toBe(1000);
+      overrideLimiter.setTestMode(true);
+    });
+
+    it('should not affect endpoints without overrides', async () => {
+      const overrideLimiter = new RateLimiter({
+        endpointOverrides: {
+          'GET:markets/{region_id}/history': {
+            maxTokens: 5,
+            windowSizeMs: 1000,
+          },
+        },
+      });
+
+      await overrideLimiter.checkRateLimit(
+        'characters/{character_id}/assets',
+        'GET',
+      );
+
+      const overrideStatus = overrideLimiter.getGroupStatus(
+        'endpoint:GET:characters/{character_id}/assets',
+      );
+      expect(overrideStatus).toBeUndefined();
+
+      const groupStatus = overrideLimiter.getGroupStatus('char-asset');
+      expect(groupStatus).toBeDefined();
+      overrideLimiter.setTestMode(true);
+    });
+
+    it('should create separate buckets for overridden endpoints', async () => {
+      const overrideLimiter = new RateLimiter({
+        endpointOverrides: {
+          'GET:markets/{region_id}/history': {
+            maxTokens: 5,
+            windowSizeMs: 1000,
+          },
+          'GET:markets/{region_id}/orders': {
+            maxTokens: 100,
+            windowSizeMs: 900000,
+          },
+        },
+      });
+
+      await overrideLimiter.checkRateLimit(
+        'markets/{region_id}/history',
+        'GET',
+      );
+      await overrideLimiter.checkRateLimit('markets/{region_id}/orders', 'GET');
+
+      const historyStatus = overrideLimiter.getGroupStatus(
+        'endpoint:GET:markets/{region_id}/history',
+      );
+      const ordersStatus = overrideLimiter.getGroupStatus(
+        'endpoint:GET:markets/{region_id}/orders',
+      );
+
+      expect(historyStatus).toBeDefined();
+      expect(ordersStatus).toBeDefined();
+      expect(historyStatus!.limit).toBe(5);
+      expect(ordersStatus!.limit).toBe(100);
+      overrideLimiter.setTestMode(true);
+    });
+  });
 });

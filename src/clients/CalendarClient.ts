@@ -74,6 +74,29 @@ export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
     return this.api.getEventAttendees(characterId, eventId);
   }
 
+  fetchAllCalendarEvents(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<CalendarEvent[]> {
+    return this.fetchAllEndpoint<CalendarEvent>(
+      'getCalendarEvents',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllEventAttendees(
+    characterId: number,
+    eventId: number,
+    concurrency?: number,
+  ): Promise<CalendarEventAttendee[]> {
+    return this.fetchAllEndpoint<CalendarEventAttendee>(
+      'getEventAttendees',
+      [characterId, eventId],
+      concurrency,
+    );
+  }
+
   streamCalendarEvents(
     characterId: number,
   ): AsyncGenerator<PageResult<CalendarEvent>, void, undefined> {

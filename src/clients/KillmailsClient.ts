@@ -17,9 +17,7 @@ export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
    * @requires Authentication
    */
   getCharacterRecentKillmails(characterId: number): Promise<KillmailSummary[]> {
-    return this.api.getCharacterRecentKillmails(characterId) as Promise<
-      KillmailSummary[]
-    >;
+    return this.api.getCharacterRecentKillmails(characterId);
   }
 
   /**
@@ -32,9 +30,7 @@ export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
   getCorporationRecentKillmails(
     corporationId: number,
   ): Promise<KillmailSummary[]> {
-    return this.api.getCorporationRecentKillmails(corporationId) as Promise<
-      KillmailSummary[]
-    >;
+    return this.api.getCorporationRecentKillmails(corporationId);
   }
 
   /**
@@ -45,7 +41,29 @@ export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
    * @returns The full killmail details including victim, attackers, and items
    */
   getKillmail(killmailId: number, killmailHash: string): Promise<Killmail> {
-    return this.api.getKillmail(killmailId, killmailHash) as Promise<Killmail>;
+    return this.api.getKillmail(killmailId, killmailHash);
+  }
+
+  fetchAllCharacterRecentKillmails(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<KillmailSummary[]> {
+    return this.fetchAllEndpoint<KillmailSummary>(
+      'getCharacterRecentKillmails',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationRecentKillmails(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<KillmailSummary[]> {
+    return this.fetchAllEndpoint<KillmailSummary>(
+      'getCorporationRecentKillmails',
+      [corporationId],
+      concurrency,
+    );
   }
 
   streamCharacterRecentKillmails(

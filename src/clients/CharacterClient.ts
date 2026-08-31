@@ -191,6 +191,94 @@ export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
     >;
   }
 
+  fetchAllCharacterAgentsResearch(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<AgentResearch[]> {
+    return this.fetchAllEndpoint<AgentResearch>(
+      'getAgentsResearch',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterBlueprints(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Blueprint[]> {
+    return this.fetchAllEndpoint<Blueprint>(
+      'getBlueprints',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterCorporationHistory(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<CorporationHistory[]> {
+    return this.fetchAllEndpoint<CorporationHistory>(
+      'getCorporationHistory',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterMedals(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Medal[]> {
+    return this.fetchAllEndpoint<Medal>(
+      'getMedals',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterNotifications(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Notification[]> {
+    return this.fetchAllEndpoint<Notification>(
+      'getNotifications',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterNotificationsContacts(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Notification[]> {
+    return this.fetchAllEndpoint<Notification>(
+      'getContactNotifications',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterStandings(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Standing[]> {
+    return this.fetchAllEndpoint<Standing>(
+      'getStandings',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterTitles(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<CharacterTitle[]> {
+    return this.fetchAllEndpoint<CharacterTitle>(
+      'getTitles',
+      [characterId],
+      concurrency,
+    );
+  }
+
   streamCharacterAgentsResearch(
     characterId: number,
   ): AsyncGenerator<PageResult<AgentResearch>, void, undefined> {

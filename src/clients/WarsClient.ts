@@ -38,6 +38,21 @@ export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
     return this.api.getWarKillmails(warId);
   }
 
+  fetchAllWars(concurrency?: number): Promise<number[]> {
+    return this.fetchAllEndpoint<number>('getWars', [], concurrency);
+  }
+
+  fetchAllWarKillmails(
+    warId: number,
+    concurrency?: number,
+  ): Promise<KillmailSummary[]> {
+    return this.fetchAllEndpoint<KillmailSummary>(
+      'getWarKillmails',
+      [warId],
+      concurrency,
+    );
+  }
+
   streamWars(): AsyncGenerator<PageResult<number>, void, undefined> {
     return this.streamEndpoint<number>('getWars');
   }

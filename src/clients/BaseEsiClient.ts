@@ -8,6 +8,7 @@ import {
 import { EndpointMap } from '../core/endpoints/EndpointDefinition';
 import { buildEndpointPath } from '../core/endpoints/buildEndpointPath';
 import {
+  fetchAllPages,
   fetchPages,
   PageResult,
 } from '../core/pagination/AsyncPaginationIterator';
@@ -45,6 +46,29 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
       body,
       def.path,
       def.responseSchema,
+    );
+  }
+
+  public fetchAllEndpoint<R>(
+    endpointName: string & keyof T,
+    args: unknown[],
+    concurrency?: number,
+  ): Promise<R[]> {
+    const def = this._endpoints[endpointName]!;
+    const { path, body } = buildEndpointPath(
+      def,
+      args,
+      this._client.getDatasource(),
+    );
+    return fetchAllPages<R>(
+      this._client,
+      path,
+      def.method,
+      def.requiresAuth,
+      body,
+      def.path,
+      def.responseSchema,
+      concurrency,
     );
   }
 

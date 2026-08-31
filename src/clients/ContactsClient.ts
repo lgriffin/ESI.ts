@@ -131,6 +131,72 @@ export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
     return this.api.getCorporationContactLabels(corporationId);
   }
 
+  fetchAllAllianceContacts(
+    allianceId: number,
+    concurrency?: number,
+  ): Promise<Contact[]> {
+    return this.fetchAllEndpoint<Contact>(
+      'getAllianceContacts',
+      [allianceId],
+      concurrency,
+    );
+  }
+
+  fetchAllAllianceContactLabels(
+    allianceId: number,
+    concurrency?: number,
+  ): Promise<ContactLabel[]> {
+    return this.fetchAllEndpoint<ContactLabel>(
+      'getAllianceContactLabels',
+      [allianceId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterContacts(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Contact[]> {
+    return this.fetchAllEndpoint<Contact>(
+      'getCharacterContacts',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterContactLabels(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<ContactLabel[]> {
+    return this.fetchAllEndpoint<ContactLabel>(
+      'getCharacterContactLabels',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationContacts(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<Contact[]> {
+    return this.fetchAllEndpoint<Contact>(
+      'getCorporationContacts',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationContactLabels(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<ContactLabel[]> {
+    return this.fetchAllEndpoint<ContactLabel>(
+      'getCorporationContactLabels',
+      [corporationId],
+      concurrency,
+    );
+  }
+
   streamAllianceContacts(
     allianceId: number,
   ): AsyncGenerator<PageResult<Contact>, void, undefined> {

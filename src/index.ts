@@ -117,6 +117,7 @@ export type { ICircuitBreaker } from './core/circuitBreaker/ICircuitBreaker';
 // Rate limiter & cache (for direct instantiation)
 export {
   RateLimiter,
+  RateLimitEndpointOverride,
   RateLimitInfo,
   RateLimiterConfig,
 } from './core/rateLimiter/RateLimiter';
@@ -152,6 +153,7 @@ export {
 
 // Async pagination
 export {
+  fetchAllPages,
   fetchPages,
   PageResult,
 } from './core/pagination/AsyncPaginationIterator';

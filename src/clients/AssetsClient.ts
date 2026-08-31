@@ -21,9 +21,7 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
    * @requires Authentication
    */
   getCharacterAssets(characterId: number): Promise<CharacterAsset[]> {
-    return this.api.getCharacterAssets(characterId) as Promise<
-      CharacterAsset[]
-    >;
+    return this.api.getCharacterAssets(characterId);
   }
 
   /**
@@ -38,10 +36,7 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
     characterId: number,
     itemIds: number[],
   ): Promise<AssetLocation[]> {
-    return this.api.postCharacterAssetLocations(
-      characterId,
-      itemIds,
-    ) as Promise<AssetLocation[]>;
+    return this.api.postCharacterAssetLocations(characterId, itemIds);
   }
 
   /**
@@ -56,9 +51,7 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
     characterId: number,
     itemIds: number[],
   ): Promise<AssetName[]> {
-    return this.api.postCharacterAssetNames(characterId, itemIds) as Promise<
-      AssetName[]
-    >;
+    return this.api.postCharacterAssetNames(characterId, itemIds);
   }
 
   /**
@@ -69,9 +62,7 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
    * @requires Authentication
    */
   getCorporationAssets(corporationId: number): Promise<CharacterAsset[]> {
-    return this.api.getCorporationAssets(corporationId) as Promise<
-      CharacterAsset[]
-    >;
+    return this.api.getCorporationAssets(corporationId);
   }
 
   /**
@@ -108,6 +99,28 @@ export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
       corporationId,
       itemIds,
     ) as Promise<AssetName[]>;
+  }
+
+  fetchAllCharacterAssets(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<CharacterAsset[]> {
+    return this.fetchAllEndpoint<CharacterAsset>(
+      'getCharacterAssets',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationAssets(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CharacterAsset[]> {
+    return this.fetchAllEndpoint<CharacterAsset>(
+      'getCorporationAssets',
+      [corporationId],
+      concurrency,
+    );
   }
 
   streamCharacterAssets(
