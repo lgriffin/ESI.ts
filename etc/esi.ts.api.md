@@ -209,6 +209,8 @@ export class ApiClient {
     // (undocumented)
     getDeduplicator(): IDeduplicator | null;
     // (undocumented)
+    getFetch(): FetchLike;
+    // (undocumented)
     getLanguage(): string | undefined;
     // (undocumented)
     getLink(): string;
@@ -245,6 +247,8 @@ export class ApiClient {
     // (undocumented)
     setDeduplicator(dedup: IDeduplicator | null): void;
     // (undocumented)
+    setFetch(fn: FetchLike): void;
+    // (undocumented)
     setLanguage(language: string | undefined): void;
     // (undocumented)
     setRateLimiter(limiter: IRateLimiter | null): void;
@@ -276,6 +280,8 @@ export class ApiClientBuilder {
     setCircuitBreaker(cb: CircuitBreaker): ApiClientBuilder;
     // (undocumented)
     setClientId(clientId: string): ApiClientBuilder;
+    // (undocumented)
+    setFetch(fn: FetchLike): ApiClientBuilder;
     // (undocumented)
     setLink(link: string): ApiClientBuilder;
     // (undocumented)
@@ -3555,6 +3561,9 @@ export interface CreateClientOptions {
 }
 
 // @public (undocumented)
+export function createNoopLogger(): ILogger;
+
+// @public (undocumented)
 export interface CursorOptions {
     // (undocumented)
     after?: string;
@@ -4910,6 +4919,9 @@ export function fetchAllCursorPages<TResponse, TItem = unknown>(fetcher: (before
     before?: string | null;
     after?: string | null;
 }): Promise<TItem[]>;
+
+// @public (undocumented)
+export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 // Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
 //

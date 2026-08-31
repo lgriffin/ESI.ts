@@ -88,7 +88,7 @@ export async function executeSingleFetch(
 
     let response: Response;
     try {
-      response = await fetch(url, options);
+      response = await client.getFetch()(url, options);
     } catch (err) {
       clearTimeout(timer);
       if (cb) {
