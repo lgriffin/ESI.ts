@@ -50,17 +50,36 @@ const fs = require('fs');
     delete spec.components.parameters.AcceptLanguage.schema?.enum;
   }
 
-  // Remove int32 format from all inline page query parameters so fuzzed
-  // values beyond 2^31-1 don't trigger Prism 422 rejections
+  // Constrain all integer parameters to safe JS integer range.
+  // Schemathesis generates int64-range values (e.g. -9223372036854775808)
+  // which Prism rejects as out of range, causing spurious validation failures.
+  function clampIntegerSchema(schema) {
+    if (!schema || schema.type !== 'integer') return;
+    delete schema.format;
+    if (schema.minimum === undefined || schema.minimum < 1) schema.minimum = 1;
+    if (schema.maximum === undefined || schema.maximum > 2147483647) schema.maximum = 2147483647;
+  }
+
   for (const methods of Object.values(spec.paths || {})) {
     for (const m of ['get', 'post', 'put', 'delete', 'patch']) {
-      for (const param of methods[m]?.parameters || []) {
-        if (param.in === 'query' && param.name === 'page' && param.schema) {
-          delete param.schema.format;
-          delete param.schema.maximum;
+      if (!methods[m]) continue;
+      for (const param of methods[m].parameters || []) {
+        if (param.schema) clampIntegerSchema(param.schema);
+      }
+      // Clamp integers in request body schemas (one level deep)
+      const body = methods[m].requestBody?.content?.['application/json']?.schema;
+      if (body?.properties) {
+        for (const prop of Object.values(body.properties)) {
+          clampIntegerSchema(prop);
+          if (prop.items) clampIntegerSchema(prop.items);
         }
       }
     }
+  }
+
+  // Also clamp shared parameter definitions
+  for (const param of Object.values(spec.components?.parameters || {})) {
+    if (param.schema) clampIntegerSchema(param.schema);
   }
 
   fs.writeFileSync(process.env.MODIFIED_SPEC, JSON.stringify(spec, null, 2));
@@ -97,7 +116,8 @@ docker run --rm --network host \
   --exclude-checks negative_data_rejection,positive_data_acceptance,use_after_free,unsupported_method,response_schema_conformance,status_code_conformance \
   --max-examples 10 \
   --url http://localhost:4010 \
-  --workers auto \
+  --workers 4 \
+  --request-timeout 10000 \
   --request-retries 1 \
   --header "X-Compatibility-Date: 2025-12-16" \
   --report junit \
