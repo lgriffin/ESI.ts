@@ -3,7 +3,7 @@ import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 
-const feature = loadFeature('tests/bdd/features/core/mercenary.feature');
+const feature = loadFeature('tests/bdd/features/core/0024-mercenary.feature');
 
 const TEST_CHARACTER_ID = 123456;
 

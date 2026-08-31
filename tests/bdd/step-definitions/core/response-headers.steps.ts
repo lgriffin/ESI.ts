@@ -7,7 +7,9 @@ import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const feature = loadFeature('tests/bdd/features/core/response-headers.feature');
+const feature = loadFeature(
+  'tests/bdd/features/core/0052-response-headers.feature',
+);
 
 const STATUS_BODY = JSON.stringify({
   players: 30000,

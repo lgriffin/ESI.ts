@@ -11,7 +11,7 @@ import type {
 } from '../../../../src/sde/types';
 
 const feature = loadFeature(
-  'tests/bdd/features/sde/sde-character-lore.feature',
+  'tests/bdd/features/sde/0005-sde-character-lore.feature',
 );
 
 defineFeature(feature, (test) => {

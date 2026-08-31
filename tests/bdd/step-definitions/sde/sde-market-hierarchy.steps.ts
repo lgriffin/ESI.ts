@@ -5,7 +5,7 @@ import type { IStaticDataProvider } from '../../../../src/sde/IStaticDataProvide
 import type { MarketGroup } from '../../../../src/sde/types';
 
 const feature = loadFeature(
-  'tests/bdd/features/sde/sde-market-hierarchy.feature',
+  'tests/bdd/features/sde/0003-sde-market-hierarchy.feature',
 );
 
 defineFeature(feature, (test) => {
