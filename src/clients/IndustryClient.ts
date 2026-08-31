@@ -109,6 +109,91 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     return this.api.getIndustrySystems();
   }
 
+  fetchAllCharacterIndustryJobs(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<IndustryJob[]> {
+    return this.fetchAllEndpoint<IndustryJob>(
+      'getCharacterIndustryJobs',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterMiningLedger(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<MiningLedgerEntry[]> {
+    return this.fetchAllEndpoint<MiningLedgerEntry>(
+      'getCharacterMiningLedger',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationIndustryJobs(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<IndustryJob[]> {
+    return this.fetchAllEndpoint<IndustryJob>(
+      'getCorporationIndustryJobs',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllMoonExtractionTimers(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<MoonExtractionTimer[]> {
+    return this.fetchAllEndpoint<MoonExtractionTimer>(
+      'getMoonExtractionTimers',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMiningObservers(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<MiningObserver[]> {
+    return this.fetchAllEndpoint<MiningObserver>(
+      'getCorporationMiningObservers',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMiningObserver(
+    corporationId: number,
+    observerId: number,
+    concurrency?: number,
+  ): Promise<MiningObserverEntry[]> {
+    return this.fetchAllEndpoint<MiningObserverEntry>(
+      'getCorporationMiningObserver',
+      [corporationId, observerId],
+      concurrency,
+    );
+  }
+
+  fetchAllIndustryFacilities(
+    concurrency?: number,
+  ): Promise<IndustryFacility[]> {
+    return this.fetchAllEndpoint<IndustryFacility>(
+      'getIndustryFacilities',
+      [],
+      concurrency,
+    );
+  }
+
+  fetchAllIndustrySystems(concurrency?: number): Promise<IndustrySystem[]> {
+    return this.fetchAllEndpoint<IndustrySystem>(
+      'getIndustrySystems',
+      [],
+      concurrency,
+    );
+  }
+
   streamCharacterIndustryJobs(
     characterId: number,
   ): AsyncGenerator<PageResult<IndustryJob>, void, undefined> {

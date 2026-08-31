@@ -52,6 +52,17 @@ export class CharacterSkillsClient extends BaseEsiClient<
     return this.api.getCharacterSkills(characterId);
   }
 
+  fetchAllCharacterSkillQueue(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<SkillQueue[]> {
+    return this.fetchAllEndpoint<SkillQueue>(
+      'getCharacterSkillQueue',
+      [characterId],
+      concurrency,
+    );
+  }
+
   streamCharacterSkillQueue(
     characterId: number,
   ): AsyncGenerator<PageResult<SkillQueue>, void, undefined> {

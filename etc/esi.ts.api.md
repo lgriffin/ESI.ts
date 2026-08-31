@@ -65,6 +65,10 @@ const AgentResearchSchema: z.ZodObject<{
 // @public (undocumented)
 export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllAlliances(concurrency?: number): Promise<number[]>;
+    // (undocumented)
+    fetchAllCorporations(allianceId: number, concurrency?: number): Promise<number[]>;
     getAllianceById(allianceId: number): Promise<AllianceInfo>;
     getAlliances(): Promise<number[]>;
     // @deprecated
@@ -320,6 +324,10 @@ const AssetNameSchema: z.ZodObject<{
 // @public (undocumented)
 export class AssetsClient extends BaseEsiClient<typeof assetEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCharacterAssets(characterId: number, concurrency?: number): Promise<CharacterAsset[]>;
+    // (undocumented)
+    fetchAllCorporationAssets(corporationId: number, concurrency?: number): Promise<CharacterAsset[]>;
     getCharacterAssets(characterId: number): Promise<CharacterAsset[]>;
     getCorporationAssets(corporationId: number): Promise<CharacterAsset[]>;
     postCharacterAssetLocations(characterId: number, itemIds: number[]): Promise<AssetLocation[]>;
@@ -359,6 +367,8 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     protected _client: ApiClient;
     // (undocumented)
     protected _endpoints: T;
+    // (undocumented)
+    fetchAllEndpoint<R>(endpointName: string & keyof T, args: unknown[], concurrency?: number): Promise<R[]>;
     // (undocumented)
     streamEndpoint<R>(endpointName: string & keyof T, ...args: unknown[]): AsyncGenerator<PageResult<R>, void, undefined>;
     // (undocumented)
@@ -501,6 +511,10 @@ export interface CacheStats {
 // @public (undocumented)
 export class CalendarClient extends BaseEsiClient<typeof calendarEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCalendarEvents(characterId: number, concurrency?: number): Promise<CalendarEvent[]>;
+    // (undocumented)
+    fetchAllEventAttendees(characterId: number, eventId: number, concurrency?: number): Promise<CalendarEventAttendee[]>;
     getCalendarEventById(characterId: number, eventId: number): Promise<CalendarEventDetail>;
     getCalendarEvents(characterId: number): Promise<CalendarEvent[]>;
     getEventAttendees(characterId: number, eventId: number): Promise<CalendarEventAttendee[]>;
@@ -595,6 +609,22 @@ const CharacterAttributesSchema: z.ZodObject<{
 // @public (undocumented)
 export class CharacterClient extends BaseEsiClient<typeof characterEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCharacterAgentsResearch(characterId: number, concurrency?: number): Promise<AgentResearch[]>;
+    // (undocumented)
+    fetchAllCharacterBlueprints(characterId: number, concurrency?: number): Promise<Blueprint[]>;
+    // (undocumented)
+    fetchAllCharacterCorporationHistory(characterId: number, concurrency?: number): Promise<CorporationHistory[]>;
+    // (undocumented)
+    fetchAllCharacterMedals(characterId: number, concurrency?: number): Promise<Medal[]>;
+    // (undocumented)
+    fetchAllCharacterNotifications(characterId: number, concurrency?: number): Promise<Notification_2[]>;
+    // (undocumented)
+    fetchAllCharacterNotificationsContacts(characterId: number, concurrency?: number): Promise<Notification_2[]>;
+    // (undocumented)
+    fetchAllCharacterStandings(characterId: number, concurrency?: number): Promise<Standing[]>;
+    // (undocumented)
+    fetchAllCharacterTitles(characterId: number, concurrency?: number): Promise<CharacterTitle[]>;
     getCharacterAgentsResearch(characterId: number): Promise<AgentResearch[]>;
     getCharacterBlueprints(characterId: number): Promise<Blueprint[]>;
     getCharacterCorporationHistory(characterId: number): Promise<CorporationHistory[]>;
@@ -1668,6 +1698,8 @@ const CharacterSkillSchema: z.ZodObject<{
 // @public (undocumented)
 export class CharacterSkillsClient extends BaseEsiClient<typeof skillEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCharacterSkillQueue(characterId: number, concurrency?: number): Promise<SkillQueue[]>;
     getCharacterAttributes(characterId: number): Promise<CharacterAttributes>;
     getCharacterSkillQueue(characterId: number): Promise<SkillQueue[]>;
     getCharacterSkills(characterId: number): Promise<{
@@ -1892,6 +1924,8 @@ const CloneInfoSchema: z.ZodObject<{
 // @public (undocumented)
 export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllImplants(characterId: number, concurrency?: number): Promise<number[]>;
     getClones(characterId: number): Promise<CloneInfo>;
     getImplants(characterId: number): Promise<number[]>;
     // (undocumented)
@@ -2008,6 +2042,18 @@ const ContactSchema: z.ZodObject<{
 export class ContactsClient extends BaseEsiClient<typeof contactEndpoints> {
     constructor(client: ApiClient);
     deleteCharacterContacts(characterId: number, contactIds: number[]): Promise<void>;
+    // (undocumented)
+    fetchAllAllianceContactLabels(allianceId: number, concurrency?: number): Promise<ContactLabel[]>;
+    // (undocumented)
+    fetchAllAllianceContacts(allianceId: number, concurrency?: number): Promise<Contact[]>;
+    // (undocumented)
+    fetchAllCharacterContactLabels(characterId: number, concurrency?: number): Promise<ContactLabel[]>;
+    // (undocumented)
+    fetchAllCharacterContacts(characterId: number, concurrency?: number): Promise<Contact[]>;
+    // (undocumented)
+    fetchAllCorporationContactLabels(corporationId: number, concurrency?: number): Promise<ContactLabel[]>;
+    // (undocumented)
+    fetchAllCorporationContacts(corporationId: number, concurrency?: number): Promise<Contact[]>;
     getAllianceContactLabels(allianceId: number): Promise<ContactLabel[]>;
     getAllianceContacts(allianceId: number): Promise<Contact[]>;
     getCharacterContactLabels(characterId: number): Promise<ContactLabel[]>;
@@ -2111,6 +2157,12 @@ const ContractSchema: z.ZodObject<{
 // @public (undocumented)
 export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCharacterContracts(characterId: number, concurrency?: number): Promise<Contract[]>;
+    // (undocumented)
+    fetchAllCorporationContracts(corporationId: number, concurrency?: number): Promise<Contract[]>;
+    // (undocumented)
+    fetchAllPublicContracts(regionId: number, concurrency?: number): Promise<Contract[]>;
     getCharacterContractBids(characterId: number, contractId: number): Promise<ContractBid[]>;
     getCharacterContractItems(characterId: number, contractId: number): Promise<ContractItem[]>;
     getCharacterContracts(characterId: number): Promise<Contract[]>;
@@ -2512,6 +2564,40 @@ const CorporationRoleHistorySchema: z.ZodObject<{
 // @public (undocumented)
 export class CorporationsClient extends BaseEsiClient<typeof corporationEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCorporationAllianceHistory(corporationId: number, concurrency?: number): Promise<CorporationAllianceHistory[]>;
+    // (undocumented)
+    fetchAllCorporationAlscLogs(corporationId: number, concurrency?: number): Promise<ContainerLog[]>;
+    // (undocumented)
+    fetchAllCorporationBlueprints(corporationId: number, concurrency?: number): Promise<Blueprint[]>;
+    // (undocumented)
+    fetchAllCorporationFacilities(corporationId: number, concurrency?: number): Promise<CorporationFacility[]>;
+    // (undocumented)
+    fetchAllCorporationIssuedMedals(corporationId: number, concurrency?: number): Promise<CorporationIssuedMedal[]>;
+    // (undocumented)
+    fetchAllCorporationMedals(corporationId: number, concurrency?: number): Promise<CorporationMedal[]>;
+    // (undocumented)
+    fetchAllCorporationMembers(corporationId: number, concurrency?: number): Promise<number[]>;
+    // (undocumented)
+    fetchAllCorporationMemberTitles(corporationId: number, concurrency?: number): Promise<CorporationMemberTitle[]>;
+    // (undocumented)
+    fetchAllCorporationMemberTracking(corporationId: number, concurrency?: number): Promise<CorporationMemberTracking[]>;
+    // (undocumented)
+    fetchAllCorporationRoles(corporationId: number, concurrency?: number): Promise<CorporationMemberRole[]>;
+    // (undocumented)
+    fetchAllCorporationRolesHistory(corporationId: number, concurrency?: number): Promise<CorporationRoleHistory[]>;
+    // (undocumented)
+    fetchAllCorporationShareholders(corporationId: number, concurrency?: number): Promise<CorporationShareholder[]>;
+    // (undocumented)
+    fetchAllCorporationStandings(corporationId: number, concurrency?: number): Promise<Standing[]>;
+    // (undocumented)
+    fetchAllCorporationStarbases(corporationId: number, concurrency?: number): Promise<CorporationStarbase[]>;
+    // (undocumented)
+    fetchAllCorporationStructures(corporationId: number, concurrency?: number): Promise<CorporationStructure[]>;
+    // (undocumented)
+    fetchAllCorporationTitles(corporationId: number, concurrency?: number): Promise<CorporationTitle[]>;
+    // (undocumented)
+    fetchAllNpcCorporations(concurrency?: number): Promise<number[]>;
     getCorporationAllianceHistory(corporationId: number): Promise<CorporationAllianceHistory[]>;
     getCorporationAlscLogs(corporationId: number): Promise<ContainerLog[]>;
     getCorporationBlueprints(corporationId: number): Promise<Blueprint[]>;
@@ -4920,11 +5006,14 @@ export function fetchAllCursorPages<TResponse, TItem = unknown>(fetcher: (before
     after?: string | null;
 }): Promise<TItem[]>;
 
+// Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export function fetchAllPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema, concurrency?: number): Promise<T[]>;
+
 // @public (undocumented)
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
-// Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export function fetchPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema): AsyncGenerator<PageResult<T>, void, undefined>;
 
@@ -4953,6 +5042,8 @@ export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
         fitting_id: number;
     }>;
     deleteFitting(characterId: number, fittingId: number): Promise<void>;
+    // (undocumented)
+    fetchAllFittings(characterId: number, concurrency?: number): Promise<Fitting[]>;
     getFittings(characterId: number): Promise<Fitting[]>;
     // (undocumented)
     streamFittings(characterId: number): AsyncGenerator<PageResult<Fitting>, void, undefined>;
@@ -4972,6 +5063,10 @@ export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
     }>;
     deleteFleetSquad(fleetId: number, squadId: number): Promise<void>;
     deleteFleetWing(fleetId: number, wingId: number): Promise<void>;
+    // (undocumented)
+    fetchAllFleetMembers(fleetId: number, concurrency?: number): Promise<FleetMember[]>;
+    // (undocumented)
+    fetchAllFleetWings(fleetId: number, concurrency?: number): Promise<FleetWing[]>;
     getCharacterFleetInfo(characterId: number): Promise<CharacterFleetInfo>;
     getFleetInformation(fleetId: number): Promise<FleetInfo>;
     getFleetMembers(fleetId: number): Promise<FleetMember[]>;
@@ -5600,6 +5695,22 @@ interface IncursionsGet {
 // @public (undocumented)
 export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCharacterIndustryJobs(characterId: number, concurrency?: number): Promise<IndustryJob[]>;
+    // (undocumented)
+    fetchAllCharacterMiningLedger(characterId: number, concurrency?: number): Promise<MiningLedgerEntry[]>;
+    // (undocumented)
+    fetchAllCorporationIndustryJobs(corporationId: number, concurrency?: number): Promise<IndustryJob[]>;
+    // (undocumented)
+    fetchAllCorporationMiningObserver(corporationId: number, observerId: number, concurrency?: number): Promise<MiningObserverEntry[]>;
+    // (undocumented)
+    fetchAllCorporationMiningObservers(corporationId: number, concurrency?: number): Promise<MiningObserver[]>;
+    // (undocumented)
+    fetchAllIndustryFacilities(concurrency?: number): Promise<IndustryFacility[]>;
+    // (undocumented)
+    fetchAllIndustrySystems(concurrency?: number): Promise<IndustrySystem[]>;
+    // (undocumented)
+    fetchAllMoonExtractionTimers(corporationId: number, concurrency?: number): Promise<MoonExtractionTimer[]>;
     getCharacterIndustryJobs(characterId: number): Promise<IndustryJob[]>;
     getCharacterMiningLedger(characterId: number): Promise<MiningLedgerEntry[]>;
     getCorporationIndustryJobs(corporationId: number): Promise<IndustryJob[]>;
@@ -5890,6 +6001,10 @@ const KillmailSchema: z.ZodObject<{
 // @public (undocumented)
 export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCharacterRecentKillmails(characterId: number, concurrency?: number): Promise<KillmailSummary[]>;
+    // (undocumented)
+    fetchAllCorporationRecentKillmails(corporationId: number, concurrency?: number): Promise<KillmailSummary[]>;
     getCharacterRecentKillmails(characterId: number): Promise<KillmailSummary[]>;
     getCorporationRecentKillmails(corporationId: number): Promise<KillmailSummary[]>;
     getKillmail(killmailId: number, killmailHash: string): Promise<Killmail>;
@@ -5977,6 +6092,10 @@ export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
 // @public (undocumented)
 export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllLoyaltyPoints(characterId: number, concurrency?: number): Promise<LoyaltyPoints[]>;
+    // (undocumented)
+    fetchAllLoyaltyStoreOffers(corporationId: number, concurrency?: number): Promise<LoyaltyStoreOffer[]>;
     getLoyaltyPoints(characterId: number): Promise<LoyaltyPoints[]>;
     getLoyaltyStoreOffers(corporationId: number): Promise<LoyaltyStoreOffer[]>;
     // (undocumented)
@@ -6040,6 +6159,13 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     createMailLabel(characterId: number, body: object): Promise<number>;
     deleteMail(characterId: number, mailId: number): Promise<void>;
     deleteMailLabel(characterId: number, labelId: number): Promise<void>;
+    // (undocumented)
+    fetchAllMailHeaders(characterId: number, concurrency?: number): Promise<MailMessage[]>;
+    // (undocumented)
+    fetchAllMailingLists(characterId: number, concurrency?: number): Promise<{
+        mailing_list_id: number;
+        name: string;
+    }[]>;
     getMail(characterId: number, mailId: number): Promise<MailMessage>;
     getMailHeaders(characterId: number): Promise<MailMessage[]>;
     getMailingLists(characterId: number): Promise<{
@@ -6112,6 +6238,18 @@ const MailMessageSchema: z.ZodObject<{
 // @public (undocumented)
 export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCharacterOrderHistory(characterId: number, concurrency?: number): Promise<CharacterMarketOrderHistory[]>;
+    // (undocumented)
+    fetchAllCorporationOrderHistory(corporationId: number, concurrency?: number): Promise<CorporationMarketOrderHistory[]>;
+    // (undocumented)
+    fetchAllCorporationOrders(corporationId: number, concurrency?: number): Promise<CorporationMarketOrder[]>;
+    // (undocumented)
+    fetchAllMarketOrders(regionId: number, concurrency?: number): Promise<MarketOrder[]>;
+    // (undocumented)
+    fetchAllMarketOrdersInStructure(structureId: number, concurrency?: number): Promise<StructureMarketOrder[]>;
+    // (undocumented)
+    fetchAllMarketTypes(regionId: number, concurrency?: number): Promise<number[]>;
     getCharacterOrderHistory(characterId: number): Promise<CharacterMarketOrderHistory[]>;
     getCharacterOrders(characterId: number): Promise<CharacterMarketOrder[]>;
     getCorporationOrderHistory(corporationId: number): Promise<CorporationMarketOrderHistory[]>;
@@ -6798,6 +6936,10 @@ const ParagonHubSkinrTargetSchema: z.ZodObject<{
 // @public (undocumented)
 export class PiClient extends BaseEsiClient<typeof piEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllColonies(characterId: number, concurrency?: number): Promise<PlanetaryColony[]>;
+    // (undocumented)
+    fetchAllCorporationCustomsOffices(corporationId: number, concurrency?: number): Promise<CustomsOffice[]>;
     getColonies(characterId: number): Promise<PlanetaryColony[]>;
     getColonyLayout(characterId: number, planetId: number): Promise<ColonyLayout>;
     getCorporationCustomsOffices(corporationId: number): Promise<CustomsOffice[]>;
@@ -6866,6 +7008,14 @@ const RaidableSkyhookSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export interface RateLimitEndpointOverride {
+    // (undocumented)
+    maxTokens: number;
+    // (undocumented)
+    windowSizeMs: number;
+}
+
+// @public (undocumented)
 export class RateLimiter implements IRateLimiter {
     constructor(config?: RateLimiterConfig);
     // (undocumented)
@@ -6894,6 +7044,8 @@ export class RateLimiter implements IRateLimiter {
 export interface RateLimiterConfig {
     // (undocumented)
     decelerationThreshold?: number;
+    // (undocumented)
+    endpointOverrides?: Record<string, RateLimitEndpointOverride>;
     // (undocumented)
     minDelayMs?: number;
     // (undocumented)
@@ -8444,6 +8596,14 @@ export type ValidationDirection = 'request' | 'response';
 // @public (undocumented)
 export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllCharacterWalletJournal(characterId: number, concurrency?: number): Promise<WalletJournal[]>;
+    // (undocumented)
+    fetchAllCharacterWalletTransactions(characterId: number, concurrency?: number): Promise<WalletTransaction[]>;
+    // (undocumented)
+    fetchAllCorporationWalletJournal(corporationId: number, division: number, concurrency?: number): Promise<WalletJournal[]>;
+    // (undocumented)
+    fetchAllCorporationWalletTransactions(corporationId: number, division: number, concurrency?: number): Promise<WalletTransaction[]>;
     getCharacterWallet(characterId: number): Promise<number>;
     getCharacterWalletJournal(characterId: number): Promise<WalletJournal[]>;
     getCharacterWalletTransactions(characterId: number): Promise<WalletTransaction[]>;
@@ -8538,6 +8698,10 @@ const WarSchema: z.ZodObject<{
 // @public (undocumented)
 export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
     constructor(client: ApiClient);
+    // (undocumented)
+    fetchAllWarKillmails(warId: number, concurrency?: number): Promise<KillmailSummary[]>;
+    // (undocumented)
+    fetchAllWars(concurrency?: number): Promise<number[]>;
     getWarById(warId: number): Promise<War>;
     getWarKillmails(warId: number): Promise<KillmailSummary[]>;
     getWars(): Promise<number[]>;

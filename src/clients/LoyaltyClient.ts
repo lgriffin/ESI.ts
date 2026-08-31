@@ -30,6 +30,28 @@ export class LoyaltyClient extends BaseEsiClient<typeof loyaltyEndpoints> {
     return this.api.getLoyaltyStoreOffers(corporationId);
   }
 
+  fetchAllLoyaltyPoints(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<LoyaltyPoints[]> {
+    return this.fetchAllEndpoint<LoyaltyPoints>(
+      'getLoyaltyPoints',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllLoyaltyStoreOffers(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<LoyaltyStoreOffer[]> {
+    return this.fetchAllEndpoint<LoyaltyStoreOffer>(
+      'getLoyaltyStoreOffers',
+      [corporationId],
+      concurrency,
+    );
+  }
+
   streamLoyaltyPoints(
     characterId: number,
   ): AsyncGenerator<PageResult<LoyaltyPoints>, void, undefined> {

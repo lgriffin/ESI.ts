@@ -44,9 +44,7 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
     );
     // Schema mismatch: ContactSchema uses a wider contact_type enum than AllianceContactSchema.
     // Cast through unknown until schemas are unified.
-    return this.contactApi.getAllianceContacts(
-      allianceId,
-    ) as unknown as Promise<AllianceContact[]>;
+    return this.contactApi.getAllianceContacts(allianceId);
   }
 
   /**
@@ -93,6 +91,21 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    */
   getAlliances(): Promise<number[]> {
     return this.api.getAlliances();
+  }
+
+  fetchAllAlliances(concurrency?: number): Promise<number[]> {
+    return this.fetchAllEndpoint<number>('getAlliances', [], concurrency);
+  }
+
+  fetchAllCorporations(
+    allianceId: number,
+    concurrency?: number,
+  ): Promise<number[]> {
+    return this.fetchAllEndpoint<number>(
+      'getCorporations',
+      [allianceId],
+      concurrency,
+    );
   }
 
   streamAlliances(): AsyncGenerator<PageResult<number>, void, undefined> {

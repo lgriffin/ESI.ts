@@ -141,6 +141,72 @@ export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
     return this.api.getMarketOrdersInStructure(structureId);
   }
 
+  fetchAllMarketOrders(
+    regionId: number,
+    concurrency?: number,
+  ): Promise<MarketOrder[]> {
+    return this.fetchAllEndpoint<MarketOrder>(
+      'getMarketOrders',
+      [regionId, 'all'],
+      concurrency,
+    );
+  }
+
+  fetchAllMarketTypes(
+    regionId: number,
+    concurrency?: number,
+  ): Promise<number[]> {
+    return this.fetchAllEndpoint<number>(
+      'getMarketTypes',
+      [regionId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterOrderHistory(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<CharacterMarketOrderHistory[]> {
+    return this.fetchAllEndpoint<CharacterMarketOrderHistory>(
+      'getCharacterOrderHistory',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationOrders(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMarketOrder[]> {
+    return this.fetchAllEndpoint<CorporationMarketOrder>(
+      'getCorporationOrders',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationOrderHistory(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMarketOrderHistory[]> {
+    return this.fetchAllEndpoint<CorporationMarketOrderHistory>(
+      'getCorporationOrderHistory',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllMarketOrdersInStructure(
+    structureId: number,
+    concurrency?: number,
+  ): Promise<StructureMarketOrder[]> {
+    return this.fetchAllEndpoint<StructureMarketOrder>(
+      'getMarketOrdersInStructure',
+      [structureId],
+      concurrency,
+    );
+  }
+
   streamMarketOrders(
     regionId: number,
   ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {

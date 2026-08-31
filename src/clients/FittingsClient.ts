@@ -48,6 +48,17 @@ export class FittingsClient extends BaseEsiClient<typeof fittingEndpoints> {
     return this.api.deleteFitting(characterId, fittingId) as Promise<void>;
   }
 
+  fetchAllFittings(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Fitting[]> {
+    return this.fetchAllEndpoint<Fitting>(
+      'getFittings',
+      [characterId],
+      concurrency,
+    );
+  }
+
   streamFittings(
     characterId: number,
   ): AsyncGenerator<PageResult<Fitting>, void, undefined> {

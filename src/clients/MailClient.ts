@@ -127,6 +127,28 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     return this.api.getMailingLists(characterId);
   }
 
+  fetchAllMailHeaders(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<MailMessage[]> {
+    return this.fetchAllEndpoint<MailMessage>(
+      'getCharacterMailHeaders',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllMailingLists(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<{ mailing_list_id: number; name: string }[]> {
+    return this.fetchAllEndpoint<{ mailing_list_id: number; name: string }>(
+      'getMailingLists',
+      [characterId],
+      concurrency,
+    );
+  }
+
   streamMailHeaders(
     characterId: number,
   ): AsyncGenerator<PageResult<MailMessage>, void, undefined> {

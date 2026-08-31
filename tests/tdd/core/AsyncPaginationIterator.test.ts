@@ -1,4 +1,5 @@
 import {
+  fetchAllPages,
   fetchPages,
   PageResult,
 } from '../../../src/core/pagination/AsyncPaginationIterator';
@@ -226,6 +227,102 @@ describe('AsyncPaginationIterator', () => {
         true,
         undefined,
       );
+    });
+  });
+
+  describe('fetchAllPages', () => {
+    it('should return all items from a single page', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: { 'x-pages': '1' },
+        body: [{ id: 1 }, { id: 2 }],
+      });
+
+      const result = await fetchAllPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it('should merge all pages into a single array', async () => {
+      mockHandleRequest
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 1 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 2 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 3 }],
+        });
+
+      const result = await fetchAllPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(3);
+    });
+
+    it('should fetch remaining pages concurrently within batch size', async () => {
+      const callOrder: number[] = [];
+      mockHandleRequest.mockImplementation(async (_c, endpoint: string) => {
+        const pageMatch = endpoint.match(/page=(\d+)/);
+        const page = pageMatch ? parseInt(pageMatch[1], 10) : 1;
+        callOrder.push(page);
+        return {
+          headers: { 'x-pages': '5' },
+          body: [{ id: page }],
+        };
+      });
+
+      const result = await fetchAllPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+        false,
+        undefined,
+        undefined,
+        undefined,
+        2,
+      );
+
+      expect(result).toHaveLength(5);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(5);
+    });
+
+    it('should return empty array when body is null', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: { 'x-pages': '1' },
+        body: null,
+      });
+
+      const result = await fetchAllPages(client, 'empty', 'GET');
+      expect(result).toEqual([]);
+    });
+
+    it('should handle missing x-pages header as single page', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: {},
+        body: [{ id: 1 }],
+      });
+
+      const result = await fetchAllPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+      );
+
+      expect(result).toEqual([{ id: 1 }]);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(1);
     });
   });
 });

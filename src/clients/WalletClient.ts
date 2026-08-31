@@ -87,6 +87,52 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     return this.api.getCorporationWalletTransactions(corporationId, division);
   }
 
+  fetchAllCharacterWalletJournal(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<WalletJournal[]> {
+    return this.fetchAllEndpoint<WalletJournal>(
+      'getCharacterWalletJournal',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationWalletJournal(
+    corporationId: number,
+    division: number,
+    concurrency?: number,
+  ): Promise<WalletJournal[]> {
+    return this.fetchAllEndpoint<WalletJournal>(
+      'getCorporationWalletJournal',
+      [corporationId, division],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterWalletTransactions(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<WalletTransaction[]> {
+    return this.fetchAllEndpoint<WalletTransaction>(
+      'getCharacterWalletTransactions',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationWalletTransactions(
+    corporationId: number,
+    division: number,
+    concurrency?: number,
+  ): Promise<WalletTransaction[]> {
+    return this.fetchAllEndpoint<WalletTransaction>(
+      'getCorporationWalletTransactions',
+      [corporationId, division],
+      concurrency,
+    );
+  }
+
   streamCharacterWalletJournal(
     characterId: number,
   ): AsyncGenerator<PageResult<WalletJournal>, void, undefined> {

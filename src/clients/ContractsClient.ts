@@ -17,7 +17,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
    * @requires Authentication
    */
   getCharacterContracts(characterId: number): Promise<Contract[]> {
-    return this.api.getCharacterContracts(characterId) as Promise<Contract[]>;
+    return this.api.getCharacterContracts(characterId);
   }
 
   /**
@@ -32,10 +32,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     characterId: number,
     contractId: number,
   ): Promise<ContractBid[]> {
-    return this.api.getCharacterContractBids(
-      characterId,
-      contractId,
-    ) as Promise<ContractBid[]>;
+    return this.api.getCharacterContractBids(characterId, contractId);
   }
 
   /**
@@ -50,10 +47,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     characterId: number,
     contractId: number,
   ): Promise<ContractItem[]> {
-    return this.api.getCharacterContractItems(
-      characterId,
-      contractId,
-    ) as Promise<ContractItem[]>;
+    return this.api.getCharacterContractItems(characterId, contractId);
   }
 
   /**
@@ -63,7 +57,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
    * @returns A list of public contracts in the region
    */
   getPublicContracts(regionId: number): Promise<Contract[]> {
-    return this.api.getPublicContracts(regionId) as Promise<Contract[]>;
+    return this.api.getPublicContracts(regionId);
   }
 
   /**
@@ -73,7 +67,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
    * @returns A list of bids with bidder, amount, and timestamp
    */
   getPublicContractBids(contractId: number): Promise<ContractBid[]> {
-    return this.api.getPublicContractBids(contractId) as Promise<ContractBid[]>;
+    return this.api.getPublicContractBids(contractId);
   }
 
   /**
@@ -83,9 +77,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
    * @returns A list of items in the contract with type, quantity, and included/excluded status
    */
   getPublicContractItems(contractId: number): Promise<ContractItem[]> {
-    return this.api.getPublicContractItems(contractId) as Promise<
-      ContractItem[]
-    >;
+    return this.api.getPublicContractItems(contractId);
   }
 
   /**
@@ -96,9 +88,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
    * @requires Authentication
    */
   getCorporationContracts(corporationId: number): Promise<Contract[]> {
-    return this.api.getCorporationContracts(corporationId) as Promise<
-      Contract[]
-    >;
+    return this.api.getCorporationContracts(corporationId);
   }
 
   /**
@@ -113,10 +103,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     corporationId: number,
     contractId: number,
   ): Promise<ContractBid[]> {
-    return this.api.getCorporationContractBids(
-      corporationId,
-      contractId,
-    ) as Promise<ContractBid[]>;
+    return this.api.getCorporationContractBids(corporationId, contractId);
   }
 
   /**
@@ -131,10 +118,40 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     corporationId: number,
     contractId: number,
   ): Promise<ContractItem[]> {
-    return this.api.getCorporationContractItems(
-      corporationId,
-      contractId,
-    ) as Promise<ContractItem[]>;
+    return this.api.getCorporationContractItems(corporationId, contractId);
+  }
+
+  fetchAllPublicContracts(
+    regionId: number,
+    concurrency?: number,
+  ): Promise<Contract[]> {
+    return this.fetchAllEndpoint<Contract>(
+      'getPublicContracts',
+      [regionId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterContracts(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Contract[]> {
+    return this.fetchAllEndpoint<Contract>(
+      'getCharacterContracts',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationContracts(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<Contract[]> {
+    return this.fetchAllEndpoint<Contract>(
+      'getCorporationContracts',
+      [corporationId],
+      concurrency,
+    );
   }
 
   streamPublicContracts(

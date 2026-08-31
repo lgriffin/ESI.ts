@@ -31,6 +31,17 @@ export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
     return this.api.getImplants(characterId);
   }
 
+  fetchAllImplants(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<number[]> {
+    return this.fetchAllEndpoint<number>(
+      'getImplants',
+      [characterId],
+      concurrency,
+    );
+  }
+
   streamImplants(
     characterId: number,
   ): AsyncGenerator<PageResult<number>, void, undefined> {
