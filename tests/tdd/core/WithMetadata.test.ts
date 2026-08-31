@@ -126,6 +126,91 @@ describe('withMetadata()', () => {
     });
   });
 
+  describe('typed response headers', () => {
+    it('populates etag from response headers', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([99000001]), {
+        headers: standardHeaders({ etag: '"abc123"' }),
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAlliances();
+
+      expect(result.meta.etag).toBe('"abc123"');
+    });
+
+    it('populates pages from x-pages header', async () => {
+      const mockAlliance = {
+        alliance_id: 99000001,
+        name: 'Test Alliance',
+        ticker: 'TEST',
+        creator_id: 123,
+        creator_corporation_id: 456,
+        date_founded: '2020-01-01T00:00:00Z',
+      };
+
+      fetchMock.mockResponseOnce(JSON.stringify(mockAlliance), {
+        headers: standardHeaders(),
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAllianceById(99000001);
+
+      expect(result.meta.pages).toBe(1);
+    });
+
+    it('populates expires from response headers', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([99000001]), {
+        headers: standardHeaders({
+          expires: 'Thu, 01 Jan 2099 00:00:00 GMT',
+        }),
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAlliances();
+
+      expect(result.meta.expires).toBe('Thu, 01 Jan 2099 00:00:00 GMT');
+    });
+
+    it('populates errorLimitRemain and errorLimitReset from response headers', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([99000001]), {
+        headers: standardHeaders({
+          'x-esi-error-limit-remain': '87',
+          'x-esi-error-limit-reset': '42',
+        }),
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAlliances();
+
+      expect(result.meta.errorLimitRemain).toBe(87);
+      expect(result.meta.errorLimitReset).toBe(42);
+    });
+
+    it('typed header fields are undefined when headers are absent', async () => {
+      const mockAlliance = {
+        alliance_id: 99000001,
+        name: 'Test Alliance',
+        ticker: 'TEST',
+        creator_id: 123,
+        creator_corporation_id: 456,
+        date_founded: '2020-01-01T00:00:00Z',
+      };
+
+      fetchMock.mockResponseOnce(JSON.stringify(mockAlliance), {
+        headers: { 'content-type': 'application/json' },
+      });
+
+      const metaClient = allianceClient.withMetadata();
+      const result = await metaClient.getAllianceById(99000001);
+
+      expect(result.meta.etag).toBeUndefined();
+      expect(result.meta.pages).toBeUndefined();
+      expect(result.meta.expires).toBeUndefined();
+      expect(result.meta.errorLimitRemain).toBeUndefined();
+      expect(result.meta.errorLimitReset).toBeUndefined();
+    });
+  });
+
   describe('cache hit type', () => {
     it('cacheHitType is undefined for normal 200 response', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([99000001]), {

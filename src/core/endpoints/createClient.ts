@@ -88,6 +88,20 @@ function buildMeta(response: EsiHandlerResponse): EsiResponseMeta {
       group: response.headers['x-ratelimit-group'] ?? null,
     };
   }
+  if (response.headers['etag']) meta.etag = response.headers['etag'];
+  if (response.headers['x-pages'])
+    meta.pages = parseInt(response.headers['x-pages'], 10);
+  if (response.headers['expires']) meta.expires = response.headers['expires'];
+  if (response.headers['x-esi-error-limit-remain'])
+    meta.errorLimitRemain = parseInt(
+      response.headers['x-esi-error-limit-remain'],
+      10,
+    );
+  if (response.headers['x-esi-error-limit-reset'])
+    meta.errorLimitReset = parseInt(
+      response.headers['x-esi-error-limit-reset'],
+      10,
+    );
   return meta;
 }
 
