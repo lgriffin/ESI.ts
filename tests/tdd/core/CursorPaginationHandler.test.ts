@@ -159,7 +159,9 @@ describe('CursorPaginationHandler', () => {
           'GET',
           true,
         ),
-      ).rejects.toThrow('Authorization header is required but not provided');
+      ).rejects.toThrow(
+        'Authorization header is required for this endpoint but no access token is configured',
+      );
     });
 
     it('should set abort signal on fetch request', async () => {
