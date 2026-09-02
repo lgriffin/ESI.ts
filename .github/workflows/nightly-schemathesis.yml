@@ -1,0 +1,56 @@
+name: Nightly Schemathesis API Fuzz
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schemathesis:
+    name: Schemathesis API Fuzz
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pull Schemathesis Docker image
+        run: docker pull schemathesis/schemathesis
+
+      - name: Run Schemathesis
+        run: bash scripts/run-schemathesis.sh ./reports/schemathesis
+
+      - name: Upload Schemathesis report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: schemathesis-report
+          path: reports/schemathesis/
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Nightly Schemathesis API Fuzz" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          if [ -f reports/schemathesis/junit.xml ]; then
+            echo "- **JUnit report:** uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **JUnit report:** not produced (job did not reach the fuzz step)" >> $GITHUB_STEP_SUMMARY
+          fi
