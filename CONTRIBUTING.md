@@ -28,6 +28,22 @@ Thank you for your interest in contributing to ESI.ts! This guide will help you 
    npm test
    ```
 
+## Finding npm Commands
+
+There are ~100 npm scripts. Instead of scrolling through them, run:
+
+```bash
+npm run help                 # grouped overview by intent
+npm run help wallet          # any script whose name or hint mentions "wallet"
+npm run help example         # every runnable example script
+npm run help bdd             # every BDD scenario group
+```
+
+The overview highlights the scripts you'll reach for most (`build`, `test`,
+`coverage`, `lint`, `docs`, token management, codegen, validation gates) and
+collapses the `example:*` and `bdd:*` families. Add a keyword to drop straight
+to a match list — no memorizing sub-script names needed.
+
 ## Development Workflow
 
 1. Create a feature branch from `master`:
