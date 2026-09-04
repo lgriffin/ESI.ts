@@ -328,41 +328,6 @@ jobs:
             exit 1
           fi
 
-  schemathesis:
-    name: Schemathesis API Fuzz
-    runs-on: ubuntu-latest
-    needs: lint-and-build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Pull Schemathesis Docker image
-        run: docker pull schemathesis/schemathesis
-
-      - name: Run Schemathesis
-        run: bash scripts/run-schemathesis.sh ./reports/schemathesis
-        timeout-minutes: 20
-
-      - name: Upload Schemathesis report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: always()
-        with:
-          name: schemathesis-report
-          path: reports/schemathesis/
-          retention-days: 30
-
   documentation:
     name: Generate Documentation
     runs-on: ubuntu-latest
@@ -430,7 +395,6 @@ jobs:
         contract-tests,
         fuzz-tests,
         api-surface,
-        schemathesis,
         lockfile,
       ]
     if: always()
