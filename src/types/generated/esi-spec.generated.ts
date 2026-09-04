@@ -1,11 +1,16 @@
 /* eslint-disable */
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Spec hash: 2aa65109f19c
+// Spec hash: b6bbde63f9a8
 // Total interfaces: 161
 
 // --- Alliance ---
 
-export interface AllianceDetail {
+export interface AlliancesAllianceIdIconsGet {
+  px128x128?: string;
+  px64x64?: string;
+}
+
+export interface AlliancesDetail {
   creator_corporation_id: number;
   creator_id: number;
   date_founded: string;
@@ -13,11 +18,6 @@ export interface AllianceDetail {
   faction_id?: number;
   name: string;
   ticker: string;
-}
-
-export interface AlliancesAllianceIdIconsGet {
-  px128x128?: string;
-  px64x64?: string;
 }
 
 // --- Assets ---
@@ -2054,7 +2054,7 @@ export interface WarsWarIdKillmailsGet {
 
 // Operation ID → Response type mapping
 export interface EsiOperationTypes {
-  'GetAlliancesAllianceId': AllianceDetail;
+  'GetAlliancesAllianceId': AlliancesDetail;
   'GetAlliancesAllianceIdContacts': AlliancesAllianceIdContactsGet[];
   'GetAlliancesAllianceIdContactsLabels': AlliancesAllianceIdContactsLabelsGet[];
   'GetAlliancesAllianceIdIcons': AlliancesAllianceIdIconsGet;
