@@ -104,24 +104,6 @@ const AllianceContactSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
-interface AllianceDetail {
-    // (undocumented)
-    creator_corporation_id: number;
-    // (undocumented)
-    creator_id: number;
-    // (undocumented)
-    date_founded: string;
-    // (undocumented)
-    executor_corporation_id?: number;
-    // (undocumented)
-    faction_id?: number;
-    // (undocumented)
-    name: string;
-    // (undocumented)
-    ticker: string;
-}
-
-// @public (undocumented)
 export type AllianceIcon = z.infer<typeof AllianceIconSchema>;
 
 // @public (undocumented)
@@ -176,6 +158,24 @@ interface AlliancesAllianceIdIconsGet {
     px128x128?: string;
     // (undocumented)
     px64x64?: string;
+}
+
+// @public (undocumented)
+interface AlliancesDetail {
+    // (undocumented)
+    creator_corporation_id: number;
+    // (undocumented)
+    creator_id: number;
+    // (undocumented)
+    date_founded: string;
+    // (undocumented)
+    executor_corporation_id?: number;
+    // (undocumented)
+    faction_id?: number;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    ticker: string;
 }
 
 // @public (undocumented)
@@ -4233,7 +4233,7 @@ export class EsiError extends Error {
 // @public (undocumented)
 interface EsiOperationTypes {
     // (undocumented)
-    'GetAlliancesAllianceId': AllianceDetail;
+    'GetAlliancesAllianceId': AlliancesDetail;
     // (undocumented)
     'GetAlliancesAllianceIdContacts': AlliancesAllianceIdContactsGet[];
     // (undocumented)
@@ -4648,8 +4648,8 @@ export type EsiScope = 'esi-access.read_lists.v1' | 'esi-activities.read_charact
 
 declare namespace EsiSpec {
     export {
-        AllianceDetail,
         AlliancesAllianceIdIconsGet,
+        AlliancesDetail,
         CharactersCharacterIdAssetsGet,
         CharactersCharacterIdAssetsLocationsPost,
         CharactersCharacterIdAssetsNamesPost,
