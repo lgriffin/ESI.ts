@@ -37,7 +37,7 @@ export const EsiResponseMetaSchema = z.looseObject({
   errorLimitReset: z.number().optional(),
 });
 
-export function esiResponse<T extends z.ZodTypeAny>(dataSchema: T) {
+export function esiResponse<T extends z.ZodType>(dataSchema: T) {
   return z.object({
     data: dataSchema,
     meta: EsiResponseMetaSchema,
