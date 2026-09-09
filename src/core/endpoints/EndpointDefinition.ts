@@ -29,9 +29,9 @@ export interface EndpointDefinition {
   /** Mark an endpoint as deprecated with optional migration guidance */
   deprecated?: DeprecationInfo;
   /** Zod schema for runtime response validation */
-  responseSchema?: z.ZodTypeAny;
+  responseSchema?: z.ZodType;
   /** Zod schema for runtime request body validation (opt-in via validateRequest) */
-  requestSchema?: z.ZodTypeAny;
+  requestSchema?: z.ZodType;
 }
 
 export type EndpointMap = Record<string, EndpointDefinition>;
