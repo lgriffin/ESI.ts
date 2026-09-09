@@ -54,6 +54,7 @@
   "scripts": {
     "build": "tsup && tsc --emitDeclarationOnly",
     "typecheck": "tsc --noEmit",
+    "help": "ts-node scripts/npm-help.ts",
     "start": "ts-node examples/character-profile.ts",
     "example": "ts-node examples/character-profile.ts",
     "example:status": "ts-node examples/status.ts",
