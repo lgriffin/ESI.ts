@@ -385,7 +385,7 @@ Traditional unit tests check known inputs. Property-based tests check invariants
 | Live smoke tests         | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`                                         |
 | Spec contract validation | Weekly                      | `ESI_LIVE_TESTS=true npm run test:integration -- --testPathPatterns=esi-spec-contract` |
 | Spec drift detection     | Weekly                      | `npm run contract:snapshot && npm run contract:diff`                                   |
-| API fuzz (Schemathesis)  | Weekly                      | `npm run fuzz:api` (Docker)                                                            |
+| API fuzz (Schemathesis)  | Nightly (01:00 UTC)         | `npm run fuzz:api` (Docker)                                                            |
 | Gated auth tests         | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated`                                  |
 
 ## File Reference
