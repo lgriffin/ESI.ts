@@ -1,6 +1,6 @@
 /* eslint-disable */
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Spec hash: b6bbde63f9a8
+// Spec hash: f50f760055e8
 // Total interfaces: 161
 
 // --- Alliance ---

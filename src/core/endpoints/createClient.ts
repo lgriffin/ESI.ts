@@ -39,10 +39,10 @@ export type UnwrapArray<T> = T extends readonly (infer E)[] ? E : T;
  * - Falls back to `unknown` when no `responseSchema` is defined.
  */
 export type InferEndpointResult<D> = D extends { cursorPagination: true }
-  ? D extends { responseSchema: infer S extends z.ZodTypeAny }
+  ? D extends { responseSchema: infer S extends z.ZodType }
     ? CursorResult<UnwrapArray<z.infer<S>>>
     : CursorResult
-  : D extends { responseSchema: infer S extends z.ZodTypeAny }
+  : D extends { responseSchema: infer S extends z.ZodType }
     ? z.infer<S>
     : unknown;
 

@@ -402,12 +402,36 @@ jobs:
     steps:
       - name: Check all jobs
         env:
-          RESULTS: "${{ join(needs.*.result, ' ') }}"
+          UNIT_TESTS: ${{ needs.unit-tests.result }}
+          BDD_TESTS: ${{ needs.bdd-tests.result }}
+          FULL_TEST_SUITE: ${{ needs.full-test-suite.result }}
+          COVERAGE: ${{ needs.coverage.result }}
+          STATIC_ANALYSIS: ${{ needs.static-analysis.result }}
+          CONTRACT_TESTS: ${{ needs.contract-tests.result }}
+          FUZZ_TESTS: ${{ needs.fuzz-tests.result }}
+          API_SURFACE: ${{ needs.api-surface.result }}
+          LOCKFILE: ${{ needs.lockfile.result }}
         run: |
-          for r in $RESULTS; do
-            if [[ "$r" != "success" ]]; then
-              echo "::error::One or more required jobs failed, were cancelled, or were skipped"
-              exit 1
+          FAILED=""
+          for entry in \
+            "Unit Tests=$UNIT_TESTS" \
+            "BDD Scenarios=$BDD_TESTS" \
+            "Complete Test Suite=$FULL_TEST_SUITE" \
+            "Test Coverage=$COVERAGE" \
+            "Static Analysis=$STATIC_ANALYSIS" \
+            "Contract Tests=$CONTRACT_TESTS" \
+            "Fuzz Tests=$FUZZ_TESTS" \
+            "API Surface Check=$API_SURFACE" \
+            "Lockfile Consistency=$LOCKFILE"
+          do
+            NAME="${entry%%=*}"
+            RESULT="${entry#*=}"
+            if [[ "$RESULT" != "success" ]]; then
+              FAILED="$FAILED $NAME ($RESULT)"
             fi
           done
+          if [[ -n "$FAILED" ]]; then
+            echo "::error::Quality gate failed. Jobs not green:$FAILED"
+            exit 1
+          fi
           echo "All quality checks passed!"

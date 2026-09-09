@@ -4565,7 +4565,7 @@ export interface EsiResponse<T> {
 }
 
 // @public (undocumented)
-function esiResponse<T extends z.ZodTypeAny>(dataSchema: T): z.ZodObject<{
+function esiResponse<T extends z.ZodType>(dataSchema: T): z.ZodObject<{
     data: T;
     meta: z.ZodObject<{
         headers: z.ZodRecord<z.ZodString, z.ZodString>;
@@ -5832,9 +5832,9 @@ interface IndustrySystemsGet {
 export type InferEndpointResult<D> = D extends {
     cursorPagination: true;
 } ? D extends {
-    responseSchema: infer S extends z.ZodTypeAny;
+    responseSchema: infer S extends z.ZodType;
 } ? CursorResult<UnwrapArray<z.infer<S>>> : CursorResult : D extends {
-    responseSchema: infer S extends z.ZodTypeAny;
+    responseSchema: infer S extends z.ZodType;
 } ? z.infer<S> : unknown;
 
 // Warning: (ae-forgotten-export) The symbol "insuranceEndpoints" needs to be exported by the entry point index.d.ts
