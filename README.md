@@ -1003,7 +1003,7 @@ Every pull request runs the full validation suite:
 - Schema drift detection
 - Mutation testing (Stryker)
 - Dead code detection via knip
-- npm security audit
+- npm security audit — diff-aware on PRs (fails only on advisories the PR introduces), state-of-the-world nightly and at release, with a reviewed-acceptance allowlist in `scripts/audit-exceptions.json`
 
 **Supply chain security:**
 

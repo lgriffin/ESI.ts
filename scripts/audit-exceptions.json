@@ -1,0 +1,12 @@
+{
+  "_comment": "Advisories reviewed and accepted as known risk. Keyed by GHSA id. Every entry needs a reason and an expires date (YYYY-MM-DD) so acceptance is revisited rather than becoming permanent. An expired entry is a hard failure, not a silent pass — renew it deliberately or fix the advisory. Consumed by scripts/audit-check.ts.",
+  "exceptions": [
+    {
+      "ghsa": "GHSA-vwc7-r8mq-g2x9",
+      "package": "adm-zip",
+      "severity": "moderate",
+      "reason": "No upstream fix exists: 0.6.0 is the latest release and is still affected, so npm's only offered remedy is a downgrade to 0.5.8 (giving up ~10 releases of fixes for a moderate issue). Exposure is limited — adm-zip is a devDependency and is not shipped to package consumers, and the vulnerable extractAllTo call is reached only from scripts/sde-ingest.ts, a maintainer-run script operating on the official CCP SDE archive fetched over HTTPS.",
+      "expires": "2026-12-09"
+    }
+  ]
+}

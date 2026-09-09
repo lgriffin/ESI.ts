@@ -39,8 +39,12 @@ jobs:
       - name: 🔍 Dead code detection
         run: npx knip --no-exit-code
 
+      # Unlike the PR path, a release is exactly where a state-of-the-world audit
+      # belongs — we are about to ship to consumers, so a newly disclosed high
+      # should stop the publish. The allowlist keeps reviewed, accepted risks
+      # from blocking it; anything else has to be fixed or explicitly accepted.
       - name: 🔒 Security audit
-        run: npm audit --audit-level=high
+        run: npm run audit:check
 
       - name: 📋 Verify changelog
         run: |
