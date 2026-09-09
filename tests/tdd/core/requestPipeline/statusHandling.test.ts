@@ -274,6 +274,49 @@ describe('requestPipeline/statusHandling', () => {
         ),
       ).toThrow(EsiError);
     });
+
+    it('should include a 401 hint pointing at ESI_ACCESS_TOKEN and onTokenRefresh', () => {
+      const response = new Response(null, { status: 401 });
+      const parsed = { raw: {}, requestId: 'r1' } as unknown as ParsedHeaders;
+
+      try {
+        handleErrorResponse(
+          client,
+          response,
+          `${BASE_URL}/v1/characters/123/wallet/`,
+          parsed,
+          false,
+          resolveCache,
+        );
+        throw new Error('expected handleErrorResponse to throw');
+      } catch (e) {
+        expect(e).toBeInstanceOf(EsiError);
+        const msg = (e as EsiError).message;
+        expect(msg).toContain('the access token was missing, expired');
+        expect(msg).toContain('ESI_ACCESS_TOKEN');
+        expect(msg).toContain('onTokenRefresh');
+      }
+    });
+
+    it('should include a 403 hint about missing OAuth scopes', () => {
+      const response = new Response(null, { status: 403 });
+      const parsed = { raw: {}, requestId: 'r1' } as unknown as ParsedHeaders;
+
+      try {
+        handleErrorResponse(
+          client,
+          response,
+          `${BASE_URL}/v1/characters/123/wallet/`,
+          parsed,
+          false,
+          resolveCache,
+        );
+        throw new Error('expected handleErrorResponse to throw');
+      } catch (e) {
+        expect(e).toBeInstanceOf(EsiError);
+        expect((e as EsiError).message).toContain('OAuth scopes required');
+      }
+    });
   });
 
   describe('wrapError', () => {

@@ -106,9 +106,16 @@ export function handleErrorResponse(
     logWarn(`Rate limited (${response.status}) on ${url}`);
   }
 
+  let message = errorMessage;
+  if (response.status === 401) {
+    message = `${errorMessage} — the access token was missing, expired, or lacks the required ESI scope. Fix: verify ESI_ACCESS_TOKEN, or configure onTokenRefresh for automatic refresh on 401`;
+  } else if (response.status === 403) {
+    message = `${errorMessage} — your access token does not have the OAuth scopes required for this endpoint. Check the scopes on your EVE SSO application`;
+  }
+
   throw new EsiError(
     response.status,
-    errorMessage,
+    message,
     url,
     parsed.requestId ?? undefined,
   );

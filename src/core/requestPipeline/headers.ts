@@ -45,7 +45,10 @@ export function buildRequestHeaders(
     const authHeader = client.getAuthorizationHeader();
     if (!authHeader) {
       throw buildError(
-        'Authorization header is required but not provided',
+        [
+          'Authorization header is required for this endpoint but no access token is configured',
+          'Fix: set ESI_ACCESS_TOKEN in your environment (see .env.example), or call client.setAccessToken(token), or pass accessToken to the EsiClient constructor',
+        ].join(' — '),
         'NO_AUTH_TOKEN',
       );
     }
