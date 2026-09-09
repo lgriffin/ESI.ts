@@ -195,7 +195,9 @@
     "api-report": "api-extractor run --local --verbose",
     "api-report:check": "api-extractor run --verbose",
     "schema:drift": "ts-node scripts/generate-schema-drift-report.ts",
-    "schema:drift:ci": "ts-node scripts/generate-schema-drift-report.ts --ci"
+    "schema:drift:ci": "ts-node scripts/generate-schema-drift-report.ts --ci",
+    "audit:check": "ts-node scripts/audit-check.ts --check",
+    "audit:diff": "ts-node scripts/audit-check.ts --diff"
   },
   "lint-staged": {
     "src/**/*.ts": [

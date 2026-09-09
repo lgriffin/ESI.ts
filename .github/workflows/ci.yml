@@ -107,9 +107,6 @@ jobs:
       - name: Run dead code detection (knip)
         run: npx knip --no-exit-code
 
-      - name: Security audit
-        run: npm audit --audit-level=high
-
       - name: Check schema drift
         run: |
           if npm run schema:drift:ci 2>&1 | tee /tmp/schema-drift.log; then
@@ -382,6 +379,80 @@ jobs:
             exit 1
           fi
 
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+
+    # `npm audit` reports the state of the world, not the state of the diff: an
+    # unchanged commit passes before an advisory is published and fails after,
+    # which turns every open PR red for something its author did not do. Those
+    # pre-existing advisories belong to nightly-audit.yml, which files an issue.
+    # This job asks the only question the merge path can answer deterministically
+    # — does *this PR* add an advisory the base branch did not already have?
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # need the base commit to audit it
+
+      - name: Check whether dependencies changed
+        id: deps
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git diff --quiet "$BASE_SHA" HEAD -- package.json package-lock.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No dependency changes — head advisories are identical to base by construction." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.deps.outputs.changed == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --ignore-scripts skips `prepare` (which runs a full tsup build). The only
+      # thing this job needs from node_modules is ts-node for the comparison.
+      - name: Install dependencies
+        if: steps.deps.outputs.changed == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Audit base and head
+        if: steps.deps.outputs.changed == 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # Audit both sides the same way — from the manifest and lockfile alone,
+          # in a bare directory. npm audit resolves from the lockfile, so neither
+          # side needs an install, and neither side can differ because of how its
+          # node_modules happened to be materialised. The two runs also hit the
+          # same advisory-DB snapshot, so any difference is a real difference
+          # between the trees, not a disclosure that landed between two runs.
+          audit_tree() {
+            local sha_or_worktree=$1 dir=$2 out=$3
+            mkdir -p "$dir"
+            if [ "$sha_or_worktree" = "worktree" ]; then
+              cp package.json package-lock.json "$dir/"
+            else
+              git show "$sha_or_worktree:package.json" > "$dir/package.json"
+              git show "$sha_or_worktree:package-lock.json" > "$dir/package-lock.json"
+            fi
+            # npm audit exits non-zero whenever it finds anything; the report is
+            # still on stdout, and audit-check.ts fails loudly on an unusable file.
+            (cd "$dir" && npm audit --json) > "$out" || true
+          }
+
+          audit_tree "$BASE_SHA" /tmp/base-tree /tmp/base-audit.json
+          audit_tree worktree /tmp/head-tree /tmp/head-audit.json
+
+      - name: Compare base against head
+        if: steps.deps.outputs.changed == 'true'
+        run: npm run audit:diff -- --base /tmp/base-audit.json --head /tmp/head-audit.json
+
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
@@ -396,6 +467,7 @@ jobs:
         fuzz-tests,
         api-surface,
         lockfile,
+        dependency-audit,
       ]
     if: always()
 
@@ -411,6 +483,7 @@ jobs:
           FUZZ_TESTS: ${{ needs.fuzz-tests.result }}
           API_SURFACE: ${{ needs.api-surface.result }}
           LOCKFILE: ${{ needs.lockfile.result }}
+          DEPENDENCY_AUDIT: ${{ needs.dependency-audit.result }}
         run: |
           FAILED=""
           for entry in \
@@ -422,7 +495,8 @@ jobs:
             "Contract Tests=$CONTRACT_TESTS" \
             "Fuzz Tests=$FUZZ_TESTS" \
             "API Surface Check=$API_SURFACE" \
-            "Lockfile Consistency=$LOCKFILE"
+            "Lockfile Consistency=$LOCKFILE" \
+            "Dependency Audit=$DEPENDENCY_AUDIT"
           do
             NAME="${entry%%=*}"
             RESULT="${entry#*=}"
