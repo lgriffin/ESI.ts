@@ -5,17 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [9.6.2] - 2026-09-09
+## [9.7.0] - 2026-09-09
+
+First release since 9.6.0. Versions 9.6.1 and 9.6.2 were bumped in
+`package.json` but never published, so upgrading from 9.6.0 picks up
+everything below.
+
+### Added
+
+- **`fetchAllPages` concurrent pagination** — fetch every page of a paginated endpoint in parallel with configurable concurrency (default 8). Adds `fetchAllEndpoint()` on `BaseEsiClient` and 73 `fetchAll*` convenience methods across all 19 domain clients, mirroring the existing `stream*` methods ([#180](https://github.com/lgriffin/ESI.ts/issues/180))
+- **Typed response headers on `EsiResponseMeta`** — `etag`, `pages`, `expires`, `errorLimitRemain` and `errorLimitReset` are now typed fields, so consumers get autocomplete and type safety instead of raw string header lookups ([#179](https://github.com/lgriffin/ESI.ts/issues/179))
+- **Per-endpoint rate limit overrides** — `endpointOverrides` in `RateLimiterConfig` lets you set endpoint-specific limits that take precedence over the generated group specs, for tightening sensitive endpoints such as market history ([#181](https://github.com/lgriffin/ESI.ts/issues/181))
+- **`FetchLike` injection and `createNoopLogger()`** — `ApiClient` accepts an injectable `fetch` via `setFetch()` / `getFetch()` so tests can substitute in-memory doubles, and `createNoopLogger()` gives silent test output. Ships with an `InMemoryFetch` test helper ([#213](https://github.com/lgriffin/ESI.ts/issues/213), [#214](https://github.com/lgriffin/ESI.ts/issues/214))
+- **`npm run help`** — a grouped, intent-organised command reference replacing the flat ~100-entry script listing, with keyword search (`npm run help wallet`)
 
 ### Changed
 
+- **Actionable auth error messages** — `NO_AUTH_TOKEN`, 401 and 403 errors now name the likely cause (missing `ESI_ACCESS_TOKEN`, expired token, missing OAuth scopes) and the specific fix (env var, `setAccessToken`, `onTokenRefresh` callback, or scope configuration)
 - **`npm audit` moved off the PR merge path** — the merge path now runs a diff-aware `Dependency Audit` job that compares base against head and fails only on advisories a PR _introduces_. Pre-existing advisories are the nightly audit's responsibility, so a third-party disclosure no longer turns unrelated PRs red ([#248](https://github.com/lgriffin/ESI.ts/pull/248))
 - **Audit acceptance allowlist** — reviewed known risks are recorded in `scripts/audit-exceptions.json` with a reason and a mandatory expiry date, honoured by the PR gate, the nightly audit and the release gate. An entry past its expiry is a hard failure
-- **Version sources realigned** — `package.json`, `src/core/constants.ts` and `.release-please-manifest.json` had drifted apart; `USER_AGENT` was reporting `esi.ts/9.2.0` to ESI. All three now agree
+- **Schemathesis moved off the PR path** to a nightly run ([#234](https://github.com/lgriffin/ESI.ts/pull/234))
+- **Types regenerated from the ESI spec** — upstream renamed `AllianceDetail` to `AlliancesDetail`
+- Dependency updates: zod, eslint, jest, knip, lint-staged, `@redocly/cli`, `@types/node`
 
 ### Fixed
 
+- **`USER_AGENT` reported a stale version** — `src/core/constants.ts` had drifted to `9.2.0` while `package.json` was on `9.6.1`, so requests identified themselves to CCP as `esi.ts/9.2.0`. `package.json`, `constants.ts` and `.release-please-manifest.json` are now aligned
 - **Nightly audit report corruption** — `nightly-audit.yml` merged stderr into its JSON report, so a single warning line would have made every `jq` query silently report zero vulnerabilities
+- Zod v4 deprecation: `z.ZodTypeAny` replaced with `z.ZodType`
 
 ## [9.1.0] - 2026-08-14
 
