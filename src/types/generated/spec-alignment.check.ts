@@ -187,7 +187,7 @@ type AssertTrue<T extends true> = T;
 
 // Alliance
 type _AllianceInfo = AssertTrue<
-  HasAllSpecKeys<EsiSpec.AllianceDetail, AllianceInfo>
+  HasAllSpecKeys<EsiSpec.AlliancesDetail, AllianceInfo>
 >;
 type _AllianceIcon = AssertTrue<
   HasAllSpecKeys<EsiSpec.AlliancesAllianceIdIconsGet, AllianceIcon>
