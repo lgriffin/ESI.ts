@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.6.2] - 2026-09-09
+
+### Changed
+
+- **`npm audit` moved off the PR merge path** — the merge path now runs a diff-aware `Dependency Audit` job that compares base against head and fails only on advisories a PR _introduces_. Pre-existing advisories are the nightly audit's responsibility, so a third-party disclosure no longer turns unrelated PRs red ([#248](https://github.com/lgriffin/ESI.ts/pull/248))
+- **Audit acceptance allowlist** — reviewed known risks are recorded in `scripts/audit-exceptions.json` with a reason and a mandatory expiry date, honoured by the PR gate, the nightly audit and the release gate. An entry past its expiry is a hard failure
+- **Version sources realigned** — `package.json`, `src/core/constants.ts` and `.release-please-manifest.json` had drifted apart; `USER_AGENT` was reporting `esi.ts/9.2.0` to ESI. All three now agree
+
+### Fixed
+
+- **Nightly audit report corruption** — `nightly-audit.yml` merged stderr into its JSON report, so a single warning line would have made every `jq` query silently report zero vulnerabilities
+
 ## [9.1.0] - 2026-08-14
 
 ### Added
