@@ -21,7 +21,7 @@ defineFeature(feature, (test) => {
     provider?.close();
   });
 
-  test('WHEN looking up a known item type, the provider shall return the data', ({
+  test('Type ID 34 resolves to the Tritanium record', ({
     given,
     when,
     then,
@@ -47,11 +47,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF looking up an unknown type ID, THEN the provider shall return null', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown type ID 999999 resolves to null', ({ given, when, then }) => {
     let result: EveType | null;
 
     given('an SDE provider with test data', () => {
@@ -69,7 +65,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN searching for types by name, the provider shall return matching results', ({
+  test('Fragment Trit matches every loaded type containing it', ({
     given,
     when,
     then,
@@ -94,7 +90,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN navigating the type hierarchy, the provider shall return connected data', ({
+  test('Tritanium resolves through group Mineral to category Material', ({
     given,
     when,
     then,
@@ -127,7 +123,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN navigating the geography hierarchy, the provider shall return connected data', ({
+  test('The Forge descends to Kimotoro constellation and Jita solar system', ({
     given,
     when,
     then,
@@ -171,7 +167,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN looking up stargates for a system, the provider shall return connections', ({
+  test('Jita stargates carry a destination system and stargate ID', ({
     given,
     when,
     then,

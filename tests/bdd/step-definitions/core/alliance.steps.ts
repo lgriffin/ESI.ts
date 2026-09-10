@@ -16,11 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting alliance details for valid alliance ID, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Alliance record for a known alliance ID', ({ given, when, then }) => {
     let result: any;
     const validAllianceId = 99005338;
 
@@ -48,11 +44,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent alliance ID, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown alliance ID rejects the request', ({ given, when, then }) => {
     const invalidAllianceId = 999999999;
     let error: any;
 
@@ -80,11 +72,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF network connectivity issues occur, THEN the client shall handle them gracefully', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Transport failure rejects the request', ({ given, when, then }) => {
     const allianceId = 99005338;
     let error: any;
 
@@ -112,7 +100,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving alliance contacts, the client shall return the data', ({
+  test('Contact list holding a character entry and a corporation entry', ({
     given,
     when,
     then,
@@ -152,11 +140,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE empty contact list, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Alliance holding no contacts', ({ given, when, then }) => {
     const allianceId = 99005338;
     let result: any;
 
@@ -178,11 +162,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF rate limiting gracefully, THEN the client shall respect the rate limit', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Rate limited response rejects the request', ({ given, when, then }) => {
     const allianceId = 99005338;
     let error: any;
 
@@ -207,7 +187,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall measure response performance', ({
+  test('Alliance details resolve inside the latency budget', ({
     given,
     when,
     then,
@@ -243,7 +223,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing alliance information gathering, the client shall complete all steps', ({
+  test('Concurrent fetch of record, contacts, and member corporations', ({
     given,
     when,
     then,

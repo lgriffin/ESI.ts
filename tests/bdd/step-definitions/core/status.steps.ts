@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting current server status, the client shall return the data', ({
+  test('Online server returns all four status fields', ({
     given,
     when,
     then,
@@ -49,11 +49,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN verifying player count is reasonable, the client shall validate the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Player count is a non-negative number', ({ given, when, then }) => {
     let result: any;
 
     given('the server is online with a typical player count', () => {
@@ -78,11 +74,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN verifying start time is a valid timestamp, the client shall validate the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Start time parses as a calendar date', ({ given, when, then }) => {
     let result: any;
 
     given('the server is online', () => {
@@ -108,7 +100,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN VIP mode is active, the client shall report the VIP status', ({
+  test('Restricted login reports the VIP flag set with a low player count', ({
     given,
     when,
     then,
@@ -137,7 +129,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN VIP mode is inactive, the client shall report normal operations', ({
+  test('Open login reports the VIP flag clear with a full player count', ({
     given,
     when,
     then,
@@ -165,7 +157,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF server is unavailable (503), THEN the client shall handle the service outage', ({
+  test('Service unavailable rejects the status request with an EsiError', ({
     given,
     when,
     then,
@@ -191,7 +183,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF internal server error (500), THEN the client shall return a server error', ({
+  test('Internal server error rejects the status request with an EsiError', ({
     given,
     when,
     then,
@@ -217,7 +209,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall monitor server status over multiple checks', ({
+  test('Three successive polls track a changing player count under one server version', ({
     given,
     when,
     then,

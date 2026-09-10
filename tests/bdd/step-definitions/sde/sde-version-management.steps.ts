@@ -15,7 +15,7 @@ defineFeature(feature, (test) => {
     provider?.close();
   });
 
-  test('WHEN querying SDE version, the provider shall return complete metadata', ({
+  test('Version record reports the values supplied with the data set', ({
     given,
     when,
     then,
@@ -43,7 +43,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN an SDE provider has no custom version, it shall return defaults', ({
+  test('Empty provider reports placeholder version fields', ({
     given,
     when,
     then,

@@ -16,11 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving character public profile, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Public profile for a known character ID', ({ given, when, then }) => {
     const validCharacterId = 1689391488;
     let result: any;
 
@@ -51,11 +47,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent character, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown character ID rejects the request', ({ given, when, then }) => {
     const invalidCharacterId = 999999999;
     let error: any;
 
@@ -83,11 +75,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving character portraits, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Portrait URLs at four pixel sizes', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -112,7 +100,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving character roles, the client shall return the data', ({
+  test('Role assignments for an authenticated character', ({
     given,
     when,
     then,
@@ -146,7 +134,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving corporation history, the client shall return the data', ({
+  test('Employment history entries for a character', ({
     given,
     when,
     then,
@@ -189,11 +177,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving character medals, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Medal entries awarded to a character', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -228,7 +212,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving character notifications, the client shall return the data', ({
+  test('Notification entries for an authenticated character', ({
     given,
     when,
     then,
@@ -267,7 +251,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access, THEN the client shall return a forbidden error', ({
+  test('Missing authorization on the roles endpoint rejects the request', ({
     given,
     when,
     then,
@@ -296,7 +280,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF expired authentication, THEN the client shall return an authentication error', ({
+  test('Expired token on the notifications endpoint rejects the request', ({
     given,
     when,
     then,
@@ -325,11 +309,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle high-frequency character requests', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Three character profiles fetched at once', ({ given, when, then }) => {
     const characterIds = [1689391488, 1689391489, 1689391490];
     let results: any;
 
@@ -364,7 +344,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall measure character API response times', ({
+  test('Character profile resolves inside the latency budget', ({
     given,
     when,
     then,
@@ -400,7 +380,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing character profile assembly, the client shall complete all steps', ({
+  test('Concurrent fetch of profile, portrait, roles, and notifications', ({
     given,
     when,
     then,

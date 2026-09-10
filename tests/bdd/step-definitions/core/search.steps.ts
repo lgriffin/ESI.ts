@@ -30,7 +30,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN searching for characters by name, the client shall return matching results', ({
+  test('Character name query returns three character IDs', ({
     given,
     when,
     then,
@@ -63,7 +63,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN searching returns results across multiple categories, the client shall return matching results', ({
+  test('Jita query returns systems, stations, characters, and corporations', ({
     given,
     when,
     then,
@@ -102,7 +102,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE search returns empty results, the client shall return an empty result', ({
+  test('Query matching nothing returns an object with no category keys', ({
     given,
     when,
     then,
@@ -136,7 +136,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN searching for solar systems, the client shall return matching results', ({
+  test('Amarr query returns three solar system IDs', ({
     given,
     when,
     then,
@@ -169,11 +169,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN searching for alliances, the client shall return matching results', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Goonswarm query returns one alliance ID', ({ given, when, then }) => {
     let result: any;
     const characterId = 90000001;
     const searchString = 'Goonswarm';
@@ -202,7 +198,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized search request, THEN the client shall return a forbidden error', ({
+  test('Search without the search scope is rejected with 403', ({
     given,
     when,
     then,
@@ -231,7 +227,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN searching with short query string, the client shall return matching results', ({
+  test('Two-character query returns system and character matches', ({
     given,
     when,
     then,

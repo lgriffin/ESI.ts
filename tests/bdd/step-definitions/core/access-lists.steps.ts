@@ -20,7 +20,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting access list with mixed entity types, the client shall return the data', ({
+  test('List mixing character, corporation, and alliance entries returns both access types', ({
     given,
     when,
     then,
@@ -79,7 +79,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE access list with no entries, the client shall return an empty result', ({
+  test('Empty list returns its identifier with a zero-length entries array', ({
     given,
     when,
     then,
@@ -109,7 +109,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to access list, THEN the client shall return a forbidden error', ({
+  test('Missing token rejects the access list request with an EsiError', ({
     given,
     when,
     then,
@@ -135,7 +135,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF access list not found, THEN the client shall return a not-found error', ({
+  test('Unknown list identifier rejects the request with an EsiError', ({
     given,
     when,
     then,

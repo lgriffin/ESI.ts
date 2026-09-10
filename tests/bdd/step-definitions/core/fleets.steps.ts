@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character fleet info when in a fleet, the client shall return the data', ({
+  test('Fleet commander sees their fleet ID and role', ({
     given,
     when,
     then,
@@ -48,11 +48,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE the character is not in any fleet, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character who is not in any fleet', ({ given, when, then }) => {
     const characterId = 1689391488;
     let caughtError: any;
 
@@ -80,7 +76,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting fleet information, the client shall return the data', ({
+  test('Fleet details include the MOTD and free-move flag', ({
     given,
     when,
     then,
@@ -113,11 +109,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN updating fleet settings, the client shall apply the changes', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Updating the MOTD and free-move flag', ({ given, when, then }) => {
     let result: any;
     const fleetId = 1234567890;
 
@@ -141,7 +133,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing all fleet members, the client shall return the data', ({
+  test('Member list covers commanders and squad members', ({
     given,
     when,
     then,
@@ -190,11 +182,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN kicking a member from the fleet, the client shall complete the operation', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Kicking a member out of the fleet', ({ given, when, then }) => {
     let result: any;
     const fleetId = 1234567890;
     const memberId = 123456789;
@@ -212,11 +200,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN moving a member to a different squad, the client shall complete the move', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Moving a member to another wing and squad', ({ given, when, then }) => {
     let result: any;
     const fleetId = 1234567890;
     const memberId = 123456789;
@@ -239,11 +223,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting fleet wings structure, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Wings expose their nested squads', ({ given, when, then }) => {
     let result: any;
     const fleetId = 1234567890;
 
@@ -282,11 +262,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN creating a new fleet wing, the client shall create the resource', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('New wing returns the assigned wing ID', ({ given, when, then }) => {
     let result: any;
     const fleetId = 1234567890;
 
@@ -307,11 +283,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN creating a new squad under a wing, the client shall create the resource', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('New squad returns the assigned squad ID', ({ given, when, then }) => {
     let result: any;
     const fleetId = 1234567890;
     const wingId = 555;
@@ -332,7 +304,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized fleet access, THEN the client shall return a forbidden error', ({
+  test('Non-boss attempting to change fleet settings', ({
     given,
     when,
     then,
@@ -361,7 +333,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall fetch fleet info, members, and wings concurrently', ({
+  test('Details, members, and wings fetched in parallel', ({
     given,
     when,
     then,

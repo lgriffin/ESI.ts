@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing all wars, the client shall return the data', ({
+  test('War list returns positive numeric identifiers', ({
     given,
     when,
     then,
@@ -43,7 +43,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing wars, the client shall return them in descending order', ({
+  test('War list identifiers descend from newest to oldest', ({
     given,
     when,
     then,
@@ -68,7 +68,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting details of an active war, the client shall return the data', ({
+  test('Active war returns both combatant blocks and its declaration timestamps', ({
     given,
     when,
     then,
@@ -120,7 +120,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting details of a finished war, the client shall return the data', ({
+  test('Concluded war returns a finished timestamp after its start', ({
     given,
     when,
     then,
@@ -170,7 +170,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting details of a mutual war, the client shall return the data', ({
+  test('Mutually agreed war reports the mutual flag set', ({
     given,
     when,
     then,
@@ -214,7 +214,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting killmails for a war, the client shall return the data', ({
+  test('War with three kills returns an identifier and hash per summary', ({
     given,
     when,
     then,
@@ -249,7 +249,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE get killmails for a war with no kills, the client shall return an empty result', ({
+  test('War with no kills returns an empty killmail array', ({
     given,
     when,
     then,
@@ -270,7 +270,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF requesting details for an invalid war ID (404), THEN the client shall return a not-found error', ({
+  test('Unknown war identifier rejects the detail request with an EsiError', ({
     given,
     when,
     then,
@@ -299,7 +299,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('IF requesting killmails for an invalid war ID (404), THEN the client shall return a not-found error', ({
+  test('Unknown war identifier rejects the killmail request with an EsiError', ({
     given,
     when,
     then,
@@ -327,7 +327,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN analyzing war statistics by comparing aggressor and defender, the client shall return the analysis', ({
+  test('Aggressor outscores the defender on ISK destroyed and ships killed', ({
     given,
     when,
     then,
@@ -378,7 +378,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing war investigation workflow, the client shall complete all steps', ({
+  test('War detail and killmails gathered for the same war identifier', ({
     given,
     when,
     then,

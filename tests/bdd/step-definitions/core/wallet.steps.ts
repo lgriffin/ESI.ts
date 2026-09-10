@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting ISK balance for a character, the client shall return the data', ({
+  test('Funded wallet returns the ISK amount as a number', ({
     given,
     when,
     then,
@@ -44,11 +44,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE the character with zero ISK balance, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Empty wallet returns zero', ({ given, when, then }) => {
     let result: any;
     const characterId = 123456789;
 
@@ -66,7 +62,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting journal entries for a character, the client shall return the data', ({
+  test('Journal returns identifier, date, reference type, amount, and balance per entry', ({
     given,
     when,
     then,
@@ -113,7 +109,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE empty journal for a new character, the client shall return an empty result', ({
+  test('New character with no movements returns an empty journal array', ({
     given,
     when,
     then,
@@ -137,7 +133,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting market transactions for a character, the client shall return the data', ({
+  test('Transactions return unit price, quantity, and buy flag per record', ({
     given,
     when,
     then,
@@ -187,7 +183,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting corporation wallet divisions, the client shall return the data', ({
+  test('Seven corporation divisions return their division numbers and balances', ({
     given,
     when,
     then,
@@ -248,7 +244,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting corporation wallet journal for a specific division, the client shall return the data', ({
+  test('Division 1 journal returns entries booked to that division', ({
     given,
     when,
     then,
@@ -288,7 +284,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting corporation wallet transactions for a specific division, the client shall return the data', ({
+  test('Division 1 transactions return records booked to that division', ({
     given,
     when,
     then,
@@ -330,7 +326,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to character wallet (403), THEN the client shall return a forbidden error', ({
+  test('Character wallet request without a token rejects with an EsiError', ({
     given,
     when,
     then,
@@ -364,7 +360,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('IF unauthorized access to corporation wallet (403), THEN the client shall return a forbidden error', ({
+  test('Corporation wallet request without director rights rejects with an EsiError', ({
     given,
     when,
     then,
@@ -395,7 +391,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN fetching balance, journal, and transactions simultaneously, the client shall return the data', ({
+  test('Concurrent balance, journal, and transaction calls each resolve independently', ({
     given,
     when,
     then,
@@ -453,7 +449,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN building a complete financial summary for a character, the client shall produce the summary', ({
+  test('Journal amounts and buy flags total into income, expenditure, and trade counts', ({
     given,
     when,
     then,

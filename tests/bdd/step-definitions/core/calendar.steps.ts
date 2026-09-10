@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting upcoming events for a character, the client shall return the data', ({
+  test('Event list holding an accepted event and an unanswered event', ({
     given,
     when,
     then,
@@ -62,11 +62,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE empty calendar, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character with an empty calendar', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -91,7 +87,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to calendar, THEN the client shall return a forbidden error', ({
+  test('Expired token on the events endpoint rejects the request', ({
     given,
     when,
     then,
@@ -123,7 +119,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting detailed information for a specific event, the client shall return the data', ({
+  test('Detail record for a corporation-owned fleet operation', ({
     given,
     when,
     then,
@@ -166,11 +162,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent event, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown event ID rejects the request', ({ given, when, then }) => {
     const characterId = 1689391488;
     const invalidEventId = 999999999;
     let error: any;
@@ -202,11 +194,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN accepting a calendar event invitation, the client shall record the response', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Accepting an invitation', ({ given, when, then }) => {
     const characterId = 1689391488;
     const eventId = 1000001;
 
@@ -233,11 +221,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN declining a calendar event invitation, the client shall record the response', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Declining an invitation', ({ given, when, then }) => {
     const characterId = 1689391488;
     const eventId = 1000002;
 
@@ -264,7 +248,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting attendee list for an event, the client shall return the data', ({
+  test('Attendee list spanning accepted, tentative, and declined responses', ({
     given,
     when,
     then,
@@ -311,7 +295,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN completing event lifecycle - view, respond, and check attendees, the client shall complete all steps', ({
+  test('Detail read, response, and attendee read for one event', ({
     given,
     when,
     then,

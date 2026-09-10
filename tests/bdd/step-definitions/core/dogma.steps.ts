@@ -16,11 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing all dogma attribute IDs, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Attribute index returns numeric IDs', ({ given, when, then }) => {
     let result: any;
 
     given('the dogma API is available', () => {
@@ -44,7 +40,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting a specific dogma attribute, the client shall return the data', ({
+  test('Attribute 20 resolves to the powerOutput record', ({
     given,
     when,
     then,
@@ -80,11 +76,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent attribute, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown attribute ID', ({ given, when, then }) => {
     const invalidId = 999999999;
     let caughtError: any;
 
@@ -113,11 +105,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing all dogma effect IDs, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Effect index returns numeric IDs', ({ given, when, then }) => {
     let result: any;
 
     given('the dogma effects API is available', () => {
@@ -139,11 +127,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting a specific dogma effect, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Effect 11 resolves to the lowPower record', ({ given, when, then }) => {
     let result: any;
     const effectId = 11;
 
@@ -176,11 +160,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent effect, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown effect ID', ({ given, when, then }) => {
     const invalidId = 999999999;
     let caughtError: any;
 
@@ -206,7 +186,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting mutated item dogma info, the client shall return the data', ({
+  test('Abyssal module reports its provenance and rolled stats', ({
     given,
     when,
     then,
@@ -251,11 +231,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent dynamic item, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown type and item ID pair', ({ given, when, then }) => {
     let caughtError: any;
 
     given('an invalid type and item ID', () => {

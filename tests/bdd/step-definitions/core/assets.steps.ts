@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting assets for a valid character, the client shall return the data', ({
+  test('Asset listing for a character holding two stacks', ({
     given,
     when,
     then,
@@ -66,11 +66,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE empty inventory, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character holding an empty hangar', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -95,7 +91,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access, THEN the client shall return a forbidden error', ({
+  test('Expired token on the character assets endpoint rejects the request', ({
     given,
     when,
     then,
@@ -127,11 +123,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up names for specific assets, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Name lookup for two named items', ({ given, when, then }) => {
     const characterId = 1689391488;
     const itemIds = [1000000001, 1000000002];
     let result: any;
@@ -164,11 +156,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up locations for specific assets, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Position lookup for one item in space', ({ given, when, then }) => {
     const characterId = 1689391488;
     const itemIds = [1000000001];
     let result: any;
@@ -201,7 +189,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving corporation assets, the client shall return the data', ({
+  test('Asset listing for a corporation hangar division', ({
     given,
     when,
     then,
@@ -238,7 +226,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle concurrent character and corporation asset fetch', ({
+  test('Character listing and corporation listing fetched at once', ({
     given,
     when,
     then,
@@ -297,7 +285,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN performing full asset audit workflow, the client shall complete all steps', ({
+  test('Listing feeding name and location lookups for its own item IDs', ({
     given,
     when,
     then,

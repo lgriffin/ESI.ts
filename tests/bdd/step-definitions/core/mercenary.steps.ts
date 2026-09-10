@@ -18,7 +18,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting mercenary dens with development data, the client shall return the data', ({
+  test('Two dens return their development, anarchy, and active operation counts', ({
     given,
     when,
     then,
@@ -65,7 +65,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE no mercenary dens available, the client shall return an empty result', ({
+  test('Character with no dens receives an empty array', ({
     given,
     when,
     then,
@@ -86,7 +86,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting active MTOs spawned from dens, the client shall return the data', ({
+  test('Active and spawning operations return their site type and status', ({
     given,
     when,
     then,
@@ -135,7 +135,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN cross-referencing dens with their operations, the client shall return the analysis', ({
+  test('Operation den_id matches the parent den fetched alongside it', ({
     given,
     when,
     then,
@@ -188,7 +188,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting mercenary den detail, the client shall return den details', ({
+  test('Running den reports its evolution levels, infomorphs, and skyhook', ({
     given,
     when,
     then,
@@ -234,7 +234,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting MTO detail by operation ID, the client shall return operation details', ({
+  test('Available operation reports its dungeon type and expiry time', ({
     given,
     when,
     then,
@@ -270,7 +270,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF service unavailable error, THEN the client shall handle the service outage', ({
+  test('Den request during an ESI outage is rejected with 503', ({
     given,
     when,
     then,

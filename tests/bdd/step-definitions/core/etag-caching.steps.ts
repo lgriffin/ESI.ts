@@ -29,7 +29,7 @@ defineFeature(feature, (test) => {
     client.shutdown();
   });
 
-  test('WHEN a first-time API request returns data, the client shall cache the response', ({
+  test('First response carrying an ETag is stored in the cache', ({
     given,
     when,
     then,
@@ -66,7 +66,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN data is unchanged on a subsequent request, the client shall return the cached response', ({
+  test('Repeat request inside the TTL window is served from the cache', ({
     given,
     when,
     then,
@@ -84,7 +84,7 @@ defineFeature(feature, (test) => {
     });
 
     when(
-      'the client makes the same request and server returns 304 Not Modified',
+      'the client repeats the same request inside the TTL window',
       async () => {
         cachedResult = await client.alliance.getAlliances();
       },
@@ -99,7 +99,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN data changes on a subsequent request, the client shall update the cache', ({
+  test('Repeat request inside the TTL window does not observe changed server data', ({
     given,
     when,
     then,
@@ -117,18 +117,18 @@ defineFeature(feature, (test) => {
       expect(firstResult).toEqual(oldData);
     });
 
-    when('the server returns new data with a different ETag', async () => {
+    when('the server would return new data with a different ETag', async () => {
       updatedResult = await client.alliance.getAlliances();
     });
 
-    then('the cache shall be updated with the new data', () => {
+    then('the client shall return the originally cached data', () => {
       // Spec-aware cache returns original data (TTL not expired)
       expect(updatedResult).toEqual(oldData);
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
 
-  test('The client shall provide cache statistics for performance insight', ({
+  test('Cache statistics report entry counts and age bounds', ({
     given,
     when,
     then,
@@ -174,7 +174,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN the cache is manually cleared, the client shall remove all cached data', ({
+  test('Clearing the cache removes every stored entry', ({
     given,
     when,
     then,
@@ -197,7 +197,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHERE cache configuration can be updated at runtime, the client shall behave accordingly', ({
+  test('Updated maximum entry count is reflected in statistics', ({
     given,
     when,
     then,
@@ -220,7 +220,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF server errors gracefully with caching, THEN the client shall return a server error', ({
+  test('Repeat request inside the TTL window does not observe a server error', ({
     given,
     when,
     then,
@@ -238,18 +238,18 @@ defineFeature(feature, (test) => {
       expect(firstResult).toEqual(validData);
     });
 
-    when('the server returns an error', async () => {
+    when('the server would return an error', async () => {
       fetchMock.mockResponseOnce('Server Error', { status: 500 });
 
       errorResult = await client.alliance.getAlliances();
     });
 
-    then('the stale cached data shall be served', () => {
+    then('the client shall return the originally cached data', () => {
       expect(errorResult).toEqual(validData);
     });
   });
 
-  test('WHEN ETag headers are missing, the client shall work without caching', ({
+  test('Response without an ETag header is not cached', ({
     given,
     when,
     then,
@@ -273,7 +273,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE client works normally with caching disabled, the client shall return an empty result', ({
+  test('Cache statistics are unavailable when caching is disabled', ({
     given,
     when,
     then,

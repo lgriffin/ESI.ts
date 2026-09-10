@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving current market prices, the client shall return the data', ({
+  test('Price list returns average and adjusted prices per type', ({
     given,
     when,
     then,
@@ -57,7 +57,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF market data is unavailable, THEN the client shall handle the outage', ({
+  test('Price request during a market data outage is rejected with 503', ({
     given,
     when,
     then,
@@ -85,7 +85,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving market orders for a region, the client shall return the data', ({
+  test('Region order book returns buy and sell orders for one type', ({
     given,
     when,
     then,
@@ -145,7 +145,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN filtering buy and sell orders, the client shall return filtered results', ({
+  test('Mixed order book splits into bid and ask sides by is_buy_order', ({
     given,
     when,
     then,
@@ -200,7 +200,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving historical market data, the client shall return the data', ({
+  test('Two days of history return traded volume and price bounds', ({
     given,
     when,
     then,
@@ -251,7 +251,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN analyzing price trends, the client shall return the analysis', ({
+  test('Five consecutive daily averages expose a rising price series', ({
     given,
     when,
     then,
@@ -310,7 +310,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving character market orders, the client shall return the data', ({
+  test('Character open orders carry region and corporation attribution', ({
     given,
     when,
     then,
@@ -355,7 +355,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving character order history, the client shall return the data', ({
+  test('Closed order reports a terminal state and its filled volume', ({
     given,
     when,
     then,
@@ -404,7 +404,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle high-frequency market data requests', ({
+  test('Three region order books requested in parallel each resolve with their own orders', ({
     given,
     when,
     then,
@@ -446,7 +446,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle market data with large volumes', ({
+  test('Order book of 5000 entries is returned intact inside the time budget', ({
     given,
     when,
     then,
@@ -491,7 +491,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing market analysis workflow, the client shall complete all steps', ({
+  test('Price, order book, and history lookups combine into one analysis pass', ({
     given,
     when,
     then,

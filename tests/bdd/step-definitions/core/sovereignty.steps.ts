@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting active sovereignty campaigns, the client shall return the data', ({
+  test('Active contests return event type and both contest scores', ({
     given,
     when,
     then,
@@ -69,7 +69,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE no active sovereignty campaigns, the client shall return an empty result', ({
+  test('Cluster with no contests returns an empty campaign array', ({
     given,
     when,
     then,
@@ -92,7 +92,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF service unavailable error for sovereignty, THEN the client shall handle the service outage', ({
+  test('ESI outage rejects the campaign request with an EsiError', ({
     given,
     when,
     then,
@@ -120,7 +120,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting combined sovereignty systems with ADM indices, the client shall return the data', ({
+  test('Two claimed systems return separate military, industrial, and strategic levels', ({
     given,
     when,
     then,
@@ -189,7 +189,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN fetching combined sovereignty data, the client shall replace separate map and structures calls', ({
+  test('Combined payload carries claim, development, and hub vulnerability window together', ({
     given,
     when,
     then,
@@ -246,7 +246,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle concurrent fetch of campaigns and systems', ({
+  test('Concurrent campaign and system calls resolve to joinable payloads', ({
     given,
     when,
     then,

@@ -1,49 +1,89 @@
 Feature: Dogma System
+  Dogma is EVE's attribute and effect engine: every module, ship and charge in
+  the game is described by numeric attributes and the effects that consume
+  them. The Dogma client exposes the three public views of that data — the
+  attribute index, the effect index, and the per-record detail behind each ID —
+  plus the dynamic (abyssal mutated) item endpoint, which reports the rolled
+  attribute values for one specific item instance rather than for a type.
 
-  # EARS: Event-driven
-  Scenario: WHEN listing all dogma attribute IDs, the client shall return the data
-    Given the dogma API is available
-    When the client requests all attributes
-    Then the client shall return an array of attribute IDs
+  All four endpoints are unauthenticated reference data, so the only failure
+  mode worth specifying here is the unknown-identifier case.
 
-  # EARS: Event-driven
-  Scenario: WHEN getting a specific dogma attribute, the client shall return the data
-    Given a valid attribute ID
-    When the client requests attribute details
-    Then the client shall return complete attribute information
+  # ── Index endpoints ─────────────────────────────────────────────────
 
-  # EARS: Unwanted
-  Scenario: IF non-existent attribute, THEN the client shall return a not-found error
-    Given an invalid attribute ID
-    When the client requests attribute details for the invalid ID
-    Then the client shall return a not found error for the attribute
+  Rule: When the client requests the dogma attribute index or the dogma effect index, the Dogma client shall return an array of numeric identifiers.
+    Both indexes are flat ID lists rather than full records — the caller pairs
+    them with the detail endpoints below to hydrate what it needs. The element
+    type matters because these IDs are used directly as path parameters, so
+    the scenarios assert every element is a number rather than only checking
+    the array shape.
 
-  # EARS: Event-driven
-  Scenario: WHEN listing all dogma effect IDs, the client shall return the data
-    Given the dogma effects API is available
-    When the client requests all effects
-    Then the client shall return an array of effect IDs
+    Scenario: Attribute index returns numeric IDs
+      Given the dogma API is available
+      When the client requests all attributes
+      Then the client shall return an array of attribute IDs
 
-  # EARS: Event-driven
-  Scenario: WHEN getting a specific dogma effect, the client shall return the data
-    Given a valid effect ID
-    When the client requests effect details
-    Then the client shall return complete effect information
+    Scenario: Effect index returns numeric IDs
+      Given the dogma effects API is available
+      When the client requests all effects
+      Then the client shall return an array of effect IDs
 
-  # EARS: Unwanted
-  Scenario: IF non-existent effect, THEN the client shall return a not-found error
-    Given an invalid effect ID
-    When the client requests effect details for the invalid ID
-    Then the client shall return a not found error for the effect
+  # ── Attribute and effect detail ─────────────────────────────────────
 
-  # EARS: Event-driven
-  Scenario: WHEN getting mutated item dogma info, the client shall return the data
-    Given a mutated item exists
-    When the client requests its dynamic dogma info
-    Then the client shall return modified attributes and effects
+  Rule: When the client requests a dogma attribute by identifier, the Dogma client shall return a record carrying attribute_id, name, description, and published.
+    The attribute record is what turns an opaque ID into something displayable:
+    name and description for UI, published for whether the attribute is live in
+    the game, and attribute_id echoed back so a batch of parallel lookups can
+    be reassembled.
 
-  # EARS: Unwanted
-  Scenario: IF non-existent dynamic item, THEN the client shall return a not-found error
-    Given an invalid type and item ID
-    When the client requests dynamic info for the invalid item
-    Then the client shall return a not found error for the dynamic item
+    Scenario: Attribute 20 resolves to the powerOutput record
+      Given a valid attribute ID
+      When the client requests attribute details
+      Then the client shall return complete attribute information
+
+  Rule: When the client requests a dogma effect by identifier, the Dogma client shall return a record carrying effect_id, name, published, and is_warp_safe.
+    Effects carry behavioural flags in addition to naming — is_warp_safe in
+    particular decides whether activating the effect drops the ship out of
+    warp, so it is part of the minimum contract rather than an optional extra.
+
+    Scenario: Effect 11 resolves to the lowPower record
+      Given a valid effect ID
+      When the client requests effect details
+      Then the client shall return complete effect information
+
+  # ── Mutated (abyssal) items ─────────────────────────────────────────
+
+  Rule: When the client requests dynamic item dogma for a type and item pair, the Dogma client shall return the creator, mutator type, source type, and the rolled attribute and effect lists.
+    An abyssal module is generated by applying a mutaplasmid to a base module,
+    so its stats exist only on that one item. The response therefore records
+    the provenance — who created it, from which source type, with which
+    mutator — alongside the resulting attribute and effect values.
+
+    Scenario: Abyssal module reports its provenance and rolled stats
+      Given a mutated item exists
+      When the client requests its dynamic dogma info
+      Then the client shall return modified attributes and effects
+
+  # ── Unknown identifiers ─────────────────────────────────────────────
+
+  Rule: If a dogma lookup is answered with HTTP 404, then the Dogma client shall reject with an EsiError carrying status code 404.
+    Dogma IDs are frequently supplied by callers from stale static data
+    exports, so a miss is an ordinary outcome rather than an exceptional one.
+    The rejection is typed and carries the status code, letting a caller
+    distinguish "this ID no longer exists" from a transport failure. The three
+    scenarios cover the same requirement across all three detail endpoints.
+
+    Scenario: Unknown attribute ID
+      Given an invalid attribute ID
+      When the client requests attribute details for the invalid ID
+      Then the client shall return a not found error for the attribute
+
+    Scenario: Unknown effect ID
+      Given an invalid effect ID
+      When the client requests effect details for the invalid ID
+      Then the client shall return a not found error for the effect
+
+    Scenario: Unknown type and item ID pair
+      Given an invalid type and item ID
+      When the client requests dynamic info for the invalid item
+      Then the client shall return a not found error for the dynamic item

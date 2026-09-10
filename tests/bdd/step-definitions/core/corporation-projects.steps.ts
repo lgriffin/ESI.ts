@@ -18,7 +18,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing corporation projects, the client shall return the data', ({
+  test('Project list holding an active project and a completed project', ({
     given,
     when,
     then,
@@ -63,11 +63,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting specific project details, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Detail record for an active project', ({ given, when, then }) => {
     let result: any;
     const corporationId = 98000001;
     const projectId = 1001;
@@ -103,7 +99,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting project contributors, the client shall return the data', ({
+  test('Contributor roll for a project with two participants', ({
     given,
     when,
     then,
@@ -141,7 +137,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character contribution, the client shall return the data', ({
+  test('Single contributor looked up by character ID', ({
     given,
     when,
     then,
@@ -178,11 +174,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent project ID, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown project ID rejects the request', ({ given, when, then }) => {
     const corporationId = 98000001;
     const invalidProjectId = 999999999;
     let error: any;

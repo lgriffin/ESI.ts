@@ -19,7 +19,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN browsing public SKINR listings, the client shall return paginated results', ({
+  test('Public board returns ISK-priced and PLEX-priced listings with a cursor', ({
     given,
     when,
     then,
@@ -73,7 +73,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test("WHEN getting a character's own Paragon Hub listings, the client shall return seller data", ({
+  test('Character listing reports the seller ID and public target', ({
     given,
     when,
     then,
@@ -115,7 +115,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN browsing alliance-targeted listings, the client shall return filtered results', ({
+  test('Alliance endpoint returns the designs targeted at that alliance', ({
     given,
     when,
     then,
@@ -154,7 +154,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN paginating through listings with cursor, the client shall support forward pagination', ({
+  test('Cursor request returns the page with its forward and backward cursors', ({
     given,
     when,
     then,
@@ -195,7 +195,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF service unavailable error, THEN the client shall handle the service outage', ({
+  test('Listing request during an ESI outage is rejected with 503', ({
     given,
     when,
     then,

@@ -15,11 +15,7 @@ defineFeature(feature, (test) => {
     provider?.close();
   });
 
-  test('WHEN looking up root market groups, the provider shall return top-level groups', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Every root market group has a null parent', ({ given, when, then }) => {
     let results: MarketGroup[];
 
     given('a static data provider with hierarchical test data', () => {
@@ -40,7 +36,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN navigating market group children, the provider shall return child groups', ({
+  test('Parent group 1031 yields the Minerals child group', ({
     given,
     when,
     then,

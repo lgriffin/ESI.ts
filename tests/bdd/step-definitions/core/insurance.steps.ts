@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving insurance prices for all ship types, the client shall return the data', ({
+  test('Frigate and battleship prices with their level lists', ({
     given,
     when,
     then,
@@ -73,11 +73,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN verifying insurance price tiers are ordered correctly, the client shall validate the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Costs and payouts rise with each tier', ({ given, when, then }) => {
     let levels: any;
 
     given('insurance prices are available for tier verification', () => {
@@ -113,11 +109,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN verifying payout always exceeds cost for each tier, the client shall validate the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Payout exceeds cost at every tier', ({ given, when, then }) => {
     let result: any;
 
     given('insurance prices are available for payout verification', () => {
@@ -153,11 +145,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle large insurance dataset', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Five hundred ship types in one response', ({ given, when, then }) => {
     let result: any;
     let startTime: number;
     let endTime: number;
@@ -213,11 +201,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing insurance tiers, the client shall return exactly six per ship type', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Six named tiers per ship type', ({ given, when, then }) => {
     let result: any;
     const expectedTierNames = [
       'Basic',
@@ -266,11 +250,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF eSI service unavailable error, THEN the client shall handle the service outage', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('ESI answering 503', ({ given, when, then }) => {
     let caughtError: any;
 
     given('the ESI service is temporarily unavailable', () => {
@@ -297,11 +277,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF rate limiting on insurance endpoint, THEN the client shall respect the rate limit', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('ESI answering 429 after the error limit', ({ given, when, then }) => {
     let caughtError: any;
 
     given('the API rate limit has been exceeded', () => {

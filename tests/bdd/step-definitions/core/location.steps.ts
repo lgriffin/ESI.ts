@@ -16,11 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving character location while docked, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character docked in Jita 4-4', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -49,11 +45,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN retrieving character location while in space, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character undocked in space', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -84,11 +76,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN checking online status of an active character, the client shall validate the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Online character with login history', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -121,7 +109,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN checking online status of an offline character, the client shall validate the data', ({
+  test('Offline character logged out after their last login', ({
     given,
     when,
     then,
@@ -155,11 +143,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving the ship a character is currently flying, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Pilot flying a named titan', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -187,7 +171,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN fetching location, online status, and ship simultaneously, the client shall return the data', ({
+  test('Location, online status, and ship fetched in parallel', ({
     given,
     when,
     then,
@@ -244,11 +228,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to character location, THEN the client shall return a forbidden error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Location request without a token', ({ given, when, then }) => {
     const characterId = 1689391488;
     let caughtError: any;
 
@@ -273,11 +253,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to online status, THEN the client shall return a forbidden error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Online status request without a token', ({ given, when, then }) => {
     const characterId = 1689391488;
     let caughtError: any;
 

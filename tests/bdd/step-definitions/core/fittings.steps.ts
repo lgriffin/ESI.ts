@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing all saved fittings for a character, the client shall return the data', ({
+  test('Two saved fittings expand to full module lists', ({
     given,
     when,
     then,
@@ -71,11 +71,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE the character has no saved fittings, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character who has saved no fittings', ({ given, when, then }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -93,11 +89,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN creating a new fitting, the client shall create the resource', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('New fitting returns the assigned ID', ({ given, when, then }) => {
     let result: any;
     const characterId = 1689391488;
     let fittingData: any;
@@ -130,7 +122,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN creating fitting with maximum items, the client shall create the resource', ({
+  test('Fully fitted battleship returns the assigned ID', ({
     given,
     when,
     then,
@@ -175,11 +167,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN deleting an existing fitting, the client shall complete the operation', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Deleting a fitting resolves with no body', ({ given, when, then }) => {
     let result: any;
     const characterId = 1689391488;
     const fittingId = 42;
@@ -197,11 +185,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to fittings, THEN the client shall return a forbidden error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Listing fittings with an expired token', ({ given, when, then }) => {
     const characterId = 1689391488;
     let caughtError: any;
 
@@ -226,7 +210,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access when creating a fitting, THEN the client shall return a forbidden error', ({
+  test('Creating a fitting without the write scope', ({
     given,
     when,
     then,
@@ -262,7 +246,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN performing full fitting lifecycle - create, list, and delete, the client shall complete all steps', ({
+  test('Create, list, then delete for one character', ({
     given,
     when,
     then,

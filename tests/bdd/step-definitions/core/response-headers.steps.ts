@@ -33,7 +33,7 @@ defineFeature(feature, (test) => {
     statusClient = new StatusClient(apiClient);
   });
 
-  test('WHEN a deprecated endpoint returns a 299 warning, the client shall expose the warning', ({
+  test('Deprecation notice arrives as warning code 299', ({
     given,
     when,
     then,
@@ -59,7 +59,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN an endpoint returns a 199 upgrade notice, the client shall expose the notice', ({
+  test('Upgrade notice arrives as warning code 199', ({
     given,
     when,
     then,
@@ -87,7 +87,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE endpoint returns no warning, the client shall return an empty result', ({
+  test('Response without a Warning header leaves meta.warning undefined', ({
     given,
     when,
     then,
@@ -108,7 +108,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN a response includes a request ID, the client shall expose it in metadata', ({
+  test('Request identifier header is exposed as meta.requestId', ({
     given,
     when,
     then,
@@ -132,7 +132,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF requesting ID included in EsiError on failure, THEN the client shall handle it gracefully', ({
+  test('EsiError retains the request ID, status code, and URL given at construction', ({
     given,
     then,
   }) => {
@@ -157,11 +157,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN a response includes a date header, the client shall expose it in metadata', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Date header is exposed as meta.date', ({ given, when, then }) => {
     given('an API response with a Date header', () => {
       fetchMock.mockResponseOnce(STATUS_BODY, {
         headers: {
@@ -181,7 +177,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN a response includes a content-language header, the client shall expose it in metadata', ({
+  test('Content-Language header is exposed as meta.contentLanguage', ({
     given,
     when,
     then,

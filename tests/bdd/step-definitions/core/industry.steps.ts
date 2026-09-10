@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character industry jobs, the client shall return the data', ({
+  test('Manufacturing and invention jobs with blueprint and run counts', ({
     given,
     when,
     then,
@@ -67,11 +67,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHILE the character has no industry jobs, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character with no jobs installed', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -91,11 +87,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting corporation industry jobs, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Corporation jobs across three installers', ({ given, when, then }) => {
     const corporationId = 1344654522;
     let result: any;
 
@@ -138,7 +130,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting publicly available industry facilities, the client shall return the data', ({
+  test('Facilities report their owner, location, and tax', ({
     given,
     when,
     then,
@@ -189,11 +181,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN getting industry system cost indices, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Cost indices per activity for two systems', ({ given, when, then }) => {
     let result: any;
 
     given('solar systems with industry activity', () => {
@@ -244,11 +232,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character mining ledger, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Two days of ore mined across two systems', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -294,7 +278,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting corporation mining observers, the client shall return the data', ({
+  test('Structure observers with last update times', ({
     given,
     when,
     then,
@@ -335,11 +319,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting mining observer details, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Observer breaks mining down per character', ({ given, when, then }) => {
     const corporationId = 1344654522;
     const observerId = 1021975535893;
     let result: any;
@@ -385,7 +365,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to industry jobs, THEN the client shall return a forbidden error', ({
+  test('Character industry jobs with an expired token', ({
     given,
     when,
     then,
@@ -417,7 +397,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('IF unauthorized access to corporation mining data, THEN the client shall return a forbidden error', ({
+  test('Mining observers without the required corporation role', ({
     given,
     when,
     then,
@@ -449,7 +429,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('The client shall fetch character jobs, facilities, and systems concurrently', ({
+  test('Jobs, facilities, and systems fetched in parallel', ({
     given,
     when,
     then,

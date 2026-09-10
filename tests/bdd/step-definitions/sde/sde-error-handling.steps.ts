@@ -16,7 +16,7 @@ const feature = loadFeature(
 );
 
 defineFeature(feature, (test) => {
-  test('IF data fails schema validation, THEN the error shall include entity details', ({
+  test('Validation failure on an EveType records the type name and ID 34', ({
     given,
     when,
     then,
@@ -36,15 +36,18 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then('an SdeValidationError shall be thrown with the entity type', () => {
-      expect(caughtError).not.toBeNull();
-      expect(caughtError!.entityType).toBe('EveType');
-      expect(caughtError!.entityId).toBe(34);
-      expect(caughtError!.message).toContain('EveType');
-    });
+    then(
+      'the SdeValidationError shall carry the entity type and entity ID',
+      () => {
+        expect(caughtError).not.toBeNull();
+        expect(caughtError!.entityType).toBe('EveType');
+        expect(caughtError!.entityId).toBe(34);
+        expect(caughtError!.message).toContain('EveType');
+      },
+    );
   });
 
-  test('IF an SDE version mismatch occurs, THEN the error shall report both versions', ({
+  test('Mismatch between expected 2.0 and actual 1.0 reports both versions', ({
     given,
     when,
     then,
@@ -73,7 +76,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN an SDE error occurs, type guards shall correctly identify the error type', ({
+  test('Guards separate base, database, validation, and mismatch errors', ({
     given,
     when,
     then,

@@ -16,11 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving recent killmails for a character, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Three recent kills for a character', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -50,11 +46,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE the character with no recent killmails, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character with no recent PvP', ({ given, when, then }) => {
     const characterId = 111111111;
     let result: any;
 
@@ -74,7 +66,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving full killmail details, the client shall return the data', ({
+  test('Full kill report with victim and attackers', ({
     given,
     when,
     then,
@@ -145,11 +137,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF invalid killmail hash returns 404, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Killmail hash that does not match the ID', ({ given, when, then }) => {
     const killmailId = 100001;
     const invalidHash = 'invalid_hash_value';
     let caughtError: any;
@@ -178,11 +166,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving recent killmails for a corporation, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Five recent kills for a corporation', ({ given, when, then }) => {
     const corporationId = 1344654522;
     let result: any;
 
@@ -215,11 +199,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN chaining summary retrieval to detail lookup, the client shall chain the operations', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Summary hash feeds the detail lookup', ({ given, when, then }) => {
     const characterId = 1689391488;
     let summaryList: any;
     let detail: any;
@@ -280,7 +260,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN analyzing killmail attacker composition, the client shall return the analysis', ({
+  test('Final blow and damage totals across three attackers', ({
     given,
     when,
     then,
@@ -346,11 +326,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to character killmails, THEN the client shall return a forbidden error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character killmails without a token', ({ given, when, then }) => {
     const characterId = 1689391488;
     let caughtError: any;
 

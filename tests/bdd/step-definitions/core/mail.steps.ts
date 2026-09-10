@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving mail inbox headers, the client shall return the data', ({
+  test('Inbox holding three messages returns a summary for each', ({
     given,
     when,
     then,
@@ -89,7 +89,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE empty inbox, the client shall return an empty result', ({
+  test('Character with no mail returns no summaries', ({
     given,
     when,
     then,
@@ -111,7 +111,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN reading a single mail message, the client shall return the full content', ({
+  test('Requesting a mail by ID returns its sender and recipients', ({
     given,
     when,
     then,
@@ -140,17 +140,20 @@ defineFeature(feature, (test) => {
       result = await client.mail.getMail(characterId, mailId);
     });
 
-    then('the client shall return the complete message with body', () => {
-      expect(result).toBeDefined();
-      expect(result.mail_id).toBe(mailId);
-      expect(result.subject).toBe('Fleet Operation Tonight');
-      expect(result.from).toBe(123456789);
-      expect(result.recipients).toBeInstanceOf(Array);
-      expect(result.recipients.length).toBeGreaterThan(0);
-    });
+    then(
+      'the client shall return the complete message with its recipients',
+      () => {
+        expect(result).toBeDefined();
+        expect(result.mail_id).toBe(mailId);
+        expect(result.subject).toBe('Fleet Operation Tonight');
+        expect(result.from).toBe(123456789);
+        expect(result.recipients).toBeInstanceOf(Array);
+        expect(result.recipients.length).toBeGreaterThan(0);
+      },
+    );
   });
 
-  test('WHEN retrieving mail labels with unread counts, the client shall return the data', ({
+  test('Four labels are returned with unread counts and an inbox total', ({
     given,
     when,
     then,
@@ -198,7 +201,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN creating a custom mail label, the client shall create the resource', ({
+  test('Created label returns its assigned numeric ID', ({
     given,
     when,
     then,
@@ -221,7 +224,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN deleting a custom mail label, the client shall complete the operation', ({
+  test('Deleting a custom label forwards the character and label IDs', ({
     given,
     when,
     then,
@@ -245,7 +248,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving subscribed mailing lists, the client shall return the data', ({
+  test('Subscribed mailing lists return numeric IDs and names', ({
     given,
     when,
     then,
@@ -281,11 +284,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN sending a new mail, the client shall deliver the message', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Sent mail returns its assigned numeric ID', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -308,7 +307,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN deleting a mail, the client shall complete the operation', ({
+  test('Deleting a message forwards the character and mail IDs', ({
     given,
     when,
     then,
@@ -329,7 +328,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN updating mail metadata to mark as read, the client shall apply the changes', ({
+  test('Marking a mail as read forwards the metadata payload', ({
     given,
     when,
     then,
@@ -357,7 +356,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN fetching headers, labels, and mailing lists simultaneously, the client shall return the data', ({
+  test('Headers, labels, and mailing lists fetched in parallel each resolve', ({
     given,
     when,
     then,
@@ -421,7 +420,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to mail, THEN the client shall return a forbidden error', ({
+  test('Unauthenticated header request is rejected with 403', ({
     given,
     when,
     then,
@@ -450,11 +449,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF not found error for non-existent mail, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown mail ID is rejected with 404', ({ given, when, then }) => {
     const characterId = 1689391488;
     const nonExistentMailId = 999999;
     let caughtError: any;

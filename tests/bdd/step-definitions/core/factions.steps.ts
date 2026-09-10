@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting overall faction warfare statistics, the client shall return the data', ({
+  test('Every faction reports pilots, systems held, and score totals', ({
     given,
     when,
     then,
@@ -68,7 +68,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting FW stats for an enlisted character, the client shall return the data', ({
+  test('Enlisted character reports rank and personal totals', ({
     given,
     when,
     then,
@@ -110,7 +110,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access for character FW stats, THEN the client shall return a forbidden error', ({
+  test('Character statistics with an expired token', ({
     given,
     when,
     then,
@@ -145,7 +145,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN getting FW stats for an enlisted corporation, the client shall return the data', ({
+  test('Enlisted corporation reports pilot count and corporate totals', ({
     given,
     when,
     then,
@@ -185,7 +185,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access for corporation FW stats, THEN the client shall return a forbidden error', ({
+  test('Corporation statistics with an expired token', ({
     given,
     when,
     then,
@@ -220,7 +220,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN getting current ownership of FW systems, the client shall return the data', ({
+  test('Contested and uncontested systems are distinguished', ({
     given,
     when,
     then,
@@ -270,7 +270,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN getting list of active FW wars, the client shall return the data', ({
+  test('Active conflicts list each faction and its opponent', ({
     given,
     when,
     then,
@@ -306,7 +306,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting overall FW leaderboard, the client shall return the data', ({
+  test('Overall leaderboard ranks factions by kills and victory points', ({
     given,
     when,
     then,
@@ -364,7 +364,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character FW leaderboard, the client shall return the data', ({
+  test('Character leaderboard ranks individual pilots', ({
     given,
     when,
     then,
@@ -412,7 +412,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing faction warfare overview, the client shall complete all steps', ({
+  test('Overview gathers stats, systems, and wars in one pass', ({
     given,
     when,
     then,

@@ -21,7 +21,7 @@ defineFeature(feature, (test) => {
     provider?.close();
   });
 
-  test('WHEN looking up a faction, the provider shall return faction details', ({
+  test('Faction 500001 is the Caldari State and lists member races', ({
     given,
     when,
     then,
@@ -50,7 +50,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN navigating the character hierarchy, the provider shall return connected data', ({
+  test('Race 1 Caldari descends to bloodlines and ancestries', ({
     given,
     when,
     then,
@@ -91,7 +91,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up NPC infrastructure, the provider shall return station details', ({
+  test('NPC station 60003760 reports an owner and a reprocessing efficiency', ({
     given,
     when,
     then,

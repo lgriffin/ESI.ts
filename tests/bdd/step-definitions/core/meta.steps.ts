@@ -15,7 +15,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting OpenAPI JSON specification, the client shall return the data', ({
+  test('JSON specification returns version 3.1.0 with paths and components', ({
     given,
     when,
     then,
@@ -49,7 +49,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting OpenAPI YAML specification, the client shall return the data', ({
+  test('YAML specification returns the raw document text', ({
     given,
     when,
     then,
@@ -82,7 +82,7 @@ components: {}`;
     });
   });
 
-  test('IF the API service is unavailable, THEN the client shall handle the outage', ({
+  test('Specification request during an outage reports Service Unavailable', ({
     given,
     when,
     then,
@@ -108,7 +108,7 @@ components: {}`;
     });
   });
 
-  test('WHEN comparing JSON and YAML specifications, the client shall return the analysis', ({
+  test('JSON and YAML fetched in parallel describe the same alliances path', ({
     given,
     when,
     then,

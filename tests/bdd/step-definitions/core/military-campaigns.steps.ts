@@ -18,7 +18,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing military campaigns, the client shall return the data', ({
+  test('Active and completed campaigns return state and progress', ({
     given,
     when,
     then,
@@ -66,7 +66,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting a specific campaign by UUID, the client shall return the data', ({
+  test('Campaign fetched by UUID returns its start time and progress', ({
     given,
     when,
     then,
@@ -100,7 +100,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting objectives for a campaign, the client shall return the data', ({
+  test('Two objectives return their participant totals and commitments', ({
     given,
     when,
     then,
@@ -157,7 +157,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character campaign participation, the client shall return the data', ({
+  test('Character objective returns the commitment flag and contribution', ({
     given,
     when,
     then,
@@ -199,7 +199,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF requesting a non-existent campaign, THEN the client shall return a not-found error', ({
+  test('Unknown campaign UUID is rejected with 404', ({
     given,
     when,
     then,
@@ -228,7 +228,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE no military campaigns are active, the client shall return an empty result', ({
+  test('No campaigns in progress returns an empty array', ({
     given,
     when,
     then,

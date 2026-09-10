@@ -17,7 +17,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting trained skills for a character, the client shall return the data', ({
+  test('Two-skill character returns per-skill levels and total SP', ({
     given,
     when,
     then,
@@ -45,7 +45,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN a high-SP character has many skills, the client shall return all skill data', ({
+  test('Veteran character returns every skill entry and unallocated SP', ({
     given,
     when,
     then,
@@ -102,7 +102,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting the skill training queue, the client shall return the data', ({
+  test('Three queued skills keep ascending queue positions', ({
     given,
     when,
     then,
@@ -154,7 +154,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE empty skill queue, the client shall return an empty result', ({
+  test('Idle character returns an empty queue array', ({
     given,
     when,
     then,
@@ -176,7 +176,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character neural remap attributes, the client shall return the data', ({
+  test('Default attribute spread returns all five values and remaps', ({
     given,
     when,
     then,
@@ -206,7 +206,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN attributes include a custom remap, the client shall return remap details', ({
+  test('Perception-weighted remap returns the reallocated values', ({
     given,
     when,
     then,
@@ -239,7 +239,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to skills, THEN the client shall return a forbidden error', ({
+  test('Expired token rejects the skills request with an EsiError', ({
     given,
     when,
     then,
@@ -265,7 +265,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle concurrent fetch of skills, queue, and attributes', ({
+  test('Concurrent skills, queue, and attributes calls each resolve independently', ({
     given,
     when,
     then,
