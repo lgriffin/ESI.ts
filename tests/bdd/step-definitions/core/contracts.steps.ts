@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting contracts for a valid character, the client shall return the data', ({
+  test('Contract list holding a courier contract and an item exchange contract', ({
     given,
     when,
     then,
@@ -62,11 +62,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE empty contracts list, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character with an empty contract list', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -91,11 +87,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent character for contracts, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown character ID rejects the request', ({ given, when, then }) => {
     const invalidCharacterId = 999999999;
     let error: any;
 
@@ -123,11 +115,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting public contracts in a region, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Public contracts outstanding in a region', ({ given, when, then }) => {
     const regionId = 10000002;
     let result: any;
 
@@ -166,7 +154,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting bids for an auction contract, the client shall return the data', ({
+  test('Bid history on a character auction contract', ({
     given,
     when,
     then,
@@ -213,11 +201,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting bids for a public auction, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Bid history on a public auction contract', ({ given, when, then }) => {
     const contractId = 200000002;
     let result: any;
 
@@ -248,11 +232,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting items in a character contract, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Item lines on an item exchange contract', ({ given, when, then }) => {
     const characterId = 1689391488;
     const contractId = 100000002;
     let result: any;
@@ -296,7 +276,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN filtering character contracts to find only courier contracts, the client shall return filtered results', ({
+  test('Mixed contract list filtered by the caller on the type field', ({
     given,
     when,
     then,
@@ -346,7 +326,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing contract inspection workflow, the client shall complete all steps', ({
+  test('Contract located in the list, then its bids and items', ({
     given,
     when,
     then,
@@ -438,7 +418,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN comparing character and corporation contracts, the client shall return the analysis', ({
+  test('Character list and corporation list fetched at once', ({
     given,
     when,
     then,

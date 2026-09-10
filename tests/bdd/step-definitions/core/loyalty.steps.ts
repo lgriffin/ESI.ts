@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving loyalty points for a character, the client shall return the data', ({
+  test('Balances from three corporations are returned with typed fields', ({
     given,
     when,
     then,
@@ -56,7 +56,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE the character with no loyalty points, the client shall return an empty result', ({
+  test('Character who has never run missions returns no balances', ({
     given,
     when,
     then,
@@ -81,7 +81,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN identifying the highest LP balance, the client shall return the top corporation', ({
+  test('Four returned balances support maximum and total calculations', ({
     given,
     when,
     then,
@@ -122,7 +122,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving loyalty store offers for a corporation, the client shall return the data', ({
+  test('Store catalogue returns offers with LP and ISK costs', ({
     given,
     when,
     then,
@@ -182,7 +182,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN filtering offers by affordability, the client shall return filtered results', ({
+  test('Offers priced above the character balance are excluded by an lp_cost filter', ({
     given,
     when,
     then,
@@ -241,7 +241,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing offers with required items, the client shall include item details', ({
+  test('Offer requiring a hull and a mineral lists both trade-in items', ({
     given,
     when,
     then,
@@ -283,7 +283,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to loyalty points, THEN the client shall return a forbidden error', ({
+  test('Unauthenticated loyalty point request is rejected with 403', ({
     given,
     when,
     then,
@@ -315,7 +315,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF server error on store offers, THEN the client shall return a server error', ({
+  test('Store offer request fails with an upstream 500', ({
     given,
     when,
     then,

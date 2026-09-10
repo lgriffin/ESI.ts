@@ -1,0 +1,4 @@
+{
+  "$comment": "Feature files not yet converted to EARS Rule-block form. This list is a ratchet: spec-audit fails if a listed file now passes, so entries can only be removed. It is now empty — every feature file is Rule-compliant and the audit gates all of them unconditionally. Do not add entries; a new feature file must be Rule-compliant from the start.",
+  "unconverted": []
+}

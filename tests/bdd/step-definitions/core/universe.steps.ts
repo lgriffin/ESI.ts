@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving solar system details, the client shall return the data', ({
+  test('Jita returns its name, security status, and celestial identifier arrays', ({
     given,
     when,
     then,
@@ -60,7 +60,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent solar system, THEN the client shall return a not-found error', ({
+  test('Unknown system identifier rejects with an EsiError', ({
     given,
     when,
     then,
@@ -89,7 +89,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving all solar systems, the client shall return the data', ({
+  test('System index returns numeric system identifiers', ({
     given,
     when,
     then,
@@ -116,7 +116,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving station details, the client shall return the data', ({
+  test('Station returns its host system and service list', ({
     given,
     when,
     then,
@@ -166,7 +166,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving structure information, the client shall return the data', ({
+  test('Structure returns its host system and position vector', ({
     given,
     when,
     then,
@@ -203,7 +203,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving item type information, the client shall return the data', ({
+  test('Tritanium returns its group, volume, and published flag', ({
     given,
     when,
     then,
@@ -247,7 +247,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving item groups, the client shall return the data', ({
+  test('Item group index returns numeric group identifiers', ({
     given,
     when,
     then,
@@ -274,7 +274,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving item group details, the client shall return the data', ({
+  test('Mineral group returns its category and contained type identifiers', ({
     given,
     when,
     then,
@@ -311,7 +311,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving star information, the client shall return the data', ({
+  test('Star returns its spectral class, temperature, and radius', ({
     given,
     when,
     then,
@@ -352,7 +352,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving planet information, the client shall return the data', ({
+  test('Planet returns its host system and position', ({
     given,
     when,
     then,
@@ -388,7 +388,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle concurrent universe data requests', ({
+  test('Three concurrent system lookups each return their own system', ({
     given,
     when,
     then,
@@ -426,7 +426,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle large universe data sets', ({
+  test('Index of 8000 systems resolves within the time bound', ({
     given,
     when,
     then,
@@ -460,7 +460,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN searching for universe entities, the client shall return matching results', ({
+  test('Search for Jita returns matching system and station identifiers', ({
     given,
     when,
     then,
@@ -500,7 +500,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN resolving names to IDs, the client shall return the mappings', ({
+  test('Mixed identifier list resolves to names with categories', ({
     given,
     when,
     then,
@@ -551,7 +551,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing system exploration workflow, the client shall complete all steps', ({
+  test('System lookup chained into star, station, and planet lookups', ({
     given,
     when,
     then,

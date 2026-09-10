@@ -20,12 +20,7 @@ defineFeature(feature, (test) => {
     provider?.close();
   });
 
-  test('WHEN looking up a star by system, the provider shall return the star', ({
-    given,
-    when,
-    then,
-    and,
-  }) => {
+  test('Star of system 30000142 is a K7 V', ({ given, when, then, and }) => {
     let result: Star | null;
 
     given('a static data provider with hierarchical test data', () => {
@@ -51,7 +46,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN looking up planets for a system, the provider shall return planets', ({
+  test('Planets of system 30000142 all reference that system', ({
     given,
     when,
     then,
@@ -80,7 +75,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up moons for a system, the provider shall return moons', ({
+  test('Moons of system 30000142 all reference that system', ({
     given,
     when,
     then,
@@ -109,7 +104,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up asteroid belts for a system, the provider shall return belts', ({
+  test('Asteroid belts are returned for system 30000142', ({
     given,
     when,
     then,

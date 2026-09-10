@@ -16,11 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving corporation public profile, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Public profile for a known corporation ID', ({ given, when, then }) => {
     let result: any;
     const validCorporationId = 1344654522;
 
@@ -56,7 +52,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF non-existent corporation, THEN the client shall return a not-found error', ({
+  test('Unknown corporation ID rejects the request', ({
     given,
     when,
     then,
@@ -88,7 +84,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving corporation members, the client shall return the data', ({
+  test('Member character IDs for an authenticated director', ({
     given,
     when,
     then,
@@ -116,11 +112,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving member roles, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Role assignments for a corporation member', ({ given, when, then }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -154,7 +146,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving corporation assets, the client shall return the data', ({
+  test('Blueprint inventory entries for an authenticated member', ({
     given,
     when,
     then,
@@ -179,7 +171,7 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedAssets);
     });
 
-    when('the client requests assets', async () => {
+    when('the client requests corporation blueprints', async () => {
       result =
         await client.corporations.getCorporationBlueprints(corporationId);
     });
@@ -194,7 +186,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving corporation structures, the client shall return the data', ({
+  test('Structure entries carrying a vulnerability state', ({
     given,
     when,
     then,
@@ -236,7 +228,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving corporation wallets, the client shall return the data', ({
+  test('Wallet division records returned by the standings call', ({
     given,
     when,
     then,
@@ -261,11 +253,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedWallets as any);
     });
 
-    when('the client requests wallets', async () => {
-      result = (await client.corporations.getCorporationStandings(
-        corporationId,
-      )) as any;
-    });
+    when(
+      'the client requests corporation standings returning wallet divisions',
+      async () => {
+        result = (await client.corporations.getCorporationStandings(
+          corporationId,
+        )) as any;
+      },
+    );
 
     then('the client shall return wallet divisions', () => {
       expect(result).toBeInstanceOf(Array);
@@ -277,7 +272,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving wallet journal, the client shall return the data', ({
+  test('Wallet journal records returned by the standings call', ({
     given,
     when,
     then,
@@ -304,11 +299,14 @@ defineFeature(feature, (test) => {
         .mockResolvedValue(expectedJournal as any);
     });
 
-    when('the client requests wallet journal', async () => {
-      result = (await client.corporations.getCorporationStandings(
-        corporationId,
-      )) as any;
-    });
+    when(
+      'the client requests corporation standings returning journal entries',
+      async () => {
+        result = (await client.corporations.getCorporationStandings(
+          corporationId,
+        )) as any;
+      },
+    );
 
     then('the client shall return transaction history', () => {
       expect(result).toBeInstanceOf(Array);
@@ -320,7 +318,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF insufficient permissions, THEN the client shall return a forbidden error', ({
+  test('Missing director role on the member list rejects the request', ({
     given,
     when,
     then,
@@ -349,7 +347,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF invalid authentication, THEN the client shall return an authentication error', ({
+  test('Invalid token on the blueprints endpoint rejects the request', ({
     given,
     when,
     then,
@@ -378,11 +376,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle large corporation data sets', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Member list of ten thousand IDs', ({ given, when, then }) => {
     let result: any;
     let responseTime: number;
     const corporationId = 1344654522;
@@ -412,7 +406,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle concurrent corporation requests', ({
+  test('Three corporation profiles fetched at once', ({
     given,
     when,
     then,
@@ -452,7 +446,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing corporation profile assembly, the client shall complete all steps', ({
+  test('Concurrent fetch of profile, members, standings, and structures', ({
     given,
     when,
     then,

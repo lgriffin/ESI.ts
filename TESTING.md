@@ -98,14 +98,28 @@ expect(result.players).toBe(12345);
 **Config:** `jest.unit.config.cjs` (same runner as TDD)
 **Run:** `npm run bdd`
 
-40 feature files written in Gherkin, with matching step definitions. Covers:
+52 feature files written in Gherkin, with matching step definitions. Covers:
 
-- All 35 domain API modules (alliance, market, universe, etc.)
+- All domain API modules (alliance, market, universe, etc.)
 - Cross-cutting behaviors: ETag caching, response header extraction, deprecation warnings
 - Integration workflows: character profile assembly, market analysis, fleet operations
 - Performance scenarios: concurrency, large datasets, memory efficiency
 
 Individual modules can be run selectively: `npm run bdd:market`, `npm run bdd:alliance`, etc.
+
+**These files are an EARS specification, not just tests.** Every `Rule:` block
+is one atomic requirement written in Easy Approach to Requirements Syntax, with
+the scenarios that verify it nested underneath. `npm run spec:audit` enforces
+the form and runs as a required CI check.
+
+- `tests/bdd/README.md` — the rules, in brief
+- `tests/bdd/GUIDE.md` — how to write them: choosing a pattern, deriving a
+  requirement from the assertions, fixing each audit finding
+
+```bash
+npm run spec:audit           # all feature files
+npm run spec:audit:verbose   # plus requirement and scenario counts
+```
 
 ### Tier 3: Integration Tests (Mocked)
 

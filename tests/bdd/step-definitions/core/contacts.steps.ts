@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting contacts for a valid character, the client shall return the data', ({
+  test('Character contact list spanning character, corporation, and alliance entries', ({
     given,
     when,
     then,
@@ -66,11 +66,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE empty contacts list, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character with an empty contact list', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
 
@@ -95,7 +91,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to contacts, THEN the client shall return a forbidden error', ({
+  test('Expired token on the character contacts endpoint rejects the request', ({
     given,
     when,
     then,
@@ -127,7 +123,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting contact labels for a character, the client shall return the data', ({
+  test('Character labels naming friendly, hostile, and neutral', ({
     given,
     when,
     then,
@@ -160,11 +156,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN adding new contacts to a character contact list, the client shall add the entries', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Two contacts added at standing five', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
     let newContacts: any;
@@ -198,11 +190,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN removing contacts from a character contact list, the client shall complete the operation', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Two contacts deleted by ID', ({ given, when, then }) => {
     const characterId = 1689391488;
     const contactIds = [111111111, 222222222];
 
@@ -224,7 +212,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting contacts for a corporation, the client shall return the data', ({
+  test('Corporation contact list holding an allied alliance and a hostile character', ({
     given,
     when,
     then,
@@ -266,7 +254,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting corporation contact labels, the client shall return the data', ({
+  test('Corporation labels naming war targets and allies', ({
     given,
     when,
     then,
@@ -296,7 +284,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing contact management workflow - list, add, and verify, the client shall complete all steps', ({
+  test('List, add, and re-read showing the new contact', ({
     given,
     when,
     then,

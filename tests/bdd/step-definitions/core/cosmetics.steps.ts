@@ -18,7 +18,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character SKINR licenses, the client shall return owned designs', ({
+  test('Licence list holding an activated design and an unactivated one', ({
     given,
     when,
     then,
@@ -58,7 +58,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting SKINR components, the client shall return component licenses', ({
+  test('Component list holding a limited-run nanocoating and an unlimited pattern', ({
     given,
     when,
     then,
@@ -101,7 +101,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up a public SKINR design, the client shall return design attributes', ({
+  test('Public design record with tier level and layout slots', ({
     given,
     when,
     then,
@@ -140,11 +140,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE character has no SKINR licenses, the client shall return empty results', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character owning no SKINR licences', ({ given, when, then }) => {
     let result: any;
 
     given('the character has no SKINR licenses', () => {
@@ -163,11 +159,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF service unavailable error, THEN the client shall handle the service outage', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Service outage rejects the request', ({ given, when, then }) => {
     let caughtError: any;
 
     given('the ESI service is down', () => {

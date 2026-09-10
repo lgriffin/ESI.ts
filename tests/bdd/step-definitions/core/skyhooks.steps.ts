@@ -18,7 +18,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting sovereignty hubs as Upwell structures, the client shall return the data', ({
+  test('Hub listing reports an online hub with upgrades and an offline hub without', ({
     given,
     when,
     then,
@@ -67,7 +67,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('WHEN getting orbital skyhooks with silo data, the client shall return the data', ({
+  test('Skyhook listing reports silo capacity and current fill level', ({
     given,
     when,
     then,
@@ -103,7 +103,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting skyhooks that are currently raidable, the client shall return the data', ({
+  test('Raidable listing includes entries both inside and outside their raid window', ({
     given,
     when,
     then,
@@ -147,7 +147,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting skyhook detail, the client shall return detailed skyhook data', ({
+  test('Skyhook detail returns shield state, reagent stock, and theft window', ({
     given,
     when,
     then,
@@ -197,7 +197,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting sovereignty hub detail, the client shall return detailed hub data', ({
+  test('Hub detail returns upgrade power state, reagent bay, and resource pools', ({
     given,
     when,
     then,
@@ -247,7 +247,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF service unavailable error for skyhooks, THEN the client shall handle the service outage', ({
+  test('ESI outage rejects the hub request with an EsiError', ({
     given,
     when,
     then,

@@ -63,8 +63,13 @@ build/
 # VS Code specific files
 .vscode/
 
-# Claude Code
-.claude/
+# Claude Code — local session state stays out, but skills are project
+# convention (the EARS/Gherkin workflow that spec-audit enforces) and must be
+# shared with everyone working on the repo.
+# (Exclude the contents, not the directory itself — git cannot re-include a
+# path whose parent directory is excluded.)
+.claude/*
+!.claude/skills/
 
 # Log files
 *.log

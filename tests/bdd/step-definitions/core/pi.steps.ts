@@ -17,7 +17,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing all colonies for a character, the client shall return the data', ({
+  test('Two colonies return their planet type and upgrade level', ({
     given,
     when,
     then,
@@ -64,7 +64,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE the character with no colonies, the client shall return an empty result', ({
+  test('Character with no colonies receives an empty array', ({
     given,
     when,
     then,
@@ -86,7 +86,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting detailed layout for a colony, the client shall return the data', ({
+  test('Two-pin colony returns the link joining its pins', ({
     given,
     when,
     then,
@@ -143,7 +143,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE get layout for an empty colony, the client shall return an empty result', ({
+  test('Colony with nothing built returns three empty arrays', ({
     given,
     when,
     then,
@@ -170,7 +170,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting a PI schematic by ID, the client shall return the data', ({
+  test('Bacteria schematic returns its name and cycle time', ({
     given,
     when,
     then,
@@ -200,11 +200,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF schematic not found, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown schematic ID is rejected with 404', ({ given, when, then }) => {
     let caughtError: any;
     const schematicId = 999999;
 
@@ -226,7 +222,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing customs offices for a corporation, the client shall return the data', ({
+  test('Two customs offices return their office and system IDs', ({
     given,
     when,
     then,
@@ -276,7 +272,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to customs offices, THEN the client shall return a forbidden error', ({
+  test('Customs office request without the corporation role is rejected with 403', ({
     given,
     when,
     then,
@@ -307,7 +303,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving colonies and inspect their layouts, the client shall return the data', ({
+  test('Planet ID from the colony listing drives the follow-up layout request', ({
     given,
     when,
     then,

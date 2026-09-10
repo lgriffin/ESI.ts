@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN calculating shortest route between two systems, the client shall return the result', ({
+  test('Five-system route between two known systems', ({
     given,
     when,
     then,
@@ -43,7 +43,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN calculating secure route, the client shall return the result', ({
+  test('Safer preference returns a longer high-security path', ({
     given,
     when,
     then,
@@ -74,7 +74,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN calculating insecure route, the client shall return the result', ({
+  test('LessSecure preference returns a three-system path', ({
     given,
     when,
     then,
@@ -102,7 +102,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN routing from a system to itself, the client shall return a single-system route', ({
+  test('Route from a system to itself contains that system alone', ({
     given,
     when,
     then,
@@ -125,7 +125,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN routing through multiple systems, the client shall return multi-hop waypoints', ({
+  test('Fifteen-hop route across the map returns numeric system IDs', ({
     given,
     when,
     then,
@@ -158,7 +158,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF the destination is unreachable, THEN the client shall return an error', ({
+  test('Unreachable destination is rejected with 404', ({
     given,
     when,
     then,
@@ -185,7 +185,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN routing with avoided systems, the client shall exclude them from the path', ({
+  test('Route avoiding two systems omits both from the path', ({
     given,
     when,
     then,

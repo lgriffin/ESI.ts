@@ -71,7 +71,11 @@ npm run lint
 ## Testing
 
 - **TDD tests** live in `tests/tdd/` and mirror the source structure.
-- **BDD scenarios** live in `tests/bdd/`.
+- **BDD scenarios** live in `tests/bdd/`. These are an EARS specification: one
+  atomic requirement per Gherkin `Rule:` block, verified by the scenarios nested
+  under it, and enforced in CI by `npm run spec:audit`. Read
+  [`tests/bdd/GUIDE.md`](tests/bdd/GUIDE.md) before changing observable client
+  behaviour; [`tests/bdd/README.md`](tests/bdd/README.md) is the short version.
 - **Benchmark tests** live in `tests/benchmark/`.
 - **Shared test helpers** live in `tests/tdd/helpers/` (e.g., `clientErrorTests.ts` for HTTP error path testing).
 - Run all tests:

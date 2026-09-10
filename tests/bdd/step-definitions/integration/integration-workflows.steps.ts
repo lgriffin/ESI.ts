@@ -18,7 +18,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing character profile creation, the client shall complete all steps', ({
+  test('Character profile joins character, corporation, and alliance by identifier', ({
     given,
     when,
     then,
@@ -99,7 +99,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN completing market analysis for trading decisions, the client shall complete all steps', ({
+  test('Market analysis derives best bid, best ask, and spread from returned orders', ({
     given,
     when,
     then,
@@ -217,7 +217,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN managing corporation overview and members, the client shall complete all steps', ({
+  test('Corporation overview sums wallet balances across two divisions', ({
     given,
     when,
     then,
@@ -311,7 +311,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN managing fleet formation, the client shall complete all steps', ({
+  test('Fleet overview joins the boss, members, and wings of one fleet', ({
     given,
     when,
     then,
@@ -399,7 +399,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN setting up manufacturing operations, the client shall complete all steps', ({
+  test('Manufacturing setup sums remaining runs across returned blueprints', ({
     given,
     when,
     then,
@@ -492,7 +492,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF graceful degradation when services are unavailable, THEN the client shall handle the service outage', ({
+  test('Portrait outage leaves the character and corporation lookups fulfilled', ({
     given,
     when,
     then,
@@ -550,7 +550,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN gathering data efficiently for complex workflows, the client shall complete all steps', ({
+  test('Profile fan-out behind the initial character lookup', ({
     given,
     when,
     then,

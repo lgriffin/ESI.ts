@@ -18,7 +18,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting freelance jobs listing, the client shall return the data', ({
+  test('Open and in-progress jobs with a forward cursor', ({
     given,
     when,
     then,
@@ -71,11 +71,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE no freelance jobs available, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('No jobs published', ({ given, when, then }) => {
     let result: any;
 
     given('no freelance jobs exist', () => {
@@ -101,7 +97,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting a specific freelance job by ID, the client shall return the data', ({
+  test('Hauling contract exposes its description and career', ({
     given,
     when,
     then,
@@ -164,11 +160,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF requesting a non-existent job, THEN the client shall return a not-found error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Unknown job ID', ({ given, when, then }) => {
     const invalidJobId = 'job-nonexistent';
     let caughtError: any;
 
@@ -193,11 +185,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character freelance jobs, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test("Character's own jobs", ({ given, when, then }) => {
     let result: any;
     const characterId = 1689391488;
 
@@ -235,11 +223,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting character participation in a specific job, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character contribution to a mining job', ({ given, when, then }) => {
     let result: any;
     const characterId = 1689391488;
     const jobId = 'job-010';
@@ -275,11 +259,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting corporation freelance jobs, the client shall return the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test("Corporation's own jobs", ({ given, when, then }) => {
     let result: any;
     const corporationId = 1344654522;
 
@@ -315,11 +295,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN paginating forward through freelance jobs, the client shall return the correct page', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Following the after token to page two', ({ given, when, then }) => {
     let page2: any;
 
     given('a first page with an after cursor', () => {
@@ -373,7 +349,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN paginating backward through freelance jobs, the client shall return the correct page', ({
+  test('Following the before token back to page one', ({
     given,
     when,
     then,
@@ -411,11 +387,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to character freelance jobs, THEN the client shall return a forbidden error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character jobs with an invalid token', ({ given, when, then }) => {
     const characterId = 1689391488;
     let caughtError: any;
 

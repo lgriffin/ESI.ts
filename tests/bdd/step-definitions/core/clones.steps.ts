@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting clone information for a valid character, the client shall return the data', ({
+  test('Clone record with a home station and two jump clones', ({
     given,
     when,
     then,
@@ -59,7 +59,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized clone request, THEN the client shall return a forbidden error', ({
+  test('Expired token rejects with the reason reported by ESI', ({
     given,
     when,
     then,
@@ -90,7 +90,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN getting active implants for a character, the client shall return the data', ({
+  test('Implant list for a character wearing five implants', ({
     given,
     when,
     then,
@@ -119,11 +119,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE the character with no implants, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Character wearing no implants', ({ given, when, then }) => {
     const characterId = 90000001;
     let result: any;
 
@@ -144,7 +140,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN retrieving clones and their implants, the client shall return the data', ({
+  test('Jump clone implants read alongside the active implant set', ({
     given,
     when,
     then,

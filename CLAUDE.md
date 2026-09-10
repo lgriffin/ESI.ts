@@ -11,7 +11,7 @@ npm run clean          # Remove dist/, coverage/, docs/
 npm run lint           # ESLint (src/)
 npm run format:check   # Prettier check
 npm run validate       # lint + format + build + coverage + knip
-npm run check:all      # validate + ESI endpoint validation + spec lint + version check
+npm run check:all      # validate + ESI endpoint validation + spec lint + version check + EARS spec audit
 ```
 
 ### Testing
@@ -21,6 +21,7 @@ npm test               # Unit + BDD tests (jest.unit.config.cjs)
 npm run coverage       # Unit tests with coverage
 npm run bdd            # All BDD scenario tests
 npm run bdd:<domain>   # Single BDD suite (e.g., bdd:market, bdd:character)
+npm run spec:audit     # EARS/Gherkin specification audit (feature files)
 npm run test:integration  # Integration tests
 npm run contract       # Contract tests against live ESI spec
 npm run fuzz           # Property-based fuzz tests (fast-check)
@@ -57,7 +58,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `tests/tdd/` — Unit tests
 - `tests/tdd/helpers/` — Shared test utilities (e.g., `clientErrorTests.ts`)
 - `tests/benchmark/` — Performance benchmark tests
-- `tests/bdd/` — BDD features + step definitions (jest-cucumber)
+- `tests/bdd/` — BDD features + step definitions (jest-cucumber). Feature files are an EARS specification: one atomic `shall` requirement per `Rule:` block, scenarios nested beneath the rule they verify. See `tests/bdd/README.md` for the rules and `tests/bdd/GUIDE.md` for how to write them; enforced by `npm run spec:audit`.
 - `tests/integration/` — Integration tests (live ESI optional)
 - `tests/contract/` — Contract tests against live OpenAPI spec
 - `tests/fuzz/` — Property-based fuzz tests (fast-check)
@@ -103,8 +104,8 @@ Key middleware in the pipeline:
 - `etc/esi.ts.api.md` — auto-generated API surface report
 - `okf/` — auto-generated OKF knowledge bundle from OpenAPI spec
 
-
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
+
 ## Beads Issue Tracker
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
@@ -154,7 +155,9 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 5. **Hand off** - Summarize changes, validation, issue status, and any blocked sync/commit/push step
 
 **Critical rules:**
+
 - Explicit user or orchestrator instructions override this Beads block.
 - Do not commit or push without clear authority from the active profile or the current user request.
 - If a required sync or push is blocked, stop and report the exact command and error.
+
 <!-- END BEADS INTEGRATION -->

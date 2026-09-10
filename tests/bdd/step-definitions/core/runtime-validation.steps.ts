@@ -27,7 +27,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Valid ESI response shall pass schema validation', ({
+  test('Valid alliance response returns the declared fields', ({
     given,
     when,
     then,
@@ -63,7 +63,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Invalid ESI response shall trigger validation error', ({
+  test('Response with a mistyped field rejects with the Zod issue list', ({
     given,
     when,
     then,
@@ -100,7 +100,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Extra fields from ESI shall be preserved', ({
+  test('Unknown fields added by ESI survive parsing', ({
     given,
     when,
     then,
@@ -135,7 +135,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Validation shall be disabled when configured', ({
+  test('Client with validateResponse disabled returns a mistyped field untouched', ({
     given,
     when,
     then,
@@ -174,7 +174,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Validation error shall be catchable as EsiError', ({
+  test('Validation error is catchable as EsiError and narrowed by the guard', ({
     given,
     when,
     then,
@@ -210,7 +210,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Schema shall reject missing required fields', ({
+  test('Character info missing corporation_id names that field in the issue path', ({
     given,
     when,
     then,
@@ -245,7 +245,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Schema shall accept missing optional fields', ({
+  test('Character info with only the required fields parses', ({
     given,
     when,
     then,
@@ -276,7 +276,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Schema shall validate nested object structures', ({
+  test('Fleet wing with two nested squads parses both squads', ({
     given,
     when,
     then,
@@ -306,7 +306,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Schema shall accept unknown enum values gracefully', ({
+  test('Alliance contact with an unrecognised contact_type keeps the raw value', ({
     given,
     when,
     then,

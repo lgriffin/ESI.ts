@@ -14,7 +14,7 @@ import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 const feature = loadFeature('tests/bdd/features/core/0051-resilience.feature');
 
 defineFeature(feature, (test) => {
-  test('IF an endpoint fails repeatedly, THEN the circuit breaker shall open', ({
+  test('Third consecutive 503 opens a circuit with a threshold of three', ({
     given,
     when,
     then,
@@ -41,7 +41,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF the circuit is open and the cooldown expires, THEN the circuit shall transition to half-open', ({
+  test('Probe succeeding after the reset timeout closes the circuit', ({
     given,
     when,
     then,
@@ -69,7 +69,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF retries are exhausted on a 503, THEN the client shall throw the final error', ({
+  test('Persistent 503 runs three attempts and rethrows the 503', ({
     given,
     when,
     then,
@@ -117,7 +117,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF a request fails then succeeds on retry, THEN the client shall return the successful response', ({
+  test('Second attempt succeeds after a 503 on the first', ({
     given,
     when,
     then,
@@ -158,7 +158,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF a 401 occurs on an authenticated endpoint, THEN the client shall refresh the token and retry', ({
+  test('401 on an authenticated endpoint is replayed after refreshing', ({
     given,
     when,
     then,
@@ -196,7 +196,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF token refresh fails, THEN the client shall throw a token refresh error', ({
+  test('Rejecting refresh callback surfaces a token refresh failure', ({
     given,
     when,
     then,
@@ -239,7 +239,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF the server returns 429, THEN the client shall throw a rate limit error', ({
+  test('429 response reaches the caller as an EsiError with status 429', ({
     given,
     when,
     then,
@@ -274,7 +274,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF a request exceeds the timeout, THEN the client shall throw a timeout error', ({
+  test('Unresponsive endpoint reaches the caller as a TimeoutError', ({
     given,
     when,
     then,
@@ -311,7 +311,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF a 404 error occurs with retries enabled, THEN the client shall not retry', ({
+  test('404 is rethrown after a single attempt despite maxRetries of three', ({
     given,
     when,
     then,

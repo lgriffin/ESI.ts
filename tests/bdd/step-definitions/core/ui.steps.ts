@@ -16,11 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN setting an autopilot waypoint, the client shall complete the operation', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Waypoint appended to the existing route', ({ given, when, then }) => {
     let result: any;
     given('an authenticated character for waypoint', () => {
       jest
@@ -45,7 +41,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN setting a waypoint clearing existing route, the client shall complete the operation', ({
+  test('Waypoint set with the clear-other-waypoints flag', ({
     given,
     when,
     then,
@@ -71,7 +67,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN opening a contract window, the client shall complete the operation', ({
+  test('Contract window opened for a contract identifier', ({
     given,
     when,
     then,
@@ -94,7 +90,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN opening an information window for a character, the client shall complete the operation', ({
+  test('Information window opened for a character identifier', ({
     given,
     when,
     then,
@@ -116,7 +112,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN opening a market details window, the client shall complete the operation', ({
+  test('Market details window opened for a type identifier', ({
     given,
     when,
     then,
@@ -138,7 +134,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN opening a new mail window with pre-filled content, the client shall complete the operation', ({
+  test('Mail window opened with recipients, subject, and body', ({
     given,
     when,
     then,
@@ -167,7 +163,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to UI operations (403), THEN the client shall return a forbidden error', ({
+  test('Unauthenticated waypoint request rejects with an EsiError', ({
     given,
     when,
     then,
@@ -195,7 +191,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF unauthorized access to contract window (403), THEN the client shall return a forbidden error', ({
+  test('Unauthenticated contract window request rejects with an EsiError', ({
     given,
     when,
     then,
@@ -223,7 +219,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN executing multiple UI operations simultaneously, the client shall complete all operations', ({
+  test('Five concurrent UI operations each issue exactly one request', ({
     given,
     when,
     then,

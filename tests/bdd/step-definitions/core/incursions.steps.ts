@@ -16,7 +16,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN listing all active incursions, the client shall return the data', ({
+  test('Established and mobilizing incursions side by side', ({
     given,
     when,
     then,
@@ -78,11 +78,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHILE no active incursions, the client shall return an empty result', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('No incursion active anywhere', ({ given, when, then }) => {
     let result: any;
 
     given('no incursions are active in the universe', () => {
@@ -99,7 +95,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN an incursion is withdrawing, the client shall report the withdrawing state', ({
+  test('Withdrawing incursion has zero influence and no boss', ({
     given,
     when,
     then,
@@ -140,7 +136,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN multiple incursions exist, the client shall return all across constellations', ({
+  test('Three concurrent incursions in distinct constellations', ({
     given,
     when,
     then,
@@ -203,11 +199,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF eSI service unavailable, THEN the client shall handle the service outage', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('ESI answering 503 during downtime', ({ given, when, then }) => {
     let caughtError: any;
 
     given('the ESI service is experiencing downtime', () => {
@@ -231,11 +223,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF server error during incursion retrieval, THEN the client shall return a server error', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('ESI answering 500', ({ given, when, then }) => {
     let caughtError: any;
 
     given('an internal server error occurs', () => {
@@ -264,11 +252,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN verifying incursion influence is within expected bounds, the client shall validate the data', ({
-    given,
-    when,
-    then,
-  }) => {
+  test('Influence at both range endpoints', ({ given, when, then }) => {
     let result: any;
 
     given('active incursions with varying influence', () => {

@@ -19,7 +19,7 @@ defineFeature(feature, (test) => {
     provider?.close();
   });
 
-  test('WHEN looking up a dogma attribute, the provider shall return attribute details', ({
+  test('Attribute 9 is named hp and is flagged high-is-good', ({
     given,
     when,
     then,
@@ -47,7 +47,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up a blueprint, the provider shall return manufacturing data', ({
+  test('Blueprint 787 manufactures from a material list in 6000 seconds', ({
     given,
     when,
     then,
@@ -81,7 +81,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('WHEN looking up a planet schematic, the provider shall return schematic details', ({
+  test('Schematic 65 is Bacteria on a 1800 second cycle', ({
     given,
     when,
     then,

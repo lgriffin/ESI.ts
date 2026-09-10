@@ -18,7 +18,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall benchmark API response times', ({
+  test('Five sequential single-endpoint requests with stubbed latencies of 100 to 300 milliseconds', ({
     given,
     when,
     then,
@@ -131,7 +131,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall perform under varying network conditions', ({
+  test('Stubbed latencies of 50, 200, 500, and 1000 milliseconds', ({
     given,
     when,
     then,
@@ -197,7 +197,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle high concurrency load', ({
+  test('Fifty concurrent character lookups each stubbed at 100 milliseconds', ({
     given,
     when,
     then,
@@ -247,7 +247,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle mixed API concurrent requests', ({
+  test('Alliance, character, corporation, system, and market calls issued together', ({
     given,
     when,
     then,
@@ -339,7 +339,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall process large market datasets', ({
+  test('Ten thousand market orders filtered and aggregated', ({
     given,
     when,
     then,
@@ -429,7 +429,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall handle large corporation member lists', ({
+  test('Five thousand member identifiers with one hundred role records', ({
     given,
     when,
     then,
@@ -507,7 +507,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('The client shall maintain memory efficiency with large datasets', ({
+  test('One hundred sequential reads of a thousand-order dataset', ({
     given,
     when,
     then,
@@ -573,7 +573,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('IF performance impact of error conditions, THEN the client shall handle it gracefully', ({
+  test('Six of twenty concurrent lookups reject with a 500 error', ({
     given,
     when,
     then,
