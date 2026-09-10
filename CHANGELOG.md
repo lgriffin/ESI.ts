@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.8.0] - 2026-09-10
+
+No change to the published API surface — this release is entirely about how
+the library's behaviour is specified and enforced. Consumers upgrading from
+9.7.0 get identical runtime code.
+
+### Added
+
+- **EARS specification for the BDD suite** — all 52 feature files in `tests/bdd/` are now written as 327 atomic requirements in Easy Approach to Requirements Syntax, one per Gherkin `Rule:` block, with the scenarios that verify each nested beneath it. The same 401 scenarios run as before; no test was added, dropped, or merged
+- **`npm run spec:audit`** — parses the Gherkin AST and enforces requirement form: exactly one `shall` per Rule, no vague or unmeasurable language, correct EARS grammar for `If`/`While`/`When`/`Where`, no requirement hidden in prose, no scenario outside a Rule, no feature without a description. Also `npm run spec:audit:verbose`. Runs as a required CI check (`EARS Spec Audit`) and as the final step of `npm run check:all`
+- **`tests/bdd/GUIDE.md` and `tests/bdd/README.md`** — the conventions and a practical guide to writing requirements, including the pattern decision procedure, a finding-by-finding fix table, and the anti-pattern catalogue
+
+### Changed
+
+- **Requirements now state what the tests actually assert.** Deriving each requirement from its assertions rather than its old scenario title surfaced scenarios whose titles claimed coverage the assertions never provided — a "transitions to half-open" check that asserts the circuit is closed, an "empty result" case that expects a 404 rejection, performance titles with no stated bound. Those requirements are now written narrowly and honestly, and the gaps are tracked as issues rather than papered over
+- Four Gherkin step texts corrected where they misnamed the fixture or the method under test
+- `@cucumber/gherkin` and `@cucumber/messages` promoted from transitive to explicit devDependencies
+- Types regenerated from the ESI spec (hash only; no interface changes)
+
 ## [9.7.0] - 2026-09-09
 
 First release since 9.6.0. Versions 9.6.1 and 9.6.2 were bumped in
