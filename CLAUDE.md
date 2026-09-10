@@ -58,7 +58,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `tests/tdd/` — Unit tests
 - `tests/tdd/helpers/` — Shared test utilities (e.g., `clientErrorTests.ts`)
 - `tests/benchmark/` — Performance benchmark tests
-- `tests/bdd/` — BDD features + step definitions (jest-cucumber). Feature files are an EARS specification: one atomic `shall` requirement per `Rule:` block, scenarios nested beneath the rule they verify. See `tests/bdd/README.md`; enforced by `npm run spec:audit`.
+- `tests/bdd/` — BDD features + step definitions (jest-cucumber). Feature files are an EARS specification: one atomic `shall` requirement per `Rule:` block, scenarios nested beneath the rule they verify. See `tests/bdd/README.md` for the rules and `tests/bdd/GUIDE.md` for how to write them; enforced by `npm run spec:audit`.
 - `tests/integration/` — Integration tests (live ESI optional)
 - `tests/contract/` — Contract tests against live OpenAPI spec
 - `tests/fuzz/` — Property-based fuzz tests (fast-check)

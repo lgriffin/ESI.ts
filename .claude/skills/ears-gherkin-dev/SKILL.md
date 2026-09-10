@@ -19,7 +19,9 @@ verified by scenarios that would actually fail if the behaviour broke.
 
 `tests/bdd/README.md` is the normative convention document. Read it before
 writing any Gherkin. This skill describes the _workflow_; the README describes
-the _form_.
+the _form_. `tests/bdd/GUIDE.md` is the long-form reference — consult it when
+choosing between EARS patterns, deciding whether scenarios share a Rule, or
+resolving an audit finding you do not recognise.
 
 ## Workflow
 

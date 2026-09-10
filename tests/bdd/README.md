@@ -5,6 +5,11 @@ This directory is the executable specification for ESI.ts. It is written with
 **Gherkin** for the scenarios that verify them, and it is enforced by
 `npm run spec:audit`.
 
+This file states the rules. [`GUIDE.md`](GUIDE.md) is the long-form
+walkthrough: choosing a pattern, deriving a requirement from the assertions,
+fixing each audit finding, and converting a scenario that predates the
+convention.
+
 ## Why
 
 A requirement written as free prose is ambiguous and drifts from the code.
