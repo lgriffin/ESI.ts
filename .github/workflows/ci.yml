@@ -395,7 +395,13 @@ jobs:
           node-version: '20'
 
       - name: Check lockfile is up to date
+        env:
+          PR_ACTOR: ${{ github.actor }}
         run: |
+          if [ "$PR_ACTOR" = "dependabot[bot]" ]; then
+            echo "::notice::Skipping byte-for-byte lockfile check for Dependabot (npm version mismatch is expected)"
+            exit 0
+          fi
           npm install --package-lock-only --ignore-scripts
           if ! git diff --exit-code package-lock.json; then
             echo "::error::package-lock.json is out of sync with package.json. Run 'npm install' and commit the updated lockfile."
