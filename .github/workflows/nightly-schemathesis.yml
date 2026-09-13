@@ -30,7 +30,9 @@ jobs:
         run: npm ci
 
       - name: Pull Schemathesis Docker image
-        run: docker pull schemathesis/schemathesis
+        run: |
+          docker pull schemathesis/schemathesis@sha256:9f55988d210ac6bea43088b9839ffb9db6f7224398882eb098cdbc718d4c7a59
+          docker tag schemathesis/schemathesis@sha256:9f55988d210ac6bea43088b9839ffb9db6f7224398882eb098cdbc718d4c7a59 schemathesis/schemathesis
 
       - name: Run Schemathesis
         run: bash scripts/run-schemathesis.sh ./reports/schemathesis
