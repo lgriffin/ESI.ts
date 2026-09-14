@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`EsiTokenManager`** — higher-level auth abstraction that owns the SSO token lifecycle for one or many characters (#185). Exchanges an authorization code, decodes the character id, name and scopes from the token, persists it through a pluggable `ITokenStorage`, refreshes ahead of expiry (`refreshSkewMs`, default 60 s), coalesces concurrent refreshes per character, persists the rotated refresh token before returning, and records an SSO `invalid_grant` so later calls fail locally with `TokenRevokedError`. `createClient(characterId)` returns an `EsiClient` wired with the character's token and a refresh provider bound to the manager; `tokenProviderFor(characterId)` exposes that provider for clients built by hand
+- **Bulk refresh** — `refreshAll({ concurrency, expiringWithinMs, signal })` refreshes stored tokens with a concurrency cap (default 5), isolates failures per character, skips tokens outside an optional staleness window, and flags SSO 429/5xx failures as `retryable` (#187). Never rejects; every character gets a `RefreshResult`
+- **`EveSsoClient`** — zero-dependency client for `login.eveonline.com`: `getAuthorizationUrl`, `exchangeCode`, `refresh`, `revoke`. Confidential clients authenticate with HTTP Basic; public clients use PKCE (`generatePkcePair`, `generateState`). SSO errors surface as `SsoError` (status + OAuth error code) or `TokenRevokedError`
+- **Storage adapters** — `MemoryTokenStorage` and `FileTokenStorage` (atomic temp-file-and-rename writes, `0600` mode, serialised in-process writes)
+- **`runWithConcurrency`** internal utility in `src/core/util/concurrency.ts`
+- `tests/bdd/features/core/0054-token-management.feature` — 17 EARS requirements covering the above
+- `examples/token-manager.ts` and `npm run example:token-manager`
+
 ## [9.9.0] - 2026-09-15
 
 ### Added

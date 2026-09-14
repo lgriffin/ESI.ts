@@ -190,3 +190,50 @@ export * from './types/api-responses';
 
 // Schemas (Zod runtime validation)
 export * as schemas from './schemas';
+
+// Auth: SSO client, token manager, storage adapters
+export {
+  EveSsoClient,
+  DEFAULT_SSO_BASE_URL,
+  EsiTokenManager,
+  MemoryTokenStorage,
+  FileTokenStorage,
+  AuthError,
+  SsoError,
+  TokenRevokedError,
+  TokenDecodeError,
+  CharacterNotFoundError,
+  isAuthError,
+  isSsoError,
+  isTokenRevoked,
+  isCharacterNotFound,
+  decodeAccessToken,
+  decodeJwtPayload,
+  parseCharacterId,
+  parseScopes,
+  generatePkcePair,
+  generateCodeVerifier,
+  codeChallengeFromVerifier,
+  generateState,
+} from './auth';
+export type {
+  ITokenStorage,
+  StoredToken,
+  EveSsoClientConfig,
+  SsoTokenResponse,
+  AuthorizationUrlOptions,
+  ExchangeCodeOptions,
+  RefreshOptions,
+  EsiTokenManagerConfig,
+  AddCharacterOptions,
+  RemoveCharacterOptions,
+  RefreshAllOptions,
+  RefreshResult,
+  RefreshStatus,
+  CharacterSummary,
+  ManagedClientConfig,
+  FileTokenStorageOptions,
+  DecodedAccessToken,
+  EveJwtClaims,
+  PkcePair,
+} from './auth';
