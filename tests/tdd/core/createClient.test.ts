@@ -4,7 +4,7 @@ import {
   fetchAllCursorPages,
 } from '../../../src/core/endpoints/createClient';
 import { EndpointMap } from '../../../src/core/endpoints/EndpointDefinition';
-import * as loggerUtil from '../../../src/core/logger/loggerUtil';
+import * as clientLog from '../../../src/core/logger/clientLog';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
 
@@ -265,7 +265,10 @@ describe('createClient', () => {
   });
 
   describe('deprecation warnings', () => {
-    const warnSpy = jest.spyOn(loggerUtil, 'logWarn');
+    // clientLog.logWarn(client, message, context) — assert on the message arg.
+    const warnSpy = jest.spyOn(clientLog, 'logWarn');
+    const warnMessages = (): string[] =>
+      warnSpy.mock.calls.map((call) => String(call[1]));
 
     beforeEach(() => {
       warnSpy.mockClear();
@@ -289,11 +292,15 @@ describe('createClient', () => {
       const client = createClient(apiClient, endpoints);
       await client.getOldThing();
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("'getOldThing' is deprecated"),
+      expect(warnMessages()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining("'getOldThing' is deprecated"),
+        ]),
       );
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('This endpoint is going away.'),
+      expect(warnMessages()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('This endpoint is going away.'),
+        ]),
       );
     });
 
@@ -311,8 +318,10 @@ describe('createClient', () => {
       const client = createClient(apiClient, endpoints);
       await client.getLegacy();
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Use 'getModern' instead"),
+      expect(warnMessages()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining("Use 'getModern' instead"),
+        ]),
       );
     });
 
@@ -330,8 +339,10 @@ describe('createClient', () => {
       const client = createClient(apiClient, endpoints);
       await client.getSunset();
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Sunset date: 2026-06-01'),
+      expect(warnMessages()).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('Sunset date: 2026-06-01'),
+        ]),
       );
     });
 
@@ -348,9 +359,7 @@ describe('createClient', () => {
       const client = createClient(apiClient, endpoints);
       await client.getCurrent();
 
-      expect(warnSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('deprecated'),
-      );
+      expect(warnMessages().some((m) => m.includes('deprecated'))).toBe(false);
     });
   });
 });

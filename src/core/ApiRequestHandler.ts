@@ -95,7 +95,7 @@ const executeRequest = async (
       return finish(staleOrThrow);
     }
 
-    const data = await parseJsonBody(response, url);
+    const data = await parseJsonBody(client, response, url);
     cacheResponse(
       client,
       url,
@@ -147,7 +147,7 @@ const executeRequest = async (
     );
     return finish(paginatedResult);
   } catch (error: unknown) {
-    wrapError(error);
+    wrapError(error, client);
   }
 };
 
@@ -181,8 +181,9 @@ export const handleSinglePageRequest = async (
   const retryStrategy = resolveRetryStrategy(client);
 
   return retryStrategy.execute<EsiHandlerResponse>(doExecute, {
+    client,
     endpoint,
-    method,
+    method: 'GET',
     requiresAuth,
     refreshToken: client.hasTokenProvider()
       ? () => client.refreshToken().then(() => {})
@@ -244,6 +245,7 @@ export const handleRequest = async (
   const retryStrategy = resolveRetryStrategy(client);
 
   return retryStrategy.execute<EsiHandlerResponse>(operation, {
+    client,
     endpoint,
     method,
     requiresAuth,

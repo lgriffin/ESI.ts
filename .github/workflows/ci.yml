@@ -376,7 +376,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: documentation
-          path: docs/
+          path: docs-site/public/api/
           retention-days: 30
 
   lockfile:

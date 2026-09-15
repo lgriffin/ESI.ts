@@ -6,7 +6,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 
 | Tier                 |      Tests |   Suites | Purpose                                                                     |
 | -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |      3,580 |      100 | Per-module unit tests with mocked HTTP                                      |
+| TDD (unit)           |      4,357 |      130 | Per-module unit tests with mocked HTTP                                      |
 | BDD (behavioral)     |        600 |       41 | Gherkin-style scenarios covering user-facing behaviors                      |
 | Benchmark (perf)     |         17 |        4 | Performance regression guards for core infrastructure                       |
 | Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
@@ -15,7 +15,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
-| **Total**            | **4,700+** | **143+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
+| **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
 
@@ -23,10 +23,10 @@ Current coverage (unit + BDD, measured by Jest):
 
 | Metric     |  Value | Threshold |
 | ---------- | -----: | --------: |
-| Statements | 98.47% |       90% |
-| Branches   | 90.10% |       80% |
-| Functions  | 97.54% |       75% |
-| Lines      | 98.59% |       90% |
+| Statements | 98.37% |       90% |
+| Branches   | 95.14% |       80% |
+| Functions  | 96.09% |       75% |
+| Lines      | 98.17% |       90% |
 
 Coverage is collected from `src/**/*.ts` (excluding `.d.ts` and `src/types/`).
 
@@ -181,7 +181,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All unit + BDD tests (default) — 143 suites, 4,182 tests
+# All unit + BDD tests (default) — 171 suites, 4,957 tests
 npm test
 
 # Watch mode for development
@@ -227,7 +227,7 @@ npm run bdd:performance
 **Config:** `jest.unit.config.cjs`
 **Run:** `npm test`
 
-100 test files covering:
+130 test files covering:
 
 - **Domain clients** (37 files) — One per ESI API module (AllianceClient, MarketClient, etc.). Each mocks `fetch` and verifies correct URL construction, response parsing, and type safety. All 30 non-trivial clients include HTTP error path coverage (401, 403, 404, 429, 500) via the shared `describeClientErrors` helper.
 - **Core infrastructure** (35+ files) — Circuit breaker, rate limiter, pagination (offset + cursor), ETag cache, request deduplication, retry with backoff, middleware pipeline, endpoint definitions, validation, error handling, timeout behavior, diagnostics, and configuration.
@@ -870,7 +870,7 @@ npm run generate:types
 | `jest.integration.config.cjs`                  | Integration test config (30s timeout)             |
 | `jest.contract.config.cjs`                     | Contract test config (60s timeout)                |
 | `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)                    |
-| `tests/tdd/`                                   | 99 TDD test files                                 |
+| `tests/tdd/`                                   | 130 TDD test files                                |
 | `tests/tdd/helpers/clientErrorTests.ts`        | Shared HTTP error test generator (5 status codes) |
 | `tests/tdd/core/apiSurfaceSnapshots.test.ts`   | API export & shape snapshot tests (5 tests)       |
 | `tests/tdd/core/concurrency.test.ts`           | Async scheduling correctness (11 tests)           |

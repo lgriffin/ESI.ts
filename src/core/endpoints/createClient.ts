@@ -9,7 +9,7 @@ import {
 } from '../../types/api-responses';
 import { buildEndpointPath } from './buildEndpointPath';
 import { parseWarning } from '../util/headersUtil';
-import { logWarn } from '../logger/loggerUtil';
+import { logWarn } from '../logger/clientLog';
 import { EsiError, EsiValidationError } from '../util/error';
 import type { z } from 'zod';
 
@@ -128,7 +128,7 @@ export function createClient<T extends EndpointMap>(
             parts.push(`Use '${def.deprecated.replacedBy}' instead.`);
           if (def.deprecated.sunsetDate)
             parts.push(`Sunset date: ${def.deprecated.sunsetDate}.`);
-          logWarn(parts.join(' '));
+          logWarn(apiClient, parts.join(' '), { endpoint: methodName });
         }
 
         const built = buildEndpointPath(def, args, apiClient.getDatasource());

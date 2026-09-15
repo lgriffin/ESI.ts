@@ -1,7 +1,7 @@
 import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { metaEndpoints } from '../core/endpoints/metaEndpoints';
-import { logInfo, logError } from '../core/logger/loggerUtil';
+import { logInfo, logError } from '../core/logger/clientLog';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../core/constants';
 import {
   MetaChangelog,
@@ -34,7 +34,7 @@ export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
   async getOpenApiYaml(): Promise<string> {
     const url = `${this._client.getLink()}/meta/openapi.yaml`;
 
-    logInfo(`Hitting endpoint: ${url}`);
+    logInfo(this._client, `Hitting endpoint: ${url}`, { method: 'GET' });
 
     try {
       const response = await fetch(url, {
@@ -53,10 +53,12 @@ export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
       return await response.text();
     } catch (error) {
       if (error instanceof Error) {
-        logError(`Error fetching YAML: ${error.message}`);
+        logError(this._client, `Error fetching YAML: ${error.message}`, {
+          url,
+        });
         throw error;
       } else {
-        logError(`Unexpected error: ${String(error)}`);
+        logError(this._client, `Unexpected error: ${String(error)}`, { url });
         throw new Error(String(error));
       }
     }

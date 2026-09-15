@@ -9,6 +9,7 @@ import { ICircuitBreaker } from './circuitBreaker/ICircuitBreaker';
 import { IDeduplicator } from './IDeduplicator';
 import { IRetryStrategy } from './IRetryStrategy';
 import { RetryConfig } from './util/retry';
+import type { ILogger } from './logger/ILogger';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
@@ -36,6 +37,7 @@ export class ApiClient {
   private language?: string;
   private compatibilityDate?: string;
   private fetchFn: FetchLike | null = null;
+  private logger: ILogger | null = null;
 
   constructor(
     private clientId: string,
@@ -175,6 +177,14 @@ export class ApiClient {
 
   setTokenProvider(provider: TokenProvider | undefined): void {
     this.tokenProvider = provider;
+  }
+
+  getLogger(): ILogger | null {
+    return this.logger;
+  }
+
+  setLogger(logger: ILogger | null): void {
+    this.logger = logger;
   }
 
   hasTokenProvider(): boolean {

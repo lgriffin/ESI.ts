@@ -4,7 +4,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0%2B-blue)](https://www.typescriptlang.org/)
 [![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-90%25%2B-brightgreen)](https://github.com/lgriffin/ESI.ts)
+[![Coverage](https://img.shields.io/badge/coverage-95%25%2B-brightgreen)](https://github.com/lgriffin/ESI.ts)
 [![npm downloads](https://img.shields.io/npm/dm/%40lgriffin/esi.ts)](https://www.npmjs.com/package/@lgriffin/esi.ts)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lgriffin/ESI.ts/badge)](https://scorecard.dev/viewer/?uri=github.com/lgriffin/ESI.ts)
 
@@ -41,7 +41,7 @@ Tools like `openapi-typescript` or `openapi-generator` can produce a typed clien
 | **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                                                     |
 | **Domain knowledge**            | None — generic HTTP client.                                                                                         | 39 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                                                |
 | **Streaming pagination**        | None.                                                                                                               | 21 domain clients with 73+ `stream*` methods via `AsyncGenerator` — process large datasets page-by-page without loading everything into memory.                                                                                   |
-| **Testing**                     | Whatever you write.                                                                                                 | 167 test suites, 4,730 tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 52 runnable example scripts. |
+| **Testing**                     | Whatever you write.                                                                                                 | 171 test suites, 4,957 tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 52 runnable example scripts. |
 
 ### The real problem with generated clients
 
@@ -78,7 +78,7 @@ Verify everything works:
 
 ```bash
 npm run example:status   # quick smoke test — checks ESI is reachable
-npm test                 # run the full test suite (167 suites, 4,730 tests)
+npm test                 # run the full test suite (171 suites, 4,957 tests)
 ```
 
 ## Sub-path Exports
@@ -876,11 +876,11 @@ try {
 
 ## Testing
 
-ESI.ts has a comprehensive multi-tier testing strategy with 139 suites and 4,104 tests:
+ESI.ts has a comprehensive multi-tier testing strategy with 171 suites and 4,957 tests:
 
 | Tier                       | Tests            | Purpose                                                            |
 | -------------------------- | ---------------- | ------------------------------------------------------------------ |
-| **TDD unit tests**         | 100 files        | Every client method, endpoint path, query param, and body format   |
+| **TDD unit tests**         | 130 files        | Every client method, endpoint path, query param, and body format   |
 | **BDD scenario tests**     | 41 feature files | Behavioral specifications in Gherkin (Given/When/Then)             |
 | **Mocked integration**     | Full suite       | Cross-layer request flow with jest-fetch-mock                      |
 | **Live smoke tests**       | 46 examples      | Every endpoint against live Tranquility                            |
@@ -894,7 +894,7 @@ ESI.ts has a comprehensive multi-tier testing strategy with 139 suites and 4,104
 | **Spec-alignment**         | Type assertions  | Ensures hand-written types align with generated OpenAPI types      |
 
 ```bash
-npm test          # Unit + BDD tests (167 suites, 4,730 tests)
+npm test          # Unit + BDD tests (171 suites, 4,957 tests)
 npm run coverage  # Tests with coverage report (thresholds enforced)
 npm run bdd       # BDD scenario tests only
 npm run contract  # Contract tests (skipped without ESI_LIVE_TESTS=true)
@@ -904,7 +904,7 @@ npm run benchmark # Performance benchmark tests
 npm run test:types # tsd consumer type tests
 ```
 
-Coverage: statements 98.47%, branches 90.10%, functions 97.54%, lines 98.59%. Thresholds enforced in CI: branches 80%, functions 75%, lines 90%, statements 90%.
+Coverage: statements 98.37%, branches 95.14%, functions 96.09%, lines 98.17%. Thresholds enforced in CI: branches 80%, functions 75%, lines 90%, statements 90%.
 
 See [guides/TESTING.md](guides/TESTING.md) for the full testing guide, and [guides/ARCHITECTURE.md](guides/ARCHITECTURE.md) for architecture diagrams.
 
@@ -941,7 +941,7 @@ npm run format             # Format code with Prettier
 npm run format:check       # Check formatting without modifying
 
 # Testing
-npm test                   # Unit tests (167 suites, 4,730 tests)
+npm test                   # Unit tests (171 suites, 4,957 tests)
 npm run test:all           # Unit + BDD + integration + fuzz + type tests
 npm run coverage           # Tests with coverage report (thresholds enforced)
 npm run bdd                # BDD scenario tests

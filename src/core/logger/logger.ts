@@ -1,21 +1,12 @@
-import pino from 'pino';
-import { ILogger } from './ILogger';
+import { createDefaultLogger, defaultLogger } from './DefaultLogger';
 
-const pinoLogger = pino({ level: process.env.ESI_LOG_LEVEL || 'warn' });
+export { createDefaultLogger, defaultLogger };
+export type { LogLevel } from './DefaultLogger';
 
-const logger: ILogger = {
-  info: (msg: string) => {
-    pinoLogger.info(msg);
-  },
-  warn: (msg: string) => {
-    pinoLogger.warn(msg);
-  },
-  error: (msg: string) => {
-    pinoLogger.error(msg);
-  },
-  debug: (msg: string) => {
-    pinoLogger.debug(msg);
-  },
-};
-
-export default logger;
+/**
+ * @deprecated The global logger singleton was removed in favor of per-client
+ * loggers (`EsiClientConfig.logger`). Use `createDefaultLogger(level?)` for a
+ * pino-backed logger, or pass any `ILogger` via `EsiClientConfig.logger`.
+ * `setLogger()` from `loggerUtil` still exists for global fallback control.
+ */
+export default createDefaultLogger();
