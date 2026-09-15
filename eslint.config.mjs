@@ -9,7 +9,7 @@ export default tseslint.config(
       'dist/',
       'node_modules/',
       'coverage/',
-      'docs/',
+      'docs-site/',
       'scripts/',
       '**/*.cjs',
       '**/*.js',

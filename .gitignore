@@ -82,9 +82,8 @@ temp/
 reports/
 report/
 
-# Generated documentation (TypeDoc output — keep hand-written .md files)
-docs/*
-!docs/*.md
+# Generated documentation (TypeDoc output; docs/*.md are hand-written and tracked)
+docs-site/public/api/
 
 # Stryker mutation testing
 .stryker-tmp/
@@ -104,7 +103,6 @@ sde-data/
 docs-site/node_modules/
 docs-site/.vitepress/dist/
 docs-site/.vitepress/cache/
-
 # Beads / Dolt files (added by bd init)
 # Note: .beads/.gitignore already scopes DB/runtime files within .beads/;
 # keep these top-level rules narrow to avoid ignoring unrelated *.db fixtures.
@@ -112,3 +110,4 @@ docs-site/.vitepress/cache/
 .beads/**/*.db
 .beads-credential-key
 .beads/proxieddb/
+
