@@ -6,26 +6,26 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 
 | Tier                 |      Tests |  Suites | Purpose                                                                     |
 | -------------------- | ---------: | ------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |            |      81 | Per-module unit tests with mocked HTTP                                      |
-| BDD (behavioral)     |            |      40 | Gherkin-style scenarios covering user-facing behaviors                      |
+| TDD (unit)           |            |     130 | Per-module unit tests with mocked HTTP                                      |
+| BDD (behavioral)     |            |      41 | Gherkin-style scenarios covering user-facing behaviors                      |
 | Integration (mocked) |         20 |       1 | Full request lifecycle with mocked fetch                                    |
 | Integration (live)   |         61 |       3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
 | Integration (gated)  |         33 |       1 | Authenticated endpoints with real OAuth token                               |
 | Deep contract        |         15 |       2 | Endpoint definitions validated against live OpenAPI spec                    |
 | Property-based fuzz  |        601 |       4 | Random/adversarial inputs via fast-check                                    |
 | Type-level (tsd)     |         15 |       1 | Compile-time type assertions on public API surface                          |
-| **Total**            | **4,100+** | **139** | (`npm test` runs TDD + BDD)                                                 |
+| **Total**            | **4,957+** | **171** | (`npm test` runs TDD + BDD)                                                 |
 
 ### Before / After This Effort
 
-| Metric      | Before |  After |   Delta |
-| ----------- | -----: | -----: | ------: |
-| Test suites |    112 |    121 |      +9 |
-| Total tests |  2,901 |  3,224 |    +323 |
-| Statements  | 90.32% | 96.35% | +6.03pp |
-| Branches    | 86.92% | 87.40% | +0.48pp |
-| Functions   | 84.37% | 93.20% | +8.83pp |
-| Lines       | 92.21% | 96.38% | +4.17pp |
+| Metric      | Before |  After |    Delta |
+| ----------- | -----: | -----: | -------: |
+| Test suites |    112 |    171 |      +59 |
+| Total tests |  2,901 |  4,957 |   +2,056 |
+| Statements  | 90.32% | 98.37% |  +8.05pp |
+| Branches    | 86.92% | 95.14% |  +8.22pp |
+| Functions   | 84.37% | 96.09% | +11.72pp |
+| Lines       | 92.21% | 98.17% |  +5.96pp |
 
 ### New Test Files — Per-File Breakdown
 
@@ -47,10 +47,10 @@ Current coverage (unit + BDD, measured by Jest):
 
 | Metric     |  Value | Threshold |
 | ---------- | -----: | --------: |
-| Statements | 96.35% |       90% |
-| Branches   | 87.40% |       80% |
-| Functions  | 93.20% |       75% |
-| Lines      | 96.38% |       90% |
+| Statements | 98.37% |       90% |
+| Branches   | 95.14% |       80% |
+| Functions  | 96.09% |       75% |
+| Lines      | 98.17% |       90% |
 
 Coverage is collected from `src/**/*.ts` (excluding `.d.ts` and `src/types/`).
 
@@ -62,7 +62,7 @@ Coverage is collected from `src/**/*.ts` (excluding `.d.ts` and `src/types/`).
 **Config:** `jest.unit.config.cjs`
 **Run:** `npm test`
 
-81 test files covering:
+130 test files covering:
 
 - **Domain clients** (35 files) — One per ESI API module (AllianceClient, MarketClient, etc.). Each mocks `fetch` and verifies correct URL construction, response parsing, and type safety.
 - **Core infrastructure** (35+ files) — Circuit breaker, rate limiter, pagination (offset + cursor), ETag cache, request deduplication, retry with backoff, middleware pipeline, endpoint definitions, validation, error handling, timeout behavior, diagnostics, and configuration.
