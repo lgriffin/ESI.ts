@@ -10,7 +10,7 @@ import {
   AllianceIcon,
 } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
-import { logWarn } from '../core/logger/loggerUtil';
+import { logWarn } from '../core/logger/clientLog';
 
 export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
   private contactApi: ReturnType<typeof createClient<typeof contactEndpoints>>;
@@ -40,7 +40,9 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    */
   getContacts(allianceId: number): Promise<AllianceContact[]> {
     logWarn(
+      this._client,
       'AllianceClient.getContacts() is deprecated. Use ContactsClient.getAllianceContacts() instead. Planned removal in next major version.',
+      { allianceId },
     );
     // Schema mismatch: ContactSchema uses a wider contact_type enum than AllianceContactSchema.
     // Cast through unknown until schemas are unified.
@@ -57,7 +59,9 @@ export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
    */
   getContactLabels(allianceId: number): Promise<AllianceContactLabel[]> {
     logWarn(
+      this._client,
       'AllianceClient.getContactLabels() is deprecated. Use ContactsClient.getAllianceContactLabels() instead. Planned removal in next major version.',
+      { allianceId },
     );
     // Schema mismatch: ContactLabelSchema vs AllianceContactLabelSchema are structurally
     // identical but TypeScript treats them as distinct nominal types from different schemas.

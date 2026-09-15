@@ -1,5 +1,5 @@
 import { ApiClient } from '../ApiClient';
-import { logDebug } from '../logger/loggerUtil';
+import { logDebug } from '../logger/clientLog';
 import { ICache } from '../cache/ICache';
 import { buildCacheKey } from '../cache/cacheKey';
 import { ParsedHeaders } from '../util/headersUtil';
@@ -56,7 +56,9 @@ export function trySpecAwareCacheHit(
   const age = Date.now() - entry.timestamp;
   if (age < specTtlMs) {
     logDebug(
+      client,
       `Spec-aware cache hit for ${url} (age=${Math.round(age / 1000)}s, ttl=${Math.round(specTtlMs / 1000)}s)`,
+      { method, templatePath },
     );
     return {
       headers: entry.headers,
@@ -119,7 +121,14 @@ export function cacheResponse(
     const ttl = specTtlMs ?? headerTtl;
     cache.set(key, parsed.etag, data, parsed.raw, ttl);
     const ttlInfo = ttl ? ` (ttl=${ttl}ms)` : '';
-    logDebug(`Cached response for ${url} with ETag ${parsed.etag}${ttlInfo}`);
+    logDebug(
+      client,
+      `Cached response for ${url} with ETag ${parsed.etag}${ttlInfo}`,
+      {
+        method,
+        etag: parsed.etag,
+      },
+    );
   }
 
   if (method !== 'GET' && cache) {

@@ -1,5 +1,5 @@
 import { EsiError } from './util/error';
-import { logDebug, logInfo } from './logger/loggerUtil';
+import { logDebug, logInfo } from './logger/clientLog';
 
 export interface BatchOptions {
   concurrency?: number;
@@ -23,7 +23,14 @@ export async function batchFetch<K, T>(
   let running = 0;
   let index = 0;
 
-  logInfo(`Batch fetch: ${keys.length} items, concurrency=${concurrency}`);
+  logInfo(
+    null,
+    `Batch fetch: ${keys.length} items, concurrency=${concurrency}`,
+    {
+      total: keys.length,
+      concurrency,
+    },
+  );
 
   return new Promise((resolve) => {
     function next(): void {
@@ -51,7 +58,9 @@ export async function batchFetch<K, T>(
             }
             if (completed === keys.length) {
               logDebug(
+                null,
                 `Batch complete: ${results.size} succeeded, ${errors.size} failed`,
+                { succeeded: results.size, failed: errors.size },
               );
               resolve({ results, errors });
             } else {
@@ -81,7 +90,9 @@ export async function batchPost<T>(
   }
 
   logInfo(
+    null,
     `Batch POST: ${ids.length} IDs in ${chunks.length} chunks of ${chunkSize}`,
+    { total: ids.length, chunks: chunks.length, chunkSize },
   );
 
   const results: T[] = [];

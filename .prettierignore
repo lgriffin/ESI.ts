@@ -1,7 +1,7 @@
 dist/
 coverage/
 node_modules/
-docs/
+docs-site/public/api/
 *.tgz
 *.generated.ts
 etc/*.api.md

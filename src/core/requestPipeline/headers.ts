@@ -1,6 +1,6 @@
 import { ApiClient } from '../ApiClient';
 import { buildError } from '../util/error';
-import { logDebug } from '../logger/loggerUtil';
+import { logDebug } from '../logger/clientLog';
 import { ICache } from '../cache/ICache';
 import { buildCacheKey } from '../cache/cacheKey';
 import { USER_AGENT, COMPATIBILITY_DATE } from '../constants';
@@ -61,7 +61,9 @@ export function buildRequestHeaders(
     const cachedETag = cache.getETag(key);
     if (cachedETag) {
       headers['If-None-Match'] = cachedETag;
-      logDebug(`Adding If-None-Match header: ${cachedETag}`);
+      logDebug(client, `Adding If-None-Match header: ${cachedETag}`, {
+        etag: cachedETag,
+      });
     }
   }
 

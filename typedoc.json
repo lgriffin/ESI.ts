@@ -1,7 +1,7 @@
 {
   "entryPointStrategy": "expand",
   "entryPoints": ["src"],
-  "out": "docs",
+  "out": "docs-site/public/api",
   "name": "@lgriffin/esi.ts - EVE Online ESI API Client",
   "theme": "default",
   "readme": "./README.md",

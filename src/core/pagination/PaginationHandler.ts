@@ -4,7 +4,7 @@
  */
 
 import { ApiClient } from '../ApiClient';
-import { logInfo, logWarn, logError } from '../logger/loggerUtil';
+import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { resolveRetryStrategy } from '../requestPipeline/dependencies';
 
 export interface PaginationOptions {
@@ -46,7 +46,10 @@ export class PaginationHandler {
       return allData;
     }
 
-    logInfo(`Fetching pages 2-${effectiveMaxPage} for ${endpoint}...`);
+    logInfo(client, `Fetching pages 2-${effectiveMaxPage} for ${endpoint}...`, {
+      method,
+      totalPages,
+    });
 
     for (let page = 2; page <= effectiveMaxPage; page++) {
       try {
@@ -62,17 +65,23 @@ export class PaginationHandler {
         );
 
         if (opts.stopOnEmptyPage && (!pageData || pageData.length === 0)) {
-          logWarn(`Page ${page} is empty. Stopping pagination.`);
+          logWarn(client, `Page ${page} is empty. Stopping pagination.`, {
+            page,
+          });
           break;
         }
 
         allData.push(...pageData);
         logInfo(
+          client,
           `Fetched page ${page}/${effectiveMaxPage} (${pageData.length} items)`,
+          { page, items: pageData.length },
         );
       } catch (error) {
         logError(
+          client,
           `Failed to fetch page ${page}: ${error instanceof Error ? error.message : String(error)}`,
+          { page },
         );
         throw error instanceof Error
           ? error
@@ -81,7 +90,9 @@ export class PaginationHandler {
     }
 
     logInfo(
+      client,
       `Pagination complete. Fetched ${allData.length} total items from up to ${effectiveMaxPage} pages.`,
+      { totalItems: allData.length },
     );
     return allData;
   }
@@ -105,10 +116,15 @@ export class PaginationHandler {
 
     return retryStrategy.execute(
       () => {
-        logInfo(`Fetching page ${page} via pipeline: ${paginatedEndpoint}`);
+        logInfo(
+          client,
+          `Fetching page ${page} via pipeline: ${paginatedEndpoint}`,
+          { page },
+        );
         return pageFetch(paginatedEndpoint);
       },
       {
+        client,
         endpoint: paginatedEndpoint,
         method,
         requiresAuth,

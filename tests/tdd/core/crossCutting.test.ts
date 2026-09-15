@@ -497,10 +497,12 @@ describe('Cross-Cutting Concerns', () => {
 
     it('should route log calls to a custom logger on successful request', async () => {
       const mockLogger: ILogger = {
+        fatal: jest.fn(),
         info: jest.fn(),
         warn: jest.fn(),
         error: jest.fn(),
         debug: jest.fn(),
+        trace: jest.fn(),
       };
 
       setLogger(mockLogger);
@@ -533,10 +535,12 @@ describe('Cross-Cutting Concerns', () => {
 
     it('should route error/warn calls to a custom logger on failure', async () => {
       const mockLogger: ILogger = {
+        fatal: jest.fn(),
         info: jest.fn(),
         warn: jest.fn(),
         error: jest.fn(),
         debug: jest.fn(),
+        trace: jest.fn(),
       };
 
       setLogger(mockLogger);

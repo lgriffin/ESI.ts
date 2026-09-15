@@ -16,7 +16,7 @@
  */
 
 import { ApiClient } from '../ApiClient';
-import { logInfo, logWarn, logError } from '../logger/loggerUtil';
+import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { fetchOnePage } from '../requestPipeline/fetchExecution';
 import {
   resolveCache,
@@ -66,13 +66,15 @@ export class CursorPaginationHandler {
     pageFetch?: CursorPageFetcher,
   ): Promise<CursorPage> {
     if (pageFetch) {
-      logInfo(`Cursor fetch via callback: ${endpoint}`);
+      logInfo(client, `Cursor fetch via callback: ${endpoint}`, { method });
       return pageFetch(endpoint, cursor);
     }
 
     const endpointWithCursor = this.buildEndpointWithCursor(endpoint, cursor);
 
-    logInfo(`Cursor fetch via pipeline: ${endpointWithCursor}`);
+    logInfo(client, `Cursor fetch via pipeline: ${endpointWithCursor}`, {
+      method,
+    });
 
     const { data, parsed } = await fetchOnePage(
       client,
@@ -145,23 +147,38 @@ export class CursorPaginationHandler {
         pageCount++;
 
         if (page.data.length === 0) {
-          logInfo('Cursor pagination: empty page received, dataset complete.');
+          logInfo(
+            client,
+            'Cursor pagination: empty page received, dataset complete.',
+            { pages: pageCount },
+          );
           break;
         }
 
         allData.push(...page.data);
         afterToken = page.cursors.after;
 
-        logInfo(`Cursor page ${pageCount} fetched (${page.data.length} items)`);
+        logInfo(
+          client,
+          `Cursor page ${pageCount} fetched (${page.data.length} items)`,
+          {
+            page: pageCount,
+            items: page.data.length,
+          },
+        );
       } catch (error) {
         consecutiveFailures++;
         logError(
+          client,
           `Cursor page fetch failed: ${error instanceof Error ? error.message : String(error)}`,
+          { page: pageCount },
         );
 
         if (consecutiveFailures >= 3) {
           logWarn(
+            client,
             `${consecutiveFailures} consecutive failures. Stopping cursor pagination.`,
+            { consecutiveFailures },
           );
           break;
         }
@@ -169,7 +186,9 @@ export class CursorPaginationHandler {
     }
 
     logInfo(
+      client,
       `Cursor pagination complete. ${allData.length} total items from ${pageCount} pages.`,
+      { totalItems: allData.length, pages: pageCount },
     );
     return allData;
   }
@@ -203,6 +222,7 @@ export class CursorPaginationHandler {
           pageFetch,
         ),
       {
+        client,
         endpoint,
         method,
         requiresAuth,

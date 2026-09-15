@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.9.0] - 2026-09-15
+
+### Added
+
+- **Per-client structured logging** — `EsiClientConfig.logger` and `EsiClientConfig.logLevel` attach an `ILogger` to one client. `ILogger` gains `fatal` and `trace` levels and a second `context` argument; the pipeline now logs structured fields (`endpoint`, `method`, `url`, `status`) instead of interpolated strings. New root exports: `createDefaultLogger`, `toPinoLogger`, `getLogger`, `logFatal`, `logError`, `logWarn`, `logInfo`, `logDebug`, `logTrace`, `LogContext`, `LogLevel`
+- **`guides/CHARTER.md`** — the engineering charter: architecture, design rules, testing tiers, quality gates, security, documentation, release and process as numbered EARS requirements with their enforcing script or CI job. Its gap register and guide roadmap are tracked as beads under `esi-l38` and GitHub issues #262–#287
+
+### Changed
+
+- The global `setLogger()` now applies to every client that has no logger of its own. Resolution order is per-client logger, then the global logger, then the built-in pino default at `ESI_LOG_LEVEL` (default `warn`)
+- The default export of `core/logger/logger` is deprecated in favour of `createDefaultLogger(level?)`
+- TypeDoc output moved from `docs/` to `docs-site/public/api/` (git-ignored). `npm run clean` and `npm run docs` no longer delete the hand-written markdown in `docs/`
+- Version sources realigned: `src/core/constants.ts` and the release-please manifest had stayed at 9.8.0 while `package.json` moved to 9.8.1
+
+### Fixed
+
+- `toPinoLogger` detached pino's methods from their instance, so every log call through the default logger threw `Cannot read properties of undefined (reading 'Symbol(pino.msgPrefix)')`
+
 ## [9.8.0] - 2026-09-10
 
 No change to the published API surface — this release is entirely about how
