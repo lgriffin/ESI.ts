@@ -1,4 +1,5 @@
-import { logWarn, logInfo } from '../logger/loggerUtil';
+import { ApiClient } from '../ApiClient';
+import { logWarn, logInfo } from '../logger/clientLog';
 import { ICircuitBreaker } from './ICircuitBreaker';
 
 export type CircuitState = 'closed' | 'open' | 'half-open';
@@ -29,6 +30,11 @@ export class CircuitBreaker implements ICircuitBreaker {
   private readonly staleThresholdMs: number;
   private readonly keyStrategy: 'resolved' | 'template';
   private cleanupTimer: ReturnType<typeof setInterval> | null = null;
+  private client: ApiClient | null = null;
+
+  setClient(client: ApiClient | null): void {
+    this.client = client;
+  }
 
   constructor(config: CircuitBreakerConfig = {}) {
     this.failureThreshold = config.failureThreshold ?? 5;
@@ -72,7 +78,11 @@ export class CircuitBreaker implements ICircuitBreaker {
       if (elapsed >= this.resetTimeoutMs) {
         record.state = 'half-open';
         record.halfOpenAttempts = 0;
-        logInfo(`Circuit half-open for ${key}, allowing probe request`);
+        logInfo(
+          this.client,
+          `Circuit half-open for ${key}, allowing probe request`,
+          { key },
+        );
         return;
       }
       const remainingMs = this.resetTimeoutMs - elapsed;
@@ -93,7 +103,9 @@ export class CircuitBreaker implements ICircuitBreaker {
     if (!record) return;
 
     if (record.state === 'half-open') {
-      logInfo(`Circuit closed for ${key} after successful probe`);
+      logInfo(this.client, `Circuit closed for ${key} after successful probe`, {
+        key,
+      });
     }
 
     record.state = 'closed';
@@ -121,7 +133,9 @@ export class CircuitBreaker implements ICircuitBreaker {
     if (record.state === 'half-open') {
       record.state = 'open';
       logWarn(
+        this.client,
         `Circuit re-opened for ${key} after failed probe (${record.failures} failures)`,
+        { key, failures: record.failures },
       );
       return;
     }
@@ -129,7 +143,9 @@ export class CircuitBreaker implements ICircuitBreaker {
     if (record.failures >= this.failureThreshold) {
       record.state = 'open';
       logWarn(
+        this.client,
         `Circuit opened for ${key} after ${record.failures} consecutive failures`,
+        { key, failures: record.failures },
       );
     }
   }
@@ -195,7 +211,13 @@ export class CircuitBreaker implements ICircuitBreaker {
       }
     }
     if (cleaned > 0) {
-      logInfo(`Circuit breaker cleanup: removed ${cleaned} stale circuits`);
+      logInfo(
+        this.client,
+        `Circuit breaker cleanup: removed ${cleaned} stale circuits`,
+        {
+          cleaned,
+        },
+      );
     }
     return cleaned;
   }

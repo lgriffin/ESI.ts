@@ -61,7 +61,8 @@ import {
   BatchResult,
 } from './core/BatchRequestHandler';
 import { configureApiClient } from './core/configureApiClient';
-import logger from './core/logger/logger';
+import { getLogger } from './core/logger/loggerUtil';
+import type { ILogger } from './core/logger/ILogger';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
@@ -88,6 +89,10 @@ export interface EsiClientConfig {
   responseInterceptors?: ResponseInterceptor[];
   validateResponse?: boolean;
   validateRequest?: boolean;
+  /** Custom logger for this client. Falls back to the global logger, then pino. */
+  logger?: import('./core/logger/ILogger').ILogger;
+  /** Log level for the default pino logger (`error|warn|info|debug|trace`). Overrides `ESI_LOG_LEVEL`. */
+  logLevel?: import('./core/logger/DefaultLogger').LogLevel;
 }
 
 export class EsiClient {
@@ -132,7 +137,11 @@ export class EsiClient {
     this.deduplicator = result.deduplicator;
     this.etagCacheEnabled = config?.enableETagCache !== false;
 
-    logger.info('EsiClient initialized successfully');
+    const clientLogger: ILogger = this.apiClient.getLogger() ?? getLogger();
+    clientLogger.info('EsiClient initialized successfully', {
+      baseUrl,
+      clientId: config?.clientId,
+    });
   }
 
   private getClient<T>(name: ApiClientType): T {
@@ -271,12 +280,12 @@ export class EsiClient {
 
   setAccessToken(token: string): void {
     this.apiClient.setAccessToken(token);
-    logger.info('Access token updated');
+    (this.apiClient.getLogger() ?? getLogger()).info('Access token updated');
   }
 
   setTokenProvider(provider: TokenProvider | undefined): void {
     this.apiClient.setTokenProvider(provider);
-    logger.info(
+    (this.apiClient.getLogger() ?? getLogger()).info(
       provider ? 'Token provider configured' : 'Token provider removed',
     );
   }
@@ -341,7 +350,9 @@ export class EsiClient {
       this.deduplicator.clear();
     }
     this.clients.clear();
-    logger.info('EsiClient shutdown completed');
+    (this.apiClient.getLogger() ?? getLogger()).info(
+      'EsiClient shutdown completed',
+    );
   }
 }
 

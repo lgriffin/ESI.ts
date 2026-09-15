@@ -44,7 +44,7 @@ import { EsiClientConfig } from './EsiClient';
 import { configureApiClient } from './core/configureApiClient';
 import { ETagCacheManager } from './core/cache/ETagCacheManager';
 import { RequestDeduplicator } from './core/RequestDeduplicator';
-import logger from './core/logger/logger';
+import { getLogger } from './core/logger/loggerUtil';
 
 export { ApiClientType, ClientInstance };
 
@@ -90,8 +90,9 @@ export class CustomEsiClient {
       this.clients.set(name, createClientInstance(name, this.apiClient));
     }
 
-    logger.info(
+    (this.apiClient.getLogger() ?? getLogger()).info(
       `CustomEsiClient initialized with clients: ${config.clients.join(', ')}`,
+      { clients: config.clients },
     );
   }
 
@@ -226,7 +227,9 @@ export class CustomEsiClient {
       this.deduplicator.clear();
     }
     this.clients.clear();
-    logger.info('CustomEsiClient shutdown completed');
+    (this.apiClient.getLogger() ?? getLogger()).info(
+      'CustomEsiClient shutdown completed',
+    );
   }
 }
 

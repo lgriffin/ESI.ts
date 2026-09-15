@@ -1,12 +1,11 @@
 import { ApiClient } from '../ApiClient';
 import { EsiError } from '../util/error';
-import { logInfo, logWarn } from '../logger/loggerUtil';
+import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { ICache } from '../cache/ICache';
 import { buildCacheKey } from '../cache/cacheKey';
 import { ParsedHeaders } from '../util/headersUtil';
 import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
 import { buildError } from '../util/error';
-import { logError } from '../logger/loggerUtil';
 import { tryStaleCacheResponse, EsiHandlerResponse } from './cachePolicy';
 
 export const STATUS_MESSAGES: Record<number, string> = {
@@ -43,7 +42,7 @@ export function handleEarlyStatus(
   }
 
   if (status === 204) {
-    logInfo(`No Content for endpoint: ${url}`);
+    logInfo(client, `No Content for endpoint: ${url}`, { status });
     return { headers: parsed.raw, body: undefined, status: 204 };
   }
 
@@ -53,7 +52,10 @@ export function handleEarlyStatus(
       const key = buildCacheKey(url, client, requiresAuth);
       const cachedEntry = cache.get(key);
       if (cachedEntry) {
-        logInfo(`Cache hit (304) for endpoint: ${url}`);
+        logInfo(client, `Cache hit (304) for endpoint: ${url}`, {
+          status,
+          cacheHitType: 'etag-304',
+        });
         return {
           headers: { ...cachedEntry.headers, ...parsed.raw },
           body: cachedEntry.data,
@@ -97,13 +99,17 @@ export function handleErrorResponse(
       requiresAuth,
     );
     if (staleResult) {
-      logWarn(`${errorMessage} for ${url} — serving stale cache`);
+      logWarn(client, `${errorMessage} for ${url} — serving stale cache`, {
+        status: response.status,
+      });
       return { ...staleResult, status: response.status };
     }
   }
 
   if (response.status === 420 || response.status === 429) {
-    logWarn(`Rate limited (${response.status}) on ${url}`);
+    logWarn(client, `Rate limited (${response.status}) on ${url}`, {
+      status: response.status,
+    });
   }
 
   let message = errorMessage;
@@ -124,14 +130,14 @@ export function handleErrorResponse(
 /**
  * Wrap an unknown error into an EsiError or rethrow known errors.
  */
-export function wrapError(error: unknown): never {
+export function wrapError(error: unknown, client?: ApiClient): never {
   if (error instanceof EsiError || error instanceof CircuitOpenError) {
     throw error;
   }
   if (error instanceof Error) {
-    logError(`Unexpected error: ${error.message}`);
+    logError(client, `Unexpected error: ${error.message}`);
     throw buildError(error.message, 'ESIJS_ERROR');
   }
-  logError(`Unexpected error: ${String(error)}`);
+  logError(client, `Unexpected error: ${String(error)}`);
   throw buildError(String(error), 'ESIJS_ERROR');
 }
