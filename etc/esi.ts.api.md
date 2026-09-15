@@ -218,6 +218,8 @@ export class ApiClient {
     getLanguage(): string | undefined;
     // (undocumented)
     getLink(): string;
+    // (undocumented)
+    getLogger(): ILogger | null;
     // Warning: (ae-forgotten-export) The symbol "MiddlewareManager" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -254,6 +256,8 @@ export class ApiClient {
     setFetch(fn: FetchLike): void;
     // (undocumented)
     setLanguage(language: string | undefined): void;
+    // (undocumented)
+    setLogger(logger: ILogger | null): void;
     // (undocumented)
     setRateLimiter(limiter: IRateLimiter | null): void;
     // (undocumented)
@@ -1854,6 +1858,8 @@ export class CircuitBreaker implements ICircuitBreaker {
     recordSuccess(endpoint: string): void;
     // (undocumented)
     reset(endpoint?: string): void;
+    // (undocumented)
+    setClient(client: ApiClient | null): void;
     // (undocumented)
     shutdown(): void;
 }
@@ -3647,6 +3653,9 @@ export interface CreateClientOptions {
 }
 
 // @public (undocumented)
+export function createDefaultLogger(level?: string): ILogger;
+
+// @public
 export function createNoopLogger(): ILogger;
 
 // @public (undocumented)
@@ -4144,6 +4153,8 @@ export interface EsiClientConfig {
     etagCacheConfig?: ETagCacheConfig;
     // (undocumented)
     language?: string;
+    logger?: ILogger;
+    logLevel?: LogLevel;
     // (undocumented)
     onTokenRefresh?: TokenProvider;
     // (undocumented)
@@ -4853,6 +4864,8 @@ export class ETagCacheManager implements ICache {
     };
     has(url: string): boolean;
     set(url: string, etag: string, data: unknown, headers: Record<string, string>, customTtl?: number): void;
+    // (undocumented)
+    setClient(client: ApiClient | null): void;
     shutdown(): void;
     updateConfig(newConfig: Partial<ETagCacheConfig>): void;
 }
@@ -5562,6 +5575,9 @@ interface FwWarsGet {
 export function getDefaultClient(): EsiClient;
 
 // @public (undocumented)
+export const getLogger: () => ILogger;
+
+// @public (undocumented)
 export type GraphicInfo = z.infer<typeof GraphicInfoSchema>;
 
 // @public (undocumented)
@@ -5648,13 +5664,17 @@ export interface IDeduplicator {
 // @public (undocumented)
 export interface ILogger {
     // (undocumented)
-    debug(message: string): void;
+    debug(message: string, context?: LogContext): void;
     // (undocumented)
-    error(message: string): void;
+    error(message: string, context?: LogContext): void;
     // (undocumented)
-    info(message: string): void;
+    fatal(message: string, context?: LogContext): void;
     // (undocumented)
-    warn(message: string): void;
+    info(message: string, context?: LogContext): void;
+    // (undocumented)
+    trace(message: string, context?: LogContext): void;
+    // (undocumented)
+    warn(message: string, context?: LogContext): void;
 }
 
 // @public (undocumented)
@@ -6096,6 +6116,33 @@ export class LocationClient extends BaseEsiClient<typeof locationEndpoints> {
     getCharacterOnline(characterId: number): Promise<CharacterOnline>;
     getCharacterShip(characterId: number): Promise<CharacterShip>;
 }
+
+// @public
+export interface LogContext {
+    // (undocumented)
+    [key: string]: unknown;
+}
+
+// @public (undocumented)
+export const logDebug: (message: string, context?: LogContext) => void;
+
+// @public (undocumented)
+export const logError: (message: string, context?: LogContext) => void;
+
+// @public (undocumented)
+export const logFatal: (message: string, context?: LogContext) => void;
+
+// @public (undocumented)
+export const logInfo: (message: string, context?: LogContext) => void;
+
+// @public
+export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
+
+// @public (undocumented)
+export const logTrace: (message: string, context?: LogContext) => void;
+
+// @public (undocumented)
+export const logWarn: (message: string, context?: LogContext) => void;
 
 // Warning: (ae-forgotten-export) The symbol "loyaltyEndpoints" needs to be exported by the entry point index.d.ts
 //
@@ -7155,6 +7202,8 @@ export class RequestDeduplicator implements IDeduplicator {
     dedupe<T>(key: string, execute: () => Promise<T>): Promise<T>;
     // (undocumented)
     get pending(): number;
+    // (undocumented)
+    setClient(client: ApiClient | null): void;
 }
 
 // @public (undocumented)
@@ -7197,6 +7246,8 @@ export interface RetryConfig {
 
 // @public (undocumented)
 export interface RetryContext {
+    // (undocumented)
+    client?: ApiClient;
     // (undocumented)
     endpoint: string;
     // (undocumented)
@@ -8051,6 +8102,16 @@ export class TimeoutError extends EsiError {
 
 // @public (undocumented)
 export type TokenProvider = () => Promise<string>;
+
+// @public
+export function toPinoLogger(p: {
+    fatal: (...a: unknown[]) => void;
+    error: (...a: unknown[]) => void;
+    warn: (...a: unknown[]) => void;
+    info: (...a: unknown[]) => void;
+    debug: (...a: unknown[]) => void;
+    trace: (...a: unknown[]) => void;
+}): ILogger;
 
 // @public (undocumented)
 export type TypeId = Brand<number, 'TypeId'>;

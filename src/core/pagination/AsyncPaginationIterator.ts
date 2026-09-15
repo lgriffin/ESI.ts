@@ -1,6 +1,6 @@
 import { ApiClient } from '../ApiClient';
 import { handleSinglePageRequest } from '../ApiRequestHandler';
-import { logInfo } from '../logger/loggerUtil';
+import { logInfo } from '../logger/clientLog';
 import { EsiValidationError } from '../util/error';
 import type { EndpointDefinition } from '../endpoints/EndpointDefinition';
 
@@ -73,7 +73,11 @@ export async function fetchAllPages<T = unknown>(
         const sep = endpoint.includes('?') ? '&' : '?';
         const pagedEndpoint = `${endpoint}${sep}page=${page}`;
 
-        logInfo(`Fetching page ${page}/${totalPages}: ${pagedEndpoint}`);
+        logInfo(
+          client,
+          `Fetching page ${page}/${totalPages}: ${pagedEndpoint}`,
+          { page, totalPages },
+        );
 
         const response = await handleSinglePageRequest(
           client,
@@ -135,7 +139,10 @@ export async function* fetchPages<T = unknown>(
     const sep = endpoint.includes('?') ? '&' : '?';
     const pagedEndpoint = `${endpoint}${sep}page=${page}`;
 
-    logInfo(`Fetching page ${page}/${totalPages}: ${pagedEndpoint}`);
+    logInfo(client, `Fetching page ${page}/${totalPages}: ${pagedEndpoint}`, {
+      page,
+      totalPages,
+    });
 
     const response = await handleSinglePageRequest(
       client,

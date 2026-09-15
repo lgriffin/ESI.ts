@@ -1,4 +1,5 @@
-import { logInfo, logDebug } from '../logger/loggerUtil';
+import { ApiClient } from '../ApiClient';
+import { logInfo, logDebug } from '../logger/clientLog';
 import { ICache, CacheEntry } from './ICache';
 
 export type { CacheEntry } from './ICache';
@@ -15,6 +16,22 @@ export class ETagCacheManager implements ICache {
   private cleanupTimer?: NodeJS.Timeout;
   private hits: number = 0;
   private misses: number = 0;
+  private client: ApiClient | null = null;
+
+  setClient(client: ApiClient | null): void {
+    this.client = client;
+  }
+
+  private log(
+    level: 'info' | 'debug',
+    message: string,
+    context?: Record<string, unknown>,
+  ): void {
+    const ctx =
+      context && Object.keys(context).length > 0 ? context : undefined;
+    const emit = level === 'info' ? logInfo : logDebug;
+    emit(this.client, message, ctx);
+  }
 
   constructor(config: ETagCacheConfig = {}) {
     this.config = {
@@ -24,8 +41,10 @@ export class ETagCacheManager implements ICache {
     };
 
     this.startCleanupTimer();
-    logInfo(
+    this.log(
+      'info',
       `ETag cache manager initialized with ${this.config.maxEntries} max entries`,
+      { maxEntries: this.config.maxEntries },
     );
   }
 
@@ -43,12 +62,12 @@ export class ETagCacheManager implements ICache {
     if (this.isExpired(entry)) {
       this.cache.delete(url);
       this.misses++;
-      logDebug(`Cache entry expired for ${url}`);
+      this.log('debug', `Cache entry expired for ${url}`, { url });
       return null;
     }
 
     this.hits++;
-    logDebug(`Cache hit for ${url} with ETag ${entry.etag}`);
+    this.log('debug', `Cache hit for ${url} with ETag ${entry.etag}`, { url });
     return entry;
   }
 
@@ -84,7 +103,7 @@ export class ETagCacheManager implements ICache {
     };
 
     this.cache.set(url, entry);
-    logDebug(`Cached response for ${url} with ETag ${etag}`);
+    this.log('debug', `Cached response for ${url} with ETag ${etag}`, { url });
   }
 
   /**
@@ -114,7 +133,13 @@ export class ETagCacheManager implements ICache {
       }
     }
     if (count > 0) {
-      logDebug(`Invalidated ${count} cache entries matching ${pathSegment}`);
+      this.log(
+        'debug',
+        `Invalidated ${count} cache entries matching ${pathSegment}`,
+        {
+          count,
+        },
+      );
     }
     return count;
   }
@@ -126,7 +151,7 @@ export class ETagCacheManager implements ICache {
     this.cache.clear();
     this.hits = 0;
     this.misses = 0;
-    logInfo('ETag cache cleared');
+    this.log('info', 'ETag cache cleared');
   }
 
   /**
@@ -165,7 +190,9 @@ export class ETagCacheManager implements ICache {
    */
   updateConfig(newConfig: Partial<ETagCacheConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    logInfo('ETag cache configuration updated');
+    this.log('info', 'ETag cache configuration updated', {
+      maxEntries: this.config.maxEntries,
+    });
   }
 
   /**
@@ -182,7 +209,9 @@ export class ETagCacheManager implements ICache {
 
     const cleanedCount = beforeSize - this.cache.size;
     if (cleanedCount > 0) {
-      logDebug(`Cleaned up ${cleanedCount} expired cache entries`);
+      this.log('debug', `Cleaned up ${cleanedCount} expired cache entries`, {
+        cleanedCount,
+      });
     }
 
     return cleanedCount;
@@ -195,7 +224,7 @@ export class ETagCacheManager implements ICache {
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer);
     }
-    logInfo('ETag cache manager shut down');
+    this.log('info', 'ETag cache manager shut down');
   }
 
   private isExpired(entry: CacheEntry): boolean {
@@ -216,7 +245,9 @@ export class ETagCacheManager implements ICache {
 
     if (oldestKey) {
       this.cache.delete(oldestKey);
-      logDebug(`Evicted oldest cache entry: ${oldestKey}`);
+      this.log('debug', `Evicted oldest cache entry: ${oldestKey}`, {
+        url: oldestKey,
+      });
     }
   }
 

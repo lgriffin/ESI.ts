@@ -3,6 +3,7 @@ import { ETagCacheManager } from './cache/ETagCacheManager';
 import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
 import { RateLimiter } from './rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './RequestDeduplicator';
+import { createDefaultLogger } from './logger/DefaultLogger';
 import type { EsiClientConfig } from '../EsiClient';
 
 export interface ConfigureApiClientResult {
@@ -31,17 +32,22 @@ export function configureApiClient(
   // Request deduplication (on by default)
   if (config?.enableRequestDeduplication !== false) {
     deduplicator = new RequestDeduplicator();
+    deduplicator.setClient(client);
     client.setDeduplicator(deduplicator);
   }
 
   // ETag cache (on by default)
   if (config?.enableETagCache !== false) {
-    client.setCache(new ETagCacheManager(config?.etagCacheConfig));
+    const cache = new ETagCacheManager(config?.etagCacheConfig);
+    cache.setClient(client);
+    client.setCache(cache);
   }
 
   // Circuit breaker (off by default, opt-in)
   if (config?.enableCircuitBreaker) {
-    client.setCircuitBreaker(new CircuitBreaker(config.circuitBreakerConfig));
+    const cb = new CircuitBreaker(config.circuitBreakerConfig);
+    cb.setClient(client);
+    client.setCircuitBreaker(cb);
   }
 
   // Retry config — default to 3 retries with exponential backoff so that
@@ -88,6 +94,15 @@ export function configureApiClient(
   // Timeout
   if (config?.timeout !== undefined) {
     client.setTimeout(config.timeout);
+  }
+
+  // Per-client logger only when explicitly configured. Otherwise the pipeline
+  // resolves to the global setLogger() logger, then the built-in pino default
+  // (level from ESI_LOG_LEVEL), so existing global-logger setups keep working.
+  if (config?.logger) {
+    client.setLogger(config.logger);
+  } else if (config?.logLevel) {
+    client.setLogger(createDefaultLogger(config.logLevel));
   }
 
   return { deduplicator };

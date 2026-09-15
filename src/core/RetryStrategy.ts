@@ -1,12 +1,14 @@
+import { ApiClient } from './ApiClient';
 import { EsiError } from './util/error';
 import { CircuitOpenError } from './circuitBreaker/CircuitBreaker';
 import { RetryConfig, retryDelay } from './util/retry';
 import { sleep } from './util/sleep';
-import { logInfo, logWarn, logError } from './logger/loggerUtil';
+import { logInfo, logWarn, logError } from './logger/clientLog';
 import { buildError } from './util/error';
 import { IRetryStrategy } from './IRetryStrategy';
 
 export interface RetryContext {
+  client?: ApiClient;
   endpoint: string;
   method: string;
   requiresAuth: boolean;
@@ -53,7 +55,9 @@ export class RetryStrategy implements IRetryStrategy {
           context.refreshToken
         ) {
           refreshAttempted = true;
-          logInfo('Received 401, attempting token refresh...');
+          logInfo(context.client, 'Received 401, attempting token refresh...', {
+            endpoint: context.endpoint,
+          });
           try {
             await context.refreshToken();
           } catch (refreshError: unknown) {
@@ -67,13 +71,17 @@ export class RetryStrategy implements IRetryStrategy {
               refreshError instanceof Error
                 ? refreshError.message
                 : String(refreshError);
-            logError(`Token refresh failed: ${msg}`);
+            logError(context.client, `Token refresh failed: ${msg}`, {
+              endpoint: context.endpoint,
+            });
             throw buildError(
               `Token refresh failed: ${msg}`,
               'TOKEN_REFRESH_FAILED',
             );
           }
-          logInfo('Token refreshed, retrying request');
+          logInfo(context.client, 'Token refreshed, retrying request', {
+            endpoint: context.endpoint,
+          });
           // Re-enter the loop so post-refresh failures use normal retry/error handling
           // (and are never mislabeled as TOKEN_REFRESH_FAILED).
           attempt--;
@@ -88,7 +96,9 @@ export class RetryStrategy implements IRetryStrategy {
         ) {
           const delay = retryDelay(attempt, this.baseDelayMs, this.maxDelayMs);
           logWarn(
+            context.client,
             `Request to ${context.endpoint} failed (${error.statusCode}), retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${this.maxRetries})`,
+            { method: context.method, statusCode: error.statusCode },
           );
           await sleep(delay);
           lastError = error;

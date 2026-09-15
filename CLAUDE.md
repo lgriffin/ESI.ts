@@ -7,7 +7,7 @@ TypeScript wrapper for the EVE Online ESI (EVE Swagger Interface) API. Published
 ```bash
 npm run build          # Dual CJS/ESM bundle (tsup) + declarations (tsc)
 npm run typecheck      # Type-check without emitting (tsc --noEmit)
-npm run clean          # Remove dist/, coverage/, docs/
+npm run clean          # Remove dist/, coverage/, docs-site/public/api/
 npm run lint           # ESLint (src/)
 npm run format:check   # Prettier check
 npm run validate       # lint + format + build + coverage + knip

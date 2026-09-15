@@ -166,7 +166,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          publish_dir: ./docs-site/public/api
 
   # Job 4: Create Release Assets (no OIDC — build only, hands off to sign-and-publish)
   create-assets:
@@ -212,7 +212,7 @@ jobs:
           echo "tarball=$(ls -1 *.tgz)" >> "$GITHUB_OUTPUT"
 
       - name: 🗜️ Create documentation archive
-        run: tar -czf docs.tar.gz docs/
+        run: tar -czf docs.tar.gz -C docs-site/public api
 
       - name: 🔢 Generate SHA256 checksums
         env:

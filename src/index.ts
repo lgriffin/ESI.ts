@@ -170,9 +170,20 @@ export {
   EsiScope,
   esiEndpointScopes,
 } from './core/endpoints/esi-scopes.generated';
-export { ILogger } from './core/logger/ILogger';
-export { setLogger } from './core/logger/loggerUtil';
+export { ILogger, LogContext } from './core/logger/ILogger';
+export {
+  setLogger,
+  getLogger,
+  logFatal,
+  logInfo,
+  logError,
+  logWarn,
+  logDebug,
+  logTrace,
+} from './core/logger/loggerUtil';
 export { createNoopLogger } from './core/logger/NoopLogger';
+export { createDefaultLogger, toPinoLogger } from './core/logger/DefaultLogger';
+export type { LogLevel } from './core/logger/DefaultLogger';
 
 // Types
 export * from './types/api-responses';

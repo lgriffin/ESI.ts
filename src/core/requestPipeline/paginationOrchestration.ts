@@ -1,6 +1,6 @@
 import { ApiClient } from '../ApiClient';
 import { buildError, EsiError } from '../util/error';
-import { logInfo, logWarn } from '../logger/loggerUtil';
+import { logInfo, logWarn } from '../logger/clientLog';
 import { ParsedHeaders } from '../util/headersUtil';
 import {
   PaginationHandler,
@@ -53,7 +53,9 @@ export async function handleOffsetPagination(
   }
 
   logInfo(
+    client,
     `Found ${totalPages} pages, fetching additional pages with rate limiting...`,
+    { endpoint, totalPages },
   );
 
   try {
@@ -91,7 +93,11 @@ export async function handleOffsetPagination(
       paginationError instanceof Error
         ? paginationError.message
         : String(paginationError);
-    logWarn(`Pagination failed for ${url}: ${msg}`);
+    logWarn(client, `Pagination failed for ${url}: ${msg}`, {
+      url,
+      endpoint,
+      error: msg,
+    });
     if (
       paginationError instanceof EsiError ||
       paginationError instanceof CircuitOpenError

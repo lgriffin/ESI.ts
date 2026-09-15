@@ -1,6 +1,6 @@
 import { ApiClient } from '../ApiClient';
 import { EsiError, TimeoutError } from '../util/error';
-import { logInfo, logWarn, logError } from '../logger/loggerUtil';
+import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { parseHeaders, ParsedHeaders } from '../util/headersUtil';
 import { ICache } from '../cache/ICache';
 import { IRateLimiter } from '../rateLimiter/IRateLimiter';
@@ -65,7 +65,7 @@ export async function executeSingleFetch(
   };
 
   const url = req.url;
-  logInfo(`Hitting endpoint: ${url}`);
+  logInfo(client, `Hitting endpoint: ${url}`, { method, endpoint });
 
   const cb = resolveCircuitBreaker(client);
   const cbKey =
@@ -127,7 +127,12 @@ export async function executeSingleFetch(
 
     if (parsed.warning) {
       logWarn(
-        `ESI Warning ${parsed.warning.code} for ${url}: ${parsed.warning.message}`,
+        client,
+        `ESI Warning ${parsed.warning.code}: ${parsed.warning.message}`,
+        {
+          url,
+          warningCode: parsed.warning.code,
+        },
       );
     }
 
@@ -143,6 +148,7 @@ export async function executeSingleFetch(
  * Parse a JSON response body, throwing on parse failure.
  */
 export async function parseJsonBody(
+  client: ApiClient | null | undefined,
   response: Response,
   _url: string,
 ): Promise<unknown> {
@@ -151,7 +157,7 @@ export async function parseJsonBody(
   } catch (jsonError) {
     const msg =
       jsonError instanceof Error ? jsonError.message : String(jsonError);
-    logError(`Failed to parse JSON response: ${msg}`);
+    logError(client, `Failed to parse JSON response: ${msg}`, { url: _url });
     throw buildError(`Invalid JSON response: ${msg}`, 'JSON_PARSE_ERROR');
   }
 }
@@ -195,6 +201,6 @@ export async function fetchOnePage(
     );
   }
 
-  const data = await parseJsonBody(response, url);
+  const data = await parseJsonBody(client, response, url);
   return { data, parsed, url };
 }
