@@ -236,7 +236,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.1.0",
-    "@cucumber/gherkin": "^28.0.0",
+    "@cucumber/gherkin": "^42.0.1",
     "@cucumber/messages": "^24.1.0",
     "@microsoft/api-extractor": "^7.58.9",
     "@redocly/cli": "^2.48.0",
