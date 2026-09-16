@@ -157,8 +157,8 @@ Feature: Universe Information
 
     Scenario: Three concurrent system lookups each return their own system
       Given multiple concurrent universe data requests are prepared
-      When the client makes them simultaneously
-      Then all requests shall complete successfully
+      When the client requests the prepared systems simultaneously
+      Then all system requests shall complete successfully
 
   Rule: When identifiers taken from a system record are used to look up its star, station, and planet, the Universe client shall return bodies reporting that same solar system as their host.
     This is the composition the map graph is built on: one system read yields
