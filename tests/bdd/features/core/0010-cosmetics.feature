@@ -66,6 +66,6 @@ Feature: Cosmetics SKINR
     empty licence list.
 
     Scenario: Service outage rejects the request
-      Given the ESI service is down
+      Given the SKINR service is down
       When the client requests cosmetics data
-      Then the client shall return a 503 error
+      Then the client shall return a 503 error for cosmetics
