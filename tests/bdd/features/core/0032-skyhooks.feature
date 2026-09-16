@@ -6,6 +6,12 @@ Feature: Skyhooks and Sovereignty Hubs
   and per-structure detail are separate endpoints with different payload
   shapes, so both are specified here.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Corporation structure listings ──────────────────────────────────
 
   Rule: When the sovereignty hubs of a corporation are requested, the Skyhooks client shall return one entry per hub carrying its online flag, and its installed upgrade list when present.
@@ -64,7 +70,7 @@ Feature: Skyhooks and Sovereignty Hubs
 
   # ── Upstream failure ────────────────────────────────────────────────
 
-  Rule: If ESI answers a skyhooks request with a 503 status, then the Skyhooks client shall reject the request with an EsiError.
+  Rule: If ESI answers every attempt at a skyhooks request with a 503 status and no usable cached entry exists, then the Skyhooks client shall reject the request with an EsiError.
     Equinox endpoints go offline during downtime and deployments. The client
     turns the upstream 503 into a typed EsiError so a caller can distinguish an
     outage from an empty structure list.

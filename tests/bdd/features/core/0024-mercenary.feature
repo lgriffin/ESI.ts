@@ -7,6 +7,12 @@ Feature: Mercenary Operations
   Each concept has a list endpoint for surveying what a character owns and a
   detail endpoint for the evolution and expiry data the list view omits.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Den listing ─────────────────────────────────────────────────────
 
   Rule: When the mercenary dens of a character are requested, the Mercenary client shall return each den with its den_id, and its development_level, anarchy_level, and active_operations count when present.
@@ -78,7 +84,7 @@ Feature: Mercenary Operations
 
   # ── Error propagation ───────────────────────────────────────────────
 
-  Rule: If the ESI API responds to a mercenary request with an error status, then the Mercenary client shall raise an EsiError.
+  Rule: If the ESI API answers every attempt at a mercenary request with an error status and no usable cached entry exists, then the Mercenary client shall raise an EsiError.
     Mercenary endpoints are recent additions and are taken offline during
     deployments more often than the older surfaces, so callers see an
     upstream 503 as the same EsiError type used everywhere else.

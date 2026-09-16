@@ -9,6 +9,12 @@ Feature: Market Management
   order book runs to thousands of rows — so payload size and concurrent use are
   part of the contract rather than an afterthought.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Global price list ───────────────────────────────────────────────
 
   Rule: When current market prices are requested, the Market client shall return each entry with a type_id, and a numeric average_price and an adjusted_price when present.
@@ -22,7 +28,7 @@ Feature: Market Management
       When the client requests current market prices
       Then the client shall return price data for all tradeable items
 
-  Rule: If the ESI market price endpoint responds with an error status, then the Market client shall raise an EsiError.
+  Rule: If the ESI market price endpoint answers every attempt with an error status and no usable cached entry exists, then the Market client shall raise an EsiError.
     Market data is served from a cache that can be unavailable while the
     market endpoint itself is up, which surfaces as a 503. The caller sees the
     same EsiError type as for any other market failure.
@@ -80,9 +86,11 @@ Feature: Market Management
       When the client requests their market orders
       Then the client shall return their active orders
 
-  Rule: When the market order history of a character is requested, the Market client shall return each order with a state of closed, cancelled, or expired and a volume_remain no greater than its volume_total.
+  Rule: When the market order history of a character is requested, the Market client shall return each order with a state of cancelled or expired and a volume_remain no greater than its volume_total.
     Order history is the terminal state of an order, so state is constrained
-    to the three values ESI can end on. The volume relationship distinguishes
+    to the two values ESI and the order history schema name: cancelled and
+    expired. A filled order leaves the history as expired with no volume
+    remaining; there is no closed state. The volume relationship distinguishes
     a fully filled order from one that expired part-traded.
 
     Scenario: Closed order reports a terminal state and its filled volume

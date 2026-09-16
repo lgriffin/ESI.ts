@@ -8,6 +8,12 @@ Feature: Loyalty Management
   Store offers carry trade-in requirements as well as LP and ISK costs, so the
   shape of an offer is part of the contract this feature pins down.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Character loyalty balances ──────────────────────────────────────
 
   Rule: When a character's loyalty points are requested, the Loyalty client shall return one entry per corporation carrying a numeric corporation_id and a non-negative numeric loyalty_points balance.
@@ -67,7 +73,7 @@ Feature: Loyalty Management
 
   # ── Error propagation ───────────────────────────────────────────────
 
-  Rule: If the ESI API rejects a loyalty request with an error status, then the Loyalty client shall raise an EsiError.
+  Rule: If every attempt at a loyalty request is answered with an error status and no usable cached entry exists, then the Loyalty client shall raise an EsiError.
     Both loyalty endpoints surface failures the same way, so callers wrap one
     try/catch around either call. The two scenarios cover the authorisation
     boundary and the upstream failure boundary.

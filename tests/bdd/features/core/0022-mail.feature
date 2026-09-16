@@ -8,6 +8,12 @@ Feature: Mail Management
   Every operation is character-scoped and authenticated, which makes 403 the
   expected failure for an unauthenticated caller.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Reading mail ────────────────────────────────────────────────────
 
   Rule: When the mail headers of a character are requested, the Mail client shall return one summary per message carrying mail_id, from, subject, timestamp, and is_read when present.
@@ -117,7 +123,7 @@ Feature: Mail Management
 
   # ── Error propagation ───────────────────────────────────────────────
 
-  Rule: If the ESI API rejects a mail request with an error status, then the Mail client shall raise an EsiError.
+  Rule: If every attempt at a mail request is answered with an error status and no usable cached entry exists, then the Mail client shall raise an EsiError.
     Every mail endpoint reports failure the same way so a caller can wrap the
     whole surface in one try/catch. The two scenarios cover the authorisation
     boundary and a missing resource.

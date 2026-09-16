@@ -8,6 +8,12 @@ Feature: Insurance Management
   tier count, tier ordering, and the payout-over-cost invariant — is as much
   part of the contract as the transport behaviour around it.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Price retrieval ─────────────────────────────────────────────────
 
   Rule: When the client requests insurance prices, the Insurance client shall return one entry per insurable ship type carrying a levels list of cost, name, and payout.
@@ -67,11 +73,14 @@ Feature: Insurance Management
 
   # ── Error responses ─────────────────────────────────────────────────
 
-  Rule: If an insurance price request is answered with HTTP 503 or HTTP 429, then the Insurance client shall reject with an EsiError.
+  Rule: If every attempt at an insurance price request is answered with HTTP 503 or HTTP 429 and no usable cached entry exists, then the Insurance client shall reject with an EsiError.
     503 covers the daily downtime window; 429 is ESI's answer once the caller
     has burned through its error budget. Both arrive as the same typed
     rejection, so a retry policy can inspect the status code on one error class
-    instead of unwrapping two.
+    instead of unwrapping two. Both statuses are retried first. After a 429 a
+    default client's rate limiter also blocks the group for the Retry-After
+    period, or 60 seconds, before each retry, so the rejection arrives only
+    minutes later.
 
     Scenario: ESI answering 503
       Given the ESI service is temporarily unavailable

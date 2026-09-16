@@ -30,11 +30,13 @@ Feature: Access Lists
 
   # ── Rejected requests ───────────────────────────────────────────────
 
-  Rule: If an access list request is refused or names a list ESI cannot find, then the Access Lists client shall reject the request with an EsiError.
-    Access lists are private to their owner, so an absent token produces a 401
-    and an unknown list identifier produces a 404. Both surface as a typed
-    EsiError rather than as an empty list, so a caller never mistakes a
-    refusal for an unrestricted list.
+  Rule: If ESI refuses an access list request or cannot find the list it names, then the Access Lists client shall reject the request with an EsiError.
+    Access lists are private to their owner, so ESI answers a token it does not
+    accept with a 401 and an unknown list identifier with a 404. Both surface
+    as a typed EsiError rather than as an empty list, so a caller never
+    mistakes a refusal for an unrestricted list. A client with no token at all
+    never reaches ESI: it throws a NO_AUTH_TOKEN error, which is not an
+    EsiError, before sending the request.
 
     Scenario: Missing token rejects the access list request with an EsiError
       Given no valid token is provided

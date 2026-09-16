@@ -6,6 +6,12 @@ Feature: Server Status
   attempt anything else, so both its success payload and its outage behaviour
   are specified here.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Status payload ──────────────────────────────────────────────────
 
   Rule: When server status is requested, the Status client shall return the player count as a number, the server version, the start time as a parseable ISO 8601 timestamp, and the VIP flag when present.
@@ -49,7 +55,7 @@ Feature: Server Status
 
   # ── Upstream failure ────────────────────────────────────────────────
 
-  Rule: If ESI answers a status request with a 5xx status, then the Status client shall reject the request with an EsiError.
+  Rule: If ESI answers every attempt at a status request with a 5xx status and no usable cached entry exists, then the Status client shall reject the request with an EsiError.
     Both the outage code and the internal error code arrive as failures rather
     than as a status payload with a flag set, so the client raises a typed
     EsiError. A caller polling for availability treats either as "cluster not
@@ -67,11 +73,14 @@ Feature: Server Status
 
   # ── Repeated polling ────────────────────────────────────────────────
 
-  Rule: The Status client shall return the payload of the current response on each successive status request.
-    Applications poll this endpoint on a timer. Each call resolves against
-    whatever the server returned for that call, so a changing player count is
-    observed across polls while a constant server version and start time stay
-    constant.
+  Rule: While no unexpired cached entry exists for the status endpoint, the Status client shall return the payload of the current response on each successive status request.
+    Applications poll this endpoint on a timer. A poll that reaches the server
+    resolves against whatever the server returned for that call, so a changing
+    player count is observed across polls while a constant server version and
+    start time stay constant. ESI sends GET status with an ETag, and the spec
+    gives it a 30-second cache TTL. A poll inside that window is answered from
+    the ETag cache without a request, so polling faster than every 30 seconds
+    sees repeated payloads.
 
     Scenario: Three successive polls track a changing player count under one server version
       Given the server is online with gradually changing player counts
