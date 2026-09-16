@@ -1,13 +1,16 @@
 ---
-rules:
-  # setup-node in a release workflow is flagged regardless of cache settings.
-  # We removed explicit cache: 'npm' but zizmor still detects the action itself
-  # as a cache-poisoning vector in release-triggered workflows.
-  cache-poisoning:
-    ignore:
-      - 'release.yml'
-  # GitHub Packages publish uses GITHUB_TOKEN, not npm trusted publishing.
-  # OIDC-based trusted publishing only applies to the npm registry.
-  use-trusted-publishing:
-    ignore:
-      - 'release.yml'
+# zizmor configuration, used by the `zizmor` job in ci.yml.
+#
+# Policy: every ignore carries a comment saying why the finding does not
+# apply and what would make the ignore removable. Prefer fixing the workflow
+# over ignoring the audit. Scope an ignore to a line (`file.yml:LINE`) rather
+# than a whole file where the finding is specific.
+#
+# There are currently no ignores. The three that used to live here were
+# removed after checking them against zizmor 1.25.2:
+# - cache-poisoning (release.yml): fixed by setting
+#   `package-manager-cache: false` on every setup-node step in release.yml.
+# - dependabot-cooldown (dependabot.yml): fixed by configuring `cooldown`.
+# - use-trusted-publishing (release.yml): produced no finding, so it was
+#   suppressing nothing.
+rules: {}
