@@ -95,6 +95,11 @@ Key middleware in the pipeline:
 - **ci-fast.yml** — runs on all pushes: lint, format, build, typecheck, unit tests (Node 20)
 - **ci.yml** — runs on PRs to master: full matrix (Node 18/20/22), BDD, contract, fuzz, coverage with PR comment, quality gate
 - **nightly-mutation.yml** — runs nightly: mutation testing (Stryker) with 4-hour timeout
+- **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
+
+## Reviewing
+
+Review against the checklist and severities in `AGENTS.md` (Reviewer Checklist). Area notes: `tests/bdd/AGENTS.md`, `src/core/requestPipeline/AGENTS.md`.
 
 ## Do Not Edit
 

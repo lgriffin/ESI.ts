@@ -30,6 +30,7 @@ bd dolt push          # Push beads data to remote
 Shell commands like `cp`, `mv`, and `rm` may be aliased to include `-i` (interactive) mode on some systems, causing the agent to hang indefinitely waiting for y/n input.
 
 **Use these forms instead:**
+
 ```bash
 # Force overwrite without prompting
 cp -f source dest           # NOT: cp source dest
@@ -42,11 +43,48 @@ cp -rf source dest          # NOT: cp -r source dest
 ```
 
 **Other commands that may prompt:**
+
 - `scp` - use `-o BatchMode=yes` for non-interactive
 - `ssh` - use `-o BatchMode=yes` to fail instead of prompting
 - `apt-get` - use `-y` flag
 - `brew` - use `HOMEBREW_NO_AUTO_UPDATE=1` env var
 
+## Reviewer Checklist
+
+Every pull request, whether a human or an agent wrote it, is reviewed against
+this list. Area-specific guidance lives next to the code:
+[`tests/bdd/AGENTS.md`](tests/bdd/AGENTS.md) and
+[`src/core/requestPipeline/AGENTS.md`](src/core/requestPipeline/AGENTS.md).
+
+### Severities
+
+- **blocker**: the change cannot merge until it is fixed.
+- **major**: fix it before merge, or defer it to a bead or issue linked from the PR.
+- **minor**: the author decides. Record it and move on.
+
+Start each review comment with its severity and area, for example
+`blocker — transport seam (R3): …`.
+
+### Checks
+
+| Area                        | Check                                                                                                                                                                                                                                                 | Severity |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Issue authorisation         | The work traces to a bead (`esi-…`) or GitHub issue named in the PR or commits. Work with no trace is not authorised.                                                                                                                                 | blocker  |
+| Issue authorisation         | The scope stays within that bead or issue. Anything unrelated goes in its own PR or bead.                                                                                                                                                             | major    |
+| Rule coverage (R1)          | Each `Rule:` title is one EARS requirement with exactly one `shall`, and every Scenario sits under the Rule it verifies. `npm run spec:audit` enforces the form.                                                                                      | blocker  |
+| Rule coverage (R2)          | The Rule claims only what its scenarios assert, and it agrees with the endpoint's `responseSchema` and with pipeline behaviour such as retries, 304 handling and pagination. A Rule that promises more than its tests check is a false specification. | major    |
+| Transport-seam mocking (R3) | BDD steps queue HTTP responses through the helpers in `tests/bdd/support/`, such as `queueResponse`, on the global `jest-fetch-mock`. No `spyOn(client.*)` or other stub replaces the method under test or `handleRequest`.                           | blocker  |
+| Failing-first evidence (R4) | The PR shows the new or changed scenario failing before the source change, either as a test commit before the fix or as a RED run quoted in the PR.                                                                                                   | major    |
+| Failing-first evidence (R4) | A bug fix includes a scenario that reproduces the bug.                                                                                                                                                                                                | blocker  |
+| Step-file structure (R7)    | Each `.feature` file has one `*.steps.ts` file bound with `loadFeature`/`defineFeature`, and each `test('…')` title matches its Scenario name exactly.                                                                                                | major    |
+| Step-file structure (R8)    | Step bodies delegate to `tests/bdd/step-definitions/shared/` and `tests/bdd/support/`. They contain no inline URLs, fixture assembly or response construction.                                                                                        | minor    |
+| Generated files             | No manual edits in `src/types/generated/`, `src/core/endpoints/esi-*.generated.ts`, `etc/esi.ts.api.md` or `okf/`. Changes there come only from the generator command, run in the same PR.                                                            | blocker  |
+| Spec exceptions             | `scripts/spec-audit-exceptions.json` only shrinks.                                                                                                                                                                                                    | blocker  |
+| Skills (R14)                | A change to `.claude/skills/**` bumps `skill.version` in that skill's `eval/eval.yaml` and passes `skill-eval.yml`, both the deterministic and the live tier.                                                                                         | blocker  |
+
+CI enforces some rows: the spec audit, the exception ratchet and the skill eval. The reviewer still owns the rest: R2, R4, R8 and authorisation.
+
+<!-- prettier-ignore-start -->
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:970c3bf2 -->
 ## Beads Issue Tracker
 
@@ -126,3 +164,4 @@ bd prime                # Refresh Beads context
 
 **Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
 <!-- END BEADS CODEX SETUP -->
+<!-- prettier-ignore-end -->
