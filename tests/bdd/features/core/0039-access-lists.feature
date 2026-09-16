@@ -46,4 +46,4 @@ Feature: Access Lists
     Scenario: Unknown list identifier rejects the request with an EsiError
       Given an access list does not exist
       When the client requests a non-existent access list
-      Then the client shall return a 404 error
+      Then the client shall return a 404 error for the access list

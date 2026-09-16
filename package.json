@@ -151,7 +151,7 @@
     "bdd:sovereignty": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/sovereignty",
     "bdd:mercenary": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/mercenary",
     "bdd:military-campaigns": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/military-campaigns",
-    "bdd:access-lists": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/access-lists",
+    "bdd:access-lists": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0039-access-lists",
     "bdd:sde": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/sde",
     "bdd:status": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/status",
     "bdd:resilience": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/resilience",
