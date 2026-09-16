@@ -505,6 +505,33 @@ export class TestDataFactory {
     };
   }
 
+  /**
+   * A corporation industry job as `GET /corporations/{corporation_id}/industry/jobs`
+   * sends it: placed by `location_id`, where a character job has `station_id`.
+   */
+  static createCorporationIndustryJob(
+    overrides: Record<string, any> = {},
+  ): any {
+    return {
+      job_id: 2000001,
+      installer_id: 1689391488,
+      facility_id: 1021975535893,
+      location_id: 1021975535893,
+      activity_id: 1,
+      blueprint_id: 1000000001,
+      blueprint_type_id: 17918,
+      blueprint_location_id: 1021975535893,
+      output_location_id: 1021975535893,
+      product_type_id: 17918,
+      runs: 1,
+      status: 'active',
+      duration: 86400,
+      start_date: '2024-01-15T12:00:00Z',
+      end_date: '2024-01-16T12:00:00Z',
+      ...overrides,
+    };
+  }
+
   static createBlueprint(overrides: Record<string, any> = {}): any {
     return {
       item_id: 1000000001,

@@ -63,6 +63,7 @@ const builderSchemas: Record<string, z.ZodType> = {
   createFleetMember: schemas.FleetMemberSchema,
   createFleetWing: schemas.FleetWingSchema,
   createIndustryJob: schemas.IndustryJobSchema,
+  createCorporationIndustryJob: schemas.CorporationIndustryJobSchema,
   createBlueprint: schemas.BlueprintSchema,
   createCharacterAsset: schemas.CharacterAssetSchema,
   createCharacterLocation: schemas.CharacterLocationSchema,

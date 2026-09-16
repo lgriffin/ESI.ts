@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { contractEndpoints } from '../../../src/core/endpoints/contractEndpoints';
 import { corporationEndpoints } from '../../../src/core/endpoints/corporationEndpoints';
 import { freelanceJobsEndpoints } from '../../../src/core/endpoints/freelanceJobsEndpoints';
+import { industryEndpoints } from '../../../src/core/endpoints/industryEndpoints';
 
 interface BodyCase {
   route: string;
@@ -186,6 +187,29 @@ const cases: BodyCase[] = [
       attack_if_at_war: true,
       fuels: [{ type_id: 4051, quantity: 960 }],
     },
+  },
+  {
+    // CorporationsCorporationIdIndustryJobsGet: location_id, no station_id.
+    route: 'GET /corporations/{corporation_id}/industry/jobs',
+    schema: industryEndpoints.getCorporationIndustryJobs.responseSchema,
+    body: [
+      {
+        job_id: 2000001,
+        installer_id: 90000001,
+        facility_id: 1021975535893,
+        location_id: 1021975535893,
+        activity_id: 1,
+        blueprint_id: 1000000001,
+        blueprint_type_id: 17919,
+        blueprint_location_id: 1021975535893,
+        output_location_id: 1021975535893,
+        runs: 10,
+        status: 'active',
+        duration: 86400,
+        start_date: '2026-09-15T12:00:00Z',
+        end_date: '2026-09-16T12:00:00Z',
+      },
+    ],
   },
 ];
 

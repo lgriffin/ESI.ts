@@ -136,24 +136,27 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: `/corporations/${corporationId}/industry/jobs`,
         body: [
-          TestDataFactory.createIndustryJob({
+          TestDataFactory.createCorporationIndustryJob({
             job_id: 2000001,
             installer_id: 1689391488,
             facility_id: 60003760,
+            location_id: 60003760,
             activity_id: 1,
             status: 'active',
           }),
-          TestDataFactory.createIndustryJob({
+          TestDataFactory.createCorporationIndustryJob({
             job_id: 2000002,
             installer_id: 123456789,
             facility_id: 1021975535893,
+            location_id: 1021975535893,
             activity_id: 5,
             status: 'active',
           }),
-          TestDataFactory.createIndustryJob({
+          TestDataFactory.createCorporationIndustryJob({
             job_id: 2000003,
             installer_id: 111111111,
             facility_id: 60008494,
+            location_id: 60008494,
             activity_id: 8,
             status: 'delivered',
           }),
@@ -170,11 +173,16 @@ defineFeature(feature, (test) => {
         `/corporations/${corporationId}/industry/jobs`,
       );
       expect(
-        result.map((j: any) => [j.job_id, j.installer_id, j.facility_id]),
+        result.map((j: any) => [
+          j.job_id,
+          j.installer_id,
+          j.facility_id,
+          j.location_id,
+        ]),
       ).toEqual([
-        [2000001, 1689391488, 60003760],
-        [2000002, 123456789, 1021975535893],
-        [2000003, 111111111, 60008494],
+        [2000001, 1689391488, 60003760, 60003760],
+        [2000002, 123456789, 1021975535893, 1021975535893],
+        [2000003, 111111111, 60008494, 60008494],
       ]);
     });
   });

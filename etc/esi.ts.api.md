@@ -2421,6 +2421,35 @@ const CorporationIconSchema: z.ZodObject<{
 export type CorporationId = Brand<number, 'CorporationId'>;
 
 // @public (undocumented)
+export type CorporationIndustryJob = z.infer<typeof CorporationIndustryJobSchema>;
+
+// @public
+const CorporationIndustryJobSchema: z.ZodObject<{
+    status: z.ZodType<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown>>;
+    runs: z.ZodNumber;
+    start_date: z.ZodString;
+    facility_id: z.ZodNumber;
+    duration: z.ZodNumber;
+    job_id: z.ZodNumber;
+    installer_id: z.ZodNumber;
+    activity_id: z.ZodNumber;
+    blueprint_id: z.ZodNumber;
+    blueprint_type_id: z.ZodNumber;
+    blueprint_location_id: z.ZodNumber;
+    output_location_id: z.ZodNumber;
+    cost: z.ZodOptional<z.ZodNumber>;
+    licensed_runs: z.ZodOptional<z.ZodNumber>;
+    probability: z.ZodOptional<z.ZodNumber>;
+    product_type_id: z.ZodOptional<z.ZodNumber>;
+    end_date: z.ZodString;
+    pause_date: z.ZodOptional<z.ZodString>;
+    completed_date: z.ZodOptional<z.ZodString>;
+    completed_character_id: z.ZodOptional<z.ZodNumber>;
+    successful_runs: z.ZodOptional<z.ZodNumber>;
+    location_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type CorporationInfo = z.infer<typeof CorporationInfoSchema>;
 
 // @public (undocumented)
@@ -6144,7 +6173,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     // (undocumented)
     fetchAllCharacterMiningLedger(characterId: number, concurrency?: number): Promise<MiningLedgerEntry[]>;
     // (undocumented)
-    fetchAllCorporationIndustryJobs(corporationId: number, concurrency?: number): Promise<IndustryJob[]>;
+    fetchAllCorporationIndustryJobs(corporationId: number, concurrency?: number): Promise<CorporationIndustryJob[]>;
     // (undocumented)
     fetchAllCorporationMiningObserver(corporationId: number, observerId: number, concurrency?: number): Promise<MiningObserverEntry[]>;
     // (undocumented)
@@ -6157,7 +6186,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     fetchAllMoonExtractionTimers(corporationId: number, concurrency?: number): Promise<MoonExtractionTimer[]>;
     getCharacterIndustryJobs(characterId: number): Promise<IndustryJob[]>;
     getCharacterMiningLedger(characterId: number): Promise<MiningLedgerEntry[]>;
-    getCorporationIndustryJobs(corporationId: number): Promise<IndustryJob[]>;
+    getCorporationIndustryJobs(corporationId: number): Promise<CorporationIndustryJob[]>;
     getCorporationMiningObserver(corporationId: number, observerId: number): Promise<MiningObserverEntry[]>;
     getCorporationMiningObservers(corporationId: number): Promise<MiningObserver[]>;
     getIndustryFacilities(): Promise<IndustryFacility[]>;
@@ -6168,7 +6197,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     // (undocumented)
     streamCharacterMiningLedger(characterId: number): AsyncGenerator<PageResult<MiningLedgerEntry>, void, undefined>;
     // (undocumented)
-    streamCorporationIndustryJobs(corporationId: number): AsyncGenerator<PageResult<IndustryJob>, void, undefined>;
+    streamCorporationIndustryJobs(corporationId: number): AsyncGenerator<PageResult<CorporationIndustryJob>, void, undefined>;
     // (undocumented)
     streamCorporationMiningObserver(corporationId: number, observerId: number): AsyncGenerator<PageResult<MiningObserverEntry>, void, undefined>;
     // (undocumented)
@@ -6213,7 +6242,7 @@ const IndustryFacilitySchema: z.ZodObject<{
 // @public (undocumented)
 export type IndustryJob = z.infer<typeof IndustryJobSchema>;
 
-// @public (undocumented)
+// @public
 const IndustryJobSchema: z.ZodObject<{
     job_id: z.ZodNumber;
     installer_id: z.ZodNumber;
@@ -7955,6 +7984,7 @@ declare namespace schemas {
         FreelanceJobParticipantsListingSchema,
         IncursionSchema,
         IndustryJobSchema,
+        CorporationIndustryJobSchema,
         MiningLedgerEntrySchema,
         IndustryFacilitySchema,
         IndustrySystemSchema,

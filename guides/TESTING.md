@@ -632,6 +632,7 @@ Available factory methods:
 | `createFleetMember()`                | Fleet member                   |
 | `createFleetWing()`                  | Fleet wing                     |
 | `createIndustryJob()`                | Industry job                   |
+| `createCorporationIndustryJob()`     | Corporation industry job       |
 | `createBlueprint()`                  | Blueprint object               |
 | `createSolarSystem()`                | System object                  |
 | `createStation()`                    | Station object                 |

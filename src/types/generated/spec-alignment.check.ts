@@ -11,7 +11,7 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 110
+ * - Type pairs asserted: 111
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
@@ -108,6 +108,7 @@ import type {
 import type { Incursion } from '../incursions';
 import type {
   IndustryJob,
+  CorporationIndustryJob,
   MiningLedgerEntry,
   IndustryFacility,
   IndustrySystem,
@@ -528,6 +529,12 @@ type _Incursion = AssertTrue<HasAllSpecKeys<EsiSpec.IncursionsGet, Incursion>>;
 // Industry
 type _IndustryJob = AssertTrue<
   HasAllSpecKeys<EsiSpec.CharactersCharacterIdIndustryJobsGet, IndustryJob>
+>;
+type _CorporationIndustryJob = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CorporationsCorporationIdIndustryJobsGet,
+    CorporationIndustryJob
+  >
 >;
 type _MiningLedgerEntry = AssertTrue<
   HasAllSpecKeys<EsiSpec.CharactersCharacterIdMiningGet, MiningLedgerEntry>

@@ -214,6 +214,7 @@ exports[`API surface snapshots schema exports should match snapshot 1`] = `
   "CorporationFreelanceJobsListingSchema",
   "CorporationHistorySchema",
   "CorporationIconSchema",
+  "CorporationIndustryJobSchema",
   "CorporationInfoSchema",
   "CorporationIssuedMedalSchema",
   "CorporationMarketOrderHistorySchema",

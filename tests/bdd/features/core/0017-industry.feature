@@ -32,10 +32,11 @@ Feature: Industry Management
       When the client requests their industry jobs
       Then the client shall return an empty array
 
-  Rule: When the client requests the industry jobs of a corporation, the Industry client shall return every member's job carrying the installer identity and the facility the job runs in.
+  Rule: When the client requests the industry jobs of a corporation, the Industry client shall return every member's job carrying installer_id, facility_id, and location_id.
     The corporation view is the union of its members' queues, so an entry is
-    only actionable if it says who installed it and where. Those two fields are
-    what the character view can leave implicit and this one cannot.
+    only actionable if it says who installed it and where. ESI places a
+    corporation job by location_id (CorporationsCorporationIdIndustryJobsGet),
+    where the character view uses station_id.
 
     Scenario: Corporation jobs across three installers
       Given a corporation with running industry jobs
