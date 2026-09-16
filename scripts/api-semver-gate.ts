@@ -11,7 +11,13 @@
  * (HEAD^1..HEAD^2). Locally, on a feature branch:
  *
  *   npm run api-report:semver -- --base $(git merge-base origin/master HEAD) --pr-head HEAD
+ *
+ * The pull request title comes from `--pr-title`, or in CI from the GitHub
+ * API for `PR_NUMBER`. It is fetched rather than taken from the event
+ * payload because a re-run replays the original payload: after fixing the
+ * title, re-running the job has to see the new one.
  */
+import { execFileSync } from 'child_process';
 import { appendFileSync } from 'fs';
 import * as path from 'path';
 import {
@@ -29,6 +35,18 @@ function arg(name: string, fallback: string): string {
   return value ?? fallback;
 }
 
+function pullRequestTitle(): string | null {
+  const index = process.argv.indexOf('--pr-title');
+  if (index !== -1) return process.argv[index + 1] ?? null;
+  const number = process.env.PR_NUMBER;
+  if (!number) return null;
+  return execFileSync(
+    'gh',
+    ['pr', 'view', number, '--json', 'title', '--jq', '.title'],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  ).trim();
+}
+
 function main(): void {
   const base = arg('base', 'HEAD^1');
   const head = arg('head', 'HEAD');
@@ -36,7 +54,7 @@ function main(): void {
 
   const diff = diffReports(readReportAt(base, ROOT), readReportAt(head, ROOT));
   const commits = readCommitMessages(base, prHead, ROOT);
-  const result = evaluateGate(diff, commits);
+  const result = evaluateGate(diff, commits, { prTitle: pullRequestTitle() });
 
   const summary = [
     '## API SemVer gate',

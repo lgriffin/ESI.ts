@@ -72,7 +72,7 @@ Two practical consequences:
 
 - **Squash titles matter.** A squash merge keeps only the pull request title as the commit, so the title carries the type and the `!`.
 - **Dropping a supported Node line is a major bump** (REL-05). It needs a `!` and a changelog line, not a quiet edit to `engines`.
-- **A public API break must be declared.** The `api-semver` job in `ci.yml` fails a pull request whose `etc/esi.ts.api.md` lost or changed a line unless one of its commits is `type!:` or has a `BREAKING CHANGE:` footer. If the change breaks no consumer, add an `API-Compatible: <why>` trailer instead. See GATE-03 in [QUALITY-GATES.md](QUALITY-GATES.md). The gate reads commits, not the pull request title, so it only holds while pull requests are merged with a merge commit; a squash merge would bypass it.
+- **A public API break must be declared.** The `api-semver` job in `ci.yml` fails a pull request whose `etc/esi.ts.api.md` lost or changed a line unless one of its commits is `type!:` or has a `BREAKING CHANGE:` footer. If the change breaks no consumer, add an `API-Compatible: <why>` trailer instead. See GATE-03 in [QUALITY-GATES.md](QUALITY-GATES.md). Squash merging is allowed: when a declared break spans several commits, the gate also requires the pull request title to be `type!:`, because that title becomes the squash commit. Edit the title and re-run the failed jobs; no new push is needed.
 
 ---
 

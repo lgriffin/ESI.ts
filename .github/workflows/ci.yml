@@ -443,7 +443,13 @@ jobs:
     # HEAD is GitHub's merge commit for the pull request, so the script
     # compares the report at HEAD^1 (base tip) and HEAD, and reads the commits
     # in HEAD^1..HEAD^2 — the ones this pull request adds. Merge commits land
-    # on master as they are, which is what release-please reads.
+    # on master as they are, which is what release-please reads. A squash
+    # merge of several commits takes the pull request title instead, so a
+    # declared break also needs `type!:` in the title; the script reads the
+    # current title through the API so a re-run after editing it passes.
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - name: Checkout code
@@ -463,6 +469,10 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Check breaking API changes are declared
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: npm run api-report:semver
 
   documentation:

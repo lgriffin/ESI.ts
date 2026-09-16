@@ -16,6 +16,13 @@
  *   trailer. The reason lands in the git history next to the change, where a
  *   reviewer and a later reader can both see it.
  *
+ * The pull request has to survive either merge button. A merge commit keeps
+ * every commit, so a marker on any one of them reaches release-please. A
+ * squash merge of several commits takes its title from the pull request, and
+ * release-please reads only that title's `!` and the message's last-paragraph
+ * footers, so a breaking change also needs `type!:` in the pull request title.
+ * A single-commit squash keeps that commit's message, so the commit suffices.
+ *
  * Lines are compared as multisets rather than as an ordered diff, because
  * api-extractor orders some members differently on Windows and Linux (the
  * `api-surface` job sorts for the same reason).
@@ -39,7 +46,8 @@ export type Verdict =
   | 'additive'
   | 'breaking-declared'
   | 'compatible-declared'
-  | 'breaking-undeclared';
+  | 'breaking-undeclared'
+  | 'breaking-title-undeclared';
 
 export interface GateResult {
   ok: boolean;
@@ -130,6 +138,15 @@ function subject(message: string): string {
   return (message.split('\n', 1)[0] ?? '').trim();
 }
 
+export interface GateOptions {
+  /**
+   * The pull request title, which a squash merge of several commits uses as
+   * the commit title. Null or omitted when there is no pull request (a local
+   * run), which skips the title check.
+   */
+  prTitle?: string | null;
+}
+
 /**
  * Decide whether a pull request's commits declare what its API report change
  * does. `commitMessages` are the full messages of the commits the pull
@@ -138,6 +155,7 @@ function subject(message: string): string {
 export function evaluateGate(
   diff: ReportDiff,
   commitMessages: string[],
+  options: GateOptions = {},
 ): GateResult {
   if (diff.removed.length === 0 && diff.added.length === 0) {
     return {
@@ -156,6 +174,26 @@ export function evaluateGate(
   }
 
   const breaking = commitMessages.filter(isBreakingCommit);
+  const { prTitle } = options;
+  if (
+    breaking.length > 0 &&
+    commitMessages.length > 1 &&
+    prTitle != null &&
+    !BREAKING_HEADER.test(prTitle.trim())
+  ) {
+    return {
+      ok: false,
+      verdict: 'breaking-title-undeclared',
+      message: [
+        `The public API report lost or changed ${diff.removed.length} line(s), and a commit declares the break:`,
+        ...breaking.map((m) => `  - ${subject(m)}`),
+        `but the pull request title does not: "${prTitle.trim()}".`,
+        '',
+        `A squash merge of these ${commitMessages.length} commits uses the title as the commit release-please reads,`,
+        'so it would ship as a minor or a patch. Mark the title breaking (`feat!: …`), then re-run this job.',
+      ].join('\n'),
+    };
+  }
   if (breaking.length > 0) {
     return {
       ok: true,

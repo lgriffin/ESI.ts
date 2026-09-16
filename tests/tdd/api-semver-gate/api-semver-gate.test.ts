@@ -228,6 +228,66 @@ describe('API SemVer gate', () => {
       expect(result.verdict).toBe('breaking-declared');
     });
 
+    describe('squash merges', () => {
+      const commits = [
+        'test: cover it',
+        'feat!: remove getCharacterAccessLists',
+      ];
+
+      it('fails a declared break of several commits when the PR title lacks the marker', () => {
+        const result = evaluateGate(removal, commits, {
+          prTitle: 'Tidy the access list client',
+        });
+        expect(result).toMatchObject({
+          ok: false,
+          verdict: 'breaking-title-undeclared',
+        });
+        expect(result.message).toContain('Tidy the access list client');
+        expect(result.message).toContain(
+          'feat!: remove getCharacterAccessLists',
+        );
+      });
+
+      it('passes when the PR title carries the marker too', () => {
+        expect(
+          evaluateGate(removal, commits, {
+            prTitle: 'feat(access-lists)!: remove getCharacterAccessLists',
+          }),
+        ).toMatchObject({ ok: true, verdict: 'breaking-declared' });
+      });
+
+      it('does not need the title for a single commit, whose message a squash keeps', () => {
+        expect(
+          evaluateGate(removal, [commits[1]], { prTitle: 'Remove a method' }),
+        ).toMatchObject({ ok: true, verdict: 'breaking-declared' });
+      });
+
+      it('does not need the title for a change declared compatible', () => {
+        expect(
+          evaluateGate(
+            removal,
+            ['fix: tidy\n\nAPI-Compatible: optional parameter', 'test: cover'],
+            { prTitle: 'Tidy' },
+          ),
+        ).toMatchObject({ ok: true, verdict: 'compatible-declared' });
+      });
+
+      it('skips the title check when there is no pull request', () => {
+        expect(evaluateGate(removal, commits)).toMatchObject({
+          ok: true,
+          verdict: 'breaking-declared',
+        });
+      });
+
+      it('still fails an undeclared break whatever the title says', () => {
+        expect(
+          evaluateGate(removal, ['feat: a', 'test: b'], {
+            prTitle: 'feat!: a',
+          }),
+        ).toMatchObject({ ok: false, verdict: 'breaking-undeclared' });
+      });
+    });
+
     it('truncates a long list of removed lines', () => {
       const many = Array.from({ length: 25 }, (_, i) => `m${i}(): void;`);
       const result = evaluateGate({ removed: many, added: [] }, []);
