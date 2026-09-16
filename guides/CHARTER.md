@@ -527,9 +527,9 @@ guides/                         canonical, and the only source the site builds f
 ├── RELEASE.md                  NEW: release-please, changelog, provenance, support window
 ├── DOCUMENTATION.md            rewritten: surfaces, site build, TypeDoc, metrics generation
 ├── BEADS.md                    keep; AGENTS.md and CLAUDE.md shrink to pointers
-└── rfcs/                       jitaspace mapping, streaming-websocket strategy, ideas.md
+└── rfcs/                       future design papers (the jitaspace mapping and streaming-websocket strategy were retired as dated)
 docs-site/                      VitePress; guide/ populated by scripts/sync-docs.ts from guides/; public/api = TypeDoc
-docs/                           retired as a hand-written folder once its files move
+docs/                           retired: okf-guide moved to guides/OKF.md, nightly-spec-drift folded into QUALITY-GATES, the rest deleted
 TESTING.md (root)               deleted after merge
 etc/doc-metrics.json            NEW: generated counts: clients, endpoints, rules, scenarios, coverage
 ```
@@ -713,7 +713,7 @@ Everything found during the survey that contradicts a requirement above. Each ro
 The order matters: nothing in the documentation work is safe until step 2 is done, and nothing is trustworthy until step 1 is done.
 
 1. **Make the branch compile.** ✅ Revision 1.
-2. **Move TypeDoc output** to `docs-site/public/api` and update `clean`. ✅ Revision 1. Remaining: move the five `docs/` files into `guides/` and `guides/rfcs/`.
+2. **Move TypeDoc output** to `docs-site/public/api` and update `clean`. ✅ Revision 1. The five `docs/` files are moved, folded or retired, and `docs/` no longer exists.
 3. **Commit this charter** as `guides/CHARTER.md` and file one bead per row of the gap register, tagged with the requirement ID. ✅ Revision 1.
 4. **Merge the duplicates** in the roadmap order: TESTING first (it has the tier conflict), then SECURITY, then ARCHITECTURE. Delete the root copies as each merge lands.
 5. **Write the new guides**: DESIGN-RULES, QUALITY-GATES, ERRORS, LOGGING, PAGINATION, RELEASE. Each opens with `Implements: ARCH-03, DES-01 …`.

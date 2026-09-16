@@ -1,6 +1,8 @@
 # Security Policy
 
-## Supported Versions
+This is the vulnerability disclosure policy for `@lgriffin/esi.ts`. The controls the library and its build pipeline apply are described in [guides/SECURITY.md](guides/SECURITY.md).
+
+## Supported versions
 
 | Version | Supported |
 | ------- | --------- |
@@ -8,51 +10,45 @@
 | 8.x     | No        |
 | 7.x     | No        |
 
-## Reporting a Vulnerability
+The support window is described in [guides/RELEASE.md](guides/RELEASE.md).
 
-If you discover a security vulnerability in ESI.ts, please report it responsibly. **Do not open a public GitHub issue for security vulnerabilities.**
+## Reporting a vulnerability
 
-### How to Report
+**Do not open a public GitHub issue for a security vulnerability.**
 
-- **GitHub Security Advisories (preferred):** Use the [Security Advisories](https://github.com/lgriffin/ESI.ts/security/advisories/new) feature to report privately.
-- **Email:** Contact the maintainer directly via the email address listed on the [GitHub profile](https://github.com/lgriffin).
+- **GitHub Security Advisories (preferred):** report privately through [Security Advisories](https://github.com/lgriffin/ESI.ts/security/advisories/new).
+- **Email:** contact the maintainer at the address listed on the [GitHub profile](https://github.com/lgriffin).
 
-### What to Include
+Include:
 
-- A clear description of the vulnerability
-- Steps to reproduce or a proof of concept
-- The potential impact
-- Any suggested fixes (optional)
+- a clear description of the vulnerability
+- steps to reproduce or a proof of concept
+- the potential impact
+- a suggested fix, if you have one
 
-## What Counts as a Security Issue
+## Response timeline
 
-The following are examples of issues we consider security vulnerabilities:
+| Stage            | Target                                     |
+| ---------------- | ------------------------------------------ |
+| Acknowledgement  | Within 48 hours of the report              |
+| Assessment       | Severity and impact, after acknowledgement |
+| Critical fix     | Within 7 days                              |
+| Non-critical fix | Next scheduled release                     |
 
-- **Credential exposure** -- API tokens, client secrets, or other sensitive data leaked in logs, URLs, or error messages
-- **Injection** -- code injection, command injection, or header injection via user-controlled input
-- **SSRF bypass** -- circumventing host allowlist restrictions to reach unintended endpoints
-- **Path traversal** -- accessing files or resources outside the intended scope via crafted input
-- **Dependency vulnerabilities** -- known CVEs in direct dependencies that are exploitable in this context
+Disclosure is coordinated with the reporter. Reporters are credited in the release notes unless they ask to remain anonymous.
 
-Issues that are not security vulnerabilities (e.g., typos, feature requests, general bugs) should be reported via [GitHub Issues](https://github.com/lgriffin/ESI.ts/issues).
+## What counts as a security issue
 
-## Response Timeline
+| Category            | Example                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| Credential exposure | Access tokens, refresh tokens or client secrets leaked in logs, URLs or error messages |
+| Injection           | Code, command or header injection through caller-supplied input                        |
+| SSRF bypass         | Reaching a host other than ESI without setting `unsafeAllowCustomHost`                 |
+| Path traversal      | Escaping the intended ESI route through a crafted path parameter                       |
+| Dependency CVE      | A known advisory in a runtime dependency that is exploitable in this context           |
 
-- **Acknowledgment:** Within 48 hours of receiving the report.
-- **Assessment:** We will evaluate severity and impact promptly after acknowledgment.
-- **Fix (critical):** Within 7 days for critical vulnerabilities.
-- **Fix (non-critical):** Addressed in the next scheduled release.
-
-We will coordinate disclosure with the reporter and credit them in the release notes unless they prefer to remain anonymous.
-
-## Existing Security Measures
-
-ESI.ts already implements the following protections:
-
-- **URL sanitization** -- API tokens and sensitive parameters are redacted from logged URLs and error messages.
-- **SSRF protection** -- A host allowlist restricts outbound requests to known EVE Online ESI endpoints.
-- **Input validation** -- Path parameters are validated to prevent path traversal and injection attacks.
+Typos, feature requests and ordinary bugs belong in [GitHub Issues](https://github.com/lgriffin/ESI.ts/issues).
 
 ## Scope
 
-This policy applies to the ESI.ts library itself (`@lgriffin/esi.ts`). Vulnerabilities in the upstream EVE Online ESI API should be reported to CCP Games directly.
+This policy covers the ESI.ts library and its release artefacts. Vulnerabilities in the EVE Online ESI API or EVE SSO themselves should be reported to CCP Games.

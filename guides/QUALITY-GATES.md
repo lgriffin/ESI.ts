@@ -1,0 +1,519 @@
+# Quality Gates
+
+**Implements:** `GATE-01`, `GATE-02`, `GATE-03`, `GATE-04`, `GATE-05`, `GATE-06` — see [CHARTER.md](CHARTER.md) Part 5 for the requirements and their status.
+
+What runs at commit, push, pull request, nightly and release, what blocks, and what files an issue instead. This guide describes the gates as the workflow files and hooks define them today. Where the charter's matrix and the YAML disagree, the YAML wins and the difference is called out.
+
+How the tests themselves are organised is in [TESTING.md](TESTING.md). The release flow end to end is in [RELEASE.md](RELEASE.md). Supply-chain controls (SHA pinning, provenance, signing) are in [SECURITY.md](SECURITY.md).
+
+---
+
+## The gate matrix
+
+● blocks; ◐ runs but does not block; · does not run.
+
+| Check                                      | Commit |              Push               |               PR                |    Nightly    |   Release    |
+| ------------------------------------------ | :----: | :-----------------------------: | :-----------------------------: | :-----------: | :----------: |
+| lint-staged: ESLint fix + Prettier         |   ●    |                ·                |                ·                |       ·       |      ·       |
+| commitlint (conventional commits)          |   ●    |                ·                |                ·                |       ·       |      ·       |
+| ESLint, Prettier check, build, typecheck   |   ·    |                ●                |                ●                |       ·       |    ● (1)     |
+| Unit tests (includes BDD step definitions) |   ·    |                ●                |           ● 18/20/22            |       ·       |      ●       |
+| Coverage thresholds + PR comment           |   ·    |                ·                |                ●                |       ·       |      ·       |
+| BDD suite                                  |   ·    |              ● (2)              |                ●                |       ·       |      ●       |
+| EARS spec audit                            |   ·    |                ·                |                ●                |       ·       |      ·       |
+| Generated types fresh, schema drift        |   ·    |                ·                |              ● (3)              | ◐ files issue |      ●       |
+| Auth/scope alignment                       |   ·    |                ·                |                ●                |       ·       |      ·       |
+| Contract tests                             |   ·    |                ·                |              ● (3)              | ◐ weekly (4)  |      ·       |
+| Fuzz, integration (mocked), type tests     |   ·    |                ·                |                ●                |       ·       |      ●       |
+| API surface diff (api-extractor)           |   ·    |                ·                |                ●                |       ·       |      ·       |
+| Lockfile consistency                       |   ·    |                ·                |                ●                |       ·       |      ·       |
+| Are The Types Wrong (packed tarball)       |   ·    |                ·                |              ◐ (5)              |       ·       |      ·       |
+| Dependency audit (diff-aware / allowlist)  |   ·    |                ·                |        ● new advisories         | ◐ files issue | ● ≥ high (6) |
+| knip dead-code                             |   ·    |                ·                |                ◐                | ◐ weekly (4)  |      ◐       |
+| CodeQL                                     |   ·    |    ◐ protected branches (5)     |              ◐ (5)              |   ◐ weekly    |      ·       |
+| zizmor (workflow security)                 |   ·    | ◐ on `.github/workflows/**` (5) | ◐ on `.github/workflows/**` (5) |       ·       |      ·       |
+| Stryker mutation                           |   ·    |                ·                |                ·                |       ◐       |      ·       |
+| Schemathesis API fuzz                      |   ·    |                ·                |                ·                |       ◐       |      ·       |
+| Missing-endpoint spec drift                |   ·    |                ·                |                ·                | ◐ files issue |      ·       |
+| OpenSSF Scorecard                          |   ·    |                ·                |                ·                |   ◐ weekly    |      ·       |
+
+1. The release job runs lint, format check and build. It has no separate `typecheck` step; `npm run build` runs `tsc --emitDeclarationOnly`, which type-checks `src/`.
+2. `npm test` uses `jest.unit.config.cjs`, whose `testMatch` includes `tests/bdd/step-definitions/**/*.steps.ts`. Every push therefore runs the BDD scenarios as part of the unit suite.
+3. Soft-skips with a warning annotation when ESI returns HTTP 503 (Tranquility downtime).
+4. From `maintenance.yml`, which runs weekly and only uploads artifacts.
+5. Runs and reports a status, but is not a required check in branch protection, so a red result does not stop a merge. See [What actually blocks a merge](#what-actually-blocks-a-merge).
+6. Threshold `high`, after removing advisories accepted in `scripts/audit-exceptions.json`.
+
+### What actually blocks a merge
+
+Branch protection on `master` requires two status checks, both with "require branch to be up to date" (`strict`) enabled:
+
+| Required check       | Workflow      | Job               |
+| -------------------- | ------------- | ----------------- |
+| `Quality Gate`       | `ci.yml`      | `quality-gate`    |
+| `Lint, Build & Test` | `ci-fast.yml` | `lint-build-test` |
+
+Everything else on a pull request is visible but advisory unless it is one of the jobs the Quality Gate fans in. Force-pushes and branch deletion are disabled. Administrators are not yet included in enforcement (tracked under `SEC-07`).
+
+---
+
+## The requirements in practice
+
+### GATE-01 · Quality Gate fans in every blocking job
+
+`ci.yml` ends with a `quality-gate` job that `needs` the blocking jobs and runs with `if: always()`, so it reports even when an upstream job fails or is skipped. It checks each result and fails unless every one is `success`:
+
+`unit-tests`, `bdd-tests`, `spec-audit`, `full-test-suite`, `coverage`, `static-analysis`, `contract-tests`, `fuzz-tests`, `api-surface`, `lockfile`, `dependency-audit`.
+
+The failure message lists every job that was not green with its result. Adding a blocking job to `ci.yml` means adding it to both the `needs` list and the loop in the `Check all jobs` step; forgetting the second leaves it running but not gating.
+
+Jobs deliberately outside the gate: `pr-info` (summary only) and `documentation` (see the `ci.yml` notes below).
+
+### GATE-02 · Every push gets fast feedback
+
+`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 20: ESLint, Prettier check, build, typecheck, `npm test`. Its job name, `Lint, Build & Test`, is the second required check on `master`.
+
+### GATE-03 · The public API surface is diffed
+
+The `api-surface` job in `ci.yml` builds, runs `npm run api-report` (api-extractor in local mode, which rewrites `etc/esi.ts.api.md`), and compares the result with the committed file. Both sides are CRLF-normalised and sorted so that Windows line endings and enum ordering do not cause false failures. A difference fails the job with "API surface report is out of date". Fix it by running `npm run api-report` locally and committing the report alongside the change.
+
+### GATE-04 · knip does not block anywhere yet
+
+knip runs with `--no-exit-code` in `ci.yml` (`static-analysis`), `release.yml` (`validate-release`) and both local aggregate scripts, and without a flag but with `|| true` in `maintenance.yml`. It never fails a run. Configuration is `knip.json`. The charter's target is to drop `--no-exit-code` in `release.yml` once the baseline is clean.
+
+### GATE-05 · Nightlies file issues
+
+| Nightly                    | Finds a problem →                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| `nightly-audit.yml`        | Creates or comments on an issue labelled `security-audit`; auto-closes it when clean |
+| `nightly-spec-drift.yml`   | Creates or comments on an issue labelled `spec-drift`; auto-closes it when clean     |
+| `nightly-mutation.yml`     | Uploads `reports/mutation/` as an artifact only                                      |
+| `nightly-schemathesis.yml` | Uploads `reports/schemathesis/` as an artifact only                                  |
+
+Both issue-filing workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation and Schemathesis still need an issue step (bead `esi-mbr`).
+
+### GATE-06 · Scripts resolve to files
+
+Not yet machine-checked. Two scripts in `package.json` currently point at files that do not exist:
+
+| Script                  | Missing file                      |
+| ----------------------- | --------------------------------- |
+| `sde:seed`              | `scripts/seed-sde-test-db.ts`     |
+| `example:sde-cross-ref` | `examples/sde-cross-reference.ts` |
+
+---
+
+## Local hooks
+
+Installed by husky through the `prepare` script (which also runs a build after `npm install`).
+
+| Hook         | Runs                                 | Effect                                                                                                                              |
+| ------------ | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | `npx lint-staged`                    | Staged `src/**/*.ts`: `eslint --fix` then `prettier --write`. Staged `tests/**/*.ts` and `*.{json,md,yml,yaml}`: `prettier --write` |
+| `commit-msg` | `npx --no -- commitlint --edit "$1"` | Rejects messages that do not follow `@commitlint/config-conventional`                                                               |
+
+Test files are formatted but not linted, at commit or anywhere else (`TEST-09`). Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
+
+---
+
+## Workflows
+
+All workflows live in `.github/workflows/`. Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
+
+| Workflow                   | Trigger                                                                      | Blocks                        | Output                                        |
+| -------------------------- | ---------------------------------------------------------------------------- | ----------------------------- | --------------------------------------------- |
+| `ci-fast.yml`              | Push, any branch                                                             | Required check                | Status                                        |
+| `ci.yml`                   | Pull request to `master`, `main`, `develop`                                  | Required check (Quality Gate) | Status, coverage comment, artifacts           |
+| `package-checks.yml`       | Pull request to `master`, `main`                                             | No                            | Status, step summary                          |
+| `codeql.yml`               | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC                  | No                            | Code scanning alerts                          |
+| `zizmor.yml`               | Push and PR to `master`/`main`/`develop` touching workflows or `.zizmor.yml` | No                            | Status                                        |
+| `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                                      | No                            | Artifact                                      |
+| `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                                      | No                            | Artifact                                      |
+| `nightly-audit.yml`        | Daily 05:00 UTC; manual                                                      | No                            | `security-audit` issue                        |
+| `nightly-spec-drift.yml`   | Daily 06:00 UTC; manual                                                      | No                            | `spec-drift` issue                            |
+| `scorecard.yml`            | Mondays 04:00 UTC; manual; branch protection rule change                     | No                            | SARIF to code scanning, public score          |
+| `maintenance.yml`          | Mondays 09:00 UTC; manual                                                    | No                            | Artifacts                                     |
+| `release-please.yml`       | Push to `master`                                                             | —                             | Release PR, tag, GitHub release               |
+| `release.yml`              | Tag `v*.*.*` pushed; GitHub release published                                | Publishing                    | npm, GitHub Packages, gh-pages, signed assets |
+
+### `ci-fast.yml` — CI Fast
+
+One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `format:check`, `build`, `typecheck`, `test`. It runs on every push to every branch, before a pull request exists, and is a required check on `master`.
+
+### `ci.yml` — CI/CD Pipeline
+
+Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` it. `static-analysis`, `lockfile` and `dependency-audit` run in parallel with it.
+
+| Job (display name)                       | What it does                                                                                                                                                                        |  In gate  |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------: |
+| `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Skipped on drafts                                                                                               |    no     |
+| `lint-and-build` (Lint & Build)          | ESLint, Prettier check, build, typecheck; uploads `dist/`                                                                                                                           | via needs |
+| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`                                |    yes    |
+| `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                    |    yes    |
+| `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                |    yes    |
+| `bdd-tests` (BDD Scenarios)              | `npm run bdd`                                                                                                                                                                       |    yes    |
+| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set                                                                                                  |    yes    |
+| `contract-tests` (Contract Tests)        | `npm run contract` with `ESI_LIVE_TESTS=true`; soft-skips on 503                                                                                                                    |    yes    |
+| `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                         |    yes    |
+| `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                 |    yes    |
+| `api-surface` (API Surface Check)        | Rebuilds `etc/esi.ts.api.md` and fails on a difference (GATE-03)                                                                                                                    |    yes    |
+| `lockfile` (Lockfile Consistency)        | `npm install --package-lock-only --ignore-scripts` then `git diff --exit-code package-lock.json`. Skipped for `dependabot[bot]`                                                     |    yes    |
+| `dependency-audit` (Dependency Audit)    | Audits base and head, fails only on advisories the PR introduces. Skipped when `package.json` and `package-lock.json` are unchanged                                                 |    yes    |
+| `documentation` (Generate Documentation) | Runs TypeDoc and uploads `docs-site/public/api/`. Conditional on `github.ref` being `master`/`main`, which is never true for a `pull_request` event, so in practice it does not run |    no     |
+| `quality-gate` (Quality Gate)            | Aggregates the jobs marked "yes" (GATE-01)                                                                                                                                          |     —     |
+
+The generated-types, schema-drift and contract steps all call the live ESI spec. Each captures its log and, if the failure contains `HTTP 503`, downgrades it to a `::warning::` and passes (`TEST-08`).
+
+The lockfile check skips Dependabot because Dependabot's npm version produces byte-level lockfile differences. When regenerating a lockfile locally, use the npm major that CI uses so the file round-trips.
+
+### `package-checks.yml` — Package Checks
+
+Builds, runs `npm pack`, and checks the tarball with Are The Types Wrong (`@arethetypeswrong/cli`), ignoring the `false-cjs` and `no-resolution` rules. The full table is written to the step summary. This verifies the dual CJS/ESM entry points (`ARCH-05`). It is not part of the Quality Gate and not a required check.
+
+### `codeql.yml` — CodeQL
+
+GitHub CodeQL analysis for `javascript-typescript` on pushes and pull requests to `master`, `main` and `develop`, and weekly on Mondays at 06:00 UTC. Findings go to the repository's code scanning alerts. Not a required check.
+
+### `zizmor.yml` — Workflow Security
+
+Runs `zizmor` (pinned version, via `uvx`) over `.github/` with `.zizmor.yml` when a push or pull request to `master`, `main` or `develop` changes `.github/workflows/**` or `.zizmor.yml`. `.zizmor.yml` suppresses three rules with a reason each: `cache-poisoning` and `use-trusted-publishing` for `release.yml`, and `dependabot-cooldown` for `dependabot.yml`. Not a required check.
+
+### `nightly-schemathesis.yml` — Nightly Schemathesis API Fuzz
+
+Daily at 01:00 UTC on Node 22 with a 40-minute timeout. Pulls a digest-pinned Schemathesis image and runs `scripts/run-schemathesis.sh`, which downloads the ESI spec, strips security requirements, serves it with a Prism mock on port 4010, and fuzzes it. Schemathesis exits non-zero for both schema violations and network errors, so the script parses the JUnit report and fails only when it records real failures. The report is uploaded as `schemathesis-report`. No issue is filed.
+
+### `nightly-mutation.yml` — Nightly Mutation Testing
+
+Daily at 02:00 UTC on Node 22 with a 240-minute timeout. Runs `npm run mutation` (Stryker, `stryker.config.mjs`) over `src/core/**` excluding endpoint definitions and pure interface files. Thresholds are `high: 80`, `low: 60`, `break: 65`; a score below `break` fails the run. The HTML report is uploaded as `mutation-report` whether or not it passed. No issue is filed. Details in [TESTING.md](TESTING.md).
+
+### `nightly-audit.yml` — Nightly Security Audit
+
+Daily at 05:00 UTC. Runs `npm audit --json`, filters out accepted advisories with `scripts/audit-check.ts --filter` (which also hard-fails on an expired acceptance), and counts what remains by severity. If anything remains it ensures the `security-audit` label exists, then creates an issue with a severity table, a per-package table and resolution steps, or comments the same tables on the open one. If nothing remains it closes any open `security-audit` issue with a comment. See [Dependency audit](#dependency-audit).
+
+### `nightly-spec-drift.yml` — Nightly ESI Spec Drift
+
+Daily at 06:00 UTC. Detects three kinds of drift between the repository and the live ESI spec and reports them in one issue. Described in full under [Nightly spec drift](#nightly-spec-drift).
+
+### `scorecard.yml` — OSSF Scorecard
+
+Weekly on Mondays at 04:00 UTC, on manual dispatch, and whenever a branch protection rule changes. Runs `ossf/scorecard-action`, publishes the results to the public Scorecard API, and uploads the SARIF to code scanning. Scorecard scores the controls described in [SECURITY.md](SECURITY.md).
+
+### `maintenance.yml` — Maintenance & Security
+
+Weekly on Mondays at 09:00 UTC, and manually. Every job produces a report artifact and none of them fail on findings:
+
+| Job                 | Report                                                                                                         |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Dependency Updates  | `npm outdated` → `dependency-report.md`, `outdated.json`                                                       |
+| Security Audit      | `npm audit`, then `--audit-level=high` → `security-report.md` and JSON (does not apply the allowlist)          |
+| Code Quality        | lint, format check and knip output captured to files; `npm run coverage` (this step can fail the job)          |
+| Health Check        | Build, `npm run health-check` against live ESI, dist size and versions → `health-report.md`                    |
+| ESI Spec Drift      | `contract:snapshot`, live contract tests, `contract:diff` (oasdiff breaking changes) → `spec-drift-summary.md` |
+| Maintenance Summary | Result of each job → `maintenance-summary.md`                                                                  |
+
+Much of this overlaps the nightlies, which file issues rather than artifacts. It is the one place the oasdiff breaking-change report runs in CI.
+
+### `release-please.yml` and `release.yml`
+
+`release-please.yml` runs on every push to `master`, maintains the release pull request from conventional commits, and creates the tag and GitHub release when that pull request merges.
+
+`release.yml` runs on the `v*.*.*` tag push and again when the GitHub release is published:
+
+| Job                       | Runs on           | What it does                                                                                                                                                         |
+| ------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validate-release`        | both triggers     | lint, format check, knip (non-blocking), `audit:check`, `CHANGELOG.md` has `## [<version>]`, build, `schema:drift:ci`, generated-types freshness, `test:all`, `docs` |
+| `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                              |
+| `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                        |
+| `deploy-docs`             | both triggers     | TypeDoc to gh-pages from `docs-site/public/api`                                                                                                                      |
+| `create-assets`           | both triggers     | `npm pack`, docs archive, `checksums.txt`; no OIDC permission                                                                                                        |
+| `sign-and-publish-assets` | release published | Keyless cosign signatures, uploads assets to the release; the only job that can mint an OIDC token for signing                                                       |
+| `notify-success`          | after publish     | Log line when the npm publish succeeded                                                                                                                              |
+
+Every publishing job `needs` `validate-release` (`REL-02`). Unlike the PR path, the release gate does not run `spec:audit`, `validate:auth-scopes`, contract tests or the API surface check. The procedure, versioning and support window are in [RELEASE.md](RELEASE.md).
+
+Secrets: `NPM_TOKEN` for npmjs.org; `GITHUB_TOKEN` (automatic) for GitHub Packages, gh-pages, release uploads and issue filing.
+
+### Dependabot
+
+Not a workflow, but it drives a lot of CI traffic. `.github/dependabot.yml` opens npm updates weekly on Monday (prefix `chore(deps):`, grouped into minor-and-patch, eslint majors and jest majors, at most five open) and GitHub Actions updates weekly on Wednesday (prefix `chore(ci):`, CodeQL actions grouped). This is what keeps the pinned action SHAs current.
+
+---
+
+## Nightly spec drift
+
+`nightly-spec-drift.yml` is how the project learns that CCP changed ESI without anyone noticing. It runs three checks against the live spec, combines the results, and keeps one labelled issue current.
+
+### What it checks
+
+| Step                      | Command                                                                                                                  | Drift when                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| Missing endpoints         | `npx ts-node scripts/check-spec-drift.ts --latest`                                                                       | Exit code `1`: the spec has an endpoint no `*Endpoints.ts` file declares. Exit `2` or unparsable JSON fails the run |
+| Generated types freshness | `npm run generate:types`, then `git diff` on `src/types/generated/` and `src/core/endpoints/esi-cache-ttls.generated.ts` | The regenerated files differ from `master`, or generation failed for a reason other than 503                        |
+| Schema drift              | `npm run schema:drift:ci`                                                                                                | Hand-written Zod schemas diverge from the spec (fields not listed in `scripts/schema-drift-exceptions.json`)        |
+
+A 503 from ESI on the second or third step is logged as a warning and treated as no drift.
+
+The missing-endpoint check works in five steps:
+
+1. Fetch the newest compatibility date from `https://esi.evetech.net/meta/compatibility-dates`.
+2. Download the OpenAPI spec for that date from `https://esi.evetech.net/meta/openapi.json?compatibility_date=<date>`.
+3. Parse the endpoint definitions in `src/core/endpoints/*Endpoints.ts`.
+4. Compare: endpoints in the spec but not the codebase are `missing`; the reverse are `extra`.
+5. Hand the JSON report to the workflow, which builds the issue.
+
+### The issue
+
+If any of the three checks found drift, the workflow ensures the `spec-drift` label exists and builds one body with a section per finding: a method/path table of missing endpoints with the compatibility date, the `git diff --stat` of stale generated files, and the last 50 lines of the schema drift report. The title names what was found, for example `spec-drift: 3 missing endpoints, schema drift`.
+
+- No open `spec-drift` issue: a new one is created.
+- An open one exists: the new body is added as a comment.
+- No drift at all: any open `spec-drift` issue is closed automatically with a dated comment.
+
+The run's step summary also carries the compatibility date, the three flags and the raw drift report.
+
+### Running it locally
+
+```bash
+# Against the newest compatibility date
+npx ts-node scripts/check-spec-drift.ts --latest
+
+# Against a specific date
+npx ts-node scripts/check-spec-drift.ts --compatibility-date=2026-08-04
+
+# No flag: the script's baseline date, 2025-12-16
+npx ts-node scripts/check-spec-drift.ts
+```
+
+The report goes to stdout:
+
+```json
+{
+  "compatibilityDate": "2026-08-04",
+  "specEndpointCount": 225,
+  "codebaseEndpointCount": 208,
+  "matchedCount": 198,
+  "missing": [
+    {
+      "tag": "Military Campaigns",
+      "method": "GET",
+      "path": "/military-campaigns"
+    }
+  ],
+  "extra": [
+    {
+      "method": "GET",
+      "path": "mercenary/dens",
+      "name": "getMercenaryDens",
+      "file": "mercenaryEndpoints.ts"
+    }
+  ]
+}
+```
+
+Exit codes: `0` no missing endpoints, `1` missing endpoints found, `2` the check itself failed.
+
+The other two checks run locally as `npm run generate:types` followed by `git diff`, and `npm run schema:drift` (report only) or `npm run schema:drift:ci` (non-zero exit on drift).
+
+### Compatibility dates
+
+CCP versions breaking changes to ESI with compatibility dates. A new endpoint only appears in a spec requested with a date at or after its introduction, so the nightly uses `--latest`. The available dates are listed at `https://esi.evetech.net/meta/compatibility-dates`. Note that the other spec-reading scripts (`generate-schema-drift-report.ts`, `run-schemathesis.sh`, `.redocly.yaml`) pin `2025-12-16`.
+
+### Responding to drift
+
+1. Read the issue and decide which findings are real gaps and which are intentional.
+2. Check the [ESI changelog](https://esi.evetech.net/meta/changelog) and the [developer blog](https://developers.eveonline.com/blog) for context.
+3. For stale generated types, run `npm run generate:types` and commit the result on its own branch.
+4. For missing endpoints, file a bead per coherent group and follow the "add an endpoint" walkthrough in [DESIGN-RULES.md](DESIGN-RULES.md).
+5. For schema drift, fix the schema, or record an accepted deviation in `scripts/schema-drift-exceptions.json`.
+6. The issue closes itself on the first clean nightly after the fixes merge. Close it by hand only if a gap is being skipped on purpose.
+
+Related scripts:
+
+| Script                                    | Purpose                                                     |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| `scripts/check-spec-drift.ts`             | JSON missing/extra endpoint report (nightly)                |
+| `scripts/validate-esi-endpoints.ts`       | Human-readable endpoint validation (`npm run validate:esi`) |
+| `scripts/generate-esi-types.ts`           | Regenerate types, TTLs, rate limits and scopes              |
+| `scripts/generate-schema-drift-report.ts` | Zod schema versus spec field comparison                     |
+| `scripts/snapshot-openapi.ts`             | Snapshot the spec for contract tests                        |
+
+---
+
+## Dependency audit
+
+`npm audit` reports the state of the world, not the state of a diff. An unchanged commit passes before an advisory is published and fails after it. Used as a plain merge gate, it turns every open pull request red for something its author did not do. The audit is therefore split three ways, all driven by `scripts/audit-check.ts`:
+
+| Where                              | Question                                                | Mode       | Blocking       |
+| ---------------------------------- | ------------------------------------------------------- | ---------- | -------------- |
+| `ci.yml` → `dependency-audit`      | Does this PR _introduce_ an advisory the base lacks?    | `--diff`   | Yes            |
+| `nightly-audit.yml`                | Does `master` have any unaccepted advisory today?       | `--filter` | Files an issue |
+| `release.yml` → `validate-release` | Is the tree clean at or above `high` before publishing? | `--check`  | Yes            |
+
+The pull request job audits base and head in one run, each from its `package.json` and `package-lock.json` alone in a bare directory, so both hit the same advisory snapshot and neither depends on how `node_modules` was installed. Any difference is a real difference between the trees. The job skips entirely when neither file changed.
+
+Advisories are keyed by GHSA id (taken from the advisory URL), falling back to `npm-<source>` for older advisories without one. One advisory reached through several dependency paths counts once.
+
+### Accepting a known risk
+
+When an advisory has no acceptable fix, record it in `scripts/audit-exceptions.json`:
+
+```json
+{
+  "exceptions": [
+    {
+      "ghsa": "GHSA-xxxx-xxxx-xxxx",
+      "package": "some-package",
+      "severity": "moderate",
+      "reason": "Why there is no acceptable fix, and why the exposure is limited.",
+      "expires": "2026-12-09"
+    }
+  ]
+}
+```
+
+| Field      | Rule                                                                                                              |
+| ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| `ghsa`     | The match key. Must equal the id the audit reports                                                                |
+| `package`  | The vulnerable package, for readers                                                                               |
+| `severity` | As reported, for readers                                                                                          |
+| `reason`   | Why it cannot be fixed now and why the risk is acceptable: runtime or dev dependency, reachable code, input trust |
+| `expires`  | `YYYY-MM-DD`. Keep it short enough that the decision is genuinely revisited                                       |
+
+All three audit paths honour the file. An accepted advisory stops blocking pull requests and releases and stops appearing in the nightly issue.
+
+An entry whose `expires` is before today is a hard failure in every mode, before any advisory is examined. The run prints the expired ids and the file to edit. That is deliberate (`SEC-05`): an acceptance that silently outlives its review is indistinguishable from an advisory nobody looked at.
+
+To renew, re-check whether a fix now exists. If it does, upgrade or add an `overrides` entry and delete the exception. If not, update `reason` with what changed and set a new `expires`. Either way it goes through a pull request so the decision is reviewed.
+
+In `--filter` mode a package entry is dropped only if _every_ advisory on it is accepted, so accepting one advisory cannot hide a second one arriving through the same package.
+
+```bash
+npm run audit:check                        # unaccepted advisories at or above high
+npm run audit:check -- --level=moderate    # lower the threshold
+npm run audit:diff -- --base base.json --head head.json
+npx ts-node scripts/audit-check.ts --filter --in audit-raw.json --out audit-report.json
+```
+
+### Other exception files
+
+The same "explicit, reasoned exception" pattern appears in three more places:
+
+| File                                   | Consumed by                    | Rule                                                                                              |
+| -------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | A ratchet: now empty, and the audit fails if a listed file passes, so entries can only be removed |
+| `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted deviating field names                                                      |
+| `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map       |
+
+---
+
+## npm scripts
+
+`npm run help` prints the scripts grouped by intent and accepts a keyword (`npm run help -- wallet`). The tables below list every script in `package.json` except the two large families, which are summarised.
+
+### Build and static checks
+
+| Script                    | Runs                                                    |
+| ------------------------- | ------------------------------------------------------- |
+| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                 |
+| `typecheck`               | `tsc --noEmit`                                          |
+| `lint` / `lint:fix`       | ESLint over `src`                                       |
+| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`         |
+| `knip`                    | Dead code and unused exports (`knip.json`)              |
+| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md` |
+| `api-report:check`        | api-extractor, check mode                               |
+| `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`       |
+| `prepare`                 | Install husky hooks, then build                         |
+
+### Tests
+
+| Script                              | Runs                                                                                            |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `test` / `test:watch`               | Jest unit config: `tests/tdd` plus BDD step definitions                                         |
+| `coverage`                          | The same, with coverage thresholds                                                              |
+| `bdd`                               | BDD step definitions only                                                                       |
+| `bdd:<suite>`                       | One BDD suite, for example `bdd:market`, `bdd:resilience`, `bdd:sde`. See `npm run help -- bdd` |
+| `spec:audit` / `spec:audit:verbose` | EARS and Gherkin structure audit over the feature files                                         |
+| `test:integration`                  | Integration tests, mocked                                                                       |
+| `test:integration:live`             | Integration tests against live ESI (`ESI_LIVE_TESTS`)                                           |
+| `test:integration:gated`            | Authenticated integration tests (`ESI_GATED_TESTS`, reads `.env`)                               |
+| `test:all`                          | `test`, `bdd`, `test:integration`, `fuzz`, `test:types`                                         |
+| `contract`                          | Contract tests; the live-spec suites skip unless `ESI_LIVE_TESTS=true`                          |
+| `contract:live`                     | Contract tests against the live spec and the committed snapshot (POSIX shells only)             |
+| `contract:snapshot`                 | Refresh the committed spec snapshot                                                             |
+| `contract:diff`                     | oasdiff breaking changes, snapshot versus live spec (Docker)                                    |
+| `fuzz`                              | Property-based fuzz tests (fast-check)                                                          |
+| `fuzz:api`                          | Schemathesis against a Prism mock (Docker)                                                      |
+| `mock:esi`                          | Prism mock of ESI on port 4010                                                                  |
+| `test:types`                        | tsd type tests                                                                                  |
+| `benchmark`                         | Benchmark suite                                                                                 |
+| `mutation` / `mutation:report`      | Stryker                                                                                         |
+
+### Spec alignment and generation
+
+| Script                 | Runs                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `generate:types`       | Types, cache TTLs, rate-limit groups and scopes from the live spec                    |
+| `generate:okf`         | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                 |
+| `generate:endpoints`   | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                 |
+| `generate:all`         | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi` |
+| `schema:drift`         | Zod schema versus spec report                                                         |
+| `schema:drift:ci`      | The same, exiting non-zero on drift                                                   |
+| `validate:esi`         | Endpoint definitions versus spec; fails on method mismatches                          |
+| `validate:auth-scopes` | `requiresAuth` versus the generated scope map (`DES-04`)                              |
+| `validate:spec`        | Redocly lint of the ESI spec (`.redocly.yaml`)                                        |
+| `validate:versions`    | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts`            |
+
+### Security
+
+| Script        | Runs                                      |
+| ------------- | ----------------------------------------- |
+| `audit:check` | `audit-check.ts --check` (default `high`) |
+| `audit:diff`  | `audit-check.ts --diff`                   |
+
+### Aggregates
+
+| Script      | Runs                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------- |
+| `validate`  | `lint`, `format:check`, `build`, `coverage`, `knip --no-exit-code`                          |
+| `check:all` | `validate`'s steps, then `validate:esi`, `validate:spec`, `validate:versions`, `spec:audit` |
+
+### Documentation, tokens, SDE and examples
+
+| Script                           | Runs                                                                                                              |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `docs` / `docs:watch`            | TypeDoc into `docs-site/public/api`                                                                               |
+| `docs:serve`                     | Serve the TypeDoc output on port 8080                                                                             |
+| `token:create` / `token:refresh` | PKCE token into `.env`, and refresh it (see [SECURITY.md](SECURITY.md))                                           |
+| `sde:ingest`                     | Build the SDE database from CCP's archive                                                                         |
+| `sde:seed`                       | **Broken**: target script missing (GATE-06)                                                                       |
+| `health-check`                   | `EsiClient.healthCheck()` against live ESI                                                                        |
+| `start` / `example`              | `examples/character-profile.ts`                                                                                   |
+| `example:<name>`                 | One runnable example from `examples/`; see `npm run help -- example`. `example:sde-cross-ref` is broken (GATE-06) |
+| `help`                           | Grouped script listing                                                                                            |
+
+---
+
+## Running the gates locally
+
+Two aggregate scripts cover the static side of the pull request gate:
+
+```bash
+npm run validate     # lint, format:check, build, coverage, knip (non-blocking)
+npm run check:all    # validate + validate:esi + validate:spec + validate:versions + spec:audit
+```
+
+Neither reproduces the Quality Gate completely. `check:all` needs network access for the spec checks. To cover what `ci.yml` blocks on that neither aggregate runs:
+
+```bash
+npm run typecheck
+npm run bdd
+npm run test:all                                  # integration, fuzz, type tests
+ESI_LIVE_TESTS=true npm run contract             # what the CI job runs
+npm run validate:auth-scopes
+npm run schema:drift:ci
+npm run generate:types && git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts
+npm run api-report && git diff etc/esi.ts.api.md  # commit any change
+npm run audit:check
+```
+
+Conversely, `validate:esi`, `validate:spec` and `validate:versions` run only locally: no workflow calls them. `release-please` keeps `src/core/constants.ts` in step with `package.json` through its `extra-files` setting, which is why the version check is not in CI.

@@ -24,8 +24,8 @@ const DESCS: Record<string, string> = {
   lint: 'Run ESLint over src/',
   test: 'Run the unit + BDD suite (the default "test")',
   coverage: 'Run unit tests with the coverage report',
-  docs: 'Build API docs (TypeDoc) into docs/',
-  clean: 'Remove dist/, coverage/, docs/',
+  docs: 'Build API docs (TypeDoc) into docs-site/public/api/',
+  clean: 'Remove dist/, coverage/, docs-site/public/api/',
 
   'mock:esi': 'Start a Prism mock ESI server on port 4010',
   'test:integration': 'Mocked integration tests',
