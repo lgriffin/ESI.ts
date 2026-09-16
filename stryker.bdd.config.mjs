@@ -29,6 +29,7 @@ export default {
       roots: ['<rootDir>/src', path.join(projectRoot, 'tests')],
       testMatch: [
         path.join(projectRoot, 'tests/bdd/step-definitions/**/*.steps.ts'),
+        path.join(projectRoot, 'tests/bdd/specs/**/*.spec.ts'),
       ],
       moduleNameMapper: {
         '^(?:\\.\\./)+src/(.*)$': '<rootDir>/src/$1',
