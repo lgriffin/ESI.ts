@@ -237,6 +237,9 @@ jobs:
       - name: Audit EARS requirements and Gherkin structure
         run: npm run spec:audit
 
+      - name: Scenarios mock at the transport seam
+        run: npm run lint:bdd-seam
+
   contract-tests:
     name: Contract Tests
     runs-on: ubuntu-latest
