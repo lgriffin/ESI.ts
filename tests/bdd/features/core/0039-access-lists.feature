@@ -38,9 +38,9 @@ Feature: Access Lists
     never reaches ESI: it throws a NO_AUTH_TOKEN error, which is not an
     EsiError, before sending the request.
 
-    Scenario: Missing token rejects the access list request with an EsiError
-      Given no valid token is provided
-      When the client requests an access list without auth
+    Scenario: Expired token rejects the access list request with an EsiError
+      Given ESI rejects the access token as expired
+      When the client requests an access list with that token
       Then the client shall return a 401 error
 
     Scenario: Unknown list identifier rejects the request with an EsiError

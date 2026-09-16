@@ -123,14 +123,14 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Missing token rejects the access list request with an EsiError', ({
+  test('Expired token rejects the access list request with an EsiError', ({
     given,
     when,
     then,
   }) => {
     let caughtError: any;
 
-    given('no valid token is provided', () => {
+    given('ESI rejects the access token as expired', () => {
       // A token ESI no longer accepts. A client with no token at all never
       // reaches ESI: the pipeline throws a plain NO_AUTH_TOKEN Error before
       // sending, so the refusal this Rule describes is ESI's 401.
@@ -140,7 +140,7 @@ defineFeature(feature, (test) => {
       });
     });
 
-    when('the client requests an access list without auth', async () => {
+    when('the client requests an access list with that token', async () => {
       try {
         await client.accessLists.getAccessList(characterId, 42);
       } catch (e) {
