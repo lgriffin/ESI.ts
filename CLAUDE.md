@@ -29,6 +29,7 @@ npm run fuzz           # Property-based fuzz tests (fast-check)
 npm run fuzz:api       # Schemathesis API fuzzing (requires Docker)
 npm run benchmark      # Performance benchmark tests (jest.benchmark.config.cjs)
 npm run test:types     # Type tests (tsd)
+npm run test:consumer  # Pack, install into a clean consumer, type-check + run CJS/ESM/sub-paths (not in npm test)
 npm run test:all       # All test suites
 npm run mutation       # Mutation testing (Stryker)
 npm run mutation:bdd   # BDD-only mutation run; mutation:bdd:ratchet gates per-directory scores
@@ -45,6 +46,7 @@ npm run generate:endpoints  # Generate endpoint definition scaffold (etc/endpoin
 npm run generate:all        # Run all generation + validation in sequence
 npm run schema:drift        # Check hand-written Zod schemas against OpenAPI spec
 npm run api-report          # Update API surface report (etc/esi.ts.api.md)
+npm run api-report:semver   # Fail if the report lost a line without a feat!/BREAKING CHANGE commit
 ```
 
 CI verifies generated types are fresh via `git diff --exit-code`.
@@ -65,6 +67,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `tests/contract/` — Contract tests against live OpenAPI spec
 - `tests/fuzz/` — Property-based fuzz tests (fast-check)
 - `tests/typetests/` — Type-level tests (tsd)
+- `tests/consumer/` — Consumer contract package driven by `scripts/consumer-contract.ts` against the packed tarball
 - `okf/` — Generated OKF v0.2 knowledge bundle (per-endpoint + per-schema concepts)
 
 ## Key Patterns

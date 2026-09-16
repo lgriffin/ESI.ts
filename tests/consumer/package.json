@@ -1,0 +1,6 @@
+{
+  "name": "esi-ts-consumer-contract",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A minimal downstream package that installs the packed @lgriffin/esi.ts tarball. Driven by scripts/consumer-contract.ts; not part of npm test."
+}

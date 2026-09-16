@@ -59,6 +59,8 @@ try {
 }
 ```
 
+A rejected body is not kept in the ETag cache: the next call to the same endpoint sends a fresh, unconditional request instead of serving the invalid body again for the endpoint's cache TTL.
+
 `EsiValidationError` extends `EsiError`, so existing error handling that catches `EsiError` will also catch validation errors. The `validationError` property contains the full Zod error with details about which fields failed validation.
 
 ## Using Schemas Directly
