@@ -6,7 +6,8 @@
  * form, and is actually testable. This script enforces that shape:
  *
  *   - Every `Rule:` title IS an atomic EARS requirement (exactly one "shall").
- *   - Every Scenario lives under the Rule it verifies.
+ *   - Every Feature states at least one Rule, and every Scenario lives under
+ *     the Rule it verifies.
  *   - Requirement text is free of vague, unmeasurable, or escape-clause
  *     language, and follows EARS grammar for If/While/When/Where.
  *
@@ -18,14 +19,16 @@
  *        npm run spec:audit
  *
  * Reads `scripts/spec-audit-exceptions.json`. Files listed there are not yet
- * converted to Rule form and are skipped — but the allowlist is a ratchet: a
- * listed file that now passes cleanly fails the run until it is removed, so
- * the exception list can only shrink.
+ * converted to Rule form and are skipped — but the allowlist is a ratchet, so
+ * the run also fails when an entry is added relative to the integration
+ * branch, when a listed file now passes cleanly, or when a listed path no
+ * longer names a feature file. The list can therefore only shrink.
  *
  * Exit code 0 on pass, 1 on any finding.
  */
 
 import { readFileSync, existsSync, statSync, readdirSync } from 'fs';
+import { execFileSync } from 'child_process';
 import * as path from 'path';
 import {
   Parser,
@@ -179,7 +182,8 @@ function checkEarsPatternStructure(title: string): string[] {
   const errors: string[] = [];
   const lower = title.toLowerCase();
 
-  if (/^\s*if\b/.test(lower)) {
+  const ifMatch = /^\s*if\b/.exec(lower);
+  if (ifMatch) {
     const shallPos = lower.indexOf('shall');
     const thenMatch = /\bthen\b/.exec(lower);
     const thenPos = thenMatch ? thenMatch.index : -1;
@@ -188,6 +192,23 @@ function checkEarsPatternStructure(title: string): string[] {
         "EARS 'If' pattern requires 'then' before 'shall' " +
           '(template: If <condition>, then the <system> shall <response>).',
       );
+    } else if (thenPos !== -1) {
+      // 'then' is in the right place, so the clause before it has to be a
+      // real, comma-delimited condition. Without the comma the title reads as
+      // one run-on phrase and the condition stops being separable from the
+      // response, which is the whole point of the pattern.
+      const condition = lower.slice(ifMatch[0].length, thenPos);
+      if (!/,\s*$/.test(condition)) {
+        errors.push(
+          "EARS 'If' pattern requires a comma before 'then' " +
+            '(template: If <condition>, then the <system> shall <response>).',
+        );
+      } else if (condition.replace(/,\s*$/, '').trim().length === 0) {
+        errors.push(
+          "EARS 'If' pattern requires a condition between 'If' and ', then' " +
+            '(template: If <condition>, then the <system> shall <response>).',
+        );
+      }
     }
   }
 
@@ -324,6 +345,19 @@ function auditFeature(feature: Feature, file: string): FileReport {
     });
   }
 
+  // A Feature with no Rule blocks states no requirement, so there is nothing
+  // for its scenarios to be traceable to — and before this check it passed the
+  // audit silently.
+  if (ruleCount === 0) {
+    findings.push({
+      file,
+      line: feature.location.line,
+      message:
+        `Feature '${feature.name}' contains no Rule blocks. Every feature ` +
+        'must state at least one EARS requirement as a Rule title.',
+    });
+  }
+
   if (feature.description.trim().length === 0) {
     findings.push({
       file,
@@ -414,6 +448,88 @@ function loadExceptions(): Exceptions {
   return { unconverted: parsed.unconverted ?? [] };
 }
 
+/**
+ * The exception list as it stands on the integration branch.
+ *
+ * The list is a ratchet in both directions: an entry that starts passing must
+ * be removed (handled in `main`), and an entry that was never there must not
+ * appear. Comparing against the committed baseline is what makes the second
+ * half enforceable — otherwise a PR can exempt its own feature file.
+ *
+ * When no baseline ref resolves — a shallow CI checkout, a published tarball,
+ * no git at all — the baseline is empty, so every entry reads as an addition.
+ * That fails closed, which is the right direction for a ratchet.
+ */
+function loadBaselineExceptions(): {
+  entries: Set<string>;
+  ref: string | null;
+} {
+  const relPath = path
+    .relative(REPO_ROOT, EXCEPTIONS_PATH)
+    .split(path.sep)
+    .join('/');
+  const refs = [
+    process.env.SPEC_AUDIT_BASE_REF,
+    'origin/master',
+    'master',
+  ].filter((ref): ref is string => Boolean(ref));
+
+  for (const ref of refs) {
+    let raw: string;
+    try {
+      raw = execFileSync('git', ['show', `${ref}:${relPath}`], {
+        cwd: REPO_ROOT,
+        encoding: 'utf-8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+    } catch {
+      continue; // Ref not available in this checkout; try the next one.
+    }
+    try {
+      const parsed = JSON.parse(raw) as Partial<Exceptions>;
+      return { entries: new Set(parsed.unconverted ?? []), ref };
+    } catch {
+      continue; // Baseline file is unparseable; treat it as absent.
+    }
+  }
+
+  return { entries: new Set(), ref: null };
+}
+
+interface ExceptionProblems {
+  /** Entries absent from the baseline — the list grew. */
+  added: string[];
+  /** Entries that no longer name a feature file on disk. */
+  dangling: string[];
+}
+
+/**
+ * The two ways an exception list rots without anyone noticing: a PR exempts
+ * its own feature file, or a file is deleted and its entry outlives it,
+ * quietly making the list look longer than the remaining work.
+ */
+function checkExceptionList(
+  unconverted: string[],
+  baseline: Set<string>,
+): ExceptionProblems {
+  const added: string[] = [];
+  const dangling: string[] = [];
+
+  for (const rel of unconverted) {
+    if (!baseline.has(rel)) {
+      added.push(rel);
+    }
+    if (
+      !rel.endsWith('.feature') ||
+      !existsSync(path.resolve(REPO_ROOT, rel))
+    ) {
+      dangling.push(rel);
+    }
+  }
+
+  return { added, dangling };
+}
+
 function annotate(
   level: 'error' | 'warning',
   message: string,
@@ -451,6 +567,14 @@ function main(): void {
   const ignoreExceptions = args.includes('--ignore-exceptions');
   const exceptions = ignoreExceptions ? { unconverted: [] } : loadExceptions();
   const unconverted = new Set(exceptions.unconverted);
+
+  const { added: addedExceptions, dangling: danglingExceptions } =
+    exceptions.unconverted.length > 0
+      ? checkExceptionList(
+          exceptions.unconverted,
+          loadBaselineExceptions().entries,
+        )
+      : { added: [], dangling: [] };
 
   const reports: FileReport[] = [];
   const skipped: string[] = [];
@@ -492,6 +616,23 @@ function main(): void {
     annotate('error', message, 'scripts/spec-audit-exceptions.json');
   }
 
+  for (const rel of addedExceptions) {
+    const message =
+      `${rel} was added to spec-audit-exceptions.json. The exception list is ` +
+      'a ratchet: entries may only be removed. Make the feature Rule-compliant ' +
+      'rather than exempting it.';
+    console.error(`\n  [ERROR] ${message}`);
+    annotate('error', message, 'scripts/spec-audit-exceptions.json');
+  }
+
+  for (const rel of danglingExceptions) {
+    const message =
+      `${rel} is listed in spec-audit-exceptions.json but no such .feature ` +
+      'file exists. Remove the stale entry.';
+    console.error(`\n  [ERROR] ${message}`);
+    annotate('error', message, 'scripts/spec-audit-exceptions.json');
+  }
+
   const totalFindings = failing.reduce((n, r) => n + r.findings.length, 0);
 
   console.log('\n--- Summary ---');
@@ -512,11 +653,14 @@ function main(): void {
     }
   }
 
-  if (totalFindings > 0 || staleExceptions.length > 0) {
+  const badExceptions =
+    staleExceptions.length + addedExceptions.length + danglingExceptions.length;
+
+  if (totalFindings > 0 || badExceptions > 0) {
     console.error(
       `\nFAIL: ${totalFindings} finding(s) across ${failing.length} file(s)` +
-        (staleExceptions.length > 0
-          ? `, ${staleExceptions.length} stale exception(s)`
+        (badExceptions > 0
+          ? `, ${badExceptions} exception-list problem(s)`
           : '') +
         '.',
     );
@@ -526,4 +670,18 @@ function main(): void {
   console.log('\nPASS: specification is EARS-compliant.');
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+export {
+  auditFeature,
+  auditFile,
+  checkEarsPatternStructure,
+  checkExceptionList,
+  checkMissingSystemName,
+  findVagueTerms,
+  findWrongObligationKeywords,
+  loadBaselineExceptions,
+};
+export type { ExceptionProblems, FileReport, Finding };
