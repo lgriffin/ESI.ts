@@ -101,7 +101,7 @@ Raised by the offline Static Data Export module, which shares no code with the H
 
 ## Type guards and where to import them
 
-Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guard only matches errors created by the same copy of the package; a duplicated dependency in `node_modules` breaks them.
+Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guard only matches errors created by the same copy of the package; a duplicated dependency in `node_modules` breaks them. The root entry and `./errors` export the same classes and guards, so an error thrown by the client matches a guard or class imported from either. The CommonJS and ES module builds are separate copies, though: a guard loaded with `require` does not match an error thrown by a client loaded with `import`, or the other way round.
 
 | Guard                  | Narrows to                | True when                            | `.` (root) | `./errors` | `./sde` |
 | ---------------------- | ------------------------- | ------------------------------------ | :--------: | :--------: | :-----: |
