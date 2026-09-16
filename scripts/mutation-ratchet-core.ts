@@ -40,7 +40,7 @@ export function directoryOf(file: string): string {
   const rel = srcIndex === -1 ? parts : parts.slice(srcIndex);
   if (rel[1] === 'core' && rel.length > 3) return rel.slice(0, 3).join('/');
   if (rel.length > 2) return rel.slice(0, 2).join('/');
-  return rel.slice(0, -1).join('/') || rel[0];
+  return rel.slice(0, -1).join('/') || (rel[0] ?? '');
 }
 
 /** Stryker's definition: detected / (detected + undetected); errors and ignored mutants do not count. */
