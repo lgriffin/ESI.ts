@@ -118,7 +118,7 @@ export const exampleEndpoints = {
 
 `as const` preserves the literal `pathParams` tuple so `EndpointArgs` can compute the argument list; `satisfies` checks the shape without widening it. Dropping either one degrades every method on the map to loose types.
 
-Reference a named `*Schema` export in `responseSchema`, optionally wrapped in `z.array(...)`. `npm run schema:drift` finds schemas by that pattern; an inline object literal is invisible to it.
+Reference a named `*Schema` export in `responseSchema`, optionally wrapped in `z.array(...)`. `npm run schema:drift` compares inline schemas too, but can only name them `(inline)`.
 
 ---
 
@@ -171,7 +171,7 @@ A genuine mismatch in the generated map (a path ESI spells differently, or a sco
 npm run schema:drift
 ```
 
-Reports missing fields, extra fields and type mismatches between the named schema and the OpenAPI response. An accepted deviation goes in `scripts/schema-drift-exceptions.json` keyed by schema name. CI runs the `--ci` variant, which fails on drift.
+Reports fields missing on either side, required/optional disagreements and type mismatches, at any depth, between the endpoint's schema and the OpenAPI response. CI runs the `--ci` variant, which fails on drift not listed in the shrink-only `scripts/schema-drift-baseline.json`, so a new endpoint must add none. A permanent accepted deviation goes in `scripts/schema-drift-exceptions.json` keyed by schema name. See [QUALITY-GATES.md](QUALITY-GATES.md#schema-drift).
 
 ### 3.6 Deprecation (DES-05)
 
