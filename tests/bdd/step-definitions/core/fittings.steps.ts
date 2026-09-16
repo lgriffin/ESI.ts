@@ -1,19 +1,30 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0013-fittings.feature');
+
+const BEARER = 'Bearer bdd-access-token';
+
+/** Matches the fittings collection URL, not an individual fitting. */
+const fittingsCollection = (characterId: number) =>
+  new RegExp(`/characters/${characterId}/fittings(\\?|$)`);
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Two saved fittings expand to full module lists', ({
@@ -25,32 +36,31 @@ defineFeature(feature, (test) => {
     const characterId = 1689391488;
 
     given('a character with saved fittings', () => {
-      const mockFittings = [
-        {
-          fitting_id: 1,
-          name: 'PvP Hurricane',
-          ship_type_id: 24690,
-          description: 'Standard hurricane fleet fit',
-          items: [
-            { type_id: 2488, flag: 11, quantity: 1 },
-            { type_id: 519, flag: 12, quantity: 1 },
-          ],
-        },
-        {
-          fitting_id: 2,
-          name: 'Ratting Vexor Navy Issue',
-          ship_type_id: 29340,
-          description: 'AFK ratting fit',
-          items: [
-            { type_id: 4405, flag: 11, quantity: 1 },
-            { type_id: 2185, flag: 27, quantity: 5 },
-          ],
-        },
-      ];
-
-      jest
-        .spyOn(client.fittings, 'getFittings')
-        .mockResolvedValue(mockFittings);
+      queueResponse({
+        match: fittingsCollection(characterId),
+        body: [
+          {
+            fitting_id: 1,
+            name: 'PvP Hurricane',
+            ship_type_id: 24690,
+            description: 'Standard hurricane fleet fit',
+            items: [
+              { type_id: 2488, flag: 'HiSlot0', quantity: 1 },
+              { type_id: 519, flag: 'LoSlot0', quantity: 1 },
+            ],
+          },
+          {
+            fitting_id: 2,
+            name: 'Ratting Vexor Navy Issue',
+            ship_type_id: 29340,
+            description: 'AFK ratting fit',
+            items: [
+              { type_id: 4405, flag: 'LoSlot1', quantity: 1 },
+              { type_id: 2185, flag: 'DroneBay', quantity: 5 },
+            ],
+          },
+        ],
+      });
     });
 
     when('the client requests their fittings', async () => {
@@ -58,16 +68,27 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an array of fitting details', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('fitting_id', 1);
-      expect(result[0]).toHaveProperty('name', 'PvP Hurricane');
-      expect(result[0]).toHaveProperty('ship_type_id', 24690);
-      expect(result[0].items).toBeInstanceOf(Array);
-      expect(result[0].items).toHaveLength(2);
-      expect(result[0].items[0]).toHaveProperty('type_id');
-      expect(result[0].items[0]).toHaveProperty('flag');
-      expect(result[0].items[0]).toHaveProperty('quantity');
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/characters/${characterId}/fittings$`),
+      );
+      expect(request.headers.authorization).toBe(BEARER);
+
+      expect(
+        result.map((f: any) => [f.fitting_id, f.name, f.ship_type_id]),
+      ).toEqual([
+        [1, 'PvP Hurricane', 24690],
+        [2, 'Ratting Vexor Navy Issue', 29340],
+      ]);
+      expect(result[0].items).toEqual([
+        { type_id: 2488, flag: 'HiSlot0', quantity: 1 },
+        { type_id: 519, flag: 'LoSlot0', quantity: 1 },
+      ]);
+      expect(result[1].items).toEqual([
+        { type_id: 4405, flag: 'LoSlot1', quantity: 1 },
+        { type_id: 2185, flag: 'DroneBay', quantity: 5 },
+      ]);
     });
   });
 
@@ -76,7 +97,7 @@ defineFeature(feature, (test) => {
     const characterId = 1689391488;
 
     given('a character with no saved fittings', () => {
-      jest.spyOn(client.fittings, 'getFittings').mockResolvedValue([]);
+      queueResponse({ match: fittingsCollection(characterId), body: [] });
     });
 
     when('the client requests their fittings list', async () => {
@@ -84,8 +105,8 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an empty array', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(0);
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toEqual([]);
     });
   });
 
@@ -97,19 +118,19 @@ defineFeature(feature, (test) => {
     given('valid fitting data', () => {
       fittingData = {
         name: 'Fleet Ferox',
-        ship_type_id: 24690,
+        ship_type_id: 37480,
         description: 'Standard ferox fleet doctrine',
         items: [
-          { type_id: 3170, flag: 11, quantity: 1 },
-          { type_id: 3186, flag: 12, quantity: 1 },
-          { type_id: 2281, flag: 13, quantity: 1 },
+          { type_id: 3170, flag: 'HiSlot0', quantity: 1 },
+          { type_id: 3186, flag: 'MedSlot0', quantity: 1 },
+          { type_id: 2281, flag: 'LoSlot0', quantity: 1 },
         ],
       };
-      const mockResponse = { fitting_id: 42 };
-
-      jest
-        .spyOn(client.fittings, 'createFitting')
-        .mockResolvedValue(mockResponse);
+      queueResponse({
+        match: fittingsCollection(characterId),
+        status: 201,
+        body: { fitting_id: 42 },
+      });
     });
 
     when('the client creates a new fitting', async () => {
@@ -117,8 +138,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the new fitting ID', () => {
-      expect(result).toBeDefined();
-      expect(result.fitting_id).toBe(42);
+      const request = lastRequest();
+      expect(request.method).toBe('POST');
+      expect(request.headers.authorization).toBe(BEARER);
+      expect(JSON.parse(request.body!)).toEqual(fittingData);
+      expect(result).toEqual({ fitting_id: 42 });
     });
   });
 
@@ -137,21 +161,21 @@ defineFeature(feature, (test) => {
         ship_type_id: 638,
         description: 'Fully fitted Raven for L4 missions',
         items: [
-          { type_id: 3170, flag: 11, quantity: 1 },
-          { type_id: 3170, flag: 12, quantity: 1 },
-          { type_id: 3170, flag: 13, quantity: 1 },
-          { type_id: 3170, flag: 14, quantity: 1 },
-          { type_id: 3170, flag: 15, quantity: 1 },
-          { type_id: 3170, flag: 16, quantity: 1 },
-          { type_id: 519, flag: 19, quantity: 1 },
-          { type_id: 519, flag: 20, quantity: 1 },
+          { type_id: 3170, flag: 'HiSlot0', quantity: 1 },
+          { type_id: 3170, flag: 'HiSlot1', quantity: 1 },
+          { type_id: 3170, flag: 'HiSlot2', quantity: 1 },
+          { type_id: 3170, flag: 'HiSlot3', quantity: 1 },
+          { type_id: 3170, flag: 'HiSlot4', quantity: 1 },
+          { type_id: 3170, flag: 'HiSlot5', quantity: 1 },
+          { type_id: 519, flag: 'MedSlot0', quantity: 1 },
+          { type_id: 519, flag: 'MedSlot1', quantity: 1 },
         ],
       };
-      const mockResponse = { fitting_id: 100 };
-
-      jest
-        .spyOn(client.fittings, 'createFitting')
-        .mockResolvedValue(mockResponse);
+      queueResponse({
+        match: fittingsCollection(characterId),
+        status: 201,
+        body: { fitting_id: 100 },
+      });
     });
 
     when('the client saves the fitting', async () => {
@@ -162,8 +186,12 @@ defineFeature(feature, (test) => {
     });
 
     then('the fitting shall be created with all module slots populated', () => {
-      expect(result).toBeDefined();
-      expect(result.fitting_id).toBe(100);
+      const request = lastRequest();
+      expect(request.method).toBe('POST');
+      const sent = JSON.parse(request.body!);
+      expect(sent.items).toHaveLength(8);
+      expect(sent).toEqual(fullFittingData);
+      expect(result).toEqual({ fitting_id: 100 });
     });
   });
 
@@ -173,7 +201,10 @@ defineFeature(feature, (test) => {
     const fittingId = 42;
 
     given('a valid fitting ID', () => {
-      jest.spyOn(client.fittings, 'deleteFitting').mockResolvedValue(undefined);
+      queueResponse({
+        match: `/characters/${characterId}/fittings/${fittingId}`,
+        status: 204,
+      });
     });
 
     when('the client deletes the fitting', async () => {
@@ -181,6 +212,12 @@ defineFeature(feature, (test) => {
     });
 
     then('the operation shall complete without error', () => {
+      const request = lastRequest();
+      expect(request.method).toBe('DELETE');
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/characters/${characterId}/fittings/${fittingId}$`),
+      );
+      expect(request.headers.authorization).toBe(BEARER);
       expect(result).toBeUndefined();
     });
   });
@@ -190,11 +227,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an invalid or expired token for fittings', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.fittings, 'getFittings')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'token not valid for scope', {
+        match: fittingsCollection(characterId),
+      });
     });
 
     when('the client requests fittings with invalid token', async () => {
@@ -207,6 +242,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 forbidden error for fittings', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(403);
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().method).toBe('GET');
     });
   });
 
@@ -224,13 +262,11 @@ defineFeature(feature, (test) => {
         name: 'Forbidden Fit',
         ship_type_id: 24690,
         description: 'Should fail',
-        items: [{ type_id: 519, flag: 11, quantity: 1 }],
+        items: [{ type_id: 519, flag: 'LoSlot0', quantity: 1 }],
       };
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.fittings, 'createFitting')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'token not valid for scope', {
+        match: fittingsCollection(characterId),
+      });
     });
 
     when('the client attempts to create a fitting', async () => {
@@ -243,6 +279,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 forbidden error for creation', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(403);
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().method).toBe('POST');
     });
   });
 
@@ -252,56 +291,58 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
-    let createSpy: any;
-    let listSpy: any;
-    let deleteSpy: any;
     let created: any;
     let fittings: any;
+    let deleted: any;
     const fittingData = {
       name: 'Lifecycle Test Fit',
       ship_type_id: 24690,
       description: 'Test fitting lifecycle',
-      items: [{ type_id: 519, flag: 11, quantity: 1 }],
+      items: [{ type_id: 519, flag: 'LoSlot0', quantity: 1 }],
     };
 
     given('a character for fitting lifecycle', () => {
-      createSpy = jest
-        .spyOn(client.fittings, 'createFitting')
-        .mockResolvedValue({ fitting_id: 99 });
-
-      listSpy = jest.spyOn(client.fittings, 'getFittings').mockResolvedValue([
-        {
-          fitting_id: 99,
-          name: 'Lifecycle Test Fit',
-          ship_type_id: 24690,
-          description: 'Test fitting lifecycle',
-          items: [{ type_id: 519, flag: 11, quantity: 1 }],
-        },
-      ]);
-
-      deleteSpy = jest
-        .spyOn(client.fittings, 'deleteFitting')
-        .mockResolvedValue(undefined);
+      queueResponse({
+        match: fittingsCollection(characterId),
+        status: 201,
+        body: { fitting_id: 99 },
+      });
+      queueResponse({
+        match: fittingsCollection(characterId),
+        body: [{ fitting_id: 99, ...fittingData }],
+      });
+      queueResponse({
+        match: `/characters/${characterId}/fittings/99`,
+        status: 204,
+      });
     });
 
     when(
       'the client creates a fitting then list fittings then delete it',
       async () => {
         created = await client.fittings.createFitting(characterId, fittingData);
-        expect(created.fitting_id).toBe(99);
-
         fittings = await client.fittings.getFittings(characterId);
-        expect(fittings).toHaveLength(1);
-        expect(fittings[0].fitting_id).toBe(99);
-
-        await client.fittings.deleteFitting(characterId, created.fitting_id);
+        deleted = await client.fittings.deleteFitting(
+          characterId,
+          created.fitting_id,
+        );
       },
     );
 
     then('each operation shall succeed in sequence', () => {
-      expect(createSpy).toHaveBeenCalledWith(characterId, fittingData);
-      expect(listSpy).toHaveBeenCalledWith(characterId);
-      expect(deleteSpy).toHaveBeenCalledWith(characterId, 99);
+      const requests = sentRequests();
+      expect(requests.map((r) => [r.method, r.url.pathname])).toEqual([
+        ['POST', expect.stringMatching(/\/characters\/1689391488\/fittings$/)],
+        ['GET', expect.stringMatching(/\/characters\/1689391488\/fittings$/)],
+        [
+          'DELETE',
+          expect.stringMatching(/\/characters\/1689391488\/fittings\/99$/),
+        ],
+      ]);
+      expect(JSON.parse(requests[0].body!)).toEqual(fittingData);
+      expect(created).toEqual({ fitting_id: 99 });
+      expect(fittings).toEqual([{ fitting_id: 99, ...fittingData }]);
+      expect(deleted).toBeUndefined();
     });
   });
 });

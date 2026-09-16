@@ -7,6 +7,12 @@ Feature: Planetary Interaction Management
   there and then fetches each layout separately — so the two endpoints are
   designed to be used one after the other.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Colony listing ──────────────────────────────────────────────────
 
   Rule: When the planetary colonies of a character are requested, the PI client shall return each colony with its planet_id, planet_type, and upgrade_level.
@@ -88,7 +94,7 @@ Feature: Planetary Interaction Management
 
   # ── Error propagation ───────────────────────────────────────────────
 
-  Rule: If the ESI API rejects a planetary interaction request with an error status, then the PI client shall raise an EsiError.
+  Rule: If every attempt at a planetary interaction request is answered with an error status and no usable cached entry exists, then the PI client shall raise an EsiError.
     The public schematic lookup and the authenticated corporation endpoint
     fail in different ways — an unknown ID versus a missing role — but both
     surface as one error type so a caller wraps the whole domain in a single

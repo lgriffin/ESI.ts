@@ -2,53 +2,75 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0003-corporation.feature');
+
+const CORPORATION_ID = 1344654522;
+
+/** Matches the corporation record path itself, not its sub-resources. */
+function corporationRecordPath(id: number): RegExp {
+  return new RegExp(`/corporations/${id}/?(\\?|$)`);
+}
+
+/** The public corporation record as ESI sends it: no corporation_id field. */
+function corporationRecord(overrides: Record<string, unknown> = {}) {
+  const { corporation_id: _omitted, ...record } =
+    TestDataFactory.createCorporationInfo();
+  return { ...record, ...overrides };
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-corporation-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Public profile for a known corporation ID', ({ given, when, then }) => {
     let result: any;
-    const validCorporationId = 1344654522;
+    const expectedCorporation = corporationRecord({
+      name: 'GoonWaffe',
+      ticker: 'GEWNS',
+      alliance_id: 99005338,
+      ceo_id: 1689391488,
+      creator_id: 1689391488,
+      date_founded: '2010-06-01T00:00:00Z',
+      member_count: 15000,
+    });
 
     given('a valid corporation ID', () => {
-      const expectedCorporation = TestDataFactory.createCorporationInfo({
-        corporation_id: validCorporationId,
-        name: 'GoonWaffe',
-        ticker: 'GEWNS',
-        alliance_id: 99005338,
-        ceo_id: 1689391488,
-        creator_id: 1689391488,
-        date_founded: '2010-06-01T00:00:00Z',
-        member_count: 15000,
+      queueResponse({
+        match: corporationRecordPath(CORPORATION_ID),
+        body: expectedCorporation,
       });
-
-      jest
-        .spyOn(client.corporations, 'getCorporationInfo')
-        .mockResolvedValue(expectedCorporation);
     });
 
     when('the client requests public information', async () => {
-      result = await client.corporations.getCorporationInfo(validCorporationId);
+      result = await client.corporations.getCorporationInfo(CORPORATION_ID);
     });
 
     then('the client shall return complete corporation profile', () => {
-      expect(result).toBeDefined();
-      expect(result.corporation_id).toBe(validCorporationId);
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(
+        corporationRecordPath(CORPORATION_ID),
+      );
+      expect(result).toEqual(expectedCorporation);
       expect(result.name).toBe('GoonWaffe');
       expect(result.ticker).toBe('GEWNS');
-      expect(result).toHaveProperty('alliance_id');
-      expect(result).toHaveProperty('ceo_id');
-      expect(result).toHaveProperty('member_count');
+      expect(result.alliance_id).toBe(99005338);
+      expect(result.ceo_id).toBe(1689391488);
+      expect(result.member_count).toBe(15000);
     });
   });
 
@@ -61,11 +83,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an invalid corporation ID', () => {
-      const expectedError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.corporations, 'getCorporationInfo')
-        .mockRejectedValue(expectedError);
+      queueError(404, 'Corporation not found', {
+        match: corporationRecordPath(invalidCorporationId),
+      });
     });
 
     when(
@@ -81,6 +101,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a not found error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(404);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -90,59 +112,76 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const corporationId = 1344654522;
+    const expectedMembers = [1689391488, 1689391489, 1689391490];
 
     given('an authenticated corporation director', () => {
-      const expectedMembers = [1689391488, 1689391489, 1689391490];
-
-      jest
-        .spyOn(client.corporations, 'getCorporationMembers')
-        .mockResolvedValue(expectedMembers);
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/members`,
+        body: expectedMembers,
+      });
     });
 
     when('the client requests member list', async () => {
-      result = await client.corporations.getCorporationMembers(corporationId);
+      result = await client.corporations.getCorporationMembers(CORPORATION_ID);
     });
 
     then('the client shall return member character IDs', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
-      expect(typeof result[0]).toBe('number');
-      expect(result).toContain(1689391488);
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/corporations/${CORPORATION_ID}/members/?$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedMembers);
+      for (const id of result) {
+        expect(typeof id).toBe('number');
+      }
     });
   });
 
   test('Role assignments for a corporation member', ({ given, when, then }) => {
     let result: any;
-    const corporationId = 1344654522;
+    const expectedRoles = [
+      TestDataFactory.createCorporationMemberRoles({
+        character_id: 1689391488,
+        roles: ['Director', 'Personnel_Manager'],
+        grantable_roles: ['Hangar_Take_1', 'Hangar_Take_2'],
+        roles_at_hq: ['Director'],
+        roles_at_base: [],
+        roles_at_other: [],
+      }),
+      TestDataFactory.createCorporationMemberRoles({
+        character_id: 1689391489,
+        roles: ['Accountant'],
+        grantable_roles: [],
+        roles_at_hq: [],
+        roles_at_base: [],
+        roles_at_other: [],
+      }),
+    ];
 
     given('an authenticated corporation director for roles', () => {
-      const expectedRoles = [
-        TestDataFactory.createCorporationMemberRoles({
-          character_id: 1689391488,
-          roles: ['Director', 'Personnel_Manager'],
-          grantable_roles: ['Hangar_Take_1', 'Hangar_Take_2'],
-          roles_at_hq: ['Director'],
-          roles_at_base: [],
-          roles_at_other: [],
-        }),
-      ];
-
-      jest
-        .spyOn(client.corporations, 'getCorporationRoles')
-        .mockResolvedValue(expectedRoles);
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/roles`,
+        body: expectedRoles,
+      });
     });
 
     when('the client requests member roles', async () => {
-      result = await client.corporations.getCorporationRoles(corporationId);
+      result = await client.corporations.getCorporationRoles(CORPORATION_ID);
     });
 
     then('the client shall return role assignments', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result[0]).toHaveProperty('character_id');
-      expect(result[0]).toHaveProperty('roles');
-      expect(result[0].roles).toBeInstanceOf(Array);
-      expect(result[0].roles).toContain('Director');
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/corporations/${CORPORATION_ID}/roles/?$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedRoles);
+      expect(result.map((r: any) => r.character_id)).toEqual([
+        1689391488, 1689391489,
+      ]);
+      expect(result[0].roles).toEqual(['Director', 'Personnel_Manager']);
+      expect(result[1].roles).toEqual(['Accountant']);
     });
   });
 
@@ -152,37 +191,52 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const corporationId = 1344654522;
+    const expectedBlueprints = [
+      {
+        item_id: 1000000000001,
+        type_id: 688,
+        quantity: -1,
+        location_id: 60003760,
+        location_flag: 'CorpSAG1',
+        material_efficiency: 10,
+        time_efficiency: 20,
+        runs: -1,
+      },
+      {
+        item_id: 1000000000002,
+        type_id: 1146,
+        quantity: -2,
+        location_id: 60003760,
+        location_flag: 'CorpSAG3',
+        material_efficiency: 0,
+        time_efficiency: 0,
+        runs: 25,
+      },
+    ];
 
     given('an authenticated corporation member', () => {
-      const expectedAssets = [
-        TestDataFactory.createCorporationAsset({
-          item_id: 1000000000001,
-          type_id: 587,
-          quantity: 100,
-          location_id: 60003760,
-          location_flag: 'CorpSAG1',
-          location_type: 'station',
-        }),
-      ];
-
-      jest
-        .spyOn(client.corporations, 'getCorporationBlueprints')
-        .mockResolvedValue(expectedAssets);
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/blueprints`,
+        body: expectedBlueprints,
+      });
     });
 
     when('the client requests corporation blueprints', async () => {
       result =
-        await client.corporations.getCorporationBlueprints(corporationId);
+        await client.corporations.getCorporationBlueprints(CORPORATION_ID);
     });
 
     then('the client shall return corporation inventory', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result[0]).toHaveProperty('item_id');
-      expect(result[0]).toHaveProperty('type_id');
-      expect(result[0]).toHaveProperty('quantity');
-      expect(result[0]).toHaveProperty('location_flag');
-      expect(result[0].location_flag).toBe('CorpSAG1');
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/corporations/${CORPORATION_ID}/blueprints/?$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedBlueprints);
+      expect(result.map((b: any) => b.location_flag)).toEqual([
+        'CorpSAG1',
+        'CorpSAG3',
+      ]);
     });
   });
 
@@ -192,83 +246,117 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const corporationId = 1344654522;
+    const expectedStructures = [
+      TestDataFactory.createCorporationStructure({
+        structure_id: 1021975535893,
+        corporation_id: CORPORATION_ID,
+        type_id: 35832,
+        system_id: 30000142,
+        profile_id: 101853,
+        fuel_expires: '2024-02-01T12:00:00Z',
+        state_timer_start: '2024-01-15T12:00:00Z',
+        state_timer_end: '2024-01-22T12:00:00Z',
+        state: 'shield_vulnerable',
+      }),
+      TestDataFactory.createCorporationStructure({
+        structure_id: 1021975535894,
+        corporation_id: CORPORATION_ID,
+        type_id: 35825,
+        system_id: 30002187,
+        profile_id: 101853,
+        state: 'armor_reinforce',
+      }),
+    ];
 
     given('an authenticated corporation director for structures', () => {
-      const expectedStructures = [
-        TestDataFactory.createCorporationStructure({
-          structure_id: 1021975535893,
-          type_id: 35832,
-          system_id: 30000142,
-          profile_id: 101853,
-          fuel_expires: '2024-02-01T12:00:00Z',
-          state_timer_start: '2024-01-15T12:00:00Z',
-          state_timer_end: '2024-01-22T12:00:00Z',
-          state: 'shield_vulnerable',
-        }),
-      ];
-
-      jest
-        .spyOn(client.corporations, 'getCorporationStructures')
-        .mockResolvedValue(expectedStructures);
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/structures`,
+        body: expectedStructures,
+      });
     });
 
     when('the client requests structures', async () => {
       result =
-        await client.corporations.getCorporationStructures(corporationId);
+        await client.corporations.getCorporationStructures(CORPORATION_ID);
     });
 
     then('the client shall return structure information', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result[0]).toHaveProperty('structure_id');
-      expect(result[0]).toHaveProperty('type_id');
-      expect(result[0]).toHaveProperty('system_id');
-      expect(result[0]).toHaveProperty('state');
-      expect(result[0].state).toBe('shield_vulnerable');
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/corporations/${CORPORATION_ID}/structures/?$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedStructures);
+      expect(
+        result.map((s: any) => [
+          s.structure_id,
+          s.type_id,
+          s.system_id,
+          s.state,
+        ]),
+      ).toEqual([
+        [1021975535893, 35832, 30000142, 'shield_vulnerable'],
+        [1021975535894, 35825, 30002187, 'armor_reinforce'],
+      ]);
     });
   });
 
+  // The two passthrough scenarios below drive the standings endpoint. ESI's
+  // standings records must still satisfy the standings schema (from_id,
+  // from_type, standing), so the wallet-shaped fields ride along as extra
+  // fields that the loose schema has to preserve.
   test('Wallet division records returned by the standings call', ({
     given,
     when,
     then,
   }) => {
     let result: any;
-    const corporationId = 1344654522;
-
-    given('an authenticated corporation accountant', () => {
-      const expectedWallets = [
-        TestDataFactory.createCorporationWallet({
+    const expectedRecords = [
+      {
+        from_id: 500001,
+        from_type: 'faction',
+        standing: 5.5,
+        ...TestDataFactory.createCorporationWallet({
           division: 1,
           balance: 1000000000.0,
         }),
-        TestDataFactory.createCorporationWallet({
+      },
+      {
+        from_id: 1000125,
+        from_type: 'npc_corp',
+        standing: -2.1,
+        ...TestDataFactory.createCorporationWallet({
           division: 2,
           balance: 500000000.0,
         }),
-      ];
+      },
+    ];
 
-      jest
-        .spyOn(client.corporations, 'getCorporationStandings')
-        .mockResolvedValue(expectedWallets as any);
+    given('an authenticated corporation accountant', () => {
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/standings`,
+        body: expectedRecords,
+      });
     });
 
     when(
       'the client requests corporation standings returning wallet divisions',
       async () => {
         result = (await client.corporations.getCorporationStandings(
-          corporationId,
+          CORPORATION_ID,
         )) as any;
       },
     );
 
     then('the client shall return wallet divisions', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('division');
-      expect(result[0]).toHaveProperty('balance');
-      expect(typeof result[0].balance).toBe('number');
-      expect(result[0].balance).toBeGreaterThan(0);
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(`/corporations/${CORPORATION_ID}/standings/?$`),
+      );
+      expect(result).toEqual(expectedRecords);
+      expect(result.map((r: any) => [r.division, r.balance])).toEqual([
+        [1, 1000000000.0],
+        [2, 500000000.0],
+      ]);
     });
   });
 
@@ -278,43 +366,48 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const corporationId = 1344654522;
-
-    given('an authenticated corporation accountant for journal', () => {
-      const expectedJournal = [
-        TestDataFactory.createWalletJournalEntry({
+    const expectedRecords = [
+      {
+        from_id: 3008416,
+        from_type: 'agent',
+        standing: 1.25,
+        ...TestDataFactory.createWalletJournalEntry({
           id: 1000000001,
           date: '2024-01-15T12:00:00Z',
           ref_type: 'market_transaction',
-          first_party_id: corporationId,
+          first_party_id: CORPORATION_ID,
           amount: 1000000.0,
           balance: 1000000000.0,
           reason: 'Market transaction',
           description: 'Sold items on market',
         }),
-      ];
+      },
+    ];
 
-      jest
-        .spyOn(client.corporations, 'getCorporationStandings')
-        .mockResolvedValue(expectedJournal as any);
+    given('an authenticated corporation accountant for journal', () => {
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/standings`,
+        body: expectedRecords,
+      });
     });
 
     when(
       'the client requests corporation standings returning journal entries',
       async () => {
         result = (await client.corporations.getCorporationStandings(
-          corporationId,
+          CORPORATION_ID,
         )) as any;
       },
     );
 
     then('the client shall return transaction history', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result[0]).toHaveProperty('id');
-      expect(result[0]).toHaveProperty('date');
-      expect(result[0]).toHaveProperty('ref_type');
-      expect(result[0]).toHaveProperty('amount');
-      expect(result[0].ref_type).toBe('market_transaction');
+      expect(result).toEqual(expectedRecords);
+      expect(result[0]).toMatchObject({
+        id: 1000000001,
+        date: '2024-01-15T12:00:00Z',
+        ref_type: 'market_transaction',
+        amount: 1000000.0,
+      });
     });
   });
 
@@ -323,20 +416,17 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    const corporationId = 1344654522;
     let caughtError: any;
 
     given('a member without director roles', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.corporations, 'getCorporationMembers')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'Character does not have required role(s)', {
+        match: `/corporations/${CORPORATION_ID}/members`,
+      });
     });
 
     when('the client accesses restricted data', async () => {
       try {
-        await client.corporations.getCorporationMembers(corporationId);
+        await client.corporations.getCorporationMembers(CORPORATION_ID);
       } catch (error) {
         caughtError = error;
       }
@@ -344,6 +434,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a forbidden error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(403);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -352,20 +444,17 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    const corporationId = 1344654522;
     let caughtError: any;
 
     given('invalid authentication credentials', () => {
-      const authError = TestDataFactory.createError(401);
-
-      jest
-        .spyOn(client.corporations, 'getCorporationBlueprints')
-        .mockRejectedValue(authError);
+      queueError(401, 'authorization not valid', {
+        match: `/corporations/${CORPORATION_ID}/blueprints`,
+      });
     });
 
     when('the client accesses corporation data', async () => {
       try {
-        await client.corporations.getCorporationBlueprints(corporationId);
+        await client.corporations.getCorporationBlueprints(CORPORATION_ID);
       } catch (error) {
         caughtError = error;
       }
@@ -373,35 +462,39 @@ defineFeature(feature, (test) => {
 
     then('the client shall return an authentication error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(401);
+      expect(lastRequest().headers.authorization).toBe(
+        'Bearer bdd-access-token',
+      );
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
   test('Member list of ten thousand IDs', ({ given, when, then }) => {
     let result: any;
     let responseTime: number;
-    const corporationId = 1344654522;
+    const largeMemberList = Array.from(
+      { length: 10000 },
+      (_, i) => 1689391488 + i,
+    );
 
     given('a large corporation with many members', () => {
-      const largeMemberList = Array.from(
-        { length: 10000 },
-        (_, i) => 1689391488 + i,
-      );
-
-      jest
-        .spyOn(client.corporations, 'getCorporationMembers')
-        .mockResolvedValue(largeMemberList);
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/members`,
+        body: largeMemberList,
+      });
     });
 
     when('the client requests member data', async () => {
       const startTime = Date.now();
-      result = await client.corporations.getCorporationMembers(corporationId);
+      result = await client.corporations.getCorporationMembers(CORPORATION_ID);
       const endTime = Date.now();
       responseTime = endTime - startTime;
     });
 
     then('the client shall handle large data sets efficiently', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(10000);
+      expect(result).toHaveLength(10000);
+      expect(result).toEqual(largeMemberList);
       expect(responseTime).toBeLessThan(1000);
     });
   });
@@ -415,19 +508,17 @@ defineFeature(feature, (test) => {
     const corporationIds = [1344654522, 1344654523, 1344654524];
 
     given('multiple concurrent corporation data requests', () => {
-      const mockCorporations = corporationIds.map((id) =>
-        TestDataFactory.createCorporationInfo({
-          corporation_id: id,
-          name: `Corporation ${id}`,
-          ticker: `CORP${id.toString().slice(-2)}`,
-        }),
-      );
-
-      jest
-        .spyOn(client.corporations, 'getCorporationInfo')
-        .mockImplementation(async (id: number) =>
-          mockCorporations.find((corp) => corp.corporation_id === id)!,
-        );
+      for (const id of corporationIds) {
+        queueResponse({
+          match: corporationRecordPath(id),
+          body: corporationRecord({
+            name: `Corporation ${id}`,
+            ticker: `CORP${id.toString().slice(-2)}`,
+          }),
+          // Answer in reverse order so a mixed-up pairing cannot line up by luck.
+          delayMs: (5 - (id % 10)) * 10,
+        });
+      }
     });
 
     when('the client makes them simultaneously', async () => {
@@ -438,11 +529,15 @@ defineFeature(feature, (test) => {
     });
 
     then('all requests shall complete successfully', () => {
-      expect(results).toHaveLength(3);
-      results.forEach((result: any, index: number) => {
-        expect(result.corporation_id).toBe(corporationIds[index]);
-        expect(result.name).toBe(`Corporation ${corporationIds[index]}`);
-      });
+      expect(sentRequests()).toHaveLength(3);
+      expect(results.map((r: any) => r.name)).toEqual(
+        corporationIds.map((id) => `Corporation ${id}`),
+      );
+      expect(results.map((r: any) => r.ticker)).toEqual([
+        'CORP22',
+        'CORP23',
+        'CORP24',
+      ]);
     });
   });
 
@@ -453,64 +548,56 @@ defineFeature(feature, (test) => {
   }) => {
     let corporation: any;
     let members: any;
-    let wallets: any;
+    let standings: any;
     let structures: any;
-    const corporationId = 1344654522;
+    const mockCorporation = corporationRecord({ name: 'GoonWaffe' });
+    const mockMembers = [1689391488, 1689391489];
+    const mockStandings = [
+      { from_id: 500001, from_type: 'faction', standing: 5.5 },
+    ];
+    const mockStructures = [
+      TestDataFactory.createCorporationStructure({
+        structure_id: 1021975535893,
+        corporation_id: CORPORATION_ID,
+      }),
+    ];
 
     given('a corporation ID for profile assembly', () => {
-      const mockCorporation = TestDataFactory.createCorporationInfo({
-        corporation_id: corporationId,
+      queueResponse({
+        match: corporationRecordPath(CORPORATION_ID),
+        body: mockCorporation,
       });
-      const mockMembers = [1689391488, 1689391489];
-      const mockWallets = [
-        TestDataFactory.createCorporationWallet({
-          division: 1,
-          balance: 1000000000,
-        }),
-      ];
-      const mockStructures = [
-        TestDataFactory.createCorporationStructure({
-          structure_id: 1021975535893,
-        }),
-      ];
-
-      jest
-        .spyOn(client.corporations, 'getCorporationInfo')
-        .mockResolvedValue(mockCorporation);
-      jest
-        .spyOn(client.corporations, 'getCorporationMembers')
-        .mockResolvedValue(mockMembers);
-      jest
-        .spyOn(client.corporations, 'getCorporationStandings')
-        .mockResolvedValue(mockWallets as any);
-      jest
-        .spyOn(client.corporations, 'getCorporationStructures')
-        .mockResolvedValue(mockStructures as any);
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/members`,
+        body: mockMembers,
+      });
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/standings`,
+        body: mockStandings,
+      });
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/structures`,
+        body: mockStructures,
+      });
     });
 
     when('the client gathers complete corporation data', async () => {
-      [corporation, members, wallets, structures] = await Promise.all([
-        client.corporations.getCorporationInfo(corporationId),
-        client.corporations.getCorporationMembers(corporationId),
-        client.corporations.getCorporationStandings(corporationId),
-        client.corporations.getCorporationStructures(corporationId),
+      [corporation, members, standings, structures] = await Promise.all([
+        client.corporations.getCorporationInfo(CORPORATION_ID),
+        client.corporations.getCorporationMembers(CORPORATION_ID),
+        client.corporations.getCorporationStandings(CORPORATION_ID),
+        client.corporations.getCorporationStructures(CORPORATION_ID),
       ]);
     });
 
     then(
       'the client shall successfully retrieve all corporation information',
       () => {
-        expect(corporation).toBeDefined();
-        expect(corporation.corporation_id).toBe(corporationId);
-
-        expect(members).toBeInstanceOf(Array);
-        expect(members.length).toBeGreaterThan(0);
-
-        expect(wallets).toBeInstanceOf(Array);
-        expect(wallets[0].division).toBe(1);
-
-        expect(structures).toBeInstanceOf(Array);
-        expect(structures[0].structure_id).toBe(1021975535893);
+        expect(sentRequests()).toHaveLength(4);
+        expect(corporation).toEqual(mockCorporation);
+        expect(members).toEqual(mockMembers);
+        expect(standings).toEqual(mockStandings);
+        expect(structures).toEqual(mockStructures);
       },
     );
   });

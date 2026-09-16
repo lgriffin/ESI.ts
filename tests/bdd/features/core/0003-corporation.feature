@@ -7,7 +7,7 @@ Feature: Corporation Management
 
   # ── Corporation records ─────────────────────────────────────────────
 
-  Rule: When public information is requested for a corporation ID, the Corporations client shall return a record carrying corporation_id, name, ticker, alliance_id, ceo_id, and member_count.
+  Rule: When public information is requested for a corporation ID, the Corporations client shall return a record carrying name, ticker, ceo_id, and member_count, and alliance_id when present.
     The corporation record is the anchor object for the domain and needs no
     token. Ticker and member count are what most display surfaces show next to
     the name, and alliance_id is the join key up to the alliance domain.
@@ -39,7 +39,7 @@ Feature: Corporation Management
       When the client requests member list
       Then the client shall return member character IDs
 
-  Rule: When member roles are requested for a corporation ID, the Corporations client shall return an array whose entries each carry character_id and a roles array.
+  Rule: When member roles are requested for a corporation ID, the Corporations client shall return an array whose entries each carry character_id, and a roles array when present.
     Role assignments are per member, so the character_id is what ties an entry
     back to the member list. The roles array is the field that decides which
     director-only endpoints that member can reach.

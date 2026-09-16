@@ -8,7 +8,7 @@ Feature: Universe Information
 
   # ── Solar systems ───────────────────────────────────────────────────
 
-  Rule: When a solar system is requested by identifier, the Universe client shall return its name, security status, and the stargate, station, and planet identifier arrays.
+  Rule: When a solar system is requested by identifier, the Universe client shall return its name and security status, and its stargate, station, and planet identifier arrays when present.
     A system record is the hub of the map graph: the stargate list gives the
     edges, and the station and planet lists give the celestials a caller can
     then look up individually. Security status is returned as the raw float
@@ -70,7 +70,7 @@ Feature: Universe Information
       When the client requests station information
       Then the client shall return complete station details
 
-  Rule: When a structure is requested by identifier, the Universe client shall return its name, host solar system identifier, and position vector.
+  Rule: When a structure is requested by identifier, the Universe client shall return its name and host solar system identifier, and its position vector when present.
     Player structures are placed at arbitrary coordinates rather than at a
     fixed celestial, so the position vector is what locates them on the system
     map. This endpoint needs a docking-access token, unlike the station one.
@@ -104,7 +104,7 @@ Feature: Universe Information
 
   # ── Item types and groups ───────────────────────────────────────────
 
-  Rule: When an item type is requested by identifier, the Universe client shall return its name, description, group identifier, volume, and published flag.
+  Rule: When an item type is requested by identifier, the Universe client shall return its name, description, group identifier, and published flag, and its volume when present.
     Volume is what every hauling and fitting calculation starts from, and the
     published flag marks types that exist in the database but are not
     obtainable in game, which a caller filters out before showing them.

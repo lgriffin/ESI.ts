@@ -2,18 +2,41 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0002-character.feature');
+
+/**
+ * The public profile path `/characters/{id}/` is a prefix of every other
+ * character path, so its response is pinned to the end of the URL.
+ */
+const profilePath = (characterId: number) =>
+  new RegExp(`/characters/${characterId}/$`);
+
+/**
+ * GET /characters/{id}/ as ESI sends it: the spec's CharactersDetail has no
+ * character_id field, the ID lives only in the request path.
+ */
+function publicProfile(overrides: Record<string, unknown> = {}) {
+  const { character_id: _omitted, ...profile } =
+    TestDataFactory.createCharacterInfo(overrides);
+  return profile;
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-character-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Public profile for a known character ID', ({ given, when, then }) => {
@@ -21,16 +44,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid character ID', () => {
-      const expectedCharacter = TestDataFactory.createCharacterInfo({
-        character_id: validCharacterId,
-        name: 'Test Character',
-        corporation_id: 1344654522,
-        alliance_id: 99005338,
+      queueResponse({
+        match: profilePath(validCharacterId),
+        body: publicProfile({
+          name: 'Test Character',
+          corporation_id: 1344654522,
+          alliance_id: 99005338,
+          birthday: '2003-05-06T00:00:00Z',
+        }),
       });
-
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockResolvedValue(expectedCharacter);
     });
 
     when('the client requests public information', async () => {
@@ -38,12 +60,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete character profile', () => {
-      expect(result).toBeDefined();
-      expect(result.character_id).toBe(validCharacterId);
-      expect(result.name).toBe('Test Character');
-      expect(result).toHaveProperty('corporation_id');
-      expect(result).toHaveProperty('alliance_id');
-      expect(result).toHaveProperty('birthday');
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toBe(`/characters/${validCharacterId}/`);
+      expect(result).toMatchObject({
+        name: 'Test Character',
+        corporation_id: 1344654522,
+        alliance_id: 99005338,
+        birthday: '2003-05-06T00:00:00Z',
+      });
     });
   });
 
@@ -52,11 +77,10 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an invalid character ID', () => {
-      const expectedError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockRejectedValue(expectedError);
+      // 404 is not retryable, so ESI answers exactly once.
+      queueError(404, 'Character not found', {
+        match: profilePath(invalidCharacterId),
+      });
     });
 
     when(
@@ -72,6 +96,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a not found error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(404);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -80,11 +106,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid character ID for portrait', () => {
-      const expectedPortrait = TestDataFactory.createCharacterPortrait();
-
-      jest
-        .spyOn(client.characters, 'getCharacterPortrait')
-        .mockResolvedValue(expectedPortrait);
+      queueResponse({
+        match: `/characters/${characterId}/portrait/`,
+        body: TestDataFactory.createCharacterPortrait(characterId),
+      });
     });
 
     when('the client requests portraits', async () => {
@@ -92,11 +117,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return image URLs in different sizes', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveProperty('px64x64');
-      expect(result).toHaveProperty('px128x128');
-      expect(result).toHaveProperty('px256x256');
-      expect(result).toHaveProperty('px512x512');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/portrait/`,
+      );
+      expect(result).toEqual({
+        px64x64: `https://images.evetech.net/characters/${characterId}/portrait?size=64`,
+        px128x128: `https://images.evetech.net/characters/${characterId}/portrait?size=128`,
+        px256x256: `https://images.evetech.net/characters/${characterId}/portrait?size=256`,
+        px512x512: `https://images.evetech.net/characters/${characterId}/portrait?size=512`,
+      });
     });
   });
 
@@ -109,16 +138,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character', () => {
-      const expectedRoles = TestDataFactory.createCharacterRoles({
-        roles: ['Director', 'Personnel_Manager'],
-        roles_at_base: ['Station_Manager'],
-        roles_at_hq: ['Director'],
-        roles_at_other: [],
+      queueResponse({
+        match: `/characters/${characterId}/roles`,
+        body: TestDataFactory.createCharacterRoles({
+          roles: ['Director', 'Personnel_Manager'],
+          roles_at_base: ['Station_Manager'],
+          roles_at_hq: ['Director'],
+          roles_at_other: [],
+        }),
       });
-
-      jest
-        .spyOn(client.characters, 'getCharacterRoles')
-        .mockResolvedValue(expectedRoles);
     });
 
     when('the client requests roles', async () => {
@@ -126,11 +154,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return role information', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveProperty('roles');
-      expect(result.roles).toBeInstanceOf(Array);
-      expect(result.roles).toContain('Director');
-      expect(result.roles).toContain('Personnel_Manager');
+      const request = lastRequest();
+      expect(request.url.pathname).toBe(`/characters/${characterId}/roles`);
+      expect(request.headers['authorization']).toBe('Bearer bdd-access-token');
+      expect(result.roles).toEqual(['Director', 'Personnel_Manager']);
+      expect(result.roles_at_base).toEqual(['Station_Manager']);
     });
   });
 
@@ -143,24 +171,23 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character ID for history', () => {
-      const expectedHistory = [
-        TestDataFactory.createCorporationHistoryEntry({
-          corporation_id: 1344654522,
-          is_deleted: false,
-          record_id: 1,
-          start_date: '2020-01-01T00:00:00Z',
-        }),
-        TestDataFactory.createCorporationHistoryEntry({
-          corporation_id: 1000001,
-          is_deleted: false,
-          record_id: 2,
-          start_date: '2015-01-01T00:00:00Z',
-        }),
-      ];
-
-      jest
-        .spyOn(client.characters, 'getCharacterCorporationHistory')
-        .mockResolvedValue(expectedHistory);
+      queueResponse({
+        match: `/characters/${characterId}/corporationhistory/`,
+        body: [
+          TestDataFactory.createCorporationHistoryEntry({
+            corporation_id: 1344654522,
+            is_deleted: false,
+            record_id: 2,
+            start_date: '2020-01-01T00:00:00Z',
+          }),
+          TestDataFactory.createCorporationHistoryEntry({
+            corporation_id: 1000001,
+            is_deleted: false,
+            record_id: 1,
+            start_date: '2015-01-01T00:00:00Z',
+          }),
+        ],
+      });
     });
 
     when('the client requests corporation history', async () => {
@@ -169,11 +196,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return employment history', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('corporation_id');
-      expect(result[0]).toHaveProperty('start_date');
-      expect(result[0]).toHaveProperty('record_id');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/corporationhistory/`,
+      );
+      expect(
+        result.map((e: any) => [e.corporation_id, e.start_date, e.record_id]),
+      ).toEqual([
+        [1344654522, '2020-01-01T00:00:00Z', 2],
+        [1000001, '2015-01-01T00:00:00Z', 1],
+      ]);
     });
   });
 
@@ -182,21 +213,25 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character ID for medals', () => {
-      const expectedMedals = [
-        TestDataFactory.createCharacterMedal({
-          medal_id: 1,
-          title: 'Test Medal',
-          description: 'A test medal for demonstration',
-          corporation_id: 1344654522,
-          date: '2023-01-01T00:00:00Z',
-          issuer_id: 1689391489,
-          reason: 'Outstanding service',
-        }),
-      ];
-
-      jest
-        .spyOn(client.characters, 'getCharacterMedals')
-        .mockResolvedValue(expectedMedals);
+      queueResponse({
+        match: `/characters/${characterId}/medals/`,
+        body: [
+          TestDataFactory.createCharacterMedal({
+            medal_id: 1,
+            title: 'Test Medal',
+            description: 'A test medal for demonstration',
+            corporation_id: 1344654522,
+            date: '2023-01-01T00:00:00Z',
+            issuer_id: 1689391489,
+            reason: 'Outstanding service',
+            status: 'public',
+            graphics: [
+              { part: 1, layer: 0, graphic: 'caldari.1_1', color: -1 },
+              { part: 2, layer: 1, graphic: 'caldari.2_3' },
+            ],
+          }),
+        ],
+      });
     });
 
     when('the client requests medals', async () => {
@@ -204,11 +239,16 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return medal information', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result[0]).toHaveProperty('medal_id');
-      expect(result[0]).toHaveProperty('title');
-      expect(result[0]).toHaveProperty('description');
-      expect(result[0]).toHaveProperty('date');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/medals/`,
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        medal_id: 1,
+        title: 'Test Medal',
+        description: 'A test medal for demonstration',
+        date: '2023-01-01T00:00:00Z',
+      });
     });
   });
 
@@ -221,21 +261,20 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character for notifications', () => {
-      const expectedNotifications = [
-        TestDataFactory.createCharacterNotification({
-          notification_id: 1000001,
-          sender_id: 1689391489,
-          sender_type: 'character',
-          text: 'Test notification',
-          timestamp: '2024-01-15T12:00:00Z',
-          type: 'AllWarDeclaredMsg',
-          is_read: false,
-        }),
-      ];
-
-      jest
-        .spyOn(client.characters, 'getCharacterNotifications')
-        .mockResolvedValue(expectedNotifications);
+      queueResponse({
+        match: `/characters/${characterId}/notifications/`,
+        body: [
+          TestDataFactory.createCharacterNotification({
+            notification_id: 1000001,
+            sender_id: 1689391489,
+            sender_type: 'character',
+            text: 'Test notification',
+            timestamp: '2024-01-15T12:00:00Z',
+            type: 'AllWarDeclaredMsg',
+            is_read: false,
+          }),
+        ],
+      });
     });
 
     when('the client requests notifications', async () => {
@@ -243,11 +282,18 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return notification list', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result[0]).toHaveProperty('notification_id');
-      expect(result[0]).toHaveProperty('sender_id');
-      expect(result[0]).toHaveProperty('type');
-      expect(result[0]).toHaveProperty('timestamp');
+      const request = lastRequest();
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/notifications/`,
+      );
+      expect(request.headers['authorization']).toBe('Bearer bdd-access-token');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        notification_id: 1000001,
+        sender_id: 1689391489,
+        type: 'AllWarDeclaredMsg',
+        timestamp: '2024-01-15T12:00:00Z',
+      });
     });
   });
 
@@ -260,11 +306,9 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an unauthenticated request', () => {
-      const authError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.characters, 'getCharacterRoles')
-        .mockRejectedValue(authError);
+      queueError(403, 'Token not valid for scope(s)', {
+        match: `/characters/${characterId}/roles`,
+      });
     });
 
     when('the client accesses private data without authorization', async () => {
@@ -277,6 +321,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return an authorization error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(403);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -289,11 +335,10 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an expired token', () => {
-      const authError = TestDataFactory.createError(401);
-
-      jest
-        .spyOn(client.characters, 'getCharacterNotifications')
-        .mockRejectedValue(authError);
+      // No token refresh is configured, so the 401 is final.
+      queueError(401, 'token is expired', {
+        match: `/characters/${characterId}/notifications/`,
+      });
     });
 
     when('the client accesses private data with expired token', async () => {
@@ -306,6 +351,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return an authentication error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(401);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -314,18 +361,15 @@ defineFeature(feature, (test) => {
     let results: any;
 
     given('multiple concurrent character requests', () => {
-      const mockCharacters = characterIds.map((id) =>
-        TestDataFactory.createCharacterInfo({
-          character_id: id,
-          name: `Character ${id}`,
-        }),
-      );
-
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockImplementation(async (id: number) =>
-          mockCharacters.find((char) => char.character_id === id)!,
-        );
+      // Later IDs answer first, so a pipeline that paired responses with
+      // calls by arrival order would hand each call the wrong record.
+      characterIds.forEach((id, index) => {
+        queueResponse({
+          match: profilePath(id),
+          body: publicProfile({ name: `Character ${id}` }),
+          delayMs: (characterIds.length - index) * 15,
+        });
+      });
     });
 
     when('the client makes them simultaneously', async () => {
@@ -336,11 +380,14 @@ defineFeature(feature, (test) => {
     });
 
     then('all requests shall complete successfully', () => {
-      expect(results).toHaveLength(3);
-      results.forEach((result: any, index: number) => {
-        expect(result.character_id).toBe(characterIds[index]);
-        expect(result.name).toBe(`Character ${characterIds[index]}`);
-      });
+      expect(
+        sentRequests()
+          .map((r) => r.url.pathname)
+          .sort(),
+      ).toEqual(characterIds.map((id) => `/characters/${id}/`));
+      expect(results.map((r: any) => r.name)).toEqual(
+        characterIds.map((id) => `Character ${id}`),
+      );
     });
   });
 
@@ -354,16 +401,11 @@ defineFeature(feature, (test) => {
     let responseTime: number;
 
     given('normal API conditions for character', () => {
-      const mockCharacter = TestDataFactory.createCharacterInfo({
-        character_id: characterId,
+      queueResponse({
+        match: profilePath(characterId),
+        body: publicProfile(),
+        delayMs: 150,
       });
-
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 150));
-          return mockCharacter;
-        });
     });
 
     when('the client requests character data', async () => {
@@ -374,9 +416,9 @@ defineFeature(feature, (test) => {
     });
 
     then('the response shall be within acceptable limits', () => {
-      expect(result).toBeDefined();
+      expect(result.name).toBe('Test Character');
       expect(responseTime).toBeLessThan(5000);
-      expect(responseTime).toBeGreaterThan(100);
+      expect(responseTime).toBeGreaterThanOrEqual(140);
     });
   });
 
@@ -392,31 +434,28 @@ defineFeature(feature, (test) => {
     let notifications: any;
 
     given('a character ID for profile assembly', () => {
-      const mockCharacter = TestDataFactory.createCharacterInfo({
-        character_id: characterId,
+      queueResponse({
+        match: profilePath(characterId),
+        body: publicProfile({ name: 'Profile Pilot' }),
+        delayMs: 20,
       });
-      const mockPortrait = TestDataFactory.createCharacterPortrait();
-      const mockRoles = TestDataFactory.createCharacterRoles({
-        roles: ['Director'],
+      queueResponse({
+        match: `/characters/${characterId}/portrait/`,
+        body: TestDataFactory.createCharacterPortrait(characterId),
       });
-      const mockNotifications = [
-        TestDataFactory.createCharacterNotification({
-          notification_id: 1000001,
-        }),
-      ];
-
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockResolvedValue(mockCharacter);
-      jest
-        .spyOn(client.characters, 'getCharacterPortrait')
-        .mockResolvedValue(mockPortrait);
-      jest
-        .spyOn(client.characters, 'getCharacterRoles')
-        .mockResolvedValue(mockRoles);
-      jest
-        .spyOn(client.characters, 'getCharacterNotifications')
-        .mockResolvedValue(mockNotifications);
+      queueResponse({
+        match: `/characters/${characterId}/roles`,
+        body: TestDataFactory.createCharacterRoles({ roles: ['Director'] }),
+        delayMs: 10,
+      });
+      queueResponse({
+        match: `/characters/${characterId}/notifications/`,
+        body: [
+          TestDataFactory.createCharacterNotification({
+            notification_id: 1000001,
+          }),
+        ],
+      });
     });
 
     when('the client gathers complete profile data', async () => {
@@ -431,17 +470,15 @@ defineFeature(feature, (test) => {
     then(
       'the client shall successfully retrieve all available character information',
       () => {
-        expect(character).toBeDefined();
-        expect(character.character_id).toBe(characterId);
-
-        expect(portrait).toBeDefined();
-        expect(portrait.px64x64).toBeDefined();
-
-        expect(roles).toBeDefined();
-        expect(roles.roles).toContain('Director');
-
-        expect(notifications).toBeInstanceOf(Array);
-        expect(notifications[0].notification_id).toBe(1000001);
+        expect(sentRequests()).toHaveLength(4);
+        expect(character.name).toBe('Profile Pilot');
+        expect(portrait.px64x64).toBe(
+          `https://images.evetech.net/characters/${characterId}/portrait?size=64`,
+        );
+        expect(roles.roles).toEqual(['Director']);
+        expect(notifications.map((n: any) => n.notification_id)).toEqual([
+          1000001,
+        ]);
       },
     );
   });

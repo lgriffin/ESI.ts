@@ -30,6 +30,9 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Scenarios mock at the transport seam
+        run: npm run lint:bdd-seam
+
       - name: Check formatting
         run: npm run format:check
 

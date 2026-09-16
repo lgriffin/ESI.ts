@@ -2,20 +2,51 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  RETRYABLE_ATTEMPTS,
+  createSeamClient,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature(
   'tests/bdd/features/integration/0001-integration-workflows.feature',
 );
 
+const ESI_ORIGIN = 'https://esi.evetech.net';
+
+/**
+ * Match exactly one ESI route. Several routes in these workflows are prefixes
+ * of each other (`/characters/{id}/` and `/characters/{id}/portrait/`), so a
+ * plain substring match would serve the wrong queued response. `page` pins a
+ * response to one page of an offset-paginated collection; without it the
+ * request must carry no page parameter.
+ */
+function route(path: string, page?: number): RegExp {
+  const escaped = (ESI_ORIGIN + path).replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+  const query =
+    page === undefined
+      ? '(\\?(?![^#]*\\bpage=)[^#]*)?'
+      : `\\?([^#]*&)?page=${page}(&[^#]*)?`;
+  return new RegExp(`^${escaped}${query}$`);
+}
+
+/** The paths the client requested, in the order it sent them. */
+function sentPaths(): string[] {
+  return sentRequests().map((r) => r.url.pathname);
+}
+
+const AUTH_HEADER = 'Bearer bdd-access-token';
+
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-integration-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 10000,
-    });
+    client = createSeamClient();
   });
 
   test('Character profile joins character, corporation, and alliance by identifier', ({
@@ -35,44 +66,50 @@ defineFeature(feature, (test) => {
     const allianceId = 99005338;
 
     given('a character ID for profile assembly', () => {
-      const mockCharacter = TestDataFactory.createCharacterInfo({
-        character_id: characterId,
-        name: 'Test Pilot',
-        corporation_id: corporationId,
-        alliance_id: allianceId,
-      });
-      const mockPortrait = TestDataFactory.createCharacterPortrait();
-      const mockCorporation = TestDataFactory.createCorporationInfo({
-        corporation_id: corporationId,
-      });
-      const mockAlliance = TestDataFactory.createAllianceInfo({
-        alliance_id: allianceId,
-      });
-      const mockLocation = TestDataFactory.createCharacterLocation({
-        solar_system_id: 30000142,
-      });
-      const mockSkills = TestDataFactory.createCharacterSkills({
-        total_sp: 50000000,
-      });
+      // ESI's detail records do not repeat their own ID: a character carries
+      // corporation_id and alliance_id, a corporation carries alliance_id, and
+      // an alliance carries executor_corporation_id.
+      const { character_id: _c, ...characterDetail } =
+        TestDataFactory.createCharacterInfo({
+          name: 'Test Pilot',
+          corporation_id: corporationId,
+          alliance_id: allianceId,
+        });
+      const { corporation_id: _k, ...corporationDetail } =
+        TestDataFactory.createCorporationInfo({
+          name: 'GoonWaffe',
+          alliance_id: allianceId,
+        });
+      const { alliance_id: _a, ...allianceDetail } =
+        TestDataFactory.createAllianceInfo({
+          name: 'Goonswarm Federation',
+          executor_corporation_id: corporationId,
+        });
 
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockResolvedValue(mockCharacter);
-      jest
-        .spyOn(client.characters, 'getCharacterPortrait')
-        .mockResolvedValue(mockPortrait);
-      jest
-        .spyOn(client.corporations, 'getCorporationInfo')
-        .mockResolvedValue(mockCorporation);
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockResolvedValue(mockAlliance);
-      jest
-        .spyOn(client.location, 'getCharacterLocation')
-        .mockResolvedValue(mockLocation);
-      jest
-        .spyOn(client.characters, 'getCharacterRoles')
-        .mockResolvedValue(mockSkills as any);
+      queueResponse({
+        match: route(`/characters/${characterId}/`),
+        body: characterDetail,
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/portrait/`),
+        body: TestDataFactory.createCharacterPortrait(characterId),
+      });
+      queueResponse({
+        match: route(`/corporations/${corporationId}`),
+        body: corporationDetail,
+      });
+      queueResponse({
+        match: route(`/alliances/${allianceId}/`),
+        body: allianceDetail,
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/location`),
+        body: { solar_system_id: 30000142, station_id: 60003760 },
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/skills`),
+        body: TestDataFactory.createCharacterSkills({ total_sp: 50000000 }),
+      });
     });
 
     when('the client assembles a complete profile', async () => {
@@ -80,22 +117,44 @@ defineFeature(feature, (test) => {
       [portrait, corporation, alliance, location, skills] = await Promise.all([
         client.characters.getCharacterPortrait(characterId),
         client.corporations.getCorporationInfo(character.corporation_id),
-        client.alliance.getAllianceById(character.alliance_id!),
+        client.alliance.getAllianceById(character.alliance_id),
         client.location.getCharacterLocation(characterId),
-        client.characters.getCharacterRoles(characterId) as any,
+        client.skills.getCharacterSkills(characterId),
       ]);
     });
 
     then('the client shall gather all related character data', () => {
-      expect(character.name).toBe('Test Pilot');
-      expect(portrait.px512x512).toBeDefined();
-      expect(corporation.name).toBeDefined();
-      expect(alliance.name).toBeDefined();
-      expect(location.solar_system_id).toBe(30000142);
-      expect(skills.total_sp).toBe(50000000);
+      // The corporation and alliance lookups were keyed by the IDs the
+      // character record carried.
+      expect(sentPaths()[0]).toBe(`/characters/${characterId}/`);
+      expect(sentPaths().slice(1).sort()).toEqual(
+        [
+          `/alliances/${allianceId}/`,
+          `/characters/${characterId}/location`,
+          `/characters/${characterId}/portrait/`,
+          `/characters/${characterId}/skills`,
+          `/corporations/${corporationId}`,
+        ].sort(),
+      );
 
-      expect(character.corporation_id).toBe(corporation.corporation_id);
-      expect(character.alliance_id).toBe(alliance.alliance_id);
+      expect(character.name).toBe('Test Pilot');
+      expect(character.corporation_id).toBe(corporationId);
+      expect(character.alliance_id).toBe(allianceId);
+
+      expect(corporation.name).toBe('GoonWaffe');
+      expect(corporation.alliance_id).toBe(character.alliance_id);
+      expect(alliance.name).toBe('Goonswarm Federation');
+      expect(alliance.executor_corporation_id).toBe(character.corporation_id);
+
+      expect(portrait.px512x512).toBe(
+        `https://images.evetech.net/characters/${characterId}/portrait?size=512`,
+      );
+      expect(location).toEqual({
+        solar_system_id: 30000142,
+        station_id: 60003760,
+      });
+      expect(skills.total_sp).toBe(50000000);
+      expect(skills.skills.map((s: any) => s.skill_id)).toEqual([3300, 3301]);
     });
   });
 
@@ -114,65 +173,80 @@ defineFeature(feature, (test) => {
     const typeId = 34;
     const characterId = 1689391488;
 
-    given('a trading opportunity exists', () => {
-      const mockPrices = [
-        TestDataFactory.createMarketPrice({
-          type_id: typeId,
-          average_price: 4.5,
-        }),
-      ];
-      const mockOrders = [
-        TestDataFactory.createMarketOrder({
-          type_id: typeId,
-          price: 4.45,
-          is_buy_order: true,
-        }),
-        TestDataFactory.createMarketOrder({
-          type_id: typeId,
-          price: 4.55,
-          is_buy_order: false,
-        }),
-      ];
-      const mockHistory = [
-        TestDataFactory.createMarketHistory({
-          date: '2024-01-15',
-          average: 4.5,
-          volume: 1000000000,
-        }),
-        TestDataFactory.createMarketHistory({
-          date: '2024-01-14',
-          average: 4.4,
-          volume: 950000000,
-        }),
-      ];
-      const mockCharacterOrders = [
-        TestDataFactory.createCharacterMarketOrder({
-          type_id: typeId,
-          price: 4.4,
-          is_buy_order: true,
-        }),
-      ];
-      const mockItemType = TestDataFactory.createItemType({
+    const order = (order_id: number, is_buy_order: boolean, price: number) =>
+      TestDataFactory.createMarketOrder({
+        order_id,
         type_id: typeId,
-        name: 'Tritanium',
-        volume: 0.01,
+        is_buy_order,
+        price,
       });
 
-      jest
-        .spyOn(client.market, 'getMarketPrices')
-        .mockResolvedValue(mockPrices);
-      jest
-        .spyOn(client.market, 'getMarketOrders')
-        .mockResolvedValue(mockOrders);
-      jest
-        .spyOn(client.market, 'getMarketHistory')
-        .mockResolvedValue(mockHistory);
-      jest
-        .spyOn(client.market, 'getCharacterOrders')
-        .mockResolvedValue(mockCharacterOrders);
-      jest
-        .spyOn(client.universe, 'getTypeById')
-        .mockResolvedValue(mockItemType);
+    given('a trading opportunity exists', () => {
+      queueResponse({
+        match: route('/markets/prices/'),
+        body: [
+          TestDataFactory.createMarketPrice({ type_id: 35, average_price: 9 }),
+          TestDataFactory.createMarketPrice({
+            type_id: typeId,
+            average_price: 4.5,
+          }),
+        ],
+      });
+      // The region order book spans two pages; the best ask is only on page 2.
+      queueResponse({
+        match: route(`/markets/${regionId}/orders/`),
+        headers: { 'x-pages': '2' },
+        body: [
+          order(6000000001, true, 4.45),
+          order(6000000002, true, 4.4),
+          order(6000000003, false, 4.6),
+        ],
+      });
+      queueResponse({
+        match: route(`/markets/${regionId}/orders/`, 2),
+        headers: { 'x-pages': '2' },
+        body: [order(6000000004, false, 4.55), order(6000000005, true, 4.3)],
+      });
+      queueResponse({
+        match: route(`/markets/${regionId}/history/`),
+        body: [
+          TestDataFactory.createMarketHistory({
+            date: '2024-01-14',
+            average: 4.4,
+            volume: 950000000,
+          }),
+          TestDataFactory.createMarketHistory({
+            date: '2024-01-15',
+            average: 4.5,
+            volume: 1000000000,
+          }),
+        ],
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/orders/`),
+        body: [
+          TestDataFactory.createCharacterMarketOrder({
+            order_id: 5000000001,
+            type_id: typeId,
+            price: 4.4,
+            is_buy_order: true,
+          }),
+          TestDataFactory.createCharacterMarketOrder({
+            order_id: 5000000002,
+            type_id: 35,
+            price: 8.9,
+            is_buy_order: false,
+          }),
+        ],
+      });
+      queueResponse({
+        match: route(`/universe/types/${typeId}`),
+        body: TestDataFactory.createItemType({
+          type_id: typeId,
+          name: 'Tritanium',
+          volume: 0.01,
+        }),
+      });
     });
 
     when('the client performs market analysis', async () => {
@@ -186,34 +260,39 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall gather comprehensive market data', () => {
+      const historyRequest = sentRequests().find((r) =>
+        r.url.pathname.endsWith('/history/'),
+      );
+      expect(historyRequest?.url.searchParams.get('type_id')).toBe(
+        String(typeId),
+      );
+
+      expect(orders.map((o: any) => o.order_id)).toEqual([
+        6000000001, 6000000002, 6000000003, 6000000004, 6000000005,
+      ]);
+
       const currentPrice = prices.find(
         (p: any) => p.type_id === typeId,
       )?.average_price;
-      const bestBuyOrder = orders
-        .filter((o: any) => o.is_buy_order)
-        .reduce((best: any, current: any) =>
-          current.price > best.price ? current : best,
-        );
-      const bestSellOrder = orders
-        .filter((o: any) => !o.is_buy_order)
-        .reduce((best: any, current: any) =>
-          current.price < best.price ? current : best,
-        );
-      const priceChange = history[0].average - history[1].average;
+      const bids = orders.filter((o: any) => o.is_buy_order);
+      const asks = orders.filter((o: any) => !o.is_buy_order);
+      const bestBid = Math.max(...bids.map((o: any) => o.price));
+      const bestAsk = Math.min(...asks.map((o: any) => o.price));
+      const priceChange =
+        history[history.length - 1].average -
+        history[history.length - 2].average;
       const myActiveOrders = characterOrders.filter(
         (o: any) => o.type_id === typeId,
       );
 
       expect(currentPrice).toBe(4.5);
-      expect(bestBuyOrder.price).toBe(4.45);
-      expect(bestSellOrder.price).toBe(4.55);
-      expect(priceChange).toBeCloseTo(0.1, 2);
-      expect(myActiveOrders.length).toBe(1);
+      expect(bestBid).toBe(4.45);
+      expect(bestAsk).toBe(4.55);
+      expect(bestAsk - bestBid).toBeCloseTo(0.1, 10);
+      expect(priceChange).toBeCloseTo(0.1, 10);
+      expect(myActiveOrders.map((o: any) => o.order_id)).toEqual([5000000001]);
       expect(itemType.name).toBe('Tritanium');
       expect(itemType.volume).toBe(0.01);
-
-      const spread = bestSellOrder.price - bestBuyOrder.price;
-      expect(spread).toBeCloseTo(0.1, 2);
     });
   });
 
@@ -230,53 +309,58 @@ defineFeature(feature, (test) => {
 
     const corporationId = 1344654522;
     const characterId = 1689391488;
+    const memberIds = Array.from({ length: 150 }, (_, i) => characterId + i);
 
     given('a corporation director role', () => {
-      const mockCorporation = TestDataFactory.createCorporationInfo({
-        corporation_id: corporationId,
-        name: 'Test Corporation',
-        member_count: 150,
-      });
-      const mockMembers = Array.from({ length: 150 }, (_, i) => 1689391488 + i);
-      const mockMemberRoles = [
-        TestDataFactory.createCorporationMemberRoles({
-          character_id: characterId,
-          roles: ['Director', 'Personnel_Manager'],
-        }),
-      ];
-      const mockWallets = [
-        TestDataFactory.createCorporationWallet({
-          division: 1,
-          balance: 5000000000,
-        }),
-        TestDataFactory.createCorporationWallet({
-          division: 2,
-          balance: 1000000000,
-        }),
-      ];
-      const mockAssets = [
-        TestDataFactory.createCorporationAsset({
-          type_id: 587,
-          quantity: 100,
-          location_flag: 'CorpSAG1',
-        }),
-      ];
+      const { corporation_id: _k, ...corporationDetail } =
+        TestDataFactory.createCorporationInfo({
+          name: 'Test Corporation',
+          member_count: 150,
+        });
 
-      jest
-        .spyOn(client.corporations, 'getCorporationInfo')
-        .mockResolvedValue(mockCorporation);
-      jest
-        .spyOn(client.corporations, 'getCorporationMembers')
-        .mockResolvedValue(mockMembers);
-      jest
-        .spyOn(client.corporations, 'getCorporationRoles')
-        .mockResolvedValue(mockMemberRoles);
-      jest
-        .spyOn(client.corporations, 'getCorporationStandings')
-        .mockResolvedValue(mockWallets as any);
-      jest
-        .spyOn(client.corporations, 'getCorporationBlueprints')
-        .mockResolvedValue(mockAssets);
+      queueResponse({
+        match: route(`/corporations/${corporationId}`),
+        body: corporationDetail,
+      });
+      queueResponse({
+        match: route(`/corporations/${corporationId}/members`),
+        body: memberIds,
+      });
+      queueResponse({
+        match: route(`/corporations/${corporationId}/roles`),
+        body: [
+          TestDataFactory.createCorporationMemberRoles({
+            character_id: characterId,
+            roles: ['Director', 'Personnel_Manager'],
+          }),
+          TestDataFactory.createCorporationMemberRoles({
+            character_id: characterId + 1,
+            roles: ['Hangar_Take_1'],
+            roles_at_hq: [],
+          }),
+        ],
+      });
+      queueResponse({
+        match: route(`/corporations/${corporationId}/wallets`),
+        body: [
+          { division: 1, balance: 5000000000.5 },
+          { division: 2, balance: 1000000000.25 },
+        ],
+      });
+      queueResponse({
+        match: route(`/corporations/${corporationId}/assets/`),
+        body: [
+          {
+            item_id: 1000000000001,
+            type_id: 587,
+            quantity: 100,
+            location_id: 60003760,
+            location_flag: 'CorpSAG1',
+            location_type: 'station',
+            is_singleton: false,
+          },
+        ],
+      });
     });
 
     when('the client manages corporation overview', async () => {
@@ -284,30 +368,37 @@ defineFeature(feature, (test) => {
       [members, memberRoles, wallets, assets] = await Promise.all([
         client.corporations.getCorporationMembers(corporationId),
         client.corporations.getCorporationRoles(corporationId),
-        client.corporations.getCorporationStandings(corporationId),
-        client.corporations.getCorporationBlueprints(corporationId),
+        client.wallet.getCorporationWallets(corporationId),
+        client.assets.getCorporationAssets(corporationId),
       ]);
     });
 
     then('the client shall access all corporation data', () => {
+      for (const request of sentRequests().slice(1)) {
+        expect(request.headers.authorization).toBe(AUTH_HEADER);
+      }
+
       expect(corporation.name).toBe('Test Corporation');
       expect(corporation.member_count).toBe(150);
-      expect(members.length).toBe(150);
-      expect(memberRoles[0].roles).toContain('Director');
+      expect(members).toEqual(memberIds);
+      expect(members.length).toBe(corporation.member_count);
 
       const totalWalletBalance = wallets.reduce(
-        (total: any, wallet: any) => total + wallet.balance,
+        (total: number, wallet: any) => total + wallet.balance,
         0,
       );
-      expect(totalWalletBalance).toBe(6000000000);
+      expect(wallets.map((w: any) => w.division)).toEqual([1, 2]);
+      expect(totalWalletBalance).toBe(6000000000.75);
 
-      expect(assets.length).toBeGreaterThan(0);
+      expect(assets).toHaveLength(1);
       expect(assets[0].location_flag).toBe('CorpSAG1');
+      expect(assets[0].quantity).toBe(100);
 
-      const directors = memberRoles.filter((member: any) =>
-        member.roles.includes('Director'),
-      );
-      expect(directors.length).toBeGreaterThan(0);
+      const directors = memberRoles
+        .filter((member: any) => member.roles?.includes('Director'))
+        .map((member: any) => member.character_id);
+      expect(directors).toEqual([characterId]);
+      expect(members).toContain(directors[0]);
     });
   });
 
@@ -316,86 +407,148 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
+    let membership: any;
     let fleet: any;
     let members: any;
     let wings: any;
+    let shipTypes: any[];
 
     const fleetId = 1234567890;
     const characterId = 1689391488;
+    const wingId = 987654321;
+    const squadId = 123456789;
+
+    const member = (overrides: Record<string, unknown>) => ({
+      join_time: '2024-01-15T18:00:00Z',
+      solar_system_id: 30000142,
+      takes_fleet_warp: true,
+      wing_id: wingId,
+      squad_id: squadId,
+      ...overrides,
+    });
 
     given('fleet commander permissions', () => {
-      const mockFleet = TestDataFactory.createFleetInfo({
-        fleet_id: fleetId,
-        fleet_boss_id: characterId,
-        is_free_move: false,
-        is_registered: true,
-        is_voice_enabled: true,
-        motd: 'Fleet operations in progress',
-      });
-      const mockMembers = [
-        TestDataFactory.createFleetMember({
-          character_id: characterId,
+      queueResponse({
+        match: route(`/characters/${characterId}/fleet`),
+        body: {
+          fleet_id: fleetId,
+          fleet_boss_id: characterId,
           role: 'fleet_commander',
-          ship_type_id: 17918,
-          solar_system_id: 30000142,
-          station_id: 60003760,
+          wing_id: -1,
+          squad_id: -1,
+        },
+      });
+      queueResponse({
+        match: route(`/fleets/${fleetId}`),
+        body: {
+          is_free_move: false,
+          is_registered: true,
+          is_voice_enabled: true,
+          motd: 'Fleet operations in progress',
+        },
+      });
+      queueResponse({
+        match: route(`/fleets/${fleetId}/members`),
+        body: [
+          member({
+            character_id: characterId,
+            role: 'fleet_commander',
+            role_name: 'Fleet Commander (Boss)',
+            ship_type_id: 17918,
+            station_id: 60003760,
+            wing_id: -1,
+            squad_id: -1,
+          }),
+          member({
+            character_id: 1689391489,
+            role: 'squad_member',
+            role_name: 'Squad Member',
+            ship_type_id: 17812,
+          }),
+        ],
+      });
+      queueResponse({
+        match: route(`/fleets/${fleetId}/wings/`),
+        body: [
+          {
+            id: wingId,
+            name: 'Wing 1',
+            squads: [{ id: squadId, name: 'Squad 1' }],
+          },
+        ],
+      });
+      queueResponse({
+        match: route('/universe/types/17918'),
+        body: TestDataFactory.createItemType({
+          type_id: 17918,
+          name: 'Rattlesnake',
+          group_id: 27,
+          category_id: 6,
         }),
-        TestDataFactory.createFleetMember({
-          character_id: 1689391489,
-          role: 'squad_member',
-          ship_type_id: 17812,
-          solar_system_id: 30000142,
+      });
+      queueResponse({
+        match: route('/universe/types/17812'),
+        body: TestDataFactory.createItemType({
+          type_id: 17812,
+          name: 'Republic Fleet Firetail',
+          group_id: 25,
+          category_id: 6,
         }),
-      ];
-      const mockWings = [
-        TestDataFactory.createFleetWing({
-          wing_id: 987654321,
-          name: 'Wing 1',
-          squads: [{ squad_id: 123456789, name: 'Squad 1' }],
-        }),
-      ];
-
-      jest
-        .spyOn(client.fleets, 'getFleetInformation')
-        .mockResolvedValue(mockFleet as any);
-      jest
-        .spyOn(client.fleets, 'getFleetMembers')
-        .mockResolvedValue(mockMembers as any);
-      jest
-        .spyOn(client.fleets, 'getFleetWings')
-        .mockResolvedValue(mockWings as any);
+      });
     });
 
     when('the client manages fleet operations', async () => {
-      fleet = await client.fleets.getFleetInformation(fleetId);
-      [members, wings] = await Promise.all([
-        client.fleets.getFleetMembers(fleetId),
-        client.fleets.getFleetWings(fleetId),
+      membership = await client.fleets.getCharacterFleetInfo(characterId);
+      [fleet, members, wings] = await Promise.all([
+        client.fleets.getFleetInformation(membership.fleet_id),
+        client.fleets.getFleetMembers(membership.fleet_id),
+        client.fleets.getFleetWings(membership.fleet_id),
       ]);
+      shipTypes = await Promise.all(
+        members.map((m: any) => client.universe.getTypeById(m.ship_type_id)),
+      );
     });
 
     then('the client shall coordinate fleet activities', () => {
-      expect(fleet.fleet_boss_id).toBe(characterId);
+      // Every fleet route was keyed by the fleet_id from the membership record.
+      expect(sentPaths()).toContain(`/fleets/${fleetId}`);
+      expect(sentPaths()).toContain(`/fleets/${fleetId}/members`);
+      expect(sentPaths()).toContain(`/fleets/${fleetId}/wings/`);
+
       expect(fleet.motd).toBe('Fleet operations in progress');
-      expect(members.length).toBe(2);
-      expect(wings.length).toBe(1);
 
-      const commander = members.find(
-        (member: any) => member.role === 'fleet_commander',
+      const boss = members.find(
+        (m: any) => m.character_id === membership.fleet_boss_id,
       );
+      expect(boss?.role).toBe('fleet_commander');
+
       const squadMembers = members.filter(
-        (member: any) => member.role === 'squad_member',
+        (m: any) => m.role === 'squad_member',
       );
-      expect(commander?.character_id).toBe(characterId);
-      expect(squadMembers.length).toBe(1);
+      expect(squadMembers.map((m: any) => m.character_id)).toEqual([
+        1689391489,
+      ]);
+      const wing = wings.find((w: any) => w.id === squadMembers[0].wing_id);
+      expect(wing?.name).toBe('Wing 1');
+      expect(
+        wing?.squads.find((s: any) => s.id === squadMembers[0].squad_id)?.name,
+      ).toBe('Squad 1');
 
-      expect(wings[0].squads.length).toBe(1);
-      expect(wings[0].name).toBe('Wing 1');
+      // Ship names resolved through the universe client by ship_type_id.
+      expect(
+        members.map(
+          (m: any, i: number) =>
+            `${m.character_id}:${m.ship_type_id}:${shipTypes[i].name}`,
+        ),
+      ).toEqual([
+        `${characterId}:17918:Rattlesnake`,
+        '1689391489:17812:Republic Fleet Firetail',
+      ]);
+      expect(shipTypes.map((t) => t.type_id)).toEqual([17918, 17812]);
 
-      const membersInJita = members.filter(
-        (member: any) => member.solar_system_id === 30000142,
-      );
-      expect(membersInJita.length).toBe(2);
+      expect(members.map((m: any) => m.solar_system_id)).toEqual([
+        30000142, 30000142,
+      ]);
     });
   });
 
@@ -410,85 +563,97 @@ defineFeature(feature, (test) => {
 
     const characterId = 1689391488;
 
-    given('manufacturing requirements exist', () => {
-      const mockIndustryJobs = [
-        TestDataFactory.createIndustryJob({
-          job_id: 1000001,
-          installer_id: characterId,
-          facility_id: 60003760,
-          activity_id: 1,
-          blueprint_id: 1000000001,
-          blueprint_type_id: 17918,
-          product_type_id: 17918,
-          runs: 1,
-          status: 'active',
-          start_date: '2024-01-15T12:00:00Z',
-          end_date: '2024-01-16T12:00:00Z',
-        }),
-      ];
-      const mockBlueprints = [
-        TestDataFactory.createBlueprint({
-          item_id: 1000000001,
-          type_id: 17918,
-          location_id: 60003760,
-          location_flag: 'Hangar',
-          quantity: -2,
-          time_efficiency: 10,
-          material_efficiency: 10,
-          runs: 100,
-        }),
-      ];
-      const mockAssets = [
-        TestDataFactory.createCharacterAsset({
-          item_id: 1000000002,
-          type_id: 34,
-          quantity: 1000000,
-          location_id: 60003760,
-          location_flag: 'Hangar',
-        }),
-      ];
+    const blueprint = (item_id: number, quantity: number, runs: number) =>
+      TestDataFactory.createBlueprint({
+        item_id,
+        type_id: 17919,
+        quantity,
+        runs,
+      });
 
-      jest
-        .spyOn(client.characters, 'getCharacterRoles')
-        .mockResolvedValue(mockIndustryJobs as any);
-      jest
-        .spyOn(client.characters, 'getCharacterBlueprints')
-        .mockResolvedValue(mockBlueprints as any);
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockResolvedValue(mockAssets as any);
+    given('manufacturing requirements exist', () => {
+      queueResponse({
+        match: route(`/characters/${characterId}/industry/jobs`),
+        body: [
+          {
+            job_id: 1000001,
+            installer_id: characterId,
+            facility_id: 60003760,
+            station_id: 60003760,
+            activity_id: 1,
+            blueprint_id: 1000000001,
+            blueprint_type_id: 17919,
+            blueprint_location_id: 60003760,
+            output_location_id: 60003760,
+            product_type_id: 17918,
+            runs: 1,
+            status: 'active',
+            duration: 86400,
+            start_date: '2024-01-15T12:00:00Z',
+            end_date: '2024-01-16T12:00:00Z',
+          },
+        ],
+      });
+      // Blueprints span two pages. A copy (quantity -2) has a finite run
+      // count; an original (quantity -1) reports runs -1.
+      queueResponse({
+        match: route(`/characters/${characterId}/blueprints/`),
+        headers: { 'x-pages': '2' },
+        body: [blueprint(1000000001, -2, 100), blueprint(1000000003, -1, -1)],
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/blueprints/`, 2),
+        headers: { 'x-pages': '2' },
+        body: [blueprint(1000000004, -2, 25)],
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/assets/`),
+        body: [
+          {
+            item_id: 1000000002,
+            type_id: 34,
+            quantity: 1000000,
+            location_id: 60003760,
+            location_flag: 'Hangar',
+            location_type: 'station',
+            is_singleton: false,
+          },
+        ],
+      });
     });
 
     when('the client sets up production', async () => {
-      [industryJobs, blueprints, assets] = (await Promise.all([
-        client.characters.getCharacterRoles(characterId),
+      [industryJobs, blueprints, assets] = await Promise.all([
+        client.industry.getCharacterIndustryJobs(characterId),
         client.characters.getCharacterBlueprints(characterId),
-        client.characters.getCharacterPublicInfo(characterId),
-      ])) as any[];
+        client.assets.getCharacterAssets(characterId),
+      ]);
     });
 
     then('the client shall coordinate all manufacturing aspects', () => {
-      expect(industryJobs.length).toBe(1);
-      expect(industryJobs[0].status).toBe('active');
-      expect(blueprints.length).toBe(1);
-      expect(blueprints[0].material_efficiency).toBe(10);
-      expect(assets.length).toBe(1);
+      expect(blueprints.map((bp: any) => bp.item_id)).toEqual([
+        1000000001, 1000000003, 1000000004,
+      ]);
 
       const activeJobs = industryJobs.filter(
         (job: any) => job.status === 'active',
       );
-      const availableBlueprints = blueprints.filter((bp: any) => bp.runs > 0);
-      const materials = assets.filter((asset: any) => asset.type_id === 34);
+      expect(activeJobs.map((job: any) => job.job_id)).toEqual([1000001]);
+      // The active job is running from a blueprint the character holds.
+      expect(
+        blueprints.some((bp: any) => bp.item_id === activeJobs[0].blueprint_id),
+      ).toBe(true);
 
-      expect(activeJobs.length).toBe(1);
-      expect(availableBlueprints.length).toBe(1);
-      expect(materials[0].quantity).toBe(1000000);
-
-      const totalRuns = availableBlueprints.reduce(
-        (total: any, bp: any) => total + bp.runs,
+      const copies = blueprints.filter((bp: any) => bp.runs > 0);
+      const totalRuns = copies.reduce(
+        (total: number, bp: any) => total + bp.runs,
         0,
       );
-      expect(totalRuns).toBe(100);
+      expect(totalRuns).toBe(125);
+      expect(blueprints[0].material_efficiency).toBe(10);
+
+      const materials = assets.filter((asset: any) => asset.type_id === 34);
+      expect(materials.map((a: any) => a.quantity)).toEqual([1000000]);
     });
   });
 
@@ -497,28 +662,33 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    let results: any;
+    let results: PromiseSettledResult<any>[];
 
     const characterId = 1689391488;
     const corporationId = 1344654522;
 
     given('some services are unavailable', () => {
-      const mockCharacter = TestDataFactory.createCharacterInfo({
-        character_id: characterId,
-      });
-      const serviceError = TestDataFactory.createError(503);
-
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockResolvedValue(mockCharacter);
-      jest
-        .spyOn(client.characters, 'getCharacterPortrait')
-        .mockRejectedValue(serviceError);
-      jest.spyOn(client.corporations, 'getCorporationInfo').mockResolvedValue(
-        TestDataFactory.createCorporationInfo({
+      const { character_id: _c, ...characterDetail } =
+        TestDataFactory.createCharacterInfo({
+          name: 'Test Pilot',
           corporation_id: corporationId,
-        }),
-      );
+        });
+      const { corporation_id: _k, ...corporationDetail } =
+        TestDataFactory.createCorporationInfo({ name: 'GoonWaffe' });
+
+      queueResponse({
+        match: route(`/characters/${characterId}/`),
+        body: characterDetail,
+      });
+      // 503 is retryable, so the outage has to outlast the retry budget.
+      queueError(503, 'Service Unavailable', {
+        match: route(`/characters/${characterId}/portrait/`),
+        times: RETRYABLE_ATTEMPTS,
+      });
+      queueResponse({
+        match: route(`/corporations/${corporationId}`),
+        body: corporationDetail,
+      });
     });
 
     when(
@@ -533,20 +703,29 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall handle partial failures gracefully', () => {
-      expect(results[0].status).toBe('fulfilled');
-      expect(results[1].status).toBe('rejected');
-      expect(results[2].status).toBe('fulfilled');
+      expect(results.map((r) => r.status)).toEqual([
+        'fulfilled',
+        'rejected',
+        'fulfilled',
+      ]);
 
-      if (results[0].status === 'fulfilled') {
-        expect(results[0].value.character_id).toBe(characterId);
-      }
-      if (results[2].status === 'fulfilled') {
-        expect(results[2].value.corporation_id).toBe(corporationId);
-      }
+      const [character, portrait, corporation] = results;
+      expect((character as PromiseFulfilledResult<any>).value.name).toBe(
+        'Test Pilot',
+      );
+      expect(
+        (character as PromiseFulfilledResult<any>).value.corporation_id,
+      ).toBe(corporationId);
+      expect((corporation as PromiseFulfilledResult<any>).value.name).toBe(
+        'GoonWaffe',
+      );
 
-      if (results[1].status === 'rejected') {
-        expect(results[1].reason).toBeInstanceOf(EsiError);
-      }
+      const reason = (portrait as PromiseRejectedResult).reason;
+      expect(reason).toBeInstanceOf(EsiError);
+      expect((reason as EsiError).statusCode).toBe(503);
+      expect(sentPaths().filter((p) => p.endsWith('/portrait/')).length).toBe(
+        RETRYABLE_ATTEMPTS,
+      );
     });
   });
 
@@ -568,59 +747,46 @@ defineFeature(feature, (test) => {
     const allianceId = 99005338;
 
     given('a complex data requirement', () => {
-      const mockData = {
-        character: TestDataFactory.createCharacterInfo({
-          character_id: characterId,
-        }),
-        portrait: TestDataFactory.createCharacterPortrait(),
-        corporation: TestDataFactory.createCorporationInfo({
+      const { character_id: _c, ...characterDetail } =
+        TestDataFactory.createCharacterInfo({
           corporation_id: corporationId,
-        }),
-        alliance: TestDataFactory.createAllianceInfo({
           alliance_id: allianceId,
-        }),
-        location: TestDataFactory.createCharacterLocation({
-          solar_system_id: 30000142,
-        }),
-        skills: TestDataFactory.createCharacterSkills({ total_sp: 50000000 }),
-      };
+        });
+      const { corporation_id: _k, ...corporationDetail } =
+        TestDataFactory.createCorporationInfo({ name: 'GoonWaffe' });
+      const { alliance_id: _a, ...allianceDetail } =
+        TestDataFactory.createAllianceInfo({ name: 'Goonswarm Federation' });
 
-      jest
-        .spyOn(client.characters, 'getCharacterPublicInfo')
-        .mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          return mockData.character;
-        });
-      jest
-        .spyOn(client.characters, 'getCharacterPortrait')
-        .mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 50));
-          return mockData.portrait;
-        });
-      jest
-        .spyOn(client.corporations, 'getCorporationInfo')
-        .mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 80));
-          return mockData.corporation;
-        });
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 60));
-          return mockData.alliance;
-        });
-      jest
-        .spyOn(client.location, 'getCharacterLocation')
-        .mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 40));
-          return mockData.location;
-        });
-      jest
-        .spyOn(client.characters, 'getCharacterRoles')
-        .mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 90));
-          return mockData.skills as any;
-        });
+      queueResponse({
+        match: route(`/characters/${characterId}/`),
+        body: characterDetail,
+        delayMs: 100,
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/portrait/`),
+        body: TestDataFactory.createCharacterPortrait(characterId),
+        delayMs: 50,
+      });
+      queueResponse({
+        match: route(`/corporations/${corporationId}`),
+        body: corporationDetail,
+        delayMs: 80,
+      });
+      queueResponse({
+        match: route(`/alliances/${allianceId}/`),
+        body: allianceDetail,
+        delayMs: 60,
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/location`),
+        body: { solar_system_id: 30000142 },
+        delayMs: 40,
+      });
+      queueResponse({
+        match: route(`/characters/${characterId}/skills`),
+        body: TestDataFactory.createCharacterSkills({ total_sp: 50000000 }),
+        delayMs: 90,
+      });
     });
 
     when('the client optimizes data gathering', async () => {
@@ -631,21 +797,25 @@ defineFeature(feature, (test) => {
       [portrait, corporation, alliance, location, skills] = await Promise.all([
         client.characters.getCharacterPortrait(characterId),
         client.corporations.getCorporationInfo(character.corporation_id),
-        client.alliance.getAllianceById(character.alliance_id!),
+        client.alliance.getAllianceById(character.alliance_id),
         client.location.getCharacterLocation(characterId),
-        client.characters.getCharacterRoles(characterId) as any,
+        client.skills.getCharacterSkills(characterId),
       ]);
 
-      const endTime = Date.now();
-      totalTime = endTime - startTime;
+      totalTime = Date.now() - startTime;
     });
 
     then('the client shall minimize API calls and response time', () => {
-      expect(totalTime).toBeLessThan(500);
-      expect(character.character_id).toBe(characterId);
-      expect(portrait.px512x512).toBeDefined();
-      expect(corporation.corporation_id).toBe(corporationId);
-      expect(alliance.alliance_id).toBe(allianceId);
+      expect(sentRequests()).toHaveLength(6);
+      expect(sentPaths()).toContain(`/corporations/${corporationId}`);
+      expect(sentPaths()).toContain(`/alliances/${allianceId}/`);
+
+      expect(character.corporation_id).toBe(corporationId);
+      expect(portrait.px512x512).toBe(
+        `https://images.evetech.net/characters/${characterId}/portrait?size=512`,
+      );
+      expect(corporation.name).toBe('GoonWaffe');
+      expect(alliance.name).toBe('Goonswarm Federation');
       expect(location.solar_system_id).toBe(30000142);
       expect(skills.total_sp).toBe(50000000);
 

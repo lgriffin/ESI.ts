@@ -2,19 +2,24 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0031-skills.feature');
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      accessToken: 'mock-access-token',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Two-skill character returns per-skill levels and total SP', ({
@@ -27,9 +32,10 @@ defineFeature(feature, (test) => {
     const expectedSkills = TestDataFactory.createCharacterSkills();
 
     given('a valid character ID for skills', () => {
-      jest
-        .spyOn(client.skills, 'getCharacterSkills')
-        .mockResolvedValue(expectedSkills);
+      queueResponse({
+        match: `/characters/${characterId}/skills`,
+        body: expectedSkills,
+      });
     });
 
     when('the client requests character skills', async () => {
@@ -37,11 +43,28 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the skills list with total SP', () => {
-      expect(result).toBeDefined();
-      expect(result.skills).toHaveLength(2);
-      expect(result.total_sp).toBe(384000);
-      expect(result.skills[0].skill_id).toBe(3300);
-      expect(result.skills[0].trained_skill_level).toBe(5);
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toBe(`/characters/${characterId}/skills`);
+      expect(request.headers['authorization']).toBe('Bearer bdd-access-token');
+      expect(result).toEqual({
+        skills: [
+          {
+            skill_id: 3300,
+            skillpoints_in_skill: 256000,
+            trained_skill_level: 5,
+            active_skill_level: 5,
+          },
+          {
+            skill_id: 3301,
+            skillpoints_in_skill: 128000,
+            trained_skill_level: 4,
+            active_skill_level: 4,
+          },
+        ],
+        total_sp: 384000,
+        unallocated_sp: 0,
+      });
     });
   });
 
@@ -73,6 +96,7 @@ defineFeature(feature, (test) => {
           skill_id: 3303,
           skillpoints_in_skill: 256000,
           trained_skill_level: 4,
+          active_skill_level: 4,
         }),
         TestDataFactory.createCharacterSkill({
           skill_id: 3304,
@@ -85,9 +109,10 @@ defineFeature(feature, (test) => {
     };
 
     given('a veteran character', () => {
-      jest
-        .spyOn(client.skills, 'getCharacterSkills')
-        .mockResolvedValue(manySkills);
+      queueResponse({
+        match: `/characters/${characterId}/skills`,
+        body: manySkills,
+      });
     });
 
     when('the client requests their skills', async () => {
@@ -95,8 +120,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a large skill set with high total SP', () => {
-      expect(result).toBeDefined();
-      expect(result.skills).toHaveLength(5);
+      expect(result.skills.map((s: any) => s.skill_id)).toEqual([
+        3300, 3301, 3302, 3303, 3304,
+      ]);
+      expect(result.skills[3]).toEqual({
+        skill_id: 3303,
+        skillpoints_in_skill: 256000,
+        trained_skill_level: 4,
+        active_skill_level: 4,
+      });
       expect(result.total_sp).toBe(80000000);
       expect(result.unallocated_sp).toBe(500000);
     });
@@ -114,6 +146,9 @@ defineFeature(feature, (test) => {
         skill_id: 3300,
         finished_level: 5,
         queue_position: 0,
+        level_start_sp: 256000,
+        level_end_sp: 1280000,
+        training_start_sp: 400000,
         start_date: '2024-01-15T12:00:00Z',
         finish_date: '2024-01-20T12:00:00Z',
       },
@@ -134,9 +169,10 @@ defineFeature(feature, (test) => {
     ];
 
     given('a character with skills in training', () => {
-      jest
-        .spyOn(client.skills, 'getCharacterSkillQueue')
-        .mockResolvedValue(expectedQueue as any);
+      queueResponse({
+        match: `/characters/${characterId}/skillqueue`,
+        body: expectedQueue,
+      });
     });
 
     when('the client requests the skill queue', async () => {
@@ -144,13 +180,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an ordered queue', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveLength(3);
-      expect(result[0].queue_position).toBe(0);
-      expect(result[1].queue_position).toBe(1);
-      expect(result[2].queue_position).toBe(2);
-      expect(result[0].skill_id).toBe(3300);
-      expect(result[0].finished_level).toBe(5);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/skillqueue`,
+      );
+      expect(result).toEqual(expectedQueue);
+      expect(result.map((q: any) => q.queue_position)).toEqual([0, 1, 2]);
     });
   });
 
@@ -163,7 +197,10 @@ defineFeature(feature, (test) => {
     const characterId = 90000001;
 
     given('a character with no skills in training', () => {
-      jest.spyOn(client.skills, 'getCharacterSkillQueue').mockResolvedValue([]);
+      queueResponse({
+        match: `/characters/${characterId}/skillqueue`,
+        body: [],
+      });
     });
 
     when('the client requests the skill queue for idle character', async () => {
@@ -171,8 +208,8 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an empty queue array', () => {
-      expect(Array.isArray(result)).toBe(true);
-      expect(result).toHaveLength(0);
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toEqual([]);
     });
   });
 
@@ -183,12 +220,12 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const characterId = 90000001;
-    const expectedAttributes = TestDataFactory.createCharacterAttributes();
 
     given('a valid character ID for attributes', () => {
-      jest
-        .spyOn(client.skills, 'getCharacterAttributes')
-        .mockResolvedValue(expectedAttributes);
+      queueResponse({
+        match: `/characters/${characterId}/attributes`,
+        body: TestDataFactory.createCharacterAttributes(),
+      });
     });
 
     when('the client requests attributes', async () => {
@@ -196,13 +233,19 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return all five attributes and remap info', () => {
-      expect(result).toBeDefined();
-      expect(result.intelligence).toBe(24);
-      expect(result.memory).toBe(21);
-      expect(result.perception).toBe(23);
-      expect(result.willpower).toBe(22);
-      expect(result.charisma).toBe(20);
-      expect(result.bonus_remaps).toBe(2);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/attributes`,
+      );
+      expect(result).toEqual({
+        charisma: 20,
+        intelligence: 24,
+        memory: 21,
+        perception: 23,
+        willpower: 22,
+        bonus_remaps: 2,
+        last_remap_date: '2023-01-01T00:00:00Z',
+        accrued_remap_cooldown_date: '2024-01-01T00:00:00Z',
+      });
     });
   });
 
@@ -213,19 +256,19 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const characterId = 90000001;
-    const perceptionFocused = TestDataFactory.createCharacterAttributes({
-      perception: 32,
-      willpower: 27,
-      intelligence: 17,
-      memory: 17,
-      charisma: 17,
-      bonus_remaps: 0,
-    });
 
     given('a character with a perception-focused remap', () => {
-      jest
-        .spyOn(client.skills, 'getCharacterAttributes')
-        .mockResolvedValue(perceptionFocused);
+      queueResponse({
+        match: `/characters/${characterId}/attributes`,
+        body: TestDataFactory.createCharacterAttributes({
+          perception: 27,
+          willpower: 21,
+          intelligence: 17,
+          memory: 17,
+          charisma: 17,
+          bonus_remaps: 0,
+        }),
+      });
     });
 
     when('the client requests remapped attributes', async () => {
@@ -233,9 +276,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall report elevated perception', () => {
-      expect(result.perception).toBe(32);
-      expect(result.willpower).toBe(27);
-      expect(result.bonus_remaps).toBe(0);
+      expect(result).toMatchObject({
+        perception: 27,
+        willpower: 21,
+        intelligence: 17,
+        memory: 17,
+        charisma: 17,
+        bonus_remaps: 0,
+      });
     });
   });
 
@@ -248,8 +296,10 @@ defineFeature(feature, (test) => {
     const characterId = 90000001;
 
     given('an invalid or expired token', () => {
-      const error = TestDataFactory.createError(403);
-      jest.spyOn(client.skills, 'getCharacterSkills').mockRejectedValue(error);
+      // 403 is not retryable, so ESI answers exactly once.
+      queueError(403, 'token is expired', {
+        match: `/characters/${characterId}/skills`,
+      });
     });
 
     when('the client requests skills without authorization', async () => {
@@ -262,6 +312,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 skills error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(403);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -274,7 +326,6 @@ defineFeature(feature, (test) => {
     let queue: any;
     let attributes: any;
     const characterId = 90000001;
-    const skillsData = TestDataFactory.createCharacterSkills();
     const queueData = [
       {
         skill_id: 3305,
@@ -284,18 +335,24 @@ defineFeature(feature, (test) => {
         finish_date: '2024-03-10T00:00:00Z',
       },
     ];
-    const attributesData = TestDataFactory.createCharacterAttributes();
 
     given('a valid character for concurrent fetch', () => {
-      jest
-        .spyOn(client.skills, 'getCharacterSkills')
-        .mockResolvedValue(skillsData);
-      jest
-        .spyOn(client.skills, 'getCharacterSkillQueue')
-        .mockResolvedValue(queueData as any);
-      jest
-        .spyOn(client.skills, 'getCharacterAttributes')
-        .mockResolvedValue(attributesData);
+      // Distinct delays make the responses arrive in a different order from
+      // the requests, so a crossed wire would hand a payload to the wrong call.
+      queueResponse({
+        match: `/characters/${characterId}/skills`,
+        body: TestDataFactory.createCharacterSkills(),
+        delayMs: 30,
+      });
+      queueResponse({
+        match: `/characters/${characterId}/skillqueue`,
+        body: queueData,
+        delayMs: 15,
+      });
+      queueResponse({
+        match: `/characters/${characterId}/attributes`,
+        body: TestDataFactory.createCharacterAttributes(),
+      });
     });
 
     when(
@@ -310,10 +367,18 @@ defineFeature(feature, (test) => {
     );
 
     then('all three shall return valid data', () => {
-      expect(skills.skills).toHaveLength(2);
+      expect(
+        sentRequests()
+          .map((r) => r.url.pathname)
+          .sort(),
+      ).toEqual([
+        `/characters/${characterId}/attributes`,
+        `/characters/${characterId}/skillqueue`,
+        `/characters/${characterId}/skills`,
+      ]);
+      expect(skills.skills.map((s: any) => s.skill_id)).toEqual([3300, 3301]);
       expect(skills.total_sp).toBe(384000);
-      expect(queue).toHaveLength(1);
-      expect(queue[0].queue_position).toBe(0);
+      expect(queue).toEqual(queueData);
       expect(attributes.intelligence).toBe(24);
       expect(attributes.perception).toBe(23);
     });

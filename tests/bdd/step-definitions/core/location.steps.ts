@@ -2,18 +2,32 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0020-location.feature');
+
+const BEARER = 'Bearer bdd-access-token';
+
+/** Match a URL whose path is exactly `path` (query string allowed). */
+function exactPath(path: string): RegExp {
+  const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^https://esi\\.evetech\\.net${escaped}(\\?|$)`);
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-location-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Character docked in Jita 4-4', ({ given, when, then }) => {
@@ -21,14 +35,13 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character docked in a station', () => {
-      const expectedLocation = TestDataFactory.createCharacterLocation({
-        solar_system_id: 30000142,
-        station_id: 60003760,
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/location`),
+        body: TestDataFactory.createCharacterLocation({
+          solar_system_id: 30000142,
+          station_id: 60003760,
+        }),
       });
-
-      jest
-        .spyOn(client.location, 'getCharacterLocation')
-        .mockResolvedValue(expectedLocation);
     });
 
     when('the client requests their location', async () => {
@@ -38,9 +51,16 @@ defineFeature(feature, (test) => {
     then(
       'the client shall return the solar system and station information',
       () => {
-        expect(result).toBeDefined();
-        expect(result.solar_system_id).toBe(30000142);
-        expect(result.station_id).toBe(60003760);
+        const request = lastRequest();
+        expect(request.method).toBe('GET');
+        expect(request.url.pathname).toBe(
+          `/characters/${characterId}/location`,
+        );
+        expect(request.headers.authorization).toBe(BEARER);
+        expect(result).toEqual({
+          solar_system_id: 30000142,
+          station_id: 60003760,
+        });
       },
     );
   });
@@ -50,15 +70,11 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character flying in space', () => {
-      const expectedLocation = TestDataFactory.createCharacterLocation({
-        solar_system_id: 30002187,
-        station_id: undefined,
-        structure_id: undefined,
+      // Undocked, ESI omits both docking fields from the payload.
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/location`),
+        body: { solar_system_id: 30002187 },
       });
-
-      jest
-        .spyOn(client.location, 'getCharacterLocation')
-        .mockResolvedValue(expectedLocation);
     });
 
     when('the client requests their location while in space', async () => {
@@ -68,10 +84,11 @@ defineFeature(feature, (test) => {
     then(
       'the client shall return only the solar system with no station',
       () => {
-        expect(result).toBeDefined();
+        expect(sentRequests()).toHaveLength(1);
         expect(result.solar_system_id).toBe(30002187);
         expect(result.station_id).toBeUndefined();
         expect(result.structure_id).toBeUndefined();
+        expect(Object.keys(result)).toEqual(['solar_system_id']);
       },
     );
   });
@@ -81,16 +98,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character who is currently online', () => {
-      const expectedOnline = {
-        online: true,
-        last_login: '2024-01-15T08:00:00Z',
-        last_logout: '2024-01-14T23:00:00Z',
-        logins: 1542,
-      };
-
-      jest
-        .spyOn(client.location, 'getCharacterOnline')
-        .mockResolvedValue(expectedOnline);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/online`),
+        body: {
+          online: true,
+          last_login: '2024-01-15T08:00:00Z',
+          last_logout: '2024-01-14T23:00:00Z',
+          logins: 1542,
+        },
+      });
     });
 
     when('the client checks their online status', async () => {
@@ -100,11 +116,15 @@ defineFeature(feature, (test) => {
     then(
       'the client shall report they are online with login timestamps',
       () => {
-        expect(result).toBeDefined();
-        expect(result.online).toBe(true);
-        expect(result.last_login).toBeDefined();
-        expect(result.last_logout).toBeDefined();
-        expect(result.logins).toBeGreaterThan(0);
+        const request = lastRequest();
+        expect(request.url.pathname).toBe(`/characters/${characterId}/online`);
+        expect(request.headers.authorization).toBe(BEARER);
+        expect(result).toEqual({
+          online: true,
+          last_login: '2024-01-15T08:00:00Z',
+          last_logout: '2024-01-14T23:00:00Z',
+          logins: 1542,
+        });
       },
     );
   });
@@ -118,16 +138,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character who is currently offline', () => {
-      const expectedOnline = {
-        online: false,
-        last_login: '2024-01-10T18:00:00Z',
-        last_logout: '2024-01-10T22:30:00Z',
-        logins: 87,
-      };
-
-      jest
-        .spyOn(client.location, 'getCharacterOnline')
-        .mockResolvedValue(expectedOnline);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/online`),
+        body: {
+          online: false,
+          last_login: '2024-01-10T18:00:00Z',
+          last_logout: '2024-01-10T22:30:00Z',
+          logins: 87,
+        },
+      });
     });
 
     when('the client checks their offline status', async () => {
@@ -135,8 +154,12 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall report they are offline', () => {
-      expect(result).toBeDefined();
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/online`,
+      );
       expect(result.online).toBe(false);
+      expect(result.last_login).toBe('2024-01-10T18:00:00Z');
+      expect(result.last_logout).toBe('2024-01-10T22:30:00Z');
       expect(new Date(result.last_logout!).getTime()).toBeGreaterThan(
         new Date(result.last_login!).getTime(),
       );
@@ -148,15 +171,14 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character in a ship', () => {
-      const expectedShip = {
-        ship_item_id: 1000000001234,
-        ship_name: "Mittani's Titan",
-        ship_type_id: 671,
-      };
-
-      jest
-        .spyOn(client.location, 'getCharacterShip')
-        .mockResolvedValue(expectedShip);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/ship`),
+        body: {
+          ship_item_id: 1000000001234,
+          ship_name: "Mittani's Titan",
+          ship_type_id: 671,
+        },
+      });
     });
 
     when('the client requests their current ship', async () => {
@@ -164,10 +186,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the ship details', () => {
-      expect(result).toBeDefined();
-      expect(result.ship_item_id).toBe(1000000001234);
-      expect(result.ship_name).toBe("Mittani's Titan");
-      expect(result.ship_type_id).toBe(671);
+      const request = lastRequest();
+      expect(request.url.pathname).toBe(`/characters/${characterId}/ship`);
+      expect(request.headers.authorization).toBe(BEARER);
+      expect(result).toEqual({
+        ship_item_id: 1000000001234,
+        ship_name: "Mittani's Titan",
+        ship_type_id: 671,
+      });
     });
   });
 
@@ -182,31 +208,34 @@ defineFeature(feature, (test) => {
     let ship: any;
 
     given('an authenticated character for concurrent location fetch', () => {
-      const expectedLocation = TestDataFactory.createCharacterLocation({
-        solar_system_id: 30000142,
-        station_id: 60003760,
+      // Responses arrive in the reverse order of the calls, so each result
+      // has to be routed back to the request that asked for it.
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/location`),
+        body: TestDataFactory.createCharacterLocation({
+          solar_system_id: 30000142,
+          station_id: 60003760,
+        }),
+        delayMs: 30,
       });
-      const expectedOnline = {
-        online: true,
-        last_login: '2024-01-15T08:00:00Z',
-        last_logout: '2024-01-14T23:00:00Z',
-        logins: 1542,
-      };
-      const expectedShip = {
-        ship_item_id: 1000000005678,
-        ship_name: 'Market Runner',
-        ship_type_id: 2998,
-      };
-
-      jest
-        .spyOn(client.location, 'getCharacterLocation')
-        .mockResolvedValue(expectedLocation);
-      jest
-        .spyOn(client.location, 'getCharacterOnline')
-        .mockResolvedValue(expectedOnline);
-      jest
-        .spyOn(client.location, 'getCharacterShip')
-        .mockResolvedValue(expectedShip);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/online`),
+        body: {
+          online: true,
+          last_login: '2024-01-15T08:00:00Z',
+          last_logout: '2024-01-14T23:00:00Z',
+          logins: 1542,
+        },
+        delayMs: 15,
+      });
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/ship`),
+        body: {
+          ship_item_id: 1000000005678,
+          ship_name: 'Market Runner',
+          ship_type_id: 2998,
+        },
+      });
     });
 
     when(
@@ -221,10 +250,22 @@ defineFeature(feature, (test) => {
     );
 
     then('all three location requests shall resolve successfully', () => {
-      expect(location.solar_system_id).toBe(30000142);
-      expect(online.online).toBe(true);
-      expect(ship.ship_type_id).toBe(2998);
-      expect(ship.ship_name).toBe('Market Runner');
+      expect(sentRequests()).toHaveLength(3);
+      expect(location).toEqual({
+        solar_system_id: 30000142,
+        station_id: 60003760,
+      });
+      expect(online).toEqual({
+        online: true,
+        last_login: '2024-01-15T08:00:00Z',
+        last_logout: '2024-01-14T23:00:00Z',
+        logins: 1542,
+      });
+      expect(ship).toEqual({
+        ship_item_id: 1000000005678,
+        ship_name: 'Market Runner',
+        ship_type_id: 2998,
+      });
     });
   });
 
@@ -233,11 +274,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an unauthenticated location request', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.location, 'getCharacterLocation')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'token not valid for scope', {
+        match: exactPath(`/characters/${characterId}/location`),
+      });
     });
 
     when('the client requests a character location without auth', async () => {
@@ -250,6 +289,11 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 forbidden error for location', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(403);
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/location`,
+      );
     });
   });
 
@@ -258,11 +302,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an unauthenticated online status request', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.location, 'getCharacterOnline')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'token not valid for scope', {
+        match: exactPath(`/characters/${characterId}/online`),
+      });
     });
 
     when('the client requests online status without auth', async () => {
@@ -277,6 +319,11 @@ defineFeature(feature, (test) => {
       'the client shall return a 403 forbidden error for online status',
       () => {
         expect(caughtError).toBeInstanceOf(EsiError);
+        expect((caughtError as EsiError).statusCode).toBe(403);
+        expect(sentRequests()).toHaveLength(1);
+        expect(lastRequest().url.pathname).toBe(
+          `/characters/${characterId}/online`,
+        );
       },
     );
   });

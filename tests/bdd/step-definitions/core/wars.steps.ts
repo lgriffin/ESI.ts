@@ -1,19 +1,33 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0038-wars.feature');
+
+/**
+ * Match a URL whose path ends exactly at `path`, so `/wars/700001` does not
+ * also serve `/wars/700001/killmails`.
+ */
+function exactPath(path: string): RegExp {
+  const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^https://esi\\.evetech\\.net${escaped}(\\?|$)`);
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-wars-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('War list returns positive numeric identifiers', ({
@@ -24,9 +38,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('wars exist in the system', () => {
-      const expectedWarIds = [700001, 700002, 700003, 700004, 700005];
-
-      jest.spyOn(client.wars, 'getWars').mockResolvedValue(expectedWarIds);
+      queueResponse({
+        match: exactPath('/wars'),
+        body: [700005, 700004, 700003, 700002, 700001],
+      });
     });
 
     when('the client requests the list of wars', async () => {
@@ -34,8 +49,9 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an array of war IDs', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(5);
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe('/wars');
+      expect(result).toEqual([700005, 700004, 700003, 700002, 700001]);
       result.forEach((warId: number) => {
         expect(typeof warId).toBe('number');
         expect(warId).toBeGreaterThan(0);
@@ -51,9 +67,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('multiple wars exist in descending order', () => {
-      const expectedWarIds = [700010, 700009, 700008, 700007, 700006];
-
-      jest.spyOn(client.wars, 'getWars').mockResolvedValue(expectedWarIds);
+      queueResponse({
+        match: exactPath('/wars'),
+        body: [700010, 700009, 700008, 700007, 700006],
+      });
     });
 
     when('the client requests the war list', async () => {
@@ -61,7 +78,7 @@ defineFeature(feature, (test) => {
     });
 
     then('war IDs shall be in descending order', () => {
-      expect(result).toBeInstanceOf(Array);
+      expect(result).toEqual([700010, 700009, 700008, 700007, 700006]);
       for (let i = 1; i < result.length; i++) {
         expect(result[i - 1]).toBeGreaterThan(result[i]);
       }
@@ -76,29 +93,27 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an active war exists', () => {
-      const warId = 700001;
-      const expectedWar = {
-        id: warId,
-        aggressor: {
-          alliance_id: 99005338,
-          isk_destroyed: 150000000000.0,
-          ships_killed: 250,
+      // ESI omits `finished` on a war that is still running.
+      queueResponse({
+        match: exactPath('/wars/700001'),
+        body: {
+          id: 700001,
+          aggressor: {
+            alliance_id: 99005338,
+            isk_destroyed: 150000000000.0,
+            ships_killed: 250,
+          },
+          defender: {
+            alliance_id: 99000001,
+            isk_destroyed: 75000000000.0,
+            ships_killed: 120,
+          },
+          declared: '2024-01-10T00:00:00Z',
+          started: '2024-01-11T00:00:00Z',
+          mutual: false,
+          open_for_allies: true,
         },
-        defender: {
-          alliance_id: 99000001,
-          isk_destroyed: 75000000000.0,
-          ships_killed: 120,
-        },
-        declared: '2024-01-10T00:00:00Z',
-        started: '2024-01-11T00:00:00Z',
-        finished: null,
-        mutual: false,
-        open_for_allies: true,
-      };
-
-      jest
-        .spyOn(client.wars, 'getWarById')
-        .mockResolvedValue(expectedWar as any);
+      });
     });
 
     when('the client requests the war details', async () => {
@@ -106,17 +121,22 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete war information', () => {
-      expect(result).toBeDefined();
+      expect(lastRequest().url.pathname).toBe('/wars/700001');
+      expect(lastRequest().headers.authorization).toBeUndefined();
       expect(result.id).toBe(700001);
-      expect(result).toHaveProperty('aggressor');
-      expect(result).toHaveProperty('defender');
-      expect(result).toHaveProperty('declared');
-      expect(result).toHaveProperty('started');
-      expect(result.aggressor).toHaveProperty('alliance_id');
-      expect(result.aggressor).toHaveProperty('isk_destroyed');
-      expect(result.aggressor).toHaveProperty('ships_killed');
-      expect(result.defender).toHaveProperty('alliance_id');
-      expect((result as any).finished).toBeNull();
+      expect(result.aggressor).toEqual({
+        alliance_id: 99005338,
+        isk_destroyed: 150000000000.0,
+        ships_killed: 250,
+      });
+      expect(result.defender).toEqual({
+        alliance_id: 99000001,
+        isk_destroyed: 75000000000.0,
+        ships_killed: 120,
+      });
+      expect(result.declared).toBe('2024-01-10T00:00:00Z');
+      expect(result.started).toBe('2024-01-11T00:00:00Z');
+      expect(result).not.toHaveProperty('finished');
     });
   });
 
@@ -128,29 +148,27 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a finished war exists', () => {
-      const warId = 700002;
-      const expectedWar = {
-        id: warId,
-        aggressor: {
-          alliance_id: 99005338,
-          isk_destroyed: 500000000000.0,
-          ships_killed: 800,
+      queueResponse({
+        match: exactPath('/wars/700002'),
+        body: {
+          id: 700002,
+          aggressor: {
+            alliance_id: 99005338,
+            isk_destroyed: 500000000000.0,
+            ships_killed: 800,
+          },
+          defender: {
+            alliance_id: 99000002,
+            isk_destroyed: 300000000000.0,
+            ships_killed: 450,
+          },
+          declared: '2023-12-01T00:00:00Z',
+          started: '2023-12-02T00:00:00Z',
+          finished: '2024-01-01T00:00:00Z',
+          mutual: false,
+          open_for_allies: false,
         },
-        defender: {
-          alliance_id: 99000002,
-          isk_destroyed: 300000000000.0,
-          ships_killed: 450,
-        },
-        declared: '2023-12-01T00:00:00Z',
-        started: '2023-12-02T00:00:00Z',
-        finished: '2024-01-01T00:00:00Z',
-        mutual: false,
-        open_for_allies: false,
-      };
-
-      jest
-        .spyOn(client.wars, 'getWarById')
-        .mockResolvedValue(expectedWar as any);
+      });
     });
 
     when('the client requests the finished war details', async () => {
@@ -158,13 +176,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the finished timestamp shall be populated', () => {
-      expect(result).toBeDefined();
-      expect((result as any).finished).not.toBeNull();
-      expect((result as any).finished).toBe('2024-01-01T00:00:00Z');
+      expect(lastRequest().url.pathname).toBe('/wars/700002');
+      expect(result.id).toBe(700002);
+      expect(result.finished).toBe('2024-01-01T00:00:00Z');
 
-      const declared = new Date((result as any).declared).getTime();
-      const started = new Date((result as any).started).getTime();
-      const finished = new Date((result as any).finished).getTime();
+      const declared = new Date(result.declared).getTime();
+      const started = new Date(result.started).getTime();
+      const finished = new Date(result.finished).getTime();
       expect(declared).toBeLessThan(started);
       expect(started).toBeLessThan(finished);
     });
@@ -178,29 +196,26 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a mutual war exists', () => {
-      const warId = 700003;
-      const expectedWar = {
-        id: warId,
-        aggressor: {
-          alliance_id: 99005338,
-          isk_destroyed: 200000000000.0,
-          ships_killed: 350,
+      queueResponse({
+        match: exactPath('/wars/700003'),
+        body: {
+          id: 700003,
+          aggressor: {
+            alliance_id: 99005338,
+            isk_destroyed: 200000000000.0,
+            ships_killed: 350,
+          },
+          defender: {
+            alliance_id: 99000003,
+            isk_destroyed: 180000000000.0,
+            ships_killed: 320,
+          },
+          declared: '2024-01-05T00:00:00Z',
+          started: '2024-01-06T00:00:00Z',
+          mutual: true,
+          open_for_allies: false,
         },
-        defender: {
-          alliance_id: 99000003,
-          isk_destroyed: 180000000000.0,
-          ships_killed: 320,
-        },
-        declared: '2024-01-05T00:00:00Z',
-        started: '2024-01-06T00:00:00Z',
-        finished: null,
-        mutual: true,
-        open_for_allies: false,
-      };
-
-      jest
-        .spyOn(client.wars, 'getWarById')
-        .mockResolvedValue(expectedWar as any);
+      });
     });
 
     when('the client requests the mutual war details', async () => {
@@ -208,9 +223,10 @@ defineFeature(feature, (test) => {
     });
 
     then('the mutual flag shall be true', () => {
-      expect(result).toBeDefined();
-      expect((result as any).mutual).toBe(true);
-      expect(typeof (result as any).mutual).toBe('boolean');
+      expect(lastRequest().url.pathname).toBe('/wars/700003');
+      expect(result.id).toBe(700003);
+      expect(result.mutual).toBe(true);
+      expect(result.open_for_allies).toBe(false);
     });
   });
 
@@ -222,15 +238,14 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a war with killmails exists', () => {
-      const expectedKillmails = [
-        { killmail_id: 90000001, killmail_hash: 'abc123def456' },
-        { killmail_id: 90000002, killmail_hash: 'ghi789jkl012' },
-        { killmail_id: 90000003, killmail_hash: 'mno345pqr678' },
-      ];
-
-      jest
-        .spyOn(client.wars, 'getWarKillmails')
-        .mockResolvedValue(expectedKillmails as any);
+      queueResponse({
+        match: exactPath('/wars/700001/killmails'),
+        body: [
+          { killmail_id: 90000001, killmail_hash: 'abc123def456' },
+          { killmail_id: 90000002, killmail_hash: 'ghi789jkl012' },
+          { killmail_id: 90000003, killmail_hash: 'mno345pqr678' },
+        ],
+      });
     });
 
     when('the client requests the war killmails', async () => {
@@ -238,14 +253,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return killmail summaries', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(3);
-      result.forEach((killmail: any) => {
-        expect(killmail).toHaveProperty('killmail_id');
-        expect(killmail).toHaveProperty('killmail_hash');
-        expect(typeof killmail.killmail_id).toBe('number');
-        expect(typeof killmail.killmail_hash).toBe('string');
-      });
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe('/wars/700001/killmails');
+      expect(result).toEqual([
+        { killmail_id: 90000001, killmail_hash: 'abc123def456' },
+        { killmail_id: 90000002, killmail_hash: 'ghi789jkl012' },
+        { killmail_id: 90000003, killmail_hash: 'mno345pqr678' },
+      ]);
     });
   });
 
@@ -257,7 +271,7 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a war with no killmails exists', () => {
-      jest.spyOn(client.wars, 'getWarKillmails').mockResolvedValue([]);
+      queueResponse({ match: exactPath('/wars/700004/killmails'), body: [] });
     });
 
     when('the client requests the war killmails for empty war', async () => {
@@ -265,8 +279,8 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an empty killmail array', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(0);
+      expect(lastRequest().url.pathname).toBe('/wars/700004/killmails');
+      expect(result).toEqual([]);
     });
   });
 
@@ -278,9 +292,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an invalid war ID for details', () => {
-      const notFoundError = TestDataFactory.createError(404);
-
-      jest.spyOn(client.wars, 'getWarById').mockRejectedValue(notFoundError);
+      queueError(404, 'War not found', {
+        match: exactPath('/wars/999999999'),
+      });
     });
 
     when('the client requests the invalid war details', async () => {
@@ -295,6 +309,10 @@ defineFeature(feature, (test) => {
       'the client shall return a 404 not found error for war details',
       () => {
         expect(caughtError).toBeInstanceOf(EsiError);
+        expect((caughtError as EsiError).statusCode).toBe(404);
+        // 404 is not retried.
+        expect(sentRequests()).toHaveLength(1);
+        expect(lastRequest().url.pathname).toBe('/wars/999999999');
       },
     );
   });
@@ -307,11 +325,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an invalid war ID for killmails', () => {
-      const notFoundError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.wars, 'getWarKillmails')
-        .mockRejectedValue(notFoundError);
+      queueError(404, 'War not found', {
+        match: exactPath('/wars/999999999/killmails'),
+      });
     });
 
     when('the client requests killmails for invalid war', async () => {
@@ -324,6 +340,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 404 not found error for killmails', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(404);
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().url.pathname).toBe('/wars/999999999/killmails');
     });
   });
 
@@ -335,28 +354,26 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a war with combat data exists', () => {
-      const warDetails = {
-        id: 700001,
-        aggressor: {
-          alliance_id: 99005338,
-          isk_destroyed: 500000000000.0,
-          ships_killed: 800,
+      queueResponse({
+        match: exactPath('/wars/700001'),
+        body: {
+          id: 700001,
+          aggressor: {
+            alliance_id: 99005338,
+            isk_destroyed: 500000000000.0,
+            ships_killed: 800,
+          },
+          defender: {
+            alliance_id: 99000001,
+            isk_destroyed: 200000000000.0,
+            ships_killed: 300,
+          },
+          declared: '2024-01-10T00:00:00Z',
+          started: '2024-01-11T00:00:00Z',
+          mutual: false,
+          open_for_allies: true,
         },
-        defender: {
-          alliance_id: 99000001,
-          isk_destroyed: 200000000000.0,
-          ships_killed: 300,
-        },
-        declared: '2024-01-10T00:00:00Z',
-        started: '2024-01-11T00:00:00Z',
-        finished: null,
-        mutual: false,
-        open_for_allies: true,
-      };
-
-      jest
-        .spyOn(client.wars, 'getWarById')
-        .mockResolvedValue(warDetails as any);
+      });
     });
 
     when('the client analyzes the war stats', async () => {
@@ -364,17 +381,22 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall determine the dominant side', () => {
-      const aggressorIsk = (result as any).aggressor.isk_destroyed;
-      const defenderIsk = (result as any).defender.isk_destroyed;
-      const aggressorKills = (result as any).aggressor.ships_killed;
-      const defenderKills = (result as any).defender.ships_killed;
+      const aggressorIsk = result.aggressor.isk_destroyed;
+      const defenderIsk = result.defender.isk_destroyed;
+      const aggressorKills = result.aggressor.ships_killed;
+      const defenderKills = result.defender.ships_killed;
 
+      expect(aggressorIsk).toBe(500000000000.0);
+      expect(defenderIsk).toBe(200000000000.0);
+      expect(aggressorKills).toBe(800);
+      expect(defenderKills).toBe(300);
       expect(aggressorIsk).toBeGreaterThan(defenderIsk);
       expect(aggressorKills).toBeGreaterThan(defenderKills);
 
       const totalIskDestroyed = aggressorIsk + defenderIsk;
-      const aggressorEfficiency = aggressorIsk / totalIskDestroyed;
-      expect(aggressorEfficiency).toBeGreaterThan(0.5);
+      expect(totalIskDestroyed).toBe(700000000000.0);
+      expect(aggressorIsk / totalIskDestroyed).toBeCloseTo(5 / 7);
+      expect(aggressorKills + defenderKills).toBe(1100);
     });
   });
 
@@ -387,36 +409,33 @@ defineFeature(feature, (test) => {
     let killmails: any;
 
     given('a war ID to investigate', () => {
-      const warId = 700001;
-      const warDetails = {
-        id: warId,
-        aggressor: {
-          alliance_id: 99005338,
-          isk_destroyed: 150000000000.0,
-          ships_killed: 250,
+      queueResponse({
+        match: exactPath('/wars/700001'),
+        body: {
+          id: 700001,
+          aggressor: {
+            alliance_id: 99005338,
+            isk_destroyed: 150000000000.0,
+            ships_killed: 250,
+          },
+          defender: {
+            alliance_id: 99000001,
+            isk_destroyed: 75000000000.0,
+            ships_killed: 120,
+          },
+          declared: '2024-01-10T00:00:00Z',
+          started: '2024-01-11T00:00:00Z',
+          mutual: false,
+          open_for_allies: true,
         },
-        defender: {
-          alliance_id: 99000001,
-          isk_destroyed: 75000000000.0,
-          ships_killed: 120,
-        },
-        declared: '2024-01-10T00:00:00Z',
-        started: '2024-01-11T00:00:00Z',
-        finished: null,
-        mutual: false,
-        open_for_allies: true,
-      };
-      const warKillmails = [
-        { killmail_id: 90000001, killmail_hash: 'abc123' },
-        { killmail_id: 90000002, killmail_hash: 'def456' },
-      ];
-
-      jest
-        .spyOn(client.wars, 'getWarById')
-        .mockResolvedValue(warDetails as any);
-      jest
-        .spyOn(client.wars, 'getWarKillmails')
-        .mockResolvedValue(warKillmails as any);
+      });
+      queueResponse({
+        match: exactPath('/wars/700001/killmails'),
+        body: [
+          { killmail_id: 90000001, killmail_hash: 'abc123' },
+          { killmail_id: 90000002, killmail_hash: 'def456' },
+        ],
+      });
     });
 
     when(
@@ -430,18 +449,23 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall build a complete picture of the conflict', () => {
-      expect(details).toBeDefined();
+      expect(
+        sentRequests()
+          .map((r) => r.url.pathname)
+          .sort(),
+      ).toEqual(['/wars/700001', '/wars/700001/killmails']);
+
       expect(details.id).toBe(700001);
-      expect(killmails).toBeInstanceOf(Array);
-      expect(killmails.length).toBe(2);
+      expect(details.open_for_allies).toBe(true);
+      expect(details).not.toHaveProperty('finished');
+      expect(
+        details.aggressor.ships_killed + details.defender.ships_killed,
+      ).toBe(370);
 
-      const totalShipsKilled =
-        (details as any).aggressor.ships_killed +
-        (details as any).defender.ships_killed;
-      expect(totalShipsKilled).toBeGreaterThan(0);
-
-      expect((details as any).finished).toBeNull();
-      expect((details as any).open_for_allies).toBe(true);
+      expect(killmails).toEqual([
+        { killmail_id: 90000001, killmail_hash: 'abc123' },
+        { killmail_id: 90000002, killmail_hash: 'def456' },
+      ]);
     });
   });
 });

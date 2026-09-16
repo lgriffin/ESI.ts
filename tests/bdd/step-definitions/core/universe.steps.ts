@@ -2,18 +2,56 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0036-universe.feature');
+
+/** Matches exactly `/<resource>` (optionally `/<resource>/`), not its children. */
+function exactPath(resource: string): RegExp {
+  return new RegExp(`/${resource}/?(\\?|$)`);
+}
+
+const JITA_POSITION = {
+  x: -129064861735000000,
+  y: 60755306910000000,
+  z: 117469227060000000,
+};
+
+/** Station records as ESI sends them: position is required. */
+function stationRecord(overrides: Record<string, unknown> = {}) {
+  return TestDataFactory.createStation({
+    position: { x: 3813196800, y: 1016750000, z: -2305570000 },
+    ...overrides,
+  });
+}
+
+/** Star records as ESI sends them: no star_id in the body. */
+function starRecord(overrides: Record<string, unknown> = {}) {
+  const { star_id: _omitted, ...record } = TestDataFactory.createStar();
+  return { ...record, ...overrides };
+}
+
+/** Structure records as ESI sends them: no structure_id in the body. */
+function structureRecord(overrides: Record<string, unknown> = {}) {
+  const { structure_id: _omitted, ...record } =
+    TestDataFactory.createStructure();
+  return { ...record, ...overrides };
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-universe-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Jita returns its name, security status, and celestial identifier arrays', ({
@@ -23,25 +61,27 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const validSystemId = 30000142;
+    const expectedSystem = TestDataFactory.createSolarSystem({
+      system_id: validSystemId,
+      name: 'Jita',
+      constellation_id: 20000020,
+      position: JITA_POSITION,
+      security_class: 'B',
+      security_status: 0.9459991455078125,
+      star_id: 40000001,
+      stargates: [50000001, 50000002],
+      stations: [60003760, 60003761],
+      planets: [
+        { planet_id: 40000001, moons: [40000002, 40000003] },
+        { planet_id: 40000004, moons: [40000005] },
+      ],
+    });
 
     given('a valid solar system ID', () => {
-      const expectedSystem = TestDataFactory.createSolarSystem({
-        system_id: validSystemId,
-        name: 'Jita',
-        constellation_id: 20000020,
-        security_status: 0.9459991455078125,
-        star_id: 40000001,
-        stargates: [50000001, 50000002],
-        stations: [60003760, 60003761],
-        planets: [
-          { planet_id: 40000001, moons: [40000002, 40000003] },
-          { planet_id: 40000004, moons: [40000005] },
-        ],
+      queueResponse({
+        match: exactPath(`universe/systems/${validSystemId}`),
+        body: expectedSystem,
       });
-
-      jest
-        .spyOn(client.universe, 'getSystemById')
-        .mockResolvedValue(expectedSystem);
     });
 
     when('the client requests system information', async () => {
@@ -49,14 +89,19 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete system details', () => {
-      expect(result).toBeDefined();
-      expect(result.system_id).toBe(validSystemId);
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(
+        exactPath(`universe/systems/${validSystemId}`),
+      );
+      expect(result).toEqual(expectedSystem);
       expect(result.name).toBe('Jita');
-      expect(result.security_status).toBeGreaterThan(0.5);
-      expect(result.stargates).toBeInstanceOf(Array);
-      expect(result.stations).toBeInstanceOf(Array);
-      expect(result.planets).toBeInstanceOf(Array);
-      expect(result.stations!.length).toBeGreaterThan(0);
+      expect(result.security_status).toBe(0.9459991455078125);
+      expect(result.stargates).toEqual([50000001, 50000002]);
+      expect(result.stations).toEqual([60003760, 60003761]);
+      expect(result.planets.map((p: any) => p.planet_id)).toEqual([
+        40000001, 40000004,
+      ]);
     });
   });
 
@@ -69,11 +114,9 @@ defineFeature(feature, (test) => {
     const invalidSystemId = 99999999;
 
     given('an invalid solar system ID', () => {
-      const expectedError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.universe, 'getSystemById')
-        .mockRejectedValue(expectedError);
+      queueError(404, 'Solar system not found', {
+        match: exactPath(`universe/systems/${invalidSystemId}`),
+      });
     });
 
     when('the client requests invalid system information', async () => {
@@ -86,6 +129,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a not found error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(404);
+      // 404 is not retryable: one request, one rejection.
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -95,13 +141,13 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
+    const expectedSystems = [30000001, 30000002, 30000142, 30001161];
 
     given('the universe data is available', () => {
-      const expectedSystems = [30000001, 30000002, 30000142, 30001161];
-
-      jest
-        .spyOn(client.universe, 'getSystems')
-        .mockResolvedValue(expectedSystems);
+      queueResponse({
+        match: exactPath('universe/systems'),
+        body: expectedSystems,
+      });
     });
 
     when('the client requests all systems', async () => {
@@ -109,10 +155,9 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of all system IDs', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.every((id: any) => typeof id === 'number')).toBe(true);
-      expect(result).toContain(30000142);
+      expect(lastRequest().url.pathname).toMatch(exactPath('universe/systems'));
+      expect(result).toEqual(expectedSystems);
+      expect(result.every((id: unknown) => typeof id === 'number')).toBe(true);
     });
   });
 
@@ -123,32 +168,32 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const validStationId = 60003760;
+    const expectedStation = stationRecord({
+      station_id: validStationId,
+      name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
+      owner: 1000035,
+      type_id: 52678,
+      race_id: 1,
+      system_id: 30000142,
+      reprocessing_efficiency: 0.5,
+      reprocessing_stations_take: 0.05,
+      max_dockable_ship_volume: 50000000,
+      office_rental_cost: 10000000,
+      services: [
+        'bounty-missions',
+        'courier-missions',
+        'interbus',
+        'reprocessing-plant',
+        'market',
+        'stock-exchange',
+      ],
+    });
 
     given('a valid station ID', () => {
-      const expectedStation = TestDataFactory.createStation({
-        station_id: validStationId,
-        name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
-        owner: 1000035,
-        type_id: 52678,
-        race_id: 1,
-        system_id: 30000142,
-        reprocessing_efficiency: 0.5,
-        reprocessing_stations_take: 0.05,
-        max_dockable_ship_volume: 50000000,
-        office_rental_cost: 10000000,
-        services: [
-          'bounty-missions',
-          'courier-missions',
-          'interbus',
-          'reprocessing-plant',
-          'market',
-          'stock-exchange',
-        ],
+      queueResponse({
+        match: exactPath(`universe/stations/${validStationId}`),
+        body: expectedStation,
       });
-
-      jest
-        .spyOn(client.universe, 'getStationById')
-        .mockResolvedValue(expectedStation);
     });
 
     when('the client requests station information', async () => {
@@ -156,13 +201,23 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete station details', () => {
-      expect(result).toBeDefined();
-      expect(result.station_id).toBe(validStationId);
-      expect(result.name).toContain('Jita IV');
+      expect(lastRequest().url.pathname).toMatch(
+        exactPath(`universe/stations/${validStationId}`),
+      );
+      expect(result).toEqual(expectedStation);
+      expect(result.name).toBe(
+        'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
+      );
       expect(result.system_id).toBe(30000142);
-      expect(result.services).toBeInstanceOf(Array);
-      expect(result.services).toContain('market');
-      expect(result.max_dockable_ship_volume).toBeGreaterThan(0);
+      expect(result.services).toEqual([
+        'bounty-missions',
+        'courier-missions',
+        'interbus',
+        'reprocessing-plant',
+        'market',
+        'stock-exchange',
+      ]);
+      expect(result.max_dockable_ship_volume).toBe(50000000);
     });
   });
 
@@ -173,20 +228,19 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const validStructureId = 1021975535893;
+    const expectedStructure = structureRecord({
+      name: 'Test Citadel',
+      owner_id: 1689391488,
+      solar_system_id: 30000142,
+      type_id: 35832,
+      position: { x: 1000000000, y: 2000000000, z: 3000000000 },
+    });
 
     given('a valid structure ID', () => {
-      const expectedStructure = TestDataFactory.createStructure({
-        structure_id: validStructureId,
-        name: 'Test Citadel',
-        owner_id: 1689391488,
-        solar_system_id: 30000142,
-        type_id: 35832,
-        position: { x: 1000000000, y: 2000000000, z: 3000000000 },
+      queueResponse({
+        match: exactPath(`universe/structures/${validStructureId}`),
+        body: expectedStructure,
       });
-
-      jest
-        .spyOn(client.universe, 'getStructureById')
-        .mockResolvedValue(expectedStructure);
     });
 
     when('the client requests structure information', async () => {
@@ -194,12 +248,20 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return structure details', () => {
-      expect(result).toBeDefined();
-      expect(result.structure_id).toBe(validStructureId);
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        exactPath(`universe/structures/${validStructureId}`),
+      );
+      // Structure lookups need a docking-access token.
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedStructure);
       expect(result.name).toBe('Test Citadel');
       expect(result.solar_system_id).toBe(30000142);
-      expect(result.position).toBeDefined();
-      expect(result.position!.x).toBeDefined();
+      expect(result.position).toEqual({
+        x: 1000000000,
+        y: 2000000000,
+        z: 3000000000,
+      });
     });
   });
 
@@ -210,26 +272,26 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const validTypeId = 34;
+    const expectedType = TestDataFactory.createItemType({
+      type_id: validTypeId,
+      name: 'Tritanium',
+      description: 'The most common ore type in the known universe.',
+      group_id: 18,
+      market_group_id: 1857,
+      mass: 1.0,
+      volume: 0.01,
+      packaged_volume: 0.01,
+      capacity: 0.0,
+      portion_size: 1,
+      radius: 1.0,
+      published: true,
+    });
 
     given('a valid type ID', () => {
-      const expectedType = TestDataFactory.createItemType({
-        type_id: validTypeId,
-        name: 'Tritanium',
-        description: 'The most common ore type in the known universe.',
-        group_id: 18,
-        category_id: 4,
-        market_group_id: 1857,
-        mass: 1.0,
-        volume: 0.01,
-        capacity: 0.0,
-        portion_size: 1,
-        radius: 1.0,
-        published: true,
+      queueResponse({
+        match: exactPath(`universe/types/${validTypeId}`),
+        body: expectedType,
       });
-
-      jest
-        .spyOn(client.universe, 'getTypeById')
-        .mockResolvedValue(expectedType);
     });
 
     when('the client requests type information', async () => {
@@ -237,13 +299,17 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete item details', () => {
-      expect(result).toBeDefined();
-      expect(result.type_id).toBe(validTypeId);
+      expect(lastRequest().url.pathname).toMatch(
+        exactPath(`universe/types/${validTypeId}`),
+      );
+      expect(result).toEqual(expectedType);
       expect(result.name).toBe('Tritanium');
+      expect(result.description).toBe(
+        'The most common ore type in the known universe.',
+      );
       expect(result.group_id).toBe(18);
       expect(result.volume).toBe(0.01);
       expect(result.published).toBe(true);
-      expect(result.description).toContain('ore');
     });
   });
 
@@ -253,13 +319,13 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
+    const expectedGroups = [1, 2, 18, 25, 419];
 
     given('the universe data is available for groups', () => {
-      const expectedGroups = [1, 2, 18, 25, 419];
-
-      jest
-        .spyOn(client.universe, 'getItemGroups')
-        .mockResolvedValue(expectedGroups);
+      queueResponse({
+        match: exactPath('universe/groups'),
+        body: expectedGroups,
+      });
     });
 
     when('the client requests all item groups', async () => {
@@ -267,10 +333,9 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of all group IDs', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.every((id: any) => typeof id === 'number')).toBe(true);
-      expect(result).toContain(18);
+      expect(lastRequest().url.pathname).toMatch(exactPath('universe/groups'));
+      expect(result).toEqual(expectedGroups);
+      expect(result.every((id: unknown) => typeof id === 'number')).toBe(true);
     });
   });
 
@@ -281,19 +346,19 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const validGroupId = 18;
+    const expectedGroup = TestDataFactory.createItemGroup({
+      group_id: validGroupId,
+      name: 'Mineral',
+      category_id: 4,
+      published: true,
+      types: [34, 35, 36, 37, 38, 39, 40, 11399],
+    });
 
     given('a valid group ID', () => {
-      const expectedGroup = TestDataFactory.createItemGroup({
-        group_id: validGroupId,
-        name: 'Mineral',
-        category_id: 4,
-        published: true,
-        types: [34, 35, 36, 37, 38, 39, 40, 11399],
+      queueResponse({
+        match: exactPath(`universe/groups/${validGroupId}`),
+        body: expectedGroup,
       });
-
-      jest
-        .spyOn(client.universe, 'getItemGroupById')
-        .mockResolvedValue(expectedGroup);
     });
 
     when('the client requests group information', async () => {
@@ -301,13 +366,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return group details and contained types', () => {
-      expect(result).toBeDefined();
-      expect(result.group_id).toBe(validGroupId);
+      expect(lastRequest().url.pathname).toMatch(
+        exactPath(`universe/groups/${validGroupId}`),
+      );
+      expect(result).toEqual(expectedGroup);
       expect(result.name).toBe('Mineral');
       expect(result.category_id).toBe(4);
-      expect(result.types).toBeInstanceOf(Array);
-      expect(result.types).toContain(34);
-      expect(result.published).toBe(true);
+      expect(result.types).toEqual([34, 35, 36, 37, 38, 39, 40, 11399]);
     });
   });
 
@@ -318,23 +383,22 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const validStarId = 40000001;
+    const expectedStar = starRecord({
+      name: 'Jita - Star',
+      type_id: 3802,
+      solar_system_id: 30000142,
+      age: 4600000000,
+      luminosity: 0.06575,
+      radius: 62140000,
+      spectral_class: 'K2 V',
+      temperature: 4567,
+    });
 
     given('a valid star ID', () => {
-      const expectedStar = TestDataFactory.createStar({
-        star_id: validStarId,
-        name: 'Jita - Star',
-        type_id: 3802,
-        solar_system_id: 30000142,
-        age: 4600000000,
-        luminosity: 0.06575,
-        radius: 62140000,
-        spectral_class: 'K2 V',
-        temperature: 4567,
+      queueResponse({
+        match: exactPath(`universe/stars/${validStarId}`),
+        body: expectedStar,
       });
-
-      jest
-        .spyOn(client.universe, 'getStarById')
-        .mockResolvedValue(expectedStar);
     });
 
     when('the client requests star information', async () => {
@@ -342,13 +406,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return star details', () => {
-      expect(result).toBeDefined();
-      expect(result.star_id).toBe(validStarId);
-      expect(result.name).toContain('Jita');
+      expect(lastRequest().url.pathname).toMatch(
+        exactPath(`universe/stars/${validStarId}`),
+      );
+      expect(result).toEqual(expectedStar);
+      expect(result.name).toBe('Jita - Star');
       expect(result.solar_system_id).toBe(30000142);
-      expect(result.temperature).toBeGreaterThan(1000);
-      expect(result.radius).toBeGreaterThan(1000000);
-      expect(result.spectral_class).toBeDefined();
+      expect(result.spectral_class).toBe('K2 V');
+      expect(result.temperature).toBe(4567);
+      expect(result.radius).toBe(62140000);
     });
   });
 
@@ -359,19 +425,19 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const validPlanetId = 40000004;
+    const expectedPlanet = TestDataFactory.createPlanet({
+      planet_id: validPlanetId,
+      name: 'Jita IV',
+      type_id: 11,
+      system_id: 30000142,
+      position: { x: 150000000000, y: 0, z: 0 },
+    });
 
     given('a valid planet ID', () => {
-      const expectedPlanet = TestDataFactory.createPlanet({
-        planet_id: validPlanetId,
-        name: 'Jita IV',
-        type_id: 11,
-        system_id: 30000142,
-        position: { x: 150000000000, y: 0, z: 0 },
+      queueResponse({
+        match: exactPath(`universe/planets/${validPlanetId}`),
+        body: expectedPlanet,
       });
-
-      jest
-        .spyOn(client.universe, 'getPlanetById')
-        .mockResolvedValue(expectedPlanet);
     });
 
     when('the client requests planet information', async () => {
@@ -379,12 +445,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return planet details', () => {
-      expect(result).toBeDefined();
-      expect(result.planet_id).toBe(validPlanetId);
+      expect(lastRequest().url.pathname).toMatch(
+        exactPath(`universe/planets/${validPlanetId}`),
+      );
+      expect(result).toEqual(expectedPlanet);
       expect(result.name).toBe('Jita IV');
       expect(result.system_id).toBe(30000142);
-      expect(result.position).toBeDefined();
-      expect(result.position.x).toBeGreaterThan(0);
+      expect(result.position).toEqual({ x: 150000000000, y: 0, z: 0 });
     });
   });
 
@@ -397,19 +464,20 @@ defineFeature(feature, (test) => {
     const systemIds = [30000142, 30001161, 30002187];
 
     given('multiple concurrent universe data requests are prepared', () => {
-      const mockSystems = systemIds.map((id) =>
-        TestDataFactory.createSolarSystem({
-          system_id: id,
-          name: `System ${id}`,
-          security_status: Math.random(),
-        }),
-      );
-
-      jest
-        .spyOn(client.universe, 'getSystemById')
-        .mockImplementation(async (id: number) =>
-          mockSystems.find((system) => system.system_id === id)!,
-        );
+      systemIds.forEach((id, index) => {
+        queueResponse({
+          match: exactPath(`universe/systems/${id}`),
+          body: TestDataFactory.createSolarSystem({
+            system_id: id,
+            name: `System ${id}`,
+            position: JITA_POSITION,
+            security_status: 0.5 + index * 0.1,
+          }),
+          // The first request is answered last, so pairing responses by
+          // arrival order instead of by identifier would be caught.
+          delayMs: (systemIds.length - index) * 10,
+        });
+      });
     });
 
     when('the client makes them simultaneously', async () => {
@@ -418,11 +486,11 @@ defineFeature(feature, (test) => {
     });
 
     then('all requests shall complete successfully', () => {
-      expect(results).toHaveLength(3);
-      results.forEach((result, index) => {
-        expect(result.system_id).toBe(systemIds[index]);
-        expect(result.name).toBe(`System ${systemIds[index]}`);
-      });
+      expect(sentRequests()).toHaveLength(3);
+      expect(results.map((r) => r.system_id)).toEqual(systemIds);
+      expect(results.map((r) => r.name)).toEqual(
+        systemIds.map((id) => `System ${id}`),
+      );
     });
   });
 
@@ -433,16 +501,13 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     let responseTime: number;
+    const largeSystemSet = Array.from({ length: 8000 }, (_, i) => 30000001 + i);
 
     given('a request for all systems with large dataset', () => {
-      const largeSsystemSet = Array.from(
-        { length: 8000 },
-        (_, i) => 30000001 + i,
-      );
-
-      jest
-        .spyOn(client.universe, 'getSystems')
-        .mockResolvedValue(largeSsystemSet);
+      queueResponse({
+        match: exactPath('universe/systems'),
+        body: largeSystemSet,
+      });
     });
 
     when('the client processes the large dataset', async () => {
@@ -453,10 +518,9 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall handle it efficiently', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(8000);
+      expect(result).toHaveLength(8000);
+      expect(result).toEqual(largeSystemSet);
       expect(responseTime).toBeLessThan(1000);
-      expect(result.every((id: any) => typeof id === 'number')).toBe(true);
     });
   });
 
@@ -466,24 +530,23 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
+    const characterId = 1689391488;
+    // ESI keys search results by the singular category names it was asked for,
+    // and omits categories with no hits.
+    const expectedResults = {
+      solar_system: [30000142],
+      station: [60003760, 60003761],
+    };
 
     given('a search term for the universe', () => {
-      const expectedResults = TestDataFactory.createSearchResults({
-        systems: [30000142],
-        stations: [60003760, 60003761],
-        structures: [],
-        characters: [],
-        corporations: [],
-        alliances: [],
+      queueResponse({
+        match: `/characters/${characterId}/search`,
+        body: expectedResults,
       });
-
-      jest
-        .spyOn(client.search, 'characterSearch')
-        .mockResolvedValue(expectedResults);
     });
 
     when('the client searches the universe', async () => {
-      result = (await client.search.characterSearch(1689391488, 'Jita', [
+      result = (await client.search.characterSearch(characterId, 'Jita', [
         'solar_system',
         'station',
         'constellation',
@@ -492,11 +555,19 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return matching entities', () => {
-      expect(result).toBeDefined();
-      expect(result.systems).toBeInstanceOf(Array);
-      expect(result.stations).toBeInstanceOf(Array);
-      expect(result.systems).toContain(30000142);
-      expect(result.stations).toContain(60003760);
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(
+        exactPath(`characters/${characterId}/search`),
+      );
+      expect(request.url.searchParams.get('search')).toBe('Jita');
+      expect(request.url.searchParams.get('categories')).toBe(
+        'solar_system,station,constellation,region',
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedResults);
+      expect(result.solar_system).toEqual([30000142]);
+      expect(result.station).toEqual([60003760, 60003761]);
     });
   });
 
@@ -506,48 +577,47 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
+    const entityIds = [30000142, 60003760, 1689391488];
+    const expectedNames = [
+      TestDataFactory.createEntityName({
+        id: 30000142,
+        name: 'Jita',
+        category: 'solar_system',
+      }),
+      TestDataFactory.createEntityName({
+        id: 60003760,
+        name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
+        category: 'station',
+      }),
+      TestDataFactory.createEntityName({
+        id: 1689391488,
+        name: 'Test Character',
+        category: 'character',
+      }),
+    ];
 
     given('a list of entity IDs', () => {
-      const expectedNames = [
-        TestDataFactory.createEntityName({
-          id: 30000142,
-          name: 'Jita',
-          category: 'solar_system',
-        }),
-        TestDataFactory.createEntityName({
-          id: 60003760,
-          name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
-          category: 'station',
-        }),
-        TestDataFactory.createEntityName({
-          id: 1689391488,
-          name: 'Test Character',
-          category: 'character',
-        }),
-      ];
-
-      jest
-        .spyOn(client.universe, 'postNamesAndCategories')
-        .mockResolvedValue(expectedNames);
+      queueResponse({
+        match: exactPath('universe/names'),
+        body: expectedNames,
+      });
     });
 
     when('the client requests name resolution', async () => {
-      const entityIds = [30000142, 60003760, 1689391488];
       result = await client.universe.postNamesAndCategories(entityIds);
     });
 
     then('the client shall return entity names and categories', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(3);
-      expect(result[0]).toHaveProperty('id');
-      expect(result[0]).toHaveProperty('name');
-      expect(result[0]).toHaveProperty('category');
-      expect(result.find((item: any) => item.id === 30000142)?.name).toBe(
-        'Jita',
-      );
-      expect(result.find((item: any) => item.id === 30000142)?.category).toBe(
-        'solar_system',
-      );
+      const request = lastRequest();
+      expect(request.method).toBe('POST');
+      expect(request.url.pathname).toMatch(exactPath('universe/names'));
+      expect(JSON.parse(request.body ?? 'null')).toEqual(entityIds);
+      expect(result).toEqual(expectedNames);
+      expect(result.map((e: any) => [e.id, e.name, e.category])).toEqual([
+        [30000142, 'Jita', 'solar_system'],
+        [60003760, 'Jita IV - Moon 4 - Caldari Navy Assembly Plant', 'station'],
+        [1689391488, 'Test Character', 'character'],
+      ]);
     });
   });
 
@@ -561,35 +631,37 @@ defineFeature(feature, (test) => {
     let station: any;
     let planet: any;
     const systemId = 30000142;
+    const starId = 40009076;
+    const stationId = 60003760;
+    const planetId = 40009077;
 
     given('a system ID for exploration', () => {
-      const mockSystem = TestDataFactory.createSolarSystem({
-        system_id: systemId,
-        name: 'Jita',
+      queueResponse({
+        match: exactPath(`universe/systems/${systemId}`),
+        body: TestDataFactory.createSolarSystem({
+          system_id: systemId,
+          name: 'Jita',
+          position: JITA_POSITION,
+          star_id: starId,
+          stations: [stationId, 60003761],
+          planets: [{ planet_id: planetId }, { planet_id: 40009078 }],
+        }),
       });
-      const mockStar = TestDataFactory.createStar({
-        star_id: 40000001,
-        solar_system_id: systemId,
+      queueResponse({
+        match: exactPath(`universe/stars/${starId}`),
+        body: starRecord({ solar_system_id: systemId }),
       });
-      const mockStation = TestDataFactory.createStation({
-        station_id: 60003760,
-        system_id: systemId,
+      queueResponse({
+        match: exactPath(`universe/stations/${stationId}`),
+        body: stationRecord({ station_id: stationId, system_id: systemId }),
       });
-      const mockPlanet = TestDataFactory.createPlanet({
-        planet_id: 40000004,
-        system_id: systemId,
+      queueResponse({
+        match: exactPath(`universe/planets/${planetId}`),
+        body: TestDataFactory.createPlanet({
+          planet_id: planetId,
+          system_id: systemId,
+        }),
       });
-
-      jest
-        .spyOn(client.universe, 'getSystemById')
-        .mockResolvedValue(mockSystem);
-      jest.spyOn(client.universe, 'getStarById').mockResolvedValue(mockStar);
-      jest
-        .spyOn(client.universe, 'getStationById')
-        .mockResolvedValue(mockStation);
-      jest
-        .spyOn(client.universe, 'getPlanetById')
-        .mockResolvedValue(mockPlanet);
     });
 
     when('the client gathers complete system information', async () => {
@@ -602,17 +674,24 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall successfully retrieve all system data', () => {
-      expect(system).toBeDefined();
+      const paths = sentRequests().map((r) => r.url.pathname);
+      expect(paths).toHaveLength(4);
+      expect(paths[0]).toMatch(exactPath(`universe/systems/${systemId}`));
+      // The follow-up lookups use the identifiers read from the system record.
+      expect(paths.slice(1)).toEqual(
+        expect.arrayContaining([
+          expect.stringMatching(exactPath(`universe/stars/${starId}`)),
+          expect.stringMatching(exactPath(`universe/stations/${stationId}`)),
+          expect.stringMatching(exactPath(`universe/planets/${planetId}`)),
+        ]),
+      );
+
       expect(system.system_id).toBe(systemId);
       expect(system.name).toBe('Jita');
-
-      expect(star).toBeDefined();
       expect(star.solar_system_id).toBe(systemId);
-
-      expect(station).toBeDefined();
+      expect(station.station_id).toBe(stationId);
       expect(station.system_id).toBe(systemId);
-
-      expect(planet).toBeDefined();
+      expect(planet.planet_id).toBe(planetId);
       expect(planet.system_id).toBe(systemId);
     });
   });

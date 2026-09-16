@@ -1,18 +1,25 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
+import {
+  RETRYABLE_ATTEMPTS,
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0025-meta.feature');
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('JSON specification returns version 3.1.0 with paths and components', ({
@@ -21,18 +28,25 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const expectedSpec = {
+    const spec = {
       openapi: '3.1.0',
       info: {
         title: 'EVE Stable Infrastructure (ESI) - tranquility',
         version: '2025-12-16',
       },
-      paths: {},
-      components: {},
+      paths: {
+        '/alliances': { get: { operationId: 'GetAlliances' } },
+        '/status': { get: { operationId: 'GetStatus' } },
+      },
+      components: {
+        schemas: {
+          AlliancesGet: { type: 'array', items: { type: 'integer' } },
+        },
+      },
     };
 
     given('the ESI API is available', () => {
-      jest.spyOn(client.meta, 'getOpenApiJson').mockResolvedValue(expectedSpec);
+      queueResponse({ match: '/meta/openapi.json', body: spec });
     });
 
     when('the client requests the OpenAPI JSON specification', async () => {
@@ -40,12 +54,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a valid OpenAPI JSON document', () => {
-      expect(result).toBeDefined();
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe('/meta/openapi.json');
       expect(result.openapi).toBe('3.1.0');
-      expect(result.info).toBeDefined();
-      expect(result.info.title).toContain('ESI');
-      expect(result).toHaveProperty('paths');
-      expect(result).toHaveProperty('components');
+      expect(result.info).toEqual({
+        title: 'EVE Stable Infrastructure (ESI) - tranquility',
+        version: '2025-12-16',
+      });
+      expect(Object.keys(result.paths)).toEqual(['/alliances', '/status']);
+      expect(result.components).toEqual(spec.components);
     });
   });
 
@@ -55,17 +72,20 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const expectedYamlSpec = `openapi: 3.1.0
+    const yamlSpec = `openapi: 3.1.0
 info:
   title: EVE Stable Infrastructure (ESI) - tranquility
   version: 2025-12-16
 paths: {}
-components: {}`;
+components: {}
+`;
 
     given('the ESI API is available for YAML', () => {
-      jest
-        .spyOn(client.meta, 'getOpenApiYaml')
-        .mockResolvedValue(expectedYamlSpec);
+      queueResponse({
+        match: '/meta/openapi.yaml',
+        headers: { 'content-type': 'application/yaml' },
+        body: yamlSpec,
+      });
     });
 
     when('the client requests the OpenAPI YAML specification', async () => {
@@ -73,12 +93,13 @@ components: {}`;
     });
 
     then('the client shall return a valid OpenAPI YAML document', () => {
-      expect(result).toBeDefined();
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe('/meta/openapi.yaml');
+      expect(lastRequest().headers.accept).toContain('yaml');
+      // Returned verbatim: byte-identical to what ESI sent, not parsed.
       expect(typeof result).toBe('string');
-      expect(result).toContain('openapi: 3.1.0');
-      expect(result).toContain('title: EVE Stable Infrastructure (ESI)');
-      expect(result).toContain('paths:');
-      expect(result).toContain('components:');
+      expect(result).toBe(yamlSpec);
     });
   });
 
@@ -90,8 +111,11 @@ components: {}`;
     let caughtError: any;
 
     given('the ESI API is unavailable', () => {
-      const serviceError = new EsiError(503, 'Service Unavailable');
-      jest.spyOn(client.meta, 'getOpenApiJson').mockRejectedValue(serviceError);
+      // 503 is retryable, so the outage has to outlast the retry budget.
+      queueError(503, 'Service Unavailable', {
+        match: '/meta/openapi.json',
+        times: RETRYABLE_ATTEMPTS,
+      });
     });
 
     when('the client requests the OpenAPI specification', async () => {
@@ -103,8 +127,10 @@ components: {}`;
     });
 
     then('the client shall return a service unavailable error', () => {
-      expect(caughtError).toBeDefined();
+      expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(503);
       expect(caughtError.message).toContain('Service Unavailable');
+      expect(sentRequests()).toHaveLength(RETRYABLE_ATTEMPTS);
     });
   });
 
@@ -132,11 +158,16 @@ info:
 paths:
   /alliances:
     get:
-      summary: List alliances`;
+      summary: List alliances
+`;
 
     given('both JSON and YAML specifications are available', () => {
-      jest.spyOn(client.meta, 'getOpenApiJson').mockResolvedValue(jsonSpec);
-      jest.spyOn(client.meta, 'getOpenApiYaml').mockResolvedValue(yamlSpec);
+      queueResponse({ match: '/meta/openapi.json', body: jsonSpec });
+      queueResponse({
+        match: '/meta/openapi.yaml',
+        headers: { 'content-type': 'application/yaml' },
+        body: yamlSpec,
+      });
     });
 
     when('the client retrieves both formats', async () => {
@@ -147,12 +178,20 @@ paths:
     });
 
     then('they shall contain equivalent information', () => {
+      expect(
+        sentRequests()
+          .map((r) => r.url.pathname)
+          .sort(),
+      ).toEqual(['/meta/openapi.json', '/meta/openapi.yaml']);
+
       expect(jsonResult.openapi).toBe('3.1.0');
-      expect(yamlResult).toContain('openapi: 3.1.0');
-      expect(jsonResult.info.title).toContain('ESI');
-      expect(yamlResult).toContain('title: EVE Stable Infrastructure (ESI)');
-      expect(jsonResult.paths['/alliances']).toBeDefined();
-      expect(yamlResult).toContain('/alliances:');
+      expect(yamlResult).toContain(`openapi: ${jsonResult.openapi}\n`);
+      expect(yamlResult).toContain(`  title: ${jsonResult.info.title}\n`);
+      expect(Object.keys(jsonResult.paths)).toEqual(['/alliances']);
+      expect(yamlResult).toContain('\n  /alliances:\n');
+      expect(yamlResult).toContain(
+        `summary: ${jsonResult.paths['/alliances'].get.summary}`,
+      );
     });
   });
 });

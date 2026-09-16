@@ -67,8 +67,8 @@ Feature: Integration Workflows
   # ── Parallel fan-out ────────────────────────────────────────────────
 
   Rule: When one lookup is awaited and the five lookups that depend on it are then issued together, the EsiClient shall complete the whole workflow within 300 milliseconds.
-    The dependent legs have stubbed latencies of 100, 90, 80, 60, 50 and 40
-    milliseconds. Run in parallel behind the 100 millisecond character lookup
+    The character lookup has 100 milliseconds of transport latency and the five
+    dependent legs 90, 80, 60, 50 and 40. Run in parallel behind that lookup
     the workflow settles near 200 milliseconds; run one after another it would
     take about 420. The 300 millisecond bound is what separates the two, so a
     regression that serialises the fan-out fails here.

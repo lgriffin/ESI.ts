@@ -1,19 +1,24 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0021-loyalty.feature');
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-loyalty-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Balances from three corporations are returned with typed fields', ({
@@ -22,20 +27,20 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
+    const expectedLP = [
+      { corporation_id: 1000035, loyalty_points: 125000 },
+      { corporation_id: 1000125, loyalty_points: 47500 },
+      { corporation_id: 1000180, loyalty_points: 8200 },
+    ];
     let result: any;
 
     given(
       'an authenticated character with LP from multiple corporations',
       () => {
-        const expectedLP = [
-          { corporation_id: 1000035, loyalty_points: 125000 },
-          { corporation_id: 1000125, loyalty_points: 47500 },
-          { corporation_id: 1000180, loyalty_points: 8200 },
-        ];
-
-        jest
-          .spyOn(client.loyalty, 'getLoyaltyPoints')
-          .mockResolvedValue(expectedLP);
+        queueResponse({
+          match: `/characters/${characterId}/loyalty/points`,
+          body: expectedLP,
+        });
       },
     );
 
@@ -44,11 +49,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return LP balances per corporation', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(3);
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/characters/${characterId}/loyalty/points/?$`),
+      );
+      expect(request.headers['authorization']).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedLP);
       result.forEach((entry: any) => {
-        expect(entry).toHaveProperty('corporation_id');
-        expect(entry).toHaveProperty('loyalty_points');
         expect(typeof entry.corporation_id).toBe('number');
         expect(typeof entry.loyalty_points).toBe('number');
         expect(entry.loyalty_points).toBeGreaterThanOrEqual(0);
@@ -65,7 +73,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character who has never run missions', () => {
-      jest.spyOn(client.loyalty, 'getLoyaltyPoints').mockResolvedValue([]);
+      queueResponse({
+        match: `/characters/${characterId}/loyalty/points`,
+        body: [],
+      });
     });
 
     when(
@@ -76,8 +87,8 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall return an empty loyalty points list', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(0);
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toEqual([]);
     });
   });
 
@@ -92,16 +103,15 @@ defineFeature(feature, (test) => {
     let totalLP: number;
 
     given('a character with LP across multiple corps', () => {
-      const lpBalances = [
-        { corporation_id: 1000035, loyalty_points: 50000 },
-        { corporation_id: 1000125, loyalty_points: 250000 },
-        { corporation_id: 1000180, loyalty_points: 15000 },
-        { corporation_id: 1000182, loyalty_points: 92000 },
-      ];
-
-      jest
-        .spyOn(client.loyalty, 'getLoyaltyPoints')
-        .mockResolvedValue(lpBalances);
+      queueResponse({
+        match: `/characters/${characterId}/loyalty/points`,
+        body: [
+          { corporation_id: 1000035, loyalty_points: 50000 },
+          { corporation_id: 1000125, loyalty_points: 250000 },
+          { corporation_id: 1000180, loyalty_points: 15000 },
+          { corporation_id: 1000182, loyalty_points: 92000 },
+        ],
+      });
     });
 
     when('the client analyzes their LP balances', async () => {
@@ -116,8 +126,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall find the highest LP balance', () => {
-      expect(highestLP.corporation_id).toBe(1000125);
-      expect(highestLP.loyalty_points).toBe(250000);
+      expect(result.map((e: any) => e.corporation_id)).toEqual([
+        1000035, 1000125, 1000180, 1000182,
+      ]);
+      expect(highestLP).toEqual({
+        corporation_id: 1000125,
+        loyalty_points: 250000,
+      });
       expect(totalLP).toBe(407000);
     });
   });
@@ -128,39 +143,40 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const corporationId = 1000035;
+    const expectedOffers = [
+      {
+        offer_id: 1,
+        type_id: 17703,
+        quantity: 1,
+        lp_cost: 10000,
+        isk_cost: 5000000,
+        ak_cost: 0,
+        required_items: [],
+      },
+      {
+        offer_id: 2,
+        type_id: 17718,
+        quantity: 5,
+        lp_cost: 5000,
+        isk_cost: 2500000,
+        required_items: [{ type_id: 34, quantity: 1000 }],
+      },
+      {
+        offer_id: 3,
+        type_id: 2048,
+        quantity: 1,
+        lp_cost: 250000,
+        isk_cost: 125000000,
+        required_items: [{ type_id: 2046, quantity: 1 }],
+      },
+    ];
     let result: any;
 
     given('a valid NPC corporation', () => {
-      const expectedOffers = [
-        {
-          offer_id: 1,
-          type_id: 17703,
-          quantity: 1,
-          lp_cost: 10000,
-          isk_cost: 5000000,
-          required_items: [],
-        },
-        {
-          offer_id: 2,
-          type_id: 17718,
-          quantity: 5,
-          lp_cost: 5000,
-          isk_cost: 2500000,
-          required_items: [{ type_id: 34, quantity: 1000 }],
-        },
-        {
-          offer_id: 3,
-          type_id: 2048,
-          quantity: 1,
-          lp_cost: 250000,
-          isk_cost: 125000000,
-          required_items: [{ type_id: 2046, quantity: 1 }],
-        },
-      ];
-
-      jest
-        .spyOn(client.loyalty, 'getLoyaltyStoreOffers')
-        .mockResolvedValue(expectedOffers);
+      queueResponse({
+        match: `/loyalty/stores/${corporationId}/offers`,
+        body: expectedOffers,
+      });
     });
 
     when('the client requests their LP store offers', async () => {
@@ -168,17 +184,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return available items with costs', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(3);
-      result.forEach((offer: any) => {
-        expect(offer).toHaveProperty('offer_id');
-        expect(offer).toHaveProperty('type_id');
-        expect(offer).toHaveProperty('quantity');
-        expect(offer).toHaveProperty('lp_cost');
-        expect(offer).toHaveProperty('isk_cost');
-        expect(offer).toHaveProperty('required_items');
-        expect(offer.lp_cost).toBeGreaterThan(0);
-      });
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/loyalty/stores/${corporationId}/offers/?$`),
+      );
+      // The store catalogue is public: no bearer token is sent.
+      expect(request.headers['authorization']).toBeUndefined();
+      expect(result).toEqual(expectedOffers);
     });
   });
 
@@ -192,36 +204,35 @@ defineFeature(feature, (test) => {
     let affordableOffers: any;
 
     given('a set of store offers and a character LP balance', () => {
-      const storeOffers = [
-        {
-          offer_id: 1,
-          type_id: 17703,
-          quantity: 1,
-          lp_cost: 10000,
-          isk_cost: 5000000,
-          required_items: [],
-        },
-        {
-          offer_id: 2,
-          type_id: 17718,
-          quantity: 5,
-          lp_cost: 5000,
-          isk_cost: 2500000,
-          required_items: [],
-        },
-        {
-          offer_id: 3,
-          type_id: 2048,
-          quantity: 1,
-          lp_cost: 250000,
-          isk_cost: 125000000,
-          required_items: [],
-        },
-      ];
-
-      jest
-        .spyOn(client.loyalty, 'getLoyaltyStoreOffers')
-        .mockResolvedValue(storeOffers);
+      queueResponse({
+        match: `/loyalty/stores/${corporationId}/offers`,
+        body: [
+          {
+            offer_id: 1,
+            type_id: 17703,
+            quantity: 1,
+            lp_cost: 10000,
+            isk_cost: 5000000,
+            required_items: [],
+          },
+          {
+            offer_id: 2,
+            type_id: 17718,
+            quantity: 5,
+            lp_cost: 5000,
+            isk_cost: 2500000,
+            required_items: [],
+          },
+          {
+            offer_id: 3,
+            type_id: 2048,
+            quantity: 1,
+            lp_cost: 250000,
+            isk_cost: 125000000,
+            required_items: [],
+          },
+        ],
+      });
     });
 
     when('the client filters by what the character can afford', async () => {
@@ -232,12 +243,12 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall report only the affordable offers', () => {
-      expect(affordableOffers.length).toBe(2);
-      expect(affordableOffers[0].offer_id).toBe(1);
-      expect(affordableOffers[1].offer_id).toBe(2);
-      affordableOffers.forEach((offer: any) => {
-        expect(offer.lp_cost).toBeLessThanOrEqual(characterLP);
-      });
+      expect(affordableOffers.map((o: any) => [o.offer_id, o.lp_cost])).toEqual(
+        [
+          [1, 10000],
+          [2, 5000],
+        ],
+      );
     });
   });
 
@@ -250,23 +261,22 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('store offers that require trade-in items', () => {
-      const offersWithRequirements = [
-        {
-          offer_id: 10,
-          type_id: 2048,
-          quantity: 1,
-          lp_cost: 250000,
-          isk_cost: 125000000,
-          required_items: [
-            { type_id: 2046, quantity: 1 },
-            { type_id: 34, quantity: 5000 },
-          ],
-        },
-      ];
-
-      jest
-        .spyOn(client.loyalty, 'getLoyaltyStoreOffers')
-        .mockResolvedValue(offersWithRequirements);
+      queueResponse({
+        match: `/loyalty/stores/${corporationId}/offers`,
+        body: [
+          {
+            offer_id: 10,
+            type_id: 2048,
+            quantity: 1,
+            lp_cost: 250000,
+            isk_cost: 125000000,
+            required_items: [
+              { type_id: 2046, quantity: 1 },
+              { type_id: 34, quantity: 5000 },
+            ],
+          },
+        ],
+      });
     });
 
     when('the client inspects the offers with requirements', async () => {
@@ -274,12 +284,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall report the required items and quantities', () => {
-      expect(result[0].required_items).toBeInstanceOf(Array);
-      expect(result[0].required_items.length).toBe(2);
-      expect(result[0].required_items[0]).toHaveProperty('type_id');
-      expect(result[0].required_items[0]).toHaveProperty('quantity');
-      expect(result[0].required_items[0].type_id).toBe(2046);
-      expect(result[0].required_items[1].quantity).toBe(5000);
+      expect(result).toHaveLength(1);
+      expect(result[0].required_items).toEqual([
+        { type_id: 2046, quantity: 1 },
+        { type_id: 34, quantity: 5000 },
+      ]);
     });
   });
 
@@ -292,11 +301,10 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an unauthenticated loyalty request', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.loyalty, 'getLoyaltyPoints')
-        .mockRejectedValue(forbiddenError);
+      // ESI refuses a token without esi-characters.read_loyalty.v1 with 403.
+      queueError(403, 'Token not valid for scope(s)', {
+        match: `/characters/${characterId}/loyalty/points`,
+      });
     });
 
     when(
@@ -312,6 +320,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 forbidden error for loyalty', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(403);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -324,11 +334,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('the ESI service encounters an internal error', () => {
-      const serverError = TestDataFactory.createError(500);
-
-      jest
-        .spyOn(client.loyalty, 'getLoyaltyStoreOffers')
-        .mockRejectedValue(serverError);
+      queueError(500, 'Internal server error', {
+        match: `/loyalty/stores/${corporationId}/offers`,
+      });
     });
 
     when('the client requests store offers expecting error', async () => {
@@ -341,6 +349,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 500 server error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(500);
+      // 500 is not retried.
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 });

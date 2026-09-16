@@ -1,19 +1,31 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
-import { EsiError } from '../../../../src/core/util/error';
+import { EsiError, TimeoutError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  RETRYABLE_ATTEMPTS,
+  SEAM_RETRY,
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0001-alliance.feature');
+
+/** Matches the alliance record URL only, not its sub-resources. */
+const allianceRecordPath = (allianceId: number) =>
+  new RegExp(`/alliances/${allianceId}/(\\?|$)`);
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Alliance record for a known alliance ID', ({ given, when, then }) => {
@@ -21,14 +33,17 @@ defineFeature(feature, (test) => {
     const validAllianceId = 99005338;
 
     given('a valid alliance ID', () => {
-      const expectedAlliance = TestDataFactory.createAllianceInfo({
-        alliance_id: validAllianceId,
-        name: 'Goonswarm Federation',
+      // ESI does not echo alliance_id in the record body.
+      const { alliance_id: _omitted, ...record } =
+        TestDataFactory.createAllianceInfo({
+          name: 'Goonswarm Federation',
+          ticker: 'CONDI',
+          creator_id: 1689391488,
+        });
+      queueResponse({
+        match: allianceRecordPath(validAllianceId),
+        body: record,
       });
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockResolvedValue(expectedAlliance);
     });
 
     when('the client requests alliance details', async () => {
@@ -36,11 +51,16 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete alliance information', () => {
-      expect(result).toBeDefined();
-      expect(result.alliance_id).toBe(validAllianceId);
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/alliances/${validAllianceId}/$`),
+      );
       expect(result.name).toBe('Goonswarm Federation');
-      expect(result).toHaveProperty('ticker');
-      expect(result).toHaveProperty('creator_id');
+      expect(result.ticker).toBe('CONDI');
+      expect(result.creator_id).toBe(1689391488);
+      expect(result.creator_corporation_id).toBe(1344654522);
+      expect(result.date_founded).toBe('2010-06-01T00:00:00Z');
     });
   });
 
@@ -49,11 +69,9 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an invalid alliance ID', () => {
-      const expectedError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockRejectedValue(expectedError);
+      queueError(404, 'Alliance not found', {
+        match: allianceRecordPath(invalidAllianceId),
+      });
     });
 
     when(
@@ -69,6 +87,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a not found error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(404);
+      // 404 is not retryable: exactly one request goes out.
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -77,11 +98,15 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('network connectivity problems', () => {
-      const networkError = TestDataFactory.createError(0);
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockRejectedValue(networkError);
+      // The connection stalls past the client timeout on every attempt, so
+      // no HTTP status ever reaches the client.
+      client = createSeamClient({ timeout: 20 });
+      queueResponse({
+        match: allianceRecordPath(allianceId),
+        body: TestDataFactory.createAllianceInfo(),
+        delayMs: 200,
+        times: RETRYABLE_ATTEMPTS,
+      });
     });
 
     when(
@@ -97,6 +122,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a network error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect(error).toBeInstanceOf(TimeoutError);
+      expect((error as EsiError).statusCode).toBe(0);
+      expect(sentRequests()).toHaveLength(RETRYABLE_ATTEMPTS);
     });
   });
 
@@ -109,22 +137,22 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid alliance with contacts', () => {
-      const expectedContacts = [
-        TestDataFactory.createAllianceContact({
-          contact_id: 1689391488,
-          contact_type: 'character',
-          standing: 10.0,
-        }),
-        TestDataFactory.createAllianceContact({
-          contact_id: 1344654522,
-          contact_type: 'corporation',
-          standing: 5.0,
-        }),
-      ];
-
-      jest
-        .spyOn(client.alliance, 'getContacts')
-        .mockResolvedValue(expectedContacts);
+      queueResponse({
+        match: `/alliances/${allianceId}/contacts`,
+        body: [
+          TestDataFactory.createAllianceContact({
+            contact_id: 1689391488,
+            contact_type: 'character',
+            standing: 10.0,
+          }),
+          TestDataFactory.createAllianceContact({
+            contact_id: 1344654522,
+            contact_type: 'corporation',
+            standing: 5.0,
+            label_ids: [3],
+          }),
+        ],
+      });
     });
 
     when('the client requests contact list', async () => {
@@ -132,11 +160,25 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an array of contacts', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('contact_id');
-      expect(result[0]).toHaveProperty('contact_type');
-      expect(result[0]).toHaveProperty('standing');
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/alliances/${allianceId}/contacts$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual([
+        {
+          contact_id: 1689391488,
+          contact_type: 'character',
+          standing: 10.0,
+          label_ids: [1, 2],
+        },
+        {
+          contact_id: 1344654522,
+          contact_type: 'corporation',
+          standing: 5.0,
+          label_ids: [3],
+        },
+      ]);
     });
   });
 
@@ -145,11 +187,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an alliance with no contacts', () => {
-      const emptyContacts: any[] = [];
-
-      jest
-        .spyOn(client.alliance, 'getContacts')
-        .mockResolvedValue(emptyContacts);
+      queueResponse({
+        match: `/alliances/${allianceId}/contacts`,
+        body: [],
+      });
     });
 
     when('the client requests contact list for the alliance', async () => {
@@ -157,8 +198,8 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an empty array', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(0);
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toEqual([]);
     });
   });
 
@@ -167,11 +208,14 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('API rate limiting is active', () => {
-      const rateLimitError = TestDataFactory.createError(429);
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockRejectedValue(rateLimitError);
+      // A 429 blocks the rate-limit group for 60s before any retry, so this
+      // client surfaces the first 429 instead of waiting out the block.
+      client = createSeamClient({
+        retryConfig: { ...SEAM_RETRY, maxRetries: 0 },
+      });
+      queueError(429, 'Too many requests', {
+        match: allianceRecordPath(allianceId),
+      });
     });
 
     when('the client makes a rate limited request', async () => {
@@ -184,6 +228,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return appropriate rate limit errors', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(429);
+      expect((error as EsiError).isRateLimited()).toBe(true);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -197,16 +244,11 @@ defineFeature(feature, (test) => {
     let responseTime: number;
 
     given('normal API conditions', () => {
-      const mockAlliance = TestDataFactory.createAllianceInfo({
-        alliance_id: allianceId,
+      queueResponse({
+        match: allianceRecordPath(allianceId),
+        body: TestDataFactory.createAllianceInfo({ name: 'Latency Alliance' }),
+        delayMs: 100,
       });
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockImplementation(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          return mockAlliance;
-        });
     });
 
     when('the client requests alliance data', async () => {
@@ -217,9 +259,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the response shall be within acceptable time limits', () => {
-      expect(result).toBeDefined();
+      expect(result.name).toBe('Latency Alliance');
+      expect(sentRequests()).toHaveLength(1);
       expect(responseTime).toBeLessThan(5000);
-      expect(responseTime).toBeGreaterThan(50);
+      // The 100ms server delay really passed through the pipeline.
+      expect(responseTime).toBeGreaterThanOrEqual(90);
     });
   });
 
@@ -234,21 +278,20 @@ defineFeature(feature, (test) => {
     let corporations: any;
 
     given('a valid alliance ID for information gathering', () => {
-      const mockAlliance = TestDataFactory.createAllianceInfo({
-        alliance_id: allianceId,
+      queueResponse({
+        match: `/alliances/${allianceId}/contacts`,
+        body: [
+          TestDataFactory.createAllianceContact({ contact_id: 2112625428 }),
+        ],
       });
-      const mockContacts = [TestDataFactory.createAllianceContact()];
-      const mockCorporations = [1344654522, 1344654523];
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockResolvedValue(mockAlliance);
-      jest
-        .spyOn(client.alliance, 'getContacts')
-        .mockResolvedValue(mockContacts);
-      jest
-        .spyOn(client.alliance, 'getCorporations')
-        .mockResolvedValue(mockCorporations);
+      queueResponse({
+        match: `/alliances/${allianceId}/corporations/`,
+        body: [1344654522, 1344654523],
+      });
+      queueResponse({
+        match: allianceRecordPath(allianceId),
+        body: TestDataFactory.createAllianceInfo({ ticker: 'CONDI' }),
+      });
     });
 
     when('the client gathers complete alliance information', async () => {
@@ -260,15 +303,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall successfully retrieve all related data', () => {
-      expect(alliance).toBeDefined();
-      expect(alliance.alliance_id).toBe(allianceId);
-
-      expect(contacts).toBeInstanceOf(Array);
-      expect(contacts.length).toBeGreaterThanOrEqual(0);
-
-      expect(corporations).toBeInstanceOf(Array);
-      expect(corporations.length).toBeGreaterThan(0);
-      expect(typeof corporations[0]).toBe('number');
+      expect(sentRequests()).toHaveLength(3);
+      expect(alliance.ticker).toBe('CONDI');
+      expect(contacts.map((c: any) => c.contact_id)).toEqual([2112625428]);
+      expect(corporations).toEqual([1344654522, 1344654523]);
+      for (const corporationId of corporations) {
+        expect(typeof corporationId).toBe('number');
+      }
     });
   });
 });

@@ -6,9 +6,15 @@ Feature: Sovereignty
   folds together what used to be the separate map and structures payloads, so
   one call answers both occupancy and structure questions.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Contested campaigns ─────────────────────────────────────────────
 
-  Rule: When sovereignty campaigns are requested, the Sovereignty client shall return one entry per contest carrying its event type, structure, attacker score, and defender score.
+  Rule: When sovereignty campaigns are requested, the Sovereignty client shall return one entry per contest carrying its event type and structure, and its attacker score and defender score when present.
     The two scores are the live state of a contest and are what a caller
     renders as the capture bar. Event type distinguishes a TCU defense from an
     IHub defense, which have different timers. Between contests ESI returns an
@@ -25,7 +31,7 @@ Feature: Sovereignty
       When the client requests campaigns
       Then the client shall return an empty array
 
-  Rule: If ESI answers a sovereignty request with a 503 status, then the Sovereignty client shall reject the request with an EsiError.
+  Rule: If ESI answers every attempt at a sovereignty request with a 503 status and no usable cached entry exists, then the Sovereignty client shall reject the request with an EsiError.
     Sovereignty data goes unavailable during downtime. Surfacing the outage as
     a typed EsiError keeps it distinguishable from the empty-array response
     that means there are genuinely no campaigns running.
@@ -37,7 +43,7 @@ Feature: Sovereignty
 
   # ── System occupancy ────────────────────────────────────────────────
 
-  Rule: When sovereignty systems are requested, the Sovereignty client shall return one entry per solar system carrying the holding alliance claim and its military, industrial, and strategic development levels.
+  Rule: When sovereignty systems are requested, the Sovereignty client shall return one entry per solar system carrying its claim, with the holding alliance and its military, industrial, and strategic development levels when present.
     The three development levels are tracked independently under Equinox, each
     driving different upgrades, so they are reported as distinct fields rather
     than folded into a single index. The claim block also carries the holding

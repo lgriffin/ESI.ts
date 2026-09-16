@@ -1,0 +1,112 @@
+schema_version: '1.1'
+name: bug-fix
+description: >
+  A tracked bug (esi-4kq): paginated region order books drop the order_type
+  filter after page one. The skill must state the violated requirement, write a
+  scenario that reproduces the bug at the transport seam, and trace the work to
+  the issue.
+tags: [bug-fix, market, pagination]
+runs: 2
+expected_outcome: >
+  out/0023-market.feature gains a Rule requiring the filter on every page, with
+  a multi-page reproduction scenario; out/market-order-pagination.steps.ts
+  queues several pages and asserts on the requested URLs; the final message
+  references esi-4kq and predicts the RED failure.
+
+context:
+  add_dirs: [fixtures]
+
+execution:
+  prompt: |
+    Please pick up issue esi-4kq (fixtures/issue-esi-4kq.md): getMarketOrders
+    loses the order_type filter after the first page. Use the ears-gherkin-dev
+    skill. The fixtures directory also has the current 0023-market.feature,
+    an excerpt of the paginator, and a note on the transport seam helpers.
+
+    This sandbox has no repository checkout, so you cannot run Jest or the
+    audit, and you should not write the source fix. Instead:
+    1. Write the complete updated feature file to out/0023-market.feature.
+    2. Write the step definitions for your new scenarios only (the test(...)
+       blocks to add to tests/bdd/step-definitions/core/market.steps.ts, with
+       the imports they need) to out/market-order-pagination.steps.ts.
+    3. In your final message, say which scenario reproduces the bug, what
+       failure you expect before the fix (RED), and the minimal source change
+       you would make next.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Write]
+
+graders:
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: 'ears-gherkin-dev'
+    min: 1
+
+  - name: feature-has-rule
+    type: regex
+    target: { source: file, path: out/0023-market.feature }
+    pattern: '^\s*Rule:.*\bshall\b'
+    flags: m
+
+  - name: rule-single-shall
+    type: regex
+    target: { source: file, path: out/0023-market.feature }
+    pattern: '^\s*Rule:.*\bshall\b.*\bshall\b'
+    flags: mi
+    match: count:0
+
+  - name: no-feature-level-scenario
+    type: regex
+    target: { source: file, path: out/0023-market.feature }
+    pattern: '^Feature:(?:(?!^\s*Rule:)[\s\S])*^\s*Scenario'
+    flags: m
+    match: count:0
+
+  - name: no-client-spy
+    type: regex
+    target: { source: file, path: out/market-order-pagination.steps.ts }
+    pattern: 'spyOn\(\s*(?:this\.)?client\b'
+    match: count:0
+
+  - name: transport-seam
+    type: regex
+    target: { source: file, path: out/market-order-pagination.steps.ts }
+    pattern: 'queueResponse\s*\('
+
+  - name: traces-to-issue
+    type: regex
+    pattern: 'esi-4kq'
+    flags: i
+
+  - name: reproduces-the-bug
+    type: llm
+    focus: { source: file, path: out/market-order-pagination.steps.ts }
+    criteria: |
+      Pass when a scenario would fail against the buggy paginator in the
+      fixture and pass once it is fixed: it queues at least two pages at the
+      transport seam (X-Pages greater than one), calls
+      client.market.getMarketOrders with a sell or buy filter, and asserts that
+      every page request carried order_type (for example by inspecting the
+      requested URLs), not merely that some orders came back. Fail if the
+      scenario stubs a client method, would pass against the buggy code, or
+      only asserts on the fixture it queued.
+
+  - name: requirement-states-violated-behaviour
+    type: llm
+    focus: { source: file, path: out/0023-market.feature }
+    criteria: |
+      Pass when the new Rule title is a single EARS requirement naming the
+      Market client that states the behaviour the bug violates (the filter is
+      applied to every page), rather than describing the bug or the fix
+      ("does not drop", "fixed"). Its prose should explain why and may cite
+      esi-4kq. Scenario names should name cases, not restate the Rule. The
+      existing Rule must be kept intact.
+
+  - name: red-first-reported
+    type: llm
+    criteria: |
+      Pass when the final message identifies the reproducing scenario, states
+      the concrete failure expected before the fix (for example page 2 URL
+      lacking order_type), proposes a minimal source change in the paginator,
+      and does not claim tests were run.

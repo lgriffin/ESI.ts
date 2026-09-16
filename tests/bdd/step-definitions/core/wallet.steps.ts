@@ -2,18 +2,31 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0037-wallet.feature');
+
+/**
+ * `/characters/{id}/wallet` is a prefix of the journal and transactions
+ * paths, so the balance response is pinned to the end of the URL.
+ */
+const balancePath = (characterId: number) =>
+  new RegExp(`/characters/${characterId}/wallet$`);
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-wallet-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Funded wallet returns the ISK amount as a number', ({
@@ -25,11 +38,7 @@ defineFeature(feature, (test) => {
     const characterId = 1689391488;
 
     given('an authenticated character for wallet', () => {
-      const expectedBalance = 5250000000.75;
-
-      jest
-        .spyOn(client.wallet, 'getCharacterWallet')
-        .mockResolvedValue(expectedBalance);
+      queueResponse({ match: balancePath(characterId), body: 5250000000.75 });
     });
 
     when('the client requests their wallet balance', async () => {
@@ -37,10 +46,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the ISK amount', () => {
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('number');
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toBe(`/characters/${characterId}/wallet`);
+      expect(request.headers['authorization']).toBe('Bearer bdd-access-token');
       expect(result).toBe(5250000000.75);
-      expect(result).toBeGreaterThanOrEqual(0);
     });
   });
 
@@ -49,7 +59,7 @@ defineFeature(feature, (test) => {
     const characterId = 123456789;
 
     given('a character with no ISK', () => {
-      jest.spyOn(client.wallet, 'getCharacterWallet').mockResolvedValue(0);
+      queueResponse({ match: balancePath(characterId), body: 0 });
     });
 
     when('the client requests the zero balance', async () => {
@@ -57,8 +67,8 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return zero', () => {
+      expect(sentRequests()).toHaveLength(1);
       expect(result).toBe(0);
-      expect(typeof result).toBe('number');
     });
   });
 
@@ -71,26 +81,30 @@ defineFeature(feature, (test) => {
     const characterId = 1689391488;
 
     given('an authenticated character with transaction history', () => {
-      const expectedJournal = [
-        TestDataFactory.createWalletJournalEntry({
-          id: 1000000001,
-          date: '2024-01-15T12:00:00Z',
-          ref_type: 'market_transaction',
-          amount: 1000000.0,
-          balance: 5250000000.75,
-        }),
-        TestDataFactory.createWalletJournalEntry({
-          id: 1000000002,
-          date: '2024-01-15T11:30:00Z',
-          ref_type: 'bounty_prizes',
-          amount: 500000.0,
-          balance: 5249000000.75,
-        }),
-      ];
-
-      jest
-        .spyOn(client.wallet, 'getCharacterWalletJournal')
-        .mockResolvedValue(expectedJournal);
+      queueResponse({
+        match: `/characters/${characterId}/wallet/journal`,
+        headers: { 'x-pages': '1' },
+        body: [
+          TestDataFactory.createWalletJournalEntry({
+            id: 1000000001,
+            date: '2024-01-15T12:00:00Z',
+            ref_type: 'market_transaction',
+            amount: 1000000.0,
+            balance: 5250000000.75,
+          }),
+          TestDataFactory.createWalletJournalEntry({
+            id: 1000000002,
+            date: '2024-01-15T11:30:00Z',
+            ref_type: 'bounty_prizes',
+            first_party_id: 1000125,
+            second_party_id: characterId,
+            amount: 500000.0,
+            balance: 5249000000.75,
+            reason: '11031: 2',
+            description: 'CONCORD rewarded pilot for killing pirates',
+          }),
+        ],
+      });
     });
 
     when('the client requests their wallet journal', async () => {
@@ -98,14 +112,33 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return journal entries', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(2);
-      expect(result[0]).toHaveProperty('id');
-      expect(result[0]).toHaveProperty('date');
-      expect(result[0]).toHaveProperty('ref_type');
-      expect(result[0]).toHaveProperty('amount');
-      expect(result[0]).toHaveProperty('balance');
-      expect(typeof result[0].amount).toBe('number');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/wallet/journal`,
+      );
+      expect(
+        result.map((e: any) => ({
+          id: e.id,
+          date: e.date,
+          ref_type: e.ref_type,
+          amount: e.amount,
+          balance: e.balance,
+        })),
+      ).toEqual([
+        {
+          id: 1000000001,
+          date: '2024-01-15T12:00:00Z',
+          ref_type: 'market_transaction',
+          amount: 1000000.0,
+          balance: 5250000000.75,
+        },
+        {
+          id: 1000000002,
+          date: '2024-01-15T11:30:00Z',
+          ref_type: 'bounty_prizes',
+          amount: 500000.0,
+          balance: 5249000000.75,
+        },
+      ]);
     });
   });
 
@@ -118,9 +151,11 @@ defineFeature(feature, (test) => {
     const characterId = 111111111;
 
     given('a new character with no activity', () => {
-      jest
-        .spyOn(client.wallet, 'getCharacterWalletJournal')
-        .mockResolvedValue([]);
+      queueResponse({
+        match: `/characters/${characterId}/wallet/journal`,
+        headers: { 'x-pages': '1' },
+        body: [],
+      });
     });
 
     when('the client requests the new character wallet journal', async () => {
@@ -128,8 +163,8 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an empty journal array', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(0);
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toEqual([]);
     });
   });
 
@@ -142,28 +177,29 @@ defineFeature(feature, (test) => {
     const characterId = 1689391488;
 
     given('an authenticated character with market activity', () => {
-      const expectedTransactions = [
-        TestDataFactory.createWalletTransaction({
-          transaction_id: 123456789,
-          date: '2024-01-15T12:00:00Z',
-          type_id: 34,
-          unit_price: 5.5,
-          quantity: 1000,
-          is_buy: false,
-        }),
-        TestDataFactory.createWalletTransaction({
-          transaction_id: 123456790,
-          date: '2024-01-15T11:00:00Z',
-          type_id: 35,
-          unit_price: 12.0,
-          quantity: 500,
-          is_buy: true,
-        }),
-      ];
-
-      jest
-        .spyOn(client.wallet, 'getCharacterWalletTransactions')
-        .mockResolvedValue(expectedTransactions);
+      queueResponse({
+        match: `/characters/${characterId}/wallet/transactions`,
+        body: [
+          TestDataFactory.createWalletTransaction({
+            transaction_id: 123456789,
+            date: '2024-01-15T12:00:00Z',
+            type_id: 34,
+            unit_price: 5.5,
+            quantity: 1000,
+            is_buy: false,
+            journal_ref_id: 1000000001,
+          }),
+          TestDataFactory.createWalletTransaction({
+            transaction_id: 123456790,
+            date: '2024-01-15T11:00:00Z',
+            type_id: 35,
+            unit_price: 12.0,
+            quantity: 500,
+            is_buy: true,
+            journal_ref_id: 1000000000,
+          }),
+        ],
+      });
     });
 
     when('the client requests their transactions', async () => {
@@ -171,15 +207,21 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return transaction records', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(2);
-      expect(result[0]).toHaveProperty('transaction_id');
-      expect(result[0]).toHaveProperty('type_id');
-      expect(result[0]).toHaveProperty('unit_price');
-      expect(result[0]).toHaveProperty('quantity');
-      expect(result[0]).toHaveProperty('is_buy');
-      expect(typeof result[0].unit_price).toBe('number');
-      expect(typeof result[0].quantity).toBe('number');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/wallet/transactions`,
+      );
+      expect(
+        result.map((t: any) => [
+          t.transaction_id,
+          t.type_id,
+          t.unit_price,
+          t.quantity,
+          t.is_buy,
+        ]),
+      ).toEqual([
+        [123456789, 34, 5.5, 1000, false],
+        [123456790, 35, 12.0, 500, true],
+      ]);
     });
   });
 
@@ -190,42 +232,21 @@ defineFeature(feature, (test) => {
   }) => {
     let result: any;
     const corporationId = 1344654522;
+    const balances = [
+      1000000000.0, 500000000.0, 250000000.0, 100000000.0, 50000000.0,
+      25000000.0, 0,
+    ];
 
     given('an authenticated director', () => {
-      const expectedWallets = [
-        TestDataFactory.createCorporationWallet({
-          division: 1,
-          balance: 1000000000.0,
-        }),
-        TestDataFactory.createCorporationWallet({
-          division: 2,
-          balance: 500000000.0,
-        }),
-        TestDataFactory.createCorporationWallet({
-          division: 3,
-          balance: 250000000.0,
-        }),
-        TestDataFactory.createCorporationWallet({
-          division: 4,
-          balance: 100000000.0,
-        }),
-        TestDataFactory.createCorporationWallet({
-          division: 5,
-          balance: 50000000.0,
-        }),
-        TestDataFactory.createCorporationWallet({
-          division: 6,
-          balance: 25000000.0,
-        }),
-        TestDataFactory.createCorporationWallet({
-          division: 7,
-          balance: 10000000.0,
-        }),
-      ];
-
-      jest
-        .spyOn(client.wallet, 'getCorporationWallets')
-        .mockResolvedValue(expectedWallets);
+      queueResponse({
+        match: `/corporations/${corporationId}/wallets`,
+        body: balances.map((balance, index) =>
+          TestDataFactory.createCorporationWallet({
+            division: index + 1,
+            balance,
+          }),
+        ),
+      });
     });
 
     when('the client requests corporation wallets', async () => {
@@ -233,14 +254,18 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return all wallet divisions', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(7);
-      result.forEach((wallet: any, index: number) => {
-        expect(wallet).toHaveProperty('division');
-        expect(wallet).toHaveProperty('balance');
-        expect(wallet.division).toBe(index + 1);
-        expect(typeof wallet.balance).toBe('number');
-      });
+      expect(lastRequest().url.pathname).toBe(
+        `/corporations/${corporationId}/wallets`,
+      );
+      expect(result).toEqual([
+        { division: 1, balance: 1000000000.0 },
+        { division: 2, balance: 500000000.0 },
+        { division: 3, balance: 250000000.0 },
+        { division: 4, balance: 100000000.0 },
+        { division: 5, balance: 50000000.0 },
+        { division: 6, balance: 25000000.0 },
+        { division: 7, balance: 0 },
+      ]);
     });
   });
 
@@ -254,18 +279,22 @@ defineFeature(feature, (test) => {
     const division = 1;
 
     given('an authenticated director for journal', () => {
-      const expectedJournal = [
-        TestDataFactory.createWalletJournalEntry({
-          id: 2000000001,
-          ref_type: 'corporation_account_withdrawal',
-          amount: -50000000.0,
-          balance: 950000000.0,
-        }),
-      ];
-
-      jest
-        .spyOn(client.wallet, 'getCorporationWalletJournal')
-        .mockResolvedValue(expectedJournal);
+      queueResponse({
+        match: `/corporations/${corporationId}/wallets/${division}/journal`,
+        headers: { 'x-pages': '1' },
+        body: [
+          TestDataFactory.createWalletJournalEntry({
+            id: 2000000001,
+            ref_type: 'corporation_account_withdrawal',
+            first_party_id: corporationId,
+            second_party_id: 1689391488,
+            amount: -50000000.0,
+            balance: 950000000.0,
+            reason: 'SRP payout',
+            description: 'Corporation withdrawal to pilot',
+          }),
+        ],
+      });
     });
 
     when('the client requests the journal for division 1', async () => {
@@ -276,11 +305,16 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return journal entries for that division', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('id');
-      expect(result[0]).toHaveProperty('ref_type');
-      expect(result[0]).toHaveProperty('amount');
+      expect(lastRequest().url.pathname).toBe(
+        `/corporations/${corporationId}/wallets/${division}/journal`,
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: 2000000001,
+        ref_type: 'corporation_account_withdrawal',
+        amount: -50000000.0,
+        balance: 950000000.0,
+      });
     });
   });
 
@@ -294,19 +328,19 @@ defineFeature(feature, (test) => {
     const division = 1;
 
     given('an authenticated director for transactions', () => {
-      const expectedTransactions = [
-        TestDataFactory.createWalletTransaction({
-          transaction_id: 987654321,
-          type_id: 34,
-          unit_price: 5.5,
-          quantity: 10000000,
-          is_buy: true,
-        }),
-      ];
-
-      jest
-        .spyOn(client.wallet, 'getCorporationWalletTransactions')
-        .mockResolvedValue(expectedTransactions);
+      queueResponse({
+        match: `/corporations/${corporationId}/wallets/${division}/transactions`,
+        body: [
+          TestDataFactory.createWalletTransaction({
+            transaction_id: 987654321,
+            type_id: 34,
+            unit_price: 5.5,
+            quantity: 10000000,
+            is_buy: true,
+            is_personal: false,
+          }),
+        ],
+      });
     });
 
     when('the client requests transactions for division 1', async () => {
@@ -317,12 +351,17 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return corporation transaction records', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('transaction_id');
-      expect(result[0]).toHaveProperty('type_id');
-      expect(result[0]).toHaveProperty('unit_price');
-      expect(result[0]).toHaveProperty('quantity');
+      expect(lastRequest().url.pathname).toBe(
+        `/corporations/${corporationId}/wallets/${division}/transactions`,
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        transaction_id: 987654321,
+        type_id: 34,
+        unit_price: 5.5,
+        quantity: 10000000,
+        is_buy: true,
+      });
     });
   });
 
@@ -332,20 +371,21 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let caughtError: any;
+    const characterId = 1689391488;
 
     given('an unauthenticated user for character wallet', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.wallet, 'getCharacterWallet')
-        .mockRejectedValue(forbiddenError);
+      // The token is present but does not carry the wallet scope, so ESI
+      // refuses it. 403 is not retryable: exactly one request goes out.
+      queueError(403, 'Token not valid for scope(s)', {
+        match: balancePath(characterId),
+      });
     });
 
     when(
       'the client requests a character wallet balance without auth',
       async () => {
         try {
-          await client.wallet.getCharacterWallet(1689391488);
+          await client.wallet.getCharacterWallet(characterId);
         } catch (e) {
           caughtError = e;
         }
@@ -356,6 +396,8 @@ defineFeature(feature, (test) => {
       'the client shall return a 403 forbidden error for character wallet',
       () => {
         expect(caughtError).toBeInstanceOf(EsiError);
+        expect((caughtError as EsiError).statusCode).toBe(403);
+        expect(sentRequests()).toHaveLength(1);
       },
     );
   });
@@ -366,18 +408,17 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let caughtError: any;
+    const corporationId = 1344654522;
 
     given('a non-director character for corporation wallet', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.wallet, 'getCorporationWallets')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'Character does not have required role(s)', {
+        match: `/corporations/${corporationId}/wallets`,
+      });
     });
 
     when('the client requests corporation wallets without auth', async () => {
       try {
-        await client.wallet.getCorporationWallets(1344654522);
+        await client.wallet.getCorporationWallets(corporationId);
       } catch (e) {
         caughtError = e;
       }
@@ -387,6 +428,8 @@ defineFeature(feature, (test) => {
       'the client shall return a 403 forbidden error for corporation wallet',
       () => {
         expect(caughtError).toBeInstanceOf(EsiError);
+        expect((caughtError as EsiError).statusCode).toBe(403);
+        expect(sentRequests()).toHaveLength(1);
       },
     );
   });
@@ -402,30 +445,33 @@ defineFeature(feature, (test) => {
     const characterId = 1689391488;
 
     given('an authenticated character for concurrent wallet ops', () => {
-      const mockBalance = 5250000000.75;
-      const mockJournal = [
-        TestDataFactory.createWalletJournalEntry({
-          id: 1000000001,
-          amount: 1000000.0,
-        }),
-      ];
-      const mockTransactions = [
-        TestDataFactory.createWalletTransaction({
-          transaction_id: 123456789,
-          unit_price: 5.5,
-          quantity: 1000,
-        }),
-      ];
-
-      jest
-        .spyOn(client.wallet, 'getCharacterWallet')
-        .mockResolvedValue(mockBalance);
-      jest
-        .spyOn(client.wallet, 'getCharacterWalletJournal')
-        .mockResolvedValue(mockJournal);
-      jest
-        .spyOn(client.wallet, 'getCharacterWalletTransactions')
-        .mockResolvedValue(mockTransactions);
+      // Staggered delays make responses arrive out of request order.
+      queueResponse({
+        match: balancePath(characterId),
+        body: 5250000000.75,
+        delayMs: 30,
+      });
+      queueResponse({
+        match: `/characters/${characterId}/wallet/journal`,
+        headers: { 'x-pages': '1' },
+        body: [
+          TestDataFactory.createWalletJournalEntry({
+            id: 1000000001,
+            amount: 1000000.0,
+          }),
+        ],
+        delayMs: 15,
+      });
+      queueResponse({
+        match: `/characters/${characterId}/wallet/transactions`,
+        body: [
+          TestDataFactory.createWalletTransaction({
+            transaction_id: 123456789,
+            unit_price: 5.5,
+            quantity: 1000,
+          }),
+        ],
+      });
     });
 
     when(
@@ -440,12 +486,13 @@ defineFeature(feature, (test) => {
     );
 
     then('all wallet data shall complete successfully', () => {
-      expect(typeof balance).toBe('number');
+      expect(sentRequests()).toHaveLength(3);
       expect(balance).toBe(5250000000.75);
-      expect(journal).toBeInstanceOf(Array);
-      expect(journal.length).toBeGreaterThan(0);
-      expect(transactions).toBeInstanceOf(Array);
-      expect(transactions.length).toBeGreaterThan(0);
+      expect(journal.map((e: any) => e.id)).toEqual([1000000001]);
+      expect(journal[0].amount).toBe(1000000.0);
+      expect(transactions.map((t: any) => t.transaction_id)).toEqual([
+        123456789,
+      ]);
     });
   });
 
@@ -460,51 +507,50 @@ defineFeature(feature, (test) => {
     const characterId = 1689391488;
 
     given('an authenticated character with financial history', () => {
-      const mockBalance = 5250000000.75;
-      const mockJournal = [
-        TestDataFactory.createWalletJournalEntry({
-          id: 1000000001,
-          ref_type: 'market_transaction',
-          amount: 1000000.0,
-          balance: 5250000000.75,
-        }),
-        TestDataFactory.createWalletJournalEntry({
-          id: 1000000002,
-          ref_type: 'bounty_prizes',
-          amount: 500000.0,
-          balance: 5249000000.75,
-        }),
-        TestDataFactory.createWalletJournalEntry({
-          id: 1000000003,
-          ref_type: 'market_transaction',
-          amount: -200000.0,
-          balance: 5248500000.75,
-        }),
-      ];
-      const mockTransactions = [
-        TestDataFactory.createWalletTransaction({
-          transaction_id: 123456789,
-          unit_price: 5.5,
-          quantity: 1000,
-          is_buy: false,
-        }),
-        TestDataFactory.createWalletTransaction({
-          transaction_id: 123456790,
-          unit_price: 12.0,
-          quantity: 500,
-          is_buy: true,
-        }),
-      ];
-
-      jest
-        .spyOn(client.wallet, 'getCharacterWallet')
-        .mockResolvedValue(mockBalance);
-      jest
-        .spyOn(client.wallet, 'getCharacterWalletJournal')
-        .mockResolvedValue(mockJournal);
-      jest
-        .spyOn(client.wallet, 'getCharacterWalletTransactions')
-        .mockResolvedValue(mockTransactions);
+      queueResponse({ match: balancePath(characterId), body: 5250000000.75 });
+      queueResponse({
+        match: `/characters/${characterId}/wallet/journal`,
+        headers: { 'x-pages': '1' },
+        body: [
+          TestDataFactory.createWalletJournalEntry({
+            id: 1000000001,
+            ref_type: 'market_transaction',
+            amount: 1000000.0,
+            balance: 5250000000.75,
+          }),
+          TestDataFactory.createWalletJournalEntry({
+            id: 1000000002,
+            ref_type: 'bounty_prizes',
+            amount: 500000.0,
+            balance: 5249000000.75,
+            description: 'CONCORD rewarded pilot for killing pirates',
+          }),
+          TestDataFactory.createWalletJournalEntry({
+            id: 1000000003,
+            ref_type: 'market_transaction',
+            amount: -200000.0,
+            balance: 5248500000.75,
+            description: 'Bought items on market',
+          }),
+        ],
+      });
+      queueResponse({
+        match: `/characters/${characterId}/wallet/transactions`,
+        body: [
+          TestDataFactory.createWalletTransaction({
+            transaction_id: 123456789,
+            unit_price: 5.5,
+            quantity: 1000,
+            is_buy: false,
+          }),
+          TestDataFactory.createWalletTransaction({
+            transaction_id: 123456790,
+            unit_price: 12.0,
+            quantity: 500,
+            is_buy: true,
+          }),
+        ],
+      });
     });
 
     when('the client gathers all financial data', async () => {
@@ -522,16 +568,22 @@ defineFeature(feature, (test) => {
       const totalExpenses = journal
         .filter((entry: any) => entry.amount < 0)
         .reduce((sum: number, entry: any) => sum + Math.abs(entry.amount), 0);
-      const buyTransactions = transactions.filter((t: any) => t.is_buy);
-      const sellTransactions = transactions.filter((t: any) => !t.is_buy);
+      const buyTransactions = transactions.filter(
+        (t: any) => t.is_buy === true,
+      );
+      const sellTransactions = transactions.filter(
+        (t: any) => t.is_buy === false,
+      );
 
       expect(balance).toBe(5250000000.75);
       expect(totalIncome).toBe(1500000.0);
       expect(totalExpenses).toBe(200000.0);
-      expect(buyTransactions.length).toBe(1);
-      expect(sellTransactions.length).toBe(1);
-
-      expect(totalIncome - totalExpenses).toBeGreaterThan(0);
+      expect(buyTransactions.map((t: any) => t.transaction_id)).toEqual([
+        123456790,
+      ]);
+      expect(sellTransactions.map((t: any) => t.transaction_id)).toEqual([
+        123456789,
+      ]);
     });
   });
 });

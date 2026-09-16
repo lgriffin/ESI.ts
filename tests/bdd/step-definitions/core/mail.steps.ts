@@ -1,19 +1,33 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0022-mail.feature');
+
+/** Matches the headers listing, not /mail/labels/, /mail/lists/ or /mail/{id}/. */
+const mailHeadersPath = (characterId: number) =>
+  new RegExp(`/characters/${characterId}/mail/(\\?|$)`);
+
+const requestBody = () => {
+  const body = lastRequest().body;
+  return body === undefined ? undefined : JSON.parse(body);
+};
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-mail-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Inbox holding three messages returns a summary for each', ({
@@ -22,54 +36,48 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
+    const expectedHeaders = [
+      {
+        mail_id: 1,
+        from: 123456789,
+        subject: 'Fleet Operation Tonight',
+        timestamp: '2024-01-15T18:00:00Z',
+        is_read: false,
+        labels: [1],
+        recipients: [
+          { recipient_id: characterId, recipient_type: 'character' },
+        ],
+      },
+      {
+        mail_id: 2,
+        from: 987654321,
+        subject: 'Contract Completed',
+        timestamp: '2024-01-15T12:00:00Z',
+        is_read: true,
+        labels: [1],
+        recipients: [
+          { recipient_id: characterId, recipient_type: 'character' },
+        ],
+      },
+      {
+        mail_id: 3,
+        from: 111111111,
+        subject: 'Welcome to the Corporation',
+        timestamp: '2024-01-14T09:00:00Z',
+        is_read: true,
+        labels: [1, 3],
+        recipients: [
+          { recipient_id: characterId, recipient_type: 'character' },
+        ],
+      },
+    ];
     let result: any;
 
     given('an authenticated character with mail', () => {
-      const expectedHeaders = [
-        {
-          mail_id: 1,
-          from: 123456789,
-          subject: 'Fleet Operation Tonight',
-          timestamp: '2024-01-15T18:00:00Z',
-          is_read: false,
-          recipients: [
-            {
-              recipient_id: 1689391488,
-              recipient_type: 'character' as const,
-            },
-          ],
-        },
-        {
-          mail_id: 2,
-          from: 987654321,
-          subject: 'Contract Completed',
-          timestamp: '2024-01-15T12:00:00Z',
-          is_read: true,
-          recipients: [
-            {
-              recipient_id: 1689391488,
-              recipient_type: 'character' as const,
-            },
-          ],
-        },
-        {
-          mail_id: 3,
-          from: 111111111,
-          subject: 'Welcome to the Corporation',
-          timestamp: '2024-01-14T09:00:00Z',
-          is_read: true,
-          recipients: [
-            {
-              recipient_id: 1689391488,
-              recipient_type: 'character' as const,
-            },
-          ],
-        },
-      ];
-
-      jest
-        .spyOn(client.mail, 'getMailHeaders')
-        .mockResolvedValue(expectedHeaders);
+      queueResponse({
+        match: mailHeadersPath(characterId),
+        body: expectedHeaders,
+      });
     });
 
     when('the client requests their inbox headers', async () => {
@@ -77,15 +85,36 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of mail summaries', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(3);
-      result.forEach((header: any) => {
-        expect(header).toHaveProperty('mail_id');
-        expect(header).toHaveProperty('from');
-        expect(header).toHaveProperty('subject');
-        expect(header).toHaveProperty('timestamp');
-        expect(header).toHaveProperty('is_read');
-      });
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toBe(`/characters/${characterId}/mail/`);
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedHeaders);
+      expect(
+        result.map((h: any) => [
+          h.mail_id,
+          h.from,
+          h.subject,
+          h.timestamp,
+          h.is_read,
+        ]),
+      ).toEqual([
+        [
+          1,
+          123456789,
+          'Fleet Operation Tonight',
+          '2024-01-15T18:00:00Z',
+          false,
+        ],
+        [2, 987654321, 'Contract Completed', '2024-01-15T12:00:00Z', true],
+        [
+          3,
+          111111111,
+          'Welcome to the Corporation',
+          '2024-01-14T09:00:00Z',
+          true,
+        ],
+      ]);
     });
   });
 
@@ -98,7 +127,7 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an authenticated character with no mail', () => {
-      jest.spyOn(client.mail, 'getMailHeaders').mockResolvedValue([]);
+      queueResponse({ match: mailHeadersPath(characterId), body: [] });
     });
 
     when('the client requests their empty inbox headers', async () => {
@@ -106,8 +135,10 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an empty mail list', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(0);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/mail/`,
+      );
+      expect(result).toEqual([]);
     });
   });
 
@@ -117,23 +148,26 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
-    const mailId = 1;
+    const mailId = 331477591;
     let result: any;
 
     given('a character with a specific mail', () => {
-      const expectedMail = {
-        mail_id: mailId,
-        from: 123456789,
-        subject: 'Fleet Operation Tonight',
-        timestamp: '2024-01-15T18:00:00Z',
-        is_read: true,
-        labels: [3],
-        recipients: [
-          { recipient_id: 1689391488, recipient_type: 'character' as const },
-        ],
-      };
-
-      jest.spyOn(client.mail, 'getMail').mockResolvedValue(expectedMail);
+      queueResponse({
+        match: `/characters/${characterId}/mail/${mailId}/`,
+        body: {
+          subject: 'Fleet Operation Tonight',
+          from: 123456789,
+          timestamp: '2024-01-15T18:00:00Z',
+          read: true,
+          labels: [3],
+          body: '<font size="12">Form up in Jita at 19:00.</font>',
+          recipients: [
+            { recipient_id: characterId, recipient_type: 'character' },
+            { recipient_id: 99005338, recipient_type: 'alliance' },
+          ],
+          mail_id: mailId,
+        },
+      });
     });
 
     when('the client requests the full mail', async () => {
@@ -143,12 +177,16 @@ defineFeature(feature, (test) => {
     then(
       'the client shall return the complete message with its recipients',
       () => {
-        expect(result).toBeDefined();
+        expect(lastRequest().url.pathname).toBe(
+          `/characters/${characterId}/mail/${mailId}/`,
+        );
         expect(result.mail_id).toBe(mailId);
         expect(result.subject).toBe('Fleet Operation Tonight');
         expect(result.from).toBe(123456789);
-        expect(result.recipients).toBeInstanceOf(Array);
-        expect(result.recipients.length).toBeGreaterThan(0);
+        expect(result.recipients).toEqual([
+          { recipient_id: characterId, recipient_type: 'character' },
+          { recipient_id: 99005338, recipient_type: 'alliance' },
+        ]);
       },
     );
   });
@@ -159,22 +197,19 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
+    const expectedLabels = [
+      { label_id: 1, name: '[Inbox]', color: '#ffffff', unread_count: 3 },
+      { label_id: 2, name: '[Sent]', color: '#ffffff', unread_count: 0 },
+      { label_id: 4, name: '[Corp]', color: '#ffffff', unread_count: 1 },
+      { label_id: 8, name: '[Alliance]', color: '#ffffff', unread_count: 2 },
+    ];
     let result: any;
 
     given('an authenticated character with mail labels', () => {
-      const expectedLabels = {
-        total_unread_count: 5,
-        labels: [
-          { label_id: 1, name: 'Inbox', unread_count: 3 },
-          { label_id: 2, name: 'Sent', unread_count: 0 },
-          { label_id: 3, name: 'Corp', unread_count: 1 },
-          { label_id: 4, name: 'Alliance', unread_count: 1 },
-        ],
-      };
-
-      jest
-        .spyOn(client.mail, 'getMailLabels')
-        .mockResolvedValue(expectedLabels);
+      queueResponse({
+        match: `/characters/${characterId}/mail/labels/`,
+        body: { labels: expectedLabels, total_unread_count: 5 },
+      });
     });
 
     when('the client requests their mail labels', async () => {
@@ -182,22 +217,26 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return labels with unread counts', () => {
-      expect(result).toBeDefined();
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/mail/labels/`,
+      );
       expect(result.total_unread_count).toBe(5);
-      expect(result.labels).toBeInstanceOf(Array);
-      expect(result.labels!.length).toBe(4);
-      result.labels!.forEach((label: any) => {
-        expect(label).toHaveProperty('label_id');
-        expect(label).toHaveProperty('name');
-        expect(label).toHaveProperty('unread_count');
-      });
+      expect(
+        result.labels.map((l: any) => [l.label_id, l.name, l.unread_count]),
+      ).toEqual([
+        [1, '[Inbox]', 3],
+        [2, '[Sent]', 0],
+        [4, '[Corp]', 1],
+        [8, '[Alliance]', 2],
+      ]);
 
-      // Verify individual unread counts sum to total (or less, since some labels may overlap)
-      const labelUnread = result.labels!.reduce(
+      // One unread message can carry several labels, so the per-label counts
+      // sum to at least the total.
+      const labelUnread = result.labels.reduce(
         (sum: number, l: any) => sum + l.unread_count,
         0,
       );
-      expect(labelUnread).toBeGreaterThanOrEqual(result.total_unread_count!);
+      expect(labelUnread).toBeGreaterThanOrEqual(result.total_unread_count);
     });
   });
 
@@ -207,20 +246,29 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
+    const newLabel = { name: 'Important', color: '#ff6600' };
     let result: any;
 
     given('an authenticated character for label creation', () => {
-      jest.spyOn(client.mail, 'createMailLabel').mockResolvedValue(100);
+      queueResponse({
+        match: `/characters/${characterId}/mail/labels/`,
+        status: 201,
+        body: 128,
+      });
     });
 
     when('the client creates a new mail label', async () => {
-      const newLabel = { name: 'Important', color: '#FF0000' };
       result = await client.mail.createMailLabel(characterId, newLabel);
     });
 
     then('the client shall return the new label ID', () => {
-      expect(result).toBe(100);
-      expect(typeof result).toBe('number');
+      const request = lastRequest();
+      expect(request.method).toBe('POST');
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/mail/labels/`,
+      );
+      expect(requestBody()).toEqual(newLabel);
+      expect(result).toBe(128);
     });
   });
 
@@ -230,10 +278,13 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
-    const labelId = 100;
+    const labelId = 128;
 
     given('an authenticated character with a custom label', () => {
-      jest.spyOn(client.mail, 'deleteMailLabel').mockResolvedValue(undefined);
+      queueResponse({
+        match: `/characters/${characterId}/mail/labels/${labelId}/`,
+        status: 204,
+      });
     });
 
     when('the client deletes the mail label', async () => {
@@ -241,10 +292,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the delete label operation shall complete without error', () => {
-      expect(client.mail.deleteMailLabel).toHaveBeenCalledWith(
-        characterId,
-        labelId,
+      expect(sentRequests()).toHaveLength(1);
+      const request = lastRequest();
+      expect(request.method).toBe('DELETE');
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/mail/labels/${labelId}/`,
       );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(request.body).toBeUndefined();
     });
   });
 
@@ -254,18 +309,18 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
+    const expectedLists = [
+      { mailing_list_id: 145156367, name: 'Alliance Announcements' },
+      { mailing_list_id: 145156368, name: 'Corp Intel' },
+      { mailing_list_id: 145156369, name: 'Market Traders' },
+    ];
     let result: any;
 
     given('an authenticated character subscribed to mailing lists', () => {
-      const expectedLists = [
-        { mailing_list_id: 5001, name: 'Alliance Announcements' },
-        { mailing_list_id: 5002, name: 'Corp Intel' },
-        { mailing_list_id: 5003, name: 'Market Traders' },
-      ];
-
-      jest
-        .spyOn(client.mail, 'getMailingLists')
-        .mockResolvedValue(expectedLists);
+      queueResponse({
+        match: `/characters/${characterId}/mail/lists/`,
+        body: expectedLists,
+      });
     });
 
     when('the client requests their mailing lists', async () => {
@@ -273,11 +328,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the mailing list details', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result.length).toBe(3);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/mail/lists/`,
+      );
+      expect(result).toEqual(expectedLists);
       result.forEach((list: any) => {
-        expect(list).toHaveProperty('mailing_list_id');
-        expect(list).toHaveProperty('name');
         expect(typeof list.mailing_list_id).toBe('number');
         expect(typeof list.name).toBe('string');
       });
@@ -286,24 +341,33 @@ defineFeature(feature, (test) => {
 
   test('Sent mail returns its assigned numeric ID', ({ given, when, then }) => {
     const characterId = 1689391488;
+    const mailBody = {
+      approved_cost: 0,
+      recipients: [{ recipient_id: 123456789, recipient_type: 'character' }],
+      subject: 'Fleet Invitation',
+      body: 'You are invited to the fleet operation at 20:00 EVE.',
+    };
     let result: any;
 
     given('an authenticated character for sending mail', () => {
-      jest.spyOn(client.mail, 'sendMail').mockResolvedValue(42);
+      queueResponse({
+        match: mailHeadersPath(characterId),
+        status: 201,
+        body: 331477592,
+      });
     });
 
     when('the client sends a mail to another character', async () => {
-      const mailBody = {
-        recipients: [{ recipient_id: 123456789, recipient_type: 'character' }],
-        subject: 'Fleet Invitation',
-        body: 'You are invited to the fleet operation at 20:00 EVE.',
-      };
       result = await client.mail.sendMail(characterId, mailBody);
     });
 
     then('the client shall return the new mail ID', () => {
-      expect(result).toBe(42);
-      expect(typeof result).toBe('number');
+      const request = lastRequest();
+      expect(sentRequests()).toHaveLength(1);
+      expect(request.method).toBe('POST');
+      expect(request.url.pathname).toBe(`/characters/${characterId}/mail/`);
+      expect(requestBody()).toEqual(mailBody);
+      expect(result).toBe(331477592);
     });
   });
 
@@ -313,10 +377,13 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
-    const mailId = 1;
+    const mailId = 331477591;
 
     given('an authenticated character with a mail to delete', () => {
-      jest.spyOn(client.mail, 'deleteMail').mockResolvedValue(undefined);
+      queueResponse({
+        match: `/characters/${characterId}/mail/${mailId}/`,
+        status: 204,
+      });
     });
 
     when('the client deletes the mail', async () => {
@@ -324,7 +391,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the delete mail operation shall complete without error', () => {
-      expect(client.mail.deleteMail).toHaveBeenCalledWith(characterId, mailId);
+      expect(sentRequests()).toHaveLength(1);
+      const request = lastRequest();
+      expect(request.method).toBe('DELETE');
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/mail/${mailId}/`,
+      );
+      expect(request.body).toBeUndefined();
     });
   });
 
@@ -334,13 +407,14 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
-    const mailId = 1;
-    const metadata = { read: true, labels: [3] };
+    const mailId = 331477591;
+    const metadata = { read: true, labels: [1, 4] };
 
     given('an unread mail', () => {
-      jest
-        .spyOn(client.mail, 'updateMailMetadata')
-        .mockResolvedValue(undefined);
+      queueResponse({
+        match: `/characters/${characterId}/mail/${mailId}/`,
+        status: 204,
+      });
     });
 
     when('the client updates its metadata to mark it as read', async () => {
@@ -348,11 +422,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the update metadata operation shall complete without error', () => {
-      expect(client.mail.updateMailMetadata).toHaveBeenCalledWith(
-        characterId,
-        mailId,
-        metadata,
+      expect(sentRequests()).toHaveLength(1);
+      const request = lastRequest();
+      expect(request.method).toBe('PUT');
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/mail/${mailId}/`,
       );
+      expect(requestBody()).toEqual(metadata);
     });
   });
 
@@ -362,37 +438,46 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
+    const mockHeaders = [
+      {
+        mail_id: 1,
+        from: 123456789,
+        subject: 'Test Mail',
+        timestamp: '2024-01-15T18:00:00Z',
+        is_read: false,
+        recipients: [
+          { recipient_id: characterId, recipient_type: 'character' },
+        ],
+      },
+    ];
+    const mockLabels = {
+      total_unread_count: 1,
+      labels: [{ label_id: 1, name: '[Inbox]', unread_count: 1 }],
+    };
+    const mockLists = [
+      { mailing_list_id: 145156367, name: 'Alliance Announcements' },
+    ];
     let headers: any;
     let labels: any;
     let lists: any;
 
     given('an authenticated character for concurrent mail fetch', () => {
-      const mockHeaders = [
-        {
-          mail_id: 1,
-          from: 123456789,
-          subject: 'Test Mail',
-          timestamp: '2024-01-15T18:00:00Z',
-          is_read: false,
-          recipients: [
-            {
-              recipient_id: 1689391488,
-              recipient_type: 'character' as const,
-            },
-          ],
-        },
-      ];
-      const mockLabels = {
-        total_unread_count: 1,
-        labels: [{ label_id: 1, name: 'Inbox', unread_count: 1 }],
-      };
-      const mockLists = [
-        { mailing_list_id: 5001, name: 'Alliance Announcements' },
-      ];
-
-      jest.spyOn(client.mail, 'getMailHeaders').mockResolvedValue(mockHeaders);
-      jest.spyOn(client.mail, 'getMailLabels').mockResolvedValue(mockLabels);
-      jest.spyOn(client.mail, 'getMailingLists').mockResolvedValue(mockLists);
+      // Each response is delayed differently so they settle out of request
+      // order; a client that mixed them up would hand back the wrong payload.
+      queueResponse({
+        match: mailHeadersPath(characterId),
+        body: mockHeaders,
+        delayMs: 30,
+      });
+      queueResponse({
+        match: `/characters/${characterId}/mail/labels/`,
+        body: mockLabels,
+        delayMs: 15,
+      });
+      queueResponse({
+        match: `/characters/${characterId}/mail/lists/`,
+        body: mockLists,
+      });
     });
 
     when(
@@ -407,16 +492,20 @@ defineFeature(feature, (test) => {
     );
 
     then('all three mail requests shall resolve successfully', () => {
-      expect(headers).toBeInstanceOf(Array);
-      expect(headers.length).toBe(1);
-      expect(headers[0].subject).toBe('Test Mail');
-
-      expect(labels.total_unread_count).toBe(1);
-      expect(labels.labels).toBeInstanceOf(Array);
-
-      expect(lists).toBeInstanceOf(Array);
-      expect(lists.length).toBe(1);
-      expect(lists[0].name).toBe('Alliance Announcements');
+      expect(
+        sentRequests()
+          .map((r) => r.url.pathname)
+          .sort(),
+      ).toEqual(
+        [
+          `/characters/${characterId}/mail/`,
+          `/characters/${characterId}/mail/labels/`,
+          `/characters/${characterId}/mail/lists/`,
+        ].sort(),
+      );
+      expect(headers).toEqual(mockHeaders);
+      expect(labels).toEqual(mockLabels);
+      expect(lists).toEqual(mockLists);
     });
   });
 
@@ -429,11 +518,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an unauthenticated mail request', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.mail, 'getMailHeaders')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'token not valid for scope(s): esi-mail.read_mail.v1', {
+        match: mailHeadersPath(characterId),
+      });
     });
 
     when('the client requests mail headers without auth', async () => {
@@ -446,6 +533,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 forbidden error for mail', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(403);
+      // 403 is not retryable: one request, no second attempt.
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -455,9 +545,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('a mail ID that does not exist', () => {
-      const notFoundError = TestDataFactory.createError(404);
-
-      jest.spyOn(client.mail, 'getMail').mockRejectedValue(notFoundError);
+      queueError(404, 'Mail not found', {
+        match: `/characters/${characterId}/mail/${nonExistentMailId}/`,
+      });
     });
 
     when('the client requests the non-existent mail', async () => {
@@ -470,6 +560,11 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 404 not found error for mail', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(404);
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/mail/${nonExistentMailId}/`,
+      );
     });
   });
 });

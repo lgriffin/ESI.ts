@@ -8,7 +8,7 @@ Feature: Contract Management
 
   # ── Character and corporation contracts ─────────────────────────────
 
-  Rule: When character contracts are requested for a character ID, the Contracts client shall return an array whose entries each carry contract_id, type, status, price, and issuer_id.
+  Rule: When character contracts are requested for a character ID, the Contracts client shall return an array whose entries each carry contract_id, type, and issuer_id, and status and price when present.
     The type separates a courier run from an item exchange from an auction,
     and the status separates live contracts from settled ones. Both scenarios
     below read those fields: the first on a two-entry list, the second by
@@ -47,7 +47,7 @@ Feature: Contract Management
 
   # ── Public contracts ────────────────────────────────────────────────
 
-  Rule: When public contracts are requested for a region ID, the Contracts client shall return an array whose entries each carry availability and status.
+  Rule: When public contracts are requested for a region ID, the Contracts client shall return an array whose entries each carry availability and status when present.
     The public listing is the region-wide market in contracts and needs no
     token. Availability marks an entry as open to anyone rather than to a
     named party, and status marks it as still outstanding.

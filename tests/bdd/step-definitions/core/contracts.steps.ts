@@ -2,18 +2,30 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0009-contracts.feature');
+
+/**
+ * Match a request whose path ends exactly at `path`, so the contract list
+ * route does not also swallow the bids and items routes beneath it.
+ */
+const exactPath = (path: string): RegExp => new RegExp(`${path}(\\?|$)`);
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Contract list holding a courier contract and an item exchange contract', ({
@@ -25,26 +37,25 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with contracts', () => {
-      const expectedContracts = [
-        TestDataFactory.createContract({
-          contract_id: 100000001,
-          issuer_id: characterId,
-          type: 'courier',
-          status: 'outstanding',
-          price: 1000000,
-        }),
-        TestDataFactory.createContract({
-          contract_id: 100000002,
-          issuer_id: characterId,
-          type: 'item_exchange',
-          status: 'finished',
-          price: 5000000,
-        }),
-      ];
-
-      jest
-        .spyOn(client.contracts, 'getCharacterContracts')
-        .mockResolvedValue(expectedContracts);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contracts`),
+        body: [
+          TestDataFactory.createContract({
+            contract_id: 100000001,
+            issuer_id: characterId,
+            type: 'courier',
+            status: 'outstanding',
+            price: 1000000,
+          }),
+          TestDataFactory.createContract({
+            contract_id: 100000002,
+            issuer_id: characterId,
+            type: 'item_exchange',
+            status: 'finished',
+            price: 5000000,
+          }),
+        ],
+      });
     });
 
     when('the client requests character contracts', async () => {
@@ -52,13 +63,37 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of contracts', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('contract_id', 100000001);
-      expect(result[0]).toHaveProperty('type', 'courier');
-      expect(result[0]).toHaveProperty('status', 'outstanding');
-      expect(result[0]).toHaveProperty('price', 1000000);
-      expect(result[0]).toHaveProperty('issuer_id', characterId);
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/contracts`,
+      );
+      expect(lastRequest().headers.authorization).toBe(
+        'Bearer bdd-access-token',
+      );
+      expect(
+        result.map((c: any) => ({
+          contract_id: c.contract_id,
+          type: c.type,
+          status: c.status,
+          price: c.price,
+          issuer_id: c.issuer_id,
+        })),
+      ).toEqual([
+        {
+          contract_id: 100000001,
+          type: 'courier',
+          status: 'outstanding',
+          price: 1000000,
+          issuer_id: characterId,
+        },
+        {
+          contract_id: 100000002,
+          type: 'item_exchange',
+          status: 'finished',
+          price: 5000000,
+          issuer_id: characterId,
+        },
+      ]);
     });
   });
 
@@ -67,11 +102,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with no contracts', () => {
-      const emptyContracts: any[] = [];
-
-      jest
-        .spyOn(client.contracts, 'getCharacterContracts')
-        .mockResolvedValue(emptyContracts);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contracts`),
+        body: [],
+      });
     });
 
     when(
@@ -82,8 +116,9 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall return an empty array', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(0);
+      expect(sentRequests()).toHaveLength(1);
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual([]);
     });
   });
 
@@ -92,11 +127,9 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an invalid character ID for contracts', () => {
-      const notFoundError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.contracts, 'getCharacterContracts')
-        .mockRejectedValue(notFoundError);
+      queueError(404, 'Character not found', {
+        match: exactPath(`/characters/${invalidCharacterId}/contracts`),
+      });
     });
 
     when(
@@ -112,6 +145,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 404 not found error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(404);
+      // 404 is not retryable: exactly one request reaches ESI.
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -120,26 +156,25 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid region ID', () => {
-      const expectedContracts = [
-        TestDataFactory.createContract({
-          contract_id: 200000001,
-          type: 'item_exchange',
-          status: 'outstanding',
-          availability: 'public',
-          price: 50000000,
-        }),
-        TestDataFactory.createContract({
-          contract_id: 200000002,
-          type: 'auction',
-          status: 'outstanding',
-          availability: 'public',
-          price: 10000000,
-        }),
-      ];
-
-      jest
-        .spyOn(client.contracts, 'getPublicContracts')
-        .mockResolvedValue(expectedContracts);
+      queueResponse({
+        match: exactPath(`/contracts/public/${regionId}`),
+        body: [
+          TestDataFactory.createContract({
+            contract_id: 200000001,
+            type: 'item_exchange',
+            status: 'outstanding',
+            availability: 'public',
+            price: 50000000,
+          }),
+          TestDataFactory.createContract({
+            contract_id: 200000002,
+            type: 'auction',
+            status: 'outstanding',
+            availability: 'public',
+            price: 10000000,
+          }),
+        ],
+      });
     });
 
     when('the client requests public contracts', async () => {
@@ -147,10 +182,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return contracts available in that region', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('availability', 'public');
-      expect(result[0]).toHaveProperty('status', 'outstanding');
+      expect(lastRequest().url.pathname).toBe(`/contracts/public/${regionId}`);
+      expect(lastRequest().headers.authorization).toBeUndefined();
+      expect(
+        result.map((c: any) => [c.contract_id, c.availability, c.status]),
+      ).toEqual([
+        [200000001, 'public', 'outstanding'],
+        [200000002, 'public', 'outstanding'],
+      ]);
     });
   });
 
@@ -161,27 +200,29 @@ defineFeature(feature, (test) => {
   }) => {
     const characterId = 1689391488;
     const contractId = 200000002;
+    const expectedBids = [
+      {
+        bid_id: 1,
+        bidder_id: 123456789,
+        amount: 15000000,
+        date_bid: '2024-01-16T12:00:00Z',
+      },
+      {
+        bid_id: 2,
+        bidder_id: 987654321,
+        amount: 20000000,
+        date_bid: '2024-01-17T14:00:00Z',
+      },
+    ];
     let result: any;
 
     given('an auction contract with bids', () => {
-      const expectedBids = [
-        {
-          bid_id: 1,
-          bidder_id: 123456789,
-          amount: 15000000,
-          date_bid: '2024-01-16T12:00:00Z',
-        },
-        {
-          bid_id: 2,
-          bidder_id: 987654321,
-          amount: 20000000,
-          date_bid: '2024-01-17T14:00:00Z',
-        },
-      ];
-
-      jest
-        .spyOn(client.contracts, 'getCharacterContractBids')
-        .mockResolvedValue(expectedBids);
+      queueResponse({
+        match: exactPath(
+          `/characters/${characterId}/contracts/${contractId}/bids`,
+        ),
+        body: expectedBids,
+      });
     });
 
     when('the client requests contract bids', async () => {
@@ -192,32 +233,34 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of bids', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('bid_id');
-      expect(result[0]).toHaveProperty('bidder_id');
-      expect(result[0]).toHaveProperty('amount', 15000000);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/contracts/${contractId}/bids`,
+      );
+      expect(lastRequest().headers.authorization).toBe(
+        'Bearer bdd-access-token',
+      );
+      expect(result).toEqual(expectedBids);
       expect(result[1].amount).toBeGreaterThan(result[0].amount);
     });
   });
 
   test('Bid history on a public auction contract', ({ given, when, then }) => {
     const contractId = 200000002;
+    const expectedBids = [
+      {
+        bid_id: 1,
+        bidder_id: 111111111,
+        amount: 12000000,
+        date_bid: '2024-01-15T10:00:00Z',
+      },
+    ];
     let result: any;
 
     given('a public auction contract', () => {
-      const expectedBids = [
-        {
-          bid_id: 1,
-          bidder_id: 111111111,
-          amount: 12000000,
-          date_bid: '2024-01-15T10:00:00Z',
-        },
-      ];
-
-      jest
-        .spyOn(client.contracts, 'getPublicContractBids')
-        .mockResolvedValue(expectedBids);
+      queueResponse({
+        match: exactPath(`/contracts/public/bids/${contractId}`),
+        body: expectedBids,
+      });
     });
 
     when('the client requests public contract bids', async () => {
@@ -225,39 +268,42 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the bid history', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(1);
-      expect(result[0]).toHaveProperty('bid_id', 1);
-      expect(result[0]).toHaveProperty('amount', 12000000);
+      expect(lastRequest().url.pathname).toBe(
+        `/contracts/public/bids/${contractId}`,
+      );
+      expect(lastRequest().headers.authorization).toBeUndefined();
+      expect(result).toEqual(expectedBids);
     });
   });
 
   test('Item lines on an item exchange contract', ({ given, when, then }) => {
     const characterId = 1689391488;
     const contractId = 100000002;
+    const expectedItems = [
+      {
+        record_id: 1,
+        type_id: 34,
+        quantity: 1000000,
+        is_included: true,
+        is_singleton: false,
+      },
+      {
+        record_id: 2,
+        type_id: 35,
+        quantity: 500000,
+        is_included: false,
+        is_singleton: false,
+      },
+    ];
     let result: any;
 
     given('an item exchange contract', () => {
-      const expectedItems = [
-        {
-          record_id: 1,
-          type_id: 34,
-          quantity: 1000000,
-          is_included: true,
-          is_singleton: false,
-        },
-        {
-          record_id: 2,
-          type_id: 35,
-          quantity: 500000,
-          is_included: true,
-          is_singleton: false,
-        },
-      ];
-
-      jest
-        .spyOn(client.contracts, 'getCharacterContractItems')
-        .mockResolvedValue(expectedItems);
+      queueResponse({
+        match: exactPath(
+          `/characters/${characterId}/contracts/${contractId}/items`,
+        ),
+        body: expectedItems,
+      });
     });
 
     when('the client requests contract items', async () => {
@@ -268,11 +314,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the list of items', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('type_id', 34);
-      expect(result[0]).toHaveProperty('quantity', 1000000);
-      expect(result[0]).toHaveProperty('is_included', true);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/contracts/${contractId}/items`,
+      );
+      expect(
+        result.map((i: any) => [i.type_id, i.quantity, i.is_included]),
+      ).toEqual([
+        [34, 1000000, true],
+        [35, 500000, false],
+      ]);
     });
   });
 
@@ -285,32 +335,31 @@ defineFeature(feature, (test) => {
     let courierContracts: any;
 
     given('a character with mixed contract types', () => {
-      const allContracts = [
-        TestDataFactory.createContract({
-          contract_id: 300000001,
-          type: 'courier',
-          status: 'outstanding',
-        }),
-        TestDataFactory.createContract({
-          contract_id: 300000002,
-          type: 'item_exchange',
-          status: 'outstanding',
-        }),
-        TestDataFactory.createContract({
-          contract_id: 300000003,
-          type: 'auction',
-          status: 'outstanding',
-        }),
-        TestDataFactory.createContract({
-          contract_id: 300000004,
-          type: 'courier',
-          status: 'finished',
-        }),
-      ];
-
-      jest
-        .spyOn(client.contracts, 'getCharacterContracts')
-        .mockResolvedValue(allContracts);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contracts`),
+        body: [
+          TestDataFactory.createContract({
+            contract_id: 300000001,
+            type: 'courier',
+            status: 'outstanding',
+          }),
+          TestDataFactory.createContract({
+            contract_id: 300000002,
+            type: 'item_exchange',
+            status: 'outstanding',
+          }),
+          TestDataFactory.createContract({
+            contract_id: 300000003,
+            type: 'auction',
+            status: 'outstanding',
+          }),
+          TestDataFactory.createContract({
+            contract_id: 300000004,
+            type: 'courier',
+            status: 'finished',
+          }),
+        ],
+      });
     });
 
     when('the client retrieves and filter by courier type', async () => {
@@ -319,10 +368,12 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return only courier contracts', () => {
-      expect(courierContracts).toHaveLength(2);
-      expect(courierContracts.every((c: any) => c.type === 'courier')).toBe(
-        true,
-      );
+      expect(
+        courierContracts.map((c: any) => [c.contract_id, c.type, c.status]),
+      ).toEqual([
+        [300000001, 'courier', 'outstanding'],
+        [300000004, 'courier', 'finished'],
+      ]);
     });
   });
 
@@ -338,49 +389,55 @@ defineFeature(feature, (test) => {
     let contractItems: any;
 
     given('an active auction contract', () => {
-      const contracts = [
-        TestDataFactory.createContract({
-          contract_id: contractId,
-          type: 'auction',
-          status: 'outstanding',
-          price: 10000000,
-        }),
-      ];
-
-      const bids = [
-        {
-          bid_id: 1,
-          bidder_id: 123456789,
-          amount: 15000000,
-          date_bid: '2024-01-16T12:00:00Z',
-        },
-        {
-          bid_id: 2,
-          bidder_id: 987654321,
-          amount: 25000000,
-          date_bid: '2024-01-17T14:00:00Z',
-        },
-      ];
-
-      const items = [
-        {
-          record_id: 1,
-          type_id: 17918,
-          quantity: 1,
-          is_included: true,
-          is_singleton: true,
-        },
-      ];
-
-      jest
-        .spyOn(client.contracts, 'getCharacterContracts')
-        .mockResolvedValue(contracts);
-      jest
-        .spyOn(client.contracts, 'getCharacterContractBids')
-        .mockResolvedValue(bids);
-      jest
-        .spyOn(client.contracts, 'getCharacterContractItems')
-        .mockResolvedValue(items);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contracts`),
+        body: [
+          TestDataFactory.createContract({
+            contract_id: 400000000,
+            type: 'courier',
+            status: 'outstanding',
+          }),
+          TestDataFactory.createContract({
+            contract_id: contractId,
+            type: 'auction',
+            status: 'outstanding',
+            price: 10000000,
+          }),
+        ],
+      });
+      queueResponse({
+        match: exactPath(
+          `/characters/${characterId}/contracts/${contractId}/bids`,
+        ),
+        body: [
+          {
+            bid_id: 1,
+            bidder_id: 123456789,
+            amount: 15000000,
+            date_bid: '2024-01-16T12:00:00Z',
+          },
+          {
+            bid_id: 2,
+            bidder_id: 987654321,
+            amount: 25000000,
+            date_bid: '2024-01-17T14:00:00Z',
+          },
+        ],
+      });
+      queueResponse({
+        match: exactPath(
+          `/characters/${characterId}/contracts/${contractId}/items`,
+        ),
+        body: [
+          {
+            record_id: 1,
+            type_id: 17918,
+            quantity: 1,
+            is_included: true,
+            is_singleton: true,
+          },
+        ],
+      });
     });
 
     when(
@@ -395,26 +452,49 @@ defineFeature(feature, (test) => {
         expect(auctionContract).toBeDefined();
 
         [contractBids, contractItems] = await Promise.all([
-          client.contracts.getCharacterContractBids(characterId, contractId),
-          client.contracts.getCharacterContractItems(characterId, contractId),
+          client.contracts.getCharacterContractBids(
+            characterId,
+            auctionContract.contract_id,
+          ),
+          client.contracts.getCharacterContractItems(
+            characterId,
+            auctionContract.contract_id,
+          ),
         ]);
       },
     );
 
     then('the client shall have full contract details', () => {
-      expect(auctionContract!.type).toBe('auction');
-      expect(auctionContract!.price).toBe(10000000);
+      const paths = sentRequests().map((r) => r.url.pathname);
+      expect(paths).toHaveLength(3);
+      expect(paths[0]).toBe(`/characters/${characterId}/contracts`);
+      expect(paths.slice(1).sort()).toEqual([
+        `/characters/${characterId}/contracts/${contractId}/bids`,
+        `/characters/${characterId}/contracts/${contractId}/items`,
+      ]);
 
-      expect(contractBids).toHaveLength(2);
+      expect(auctionContract.type).toBe('auction');
+      expect(auctionContract.price).toBe(10000000);
+
+      expect(contractBids.map((b: any) => [b.bid_id, b.amount])).toEqual([
+        [1, 15000000],
+        [2, 25000000],
+      ]);
       const highestBid = contractBids.reduce(
         (max: any, bid: any) => (bid.amount > max.amount ? bid : max),
         contractBids[0],
       );
-      expect(highestBid.amount).toBe(25000000);
+      expect(highestBid.bidder_id).toBe(987654321);
 
-      expect(contractItems).toHaveLength(1);
-      expect(contractItems[0].type_id).toBe(17918);
-      expect(contractItems[0].is_singleton).toBe(true);
+      expect(contractItems).toEqual([
+        {
+          record_id: 1,
+          type_id: 17918,
+          quantity: 1,
+          is_included: true,
+          is_singleton: true,
+        },
+      ]);
     });
   });
 
@@ -429,38 +509,40 @@ defineFeature(feature, (test) => {
     let corpContracts: any;
 
     given('a character in a corporation', () => {
-      const characterContracts = [
-        TestDataFactory.createContract({
-          contract_id: 500000001,
-          issuer_id: characterId,
-          type: 'item_exchange',
-          for_corporation: false,
-        }),
-      ];
-
-      const corporationContracts = [
-        TestDataFactory.createContract({
-          contract_id: 500000002,
-          issuer_id: characterId,
-          issuer_corporation_id: corporationId,
-          type: 'courier',
-          for_corporation: true,
-        }),
-        TestDataFactory.createContract({
-          contract_id: 500000003,
-          issuer_id: 987654321,
-          issuer_corporation_id: corporationId,
-          type: 'item_exchange',
-          for_corporation: true,
-        }),
-      ];
-
-      jest
-        .spyOn(client.contracts, 'getCharacterContracts')
-        .mockResolvedValue(characterContracts);
-      jest
-        .spyOn(client.contracts, 'getCorporationContracts')
-        .mockResolvedValue(corporationContracts);
+      // The corporation list is queued first and the character list answers
+      // last, so a client that paired responses by arrival order would swap them.
+      queueResponse({
+        match: exactPath(`/corporations/${corporationId}/contracts`),
+        delayMs: 2,
+        body: [
+          TestDataFactory.createContract({
+            contract_id: 500000002,
+            issuer_id: characterId,
+            issuer_corporation_id: corporationId,
+            type: 'courier',
+            for_corporation: true,
+          }),
+          TestDataFactory.createContract({
+            contract_id: 500000003,
+            issuer_id: 987654321,
+            issuer_corporation_id: corporationId,
+            type: 'item_exchange',
+            for_corporation: true,
+          }),
+        ],
+      });
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contracts`),
+        delayMs: 10,
+        body: [
+          TestDataFactory.createContract({
+            contract_id: 500000001,
+            issuer_id: characterId,
+            type: 'item_exchange',
+            for_corporation: false,
+          }),
+        ],
+      });
     });
 
     when('the client fetches both sets of contracts concurrently', async () => {
@@ -471,13 +553,18 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return independent results', () => {
-      expect(charContracts).toHaveLength(1);
-      expect(charContracts[0].for_corporation).toBe(false);
+      expect(sentRequests()).toHaveLength(2);
 
-      expect(corpContracts).toHaveLength(2);
-      expect(corpContracts.every((c: any) => c.for_corporation === true)).toBe(
-        true,
-      );
+      expect(
+        charContracts.map((c: any) => [c.contract_id, c.for_corporation]),
+      ).toEqual([[500000001, false]]);
+
+      expect(
+        corpContracts.map((c: any) => [c.contract_id, c.for_corporation]),
+      ).toEqual([
+        [500000002, true],
+        [500000003, true],
+      ]);
     });
   });
 });

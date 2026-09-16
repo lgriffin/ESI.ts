@@ -70,6 +70,7 @@ build/
 # path whose parent directory is excluded.)
 .claude/*
 !.claude/skills/
+.claude/skills/*/eval/results/
 
 # Log files
 *.log
@@ -87,6 +88,7 @@ docs-site/public/api/
 
 # Stryker mutation testing
 .stryker-tmp/
+.stryker-tmp-bdd/
 
 # Generated OKF knowledge bundle
 okf/

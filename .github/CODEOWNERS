@@ -1,0 +1,24 @@
+# Code owners for ESI.ts.
+#
+# Owners are requested for review automatically. Ownership only blocks a
+# merge when branch protection on master has "Require review from Code
+# Owners" enabled.
+#
+# The last matching pattern wins, so the explicit entries below take
+# precedence over the catch-all. They name the files automation rewrites
+# (Dependabot, release-please) and the files that control CI and supply
+# chain, so those keep a named owner even if the catch-all is narrowed later.
+
+* @lgriffin
+
+# Dependency manifests: Dependabot opens PRs against these.
+/package.json @lgriffin
+/package-lock.json @lgriffin
+
+# CI, Dependabot configuration, and this file.
+/.github/ @lgriffin
+/.zizmor.yml @lgriffin
+
+# Release automation: release-please rewrites these on every release PR.
+/release-please-config.json @lgriffin
+/.release-please-manifest.json @lgriffin

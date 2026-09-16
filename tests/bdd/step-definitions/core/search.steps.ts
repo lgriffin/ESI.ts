@@ -1,7 +1,14 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0030-search.feature');
 
@@ -18,16 +25,32 @@ const allCategories = [
   'agent',
 ];
 
+const characterId = 90000001;
+const SEARCH_PATH = `/characters/${characterId}/search`;
+
+/**
+ * Assert the one search request the client sent: an authenticated GET to the
+ * character's search path carrying the query string and category list.
+ */
+function expectSearchRequest(search: string, categories: string[]): void {
+  expect(sentRequests()).toHaveLength(1);
+  const request = lastRequest();
+  expect(request.method).toBe('GET');
+  expect(request.url.pathname).toMatch(
+    new RegExp(`/characters/${characterId}/search/?$`),
+  );
+  expect(request.url.searchParams.get('search')).toBe(search);
+  expect(request.url.searchParams.get('categories')).toBe(categories.join(','));
+  expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+}
+
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      accessToken: 'mock-access-token',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Character name query returns three character IDs', ({
@@ -36,30 +59,28 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const characterId = 90000001;
     const searchString = 'Test Pilot';
-    const expectedResults = {
-      character: [1689391488, 123456789, 111111111],
-    };
 
     given('a valid character ID and search string', () => {
-      jest
-        .spyOn(client.search, 'characterSearch')
-        .mockResolvedValue(expectedResults as any);
+      queueResponse({
+        match: SEARCH_PATH,
+        body: { character: [1689391488, 123456789, 111111111] },
+      });
     });
 
     when('the client searches for characters', async () => {
       result = await client.search.characterSearch(
         characterId,
         searchString,
-        allCategories as any,
+        allCategories,
       );
     });
 
     then('the client shall return matching character results', () => {
-      expect(result).toBeDefined();
-      expect(result.character).toHaveLength(3);
-      expect(result.character).toContain(1689391488);
+      expectSearchRequest(searchString, allCategories);
+      expect(result).toEqual({
+        character: [1689391488, 123456789, 111111111],
+      });
     });
   });
 
@@ -69,7 +90,6 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const characterId = 90000001;
     const searchString = 'Jita';
     const expectedResults = {
       solar_system: [30000142],
@@ -79,26 +99,25 @@ defineFeature(feature, (test) => {
     };
 
     given('a broad search query', () => {
-      jest
-        .spyOn(client.search, 'characterSearch')
-        .mockResolvedValue(expectedResults as any);
+      queueResponse({ match: SEARCH_PATH, body: expectedResults });
     });
 
     when('the client searches across categories', async () => {
       result = await client.search.characterSearch(
         characterId,
         searchString,
-        allCategories as any,
+        allCategories,
       );
     });
 
     then('the client shall return results in multiple categories', () => {
-      expect(result).toBeDefined();
-      expect(result.solar_system).toHaveLength(1);
-      expect(result.solar_system).toContain(30000142);
-      expect(result.station).toHaveLength(2);
-      expect(result.character).toHaveLength(1);
-      expect(result.corporation).toHaveLength(1);
+      expectSearchRequest(searchString, allCategories);
+      expect(result).toEqual(expectedResults);
+      expect(result.solar_system).toEqual([30000142]);
+      expect(result.station).toEqual([60003760, 60003761]);
+      expect(result.character).toEqual([555555555]);
+      expect(result.corporation).toEqual([1344654522]);
+      expect(result.alliance).toBeUndefined();
     });
   });
 
@@ -108,31 +127,26 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const characterId = 90000001;
     const searchString = 'xyznonexistent12345';
-    const expectedResults = {};
 
     given('a search query with no matches', () => {
-      jest
-        .spyOn(client.search, 'characterSearch')
-        .mockResolvedValue(expectedResults as any);
+      queueResponse({ match: SEARCH_PATH, body: {} });
     });
 
     when('the client searches for nonexistent items', async () => {
       result = await client.search.characterSearch(
         characterId,
         searchString,
-        allCategories as any,
+        allCategories,
       );
     });
 
     then('the client shall return undefined or empty category arrays', () => {
-      expect(result).toBeDefined();
-      expect(result.solar_system).toBeUndefined();
-      expect(result.station).toBeUndefined();
-      expect(result.character).toBeUndefined();
-      expect(result.corporation).toBeUndefined();
-      expect(result.alliance).toBeUndefined();
+      expectSearchRequest(searchString, allCategories);
+      expect(result).toEqual({});
+      for (const category of allCategories) {
+        expect(result).not.toHaveProperty(category);
+      }
     });
   });
 
@@ -142,59 +156,50 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const characterId = 90000001;
     const searchString = 'Amarr';
-    const expectedResults = {
-      solar_system: [30002187, 30002188, 30002189],
-    };
 
     given('a search for a solar system name', () => {
-      jest
-        .spyOn(client.search, 'characterSearch')
-        .mockResolvedValue(expectedResults as any);
+      queueResponse({
+        match: SEARCH_PATH,
+        body: { solar_system: [30002187, 30002188, 30002189] },
+      });
     });
 
     when('the client searches for solar systems', async () => {
       result = await client.search.characterSearch(
         characterId,
         searchString,
-        allCategories as any,
+        allCategories,
       );
     });
 
     then('the client shall return matching system IDs', () => {
-      expect(result).toBeDefined();
-      expect(result.solar_system).toHaveLength(3);
-      expect(result.solar_system).toContain(30002187);
+      expectSearchRequest(searchString, allCategories);
+      expect(result).toEqual({
+        solar_system: [30002187, 30002188, 30002189],
+      });
     });
   });
 
   test('Goonswarm query returns one alliance ID', ({ given, when, then }) => {
     let result: any;
-    const characterId = 90000001;
     const searchString = 'Goonswarm';
-    const expectedResults = {
-      alliance: [99005338],
-    };
 
     given('a search for an alliance name', () => {
-      jest
-        .spyOn(client.search, 'characterSearch')
-        .mockResolvedValue(expectedResults as any);
+      queueResponse({ match: SEARCH_PATH, body: { alliance: [99005338] } });
     });
 
     when('the client searches for alliances', async () => {
       result = await client.search.characterSearch(
         characterId,
         searchString,
-        allCategories as any,
+        allCategories,
       );
     });
 
     then('the client shall return matching alliance IDs', () => {
-      expect(result).toBeDefined();
-      expect(result.alliance).toHaveLength(1);
-      expect(result.alliance).toContain(99005338);
+      expectSearchRequest(searchString, allCategories);
+      expect(result).toEqual({ alliance: [99005338] });
     });
   });
 
@@ -204,19 +209,19 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let caughtError: any;
-    const characterId = 90000001;
     const searchString = 'test';
 
     given('insufficient search permissions', () => {
-      const error = TestDataFactory.createError(403);
-      jest.spyOn(client.search, 'characterSearch').mockRejectedValue(error);
+      queueError(403, 'Character does not have required role(s)', {
+        match: SEARCH_PATH,
+      });
     });
 
     when('the client searches without permissions', async () => {
       try {
         await client.search.characterSearch(characterId, searchString, [
           'character',
-        ] as any);
+        ]);
       } catch (e) {
         caughtError = e;
       }
@@ -224,6 +229,10 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 search error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(403);
+      expect((caughtError as EsiError).isForbidden()).toBe(true);
+      // 403 is not retried.
+      expectSearchRequest(searchString, ['character']);
     });
   });
 
@@ -233,31 +242,29 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
-    const characterId = 90000001;
     const searchString = 'Ji';
-    const expectedResults = {
-      solar_system: [30000142],
-      character: [987654321],
-    };
 
     given('a very short search string', () => {
-      jest
-        .spyOn(client.search, 'characterSearch')
-        .mockResolvedValue(expectedResults as any);
+      queueResponse({
+        match: SEARCH_PATH,
+        body: { solar_system: [30000142], character: [987654321] },
+      });
     });
 
     when('the client searches with a short query', async () => {
       result = await client.search.characterSearch(
         characterId,
         searchString,
-        allCategories as any,
+        allCategories,
       );
     });
 
     then('I shall still receive valid results', () => {
-      expect(result).toBeDefined();
-      expect(result.solar_system).toHaveLength(1);
-      expect(result.character).toHaveLength(1);
+      expectSearchRequest(searchString, allCategories);
+      expect(result).toEqual({
+        solar_system: [30000142],
+        character: [987654321],
+      });
     });
   });
 });

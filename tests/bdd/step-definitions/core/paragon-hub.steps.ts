@@ -1,7 +1,15 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  RETRYABLE_ATTEMPTS,
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0027-paragon-hub.feature');
 
@@ -11,12 +19,10 @@ const TEST_ALLIANCE_ID = 99000006;
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Public board returns ISK-priced and PLEX-priced listings with a cursor', ({
@@ -54,9 +60,7 @@ defineFeature(feature, (test) => {
     };
 
     given('public SKINR listings exist', () => {
-      jest
-        .spyOn(client.paragonHub, 'getPublicListings')
-        .mockResolvedValue(expectedResponse as any);
+      queueResponse({ match: '/paragon-hub/skinr', body: expectedResponse });
     });
 
     when('the client requests public listings', async () => {
@@ -64,10 +68,19 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return listings with cursor data', () => {
-      expect(result).toBeDefined();
-      expect(result.listings).toHaveLength(2);
-      expect(result.cursor.after).toBe('cursor-abc');
-      expect(result.listings[0].skinr_id).toBe('skinr-design-001');
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(/\/paragon-hub\/skinr\/?$/);
+      expect(request.url.searchParams.has('after')).toBe(false);
+      expect(result).toEqual(expectedResponse);
+      expect(result.cursor).toEqual({
+        after: 'cursor-abc',
+        before: 'cursor-xyz',
+      });
+      expect(result.listings.map((l: any) => l.skinr_id)).toEqual([
+        'skinr-design-001',
+        'skinr-design-002',
+      ]);
       expect(result.listings[0].price).toEqual({ isk: 500000000 });
       expect(result.listings[1].price).toEqual({ plex: 100 });
     });
@@ -98,9 +111,10 @@ defineFeature(feature, (test) => {
     };
 
     given('the character has listed SKINR designs', () => {
-      jest
-        .spyOn(client.paragonHub, 'getCharacterListings')
-        .mockResolvedValue(expectedResponse as any);
+      queueResponse({
+        match: `/characters/${TEST_CHARACTER_ID}/paragon-hub/skinr`,
+        body: expectedResponse,
+      });
     });
 
     when('the client requests character listings', async () => {
@@ -108,7 +122,12 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return listings with target visibility', () => {
-      expect(result).toBeDefined();
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/characters/${TEST_CHARACTER_ID}/paragon-hub/skinr/?$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedResponse);
       expect(result.listings).toHaveLength(1);
       expect(result.listings[0].seller_id).toBe(TEST_CHARACTER_ID);
       expect(result.listings[0].target).toEqual({ public: true });
@@ -138,9 +157,10 @@ defineFeature(feature, (test) => {
     };
 
     given('alliance-targeted SKINR listings exist', () => {
-      jest
-        .spyOn(client.paragonHub, 'getAllianceListings')
-        .mockResolvedValue(expectedResponse as any);
+      queueResponse({
+        match: `/paragon-hub/skinr/alliances/${TEST_ALLIANCE_ID}`,
+        body: expectedResponse,
+      });
     });
 
     when('the client requests alliance listings', async () => {
@@ -148,9 +168,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return listings targeted at the alliance', () => {
-      expect(result).toBeDefined();
-      expect(result.listings).toHaveLength(1);
-      expect(result.listings[0].skinr_id).toBe('skinr-design-004');
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/paragon-hub/skinr/alliances/${TEST_ALLIANCE_ID}/?$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedResponse);
+      expect(result.listings.map((l: any) => l.skinr_id)).toEqual([
+        'skinr-design-004',
+      ]);
     });
   });
 
@@ -178,9 +204,7 @@ defineFeature(feature, (test) => {
     };
 
     given('multiple pages of listings exist', () => {
-      jest
-        .spyOn(client.paragonHub, 'getPublicListings')
-        .mockResolvedValue(page2Response as any);
+      queueResponse({ match: 'after=cursor-page2', body: page2Response });
     });
 
     when('the client requests the next page using a cursor', async () => {
@@ -188,10 +212,17 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the next page of results', () => {
-      expect(result).toBeDefined();
-      expect(result.cursor.after).toBe('cursor-page3');
-      expect(result.cursor.before).toBe('cursor-page1');
-      expect(result.listings).toHaveLength(1);
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(/\/paragon-hub\/skinr\/?$/);
+      expect(request.url.searchParams.get('after')).toBe('cursor-page2');
+      expect(request.url.searchParams.has('before')).toBe(false);
+      expect(result.cursor).toEqual({
+        after: 'cursor-page3',
+        before: 'cursor-page1',
+      });
+      expect(result.listings.map((l: any) => l.id)).toEqual([
+        'd4e5f6a7-b8c9-0123-def0-456789012345',
+      ]);
     });
   });
 
@@ -203,10 +234,11 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('the ESI service is down', () => {
-      const error = TestDataFactory.createError(503);
-      jest
-        .spyOn(client.paragonHub, 'getPublicListings')
-        .mockRejectedValue(error);
+      // 503 is retryable, so the outage has to outlast the retry budget.
+      queueError(503, 'Service Unavailable', {
+        match: '/paragon-hub/skinr',
+        times: RETRYABLE_ATTEMPTS,
+      });
     });
 
     when('the client requests Paragon Hub data', async () => {
@@ -219,6 +251,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 503 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(503);
+      expect(sentRequests()).toHaveLength(RETRYABLE_ATTEMPTS);
     });
   });
 });

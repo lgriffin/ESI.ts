@@ -1,3 +1,14 @@
+# Dependency cool-off (R13). A version must have been public for the number
+# of days below before Dependabot proposes it, so a compromised or broken
+# release has time to be caught and yanked upstream before it reaches a PR
+# here. Cooldown applies to version updates only: Dependabot security updates
+# are not delayed.
+#
+# npm-side counterpart: none, deliberately. The npm equivalent is
+# `min-release-age` in .npmrc, which needs npm >= 11.10. CI installs with the
+# npm bundled with Node 20 (npm 10), which accepts the key without a warning
+# and ignores it, so adding it would only look like a control. Add it to
+# .npmrc, with a comment pointing back here, once CI runs npm 11.10 or later.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -11,6 +22,11 @@ updates:
     labels:
       - dependencies
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
     groups:
       minor-and-patch:
         update-types:
@@ -40,6 +56,11 @@ updates:
       prefix: 'chore(ci):'
     labels:
       - dependencies
+    open-pull-requests-limit: 5
+    # github-actions has no semver-* cooldown keys; default-days covers every
+    # update, including digest bumps of the SHA-pinned actions.
+    cooldown:
+      default-days: 7
     groups:
       codeql:
         patterns:

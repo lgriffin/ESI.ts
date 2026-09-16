@@ -3,8 +3,10 @@ import { ApiClient } from './ApiClient';
 import {
   trySpecAwareCacheHit,
   cacheResponse,
+  invalidateAfterWrite,
   handleEarlyStatus,
   handleErrorResponse,
+  readEsiErrorReason,
   wrapError,
   handleCursorPagination,
   handleOffsetPagination,
@@ -61,6 +63,10 @@ const executeRequest = async (
       templatePath,
     );
 
+    if (response.status === 201 || response.status === 204) {
+      invalidateAfterWrite(client, method, endpoint, resolveCache);
+    }
+
     if (response.status === 201) {
       let data: unknown;
       try {
@@ -91,6 +97,7 @@ const executeRequest = async (
         useETag,
         resolveCache,
         requiresAuth,
+        await readEsiErrorReason(response),
       );
       return finish(staleOrThrow);
     }

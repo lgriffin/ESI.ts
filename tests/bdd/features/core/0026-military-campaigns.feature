@@ -10,7 +10,7 @@ Feature: Military Campaigns
 
   # ── Campaign listing ────────────────────────────────────────────────
 
-  Rule: When the military campaign listing is requested, the MilitaryCampaigns client shall return each campaign with its campaign_id, state, progress, and, for a completed campaign, its finish_time.
+  Rule: When the military campaign listing is requested, the MilitaryCampaigns client shall return each campaign with its campaign_id, state, and progress, and the finish_time of a completed campaign when present.
     The listing mixes running and finished campaigns. State and progress are
     what separate them, and finish_time appears only once a campaign has
     ended, so a caller reads its presence as the end of the campaign's

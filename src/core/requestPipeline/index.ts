@@ -4,12 +4,14 @@ export {
   trySpecAwareCacheHit,
   tryStaleCacheResponse,
   cacheResponse,
+  invalidateAfterWrite,
 } from './cachePolicy';
 export type { EsiHandlerResponse } from './cachePolicy';
 export {
   STATUS_MESSAGES,
   handleEarlyStatus,
   handleErrorResponse,
+  readEsiErrorReason,
   wrapError,
 } from './statusHandling';
 export {

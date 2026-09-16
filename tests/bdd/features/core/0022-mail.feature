@@ -8,9 +8,15 @@ Feature: Mail Management
   Every operation is character-scoped and authenticated, which makes 403 the
   expected failure for an unauthenticated caller.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Reading mail ────────────────────────────────────────────────────
 
-  Rule: When the mail headers of a character are requested, the Mail client shall return one summary per message carrying mail_id, from, subject, timestamp, and is_read.
+  Rule: When the mail headers of a character are requested, the Mail client shall return one summary per message carrying mail_id, from, subject, timestamp, and is_read when present.
     Headers are the cheap listing view — enough to render an inbox without
     fetching a body per row. The read flag and timestamp are what let a caller
     sort and badge the list, so both are part of the summary rather than the
@@ -31,7 +37,7 @@ Feature: Mail Management
       When the client requests their empty inbox headers
       Then the client shall return an empty mail list
 
-  Rule: When a single message is requested by mail ID, the Mail client shall return that message with its mail_id, subject, sender, and recipient list.
+  Rule: When a single message is requested by mail ID, the Mail client shall return that message with its mail_id, subject, sender, and recipient list when present.
     The per-message endpoint is the only place the recipient list appears, so
     fetching one message is how a caller discovers who else received it. The
     mail_id echoed back confirms which message was resolved.
@@ -43,7 +49,7 @@ Feature: Mail Management
 
   # ── Labels and mailing lists ────────────────────────────────────────
 
-  Rule: When the mail labels of a character are requested, the Mail client shall return the total unread count together with the label_id, name, and unread_count of each label.
+  Rule: When the mail labels of a character are requested, the Mail client shall return the label_id and name of each label, and the total unread count and each label's unread_count when present.
     A label is both a folder and a counter. The aggregate total is reported
     separately from the per-label counts because a single unread message can
     carry more than one label, making the per-label counts sum to at least the
@@ -117,7 +123,7 @@ Feature: Mail Management
 
   # ── Error propagation ───────────────────────────────────────────────
 
-  Rule: If the ESI API rejects a mail request with an error status, then the Mail client shall raise an EsiError.
+  Rule: If every attempt at a mail request is answered with an error status and no usable cached entry exists, then the Mail client shall raise an EsiError.
     Every mail endpoint reports failure the same way so a caller can wrap the
     whole surface in one try/catch. The two scenarios cover the authorisation
     boundary and a missing resource.

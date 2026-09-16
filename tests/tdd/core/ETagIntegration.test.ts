@@ -1,4 +1,5 @@
 import { EsiClient } from '../../../src/EsiClient';
+import { EsiError } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -170,12 +171,24 @@ describe('ETag Integration Tests', () => {
       );
     });
 
-    it('should handle network errors gracefully', async () => {
-      fetchMock.mockRejectOnce(new Error('Network error'));
+    it('should retry a network error and then reject with a status-0 EsiError', async () => {
+      const retrying = new EsiClient({
+        clientId: 'test-client',
+        baseUrl: 'https://test-api.example.com',
+        unsafeAllowCustomHost: true,
+        retryConfig: { maxRetries: 1, baseDelayMs: 1, maxDelayMs: 1 },
+      });
+      fetchMock.mockReject(new Error('Network error'));
 
-      await expect(client.alliance.getAlliances()).rejects.toThrow(
-        'Network error',
-      );
+      const error = await retrying.alliance
+        .getAlliances()
+        .catch((e: unknown) => e);
+      retrying.shutdown();
+
+      expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(0);
+      expect((error as EsiError).message).toContain('Network error');
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
   });
 });

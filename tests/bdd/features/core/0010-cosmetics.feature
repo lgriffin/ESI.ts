@@ -6,6 +6,12 @@ Feature: Cosmetics SKINR
   components are token-scoped to a character; a design record is public and is
   keyed by a string ID rather than a numeric one.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Character holdings ──────────────────────────────────────────────
 
   Rule: When character SKINR licences are requested for a character ID, the Cosmetics client shall return a record whose licenses array holds one entry per owned design carrying skinr_id, activated, and unactivated.
@@ -53,7 +59,7 @@ Feature: Cosmetics SKINR
 
   # ── Failure surface ─────────────────────────────────────────────────
 
-  Rule: If a cosmetics request fails, then the Cosmetics client shall reject with an EsiError.
+  Rule: If every attempt at a cosmetics request fails and no usable cached entry exists, then the Cosmetics client shall reject with an EsiError.
     SKINR is a newer part of the API and its endpoints go out of service
     independently of the rest. Surfacing the outage as the domain error type
     keeps it on the same handling path as any other failure rather than as an

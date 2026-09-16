@@ -8,9 +8,15 @@ Feature: Paragon Hub SKINR Marketplace
   that decides who can see it, so both the payment and the visibility model
   differ from the regular market endpoints.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Browsing listings ───────────────────────────────────────────────
 
-  Rule: When public SKINR listings are requested, the ParagonHub client shall return each listing with its skinr_id and a price denominated in either ISK or PLEX, alongside the page cursor.
+  Rule: When public SKINR listings are requested, the ParagonHub client shall return each listing with its skinr_id and a price denominated in either ISK or PLEX, alongside the page cursor when present.
     The public board is the default view of the marketplace. Price is a tagged
     value rather than a number plus a currency field, so a caller reads the
     key to learn the denomination — collapsing the two into one figure would
@@ -44,7 +50,7 @@ Feature: Paragon Hub SKINR Marketplace
 
   # ── Cursor pagination ───────────────────────────────────────────────
 
-  Rule: When a cursor is supplied with a public listings request, the ParagonHub client shall return the page it identifies together with the after and before cursors of the adjacent pages.
+  Rule: When a cursor is supplied with a public listings request, the ParagonHub client shall return the page it identifies together with the after and before cursors of the adjacent pages when present.
     Paragon Hub uses cursor paging rather than page numbers, because listings
     are created and expire while a caller is walking the board. Returning
     both adjacent cursors is what allows movement in either direction from
@@ -57,7 +63,7 @@ Feature: Paragon Hub SKINR Marketplace
 
   # ── Error propagation ───────────────────────────────────────────────
 
-  Rule: If the ESI API responds to a Paragon Hub request with an error status, then the ParagonHub client shall raise an EsiError.
+  Rule: If the ESI API answers every attempt at a Paragon Hub request with an error status and no usable cached entry exists, then the ParagonHub client shall raise an EsiError.
     The marketplace endpoints sit behind the same infrastructure as the rest
     of ESI, so an upstream outage surfaces as the standard error type instead
     of an empty listings page that a caller could mistake for a quiet board.

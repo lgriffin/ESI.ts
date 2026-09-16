@@ -1,19 +1,35 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0008-contacts.feature');
+
+/**
+ * Match a URL whose path ends exactly at `path`, so `/contacts` does not also
+ * serve `/contacts/labels`.
+ */
+function exactPath(path: string): RegExp {
+  const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^https://esi\\.evetech\\.net${escaped}(\\?|$)`);
+}
+
+const BEARER = 'Bearer bdd-access-token';
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Character contact list spanning character, corporation, and alliance entries', ({
@@ -22,33 +38,36 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
+    const contacts = [
+      {
+        contact_id: 123456789,
+        contact_type: 'character',
+        standing: 10.0,
+        label_ids: [1],
+        is_watched: true,
+        is_blocked: false,
+      },
+      {
+        contact_id: 987654321,
+        contact_type: 'corporation',
+        standing: 5.0,
+        label_ids: [2],
+      },
+      {
+        contact_id: 99005338,
+        contact_type: 'alliance',
+        standing: -10.0,
+        label_ids: [2, 3],
+      },
+    ];
     let result: any;
 
     given('a character with contacts', () => {
-      const expectedContacts = [
-        {
-          contact_id: 123456789,
-          contact_type: 'character' as const,
-          standing: 10.0,
-          label_ids: [1],
-        },
-        {
-          contact_id: 987654321,
-          contact_type: 'corporation' as const,
-          standing: 5.0,
-          label_ids: [2],
-        },
-        {
-          contact_id: 99005338,
-          contact_type: 'alliance' as const,
-          standing: -10.0,
-          label_ids: [],
-        },
-      ];
-
-      jest
-        .spyOn(client.contacts, 'getCharacterContacts')
-        .mockResolvedValue(expectedContacts);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contacts`),
+        headers: { 'x-pages': '1' },
+        body: contacts,
+      });
     });
 
     when('the client requests character contacts', async () => {
@@ -56,13 +75,19 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of contacts with standings', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(3);
-      expect(result[0]).toHaveProperty('contact_id', 123456789);
-      expect(result[0]).toHaveProperty('contact_type', 'character');
-      expect(result[0]).toHaveProperty('standing', 10.0);
-      expect(result[0]).toHaveProperty('label_ids');
-      expect(result[2].standing).toBe(-10.0);
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/contacts`,
+      );
+      expect(lastRequest().headers.authorization).toBe(BEARER);
+      expect(result).toEqual(contacts);
+      expect(
+        result.map((c: any) => [c.contact_type, c.standing, c.label_ids]),
+      ).toEqual([
+        ['character', 10.0, [1]],
+        ['corporation', 5.0, [2]],
+        ['alliance', -10.0, [2, 3]],
+      ]);
     });
   });
 
@@ -71,11 +96,11 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with no contacts', () => {
-      const emptyContacts: any[] = [];
-
-      jest
-        .spyOn(client.contacts, 'getCharacterContacts')
-        .mockResolvedValue(emptyContacts);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contacts`),
+        headers: { 'x-pages': '1' },
+        body: [],
+      });
     });
 
     when(
@@ -86,8 +111,10 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall return an empty array', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(0);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/contacts`,
+      );
+      expect(result).toEqual([]);
     });
   });
 
@@ -100,11 +127,9 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an invalid or expired token for contacts', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.contacts, 'getCharacterContacts')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'token not valid for scope', {
+        match: exactPath(`/characters/${characterId}/contacts`),
+      });
     });
 
     when(
@@ -120,6 +145,10 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 forbidden error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(403);
+      // 403 is not retried.
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().headers.authorization).toBe(BEARER);
     });
   });
 
@@ -132,15 +161,14 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with custom labels', () => {
-      const expectedLabels = [
-        { label_id: 1, label_name: 'Friendly' },
-        { label_id: 2, label_name: 'Hostile' },
-        { label_id: 3, label_name: 'Neutral' },
-      ];
-
-      jest
-        .spyOn(client.contacts, 'getCharacterContactLabels')
-        .mockResolvedValue(expectedLabels);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contacts/labels`),
+        body: [
+          { label_id: 1, label_name: 'Friendly' },
+          { label_id: 2, label_name: 'Hostile' },
+          { label_id: 3, label_name: 'Neutral' },
+        ],
+      });
     });
 
     when('the client requests contact labels', async () => {
@@ -148,30 +176,28 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the label definitions', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(3);
-      expect(result[0]).toHaveProperty('label_id', 1);
-      expect(result[0]).toHaveProperty('label_name', 'Friendly');
-      expect(result[1]).toHaveProperty('label_name', 'Hostile');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/contacts/labels`,
+      );
+      expect(result).toEqual([
+        { label_id: 1, label_name: 'Friendly' },
+        { label_id: 2, label_name: 'Hostile' },
+        { label_id: 3, label_name: 'Neutral' },
+      ]);
     });
   });
 
   test('Two contacts added at standing five', ({ given, when, then }) => {
     const characterId = 1689391488;
     let result: any;
-    let newContacts: any;
 
     given('contact data with standings', () => {
-      newContacts = {
-        contact_ids: [111111111, 222222222],
-        standing: 5.0,
-        label_ids: [1],
-      };
-      const expectedIds = [111111111, 222222222];
-
-      jest
-        .spyOn(client.contacts, 'postCharacterContacts')
-        .mockResolvedValue(expectedIds);
+      // ESI answers a successful add with 201 Created and the created IDs.
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contacts`),
+        status: 201,
+        body: [111111111, 222222222],
+      });
     });
 
     when('the client adds contacts', async () => {
@@ -183,10 +209,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the IDs of the added contacts', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result).toContain(111111111);
-      expect(result).toContain(222222222);
+      const request = lastRequest();
+      expect(sentRequests()).toHaveLength(1);
+      expect(request.method).toBe('POST');
+      expect(request.url.pathname).toBe(`/characters/${characterId}/contacts`);
+      expect(request.url.searchParams.get('standing')).toBe('5');
+      expect(request.headers.authorization).toBe(BEARER);
+      expect(JSON.parse(request.body!)).toEqual([111111111, 222222222]);
+      expect(result).toEqual([111111111, 222222222]);
     });
   });
 
@@ -195,9 +225,10 @@ defineFeature(feature, (test) => {
     const contactIds = [111111111, 222222222];
 
     given('existing contact IDs', () => {
-      jest
-        .spyOn(client.contacts, 'deleteCharacterContacts')
-        .mockResolvedValue(undefined);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/contacts`),
+        status: 204,
+      });
     });
 
     when('the client deletes those contacts', async () => {
@@ -205,10 +236,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the deletion shall complete successfully', () => {
-      expect(client.contacts.deleteCharacterContacts).toHaveBeenCalledWith(
-        characterId,
-        contactIds,
+      const request = lastRequest();
+      expect(sentRequests()).toHaveLength(1);
+      expect(request.method).toBe('DELETE');
+      expect(request.url.pathname).toBe(`/characters/${characterId}/contacts`);
+      expect(request.url.searchParams.get('contact_ids')).toBe(
+        '111111111,222222222',
       );
+      expect(request.headers.authorization).toBe(BEARER);
+      expect(request.body).toBeUndefined();
     });
   });
 
@@ -221,24 +257,25 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid corporation ID for contacts', () => {
-      const expectedContacts = [
-        {
-          contact_id: 99005338,
-          contact_type: 'alliance' as const,
-          standing: 10.0,
-          label_ids: [],
-        },
-        {
-          contact_id: 555555555,
-          contact_type: 'character' as const,
-          standing: -5.0,
-          label_ids: [1],
-        },
-      ];
-
-      jest
-        .spyOn(client.contacts, 'getCorporationContacts')
-        .mockResolvedValue(expectedContacts);
+      queueResponse({
+        match: exactPath(`/corporations/${corporationId}/contacts`),
+        headers: { 'x-pages': '1' },
+        body: [
+          {
+            contact_id: 99005338,
+            contact_type: 'alliance',
+            standing: 10.0,
+            label_ids: [2],
+          },
+          {
+            contact_id: 555555555,
+            contact_type: 'character',
+            standing: -5.0,
+            label_ids: [1],
+            is_watched: false,
+          },
+        ],
+      });
     });
 
     when('the client requests corporation contacts', async () => {
@@ -246,11 +283,21 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the corporation contact list', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('contact_id', 99005338);
-      expect(result[0]).toHaveProperty('contact_type', 'alliance');
-      expect(result[1]).toHaveProperty('standing', -5.0);
+      expect(lastRequest().url.pathname).toBe(
+        `/corporations/${corporationId}/contacts`,
+      );
+      expect(lastRequest().headers.authorization).toBe(BEARER);
+      expect(
+        result.map((c: any) => [
+          c.contact_id,
+          c.contact_type,
+          c.standing,
+          c.label_ids,
+        ]),
+      ).toEqual([
+        [99005338, 'alliance', 10.0, [2]],
+        [555555555, 'character', -5.0, [1]],
+      ]);
     });
   });
 
@@ -263,14 +310,13 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a corporation with custom labels', () => {
-      const expectedLabels = [
-        { label_id: 1, label_name: 'War Target' },
-        { label_id: 2, label_name: 'Ally' },
-      ];
-
-      jest
-        .spyOn(client.contacts, 'getCorporationContactLabels')
-        .mockResolvedValue(expectedLabels);
+      queueResponse({
+        match: exactPath(`/corporations/${corporationId}/contacts/labels`),
+        body: [
+          { label_id: 1, label_name: 'War Target' },
+          { label_id: 2, label_name: 'Ally' },
+        ],
+      });
     });
 
     when('the client requests corporation contact labels', async () => {
@@ -278,9 +324,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the corporation label definitions', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('label_name', 'War Target');
+      expect(lastRequest().url.pathname).toBe(
+        `/corporations/${corporationId}/contacts/labels`,
+      );
+      expect(result).toEqual([
+        { label_id: 1, label_name: 'War Target' },
+        { label_id: 2, label_name: 'Ally' },
+      ]);
     });
   });
 
@@ -290,58 +340,77 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     const characterId = 1689391488;
+    const contactsPath = `/characters/${characterId}/contacts`;
+    const existing = {
+      contact_id: 123456789,
+      contact_type: 'character',
+      standing: 10.0,
+      label_ids: [1],
+    };
+    const added = {
+      contact_id: 333333333,
+      contact_type: 'character',
+      standing: 5.0,
+      label_ids: [1],
+    };
+    let initialContacts: any;
+    let contactLabels: any;
+    let addedIds: any;
     let finalContacts: any;
 
     given('a character managing contacts', () => {
-      const initialContacts = [
-        {
-          contact_id: 123456789,
-          contact_type: 'character' as const,
-          standing: 10.0,
-          label_ids: [],
-        },
-      ];
-
-      const labels = [{ label_id: 1, label_name: 'Friendly' }];
-
-      const updatedContacts = [
-        ...initialContacts,
-        {
-          contact_id: 333333333,
-          contact_type: 'character' as const,
-          standing: 5.0,
-          label_ids: [1],
-        },
-      ];
-
-      jest
-        .spyOn(client.contacts, 'getCharacterContacts')
-        .mockResolvedValueOnce(initialContacts)
-        .mockResolvedValueOnce(updatedContacts);
-      jest
-        .spyOn(client.contacts, 'getCharacterContactLabels')
-        .mockResolvedValue(labels);
-      jest
-        .spyOn(client.contacts, 'postCharacterContacts')
-        .mockResolvedValue([333333333]);
+      // Real ESI list responses carry an ETag, so the first read is cached.
+      queueResponse({
+        match: exactPath(contactsPath),
+        headers: { 'x-pages': '1', etag: '"contacts-v1"' },
+        body: [existing],
+      });
+      queueResponse({
+        match: exactPath(`${contactsPath}/labels`),
+        headers: { etag: '"labels-v1"' },
+        body: [{ label_id: 1, label_name: 'Friendly' }],
+      });
+      queueResponse({
+        match: exactPath(contactsPath),
+        status: 201,
+        body: [333333333],
+      });
+      queueResponse({
+        match: exactPath(contactsPath),
+        headers: { 'x-pages': '1', etag: '"contacts-v2"' },
+        body: [existing, added],
+      });
     });
 
     when('the client lists contacts then add new ones and verify', async () => {
-      const [contacts, contactLabels] = await Promise.all([
+      [initialContacts, contactLabels] = await Promise.all([
         client.contacts.getCharacterContacts(characterId),
         client.contacts.getCharacterContactLabels(characterId),
       ]);
 
-      expect(contacts).toHaveLength(1);
-      expect(contactLabels).toHaveLength(1);
-
-      await client.contacts.postCharacterContacts(characterId, 5, [333333333]);
+      addedIds = await client.contacts.postCharacterContacts(
+        characterId,
+        5,
+        [333333333],
+      );
 
       finalContacts = await client.contacts.getCharacterContacts(characterId);
     });
 
     then('the full workflow shall succeed', () => {
-      expect(finalContacts).toHaveLength(2);
+      expect(initialContacts).toEqual([existing]);
+      expect(contactLabels).toEqual([{ label_id: 1, label_name: 'Friendly' }]);
+      expect(addedIds).toEqual([333333333]);
+
+      // The second read goes back to ESI rather than answering from the
+      // cached first read.
+      const requests = sentRequests();
+      expect(requests).toHaveLength(4);
+      expect(requests[2].method).toBe('POST');
+      expect(requests[3].method).toBe('GET');
+      expect(requests[3].url.pathname).toBe(contactsPath);
+
+      expect(finalContacts).toEqual([existing, added]);
       expect(finalContacts[1].contact_id).toBe(333333333);
       expect(finalContacts[1].standing).toBe(5.0);
     });

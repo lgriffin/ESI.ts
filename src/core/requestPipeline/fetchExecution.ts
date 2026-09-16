@@ -8,7 +8,7 @@ import { ICircuitBreaker } from '../circuitBreaker/ICircuitBreaker';
 import { buildError } from '../util/error';
 import { buildRequestHeaders } from './headers';
 import { applyRequestMiddleware } from './middlewareBridge';
-import { STATUS_MESSAGES } from './statusHandling';
+import { STATUS_MESSAGES, readEsiErrorReason } from './statusHandling';
 
 export interface RawFetchResult {
   response: Response;
@@ -20,6 +20,31 @@ export interface SingleFetchResult {
   data: unknown;
   parsed: ParsedHeaders;
   url: string;
+}
+
+/**
+ * An abort from the request timer. Matched by name because DOMException is not
+ * an `instanceof Error` in every runtime.
+ */
+function isAbortError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { name?: unknown }).name === 'AbortError'
+  );
+}
+
+/**
+ * A request that never produced an HTTP response (DNS, connection reset, TLS).
+ * Status 0 makes it an EsiError like every other request failure, and
+ * retryable for GET; the original error is kept as `cause`.
+ */
+function networkError(err: unknown, url: string): EsiError {
+  const reason = err instanceof Error ? err.message : String(err);
+  return Object.assign(
+    new EsiError(0, `Network request failed: ${reason}`, url),
+    { cause: err },
+  );
 }
 
 /**
@@ -95,10 +120,10 @@ export async function executeSingleFetch(
         cb.recordFailure(cbKey, 0);
         cbRecorded = true;
       }
-      if (err instanceof Error && err.name === 'AbortError') {
+      if (isAbortError(err)) {
         throw new TimeoutError(timeoutMs, url);
       }
-      throw err;
+      throw networkError(err, url);
     }
     clearTimeout(timer);
 
@@ -193,9 +218,12 @@ export async function fetchOnePage(
   );
 
   if (!response.ok) {
+    const statusMessage =
+      STATUS_MESSAGES[response.status] || response.statusText;
+    const reason = await readEsiErrorReason(response);
     throw new EsiError(
       response.status,
-      STATUS_MESSAGES[response.status] || response.statusText,
+      reason ? `${statusMessage}: ${reason}` : statusMessage,
       url,
       parsed.requestId ?? undefined,
     );

@@ -19,6 +19,12 @@
  * `spec-audit-checks.ts`, which imports no ESM, so the audit's own unit tests
  * can load them under Jest. This file owns the AST walk and the CLI.
  *
+ * `@cucumber/gherkin` and `@cucumber/messages` are ESM-only, and ts-node runs
+ * this file as CommonJS. A static import would compile to `require()`, which
+ * only loads ESM on Node 20.19+ / 22.12+ (`require(esm)`). The Cucumber
+ * packages are therefore loaded at runtime with a real dynamic `import()`,
+ * which every supported Node (18+) provides — see `importEsm` below.
+ *
  * Usage: npx ts-node scripts/spec-audit.ts [paths...] [--verbose]
  *        npm run spec:audit
  *
@@ -33,13 +39,13 @@
 
 import { readFileSync, existsSync, statSync, readdirSync } from 'fs';
 import * as path from 'path';
-import {
-  Parser,
-  AstBuilder,
-  GherkinClassicTokenMatcher,
-} from '@cucumber/gherkin';
-import { IdGenerator } from '@cucumber/messages';
-import type { Feature, Rule, Scenario } from '@cucumber/messages';
+import { pathToFileURL } from 'url';
+import type {
+  Feature,
+  GherkinDocument,
+  Rule,
+  Scenario,
+} from '@cucumber/messages';
 
 import {
   REPO_ROOT,
@@ -56,6 +62,53 @@ import {
 const DEFAULT_PATHS = ['tests/bdd/features'];
 
 const IS_CI = process.env.GITHUB_ACTIONS === 'true';
+
+// ---------------------------------------------------------------------------
+// Loading the ESM-only Cucumber packages
+// ---------------------------------------------------------------------------
+
+/**
+ * A dynamic `import()` that survives compilation to CommonJS.
+ *
+ * Under `module: commonjs`, TypeScript rewrites `import('x')` in source into
+ * `require('x')`, which cannot load ESM before Node 20.19 / 22.12. Building
+ * the call with `new Function` hides it from the compiler, so Node sees a
+ * genuine `import()` and loads the package through its ESM loader.
+ *
+ * The specifier is resolved to an absolute file URL first: an `import()` with
+ * no enclosing module has no referrer to resolve a bare name against, and on
+ * Windows an absolute path is not a valid specifier without the `file:` form.
+ *
+ * This only works in a plain Node process. Inside Jest's module sandbox the
+ * call fails with ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING unless Jest runs with
+ * `--experimental-vm-modules`, which is why the fixture suite drives this
+ * file as a child process.
+ */
+const dynamicImport = new Function('specifier', 'return import(specifier)') as (
+  specifier: string,
+) => Promise<unknown>;
+
+async function importEsm<T>(packageName: string): Promise<T> {
+  const url = pathToFileURL(require.resolve(packageName)).href;
+  return (await dynamicImport(url)) as T;
+}
+
+type ParseGherkin = (source: string) => GherkinDocument;
+
+async function loadGherkinParser(): Promise<ParseGherkin> {
+  const [gherkin, messages] = await Promise.all([
+    importEsm<typeof import('@cucumber/gherkin')>('@cucumber/gherkin'),
+    importEsm<typeof import('@cucumber/messages')>('@cucumber/messages'),
+  ]);
+  // Node ids are never read by the audit. `IdGenerator.uuid()` would call the
+  // global `crypto.randomUUID()`, which Node 18 does not expose, so every parse
+  // would fail there; a counter is dependency-free.
+  return (source) =>
+    new gherkin.Parser(
+      new gherkin.AstBuilder(messages.IdGenerator.incrementing()),
+      new gherkin.GherkinClassicTokenMatcher(),
+    ).parse(source);
+}
 
 // ---------------------------------------------------------------------------
 // Findings
@@ -193,14 +246,14 @@ function auditFeature(feature: Feature, file: string): FileReport {
   return { file, findings, ruleCount, scenarioCount };
 }
 
-function auditFile(absPath: string, relPath: string): FileReport {
-  const parser = new Parser(
-    new AstBuilder(IdGenerator.uuid()),
-    new GherkinClassicTokenMatcher(),
-  );
+function auditFile(
+  parse: ParseGherkin,
+  absPath: string,
+  relPath: string,
+): FileReport {
   let document;
   try {
-    document = parser.parse(readFileSync(absPath, 'utf-8'));
+    document = parse(readFileSync(absPath, 'utf-8'));
   } catch (error) {
     return {
       file: relPath,
@@ -274,7 +327,7 @@ function annotate(
 // Main
 // ---------------------------------------------------------------------------
 
-function main(): void {
+async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const verbose = args.includes('--verbose') || args.includes('-v') || IS_CI;
   const targets = args.filter((a) => !a.startsWith('-'));
@@ -301,13 +354,14 @@ function main(): void {
         )
       : { added: [], dangling: [] };
 
+  const parse = await loadGherkinParser();
   const reports: FileReport[] = [];
   const skipped: string[] = [];
   const staleExceptions: string[] = [];
 
   for (const abs of files) {
     const rel = path.relative(REPO_ROOT, abs);
-    const report = auditFile(abs, rel);
+    const report = auditFile(parse, abs, rel);
     if (unconverted.has(rel)) {
       // Still allowlisted — but if it now passes, the entry must come out so
       // the file cannot silently regress later.
@@ -395,4 +449,7 @@ function main(): void {
   console.log('\nPASS: specification is EARS-compliant.');
 }
 
-main();
+main().catch((error: unknown) => {
+  console.error(error);
+  process.exit(1);
+});

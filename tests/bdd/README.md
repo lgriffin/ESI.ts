@@ -34,6 +34,7 @@ tests/bdd/
     core|integration|performance|sde/   *.steps.ts — one file per feature file
     shared/                             support layer: client setup, error and perf helpers
   support/
+    transport.ts  — the HTTP transport seam every scenario mocks at (rule 5)
     world.ts
 ```
 
@@ -98,9 +99,9 @@ clause, before the system name.
 ## Review conventions the audit does not check
 
 The audit parses feature-file ASTs and never opens a `.steps.ts` file, so
-nothing in this section is caught automatically. It is caught in review.
-Automating the transport-seam rule is Phase 1 of the ramp-up epic (`esi-v2s`);
-step-file structure and missing/unused step detection are Phase 2.
+these are caught in review — except rule 5, which has its own lint gate.
+Step-file structure and missing/unused step detection are Phase 2 of the
+ramp-up epic (`esi-v2s`).
 
 ### 4. Scenario names describe the case, not the requirement
 
@@ -120,7 +121,11 @@ Scenario names must match the `test('...')` string in the corresponding
 
 ### 5. Mock at the transport seam, not the method under test
 
-This is the one that decides whether the suite is worth running.
+This is the one that decides whether the suite is worth running, and it is
+**enforced**: `npm run lint:bdd-seam` fails on any `spyOn` of an ESI client, a
+domain client, a client prototype or `ApiClient`, and on reassigning a client
+method, anywhere under `tests/bdd/`. The selectors live in
+`eslint.bdd-seam.rules.cjs`; `tests/tdd/bdd-seam/` proves each one fires.
 
 ```ts
 // BAD — mocks the method the scenario exists to exercise. The Then step
@@ -128,24 +133,33 @@ This is the one that decides whether the suite is worth running.
 // bug in MarketApi.
 jest.spyOn(client.market, 'getMarketPrices').mockResolvedValue(expected);
 
-// GOOD — mocks fetch, so ApiRequestHandler, retry, schema validation and the
-// client method all really execute.
-fetchMock.mockResponseOnce(JSON.stringify(expected), {
-  headers: { ETag: '"abc"' },
-});
+// GOOD — describes the HTTP exchange. Path building, auth headers, the rate
+// limiter, retry, the ETag cache, deduplication, JSON parsing and Zod
+// validation all really execute.
+useHttpTransport(); // once, at the top of defineFeature
+client = createSeamClient(); // in beforeEach
+queueResponse({ match: '/markets/prices/', body: expected });
 ```
 
-Use `jest-fetch-mock`, as `etag-caching.steps.ts` and
-`response-headers.steps.ts` do. `fetch` is already mocked globally for every
-BDD file by `src/config/jest/jest.setup.ts`, so a step only needs to queue the
-response — but it must queue one, or the client parses an empty body.
-`resilience.steps.ts` is the other reference: it drives real `CircuitBreaker`
-and `RetryStrategy` objects rather than mocking either.
+`tests/bdd/support/transport.ts` is the seam:
 
-Stubbing a client method is only acceptable when it is _incidental setup_ for a
-scenario about something else — for example a cross-domain workflow where one
-lookup is not the behaviour under test. Most of the suite predates this rule;
-the conversion backlog is `esi-v2s.2` in beads.
+| Helper                                                            | Purpose                                                                              |
+| :---------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
+| `useHttpTransport()`                                              | Installs the fake transport for every scenario in the feature                        |
+| `createSeamClient(config?)`                                       | A real `EsiClient` with a test bearer token, no request spacing, millisecond backoff |
+| `queueResponse({ status, headers, body, match, times, delayMs })` | Queues what ESI sends back; `match` pins it to a URL fragment or pattern             |
+| `queueError(status, message, options?)`                           | Queues ESI's `{ "error": message }` body                                             |
+| `RETRYABLE_ATTEMPTS`                                              | How many requests a retryable 5xx consumes before the client gives up                |
+| `sentRequests()` / `lastRequest()`                                | What the client actually put on the wire: method, parsed `URL`, headers, body        |
+
+The transport is strict. A request with no queued response fails the scenario,
+and so does a queued response nobody requested — either means the scenario's
+picture of the exchange is wrong (a cache hit where it expected a fetch, a
+retry it did not budget for). Assert on the request as well as the result when
+the Rule is about what is sent: the path, query parameters, method or body.
+
+`resilience.steps.ts` additionally drives real `CircuitBreaker` and
+`RetryStrategy` objects for Rules about those components in isolation.
 
 ### 6. Step bodies delegate to the support layer
 
@@ -195,10 +209,11 @@ and Jest cannot load it: the checks that need no Gherkin AST live in
 `scripts/spec-audit-checks.ts`, free of that dependency, and are imported
 directly.
 
-That ESM-only dependency also means the audit needs a Node with `require(esm)`
-— 20.19 or 22.12 and above. On an older Node it cannot start at all, and the
-fixture suite skips with a warning rather than asserting against the startup
-error. Tracked as `esi-v2s.8`.
+The audit itself runs as CommonJS under ts-node, so it loads the ESM-only
+Cucumber packages through a real dynamic `import()` rather than `require()`.
+That keeps it working on every Node the package supports (18 and above), not
+only on those with `require(esm)` (20.19+ / 22.12+). The unit matrix runs the
+fixture suite on Node 18, 20 and 22, so a regression there fails CI.
 
 `scripts/spec-audit-exceptions.json` lists feature files not yet converted to
 Rule form. It is a **ratchet in both directions**, and the run fails when:
@@ -214,3 +229,36 @@ trying `$SPEC_AUDIT_BASE_REF`, then `origin/master`, then `master`. If no ref
 resolves the baseline is empty, so every entry reads as an addition; the
 ratchet fails closed. The list is empty today — new feature files are
 Rule-compliant from the start.
+
+## The consistency check
+
+A well-formed Rule can still promise something the library does not
+guarantee. `npm run validate:spec-consistency` (`scripts/rule-schema-check.ts`,
+part of `check:all`) holds Rule titles to the Zod schemas the pipeline
+validates responses against:
+
+| Check                                                                                                                             | Fixture                                                  |
+| :-------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------- |
+| A Rule naming a response field the schema marks optional qualifies it (`when present`, `if present`, `optional`, `either … or …`) | `inconsistent/…/0007-clones`, `consistent/…/0007-clones` |
+
+How a feature finds its schemas: `features/core/NNNN-<domain>.feature` below
+0050 maps to `src/core/endpoints/<domain>Endpoints.ts`, or the singular form
+(`0031-skills` → `skillEndpoints.ts`). Every object reachable from any
+`responseSchema` in that file is a candidate. A field counts as named when the
+response part of the title (after `shall`) spells its identifier
+(`home_location`) or its prose form (`home location`, `station identifier`).
+To stay quiet on ambiguous titles, each mention is resolved to the endpoints
+the trigger names (`When a planet is requested` → `getPlanetById`), then to
+the objects declaring the most of the title's fields, and is reported only when
+optional in all of them. A domain feature with no endpoint file fails the run.
+Fixtures and matcher cases live in `tests/tdd/rule-schema-check/`.
+
+`scripts/rule-schema-exceptions.json` lists `warnOnly` files, whose findings
+print as warnings. It ratchets like the audit's list: an entry absent from the
+integration branch, an entry whose file has no findings left, and an entry that
+names no feature file all fail the run.
+
+The same standard applies to the pipeline, which the check cannot read: a Rule
+must not contradict the cross-cutting Rules in `0050-etag-caching.feature` and
+`0051-resilience.feature`. A domain failure Rule that says a 5xx rejects holds
+only when every attempt fails and no usable cached entry exists, and says so.

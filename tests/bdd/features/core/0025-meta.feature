@@ -8,6 +8,12 @@ Feature: Meta API Management
   The two formats are alternative encodings of one document, so the client
   parses the JSON and hands back the YAML untouched.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Specification retrieval ─────────────────────────────────────────
 
   Rule: When the OpenAPI specification is requested in JSON form, the Meta client shall return a parsed document carrying its openapi version, info block, paths, and components.
@@ -42,7 +48,7 @@ Feature: Meta API Management
 
   # ── Error propagation ───────────────────────────────────────────────
 
-  Rule: If the ESI API responds to a specification request with an error status, then the Meta client shall raise an error whose message carries the ESI status text.
+  Rule: If the ESI API answers every attempt at a specification request with an error status and no usable cached entry exists, then the Meta client shall raise an error whose message carries the ESI status text.
     The spec endpoint sits behind the same infrastructure as the data
     endpoints and goes down with it. Carrying the status text through the
     message is what lets a build script log why generation failed.

@@ -44,7 +44,7 @@ Feature: Industry Management
 
   # ── Public industry reference data ──────────────────────────────────
 
-  Rule: When the client requests industry facilities, the Industry client shall return each facility with its owner, region, solar system, type, and tax rate.
+  Rule: When the client requests industry facilities, the Industry client shall return each facility with its owner, region, solar system, and type, and its tax rate when present.
     Choosing where to install a job is a cost decision, and tax is half of it.
     The location fields let a caller filter to reachable space before comparing
     rates.
