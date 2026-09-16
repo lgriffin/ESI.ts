@@ -89,7 +89,7 @@ The baseline only shrinks. The run fails when a `no-check` names a bead but is n
 
 ### Negative fixtures
 
-`tests/tdd/doc-examples/fixtures/` holds a compliant file and three that must be rejected: a block calling a method that does not exist, an import of `@lgriffin/esi.ts/dist/errors` (present in the tarball but not exported), and a `no-check` without a reason. `tests/tdd/doc-examples/doc-examples.test.ts` puts them through the checker against a small stub package, and `npm run test:docs-examples` puts them through again against the packed library. If a fixture stops being rejected, both fail.
+`tests/tdd/doc-examples/fixtures/` holds a compliant file and four that must be rejected: a block that does not parse (tsc reports no type errors while any file has a syntax error, so the checker drops such blocks and checks the rest again), a block calling a method that does not exist, an import of `@lgriffin/esi.ts/dist/errors` (present in the tarball but not exported), and a `no-check` without a reason. `tests/tdd/doc-examples/doc-examples.test.ts` puts them through the checker against a small stub package, and `npm run test:docs-examples` puts them through again against the packed library. If a fixture stops being rejected, both fail.
 
 ## Documentation Features
 

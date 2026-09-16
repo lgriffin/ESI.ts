@@ -61,9 +61,14 @@ export const FIXTURES_DIR = path.join(
 );
 export const FIXTURE_EXPECTATIONS: Record<
   string,
-  'accepted' | 'type error' | 'unexported sub-path' | 'annotation error'
+  | 'accepted'
+  | 'syntax error'
+  | 'type error'
+  | 'unexported sub-path'
+  | 'annotation error'
 > = {
   'compliant.md': 'accepted',
+  'syntax-error.md': 'syntax error',
   'type-error.md': 'type error',
   'bad-subpath.md': 'unexported sub-path',
   'no-check-without-reason.md': 'annotation error',
@@ -418,6 +423,11 @@ export function mapDiagnostics(
 /**
  * Type-checks the workspace under nodenext (emitting `out/*.mjs` for the
  * runnable blocks) and under bundler resolution.
+ *
+ * tsc reports no type errors at all while any file has a syntax error, so a
+ * block that does not parse would hide every other block's type errors,
+ * including the negative fixtures'. Blocks with syntax errors are therefore
+ * reported and dropped, and the check runs again without them.
  */
 export function typeCheckWorkspace(
   dir: string,
@@ -429,21 +439,47 @@ export function typeCheckWorkspace(
     ['tsconfig.docs.json', 'nodenext'],
     ['tsconfig.docs.bundler.json', 'bundler'],
   ] as const) {
-    const result = spawnSync(
-      process.execPath,
-      [tsc, '-p', config, '--pretty', 'false'],
-      { cwd: dir, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
-    );
-    const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
-    const mapped = mapDiagnostics(output, entries, label);
-    if (result.status !== 0 && mapped.length === 0) {
-      mapped.push({
-        example: null,
-        line: 0,
-        message: `[${label}] tsc exited ${result.status}\n${output}`,
-      });
+    const excluded = new Set<DocExample>();
+    const pass = config.replace(/\.json$/, '.pass.json');
+    for (;;) {
+      writeFileSync(
+        path.join(dir, pass),
+        JSON.stringify({
+          extends: `./${config}`,
+          include: [],
+          files: [
+            ...entries
+              .filter((e) => !excluded.has(e.example))
+              .map((e) => e.module),
+            'prelude.d.ts',
+          ],
+        }),
+      );
+      const result = spawnSync(
+        process.execPath,
+        [tsc, '-p', pass, '--pretty', 'false'],
+        { cwd: dir, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+      );
+      const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
+      const mapped = mapDiagnostics(output, entries, label);
+      const unparsed = mapped.filter(
+        (f) => f.example !== null && /\] TS1\d{3}:/.test(f.message),
+      );
+      if (unparsed.length > 0) {
+        failures.push(...unparsed);
+        for (const f of unparsed) excluded.add(f.example!);
+        continue;
+      }
+      if (result.status !== 0 && mapped.length === 0) {
+        mapped.push({
+          example: null,
+          line: 0,
+          message: `[${label}] tsc exited ${result.status}\n${output}`,
+        });
+      }
+      failures.push(...mapped);
+      break;
     }
-    failures.push(...mapped);
   }
   return failures;
 }

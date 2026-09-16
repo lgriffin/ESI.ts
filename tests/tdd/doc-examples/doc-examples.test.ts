@@ -472,6 +472,12 @@ describe('the fixtures, checked against a stub package', () => {
     expect(failuresByFile.get('compliant.md')).toEqual([]);
   });
 
+  it('rejects a block that does not parse, without hiding the other blocks', () => {
+    const failures = failuresByFile.get('syntax-error.md')!;
+    expect(failures.some((m) => /\[nodenext\] TS1\d{3}/.test(m))).toBe(true);
+    expect(failures.some((m) => /\[bundler\] TS1\d{3}/.test(m))).toBe(true);
+  });
+
   it('rejects a block that calls a method the package does not have', () => {
     const failures = failuresByFile.get('type-error.md')!;
     expect(failures.some((m) => /\[nodenext\] TS2339/.test(m))).toBe(true);
