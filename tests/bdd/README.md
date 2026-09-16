@@ -229,3 +229,36 @@ trying `$SPEC_AUDIT_BASE_REF`, then `origin/master`, then `master`. If no ref
 resolves the baseline is empty, so every entry reads as an addition; the
 ratchet fails closed. The list is empty today — new feature files are
 Rule-compliant from the start.
+
+## The consistency check
+
+A well-formed Rule can still promise something the library does not
+guarantee. `npm run validate:spec-consistency` (`scripts/rule-schema-check.ts`,
+part of `check:all`) holds Rule titles to the Zod schemas the pipeline
+validates responses against:
+
+| Check                                                                                                                             | Fixture                                                  |
+| :-------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------- |
+| A Rule naming a response field the schema marks optional qualifies it (`when present`, `if present`, `optional`, `either … or …`) | `inconsistent/…/0007-clones`, `consistent/…/0007-clones` |
+
+How a feature finds its schemas: `features/core/NNNN-<domain>.feature` below
+0050 maps to `src/core/endpoints/<domain>Endpoints.ts`, or the singular form
+(`0031-skills` → `skillEndpoints.ts`). Every object reachable from any
+`responseSchema` in that file is a candidate. A field counts as named when the
+response part of the title (after `shall`) spells its identifier
+(`home_location`) or its prose form (`home location`, `station identifier`).
+To stay quiet on ambiguous titles, each mention is resolved to the endpoints
+the trigger names (`When a planet is requested` → `getPlanetById`), then to
+the objects declaring the most of the title's fields, and is reported only when
+optional in all of them. A domain feature with no endpoint file fails the run.
+Fixtures and matcher cases live in `tests/tdd/rule-schema-check/`.
+
+`scripts/rule-schema-exceptions.json` lists `warnOnly` files, whose findings
+print as warnings. It ratchets like the audit's list: an entry absent from the
+integration branch, an entry whose file has no findings left, and an entry that
+names no feature file all fail the run.
+
+The same standard applies to the pipeline, which the check cannot read: a Rule
+must not contradict the cross-cutting Rules in `0050-etag-caching.feature` and
+`0051-resilience.feature`. A domain failure Rule that says a 5xx rejects holds
+only when every attempt fails and no usable cached entry exists, and says so.

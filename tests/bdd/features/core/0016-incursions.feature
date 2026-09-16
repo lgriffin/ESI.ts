@@ -9,6 +9,12 @@ Feature: Incursion Management
   Because the list is a live snapshot of a game event, both the empty case and
   server-side failures are ordinary outcomes worth specifying.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── The active incursion list ───────────────────────────────────────
 
   Rule: When the client requests the incursion list, the Incursions client shall return each active incursion with its state, influence, boss flag, faction, constellation, staging system, and infested system list.
@@ -55,7 +61,7 @@ Feature: Incursion Management
 
   # ── Server-side failures ────────────────────────────────────────────
 
-  Rule: If the incursion list request is answered with HTTP 503, then the Incursions client shall reject with an EsiError.
+  Rule: If every attempt at the incursion list request is answered with HTTP 503 and no usable cached entry exists, then the Incursions client shall reject with an EsiError.
     ESI returns 503 through the daily downtime window and during Sansha event
     reloads. Surfacing it as a typed rejection lets a polling caller back off
     rather than treat the outage as "no incursions".
@@ -65,10 +71,11 @@ Feature: Incursion Management
       When the client requests incursions during downtime
       Then the client shall return a 503 service unavailable error
 
-  Rule: If the incursion list request is answered with HTTP 500, then the Incursions client shall reject with an EsiError whose statusCode is 500 and whose isServerError predicate returns true.
-    The isServerError predicate is the client's classification hook: it is what
-    a retry policy consults to decide a failure is the server's fault and worth
-    retrying, without the caller hard-coding status code ranges.
+  Rule: If the incursion list request is answered with HTTP 500 and no usable cached entry exists, then the Incursions client shall reject with an EsiError whose statusCode is 500 and whose isServerError predicate returns true.
+    The isServerError predicate lets a caller classify a failure as the
+    server's fault without hard-coding status code ranges. It is not what the
+    client's own retry strategy consults: that reads EsiError.retryable, which
+    excludes 500, so a 500 is rejected after a single request.
 
     Scenario: ESI answering 500
       Given an internal server error occurs

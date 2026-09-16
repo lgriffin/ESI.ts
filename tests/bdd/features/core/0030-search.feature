@@ -8,6 +8,12 @@ Feature: Search Management
   the categories that matched appear in it, so the shape of the result varies
   with the query.
 
+  Retry, stale-on-error, circuit breaking and request deduplication apply to
+  these calls as to every other; 0050-etag-caching.feature and
+  0051-resilience.feature specify them once. A failure Rule below states
+  the outcome after they have run, which is why it names every attempt and
+  the absence of a usable cached entry.
+
   # ── Searching ───────────────────────────────────────────────────────
 
   Rule: When a character-scoped search is performed, the Search client shall return the matched IDs grouped under the key of the category each match belongs to.
@@ -61,7 +67,7 @@ Feature: Search Management
 
   # ── Error propagation ───────────────────────────────────────────────
 
-  Rule: If the ESI API rejects a search request with an error status, then the Search client shall raise an EsiError.
+  Rule: If every attempt at a search request is answered with an error status and no usable cached entry exists, then the Search client shall raise an EsiError.
     Search is authenticated and requires its own scope, so a token missing
     that scope is the common failure. It surfaces as the standard error type
     rather than as an empty result set, which a caller could otherwise read

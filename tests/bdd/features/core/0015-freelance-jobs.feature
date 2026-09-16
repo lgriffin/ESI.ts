@@ -10,7 +10,7 @@ Feature: Freelance Jobs Management
 
   # ── Public listing ──────────────────────────────────────────────────
 
-  Rule: When the client requests the freelance job listing, the Freelance Jobs client shall return each job with its id, name, state, and progress alongside a cursor carrying before and after tokens.
+  Rule: When the client requests the freelance job listing, the Freelance Jobs client shall return each job with its id, name, state, and progress, alongside a cursor carrying before and after tokens when present.
     The listing is a summary view — enough to render a board row without a
     detail fetch per job. The cursor travels in the same envelope as the rows
     rather than in headers, so a caller holds one object to page with.
@@ -20,7 +20,7 @@ Feature: Freelance Jobs Management
       When the client requests the job listing
       Then the client shall return jobs with pagination cursors
 
-  Rule: While no freelance jobs are published, the Freelance Jobs client shall return an empty job array with null before and after cursor tokens.
+  Rule: While no freelance jobs are published, the Freelance Jobs client shall return an empty job array, with null before and after tokens in its cursor when present.
     An empty board is an ordinary state. Nulling both cursor ends is what tells
     a caller there is nothing to page towards in either direction, which a
     zero-length array alone would not.
@@ -45,7 +45,7 @@ Feature: Freelance Jobs Management
 
   # ── Owner-scoped listings ───────────────────────────────────────────
 
-  Rule: When the client requests the freelance jobs of a character or of a corporation, the Freelance Jobs client shall return that owner's jobs in the same cursor envelope as the public listing.
+  Rule: When the client requests the freelance jobs of a character or of a corporation, the Freelance Jobs client shall return that owner's jobs in the same envelope as the public listing, including its cursor when present.
     Both authenticated views reuse the public listing's shape so a caller can
     render "all jobs" and "my jobs" through one code path. The two scenarios
     exercise the character and corporation endpoints against that one shape.
@@ -60,7 +60,7 @@ Feature: Freelance Jobs Management
       When the client requests their freelance jobs
       Then the client shall return the corporation jobs listing
 
-  Rule: When the client requests a character's participation in a freelance job, the Freelance Jobs client shall return the participation status, the contribution total, and the last contribution timestamp.
+  Rule: When the client requests a character's participation in a freelance job, the Freelance Jobs client shall return the participation status, the contribution total, and the last contribution timestamp when present.
     Participation is a separate record from the job because a job has many
     contributors and each sees only their own tally. The timestamp is what lets
     a caller show whether a commitment has gone stale.
@@ -72,7 +72,7 @@ Feature: Freelance Jobs Management
 
   # ── Cursor pagination ───────────────────────────────────────────────
 
-  Rule: When the client supplies an after token, the Freelance Jobs client shall return the following page carrying that token as its before cursor.
+  Rule: When the client supplies an after token, the Freelance Jobs client shall return the following page, whose cursor, when present, carries that token as its before value.
     Cursor tokens are opaque and directional. The returned page echoes the
     token it was reached by in its before slot, which is what makes paging back
     the exact inverse of paging forward.
@@ -82,7 +82,7 @@ Feature: Freelance Jobs Management
       When the client requests the next page using the after token
       Then the client shall return the second page of results
 
-  Rule: When the client supplies a before token, the Freelance Jobs client shall return the preceding page with a null before cursor at the start of the listing.
+  Rule: When the client supplies a before token, the Freelance Jobs client shall return the preceding page, whose cursor, when present, carries a null before value at the start of the listing.
     Paging backwards from page two lands on page one, and page one has nothing
     behind it — the null before token is the end-of-listing marker in that
     direction.

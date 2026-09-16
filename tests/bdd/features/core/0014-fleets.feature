@@ -34,7 +34,7 @@ Feature: Fleet Management
 
   # ── Fleet composition ───────────────────────────────────────────────
 
-  Rule: When the client requests fleet information, the Fleet client shall return the fleet_id, the MOTD, the free-move setting, and the fleet boss identifier.
+  Rule: When the client requests fleet information, the Fleet client shall return the MOTD and the free-move setting.
     The fleet header is the settings record: who is in charge, what the
     broadcast message says, and whether members may reposition themselves in
     the hierarchy without the boss. These are the same fields the update

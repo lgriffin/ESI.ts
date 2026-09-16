@@ -8,7 +8,7 @@ Feature: Character Skills
 
   # ── Trained skills ──────────────────────────────────────────────────
 
-  Rule: When character skills are requested, the Skills client shall return the trained skill entries together with the total and unallocated skill point counts.
+  Rule: When character skills are requested, the Skills client shall return the trained skill entries together with the total skill point count, and the unallocated skill point count when present.
     A skill list is only meaningful alongside its totals: the per-skill entries
     give trained level and skillpoints in skill, while total_sp and
     unallocated_sp describe the character as a whole. Both a two-skill starter
@@ -45,7 +45,7 @@ Feature: Character Skills
 
   # ── Neural attributes ───────────────────────────────────────────────
 
-  Rule: When character attributes are requested, the Skills client shall return the intelligence, memory, perception, willpower, and charisma values along with the remaining bonus remap count.
+  Rule: When character attributes are requested, the Skills client shall return the intelligence, memory, perception, willpower, and charisma values, along with the remaining bonus remap count when present.
     Training speed is a function of two attributes per skill, so all five
     values are needed to compute it, and bonus_remaps tells the caller how many
     further reallocations the character still has. A default spread and a

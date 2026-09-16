@@ -1,0 +1,4 @@
+{
+  "$comment": "Domain feature files whose Rule/schema findings are reported as warnings instead of errors by npm run validate:spec-consistency. A ratchet: an entry absent from the integration branch fails the run, and so does an entry whose file has no findings left. Entries can only be removed. A new or reconciled feature file is gated as an error from the start.",
+  "warnOnly": ["tests/bdd/features/core/0004-corporation-projects.feature"]
+}

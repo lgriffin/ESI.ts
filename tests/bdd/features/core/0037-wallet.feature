@@ -26,7 +26,7 @@ Feature: Wallets
 
   # ── Character journal and transactions ──────────────────────────────
 
-  Rule: When a character wallet journal is requested, the Wallet client shall return one entry per movement carrying its identifier, date, reference type, amount, and resulting balance.
+  Rule: When a character wallet journal is requested, the Wallet client shall return one entry per movement carrying its identifier, date, and reference type, and its amount and resulting balance when present.
     The reference type is what classifies a movement as a bounty, a market
     trade, or a transfer, and the running balance lets a caller reconstruct
     the account history without re-adding the amounts. Amounts are signed, so
@@ -87,10 +87,12 @@ Feature: Wallets
   # ── Authorisation ───────────────────────────────────────────────────
 
   Rule: If a wallet request is made without the scope or corporation role it needs, then the Wallet client shall reject the request with an EsiError.
-    Wallet data is the most sensitive thing ESI exposes, so both a missing
-    character token and a member without director rights are refused with a
-    403. The client raises a typed EsiError in either case rather than
-    returning a zero balance.
+    Wallet data is the most sensitive thing ESI exposes, so both a token
+    without the wallet scope and a member without director rights are refused
+    by ESI with a 403. The client raises a typed EsiError in either case rather
+    than returning a zero balance. A client with no token at all never reaches
+    ESI: it throws a NO_AUTH_TOKEN error, which is not an EsiError, before
+    sending the request.
 
     Scenario: Character wallet request without a token rejects with an EsiError
       Given an unauthenticated user for character wallet

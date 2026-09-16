@@ -10,7 +10,7 @@ Feature: Location Management
 
   # ── Where the character is ──────────────────────────────────────────
 
-  Rule: When the client requests the location of a docked character, the Location client shall return the solar system identifier together with the station identifier.
+  Rule: When the client requests the location of a docked character, the Location client shall return the solar system identifier together with the station identifier when present.
     Docked is the case with the most detail available: the station ID pins the
     character to a specific dockable structure inside the system, which is what
     an asset or logistics tool needs to route against.
@@ -33,7 +33,7 @@ Feature: Location Management
 
   # ── Online status ───────────────────────────────────────────────────
 
-  Rule: When the client requests the online status of a character, the Location client shall return the online flag together with the last login timestamp, the last logout timestamp, and the cumulative login count.
+  Rule: When the client requests the online status of a character, the Location client shall return the online flag together with the last login timestamp, the last logout timestamp, and the cumulative login count when present.
     The flag alone answers "are they on now"; the three history fields answer
     "when were they last around and how heavily is this character played",
     which is what corporation activity tracking is built on.
@@ -43,7 +43,7 @@ Feature: Location Management
       When the client checks their online status
       Then the client shall report they are online with login timestamps
 
-  Rule: While a character is logged out, the Location client shall report the online flag as false with a last logout timestamp later than the last login timestamp.
+  Rule: While a character is logged out, the Location client shall report the online flag as false with a last logout timestamp later than the last login timestamp when both are present.
     For an offline character the last session has both ends recorded, so logout
     strictly follows login. That ordering is what lets a caller compute the
     duration of the last session and the length of the current absence.

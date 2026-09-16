@@ -7,7 +7,7 @@ Feature: Contact Management
 
   # ── Reading contact lists ───────────────────────────────────────────
 
-  Rule: When a contact list is requested for a character ID or a corporation ID, the Contacts client shall return an array whose entries each carry contact_id, contact_type, standing, and label_ids.
+  Rule: When a contact list is requested for a character ID or a corporation ID, the Contacts client shall return an array whose entries each carry contact_id, contact_type, and standing, and label_ids when present.
     The contact_type discriminates a character from a corporation from an
     alliance, which is what tells the caller which domain to resolve the ID
     against. Standings run negative as well as positive, and the sign is the
