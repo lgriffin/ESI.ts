@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import {
   ContractSchema,
+  CorporationStarbaseDetailSchema,
   PublicContractSchema,
   ServerStatusSchema,
 } from '../../../src/schemas';
@@ -33,6 +34,21 @@ const characterContract = {
   date_issued: '2026-09-10T12:00:00Z',
   date_expired: '2026-09-24T12:00:00Z',
   price: 150000000,
+};
+
+/** A POS configuration as `GET /corporations/{id}/starbases/{id}` returns it. */
+const starbaseDetail = {
+  fuel_bay_view: 'starbase_fuel_technician_role',
+  fuel_bay_take: 'config_starbase_equipment_role',
+  anchor: 'config_starbase_equipment_role',
+  unanchor: 'config_starbase_equipment_role',
+  online: 'config_starbase_equipment_role',
+  offline: 'config_starbase_equipment_role',
+  allow_corporation_members: true,
+  allow_alliance_members: false,
+  use_alliance_standings: true,
+  attack_if_other_security_status_dropping: false,
+  attack_if_at_war: true,
 };
 
 function without(body: Record<string, unknown>, field: string) {
@@ -73,6 +89,26 @@ const cases: Array<{
       field,
     }),
   ),
+  ...(
+    [
+      'fuel_bay_view',
+      'fuel_bay_take',
+      'anchor',
+      'unanchor',
+      'online',
+      'offline',
+      'allow_corporation_members',
+      'allow_alliance_members',
+      'use_alliance_standings',
+      'attack_if_other_security_status_dropping',
+      'attack_if_at_war',
+    ] as const
+  ).map((field) => ({
+    schema: 'CorporationStarbaseDetailSchema',
+    zod: CorporationStarbaseDetailSchema as z.ZodType,
+    body: starbaseDetail,
+    field,
+  })),
 ];
 
 describe('Schemas require the fields ESI marks required', () => {

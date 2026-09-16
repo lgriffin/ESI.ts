@@ -10,6 +10,7 @@
  */
 import { z } from 'zod';
 import { contractEndpoints } from '../../../src/core/endpoints/contractEndpoints';
+import { corporationEndpoints } from '../../../src/core/endpoints/corporationEndpoints';
 import { freelanceJobsEndpoints } from '../../../src/core/endpoints/freelanceJobsEndpoints';
 
 interface BodyCase {
@@ -120,6 +121,70 @@ const cases: BodyCase[] = [
           contributed: 100,
         },
       ],
+    },
+  },
+  {
+    // CorporationsCorporationIdMedalsGet: created_at, not date.
+    route: 'GET /corporations/{corporation_id}/medals',
+    schema: corporationEndpoints.getCorporationMedals.responseSchema,
+    body: [
+      {
+        medal_id: 1,
+        title: 'Defender of the Keepstar',
+        description: 'Held the line',
+        creator_id: 90000001,
+        created_at: '2026-01-15T00:00:00Z',
+      },
+    ],
+  },
+  {
+    // CorporationsCorporationIdMedalsIssuedGet: no title or description.
+    route: 'GET /corporations/{corporation_id}/medals/issued',
+    schema: corporationEndpoints.getCorporationIssuedMedals.responseSchema,
+    body: [
+      {
+        medal_id: 1,
+        character_id: 90000002,
+        issuer_id: 90000001,
+        issued_at: '2026-02-01T00:00:00Z',
+        reason: 'Held the line',
+        status: 'public',
+      },
+    ],
+  },
+  {
+    // CorporationsCorporationIdRolesHistoryGet: old_roles and new_roles.
+    route: 'GET /corporations/{corporation_id}/roles/history',
+    schema:
+      corporationEndpoints.getCorporationMemberRolesHistory.responseSchema,
+    body: [
+      {
+        character_id: 90000002,
+        changed_at: '2026-03-01T00:00:00Z',
+        issuer_id: 90000001,
+        role_type: 'roles',
+        old_roles: ['Hangar_Take_1'],
+        new_roles: ['Hangar_Take_1', 'Station_Manager'],
+      },
+    ],
+  },
+  {
+    // CorporationsCorporationIdStarbasesStarbaseIdGet: no state.
+    route: 'GET /corporations/{corporation_id}/starbases/{starbase_id}',
+    schema: corporationEndpoints.getCorporationStarbaseDetail.responseSchema,
+    body: {
+      fuel_bay_view: 'starbase_fuel_technician_role',
+      fuel_bay_take: 'config_starbase_equipment_role',
+      anchor: 'config_starbase_equipment_role',
+      unanchor: 'config_starbase_equipment_role',
+      online: 'config_starbase_equipment_role',
+      offline: 'config_starbase_equipment_role',
+      allow_corporation_members: true,
+      allow_alliance_members: false,
+      use_alliance_standings: true,
+      attack_if_other_security_status_dropping: false,
+      attack_if_at_war: true,
+      fuels: [{ type_id: 4051, quantity: 960 }],
     },
   },
 ];

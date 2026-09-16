@@ -176,7 +176,7 @@ async function main() {
           starbases[0]!.starbase_id,
         );
         console.log(
-          `  Detail for ${starbases[0]!.starbase_id}: state ${detail.state}`,
+          `  Detail for ${starbases[0]!.starbase_id}: state ${starbases[0]!.state ?? 'unknown'}, anchoring by ${detail.anchor}`,
         );
       }
     });

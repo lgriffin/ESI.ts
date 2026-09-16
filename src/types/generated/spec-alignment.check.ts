@@ -11,12 +11,12 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 108
+ * - Type pairs asserted: 110
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
  *   Loyalty, Mail, Market, PI, Skills, Sovereignty, Status, Universe, Wallet, Wars)
- * - Skipped types: 17 (documented inline with reasons — key name mismatches,
+ * - Skipped types: 15 (documented inline with reasons — key name mismatches,
  *   structural differences, inline array elements, or no spec counterpart)
  */
 
@@ -64,7 +64,7 @@ import type {
 import type {
   CorporationInfo,
   CorporationAllianceHistory,
-  // CorporationMedal -- skipped: uses 'date' instead of spec 'created_at'
+  CorporationMedal,
   CorporationStarbase,
   CorporationDivisions,
   CorporationFacility,
@@ -72,7 +72,7 @@ import type {
   CorporationMemberTitle,
   CorporationMemberTracking,
   CorporationMemberRole,
-  // CorporationRoleHistory -- skipped: uses 'before'/'after' instead of spec 'new_roles'/'old_roles'
+  CorporationRoleHistory,
   CorporationShareholder,
   CorporationStarbaseDetail,
   CorporationStructure,
@@ -340,10 +340,9 @@ type _CorporationAllianceHistory = AssertTrue<
     CorporationAllianceHistory
   >
 >;
-// Skip: CorporationMedal -- schema uses 'date' instead of spec 'created_at' (intentional key name difference)
-// type _CorporationMedal = AssertTrue<
-//   HasAllSpecKeys<EsiSpec.CorporationsCorporationIdMedalsGet, CorporationMedal>
-// >;
+type _CorporationMedal = AssertTrue<
+  HasAllSpecKeys<EsiSpec.CorporationsCorporationIdMedalsGet, CorporationMedal>
+>;
 type _CorporationStarbase = AssertTrue<
   HasAllSpecKeys<
     EsiSpec.CorporationsCorporationIdStarbasesGet,
@@ -386,10 +385,12 @@ type _CorporationMemberRole = AssertTrue<
     CorporationMemberRole
   >
 >;
-// Skip: CorporationRoleHistory -- schema uses 'before'/'after' instead of spec 'new_roles'/'old_roles' (intentional key name difference)
-// type _CorporationRoleHistory = AssertTrue<
-//   HasAllSpecKeys<EsiSpec.CorporationsCorporationIdRolesHistoryGet, CorporationRoleHistory>
-// >;
+type _CorporationRoleHistory = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CorporationsCorporationIdRolesHistoryGet,
+    CorporationRoleHistory
+  >
+>;
 type _CorporationShareholder = AssertTrue<
   HasAllSpecKeys<
     EsiSpec.CorporationsCorporationIdShareholdersGet,

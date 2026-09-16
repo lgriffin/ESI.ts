@@ -2355,11 +2355,11 @@ export type CorporationDivisions = z.infer<typeof CorporationDivisionsSchema>;
 // @public (undocumented)
 const CorporationDivisionsSchema: z.ZodObject<{
     hangar: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        division: z.ZodNumber;
+        division: z.ZodOptional<z.ZodNumber>;
         name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     wallet: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        division: z.ZodNumber;
+        division: z.ZodOptional<z.ZodNumber>;
         name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
 }, z.core.$loose>;
@@ -2445,11 +2445,9 @@ const CorporationInfoSchema: z.ZodObject<{
 // @public (undocumented)
 export type CorporationIssuedMedal = z.infer<typeof CorporationIssuedMedalSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationIssuedMedalSchema: z.ZodObject<{
     medal_id: z.ZodNumber;
-    title: z.ZodString;
-    description: z.ZodString;
     character_id: z.ZodNumber;
     issued_at: z.ZodString;
     issuer_id: z.ZodNumber;
@@ -2505,13 +2503,13 @@ const CorporationMarketOrderSchema: z.ZodObject<{
 // @public (undocumented)
 export type CorporationMedal = z.infer<typeof CorporationMedalSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationMedalSchema: z.ZodObject<{
     medal_id: z.ZodNumber;
     title: z.ZodString;
     description: z.ZodString;
     creator_id: z.ZodNumber;
-    date: z.ZodString;
+    created_at: z.ZodString;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -2545,7 +2543,7 @@ export type CorporationMemberTracking = z.infer<typeof CorporationMemberTracking
 // @public (undocumented)
 const CorporationMemberTrackingSchema: z.ZodObject<{
     character_id: z.ZodNumber;
-    start_date: z.ZodString;
+    start_date: z.ZodOptional<z.ZodString>;
     base_id: z.ZodOptional<z.ZodNumber>;
     location_id: z.ZodOptional<z.ZodNumber>;
     logoff_date: z.ZodOptional<z.ZodString>;
@@ -2693,14 +2691,14 @@ const CorporationProjectSummarySchema: z.ZodObject<{
 // @public (undocumented)
 export type CorporationRoleHistory = z.infer<typeof CorporationRoleHistorySchema>;
 
-// @public (undocumented)
+// @public
 const CorporationRoleHistorySchema: z.ZodObject<{
     character_id: z.ZodNumber;
     changed_at: z.ZodString;
     issuer_id: z.ZodNumber;
     role_type: z.ZodString;
-    before: z.ZodArray<z.ZodString>;
-    after: z.ZodArray<z.ZodString>;
+    old_roles: z.ZodArray<z.ZodString>;
+    new_roles: z.ZodArray<z.ZodString>;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "corporationEndpoints" needs to be exported by the entry point index.d.ts
@@ -3687,26 +3685,25 @@ export type CorporationStarbase = z.infer<typeof CorporationStarbaseSchema>;
 // @public (undocumented)
 export type CorporationStarbaseDetail = z.infer<typeof CorporationStarbaseDetailSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationStarbaseDetailSchema: z.ZodObject<{
-    state: z.ZodType<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown>>;
     fuels: z.ZodOptional<z.ZodArray<z.ZodObject<{
         type_id: z.ZodNumber;
         quantity: z.ZodNumber;
     }, z.core.$loose>>>;
-    allow_alliance_members: z.ZodOptional<z.ZodBoolean>;
-    allow_corporation_members: z.ZodOptional<z.ZodBoolean>;
-    anchor: z.ZodOptional<z.ZodString>;
-    attack_if_at_war: z.ZodOptional<z.ZodBoolean>;
-    attack_if_other_security_status_dropping: z.ZodOptional<z.ZodBoolean>;
+    allow_alliance_members: z.ZodBoolean;
+    allow_corporation_members: z.ZodBoolean;
+    anchor: z.ZodString;
+    attack_if_at_war: z.ZodBoolean;
+    attack_if_other_security_status_dropping: z.ZodBoolean;
     attack_security_status_threshold: z.ZodOptional<z.ZodNumber>;
     attack_standing_threshold: z.ZodOptional<z.ZodNumber>;
-    fuel_bay_take: z.ZodOptional<z.ZodString>;
-    fuel_bay_view: z.ZodOptional<z.ZodString>;
-    offline: z.ZodOptional<z.ZodString>;
-    online: z.ZodOptional<z.ZodString>;
-    unanchor: z.ZodOptional<z.ZodString>;
-    use_alliance_standings: z.ZodOptional<z.ZodBoolean>;
+    fuel_bay_take: z.ZodString;
+    fuel_bay_view: z.ZodString;
+    offline: z.ZodString;
+    online: z.ZodString;
+    unanchor: z.ZodString;
+    use_alliance_standings: z.ZodBoolean;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -3714,7 +3711,7 @@ const CorporationStarbaseSchema: z.ZodObject<{
     starbase_id: z.ZodNumber;
     type_id: z.ZodNumber;
     system_id: z.ZodNumber;
-    state: z.ZodType<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown>>;
+    state: z.ZodOptional<z.ZodType<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown>>>;
     moon_id: z.ZodOptional<z.ZodNumber>;
     onlined_since: z.ZodOptional<z.ZodString>;
     reinforced_until: z.ZodOptional<z.ZodString>;
@@ -3751,7 +3748,7 @@ export type CorporationTitle = z.infer<typeof CorporationTitleSchema>;
 
 // @public (undocumented)
 const CorporationTitleSchema: z.ZodObject<{
-    title_id: z.ZodNumber;
+    title_id: z.ZodOptional<z.ZodNumber>;
     name: z.ZodOptional<z.ZodString>;
     roles: z.ZodOptional<z.ZodArray<z.ZodString>>;
     grantable_roles: z.ZodOptional<z.ZodArray<z.ZodString>>;

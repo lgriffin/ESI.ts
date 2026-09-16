@@ -238,6 +238,203 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('Configuration of a tower that fires on war targets', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const starbaseId = 1000000001;
+    // CorporationsCorporationIdStarbasesStarbaseIdGet: no state field.
+    const configuration = {
+      fuel_bay_view: 'starbase_fuel_technician_role',
+      fuel_bay_take: 'config_starbase_equipment_role',
+      anchor: 'config_starbase_equipment_role',
+      unanchor: 'config_starbase_equipment_role',
+      online: 'config_starbase_equipment_role',
+      offline: 'config_starbase_equipment_role',
+      allow_corporation_members: true,
+      allow_alliance_members: false,
+      use_alliance_standings: true,
+      attack_if_other_security_status_dropping: false,
+      attack_if_at_war: true,
+      fuels: [{ type_id: 4051, quantity: 960 }],
+    };
+
+    given('an authenticated director with a starbase', () => {
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/starbases/${starbaseId}`,
+        body: configuration,
+      });
+    });
+
+    when('the client requests the starbase configuration', async () => {
+      result = await client.corporations.getCorporationStarbaseDetail(
+        CORPORATION_ID,
+        starbaseId,
+      );
+    });
+
+    then(
+      'the client shall return the tower access and defence settings',
+      () => {
+        expect(lastRequest().url.pathname).toMatch(
+          new RegExp(
+            `/corporations/${CORPORATION_ID}/starbases/${starbaseId}/?$`,
+          ),
+        );
+        expect([
+          result.anchor,
+          result.online,
+          result.fuel_bay_take,
+          result.use_alliance_standings,
+          result.attack_if_at_war,
+        ]).toEqual([
+          'config_starbase_equipment_role',
+          'config_starbase_equipment_role',
+          'config_starbase_equipment_role',
+          true,
+          true,
+        ]);
+      },
+    );
+  });
+
+  test('Medal designed by a director', ({ given, when, then }) => {
+    let result: any;
+
+    given('a corporation with a designed medal', () => {
+      // CorporationsCorporationIdMedalsGet: created_at, not date.
+      queueResponse({
+        match: new RegExp(`/corporations/${CORPORATION_ID}/medals/?(\\?|$)`),
+        body: [
+          {
+            medal_id: 11,
+            title: 'Defender of the Keepstar',
+            description: 'Held the line in 1DQ1-A',
+            creator_id: 1689391488,
+            created_at: '2026-01-15T00:00:00Z',
+          },
+        ],
+      });
+    });
+
+    when('the client requests corporation medals', async () => {
+      result = await client.corporations.getCorporationMedals(CORPORATION_ID);
+    });
+
+    then('the client shall return the medal designs', () => {
+      expect(
+        result.map((m: any) => [
+          m.medal_id,
+          m.title,
+          m.creator_id,
+          m.created_at,
+        ]),
+      ).toEqual([
+        [11, 'Defender of the Keepstar', 1689391488, '2026-01-15T00:00:00Z'],
+      ]);
+    });
+  });
+
+  test('Medal awarded to a member', ({ given, when, then }) => {
+    let result: any;
+
+    given('a corporation that has awarded a medal', () => {
+      // CorporationsCorporationIdMedalsIssuedGet: no title or description.
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/medals/issued`,
+        body: [
+          {
+            medal_id: 11,
+            character_id: 987654321,
+            issuer_id: 1689391488,
+            reason: 'Held the line',
+            status: 'public',
+            issued_at: '2026-02-01T00:00:00Z',
+          },
+        ],
+      });
+    });
+
+    when('the client requests issued corporation medals', async () => {
+      result =
+        await client.corporations.getCorporationIssuedMedals(CORPORATION_ID);
+    });
+
+    then('the client shall return the awards', () => {
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(`/corporations/${CORPORATION_ID}/medals/issued/?$`),
+      );
+      expect(
+        result.map((m: any) => [
+          m.medal_id,
+          m.character_id,
+          m.issuer_id,
+          m.reason,
+          m.status,
+          m.issued_at,
+        ]),
+      ).toEqual([
+        [
+          11,
+          987654321,
+          1689391488,
+          'Held the line',
+          'public',
+          '2026-02-01T00:00:00Z',
+        ],
+      ]);
+    });
+  });
+
+  test('Station manager role granted to a member', ({ given, when, then }) => {
+    let result: any;
+
+    given('a corporation whose director granted a role', () => {
+      // CorporationsCorporationIdRolesHistoryGet: old_roles and new_roles.
+      queueResponse({
+        match: `/corporations/${CORPORATION_ID}/roles/history`,
+        body: [
+          {
+            character_id: 987654321,
+            changed_at: '2026-03-01T00:00:00Z',
+            issuer_id: 1689391488,
+            role_type: 'roles',
+            old_roles: ['Hangar_Take_1'],
+            new_roles: ['Hangar_Take_1', 'Station_Manager'],
+          },
+        ],
+      });
+    });
+
+    when('the client requests the member role history', async () => {
+      result =
+        await client.corporations.getCorporationRolesHistory(CORPORATION_ID);
+    });
+
+    then('the client shall return the role change', () => {
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(`/corporations/${CORPORATION_ID}/roles/history/?$`),
+      );
+      expect(
+        result.map((r: any) => [
+          r.character_id,
+          r.role_type,
+          r.old_roles,
+          r.new_roles,
+        ]),
+      ).toEqual([
+        [
+          987654321,
+          'roles',
+          ['Hangar_Take_1'],
+          ['Hangar_Take_1', 'Station_Manager'],
+        ],
+      ]);
+    });
+  });
+
   test('Structure entries carrying a vulnerability state', ({
     given,
     when,
