@@ -1,5 +1,6 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
+import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
 import { EsiError } from '../../../../src/core/util/error';
 import {
   createSeamClient,
@@ -24,19 +25,15 @@ const requestBody = () => {
   return body === undefined ? undefined : JSON.parse(body);
 };
 
-const fleetMember = (overrides: Record<string, unknown>) => ({
-  character_id: 1689391488,
-  join_time: '2024-01-15T18:00:00Z',
-  role: 'squad_member',
-  role_name: 'Squad Member (Squad 1)',
-  ship_type_id: 17918,
-  solar_system_id: 30000142,
-  squad_id: 3129411261968,
-  station_id: 60003760,
-  takes_fleet_warp: true,
-  wing_id: 2073711261968,
-  ...overrides,
-});
+/** A squad member of squad 3129411261968 in wing 2073711261968. */
+const squadMember = (overrides: Record<string, unknown>) =>
+  TestDataFactory.createFleetMember({
+    role: 'squad_member',
+    role_name: 'Squad Member (Squad 1)',
+    squad_id: 3129411261968,
+    wing_id: 2073711261968,
+    ...overrides,
+  });
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
@@ -186,29 +183,24 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: esiPath(`fleets/${fleetId}/members`),
         body: [
-          fleetMember({
+          TestDataFactory.createFleetMember({
             character_id: 1689391488,
-            role: 'fleet_commander',
-            role_name: 'Fleet Commander (Boss)',
             ship_type_id: 17918,
             solar_system_id: 30000142,
-            squad_id: -1,
-            wing_id: -1,
           }),
-          fleetMember({
+          squadMember({
             character_id: 123456789,
-            role: 'squad_member',
             ship_type_id: 24690,
             solar_system_id: 30000144,
             station_id: undefined,
           }),
-          fleetMember({
+          TestDataFactory.createFleetMember({
             character_id: 111111111,
             role: 'wing_commander',
             role_name: 'Wing Commander (Wing 1)',
             ship_type_id: 17920,
             solar_system_id: 30000142,
-            squad_id: -1,
+            wing_id: 2073711261968,
           }),
         ],
       });
@@ -443,16 +435,10 @@ defineFeature(feature, (test) => {
       motd: 'Fleet operations in progress',
     };
     const mockMembers = [
-      fleetMember({ character_id: 1689391488 }),
-      fleetMember({ character_id: 123456789 }),
+      TestDataFactory.createFleetMember({ character_id: 1689391488 }),
+      squadMember({ character_id: 123456789 }),
     ];
-    const mockWings = [
-      {
-        id: 2073711261968,
-        name: 'Wing 1',
-        squads: [{ id: 3129411261968, name: 'Squad 1' }],
-      },
-    ];
+    const mockWings = [TestDataFactory.createFleetWing()];
 
     given('a valid fleet for concurrent fetch', () => {
       // Staggered delays make the responses settle out of request order.
