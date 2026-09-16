@@ -1,19 +1,27 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  RETRYABLE_ATTEMPTS,
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0034-status.feature');
+
+const STATUS_PATH = /\/status\/?(\?.*)?$/;
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-status-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Online server returns all four status fields', ({
@@ -24,14 +32,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('the Tranquility server is online', () => {
-      const expectedStatus = {
-        players: 32000,
-        server_version: '2115629',
-        start_time: '2024-01-15T11:05:00Z',
-        vip: false,
-      };
-
-      jest.spyOn(client.status, 'getStatus').mockResolvedValue(expectedStatus);
+      queueResponse({
+        match: STATUS_PATH,
+        body: {
+          players: 32000,
+          server_version: '2115629',
+          start_time: '2024-01-15T11:05:00Z',
+          vip: false,
+        },
+      });
     });
 
     when('the client requests the server status', async () => {
@@ -39,13 +48,17 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return current status information', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveProperty('players');
-      expect(result).toHaveProperty('server_version');
-      expect(result).toHaveProperty('start_time');
-      expect(result).toHaveProperty('vip');
-      expect(result.players).toBe(32000);
-      expect(result.server_version).toBe('2115629');
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(/\/status\/?$/);
+      // Status is public: no bearer token is sent.
+      expect(request.headers['authorization']).toBeUndefined();
+      expect(result).toEqual({
+        players: 32000,
+        server_version: '2115629',
+        start_time: '2024-01-15T11:05:00Z',
+        vip: false,
+      });
     });
   });
 
@@ -53,14 +66,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('the server is online with a typical player count', () => {
-      const expectedStatus = {
-        players: 32000,
-        server_version: '2115629',
-        start_time: '2024-01-15T11:05:00Z',
-        vip: false,
-      };
-
-      jest.spyOn(client.status, 'getStatus').mockResolvedValue(expectedStatus);
+      queueResponse({
+        match: STATUS_PATH,
+        body: {
+          players: 21874,
+          server_version: '2115629',
+          start_time: '2024-01-15T11:05:00Z',
+          vip: false,
+        },
+      });
     });
 
     when('the client checks the player count', async () => {
@@ -69,6 +83,7 @@ defineFeature(feature, (test) => {
 
     then('the player count shall be within expected bounds', () => {
       expect(typeof result.players).toBe('number');
+      expect(result.players).toBe(21874);
       expect(result.players).toBeGreaterThanOrEqual(0);
       expect(result.players).toBeLessThanOrEqual(65000);
     });
@@ -78,14 +93,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('the server is online', () => {
-      const expectedStatus = {
-        players: 28000,
-        server_version: '2115629',
-        start_time: '2024-01-15T11:05:00Z',
-        vip: false,
-      };
-
-      jest.spyOn(client.status, 'getStatus').mockResolvedValue(expectedStatus);
+      queueResponse({
+        match: STATUS_PATH,
+        body: {
+          players: 28000,
+          server_version: '2115629',
+          start_time: '2024-01-15T11:05:00Z',
+          vip: false,
+        },
+      });
     });
 
     when('the client checks the start time', async () => {
@@ -93,10 +109,9 @@ defineFeature(feature, (test) => {
     });
 
     then('the start time shall be a valid ISO timestamp', () => {
-      expect(result.start_time).toBeDefined();
+      expect(result.start_time).toBe('2024-01-15T11:05:00Z');
       const parsedDate = new Date(result.start_time);
-      expect(parsedDate.getTime()).not.toBeNaN();
-      expect(parsedDate.getFullYear()).toBe(2024);
+      expect(parsedDate.getTime()).toBe(Date.UTC(2024, 0, 15, 11, 5, 0));
     });
   });
 
@@ -108,14 +123,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('the server is in VIP mode', () => {
-      const vipStatus = {
-        players: 50,
-        server_version: '2115629',
-        start_time: '2024-01-15T11:05:00Z',
-        vip: true,
-      };
-
-      jest.spyOn(client.status, 'getStatus').mockResolvedValue(vipStatus);
+      queueResponse({
+        match: STATUS_PATH,
+        body: {
+          players: 50,
+          server_version: '2115629',
+          start_time: '2024-01-15T11:05:00Z',
+          vip: true,
+        },
+      });
     });
 
     when('the client requests the status', async () => {
@@ -124,8 +140,7 @@ defineFeature(feature, (test) => {
 
     then('the VIP flag should be true and player count shall be low', () => {
       expect(result.vip).toBe(true);
-      expect(typeof result.vip).toBe('boolean');
-      expect(result.players).toBeLessThan(1000);
+      expect(result.players).toBe(50);
     });
   });
 
@@ -137,14 +152,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('the server is operating normally', () => {
-      const normalStatus = {
-        players: 32000,
-        server_version: '2115629',
-        start_time: '2024-01-15T11:05:00Z',
-        vip: false,
-      };
-
-      jest.spyOn(client.status, 'getStatus').mockResolvedValue(normalStatus);
+      queueResponse({
+        match: STATUS_PATH,
+        body: {
+          players: 32000,
+          server_version: '2115629',
+          start_time: '2024-01-15T11:05:00Z',
+          vip: false,
+        },
+      });
     });
 
     when('the client requests the status for VIP check', async () => {
@@ -153,7 +169,7 @@ defineFeature(feature, (test) => {
 
     then('the VIP flag shall be false', () => {
       expect(result.vip).toBe(false);
-      expect(result.players).toBeGreaterThan(1000);
+      expect(result.players).toBe(32000);
     });
   });
 
@@ -165,9 +181,11 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('the ESI API is unavailable', () => {
-      const serviceError = TestDataFactory.createError(503);
-
-      jest.spyOn(client.status, 'getStatus').mockRejectedValue(serviceError);
+      // 503 is retryable, so the outage has to outlast the retry budget.
+      queueError(503, 'Service Unavailable', {
+        match: STATUS_PATH,
+        times: RETRYABLE_ATTEMPTS,
+      });
     });
 
     when('the client requests the server status', async () => {
@@ -180,6 +198,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 503 service unavailable error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(503);
+      expect(sentRequests()).toHaveLength(RETRYABLE_ATTEMPTS);
     });
   });
 
@@ -191,9 +211,7 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('the ESI API encounters an internal error', () => {
-      const serverError = TestDataFactory.createError(500);
-
-      jest.spyOn(client.status, 'getStatus').mockRejectedValue(serverError);
+      queueError(500, 'Internal server error', { match: STATUS_PATH });
     });
 
     when('the client requests the server status for error check', async () => {
@@ -206,6 +224,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 500 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(500);
+      // 500 is not retried.
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -217,33 +238,18 @@ defineFeature(feature, (test) => {
     let results: any[] = [];
 
     given('the server is online with gradually changing player counts', () => {
-      const statusChecks = [
-        {
-          players: 30000,
-          server_version: '2115629',
-          start_time: '2024-01-15T11:05:00Z',
-          vip: false,
-        },
-        {
-          players: 31000,
-          server_version: '2115629',
-          start_time: '2024-01-15T11:05:00Z',
-          vip: false,
-        },
-        {
-          players: 32500,
-          server_version: '2115629',
-          start_time: '2024-01-15T11:05:00Z',
-          vip: false,
-        },
-      ];
-
-      let callCount = 0;
-      jest.spyOn(client.status, 'getStatus').mockImplementation(async () => {
-        const result = statusChecks[callCount];
-        callCount++;
-        return result;
-      });
+      // Served in order, one per poll.
+      for (const players of [30000, 31000, 32500]) {
+        queueResponse({
+          match: STATUS_PATH,
+          body: {
+            players,
+            server_version: '2115629',
+            start_time: '2024-01-15T11:05:00Z',
+            vip: false,
+          },
+        });
+      }
     });
 
     when('the client checks the status multiple times', async () => {
@@ -256,16 +262,12 @@ defineFeature(feature, (test) => {
     then(
       'each check shall return valid data with consistent server version',
       () => {
-        expect(results).toHaveLength(3);
+        expect(sentRequests()).toHaveLength(3);
+        expect(results.map((r) => r.players)).toEqual([30000, 31000, 32500]);
         results.forEach((result) => {
-          expect(result).toHaveProperty('players');
-          expect(result).toHaveProperty('server_version');
           expect(result.server_version).toBe('2115629');
           expect(result.start_time).toBe('2024-01-15T11:05:00Z');
         });
-
-        // Player count should vary between checks
-        expect(results[0].players).not.toBe(results[2].players);
       },
     );
   });

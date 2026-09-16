@@ -1,21 +1,35 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  RETRYABLE_ATTEMPTS,
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0024-mercenary.feature');
 
 const TEST_CHARACTER_ID = 123456;
 
+// List endpoints end at the collection; detail endpoints add an ID segment.
+const DENS_LIST = new RegExp(
+  `/characters/${TEST_CHARACTER_ID}/structures/mercenary-dens/?(\\?.*)?$`,
+);
+const OPS_LIST = new RegExp(
+  `/characters/${TEST_CHARACTER_ID}/mercenary-tactical-operations/?(\\?.*)?$`,
+);
+
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Two dens return their development, anarchy, and active operation counts', ({
@@ -46,9 +60,7 @@ defineFeature(feature, (test) => {
     ];
 
     given('mercenary dens exist', () => {
-      jest
-        .spyOn(client.mercenary, 'getMercenaryDens')
-        .mockResolvedValue(expectedDens as any);
+      queueResponse({ match: DENS_LIST, body: expectedDens });
     });
 
     when('the client requests dens', async () => {
@@ -56,12 +68,25 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return development and anarchy parameters', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveLength(2);
-      expect(result[0].den_id).toBe(5001);
-      expect(result[0].development_level).toBe(3);
-      expect(result[0].anarchy_level).toBe(2);
-      expect(result[1].active_operations).toBe(3);
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(
+        new RegExp(
+          `/characters/${TEST_CHARACTER_ID}/structures/mercenary-dens/?$`,
+        ),
+      );
+      expect(request.headers['authorization']).toBe('Bearer bdd-access-token');
+      expect(
+        result.map((d: any) => [
+          d.den_id,
+          d.development_level,
+          d.anarchy_level,
+          d.active_operations,
+        ]),
+      ).toEqual([
+        [5001, 3, 2, 1],
+        [5002, 5, 4, 3],
+      ]);
     });
   });
 
@@ -73,7 +98,7 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('no dens exist in the area', () => {
-      jest.spyOn(client.mercenary, 'getMercenaryDens').mockResolvedValue([]);
+      queueResponse({ match: DENS_LIST, body: [] });
     });
 
     when('the client requests dens', async () => {
@@ -81,8 +106,8 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an empty array', () => {
-      expect(Array.isArray(result)).toBe(true);
-      expect(result).toHaveLength(0);
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toEqual([]);
     });
   });
 
@@ -114,9 +139,7 @@ defineFeature(feature, (test) => {
     ];
 
     given('MTOs are active', () => {
-      jest
-        .spyOn(client.mercenary, 'getMercenaryTacticalOperations')
-        .mockResolvedValue(expectedOps as any);
+      queueResponse({ match: OPS_LIST, body: expectedOps });
     });
 
     when('the client requests operations', async () => {
@@ -127,11 +150,17 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return operation details with status', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveLength(2);
-      expect(result[0].operation_id).toBe(7001);
-      expect(result[0].status).toBe('active');
-      expect(result[1].site_type).toBe('recon');
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(
+          `/characters/${TEST_CHARACTER_ID}/mercenary-tactical-operations/?$`,
+        ),
+      );
+      expect(
+        result.map((op: any) => [op.operation_id, op.site_type, op.status]),
+      ).toEqual([
+        [7001, 'assault', 'active'],
+        [7002, 'recon', 'spawning'],
+      ]);
     });
   });
 
@@ -142,36 +171,36 @@ defineFeature(feature, (test) => {
   }) => {
     let denResults: any;
     let opResults: any;
-    const dens = [
-      {
-        den_id: 5001,
-        system_id: 30000142,
-        constellation_id: 20000125,
-        region_id: 10000002,
-        development_level: 3,
-        anarchy_level: 2,
-        active_operations: 1,
-      },
-    ];
-    const ops = [
-      {
-        operation_id: 7001,
-        den_id: 5001,
-        system_id: 30000142,
-        site_type: 'assault',
-        status: 'active',
-        started_at: '2026-05-20T10:00:00Z',
-        expires_at: '2026-05-20T22:00:00Z',
-      },
-    ];
 
     given('dens and MTOs exist', () => {
-      jest
-        .spyOn(client.mercenary, 'getMercenaryDens')
-        .mockResolvedValue(dens as any);
-      jest
-        .spyOn(client.mercenary, 'getMercenaryTacticalOperations')
-        .mockResolvedValue(ops as any);
+      queueResponse({
+        match: DENS_LIST,
+        body: [
+          {
+            den_id: 5001,
+            system_id: 30000142,
+            constellation_id: 20000125,
+            region_id: 10000002,
+            development_level: 3,
+            anarchy_level: 2,
+            active_operations: 1,
+          },
+        ],
+      });
+      queueResponse({
+        match: OPS_LIST,
+        body: [
+          {
+            operation_id: 7001,
+            den_id: 5001,
+            system_id: 30000142,
+            site_type: 'assault',
+            status: 'active',
+            started_at: '2026-05-20T10:00:00Z',
+            expires_at: '2026-05-20T22:00:00Z',
+          },
+        ],
+      });
     });
 
     when('the client fetches both', async () => {
@@ -182,8 +211,10 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall correlate operations to their parent dens', () => {
-      expect(denResults).toHaveLength(1);
-      expect(opResults).toHaveLength(1);
+      expect(sentRequests()).toHaveLength(2);
+      expect(denResults.map((d: any) => d.den_id)).toEqual([5001]);
+      expect(opResults.map((op: any) => op.operation_id)).toEqual([7001]);
+      expect(opResults[0].den_id).toBe(5001);
       expect(opResults[0].den_id).toBe(denResults[0].den_id);
     });
   });
@@ -193,44 +224,53 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
+    const denId = 5001;
     let result: any;
-    const expectedDenDetail = {
-      id: 5001,
-      type_id: 81080,
-      state: 'Running',
-      skyhook: {
-        id: 200000001,
-        planet_id: 40000002,
-        corporation_id: 98000002,
-      },
-      infomorphs: { amount: 100 },
-      evolution: {
-        development: { level: 3, progress: 0.75 },
-        anarchy: { level: 2, progress: 0.4 },
-      },
-    };
 
     given('a mercenary den exists with detail data', () => {
-      jest
-        .spyOn(client.mercenary, 'getMercenaryDenDetail')
-        .mockResolvedValue(expectedDenDetail as any);
+      queueResponse({
+        match: `/structures/mercenary-dens/${denId}`,
+        body: {
+          id: denId,
+          type_id: 81080,
+          state: 'Running',
+          skyhook: {
+            id: 200000001,
+            planet_id: 40000002,
+            corporation_id: 98000002,
+          },
+          infomorphs: { amount: 100 },
+          evolution: {
+            development: { level: 3, progress: 0.75 },
+            anarchy: { level: 2, progress: 0.4 },
+          },
+        },
+      });
     });
 
     when('the client requests den detail', async () => {
       result = await client.mercenary.getMercenaryDenDetail(
         TEST_CHARACTER_ID,
-        5001,
+        denId,
       );
     });
 
     then('the client shall return the den evolution and infomorph data', () => {
-      expect(result).toBeDefined();
-      expect(result.id).toBe(5001);
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(
+          `/characters/${TEST_CHARACTER_ID}/structures/mercenary-dens/${denId}/?$`,
+        ),
+      );
+      expect(result.id).toBe(denId);
       expect(result.state).toBe('Running');
-      expect(result.infomorphs.amount).toBe(100);
+      expect(result.infomorphs).toEqual({ amount: 100 });
+      expect(result.skyhook).toEqual({
+        id: 200000001,
+        planet_id: 40000002,
+        corporation_id: 98000002,
+      });
       expect(result.evolution.development.level).toBe(3);
       expect(result.evolution.anarchy.level).toBe(2);
-      expect(result.skyhook.planet_id).toBe(40000002);
     });
   });
 
@@ -239,19 +279,20 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
+    const operationId = '3868eaed-8278-4cb7-9709-7d7de9c20dc7';
     let result: any;
-    const expectedOpDetail = {
-      id: '3868eaed-8278-4cb7-9709-7d7de9c20dc7',
-      mercenary_den_id: 5001,
-      state: 'Available',
-      dungeon_type_id: 12367,
-      expires: '2026-05-20T22:00:00Z',
-    };
 
     given('an MTO exists with detail data', () => {
-      jest
-        .spyOn(client.mercenary, 'getMercenaryTacticalOperationDetail')
-        .mockResolvedValue(expectedOpDetail as any);
+      queueResponse({
+        match: `/mercenary-tactical-operations/${operationId}`,
+        body: {
+          id: operationId,
+          mercenary_den_id: 5001,
+          state: 'Available',
+          dungeon_type_id: 12367,
+          expires: '2026-05-20T22:00:00Z',
+        },
+      });
     });
 
     when('the client requests operation detail', async () => {
@@ -262,8 +303,12 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the operation state and expiry', () => {
-      expect(result).toBeDefined();
-      expect(result.id).toBe('3868eaed-8278-4cb7-9709-7d7de9c20dc7');
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(
+          `/characters/${TEST_CHARACTER_ID}/mercenary-tactical-operations/${operationId}/?$`,
+        ),
+      );
+      expect(result.id).toBe(operationId);
       expect(result.state).toBe('Available');
       expect(result.dungeon_type_id).toBe(12367);
       expect(result.expires).toBe('2026-05-20T22:00:00Z');
@@ -278,8 +323,11 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('the ESI service is down', () => {
-      const error = TestDataFactory.createError(503);
-      jest.spyOn(client.mercenary, 'getMercenaryDens').mockRejectedValue(error);
+      // 503 is retryable, so the outage has to outlast the retry budget.
+      queueError(503, 'Service Unavailable', {
+        match: DENS_LIST,
+        times: RETRYABLE_ATTEMPTS,
+      });
     });
 
     when('the client requests mercenary data', async () => {
@@ -292,6 +340,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 503 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(503);
+      expect(sentRequests()).toHaveLength(RETRYABLE_ATTEMPTS);
     });
   });
 });

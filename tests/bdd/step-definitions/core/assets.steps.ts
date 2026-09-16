@@ -2,18 +2,35 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0005-assets.feature');
+
+/**
+ * Match a URL whose path ends exactly at `path`, so `/assets/` does not also
+ * serve `/assets/names/`.
+ */
+function exactPath(path: string): RegExp {
+  const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^https://esi\\.evetech\\.net${escaped}(\\?|$)`);
+}
+
+const BEARER = 'Bearer bdd-access-token';
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Asset listing for a character holding two stacks', ({
@@ -25,28 +42,30 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid character ID with assets', () => {
-      const expectedAssets = [
-        TestDataFactory.createCharacterAsset({
-          item_id: 1000000001,
-          type_id: 34,
-          quantity: 1000000,
-          location_id: 60003760,
-          location_flag: 'Hangar',
-          location_type: 'station',
-        }),
-        TestDataFactory.createCharacterAsset({
-          item_id: 1000000002,
-          type_id: 35,
-          quantity: 500000,
-          location_id: 60003760,
-          location_flag: 'Hangar',
-          location_type: 'station',
-        }),
-      ];
-
-      jest
-        .spyOn(client.assets, 'getCharacterAssets')
-        .mockResolvedValue(expectedAssets);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/assets/`),
+        headers: { 'x-pages': '1' },
+        body: [
+          TestDataFactory.createCharacterAsset({
+            item_id: 1000000001,
+            type_id: 34,
+            quantity: 1000000,
+            location_id: 60003760,
+            location_flag: 'Hangar',
+            location_type: 'station',
+            is_singleton: false,
+          }),
+          TestDataFactory.createCharacterAsset({
+            item_id: 1000000002,
+            type_id: 35,
+            quantity: 500000,
+            location_id: 60003760,
+            location_flag: 'Hangar',
+            location_type: 'station',
+            is_singleton: false,
+          }),
+        ],
+      });
     });
 
     when('the client requests character assets', async () => {
@@ -54,15 +73,31 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of assets', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('item_id');
-      expect(result[0]).toHaveProperty('type_id');
-      expect(result[0]).toHaveProperty('quantity');
-      expect(result[0]).toHaveProperty('location_id');
-      expect(result[0]).toHaveProperty('location_flag');
-      expect(result[0]).toHaveProperty('location_type');
-      expect(result[0].quantity).toBe(1000000);
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/assets/`,
+      );
+      expect(lastRequest().headers.authorization).toBe(BEARER);
+      expect(result).toEqual([
+        {
+          item_id: 1000000001,
+          type_id: 34,
+          quantity: 1000000,
+          location_id: 60003760,
+          location_flag: 'Hangar',
+          location_type: 'station',
+          is_singleton: false,
+        },
+        {
+          item_id: 1000000002,
+          type_id: 35,
+          quantity: 500000,
+          location_id: 60003760,
+          location_flag: 'Hangar',
+          location_type: 'station',
+          is_singleton: false,
+        },
+      ]);
     });
   });
 
@@ -71,11 +106,11 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with no assets', () => {
-      const emptyAssets: any[] = [];
-
-      jest
-        .spyOn(client.assets, 'getCharacterAssets')
-        .mockResolvedValue(emptyAssets);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/assets/`),
+        headers: { 'x-pages': '1' },
+        body: [],
+      });
     });
 
     when(
@@ -86,8 +121,10 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall return an empty array', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(0);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/assets/`,
+      );
+      expect(result).toEqual([]);
     });
   });
 
@@ -100,11 +137,9 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an invalid or expired token for assets', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.assets, 'getCharacterAssets')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'token not valid for scope', {
+        match: exactPath(`/characters/${characterId}/assets/`),
+      });
     });
 
     when(
@@ -120,6 +155,10 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 forbidden error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(403);
+      // 403 is not retried.
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().headers.authorization).toBe(BEARER);
     });
   });
 
@@ -129,14 +168,13 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with named assets', () => {
-      const expectedNames = [
-        { item_id: 1000000001, name: 'My Rifter' },
-        { item_id: 1000000002, name: 'Ore Hold' },
-      ];
-
-      jest
-        .spyOn(client.assets, 'postCharacterAssetNames')
-        .mockResolvedValue(expectedNames);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/assets/names/`),
+        body: [
+          { item_id: 1000000001, name: 'My Rifter' },
+          { item_id: 1000000002, name: 'Ore Hold' },
+        ],
+      });
     });
 
     when('the client requests asset names by item IDs', async () => {
@@ -147,12 +185,17 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the names for those assets', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('item_id', 1000000001);
-      expect(result[0]).toHaveProperty('name', 'My Rifter');
-      expect(result[1]).toHaveProperty('item_id', 1000000002);
-      expect(result[1]).toHaveProperty('name', 'Ore Hold');
+      const request = lastRequest();
+      expect(request.method).toBe('POST');
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/assets/names/`,
+      );
+      expect(request.headers.authorization).toBe(BEARER);
+      expect(JSON.parse(request.body!)).toEqual(itemIds);
+      expect(result).toEqual([
+        { item_id: 1000000001, name: 'My Rifter' },
+        { item_id: 1000000002, name: 'Ore Hold' },
+      ]);
     });
   });
 
@@ -162,16 +205,15 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with located assets', () => {
-      const expectedLocations = [
-        {
-          item_id: 1000000001,
-          position: { x: 1.0, y: 2.0, z: 3.0 },
-        },
-      ];
-
-      jest
-        .spyOn(client.assets, 'postCharacterAssetLocations')
-        .mockResolvedValue(expectedLocations);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/assets/locations/`),
+        body: [
+          {
+            item_id: 1000000001,
+            position: { x: 1.0e12, y: -2.5e10, z: 3.75e11 },
+          },
+        ],
+      });
     });
 
     when('the client requests asset locations by item IDs', async () => {
@@ -182,10 +224,18 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return position data', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(1);
-      expect(result[0]).toHaveProperty('item_id', 1000000001);
-      expect(result[0]).toHaveProperty('position');
+      const request = lastRequest();
+      expect(request.method).toBe('POST');
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/assets/locations/`,
+      );
+      expect(JSON.parse(request.body!)).toEqual(itemIds);
+      expect(result).toEqual([
+        {
+          item_id: 1000000001,
+          position: { x: 1.0e12, y: -2.5e10, z: 3.75e11 },
+        },
+      ]);
     });
   });
 
@@ -198,20 +248,30 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid corporation ID with assets', () => {
-      const expectedAssets = [
-        TestDataFactory.createCharacterAsset({
-          item_id: 2000000001,
-          type_id: 587,
-          quantity: 100,
-          location_id: 60003760,
-          location_flag: 'CorpSAG1',
-          location_type: 'station',
-        }),
-      ];
-
-      jest
-        .spyOn(client.assets, 'getCorporationAssets')
-        .mockResolvedValue(expectedAssets);
+      queueResponse({
+        match: exactPath(`/corporations/${corporationId}/assets/`),
+        headers: { 'x-pages': '1' },
+        body: [
+          TestDataFactory.createCharacterAsset({
+            item_id: 2000000001,
+            type_id: 587,
+            quantity: 1,
+            location_id: 60003760,
+            location_flag: 'CorpSAG1',
+            location_type: 'station',
+            is_singleton: true,
+          }),
+          TestDataFactory.createCharacterAsset({
+            item_id: 2000000002,
+            type_id: 34,
+            quantity: 250000,
+            location_id: 60003760,
+            location_flag: 'CorpSAG3',
+            location_type: 'station',
+            is_singleton: false,
+          }),
+        ],
+      });
     });
 
     when('the client requests corporation assets', async () => {
@@ -219,10 +279,16 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return the corporation asset list', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(1);
-      expect(result[0].location_flag).toBe('CorpSAG1');
-      expect(result[0].type_id).toBe(587);
+      expect(lastRequest().url.pathname).toBe(
+        `/corporations/${corporationId}/assets/`,
+      );
+      expect(lastRequest().headers.authorization).toBe(BEARER);
+      expect(
+        result.map((a: any) => [a.item_id, a.type_id, a.location_flag]),
+      ).toEqual([
+        [2000000001, 587, 'CorpSAG1'],
+        [2000000002, 34, 'CorpSAG3'],
+      ]);
     });
   });
 
@@ -237,34 +303,40 @@ defineFeature(feature, (test) => {
     let corpResult: any;
 
     given('a character and their corporation', () => {
-      const characterAssets = [
-        TestDataFactory.createCharacterAsset({
-          item_id: 1000000001,
-          type_id: 34,
-          quantity: 1000000,
-        }),
-        TestDataFactory.createCharacterAsset({
-          item_id: 1000000002,
-          type_id: 35,
-          quantity: 500000,
-        }),
-      ];
-
-      const corporationAssets = [
-        TestDataFactory.createCharacterAsset({
-          item_id: 2000000001,
-          type_id: 587,
-          quantity: 50,
-          location_flag: 'CorpSAG1',
-        }),
-      ];
-
-      jest
-        .spyOn(client.assets, 'getCharacterAssets')
-        .mockResolvedValue(characterAssets);
-      jest
-        .spyOn(client.assets, 'getCorporationAssets')
-        .mockResolvedValue(corporationAssets);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/assets/`),
+        headers: { 'x-pages': '1' },
+        // Answer the character listing last, so a mix-up cannot hide behind
+        // response ordering.
+        delayMs: 20,
+        body: [
+          TestDataFactory.createCharacterAsset({
+            item_id: 1000000001,
+            type_id: 34,
+            quantity: 1000000,
+            is_singleton: false,
+          }),
+          TestDataFactory.createCharacterAsset({
+            item_id: 1000000002,
+            type_id: 35,
+            quantity: 500000,
+            is_singleton: false,
+          }),
+        ],
+      });
+      queueResponse({
+        match: exactPath(`/corporations/${corporationId}/assets/`),
+        headers: { 'x-pages': '1' },
+        body: [
+          TestDataFactory.createCharacterAsset({
+            item_id: 2000000001,
+            type_id: 587,
+            quantity: 50,
+            location_flag: 'CorpSAG1',
+            is_singleton: false,
+          }),
+        ],
+      });
     });
 
     when('the client fetches both asset sets concurrently', async () => {
@@ -275,12 +347,12 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return both results independently', () => {
-      expect(charResult).toBeInstanceOf(Array);
-      expect(charResult).toHaveLength(2);
-      expect(charResult[0].type_id).toBe(34);
-
-      expect(corpResult).toBeInstanceOf(Array);
-      expect(corpResult).toHaveLength(1);
+      expect(sentRequests()).toHaveLength(2);
+      expect(charResult.map((a: any) => a.item_id)).toEqual([
+        1000000001, 1000000002,
+      ]);
+      expect(charResult.map((a: any) => a.type_id)).toEqual([34, 35]);
+      expect(corpResult.map((a: any) => a.item_id)).toEqual([2000000001]);
       expect(corpResult[0].location_flag).toBe('CorpSAG1');
     });
   });
@@ -296,28 +368,41 @@ defineFeature(feature, (test) => {
     let locations: any;
 
     given('a character with assets for audit', () => {
-      const assets = [
-        TestDataFactory.createCharacterAsset({
-          item_id: 1000000001,
-          type_id: 34,
-          quantity: 1000000,
-        }),
-      ];
-      const assetNames = [{ item_id: 1000000001, name: 'Tritanium Stash' }];
-      const assetLocations = [
-        {
-          item_id: 1000000001,
-          position: { x: 100.0, y: 200.0, z: 300.0 },
-        },
-      ];
-
-      jest.spyOn(client.assets, 'getCharacterAssets').mockResolvedValue(assets);
-      jest
-        .spyOn(client.assets, 'postCharacterAssetNames')
-        .mockResolvedValue(assetNames);
-      jest
-        .spyOn(client.assets, 'postCharacterAssetLocations')
-        .mockResolvedValue(assetLocations);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/assets/`),
+        headers: { 'x-pages': '1' },
+        body: [
+          TestDataFactory.createCharacterAsset({
+            item_id: 1000000001,
+            type_id: 34,
+            quantity: 1000000,
+            is_singleton: false,
+          }),
+          TestDataFactory.createCharacterAsset({
+            item_id: 1000000007,
+            type_id: 587,
+            quantity: 1,
+            location_id: 30000142,
+            location_type: 'solar_system',
+            location_flag: 'AutoFit',
+            is_singleton: true,
+          }),
+        ],
+      });
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/assets/names/`),
+        body: [
+          { item_id: 1000000001, name: 'Tritanium Stash' },
+          { item_id: 1000000007, name: 'Scout Rifter' },
+        ],
+      });
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/assets/locations/`),
+        body: [
+          { item_id: 1000000001, position: { x: 0, y: 0, z: 0 } },
+          { item_id: 1000000007, position: { x: 100.0, y: 200.0, z: 300.0 } },
+        ],
+      });
     });
 
     when(
@@ -334,11 +419,27 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall have a complete asset inventory', () => {
-      expect(retrievedAssets).toHaveLength(1);
-      expect(names).toHaveLength(1);
-      expect(names[0].name).toBe('Tritanium Stash');
-      expect(locations).toHaveLength(1);
-      expect(locations[0].position).toBeDefined();
+      const requests = sentRequests();
+      expect(requests).toHaveLength(3);
+      expect(requests[0].method).toBe('GET');
+      const lookups = requests.slice(1);
+      expect(lookups.map((r) => r.method)).toEqual(['POST', 'POST']);
+      // Both lookups carry the item IDs the listing returned.
+      for (const lookup of lookups) {
+        expect(JSON.parse(lookup.body!)).toEqual([1000000001, 1000000007]);
+      }
+
+      expect(retrievedAssets.map((a: any) => a.item_id)).toEqual([
+        1000000001, 1000000007,
+      ]);
+      expect(names).toEqual([
+        { item_id: 1000000001, name: 'Tritanium Stash' },
+        { item_id: 1000000007, name: 'Scout Rifter' },
+      ]);
+      expect(locations).toEqual([
+        { item_id: 1000000001, position: { x: 0, y: 0, z: 0 } },
+        { item_id: 1000000007, position: { x: 100.0, y: 200.0, z: 300.0 } },
+      ]);
     });
   });
 });

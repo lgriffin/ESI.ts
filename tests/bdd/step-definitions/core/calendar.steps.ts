@@ -1,19 +1,61 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
+import fetchMock from 'jest-fetch-mock';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0006-calendar.feature');
+
+/**
+ * Match a URL whose path ends exactly at `path`, so `/calendar/` does not also
+ * serve `/calendar/{event_id}/`.
+ */
+function exactPath(path: string): RegExp {
+  const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^https://esi\\.evetech\\.net${escaped}(\\?|$)`);
+}
+
+const BEARER = 'Bearer bdd-access-token';
+
+/**
+ * Local workaround for a seam gap: transport.ts encodes a body-less response
+ * as an empty string, and the Response constructor rejects any body on 204.
+ * ESI answers calendar responses with 204 No Content, so rebuild that one
+ * response with a null body. The seam has already recorded the request and
+ * consumed the queued entry by the time the constructor throws, so its
+ * strictness is unaffected. Must be registered after useHttpTransport().
+ */
+function allowNoContentResponses(): void {
+  beforeEach(() => {
+    const serve = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (input, init) => {
+      try {
+        return await serve(input, init);
+      } catch (error) {
+        if (/Invalid response status code 204/.test(String(error))) {
+          return new Response(null, { status: 204 });
+        }
+        throw error;
+      }
+    });
+  });
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+  allowNoContentResponses();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Event list holding an accepted event and an unanswered event', ({
@@ -25,26 +67,25 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with upcoming events', () => {
-      const expectedEvents = [
-        {
-          event_id: 1000001,
-          event_date: '2024-02-01T19:00:00Z',
-          title: 'Fleet Op: Jita Defense',
-          importance: 0,
-          event_response: 'accepted' as const,
-        },
-        {
-          event_id: 1000002,
-          event_date: '2024-02-03T21:00:00Z',
-          title: 'Corp Meeting',
-          importance: 1,
-          event_response: 'not_responded' as const,
-        },
-      ];
-
-      jest
-        .spyOn(client.calendar, 'getCalendarEvents')
-        .mockResolvedValue(expectedEvents);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/calendar/`),
+        body: [
+          {
+            event_id: 1000001,
+            event_date: '2024-02-01T19:00:00Z',
+            title: 'Fleet Op: Jita Defense',
+            importance: 0,
+            event_response: 'accepted',
+          },
+          {
+            event_id: 1000002,
+            event_date: '2024-02-03T21:00:00Z',
+            title: 'Corp Meeting',
+            importance: 1,
+            event_response: 'not_responded',
+          },
+        ],
+      });
     });
 
     when('the client requests calendar events', async () => {
@@ -52,13 +93,27 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of events', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('event_id', 1000001);
-      expect(result[0]).toHaveProperty('title', 'Fleet Op: Jita Defense');
-      expect(result[0]).toHaveProperty('event_date');
-      expect(result[0]).toHaveProperty('event_response');
-      expect(result[1]).toHaveProperty('importance', 1);
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/calendar/`,
+      );
+      expect(lastRequest().headers.authorization).toBe(BEARER);
+      expect(result).toEqual([
+        {
+          event_id: 1000001,
+          event_date: '2024-02-01T19:00:00Z',
+          title: 'Fleet Op: Jita Defense',
+          importance: 0,
+          event_response: 'accepted',
+        },
+        {
+          event_id: 1000002,
+          event_date: '2024-02-03T21:00:00Z',
+          title: 'Corp Meeting',
+          importance: 1,
+          event_response: 'not_responded',
+        },
+      ]);
     });
   });
 
@@ -67,11 +122,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with no upcoming events', () => {
-      const emptyEvents: any[] = [];
-
-      jest
-        .spyOn(client.calendar, 'getCalendarEvents')
-        .mockResolvedValue(emptyEvents);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/calendar/`),
+        body: [],
+      });
     });
 
     when(
@@ -82,8 +136,10 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall return an empty array', () => {
-      expect(result).toBeInstanceOf(Array);
-      expect(result).toHaveLength(0);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/calendar/`,
+      );
+      expect(result).toEqual([]);
     });
   });
 
@@ -96,11 +152,9 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an invalid or expired token for calendar', () => {
-      const forbiddenError = TestDataFactory.createError(403);
-
-      jest
-        .spyOn(client.calendar, 'getCalendarEvents')
-        .mockRejectedValue(forbiddenError);
+      queueError(403, 'token not valid for scope', {
+        match: exactPath(`/characters/${characterId}/calendar/`),
+      });
     });
 
     when(
@@ -116,6 +170,10 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 403 forbidden error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(403);
+      // 403 is not retried.
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().headers.authorization).toBe(BEARER);
     });
   });
 
@@ -129,22 +187,21 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid event ID', () => {
-      const expectedDetail = {
-        event_id: eventId,
-        date: '2024-02-01T19:00:00Z',
-        duration: 60,
-        title: 'Fleet Op: Jita Defense',
-        text: 'Form up in staging, doctrine ships required.',
-        owner_id: 1344654522,
-        owner_name: 'GoonWaffe',
-        owner_type: 'corporation' as const,
-        importance: 0,
-        response: 'accepted',
-      };
-
-      jest
-        .spyOn(client.calendar, 'getCalendarEventById')
-        .mockResolvedValue(expectedDetail);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/calendar/${eventId}/`),
+        body: {
+          event_id: eventId,
+          date: '2024-02-01T19:00:00Z',
+          duration: 60,
+          title: 'Fleet Op: Jita Defense',
+          text: 'Form up in staging, doctrine ships required.',
+          owner_id: 1344654522,
+          owner_name: 'GoonWaffe',
+          owner_type: 'corporation',
+          importance: 0,
+          response: 'accepted',
+        },
+      });
     });
 
     when('the client requests event details', async () => {
@@ -152,13 +209,22 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete event information', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveProperty('event_id', eventId);
-      expect(result).toHaveProperty('title', 'Fleet Op: Jita Defense');
-      expect(result).toHaveProperty('text');
-      expect(result).toHaveProperty('duration', 60);
-      expect(result).toHaveProperty('owner_id');
-      expect(result).toHaveProperty('owner_type', 'corporation');
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/calendar/${eventId}/`,
+      );
+      expect(result).toEqual({
+        event_id: eventId,
+        date: '2024-02-01T19:00:00Z',
+        duration: 60,
+        title: 'Fleet Op: Jita Defense',
+        text: 'Form up in staging, doctrine ships required.',
+        owner_id: 1344654522,
+        owner_name: 'GoonWaffe',
+        owner_type: 'corporation',
+        importance: 0,
+        response: 'accepted',
+      });
     });
   });
 
@@ -168,11 +234,11 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an invalid event ID', () => {
-      const notFoundError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.calendar, 'getCalendarEventById')
-        .mockRejectedValue(notFoundError);
+      queueError(404, 'Event not found', {
+        match: exactPath(
+          `/characters/${characterId}/calendar/${invalidEventId}/`,
+        ),
+      });
     });
 
     when(
@@ -191,6 +257,12 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 404 not found error', () => {
       expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(404);
+      // 404 is not retried.
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/calendar/${invalidEventId}/`,
+      );
     });
   });
 
@@ -199,9 +271,11 @@ defineFeature(feature, (test) => {
     const eventId = 1000001;
 
     given('a pending event invitation to accept', () => {
-      jest
-        .spyOn(client.calendar, 'respondToCalendarEvent')
-        .mockResolvedValue(undefined);
+      // ESI answers a response submission with 204 No Content.
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/calendar/${eventId}/`),
+        status: 204,
+      });
     });
 
     when('the client accepts the event', async () => {
@@ -213,11 +287,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the acceptance response shall be recorded successfully', () => {
-      expect(client.calendar.respondToCalendarEvent).toHaveBeenCalledWith(
-        characterId,
-        eventId,
-        'accepted',
+      expect(sentRequests()).toHaveLength(1);
+      const request = lastRequest();
+      expect(request.method).toBe('PUT');
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/calendar/${eventId}/`,
       );
+      expect(request.headers.authorization).toBe(BEARER);
+      expect(JSON.parse(request.body!)).toEqual({ response: 'accepted' });
     });
   });
 
@@ -226,9 +303,10 @@ defineFeature(feature, (test) => {
     const eventId = 1000002;
 
     given('a pending event invitation to decline', () => {
-      jest
-        .spyOn(client.calendar, 'respondToCalendarEvent')
-        .mockResolvedValue(undefined);
+      queueResponse({
+        match: exactPath(`/characters/${characterId}/calendar/${eventId}/`),
+        status: 204,
+      });
     });
 
     when('the client declines the event', async () => {
@@ -240,11 +318,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the decline response shall be recorded', () => {
-      expect(client.calendar.respondToCalendarEvent).toHaveBeenCalledWith(
-        characterId,
-        eventId,
-        'declined',
+      expect(sentRequests()).toHaveLength(1);
+      const request = lastRequest();
+      expect(request.method).toBe('PUT');
+      expect(request.url.pathname).toBe(
+        `/characters/${characterId}/calendar/${eventId}/`,
       );
+      expect(JSON.parse(request.body!)).toEqual({ response: 'declined' });
     });
   });
 
@@ -258,24 +338,16 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an event with attendees', () => {
-      const expectedAttendees = [
-        {
-          character_id: 1689391488,
-          event_response: 'accepted' as const,
-        },
-        {
-          character_id: 123456789,
-          event_response: 'tentative' as const,
-        },
-        {
-          character_id: 111111111,
-          event_response: 'declined' as const,
-        },
-      ];
-
-      jest
-        .spyOn(client.calendar, 'getEventAttendees')
-        .mockResolvedValue(expectedAttendees);
+      queueResponse({
+        match: exactPath(
+          `/characters/${characterId}/calendar/${eventId}/attendees/`,
+        ),
+        body: [
+          { character_id: 1689391488, event_response: 'accepted' },
+          { character_id: 123456789, event_response: 'tentative' },
+          { character_id: 111111111, event_response: 'declined' },
+        ],
+      });
     });
 
     when('the client requests the attendee list', async () => {
@@ -285,12 +357,14 @@ defineFeature(feature, (test) => {
     then(
       'the client shall return attendees with their response statuses',
       () => {
-        expect(result).toBeInstanceOf(Array);
-        expect(result).toHaveLength(3);
-        expect(result[0]).toHaveProperty('character_id');
-        expect(result[0]).toHaveProperty('event_response', 'accepted');
-        expect(result[1]).toHaveProperty('event_response', 'tentative');
-        expect(result[2]).toHaveProperty('event_response', 'declined');
+        expect(lastRequest().url.pathname).toBe(
+          `/characters/${characterId}/calendar/${eventId}/attendees/`,
+        );
+        expect(result).toEqual([
+          { character_id: 1689391488, event_response: 'accepted' },
+          { character_id: 123456789, event_response: 'tentative' },
+          { character_id: 111111111, event_response: 'declined' },
+        ]);
       },
     );
   });
@@ -302,37 +376,34 @@ defineFeature(feature, (test) => {
   }) => {
     const characterId = 1689391488;
     const eventId = 1000001;
+    const eventPath = `/characters/${characterId}/calendar/${eventId}/`;
     let detail: any;
     let attendees: any;
 
     given('an upcoming event for lifecycle test', () => {
-      const eventDetail = {
-        event_id: eventId,
-        date: '2024-02-01T19:00:00Z',
-        duration: 60,
-        title: 'Fleet Op: Jita Defense',
-        text: 'Form up in staging.',
-        owner_id: 1344654522,
-        owner_name: 'GoonWaffe',
-        owner_type: 'corporation' as const,
-        importance: 0,
-        response: 'not_responded',
-      };
-
-      const attendeesAfterResponse = [
-        { character_id: 1689391488, event_response: 'accepted' as const },
-        { character_id: 123456789, event_response: 'accepted' as const },
-      ];
-
-      jest
-        .spyOn(client.calendar, 'getCalendarEventById')
-        .mockResolvedValue(eventDetail);
-      jest
-        .spyOn(client.calendar, 'respondToCalendarEvent')
-        .mockResolvedValue(undefined);
-      jest
-        .spyOn(client.calendar, 'getEventAttendees')
-        .mockResolvedValue(attendeesAfterResponse);
+      queueResponse({
+        match: exactPath(eventPath),
+        body: {
+          event_id: eventId,
+          date: '2024-02-01T19:00:00Z',
+          duration: 60,
+          title: 'Fleet Op: Jita Defense',
+          text: 'Form up in staging.',
+          owner_id: 1344654522,
+          owner_name: 'GoonWaffe',
+          owner_type: 'corporation',
+          importance: 0,
+          response: 'not_responded',
+        },
+      });
+      queueResponse({ match: exactPath(eventPath), status: 204 });
+      queueResponse({
+        match: exactPath(`${eventPath}attendees/`),
+        body: [
+          { character_id: 1689391488, event_response: 'accepted' },
+          { character_id: 123456789, event_response: 'accepted' },
+        ],
+      });
     });
 
     when(
@@ -355,20 +426,23 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall complete the full event interaction', () => {
-      expect(detail).toBeDefined();
+      expect(sentRequests().map((r) => [r.method, r.url.pathname])).toEqual([
+        ['GET', eventPath],
+        ['PUT', eventPath],
+        ['GET', `${eventPath}attendees/`],
+      ]);
+      expect(JSON.parse(sentRequests()[1].body!)).toEqual({
+        response: 'accepted',
+      });
+
+      expect(detail.event_id).toBe(eventId);
       expect(detail.title).toBe('Fleet Op: Jita Defense');
+      expect(detail.response).toBe('not_responded');
 
-      expect(client.calendar.respondToCalendarEvent).toHaveBeenCalledWith(
-        characterId,
-        eventId,
-        'accepted',
-      );
-
-      expect(attendees).toBeInstanceOf(Array);
-      expect(attendees).toHaveLength(2);
-      expect(attendees.every((a: any) => a.event_response === 'accepted')).toBe(
-        true,
-      );
+      expect(attendees).toEqual([
+        { character_id: 1689391488, event_response: 'accepted' },
+        { character_id: 123456789, event_response: 'accepted' },
+      ]);
     });
   });
 });

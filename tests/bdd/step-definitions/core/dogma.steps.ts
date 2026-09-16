@@ -1,30 +1,32 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0011-dogma.feature');
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Attribute index returns numeric IDs', ({ given, when, then }) => {
+    const attributeIds = [2, 3, 4, 9, 20];
     let result: any;
 
     given('the dogma API is available', () => {
-      const mockAttributes = [1, 2, 3, 4, 5];
-
-      jest
-        .spyOn(client.dogma, 'getAttributes')
-        .mockResolvedValue(mockAttributes);
+      queueResponse({ match: /\/dogma\/attributes\/?$/, body: attributeIds });
     });
 
     when('the client requests all attributes', async () => {
@@ -32,9 +34,10 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an array of attribute IDs', () => {
-      expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBeGreaterThan(0);
-      result.forEach((id: number) => {
+      expect(lastRequest().method).toBe('GET');
+      expect(lastRequest().url.pathname).toMatch(/\/dogma\/attributes\/?$/);
+      expect(result).toEqual(attributeIds);
+      result.forEach((id: unknown) => {
         expect(typeof id).toBe('number');
       });
     });
@@ -45,22 +48,25 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    let result: any;
     const attributeId = 20;
+    let result: any;
 
     given('a valid attribute ID', () => {
-      const mockAttribute = {
-        attribute_id: attributeId,
-        name: 'powerOutput',
-        description: 'The amount of power available.',
-        published: true,
-        display_name: 'Powergrid Output',
-        high_is_good: true,
-      };
-
-      jest
-        .spyOn(client.dogma, 'getAttributeById')
-        .mockResolvedValue(mockAttribute);
+      queueResponse({
+        match: `/dogma/attributes/${attributeId}`,
+        body: {
+          attribute_id: attributeId,
+          name: 'powerOutput',
+          description: 'The amount of power available.',
+          icon_id: 1400,
+          default_value: 0,
+          published: true,
+          display_name: 'Powergrid Output',
+          unit_id: 106,
+          stackable: true,
+          high_is_good: true,
+        },
+      });
     });
 
     when('the client requests attribute details', async () => {
@@ -68,11 +74,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete attribute information', () => {
-      expect(result).toBeDefined();
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(`/dogma/attributes/${attributeId}/?$`),
+      );
       expect(result.attribute_id).toBe(attributeId);
       expect(result.name).toBe('powerOutput');
-      expect(result).toHaveProperty('description');
-      expect(result).toHaveProperty('published');
+      expect(result.description).toBe('The amount of power available.');
+      expect(result.published).toBe(true);
     });
   });
 
@@ -81,11 +89,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an invalid attribute ID', () => {
-      const expectedError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.dogma, 'getAttributeById')
-        .mockRejectedValue(expectedError);
+      queueError(404, 'Attribute not found', {
+        match: `/dogma/attributes/${invalidId}`,
+      });
     });
 
     when(
@@ -102,16 +108,16 @@ defineFeature(feature, (test) => {
     then('the client shall return a not found error for the attribute', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
       expect((caughtError as EsiError).statusCode).toBe(404);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
   test('Effect index returns numeric IDs', ({ given, when, then }) => {
+    const effectIds = [11, 12, 13, 16, 18];
     let result: any;
 
     given('the dogma effects API is available', () => {
-      const mockEffects = [11, 12, 13, 16, 18];
-
-      jest.spyOn(client.dogma, 'getEffects').mockResolvedValue(mockEffects);
+      queueResponse({ match: /\/dogma\/effects\/?$/, body: effectIds });
     });
 
     when('the client requests all effects', async () => {
@@ -119,32 +125,38 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an array of effect IDs', () => {
-      expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBeGreaterThan(0);
-      result.forEach((id: number) => {
+      expect(lastRequest().url.pathname).toMatch(/\/dogma\/effects\/?$/);
+      expect(result).toEqual(effectIds);
+      result.forEach((id: unknown) => {
         expect(typeof id).toBe('number');
       });
     });
   });
 
   test('Effect 11 resolves to the lowPower record', ({ given, when, then }) => {
-    let result: any;
     const effectId = 11;
+    let result: any;
 
     given('a valid effect ID', () => {
-      const mockEffect = {
-        effect_id: effectId,
-        name: 'lowPower',
-        description: 'Requires a low power slot.',
-        published: true,
-        display_name: 'Low Power',
-        effect_category: 0,
-        is_assistance: false,
-        is_offensive: false,
-        is_warp_safe: true,
-      };
-
-      jest.spyOn(client.dogma, 'getEffectById').mockResolvedValue(mockEffect);
+      queueResponse({
+        match: `/dogma/effects/${effectId}`,
+        body: {
+          effect_id: effectId,
+          name: 'lowPower',
+          description: 'Requires a low power slot.',
+          published: true,
+          display_name: 'Low Power',
+          effect_category: 0,
+          is_assistance: false,
+          is_offensive: false,
+          is_warp_safe: true,
+          disallow_auto_repeat: false,
+          electronic_chance: false,
+          range_chance: false,
+          pre_expression: 66,
+          post_expression: 66,
+        },
+      });
     });
 
     when('the client requests effect details', async () => {
@@ -152,11 +164,13 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return complete effect information', () => {
-      expect(result).toBeDefined();
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(`/dogma/effects/${effectId}/?$`),
+      );
       expect(result.effect_id).toBe(effectId);
       expect(result.name).toBe('lowPower');
-      expect(result).toHaveProperty('published');
-      expect(result).toHaveProperty('is_warp_safe');
+      expect(result.published).toBe(true);
+      expect(result.is_warp_safe).toBe(true);
     });
   });
 
@@ -165,11 +179,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an invalid effect ID', () => {
-      const expectedError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.dogma, 'getEffectById')
-        .mockRejectedValue(expectedError);
+      queueError(404, 'Effect not found', {
+        match: `/dogma/effects/${invalidId}`,
+      });
     });
 
     when('the client requests effect details for the invalid ID', async () => {
@@ -183,6 +195,7 @@ defineFeature(feature, (test) => {
     then('the client shall return a not found error for the effect', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
       expect((caughtError as EsiError).statusCode).toBe(404);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -191,28 +204,29 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    let result: any;
     const typeId = 47740;
     const itemId = 1234567890;
+    const dogmaAttributes = [
+      { attribute_id: 9, value: 1.0 },
+      { attribute_id: 20, value: 125.0 },
+    ];
+    const dogmaEffects = [
+      { effect_id: 11, is_default: false },
+      { effect_id: 12, is_default: true },
+    ];
+    let result: any;
 
     given('a mutated item exists', () => {
-      const mockDynamicItem = {
-        created_by: 2112625428,
-        dogma_attributes: [
-          { attribute_id: 9, value: 1.0 },
-          { attribute_id: 20, value: 125.0 },
-        ],
-        dogma_effects: [
-          { effect_id: 11, is_default: false },
-          { effect_id: 12, is_default: true },
-        ],
-        mutator_type_id: 47842,
-        source_type_id: 2048,
-      };
-
-      jest
-        .spyOn(client.dogma, 'getDynamicItemInfo')
-        .mockResolvedValue(mockDynamicItem);
+      queueResponse({
+        match: `/dogma/dynamic/items/${typeId}/${itemId}`,
+        body: {
+          created_by: 2112625428,
+          dogma_attributes: dogmaAttributes,
+          dogma_effects: dogmaEffects,
+          mutator_type_id: 47842,
+          source_type_id: 2048,
+        },
+      });
     });
 
     when('the client requests its dynamic dogma info', async () => {
@@ -220,14 +234,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return modified attributes and effects', () => {
-      expect(result).toBeDefined();
+      expect(lastRequest().url.pathname).toMatch(
+        new RegExp(`/dogma/dynamic/items/${typeId}/${itemId}/?$`),
+      );
       expect(result.created_by).toBe(2112625428);
       expect(result.mutator_type_id).toBe(47842);
       expect(result.source_type_id).toBe(2048);
-      expect(Array.isArray(result.dogma_attributes)).toBe(true);
-      expect(result.dogma_attributes.length).toBeGreaterThan(0);
-      expect(Array.isArray(result.dogma_effects)).toBe(true);
-      expect(result.dogma_effects.length).toBeGreaterThan(0);
+      expect(result.dogma_attributes).toEqual(dogmaAttributes);
+      expect(result.dogma_effects).toEqual(dogmaEffects);
     });
   });
 
@@ -235,11 +249,9 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('an invalid type and item ID', () => {
-      const expectedError = TestDataFactory.createError(404);
-
-      jest
-        .spyOn(client.dogma, 'getDynamicItemInfo')
-        .mockRejectedValue(expectedError);
+      queueError(404, 'Item not found', {
+        match: '/dogma/dynamic/items/999999/999999',
+      });
     });
 
     when('the client requests dynamic info for the invalid item', async () => {
@@ -255,6 +267,7 @@ defineFeature(feature, (test) => {
       () => {
         expect(caughtError).toBeInstanceOf(EsiError);
         expect((caughtError as EsiError).statusCode).toBe(404);
+        expect(sentRequests()).toHaveLength(1);
       },
     );
   });

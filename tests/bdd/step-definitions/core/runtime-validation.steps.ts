@@ -11,20 +11,41 @@ import {
   FleetWingSchema,
   AllianceContactSchema,
 } from '../../../../src/schemas';
+import {
+  createSeamClient,
+  lastRequest,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature(
   'tests/bdd/features/core/0053-runtime-validation.feature',
 );
 
+const allianceId = 99005338;
+const alliancePath = `/alliances/${allianceId}/`;
+
+/**
+ * An alliance body whose alliance_id and name contradict AllianceInfoSchema
+ * (number and string respectively).
+ */
+const mistypedAlliance = {
+  alliance_id: 'not-a-number',
+  name: 12345,
+  ticker: 'TEST',
+  creator_id: 1,
+  creator_corporation_id: 1,
+  date_founded: '2020-01-01T00:00:00Z',
+};
+
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Valid alliance response returns the declared fields', ({
@@ -34,32 +55,37 @@ defineFeature(feature, (test) => {
     and,
   }) => {
     let result: any;
-    const validAllianceId = 99005338;
+    const body = TestDataFactory.createAllianceInfo({
+      alliance_id: allianceId,
+      name: 'Goonswarm Federation',
+      ticker: 'CONDI',
+      creator_id: 1689391488,
+      creator_corporation_id: 1344654522,
+      date_founded: '2010-06-01T00:00:00Z',
+    });
 
     given('an ESI client with response validation enabled', () => {
-      const expectedAlliance = TestDataFactory.createAllianceInfo({
-        alliance_id: validAllianceId,
-        name: 'Goonswarm Federation',
-      });
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockResolvedValue(expectedAlliance);
+      queueResponse({ match: alliancePath, body });
     });
 
     when('I receive a valid alliance response from ESI', async () => {
-      result = await client.alliance.getAllianceById(validAllianceId);
+      result = await client.alliance.getAllianceById(allianceId);
     });
 
     then('the response shall be parsed successfully', () => {
+      expect(sentRequests()).toHaveLength(1);
+      expect(lastRequest().url.pathname).toContain(alliancePath);
       expect(result).toBeDefined();
     });
 
     and('the response data shall contain the expected fields', () => {
-      expect(result.alliance_id).toBe(validAllianceId);
+      expect(result).toEqual(body);
+      expect(result.alliance_id).toBe(allianceId);
       expect(result.name).toBe('Goonswarm Federation');
-      expect(result).toHaveProperty('ticker');
-      expect(result).toHaveProperty('creator_id');
+      expect(result.ticker).toBe('CONDI');
+      expect(result.creator_id).toBe(1689391488);
+      expect(result.creator_corporation_id).toBe(1344654522);
+      expect(result.date_founded).toBe('2010-06-01T00:00:00Z');
     });
   });
 
@@ -72,19 +98,14 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an ESI client with response validation enabled', () => {
-      const validationError = new EsiValidationError(
-        'https://esi.evetech.net/latest/alliances/99005338/',
-        { issues: [{ message: 'Expected number, received string' }] },
-      );
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockRejectedValue(validationError);
+      // Parsing happens in createClient after the retry loop has returned, so
+      // a body that fails the schema is fetched once and not retried.
+      queueResponse({ match: alliancePath, body: mistypedAlliance });
     });
 
     when('I receive a response with an invalid field type', async () => {
       try {
-        await client.alliance.getAllianceById(99005338);
+        await client.alliance.getAllianceById(allianceId);
       } catch (e) {
         error = e;
       }
@@ -92,11 +113,15 @@ defineFeature(feature, (test) => {
 
     then('an EsiValidationError shall be thrown', () => {
       expect(error).toBeInstanceOf(EsiValidationError);
+      expect(sentRequests()).toHaveLength(1);
     });
 
     and('the error shall contain validation details', () => {
-      expect(error.validationError).toBeDefined();
       expect(error.message).toContain('validation failed');
+      const issues: any[] = error.validationError.issues;
+      const paths = issues.map((issue) => issue.path[0]);
+      expect(paths).toEqual(expect.arrayContaining(['alliance_id', 'name']));
+      expect(issues.every((issue) => issue.code === 'invalid_type')).toBe(true);
     });
   });
 
@@ -109,24 +134,23 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an ESI client with response validation enabled', () => {
-      const allianceWithExtra = {
-        ...TestDataFactory.createAllianceInfo(),
-        some_future_field: 'new_value',
-        another_field: 42,
-      };
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockResolvedValue(allianceWithExtra);
+      queueResponse({
+        match: alliancePath,
+        body: {
+          ...TestDataFactory.createAllianceInfo({ alliance_id: allianceId }),
+          some_future_field: 'new_value',
+          another_field: 42,
+        },
+      });
     });
 
     when('I receive a response with additional unknown fields', async () => {
-      result = await client.alliance.getAllianceById(99005338);
+      result = await client.alliance.getAllianceById(allianceId);
     });
 
     then('the response shall be parsed successfully', () => {
-      expect(result).toBeDefined();
-      expect(result.alliance_id).toBeDefined();
+      expect(result.alliance_id).toBe(allianceId);
+      expect(result.name).toBe('Goonswarm Federation');
     });
 
     and('the extra fields shall be present in the result', () => {
@@ -143,34 +167,18 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('an ESI client with response validation disabled', () => {
-      client = new EsiClient({
-        clientId: 'test-client',
-        baseUrl: 'https://esi.evetech.net',
-        timeout: 5000,
-        validateResponse: false,
-      });
-
-      const invalidData = {
-        alliance_id: 'not-a-number',
-        name: 12345,
-        ticker: 'TEST',
-        creator_id: 1,
-        creator_corporation_id: 1,
-        date_founded: '2020-01-01T00:00:00Z',
-      };
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockResolvedValue(invalidData as any);
+      client = createSeamClient({ validateResponse: false });
+      queueResponse({ match: alliancePath, body: mistypedAlliance });
     });
 
     when('I receive a response with an invalid field type', async () => {
-      result = await client.alliance.getAllianceById(99005338);
+      result = await client.alliance.getAllianceById(allianceId);
     });
 
     then('the response shall be returned without validation error', () => {
-      expect(result).toBeDefined();
-      expect(result.alliance_id).toBe('not-a-number');
+      // One request: nothing failed, so nothing was retried.
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toEqual(mistypedAlliance);
     });
   });
 
@@ -180,22 +188,15 @@ defineFeature(feature, (test) => {
     then,
     and,
   }) => {
-    let error: any;
+    let error: unknown;
 
     given('an ESI client with response validation enabled', () => {
-      const validationError = new EsiValidationError(
-        'https://esi.evetech.net/latest/alliances/99005338/',
-        { issues: [{ message: 'Invalid type' }] },
-      );
-
-      jest
-        .spyOn(client.alliance, 'getAllianceById')
-        .mockRejectedValue(validationError);
+      queueResponse({ match: alliancePath, body: mistypedAlliance });
     });
 
     when('I receive a response that fails validation', async () => {
       try {
-        await client.alliance.getAllianceById(99005338);
+        await client.alliance.getAllianceById(allianceId);
       } catch (e) {
         error = e;
       }
@@ -207,6 +208,9 @@ defineFeature(feature, (test) => {
 
     and('the error shall be identifiable via isValidationError', () => {
       expect(isValidationError(error)).toBe(true);
+      if (!isValidationError(error)) return;
+      expect(error.direction).toBe('response');
+      expect(error.statusCode).toBe(0);
     });
   });
 

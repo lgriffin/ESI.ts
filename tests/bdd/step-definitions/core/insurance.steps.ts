@@ -1,19 +1,49 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  RETRYABLE_ATTEMPTS,
+  SEAM_RETRY,
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0018-insurance.feature');
+
+const PRICES_PATH = '/insurance/prices';
+
+const TIER_NAMES = [
+  'Basic',
+  'Standard',
+  'Bronze',
+  'Silver',
+  'Gold',
+  'Platinum',
+] as const;
+
+/** One ship type's six-level ladder, each level doubling the previous one. */
+function ladder(typeId: number, baseCost: number) {
+  return {
+    type_id: typeId,
+    levels: TIER_NAMES.map((name, i) => ({
+      cost: baseCost * Math.pow(2, i),
+      name,
+      payout: baseCost * 2 * Math.pow(2, i),
+    })),
+  };
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-insurance-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Frigate and battleship prices with their level lists', ({
@@ -22,36 +52,33 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let result: any;
+    const expectedPrices = [
+      {
+        type_id: 587,
+        levels: [
+          { cost: 10.0, name: 'Basic', payout: 20.0 },
+          { cost: 25.0, name: 'Standard', payout: 50.0 },
+          { cost: 50.0, name: 'Bronze', payout: 100.0 },
+          { cost: 100.0, name: 'Silver', payout: 200.0 },
+          { cost: 200.0, name: 'Gold', payout: 400.0 },
+          { cost: 400.0, name: 'Platinum', payout: 800.0 },
+        ],
+      },
+      {
+        type_id: 29984,
+        levels: [
+          { cost: 1000000.0, name: 'Basic', payout: 2000000.0 },
+          { cost: 2500000.0, name: 'Standard', payout: 5000000.0 },
+          { cost: 5000000.0, name: 'Bronze', payout: 10000000.0 },
+          { cost: 10000000.0, name: 'Silver', payout: 20000000.0 },
+          { cost: 20000000.0, name: 'Gold', payout: 40000000.0 },
+          { cost: 40000000.0, name: 'Platinum', payout: 80000000.0 },
+        ],
+      },
+    ];
 
     given('the insurance system is operational', () => {
-      const expectedPrices = [
-        {
-          type_id: 587,
-          levels: [
-            { cost: 10.0, name: 'Basic', payout: 20.0 },
-            { cost: 25.0, name: 'Standard', payout: 50.0 },
-            { cost: 50.0, name: 'Bronze', payout: 100.0 },
-            { cost: 100.0, name: 'Silver', payout: 200.0 },
-            { cost: 200.0, name: 'Gold', payout: 400.0 },
-            { cost: 400.0, name: 'Platinum', payout: 800.0 },
-          ],
-        },
-        {
-          type_id: 29984,
-          levels: [
-            { cost: 1000000.0, name: 'Basic', payout: 2000000.0 },
-            { cost: 2500000.0, name: 'Standard', payout: 5000000.0 },
-            { cost: 5000000.0, name: 'Bronze', payout: 10000000.0 },
-            { cost: 10000000.0, name: 'Silver', payout: 20000000.0 },
-            { cost: 20000000.0, name: 'Gold', payout: 40000000.0 },
-            { cost: 40000000.0, name: 'Platinum', payout: 80000000.0 },
-          ],
-        },
-      ];
-
-      jest
-        .spyOn(client.insurance, 'getInsurancePrices')
-        .mockResolvedValue(expectedPrices);
+      queueResponse({ match: PRICES_PATH, body: expectedPrices });
     });
 
     when('the client requests insurance prices', async () => {
@@ -61,14 +88,24 @@ defineFeature(feature, (test) => {
     then(
       'the client shall return pricing data for available ship types',
       () => {
-        expect(result).toBeInstanceOf(Array);
-        expect(result.length).toBeGreaterThan(0);
-        expect(result[0]).toHaveProperty('type_id');
-        expect(result[0]).toHaveProperty('levels');
-        expect(result[0].levels).toBeInstanceOf(Array);
-        expect(result[0].levels[0]).toHaveProperty('cost');
-        expect(result[0].levels[0]).toHaveProperty('name');
-        expect(result[0].levels[0]).toHaveProperty('payout');
+        const request = lastRequest();
+        expect(request.method).toBe('GET');
+        expect(request.url.pathname).toMatch(/\/insurance\/prices\/?$/);
+        expect(request.headers.authorization).toBeUndefined();
+        expect(sentRequests()).toHaveLength(1);
+
+        expect(result).toEqual(expectedPrices);
+        expect(result.map((p: any) => p.type_id)).toEqual([587, 29984]);
+        expect(result[0].levels[0]).toEqual({
+          cost: 10,
+          name: 'Basic',
+          payout: 20,
+        });
+        expect(result[1].levels[5]).toEqual({
+          cost: 40000000,
+          name: 'Platinum',
+          payout: 80000000,
+        });
       },
     );
   });
@@ -77,23 +114,22 @@ defineFeature(feature, (test) => {
     let levels: any;
 
     given('insurance prices are available for tier verification', () => {
-      const shipPrices = [
-        {
-          type_id: 24690,
-          levels: [
-            { cost: 500000.0, name: 'Basic', payout: 1000000.0 },
-            { cost: 1250000.0, name: 'Standard', payout: 2500000.0 },
-            { cost: 2500000.0, name: 'Bronze', payout: 5000000.0 },
-            { cost: 5000000.0, name: 'Silver', payout: 10000000.0 },
-            { cost: 10000000.0, name: 'Gold', payout: 20000000.0 },
-            { cost: 20000000.0, name: 'Platinum', payout: 40000000.0 },
-          ],
-        },
-      ];
-
-      jest
-        .spyOn(client.insurance, 'getInsurancePrices')
-        .mockResolvedValue(shipPrices);
+      queueResponse({
+        match: PRICES_PATH,
+        body: [
+          {
+            type_id: 24690,
+            levels: [
+              { cost: 500000.0, name: 'Basic', payout: 1000000.0 },
+              { cost: 1250000.0, name: 'Standard', payout: 2500000.0 },
+              { cost: 2500000.0, name: 'Bronze', payout: 5000000.0 },
+              { cost: 5000000.0, name: 'Silver', payout: 10000000.0 },
+              { cost: 10000000.0, name: 'Gold', payout: 20000000.0 },
+              { cost: 20000000.0, name: 'Platinum', payout: 40000000.0 },
+            ],
+          },
+        ],
+      });
     });
 
     when('the client examines the tiers for a ship type', async () => {
@@ -102,6 +138,12 @@ defineFeature(feature, (test) => {
     });
 
     then('higher tiers shall have increasing costs and payouts', () => {
+      expect(levels.map((l: any) => l.cost)).toEqual([
+        500000, 1250000, 2500000, 5000000, 10000000, 20000000,
+      ]);
+      expect(levels.map((l: any) => l.payout)).toEqual([
+        1000000, 2500000, 5000000, 10000000, 20000000, 40000000,
+      ]);
       for (let i = 1; i < levels.length; i++) {
         expect(levels[i].cost).toBeGreaterThan(levels[i - 1].cost);
         expect(levels[i].payout).toBeGreaterThan(levels[i - 1].payout);
@@ -113,23 +155,22 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('insurance prices are available for payout verification', () => {
-      const shipPrices = [
-        {
-          type_id: 17918,
-          levels: [
-            { cost: 3000000.0, name: 'Basic', payout: 6000000.0 },
-            { cost: 7500000.0, name: 'Standard', payout: 15000000.0 },
-            { cost: 15000000.0, name: 'Bronze', payout: 30000000.0 },
-            { cost: 30000000.0, name: 'Silver', payout: 60000000.0 },
-            { cost: 60000000.0, name: 'Gold', payout: 120000000.0 },
-            { cost: 120000000.0, name: 'Platinum', payout: 240000000.0 },
-          ],
-        },
-      ];
-
-      jest
-        .spyOn(client.insurance, 'getInsurancePrices')
-        .mockResolvedValue(shipPrices);
+      queueResponse({
+        match: PRICES_PATH,
+        body: [
+          {
+            type_id: 17918,
+            levels: [
+              { cost: 3000000.0, name: 'Basic', payout: 6000000.0 },
+              { cost: 7500000.0, name: 'Standard', payout: 15000000.0 },
+              { cost: 15000000.0, name: 'Bronze', payout: 30000000.0 },
+              { cost: 30000000.0, name: 'Silver', payout: 60000000.0 },
+              { cost: 60000000.0, name: 'Gold', payout: 120000000.0 },
+              { cost: 120000000.0, name: 'Platinum', payout: 240000000.0 },
+            ],
+          },
+        ],
+      });
     });
 
     when('the client checks each tier', async () => {
@@ -137,6 +178,9 @@ defineFeature(feature, (test) => {
     });
 
     then('the payout shall always be greater than the cost', () => {
+      expect(result).toHaveLength(1);
+      expect(result[0].type_id).toBe(17918);
+      expect(result[0].levels).toHaveLength(6);
       result.forEach((ship: any) => {
         ship.levels.forEach((level: any) => {
           expect(level.payout).toBeGreaterThan(level.cost);
@@ -151,41 +195,12 @@ defineFeature(feature, (test) => {
     let endTime: number;
 
     given('a large insurance dataset covering many ship types', () => {
-      const largeDataset = Array.from({ length: 500 }, (_, i) => ({
-        type_id: 1000 + i,
-        levels: [
-          { cost: 100.0 * (i + 1), name: 'Basic', payout: 200.0 * (i + 1) },
-          {
-            cost: 250.0 * (i + 1),
-            name: 'Standard',
-            payout: 500.0 * (i + 1),
-          },
-          {
-            cost: 500.0 * (i + 1),
-            name: 'Bronze',
-            payout: 1000.0 * (i + 1),
-          },
-          {
-            cost: 1000.0 * (i + 1),
-            name: 'Silver',
-            payout: 2000.0 * (i + 1),
-          },
-          {
-            cost: 2000.0 * (i + 1),
-            name: 'Gold',
-            payout: 4000.0 * (i + 1),
-          },
-          {
-            cost: 4000.0 * (i + 1),
-            name: 'Platinum',
-            payout: 8000.0 * (i + 1),
-          },
-        ],
-      }));
-
-      jest
-        .spyOn(client.insurance, 'getInsurancePrices')
-        .mockResolvedValue(largeDataset);
+      queueResponse({
+        match: PRICES_PATH,
+        body: Array.from({ length: 500 }, (_, i) =>
+          ladder(1000 + i, 100.0 * (i + 1)),
+        ),
+      });
     });
 
     when('the client processes the large insurance response', async () => {
@@ -195,46 +210,28 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall handle it efficiently', () => {
-      expect(result.length).toBe(500);
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toHaveLength(500);
       expect(endTime - startTime).toBeLessThan(1000);
+      expect(result[0].type_id).toBe(1000);
+      expect(result[499].type_id).toBe(1499);
+      expect(result[499].levels[5]).toEqual({
+        cost: 50000 * 32,
+        name: 'Platinum',
+        payout: 100000 * 32,
+      });
       expect(result.every((item: any) => item.levels.length === 6)).toBe(true);
     });
   });
 
   test('Six named tiers per ship type', ({ given, when, then }) => {
     let result: any;
-    const expectedTierNames = [
-      'Basic',
-      'Standard',
-      'Bronze',
-      'Silver',
-      'Gold',
-      'Platinum',
-    ];
 
     given('insurance prices are available for tier count verification', () => {
-      const prices = [
-        {
-          type_id: 587,
-          levels: expectedTierNames.map((name, i) => ({
-            cost: 10.0 * Math.pow(2, i),
-            name,
-            payout: 20.0 * Math.pow(2, i),
-          })),
-        },
-        {
-          type_id: 24690,
-          levels: expectedTierNames.map((name, i) => ({
-            cost: 500000.0 * Math.pow(2, i),
-            name,
-            payout: 1000000.0 * Math.pow(2, i),
-          })),
-        },
-      ];
-
-      jest
-        .spyOn(client.insurance, 'getInsurancePrices')
-        .mockResolvedValue(prices);
+      queueResponse({
+        match: PRICES_PATH,
+        body: [ladder(587, 10.0), ladder(24690, 500000.0)],
+      });
     });
 
     when('the client inspects each ship type', async () => {
@@ -242,10 +239,10 @@ defineFeature(feature, (test) => {
     });
 
     then('every entry shall contain six named tiers', () => {
+      expect(result.map((entry: any) => entry.type_id)).toEqual([587, 24690]);
       result.forEach((entry: any) => {
-        expect(entry.levels.length).toBe(6);
-        const tierNames = entry.levels.map((l: any) => l.name);
-        expect(tierNames).toEqual(expectedTierNames);
+        expect(entry.levels).toHaveLength(6);
+        expect(entry.levels.map((l: any) => l.name)).toEqual(TIER_NAMES);
       });
     });
   });
@@ -254,11 +251,11 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('the ESI service is temporarily unavailable', () => {
-      const serviceError = TestDataFactory.createError(503);
-
-      jest
-        .spyOn(client.insurance, 'getInsurancePrices')
-        .mockRejectedValue(serviceError);
+      // 503 is retryable, so the outage has to outlast the retry budget.
+      queueError(503, 'Service Unavailable', {
+        match: PRICES_PATH,
+        times: RETRYABLE_ATTEMPTS,
+      });
     });
 
     when(
@@ -274,6 +271,8 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 503 service unavailable error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(503);
+      expect(sentRequests()).toHaveLength(RETRYABLE_ATTEMPTS);
     });
   });
 
@@ -281,11 +280,17 @@ defineFeature(feature, (test) => {
     let caughtError: any;
 
     given('the API rate limit has been exceeded', () => {
-      const rateLimitError = TestDataFactory.createError(429);
-
-      jest
-        .spyOn(client.insurance, 'getInsurancePrices')
-        .mockRejectedValue(rateLimitError);
+      // A 429 blocks the rate-limit group for at least 60 seconds, so a
+      // retrying client would sleep through the block before its next
+      // attempt. This caller does not retry, which surfaces the rejection
+      // on the single 429 exchange.
+      client = createSeamClient({
+        retryConfig: { ...SEAM_RETRY, maxRetries: 0 },
+      });
+      queueError(429, 'Too many errors', {
+        match: PRICES_PATH,
+        headers: { 'x-esi-error-limit-remain': '0' },
+      });
     });
 
     when(
@@ -301,6 +306,9 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 429 rate limit error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(429);
+      expect((caughtError as EsiError).isRateLimited()).toBe(true);
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 });

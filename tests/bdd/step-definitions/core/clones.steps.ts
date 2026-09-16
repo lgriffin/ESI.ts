@@ -1,19 +1,24 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
+import {
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0007-clones.feature');
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      accessToken: 'mock-access-token',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Clone record with a home station and two jump clones', ({
@@ -25,26 +30,32 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid character ID for clones', () => {
-      const expectedResponse = {
-        home_location: {
-          location_id: 60003760,
-          location_type: 'station',
-        },
-        jump_clones: [
-          {
-            jump_clone_id: 12345,
+      queueResponse({
+        match: `/characters/${characterId}/clones`,
+        body: {
+          home_location: {
             location_id: 60003760,
-            implants: [1, 2, 3],
+            location_type: 'station',
           },
-          { jump_clone_id: 12346, location_id: 60008494, implants: [] },
-        ],
-        last_clone_jump_date: '2024-01-15T12:00:00Z',
-        last_station_change_date: '2024-01-10T08:00:00Z',
-      };
-
-      jest
-        .spyOn(client.clones, 'getClones')
-        .mockResolvedValue(expectedResponse as any);
+          jump_clones: [
+            {
+              jump_clone_id: 12345,
+              location_id: 60003760,
+              location_type: 'station',
+              implants: [9899, 9941, 9942],
+            },
+            {
+              jump_clone_id: 12346,
+              location_id: 1035466617946,
+              location_type: 'structure',
+              implants: [],
+              name: 'Staging',
+            },
+          ],
+          last_clone_jump_date: '2024-01-15T12:00:00Z',
+          last_station_change_date: '2024-01-10T08:00:00Z',
+        },
+      });
     });
 
     when('the client requests clone information', async () => {
@@ -52,10 +63,25 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return clone details', () => {
-      expect(result).toBeDefined();
-      expect(result.home_location).toBeDefined();
-      expect(result.home_location!.location_id).toBe(60003760);
-      expect(result.jump_clones).toHaveLength(2);
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toBe(`/characters/${characterId}/clones`);
+      expect(request.headers['authorization']).toBe('Bearer bdd-access-token');
+      expect(result.home_location).toEqual({
+        location_id: 60003760,
+        location_type: 'station',
+      });
+      expect(result.jump_clones.map((c: any) => c.jump_clone_id)).toEqual([
+        12345, 12346,
+      ]);
+      expect(result.jump_clones[0].implants).toEqual([9899, 9941, 9942]);
+      expect(result.jump_clones[1]).toEqual({
+        jump_clone_id: 12346,
+        location_id: 1035466617946,
+        location_type: 'structure',
+        implants: [],
+        name: 'Staging',
+      });
     });
   });
 
@@ -68,9 +94,10 @@ defineFeature(feature, (test) => {
     let error: any;
 
     given('an invalid access token for clones', () => {
-      const authError = new EsiError(401, 'Token is expired');
-
-      jest.spyOn(client.clones, 'getClones').mockRejectedValue(authError);
+      // 403 is not retryable, so ESI answers exactly once.
+      queueError(403, 'token is expired', {
+        match: `/characters/${characterId}/clones`,
+      });
     });
 
     when(
@@ -85,8 +112,10 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall return an authentication error for clones', () => {
-      expect(error).toBeDefined();
-      expect(error.message).toContain('Token is expired');
+      expect(error).toBeInstanceOf(EsiError);
+      expect((error as EsiError).statusCode).toBe(403);
+      expect(error.message).toContain('token is expired');
+      expect(sentRequests()).toHaveLength(1);
     });
   });
 
@@ -99,11 +128,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a valid character ID for implants', () => {
-      const expectedImplants = [9899, 9941, 9942, 9943, 9956];
-
-      jest
-        .spyOn(client.clones, 'getImplants')
-        .mockResolvedValue(expectedImplants);
+      queueResponse({
+        match: `/characters/${characterId}/implants`,
+        body: [9899, 9941, 9942, 9943, 9956],
+      });
     });
 
     when('the client requests implant information', async () => {
@@ -111,11 +139,10 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a list of implant type IDs', () => {
-      expect(Array.isArray(result)).toBe(true);
-      expect(result).toHaveLength(5);
-      result.forEach((implant: number) => {
-        expect(typeof implant).toBe('number');
-      });
+      expect(lastRequest().url.pathname).toBe(
+        `/characters/${characterId}/implants`,
+      );
+      expect(result).toEqual([9899, 9941, 9942, 9943, 9956]);
     });
   });
 
@@ -124,7 +151,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('a character with no active implants', () => {
-      jest.spyOn(client.clones, 'getImplants').mockResolvedValue([]);
+      queueResponse({
+        match: `/characters/${characterId}/implants`,
+        body: [],
+      });
     });
 
     when(
@@ -135,8 +165,8 @@ defineFeature(feature, (test) => {
     );
 
     then('the client shall return an empty array for implants', () => {
-      expect(Array.isArray(result)).toBe(true);
-      expect(result).toHaveLength(0);
+      expect(sentRequests()).toHaveLength(1);
+      expect(result).toEqual([]);
     });
   });
 
@@ -150,25 +180,30 @@ defineFeature(feature, (test) => {
     let implants: any;
 
     given('a character with clones', () => {
-      const cloneData = {
-        home_location: { location_id: 60003760, location_type: 'station' },
-        jump_clones: [
-          {
-            jump_clone_id: 12345,
-            location_id: 60003760,
-            implants: [9899, 9941],
-          },
-          { jump_clone_id: 12346, location_id: 60008494, implants: [9942] },
-        ],
-      };
-      const activeImplants = [9943, 9956];
-
-      jest
-        .spyOn(client.clones, 'getClones')
-        .mockResolvedValue(cloneData as any);
-      jest
-        .spyOn(client.clones, 'getImplants')
-        .mockResolvedValue(activeImplants);
+      queueResponse({
+        match: `/characters/${characterId}/clones`,
+        body: {
+          home_location: { location_id: 60003760, location_type: 'station' },
+          jump_clones: [
+            {
+              jump_clone_id: 12345,
+              location_id: 60003760,
+              location_type: 'station',
+              implants: [9899, 9941],
+            },
+            {
+              jump_clone_id: 12346,
+              location_id: 60008494,
+              location_type: 'station',
+              implants: [9942],
+            },
+          ],
+        },
+      });
+      queueResponse({
+        match: `/characters/${characterId}/implants`,
+        body: [9943, 9956],
+      });
     });
 
     when('the client retrieves clone info and implants', async () => {
@@ -177,9 +212,15 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall have complete clone data', () => {
-      expect(clones.jump_clones).toHaveLength(2);
-      expect(implants).toHaveLength(2);
-      expect(clones.jump_clones[0].implants).toHaveLength(2);
+      expect(sentRequests().map((r) => r.url.pathname)).toEqual([
+        `/characters/${characterId}/clones`,
+        `/characters/${characterId}/implants`,
+      ]);
+      expect(clones.jump_clones.map((c: any) => c.implants)).toEqual([
+        [9899, 9941],
+        [9942],
+      ]);
+      expect(implants).toEqual([9943, 9956]);
     });
   });
 });

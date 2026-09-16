@@ -1,19 +1,35 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
-import { TestDataFactory } from '../../../../src/testing/TestDataFactory';
+import {
+  RecordedRequest,
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
 
 const feature = loadFeature('tests/bdd/features/core/0029-route.feature');
+
+/** The single POST the Route client sent, with its JSON body parsed. */
+function routeRequest(): { request: RecordedRequest; body: unknown } {
+  expect(sentRequests()).toHaveLength(1);
+  const request = lastRequest();
+  return {
+    request,
+    body: request.body === undefined ? undefined : JSON.parse(request.body),
+  };
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
+  useHttpTransport();
+
   beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client',
-      baseUrl: 'https://esi.evetech.net',
-      timeout: 5000,
-    });
+    client = createSeamClient();
   });
 
   test('Five-system route between two known systems', ({
@@ -27,7 +43,10 @@ defineFeature(feature, (test) => {
     const expectedRoute = [30000142, 30000144, 30000148, 30002813, 30002187];
 
     given('two solar system IDs', () => {
-      jest.spyOn(client.route, 'getRoute').mockResolvedValue(expectedRoute);
+      queueResponse({
+        match: `/route/${origin}/${destination}`,
+        body: { route: expectedRoute },
+      });
     });
 
     when('the client requests the shortest route', async () => {
@@ -35,11 +54,16 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an ordered list of system IDs', () => {
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
+      const { request, body } = routeRequest();
+      expect(request.method).toBe('POST');
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/route/${origin}/${destination}/?$`),
+      );
+      expect(body).toEqual({});
+
+      expect(result).toEqual(expectedRoute);
       expect(result[0]).toBe(origin);
       expect(result[result.length - 1]).toBe(destination);
-      expect(result).toHaveLength(5);
     });
   });
 
@@ -57,7 +81,10 @@ defineFeature(feature, (test) => {
     ];
 
     given('two systems for secure routing', () => {
-      jest.spyOn(client.route, 'getRoute').mockResolvedValue(secureRoute);
+      queueResponse({
+        match: `/route/${origin}/${destination}`,
+        body: { route: secureRoute },
+      });
     });
 
     when('the client requests a secure route', async () => {
@@ -67,10 +94,14 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a route through high-sec space', () => {
-      expect(result).toBeDefined();
+      const { request, body } = routeRequest();
+      expect(request.method).toBe('POST');
+      expect(request.url.pathname).toContain(`/route/${origin}/${destination}`);
+      expect(body).toEqual({ preference: 'Safer' });
+
+      expect(result).toEqual(secureRoute);
       expect(result[0]).toBe(origin);
       expect(result[result.length - 1]).toBe(destination);
-      expect(result.length).toBeGreaterThan(5);
     });
   });
 
@@ -85,7 +116,10 @@ defineFeature(feature, (test) => {
     const insecureRoute = [30000142, 30001000, 30002187];
 
     given('two systems for insecure routing', () => {
-      jest.spyOn(client.route, 'getRoute').mockResolvedValue(insecureRoute);
+      queueResponse({
+        match: `/route/${origin}/${destination}`,
+        body: { route: insecureRoute },
+      });
     });
 
     when('the client requests an insecure route', async () => {
@@ -95,8 +129,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a shorter route through low/null-sec', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveLength(3);
+      const { request, body } = routeRequest();
+      expect(request.method).toBe('POST');
+      expect(body).toEqual({ preference: 'LessSecure' });
+
+      expect(result).toEqual(insecureRoute);
       expect(result[0]).toBe(origin);
       expect(result[result.length - 1]).toBe(destination);
     });
@@ -111,7 +148,10 @@ defineFeature(feature, (test) => {
     const systemId = 30000142;
 
     given('the same origin and destination', () => {
-      jest.spyOn(client.route, 'getRoute').mockResolvedValue([systemId]);
+      queueResponse({
+        match: `/route/${systemId}/${systemId}`,
+        body: { route: [systemId] },
+      });
     });
 
     when('the client requests a route to itself', async () => {
@@ -119,9 +159,9 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return an array containing only the origin', () => {
-      expect(result).toBeDefined();
-      expect(result).toHaveLength(1);
-      expect(result[0]).toBe(systemId);
+      const { request } = routeRequest();
+      expect(request.url.pathname).toContain(`/route/${systemId}/${systemId}`);
+      expect(result).toEqual([systemId]);
     });
   });
 
@@ -140,7 +180,10 @@ defineFeature(feature, (test) => {
     ];
 
     given('distant systems', () => {
-      jest.spyOn(client.route, 'getRoute').mockResolvedValue(longRoute);
+      queueResponse({
+        match: `/route/${origin}/${destination}`,
+        body: { route: longRoute },
+      });
     });
 
     when('the client requests a route between distant systems', async () => {
@@ -148,8 +191,11 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall return a multi-hop path', () => {
-      expect(result).toBeDefined();
-      expect(result.length).toBeGreaterThanOrEqual(10);
+      const { request } = routeRequest();
+      expect(request.url.pathname).toContain(`/route/${origin}/${destination}`);
+
+      expect(result).toEqual(longRoute);
+      expect(result).toHaveLength(15);
       expect(result[0]).toBe(origin);
       expect(result[result.length - 1]).toBe(destination);
       result.forEach((systemId: number) => {
@@ -168,8 +214,9 @@ defineFeature(feature, (test) => {
     const destination = 99999999;
 
     given('an unreachable destination', () => {
-      const error = TestDataFactory.createError(404);
-      jest.spyOn(client.route, 'getRoute').mockRejectedValue(error);
+      queueError(404, 'No route found', {
+        match: `/route/${origin}/${destination}`,
+      });
     });
 
     when('the client requests a route to unreachable destination', async () => {
@@ -182,6 +229,11 @@ defineFeature(feature, (test) => {
 
     then('the client shall return a 404 error', () => {
       expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(404);
+      expect((caughtError as EsiError).isNotFound()).toBe(true);
+      // 404 is not retried, and POST is never retried.
+      const { request } = routeRequest();
+      expect(request.method).toBe('POST');
     });
   });
 
@@ -199,9 +251,10 @@ defineFeature(feature, (test) => {
     ];
 
     given('systems to avoid', () => {
-      jest
-        .spyOn(client.route, 'getRoute')
-        .mockResolvedValue(routeAvoidingSystems);
+      queueResponse({
+        match: `/route/${origin}/${destination}`,
+        body: { route: routeAvoidingSystems },
+      });
     });
 
     when('the client requests a route avoiding systems', async () => {
@@ -213,7 +266,11 @@ defineFeature(feature, (test) => {
     then(
       'the client shall return a route that does not include avoided systems',
       () => {
-        expect(result).toBeDefined();
+        const { request, body } = routeRequest();
+        expect(request.method).toBe('POST');
+        expect(body).toEqual({ avoid_systems: [30000144, 30000146] });
+
+        expect(result).toEqual(routeAvoidingSystems);
         expect(result[0]).toBe(origin);
         expect(result[result.length - 1]).toBe(destination);
         avoidSystems.forEach((avoided) => {
