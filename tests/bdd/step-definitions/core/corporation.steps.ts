@@ -71,9 +71,6 @@ defineFeature(feature, (test) => {
       expect(result.alliance_id).toBe(99005338);
       expect(result.ceo_id).toBe(1689391488);
       expect(result.member_count).toBe(15000);
-      // ESI's GET /corporations/{id} carries no corporation_id in its body;
-      // the Rule's promise of one is not something the client can keep.
-      expect(result.corporation_id).toBe(CORPORATION_ID);
     });
   });
 

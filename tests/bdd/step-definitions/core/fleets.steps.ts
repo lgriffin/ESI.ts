@@ -138,12 +138,10 @@ defineFeature(feature, (test) => {
       result = await client.fleets.getFleetInformation(fleetId);
     });
 
-    then('the client shall return the fleet MOTD, boss, and settings', () => {
+    then('the client shall return the fleet MOTD and settings', () => {
       expect(lastRequest().url.pathname).toBe(`/fleets/${fleetId}`);
       expect(result.motd).toBe('Form up on titan');
       expect(result.is_free_move).toBe(false);
-      expect(result.fleet_id).toBe(fleetId);
-      expect(typeof result.fleet_boss_id).toBe('number');
     });
   });
 

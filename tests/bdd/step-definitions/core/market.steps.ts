@@ -360,7 +360,7 @@ defineFeature(feature, (test) => {
     then('the client shall return completed and cancelled orders', () => {
       expect(result).toHaveLength(1);
       expect(result[0].order_id).toBe(5000000001);
-      expect(['closed', 'cancelled', 'expired']).toContain(result[0].state);
+      expect(['cancelled', 'expired']).toContain(result[0].state);
       expect(result[0].volume_remain).toBeLessThanOrEqual(
         result[0].volume_total,
       );

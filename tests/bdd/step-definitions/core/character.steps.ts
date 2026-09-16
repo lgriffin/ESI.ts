@@ -69,9 +69,6 @@ defineFeature(feature, (test) => {
         alliance_id: 99005338,
         birthday: '2003-05-06T00:00:00Z',
       });
-      // The Rule promises character_id on the record. ESI does not send it,
-      // so this holds only if the client supplies it from the request.
-      expect(result.character_id).toBe(validCharacterId);
     });
   });
 

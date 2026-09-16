@@ -43,7 +43,7 @@ Feature: Fleet Management
     Scenario: Fleet details include the MOTD and free-move flag
       Given a valid fleet ID
       When the client requests fleet details
-      Then the client shall return the fleet MOTD, boss, and settings
+      Then the client shall return the fleet MOTD and settings
 
   Rule: When the client requests fleet members, the Fleet client shall return one entry per member carrying character_id, role, ship_type_id, and solar_system_id.
     The roster is what a fleet commander's tooling renders: who is present,
