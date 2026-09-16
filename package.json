@@ -142,7 +142,7 @@
     "bdd:loyalty": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/loyalty",
     "bdd:mail": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0022-mail",
     "bdd:market": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0023-market",
-    "bdd:meta": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/meta",
+    "bdd:meta": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0025-meta",
     "bdd:pi": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/pi",
     "bdd:route": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/route",
     "bdd:search": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/search",

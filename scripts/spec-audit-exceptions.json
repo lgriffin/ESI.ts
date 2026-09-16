@@ -19,7 +19,6 @@
     "tests/bdd/step-definitions/core/location.steps.ts",
     "tests/bdd/step-definitions/core/loyalty.steps.ts",
     "tests/bdd/step-definitions/core/mercenary.steps.ts",
-    "tests/bdd/step-definitions/core/meta.steps.ts",
     "tests/bdd/step-definitions/core/military-campaigns.steps.ts",
     "tests/bdd/step-definitions/core/paragon-hub.steps.ts",
     "tests/bdd/step-definitions/core/pi.steps.ts",
