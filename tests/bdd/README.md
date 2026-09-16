@@ -52,7 +52,8 @@ a feature with neither or both:
 
 - a **spec entry**, `specs/<area>/NNNN-domain.spec.ts`, whose whole content is
   `bindFeature(__filename)`. Its steps come from the global library in
-  `steps/`. Converted domains: corporation projects, killmails, mail, market,
+  `steps/`. Converted domains: access-lists, alliance, clones, corporation
+  projects, cosmetics, dogma, insurance, killmails, mail, market, meta, route,
   universe, wallet, wars.
 - a **legacy step file**, `step-definitions/<area>/<domain>.steps.ts`, bound
   with `loadFeature(<path>)` / `defineFeature`, with every step inline. These
