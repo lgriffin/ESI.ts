@@ -1,5 +1,7 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
+import { EsiError } from '../../../../src/core/util/error';
+import type { EsiResponse } from '../../../../src/types/api-responses';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -7,6 +9,68 @@ fetchMock.enableMocks();
 const feature = loadFeature(
   'tests/bdd/features/core/0050-etag-caching.feature',
 );
+
+// ---------------------------------------------------------------------------
+// Stale-on-error fixtures
+// ---------------------------------------------------------------------------
+
+/** GET dogma/attributes has no spec cache TTL, so a cached entry is revalidated. */
+const DOGMA_ATTRIBUTE_IDS = [2, 3, 4];
+const DOGMA_ATTRIBUTES_ETAG = '"dogma-attributes-v1"';
+
+/** The library's default attempt count, with backoff shrunk to milliseconds. */
+const FAST_RETRY = { maxRetries: 3, baseDelayMs: 1, maxDelayMs: 2 };
+
+function createStaleOnErrorClient(): EsiClient {
+  return new EsiClient({
+    clientId: 'bdd-stale-on-error',
+    baseUrl: 'https://esi.evetech.net',
+    enableETagCache: true,
+    etagCacheConfig: { maxEntries: 50, defaultTtl: 300000 },
+    retryConfig: FAST_RETRY,
+    rateLimiterConfig: { minDelayMs: 0 },
+    logLevel: 'error',
+  });
+}
+
+async function cacheDogmaAttributeIndex(client: EsiClient): Promise<void> {
+  fetchMock.mockResponseOnce(JSON.stringify(DOGMA_ATTRIBUTE_IDS), {
+    headers: {
+      ETag: DOGMA_ATTRIBUTES_ETAG,
+      'Content-Type': 'application/json',
+    },
+  });
+  await client.dogma.getAttributes();
+  expect(client.getCacheStats()!.totalEntries).toBe(1);
+}
+
+function queueErrorResponse(status: number, times = 1): void {
+  for (let i = 0; i < times; i++) {
+    fetchMock.mockResponseOnce(JSON.stringify({ error: 'upstream failure' }), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+async function captureRejection(call: Promise<unknown>): Promise<unknown> {
+  try {
+    await call;
+  } catch (error) {
+    return error;
+  }
+  throw new Error('Expected the call to reject, but it resolved');
+}
+
+function expectEsiError(error: unknown, status: number): void {
+  expect(error).toBeInstanceOf(EsiError);
+  expect((error as EsiError).statusCode).toBe(status);
+}
+
+function requestHeader(call: number, name: string): string | undefined {
+  const init = fetchMock.mock.calls[call]?.[1];
+  return (init?.headers as Record<string, string> | undefined)?.[name];
+}
 
 defineFeature(feature, (test) => {
   let client: EsiClient;
@@ -301,6 +365,179 @@ defineFeature(feature, (test) => {
       expect(clientWithoutCache.getCacheStats()).toBeNull();
 
       clientWithoutCache.shutdown();
+    });
+  });
+  // ── Serving from cache when ESI fails ──────────────────────────────
+
+  test('HTTP <status> on a revalidation is answered from the cache', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let response: EsiResponse<number[]>;
+
+    given(
+      'a client whose ETag cache holds the dogma attribute index',
+      async () => {
+        staleClient = createStaleOnErrorClient();
+        await cacheDogmaAttributeIndex(staleClient);
+      },
+    );
+
+    and(
+      /^ESI answers the revalidation of the dogma attribute index with HTTP (\d+)$/,
+      (status: string) => {
+        queueErrorResponse(Number(status));
+      },
+    );
+
+    when(
+      'the client requests the dogma attribute index with metadata',
+      async () => {
+        response = await staleClient.dogma.withMetadata().getAttributes();
+      },
+    );
+
+    then(
+      'the client resolves with the cached attribute identifiers flagged as stale',
+      () => {
+        expect(response.data).toEqual(DOGMA_ATTRIBUTE_IDS);
+        expect(response.meta.fromCache).toBe(true);
+        expect(response.meta.stale).toBe(true);
+        expect(response.meta.cacheHitType).toBe('stale-on-error');
+      },
+    );
+
+    and(
+      'the revalidation request carried the cached ETag in If-None-Match',
+      () => {
+        expect(requestHeader(1, 'If-None-Match')).toBe(DOGMA_ATTRIBUTES_ETAG);
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
+    });
+  });
+
+  test('HTTP 500 with nothing cached rejects after one request', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let error: unknown;
+
+    given('a client with an empty ETag cache', () => {
+      staleClient = createStaleOnErrorClient();
+      expect(staleClient.getCacheStats()!.totalEntries).toBe(0);
+    });
+
+    and(
+      /^ESI answers the dogma attribute index request with HTTP (\d+) (\d+) times$/,
+      (status: string, times: string) => {
+        queueErrorResponse(Number(status), Number(times));
+      },
+    );
+
+    when('the client requests the dogma attribute index', async () => {
+      error = await captureRejection(staleClient.dogma.getAttributes());
+    });
+
+    then(
+      /^the client rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(error, Number(status));
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
+    });
+  });
+
+  test('HTTP 503 on every attempt with nothing cached rejects once retries are spent', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let error: unknown;
+
+    given('a client with an empty ETag cache', () => {
+      staleClient = createStaleOnErrorClient();
+      expect(staleClient.getCacheStats()!.totalEntries).toBe(0);
+    });
+
+    and(
+      /^ESI answers the dogma attribute index request with HTTP (\d+) (\d+) times$/,
+      (status: string, times: string) => {
+        expect(Number(times)).toBe(FAST_RETRY.maxRetries + 1);
+        queueErrorResponse(Number(status), Number(times));
+      },
+    );
+
+    when('the client requests the dogma attribute index', async () => {
+      error = await captureRejection(staleClient.dogma.getAttributes());
+    });
+
+    then(
+      /^the client rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(error, Number(status));
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
+    });
+  });
+
+  test('HTTP 404 on a revalidation rejects despite the cached entry', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let error: unknown;
+
+    given(
+      'a client whose ETag cache holds the dogma attribute index',
+      async () => {
+        staleClient = createStaleOnErrorClient();
+        await cacheDogmaAttributeIndex(staleClient);
+      },
+    );
+
+    and(
+      /^ESI answers the revalidation of the dogma attribute index with HTTP (\d+)$/,
+      (status: string) => {
+        queueErrorResponse(Number(status));
+      },
+    );
+
+    when('the client requests the dogma attribute index', async () => {
+      error = await captureRejection(staleClient.dogma.getAttributes());
+    });
+
+    then(
+      /^the client rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(error, Number(status));
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
     });
   });
 });
