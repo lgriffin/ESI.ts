@@ -99,6 +99,38 @@ describe('requestPipeline/statusHandling', () => {
       cache.shutdown();
     });
 
+    it('should store the entry again on 304 so its TTL restarts', () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+      client.setCache(cache);
+      const url = `${BASE_URL}/status`;
+      const storedAt = 1_000_000;
+      const now = jest.spyOn(Date, 'now').mockReturnValue(storedAt);
+      cache.set(url, '"etag"', { players: 50 }, { 'x-old': 'a' }, 90_000);
+
+      now.mockReturnValue(storedAt + 80_000);
+      handleEarlyStatus(
+        client,
+        304,
+        url,
+        { raw: { 'x-new': 'b' } } as unknown as ParsedHeaders,
+        true,
+        resolveCache,
+      );
+
+      const entry = cache.get(url)!;
+      expect(entry.timestamp).toBe(storedAt + 80_000);
+      expect(entry.ttl).toBe(90_000);
+      expect(entry.etag).toBe('"etag"');
+      expect(entry.data).toEqual({ players: 50 });
+      expect(entry.headers).toEqual({ 'x-old': 'a', 'x-new': 'b' });
+
+      now.mockRestore();
+      cache.shutdown();
+    });
+
     it('should throw EsiError on 304 with no cached data', () => {
       const parsed = {
         raw: {},
