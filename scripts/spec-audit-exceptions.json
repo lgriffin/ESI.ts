@@ -9,7 +9,6 @@
     "tests/bdd/step-definitions/core/contacts.steps.ts",
     "tests/bdd/step-definitions/core/contracts.steps.ts",
     "tests/bdd/step-definitions/core/corporation.steps.ts",
-    "tests/bdd/step-definitions/core/dogma.steps.ts",
     "tests/bdd/step-definitions/core/etag-caching.steps.ts",
     "tests/bdd/step-definitions/core/factions.steps.ts",
     "tests/bdd/step-definitions/core/fittings.steps.ts",

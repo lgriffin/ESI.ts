@@ -128,7 +128,7 @@
     "bdd:contracts": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/contracts",
     "bdd:corporation": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/corporation",
     "bdd:corporation-projects": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0004-corporation-projects",
-    "bdd:dogma": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/dogma",
+    "bdd:dogma": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0011-dogma",
     "bdd:etag-caching": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/etag-caching",
     "bdd:factions": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/factions",
     "bdd:fittings": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/fittings",
