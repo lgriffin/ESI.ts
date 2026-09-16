@@ -230,7 +230,7 @@ Daily at 01:00 UTC on Node 22 with a 40-minute timeout. Pulls a digest-pinned Sc
 
 Daily at 03:00 UTC on Node 20 with a 60-minute timeout. Runs the `npm test` suite (`jest.unit.config.cjs`: `tests/tdd` plus the BDD step definitions) and writes Jest's JSON report. No Jest retries are configured anywhere, so there is nothing to switch off; instead the job reads the report and fails, naming each test, if any test was invoked more than once. A future `jest.retryTimes` that hides a flaky test therefore turns this run red even while pull request runs stay green. A missing or unparsable report also fails it. The report is uploaded as `no-retry-report`, and the step summary lists pass and fail counts and the failed tests. No issue is filed.
 
-Test order is not randomised. Under `--randomize`, 80 tests in 20 client suites in `tests/tdd/` time out: the shared `describeClientErrors` HTTP 429 case blocks the endpoint's rate-limit group for 60 seconds on the suite's shared `ApiClient`, so any test that runs after it waits past the 5-second timeout. In declaration order that case runs last.
+Test order within each file is randomised (`jest --randomize`), so a test that passes only because of what ran before it in the same file fails here rather than hiding behind declaration order. Each run picks a new seed, or uses the `seed` input of a manual dispatch. The seed appears as a notice annotation and in the job log, the step summary, and `seed.txt` in the uploaded report; `npx jest --config jest.unit.config.cjs --randomize --seed=<seed>` replays the same order locally.
 
 ### `nightly-mutation.yml` — Nightly Mutation Testing
 
