@@ -1,4 +1,3 @@
-import fetchMock from 'jest-fetch-mock';
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
@@ -25,31 +24,6 @@ const requestBody = () => {
   return body === undefined ? undefined : JSON.parse(body);
 };
 
-/**
- * ESI answers fleet updates, kicks and moves with 204 No Content. The seam
- * encodes every response body as a string, and the Fetch `Response`
- * constructor refuses any body (even '') on a 204, so the seam cannot serve
- * one. The seam has already recorded the request and consumed the queued
- * entry by the time the constructor throws; this wrapper hands the client the
- * body-less 204 the seam meant to send. Call after useHttpTransport().
- */
-function allowNoContentResponses(): void {
-  beforeEach(() => {
-    const serve = fetchMock.getMockImplementation();
-    if (!serve) throw new Error('useHttpTransport() must be installed first');
-    fetchMock.mockImplementation(async (input, init) => {
-      try {
-        return await serve(input, init);
-      } catch (error) {
-        if (/Invalid response status code 204/.test(String(error))) {
-          return new Response(null, { status: 204 });
-        }
-        throw error;
-      }
-    });
-  });
-}
-
 const fleetMember = (overrides: Record<string, unknown>) => ({
   character_id: 1689391488,
   join_time: '2024-01-15T18:00:00Z',
@@ -68,7 +42,6 @@ defineFeature(feature, (test) => {
   let client: EsiClient;
 
   useHttpTransport();
-  allowNoContentResponses();
 
   beforeEach(() => {
     client = createSeamClient();

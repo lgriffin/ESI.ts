@@ -1,5 +1,4 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
-import fetchMock from 'jest-fetch-mock';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import {
@@ -22,37 +21,10 @@ const queryOf = (request: RecordedRequest): Record<string, string> =>
 const queueNoContent = (match: string): void =>
   queueResponse({ match, status: 204 });
 
-/**
- * Local workaround for a seam gap: transport.ts encodes a body-less response
- * as an empty string, and the Fetch `Response` constructor rejects any body
- * (even '') on a 204. Every UI endpoint answers with 204 No Content, so hand
- * the client the body-less 204 the seam meant to send. The seam has already
- * recorded the request and consumed the queued entry by the time the
- * constructor throws, so its strictness is unaffected. Call after
- * useHttpTransport().
- */
-function allowNoContentResponses(): void {
-  beforeEach(() => {
-    const serve = fetchMock.getMockImplementation();
-    if (!serve) throw new Error('useHttpTransport() must be installed first');
-    fetchMock.mockImplementation(async (input, init) => {
-      try {
-        return await serve(input, init);
-      } catch (error) {
-        if (/Invalid response status code 204/.test(String(error))) {
-          return new Response(null, { status: 204 });
-        }
-        throw error;
-      }
-    });
-  });
-}
-
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
   useHttpTransport();
-  allowNoContentResponses();
 
   beforeEach(() => {
     client = createSeamClient();

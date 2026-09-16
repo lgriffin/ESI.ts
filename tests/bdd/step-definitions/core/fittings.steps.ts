@@ -1,5 +1,4 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
-import fetchMock from 'jest-fetch-mock';
 import { EsiClient } from '../../../../src/EsiClient';
 import { EsiError } from '../../../../src/core/util/error';
 import {
@@ -19,35 +18,10 @@ const BEARER = 'Bearer bdd-access-token';
 const fittingsCollection = (characterId: number) =>
   new RegExp(`/characters/${characterId}/fittings(\\?|$)`);
 
-/**
- * Local workaround for a seam gap: transport.ts encodes a body-less response
- * as an empty string, and the Response constructor rejects any body on 204.
- * ESI answers a fitting delete with 204 No Content, so rebuild that response
- * with a null body. The seam has already recorded the request and consumed
- * the queued entry when the constructor throws, so its strictness holds.
- * Must be registered after useHttpTransport().
- */
-function allowNoContentResponses(): void {
-  beforeEach(() => {
-    const serve = fetchMock.getMockImplementation()!;
-    fetchMock.mockImplementation(async (input, init) => {
-      try {
-        return await serve(input, init);
-      } catch (error) {
-        if (/Invalid response status code 204/.test(String(error))) {
-          return new Response(null, { status: 204 });
-        }
-        throw error;
-      }
-    });
-  });
-}
-
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
   useHttpTransport();
-  allowNoContentResponses();
 
   beforeEach(() => {
     client = createSeamClient();
