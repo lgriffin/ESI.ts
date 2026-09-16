@@ -22,7 +22,7 @@ import fetchMock from 'jest-fetch-mock';
 import { EsiClient, EsiClientConfig } from '../../../src/EsiClient';
 
 export interface HttpResponse {
-  /** HTTP status. Default 200. */
+  /** HTTP status. Default 200. 204, 205 and 304 are sent with no body. */
   status?: number;
   /** Response headers. `content-type: application/json` is added for JSON bodies. */
   headers?: Record<string, string>;
@@ -109,12 +109,27 @@ async function serve(request: MockRequest) {
   entry.remaining -= 1;
   if (entry.remaining === 0) queue.splice(index, 1);
 
-  const encoded = encode(entry);
-  if (!entry.delayMs) return encoded;
+  const reply = toReply(entry);
+  if (!entry.delayMs) return reply;
   const delay = entry.delayMs;
-  return new Promise<typeof encoded>((resolve) =>
-    setTimeout(() => resolve(encoded), delay),
+  return new Promise<typeof reply>((resolve) =>
+    setTimeout(() => resolve(reply), delay),
   );
+}
+
+/** Statuses whose responses carry no body; the Response constructor rejects even ''. */
+const NULL_BODY_STATUSES = new Set([204, 205, 304]);
+
+function toReply(entry: HttpResponse) {
+  const encoded = encode(entry);
+  if (!NULL_BODY_STATUSES.has(encoded.status)) return encoded;
+  if (encoded.body !== '') {
+    throw new Error(`A ${encoded.status} response cannot carry a body`);
+  }
+  return new Response(null, {
+    status: encoded.status,
+    headers: encoded.headers,
+  });
 }
 
 /**
