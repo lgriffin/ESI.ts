@@ -107,7 +107,7 @@ jobs:
           }
           {
             echo "types=$(touches scripts/generate-esi-types.ts src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts)"
-            echo "schemas=$(touches scripts/generate-schema-drift-report.ts scripts/schema-drift-exceptions.json src/schemas/ src/core/endpoints/ package-lock.json)"
+            echo "schemas=$(touches scripts/generate-schema-drift-report.ts scripts/schema-drift-core.ts scripts/schema-drift-baseline.json scripts/schema-drift-exceptions.json src/schemas/ src/core/endpoints/ package-lock.json)"
           } | tee -a "$GITHUB_OUTPUT"
 
       - name: Verify generated types are up to date
@@ -137,9 +137,13 @@ jobs:
       - name: Run dead code detection (knip)
         run: npx knip --no-exit-code
 
+      # Drift listed in scripts/schema-drift-baseline.json passes; the baseline
+      # may only shrink relative to the base tip, which fetch-depth 2 provides
+      # as HEAD^1 (a pull request checkout has no origin/master).
       - name: Check schema drift
         env:
           TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.schemas }}
+          SCHEMA_DRIFT_BASE_REF: HEAD^1
         run: |
           set -o pipefail
           problem=""
@@ -148,7 +152,7 @@ jobs:
           elif grep -q "HTTP 503" /tmp/schema-drift.log; then
             echo "::warning::ESI API returned 503 — skipping schema drift check"
           else
-            problem="Hand-written Zod schemas diverge from the ESI spec — run 'npm run schema:drift' to review"
+            problem="Zod schemas diverge from the ESI spec beyond scripts/schema-drift-baseline.json, the baseline is stale or grew, or the check is broken — run 'npm run schema:drift' to review"
           fi
 
           if [ -z "$problem" ]; then exit 0; fi
@@ -156,7 +160,7 @@ jobs:
             echo "::error::$problem"
             exit 1
           fi
-          echo "::warning::$problem. This pull request does not touch the schemas, endpoint definitions, drift script or its exceptions, so the drift is already on the base branch; nightly-spec-drift.yml files it as a spec-drift issue."
+          echo "::warning::$problem. This pull request does not touch the schemas, endpoint definitions, drift script, its baseline or its exceptions, so the drift is already on the base branch; nightly-spec-drift.yml files it as a spec-drift issue."
           echo "Zod schemas diverge from the live ESI spec (pre-existing drift, not blocking)." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Validate auth/scope alignment

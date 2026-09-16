@@ -55,7 +55,13 @@ jobs:
       - name: 🏗️ Build project
         run: npm run build
 
+      # Fails on drift not in scripts/schema-drift-baseline.json and on stale
+      # entries. The shrink-only half of the ratchet is enforced on pull
+      # requests; here the tag is its own base, so a master that has since
+      # pruned the baseline cannot block releasing an earlier commit.
       - name: 🔍 Schema drift check
+        env:
+          SCHEMA_DRIFT_BASE_REF: HEAD
         run: npm run schema:drift:ci
 
       - name: 🔍 Verify generated types are fresh

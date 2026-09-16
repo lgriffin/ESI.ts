@@ -88,10 +88,14 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
+      # master is its own base: the nightly reports drift that is not in
+      # scripts/schema-drift-baseline.json and entries that no longer occur.
       - name: Check schema drift
         id: schema
+        env:
+          SCHEMA_DRIFT_BASE_REF: HEAD
         run: |
-          set +e
+          set +e -o pipefail # without pipefail, $? is tee's and drift never registers
           npm run schema:drift:ci 2>&1 | tee /tmp/schema-drift.log
           EXIT_CODE=$?
           set -e
@@ -190,7 +194,7 @@ jobs:
             if [ "$SCHEMA_DRIFT" = "true" ]; then
               echo "### Schema Drift"
               echo ""
-              echo "Hand-written Zod schemas have diverged from the ESI OpenAPI spec."
+              echo "Hand-written Zod schemas have drifted from the ESI OpenAPI spec beyond \`scripts/schema-drift-baseline.json\`, or baseline entries no longer occur and should be removed."
               echo "Run \`npm run schema:drift\` locally to review."
               echo ""
               echo '```'
