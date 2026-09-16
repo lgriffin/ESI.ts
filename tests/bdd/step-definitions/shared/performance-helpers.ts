@@ -1,11 +1,14 @@
+/**
+ * Time an async operation with the monotonic high-resolution clock.
+ *
+ * `performance.now()` rather than `Date.now()`: wall-clock time can step
+ * backwards or jump under NTP adjustment, and its millisecond resolution is
+ * too coarse for the per-call overhead margins the performance Rules assert.
+ */
 export async function timeExecution<T>(
   fn: () => Promise<T>,
 ): Promise<{ result: T; elapsed: number }> {
-  const start = Date.now();
+  const start = performance.now();
   const result = await fn();
-  return { result, elapsed: Date.now() - start };
-}
-
-export function expectFasterThan(elapsed: number, maxMs: number): void {
-  expect(elapsed).toBeLessThan(maxMs);
+  return { result, elapsed: performance.now() - start };
 }
