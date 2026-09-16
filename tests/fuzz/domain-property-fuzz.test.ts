@@ -43,16 +43,41 @@ const charObjectiveArb = fc.record({
   contribution: fc.nat({ max: 100000 }),
 });
 
-const corpProjectArb = fc.record({
-  project_id: fc.nat({ max: 1000000 }),
-  state: fc.constantFrom('active', 'completed', 'paused'),
-  progress: fc.double({ min: 0, max: 1, noNaN: true }),
-  start_time: dateArb,
+const progressArb = fc.record({
+  current: fc.nat({ max: 1000000 }),
+  desired: fc.nat({ max: 1000000 }),
 });
 
-const corpContributionArb = fc.record({
-  character_id: fc.nat({ max: 2147483647 }),
-  contribution: fc.nat({ max: 1000000 }),
+const corpProjectArb = fc.record({
+  id: uuidArb,
+  name: fc.string({ minLength: 1, maxLength: 50 }),
+  state: fc.constantFrom('Active', 'Closed', 'Completed', 'Expired'),
+  last_modified: dateArb,
+  progress: progressArb,
+  creator: fc.record({
+    id: fc.nat({ max: 2147483647 }),
+    name: fc.string({ minLength: 1, maxLength: 37 }),
+  }),
+  details: fc.record({
+    career: fc.constantFrom('Explorer', 'Industrialist', 'Enforcer'),
+    created: dateArb,
+    description: fc.string({ maxLength: 200 }),
+  }),
+  configuration: fc.constantFrom({ manual: {} }, { destroy_ship: {} }),
+});
+
+const corpContributionArb = fc.record(
+  {
+    contributed: fc.nat({ max: 1000000 }),
+    last_modified: dateArb,
+  },
+  { requiredKeys: ['contributed'] },
+);
+
+const corpContributorArb = fc.record({
+  id: fc.nat({ max: 2147483647 }),
+  name: fc.string({ minLength: 1, maxLength: 37 }),
+  contributed: fc.nat({ max: 1000000 }),
 });
 
 describe('Military Campaign schema property tests', () => {
@@ -128,7 +153,7 @@ describe('Corporation Project schema property tests', () => {
 
   it('should accept any well-formed contributor object', () => {
     fc.assert(
-      fc.property(corpContributionArb, (data) => {
+      fc.property(corpContributorArb, (data) => {
         const result = CorporationProjectContributorSchema.safeParse(data);
         expect(result.success).toBe(true);
       }),
@@ -136,16 +161,24 @@ describe('Corporation Project schema property tests', () => {
     );
   });
 
-  it('should reject project_id when not a number', () => {
+  it('should reject id when not a string', () => {
     fc.assert(
       fc.property(
-        fc.oneof(fc.string(), fc.boolean(), fc.constant(null)),
+        fc.oneof(fc.integer(), fc.boolean(), fc.constant(null)),
         (badId) => {
           const result = CorporationProjectSchema.safeParse({
-            project_id: badId,
-            state: 'active',
-            progress: 0.5,
-            start_time: '2026-01-01T00:00:00Z',
+            id: badId,
+            name: 'Project Name',
+            state: 'Active',
+            last_modified: '2026-01-01T00:00:00Z',
+            progress: { current: 5, desired: 10 },
+            creator: { id: 90000001, name: 'Creator Name' },
+            details: {
+              career: 'Explorer',
+              created: '2026-01-01T00:00:00Z',
+              description: 'Project Description',
+            },
+            configuration: { manual: {} },
           });
           expect(result.success).toBe(false);
         },

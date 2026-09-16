@@ -69,12 +69,11 @@ defineFeature(feature, (test) => {
       // ESI's detail records do not repeat their own ID: a character carries
       // corporation_id and alliance_id, a corporation carries alliance_id, and
       // an alliance carries executor_corporation_id.
-      const { character_id: _c, ...characterDetail } =
-        TestDataFactory.createCharacterInfo({
-          name: 'Test Pilot',
-          corporation_id: corporationId,
-          alliance_id: allianceId,
-        });
+      const characterDetail = TestDataFactory.createCharacterInfo({
+        name: 'Test Pilot',
+        corporation_id: corporationId,
+        alliance_id: allianceId,
+      });
       const { corporation_id: _k, ...corporationDetail } =
         TestDataFactory.createCorporationInfo({
           name: 'GoonWaffe',
@@ -418,15 +417,6 @@ defineFeature(feature, (test) => {
     const wingId = 987654321;
     const squadId = 123456789;
 
-    const member = (overrides: Record<string, unknown>) => ({
-      join_time: '2024-01-15T18:00:00Z',
-      solar_system_id: 30000142,
-      takes_fleet_warp: true,
-      wing_id: wingId,
-      squad_id: squadId,
-      ...overrides,
-    });
-
     given('fleet commander permissions', () => {
       queueResponse({
         match: route(`/characters/${characterId}/fleet`),
@@ -440,41 +430,33 @@ defineFeature(feature, (test) => {
       });
       queueResponse({
         match: route(`/fleets/${fleetId}`),
-        body: {
-          is_free_move: false,
-          is_registered: true,
-          is_voice_enabled: true,
-          motd: 'Fleet operations in progress',
-        },
+        body: TestDataFactory.createFleetInfo(),
       });
       queueResponse({
         match: route(`/fleets/${fleetId}/members`),
         body: [
-          member({
+          TestDataFactory.createFleetMember({
             character_id: characterId,
-            role: 'fleet_commander',
-            role_name: 'Fleet Commander (Boss)',
             ship_type_id: 17918,
-            station_id: 60003760,
-            wing_id: -1,
-            squad_id: -1,
           }),
-          member({
+          TestDataFactory.createFleetMember({
             character_id: 1689391489,
             role: 'squad_member',
             role_name: 'Squad Member',
             ship_type_id: 17812,
+            station_id: undefined,
+            wing_id: wingId,
+            squad_id: squadId,
           }),
         ],
       });
       queueResponse({
         match: route(`/fleets/${fleetId}/wings/`),
         body: [
-          {
+          TestDataFactory.createFleetWing({
             id: wingId,
-            name: 'Wing 1',
             squads: [{ id: squadId, name: 'Squad 1' }],
-          },
+          }),
         ],
       });
       queueResponse({
@@ -668,11 +650,10 @@ defineFeature(feature, (test) => {
     const corporationId = 1344654522;
 
     given('some services are unavailable', () => {
-      const { character_id: _c, ...characterDetail } =
-        TestDataFactory.createCharacterInfo({
-          name: 'Test Pilot',
-          corporation_id: corporationId,
-        });
+      const characterDetail = TestDataFactory.createCharacterInfo({
+        name: 'Test Pilot',
+        corporation_id: corporationId,
+      });
       const { corporation_id: _k, ...corporationDetail } =
         TestDataFactory.createCorporationInfo({ name: 'GoonWaffe' });
 
@@ -747,11 +728,10 @@ defineFeature(feature, (test) => {
     const allianceId = 99005338;
 
     given('a complex data requirement', () => {
-      const { character_id: _c, ...characterDetail } =
-        TestDataFactory.createCharacterInfo({
-          corporation_id: corporationId,
-          alliance_id: allianceId,
-        });
+      const characterDetail = TestDataFactory.createCharacterInfo({
+        corporation_id: corporationId,
+        alliance_id: allianceId,
+      });
       const { corporation_id: _k, ...corporationDetail } =
         TestDataFactory.createCorporationInfo({ name: 'GoonWaffe' });
       const { alliance_id: _a, ...allianceDetail } =

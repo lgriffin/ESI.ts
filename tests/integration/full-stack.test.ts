@@ -45,6 +45,7 @@ describe('Integration: Full Request Lifecycle', () => {
       players: 23456,
       server_version: '2345678',
       start_time: '2024-01-01T00:00:00Z',
+      vip: false,
     };
     fetchMock.mockResponseOnce(JSON.stringify(mockStatus), {
       headers: standardHeaders(),
@@ -110,6 +111,7 @@ describe('Integration: ETag Cache Round-Trip', () => {
       players: 10000,
       server_version: '1',
       start_time: '2024-01-01T00:00:00Z',
+      vip: false,
     };
     fetchMock.mockResponseOnce(JSON.stringify(data), {
       headers: standardHeaders({ etag: '"abc123"' }),
@@ -130,6 +132,7 @@ describe('Integration: ETag Cache Round-Trip', () => {
         players: 1,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       }),
       {
         headers: standardHeaders({ etag: '"etag1"' }),
@@ -201,6 +204,7 @@ describe('Integration: Circuit Breaker Trip and Recovery', () => {
       players: 5000,
       server_version: '1',
       start_time: '2024-01-01T00:00:00Z',
+      vip: false,
     };
     fetchMock.mockResponseOnce(JSON.stringify(data), {
       headers: standardHeaders(),
@@ -242,6 +246,7 @@ describe('Integration: Middleware Pipeline', () => {
         players: 1,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       }),
       {
         headers: standardHeaders(),
@@ -267,6 +272,7 @@ describe('Integration: Middleware Pipeline', () => {
         players: 100,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       }),
       {
         headers: standardHeaders(),
@@ -304,6 +310,7 @@ describe('Integration: Middleware Pipeline', () => {
         players: 1,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       }),
       {
         headers: standardHeaders(),
@@ -328,6 +335,7 @@ describe('Integration: Middleware Pipeline', () => {
         players: 1,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       }),
       {
         headers: standardHeaders(),
@@ -487,6 +495,7 @@ describe('Integration: Error Propagation', () => {
       players: 999,
       server_version: '1',
       start_time: '2024-01-01T00:00:00Z',
+      vip: false,
     };
     fetchMock.mockResponseOnce(JSON.stringify(data), {
       headers: standardHeaders({ etag: '"stale1"' }),
@@ -521,6 +530,7 @@ describe('Integration: Client Creation Patterns', () => {
         players: 1,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       }),
       {
         headers: standardHeaders(),
@@ -550,6 +560,7 @@ describe('Integration: Client Creation Patterns', () => {
         players: 42,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       }),
       {
         headers: standardHeaders(),

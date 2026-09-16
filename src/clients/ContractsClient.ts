@@ -1,7 +1,12 @@
 import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { contractEndpoints } from '../core/endpoints/contractEndpoints';
-import { Contract, ContractBid, ContractItem } from '../types/api-responses';
+import {
+  Contract,
+  ContractBid,
+  ContractItem,
+  PublicContract,
+} from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
@@ -54,9 +59,10 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
    * Retrieve publicly available contracts in a specific region.
    *
    * @param regionId - The ID of the region whose public contracts to retrieve
-   * @returns A list of public contracts in the region
+   * @returns A list of public contracts in the region. ESI sends no status
+   *   or availability on these: every listed contract is public and outstanding.
    */
-  getPublicContracts(regionId: number): Promise<Contract[]> {
+  getPublicContracts(regionId: number): Promise<PublicContract[]> {
     return this.api.getPublicContracts(regionId);
   }
 
@@ -124,8 +130,8 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
   fetchAllPublicContracts(
     regionId: number,
     concurrency?: number,
-  ): Promise<Contract[]> {
-    return this.fetchAllEndpoint<Contract>(
+  ): Promise<PublicContract[]> {
+    return this.fetchAllEndpoint<PublicContract>(
       'getPublicContracts',
       [regionId],
       concurrency,
@@ -156,8 +162,8 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
 
   streamPublicContracts(
     regionId: number,
-  ): AsyncGenerator<PageResult<Contract>, void, undefined> {
-    return this.streamEndpoint<Contract>('getPublicContracts', regionId);
+  ): AsyncGenerator<PageResult<PublicContract>, void, undefined> {
+    return this.streamEndpoint<PublicContract>('getPublicContracts', regionId);
   }
 
   streamCharacterContracts(

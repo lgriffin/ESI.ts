@@ -1,9 +1,9 @@
-import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
+  CorporationProjectsListingSchema,
   CorporationProjectSchema,
   CorporationProjectContributionSchema,
-  CorporationProjectContributorSchema,
+  CorporationProjectContributorsListingSchema,
 } from '../../schemas/corporation-projects';
 
 export const corporationProjectEndpoints = {
@@ -12,7 +12,8 @@ export const corporationProjectEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
-    responseSchema: z.array(CorporationProjectSchema),
+    queryParams: { before: 'before', after: 'after' },
+    responseSchema: CorporationProjectsListingSchema,
   },
   getCorporationProject: {
     path: 'corporations/{corporationId}/projects/{projectId}',
@@ -33,6 +34,7 @@ export const corporationProjectEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId', 'projectId'],
-    responseSchema: z.array(CorporationProjectContributorSchema),
+    queryParams: { before: 'before', after: 'after' },
+    responseSchema: CorporationProjectContributorsListingSchema,
   },
 } as const satisfies EndpointMap;

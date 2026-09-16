@@ -43,7 +43,7 @@ describe('TestDataFactory', () => {
   describe('Character factories', () => {
     it('should create character info with defaults', () => {
       const info = TestDataFactory.createCharacterInfo();
-      expect(info.character_id).toBe(1689391488);
+      expect(info.corporation_id).toBe(1344654522);
       expect(info.name).toBe('Test Character');
     });
 
@@ -402,7 +402,7 @@ describe('TestDataFactory', () => {
   describe('Fleet factories', () => {
     it('should create fleet info with defaults', () => {
       const fleet = TestDataFactory.createFleetInfo();
-      expect(fleet.fleet_id).toBe(1234567890);
+      expect(fleet.motd).toBe('Fleet operations in progress');
       expect(fleet.is_free_move).toBe(false);
     });
 
@@ -425,8 +425,8 @@ describe('TestDataFactory', () => {
 
     it('should create fleet wing with defaults', () => {
       const wing = TestDataFactory.createFleetWing();
-      expect(wing.wing_id).toBe(987654321);
-      expect(wing.squads).toHaveLength(1);
+      expect(wing.id).toBe(2073711261968);
+      expect(wing.squads).toEqual([{ id: 3129411261968, name: 'Squad 1' }]);
     });
 
     it('should create fleet wing with overrides', () => {

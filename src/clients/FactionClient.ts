@@ -5,7 +5,9 @@ import {
   FactionWarfareStats,
   FactionWarfareCharacterStats,
   FactionWarfareCorporationStats,
-  FactionWarfareLeaderboard,
+  FactionWarfareCharacterLeaderboard,
+  FactionWarfareCorporationLeaderboard,
+  FactionWarfareFactionLeaderboard,
   FactionWarfareSystem,
   FactionWarfareWar,
 } from '../types/api-responses';
@@ -20,8 +22,8 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
    *
    * @returns Faction warfare character leaderboard rankings
    */
-  getLeaderboardsCharacters(): Promise<FactionWarfareLeaderboard> {
-    return this.api.getCharacters() as Promise<FactionWarfareLeaderboard>;
+  getLeaderboardsCharacters(): Promise<FactionWarfareCharacterLeaderboard> {
+    return this.api.getCharacters();
   }
 
   /**
@@ -29,8 +31,8 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
    *
    * @returns Faction warfare corporation leaderboard rankings
    */
-  getLeaderboardsCorporations(): Promise<FactionWarfareLeaderboard> {
-    return this.api.getCorporations() as Promise<FactionWarfareLeaderboard>;
+  getLeaderboardsCorporations(): Promise<FactionWarfareCorporationLeaderboard> {
+    return this.api.getCorporations();
   }
 
   /**
@@ -38,8 +40,8 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
    *
    * @returns Overall faction warfare leaderboard rankings
    */
-  getLeaderboardsOverall(): Promise<FactionWarfareLeaderboard> {
-    return this.api.getOverall() as Promise<FactionWarfareLeaderboard>;
+  getLeaderboardsOverall(): Promise<FactionWarfareFactionLeaderboard> {
+    return this.api.getOverall();
   }
 
   /**
@@ -48,7 +50,7 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
    * @returns An array of per-faction warfare statistics
    */
   getStats(): Promise<FactionWarfareStats[]> {
-    return this.api.getStats() as Promise<FactionWarfareStats[]>;
+    return this.api.getStats();
   }
 
   /**
@@ -61,9 +63,7 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
   getCharacterStats(
     characterId: number,
   ): Promise<FactionWarfareCharacterStats> {
-    return this.api.getCharacterStats(
-      characterId,
-    ) as Promise<FactionWarfareCharacterStats>;
+    return this.api.getCharacterStats(characterId);
   }
 
   /**
@@ -76,9 +76,7 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
   getCorporationStats(
     corporationId: number,
   ): Promise<FactionWarfareCorporationStats> {
-    return this.api.getCorporationStats(
-      corporationId,
-    ) as Promise<FactionWarfareCorporationStats>;
+    return this.api.getCorporationStats(corporationId);
   }
 
   /**
@@ -87,7 +85,7 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
    * @returns An array of faction warfare system statuses
    */
   getSystems(): Promise<FactionWarfareSystem[]> {
-    return this.api.getSystems() as Promise<FactionWarfareSystem[]>;
+    return this.api.getSystems();
   }
 
   /**
@@ -96,6 +94,6 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
    * @returns An array of active faction warfare wars
    */
   getWars(): Promise<FactionWarfareWar[]> {
-    return this.api.getWars() as Promise<FactionWarfareWar[]>;
+    return this.api.getWars();
   }
 }

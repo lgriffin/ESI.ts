@@ -11,7 +11,6 @@
     "tests/bdd/step-definitions/core/clones.steps.ts",
     "tests/bdd/step-definitions/core/contacts.steps.ts",
     "tests/bdd/step-definitions/core/contracts.steps.ts",
-    "tests/bdd/step-definitions/core/corporation-projects.steps.ts",
     "tests/bdd/step-definitions/core/corporation.steps.ts",
     "tests/bdd/step-definitions/core/cosmetics.steps.ts",
     "tests/bdd/step-definitions/core/dogma.steps.ts",

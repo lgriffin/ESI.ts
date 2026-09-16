@@ -6,6 +6,9 @@ import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
+const CORPORATION_ID = 98000001;
+const PROJECT_ID = '3868eaed-8278-4cb7-9709-7d7de9c20dc7';
+
 describe('CorporationProjectsClient', () => {
   let client: ApiClient;
   let corporationProjectsClient: CorporationProjectsClient;
@@ -19,40 +22,40 @@ describe('CorporationProjectsClient', () => {
     corporationProjectsClient = new CorporationProjectsClient(client);
   });
 
-  it('should get corporation projects', async () => {
-    const mockResponse = [
-      {
-        project_id: 1001,
-        state: 'active',
-        progress: 0.75,
-        start_time: '2026-01-15T10:00:00Z',
-        finish_time: '2026-03-15T10:00:00Z',
-      },
-      {
-        project_id: 1002,
-        state: 'completed',
-        progress: 1.0,
-        start_time: '2025-11-01T08:00:00Z',
-        finish_time: '2026-01-01T08:00:00Z',
-      },
-    ];
+  it('should get a page of corporation projects', async () => {
+    const mockResponse = {
+      cursor: { before: 'b-token', after: 'a-token' },
+      projects: [
+        {
+          id: PROJECT_ID,
+          name: 'Stock the staging hangar',
+          state: 'Active',
+          last_modified: '2026-09-15T18:30:00Z',
+          progress: { current: 750, desired: 1000 },
+          reward: { initial: 500000000, remaining: 125000000 },
+        },
+        {
+          id: '9b1f2c7e-4d3a-4b8e-a6f1-2c5d7e9a0b13',
+          name: 'Defend the home complex',
+          state: 'Completed',
+          last_modified: '2026-08-01T08:00:00Z',
+          progress: { current: 40, desired: 40 },
+        },
+      ],
+    };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
-      corporationProjectsClient.getCorporationProjects(98000001),
+      corporationProjectsClient.getCorporationProjects(CORPORATION_ID),
     );
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(2);
-    result.forEach((project: any) => {
-      expect(project).toHaveProperty('project_id');
-      expect(typeof project.project_id).toBe('number');
-      expect(project).toHaveProperty('state');
-      expect(project).toHaveProperty('progress');
-      expect(project).toHaveProperty('start_time');
-    });
+    expect(result).toEqual(mockResponse);
+    expect(result.projects.map((p: { id: string }) => p.id)).toEqual([
+      PROJECT_ID,
+      '9b1f2c7e-4d3a-4b8e-a6f1-2c5d7e9a0b13',
+    ]);
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/corporations/98000001/projects',
+      `https://esi.evetech.net/corporations/${CORPORATION_ID}/projects`,
     );
     expect(fetchMock.mock.calls[0][1]?.headers).toHaveProperty(
       'Authorization',
@@ -60,26 +63,60 @@ describe('CorporationProjectsClient', () => {
     );
   });
 
-  it('should get a specific corporation project', async () => {
+  it('should pass cursor tokens as before and after query parameters', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify({ projects: [] }));
+    fetchMock.mockResponseOnce(JSON.stringify({ contributors: [] }));
+
+    await getBody(() =>
+      corporationProjectsClient.getCorporationProjects(
+        CORPORATION_ID,
+        undefined,
+        'a-token',
+      ),
+    );
+    await getBody(() =>
+      corporationProjectsClient.getCorporationProjectContributors(
+        CORPORATION_ID,
+        PROJECT_ID,
+        'b-token',
+      ),
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `https://esi.evetech.net/corporations/${CORPORATION_ID}/projects?after=a-token`,
+    );
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      `https://esi.evetech.net/corporations/${CORPORATION_ID}/projects/${PROJECT_ID}/contributors?before=b-token`,
+    );
+  });
+
+  it('should get a specific corporation project by UUID', async () => {
     const mockResponse = {
-      project_id: 1001,
-      state: 'active',
-      progress: 0.75,
-      start_time: '2026-01-15T10:00:00Z',
-      finish_time: '2026-03-15T10:00:00Z',
+      id: PROJECT_ID,
+      name: 'Stock the staging hangar',
+      state: 'Active',
+      last_modified: '2026-09-15T18:30:00Z',
+      progress: { current: 750, desired: 1000 },
+      creator: { id: 90439768, name: 'Project Creator' },
+      details: {
+        career: 'Industrialist',
+        created: '2026-09-01T12:00:00Z',
+        description: 'Deliver hulls.',
+      },
+      configuration: { manual: {} },
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
-      corporationProjectsClient.getCorporationProject(98000001, 1001),
+      corporationProjectsClient.getCorporationProject(
+        CORPORATION_ID,
+        PROJECT_ID,
+      ),
     );
-    expect(result).toHaveProperty('project_id', 1001);
-    expect(result).toHaveProperty('state', 'active');
-    expect(result).toHaveProperty('progress', 0.75);
-    expect(result).toHaveProperty('start_time');
+    expect(result).toEqual(mockResponse);
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/corporations/98000001/projects/1001',
+      `https://esi.evetech.net/corporations/${CORPORATION_ID}/projects/${PROJECT_ID}`,
     );
     expect(fetchMock.mock.calls[0][1]?.headers).toHaveProperty(
       'Authorization',
@@ -89,23 +126,22 @@ describe('CorporationProjectsClient', () => {
 
   it('should get a character contribution to a corporation project', async () => {
     const mockResponse = {
-      character_id: 90439768,
-      contribution: 500,
+      contributed: 500,
+      last_modified: '2026-09-15T18:30:00Z',
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
       corporationProjectsClient.getCorporationProjectContribution(
-        98000001,
-        1001,
+        CORPORATION_ID,
+        PROJECT_ID,
         90439768,
       ),
     );
-    expect(result).toHaveProperty('character_id', 90439768);
-    expect(result).toHaveProperty('contribution', 500);
+    expect(result).toEqual(mockResponse);
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/corporations/98000001/projects/1001/contribution/90439768',
+      `https://esi.evetech.net/corporations/${CORPORATION_ID}/projects/${PROJECT_ID}/contribution/90439768`,
     );
     expect(fetchMock.mock.calls[0][1]?.headers).toHaveProperty(
       'Authorization',
@@ -113,36 +149,30 @@ describe('CorporationProjectsClient', () => {
     );
   });
 
-  it('should get corporation project contributors', async () => {
-    const mockResponse = [
-      {
-        character_id: 90439768,
-        contribution: 500,
-      },
-      {
-        character_id: 90439769,
-        contribution: 300,
-      },
-    ];
+  it('should get a page of corporation project contributors', async () => {
+    const mockResponse = {
+      contributors: [
+        { id: 90439768, name: 'First Contributor', contributed: 500 },
+        { id: 90439769, name: 'Second Contributor', contributed: 300 },
+      ],
+      cursor: { after: 'a-token' },
+    };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() =>
       corporationProjectsClient.getCorporationProjectContributors(
-        98000001,
-        1001,
+        CORPORATION_ID,
+        PROJECT_ID,
       ),
     );
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(2);
-    result.forEach((contributor: any) => {
-      expect(contributor).toHaveProperty('character_id');
-      expect(typeof contributor.character_id).toBe('number');
-      expect(contributor).toHaveProperty('contribution');
-      expect(typeof contributor.contribution).toBe('number');
-    });
+    expect(result).toEqual(mockResponse);
+    for (const contributor of result.contributors) {
+      expect(typeof contributor.id).toBe('number');
+      expect(typeof contributor.contributed).toBe('number');
+    }
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://esi.evetech.net/corporations/98000001/projects/1001/contributors',
+      `https://esi.evetech.net/corporations/${CORPORATION_ID}/projects/${PROJECT_ID}/contributors`,
     );
     expect(fetchMock.mock.calls[0][1]?.headers).toHaveProperty(
       'Authorization',
@@ -151,6 +181,8 @@ describe('CorporationProjectsClient', () => {
   });
 
   describeClientErrors('CorporationProjectsClient', (apiClient) =>
-    new CorporationProjectsClient(apiClient).getCorporationProjects(98000001),
+    new CorporationProjectsClient(apiClient).getCorporationProjects(
+      CORPORATION_ID,
+    ),
   );
 });

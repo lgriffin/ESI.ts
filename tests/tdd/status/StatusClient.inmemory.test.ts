@@ -27,6 +27,7 @@ describe('StatusClient (InMemoryFetch)', () => {
         players: 12345,
         start_time: '2024-07-01T18:57:11Z',
         server_version: '1.2.3',
+        vip: false,
       },
     });
 
@@ -43,6 +44,7 @@ describe('StatusClient (InMemoryFetch)', () => {
         players: 1,
         start_time: '2024-01-01T00:00:00Z',
         server_version: '1.0.0',
+        vip: false,
       },
     });
 

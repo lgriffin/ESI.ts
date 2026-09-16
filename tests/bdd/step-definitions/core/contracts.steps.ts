@@ -159,19 +159,18 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: exactPath(`/contracts/public/${regionId}`),
         body: [
-          TestDataFactory.createContract({
+          TestDataFactory.createPublicContract({
             contract_id: 200000001,
             type: 'item_exchange',
-            status: 'outstanding',
-            availability: 'public',
             price: 50000000,
           }),
-          TestDataFactory.createContract({
+          TestDataFactory.createPublicContract({
             contract_id: 200000002,
             type: 'auction',
-            status: 'outstanding',
-            availability: 'public',
             price: 10000000,
+            buyout: 25000000,
+            date_issued: '2023-12-02T08:00:00Z',
+            date_expired: '2023-12-09T08:00:00Z',
           }),
         ],
       });
@@ -185,10 +184,28 @@ defineFeature(feature, (test) => {
       expect(lastRequest().url.pathname).toBe(`/contracts/public/${regionId}`);
       expect(lastRequest().headers.authorization).toBeUndefined();
       expect(
-        result.map((c: any) => [c.contract_id, c.availability, c.status]),
+        result.map((c: any) => [
+          c.contract_id,
+          c.type,
+          c.issuer_id,
+          c.date_issued,
+          c.date_expired,
+        ]),
       ).toEqual([
-        [200000001, 'public', 'outstanding'],
-        [200000002, 'public', 'outstanding'],
+        [
+          200000001,
+          'item_exchange',
+          1689391488,
+          '2023-12-01T12:00:00Z',
+          '2023-12-15T12:00:00Z',
+        ],
+        [
+          200000002,
+          'auction',
+          1689391488,
+          '2023-12-02T08:00:00Z',
+          '2023-12-09T08:00:00Z',
+        ],
       ]);
     });
   });

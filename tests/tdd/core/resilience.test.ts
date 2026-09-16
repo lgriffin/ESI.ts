@@ -81,6 +81,7 @@ describe('Resilience: Error Handling and Recovery', () => {
           players: 100,
           server_version: '1',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         { headers: standardHeaders() },
       );
@@ -323,6 +324,7 @@ describe('Resilience: Error Handling and Recovery', () => {
           players: 42,
           server_version: '1',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         { headers: standardHeaders() },
       );
@@ -356,6 +358,7 @@ describe('Resilience: Error Handling and Recovery', () => {
         players: 999,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       };
 
       // First request populates the cache
@@ -393,6 +396,7 @@ describe('Resilience: Error Handling and Recovery', () => {
         players: 500,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       };
       fetchMock.mockResponse(JSON.stringify(data), {
         headers: standardHeaders(),

@@ -23,14 +23,14 @@ describe('FactionClient', () => {
   it('should return valid structure for getLeaderboardsCharacters', async () => {
     const mockResponse = {
       kills: {
-        yesterday: [{ amount: 100, id: 1 }],
-        last_week: [{ amount: 500, id: 1 }],
-        active_total: [{ amount: 1000, id: 1 }],
+        yesterday: [{ amount: 100, character_id: 90000001 }],
+        last_week: [{ amount: 500, character_id: 90000001 }],
+        active_total: [{ amount: 1000, character_id: 90000001 }],
       },
       victory_points: {
-        yesterday: [{ amount: 10, id: 1 }],
-        last_week: [{ amount: 50, id: 1 }],
-        active_total: [{ amount: 100, id: 1 }],
+        yesterday: [{ amount: 10, character_id: 90000001 }],
+        last_week: [{ amount: 50, character_id: 90000001 }],
+        active_total: [{ amount: 100, character_id: 90000001 }],
       },
     };
 
@@ -56,14 +56,14 @@ describe('FactionClient', () => {
   it('should return valid structure for getLeaderboardsCorporations', async () => {
     const mockResponse = {
       kills: {
-        yesterday: [{ amount: 100, id: 1 }],
-        last_week: [{ amount: 500, id: 1 }],
-        active_total: [{ amount: 1000, id: 1 }],
+        yesterday: [{ amount: 100, corporation_id: 1000180 }],
+        last_week: [{ amount: 500, corporation_id: 1000180 }],
+        active_total: [{ amount: 1000, corporation_id: 1000180 }],
       },
       victory_points: {
-        yesterday: [{ amount: 10, id: 1 }],
-        last_week: [{ amount: 50, id: 1 }],
-        active_total: [{ amount: 100, id: 1 }],
+        yesterday: [{ amount: 10, corporation_id: 1000180 }],
+        last_week: [{ amount: 50, corporation_id: 1000180 }],
+        active_total: [{ amount: 100, corporation_id: 1000180 }],
       },
     };
 
@@ -89,14 +89,14 @@ describe('FactionClient', () => {
   it('should return valid structure for getLeaderboardsOverall', async () => {
     const mockResponse = {
       kills: {
-        yesterday: [{ amount: 100, id: 1 }],
-        last_week: [{ amount: 500, id: 1 }],
-        active_total: [{ amount: 1000, id: 1 }],
+        yesterday: [{ amount: 100, faction_id: 500001 }],
+        last_week: [{ amount: 500, faction_id: 500001 }],
+        active_total: [{ amount: 1000, faction_id: 500001 }],
       },
       victory_points: {
-        yesterday: [{ amount: 10, id: 1 }],
-        last_week: [{ amount: 50, id: 1 }],
-        active_total: [{ amount: 100, id: 1 }],
+        yesterday: [{ amount: 10, faction_id: 500001 }],
+        last_week: [{ amount: 50, faction_id: 500001 }],
+        active_total: [{ amount: 100, faction_id: 500001 }],
       },
     };
 

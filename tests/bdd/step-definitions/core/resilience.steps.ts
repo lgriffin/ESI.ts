@@ -37,6 +37,7 @@ const FIRST_PAYLOAD = {
   players: 20000,
   server_version: '2890156',
   start_time: '2026-09-16T11:00:00Z',
+  vip: false,
 };
 const RETRY_PAYLOAD = { ...FIRST_PAYLOAD, players: 24000 };
 const RESOLVED_NAMES = [

@@ -11,6 +11,7 @@ import {
   MarketOrder,
   WalletTransaction,
   Contract,
+  PublicContract,
   SovereigntySystem,
   SovereigntyHub,
   OrbitalSkyhook,
@@ -66,7 +67,6 @@ export class TestDataFactory {
     overrides: Partial<CharacterInfo> = {},
   ): CharacterInfo {
     return {
-      character_id: 1689391488,
       name: 'Test Character',
       corporation_id: 1344654522,
       alliance_id: 99005338,
@@ -151,6 +151,11 @@ export class TestDataFactory {
       date: '2023-01-01T00:00:00Z',
       issuer_id: 1689391489,
       reason: 'Outstanding service',
+      status: 'public',
+      graphics: [
+        { part: 1, layer: 0, graphic: 'caldari.1_1', color: -1 },
+        { part: 2, layer: 1, graphic: 'caldari.2_3' },
+      ],
       ...overrides,
     };
   }
@@ -255,6 +260,7 @@ export class TestDataFactory {
       type_id: 52678,
       race_id: 1,
       system_id: 30000142,
+      position: { x: 3813196800, y: 1016750000, z: -2305570000 },
       reprocessing_efficiency: 0.5,
       reprocessing_stations_take: 0.05,
       max_dockable_ship_volume: 50000000,
@@ -382,6 +388,7 @@ export class TestDataFactory {
       location_id: 60003760,
       location_flag: 'CorpSAG1',
       location_type: 'station',
+      is_singleton: false,
       ...overrides,
     };
   }
@@ -389,6 +396,7 @@ export class TestDataFactory {
   static createCorporationStructure(overrides: Record<string, any> = {}): any {
     return {
       structure_id: 1021975535893,
+      corporation_id: 1344654522,
       type_id: 35832,
       system_id: 30000142,
       profile_id: 101853,
@@ -423,10 +431,10 @@ export class TestDataFactory {
   }
 
   // Fleet test data
+
+  /** `GET /fleets/{fleet_id}`: the fleet ID is in the path, not the body. */
   static createFleetInfo(overrides: Record<string, any> = {}): any {
     return {
-      fleet_id: 1234567890,
-      fleet_boss_id: 1689391488,
       is_free_move: false,
       is_registered: true,
       is_voice_enabled: true,
@@ -435,22 +443,32 @@ export class TestDataFactory {
     };
   }
 
+  /**
+   * A fleet member as `GET /fleets/{fleet_id}/members` sends it. The default
+   * is the fleet commander, whom ESI places in no wing or squad (-1).
+   */
   static createFleetMember(overrides: Record<string, any> = {}): any {
     return {
       character_id: 1689391488,
+      join_time: '2024-01-15T18:00:00Z',
       role: 'fleet_commander',
+      role_name: 'Fleet Commander (Boss)',
       ship_type_id: 17918,
       solar_system_id: 30000142,
+      squad_id: -1,
       station_id: 60003760,
+      takes_fleet_warp: true,
+      wing_id: -1,
       ...overrides,
     };
   }
 
+  /** A wing as `GET /fleets/{fleet_id}/wings` sends it: keyed by `id`. */
   static createFleetWing(overrides: Record<string, any> = {}): any {
     return {
-      wing_id: 987654321,
+      id: 2073711261968,
       name: 'Wing 1',
-      squads: [{ squad_id: 123456789, name: 'Squad 1' }],
+      squads: [{ id: 3129411261968, name: 'Squad 1' }],
       ...overrides,
     };
   }
@@ -461,12 +479,16 @@ export class TestDataFactory {
       job_id: 1000001,
       installer_id: 1689391488,
       facility_id: 60003760,
+      station_id: 60003760,
       activity_id: 1,
       blueprint_id: 1000000001,
       blueprint_type_id: 17918,
+      blueprint_location_id: 60003760,
+      output_location_id: 60003760,
       product_type_id: 17918,
       runs: 1,
       status: 'active',
+      duration: 86400,
       start_date: '2024-01-15T12:00:00Z',
       end_date: '2024-01-16T12:00:00Z',
       ...overrides,
@@ -495,6 +517,7 @@ export class TestDataFactory {
       location_id: 60003760,
       location_flag: 'Hangar',
       location_type: 'station',
+      is_singleton: false,
       ...overrides,
     };
   }
@@ -614,6 +637,25 @@ export class TestDataFactory {
       reward: 500000,
       collateral: 10000000,
       volume: 1000,
+      ...overrides,
+    };
+  }
+
+  static createPublicContract(
+    overrides: Partial<PublicContract> = {},
+  ): PublicContract {
+    return {
+      contract_id: 123456790,
+      issuer_id: 1689391488,
+      issuer_corporation_id: 1344654522,
+      start_location_id: 60003760,
+      type: 'item_exchange',
+      title: 'Test Item Exchange Contract',
+      for_corporation: false,
+      date_issued: '2023-12-01T12:00:00Z',
+      date_expired: '2023-12-15T12:00:00Z',
+      price: 50000000,
+      volume: 10,
       ...overrides,
     };
   }

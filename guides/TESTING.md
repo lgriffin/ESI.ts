@@ -619,6 +619,7 @@ Available factory methods:
 | `createWalletTransaction()`          | `WalletTransaction`            |
 | `createWalletJournalEntry()`         | Journal entry                  |
 | `createContract()`                   | `Contract`                     |
+| `createPublicContract()`             | `PublicContract`               |
 | `createFleetInfo()`                  | Fleet object                   |
 | `createFleetMember()`                | Fleet member                   |
 | `createFleetWing()`                  | Fleet wing                     |
@@ -644,6 +645,8 @@ Available factory methods:
 | `createTestScenarios()`              | Full test scenario set         |
 | `createPerformanceTestData(size)`    | Bulk test data                 |
 | `createRealisticTestData()`          | Linked alliance/corp/character |
+
+Every payload builder's default output passes the Zod schema its endpoint is validated with. `tests/tdd/testing/TestDataFactory.schemas.test.ts` enforces this, so a new builder must be added to its map.
 
 ## TDD Test Pattern
 

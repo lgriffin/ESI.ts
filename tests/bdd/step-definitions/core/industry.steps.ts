@@ -13,21 +13,6 @@ import {
 
 const feature = loadFeature('tests/bdd/features/core/0017-industry.feature');
 
-/**
- * An industry job as ESI sends it. TestDataFactory.createIndustryJob omits
- * station_id, blueprint_location_id, output_location_id and duration, which
- * IndustryJobSchema requires, so the payload is completed here.
- */
-function industryJob(overrides: Record<string, unknown> = {}) {
-  return TestDataFactory.createIndustryJob({
-    station_id: 60003760,
-    blueprint_location_id: 60003760,
-    output_location_id: 60003760,
-    duration: 86400,
-    ...overrides,
-  });
-}
-
 /** Match a request whose path ends exactly at `path`. */
 const exactPath = (path: string): RegExp => new RegExp(`${path}(\\?|$)`);
 
@@ -52,7 +37,7 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: `/characters/${characterId}/industry/jobs`,
         body: [
-          industryJob({
+          TestDataFactory.createIndustryJob({
             job_id: 1000001,
             activity_id: 1,
             status: 'active',
@@ -61,7 +46,7 @@ defineFeature(feature, (test) => {
             start_date: '2026-04-20T12:00:00Z',
             end_date: '2026-04-25T12:00:00Z',
           }),
-          industryJob({
+          TestDataFactory.createIndustryJob({
             job_id: 1000002,
             activity_id: 8,
             status: 'delivered',
@@ -151,21 +136,21 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: `/corporations/${corporationId}/industry/jobs`,
         body: [
-          industryJob({
+          TestDataFactory.createIndustryJob({
             job_id: 2000001,
             installer_id: 1689391488,
             facility_id: 60003760,
             activity_id: 1,
             status: 'active',
           }),
-          industryJob({
+          TestDataFactory.createIndustryJob({
             job_id: 2000002,
             installer_id: 123456789,
             facility_id: 1021975535893,
             activity_id: 5,
             status: 'active',
           }),
-          industryJob({
+          TestDataFactory.createIndustryJob({
             job_id: 2000003,
             installer_id: 111111111,
             facility_id: 60008494,
@@ -526,7 +511,12 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: `/characters/${characterId}/industry/jobs`,
         delayMs: 10,
-        body: [industryJob({ job_id: 1000001, status: 'active' })],
+        body: [
+          TestDataFactory.createIndustryJob({
+            job_id: 1000001,
+            status: 'active',
+          }),
+        ],
       });
     });
 
