@@ -1,6 +1,5 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import * as yaml from 'js-yaml';
 import type { IStaticDataProvider } from './IStaticDataProvider';
 import type {
   EveType,
@@ -60,6 +59,7 @@ import type { SdeFileSpec } from './ingestion/constants';
 import { SdeExtractor } from './ingestion/SdeExtractor';
 import { transformRecordNative } from './ingestion/transforms';
 import { SdeError } from './errors';
+import { loadJsYaml } from './optionalPeers';
 
 export class SdeDataProvider implements IStaticDataProvider {
   private entities = new Map<
@@ -91,7 +91,7 @@ export class SdeDataProvider implements IStaticDataProvider {
     const metaPath = path.join(resolvedDir, '_sde.yaml');
     if (fs.existsSync(metaPath)) {
       const metaContent = fs.readFileSync(metaPath, 'utf-8');
-      const parsed = yaml.load(metaContent) as Record<string, unknown>;
+      const parsed = loadJsYaml().load(metaContent) as Record<string, unknown>;
       const sdeBlock = (parsed.sde ?? parsed) as Record<string, unknown>;
       const bn = sdeBlock.buildNumber;
       const rd = sdeBlock.releaseDate;
@@ -115,7 +115,7 @@ export class SdeDataProvider implements IStaticDataProvider {
       if (!fs.existsSync(filePath)) continue;
 
       const content = fs.readFileSync(filePath, 'utf-8');
-      const parsed = yaml.load(content) as Record<
+      const parsed = loadJsYaml().load(content) as Record<
         string | number,
         Record<string, unknown>
       > | null;
