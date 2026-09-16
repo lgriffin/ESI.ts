@@ -23,6 +23,31 @@ export interface SingleFetchResult {
 }
 
 /**
+ * An abort from the request timer. Matched by name because DOMException is not
+ * an `instanceof Error` in every runtime.
+ */
+function isAbortError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { name?: unknown }).name === 'AbortError'
+  );
+}
+
+/**
+ * A request that never produced an HTTP response (DNS, connection reset, TLS).
+ * Status 0 makes it an EsiError like every other request failure, and
+ * retryable for GET; the original error is kept as `cause`.
+ */
+function networkError(err: unknown, url: string): EsiError {
+  const reason = err instanceof Error ? err.message : String(err);
+  return Object.assign(
+    new EsiError(0, `Network request failed: ${reason}`, url),
+    { cause: err },
+  );
+}
+
+/**
  * Execute a single HTTP fetch with rate limiting, circuit breaker, and timeout.
  */
 export async function executeSingleFetch(
@@ -95,10 +120,10 @@ export async function executeSingleFetch(
         cb.recordFailure(cbKey, 0);
         cbRecorded = true;
       }
-      if (err instanceof Error && err.name === 'AbortError') {
+      if (isAbortError(err)) {
         throw new TimeoutError(timeoutMs, url);
       }
-      throw err;
+      throw networkError(err, url);
     }
     clearTimeout(timer);
 

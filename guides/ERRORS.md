@@ -154,7 +154,7 @@ import { isCircuitOpen } from '@lgriffin/esi.ts';
 | other `4xx`                       |      no      | no                                                         |
 | `CircuitOpenError`                |     n/a      | never; rethrown immediately so the breaker is not hammered |
 | `EsiValidationError`              |   **yes**    | no; validation runs after the retry loop has returned      |
-| network failure (DNS, reset, TLS) |     n/a      | no; arrives as a `[ESIJS_ERROR]` plain `Error`             |
+| network failure (DNS, reset, TLS) |     yes      | yes, for GET or when `retryMutations` is set               |
 
 The defaults set by `EsiClient` are three retries, 1 s base delay and a 30 s cap, with exponential backoff and 0.75–1.25× jitter. `retryAttempts: n` changes only the count; `retryConfig` replaces the whole object; `retryStrategy` replaces the implementation. A `RetryStrategy` constructed by hand with no config performs zero retries.
 
@@ -162,7 +162,7 @@ The defaults set by `EsiClient` are three retries, 1 s base delay and a 30 s cap
 
 > **Caution.** `EsiValidationError` has `statusCode` `0`, so `isRetryable(err)` and `err.retryable` return `true` for it, and `err.isTimeout()` returns `true` as well. Retrying a validation failure returns the same body. Test `isValidationError` before `isRetryable` in your own handling, and use the `isTimeout` guard rather than the method.
 
-> **Caution.** A network failure that is not a timeout is rethrown by the fetch stage and wrapped by the pipeline as a plain `Error` with the `[ESIJS_ERROR]` prefix. It is not an `EsiError`, so it is neither retried nor matched by any guard.
+A network failure that is not a timeout arrives as an `EsiError` with `statusCode` `0` and the message `Network request failed: <reason>`; the underlying error is on `err.cause`. Like a timeout, it is retryable, so `err.isTimeout()` also returns `true` for it; use the `isTimeout` guard, which matches only `TimeoutError`, to tell the two apart.
 
 ---
 
@@ -235,7 +235,7 @@ Some failures are raised as plain `Error` instances whose message starts with a 
 
 Two further plain errors carry no code: `No token provider configured`, from calling `ApiClient.refreshToken()` directly without a provider, and `At least one client type must be specified`, from building an empty `EsiClientBuilder`.
 
-Faults raised inside a request (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`, and raw network failures) pass through that final catch, which wraps every non-`EsiError` again. The message you receive is therefore `[ESIJS_ERROR] [NO_AUTH_TOKEN] Authorization header is required …`. Match the inner code anywhere in the message rather than at the start:
+Faults raised inside a request (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`) pass through that final catch, which wraps every non-`EsiError` again. The message you receive is therefore `[ESIJS_ERROR] [NO_AUTH_TOKEN] Authorization header is required …`. Match the inner code anywhere in the message rather than at the start:
 
 ```typescript
 function faultCode(err: unknown): string | undefined {
