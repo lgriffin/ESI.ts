@@ -334,7 +334,7 @@ await tokens.addCharacter(code, { codeVerifier: pkce.codeVerifier });
 
 #### Bulk refresh
 
-Applications holding many characters (corporation tools, alliance services) refresh in bulk. The call never rejects; each character gets its own result.
+Applications holding many characters (corporation tools, alliance services) refresh in bulk. Per-character failures never reject the call; each character gets its own result. The one exception is a storage adapter that cannot list tokens, which rejects with the storage error.
 
 ```typescript
 const results = await tokens.refreshAll({

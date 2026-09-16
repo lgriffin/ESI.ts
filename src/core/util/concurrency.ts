@@ -1,8 +1,25 @@
+export const DEFAULT_CONCURRENCY = 5;
+
 export interface ConcurrencyOptions {
-  /** Maximum number of workers running at once. Defaults to 5. */
+  /**
+   * Maximum number of workers running at once. Defaults to 5. A value that
+   * is not a finite number falls back to the default; fractions are floored
+   * and anything below one runs a single worker.
+   */
   concurrency?: number;
-  /** Called after each item settles with the running completed count. */
+  /**
+   * Called after each item settles with the running completed count. An
+   * exception thrown by the callback is discarded so it cannot stop the run
+   * or leave later items without a result.
+   */
   onProgress?: (completed: number, total: number) => void;
+}
+
+function resolveLimit(requested: number | undefined): number {
+  if (typeof requested !== 'number' || !Number.isFinite(requested)) {
+    return DEFAULT_CONCURRENCY;
+  }
+  return Math.max(1, Math.floor(requested));
 }
 
 export type SettledResult<T> =
@@ -18,7 +35,7 @@ export async function runWithConcurrency<T, R>(
   worker: (item: T, index: number) => Promise<R>,
   options: ConcurrencyOptions = {},
 ): Promise<SettledResult<R>[]> {
-  const limit = Math.max(1, Math.floor(options.concurrency ?? 5));
+  const limit = resolveLimit(options.concurrency);
   const results: SettledResult<R>[] = new Array<SettledResult<R>>(items.length);
   let nextIndex = 0;
   let completed = 0;
@@ -34,7 +51,13 @@ export async function runWithConcurrency<T, R>(
         results[index] = { status: 'rejected', reason };
       }
       completed++;
-      options.onProgress?.(completed, items.length);
+      if (options.onProgress) {
+        try {
+          options.onProgress(completed, items.length);
+        } catch {
+          // Progress reporting is advisory; see ConcurrencyOptions.onProgress.
+        }
+      }
     }
   }
 

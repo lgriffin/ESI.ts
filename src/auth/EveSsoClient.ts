@@ -43,6 +43,11 @@ export interface AuthorizationUrlOptions {
 export interface ExchangeCodeOptions {
   /** PKCE verifier that produced the challenge sent in the authorization URL. */
   codeVerifier?: string;
+  /**
+   * The redirect URI that was sent in the authorization request. Defaults to
+   * the configured `callbackUrl`; when neither is set the field is omitted.
+   */
+  redirectUri?: string;
 }
 
 export interface RefreshOptions {
@@ -60,6 +65,13 @@ interface SsoTokenJson {
 interface SsoErrorJson {
   error?: unknown;
   error_description?: unknown;
+}
+
+/** Which OAuth2 grant a token request carried; decides how `invalid_grant` is classified. */
+type GrantType = 'authorization_code' | 'refresh_token';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
@@ -139,10 +151,16 @@ export class EveSsoClient {
       grant_type: 'authorization_code',
       code,
     });
+    // OAuth2 (RFC 6749 §4.1.3) requires the token request to repeat the
+    // redirect_uri that was sent in the authorization request.
+    const redirectUri = options.redirectUri ?? this.callbackUrl;
+    if (redirectUri) {
+      form.set('redirect_uri', redirectUri);
+    }
     if (options.codeVerifier) {
       form.set('code_verifier', options.codeVerifier);
     }
-    return this.tokenRequest(form);
+    return this.tokenRequest(form, 'authorization_code');
   }
 
   /** Obtain a new access token (and rotated refresh token) from a refresh token. */
@@ -157,7 +175,7 @@ export class EveSsoClient {
     if (options.scopes && options.scopes.length > 0) {
       form.set('scope', options.scopes.join(' '));
     }
-    return this.tokenRequest(form);
+    return this.tokenRequest(form, 'refresh_token');
   }
 
   /** Revoke a refresh token so it can no longer be used. */
@@ -175,12 +193,35 @@ export class EveSsoClient {
     }
   }
 
-  private async tokenRequest(form: URLSearchParams): Promise<SsoTokenResponse> {
+  private async tokenRequest(
+    form: URLSearchParams,
+    grant: GrantType,
+  ): Promise<SsoTokenResponse> {
     const response = await this.post(this.tokenUrl, form);
     if (!response.ok) {
-      throw await this.errorFromResponse(response);
+      throw await this.errorFromResponse(response, grant);
     }
-    const json = (await response.json()) as SsoTokenJson;
+    // A proxy or outage page can answer 2xx with HTML, an empty body, or a
+    // JSON value that is not an object. All of those are SSO faults to the
+    // caller, so they surface as SsoError rather than a raw parser error.
+    let parsed: unknown;
+    try {
+      parsed = await response.json();
+    } catch {
+      throw new SsoError(
+        response.status,
+        'invalid_response',
+        'Token response body was not valid JSON',
+      );
+    }
+    if (!isRecord(parsed)) {
+      throw new SsoError(
+        response.status,
+        'invalid_response',
+        'Token response body was not a JSON object',
+      );
+    }
+    const json = parsed as SsoTokenJson;
     if (
       typeof json.access_token !== 'string' ||
       typeof json.refresh_token !== 'string'
@@ -218,19 +259,31 @@ export class EveSsoClient {
     return fetchFn(url, { method: 'POST', headers, body: form.toString() });
   }
 
-  private async errorFromResponse(response: Response): Promise<Error> {
+  /**
+   * Map a non-2xx SSO response to an error. `invalid_grant` means "the
+   * refresh token is dead" only for a refresh grant; on a code exchange (or
+   * a revoke) it describes the login code or request, so it stays an
+   * `SsoError` and does not trigger the re-authentication path.
+   */
+  private async errorFromResponse(
+    response: Response,
+    grant?: GrantType,
+  ): Promise<Error> {
     let errorCode = 'unknown';
     let description: string | undefined;
     try {
-      const json = (await response.json()) as SsoErrorJson;
-      if (typeof json.error === 'string') errorCode = json.error;
-      if (typeof json.error_description === 'string') {
-        description = json.error_description;
+      const json: unknown = await response.json();
+      if (isRecord(json)) {
+        const body = json as SsoErrorJson;
+        if (typeof body.error === 'string') errorCode = body.error;
+        if (typeof body.error_description === 'string') {
+          description = body.error_description;
+        }
       }
     } catch {
       // Non-JSON body; keep the defaults.
     }
-    if (errorCode === 'invalid_grant') {
+    if (errorCode === 'invalid_grant' && grant === 'refresh_token') {
       return new TokenRevokedError(
         `EVE SSO rejected the refresh token (invalid_grant)${
           description ? `: ${description}` : ''

@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { FileTokenStorage } from '../../../src/auth/storage/FileTokenStorage';
 import { makeStoredToken } from '../helpers/ssoFixtures';
+import type { StoredToken } from '../../../src/auth/types';
 
 describe('FileTokenStorage', () => {
   let dir: string;
@@ -130,5 +131,82 @@ describe('FileTokenStorage', () => {
     );
     const reread = new FileTokenStorage(file);
     expect(await reread.list()).toHaveLength(10);
+  });
+
+  it('ignores numeric-id entries that are missing or mistyping required fields', async () => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const noScopes: Partial<StoredToken> = makeStoredToken({ characterId: 2 });
+    delete noScopes.scopes;
+    const badScopes = { ...makeStoredToken({ characterId: 3 }), scopes: 'esi' };
+    const noRefresh: Partial<StoredToken> = makeStoredToken({ characterId: 4 });
+    delete noRefresh.refreshToken;
+    const badExpiry = {
+      ...makeStoredToken({ characterId: 5 }),
+      expiresAt: '1',
+    };
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        version: 1,
+        tokens: {
+          '1': makeStoredToken({ characterId: 1 }),
+          '2': noScopes,
+          '3': badScopes,
+          '4': noRefresh,
+          '5': badExpiry,
+        },
+      }),
+    );
+    const storage = new FileTokenStorage(file);
+    expect((await storage.list()).map((t) => t.characterId)).toEqual([1]);
+    expect(await storage.get(2)).toBeNull();
+    expect(await storage.get(3)).toBeNull();
+  });
+
+  it('keeps optional fields when present and valid', async () => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const revoked = makeStoredToken({ characterId: 9, revokedAt: 123 });
+    fs.writeFileSync(
+      file,
+      JSON.stringify({ version: 1, tokens: { '9': revoked } }),
+    );
+    const stored = await new FileTokenStorage(file).get(9);
+    expect(stored?.revokedAt).toBe(123);
+    expect(stored?.ownerHash).toBe('owner-hash');
+  });
+
+  it('does not let a read that began before invalidate repopulate the cache', async () => {
+    const storage = new FileTokenStorage(file);
+    await storage.set(1, makeStoredToken({ characterId: 1 }));
+    storage.invalidate();
+
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+      release = r;
+    });
+    const original = fs.promises.readFile.bind(fs.promises);
+    const spy = jest
+      .spyOn(fs.promises, 'readFile')
+      .mockImplementationOnce((async (
+        ...args: Parameters<typeof fs.promises.readFile>
+      ) => {
+        const data = await original(...args);
+        await gate;
+        return data;
+      }) as never);
+    try {
+      const stale = storage.list();
+      await new Promise((r) => setTimeout(r, 5));
+      storage.invalidate();
+      await new FileTokenStorage(file).set(
+        2,
+        makeStoredToken({ characterId: 2 }),
+      );
+      release();
+      expect(await stale).toHaveLength(1);
+      expect(await storage.list()).toHaveLength(2);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

@@ -41,7 +41,26 @@ Feature: Token Management
       Then the request shall carry no Authorization header
       And the request body shall include the client_id and the code_verifier
 
-  Rule: If the SSO token endpoint responds with the error code invalid_grant, then the SSO client shall throw TokenRevokedError.
+  Rule: When an authorization code is exchanged, the SSO client shall send the redirect URI that obtained the code as the redirect_uri form field.
+    OAuth2 requires the token request to repeat the redirect_uri from the
+    authorization request when one was sent, and every login URL this client
+    builds sends one. The configured callbackUrl is the default and a
+    per-request override wins, matching getAuthorizationUrl. When neither is
+    set the field is omitted, because EVE SSO does not demand it.
+
+    Scenario: Code exchange sends the configured callback as redirect_uri
+      Given an SSO client configured with a client id, client secret and a callback URL
+      And the SSO token endpoint returns a token response
+      When the client exchanges the authorization code "abc123"
+      Then the request body shall carry the redirect_uri "https://app.example/callback"
+
+    Scenario: Per-request redirect URI overrides the configured callback
+      Given an SSO client configured with a client id, client secret and a callback URL
+      And the SSO token endpoint returns a token response
+      When the client exchanges the authorization code "abc123" with the redirect URI "https://app.example/other"
+      Then the request body shall carry the redirect_uri "https://app.example/other"
+
+  Rule: If the SSO token endpoint responds to a refresh with the error code invalid_grant, then the SSO client shall throw TokenRevokedError.
     invalid_grant is how SSO reports a refresh token that has been revoked by
     the player, expired through disuse, or superseded by a rotation the
     application failed to persist. Retrying cannot help; the character has to
@@ -53,6 +72,37 @@ Feature: Token Management
       And the SSO token endpoint responds 400 with error code "invalid_grant"
       When the client refreshes the refresh token "stale-refresh"
       Then the client shall throw TokenRevokedError
+
+  Rule: If the SSO token endpoint responds to an authorization-code exchange with the error code invalid_grant, then the SSO client shall throw SsoError carrying that error code rather than TokenRevokedError.
+    On a code exchange, invalid_grant means the login code expired, was
+    already used, or was issued for a different redirect URI. No stored
+    refresh token was involved, so reporting it as a revocation would send
+    the caller down the re-authentication path for the wrong reason.
+
+    Scenario: Expired login code is reported as SsoError with code invalid_grant
+      Given an SSO client configured with a client id and client secret
+      And the SSO token endpoint responds 400 with error code "invalid_grant"
+      When the client exchanges the authorization code "expired" and the error is captured
+      Then the client shall throw SsoError with status 400 and error code "invalid_grant"
+
+  Rule: If the SSO token endpoint responds 2xx with a body that is not a JSON object holding access_token and refresh_token, then the SSO client shall throw SsoError with error code invalid_response.
+    A proxy or an outage page can answer the token endpoint with HTML, an
+    empty body, or a JSON value that is not an object. Those failures belong
+    to the same error family as any other SSO fault so that a caller
+    catching SsoError sees them, instead of a raw SyntaxError or TypeError
+    escaping from the JSON parser.
+
+    Scenario: HTML success body is reported as SsoError with code invalid_response
+      Given an SSO client configured with a client id and client secret
+      And the SSO token endpoint responds 200 with the body "<html>ok</html>"
+      When the client refreshes the refresh token "any-refresh"
+      Then the client shall throw SsoError with status 200 and error code "invalid_response"
+
+    Scenario: JSON null success body is reported as SsoError with code invalid_response
+      Given an SSO client configured with a client id and client secret
+      And the SSO token endpoint responds 200 with the body "null"
+      When the client refreshes the refresh token "any-refresh"
+      Then the client shall throw SsoError with status 200 and error code "invalid_response"
 
   Rule: If the SSO token endpoint responds with a non-2xx status other than invalid_grant, then the SSO client shall throw SsoError carrying that status code and the SSO error code.
     Everything else the token endpoint can say — invalid_client, a 429 from
@@ -161,6 +211,34 @@ Feature: Token Management
       Then both requests shall have thrown TokenRevokedError
       And the SSO token endpoint shall have been called 1 time
 
+  Rule: If a character is removed while its refresh is in flight, then the token manager shall discard the refresh result and reject the refresh with CharacterNotFoundError.
+    A refresh holds the SSO round trip open for hundreds of milliseconds.
+    Deleting the character in that window is a deliberate act, and the
+    late-arriving token must not resurrect the record; it would hold a
+    rotated refresh token the operator believes is gone.
+
+    Scenario: Refresh completing after removal leaves storage empty
+      Given a token manager backed by in-memory storage with a refresh skew of 60 seconds
+      And character 2114794365 is stored with an access token expiring in 30 seconds
+      And the SSO token endpoint returns a token for character 2114794365 after the removal completes
+      When a refresh is started for character 2114794365 and the character is removed before SSO responds
+      Then the refresh shall reject with CharacterNotFoundError
+      And the storage shall hold no token for character 2114794365
+
+  Rule: If a character is added again while its refresh is in flight, then the token manager shall keep the newly stored token rather than overwriting it with the refresh result.
+    A player re-authorizing during a refresh produces two rotations: the
+    refresh's and the new login's. The login is the newer consent and the
+    only one whose refresh token SSO still honours, so the stale refresh
+    yields to it and hands its caller the current record.
+
+    Scenario: Refresh completing after re-authorization keeps the new refresh token
+      Given a token manager backed by in-memory storage with a refresh skew of 60 seconds
+      And character 2114794365 is stored with an access token expiring in 30 seconds
+      And the SSO token endpoint returns refresh token "rotated-old" to the refresh and "new-login" to the code exchange
+      When a refresh is started for character 2114794365 and the character is added again before SSO responds
+      Then the stored refresh token for character 2114794365 shall be "new-login"
+      And the refresh shall resolve with the refresh token "new-login"
+
   # ── Token manager: client integration ───────────────────────────────
 
   Rule: When a client is created for a character, the token manager shall configure that client with the character's current access token and a refresh provider bound to that character.
@@ -234,6 +312,43 @@ Feature: Token Management
       And the result for character 95465499 shall have status "skipped"
       And the SSO token endpoint shall have been called 1 time
 
+  Rule: If a progress callback throws during a bulk refresh, then the token manager shall continue refreshing the remaining tokens and resolve with a result for every character.
+    Progress reporting is a courtesy to the caller, not part of the refresh.
+    A bug in a progress bar must not strand characters without a result or
+    turn a bulk operation that isolates failures into a rejection.
+
+    Scenario: Throwing progress callback does not stop the run
+      Given a token manager backed by in-memory storage
+      And 3 characters are stored with access tokens expiring in 30 seconds
+      And the SSO token endpoint returns a token for each refresh after a short delay
+      When refreshAll runs with a progress callback that throws
+      Then the run shall resolve with 3 results of status "refreshed"
+
+  Rule: If a bulk refresh is given a concurrency that is not a finite number, then the token manager shall run with the default concurrency of five and report every character.
+    concurrency is a public option that can arrive from configuration files
+    and environment variables, where NaN and Infinity are one typo away.
+    Zero workers would return sparse results and an infinite worker array
+    would throw. Falling back to the default keeps the run's contract intact.
+
+    Scenario: NaN concurrency refreshes every character
+      Given a token manager backed by in-memory storage
+      And 3 characters are stored with access tokens expiring in 30 seconds
+      And the SSO token endpoint returns a token for each refresh after a short delay
+      When refreshAll runs with a concurrency of NaN
+      Then the run shall resolve with 3 results of status "refreshed"
+
+  Rule: If the storage adapter fails to list tokens, then a bulk refresh shall reject with that storage error.
+    Per-character failures are isolated because every character still gets
+    a result. A storage that cannot be enumerated yields no characters to
+    report on, and swallowing a disk or database fault would make a
+    scheduler believe an empty run succeeded. This is the one rejection the
+    bulk refresh makes, and its documentation says so.
+
+    Scenario: Failing storage list rejects the bulk refresh with the storage error
+      Given a token manager whose storage fails to list tokens with "disk unavailable"
+      When refreshAll runs and the error is captured
+      Then the bulk refresh shall have rejected with the message "disk unavailable"
+
   # ── File storage ────────────────────────────────────────────────────
 
   Rule: The file token storage shall return from a new instance on the same path every token written by a previous instance.
@@ -247,3 +362,28 @@ Feature: Token Management
       When a second file token storage is opened on the same path
       Then the second storage shall return the token for character 2114794365
       And the second storage shall list exactly 1 token
+
+  Rule: If the token file holds an entry that lacks a required field, then the file token storage shall ignore that entry and return the remaining tokens.
+    Only entries with the full StoredToken shape can be handed to the
+    manager; a record with a numeric id but no scopes array would crash the
+    first get() or list() that copies it. Skipping the malformed entry keeps
+    the healthy tokens usable and leaves the file untouched until the next
+    write.
+
+    Scenario: Entry without scopes is skipped while the valid token is returned
+      Given a token file holding a valid token for character 2114794365 and an entry for character 95465499 without scopes
+      When a file token storage is opened on that file
+      Then the storage shall list exactly 1 token
+      And the storage shall return the token for character 2114794365
+
+  Rule: If the file token storage is invalidated while a read is in progress, then the storage shall serve the next request from a fresh read of the file.
+    invalidate() exists so an operator can pick up an external edit. A read
+    that started before the call must not reinstate its stale map after the
+    call, or the next caller sees the very data invalidate() was asked to
+    drop.
+
+    Scenario: Read started before invalidate does not repopulate the cache
+      Given a file token storage on a temporary path holding a token for character 2114794365
+      And the file read is delayed
+      When a list is started, the storage is invalidated and the file gains a token for character 95465499 before the read finishes
+      Then the next list shall return 2 tokens

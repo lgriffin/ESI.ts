@@ -9,6 +9,7 @@ import {
   TokenRevokedError,
 } from '../../../src/auth/errors';
 import type { ILogger } from '../../../src/core/logger/ILogger';
+import type { ITokenStorage } from '../../../src/auth/types';
 import {
   makeJwt,
   makeStoredToken,
@@ -24,10 +25,12 @@ const silentLogger = (): ILogger & {
   error: jest.Mock;
   debug: jest.Mock;
 } => ({
+  fatal: jest.fn(),
   info: jest.fn(),
   warn: jest.fn(),
   error: jest.fn(),
   debug: jest.fn(),
+  trace: jest.fn(),
 });
 
 describe('EsiTokenManager', () => {
@@ -547,6 +550,164 @@ describe('EsiTokenManager', () => {
       } finally {
         client.shutdown();
       }
+    });
+  });
+
+  describe('refresh races', () => {
+    const gated = () => {
+      let release!: () => void;
+      const gate = new Promise<void>((r) => {
+        release = r;
+      });
+      return { gate, release };
+    };
+
+    it('discards a refresh that completes after the character was removed', async () => {
+      await storage.set(7, makeStoredToken({ characterId: 7 }));
+      const { gate, release } = gated();
+      fetchMock.mockResponse(async () => {
+        await gate;
+        return { body: ssoTokenBody({ characterId: 7 }), status: 200 };
+      });
+      const m = manager();
+      const pending = m.refresh(7).catch((e: unknown) => e);
+      await new Promise((r) => setTimeout(r, 5));
+      await m.removeCharacter(7);
+      release();
+      expect(await pending).toBeInstanceOf(CharacterNotFoundError);
+      expect(await storage.get(7)).toBeNull();
+    });
+
+    it('yields to a token stored by addCharacter while the refresh was in flight', async () => {
+      await storage.set(
+        7,
+        makeStoredToken({ characterId: 7, refreshToken: 'old' }),
+      );
+      const { gate, release } = gated();
+      fetchMock.mockResponse(async (req) => {
+        const body = readFormBody({ body: await req.text() });
+        if (body.get('grant_type') === 'refresh_token') {
+          await gate;
+          return {
+            body: ssoTokenBody({ characterId: 7, refreshToken: 'rotated-old' }),
+            status: 200,
+          };
+        }
+        return {
+          body: ssoTokenBody({ characterId: 7, refreshToken: 'new-login' }),
+          status: 200,
+        };
+      });
+      const m = manager();
+      const pending = m.refresh(7);
+      await new Promise((r) => setTimeout(r, 5));
+      await m.addCharacter('code');
+      release();
+      const result = await pending;
+      expect(result.refreshToken).toBe('new-login');
+      expect((await storage.get(7))!.refreshToken).toBe('new-login');
+      expect(logger.debug).toHaveBeenCalledWith(
+        expect.stringContaining('Discarding stale refresh'),
+      );
+    });
+
+    it('does not record a revocation reported for a superseded refresh token', async () => {
+      await storage.set(
+        7,
+        makeStoredToken({ characterId: 7, refreshToken: 'old' }),
+      );
+      const { gate, release } = gated();
+      fetchMock.mockResponse(async (req) => {
+        const body = readFormBody({ body: await req.text() });
+        if (body.get('grant_type') === 'refresh_token') {
+          await gate;
+          return { body: ssoErrorBody('invalid_grant'), status: 400 };
+        }
+        return {
+          body: ssoTokenBody({ characterId: 7, refreshToken: 'new-login' }),
+          status: 200,
+        };
+      });
+      const onRevoked = jest.fn();
+      const m = manager({ onRevoked });
+      const pending = m.refresh(7);
+      await new Promise((r) => setTimeout(r, 5));
+      await m.addCharacter('code');
+      release();
+      expect((await pending).refreshToken).toBe('new-login');
+      expect((await storage.get(7))!.revokedAt).toBeUndefined();
+      expect(onRevoked).not.toHaveBeenCalled();
+    });
+
+    it('leaves a newer in-flight refresh registered when a stale one settles', async () => {
+      await storage.set(7, makeStoredToken({ characterId: 7 }));
+      const { gate, release } = gated();
+      fetchMock.mockResponse(async (req) => {
+        const body = readFormBody({ body: await req.text() });
+        if (body.get('grant_type') === 'refresh_token') await gate;
+        return { body: ssoTokenBody({ characterId: 7 }), status: 200 };
+      });
+      const m = manager();
+      const first = m.refresh(7).catch((e: unknown) => e);
+      await new Promise((r) => setTimeout(r, 5));
+      await m.addCharacter('code'); // clears the in-flight slot
+      const second = m.refresh(7);
+      expect(m.refresh(7)).toBe(second); // coalesces onto the newer refresh
+      release();
+      await first;
+      expect(m.refresh(7)).toBe(second); // the stale finally did not evict it
+      await second;
+    });
+  });
+
+  describe('refreshAll robustness', () => {
+    it('resolves with every result when the progress callback throws', async () => {
+      await storage.set(1, makeStoredToken({ characterId: 1 }));
+      await storage.set(2, makeStoredToken({ characterId: 2 }));
+      fetchMock.mockResponse(async (req) => {
+        const body = readFormBody({ body: await req.text() });
+        const id = Number(
+          (body.get('refresh_token') ?? '').replace('refresh-', ''),
+        );
+        return { body: ssoTokenBody({ characterId: id }), status: 200 };
+      });
+      const results = await manager().refreshAll({
+        concurrency: 1,
+        onProgress: () => {
+          throw new Error('boom');
+        },
+      });
+      expect(results.map((r) => r.status)).toEqual(['refreshed', 'refreshed']);
+    });
+
+    it.each([Number.NaN, Number.POSITIVE_INFINITY, 0.5, -3])(
+      'reports every character when concurrency is %p',
+      async (concurrency) => {
+        await storage.set(1, makeStoredToken({ characterId: 1 }));
+        await storage.set(2, makeStoredToken({ characterId: 2 }));
+        fetchMock.mockResponse(async (req) => {
+          const body = readFormBody({ body: await req.text() });
+          const id = Number(
+            (body.get('refresh_token') ?? '').replace('refresh-', ''),
+          );
+          return { body: ssoTokenBody({ characterId: id }), status: 200 };
+        });
+        const results = await manager().refreshAll({ concurrency });
+        expect(results).toHaveLength(2);
+        expect(results.every((r) => r.status === 'refreshed')).toBe(true);
+      },
+    );
+
+    it('rejects with the storage error when tokens cannot be listed', async () => {
+      const failing: ITokenStorage = {
+        get: () => Promise.resolve(null),
+        set: () => Promise.resolve(),
+        delete: () => Promise.resolve(),
+        list: () => Promise.reject(new Error('disk unavailable')),
+      };
+      await expect(manager({ storage: failing }).refreshAll()).rejects.toThrow(
+        'disk unavailable',
+      );
     });
   });
 });

@@ -7,10 +7,14 @@ import { EveSsoClient } from '../../../../src/auth/EveSsoClient';
 import { EsiTokenManager } from '../../../../src/auth/EsiTokenManager';
 import { MemoryTokenStorage } from '../../../../src/auth/storage/MemoryTokenStorage';
 import { FileTokenStorage } from '../../../../src/auth/storage/FileTokenStorage';
-import { SsoError, TokenRevokedError } from '../../../../src/auth/errors';
+import {
+  CharacterNotFoundError,
+  SsoError,
+  TokenRevokedError,
+} from '../../../../src/auth/errors';
 import type { SsoTokenResponse } from '../../../../src/auth/EveSsoClient';
 import type { RefreshResult } from '../../../../src/auth/EsiTokenManager';
-import type { StoredToken } from '../../../../src/auth/types';
+import type { ITokenStorage, StoredToken } from '../../../../src/auth/types';
 import type { EsiClient } from '../../../../src/EsiClient';
 import {
   SSO_TOKEN_URL,
@@ -34,6 +38,7 @@ const feature = loadFeature(
 
 const CLIENT_ID = 'test-client-id';
 const CLIENT_SECRET = 'test-client-secret';
+const CALLBACK_URL = 'https://app.example/callback';
 
 defineFeature(feature, (test) => {
   // ── SSO client ──────────────────────────────────────────────────────
@@ -1100,5 +1105,612 @@ defineFeature(feature, (test) => {
         expect(await second.list()).toHaveLength(Number(count));
       },
     );
+  });
+
+  // ── Review follow-ups: SSO client ───────────────────────────────────
+
+  test('Code exchange sends the configured callback as redirect_uri', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let sso: EveSsoClient;
+
+    given(
+      'an SSO client configured with a client id, client secret and a callback URL',
+      () => {
+        sso = new EveSsoClient({
+          clientId: CLIENT_ID,
+          clientSecret: CLIENT_SECRET,
+          callbackUrl: CALLBACK_URL,
+        });
+      },
+    );
+
+    and('the SSO token endpoint returns a token response', () => {
+      queueSsoTokenResponse();
+    });
+
+    when(
+      /^the client exchanges the authorization code "([^"]+)"$/,
+      async (code: string) => {
+        await sso.exchangeCode(code);
+      },
+    );
+
+    then(
+      /^the request body shall carry the redirect_uri "([^"]+)"$/,
+      (uri: string) => {
+        const [, init] = fetchMock.mock.calls[0]!;
+        expect(readFormBody(init).get('redirect_uri')).toBe(uri);
+      },
+    );
+  });
+
+  test('Per-request redirect URI overrides the configured callback', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let sso: EveSsoClient;
+
+    given(
+      'an SSO client configured with a client id, client secret and a callback URL',
+      () => {
+        sso = new EveSsoClient({
+          clientId: CLIENT_ID,
+          clientSecret: CLIENT_SECRET,
+          callbackUrl: CALLBACK_URL,
+        });
+      },
+    );
+
+    and('the SSO token endpoint returns a token response', () => {
+      queueSsoTokenResponse();
+    });
+
+    when(
+      /^the client exchanges the authorization code "([^"]+)" with the redirect URI "([^"]+)"$/,
+      async (code: string, uri: string) => {
+        await sso.exchangeCode(code, { redirectUri: uri });
+      },
+    );
+
+    then(
+      /^the request body shall carry the redirect_uri "([^"]+)"$/,
+      (uri: string) => {
+        const [, init] = fetchMock.mock.calls[0]!;
+        expect(readFormBody(init).get('redirect_uri')).toBe(uri);
+      },
+    );
+  });
+
+  test('Expired login code is reported as SsoError with code invalid_grant', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let sso: EveSsoClient;
+    let caught: unknown;
+
+    given('an SSO client configured with a client id and client secret', () => {
+      sso = new EveSsoClient({
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+      });
+    });
+
+    and(
+      /^the SSO token endpoint responds (\d+) with error code "([^"]+)"$/,
+      (status: string, code: string) => {
+        queueSsoErrorResponse(Number(status), code);
+      },
+    );
+
+    when(
+      /^the client exchanges the authorization code "([^"]+)" and the error is captured$/,
+      async (code: string) => {
+        try {
+          await sso.exchangeCode(code);
+        } catch (e) {
+          caught = e;
+        }
+      },
+    );
+
+    then(
+      /^the client shall throw SsoError with status (\d+) and error code "([^"]+)"$/,
+      (status: string, code: string) => {
+        expect(caught).toBeInstanceOf(SsoError);
+        expect(caught).not.toBeInstanceOf(TokenRevokedError);
+        expect((caught as SsoError).statusCode).toBe(Number(status));
+        expect((caught as SsoError).errorCode).toBe(code);
+      },
+    );
+  });
+
+  for (const scenario of [
+    'HTML success body is reported as SsoError with code invalid_response',
+    'JSON null success body is reported as SsoError with code invalid_response',
+  ]) {
+    test(scenario, ({ given, when, then, and }) => {
+      let sso: EveSsoClient;
+      let caught: unknown;
+
+      given(
+        'an SSO client configured with a client id and client secret',
+        () => {
+          sso = new EveSsoClient({
+            clientId: CLIENT_ID,
+            clientSecret: CLIENT_SECRET,
+          });
+        },
+      );
+
+      and(
+        /^the SSO token endpoint responds (\d+) with the body "([^"]*)"$/,
+        (status: string, body: string) => {
+          fetchMock.mockResponseOnce(body, {
+            status: Number(status),
+            headers: { 'Content-Type': 'application/json' },
+          });
+        },
+      );
+
+      when(
+        /^the client refreshes the refresh token "([^"]+)"$/,
+        async (token: string) => {
+          try {
+            await sso.refresh(token);
+          } catch (e) {
+            caught = e;
+          }
+        },
+      );
+
+      then(
+        /^the client shall throw SsoError with status (\d+) and error code "([^"]+)"$/,
+        (status: string, code: string) => {
+          expect(caught).toBeInstanceOf(SsoError);
+          expect((caught as SsoError).statusCode).toBe(Number(status));
+          expect((caught as SsoError).errorCode).toBe(code);
+        },
+      );
+    });
+  }
+
+  // ── Review follow-ups: refresh races ────────────────────────────────
+
+  function deferred(): { promise: Promise<void>; resolve: () => void } {
+    let resolve!: () => void;
+    const promise = new Promise<void>((r) => {
+      resolve = r;
+    });
+    return { promise, resolve };
+  }
+
+  const jsonResponse = (body: string) => ({
+    body,
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  test('Refresh completing after removal leaves storage empty', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let storage: MemoryTokenStorage;
+    let manager: EsiTokenManager;
+    let gate: ReturnType<typeof deferred>;
+    let outcome: { ok: true } | { ok: false; error: unknown };
+
+    given(
+      /^a token manager backed by in-memory storage with a refresh skew of (\d+) seconds$/,
+      (skew: string) => {
+        storage = new MemoryTokenStorage();
+        manager = managerWithSkew(storage, Number(skew));
+      },
+    );
+
+    and(
+      /^character (\d+) is stored with an access token expiring in (\d+) seconds$/,
+      async (id: string, secs: string) => {
+        await storage.set(
+          Number(id),
+          makeStoredToken({
+            characterId: Number(id),
+            expiresInSeconds: Number(secs),
+          }),
+        );
+      },
+    );
+
+    and(
+      /^the SSO token endpoint returns a token for character (\d+) after the removal completes$/,
+      (id: string) => {
+        gate = deferred();
+        fetchMock.mockResponse(async () => {
+          await gate.promise;
+          return jsonResponse(ssoTokenBody({ characterId: Number(id) }));
+        });
+      },
+    );
+
+    when(
+      /^a refresh is started for character (\d+) and the character is removed before SSO responds$/,
+      async (id: string) => {
+        const pending = manager.refresh(Number(id)).then(
+          () => ({ ok: true }) as const,
+          (error: unknown) => ({ ok: false, error }) as const,
+        );
+        await sleep(5); // let the refresh reach the gated SSO call
+        await manager.removeCharacter(Number(id));
+        gate.resolve();
+        outcome = await pending;
+      },
+    );
+
+    then('the refresh shall reject with CharacterNotFoundError', () => {
+      expect(outcome.ok).toBe(false);
+      if (!outcome.ok) {
+        expect(outcome.error).toBeInstanceOf(CharacterNotFoundError);
+      }
+    });
+
+    and(
+      /^the storage shall hold no token for character (\d+)$/,
+      async (id: string) => {
+        expect(await storage.get(Number(id))).toBeNull();
+      },
+    );
+  });
+
+  test('Refresh completing after re-authorization keeps the new refresh token', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let storage: MemoryTokenStorage;
+    let manager: EsiTokenManager;
+    let gate: ReturnType<typeof deferred>;
+    let refreshed: StoredToken;
+
+    given(
+      /^a token manager backed by in-memory storage with a refresh skew of (\d+) seconds$/,
+      (skew: string) => {
+        storage = new MemoryTokenStorage();
+        manager = managerWithSkew(storage, Number(skew));
+      },
+    );
+
+    and(
+      /^character (\d+) is stored with an access token expiring in (\d+) seconds$/,
+      async (id: string, secs: string) => {
+        await storage.set(
+          Number(id),
+          makeStoredToken({
+            characterId: Number(id),
+            expiresInSeconds: Number(secs),
+          }),
+        );
+      },
+    );
+
+    and(
+      /^the SSO token endpoint returns refresh token "([^"]+)" to the refresh and "([^"]+)" to the code exchange$/,
+      (rotated: string, fresh: string) => {
+        gate = deferred();
+        fetchMock.mockResponse(async (req) => {
+          const body = readFormBody({ body: await req.text() });
+          if (body.get('grant_type') === 'refresh_token') {
+            await gate.promise;
+            return jsonResponse(
+              ssoTokenBody({
+                characterId: DEFAULT_CHARACTER_ID,
+                refreshToken: rotated,
+              }),
+            );
+          }
+          return jsonResponse(
+            ssoTokenBody({
+              characterId: DEFAULT_CHARACTER_ID,
+              refreshToken: fresh,
+            }),
+          );
+        });
+      },
+    );
+
+    when(
+      /^a refresh is started for character (\d+) and the character is added again before SSO responds$/,
+      async (id: string) => {
+        const pending = manager.refresh(Number(id));
+        await sleep(5); // let the refresh reach the gated SSO call
+        await manager.addCharacter('second-login');
+        gate.resolve();
+        refreshed = await pending;
+      },
+    );
+
+    then(
+      /^the stored refresh token for character (\d+) shall be "([^"]+)"$/,
+      async (id: string, refreshToken: string) => {
+        const stored = await storage.get(Number(id));
+        expect(stored!.refreshToken).toBe(refreshToken);
+      },
+    );
+
+    and(
+      /^the refresh shall resolve with the refresh token "([^"]+)"$/,
+      (refreshToken: string) => {
+        expect(refreshed.refreshToken).toBe(refreshToken);
+      },
+    );
+  });
+
+  // ── Review follow-ups: bulk refresh ─────────────────────────────────
+
+  test('Throwing progress callback does not stop the run', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let storage: MemoryTokenStorage;
+    let manager: EsiTokenManager;
+    let results: RefreshResult[];
+    const track = { inFlight: 0, peak: 0 };
+
+    given('a token manager backed by in-memory storage', () => {
+      storage = new MemoryTokenStorage();
+      manager = bulkManager(storage);
+    });
+
+    and(
+      /^(\d+) characters are stored with access tokens expiring in (\d+) seconds$/,
+      async (count: string, secs: string) => {
+        await storeMany(storage, Number(count), Number(secs));
+      },
+    );
+
+    and(
+      'the SSO token endpoint returns a token for each refresh after a short delay',
+      () => {
+        mockDelayedSsoResponses(track);
+      },
+    );
+
+    when('refreshAll runs with a progress callback that throws', async () => {
+      results = await manager.refreshAll({
+        concurrency: 2,
+        onProgress: () => {
+          throw new Error('progress bar exploded');
+        },
+      });
+    });
+
+    then(
+      /^the run shall resolve with (\d+) results of status "([^"]+)"$/,
+      (count: string, status: string) => {
+        expect(results).toHaveLength(Number(count));
+        for (const r of results) expect(r.status).toBe(status);
+      },
+    );
+  });
+
+  test('NaN concurrency refreshes every character', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let storage: MemoryTokenStorage;
+    let manager: EsiTokenManager;
+    let results: RefreshResult[];
+    const track = { inFlight: 0, peak: 0 };
+
+    given('a token manager backed by in-memory storage', () => {
+      storage = new MemoryTokenStorage();
+      manager = bulkManager(storage);
+    });
+
+    and(
+      /^(\d+) characters are stored with access tokens expiring in (\d+) seconds$/,
+      async (count: string, secs: string) => {
+        await storeMany(storage, Number(count), Number(secs));
+      },
+    );
+
+    and(
+      'the SSO token endpoint returns a token for each refresh after a short delay',
+      () => {
+        mockDelayedSsoResponses(track);
+      },
+    );
+
+    when('refreshAll runs with a concurrency of NaN', async () => {
+      results = await manager.refreshAll({ concurrency: Number.NaN });
+    });
+
+    then(
+      /^the run shall resolve with (\d+) results of status "([^"]+)"$/,
+      (count: string, status: string) => {
+        expect(results).toHaveLength(Number(count));
+        for (const r of results) expect(r.status).toBe(status);
+      },
+    );
+  });
+
+  test('Failing storage list rejects the bulk refresh with the storage error', ({
+    given,
+    when,
+    then,
+  }) => {
+    let manager: EsiTokenManager;
+    let caught: unknown;
+
+    given(
+      /^a token manager whose storage fails to list tokens with "([^"]+)"$/,
+      (message: string) => {
+        const failing: ITokenStorage = {
+          get: () => Promise.resolve(null),
+          set: () => Promise.resolve(),
+          delete: () => Promise.resolve(),
+          list: () => Promise.reject(new Error(message)),
+        };
+        manager = new EsiTokenManager({
+          clientId: CLIENT_ID,
+          clientSecret: CLIENT_SECRET,
+          storage: failing,
+        });
+      },
+    );
+
+    when('refreshAll runs and the error is captured', async () => {
+      try {
+        await manager.refreshAll();
+      } catch (e) {
+        caught = e;
+      }
+    });
+
+    then(
+      /^the bulk refresh shall have rejected with the message "([^"]+)"$/,
+      (message: string) => {
+        expect(caught).toBeInstanceOf(Error);
+        expect((caught as Error).message).toBe(message);
+      },
+    );
+  });
+
+  // ── Review follow-ups: file storage ─────────────────────────────────
+
+  test('Entry without scopes is skipped while the valid token is returned', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let dir: string;
+    let filePath: string;
+    let storage: FileTokenStorage;
+
+    afterAll(() => {
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    given(
+      /^a token file holding a valid token for character (\d+) and an entry for character (\d+) without scopes$/,
+      (validId: string, brokenId: string) => {
+        dir = fs.mkdtempSync(path.join(os.tmpdir(), 'esi-tokens-'));
+        filePath = path.join(dir, 'tokens.json');
+        const broken: Partial<StoredToken> = makeStoredToken({
+          characterId: Number(brokenId),
+        });
+        delete broken.scopes;
+        fs.writeFileSync(
+          filePath,
+          JSON.stringify({
+            version: 1,
+            tokens: {
+              [validId]: makeStoredToken({ characterId: Number(validId) }),
+              [brokenId]: broken,
+            },
+          }),
+        );
+      },
+    );
+
+    when('a file token storage is opened on that file', () => {
+      storage = new FileTokenStorage(filePath);
+    });
+
+    then(
+      /^the storage shall list exactly (\d+) token$/,
+      async (count: string) => {
+        expect(await storage.list()).toHaveLength(Number(count));
+      },
+    );
+
+    and(
+      /^the storage shall return the token for character (\d+)$/,
+      async (id: string) => {
+        expect((await storage.get(Number(id)))?.characterId).toBe(Number(id));
+      },
+    );
+  });
+
+  test('Read started before invalidate does not repopulate the cache', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    let dir: string;
+    let filePath: string;
+    let storage: FileTokenStorage;
+    let gate: ReturnType<typeof deferred>;
+    let readSpy: jest.SpyInstance;
+
+    afterAll(() => {
+      readSpy?.mockRestore();
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    given(
+      /^a file token storage on a temporary path holding a token for character (\d+)$/,
+      async (id: string) => {
+        dir = fs.mkdtempSync(path.join(os.tmpdir(), 'esi-tokens-'));
+        filePath = path.join(dir, 'tokens.json');
+        storage = new FileTokenStorage(filePath);
+        await storage.set(
+          Number(id),
+          makeStoredToken({ characterId: Number(id) }),
+        );
+        storage.invalidate(); // the next read goes to disk
+      },
+    );
+
+    and('the file read is delayed', () => {
+      gate = deferred();
+      const original = fs.promises.readFile.bind(fs.promises);
+      readSpy = jest
+        .spyOn(fs.promises, 'readFile')
+        .mockImplementationOnce((async (
+          ...args: Parameters<typeof fs.promises.readFile>
+        ) => {
+          // Read the current contents first, then hold the result back so the
+          // caller observes a stale snapshot that lands after invalidate().
+          const data = await original(...args);
+          await gate.promise;
+          return data;
+        }) as never);
+    });
+
+    when(
+      /^a list is started, the storage is invalidated and the file gains a token for character (\d+) before the read finishes$/,
+      async (id: string) => {
+        const stale = storage.list();
+        await sleep(5); // let the read start
+        storage.invalidate();
+        const writer = new FileTokenStorage(filePath);
+        await writer.set(
+          Number(id),
+          makeStoredToken({ characterId: Number(id) }),
+        );
+        gate.resolve();
+        await stale;
+      },
+    );
+
+    then(/^the next list shall return (\d+) tokens$/, async (count: string) => {
+      expect(await storage.list()).toHaveLength(Number(count));
+    });
   });
 });

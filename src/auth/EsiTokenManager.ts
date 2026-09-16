@@ -74,7 +74,10 @@ export interface RefreshAllOptions {
   expiringWithinMs?: number;
   /** Abort the run; remaining tokens are reported as skipped. */
   signal?: AbortSignal;
-  /** Progress callback, invoked after each token settles. */
+  /**
+   * Progress callback, invoked after each token settles. A callback that
+   * throws does not stop the run; the exception is discarded.
+   */
   onProgress?: (completed: number, total: number) => void;
 }
 
@@ -126,6 +129,12 @@ export class EsiTokenManager {
     'onRefresh' | 'onRefreshError' | 'onRevoked'
   >;
   private readonly inFlight = new Map<number, Promise<StoredToken>>();
+  /**
+   * Per-character write generation. Bumped whenever a record is replaced or
+   * removed so a refresh that was already waiting on SSO can tell its result
+   * is stale and must not be persisted over the newer state.
+   */
+  private readonly generations = new Map<number, number>();
 
   constructor(config: EsiTokenManagerConfig) {
     this.storage = config.storage ?? new MemoryTokenStorage();
@@ -174,6 +183,7 @@ export class EsiTokenManager {
   ): Promise<StoredToken> {
     const response = await this.sso.exchangeCode(code, {
       codeVerifier: options.codeVerifier,
+      redirectUri: options.redirectUri,
     });
     return this.storeResponse(response, {
       revokeReplaced: options.revokeReplaced,
@@ -209,6 +219,7 @@ export class EsiTokenManager {
       await this.sso.revoke(stored.refreshToken);
     }
     await this.storage.delete(characterId);
+    this.bumpGeneration(characterId);
     this.inFlight.delete(characterId);
   }
 
@@ -275,23 +286,31 @@ export class EsiTokenManager {
     const pending = this.inFlight.get(characterId);
     if (pending) return pending;
 
-    const run = this.doRefresh(characterId).finally(() => {
-      this.inFlight.delete(characterId);
-    });
+    const run: Promise<StoredToken> = this.doRefresh(characterId).finally(
+      () => {
+        // Only clear our own slot: a newer refresh may have replaced it.
+        if (this.inFlight.get(characterId) === run) {
+          this.inFlight.delete(characterId);
+        }
+      },
+    );
     this.inFlight.set(characterId, run);
     return run;
   }
 
   /**
-   * Refresh stored tokens with bounded concurrency. Never rejects: each
-   * character gets its own {@link RefreshResult}.
+   * Refresh stored tokens with bounded concurrency. Per-character failures
+   * never reject: each character gets its own {@link RefreshResult}. The one
+   * rejection is a failing `storage.list()`, because with no records there
+   * is no character to attribute the fault to and a silent empty run would
+   * hide a broken store from a scheduler.
    */
   async refreshAll(options: RefreshAllOptions = {}): Promise<RefreshResult[]> {
     const tokens = await this.storage.list();
     const settled = await runWithConcurrency(
       tokens,
       (token) => this.refreshOne(token, options),
-      { concurrency: options.concurrency ?? 5, onProgress: options.onProgress },
+      { concurrency: options.concurrency, onProgress: options.onProgress },
     );
     return settled.map((entry, index) =>
       entry.status === 'fulfilled'
@@ -345,6 +364,33 @@ export class EsiTokenManager {
     return stored;
   }
 
+  private generationOf(characterId: number): number {
+    return this.generations.get(characterId) ?? 0;
+  }
+
+  private bumpGeneration(characterId: number): void {
+    this.generations.set(characterId, this.generationOf(characterId) + 1);
+  }
+
+  /**
+   * After an SSO round trip, decide whether the refresh still owns the
+   * character's record. Returns null when it does. When the record was
+   * replaced meanwhile, returns the current record so the caller hands out
+   * the newer credentials; when it was removed, throws CharacterNotFoundError.
+   */
+  private async supersededBy(
+    characterId: number,
+    generation: number,
+  ): Promise<StoredToken | null> {
+    if (this.generationOf(characterId) === generation) return null;
+    const current = await this.storage.get(characterId);
+    if (!current) throw new CharacterNotFoundError(characterId);
+    this.logger.debug(
+      `Discarding stale refresh for character ${characterId}; token was replaced while the refresh was in flight`,
+    );
+    return current;
+  }
+
   private async doRefresh(characterId: number): Promise<StoredToken> {
     const stored = await this.requireStored(characterId);
     if (stored.revokedAt !== undefined) {
@@ -353,11 +399,16 @@ export class EsiTokenManager {
         characterId,
       );
     }
+    const generation = this.generationOf(characterId);
     let response: SsoTokenResponse;
     try {
       response = await this.sso.refresh(stored.refreshToken);
     } catch (err: unknown) {
       if (err instanceof TokenRevokedError) {
+        // A revocation of a token that has since been replaced says nothing
+        // about the replacement; a removed character has nothing to mark.
+        const superseded = await this.supersededBy(characterId, generation);
+        if (superseded) return superseded;
         const revoked = {
           ...stored,
           revokedAt: this.now(),
@@ -377,6 +428,8 @@ export class EsiTokenManager {
       this.hooks.onRefreshError?.(characterId, error);
       throw error;
     }
+    const superseded = await this.supersededBy(characterId, generation);
+    if (superseded) return superseded;
     const updated = this.buildStoredToken(response, stored);
     await this.storage.set(characterId, updated);
     this.logger.debug(`Refreshed token for character ${characterId}`);
@@ -448,6 +501,7 @@ export class EsiTokenManager {
       }
     }
     await this.storage.set(token.characterId, token);
+    this.bumpGeneration(token.characterId);
     this.inFlight.delete(token.characterId);
     return token;
   }

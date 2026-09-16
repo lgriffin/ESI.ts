@@ -4,6 +4,31 @@ import type { ITokenStorage, StoredToken } from '../types';
 
 const FILE_FORMAT_VERSION = 1;
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((v) => typeof v === 'string');
+}
+
+/**
+ * Accept a persisted entry only when it has the full StoredToken shape. A
+ * partially corrupt record (a numeric id but no scopes, say) would otherwise
+ * be cached and crash the first get() or list() that copies it.
+ */
+function isStoredToken(value: unknown): value is StoredToken {
+  if (typeof value !== 'object' || value === null) return false;
+  const t = value as Record<string, unknown>;
+  return (
+    typeof t.characterId === 'number' &&
+    typeof t.characterName === 'string' &&
+    typeof t.accessToken === 'string' &&
+    typeof t.refreshToken === 'string' &&
+    typeof t.expiresAt === 'number' &&
+    typeof t.updatedAt === 'number' &&
+    isStringArray(t.scopes) &&
+    (t.ownerHash === undefined || typeof t.ownerHash === 'string') &&
+    (t.revokedAt === undefined || typeof t.revokedAt === 'number')
+  );
+}
+
 interface TokenFile {
   version: number;
   tokens: Record<string, StoredToken>;
@@ -30,6 +55,8 @@ export class FileTokenStorage implements ITokenStorage {
   private readonly mode: number;
   private cache: Map<number, StoredToken> | null = null;
   private loading: Promise<Map<number, StoredToken>> | null = null;
+  /** Bumped by invalidate() so a read that began earlier cannot repopulate the cache. */
+  private loadGeneration = 0;
   private writeChain: Promise<void> = Promise.resolve();
 
   constructor(filePath: string, options: FileTokenStorageOptions = {}) {
@@ -51,13 +78,13 @@ export class FileTokenStorage implements ITokenStorage {
   async set(characterId: number, token: StoredToken): Promise<void> {
     const tokens = await this.load();
     tokens.set(characterId, { ...token, scopes: [...token.scopes] });
-    await this.persist();
+    await this.persist(tokens);
   }
 
   async delete(characterId: number): Promise<void> {
     const tokens = await this.load();
     if (tokens.delete(characterId)) {
-      await this.persist();
+      await this.persist(tokens);
     }
   }
 
@@ -71,17 +98,30 @@ export class FileTokenStorage implements ITokenStorage {
 
   /** Drop the in-memory copy so the next call re-reads the file. */
   invalidate(): void {
+    this.loadGeneration++;
     this.cache = null;
     this.loading = null;
   }
 
-  /** Load once; overlapping first calls share the same read so none of them clobbers another's map. */
+  /**
+   * Load once; overlapping first calls share the same read so none of them
+   * clobbers another's map. A read that started before invalidate() still
+   * resolves for its own callers but neither becomes the cache nor clears a
+   * newer in-flight read.
+   */
   private load(): Promise<Map<number, StoredToken>> {
     if (this.cache) return Promise.resolve(this.cache);
     if (!this.loading) {
-      this.loading = this.readFile().finally(() => {
-        this.loading = null;
-      });
+      const generation = this.loadGeneration;
+      const pending: Promise<Map<number, StoredToken>> = this.readFile()
+        .then((map) => {
+          if (this.loadGeneration === generation) this.cache = map;
+          return map;
+        })
+        .finally(() => {
+          if (this.loading === pending) this.loading = null;
+        });
+      this.loading = pending;
     }
     return this.loading;
   }
@@ -92,29 +132,27 @@ export class FileTokenStorage implements ITokenStorage {
       raw = await fs.readFile(this.filePath, 'utf8');
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-        this.cache = new Map();
-        return this.cache;
+        return new Map();
       }
       throw err;
     }
     const parsed = JSON.parse(raw) as Partial<TokenFile>;
     const map = new Map<number, StoredToken>();
-    const entries = parsed.tokens ?? {};
+    const entries: Record<string, unknown> = parsed.tokens ?? {};
     for (const token of Object.values(entries)) {
-      if (token && typeof token.characterId === 'number') {
+      if (isStoredToken(token)) {
         map.set(token.characterId, token);
       }
     }
-    this.cache = map;
     return map;
   }
 
-  private persist(): Promise<void> {
+  private persist(tokens: Map<number, StoredToken>): Promise<void> {
     const snapshot: TokenFile = {
       version: FILE_FORMAT_VERSION,
       tokens: {},
     };
-    for (const [id, token] of this.cache ?? []) {
+    for (const [id, token] of tokens) {
       snapshot.tokens[String(id)] = token;
     }
     const run = async (): Promise<void> => {

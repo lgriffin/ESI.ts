@@ -49,6 +49,11 @@ export class AccessListsClient extends BaseEsiClient<typeof accessListEndpoints>
 }
 
 // @public (undocumented)
+export interface AddCharacterOptions extends ExchangeCodeOptions {
+    revokeReplaced?: boolean;
+}
+
+// @public (undocumented)
 export type AgentResearch = z.infer<typeof AgentResearchSchema>;
 
 // @public (undocumented)
@@ -357,6 +362,19 @@ const AsteroidBeltInfoSchema: z.ZodObject<{
     }, z.core.$loose>;
     system_id: z.ZodNumber;
 }, z.core.$loose>;
+
+// @public
+export class AuthError extends Error {
+    constructor(message: string);
+}
+
+// @public (undocumented)
+export interface AuthorizationUrlOptions {
+    codeChallenge?: string;
+    redirectUri?: string;
+    scopes: readonly string[];
+    state: string;
+}
 
 // Warning: (ae-forgotten-export) The symbol "EndpointMap" needs to be exported by the entry point index.d.ts
 //
@@ -784,6 +802,13 @@ const CharacterMilitaryCampaignObjectiveSchema: z.ZodObject<{
     committed: z.ZodBoolean;
     contribution: z.ZodNumber;
 }, z.core.$loose>;
+
+// @public
+export class CharacterNotFoundError extends AuthError {
+    constructor(characterId: number);
+    // (undocumented)
+    readonly characterId: number;
+}
 
 // @public (undocumented)
 export type CharacterOnline = z.infer<typeof CharacterOnlineSchema>;
@@ -1821,6 +1846,20 @@ interface CharactersSkills {
     unallocated_sp?: number;
 }
 
+// @public
+export interface CharacterSummary {
+    // (undocumented)
+    characterId: number;
+    // (undocumented)
+    characterName: string;
+    // (undocumented)
+    expiresAt: number;
+    // (undocumented)
+    revoked: boolean;
+    // (undocumented)
+    scopes: string[];
+}
+
 // @public (undocumented)
 export type CharacterTitle = z.infer<typeof CharacterTitleSchema>;
 
@@ -1937,6 +1976,9 @@ export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
     // (undocumented)
     streamImplants(characterId: number): AsyncGenerator<PageResult<number>, void, undefined>;
 }
+
+// @public
+export function codeChallengeFromVerifier(codeVerifier: string): string;
 
 // @public (undocumented)
 export type ColonyLayout = z.infer<typeof ColonyLayoutSchema>;
@@ -3791,6 +3833,30 @@ const CustomsOfficeSchema: z.ZodObject<{
     type_id: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
 
+// @public
+export function decodeAccessToken(token: string): DecodedAccessToken;
+
+// @public
+export interface DecodedAccessToken {
+    // (undocumented)
+    characterId: number;
+    // (undocumented)
+    characterName: string;
+    // (undocumented)
+    claims: EveJwtClaims;
+    expiresAt?: number;
+    // (undocumented)
+    ownerHash?: string;
+    // (undocumented)
+    scopes: string[];
+}
+
+// @public
+export function decodeJwtPayload(token: string): EveJwtClaims;
+
+// @public (undocumented)
+export const DEFAULT_SSO_BASE_URL = "https://login.eveonline.com";
+
 // @public (undocumented)
 export interface DeprecationInfo {
     // (undocumented)
@@ -4824,6 +4890,47 @@ declare namespace EsiSpec {
     }
 }
 
+// @public
+export class EsiTokenManager {
+    constructor(config: EsiTokenManagerConfig);
+    addCharacter(code: string, options?: AddCharacterOptions): Promise<StoredToken>;
+    createClient(characterId: number, config?: ManagedClientConfig): Promise<EsiClient>;
+    getAuthorizationUrl(options: AuthorizationUrlOptions): string;
+    getSsoClient(): EveSsoClient;
+    getStorage(): ITokenStorage;
+    getStoredToken(characterId: number): Promise<StoredToken | null>;
+    getToken(characterId: number): Promise<string>;
+    hasScopes(characterId: number, scopes: readonly string[]): Promise<boolean>;
+    importToken(token: {
+        accessToken: string;
+        refreshToken: string;
+        expiresIn?: number;
+    }): Promise<StoredToken>;
+    listCharacters(): Promise<CharacterSummary[]>;
+    listTokens(): Promise<StoredToken[]>;
+    refresh(characterId: number): Promise<StoredToken>;
+    refreshAll(options?: RefreshAllOptions): Promise<RefreshResult[]>;
+    removeCharacter(characterId: number, options?: RemoveCharacterOptions): Promise<void>;
+    tokenProviderFor(characterId: number): TokenProvider;
+}
+
+// @public (undocumented)
+export interface EsiTokenManagerConfig {
+    autoRefresh?: boolean;
+    callbackUrl?: string;
+    clientId: string;
+    clientSecret?: string;
+    fetch?: FetchLike;
+    logger?: ILogger;
+    now?: () => number;
+    onRefresh?: (token: StoredToken) => void;
+    onRefreshError?: (characterId: number, error: Error) => void;
+    onRevoked?: (characterId: number) => void;
+    refreshSkewMs?: number;
+    ssoClient?: EveSsoClient;
+    storage?: ITokenStorage;
+}
+
 // @public (undocumented)
 export class EsiValidationError extends EsiError {
     constructor(url: string, zodError: unknown, requestId?: string, direction?: ValidationDirection);
@@ -4868,6 +4975,53 @@ export class ETagCacheManager implements ICache {
     setClient(client: ApiClient | null): void;
     shutdown(): void;
     updateConfig(newConfig: Partial<ETagCacheConfig>): void;
+}
+
+// @public
+export interface EveJwtClaims {
+    // (undocumented)
+    [claim: string]: unknown;
+    // (undocumented)
+    aud?: string | string[];
+    exp?: number;
+    iat?: number;
+    // (undocumented)
+    iss?: string;
+    name?: string;
+    owner?: string;
+    scp?: string | string[];
+    sub: string;
+}
+
+// @public
+export class EveSsoClient {
+    constructor(config: EveSsoClientConfig);
+    // (undocumented)
+    get authorizeUrl(): string;
+    exchangeCode(code: string, options?: ExchangeCodeOptions): Promise<SsoTokenResponse>;
+    getAuthorizationUrl(options: AuthorizationUrlOptions): string;
+    isConfidential(): boolean;
+    refresh(refreshToken: string, options?: RefreshOptions): Promise<SsoTokenResponse>;
+    revoke(token: string, tokenTypeHint?: 'refresh_token' | 'access_token'): Promise<void>;
+    // (undocumented)
+    get revokeUrl(): string;
+    // (undocumented)
+    get tokenUrl(): string;
+}
+
+// @public (undocumented)
+export interface EveSsoClientConfig {
+    callbackUrl?: string;
+    clientId: string;
+    clientSecret?: string;
+    fetch?: FetchLike;
+    ssoBaseUrl?: string;
+}
+
+// @public (undocumented)
+export interface ExchangeCodeOptions {
+    codeVerifier?: string;
+    redirectUri?: string;
 }
 
 // @public (undocumented)
@@ -5039,6 +5193,26 @@ export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promis
 
 // @public (undocumented)
 export function fetchPages<T = unknown>(client: ApiClient, endpoint: string, method: string, requiresAuth?: boolean, body?: unknown, templatePath?: string, responseSchema?: ResponseSchema): AsyncGenerator<PageResult<T>, void, undefined>;
+
+// @public
+export class FileTokenStorage implements ITokenStorage {
+    constructor(filePath: string, options?: FileTokenStorageOptions);
+    // (undocumented)
+    delete(characterId: number): Promise<void>;
+    // (undocumented)
+    get(characterId: number): Promise<StoredToken | null>;
+    invalidate(): void;
+    // (undocumented)
+    list(): Promise<StoredToken[]>;
+    get path(): string;
+    // (undocumented)
+    set(characterId: number, token: StoredToken): Promise<void>;
+}
+
+// @public (undocumented)
+export interface FileTokenStorageOptions {
+    mode?: number;
+}
 
 // @public (undocumented)
 export type Fitting = z.infer<typeof FittingSchema>;
@@ -5571,6 +5745,15 @@ interface FwWarsGet {
     faction_id: number;
 }
 
+// @public
+export function generateCodeVerifier(): string;
+
+// @public
+export function generatePkcePair(): PkcePair;
+
+// @public
+export function generateState(): string;
+
 // @public (undocumented)
 export function getDefaultClient(): EsiClient;
 
@@ -5924,6 +6107,12 @@ export interface IRetryStrategy {
 }
 
 // @public (undocumented)
+export function isAuthError(error: unknown): error is AuthError;
+
+// @public (undocumented)
+export function isCharacterNotFound(error: unknown): error is CharacterNotFoundError;
+
+// @public (undocumented)
 export function isCircuitOpen(error: unknown): error is CircuitOpenError;
 
 // @public (undocumented)
@@ -5945,7 +6134,13 @@ export function isRetryable(error: unknown): error is EsiError;
 export function isServerError(error: unknown): error is EsiError;
 
 // @public (undocumented)
+export function isSsoError(error: unknown): error is SsoError;
+
+// @public (undocumented)
 export function isTimeout(error: unknown): error is TimeoutError;
+
+// @public (undocumented)
+export function isTokenRevoked(error: unknown): error is TokenRevokedError;
 
 // @public (undocumented)
 export function isUnauthorized(error: unknown): error is EsiError;
@@ -5975,6 +6170,18 @@ const ItemGroupSchema: z.ZodObject<{
     types: z.ZodArray<z.ZodNumber>;
     published: z.ZodBoolean;
 }, z.core.$loose>;
+
+// @public
+export interface ITokenStorage {
+    // (undocumented)
+    delete(characterId: number): Promise<void>;
+    // (undocumented)
+    get(characterId: number): Promise<StoredToken | null>;
+    // (undocumented)
+    list(): Promise<StoredToken[]>;
+    // (undocumented)
+    set(characterId: number, token: StoredToken): Promise<void>;
+}
 
 // @public (undocumented)
 export type JumpFatigue = z.infer<typeof JumpFatigueSchema>;
@@ -6290,6 +6497,9 @@ const MailMessageSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
+// @public
+export type ManagedClientConfig = Omit<EsiClientConfig, 'accessToken' | 'onTokenRefresh'>;
+
 // Warning: (ae-forgotten-export) The symbol "marketEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -6500,6 +6710,22 @@ const MedalSchema: z.ZodObject<{
         color: z.ZodOptional<z.ZodNumber>;
     }, z.core.$loose>>;
 }, z.core.$loose>;
+
+// @public
+export class MemoryTokenStorage implements ITokenStorage {
+    constructor(initial?: readonly StoredToken[]);
+    clear(): void;
+    // (undocumented)
+    delete(characterId: number): Promise<void>;
+    // (undocumented)
+    get(characterId: number): Promise<StoredToken | null>;
+    // (undocumented)
+    list(): Promise<StoredToken[]>;
+    // (undocumented)
+    set(characterId: number, token: StoredToken): Promise<void>;
+    // (undocumented)
+    get size(): number;
+}
 
 // Warning: (ae-forgotten-export) The symbol "mercenaryEndpoints" needs to be exported by the entry point index.d.ts
 //
@@ -6988,6 +7214,12 @@ const ParagonHubSkinrTargetSchema: z.ZodObject<{
     public: z.ZodOptional<z.ZodBoolean>;
 }, z.core.$loose>;
 
+// @public
+export function parseCharacterId(sub: unknown): number;
+
+// @public
+export function parseScopes(scp: unknown): string[];
+
 // Warning: (ae-forgotten-export) The symbol "piEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -7005,6 +7237,13 @@ export class PiClient extends BaseEsiClient<typeof piEndpoints> {
     streamColonies(characterId: number): AsyncGenerator<PageResult<PlanetaryColony>, void, undefined>;
     // (undocumented)
     streamCorporationCustomsOffices(corporationId: number): AsyncGenerator<PageResult<CustomsOffice>, void, undefined>;
+}
+
+// @public
+export interface PkcePair {
+    codeChallenge: string;
+    codeChallengeMethod: 'S256';
+    codeVerifier: string;
 }
 
 // @public (undocumented)
@@ -7167,6 +7406,34 @@ const RateLimitMetaSchema: z.ZodObject<{
 }, z.core.$strip>;
 
 // @public (undocumented)
+export interface RefreshAllOptions {
+    concurrency?: number;
+    expiringWithinMs?: number;
+    onProgress?: (completed: number, total: number) => void;
+    signal?: AbortSignal;
+}
+
+// @public (undocumented)
+export interface RefreshOptions {
+    scopes?: readonly string[];
+}
+
+// @public (undocumented)
+export interface RefreshResult {
+    // (undocumented)
+    characterId: number;
+    error?: Error;
+    expiresAt?: number;
+    reason?: 'not-stale' | 'aborted';
+    retryable?: boolean;
+    // (undocumented)
+    status: RefreshStatus;
+}
+
+// @public (undocumented)
+export type RefreshStatus = 'refreshed' | 'skipped' | 'failed' | 'revoked';
+
+// @public (undocumented)
 export type RegionId = Brand<number, 'RegionId'>;
 
 // @public (undocumented)
@@ -7179,6 +7446,11 @@ const RegionInfoSchema: z.ZodObject<{
     description: z.ZodOptional<z.ZodString>;
     constellations: z.ZodArray<z.ZodNumber>;
 }, z.core.$loose>;
+
+// @public (undocumented)
+export interface RemoveCharacterOptions {
+    revoke?: boolean;
+}
 
 // @public (undocumented)
 export interface RequestContext {
@@ -7940,6 +8212,29 @@ const SovereigntySystemStructureSchema: z.ZodObject<{
     vulnerable_end_time: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
+// @public
+export class SsoError extends AuthError {
+    constructor(statusCode: number, errorCode: string, errorDescription?: string);
+    // (undocumented)
+    readonly errorCode: string;
+    // (undocumented)
+    readonly errorDescription?: string;
+    isRetryable(): boolean;
+    // (undocumented)
+    readonly statusCode: number;
+}
+
+// @public
+export interface SsoTokenResponse {
+    // (undocumented)
+    accessToken: string;
+    expiresIn: number;
+    // (undocumented)
+    refreshToken: string;
+    // (undocumented)
+    tokenType: string;
+}
+
 // @public (undocumented)
 export type Standing = z.infer<typeof StandingSchema>;
 
@@ -8032,6 +8327,19 @@ export class StatusClient extends BaseEsiClient<typeof statusEndpoints> {
     getStatus(): Promise<ServerStatus>;
 }
 
+// @public
+export interface StoredToken {
+    accessToken: string;
+    characterId: number;
+    characterName: string;
+    expiresAt: number;
+    ownerHash?: string;
+    refreshToken: string;
+    revokedAt?: number;
+    scopes: string[];
+    updatedAt: number;
+}
+
 // @public (undocumented)
 export type StructureId = Brand<number, 'StructureId'>;
 
@@ -8100,8 +8408,20 @@ export class TimeoutError extends EsiError {
     readonly timeoutMs: number;
 }
 
+// @public
+export class TokenDecodeError extends AuthError {
+    constructor(message: string);
+}
+
 // @public (undocumented)
 export type TokenProvider = () => Promise<string>;
+
+// @public
+export class TokenRevokedError extends AuthError {
+    constructor(message: string, characterId?: number);
+    // (undocumented)
+    readonly characterId?: number;
+}
 
 // @public
 export function toPinoLogger(p: {

@@ -197,4 +197,81 @@ describe('EveSsoClient', () => {
       );
     });
   });
+
+  describe('exchangeCode', () => {
+    it('sends the configured callback as redirect_uri', async () => {
+      fetchMock.mockResponseOnce(ssoTokenBody());
+      await confidential().exchangeCode('code');
+      const [, init] = fetchMock.mock.calls[0]!;
+      expect(readFormBody(init).get('redirect_uri')).toBe(
+        'https://app.example/callback',
+      );
+    });
+
+    it('lets a per-request redirectUri override the callback', async () => {
+      fetchMock.mockResponseOnce(ssoTokenBody());
+      await confidential().exchangeCode('code', {
+        redirectUri: 'https://app.example/other',
+      });
+      const [, init] = fetchMock.mock.calls[0]!;
+      expect(readFormBody(init).get('redirect_uri')).toBe(
+        'https://app.example/other',
+      );
+    });
+
+    it('omits redirect_uri when neither a callback nor an override is set', async () => {
+      fetchMock.mockResponseOnce(ssoTokenBody());
+      await new EveSsoClient({ clientId: 'cid' }).exchangeCode('code');
+      const [, init] = fetchMock.mock.calls[0]!;
+      expect(readFormBody(init).has('redirect_uri')).toBe(false);
+    });
+
+    it('reports invalid_grant on a code exchange as SsoError, not a revocation', async () => {
+      fetchMock.mockResponseOnce(
+        ssoErrorBody('invalid_grant', 'code expired'),
+        {
+          status: 400,
+        },
+      );
+      const err = await confidential()
+        .exchangeCode('stale')
+        .catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(SsoError);
+      expect(err).not.toBeInstanceOf(TokenRevokedError);
+      expect((err as SsoError).statusCode).toBe(400);
+      expect((err as SsoError).errorCode).toBe('invalid_grant');
+      expect((err as SsoError).errorDescription).toBe('code expired');
+    });
+  });
+
+  describe('malformed success bodies', () => {
+    it.each([
+      ['invalid JSON', '<html>ok</html>'],
+      ['null', 'null'],
+      ['an array', '["a", "r"]'],
+      ['a string', '"token"'],
+      ['a number', '42'],
+    ])('reports %s as SsoError invalid_response', async (_label, body) => {
+      fetchMock.mockResponseOnce(body, { status: 200 });
+      const err = await confidential()
+        .refresh('old')
+        .catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(SsoError);
+      expect((err as SsoError).statusCode).toBe(200);
+      expect((err as SsoError).errorCode).toBe('invalid_response');
+    });
+  });
+
+  describe('revoke error classification', () => {
+    it('reports invalid_grant on revoke as SsoError, not a revocation', async () => {
+      fetchMock.mockResponseOnce(ssoErrorBody('invalid_grant'), {
+        status: 400,
+      });
+      const err = await confidential()
+        .revoke('tok')
+        .catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(SsoError);
+      expect(err).not.toBeInstanceOf(TokenRevokedError);
+    });
+  });
 });

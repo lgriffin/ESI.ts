@@ -110,4 +110,70 @@ describe('runWithConcurrency', () => {
     });
     expect(seen.sort()).toEqual([0, 1]);
   });
+
+  it.each([
+    ['NaN', Number.NaN],
+    ['Infinity', Number.POSITIVE_INFINITY],
+    ['-Infinity', Number.NEGATIVE_INFINITY],
+  ])(
+    'falls back to the default of five when concurrency is %s',
+    async (_label, concurrency) => {
+      let inFlight = 0;
+      let peak = 0;
+      const results = await runWithConcurrency(
+        Array.from({ length: 12 }, (_, i) => i),
+        async (n) => {
+          inFlight++;
+          peak = Math.max(peak, inFlight);
+          await new Promise((r) => setTimeout(r, 2));
+          inFlight--;
+          return n;
+        },
+        { concurrency },
+      );
+      expect(results).toHaveLength(12);
+      expect(results.every((r) => r.status === 'fulfilled')).toBe(true);
+      expect(peak).toBe(5);
+    },
+  );
+
+  it('floors a fractional concurrency', async () => {
+    let inFlight = 0;
+    let peak = 0;
+    await runWithConcurrency(
+      [1, 2, 3, 4, 5, 6],
+      async () => {
+        inFlight++;
+        peak = Math.max(peak, inFlight);
+        await new Promise((r) => setTimeout(r, 2));
+        inFlight--;
+      },
+      { concurrency: 2.9 },
+    );
+    expect(peak).toBe(2);
+  });
+
+  it('keeps running and settles every item when the progress callback throws', async () => {
+    const seen: number[] = [];
+    const results = await runWithConcurrency(
+      [1, 2, 3, 4],
+      async (n) => {
+        seen.push(n);
+        return n;
+      },
+      {
+        concurrency: 2,
+        onProgress: () => {
+          throw new Error('progress exploded');
+        },
+      },
+    );
+    expect(seen.sort()).toEqual([1, 2, 3, 4]);
+    expect(results.map((r) => r.status)).toEqual([
+      'fulfilled',
+      'fulfilled',
+      'fulfilled',
+      'fulfilled',
+    ]);
+  });
 });
