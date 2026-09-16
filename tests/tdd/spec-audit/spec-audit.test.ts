@@ -11,6 +11,12 @@
  * ESM-only and cannot be loaded by Jest's CommonJS runtime. Driving the
  * entry point also proves each check is wired into the run, not merely
  * present. The checks that need no Gherkin AST are imported directly.
+ *
+ * That same ESM-only dependency means the audit cannot start at all on a Node
+ * without `require(esm)` — anything below 20.19 or 22.12. `npm run spec:audit`
+ * runs on Node 20 in CI, but the unit matrix also covers Node 18, so the CLI
+ * suite detects that case and skips with a warning rather than asserting
+ * against a startup error. Tracked as esi-v2s.8.
  */
 import { execFileSync } from 'child_process';
 import * as path from 'path';
@@ -39,14 +45,28 @@ function runAudit(target: string): string {
   }
 }
 
+const output = runAudit(FIXTURES);
+
+/**
+ * Distinguish "the audit ran and reported findings" from "the audit could not
+ * start". Only the second is a reason to skip, and it is detected from the
+ * runtime's own error rather than from a Node version comparison, so the skip
+ * disappears by itself once the dependency or the floor changes.
+ */
+const CLI_UNAVAILABLE =
+  /ERR_REQUIRE_ESM|Must use import to load ES Module/.test(output);
+
+if (CLI_UNAVAILABLE) {
+  console.warn(
+    `spec-audit CLI fixtures skipped: the audit needs require(esm), which ` +
+      `Node ${process.versions.node} does not provide. See esi-v2s.8.`,
+  );
+}
+
+const describeCli = CLI_UNAVAILABLE ? describe.skip : describe;
+
 describe('spec-audit', () => {
-  let output = '';
-
-  beforeAll(() => {
-    output = runAudit(FIXTURES);
-  }, 120_000);
-
-  describe('every check rejects a negative fixture', () => {
+  describeCli('every check rejects a negative fixture', () => {
     const cases: Array<[string, string]> = [
       ['Rule title that states no obligation', "must contain 'shall'"],
       ['Rule title stating two requirements', "2 occurrences of 'shall'"],
@@ -97,8 +117,10 @@ describe('spec-audit', () => {
     });
   });
 
-  it('reports nothing against the compliant fixture', () => {
-    expect(output).not.toContain('compliant.feature');
+  describeCli('the compliant fixture', () => {
+    it('produces no findings', () => {
+      expect(output).not.toContain('compliant.feature');
+    });
   });
 
   describe('exception list ratchet', () => {
