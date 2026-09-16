@@ -256,6 +256,28 @@ describe('Response validation fault injection (through the transport seam)', () 
       );
     });
 
+    it('does not serve a rejected body from the cache on the next call (esi-v2s.17)', async () => {
+      await fc.assert(
+        fc.asyncProperty(invalidBodies(target), async (body) => {
+          const before = sentRequests().length;
+          serve(body);
+          serve(target.valid);
+
+          const next = await withClient({}, async (client) => {
+            await target.call(client).catch(() => undefined);
+            return target.call(client);
+          });
+
+          expect(next).toEqual(target.valid);
+          expect(sentRequests().length - before).toBe(2);
+          expect(
+            sentRequests()[sentRequests().length - 1]!.headers['if-none-match'],
+          ).toBeUndefined();
+        }),
+        RUNS,
+      );
+    });
+
     it('passes the same bodies through unchanged when validateResponse is off', async () => {
       await fc.assert(
         fc.asyncProperty(invalidBodies(target), async (body) => {

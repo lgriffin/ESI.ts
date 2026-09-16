@@ -48,6 +48,20 @@ Feature: Runtime Response Validation
       Then an EsiValidationError shall be thrown
       And the error shall contain validation details
 
+  Rule: If a response fails schema validation, then the EsiClient shall send a new request without an If-None-Match header on the next call to that endpoint.
+    ESI sends an ETag with almost every GET, and the pipeline caches the body
+    before createClient parses it. A rejected body left in that cache would be
+    served again for the whole spec TTL (86400 seconds for character records),
+    and a conditional request would earn a 304 that points back at it, so the
+    caller could not recover until the entry expired.
+
+    Scenario: Alliance lookup after a rejected body refetches and returns the corrected record
+      Given an ESI client with response validation enabled
+      And ESI serves a cacheable alliance body that fails validation, then a valid one
+      When I request the same alliance twice
+      Then the first call shall reject with an EsiValidationError
+      And the second call shall send an unconditional request and return the valid alliance
+
   Rule: The EsiValidationError shall be an instance of EsiError that satisfies the isValidationError type guard.
     Callers already wrap ESI calls in a catch for EsiError; a validation
     failure that sat outside that hierarchy would escape those handlers. The

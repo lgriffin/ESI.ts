@@ -5,6 +5,7 @@ export {
   tryStaleCacheResponse,
   cacheResponse,
   invalidateAfterWrite,
+  evictRejectedResponse,
 } from './cachePolicy';
 export type { EsiHandlerResponse } from './cachePolicy';
 export {
