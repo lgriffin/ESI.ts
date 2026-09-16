@@ -9,6 +9,11 @@
 import { z } from 'zod';
 import { corporationEndpoints } from '../../../src/core/endpoints/corporationEndpoints';
 import { mailEndpoints } from '../../../src/core/endpoints/mailEndpoints';
+import { calendarEndpoints } from '../../../src/core/endpoints/calendarEndpoints';
+import { characterEndpoints } from '../../../src/core/endpoints/characterEndpoints';
+import { cloneEndpoints } from '../../../src/core/endpoints/cloneEndpoints';
+import { dogmaEndpoints } from '../../../src/core/endpoints/dogmaEndpoints';
+import { universeEndpoints } from '../../../src/core/endpoints/universeEndpoints';
 
 interface OptionalCase {
   route: string;
@@ -107,6 +112,81 @@ const cases: OptionalCase[] = [
     },
     field,
   })),
+  // CharactersCharacterIdCalendarGet: every event field is optional.
+  ...(
+    [
+      '[].event_id',
+      '[].event_date',
+      '[].title',
+      '[].importance',
+      '[].event_response',
+    ] as const
+  ).map((field) => ({
+    route: 'GET /characters/{character_id}/calendar',
+    schema: calendarEndpoints.getCalendarEvents.responseSchema as z.ZodType,
+    body: [
+      {
+        event_id: 1,
+        event_date: '2026-09-20T19:00:00Z',
+        title: 'Home defence fleet',
+        importance: 1,
+        event_response: 'not_responded',
+      },
+    ],
+    field,
+  })),
+  // CharactersCharacterIdCalendarEventIdAttendeesGet: both fields optional.
+  ...(['[].character_id', '[].event_response'] as const).map((field) => ({
+    route: 'GET /characters/{character_id}/calendar/{event_id}/attendees',
+    schema: calendarEndpoints.getEventAttendees.responseSchema as z.ZodType,
+    body: [{ character_id: 90000001, event_response: 'accepted' }],
+    field,
+  })),
+  // CharactersCharacterIdTitlesGet: both fields optional.
+  ...(['[].title_id', '[].name'] as const).map((field) => ({
+    route: 'GET /characters/{character_id}/titles',
+    schema: characterEndpoints.getTitles.responseSchema as z.ZodType,
+    body: [{ title_id: 1, name: 'Director' }],
+    field,
+  })),
+  // CharactersCharacterIdClonesGet: home_location fields are optional.
+  ...(
+    ['home_location.location_id', 'home_location.location_type'] as const
+  ).map((field) => ({
+    route: 'GET /characters/{character_id}/clones',
+    schema: cloneEndpoints.getClones.responseSchema as z.ZodType,
+    body: {
+      home_location: { location_id: 60003760, location_type: 'station' },
+      jump_clones: [],
+    },
+    field,
+  })),
+  // DogmaAttributesAttributeIdGet and DogmaEffectsEffectIdGet: only the ID
+  // is required.
+  {
+    route: 'GET /dogma/attributes/{attribute_id}',
+    schema: dogmaEndpoints.getAttributeById.responseSchema,
+    body: { attribute_id: 20, name: 'powerOutput', published: true },
+    field: 'name',
+  },
+  {
+    route: 'GET /dogma/effects/{effect_id}',
+    schema: dogmaEndpoints.getEffectById.responseSchema,
+    body: { effect_id: 11, name: 'loPower', published: false },
+    field: 'name',
+  },
+  // UniverseIdsPost: id and name are optional in every category.
+  ...(['characters[].id', 'characters[].name', 'systems[].id'] as const).map(
+    (field) => ({
+      route: 'POST /universe/ids',
+      schema: universeEndpoints.postBulkNamesToIds.responseSchema as z.ZodType,
+      body: {
+        characters: [{ id: 90000001, name: 'Pilot Name' }],
+        systems: [{ id: 30000142, name: 'Jita' }],
+      },
+      field,
+    }),
+  ),
 ];
 
 describe('Schemas accept bodies without the fields ESI marks optional', () => {

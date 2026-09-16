@@ -471,44 +471,44 @@ export type BulkIdResult = z.infer<typeof BulkIdResultSchema>;
 // @public (undocumented)
 const BulkIdResultSchema: z.ZodObject<{
     agents: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     alliances: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     characters: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     constellations: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     corporations: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     factions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     inventory_types: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     regions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     systems: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     stations: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
@@ -555,10 +555,10 @@ export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
 // @public (undocumented)
 export type CalendarEventAttendee = z.infer<typeof CalendarEventAttendeeSchema>;
 
-// @public (undocumented)
+// @public
 const CalendarEventAttendeeSchema: z.ZodObject<{
-    character_id: z.ZodNumber;
-    event_response: z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>;
+    character_id: z.ZodOptional<z.ZodNumber>;
+    event_response: z.ZodOptional<z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -578,13 +578,13 @@ const CalendarEventDetailSchema: z.ZodObject<{
     response: z.ZodString;
 }, z.core.$loose>;
 
-// @public (undocumented)
+// @public
 const CalendarEventSchema: z.ZodObject<{
-    event_id: z.ZodNumber;
-    event_date: z.ZodString;
-    title: z.ZodString;
-    importance: z.ZodNumber;
-    event_response: z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>;
+    event_id: z.ZodOptional<z.ZodNumber>;
+    event_date: z.ZodOptional<z.ZodString>;
+    title: z.ZodOptional<z.ZodString>;
+    importance: z.ZodOptional<z.ZodNumber>;
+    event_response: z.ZodOptional<z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -1867,8 +1867,8 @@ export type CharacterTitle = z.infer<typeof CharacterTitleSchema>;
 
 // @public (undocumented)
 const CharacterTitleSchema: z.ZodObject<{
-    title_id: z.ZodNumber;
-    name: z.ZodString;
+    title_id: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -1952,8 +1952,8 @@ export type CloneInfo = z.infer<typeof CloneInfoSchema>;
 // @public (undocumented)
 const CloneInfoSchema: z.ZodObject<{
     home_location: z.ZodOptional<z.ZodObject<{
-        location_id: z.ZodNumber;
-        location_type: z.ZodType<(string & {}) | "station" | "structure", unknown, z.core.$ZodTypeInternals<(string & {}) | "station" | "structure", unknown>>;
+        location_id: z.ZodOptional<z.ZodNumber>;
+        location_type: z.ZodOptional<z.ZodType<(string & {}) | "station" | "structure", unknown, z.core.$ZodTypeInternals<(string & {}) | "station" | "structure", unknown>>>;
     }, z.core.$loose>>;
     jump_clones: z.ZodArray<z.ZodObject<{
         jump_clone_id: z.ZodNumber;
@@ -4035,7 +4035,7 @@ interface DogmaAttributesAttributeIdGet {
 // @public (undocumented)
 const DogmaAttributeSchema: z.ZodObject<{
     attribute_id: z.ZodNumber;
-    name: z.ZodString;
+    name: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodString>;
     icon_id: z.ZodOptional<z.ZodNumber>;
     default_value: z.ZodOptional<z.ZodNumber>;
@@ -4102,7 +4102,7 @@ export type DogmaEffect = z.infer<typeof DogmaEffectSchema>;
 // @public (undocumented)
 const DogmaEffectSchema: z.ZodObject<{
     effect_id: z.ZodNumber;
-    name: z.ZodString;
+    name: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodString>;
     icon_id: z.ZodOptional<z.ZodNumber>;
     display_name: z.ZodOptional<z.ZodString>;

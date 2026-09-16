@@ -103,8 +103,8 @@ export const NotificationSchema = z.looseObject({
 });
 
 export const CharacterTitleSchema = z.looseObject({
-  title_id: z.number(),
-  name: z.string(),
+  title_id: z.number().optional(),
+  name: z.string().optional(),
 });
 
 export const CharacterAffiliationSchema = z.looseObject({

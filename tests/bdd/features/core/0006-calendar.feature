@@ -8,11 +8,12 @@ Feature: Calendar Management
 
   # ── Reading the calendar ────────────────────────────────────────────
 
-  Rule: When calendar events are requested for a character ID, the Calendar client shall return an array whose entries each carry event_id, title, event_date, event_response, and importance.
+  Rule: When calendar events are requested for a character ID, the Calendar client shall return an array whose entries each carry event_id, title, event_date, event_response, and importance when present.
     The list view is what a calendar surface renders. The event_response on
     each entry is what marks an invitation as still needing an answer, and
     importance is what separates a routine event from one a corporation flags
-    as mandatory.
+    as mandatory. ESI marks every field of an entry optional
+    (CharactersCharacterIdCalendarGet).
 
     Scenario: Event list holding an accepted event and an unanswered event
       Given a character with upcoming events
@@ -40,7 +41,7 @@ Feature: Calendar Management
       When the client requests event details
       Then the client shall return complete event information
 
-  Rule: When the attendee list is requested for an event, the Calendar client shall return an array whose entries each carry character_id and event_response.
+  Rule: When the attendee list is requested for an event, the Calendar client shall return an array whose entries each carry character_id and event_response when present.
     The attendee roll is how an event owner counts who is coming. Each answer
     is one of the response values, so the pair of who and what answer is the
     whole content of an entry.

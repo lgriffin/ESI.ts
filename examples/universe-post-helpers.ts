@@ -63,7 +63,7 @@ async function main() {
       const items = idResult[cat];
       if (items) {
         for (const item of items) {
-          allIds.push(item.id);
+          if (item.id !== undefined) allIds.push(item.id);
         }
       }
     }
