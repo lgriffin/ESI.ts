@@ -12,8 +12,10 @@ import { ZodBoolean } from 'zod';
 import { ZodNumber } from 'zod';
 import { ZodObject } from 'zod';
 import { ZodOptional } from 'zod';
+import { ZodRecord } from 'zod';
 import { ZodString } from 'zod';
 import { ZodType } from 'zod';
+import { ZodUnknown } from 'zod';
 
 // @public (undocumented)
 export type AccessList = z.infer<typeof AccessListSchema>;
@@ -2559,28 +2561,79 @@ export type CorporationProject = z.infer<typeof CorporationProjectSchema>;
 // @public (undocumented)
 export type CorporationProjectContribution = z.infer<typeof CorporationProjectContributionSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationProjectContributionSchema: z.ZodObject<{
-    character_id: z.ZodNumber;
-    contribution: z.ZodNumber;
+    contributed: z.ZodNumber;
+    last_modified: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
 // @public (undocumented)
 export type CorporationProjectContributor = z.infer<typeof CorporationProjectContributorSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationProjectContributorSchema: z.ZodObject<{
-    character_id: z.ZodNumber;
-    contribution: z.ZodNumber;
+    id: z.ZodNumber;
+    name: z.ZodString;
+    contributed: z.ZodNumber;
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type CorporationProjectContributorsListing = z.infer<typeof CorporationProjectContributorsListingSchema>;
+
+// @public
+const CorporationProjectContributorsListingSchema: z.ZodObject<{
+    contributors: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        name: z.ZodString;
+        contributed: z.ZodNumber;
+    }, z.core.$loose>>;
+    cursor: z.ZodOptional<z.ZodObject<{
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CorporationProjectCursor = z.infer<typeof CorporationProjectCursorSchema>;
+
+// @public
+const CorporationProjectCursorSchema: z.ZodObject<{
+    before: z.ZodOptional<z.ZodString>;
+    after: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public
 const CorporationProjectSchema: z.ZodObject<{
-    project_id: z.ZodNumber;
-    state: z.ZodString;
-    progress: z.ZodNumber;
-    start_time: z.ZodString;
-    finish_time: z.ZodOptional<z.ZodString>;
+    id: z.ZodString;
+    name: z.ZodString;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown>>;
+    last_modified: z.ZodString;
+    progress: z.ZodObject<{
+        current: z.ZodNumber;
+        desired: z.ZodNumber;
+    }, z.core.$loose>;
+    reward: z.ZodOptional<z.ZodObject<{
+        initial: z.ZodNumber;
+        remaining: z.ZodNumber;
+    }, z.core.$loose>>;
+    creator: z.ZodObject<{
+        id: z.ZodNumber;
+        name: z.ZodString;
+    }, z.core.$loose>;
+    details: z.ZodObject<{
+        career: z.ZodType<(string & {}) | "Unspecified" | "Explorer" | "Industrialist" | "Enforcer" | "Soldier of Fortune", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Explorer" | "Industrialist" | "Enforcer" | "Soldier of Fortune", unknown>>;
+        created: z.ZodString;
+        description: z.ZodString;
+        expires: z.ZodOptional<z.ZodString>;
+        finished: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>;
+    configuration: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+    contribution: z.ZodOptional<z.ZodObject<{
+        participation_limit: z.ZodOptional<z.ZodNumber>;
+        reward_per_contribution: z.ZodOptional<z.ZodNumber>;
+        submission_limit: z.ZodOptional<z.ZodNumber>;
+        submission_multiplier: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "corporationProjectEndpoints" needs to be exported by the entry point index.d.ts
@@ -2588,11 +2641,55 @@ const CorporationProjectSchema: z.ZodObject<{
 // @public (undocumented)
 export class CorporationProjectsClient extends BaseEsiClient<typeof corporationProjectEndpoints> {
     constructor(client: ApiClient);
-    getCorporationProject(corporationId: number, projectId: number): Promise<CorporationProject>;
-    getCorporationProjectContribution(corporationId: number, projectId: number, characterId: number): Promise<CorporationProjectContribution>;
-    getCorporationProjectContributors(corporationId: number, projectId: number): Promise<CorporationProjectContributor[]>;
-    getCorporationProjects(corporationId: number): Promise<CorporationProject[]>;
+    getCorporationProject(corporationId: number, projectId: string): Promise<CorporationProject>;
+    getCorporationProjectContribution(corporationId: number, projectId: string, characterId: number): Promise<CorporationProjectContribution>;
+    getCorporationProjectContributors(corporationId: number, projectId: string, before?: string, after?: string): Promise<CorporationProjectContributorsListing>;
+    getCorporationProjects(corporationId: number, before?: string, after?: string): Promise<CorporationProjectsListing>;
 }
+
+// @public (undocumented)
+export type CorporationProjectsListing = z.infer<typeof CorporationProjectsListingSchema>;
+
+// @public
+const CorporationProjectsListingSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    projects: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        name: z.ZodString;
+        state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown>>;
+        last_modified: z.ZodString;
+        progress: z.ZodObject<{
+            current: z.ZodNumber;
+            desired: z.ZodNumber;
+        }, z.core.$loose>;
+        reward: z.ZodOptional<z.ZodObject<{
+            initial: z.ZodNumber;
+            remaining: z.ZodNumber;
+        }, z.core.$loose>>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CorporationProjectSummary = z.infer<typeof CorporationProjectSummarySchema>;
+
+// @public
+const CorporationProjectSummarySchema: z.ZodObject<{
+    id: z.ZodString;
+    name: z.ZodString;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown>>;
+    last_modified: z.ZodString;
+    progress: z.ZodObject<{
+        current: z.ZodNumber;
+        desired: z.ZodNumber;
+    }, z.core.$loose>;
+    reward: z.ZodOptional<z.ZodObject<{
+        initial: z.ZodNumber;
+        remaining: z.ZodNumber;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type CorporationRoleHistory = z.infer<typeof CorporationRoleHistorySchema>;
@@ -6822,7 +6919,7 @@ export type MercenaryTacticalOperationDetail = z.infer<typeof MercenaryTacticalO
 const MercenaryTacticalOperationDetailSchema: z.ZodObject<{
     id: z.ZodString;
     mercenary_den_id: z.ZodNumber;
-    state: z.ZodType<(string & {}) | "Unspecified" | "Available" | "Started" | "Completed" | "Expired" | "Removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Available" | "Started" | "Completed" | "Expired" | "Removed", unknown>>;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Completed" | "Expired" | "Available" | "Started" | "Removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Completed" | "Expired" | "Available" | "Started" | "Removed", unknown>>;
     dungeon_type_id: z.ZodNumber;
     expires: z.ZodString;
 }, z.core.$loose>;
@@ -7637,9 +7734,13 @@ declare namespace schemas {
         StandingSchema as CorporationStandingSchema,
         CorporationWalletDivisionSchema,
         ContainerLogSchema,
+        CorporationProjectCursorSchema,
+        CorporationProjectSummarySchema,
+        CorporationProjectsListingSchema,
         CorporationProjectSchema,
         CorporationProjectContributionSchema,
         CorporationProjectContributorSchema,
+        CorporationProjectContributorsListingSchema,
         DogmaAttributeSchema,
         DogmaEffectSchema,
         DogmaDynamicItemSchema,

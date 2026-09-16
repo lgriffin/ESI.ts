@@ -21,15 +21,24 @@ const validObjective = {
 };
 
 const validProject = {
-  project_id: 1001,
-  state: 'active',
-  progress: 0.45,
-  start_time: '2026-01-15T00:00:00Z',
+  id: '3868eaed-8278-4cb7-9709-7d7de9c20dc7',
+  name: 'Project Name',
+  state: 'Active',
+  last_modified: '2026-01-15T00:00:00Z',
+  progress: { current: 45, desired: 100 },
+  creator: { id: 90000001, name: 'Creator Name' },
+  details: {
+    career: 'Explorer',
+    created: '2026-01-01T00:00:00Z',
+    description: 'Project Description',
+  },
+  configuration: { manual: {} },
 };
 
 const validContributor = {
-  character_id: 123456789,
-  contribution: 500,
+  id: 123456789,
+  name: 'Contributor Name',
+  contributed: 500,
 };
 
 const invalidData = { campaign_id: 12345, state: null, progress: 'bad' };

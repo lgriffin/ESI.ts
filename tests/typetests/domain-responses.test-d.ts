@@ -19,6 +19,8 @@ import type {
   CorporationProject,
   CorporationProjectContribution,
   CorporationProjectContributor,
+  CorporationProjectContributorsListing,
+  CorporationProjectsListing,
 } from '../../src';
 
 // --- EsiResponse shape ---
@@ -111,16 +113,25 @@ expectType<number>(charObjective.contribution);
 
 // --- Corporation Projects ---
 
+declare const corpProjects: CorporationProjectsListing;
+expectType<string>(corpProjects.projects[0]!.id);
+expectType<number>(corpProjects.projects[0]!.progress.desired);
+expectType<string | undefined>(corpProjects.cursor?.after);
+
 declare const corpProject: CorporationProject;
-expectType<number>(corpProject.project_id);
-expectType<string>(corpProject.state);
-expectType<number>(corpProject.progress);
-expectType<string>(corpProject.start_time);
+expectType<string>(corpProject.id);
+expectAssignable<string>(corpProject.state);
+expectType<number>(corpProject.progress.current);
+expectType<number>(corpProject.creator.id);
+expectType<string>(corpProject.details.created);
 
 declare const corpContribution: CorporationProjectContribution;
-expectType<number>(corpContribution.character_id);
-expectType<number>(corpContribution.contribution);
+expectType<number>(corpContribution.contributed);
+expectType<string | undefined>(corpContribution.last_modified);
 
+declare const corpContributors: CorporationProjectContributorsListing;
 declare const corpContributor: CorporationProjectContributor;
-expectType<number>(corpContributor.character_id);
-expectType<number>(corpContributor.contribution);
+expectType<CorporationProjectContributor[]>(corpContributors.contributors);
+expectType<number>(corpContributor.id);
+expectType<string>(corpContributor.name);
+expectType<number>(corpContributor.contributed);
