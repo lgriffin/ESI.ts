@@ -23,6 +23,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | EARS spec audit                            |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |      ●       |
 | Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |      ·       |
+| Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Contract tests                             |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |      ·       |
 | Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |      ●       |
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |      ·       |
@@ -457,6 +458,20 @@ A pull request that fixes drift therefore removes its entries in the same change
 
 ---
 
+## Export coverage
+
+Line and branch coverage only see code that something runs, so an exported helper that no test calls, or an exported type no test names, never shows up in them. `npm run test:export-coverage` asks the question of the public surface instead: for each `package.json` `exports` entry, which exported names does no test reference? The analysis is in `scripts/export-coverage-core.ts`, the CLI in `scripts/export-coverage.ts`, and its self-tests and fixture project in `tests/tdd/export-coverage/`. `ci.yml` runs it with `--ci` in `static-analysis`.
+
+- **The surface** is what the TypeScript checker reports as the exports of each entry's source (`./dist/<name>.d.ts` maps to `src/<name>.ts`), following named, type-only, `export *` and `export * as` re-exports. The entry list must match `tsup.config.ts`, or the check exits `2`.
+- **A reference** is an identifier in a `.ts`, `.mts` or `.cts` file under `tests/` that the checker resolves to the same declaration, whether imported from the entry, from the source module directly, or by package name (the consumer contract tests). Files under `fixtures`, `step-fixtures`, `snapshots` and `__snapshots__` directories do not count. Neither does a name in a comment or string, or an import that is never used. Type tests in `tests/typetests` count.
+- **Classes** count as referenced when the class is; members are not checked individually.
+
+Report mode prints the unreferenced names by entry point and exits `0`. `--ci` exits `1` when an unreferenced export is not in `scripts/export-coverage-baseline.json`, when a baseline entry is now referenced or no longer exported, or when the baseline has an entry the base ref's copy lacks. The base ref is `EXPORT_COVERAGE_BASE_REF` (`HEAD^1` in `static-analysis`), else `origin/master`, else `master`; when none resolves the check fails closed, and when the ref has no baseline file yet additions are allowed, as for [schema drift](#the-known-drift-baseline). `--write-baseline` rewrites the file from today's result, and the ratchet still rejects anything it adds.
+
+The seed baseline has 424 entries: `.` 197 of 366 exports, `./schemas` 46 of 201, `./errors` 1 of 24, `./testing` 0 of 1, `./sde` 90 of 123 and `./sde/memory` 90 of 122. Most are response and SDE row types; the runtime functions among them are tracked in `esi-23g.19`.
+
+---
+
 ## Dependency audit
 
 `npm audit` reports the state of the world, not the state of a diff. An unchanged commit passes before an advisory is published and fails after it. Used as a plain merge gate, it turns every open pull request red for something its author did not do. The audit is therefore split three ways, all driven by `scripts/audit-check.ts`:
@@ -567,6 +582,7 @@ The same "explicit, reasoned exception" pattern appears in four more places:
 | `fuzz:api`                              | Schemathesis against a Prism mock (Docker)                                                                                                                          |
 | `mock:esi`                              | Prism mock of ESI on port 4010                                                                                                                                      |
 | `test:consumer`                         | Consumer contract: pack, install into a clean consumer, type-check and run it (not part of `npm test`; see [TESTING.md](TESTING.md#consumer-contract))              |
+| `test:export-coverage`                  | Public exports no test references, by entry point; `--ci` gates against `scripts/export-coverage-baseline.json`                                                     |
 | `test:types`                            | tsd type tests                                                                                                                                                      |
 | `benchmark`                             | Benchmark suite                                                                                                                                                     |
 | `mutation` / `mutation:report`          | Stryker                                                                                                                                                             |
@@ -635,6 +651,7 @@ npm run test:all                                  # integration, fuzz, type test
 ESI_LIVE_TESTS=true npm run contract:live        # what the CI job runs
 npm run validate:auth-scopes
 npm run schema:drift:ci
+npm run test:export-coverage -- --ci
 npm run generate:types && git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts
 npm run api-report && git diff etc/esi.ts.api.md  # commit any change
 npm run audit:check

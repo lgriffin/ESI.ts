@@ -137,6 +137,15 @@ jobs:
       - name: Run dead code detection (knip)
         run: npx knip --no-exit-code
 
+      # Every public export must be referenced by a test, or listed in
+      # scripts/export-coverage-baseline.json. The baseline only shrinks
+      # relative to the base tip, HEAD^1 (fetch-depth 2 above); without a base
+      # ref the check fails closed.
+      - name: Check every public export is referenced by a test
+        env:
+          EXPORT_COVERAGE_BASE_REF: HEAD^1
+        run: npm run test:export-coverage -- --ci
+
       # Drift listed in scripts/schema-drift-baseline.json passes; the baseline
       # may only shrink relative to the base tip, which fetch-depth 2 provides
       # as HEAD^1 (a pull request checkout has no origin/master).
