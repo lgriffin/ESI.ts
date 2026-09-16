@@ -11,6 +11,16 @@ edit anything here:
 - The reviewer checklist and its severities are in the root
   [`AGENTS.md`](../../AGENTS.md#reviewer-checklist).
 
+## Step files
+
+- New steps go in `steps/<given|when|then>/`, one step per file, named after
+  the step text. Reuse the file if it already exists. Fixtures, IDs and paths
+  go in `support/<domain>.ts`.
+- A feature runs through `specs/<area>/NNNN-domain.spec.ts`, which contains
+  only `bindFeature(__filename)`.
+- Never add a file to `step-definitions/`, or an entry to `legacyStepFiles` in
+  `scripts/spec-audit-exceptions.json`. Those only shrink.
+
 ## Mock at the transport seam
 
 - Queue HTTP responses with the helpers in [`support/`](support/), for example
@@ -26,7 +36,8 @@ edit anything here:
 
 ```bash
 npx jest --config jest.unit.config.cjs --testPathPatterns=<domain>  # RED first, then GREEN
-npm run spec:audit
+npm run bdd:steps     # every step matches one definition; no unused definitions
+npm run spec:audit    # feature files, step-file layout, and the ratchets
 ```
 
 `scripts/spec-audit-exceptions.json` only shrinks. Never add an entry to it.

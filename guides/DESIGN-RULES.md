@@ -220,7 +220,7 @@ For an offset-paginated operation, also add the `stream*` and `fetchAll*` wrappe
 | Inferred types          | `npm run test:types`                       |
 | Public surface          | `npm run build && npm run api-report`      |
 
-Unit tests live in `tests/tdd/<domain>/`; `tests/tdd/helpers/clientErrorTests.ts` provides the shared HTTP-error cases. Scenarios live in `tests/bdd/features/core/NNNN-<domain>.feature` with steps in `tests/bdd/step-definitions/core/`, and mock at the transport seam (TEST-03). Commit the updated `etc/esi.ts.api.md`; CI fails if it is stale (GATE-03).
+Unit tests live in `tests/tdd/<domain>/`; `tests/tdd/helpers/clientErrorTests.ts` provides the shared HTTP-error cases. Scenarios live in `tests/bdd/features/core/NNNN-<domain>.feature` with one step per file in `tests/bdd/steps/` and a spec entry in `tests/bdd/specs/core/`, and mock at the transport seam (TEST-03). Commit the updated `etc/esi.ts.api.md`; CI fails if it is stale (GATE-03).
 
 ---
 

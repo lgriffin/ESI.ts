@@ -30,16 +30,59 @@ tests/bdd/
     integration/  multi-client workflows
     performance/  throughput and latency characteristics
     sde/          static data export provider
-  step-definitions/
-    core|integration|performance|sde/   *.steps.ts — one file per feature file
-    shared/                             support layer: client setup, error and perf helpers
+  specs/
+    core/…/NNNN-domain.spec.ts   — binds the feature at the same path under features/
+    step-library.spec.ts         — the dry run (rule 8)
+  steps/
+    given|when|then/             — one step per file, named after its pattern (rule 7)
+  step-definitions/              — legacy: one defineFeature file per feature, being split up
+    core|integration|performance|sde/   *.steps.ts
+    shared/                             client setup, error and perf helpers
   support/
+    steps.ts      — Given/When/Then, Before/After, DataTable
+    world.ts      — per-scenario state, `this` in every step
+    binder.ts     — runs a feature against the step library under Jest
+    hooks.ts      — installs the transport seam around every scenario
     transport.ts  — the HTTP transport seam every scenario mocks at (rule 5)
-    world.ts
+    <domain>.ts   — a converted domain's fixtures, IDs and paths
 ```
 
-Each `.feature` file maps to exactly one `*.steps.ts` file, wired together by
-`loadFeature(<path>)` / `defineFeature`.
+Every `.feature` file is run by exactly one of two things, and the audit fails
+a feature with neither or both:
+
+- a **spec entry**, `specs/<area>/NNNN-domain.spec.ts`, whose whole content is
+  `bindFeature(__filename)`. Its steps come from the global library in
+  `steps/`. Converted domains: market.
+- a **legacy step file**, `step-definitions/<area>/<domain>.steps.ts`, bound
+  with `loadFeature(<path>)` / `defineFeature`, with every step inline. These
+  are listed in `scripts/spec-audit-exceptions.json` under `legacyStepFiles`,
+  and the list only shrinks.
+
+## The runner
+
+The suite runs on Jest. Feature files are parsed by jest-cucumber, and
+`support/binder.ts` binds them to the step library. Step files are written
+against `support/steps.ts`, which has the same shape as `@cucumber/cucumber`:
+`Given`/`When`/`Then` with `this` as the World, `Before`/`After`, and string
+patterns that are Cucumber Expressions. Moving to cucumber-js later would
+change the import in each step file and nothing else.
+
+This was decided in Phase 2 of the ramp-up epic (`esi-v2s.3`). The plan had
+recommended cucumber-js, for two things jest-cucumber's `defineFeature` lacks:
+Rule titles in test output, and a dry run that finds missing and unused steps.
+The binder provides both on Jest. Staying keeps three things a move would have
+cost:
+
+- **Node support.** `@cucumber/cucumber` 13 requires Node 22 or later. The
+  package supports Node 18 and CI runs the suite on 18, 20 and 22.
+- **Mutation testing.** The BDD-only Stryker run (`npm run mutation:bdd`) and its
+  per-directory ratchet use the Jest runner's per-test coverage analysis.
+- **Coverage.** Scenarios count towards the Jest coverage thresholds, with no
+  second coverage tool to merge.
+
+The cost is that jest-cucumber has not had a release since July 2024. Only its
+parser is used now, and only by `binder.ts`, so replacing it touches one file.
+Rules are recovered from the source text, because its parser flattens them.
 
 ## The rules the audit enforces
 
@@ -98,10 +141,8 @@ clause, before the system name.
 
 ## Review conventions the audit does not check
 
-The audit parses feature-file ASTs and never opens a `.steps.ts` file, so
-these are caught in review — except rule 5, which has its own lint gate.
-Step-file structure and missing/unused step detection are Phase 2 of the
-ramp-up epic (`esi-v2s`).
+These are caught in review, with two exceptions: rule 5 has its own lint gate,
+and step-file structure (rules 7 and 8) is checked by the audit and the dry run.
 
 ### 4. Scenario names describe the case, not the requirement
 
@@ -116,8 +157,9 @@ Scenario: WHEN the cache is manually cleared, the client shall remove all cached
 Scenario: Clearing the cache removes every stored entry
 ```
 
-Scenario names must match the `test('...')` string in the corresponding
-`.steps.ts` file exactly, or jest-cucumber will not bind them.
+In a legacy step file, scenario names must match the `test('...')` string
+exactly, or jest-cucumber will not bind them. A spec entry needs no names: the
+binder takes them from the feature.
 
 ### 5. Mock at the transport seam, not the method under test
 
@@ -136,16 +178,27 @@ jest.spyOn(client.market, 'getMarketPrices').mockResolvedValue(expected);
 // GOOD — describes the HTTP exchange. Path building, auth headers, the rate
 // limiter, retry, the ETag cache, deduplication, JSON parsing and Zod
 // validation all really execute.
-useHttpTransport(); // once, at the top of defineFeature
-client = createSeamClient(); // in beforeEach
-queueResponse({ match: '/markets/prices/', body: expected });
+Given('the market system is operational', function () {
+  queueResponse({
+    match: marketPaths.prices,
+    body: marketFixtures.priceList(),
+  });
+});
+When('the client requests current market prices', async function () {
+  this.result = await this.client.market.getMarketPrices();
+});
 ```
+
+In a spec-bound feature, `support/hooks.ts` installs the seam around every
+scenario and `this.client` is a seam client. A legacy step file calls
+`useHttpTransport()` at the top of `defineFeature` and `createSeamClient()` in
+`beforeEach`.
 
 `tests/bdd/support/transport.ts` is the seam:
 
 | Helper                                                            | Purpose                                                                              |
 | :---------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
-| `useHttpTransport()`                                              | Installs the fake transport for every scenario in the feature                        |
+| `useHttpTransport()`                                              | Legacy step files: installs the fake transport for every scenario in the feature     |
 | `createSeamClient(config?)`                                       | A real `EsiClient` with a test bearer token, no request spacing, millisecond backoff |
 | `queueResponse({ status, headers, body, match, times, delayMs })` | Queues what ESI sends back; `match` pins it to a URL fragment or pattern             |
 | `queueError(status, message, options?)`                           | Queues ESI's `{ "error": message }` body                                             |
@@ -164,7 +217,47 @@ the Rule is about what is sent: the path, query parameters, method or body.
 ### 6. Step bodies delegate to the support layer
 
 No raw URL strings, fixture construction, or response assembly inline in a
-step. Put it in `step-definitions/shared/` and call it.
+step. Put it in `support/<domain>.ts` (converted domains) or
+`step-definitions/shared/` and call it.
+
+### 7. One step per file, named after the step
+
+A step file under `steps/` registers exactly one step, sits in the directory
+of its keyword, and is named after its pattern:
+
+```ts
+// tests/bdd/steps/when/the-client-requests-market-history.ts
+import { THE_FORGE, TRITANIUM } from '../../support/market';
+import { When } from '../../support/steps';
+
+When('the client requests market history', async function () {
+  this.result = await this.client.market.getMarketHistory(THE_FORGE, TRITANIUM);
+});
+```
+
+Steps are global: the step text in any feature finds the file by name, and a
+second feature using the same words reuses it. `this` is a new `World` per
+scenario. Use `function`, not an arrow function, or `this` is lost. What one
+step leaves for a later one goes on `this.result`, `this.error` or
+`this.values`.
+
+String patterns are Cucumber Expressions, limited to `{int}`, `{float}`,
+`{string}` and `{word}`. Optional text `(s)` and alternation `a/b` are
+rejected when the step loads, not matched literally, so a pattern means the
+same under cucumber-js. For anything else, use a regular expression literal.
+
+Converting a legacy domain: move each step into its own file (reword a step
+whose text collides with another feature's), move fixtures and paths into
+`support/<domain>.ts`, add the spec entry, delete the legacy file and remove it
+from `legacyStepFiles`.
+
+### 8. Every step matches exactly one definition, and every definition is used
+
+`npm run bdd:steps` is the dry run. It resolves every step of every
+spec-bound feature against the library without running a scenario, and fails
+on a step with no definition, a step with several, and a definition no feature
+uses. A spec entry also refuses to run a feature with a missing or ambiguous
+step, so these fail `npm test` too.
 
 ## Workflow for a behaviour change
 
@@ -186,7 +279,8 @@ npx ts-node scripts/spec-audit.ts tests/bdd/features/core/0023-market.feature
 ```
 
 It parses the real Gherkin AST, runs in CI, and emits inline annotations on the
-offending lines. It checks exactly this, and nothing else:
+offending lines. It checks exactly this, and nothing else. First, the feature
+files:
 
 | Check                                                            | Fixture                                                                    |
 | :--------------------------------------------------------------- | :------------------------------------------------------------------------- |
@@ -202,8 +296,32 @@ offending lines. It checks exactly this, and nothing else:
 | Every Feature has at least one Rule                              | `feature-without-rules`                                                    |
 | Every Feature has a description                                  | `feature-without-description`                                              |
 
+Then, on a full run (no paths given), the step files. These checks live in
+`scripts/spec-audit-steps.ts` and read step files with the TypeScript parser,
+without running them. Each fixture is a small repository tree under
+`tests/tdd/spec-audit/step-fixtures/`:
+
+| Check                                                                                                  | Fixture                                            |
+| :----------------------------------------------------------------------------------------------------- | :------------------------------------------------- |
+| A step file sits directly in `steps/given`, `steps/when` or `steps/then`                               | `step-file-location`                               |
+| A step file registers exactly one step                                                                 | `step-file-count`                                  |
+| The step's keyword matches its directory                                                               | `step-file-keyword`                                |
+| The pattern is a string or regular expression literal                                                  | `step-file-pattern`                                |
+| The file is named after the pattern                                                                    | `step-file-name`                                   |
+| No two string patterns differ only in literal numbers or quoted strings                                | `step-near-duplicate`                              |
+| Every feature is run by a spec entry or a legacy step file, and not both                               | `feature-unbound`, `feature-bound-twice`           |
+| Every spec entry names an existing feature                                                             | `spec-without-feature`                             |
+| Every legacy step file is listed in `legacyStepFiles`; the list gains no entry, and every entry exists | `legacy-step-file-unlisted`, `-added`, `-dangling` |
+
+Matching steps to definitions is not in this list. It needs the patterns
+compiled exactly as the runner compiles them, so it is the dry run's job
+(rule 8).
+
 `tests/tdd/spec-audit/spec-audit.test.ts` runs the fixtures through the audit,
 so a check that stops firing fails the unit suite rather than passing quietly.
+`spec-audit-steps.test.ts` does the same for the step-file checks, and
+`tests/tdd/bdd-binder/` pins the binder's matching, Rule grouping and hook
+order.
 It drives the CLI in a child process, because `@cucumber/gherkin` is ESM-only
 and Jest cannot load it: the checks that need no Gherkin AST live in
 `scripts/spec-audit-checks.ts`, free of that dependency, and are imported
@@ -229,6 +347,13 @@ trying `$SPEC_AUDIT_BASE_REF`, then `origin/master`, then `master`. If no ref
 resolves the baseline is empty, so every entry reads as an addition; the
 ratchet fails closed. The list is empty today — new feature files are
 Rule-compliant from the start.
+
+`legacyStepFiles` in the same file ratchets the same way, against the same
+baseline. It is not empty, so a full audit needs the integration branch
+fetched; the CI job fetches `master` before it runs. The one exception is a
+baseline whose file has no `legacyStepFiles` key at all, which only happens on
+the change that introduces the key: additions cannot be detected there, and the
+check is skipped.
 
 ## The consistency check
 

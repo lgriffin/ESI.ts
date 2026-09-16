@@ -803,7 +803,7 @@ BDD scenarios cover the validation feature from a consumer perspective, verifyin
 ## Adding New Tests
 
 1. **TDD test**: Create `tests/tdd/<domain>/<ClientName>.test.ts`. Mock fetch responses, call client methods, assert results.
-2. **BDD test**: Add a `.feature` file in `tests/bdd/features/core/` and a matching `.steps.ts` in `tests/bdd/step-definitions/core/`. Use `jest.spyOn` on `EsiClient` properties.
+2. **BDD test**: Add a `.feature` file in `tests/bdd/features/core/`, a spec entry at the same path under `tests/bdd/specs/core/`, and one file per new step in `tests/bdd/steps/<keyword>/`. Queue HTTP responses at the transport seam; see `tests/bdd/README.md`.
 3. **Integration test**: Add to `tests/integration/`. Use real fetch (no mocks). Keep tests idempotent and read-only against ESI.
 4. **Test data**: Add factory methods to `src/testing/TestDataFactory.ts` if new response types are needed.
 

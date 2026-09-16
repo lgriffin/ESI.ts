@@ -273,10 +273,16 @@ exercise. Stubbing that method means the `Then` step asserts on the fixture the
 jest.spyOn(client.market, 'getMarketPrices').mockResolvedValue(expected);
 
 // GOOD — the whole pipeline really executes
-fetchMock.mockResponseOnce(JSON.stringify(expected), {
-  headers: { ETag: '"abc"' },
-});
+queueResponse({ match: marketPaths.prices, body: expected });
 ```
+
+**One step per file.** New steps go in `tests/bdd/steps/<keyword>/`, one file
+each, named after the step text: `When the client requests market history`
+lives in `steps/when/the-client-requests-market-history.ts`. Before writing a
+step, look for the file its words would name: if it exists, reuse it. A feature
+runs through a two-line spec entry in `tests/bdd/specs/` that mirrors its path.
+README §7 and §8 have the rules, and `npm run bdd:steps` checks that every step
+matches exactly one definition and that no definition is unused.
 
 **The gotcha:** `fetch` is _already_ mocked globally for every BDD file by
 `src/config/jest/jest.setup.ts`, which calls `fetchMock.enableMocks()` and
@@ -285,9 +291,11 @@ network call — it causes the client to parse an empty body and fail
 confusingly. Removing the spy and queueing the response must land in the same
 edit.
 
-Reference implementations: `etag-caching.steps.ts` and
-`response-headers.steps.ts` for transport mocking; `resilience.steps.ts` for
-driving real `CircuitBreaker` and `RetryStrategy` objects.
+Reference implementations: the market domain (`specs/core/0023-market.spec.ts`,
+`steps/`, `support/market.ts`) for the one-step-per-file layout;
+`etag-caching.steps.ts` and `response-headers.steps.ts` for transport mocking;
+`resilience.steps.ts` for driving real `CircuitBreaker` and `RetryStrategy`
+objects.
 
 Most of the existing suite predates this rule and is still being converted, so
 **do not copy a neighbouring file without checking which pattern it uses.**
@@ -426,24 +434,25 @@ impossible, which is one of the better reasons to convert.
 
 ## Known limitations
 
-**jest-cucumber collapses Rules.** Version 4.5.0 depends on
-`@cucumber/gherkin ^28` and parses `Rule:` blocks correctly, which is why this
-convention needed no framework migration. But `collapseRulesAndBackgrounds`
-flattens each Rule's children into the feature's scenario list and discards the
-Rule title. Consequences:
+**Legacy step files hide Rules.** jest-cucumber 4.5.0 parses `Rule:` blocks,
+but `collapseRulesAndBackgrounds` flattens each Rule's children into the
+feature's scenario list and discards the Rule title. In a feature still run by
+a legacy `defineFeature` file:
 
-- Rule titles are not addressable from `defineFeature` and do not appear in
-  Jest output. The requirements are visible in the feature files and in the
-  audit, not in the test report.
+- Rule titles do not appear in Jest output.
 - A Rule-level `Background:` _is_ supported — it is merged with the feature-level
   Background and applied to that Rule's scenarios.
-- Scenario names must therefore be unique within the whole file, not just
-  within their Rule.
+- Scenario names must be unique within the whole file, not just within their
+  Rule.
 
-**Spec-side only.** The audit checks feature files. It cannot check step
-definitions for unused or duplicated steps, because that needs cucumber-js
-`--dry-run` JSON and this project uses jest-cucumber. Step hygiene is review's
-job.
+A feature bound by a spec entry has none of these limits. The binder recovers
+each scenario's Rule from the source and nests the scenario's test under a
+`describe` for it.
+
+**Unused steps are only found in converted domains.** A legacy step file
+defines its steps inside each `test()`, so nothing is shared and nothing can go
+unused. jest-cucumber still fails a scenario whose steps do not match the
+feature. The dry run covers the global library only.
 
 **The audit cannot tell whether a scenario can fail.** It verifies that
 requirements are well-formed, not that they are enforced. Nothing mechanical

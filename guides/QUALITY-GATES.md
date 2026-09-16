@@ -40,7 +40,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | OpenSSF Scorecard                          |   ·    |            ·             |        ·         |   ◐ weekly    |      ·       |
 
 1. The release job runs lint, format check and build. It has no separate `typecheck` step; `npm run build` runs `tsc --emitDeclarationOnly`, which type-checks `src/`.
-2. `npm test` uses `jest.unit.config.cjs`, whose `testMatch` includes `tests/bdd/step-definitions/**/*.steps.ts`. Every push therefore runs the BDD scenarios as part of the unit suite.
+2. `npm test` uses `jest.unit.config.cjs`, whose `testMatch` includes `tests/bdd/step-definitions/**/*.steps.ts` and `tests/bdd/specs/**/*.spec.ts`. Every push therefore runs the BDD scenarios as part of the unit suite.
 3. Soft-skips with a warning annotation when ESI returns HTTP 503 (Tranquility downtime).
 4. From `maintenance.yml`, which runs weekly and only uploads artifacts.
 5. Runs and reports a status, but is outside `ci-success`, so a red result does not stop a merge. See [What actually blocks a merge](#what-actually-blocks-a-merge).
