@@ -209,10 +209,11 @@ and Jest cannot load it: the checks that need no Gherkin AST live in
 `scripts/spec-audit-checks.ts`, free of that dependency, and are imported
 directly.
 
-That ESM-only dependency also means the audit needs a Node with `require(esm)`
-— 20.19 or 22.12 and above. On an older Node it cannot start at all, and the
-fixture suite skips with a warning rather than asserting against the startup
-error. Tracked as `esi-v2s.8`.
+The audit itself runs as CommonJS under ts-node, so it loads the ESM-only
+Cucumber packages through a real dynamic `import()` rather than `require()`.
+That keeps it working on every Node the package supports (18 and above), not
+only on those with `require(esm)` (20.19+ / 22.12+). The unit matrix runs the
+fixture suite on Node 18, 20 and 22, so a regression there fails CI.
 
 `scripts/spec-audit-exceptions.json` lists feature files not yet converted to
 Rule form. It is a **ratchet in both directions**, and the run fails when:
