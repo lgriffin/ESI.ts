@@ -56,8 +56,18 @@ export function handleEarlyStatus(
           status,
           cacheHitType: 'etag-304',
         });
+        const headers = { ...cachedEntry.headers, ...parsed.raw };
+        // A 304 confirms the stored body is current: store it again so its
+        // freshness TTL, and the retention window after it, start over.
+        cache.set(
+          key,
+          cachedEntry.etag,
+          cachedEntry.data,
+          headers,
+          cachedEntry.ttl,
+        );
         return {
-          headers: { ...cachedEntry.headers, ...parsed.raw },
+          headers,
           body: cachedEntry.data,
           status: 304,
           fromCache: true,

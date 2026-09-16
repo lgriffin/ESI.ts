@@ -53,6 +53,61 @@ function queueErrorResponse(status: number, times = 1): void {
   }
 }
 
+/** GET status has a 30 second spec cache TTL. */
+const SERVER_STATUS = {
+  players: 23456,
+  server_version: '2891234',
+  start_time: '2026-09-16T11:05:00Z',
+};
+const SERVER_STATUS_ETAG = '"server-status-v1"';
+const SERVER_STATUS_TTL_MS = 30_000;
+const ONE_HOUR_MS = 60 * 60 * 1000;
+
+/**
+ * Moves the clock the cache reads (Date.now) forward without waiting. Retry
+ * backoff still runs on real timers, so nothing else needs faking.
+ */
+let clockOffsetMs = 0;
+function advanceClock(ms: number): void {
+  if (clockOffsetMs === 0) {
+    const realNow = Date.now.bind(Date);
+    jest.spyOn(Date, 'now').mockImplementation(() => realNow() + clockOffsetMs);
+  }
+  clockOffsetMs += ms;
+}
+
+function resetClock(): void {
+  clockOffsetMs = 0;
+  jest.restoreAllMocks();
+}
+
+async function cacheServerStatus(client: EsiClient): Promise<void> {
+  fetchMock.mockResponseOnce(JSON.stringify(SERVER_STATUS), {
+    headers: {
+      ETag: SERVER_STATUS_ETAG,
+      'Content-Type': 'application/json',
+    },
+  });
+  await client.status.getStatus();
+  expect(client.getCacheStats()!.totalEntries).toBe(1);
+}
+
+/** A 304 has a null body; the Response constructor rejects even ''. */
+function queueNotModified(etag: string): void {
+  fetchMock.mockResponseOnce(
+    new Response(null, { status: 304, headers: { ETag: etag } }),
+  );
+}
+
+/** The resolved value, or the error the call rejected with. */
+async function captureOutcome(call: () => Promise<unknown>): Promise<unknown> {
+  try {
+    return await call();
+  } catch (error) {
+    return error;
+  }
+}
+
 async function captureRejection(call: Promise<unknown>): Promise<unknown> {
   try {
     await call;
@@ -91,6 +146,7 @@ defineFeature(feature, (test) => {
 
   afterEach(() => {
     client.shutdown();
+    resetClock();
   });
 
   test('First response carrying an ETag is stored in the cache', ({
@@ -534,6 +590,195 @@ defineFeature(feature, (test) => {
         expectEsiError(error, Number(status));
       },
     );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
+    });
+  });
+
+  // ── Keeping entries past their freshness TTL ───────────────────────
+
+  test('HTTP 503 after the server status TTL has elapsed is answered from the cache', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let response: EsiResponse<typeof SERVER_STATUS>;
+
+    given('a client whose ETag cache holds the server status', async () => {
+      staleClient = createStaleOnErrorClient();
+      await cacheServerStatus(staleClient);
+    });
+
+    and('the 30 second spec cache TTL of the server status has elapsed', () => {
+      advanceClock(SERVER_STATUS_TTL_MS + 1_000);
+    });
+
+    and(
+      'ESI answers the server status request with HTTP 503 on every attempt',
+      () => {
+        queueErrorResponse(503, FAST_RETRY.maxRetries + 1);
+      },
+    );
+
+    when('the client requests the server status with metadata', async () => {
+      response = await staleClient.status.withMetadata().getStatus();
+    });
+
+    then(
+      'the client resolves with the cached server status flagged as stale',
+      () => {
+        expect(response.data).toEqual(SERVER_STATUS);
+        expect(response.meta.fromCache).toBe(true);
+        expect(response.meta.stale).toBe(true);
+        expect(response.meta.cacheHitType).toBe('stale-on-error');
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
+    });
+  });
+
+  test('Revalidation after the server status TTL has elapsed is answered by a 304', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let response: EsiResponse<typeof SERVER_STATUS>;
+
+    given('a client whose ETag cache holds the server status', async () => {
+      staleClient = createStaleOnErrorClient();
+      await cacheServerStatus(staleClient);
+    });
+
+    and('the 30 second spec cache TTL of the server status has elapsed', () => {
+      advanceClock(SERVER_STATUS_TTL_MS + 1_000);
+    });
+
+    and(
+      'ESI answers the revalidation of the server status with HTTP 304',
+      () => {
+        queueNotModified(SERVER_STATUS_ETAG);
+      },
+    );
+
+    when('the client requests the server status with metadata', async () => {
+      response = await staleClient.status.withMetadata().getStatus();
+    });
+
+    then(
+      'the client resolves with the cached server status from a 304 revalidation',
+      () => {
+        expect(response.data).toEqual(SERVER_STATUS);
+        expect(response.meta.fromCache).toBe(true);
+        expect(response.meta.stale).toBeFalsy();
+        expect(response.meta.cacheHitType).toBe('etag-304');
+      },
+    );
+
+    and(
+      'the revalidation request carried the cached server status ETag in If-None-Match',
+      () => {
+        expect(fetchMock.mock.calls).toHaveLength(2);
+        expect(requestHeader(1, 'If-None-Match')).toBe(SERVER_STATUS_ETAG);
+        staleClient.shutdown();
+      },
+    );
+  });
+
+  test('HTTP 503 more than an hour after the server status TTL has elapsed rejects', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    let error: unknown;
+
+    given('a client whose ETag cache holds the server status', async () => {
+      staleClient = createStaleOnErrorClient();
+      await cacheServerStatus(staleClient);
+    });
+
+    and(
+      'more than one hour past the spec cache TTL of the server status has elapsed',
+      () => {
+        advanceClock(SERVER_STATUS_TTL_MS + ONE_HOUR_MS + 1_000);
+      },
+    );
+
+    and(
+      'ESI answers the server status request with HTTP 503 on every attempt',
+      () => {
+        queueErrorResponse(503, FAST_RETRY.maxRetries + 1);
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      error = await captureRejection(staleClient.status.getStatus());
+    });
+
+    then(
+      /^the client rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(error, Number(status));
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      staleClient.shutdown();
+    });
+  });
+
+  test('Server status revalidated by a 304 is served without a request 20 seconds later', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let staleClient: EsiClient;
+    const results: unknown[] = [];
+
+    given('a client whose ETag cache holds the server status', async () => {
+      staleClient = createStaleOnErrorClient();
+      await cacheServerStatus(staleClient);
+    });
+
+    and('the 30 second spec cache TTL of the server status has elapsed', () => {
+      advanceClock(SERVER_STATUS_TTL_MS + 1_000);
+    });
+
+    and(
+      'ESI answers the revalidation of the server status with HTTP 304',
+      () => {
+        queueNotModified(SERVER_STATUS_ETAG);
+      },
+    );
+
+    when(
+      'the client requests the server status twice, 20 seconds apart',
+      async () => {
+        results.push(
+          await captureOutcome(() => staleClient.status.getStatus()),
+        );
+        advanceClock(20_000);
+        results.push(
+          await captureOutcome(() => staleClient.status.getStatus()),
+        );
+      },
+    );
+
+    then('both calls resolve with the cached server status', () => {
+      expect(results).toEqual([SERVER_STATUS, SERVER_STATUS]);
+    });
 
     and(/^the client sent (\d+) requests$/, (count: string) => {
       expect(fetchMock.mock.calls).toHaveLength(Number(count));

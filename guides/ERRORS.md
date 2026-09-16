@@ -101,7 +101,7 @@ Raised by the offline Static Data Export module, which shares no code with the H
 
 ## Type guards and where to import them
 
-Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guard only matches errors created by the same copy of the package; a duplicated dependency in `node_modules` breaks them.
+Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guard only matches errors created by the same copy of the package; a duplicated dependency in `node_modules` breaks them. The root entry and `./errors` export the same classes and guards, so an error thrown by the client matches a guard or class imported from either. The CommonJS and ES module builds are separate copies, though: a guard loaded with `require` does not match an error thrown by a client loaded with `import`, or the other way round.
 
 | Guard                  | Narrows to                | True when                            | `.` (root) | `./errors` | `./sde` |
 | ---------------------- | ------------------------- | ------------------------------------ | :--------: | :--------: | :-----: |
@@ -205,7 +205,7 @@ Some statuses never become errors, and some errors carry extra text.
 | `401`                      | `EsiError` with remediation appended (below).                                                                                         |
 | `403`                      | `EsiError` with remediation appended (below).                                                                                         |
 
-A stale response is only possible for a GET whose earlier success carried an `ETag`, since only those are cached. Use `withMetadata()` to see `meta.stale`.
+A stale response is only possible for a GET whose earlier success carried an `ETag`, since only those are cached, and only while that entry is kept: one hour past its freshness TTL, or the cache's `defaultTtl` when the response gave no TTL (see [ARCHITECTURE.md](ARCHITECTURE.md#4-caching)). Use `withMetadata()` to see `meta.stale`.
 
 The remediation text is appended to the status message on the main request path:
 

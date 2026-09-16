@@ -1,12 +1,14 @@
 Feature: ETag Caching
   The EsiClient caches GET responses that carry an ETag header, keyed by
-  endpoint. Each entry takes its TTL from the endpoint's cache metadata in the
-  ESI spec where there is one, so a repeat request inside that window is
-  answered from memory with no HTTP call at all. Otherwise the TTL comes from
-  the Cache-Control max-age or the configured default, and a repeat request is
-  sent with If-None-Match. Entries are only created for responses that
-  actually carry an ETag. The cache is on by default; enableETagCache: false
-  turns it off.
+  endpoint. Each entry takes its freshness TTL from the endpoint's cache
+  metadata in the ESI spec where there is one, so a repeat request inside that
+  window is answered from memory with no HTTP call at all. Otherwise the TTL
+  comes from the Cache-Control max-age, and a repeat request is sent with
+  If-None-Match. An entry is kept for an hour past its freshness TTL, or for
+  the configured default when the response gave none, so a request after the
+  TTL still revalidates. Entries are only created for responses that actually
+  carry an ETag. The cache is on by default; enableETagCache: false turns it
+  off.
 
   The cache is also what lets a request survive a server error: a 5xx answered
   while an unexpired entry exists is served from that entry and flagged stale.
@@ -72,9 +74,9 @@ Feature: ETag Caching
     A server error on a resource the client already holds is better answered
     with the last good copy than with a failure. The entry has to be unexpired:
     the cache evicts an expired entry on lookup, so there is nothing to serve.
-    For an endpoint with a spec cache TTL an unexpired entry is served before
-    any request leaves the client, so this path serves endpoints without one,
-    whose revalidation request goes out with If-None-Match. The stale body is
+    An entry expires an hour after its freshness TTL, so for an endpoint with a
+    spec cache TTL this path serves the requests made after that TTL. The
+    revalidation request goes out with If-None-Match. The stale body is
     returned without retrying, and withMetadata reports stale as true and
     cacheHitType as stale-on-error.
 
@@ -120,6 +122,56 @@ Feature: ETag Caching
       And ESI answers the revalidation of the dogma attribute index with HTTP 404
       When the client requests the dogma attribute index
       Then the client rejects with an EsiError carrying status 404
+      And the client sent 2 requests
+
+  # ── Keeping entries past their freshness TTL ────────────────────────
+
+  Rule: When the freshness TTL of a cached entry elapses, the ETag cache shall keep that entry for one further hour before discarding it.
+    The freshness TTL, from the spec cache metadata or Cache-Control max-age,
+    decides how long an entry is served without contacting ESI. It does not
+    decide how long the entry is useful: past it the entry still carries the
+    ETag for a conditional request, and it is the last good copy if ESI fails.
+    One hour spans ESI's daily downtime. The configured maximum entry count
+    still evicts the oldest entry first, so retention does not raise the memory
+    bound. An entry whose response gave no freshness TTL keeps the configured
+    defaultTtl.
+
+    Scenario: HTTP 503 after the server status TTL has elapsed is answered from the cache
+      Given a client whose ETag cache holds the server status
+      And the 30 second spec cache TTL of the server status has elapsed
+      And ESI answers the server status request with HTTP 503 on every attempt
+      When the client requests the server status with metadata
+      Then the client resolves with the cached server status flagged as stale
+      And the client sent 2 requests
+
+    Scenario: Revalidation after the server status TTL has elapsed is answered by a 304
+      Given a client whose ETag cache holds the server status
+      And the 30 second spec cache TTL of the server status has elapsed
+      And ESI answers the revalidation of the server status with HTTP 304
+      When the client requests the server status with metadata
+      Then the client resolves with the cached server status from a 304 revalidation
+      And the revalidation request carried the cached server status ETag in If-None-Match
+
+    Scenario: HTTP 503 more than an hour after the server status TTL has elapsed rejects
+      Given a client whose ETag cache holds the server status
+      And more than one hour past the spec cache TTL of the server status has elapsed
+      And ESI answers the server status request with HTTP 503 on every attempt
+      When the client requests the server status
+      Then the client rejects with an EsiError carrying status 503
+      And the client sent 5 requests
+
+  Rule: When a revalidation is answered with HTTP 304, the ETag cache shall restart the freshness TTL of the cached entry.
+    A 304 is ESI confirming that the stored body is still current, so the entry
+    is as fresh as a new 200 would have made it. Without the restart, every
+    request after the first TTL elapsed would go to ESI until the entry was
+    discarded.
+
+    Scenario: Server status revalidated by a 304 is served without a request 20 seconds later
+      Given a client whose ETag cache holds the server status
+      And the 30 second spec cache TTL of the server status has elapsed
+      And ESI answers the revalidation of the server status with HTTP 304
+      When the client requests the server status twice, 20 seconds apart
+      Then both calls resolve with the cached server status
       And the client sent 2 requests
 
   # ── Observability and control ───────────────────────────────────────
