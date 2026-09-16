@@ -17,6 +17,7 @@ Topics with their own guide are summarised here and linked:
 | Test tiers                                           | [TESTING.md](TESTING.md)                       |
 | CI workflows and gates                               | [QUALITY-GATES.md](QUALITY-GATES.md)           |
 | Releases                                             | [RELEASE.md](RELEASE.md)                       |
+| Major, minor or patch; breaking-change markers       | [SEMVER.md](SEMVER.md)                         |
 
 ---
 

@@ -164,6 +164,7 @@ The README orients; the guides are canonical. Each one opens with the [engineeri
 | [Mutation testing](guides/MUTATION-TESTING.md)     | Stryker configuration and scores                                                    |
 | [Quality gates](guides/QUALITY-GATES.md)           | What runs at commit, push, PR, nightly and release; every workflow and script       |
 | [Release](guides/RELEASE.md)                       | Cutting a release, changelog, provenance, signatures, supported versions            |
+| [Semantic versioning](guides/SEMVER.md)            | What is public, major/minor/patch decisions, breaking-change commits, merge buttons |
 | [OKF bundle](guides/OKF.md)                        | The generated Open Knowledge Format catalogue of ESI                                |
 | [Documentation](guides/DOCUMENTATION.md)           | Documentation surfaces and the TypeDoc reference                                    |
 | [Beads](guides/BEADS.md)                           | Issue tracking workflow                                                             |

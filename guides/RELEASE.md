@@ -54,7 +54,7 @@ There is no `workflow_dispatch` trigger on either release workflow. A release ca
 
 ## Version bumps
 
-release-please uses the `node` release type with `bump-minor-pre-major: false`, so semantic-versioning rules apply as written.
+release-please uses the `node` release type with `bump-minor-pre-major: false`, so semantic-versioning rules apply as written. Deciding which bump a change needs, and how to mark it, is in [SEMVER.md](SEMVER.md).
 
 | Commit                                                       | Bump  | Changelog section |
 | ------------------------------------------------------------ | ----- | ----------------- |
