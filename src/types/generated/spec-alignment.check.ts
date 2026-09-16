@@ -11,7 +11,7 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 112
+ * - Type pairs asserted: 113
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
@@ -143,6 +143,7 @@ import type {
   SovereigntySystemStructure,
   // SovereigntySystem -- skipped: uses completely different nested structure vs flat spec shape
 } from '../sovereignty';
+import type { MetaStatus } from '../meta';
 import type { ServerStatus } from '../status';
 import type {
   SolarSystemInfo,
@@ -677,6 +678,9 @@ type _SovereigntySystemStructure = AssertTrue<
 // type _SovereigntySystem = AssertTrue<
 //   HasAllSpecKeys<EsiSpec.SovereigntyMapGet, SovereigntySystem>
 // >;
+
+// Meta
+type _MetaStatus = AssertTrue<HasAllSpecKeys<EsiSpec.MetaStatus, MetaStatus>>;
 
 // Status
 type _ServerStatus = AssertTrue<HasAllSpecKeys<EsiSpec.Status, ServerStatus>>;

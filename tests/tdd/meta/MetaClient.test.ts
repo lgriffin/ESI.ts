@@ -144,14 +144,16 @@ describe('MetaClient', () => {
 
   it('should return the ESI status', async () => {
     const mockResponse = {
-      status: 'ok',
+      routes: [{ method: 'GET', path: '/alliances', status: 'OK' }],
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() => metaClient.getStatus());
 
-    expect(result).toHaveProperty('status', 'ok');
+    expect(result.routes).toEqual([
+      { method: 'GET', path: '/alliances', status: 'OK' },
+    ]);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/meta/status',
     );

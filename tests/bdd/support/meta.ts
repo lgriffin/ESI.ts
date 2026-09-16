@@ -7,6 +7,7 @@
 export const metaPaths = {
   json: '/meta/openapi.json',
   yaml: '/meta/openapi.yaml',
+  status: '/meta/status',
 };
 
 export const YAML_CONTENT_TYPE = { 'content-type': 'application/yaml' };
@@ -45,6 +46,18 @@ components: {}
       version: '2025-12-16',
     },
     paths: { '/alliances': { get: { summary: 'List alliances' } } },
+  }),
+
+  /** `GET /meta/status`: one entry per route (MetaStatus). */
+  routeStatus: () => ({
+    routes: [
+      { method: 'GET', path: '/alliances', status: 'OK' },
+      {
+        method: 'GET',
+        path: '/markets/{region_id}/orders',
+        status: 'Degraded',
+      },
+    ],
   }),
 
   alliancesYamlSpec: () => `openapi: 3.1.0

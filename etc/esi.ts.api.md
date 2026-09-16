@@ -7180,6 +7180,16 @@ const MetaNameSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type MetaRouteStatus = z.infer<typeof MetaRouteStatusSchema>;
+
+// @public
+const MetaRouteStatusSchema: z.ZodObject<{
+    method: z.ZodType<(string & {}) | "GET" | "POST" | "PUT" | "DELETE", unknown, z.core.$ZodTypeInternals<(string & {}) | "GET" | "POST" | "PUT" | "DELETE", unknown>>;
+    path: z.ZodString;
+    status: z.ZodType<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type MetaStatus = z.infer<typeof MetaStatusSchema>;
 
 // @public (undocumented)
@@ -7192,9 +7202,13 @@ interface MetaStatus_2 {
     })[];
 }
 
-// @public (undocumented)
+// @public
 const MetaStatusSchema: z.ZodObject<{
-    status: z.ZodString;
+    routes: z.ZodArray<z.ZodObject<{
+        method: z.ZodType<(string & {}) | "GET" | "POST" | "PUT" | "DELETE", unknown, z.core.$ZodTypeInternals<(string & {}) | "GET" | "POST" | "PUT" | "DELETE", unknown>>;
+        path: z.ZodString;
+        status: z.ZodType<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown>>;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -8041,6 +8055,7 @@ declare namespace schemas {
         MetaChangelogSchema,
         MetaCompatibilityDatesSchema,
         MetaNameSchema,
+        MetaRouteStatusSchema,
         MetaStatusSchema,
         ParagonHubCursorSchema,
         ParagonHubSkinrPriceSchema,

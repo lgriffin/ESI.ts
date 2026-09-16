@@ -299,6 +299,7 @@ exports[`API surface snapshots schema exports should match snapshot 1`] = `
   "MetaChangelogSchema",
   "MetaCompatibilityDatesSchema",
   "MetaNameSchema",
+  "MetaRouteStatusSchema",
   "MetaStatusSchema",
   "MilitaryCampaignObjectiveSchema",
   "MilitaryCampaignSchema",

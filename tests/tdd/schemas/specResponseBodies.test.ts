@@ -14,6 +14,7 @@ import { corporationEndpoints } from '../../../src/core/endpoints/corporationEnd
 import { freelanceJobsEndpoints } from '../../../src/core/endpoints/freelanceJobsEndpoints';
 import { industryEndpoints } from '../../../src/core/endpoints/industryEndpoints';
 import { mailEndpoints } from '../../../src/core/endpoints/mailEndpoints';
+import { metaEndpoints } from '../../../src/core/endpoints/metaEndpoints';
 
 interface BodyCase {
   route: string;
@@ -211,6 +212,14 @@ const cases: BodyCase[] = [
         end_date: '2026-09-16T12:00:00Z',
       },
     ],
+  },
+  {
+    // MetaStatus: per-route health, no top-level status.
+    route: 'GET /meta/status',
+    schema: metaEndpoints.getStatus.responseSchema,
+    body: {
+      routes: [{ method: 'GET', path: '/alliances', status: 'OK' }],
+    },
   },
 ];
 
