@@ -7,12 +7,15 @@
  * the public client method and `fetch` is stubbed, so a scenario can fail for
  * a bug anywhere in `src/`.
  *
- * Usage, at the top of a `defineFeature` callback:
+ * Step files under tests/bdd/steps get the seam from `support/hooks.ts` and a
+ * seam client from `this.client`:
+ *
+ *   Given('...', function () { queueResponse({ body: [...] }); });
+ *
+ * Legacy `defineFeature` step files install it themselves:
  *
  *   useHttpTransport();
  *   beforeEach(() => { client = createSeamClient(); });
- *
- *   given('...', () => queueResponse({ body: [...] }));
  *
  * Strictness is deliberate: a request with no queued response fails the
  * scenario, and so does a queued response that was never requested. Both mean
@@ -133,37 +136,48 @@ function toReply(entry: HttpResponse) {
 }
 
 /**
+ * Reset the seam for a new scenario: empty queue, no recorded requests.
+ * `support/hooks.ts` calls this before every scenario the binder runs.
+ */
+export function startTransport(): void {
+  queue = [];
+  recorded = [];
+  unexpected = [];
+  fetchMock.resetMocks();
+  fetchMock.mockResponse((request) => serve(request as MockRequest));
+  installed = true;
+}
+
+/**
+ * Close the seam after a scenario, failing it if a request went unanswered or
+ * a queued response went unrequested.
+ */
+export function finishTransport(): void {
+  installed = false;
+  const leftover = queue.map(
+    (entry) =>
+      `${entry.status ?? 200}${entry.match ? ` for ${String(entry.match)}` : ''} (x${entry.remaining})`,
+  );
+  const problems = [
+    ...unexpected.map((d) => `unexpected request: ${d}`),
+    ...leftover.map((d) => `queued response never requested: ${d}`),
+  ];
+  queue = [];
+  unexpected = [];
+  if (problems.length > 0) {
+    throw new Error(
+      `The scenario's HTTP exchange did not match what it queued:\n  ${problems.join('\n  ')}`,
+    );
+  }
+}
+
+/**
  * Install the seam for every scenario in the enclosing `defineFeature`.
  * Call once, at the top of the callback.
  */
 export function useHttpTransport(): void {
-  beforeEach(() => {
-    queue = [];
-    recorded = [];
-    unexpected = [];
-    fetchMock.resetMocks();
-    fetchMock.mockResponse((request) => serve(request as MockRequest));
-    installed = true;
-  });
-
-  afterEach(() => {
-    installed = false;
-    const leftover = queue.map(
-      (entry) =>
-        `${entry.status ?? 200}${entry.match ? ` for ${String(entry.match)}` : ''} (x${entry.remaining})`,
-    );
-    const problems = [
-      ...unexpected.map((d) => `unexpected request: ${d}`),
-      ...leftover.map((d) => `queued response never requested: ${d}`),
-    ];
-    queue = [];
-    unexpected = [];
-    if (problems.length > 0) {
-      throw new Error(
-        `The scenario's HTTP exchange did not match what it queued:\n  ${problems.join('\n  ')}`,
-      );
-    }
-  });
+  beforeEach(startTransport);
+  afterEach(finishTransport);
 }
 
 /** Queue one HTTP response (or `times` identical ones). */

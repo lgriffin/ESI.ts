@@ -22,6 +22,7 @@ npm test               # Unit + BDD tests (jest.unit.config.cjs)
 npm run coverage       # Unit tests with coverage
 npm run bdd            # All BDD scenario tests
 npm run bdd:<domain>   # Single BDD suite (e.g., bdd:market, bdd:character)
+npm run bdd:steps      # BDD dry run: every step matches one definition, none unused
 npm run spec:audit     # EARS/Gherkin specification audit (feature files)
 npm run test:integration  # Integration tests
 npm run contract       # Contract tests against live ESI spec
@@ -62,7 +63,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `tests/tdd/` — Unit tests
 - `tests/tdd/helpers/` — Shared test utilities (e.g., `clientErrorTests.ts`)
 - `tests/benchmark/` — Performance benchmark tests
-- `tests/bdd/` — BDD features + step definitions (jest-cucumber). Feature files are an EARS specification: one atomic `shall` requirement per `Rule:` block, scenarios nested beneath the rule they verify. See `tests/bdd/README.md` for the rules and `tests/bdd/GUIDE.md` for how to write them; enforced by `npm run spec:audit`.
+- `tests/bdd/` — BDD features + step definitions, run by Jest. Converted domains have one step per file in `tests/bdd/steps/` and a spec entry in `tests/bdd/specs/`; the rest still use legacy `defineFeature` files in `tests/bdd/step-definitions/`. Feature files are an EARS specification: one atomic `shall` requirement per `Rule:` block, scenarios nested beneath the rule they verify. See `tests/bdd/README.md` for the rules and `tests/bdd/GUIDE.md` for how to write them; enforced by `npm run spec:audit`.
 - `tests/integration/` — Integration tests (live ESI optional)
 - `tests/contract/` — Contract tests against live OpenAPI spec
 - `tests/fuzz/` — Property-based fuzz tests (fast-check)

@@ -12,6 +12,7 @@ module.exports = {
   testMatch: [
     '<rootDir>/tests/tdd/**/*.test.ts',
     '<rootDir>/tests/bdd/step-definitions/**/*.steps.ts',
+    '<rootDir>/tests/bdd/specs/**/*.spec.ts',
   ],
   verbose: true,
   coverageDirectory: 'coverage/unit',
@@ -22,7 +23,6 @@ module.exports = {
     '!src/types/**/*.ts',
     '!src/**/*.generated.ts',
     '!src/clients/generated/**',
-
   ],
   coverageThreshold: {
     global: {

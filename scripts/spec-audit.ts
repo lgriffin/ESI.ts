@@ -58,6 +58,7 @@ import {
   loadBaselineExceptions,
   loadExceptions,
 } from './spec-audit-checks';
+import { StepFinding, auditStepLayout } from './spec-audit-steps';
 
 const DEFAULT_PATHS = ['tests/bdd/features'];
 
@@ -343,16 +344,39 @@ async function main(): Promise<void> {
   // exception entry. --ignore-exceptions lets the first step be checked on its
   // own, which also keeps parallel conversions off the shared exception file.
   const ignoreExceptions = args.includes('--ignore-exceptions');
-  const exceptions = ignoreExceptions ? { unconverted: [] } : loadExceptions();
+  const committed = loadExceptions();
+  const exceptions = ignoreExceptions
+    ? { ...committed, unconverted: [] }
+    : committed;
   const unconverted = new Set(exceptions.unconverted);
+
+  // Only a non-empty list needs the baseline, so an empty one needs no git.
+  let baseline: ReturnType<typeof loadBaselineExceptions> | undefined;
+  const loadBaseline = () => (baseline ??= loadBaselineExceptions());
 
   const { added: addedExceptions, dangling: danglingExceptions } =
     exceptions.unconverted.length > 0
-      ? checkExceptionList(
-          exceptions.unconverted,
-          loadBaselineExceptions().entries,
-        )
+      ? checkExceptionList(exceptions.unconverted, loadBaseline().entries)
       : { added: [], dangling: [] };
+
+  // Step files are audited on a full run, or against a fixture tree given
+  // with --steps-root=<dir>, which has no exception list of its own.
+  const stepsRootArg = args.find((a) => a.startsWith('--steps-root='));
+  let stepFindings: StepFinding[] = [];
+  if (stepsRootArg) {
+    stepFindings = auditStepLayout(
+      path.resolve(REPO_ROOT, stepsRootArg.slice('--steps-root='.length)),
+      { listed: [], baseline: null },
+    );
+  } else if (targets.length === 0) {
+    stepFindings = auditStepLayout(REPO_ROOT, {
+      listed: exceptions.legacyStepFiles,
+      baseline:
+        exceptions.legacyStepFiles.length > 0
+          ? loadBaseline().legacyStepFiles
+          : null,
+    });
+  }
 
   const parse = await loadGherkinParser();
   const reports: FileReport[] = [];
@@ -412,7 +436,18 @@ async function main(): Promise<void> {
     annotate('error', message, 'scripts/spec-audit-exceptions.json');
   }
 
-  const totalFindings = failing.reduce((n, r) => n + r.findings.length, 0);
+  const stepFiles = [...new Set(stepFindings.map((f) => f.file))];
+  for (const file of stepFiles) {
+    console.error(`\n--- ${file} ---`);
+    for (const finding of stepFindings.filter((f) => f.file === file)) {
+      const at = finding.line ? `:${finding.line}` : '';
+      console.error(`  [ERROR]${at} (${finding.check}) ${finding.message}`);
+      annotate('error', finding.message, finding.file, finding.line);
+    }
+  }
+
+  const totalFindings =
+    failing.reduce((n, r) => n + r.findings.length, 0) + stepFindings.length;
 
   console.log('\n--- Summary ---');
   console.log(`Files audited:  ${reports.length}`);
@@ -426,6 +461,11 @@ async function main(): Promise<void> {
     const scenarios = reports.reduce((n, r) => n + r.scenarioCount, 0);
     console.log(`EARS requirements: ${rules}`);
     console.log(`Scenarios:         ${scenarios}`);
+    if (targets.length === 0) {
+      console.log(
+        `Legacy step files: ${exceptions.legacyStepFiles.length} awaiting one-step-per-file`,
+      );
+    }
     if (skipped.length > 0) {
       console.log('\nAwaiting conversion:');
       for (const rel of skipped) console.log(`  ${rel}`);
@@ -437,7 +477,7 @@ async function main(): Promise<void> {
 
   if (totalFindings > 0 || badExceptions > 0) {
     console.error(
-      `\nFAIL: ${totalFindings} finding(s) across ${failing.length} file(s)` +
+      `\nFAIL: ${totalFindings} finding(s) across ${failing.length + stepFiles.length} file(s)` +
         (badExceptions > 0
           ? `, ${badExceptions} exception-list problem(s)`
           : '') +
