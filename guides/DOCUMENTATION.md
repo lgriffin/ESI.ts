@@ -56,6 +56,41 @@ npm run clean:docs
 npm run clean
 ```
 
+## Documentation examples are checked
+
+A README example that does not compile costs more trust than a bug. `npm run test:docs-examples` finds every fenced `ts` or `typescript` block in `README.md`, `guides/*.md`, `src/sde/README.md` and `src/sde/docs/*.md`, and checks it against the packed package, the way a reader who copies it sees it:
+
+1. Builds and packs the library as the consumer contract does, and installs the tarball into a scratch consumer outside the repository.
+2. Writes each block to its own ES module next to a shared prelude, and type-checks all of them with `strict` under `moduleResolution: nodenext` and `bundler`. An import of a sub-path the package's `exports` map does not list fails here.
+3. Runs each block marked `runnable` with node, with `fetch` replaced by a stub.
+
+CI runs it in the `doc-examples` job, inside `ci-success`. `npm test` checks the annotations and the baseline without packing.
+
+### Fragments and the prelude
+
+Most blocks are fragments: they use a `client` built in an earlier block, or a `characterId` the reader supplies. [`tests/doc-examples/prelude.d.ts`](../tests/doc-examples/prelude.d.ts) declares those names as typed globals, so a fragment type-checks as written. A block that declares or imports a name itself shadows the global. When a new fragment needs a name the prelude lacks, add it there with the type a reader would have; do not type it `any`.
+
+### Annotations
+
+A block is type-checked unless it says otherwise. Two annotations exist, and anything else is an error, so a typo cannot switch a check off:
+
+| Annotation                                | Where                                                                | Effect                                                                                                                                                                                                           |
+| ----------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `runnable`                                | The fence (` ```ts runnable `) or a comment                          | Type-checked, then run against the stub transport in [`tests/doc-examples/stub-fetch.mjs`](../tests/doc-examples/stub-fetch.mjs). The block must build everything it uses: prelude names do not exist at runtime |
+| `<!-- doc-example: no-check <reason> -->` | A comment on the line above the fence (blank lines between are fine) | Not checked. The reason is required                                                                                                                                                                              |
+
+Use `no-check` for blocks that are not consumer code: method signature listings, fragments of a class body, and contributor examples that import from `src/`. Do not use it to silence an example that is wrong; fix the example.
+
+### Known-broken examples
+
+When an example exposes a real mismatch that cannot be fixed in the docs alone, mark it `no-check` with a reason that names the bead tracking it, for example `<!-- doc-example: no-check esi-abc.1 getFoo was removed; decide the replacement -->`, and list its key in [`scripts/doc-examples-baseline.json`](../scripts/doc-examples-baseline.json). The key is the file, the nearest heading, and the block's position under that heading: `README.md#Quick Start [1]`.
+
+The baseline only shrinks. The run fails when a `no-check` names a bead but is not listed, when a listed block no longer exists or no longer names a bead (remove the entry once the example is fixed), and when an entry is not on `origin/master` already. Without `origin/master` to compare with, the run fails closed; CI fetches it first.
+
+### Negative fixtures
+
+`tests/tdd/doc-examples/fixtures/` holds a compliant file and three that must be rejected: a block calling a method that does not exist, an import of `@lgriffin/esi.ts/dist/errors` (present in the tarball but not exported), and a `no-check` without a reason. `tests/tdd/doc-examples/doc-examples.test.ts` puts them through the checker against a small stub package, and `npm run test:docs-examples` puts them through again against the packed library. If a fixture stops being rejected, both fail.
+
 ## Documentation Features
 
 ### What's Included

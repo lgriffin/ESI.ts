@@ -16,6 +16,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level â
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
 | Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
+| Doc examples         |            |        1 | Every `ts` block in README, guides and SDE docs type-checked vs the tarball |
 | **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
@@ -422,6 +423,14 @@ Every other tier imports from `src/`, so none of them sees the package a consume
 6. `runtime/sde-optional-peers.mjs` covers `js-yaml` and `adm-zip`, the optional peer dependencies of `./sde`. Steps 2 to 5 run without them installed; before that, `absent` checks that `./sde` loads and that `fromDirectory` and `fromZip` throw an `SdeError` naming the missing package. At the end the runner installs both and `present` loads real YAML and ZIP files through the CJS and ESM builds.
 
 Defects the contract finds are recorded as known issues against their beads: each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround. There are none open; `esi-v2s.15` (error class identity across sub-paths) and `esi-v2s.16` (`./sde` peer dependencies) were the last two.
+
+### Documentation examples
+
+**Location:** `scripts/doc-examples.ts` and `scripts/doc-examples-core.ts`; prelude and stub fetch in `tests/doc-examples/`; self-tests and fixtures in `tests/tdd/doc-examples/`
+**Run:** `npm run test:docs-examples` (`-- --skip-build` packs the existing `dist/`, `-- --keep` keeps the workspace)
+**CI:** `doc-examples` in `ci.yml`, Node 20, inside `ci-success`. Not part of `npm test`; the unit suite checks the annotations, the baseline and the fixtures against a stub package.
+
+Packs the library as the consumer contract does and type-checks every fenced `ts`/`typescript` block in `README.md`, `guides/*.md`, `src/sde/README.md` and `src/sde/docs/*.md` as its own module under nodenext and bundler resolution, then runs the blocks marked `runnable` against a stubbed `fetch`. The annotation convention, the prelude and the shrink-only known-broken baseline are described in [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked).
 
 ## Integration Tests
 
@@ -931,6 +940,7 @@ npm run generate:types
 | `tests/fuzz/pagination-fuzz.test.ts`           | Pagination parameter fuzzing                        |
 | `tests/typetests/index.test-d.ts`              | Consumer type tests (tsd)                           |
 | `tests/consumer/`                              | Consumer contract package (`npm run test:consumer`) |
+| `tests/doc-examples/`                          | Doc example prelude and stub fetch                  |
 | `src/testing/TestDataFactory.ts`               | Mock data factory for tests                         |
 | `scripts/validate-esi-endpoints.ts`            | Standalone ESI spec validation script               |
 | `scripts/generate-esi-types.ts`                | Type/cache/scope generator from live spec           |
