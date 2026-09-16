@@ -111,3 +111,5 @@ docs-site/.vitepress/cache/
 .beads-credential-key
 .beads/proxieddb/
 
+# Token store written by examples/token-manager.ts
+tokens.example.json

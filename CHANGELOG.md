@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`EsiTokenManager`** — higher-level auth abstraction that owns the SSO token lifecycle for one or many characters (#185). Exchanges an authorization code, decodes the character id, name and scopes from the token, persists it through a pluggable `ITokenStorage`, refreshes ahead of expiry (`refreshSkewMs`, default 60 s), coalesces concurrent refreshes per character, persists the rotated refresh token before returning, and records an SSO `invalid_grant` so later calls fail locally with `TokenRevokedError`. `createClient(characterId)` returns an `EsiClient` wired with the character's token and a refresh provider bound to the manager; `tokenProviderFor(characterId)` exposes that provider for clients built by hand
+- **Bulk refresh** — `refreshAll({ concurrency, expiringWithinMs, signal })` refreshes stored tokens with a concurrency cap (default 5), isolates failures per character, skips tokens outside an optional staleness window, and flags SSO 429/5xx failures as `retryable` (#187). Per-character failures never reject; every character gets a `RefreshResult`. A throwing `onProgress` callback and a non-finite `concurrency` value are tolerated; only a storage adapter that cannot list tokens rejects the call
+- **`EveSsoClient`** — zero-dependency client for `login.eveonline.com`: `getAuthorizationUrl`, `exchangeCode`, `refresh`, `revoke`. `exchangeCode` repeats the `redirect_uri` from the authorization request (configured `callbackUrl` or a per-request `redirectUri`); an `invalid_grant` on a code exchange or revoke stays an `SsoError` and only a refresh maps it to `TokenRevokedError`; a 2xx body that is not a JSON object with both tokens is reported as `SsoError` `invalid_response`. Confidential clients authenticate with HTTP Basic; public clients use PKCE (`generatePkcePair`, `generateState`). SSO errors surface as `SsoError` (status + OAuth error code) or `TokenRevokedError`
+- **Storage adapters** — `MemoryTokenStorage` and `FileTokenStorage` (atomic temp-file-and-rename writes, `0600` mode, serialised in-process writes, malformed entries skipped on load, `invalidate()` fenced against reads already in progress)
+- **`runWithConcurrency`** internal utility in `src/core/util/concurrency.ts`
+- `tests/bdd/features/core/0054-token-management.feature` — 26 EARS requirements covering the above, including the refresh-versus-removal and refresh-versus-re-authorization races, which the manager resolves in favour of the newer state
+- `examples/token-manager.ts` and `npm run example:token-manager`
+
 ## [9.9.0] - 2026-09-15
 
 ### Added

@@ -278,6 +278,107 @@ Key behaviors:
 - If the refresh callback throws (e.g., refresh token revoked), a `TOKEN_REFRESH_FAILED` error is raised
 - Without a token provider, 401 errors throw immediately as before
 
+### Token Manager (multi-character, persistent)
+
+The refresh callback above is the low-level hook. For applications that hold tokens for one or many characters, `EsiTokenManager` does the whole lifecycle: the SSO code exchange, persistence through a pluggable storage adapter, proactive refresh ahead of expiry, coalescing of concurrent refreshes, persistence of the rotated refresh token, revocation tracking, and bulk refresh with a concurrency cap.
+
+```typescript
+import {
+  EsiTokenManager,
+  FileTokenStorage,
+  generateState,
+} from '@lgriffin/esi.ts';
+
+const tokens = new EsiTokenManager({
+  clientId: process.env.ESI_SSO_CLIENT_ID!,
+  clientSecret: process.env.ESI_SSO_CLIENT_SECRET, // omit for a public (PKCE) client
+  callbackUrl: 'https://my-app.example/callback',
+  storage: new FileTokenStorage('./tokens.json'), // or MemoryTokenStorage, or your own
+});
+
+// 1. Send the player to SSO
+const state = generateState();
+const loginUrl = tokens.getAuthorizationUrl({
+  scopes: ['esi-wallet.read_character_wallet.v1'],
+  state,
+});
+
+// 2. On the callback, exchange the code. The character id, name and scopes
+//    are decoded from the token; you never have to say who just logged in.
+const stored = await tokens.addCharacter(codeFromCallback);
+console.log(`Added ${stored.characterName} (${stored.characterId})`);
+
+// 3. Get a client bound to that character. Its token is refreshed before
+//    expiry, and again on a 401, through the manager.
+const client = await tokens.createClient(stored.characterId);
+const wallet = await client.wallet.getCharacterWallet(stored.characterId);
+
+// Or just the access token, for use elsewhere
+const accessToken = await tokens.getToken(stored.characterId);
+```
+
+Public clients (desktop and CLI tools that cannot keep a secret) use PKCE:
+
+```typescript
+import { generatePkcePair } from '@lgriffin/esi.ts';
+
+const pkce = generatePkcePair();
+const loginUrl = tokens.getAuthorizationUrl({
+  scopes,
+  state,
+  codeChallenge: pkce.codeChallenge,
+});
+// ...later, on the callback:
+await tokens.addCharacter(code, { codeVerifier: pkce.codeVerifier });
+```
+
+#### Bulk refresh
+
+Applications holding many characters (corporation tools, alliance services) refresh in bulk. Per-character failures never reject the call; each character gets its own result. The one exception is a storage adapter that cannot list tokens, which rejects with the storage error.
+
+```typescript
+const results = await tokens.refreshAll({
+  concurrency: 5, // simultaneous SSO requests (default 5)
+  expiringWithinMs: 5 * 60_000, // only tokens expiring in the next 5 minutes; omit for all
+});
+
+for (const r of results) {
+  switch (r.status) {
+    case 'refreshed':
+      break;
+    case 'skipped':
+      break; // not stale, or the run was aborted
+    case 'revoked':
+      console.log(`${r.characterId} must log in again`);
+      break;
+    case 'failed':
+      if (r.retryable) scheduleRetry(r.characterId);
+      break;
+  }
+}
+```
+
+#### Storage adapters
+
+`ITokenStorage` is four async methods keyed by character id: `get`, `set`, `delete`, `list`. Two adapters ship with the library:
+
+| Adapter              | Use for                                                                |
+| -------------------- | ---------------------------------------------------------------------- |
+| `MemoryTokenStorage` | Tests, CLIs that log in every run, a cache in front of a durable store |
+| `FileTokenStorage`   | Single-process apps; atomic temp-file-and-rename writes, `0600` mode   |
+
+Implement the interface over Redis, Postgres, or a keychain for anything else. One rule matters: `set` must be durable before it resolves, because the manager persists the rotated refresh token before returning the new access token, and SSO invalidates the previous one.
+
+Key behaviors:
+
+- **One token per character** — re-authorizing replaces the stored token rather than accumulating a second one; a warning is logged if the new consent drops scopes
+- **Proactive refresh** — `getToken` refreshes when the token is inside `refreshSkewMs` of expiry (default 60 s), so requests are never sent with a token about to fail
+- **Coalescing** — concurrent refreshes for the same character share one SSO call, which matters because SSO rotates the refresh token on every use
+- **Revocation tracking** — an `invalid_grant` from SSO marks the character revoked; later calls throw `TokenRevokedError` locally instead of hitting SSO again
+- **Hooks** — `onRefresh`, `onRefreshError`, and `onRevoked` for logging, metrics, or prompting a re-login
+- **No JWT signature verification** — tokens are trusted because they arrive directly from SSO over TLS; do not use `decodeAccessToken` to authenticate tokens presented by third parties
+- **Single process per store** — two processes sharing one `FileTokenStorage` would each rotate refresh tokens the other cannot see
+
 ### Environment variables reference
 
 | Variable           | Description                                  | Default                   |
