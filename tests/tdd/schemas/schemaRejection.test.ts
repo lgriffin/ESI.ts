@@ -119,6 +119,7 @@ import {
   FreelanceJobParticipationSchema,
   CorporationFreelanceJobsListingSchema,
   FreelanceJobParticipantSchema,
+  FreelanceJobParticipantsListingSchema,
 
   // incursions
   IncursionSchema,
@@ -1393,8 +1394,8 @@ const schemaCases: SchemaTestCase[] = [
   {
     name: 'EsiCursorSchema',
     schema: EsiCursorSchema,
-    validData: { before: null, after: null },
-    invalidData: { before: 123, after: null },
+    validData: { after: 'next-page-cursor' },
+    invalidData: { before: null },
   },
   {
     name: 'FreelanceJobSummarySchema',
@@ -1516,16 +1517,14 @@ const schemaCases: SchemaTestCase[] = [
     name: 'FreelanceJobParticipationSchema',
     schema: FreelanceJobParticipationSchema,
     validData: {
-      job_id: 'job-1',
-      character_id: 100,
-      status: 'active',
-      contributions: 5,
+      state: 'Committed',
+      contributed: 5,
+      last_modified: '2024-01-01T00:00:00Z',
     },
     invalidData: {
-      job_id: 123,
-      character_id: 100,
-      status: 'active',
-      contributions: 5,
+      state: 'Committed',
+      contributed: '5',
+      last_modified: '2024-01-01T00:00:00Z',
     },
   },
   {
@@ -1550,17 +1549,27 @@ const schemaCases: SchemaTestCase[] = [
     name: 'FreelanceJobParticipantSchema',
     schema: FreelanceJobParticipantSchema,
     validData: {
-      character_id: 100,
-      corporation_id: 200,
-      status: 'committed',
-      contributions: 10,
+      id: 100,
+      name: 'Pilot',
+      state: 'Committed',
+      contributed: 10,
     },
     invalidData: {
-      character_id: 'bad',
-      corporation_id: 200,
-      status: 'committed',
-      contributions: 10,
+      id: 'bad',
+      name: 'Pilot',
+      state: 'Committed',
+      contributed: 10,
     },
+  },
+  {
+    name: 'FreelanceJobParticipantsListingSchema',
+    schema: FreelanceJobParticipantsListingSchema,
+    validData: {
+      participants: [
+        { id: 100, name: 'Pilot', state: 'Committed', contributed: 10 },
+      ],
+    },
+    invalidData: { participants: 'bad' },
   },
 
   // ── incursions ────────────────────────────────────────────────────────────

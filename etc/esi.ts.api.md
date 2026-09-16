@@ -699,8 +699,8 @@ export type CharacterFreelanceJobsListing = z.infer<typeof CharacterFreelanceJob
 // @public (undocumented)
 const CharacterFreelanceJobsListingSchema: z.ZodObject<{
     cursor: z.ZodOptional<z.ZodObject<{
-        before: z.ZodNullable<z.ZodString>;
-        after: z.ZodNullable<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>;
     freelance_jobs: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -2380,8 +2380,8 @@ export type CorporationFreelanceJobsListing = z.infer<typeof CorporationFreelanc
 // @public (undocumented)
 const CorporationFreelanceJobsListingSchema: z.ZodObject<{
     cursor: z.ZodOptional<z.ZodObject<{
-        before: z.ZodNullable<z.ZodString>;
-        after: z.ZodNullable<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>;
     freelance_jobs: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -4344,10 +4344,10 @@ export interface EsiClientConfig {
 // @public (undocumented)
 export type EsiCursor = z.infer<typeof EsiCursorSchema>;
 
-// @public (undocumented)
+// @public
 const EsiCursorSchema: z.ZodObject<{
-    before: z.ZodNullable<z.ZodString>;
-    after: z.ZodNullable<z.ZodString>;
+    before: z.ZodOptional<z.ZodString>;
+    after: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -5608,7 +5608,8 @@ const FreelanceJobDetailSchema: z.ZodObject<{
         description: z.ZodString;
         career: z.ZodString;
         created: z.ZodString;
-        expires: z.ZodString;
+        expires: z.ZodOptional<z.ZodString>;
+        finished: z.ZodOptional<z.ZodString>;
         creator: z.ZodObject<{
             character: z.ZodObject<{
                 id: z.ZodNumber;
@@ -5625,16 +5626,22 @@ const FreelanceJobDetailSchema: z.ZodObject<{
         parameters: z.ZodRecord<z.ZodString, z.ZodUnknown>;
         method: z.ZodString;
     }, z.core.$loose>;
-    contribution: z.ZodObject<{
+    contribution: z.ZodOptional<z.ZodObject<{
         max_committed_participants: z.ZodNumber;
+        contribution_per_participant_limit: z.ZodOptional<z.ZodNumber>;
         reward_per_contribution: z.ZodOptional<z.ZodNumber>;
+        submission_limit: z.ZodOptional<z.ZodNumber>;
         submission_multiplier: z.ZodOptional<z.ZodNumber>;
-    }, z.core.$loose>;
+    }, z.core.$loose>>;
     access_and_visibility: z.ZodObject<{
         acl_protected: z.ZodBoolean;
-        broadcast_locations: z.ZodArray<z.ZodObject<{
+        broadcast_locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
             id: z.ZodNumber;
             name: z.ZodString;
+        }, z.core.$loose>>>;
+        restrictions: z.ZodOptional<z.ZodObject<{
+            minimum_age: z.ZodOptional<z.ZodNumber>;
+            maximum_age: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
     }, z.core.$loose>;
 }, z.core.$loose>;
@@ -5642,25 +5649,39 @@ const FreelanceJobDetailSchema: z.ZodObject<{
 // @public (undocumented)
 export type FreelanceJobParticipant = z.infer<typeof FreelanceJobParticipantSchema>;
 
-// @public (undocumented)
+// @public
 const FreelanceJobParticipantSchema: z.ZodObject<{
-    character_id: z.ZodNumber;
-    corporation_id: z.ZodNumber;
-    status: z.ZodString;
-    contributions: z.ZodNumber;
-    last_contribution: z.ZodOptional<z.ZodString>;
+    id: z.ZodNumber;
+    name: z.ZodString;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown>>;
+    contributed: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type FreelanceJobParticipantsListing = z.infer<typeof FreelanceJobParticipantsListingSchema>;
+
+// @public
+const FreelanceJobParticipantsListingSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    participants: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        name: z.ZodString;
+        state: z.ZodType<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown>>;
+        contributed: z.ZodNumber;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
 export type FreelanceJobParticipation = z.infer<typeof FreelanceJobParticipationSchema>;
 
-// @public (undocumented)
+// @public
 const FreelanceJobParticipationSchema: z.ZodObject<{
-    job_id: z.ZodString;
-    character_id: z.ZodNumber;
-    status: z.ZodString;
-    contributions: z.ZodNumber;
-    last_contribution: z.ZodOptional<z.ZodString>;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown>>;
+    contributed: z.ZodNumber;
+    last_modified: z.ZodString;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "freelanceJobsEndpoints" needs to be exported by the entry point index.d.ts
@@ -5670,7 +5691,7 @@ export class FreelanceJobsClient extends BaseEsiClient<typeof freelanceJobsEndpo
     constructor(client: ApiClient);
     getCharacterFreelanceJobParticipation(characterId: number, jobId: string): Promise<FreelanceJobParticipation>;
     getCharacterFreelanceJobs(characterId: number, before?: string, after?: string): Promise<CharacterFreelanceJobsListing>;
-    getCorporationFreelanceJobParticipants(corporationId: number, jobId: string): Promise<FreelanceJobParticipant[]>;
+    getCorporationFreelanceJobParticipants(corporationId: number, jobId: string): Promise<FreelanceJobParticipantsListing>;
     getCorporationFreelanceJobs(corporationId: number, before?: string, after?: string): Promise<CorporationFreelanceJobsListing>;
     getFreelanceJobById(jobId: string): Promise<FreelanceJobDetail>;
     getFreelanceJobs(before?: string, after?: string): Promise<FreelanceJobsListing>;
@@ -5772,8 +5793,8 @@ interface FreelanceJobsListing_2 {
 // @public (undocumented)
 const FreelanceJobsListingSchema: z.ZodObject<{
     cursor: z.ZodOptional<z.ZodObject<{
-        before: z.ZodNullable<z.ZodString>;
-        after: z.ZodNullable<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>;
     freelance_jobs: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -7934,6 +7955,7 @@ declare namespace schemas {
         FreelanceJobParticipationSchema,
         CorporationFreelanceJobsListingSchema,
         FreelanceJobParticipantSchema,
+        FreelanceJobParticipantsListingSchema,
         IncursionSchema,
         IndustryJobSchema,
         MiningLedgerEntrySchema,

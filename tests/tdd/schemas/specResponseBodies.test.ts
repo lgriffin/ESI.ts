@@ -10,6 +10,7 @@
  */
 import { z } from 'zod';
 import { contractEndpoints } from '../../../src/core/endpoints/contractEndpoints';
+import { freelanceJobsEndpoints } from '../../../src/core/endpoints/freelanceJobsEndpoints';
 
 interface BodyCase {
   route: string;
@@ -43,6 +44,83 @@ const cases: BodyCase[] = [
         runs: 5,
       },
     ],
+  },
+  {
+    // FreelanceJobsListing: Cursor tokens are optional strings, never null.
+    route: 'GET /freelance-jobs',
+    schema: freelanceJobsEndpoints.getFreelanceJobs.responseSchema,
+    body: {
+      cursor: { after: 'bdd-freelance-page-2-cursor' },
+      freelance_jobs: [
+        {
+          id: '3868eaed-8278-4cb7-9709-7d7de9c20dc7',
+          name: 'Shield boosting for the home fleet',
+          state: 'Active',
+          last_modified: '2026-09-15T10:00:00Z',
+          progress: { current: 50, desired: 100 },
+        },
+      ],
+    },
+  },
+  {
+    // FreelanceJobsDetail: contribution, details.expires and
+    // access_and_visibility.broadcast_locations are optional.
+    route: 'GET /freelance-jobs/{job_id}',
+    schema: freelanceJobsEndpoints.getFreelanceJobById.responseSchema,
+    body: {
+      id: '3868eaed-8278-4cb7-9709-7d7de9c20dc7',
+      name: 'Shield boosting for the home fleet',
+      state: 'Completed',
+      last_modified: '2026-09-15T10:00:00Z',
+      progress: { current: 100, desired: 100 },
+      details: {
+        description: 'Boost shields on the staging keepstar',
+        career: 'Enforcer',
+        created: '2026-09-01T00:00:00Z',
+        finished: '2026-09-15T10:00:00Z',
+        creator: {
+          character: { id: 90000001, name: 'Creator Name' },
+          corporation: { id: 98777771, name: 'Creator Corporation' },
+        },
+      },
+      configuration: {
+        version: 1,
+        method: 'BoostShield',
+        parameters: {},
+      },
+      access_and_visibility: { acl_protected: false },
+    },
+  },
+  {
+    // CharactersFreelanceJobsParticipation.
+    route:
+      'GET /characters/{character_id}/freelance-jobs/{job_id}/participation',
+    schema:
+      freelanceJobsEndpoints.getCharacterFreelanceJobParticipation
+        .responseSchema,
+    body: {
+      state: 'Committed',
+      contributed: 100,
+      last_modified: '2026-09-15T10:00:00Z',
+    },
+  },
+  {
+    // CorporationsFreelanceJobsParticipants: an object page, not an array.
+    route:
+      'GET /corporations/{corporation_id}/freelance-jobs/{job_id}/participants',
+    schema:
+      freelanceJobsEndpoints.getCorporationFreelanceJobParticipants
+        .responseSchema,
+    body: {
+      participants: [
+        {
+          id: 90000001,
+          name: 'Participant Name',
+          state: 'Committed',
+          contributed: 100,
+        },
+      ],
+    },
   },
 ];
 

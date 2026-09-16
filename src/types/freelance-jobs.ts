@@ -8,6 +8,7 @@ import {
   FreelanceJobParticipationSchema,
   CorporationFreelanceJobsListingSchema,
   FreelanceJobParticipantSchema,
+  FreelanceJobParticipantsListingSchema,
 } from '../schemas/freelance-jobs';
 
 export type EsiCursor = z.infer<typeof EsiCursorSchema>;
@@ -25,4 +26,7 @@ export type CorporationFreelanceJobsListing = z.infer<
 >;
 export type FreelanceJobParticipant = z.infer<
   typeof FreelanceJobParticipantSchema
+>;
+export type FreelanceJobParticipantsListing = z.infer<
+  typeof FreelanceJobParticipantsListingSchema
 >;

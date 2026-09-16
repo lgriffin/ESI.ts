@@ -11,12 +11,12 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 106
+ * - Type pairs asserted: 108
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
  *   Loyalty, Mail, Market, PI, Skills, Sovereignty, Status, Universe, Wallet, Wars)
- * - Skipped types: 18 (documented inline with reasons — key name mismatches,
+ * - Skipped types: 17 (documented inline with reasons — key name mismatches,
  *   structural differences, inline array elements, or no spec counterpart)
  */
 
@@ -102,6 +102,8 @@ import type {
   FreelanceJobDetail,
   CharacterFreelanceJobsListing,
   CorporationFreelanceJobsListing,
+  FreelanceJobParticipation,
+  FreelanceJobParticipantsListing,
 } from '../freelance-jobs';
 import type { Incursion } from '../incursions';
 import type {
@@ -505,7 +507,18 @@ type _CorporationFreelanceJobsListing = AssertTrue<
 >;
 // Skip: EsiCursor -- synthetic client-side utility type, no spec counterpart
 // Skip: FreelanceJobSummary -- represents inline array element within FreelanceJobsListing, no separate spec interface
-// Skip: FreelanceJobParticipation -- hand-written schema uses different key names (status/contributions vs spec state/contributed)
+type _FreelanceJobParticipation = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CharactersFreelanceJobsParticipation,
+    FreelanceJobParticipation
+  >
+>;
+type _FreelanceJobParticipantsListing = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CorporationsFreelanceJobsParticipants,
+    FreelanceJobParticipantsListing
+  >
+>;
 // Skip: FreelanceJobParticipant -- represents inline array element within CorporationsFreelanceJobsParticipants, no separate spec interface
 
 // Incursions

@@ -45,7 +45,7 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: exactPath('/freelance-jobs'),
         body: {
-          cursor: { before: null, after: 'cursor_abc123' },
+          cursor: { after: 'cursor_abc123' },
           freelance_jobs: [
             {
               id: 'job-001',
@@ -100,7 +100,7 @@ defineFeature(feature, (test) => {
           { current: 3500, desired: 10000 },
         ],
       ]);
-      expect(result.cursor).toEqual({ before: null, after: 'cursor_abc123' });
+      expect(result.cursor).toEqual({ after: 'cursor_abc123' });
     });
   });
 
@@ -110,7 +110,7 @@ defineFeature(feature, (test) => {
     given('no freelance jobs exist', () => {
       queueResponse({
         match: exactPath('/freelance-jobs'),
-        body: { cursor: { before: null, after: null }, freelance_jobs: [] },
+        body: { cursor: {}, freelance_jobs: [] },
       });
     });
 
@@ -120,10 +120,7 @@ defineFeature(feature, (test) => {
 
     then('the client shall return an empty listing', () => {
       expect(sentRequests()).toHaveLength(1);
-      expect(result).toEqual({
-        cursor: { before: null, after: null },
-        freelance_jobs: [],
-      });
+      expect(result).toEqual({ cursor: {}, freelance_jobs: [] });
     });
   });
 
@@ -189,6 +186,120 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('Completed job with no contribution rules, expiry or broadcast', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const jobId = '3868eaed-8278-4cb7-9709-7d7de9c20dc7';
+
+    given('a completed job without optional detail blocks', () => {
+      // FreelanceJobsDetail: contribution, details.expires and
+      // access_and_visibility.broadcast_locations are optional.
+      queueResponse({
+        match: exactPath(`/freelance-jobs/${jobId}`),
+        body: {
+          id: jobId,
+          name: 'Shield boosting for the home fleet',
+          state: 'Completed',
+          last_modified: '2026-04-25T10:00:00Z',
+          progress: { current: 100, desired: 100 },
+          details: {
+            description: 'Boost shields on the staging keepstar',
+            career: 'Enforcer',
+            created: '2026-04-19T08:00:00Z',
+            finished: '2026-04-25T10:00:00Z',
+            creator: {
+              character: { id: 1689391488, name: 'Test Character' },
+              corporation: { id: 1344654522, name: 'GoonWaffe' },
+            },
+          },
+          configuration: { version: 1, parameters: {}, method: 'BoostShield' },
+          access_and_visibility: { acl_protected: false },
+        },
+      });
+    });
+
+    when('the client requests the completed job details', async () => {
+      result = await client.freelanceJobs.getFreelanceJobById(jobId);
+    });
+
+    then(
+      'the client shall return the job without those optional fields',
+      () => {
+        expect(lastRequest().url.pathname).toBe(`/freelance-jobs/${jobId}`);
+        expect(result.state).toBe('Completed');
+        expect(result.contribution).toBeUndefined();
+        expect(result.details.expires).toBeUndefined();
+        expect(
+          result.access_and_visibility.broadcast_locations,
+        ).toBeUndefined();
+      },
+    );
+  });
+
+  test('Participant roll for a corporation job with two contributors', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const corporationId = 1344654522;
+    const jobId = 'job-050';
+
+    given('a corporation job with two participants', () => {
+      queueResponse({
+        match: exactPath(
+          `/corporations/${corporationId}/freelance-jobs/${jobId}/participants`,
+        ),
+        body: {
+          participants: [
+            {
+              id: 1689391488,
+              name: 'Test Character',
+              state: 'Committed',
+              contributed: 30,
+            },
+            {
+              id: 987654321,
+              name: 'Demo Pilot',
+              state: 'Resigned',
+              contributed: 5,
+            },
+          ],
+        },
+      });
+    });
+
+    when('the client requests the job participants', async () => {
+      result =
+        await client.freelanceJobs.getCorporationFreelanceJobParticipants(
+          corporationId,
+          jobId,
+        );
+    });
+
+    then('the client shall return the participant roll', () => {
+      const request = lastRequest();
+      expect(request.url.pathname).toBe(
+        `/corporations/${corporationId}/freelance-jobs/${jobId}/participants`,
+      );
+      expect(request.headers.authorization).toBe(BEARER);
+      expect(
+        result.participants.map((p: any) => [
+          p.id,
+          p.name,
+          p.state,
+          p.contributed,
+        ]),
+      ).toEqual([
+        [1689391488, 'Test Character', 'Committed', 30],
+        [987654321, 'Demo Pilot', 'Resigned', 5],
+      ]);
+    });
+  });
+
   test('Unknown job ID', ({ given, when, then }) => {
     const invalidJobId = 'job-nonexistent';
     let caughtError: any;
@@ -221,8 +332,8 @@ defineFeature(feature, (test) => {
     given('an authenticated character with freelance jobs', () => {
       queueResponse({
         match: exactPath(`/characters/${characterId}/freelance-jobs`),
+        // CharactersFreelanceJobsListing carries no cursor.
         body: {
-          cursor: { before: null, after: 'char_cursor_xyz' },
           freelance_jobs: [
             {
               id: 'job-010',
@@ -242,7 +353,7 @@ defineFeature(feature, (test) => {
         await client.freelanceJobs.getCharacterFreelanceJobs(characterId);
     });
 
-    then('the client shall return the character jobs with cursors', () => {
+    then('the client shall return the character jobs', () => {
       const request = lastRequest();
       expect(request.url.pathname).toBe(
         `/characters/${characterId}/freelance-jobs`,
@@ -256,7 +367,7 @@ defineFeature(feature, (test) => {
         current: 5000,
         desired: 20000,
       });
-      expect(result.cursor).toEqual({ before: null, after: 'char_cursor_xyz' });
+      expect(result.cursor).toBeUndefined();
     });
   });
 
@@ -271,11 +382,9 @@ defineFeature(feature, (test) => {
           `/characters/${characterId}/freelance-jobs/${jobId}/participation`,
         ),
         body: {
-          job_id: jobId,
-          character_id: characterId,
-          status: 'active',
-          contributions: 5000,
-          last_contribution: '2026-04-22T14:00:00Z',
+          state: 'Committed',
+          contributed: 5000,
+          last_modified: '2026-04-22T14:00:00Z',
         },
       });
     });
@@ -294,11 +403,9 @@ defineFeature(feature, (test) => {
       );
       expect(request.headers.authorization).toBe(BEARER);
       expect(result).toEqual({
-        job_id: jobId,
-        character_id: characterId,
-        status: 'active',
-        contributions: 5000,
-        last_contribution: '2026-04-22T14:00:00Z',
+        state: 'Committed',
+        contributed: 5000,
+        last_modified: '2026-04-22T14:00:00Z',
       });
     });
   });
@@ -311,7 +418,7 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: exactPath(`/corporations/${corporationId}/freelance-jobs`),
         body: {
-          cursor: { before: null, after: null },
+          cursor: {},
           freelance_jobs: [
             {
               id: 'job-050',
@@ -340,7 +447,7 @@ defineFeature(feature, (test) => {
         'job-050',
       ]);
       expect(result.freelance_jobs[0].name).toBe('Structure Defense Op');
-      expect(result.cursor).toEqual({ before: null, after: null });
+      expect(result.cursor).toEqual({});
     });
   });
 
@@ -352,7 +459,7 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: /\/freelance-jobs\?after=page2_token$/,
         body: {
-          cursor: { before: 'page2_token', after: null },
+          cursor: { before: 'page2_token' },
           freelance_jobs: [
             {
               id: 'job-002',
@@ -367,7 +474,7 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: exactPath('/freelance-jobs'),
         body: {
-          cursor: { before: null, after: 'page2_token' },
+          cursor: { after: 'page2_token' },
           freelance_jobs: [
             {
               id: 'job-001',
@@ -406,7 +513,7 @@ defineFeature(feature, (test) => {
       expect(page2.freelance_jobs.map((job: any) => job.id)).toEqual([
         'job-002',
       ]);
-      expect(page2.cursor).toEqual({ before: 'page2_token', after: null });
+      expect(page2.cursor).toEqual({ before: 'page2_token' });
     });
   });
 
@@ -421,7 +528,7 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: /\/freelance-jobs\?before=page2_token$/,
         body: {
-          cursor: { before: null, after: 'page2_token' },
+          cursor: { after: 'page2_token' },
           freelance_jobs: [
             {
               id: 'job-001',
@@ -450,7 +557,7 @@ defineFeature(feature, (test) => {
       expect(firstPage.freelance_jobs.map((job: any) => job.id)).toEqual([
         'job-001',
       ]);
-      expect(firstPage.cursor).toEqual({ before: null, after: 'page2_token' });
+      expect(firstPage.cursor).toEqual({ after: 'page2_token' });
     });
   });
 

@@ -7,7 +7,7 @@ import {
   CharacterFreelanceJobsListing,
   FreelanceJobParticipation,
   CorporationFreelanceJobsListing,
-  FreelanceJobParticipant,
+  FreelanceJobParticipantsListing,
 } from '../types/api-responses';
 
 export class FreelanceJobsClient extends BaseEsiClient<
@@ -28,10 +28,7 @@ export class FreelanceJobsClient extends BaseEsiClient<
     before?: string,
     after?: string,
   ): Promise<FreelanceJobsListing> {
-    return this.api.getFreelanceJobs(
-      before,
-      after,
-    ) as Promise<FreelanceJobsListing>;
+    return this.api.getFreelanceJobs(before, after);
   }
 
   /**
@@ -41,7 +38,7 @@ export class FreelanceJobsClient extends BaseEsiClient<
    * @returns Detailed information about the freelance job
    */
   getFreelanceJobById(jobId: string): Promise<FreelanceJobDetail> {
-    return this.api.getFreelanceJobById(jobId) as Promise<FreelanceJobDetail>;
+    return this.api.getFreelanceJobById(jobId);
   }
 
   /**
@@ -58,11 +55,7 @@ export class FreelanceJobsClient extends BaseEsiClient<
     before?: string,
     after?: string,
   ): Promise<CharacterFreelanceJobsListing> {
-    return this.api.getCharacterFreelanceJobs(
-      characterId,
-      before,
-      after,
-    ) as Promise<CharacterFreelanceJobsListing>;
+    return this.api.getCharacterFreelanceJobs(characterId, before, after);
   }
 
   /**
@@ -77,10 +70,7 @@ export class FreelanceJobsClient extends BaseEsiClient<
     characterId: number,
     jobId: string,
   ): Promise<FreelanceJobParticipation> {
-    return this.api.getCharacterFreelanceJobParticipation(
-      characterId,
-      jobId,
-    ) as Promise<FreelanceJobParticipation>;
+    return this.api.getCharacterFreelanceJobParticipation(characterId, jobId);
   }
 
   /**
@@ -97,11 +87,7 @@ export class FreelanceJobsClient extends BaseEsiClient<
     before?: string,
     after?: string,
   ): Promise<CorporationFreelanceJobsListing> {
-    return this.api.getCorporationFreelanceJobs(
-      corporationId,
-      before,
-      after,
-    ) as Promise<CorporationFreelanceJobsListing>;
+    return this.api.getCorporationFreelanceJobs(corporationId, before, after);
   }
 
   /**
@@ -109,16 +95,16 @@ export class FreelanceJobsClient extends BaseEsiClient<
    *
    * @param corporationId - The ID of the corporation
    * @param jobId - The unique identifier of the freelance job
-   * @returns An array of participants from the corporation in the job
+   * @returns A page holding the job's participants, with an optional cursor
    * @requires Authentication
    */
   getCorporationFreelanceJobParticipants(
     corporationId: number,
     jobId: string,
-  ): Promise<FreelanceJobParticipant[]> {
+  ): Promise<FreelanceJobParticipantsListing> {
     return this.api.getCorporationFreelanceJobParticipants(
       corporationId,
       jobId,
-    ) as Promise<FreelanceJobParticipant[]>;
+    );
   }
 }

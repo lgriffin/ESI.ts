@@ -80,13 +80,9 @@ async function main() {
           ),
         );
         if (participation) {
-          console.log(`    Status: ${participation.status}`);
-          console.log(`    Contributions: ${participation.contributions}`);
-          if (participation.last_contribution) {
-            console.log(
-              `    Last contribution: ${participation.last_contribution}`,
-            );
-          }
+          console.log(`    State: ${participation.state}`);
+          console.log(`    Contributed: ${participation.contributed}`);
+          console.log(`    Last modified: ${participation.last_modified}`);
         }
       }
     }
@@ -123,10 +119,11 @@ async function main() {
           ),
         );
         if (participants) {
-          console.log(`    Total participants: ${participants.length}`);
-          for (const p of participants.slice(0, 5)) {
+          const roll = participants.participants;
+          console.log(`    Participants on this page: ${roll.length}`);
+          for (const p of roll.slice(0, 5)) {
             console.log(
-              `      Character ${p.character_id}: ${p.contributions} contributions (${p.status})`,
+              `      ${p.name} (${p.id}): ${p.contributed} contributed (${p.state})`,
             );
           }
         }
