@@ -11,7 +11,12 @@ export default defineConfig({
   ],
   format: ['cjs', 'esm'],
   dts: false,
-  splitting: false,
+  // Code shared by several entry points goes into chunk files that each entry
+  // imports, in both formats. Without it every entry bundles its own copy of
+  // the error classes, schemas and SDE providers, so `isEsiError` from
+  // `./errors` misses an `EsiError` thrown by the root client (esi-v2s.15).
+  // tests/consumer/runtime/parity.mjs fails if a shared export loses identity.
+  splitting: true,
   clean: true,
   outDir: 'dist',
   target: 'es2022',
