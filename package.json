@@ -119,7 +119,7 @@
     "test:watch": "jest --config jest.unit.config.cjs --watch",
     "bdd": "jest --config jest.unit.config.cjs --testPathPatterns=tests/bdd/",
     "bdd:steps": "jest --config jest.unit.config.cjs --testPathPatterns=step-library",
-    "bdd:alliance": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/alliance",
+    "bdd:alliance": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0001-alliance",
     "bdd:assets": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/assets",
     "bdd:calendar": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/calendar",
     "bdd:character": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/character",

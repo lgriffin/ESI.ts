@@ -3,7 +3,6 @@
   "unconverted": [],
   "$legacyStepFilesComment": "Multi-step defineFeature step files not yet split into tests/bdd/steps, one step per file with a spec entry in tests/bdd/specs binding the feature. The same ratchet: spec-audit fails if an entry is added, or if a listed file no longer exists, so the list only shrinks as domains convert. A new feature gets a spec entry, never a file here.",
   "legacyStepFiles": [
-    "tests/bdd/step-definitions/core/alliance.steps.ts",
     "tests/bdd/step-definitions/core/assets.steps.ts",
     "tests/bdd/step-definitions/core/calendar.steps.ts",
     "tests/bdd/step-definitions/core/character.steps.ts",
