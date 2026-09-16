@@ -11,7 +11,9 @@ jobs:
   pr-info:
     name: PR Information
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    # No job-level `if:` anywhere in this workflow: ci-success treats a skipped
+    # job as a failed one. This job used to skip drafts; it is a few seconds of
+    # echo, so it now always runs rather than needing a gate exception.
 
     steps:
       - name: PR Details
@@ -352,7 +354,10 @@ jobs:
     name: Generate Documentation
     runs-on: ubuntu-latest
     needs: lint-and-build
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    # This job was conditional on github.ref being master/main, which is never
+    # true for a pull_request event, so it never ran. It now runs on every PR:
+    # release.yml's validate-release runs `npm run docs`, so a TypeDoc break
+    # should be caught here rather than at release time.
 
     steps:
       - name: Checkout code
@@ -482,62 +487,81 @@ jobs:
         if: steps.deps.outputs.changed == 'true'
         run: npm run audit:diff -- --base /tmp/base-audit.json --head /tmp/head-audit.json
 
-  quality-gate:
-    name: Quality Gate
+  # ci-success is the single required status check for this workflow (R10).
+  #
+  # Semantics:
+  # - It `needs` every other job in this file, and the first step fails if a
+  #   job is added without being listed, so nothing can run outside the gate.
+  # - `if: always()` makes it report even when an upstream job fails, is
+  #   skipped or is cancelled. Without it, a failure upstream would skip this
+  #   job, and GitHub counts a skipped required check as passing.
+  # - Every needed job must finish with result `success`. `skipped`,
+  #   `cancelled` and `failure` all fail the gate. There is no allow-list.
+  # - No job here has a job-level `if:`. A job that sometimes has nothing to
+  #   do runs anyway and decides that in a step, with a notice or summary line
+  #   (see `lockfile` and `dependency-audit`), so the job still reports
+  #   `success` and the decision is visible in the log. Adding a job-level
+  #   `if:` will fail the gate whenever it evaluates false; that is intended.
+  ci-success:
+    name: ci-success
     runs-on: ubuntu-latest
     needs:
       [
+        pr-info,
+        lint-and-build,
+        static-analysis,
         unit-tests,
+        coverage,
         bdd-tests,
         spec-audit,
-        full-test-suite,
-        coverage,
-        static-analysis,
         contract-tests,
         fuzz-tests,
+        full-test-suite,
         api-surface,
+        documentation,
         lockfile,
         dependency-audit,
       ]
     if: always()
 
     steps:
-      - name: Check all jobs
+      - name: Checkout workflow definition
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/workflows/ci.yml
+          sparse-checkout-cone-mode: false
+
+      - name: Verify the gate needs every job
         env:
-          UNIT_TESTS: ${{ needs.unit-tests.result }}
-          BDD_TESTS: ${{ needs.bdd-tests.result }}
-          SPEC_AUDIT: ${{ needs.spec-audit.result }}
-          FULL_TEST_SUITE: ${{ needs.full-test-suite.result }}
-          COVERAGE: ${{ needs.coverage.result }}
-          STATIC_ANALYSIS: ${{ needs.static-analysis.result }}
-          CONTRACT_TESTS: ${{ needs.contract-tests.result }}
-          FUZZ_TESTS: ${{ needs.fuzz-tests.result }}
-          API_SURFACE: ${{ needs.api-surface.result }}
-          LOCKFILE: ${{ needs.lockfile.result }}
-          DEPENDENCY_AUDIT: ${{ needs.dependency-audit.result }}
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
-          FAILED=""
-          for entry in \
-            "Unit Tests=$UNIT_TESTS" \
-            "BDD Scenarios=$BDD_TESTS" \
-            "EARS Spec Audit=$SPEC_AUDIT" \
-            "Complete Test Suite=$FULL_TEST_SUITE" \
-            "Test Coverage=$COVERAGE" \
-            "Static Analysis=$STATIC_ANALYSIS" \
-            "Contract Tests=$CONTRACT_TESTS" \
-            "Fuzz Tests=$FUZZ_TESTS" \
-            "API Surface Check=$API_SURFACE" \
-            "Lockfile Consistency=$LOCKFILE" \
-            "Dependency Audit=$DEPENDENCY_AUDIT"
-          do
-            NAME="${entry%%=*}"
-            RESULT="${entry#*=}"
-            if [[ "$RESULT" != "success" ]]; then
-              FAILED="$FAILED $NAME ($RESULT)"
-            fi
-          done
-          if [[ -n "$FAILED" ]]; then
-            echo "::error::Quality gate failed. Jobs not green:$FAILED"
+          command -v yq >/dev/null || { echo "::error::yq is not installed on this runner"; exit 1; }
+          declared=$(yq -r '.jobs | keys | .[]' .github/workflows/ci.yml | grep -vx 'ci-success' | sort)
+          needed=$(jq -r 'keys[]' <<<"$NEEDS_JSON" | sort)
+          if [[ -z "$declared" ]]; then
+            echo "::error::Could not read job ids from ci.yml"
             exit 1
           fi
-          echo "All quality checks passed!"
+          missing=$(comm -23 <(echo "$declared") <(echo "$needed"))
+          if [[ -n "$missing" ]]; then
+            echo "::error::ci-success does not need these jobs, so they cannot block a merge: $(paste -sd' ' <<<"$missing")"
+            exit 1
+          fi
+
+      - name: Check every needed job succeeded
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          echo "## ci-success" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Job | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | ------ |" >> "$GITHUB_STEP_SUMMARY"
+          jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"' <<<"$NEEDS_JSON" >> "$GITHUB_STEP_SUMMARY"
+
+          not_green=$(jq -r 'to_entries[] | select(.value.result != "success") | "\(.key) (\(.value.result))"' <<<"$NEEDS_JSON")
+          if [[ -n "$not_green" ]]; then
+            echo "::error::ci-success failed. A skipped or cancelled job counts as failed. Not green: $(paste -sd' ' <<<"$not_green")"
+            exit 1
+          fi
+          echo "Every job in ci.yml succeeded."
