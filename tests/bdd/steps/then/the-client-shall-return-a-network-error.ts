@@ -1,0 +1,10 @@
+import { EsiError, TimeoutError } from '../../../../src/core/util/error';
+import { RETRYABLE_ATTEMPTS, sentRequests } from '../../support/transport';
+import { Then } from '../../support/steps';
+
+Then('the client shall return a network error', function () {
+  expect(this.error).toBeInstanceOf(EsiError);
+  expect(this.error).toBeInstanceOf(TimeoutError);
+  expect((this.error as EsiError).statusCode).toBe(0);
+  expect(sentRequests()).toHaveLength(RETRYABLE_ATTEMPTS);
+});

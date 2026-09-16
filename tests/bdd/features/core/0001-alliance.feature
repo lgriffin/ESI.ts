@@ -49,7 +49,7 @@ Feature: Alliance Management
     Scenario: Alliance holding no contacts
       Given an alliance with no contacts
       When the client requests contact list for the alliance
-      Then the client shall return an empty array
+      Then the client shall return an empty alliance contact array
 
   # ── Failure surface ─────────────────────────────────────────────────
 

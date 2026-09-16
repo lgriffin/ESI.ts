@@ -54,6 +54,6 @@ Feature: Meta API Management
     message is what lets a build script log why generation failed.
 
     Scenario: Specification request during an outage reports Service Unavailable
-      Given the ESI API is unavailable
+      Given the OpenAPI specification endpoint is unavailable
       When the client requests the OpenAPI specification
       Then the client shall return a service unavailable error
