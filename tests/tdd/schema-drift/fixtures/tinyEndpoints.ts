@@ -18,6 +18,14 @@ export const StatusSchema = z.looseObject({
 
 /** Endpoint definitions written the way src/core/endpoints writes them. */
 export const tinyEndpoints = {
+  // No response schema: must not shift which schema the next path pairs with.
+  postCorporationProjectNote: {
+    path: 'corporations/{corporationId}/projects/{projectId}/notes',
+    method: 'POST',
+    requiresAuth: true,
+    pathParams: ['corporationId', 'projectId'],
+    hasBody: true,
+  },
   getCorporationProjects: {
     path: 'corporations/{corporationId}/projects',
     method: 'GET',
