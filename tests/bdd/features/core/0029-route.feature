@@ -74,4 +74,4 @@ Feature: Route Navigation Management
     Scenario: Unreachable destination is rejected with 404
       Given an unreachable destination
       When the client requests a route to unreachable destination
-      Then the client shall return a 404 error
+      Then the client shall return a 404 error for the route

@@ -144,7 +144,7 @@
     "bdd:market": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0023-market",
     "bdd:meta": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0025-meta",
     "bdd:pi": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/pi",
-    "bdd:route": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/route",
+    "bdd:route": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0029-route",
     "bdd:search": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/search",
     "bdd:skills": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/skills",
     "bdd:skyhooks": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/skyhooks",

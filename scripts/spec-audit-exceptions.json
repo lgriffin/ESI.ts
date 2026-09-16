@@ -24,7 +24,6 @@
     "tests/bdd/step-definitions/core/pi.steps.ts",
     "tests/bdd/step-definitions/core/resilience.steps.ts",
     "tests/bdd/step-definitions/core/response-headers.steps.ts",
-    "tests/bdd/step-definitions/core/route.steps.ts",
     "tests/bdd/step-definitions/core/runtime-validation.steps.ts",
     "tests/bdd/step-definitions/core/search.steps.ts",
     "tests/bdd/step-definitions/core/skills.steps.ts",
