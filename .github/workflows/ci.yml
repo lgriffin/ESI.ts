@@ -234,6 +234,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # The legacyStepFiles ratchet compares against master's copy of the
+      # exception list; without the ref the audit fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
       - name: Audit EARS requirements and Gherkin structure
         run: npm run spec:audit
 

@@ -216,16 +216,24 @@ export function checkMissingSystemName(title: string): string[] {
 export interface Exceptions {
   /** Feature files not yet converted to Rule form. Ratcheted: can only shrink. */
   unconverted: string[];
+  /**
+   * Multi-step `defineFeature` step files not yet split into tests/bdd/steps.
+   * Ratcheted the same way; see `spec-audit-steps.ts`.
+   */
+  legacyStepFiles: string[];
 }
 
 export function loadExceptions(): Exceptions {
   if (!existsSync(EXCEPTIONS_PATH)) {
-    return { unconverted: [] };
+    return { unconverted: [], legacyStepFiles: [] };
   }
   const parsed = JSON.parse(readFileSync(EXCEPTIONS_PATH, 'utf-8')) as Partial<
     Exceptions & { $comment?: string }
   >;
-  return { unconverted: parsed.unconverted ?? [] };
+  return {
+    unconverted: parsed.unconverted ?? [],
+    legacyStepFiles: parsed.legacyStepFiles ?? [],
+  };
 }
 
 /**
@@ -242,6 +250,12 @@ export function loadExceptions(): Exceptions {
  */
 export function loadBaselineExceptions(): {
   entries: Set<string>;
+  /**
+   * `legacyStepFiles` on the integration branch, or null when that branch's
+   * file has no such key yet — the one state in which additions cannot be
+   * told apart from the list being introduced.
+   */
+  legacyStepFiles: Set<string> | null;
   ref: string | null;
 } {
   const relPath = path
@@ -267,13 +281,19 @@ export function loadBaselineExceptions(): {
     }
     try {
       const parsed = JSON.parse(raw) as Partial<Exceptions>;
-      return { entries: new Set(parsed.unconverted ?? []), ref };
+      return {
+        entries: new Set(parsed.unconverted ?? []),
+        legacyStepFiles: Array.isArray(parsed.legacyStepFiles)
+          ? new Set(parsed.legacyStepFiles)
+          : null,
+        ref,
+      };
     } catch {
       continue; // Baseline file is unparseable; treat it as absent.
     }
   }
 
-  return { entries: new Set(), ref: null };
+  return { entries: new Set(), legacyStepFiles: new Set(), ref: null };
 }
 
 export interface ExceptionProblems {
