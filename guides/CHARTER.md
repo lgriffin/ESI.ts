@@ -525,6 +525,7 @@ guides/                         canonical, and the only source the site builds f
 ├── SDE.md                      index; src/sde/docs/* move to guides/sde/
 ├── OKF.md                      moved from docs/okf-guide.md
 ├── RELEASE.md                  NEW: release-please, changelog, provenance, support window
+├── SEMVER.md                   NEW: what the public contract is, major/minor/patch decisions, commit markers, merge buttons
 ├── DOCUMENTATION.md            rewritten: surfaces, site build, TypeDoc, metrics generation
 ├── BEADS.md                    keep; AGENTS.md and CLAUDE.md shrink to pointers
 └── rfcs/                       future design papers (the jitaspace mapping and streaming-websocket strategy were retired as dated)
@@ -638,6 +639,13 @@ The package **shall** support Node 18 or newer and **shall** be tested on the 18
 
 - **Why:** Global fetch arrived in 18. Dropping 18 is a major version and needs a changelog line, not a silent engines bump.
 - **Verified by:** `engines` field; `ci.yml` matrix.
+
+#### REL-06 · Unwanted · Partial
+
+If a change can make code that works against the previous release fail to compile, throw, or return a different result, then the commit that introduces it **shall** be marked breaking (`type!:` and a `BREAKING CHANGE:` footer with the migration), and anything it removes **shall** have been deprecated in an earlier minor release unless ESI has already removed it.
+
+- **Why:** `^9.x` in a consumer's manifest installs every minor and patch automatically. A break released as a minor breaks those installs silently.
+- **Verified by:** `guides/SEMVER.md` classification and the Reviewer Checklist; the `api-semver` job (#310) for the root entry point's type surface. Runtime behaviour, schema tightening, sub-path exports and required members on implemented interfaces are review-only.
 
 ---
 

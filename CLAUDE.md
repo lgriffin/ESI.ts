@@ -78,7 +78,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - **Strategy pattern** for retry (`RetryStrategy`), circuit breaker (`ICircuitBreaker`), and deduplication (`IDeduplicator`) — all swappable via `ApiClient` setters.
 - **Dual CJS/ESM build** via tsup (esbuild) for JS bundles + tsc for declaration files.
 - **Logging** via pino behind the `ILogger` interface. Level controlled by `ESI_LOG_LEVEL` env var (default: `warn`).
-- **Conventional commits** enforced by commitlint + husky. Types: feat, fix, chore, docs, test, refactor, perf.
+- **Conventional commits** enforced by commitlint + husky. Types: feat, fix, chore, docs, test, refactor, perf. The type and `!` decide the released version; see Semantic Versioning below.
 - **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types`, do not edit manually.
 
 ## Architecture
@@ -102,6 +102,17 @@ Key middleware in the pipeline:
 - **ci.yml** — runs on PRs to master: full matrix (Node 18/20/22), BDD, contract, fuzz, coverage with PR comment, quality gate
 - **nightly-mutation.yml** — runs nightly: mutation testing (Stryker) with 4-hour timeout
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
+
+## Semantic Versioning (enforced)
+
+Every change is classified by [`guides/SEMVER.md`](guides/SEMVER.md) before it is committed. These rules are mandatory for humans and agents:
+
+- **Classify before committing.** A change that touches the public contract (any `package.json` `exports` entry, types they export, documented runtime behaviour, error classes, Zod response schemas, defaults, `engines`, public or peer dependencies) is major, minor or patch per the tables in SEMVER.md. When the classification is unclear, ask the user rather than guessing.
+- **Never introduce a breaking change without the user's explicit approval.** Propose a compatible alternative first: an optional parameter, a new method next to the old one, or a deprecation.
+- **Mark breaking changes on the commit that introduces them:** `type!:` in the subject **and** a `BREAKING CHANGE:` footer that tells a consumer how to migrate. Never hide a break in `chore:`, `refactor:` or `test:`, and never add `!` "to be safe".
+- **Deprecate before removing.** Removals ship in a major release only, after `@deprecated` JSDoc (and `DeprecationInfo` for endpoints) in an earlier minor release, unless ESI has already removed the endpoint.
+- **Keep the API report honest.** When an exported shape changes, run `npm run api-report` and commit `etc/esi.ts.api.md`. If the report loses a line but the change is compatible, add an `API-Compatible: <why>` trailer.
+- **Pull request titles are conventional commits.** A squash merge of several commits uses the title as the commit release-please reads, so it carries `!` whenever any commit in the pull request is breaking. Prefer a merge commit when a pull request mixes `fix:`/`feat:` with other types.
 
 ## Reviewing
 
