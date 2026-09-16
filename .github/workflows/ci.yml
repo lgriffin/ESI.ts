@@ -308,6 +308,9 @@ jobs:
       - name: Scenarios mock at the transport seam
         run: npm run lint:bdd-seam
 
+      - name: No focused, skipped, assertion-free or silenced tests
+        run: npm run lint:suite-health
+
   contract-tests:
     name: Contract Tests
     runs-on: ubuntu-latest

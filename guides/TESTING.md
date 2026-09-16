@@ -423,6 +423,13 @@ Every other tier imports from `src/`, so none of them sees the package a consume
 
 Defects the contract finds are recorded as known issues against their beads: each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround. There are none open; `esi-v2s.15` (error class identity across sub-paths) and `esi-v2s.16` (`./sde` peer dependencies) were the last two.
 
+## Suite-health lint
+
+**Run:** `npm run lint:suite-health` (ESLint over `tests/`, fixture trees excluded)
+**CI:** `ci-fast.yml` on every push; the `spec-audit` job in `ci.yml`, inside `ci-success`
+
+Keeps a green suite from quietly becoming a decorative one. It rejects a committed `.only`, `fit` or `fdescribe`; a `.skip`, `xit`, `xdescribe` or `.todo`; a test with no assertion; a `catch` that swallows an assertion's failure without rethrowing or asserting; and a `console` method mocked and never restored. The same applies to jest-cucumber scenarios (`test.only`, `test.skip` inside `defineFeature`) and to BDD Then steps: under `tests/bdd` every `Then(...)` step file and every legacy `then(...)` step must assert. `expect`, any `expect*` helper and `fc.assert` count as assertions. There is no baseline; every finding fails. Gate a live-only suite with a condition (`LIVE ? describe : describe.skip`), not a committed `.skip`. The rule table and the reasoning are in [QUALITY-GATES.md](QUALITY-GATES.md#suite-health-lint); each rule has a fixture in `tests/tdd/suite-health/fixtures/` that its Jest suite must see rejected.
+
 ## Integration Tests
 
 Integration tests live in `tests/integration/` and hit the real ESI API. They are **not** part of the default `npm test` run and require a separate config.
