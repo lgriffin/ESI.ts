@@ -13,6 +13,7 @@ import { contractEndpoints } from '../../../src/core/endpoints/contractEndpoints
 import { corporationEndpoints } from '../../../src/core/endpoints/corporationEndpoints';
 import { freelanceJobsEndpoints } from '../../../src/core/endpoints/freelanceJobsEndpoints';
 import { industryEndpoints } from '../../../src/core/endpoints/industryEndpoints';
+import { mailEndpoints } from '../../../src/core/endpoints/mailEndpoints';
 
 interface BodyCase {
   route: string;
@@ -217,5 +218,22 @@ describe('Schemas accept response bodies shaped as the ESI spec defines', () => 
   it.each(cases)('$route', ({ schema, body }) => {
     const result = schema.safeParse(body);
     expect(result.success ? [] : result.error.issues).toEqual([]);
+  });
+});
+
+/**
+ * Fields the spec defines must be declared with the spec's type, so a body
+ * carrying the wrong type is rejected rather than passed through untyped.
+ */
+describe('Schemas declare the fields the ESI spec defines', () => {
+  it.each([
+    {
+      // CharactersCharacterIdMailMailIdGet: the read flag is `read`.
+      route: 'GET /characters/{character_id}/mail/{mail_id}',
+      schema: mailEndpoints.getMail.responseSchema as z.ZodType,
+      body: { subject: 'Fleet op', read: 'yes' },
+    },
+  ])('$route rejects a wrongly typed field', ({ schema, body }) => {
+    expect(schema.safeParse(body).success).toBe(false);
   });
 });

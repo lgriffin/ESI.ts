@@ -6684,14 +6684,14 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     deleteMail(characterId: number, mailId: number): Promise<void>;
     deleteMailLabel(characterId: number, labelId: number): Promise<void>;
     // (undocumented)
-    fetchAllMailHeaders(characterId: number, concurrency?: number): Promise<MailMessage[]>;
+    fetchAllMailHeaders(characterId: number, concurrency?: number): Promise<MailHeader[]>;
     // (undocumented)
     fetchAllMailingLists(characterId: number, concurrency?: number): Promise<{
         mailing_list_id: number;
         name: string;
     }[]>;
     getMail(characterId: number, mailId: number): Promise<MailMessage>;
-    getMailHeaders(characterId: number): Promise<MailMessage[]>;
+    getMailHeaders(characterId: number): Promise<MailHeader[]>;
     getMailingLists(characterId: number): Promise<{
         mailing_list_id: number;
         name: string;
@@ -6702,7 +6702,7 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     }>;
     sendMail(characterId: number, body: object): Promise<number>;
     // (undocumented)
-    streamMailHeaders(characterId: number): AsyncGenerator<PageResult<MailMessage>, void, undefined>;
+    streamMailHeaders(characterId: number): AsyncGenerator<PageResult<MailHeader>, void, undefined>;
     // (undocumented)
     streamMailingLists(characterId: number): AsyncGenerator<PageResult<{
         mailing_list_id: number;
@@ -6710,6 +6710,23 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     }>, void, undefined>;
     updateMailMetadata(characterId: number, mailId: number, body: object): Promise<void>;
 }
+
+// @public (undocumented)
+export type MailHeader = z.infer<typeof MailHeaderSchema>;
+
+// @public
+const MailHeaderSchema: z.ZodObject<{
+    mail_id: z.ZodOptional<z.ZodNumber>;
+    subject: z.ZodOptional<z.ZodString>;
+    from: z.ZodOptional<z.ZodNumber>;
+    timestamp: z.ZodOptional<z.ZodString>;
+    labels: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    is_read: z.ZodOptional<z.ZodBoolean>;
+    recipients: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        recipient_id: z.ZodNumber;
+        recipient_type: z.ZodType<(string & {}) | "character" | "corporation" | "alliance" | "mailing_list", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation" | "alliance" | "mailing_list", unknown>>;
+    }, z.core.$loose>>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const MailingListSchema: z.ZodObject<{
@@ -6722,8 +6739,8 @@ export type MailLabel = z.infer<typeof MailLabelSchema>;
 
 // @public (undocumented)
 const MailLabelSchema: z.ZodObject<{
-    label_id: z.ZodNumber;
-    name: z.ZodString;
+    label_id: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodOptional<z.ZodString>;
     color: z.ZodOptional<z.ZodString>;
     unread_count: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
@@ -6731,8 +6748,8 @@ const MailLabelSchema: z.ZodObject<{
 // @public (undocumented)
 const MailLabelsResponseSchema: z.ZodObject<{
     labels: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        label_id: z.ZodNumber;
-        name: z.ZodString;
+        label_id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
         color: z.ZodOptional<z.ZodString>;
         unread_count: z.ZodOptional<z.ZodNumber>;
     }, z.core.$loose>>>;
@@ -6742,14 +6759,13 @@ const MailLabelsResponseSchema: z.ZodObject<{
 // @public (undocumented)
 export type MailMessage = z.infer<typeof MailMessageSchema>;
 
-// @public (undocumented)
+// @public
 const MailMessageSchema: z.ZodObject<{
-    mail_id: z.ZodOptional<z.ZodNumber>;
     subject: z.ZodOptional<z.ZodString>;
     from: z.ZodOptional<z.ZodNumber>;
     timestamp: z.ZodOptional<z.ZodString>;
     labels: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
-    is_read: z.ZodOptional<z.ZodBoolean>;
+    read: z.ZodOptional<z.ZodBoolean>;
     body: z.ZodOptional<z.ZodString>;
     recipients: z.ZodOptional<z.ZodArray<z.ZodObject<{
         recipient_id: z.ZodNumber;
@@ -7999,6 +8015,7 @@ declare namespace schemas {
         CharacterShipSchema,
         LoyaltyPointsSchema,
         LoyaltyStoreOfferSchema,
+        MailHeaderSchema,
         MailMessageSchema,
         MailLabelSchema,
         MailLabelsResponseSchema,

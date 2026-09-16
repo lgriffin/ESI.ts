@@ -78,7 +78,6 @@ export const mailFixtures = {
       toCharacter(MAIL_CHARACTER_ID),
       { recipient_id: 99005338, recipient_type: 'alliance' },
     ],
-    mail_id: MAIL_ID,
   }),
 
   labels: () => ({

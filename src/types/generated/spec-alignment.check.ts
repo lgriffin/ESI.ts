@@ -11,12 +11,12 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 111
+ * - Type pairs asserted: 112
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
  *   Loyalty, Mail, Market, PI, Skills, Sovereignty, Status, Universe, Wallet, Wars)
- * - Skipped types: 15 (documented inline with reasons — key name mismatches,
+ * - Skipped types: 14 (documented inline with reasons — key name mismatches,
  *   structural differences, inline array elements, or no spec counterpart)
  */
 
@@ -124,7 +124,7 @@ import type {
   CharacterShip,
 } from '../location';
 import type { LoyaltyPoints, LoyaltyStoreOffer } from '../loyalty';
-import type { MailMessage } from '../mail';
+import type { MailHeader, MailMessage } from '../mail';
 import type {
   MarketOrder,
   CharacterMarketOrder,
@@ -600,11 +600,13 @@ type _LoyaltyStoreOffer = AssertTrue<
 >;
 
 // Mail
+type _MailHeader = AssertTrue<
+  HasAllSpecKeys<EsiSpec.CharactersCharacterIdMailGet, MailHeader>
+>;
 type _MailMessage = AssertTrue<
-  HasAllSpecKeys<EsiSpec.CharactersCharacterIdMailGet, MailMessage>
+  HasAllSpecKeys<EsiSpec.CharactersCharacterIdMailMailIdGet, MailMessage>
 >;
 // Skip: MailLabel -- represents inner label element within CharactersCharacterIdMailLabelsGet wrapper, no separate spec interface
-// Skip: MailMessage vs CharactersCharacterIdMailMailIdGet -- detail endpoint uses 'read' instead of 'is_read', intentional key name difference
 
 // Market
 type _MarketHistory = AssertTrue<

@@ -93,9 +93,9 @@ describe('MailClient', () => {
 
   it('should return a mail', async () => {
     const mockResponse = {
-      mail_id: 1,
       subject: 'Test Mail',
       body: 'This is a test mail',
+      read: true,
       from: 123456,
       timestamp: '2024-01-01T00:00:00Z',
       recipients: [{ recipient_id: 95465499, recipient_type: 'character' }],
@@ -105,8 +105,7 @@ describe('MailClient', () => {
 
     const result = await getBody(() => mailClient.getMail(123456, 1));
 
-    expect(result).toHaveProperty('mail_id');
-    expect(typeof result.mail_id).toBe('number');
+    expect(result).toHaveProperty('read', true);
     expect(result).toHaveProperty('subject');
     expect(typeof result.subject).toBe('string');
     expect(result).toHaveProperty('body');

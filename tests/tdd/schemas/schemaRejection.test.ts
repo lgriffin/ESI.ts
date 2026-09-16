@@ -150,6 +150,7 @@ import {
   LoyaltyStoreOfferSchema,
 
   // mail
+  MailHeaderSchema,
   MailMessageSchema,
   MailLabelSchema,
   MailLabelsResponseSchema,
@@ -1855,16 +1856,31 @@ const schemaCases: SchemaTestCase[] = [
 
   // ── mail ──────────────────────────────────────────────────────────────────
   {
-    name: 'MailMessageSchema',
-    schema: MailMessageSchema,
+    name: 'MailHeaderSchema',
+    schema: MailHeaderSchema,
     validData: {
       mail_id: 1,
       subject: 'Hello',
       from: 100,
       timestamp: '2024-01-01T00:00:00Z',
+      is_read: false,
     },
     invalidData: {
       mail_id: 'bad',
+    },
+  },
+  {
+    name: 'MailMessageSchema',
+    schema: MailMessageSchema,
+    validData: {
+      subject: 'Hello',
+      from: 100,
+      timestamp: '2024-01-01T00:00:00Z',
+      read: true,
+      body: 'Fly safe',
+    },
+    invalidData: {
+      read: 'bad',
     },
   },
   {

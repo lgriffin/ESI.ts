@@ -8,6 +8,7 @@
  */
 import { z } from 'zod';
 import { corporationEndpoints } from '../../../src/core/endpoints/corporationEndpoints';
+import { mailEndpoints } from '../../../src/core/endpoints/mailEndpoints';
 
 interface OptionalCase {
   route: string;
@@ -96,6 +97,16 @@ const cases: OptionalCase[] = [
     ],
     field: '[].start_date',
   },
+  // CharactersCharacterIdMailLabelsGet: every label field is optional.
+  ...(['labels[].label_id', 'labels[].name'] as const).map((field) => ({
+    route: 'GET /characters/{character_id}/mail/labels',
+    schema: mailEndpoints.getMailLabels.responseSchema as z.ZodType,
+    body: {
+      labels: [{ label_id: 1, name: '[Inbox]', unread_count: 3 }],
+      total_unread_count: 3,
+    },
+    field,
+  })),
 ];
 
 describe('Schemas accept bodies without the fields ESI marks optional', () => {

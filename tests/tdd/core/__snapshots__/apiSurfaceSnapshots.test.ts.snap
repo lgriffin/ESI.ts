@@ -277,6 +277,7 @@ exports[`API surface snapshots schema exports should match snapshot 1`] = `
   "KillmailSummarySchema",
   "LoyaltyPointsSchema",
   "LoyaltyStoreOfferSchema",
+  "MailHeaderSchema",
   "MailLabelSchema",
   "MailLabelsResponseSchema",
   "MailMessageSchema",

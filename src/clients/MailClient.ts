@@ -1,7 +1,7 @@
 import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { mailEndpoints } from '../core/endpoints/mailEndpoints';
-import { MailMessage, MailLabel } from '../types/api-responses';
+import { MailHeader, MailMessage, MailLabel } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
@@ -16,7 +16,7 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
    * @returns A list of mail message headers
    * @requires Authentication
    */
-  getMailHeaders(characterId: number): Promise<MailMessage[]> {
+  getMailHeaders(characterId: number): Promise<MailHeader[]> {
     return this.api.getCharacterMailHeaders(characterId);
   }
 
@@ -130,8 +130,8 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
   fetchAllMailHeaders(
     characterId: number,
     concurrency?: number,
-  ): Promise<MailMessage[]> {
-    return this.fetchAllEndpoint<MailMessage>(
+  ): Promise<MailHeader[]> {
+    return this.fetchAllEndpoint<MailHeader>(
       'getCharacterMailHeaders',
       [characterId],
       concurrency,
@@ -151,8 +151,8 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
 
   streamMailHeaders(
     characterId: number,
-  ): AsyncGenerator<PageResult<MailMessage>, void, undefined> {
-    return this.streamEndpoint<MailMessage>(
+  ): AsyncGenerator<PageResult<MailHeader>, void, undefined> {
+    return this.streamEndpoint<MailHeader>(
       'getCharacterMailHeaders',
       characterId,
     );
