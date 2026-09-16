@@ -135,6 +135,29 @@ export function cacheResponse(
 }
 
 /**
+ * Evict the cached copy of a response the caller rejected. `executeRequest`
+ * caches a GET body before `createClient` validates it, so a body that fails
+ * the endpoint's schema would otherwise be served again, from the spec TTL or
+ * after a 304, until the entry expired.
+ */
+export function evictRejectedResponse(
+  client: ApiClient,
+  endpoint: string,
+  requiresAuth: boolean,
+  resolveCache: (client: ApiClient) => ICache | null,
+): void {
+  const cache = resolveCache(client);
+  if (!cache) return;
+  const url = `${client.getLink()}/${endpoint}`;
+  if (cache.delete(buildCacheKey(url, client, requiresAuth))) {
+    logDebug(
+      client,
+      `Evicted cached response for ${url} after it failed validation`,
+    );
+  }
+}
+
+/**
  * Evict cached reads under the endpoint's path after a successful write, so a
  * read that follows a POST/PUT/DELETE fetches rather than serving the
  * pre-write copy. Called for every 2xx status, including the body-less

@@ -15,6 +15,7 @@ import {
   createSeamClient,
   lastRequest,
   queueResponse,
+  queueResponses,
   sentRequests,
   useHttpTransport,
 } from '../../support/transport';
@@ -180,6 +181,61 @@ defineFeature(feature, (test) => {
       expect(sentRequests()).toHaveLength(1);
       expect(result).toEqual(mistypedAlliance);
     });
+  });
+
+  test('Alliance lookup after a rejected body refetches and returns the corrected record', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const corrected = TestDataFactory.createAllianceInfo({
+      alliance_id: allianceId,
+    });
+    let first: unknown;
+    let second: unknown;
+
+    given('an ESI client with response validation enabled', () => {
+      // createSeamClient enables validation and the ETag cache by default.
+    });
+
+    and(
+      'ESI serves a cacheable alliance body that fails validation, then a valid one',
+      () => {
+        queueResponses(
+          {
+            match: alliancePath,
+            headers: { etag: '"rejected"' },
+            body: mistypedAlliance,
+          },
+          {
+            match: alliancePath,
+            headers: { etag: '"corrected"' },
+            body: corrected,
+          },
+        );
+      },
+    );
+
+    when('I request the same alliance twice', async () => {
+      first = await client.alliance.getAllianceById(allianceId).catch((e) => e);
+      second = await client.alliance
+        .getAllianceById(allianceId)
+        .catch((e) => e);
+    });
+
+    then('the first call shall reject with an EsiValidationError', () => {
+      expect(first).toBeInstanceOf(EsiValidationError);
+    });
+
+    and(
+      'the second call shall send an unconditional request and return the valid alliance',
+      () => {
+        expect(sentRequests()).toHaveLength(2);
+        expect(lastRequest().headers['if-none-match']).toBeUndefined();
+        expect(second).toEqual(corrected);
+      },
+    );
   });
 
   test('Validation error is catchable as EsiError and narrowed by the guard', ({

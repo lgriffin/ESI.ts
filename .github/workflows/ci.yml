@@ -76,12 +76,19 @@ jobs:
   static-analysis:
     name: Static Analysis
     runs-on: ubuntu-latest
+    # The generated-types and schema-drift checks compare the repository with
+    # the live ESI spec, so, like `npm audit`, they can go red on a pull
+    # request that changed nothing they read. Each one blocks only when the
+    # pull request touches its inputs. Otherwise a failure is drift that
+    # already exists on the base branch: it is downgraded to a warning, and
+    # nightly-spec-drift.yml files it as a `spec-drift` issue.
 
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 2 # HEAD^1 is the base tip of the pull request merge commit
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -92,33 +99,65 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify generated types are up to date
+      - name: Check which spec-derived inputs this pull request touches
+        id: spec-inputs
         run: |
+          touches() {
+            if git diff --quiet HEAD^1 HEAD -- "$@"; then echo false; else echo true; fi
+          }
+          {
+            echo "types=$(touches scripts/generate-esi-types.ts src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts)"
+            echo "schemas=$(touches scripts/generate-schema-drift-report.ts scripts/schema-drift-exceptions.json src/schemas/ src/core/endpoints/ package-lock.json)"
+          } | tee -a "$GITHUB_OUTPUT"
+
+      - name: Verify generated types are up to date
+        env:
+          TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.types }}
+        run: |
+          set -o pipefail
+          problem=""
           if npm run generate:types 2>&1 | tee /tmp/gen-types.log; then
-            git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts || {
-              echo "Generated types are stale — run 'npm run generate:types' and commit the result"
-              exit 1
-            }
+            if ! git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts; then
+              problem="Generated types are stale — run 'npm run generate:types' and commit the result"
+            fi
           elif grep -q "HTTP 503" /tmp/gen-types.log; then
             echo "::warning::ESI API returned 503 — skipping generated types freshness check"
           else
-            cat /tmp/gen-types.log
+            problem="Type generation failed — see the log above"
+          fi
+
+          if [ -z "$problem" ]; then exit 0; fi
+          if [ "$TOUCHES_INPUTS" = "true" ]; then
+            echo "::error::$problem"
             exit 1
           fi
+          echo "::warning::$problem. This pull request does not touch the generator or the generated files, so the drift is already on the base branch; nightly-spec-drift.yml files it as a spec-drift issue."
+          echo "Generated types differ from the live ESI spec (pre-existing drift, not blocking)." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run dead code detection (knip)
         run: npx knip --no-exit-code
 
       - name: Check schema drift
+        env:
+          TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.schemas }}
         run: |
+          set -o pipefail
+          problem=""
           if npm run schema:drift:ci 2>&1 | tee /tmp/schema-drift.log; then
             true
           elif grep -q "HTTP 503" /tmp/schema-drift.log; then
             echo "::warning::ESI API returned 503 — skipping schema drift check"
           else
-            cat /tmp/schema-drift.log
+            problem="Hand-written Zod schemas diverge from the ESI spec — run 'npm run schema:drift' to review"
+          fi
+
+          if [ -z "$problem" ]; then exit 0; fi
+          if [ "$TOUCHES_INPUTS" = "true" ]; then
+            echo "::error::$problem"
             exit 1
           fi
+          echo "::warning::$problem. This pull request does not touch the schemas, endpoint definitions, drift script or its exceptions, so the drift is already on the base branch; nightly-spec-drift.yml files it as a spec-drift issue."
+          echo "Zod schemas diverge from the live ESI spec (pre-existing drift, not blocking)." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Validate auth/scope alignment
         run: npm run validate:auth-scopes
@@ -363,6 +402,84 @@ jobs:
             exit 1
           fi
 
+  consumer-contract:
+    name: Consumer Contract (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    # Packs the library, installs the tarball into tests/consumer/ copied to a
+    # temporary directory, type-checks it under nodenext (CJS and ESM) and
+    # bundler resolution, runs the CJS and ESM consumers, and checks every
+    # sub-path in `exports` loads with the same names under require and import.
+    # Node 18 has no require(esm), so it is the line that catches a `require`
+    # condition resolving to an ES module.
+
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run the consumer contract test
+        run: npm run test:consumer
+
+  api-semver:
+    name: API SemVer Gate
+    runs-on: ubuntu-latest
+    # api-surface proves the committed etc/esi.ts.api.md matches the code; this
+    # job asks whether the pull request's commits declare what that report
+    # change does. A line the report loses (a removal or a signature change)
+    # needs a `type!:` commit or a `BREAKING CHANGE:` footer, so release-please
+    # cannot cut a minor for a breaking change. Pure additions pass. A removal
+    # that breaks nobody can say so with an `API-Compatible: <why>` trailer.
+    #
+    # HEAD is GitHub's merge commit for the pull request, so the script
+    # compares the report at HEAD^1 (base tip) and HEAD, and reads the commits
+    # in HEAD^1..HEAD^2 — the ones this pull request adds. Merge commits land
+    # on master as they are, which is what release-please reads. A squash
+    # merge of several commits takes the pull request title instead, so a
+    # declared break also needs `type!:` in the title; the script reads the
+    # current title through the API so a re-run after editing it passes.
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # need both parents of the merge commit and the PR's commits
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --ignore-scripts skips `prepare` (a full build); the gate only needs ts-node.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Check breaking API changes are declared
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: npm run api-report:semver
+
   documentation:
     name: Generate Documentation
     runs-on: ubuntu-latest
@@ -550,6 +667,8 @@ jobs:
         fuzz-tests,
         full-test-suite,
         api-surface,
+        consumer-contract,
+        api-semver,
         documentation,
         lockfile,
         dependency-audit,

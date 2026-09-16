@@ -11,6 +11,7 @@ import { buildEndpointPath } from './buildEndpointPath';
 import { parseWarning } from '../util/headersUtil';
 import { logWarn } from '../logger/clientLog';
 import { EsiError, EsiValidationError } from '../util/error';
+import { evictRejectedResponse, resolveCache } from '../requestPipeline';
 import type { z } from 'zod';
 
 export interface CursorOptions {
@@ -186,6 +187,12 @@ export function createClient<T extends EndpointMap>(
           if (def.responseSchema && apiClient.getValidateResponse()) {
             const result = def.responseSchema.safeParse(responseBody);
             if (!result.success) {
+              evictRejectedResponse(
+                apiClient,
+                path,
+                def.requiresAuth,
+                resolveCache,
+              );
               throw new EsiValidationError(
                 `${apiClient.getLink()}/${path}`,
                 result.error,
@@ -229,6 +236,12 @@ export function createClient<T extends EndpointMap>(
         if (def.responseSchema && apiClient.getValidateResponse()) {
           const result = def.responseSchema.safeParse(responseBody);
           if (!result.success) {
+            evictRejectedResponse(
+              apiClient,
+              path,
+              def.requiresAuth,
+              resolveCache,
+            );
             throw new EsiValidationError(
               `${apiClient.getLink()}/${path}`,
               result.error,

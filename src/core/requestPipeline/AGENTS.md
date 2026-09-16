@@ -39,6 +39,8 @@ Checked against `ApiRequestHandler.ts` and `fetchExecution.ts`:
 8. **`applyResponseInterceptors`.**
 
 After `handleRequest` returns, `createClient` validates the body against the
-endpoint's Zod `responseSchema` when response validation is enabled.
+endpoint's Zod `responseSchema` when response validation is enabled. A body
+that fails is evicted from the cache (`evictRejectedResponse`) before the
+`EsiValidationError` is thrown, because step 6 cached it first.
 
 If you change this order, update this list in the same PR.
