@@ -34,6 +34,7 @@ tests/bdd/
     core|integration|performance|sde/   *.steps.ts — one file per feature file
     shared/                             support layer: client setup, error and perf helpers
   support/
+    transport.ts  — the HTTP transport seam every scenario mocks at (rule 5)
     world.ts
 ```
 
@@ -98,9 +99,9 @@ clause, before the system name.
 ## Review conventions the audit does not check
 
 The audit parses feature-file ASTs and never opens a `.steps.ts` file, so
-nothing in this section is caught automatically. It is caught in review.
-Automating the transport-seam rule is Phase 1 of the ramp-up epic (`esi-v2s`);
-step-file structure and missing/unused step detection are Phase 2.
+these are caught in review — except rule 5, which has its own lint gate.
+Step-file structure and missing/unused step detection are Phase 2 of the
+ramp-up epic (`esi-v2s`).
 
 ### 4. Scenario names describe the case, not the requirement
 
@@ -120,7 +121,11 @@ Scenario names must match the `test('...')` string in the corresponding
 
 ### 5. Mock at the transport seam, not the method under test
 
-This is the one that decides whether the suite is worth running.
+This is the one that decides whether the suite is worth running, and it is
+**enforced**: `npm run lint:bdd-seam` fails on any `spyOn` of an ESI client, a
+domain client, a client prototype or `ApiClient`, and on reassigning a client
+method, anywhere under `tests/bdd/`. The selectors live in
+`eslint.bdd-seam.rules.cjs`; `tests/tdd/bdd-seam/` proves each one fires.
 
 ```ts
 // BAD — mocks the method the scenario exists to exercise. The Then step
@@ -128,24 +133,33 @@ This is the one that decides whether the suite is worth running.
 // bug in MarketApi.
 jest.spyOn(client.market, 'getMarketPrices').mockResolvedValue(expected);
 
-// GOOD — mocks fetch, so ApiRequestHandler, retry, schema validation and the
-// client method all really execute.
-fetchMock.mockResponseOnce(JSON.stringify(expected), {
-  headers: { ETag: '"abc"' },
-});
+// GOOD — describes the HTTP exchange. Path building, auth headers, the rate
+// limiter, retry, the ETag cache, deduplication, JSON parsing and Zod
+// validation all really execute.
+useHttpTransport(); // once, at the top of defineFeature
+client = createSeamClient(); // in beforeEach
+queueResponse({ match: '/markets/prices/', body: expected });
 ```
 
-Use `jest-fetch-mock`, as `etag-caching.steps.ts` and
-`response-headers.steps.ts` do. `fetch` is already mocked globally for every
-BDD file by `src/config/jest/jest.setup.ts`, so a step only needs to queue the
-response — but it must queue one, or the client parses an empty body.
-`resilience.steps.ts` is the other reference: it drives real `CircuitBreaker`
-and `RetryStrategy` objects rather than mocking either.
+`tests/bdd/support/transport.ts` is the seam:
 
-Stubbing a client method is only acceptable when it is _incidental setup_ for a
-scenario about something else — for example a cross-domain workflow where one
-lookup is not the behaviour under test. Most of the suite predates this rule;
-the conversion backlog is `esi-v2s.2` in beads.
+| Helper                                                            | Purpose                                                                              |
+| :---------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
+| `useHttpTransport()`                                              | Installs the fake transport for every scenario in the feature                        |
+| `createSeamClient(config?)`                                       | A real `EsiClient` with a test bearer token, no request spacing, millisecond backoff |
+| `queueResponse({ status, headers, body, match, times, delayMs })` | Queues what ESI sends back; `match` pins it to a URL fragment or pattern             |
+| `queueError(status, message, options?)`                           | Queues ESI's `{ "error": message }` body                                             |
+| `RETRYABLE_ATTEMPTS`                                              | How many requests a retryable 5xx consumes before the client gives up                |
+| `sentRequests()` / `lastRequest()`                                | What the client actually put on the wire: method, parsed `URL`, headers, body        |
+
+The transport is strict. A request with no queued response fails the scenario,
+and so does a queued response nobody requested — either means the scenario's
+picture of the exchange is wrong (a cache hit where it expected a fetch, a
+retry it did not budget for). Assert on the request as well as the result when
+the Rule is about what is sent: the path, query parameters, method or body.
+
+`resilience.steps.ts` additionally drives real `CircuitBreaker` and
+`RetryStrategy` objects for Rules about those components in isolation.
 
 ### 6. Step bodies delegate to the support layer
 
