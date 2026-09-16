@@ -82,7 +82,7 @@ Feature: Killmails Management
     Scenario: Killmail hash that does not match the ID
       Given an invalid killmail hash
       When the client requests the killmail details with invalid hash
-      Then the client shall return a 404 not found error
+      Then the client shall return a 404 not found error for the killmail
 
     Scenario: Character killmails without a token
       Given an unauthenticated killmail request
