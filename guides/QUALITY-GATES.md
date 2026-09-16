@@ -195,12 +195,12 @@ The generated-types, schema-drift and contract steps all call the live ESI spec.
 
 Like `npm audit`, the generated-types and schema-drift checks report the state of the world: CCP changing ESI turns them red on every open pull request. `static-analysis` therefore first compares the merge commit with its base tip (`HEAD^1`) and blocks on each check only when the pull request touches that check's inputs:
 
-| Check                     | Inputs                                                                                                                                        |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Generated types freshness | `scripts/generate-esi-types.ts`, `src/types/generated/`, `src/core/endpoints/esi-cache-ttls.generated.ts`                                     |
-| Schema drift              | `scripts/generate-schema-drift-report.ts`, `scripts/schema-drift-exceptions.json`, `src/schemas/`, `src/core/endpoints/`, `package-lock.json` |
+| Check                     | Inputs                                                                                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Generated types freshness | `scripts/generate-esi-types.ts`, `src/types/generated/`, `src/core/endpoints/esi-cache-ttls.generated.ts`                                                                                                           |
+| Schema drift              | `scripts/generate-schema-drift-report.ts`, `scripts/schema-drift-core.ts`, `scripts/schema-drift-baseline.json`, `scripts/schema-drift-exceptions.json`, `src/schemas/`, `src/core/endpoints/`, `package-lock.json` |
 
-Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` still blocks on both checks unconditionally.
+Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` still blocks on both checks unconditionally. Schema drift that is already tracked turns neither red: it is listed in a ratcheted baseline, described under [Schema drift](#schema-drift).
 
 The lockfile check skips Dependabot because Dependabot's npm version produces byte-level lockfile differences. When regenerating a lockfile locally, use the npm major that CI uses so the file round-trips.
 
@@ -307,9 +307,9 @@ There is no auto-merge workflow for Dependabot pull requests; each one is merged
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | Missing endpoints         | `npx ts-node scripts/check-spec-drift.ts --latest`                                                                       | Exit code `1`: the spec has an endpoint no `*Endpoints.ts` file declares. Exit `2` or unparsable JSON fails the run |
 | Generated types freshness | `npm run generate:types`, then `git diff` on `src/types/generated/` and `src/core/endpoints/esi-cache-ttls.generated.ts` | The regenerated files differ from `master`, or generation failed for a reason other than 503                        |
-| Schema drift              | `npm run schema:drift:ci`                                                                                                | Hand-written Zod schemas diverge from the spec (fields not listed in `scripts/schema-drift-exceptions.json`)        |
+| Schema drift              | `npm run schema:drift:ci`                                                                                                | Drift not in `scripts/schema-drift-baseline.json`, a baseline entry that no longer occurs, or a broken check        |
 
-A 503 from ESI on the second or third step is logged as a warning and treated as no drift.
+A 503 from ESI on the second or third step is logged as a warning and treated as no drift. The schema step runs with `pipefail`; before it did, it read the exit status of `tee` and never registered drift.
 
 The missing-endpoint check works in five steps:
 
@@ -372,7 +372,7 @@ The report goes to stdout:
 
 Exit codes: `0` no missing endpoints, `1` missing endpoints found, `2` the check itself failed.
 
-The other two checks run locally as `npm run generate:types` followed by `git diff`, and `npm run schema:drift` (report only) or `npm run schema:drift:ci` (non-zero exit on drift).
+The other two checks run locally as `npm run generate:types` followed by `git diff`, and `npm run schema:drift` (report only) or `npm run schema:drift:ci` (non-zero exit on drift outside the baseline).
 
 ### Compatibility dates
 
@@ -384,7 +384,7 @@ CCP versions breaking changes to ESI with compatibility dates. A new endpoint on
 2. Check the [ESI changelog](https://esi.evetech.net/meta/changelog) and the [developer blog](https://developers.eveonline.com/blog) for context.
 3. For stale generated types, run `npm run generate:types` and commit the result on its own branch.
 4. For missing endpoints, file a bead per coherent group and follow the "add an endpoint" walkthrough in [DESIGN-RULES.md](DESIGN-RULES.md).
-5. For schema drift, fix the schema, or record an accepted deviation in `scripts/schema-drift-exceptions.json`.
+5. For schema drift, fix the schema and remove its baseline entries in the same change, or remove the entries whose drift CCP fixed. See [Schema drift](#schema-drift).
 6. The issue closes itself on the first clean nightly after the fixes merge. Close it by hand only if a gap is being skipped on purpose.
 
 Related scripts:
@@ -396,6 +396,64 @@ Related scripts:
 | `scripts/generate-esi-types.ts`           | Regenerate types, TTLs, rate limits and scopes              |
 | `scripts/generate-schema-drift-report.ts` | Zod schema versus spec field comparison                     |
 | `scripts/snapshot-openapi.ts`             | Snapshot the spec for contract tests                        |
+
+---
+
+## Schema drift
+
+`npm run schema:drift` compares the Zod `responseSchema` of every endpoint definition with the response body the ESI spec defines for that operation, pinned to `compatibility_date=2025-12-16`. The comparison lives in `scripts/schema-drift-core.ts`, with unit tests in `tests/tdd/schema-drift/`; the CLI is `scripts/generate-schema-drift-report.ts`.
+
+### How an endpoint finds its spec operation
+
+The script loads `src/core/endpoints/*Endpoints.ts` as modules, so each definition's path pairs with its own `responseSchema`, inline schemas included. Definition paths and spec paths are spelled differently (`corporations/{corporationId}/projects/` against `/corporations/{corporation_id}/projects`), so both reduce to a shape before matching:
+
+- exactly one leading slash and no trailing slash;
+- every `{parameter}` becomes `{}`, so parameters match by position and never by name;
+- literal segments keep their case.
+
+The method must match too. A mapping that finds no operation is listed as `path_not_in_spec`, `method_not_in_spec`, or `ambiguous_in_spec` when its shape matches two spec paths. One that matches an operation with no JSON 2xx body is listed as not compared. Nothing is skipped silently.
+
+### What counts as drift
+
+The schema and the first 2xx JSON body are walked together through objects and arrays, following `$ref` and `allOf`. Each finding has a field path such as `[].bidder_id` or `details.expires` (`(response)` for the body itself) and one of these kinds:
+
+| Kind                            | Meaning                                                                       |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `required_not_in_spec`          | The schema requires a field the spec does not define: every body fails        |
+| `required_but_optional_in_spec` | The schema requires a field ESI may omit: a body without it fails             |
+| `type_mismatch`                 | Object, array, string, number or boolean disagree                             |
+| `optional_but_required_in_spec` | The schema is looser than the spec                                            |
+| `missing_from_schema`           | The spec defines a field the schema does not declare (`looseObject` keeps it) |
+| `optional_not_in_spec`          | The schema declares an optional field the spec does not define                |
+
+`.nullable()` counts as present and `.default()` as optional. Unions of one scalar kind (`esiEnum`), records, free-form objects and `oneOf`/`anyOf` are not compared further.
+
+### A check that compares nothing fails
+
+The script exits `2`, in report mode as well as under `--ci`, when no schema was compared or when more than 25% of mappings resolve to no spec operation. Before this guard the report said "154 schemas checked, 0 drift" while matching no path at all (`esi-v2s.22`).
+
+### The known-drift baseline
+
+`scripts/schema-drift-baseline.json` lists drift that is tracked but not yet fixed. Keys are `<endpoint> <field> <kind>` under `findings` and `<endpoint>` under `unmatched`; each value is the bead that tracks the fix, and an entry without a bead id is rejected. The seed from `master` holds 203 findings on 52 endpoints (`esi-v2s.10`, `.12`, `.14` and `.21`) and 28 endpoints newer than the pinned compatibility date (`esi-v2s.25`).
+
+`--ci` exits `1` when:
+
+1. a finding or unmatched endpoint is not in the baseline: fix the schema;
+2. a baseline entry no longer occurs, because the schema or ESI was fixed: remove the entry;
+3. the baseline has an entry the base ref's copy lacks: the baseline only shrinks.
+
+The base ref is `SCHEMA_DRIFT_BASE_REF`, else `origin/master`, else `master`. When none resolves, every entry reads as an addition and the check fails closed. When the ref resolves but has no baseline file, the change is the one introducing it and additions are allowed.
+
+| Where                            | Base ref        | Effect                                                                                   |
+| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------- |
+| `ci.yml` `static-analysis`       | `HEAD^1`        | The pull request's base tip, fetched by `fetch-depth: 2`; blocks only when inputs change |
+| `release.yml` `validate-release` | `HEAD`          | New or stale drift blocks the release; shrink-only is enforced on pull requests          |
+| `nightly-spec-drift.yml`         | `HEAD`          | New drift and stale entries go into the `spec-drift` issue                               |
+| Local                            | `origin/master` | Fetch first, or set `SCHEMA_DRIFT_BASE_REF`                                              |
+
+A pull request that fixes drift therefore removes its entries in the same change, and one that changes a schema so a finding changes kind fixes it rather than re-baselining it. `npm run schema:drift -- --update-baseline` rewrites the file from the current findings and keeps existing bead ids; new entries need `--bead=esi-<id>` and still fail the ratchet on a pull request, so baselining drift that CCP introduced needs a maintainer's decision, as with any ratchet exception.
+
+`scripts/schema-drift-exceptions.json` is separate and not ratcheted: schema name to field paths, relative to that schema, accepted as permanent deviations. An entry that suppresses nothing prints a warning.
 
 ---
 
@@ -462,7 +520,8 @@ The same "explicit, reasoned exception" pattern appears in four more places:
 | -------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
 | `mutation-bdd-thresholds.json`         | `npm run mutation:bdd:ratchet` | Per-directory BDD mutation floors; `--update` only raises them                                    |
 | `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | A ratchet: now empty, and the audit fails if a listed file passes, so entries can only be removed |
-| `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted deviating field names                                                      |
+| `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                  |
+| `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)         |
 | `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map       |
 
 ---
@@ -521,8 +580,8 @@ The same "explicit, reasoned exception" pattern appears in four more places:
 | `generate:okf`         | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                 |
 | `generate:endpoints`   | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                 |
 | `generate:all`         | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi` |
-| `schema:drift`         | Zod schema versus spec report                                                         |
-| `schema:drift:ci`      | The same, exiting non-zero on drift                                                   |
+| `schema:drift`         | Zod schema versus spec report; exits 2 only when the check compared nothing           |
+| `schema:drift:ci`      | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline   |
 | `validate:esi`         | Endpoint definitions versus spec; fails on method mismatches                          |
 | `validate:auth-scopes` | `requiresAuth` versus the generated scope map (`DES-04`)                              |
 | `validate:spec`        | Redocly lint of the ESI spec (`.redocly.yaml`)                                        |
