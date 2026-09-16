@@ -48,48 +48,59 @@ export const FactionWarfareWarSchema = z.looseObject({
   against_id: z.number(),
 });
 
-export const FactionWarfareLeaderboardSchema = z.looseObject({
-  kills: z.looseObject({
-    yesterday: z.array(
-      z.looseObject({
-        amount: z.number(),
-        id: z.number().optional(),
-      }),
-    ),
-    last_week: z.array(
-      z.looseObject({
-        amount: z.number(),
-        id: z.number().optional(),
-      }),
-    ),
-    active_total: z.array(
-      z.looseObject({
-        amount: z.number(),
-        id: z.number().optional(),
-      }),
-    ),
+/**
+ * The kills and victory_points envelope every faction warfare leaderboard
+ * shares, around the entry shape of one board.
+ */
+function leaderboardSchema<Entry extends z.ZodType>(entry: Entry) {
+  const rankings = z.looseObject({
+    yesterday: z.array(entry),
+    last_week: z.array(entry),
+    active_total: z.array(entry),
+  });
+  return z.looseObject({ kills: rankings, victory_points: rankings });
+}
+
+/** `GET /fw/leaderboards`: the top factions. */
+export const FactionWarfareFactionLeaderboardSchema = leaderboardSchema(
+  z.looseObject({
+    amount: z.number().optional(),
+    faction_id: z.number().optional(),
   }),
-  victory_points: z.looseObject({
-    yesterday: z.array(
-      z.looseObject({
-        amount: z.number(),
-        id: z.number().optional(),
-      }),
-    ),
-    last_week: z.array(
-      z.looseObject({
-        amount: z.number(),
-        id: z.number().optional(),
-      }),
-    ),
-    active_total: z.array(
-      z.looseObject({
-        amount: z.number(),
-        id: z.number().optional(),
-      }),
-    ),
+);
+
+/** `GET /fw/leaderboards/characters`: the top pilots. */
+export const FactionWarfareCharacterLeaderboardSchema = leaderboardSchema(
+  z.looseObject({
+    amount: z.number().optional(),
+    character_id: z.number().optional(),
   }),
-});
+);
+
+/** `GET /fw/leaderboards/corporations`: the top corporations. */
+export const FactionWarfareCorporationLeaderboardSchema = leaderboardSchema(
+  z.looseObject({
+    amount: z.number().optional(),
+    corporation_id: z.number().optional(),
+  }),
+);
+
+/**
+ * An entry of any of the three leaderboards.
+ *
+ * @deprecated Use FactionWarfareFactionLeaderboardSchema,
+ * FactionWarfareCharacterLeaderboardSchema or
+ * FactionWarfareCorporationLeaderboardSchema, which name the one identity key
+ * each board carries. No endpoint validates against this schema.
+ */
+export const FactionWarfareLeaderboardSchema = leaderboardSchema(
+  z.looseObject({
+    amount: z.number().optional(),
+    faction_id: z.number().optional(),
+    character_id: z.number().optional(),
+    corporation_id: z.number().optional(),
+  }),
+);
 
 export const FactionWarfareCorporationStatsSchema = z.looseObject({
   faction_id: z.number().optional(),

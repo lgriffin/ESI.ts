@@ -67,12 +67,14 @@ Feature: Faction Warfare Management
 
   # ── Leaderboards ────────────────────────────────────────────────────
 
-  Rule: When the client requests a faction warfare leaderboard, the Factions client shall return kill and victory-point rankings whose entries pair the ranked faction or character with a score amount.
-    Both leaderboard endpoints share one envelope: a kills block and a
+  Rule: When the client requests a faction warfare leaderboard, the Factions client shall return kill and victory-point rankings whose entries carry the ranked faction_id, character_id, or corporation_id when present, and the score amount when present.
+    The three leaderboard endpoints share one envelope: a kills block and a
     victory_points block, each split into yesterday, last week and active
-    total. Only the identity key changes — faction_id for the overall board,
-    character_id for the character board — so the two scenarios verify one
-    requirement against both identity types.
+    total. Only the identity key changes: faction_id on the overall board,
+    character_id on the character board, corporation_id on the corporation
+    board. The ESI spec marks both the identity key and amount optional on
+    every entry, so an entry without an amount is a valid response rather
+    than a validation failure.
 
     Scenario: Overall leaderboard ranks factions by kills and victory points
       Given faction warfare is active for leaderboard
@@ -83,6 +85,16 @@ Feature: Faction Warfare Management
       Given faction warfare is active for character leaderboard
       When the client requests the character leaderboard
       Then the client shall return top character rankings
+
+    Scenario: Corporation leaderboard ranks corporations
+      Given faction warfare is active for corporation leaderboard
+      When the client requests the corporation leaderboard
+      Then the client shall return top corporation rankings
+
+    Scenario: Leaderboard entry without a score amount
+      Given a faction leaderboard entry that carries no amount
+      When the client requests the overall leaderboard with an unscored entry
+      Then the client shall return the unscored entry without an amount
 
   # ── Concurrent retrieval ────────────────────────────────────────────
 

@@ -58,6 +58,7 @@ import {
 
   // contracts
   ContractSchema,
+  PublicContractSchema,
   ContractItemSchema,
   ContractBidSchema,
 
@@ -93,6 +94,9 @@ import {
   FactionWarfareSystemSchema,
   FactionWarfareWarSchema,
   FactionWarfareLeaderboardSchema,
+  FactionWarfareFactionLeaderboardSchema,
+  FactionWarfareCharacterLeaderboardSchema,
+  FactionWarfareCorporationLeaderboardSchema,
   FactionWarfareCorporationStatsSchema,
 
   // fittings
@@ -690,6 +694,8 @@ const schemaCases: SchemaTestCase[] = [
       issuer_id: 100,
       issuer_corporation_id: 200,
       type: 'item_exchange',
+      status: 'outstanding',
+      availability: 'personal',
       date_issued: '2024-01-01T00:00:00Z',
       date_expired: '2024-02-01T00:00:00Z',
     },
@@ -699,6 +705,27 @@ const schemaCases: SchemaTestCase[] = [
       issuer_corporation_id: 200,
       type: 'item_exchange',
       date_issued: '2024-01-01T00:00:00Z',
+      date_expired: '2024-02-01T00:00:00Z',
+    },
+  },
+  {
+    name: 'PublicContractSchema',
+    schema: PublicContractSchema,
+    validData: {
+      contract_id: 1,
+      issuer_id: 100,
+      issuer_corporation_id: 200,
+      type: 'auction',
+      date_issued: '2024-01-01T00:00:00Z',
+      date_expired: '2024-02-01T00:00:00Z',
+      buyout: 25000000,
+    },
+    invalidData: {
+      contract_id: 1,
+      issuer_id: 100,
+      issuer_corporation_id: 200,
+      type: 'auction',
+      date_issued: 20240101,
       date_expired: '2024-02-01T00:00:00Z',
     },
   },
@@ -1141,6 +1168,84 @@ const schemaCases: SchemaTestCase[] = [
         last_week: [{ amount: 500 }],
         active_total: [{ amount: 5000 }],
       },
+    },
+  },
+  {
+    name: 'FactionWarfareFactionLeaderboardSchema',
+    schema: FactionWarfareFactionLeaderboardSchema,
+    validData: {
+      kills: {
+        yesterday: [{ faction_id: 500001, amount: 10 }, { faction_id: 500002 }],
+        last_week: [{ faction_id: 500001, amount: 50 }],
+        active_total: [{ faction_id: 500001, amount: 500 }],
+      },
+      victory_points: {
+        yesterday: [{ faction_id: 500001, amount: 100 }],
+        last_week: [{ faction_id: 500001, amount: 500 }],
+        active_total: [{ faction_id: 500001, amount: 5000 }],
+      },
+    },
+    invalidData: {
+      kills: {
+        yesterday: [{ faction_id: '500001', amount: 10 }],
+        last_week: [],
+        active_total: [],
+      },
+      victory_points: { yesterday: [], last_week: [], active_total: [] },
+    },
+  },
+  {
+    name: 'FactionWarfareCharacterLeaderboardSchema',
+    schema: FactionWarfareCharacterLeaderboardSchema,
+    validData: {
+      kills: {
+        yesterday: [
+          { character_id: 90000001, amount: 10 },
+          { character_id: 90000002 },
+        ],
+        last_week: [{ character_id: 90000001, amount: 50 }],
+        active_total: [{ character_id: 90000001, amount: 500 }],
+      },
+      victory_points: {
+        yesterday: [{ character_id: 90000001, amount: 100 }],
+        last_week: [{ character_id: 90000001, amount: 500 }],
+        active_total: [{ character_id: 90000001, amount: 5000 }],
+      },
+    },
+    invalidData: {
+      kills: {
+        yesterday: [{ character_id: '90000001', amount: 10 }],
+        last_week: [],
+        active_total: [],
+      },
+      victory_points: { yesterday: [], last_week: [], active_total: [] },
+    },
+  },
+  {
+    name: 'FactionWarfareCorporationLeaderboardSchema',
+    schema: FactionWarfareCorporationLeaderboardSchema,
+    validData: {
+      kills: {
+        yesterday: [
+          { corporation_id: 1000180, amount: 10 },
+          { corporation_id: 1000181 },
+        ],
+        last_week: [{ corporation_id: 1000180, amount: 50 }],
+        active_total: [{ corporation_id: 1000180, amount: 500 }],
+      },
+      victory_points: {
+        yesterday: [{ corporation_id: 1000180, amount: 100 }],
+        last_week: [{ corporation_id: 1000180, amount: 500 }],
+        active_total: [{ corporation_id: 1000180, amount: 5000 }],
+      },
+    },
+    invalidData: {
+      kills: {
+        yesterday: [{ corporation_id: '1000180', amount: 10 }],
+        last_week: [],
+        active_total: [],
+      },
+      victory_points: { yesterday: [], last_week: [], active_total: [] },
     },
   },
   {
@@ -2067,6 +2172,7 @@ const schemaCases: SchemaTestCase[] = [
       players: 25000,
       server_version: '2024.1.1',
       start_time: '2024-01-01T11:05:00Z',
+      vip: false,
     },
     invalidData: {
       players: 'bad',
@@ -2538,40 +2644,57 @@ const schemaCases: SchemaTestCase[] = [
     name: 'CorporationProjectSchema',
     schema: CorporationProjectSchema,
     validData: {
-      project_id: 1001,
-      state: 'active',
-      progress: 0.45,
-      start_time: '2026-01-15T00:00:00Z',
+      id: '3868eaed-8278-4cb7-9709-7d7de9c20dc7',
+      name: 'Project Name',
+      state: 'Active',
+      last_modified: '2026-01-15T00:00:00Z',
+      progress: { current: 45, desired: 100 },
+      creator: { id: 90000001, name: 'Creator Name' },
+      details: {
+        career: 'Explorer',
+        created: '2026-01-01T00:00:00Z',
+        description: 'Project Description',
+      },
+      configuration: { manual: {} },
     },
     invalidData: {
-      project_id: 'bad',
-      state: 'active',
+      id: 1001,
+      name: 'Project Name',
+      state: 'Active',
+      last_modified: '2026-01-15T00:00:00Z',
       progress: 0.45,
-      start_time: '2026-01-15T00:00:00Z',
+      creator: { id: 90000001, name: 'Creator Name' },
+      details: {
+        career: 'Explorer',
+        created: '2026-01-01T00:00:00Z',
+        description: 'Project Description',
+      },
+      configuration: { manual: {} },
     },
   },
   {
     name: 'CorporationProjectContributionSchema',
     schema: CorporationProjectContributionSchema,
     validData: {
-      character_id: 123456789,
-      contribution: 500,
+      contributed: 500,
+      last_modified: '2026-01-15T00:00:00Z',
     },
     invalidData: {
-      character_id: 'bad',
-      contribution: 500,
+      contributed: 'bad',
     },
   },
   {
     name: 'CorporationProjectContributorSchema',
     schema: CorporationProjectContributorSchema,
     validData: {
-      character_id: 987654321,
-      contribution: 1200,
+      id: 987654321,
+      name: 'Contributor Name',
+      contributed: 1200,
     },
     invalidData: {
-      character_id: true,
-      contribution: 1200,
+      id: true,
+      name: 'Contributor Name',
+      contributed: 1200,
     },
   },
 

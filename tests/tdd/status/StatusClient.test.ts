@@ -28,6 +28,7 @@ describe('StatusClient', () => {
       players: 12345,
       start_time: '2024-07-01T18:57:11Z',
       server_version: '1.2.3',
+      vip: false,
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));

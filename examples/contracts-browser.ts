@@ -29,14 +29,11 @@ async function main() {
       await client.contracts.getPublicContracts(THE_FORGE_REGION);
     console.log(`  Found ${publicContracts.length} public contracts\n`);
 
-    // Break down by type
+    // Break down by type. ESI lists only outstanding public contracts and
+    // sends no status field on them.
     const byType = new Map<string, number>();
-    const byStatus = new Map<string, number>();
     for (const c of publicContracts) {
       byType.set(c.type, (byType.get(c.type) || 0) + 1);
-      if (c.status) {
-        byStatus.set(c.status, (byStatus.get(c.status) || 0) + 1);
-      }
     }
 
     console.log('Public Contracts by Type');
@@ -45,14 +42,6 @@ async function main() {
       (a, b) => b[1] - a[1],
     )) {
       console.log(`  ${type}: ${count.toLocaleString()}`);
-    }
-
-    console.log('\nPublic Contracts by Status');
-    console.log('-'.repeat(40));
-    for (const [status, count] of [...byStatus.entries()].sort(
-      (a, b) => b[1] - a[1],
-    )) {
-      console.log(`  ${status}: ${count.toLocaleString()}`);
     }
 
     // Show a sample auction contract with bids

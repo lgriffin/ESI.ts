@@ -2,9 +2,9 @@
  * ESI.ts Example: Corporation Projects
  *
  * Demonstrates the Corporation Projects endpoints:
- *  - getCorporationProjects (list corporation projects)
+ *  - getCorporationProjects (one cursor-paginated page of projects)
  *  - getCorporationProject (project details)
- *  - getCorporationProjectContributors (list project contributors)
+ *  - getCorporationProjectContributors (one page of project contributors)
  *  - getCorporationProjectContribution (character's contribution)
  *
  * REQUIRES AUTHENTICATION with corporation project scopes.
@@ -44,20 +44,22 @@ async function main() {
     // --- List Corporation Projects ---
     console.log('Corporation Projects');
     console.log('-'.repeat(50));
-    const projects = await tryOrSkip('Corporation projects', () =>
+    const listing = await tryOrSkip('Corporation projects', () =>
       client.corporationProjects.getCorporationProjects(CORP_ID),
     );
 
-    if (projects) {
-      console.log(`  Projects found: ${projects.length}`);
+    if (listing) {
+      const projects = listing.projects;
+      console.log(`  Projects on this page: ${projects.length}`);
+      if (listing.cursor?.after) {
+        console.log(`  Next page cursor: ${listing.cursor.after}`);
+      }
 
       for (const project of projects.slice(0, 5)) {
-        console.log(`    Project ${project.project_id} (${project.state})`);
-        console.log(`      Progress: ${(project.progress * 100).toFixed(1)}%`);
-        console.log(`      Started: ${project.start_time}`);
-        if (project.finish_time) {
-          console.log(`      Finished: ${project.finish_time}`);
-        }
+        const { current, desired } = project.progress;
+        console.log(`    ${project.name} [${project.id}] (${project.state})`);
+        console.log(`      Progress: ${current}/${desired}`);
+        console.log(`      Last modified: ${project.last_modified}`);
       }
       if (projects.length > 5) {
         console.log(`    ... and ${projects.length - 5} more`);
@@ -66,55 +68,53 @@ async function main() {
       // --- Project Details ---
       if (projects.length > 0) {
         const firstProject = projects[0]!;
-        console.log(`\n  Details for Project ${firstProject.project_id}:`);
+        console.log(`\n  Details for Project ${firstProject.id}:`);
         const detail = await tryOrSkip('Project detail', () =>
           client.corporationProjects.getCorporationProject(
             CORP_ID,
-            firstProject.project_id,
+            firstProject.id,
           ),
         );
         if (detail) {
           console.log(`    State: ${detail.state}`);
-          console.log(
-            `    Progress: ${(detail.progress * 100).toFixed(1)}%`,
-          );
+          console.log(`    Created by: ${detail.creator.name}`);
+          console.log(`    Career: ${detail.details.career}`);
         }
 
         // --- Project Contributors ---
-        console.log(
-          `\n  Contributors for Project ${firstProject.project_id}:`,
-        );
+        console.log(`\n  Contributors for Project ${firstProject.id}:`);
         const contributors = await tryOrSkip('Contributors', () =>
           client.corporationProjects.getCorporationProjectContributors(
             CORP_ID,
-            firstProject.project_id,
+            firstProject.id,
           ),
         );
         if (contributors) {
-          console.log(`    Total contributors: ${contributors.length}`);
-          for (const c of contributors.slice(0, 5)) {
+          const roll = contributors.contributors;
+          console.log(`    Contributors on this page: ${roll.length}`);
+          for (const c of roll.slice(0, 5)) {
             console.log(
-              `      Character ${c.character_id}: ${c.contribution} contribution`,
+              `      ${c.name} (${c.id}): ${c.contributed} contributed`,
             );
           }
-          if (contributors.length > 5) {
-            console.log(`      ... and ${contributors.length - 5} more`);
+          if (roll.length > 5) {
+            console.log(`      ... and ${roll.length - 5} more`);
           }
         }
 
         // --- Character Contribution ---
         console.log(
-          `\n  Character ${CHARACTER_ID} contribution to Project ${firstProject.project_id}:`,
+          `\n  Character ${CHARACTER_ID} contribution to Project ${firstProject.id}:`,
         );
         const contribution = await tryOrSkip('Contribution', () =>
           client.corporationProjects.getCorporationProjectContribution(
             CORP_ID,
-            firstProject.project_id,
+            firstProject.id,
             CHARACTER_ID,
           ),
         );
         if (contribution) {
-          console.log(`    Contribution: ${contribution.contribution}`);
+          console.log(`    Contributed: ${contribution.contributed}`);
         }
       }
     }

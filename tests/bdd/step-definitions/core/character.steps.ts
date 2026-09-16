@@ -20,16 +20,6 @@ const feature = loadFeature('tests/bdd/features/core/0002-character.feature');
 const profilePath = (characterId: number) =>
   new RegExp(`/characters/${characterId}/$`);
 
-/**
- * GET /characters/{id}/ as ESI sends it: the spec's CharactersDetail has no
- * character_id field, the ID lives only in the request path.
- */
-function publicProfile(overrides: Record<string, unknown> = {}) {
-  const { character_id: _omitted, ...profile } =
-    TestDataFactory.createCharacterInfo(overrides);
-  return profile;
-}
-
 defineFeature(feature, (test) => {
   let client: EsiClient;
 
@@ -46,7 +36,7 @@ defineFeature(feature, (test) => {
     given('a valid character ID', () => {
       queueResponse({
         match: profilePath(validCharacterId),
-        body: publicProfile({
+        body: TestDataFactory.createCharacterInfo({
           name: 'Test Character',
           corporation_id: 1344654522,
           alliance_id: 99005338,
@@ -366,7 +356,9 @@ defineFeature(feature, (test) => {
       characterIds.forEach((id, index) => {
         queueResponse({
           match: profilePath(id),
-          body: publicProfile({ name: `Character ${id}` }),
+          body: TestDataFactory.createCharacterInfo({
+            name: `Character ${id}`,
+          }),
           delayMs: (characterIds.length - index) * 15,
         });
       });
@@ -403,7 +395,7 @@ defineFeature(feature, (test) => {
     given('normal API conditions for character', () => {
       queueResponse({
         match: profilePath(characterId),
-        body: publicProfile(),
+        body: TestDataFactory.createCharacterInfo(),
         delayMs: 150,
       });
     });
@@ -436,7 +428,7 @@ defineFeature(feature, (test) => {
     given('a character ID for profile assembly', () => {
       queueResponse({
         match: profilePath(characterId),
-        body: publicProfile({ name: 'Profile Pilot' }),
+        body: TestDataFactory.createCharacterInfo({ name: 'Profile Pilot' }),
         delayMs: 20,
       });
       queueResponse({

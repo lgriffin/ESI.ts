@@ -12,8 +12,10 @@ import { ZodBoolean } from 'zod';
 import { ZodNumber } from 'zod';
 import { ZodObject } from 'zod';
 import { ZodOptional } from 'zod';
+import { ZodRecord } from 'zod';
 import { ZodString } from 'zod';
 import { ZodType } from 'zod';
+import { ZodUnknown } from 'zod';
 
 // @public (undocumented)
 export type AccessList = z.infer<typeof AccessListSchema>;
@@ -2174,7 +2176,7 @@ const ContractItemSchema: z.ZodObject<{
     is_included: z.ZodBoolean;
 }, z.core.$loose>;
 
-// @public (undocumented)
+// @public
 const ContractSchema: z.ZodObject<{
     contract_id: z.ZodNumber;
     issuer_id: z.ZodNumber;
@@ -2184,10 +2186,10 @@ const ContractSchema: z.ZodObject<{
     start_location_id: z.ZodOptional<z.ZodNumber>;
     end_location_id: z.ZodOptional<z.ZodNumber>;
     type: z.ZodType<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown, z.core.$ZodTypeInternals<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown>>;
-    status: z.ZodOptional<z.ZodType<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown>>>;
+    status: z.ZodType<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown>>;
     title: z.ZodOptional<z.ZodString>;
     for_corporation: z.ZodOptional<z.ZodBoolean>;
-    availability: z.ZodOptional<z.ZodType<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown, z.core.$ZodTypeInternals<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown>>>;
+    availability: z.ZodType<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown, z.core.$ZodTypeInternals<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown>>;
     date_issued: z.ZodString;
     date_expired: z.ZodString;
     date_accepted: z.ZodOptional<z.ZodString>;
@@ -2210,7 +2212,7 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     // (undocumented)
     fetchAllCorporationContracts(corporationId: number, concurrency?: number): Promise<Contract[]>;
     // (undocumented)
-    fetchAllPublicContracts(regionId: number, concurrency?: number): Promise<Contract[]>;
+    fetchAllPublicContracts(regionId: number, concurrency?: number): Promise<PublicContract[]>;
     getCharacterContractBids(characterId: number, contractId: number): Promise<ContractBid[]>;
     getCharacterContractItems(characterId: number, contractId: number): Promise<ContractItem[]>;
     getCharacterContracts(characterId: number): Promise<Contract[]>;
@@ -2219,13 +2221,13 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     getCorporationContracts(corporationId: number): Promise<Contract[]>;
     getPublicContractBids(contractId: number): Promise<ContractBid[]>;
     getPublicContractItems(contractId: number): Promise<ContractItem[]>;
-    getPublicContracts(regionId: number): Promise<Contract[]>;
+    getPublicContracts(regionId: number): Promise<PublicContract[]>;
     // (undocumented)
     streamCharacterContracts(characterId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
     // (undocumented)
     streamCorporationContracts(corporationId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
     // (undocumented)
-    streamPublicContracts(regionId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
+    streamPublicContracts(regionId: number): AsyncGenerator<PageResult<PublicContract>, void, undefined>;
 }
 
 // @public (undocumented)
@@ -2559,28 +2561,79 @@ export type CorporationProject = z.infer<typeof CorporationProjectSchema>;
 // @public (undocumented)
 export type CorporationProjectContribution = z.infer<typeof CorporationProjectContributionSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationProjectContributionSchema: z.ZodObject<{
-    character_id: z.ZodNumber;
-    contribution: z.ZodNumber;
+    contributed: z.ZodNumber;
+    last_modified: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
 // @public (undocumented)
 export type CorporationProjectContributor = z.infer<typeof CorporationProjectContributorSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationProjectContributorSchema: z.ZodObject<{
-    character_id: z.ZodNumber;
-    contribution: z.ZodNumber;
+    id: z.ZodNumber;
+    name: z.ZodString;
+    contributed: z.ZodNumber;
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type CorporationProjectContributorsListing = z.infer<typeof CorporationProjectContributorsListingSchema>;
+
+// @public
+const CorporationProjectContributorsListingSchema: z.ZodObject<{
+    contributors: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        name: z.ZodString;
+        contributed: z.ZodNumber;
+    }, z.core.$loose>>;
+    cursor: z.ZodOptional<z.ZodObject<{
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CorporationProjectCursor = z.infer<typeof CorporationProjectCursorSchema>;
+
+// @public
+const CorporationProjectCursorSchema: z.ZodObject<{
+    before: z.ZodOptional<z.ZodString>;
+    after: z.ZodOptional<z.ZodString>;
+}, z.core.$loose>;
+
+// @public
 const CorporationProjectSchema: z.ZodObject<{
-    project_id: z.ZodNumber;
-    state: z.ZodString;
-    progress: z.ZodNumber;
-    start_time: z.ZodString;
-    finish_time: z.ZodOptional<z.ZodString>;
+    id: z.ZodString;
+    name: z.ZodString;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown>>;
+    last_modified: z.ZodString;
+    progress: z.ZodObject<{
+        current: z.ZodNumber;
+        desired: z.ZodNumber;
+    }, z.core.$loose>;
+    reward: z.ZodOptional<z.ZodObject<{
+        initial: z.ZodNumber;
+        remaining: z.ZodNumber;
+    }, z.core.$loose>>;
+    creator: z.ZodObject<{
+        id: z.ZodNumber;
+        name: z.ZodString;
+    }, z.core.$loose>;
+    details: z.ZodObject<{
+        career: z.ZodType<(string & {}) | "Unspecified" | "Explorer" | "Industrialist" | "Enforcer" | "Soldier of Fortune", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Explorer" | "Industrialist" | "Enforcer" | "Soldier of Fortune", unknown>>;
+        created: z.ZodString;
+        description: z.ZodString;
+        expires: z.ZodOptional<z.ZodString>;
+        finished: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>;
+    configuration: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+    contribution: z.ZodOptional<z.ZodObject<{
+        participation_limit: z.ZodOptional<z.ZodNumber>;
+        reward_per_contribution: z.ZodOptional<z.ZodNumber>;
+        submission_limit: z.ZodOptional<z.ZodNumber>;
+        submission_multiplier: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "corporationProjectEndpoints" needs to be exported by the entry point index.d.ts
@@ -2588,11 +2641,55 @@ const CorporationProjectSchema: z.ZodObject<{
 // @public (undocumented)
 export class CorporationProjectsClient extends BaseEsiClient<typeof corporationProjectEndpoints> {
     constructor(client: ApiClient);
-    getCorporationProject(corporationId: number, projectId: number): Promise<CorporationProject>;
-    getCorporationProjectContribution(corporationId: number, projectId: number, characterId: number): Promise<CorporationProjectContribution>;
-    getCorporationProjectContributors(corporationId: number, projectId: number): Promise<CorporationProjectContributor[]>;
-    getCorporationProjects(corporationId: number): Promise<CorporationProject[]>;
+    getCorporationProject(corporationId: number, projectId: string): Promise<CorporationProject>;
+    getCorporationProjectContribution(corporationId: number, projectId: string, characterId: number): Promise<CorporationProjectContribution>;
+    getCorporationProjectContributors(corporationId: number, projectId: string, before?: string, after?: string): Promise<CorporationProjectContributorsListing>;
+    getCorporationProjects(corporationId: number, before?: string, after?: string): Promise<CorporationProjectsListing>;
 }
+
+// @public (undocumented)
+export type CorporationProjectsListing = z.infer<typeof CorporationProjectsListingSchema>;
+
+// @public
+const CorporationProjectsListingSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    projects: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        name: z.ZodString;
+        state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown>>;
+        last_modified: z.ZodString;
+        progress: z.ZodObject<{
+            current: z.ZodNumber;
+            desired: z.ZodNumber;
+        }, z.core.$loose>;
+        reward: z.ZodOptional<z.ZodObject<{
+            initial: z.ZodNumber;
+            remaining: z.ZodNumber;
+        }, z.core.$loose>>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CorporationProjectSummary = z.infer<typeof CorporationProjectSummarySchema>;
+
+// @public
+const CorporationProjectSummarySchema: z.ZodObject<{
+    id: z.ZodString;
+    name: z.ZodString;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Closed" | "Completed" | "Expired" | "Deleted", unknown>>;
+    last_modified: z.ZodString;
+    progress: z.ZodObject<{
+        current: z.ZodNumber;
+        desired: z.ZodNumber;
+    }, z.core.$loose>;
+    reward: z.ZodOptional<z.ZodObject<{
+        initial: z.ZodNumber;
+        remaining: z.ZodNumber;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type CorporationRoleHistory = z.infer<typeof CorporationRoleHistorySchema>;
@@ -5034,9 +5131,9 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
     constructor(client: ApiClient);
     getCharacterStats(characterId: number): Promise<FactionWarfareCharacterStats>;
     getCorporationStats(corporationId: number): Promise<FactionWarfareCorporationStats>;
-    getLeaderboardsCharacters(): Promise<FactionWarfareLeaderboard>;
-    getLeaderboardsCorporations(): Promise<FactionWarfareLeaderboard>;
-    getLeaderboardsOverall(): Promise<FactionWarfareLeaderboard>;
+    getLeaderboardsCharacters(): Promise<FactionWarfareCharacterLeaderboard>;
+    getLeaderboardsCorporations(): Promise<FactionWarfareCorporationLeaderboard>;
+    getLeaderboardsOverall(): Promise<FactionWarfareFactionLeaderboard>;
     getStats(): Promise<FactionWarfareStats[]>;
     getSystems(): Promise<FactionWarfareSystem[]>;
     getWars(): Promise<FactionWarfareWar[]>;
@@ -5057,6 +5154,41 @@ const FactionSchema: z.ZodObject<{
     solar_system_id: z.ZodOptional<z.ZodNumber>;
     corporation_id: z.ZodOptional<z.ZodNumber>;
     militia_corporation_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type FactionWarfareCharacterLeaderboard = z.infer<typeof FactionWarfareCharacterLeaderboardSchema>;
+
+// @public
+const FactionWarfareCharacterLeaderboardSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -5081,6 +5213,41 @@ const FactionWarfareCharacterStatsSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type FactionWarfareCorporationLeaderboard = z.infer<typeof FactionWarfareCorporationLeaderboardSchema>;
+
+// @public
+const FactionWarfareCorporationLeaderboardSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type FactionWarfareCorporationStats = z.infer<typeof FactionWarfareCorporationStatsSchema>;
 
 // @public (undocumented)
@@ -5101,36 +5268,83 @@ const FactionWarfareCorporationStatsSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
-export type FactionWarfareLeaderboard = z.infer<typeof FactionWarfareLeaderboardSchema>;
+export type FactionWarfareFactionLeaderboard = z.infer<typeof FactionWarfareFactionLeaderboardSchema>;
 
-// @public (undocumented)
-const FactionWarfareLeaderboardSchema: z.ZodObject<{
+// @public
+const FactionWarfareFactionLeaderboardSchema: z.ZodObject<{
     kills: z.ZodObject<{
         yesterday: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
         last_week: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
         active_total: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
     }, z.core.$loose>;
     victory_points: z.ZodObject<{
         yesterday: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
         last_week: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
         active_total: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public @deprecated (undocumented)
+export type FactionWarfareLeaderboard = z.infer<typeof FactionWarfareLeaderboardSchema>;
+
+// @public @deprecated
+const FactionWarfareLeaderboardSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
     }, z.core.$loose>;
 }, z.core.$loose>;
@@ -6822,7 +7036,7 @@ export type MercenaryTacticalOperationDetail = z.infer<typeof MercenaryTacticalO
 const MercenaryTacticalOperationDetailSchema: z.ZodObject<{
     id: z.ZodString;
     mercenary_den_id: z.ZodNumber;
-    state: z.ZodType<(string & {}) | "Unspecified" | "Available" | "Started" | "Completed" | "Expired" | "Removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Available" | "Started" | "Completed" | "Expired" | "Removed", unknown>>;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Completed" | "Expired" | "Available" | "Started" | "Removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Completed" | "Expired" | "Available" | "Started" | "Removed", unknown>>;
     dungeon_type_id: z.ZodNumber;
     expires: z.ZodString;
 }, z.core.$loose>;
@@ -7280,6 +7494,29 @@ const PlanetInfoSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type PublicContract = z.infer<typeof PublicContractSchema>;
+
+// @public
+const PublicContractSchema: z.ZodObject<{
+    contract_id: z.ZodNumber;
+    issuer_id: z.ZodNumber;
+    issuer_corporation_id: z.ZodNumber;
+    start_location_id: z.ZodOptional<z.ZodNumber>;
+    end_location_id: z.ZodOptional<z.ZodNumber>;
+    type: z.ZodType<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown, z.core.$ZodTypeInternals<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown>>;
+    title: z.ZodOptional<z.ZodString>;
+    for_corporation: z.ZodOptional<z.ZodBoolean>;
+    date_issued: z.ZodString;
+    date_expired: z.ZodString;
+    days_to_complete: z.ZodOptional<z.ZodNumber>;
+    price: z.ZodOptional<z.ZodNumber>;
+    reward: z.ZodOptional<z.ZodNumber>;
+    collateral: z.ZodOptional<z.ZodNumber>;
+    buyout: z.ZodOptional<z.ZodNumber>;
+    volume: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type Race = z.infer<typeof RaceSchema>;
 
 // @public (undocumented)
@@ -7607,6 +7844,7 @@ declare namespace schemas {
         ContactSchema,
         ContactLabelSchema,
         ContractSchema,
+        PublicContractSchema,
         ContractItemSchema,
         ContractBidSchema,
         SkinrLicenseSchema,
@@ -7637,9 +7875,13 @@ declare namespace schemas {
         StandingSchema as CorporationStandingSchema,
         CorporationWalletDivisionSchema,
         ContainerLogSchema,
+        CorporationProjectCursorSchema,
+        CorporationProjectSummarySchema,
+        CorporationProjectsListingSchema,
         CorporationProjectSchema,
         CorporationProjectContributionSchema,
         CorporationProjectContributorSchema,
+        CorporationProjectContributorsListingSchema,
         DogmaAttributeSchema,
         DogmaEffectSchema,
         DogmaDynamicItemSchema,
@@ -7647,6 +7889,9 @@ declare namespace schemas {
         FactionWarfareCharacterStatsSchema,
         FactionWarfareSystemSchema,
         FactionWarfareWarSchema,
+        FactionWarfareFactionLeaderboardSchema,
+        FactionWarfareCharacterLeaderboardSchema,
+        FactionWarfareCorporationLeaderboardSchema,
         FactionWarfareLeaderboardSchema,
         FactionWarfareCorporationStatsSchema,
         FittingSchema,
@@ -7812,7 +8057,7 @@ const ServerStatusSchema: z.ZodObject<{
     players: z.ZodNumber;
     server_version: z.ZodString;
     start_time: z.ZodString;
-    vip: z.ZodOptional<z.ZodBoolean>;
+    vip: z.ZodBoolean;
 }, z.core.$loose>;
 
 // @public (undocumented)

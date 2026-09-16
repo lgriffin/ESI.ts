@@ -58,6 +58,7 @@ const SERVER_STATUS = {
   players: 23456,
   server_version: '2891234',
   start_time: '2026-09-16T11:05:00Z',
+  vip: false,
 };
 const SERVER_STATUS_ETAG = '"server-status-v1"';
 const SERVER_STATUS_TTL_MS = 30_000;
@@ -264,6 +265,7 @@ defineFeature(feature, (test) => {
             players: 12345,
             server_version: '1.0',
             start_time: '2024-01-01T00:00:00Z',
+            vip: false,
           },
         },
       ];

@@ -53,7 +53,6 @@ defineFeature(feature, (test) => {
             location_id: 60003760,
             location_flag: 'Hangar',
             location_type: 'station',
-            is_singleton: false,
           }),
           TestDataFactory.createCharacterAsset({
             item_id: 1000000002,
@@ -62,7 +61,6 @@ defineFeature(feature, (test) => {
             location_id: 60003760,
             location_flag: 'Hangar',
             location_type: 'station',
-            is_singleton: false,
           }),
         ],
       });
@@ -268,7 +266,6 @@ defineFeature(feature, (test) => {
             location_id: 60003760,
             location_flag: 'CorpSAG3',
             location_type: 'station',
-            is_singleton: false,
           }),
         ],
       });
@@ -314,13 +311,11 @@ defineFeature(feature, (test) => {
             item_id: 1000000001,
             type_id: 34,
             quantity: 1000000,
-            is_singleton: false,
           }),
           TestDataFactory.createCharacterAsset({
             item_id: 1000000002,
             type_id: 35,
             quantity: 500000,
-            is_singleton: false,
           }),
         ],
       });
@@ -333,7 +328,6 @@ defineFeature(feature, (test) => {
             type_id: 587,
             quantity: 50,
             location_flag: 'CorpSAG1',
-            is_singleton: false,
           }),
         ],
       });
@@ -376,7 +370,6 @@ defineFeature(feature, (test) => {
             item_id: 1000000001,
             type_id: 34,
             quantity: 1000000,
-            is_singleton: false,
           }),
           TestDataFactory.createCharacterAsset({
             item_id: 1000000007,

@@ -26,7 +26,7 @@ ESI uses two schemes.
 
 **Offset pagination.** The response carries an `x-pages` header with the total page count. Pages are requested with `?page=N`, starting at 1. Most large collections use this: market orders, assets, wallet journals, contracts, corporation members.
 
-**Cursor pagination.** Newer routes return opaque `before` and `after` tokens instead of page numbers. Freelance Jobs places them in the response body as `cursor: { before, after }`. An empty result array marks the end of the dataset. See the [ESI blog post](https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page) for CCP's rationale.
+**Cursor pagination.** Newer routes return opaque `before` and `after` tokens instead of page numbers. Freelance Jobs and Corporation Projects place them in the response body as `cursor: { before, after }`. An empty result array marks the end of the dataset. See the [ESI blog post](https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page) for CCP's rationale.
 
 ### Declaring pagination on an endpoint
 
@@ -34,10 +34,10 @@ Offset pagination needs no declaration. The pipeline reacts to `x-pages` on any 
 
 Cursor routes are declared in one of two ways:
 
-| Style         | Declaration                                              | Return type                                                     | Used by               |
-| ------------- | -------------------------------------------------------- | --------------------------------------------------------------- | --------------------- |
-| Body tokens   | `queryParams: { before: 'before', after: 'after' }`      | The schema's own type, including its `cursor` field             | Freelance Jobs routes |
-| Header tokens | `cursorPagination: true`; tokens in `x-cursor-*` headers | `CursorResult<T>` = `{ data: T[]; cursors: { before, after } }` | No endpoint today     |
+| Style         | Declaration                                              | Return type                                                     | Used by                                        |
+| ------------- | -------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------- |
+| Body tokens   | `queryParams: { before: 'before', after: 'after' }`      | The schema's own type, including its `cursor` field             | Freelance Jobs and Corporation Projects routes |
+| Header tokens | `cursorPagination: true`; tokens in `x-cursor-*` headers | `CursorResult<T>` = `{ data: T[]; cursors: { before, after } }` | No endpoint today                              |
 
 The header-token style exists for routes that return cursors in `x-cursor-before` and `x-cursor-after`. The generated method accepts a trailing `{ before?, after? }` argument and returns `CursorResult<T>`. Nothing follows the tokens automatically; the caller passes `cursors.after` back in.
 
@@ -163,7 +163,7 @@ Both helpers fetch every page, including page 1, through a single-page path that
 
 ## Cursor pagination
 
-### Body tokens (Freelance Jobs)
+### Body tokens (Freelance Jobs, Corporation Projects)
 
 Each call is one page through the full request path. Pass `after` to move forward.
 

@@ -53,7 +53,12 @@ import type {
 } from '../character';
 import type { CloneInfo } from '../clones';
 import type { Contact, ContactLabel } from '../contacts';
-import type { Contract, ContractItem, ContractBid } from '../contracts';
+import type {
+  Contract,
+  ContractItem,
+  ContractBid,
+  PublicContract,
+} from '../contracts';
 import type {
   CorporationInfo,
   CorporationAllianceHistory,
@@ -78,7 +83,9 @@ import type {
   FactionWarfareCharacterStats,
   FactionWarfareSystem,
   FactionWarfareWar,
-  FactionWarfareLeaderboard,
+  FactionWarfareFactionLeaderboard,
+  FactionWarfareCharacterLeaderboard,
+  FactionWarfareCorporationLeaderboard,
   FactionWarfareCorporationStats,
 } from '../faction-warfare';
 import type { Fitting } from '../fittings';
@@ -297,6 +304,9 @@ type _ContactLabel = AssertTrue<
 type _Contract = AssertTrue<
   HasAllSpecKeys<EsiSpec.CharactersCharacterIdContractsGet, Contract>
 >;
+type _PublicContract = AssertTrue<
+  HasAllSpecKeys<EsiSpec.ContractsPublicRegionIdGet, PublicContract>
+>;
 type _ContractItem = AssertTrue<
   HasAllSpecKeys<
     EsiSpec.CharactersCharacterIdContractsContractIdItemsGet,
@@ -425,8 +435,20 @@ type _FactionWarfareSystem = AssertTrue<
 type _FactionWarfareWar = AssertTrue<
   HasAllSpecKeys<EsiSpec.FwWarsGet, FactionWarfareWar>
 >;
-type _FactionWarfareLeaderboard = AssertTrue<
-  HasAllSpecKeys<EsiSpec.FwLeaderboardsGet, FactionWarfareLeaderboard>
+type _FactionWarfareFactionLeaderboard = AssertTrue<
+  HasAllSpecKeys<EsiSpec.FwLeaderboardsGet, FactionWarfareFactionLeaderboard>
+>;
+type _FactionWarfareCharacterLeaderboard = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.FwLeaderboardsCharactersGet,
+    FactionWarfareCharacterLeaderboard
+  >
+>;
+type _FactionWarfareCorporationLeaderboard = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.FwLeaderboardsCorporationsGet,
+    FactionWarfareCorporationLeaderboard
+  >
 >;
 type _FactionWarfareCorporationStats = AssertTrue<
   HasAllSpecKeys<

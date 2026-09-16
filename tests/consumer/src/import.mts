@@ -39,6 +39,7 @@ const STATUS = {
   players: 12345,
   server_version: '2345678',
   start_time: '2026-09-16T11:00:00Z',
+  vip: false,
 };
 
 function stubFetch(body: unknown, status = 200): void {

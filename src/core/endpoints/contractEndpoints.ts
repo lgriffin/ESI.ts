@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
   ContractSchema,
+  PublicContractSchema,
   ContractBidSchema,
   ContractItemSchema,
 } from '../../schemas/contracts';
@@ -54,7 +55,7 @@ export const contractEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['regionId'],
-    responseSchema: z.array(ContractSchema),
+    responseSchema: z.array(PublicContractSchema),
   },
   getPublicContractBids: {
     path: 'contracts/public/bids/{contractId}',
