@@ -752,17 +752,17 @@ export function ratchetProblems(result: RatchetResult): string[] {
   const problems: string[] = [];
   if (result.newFindings.length > 0) {
     problems.push(
-      `${result.newFindings.length} drift finding(s) are not in the baseline: fix the schema.`,
+      `${result.newFindings.length} drift findings are not in the baseline: fix the schema.`,
     );
   }
   if (result.newUnmatched.length > 0) {
     problems.push(
-      `${result.newUnmatched.length} endpoint(s) resolve to no spec operation and are not in the baseline.`,
+      `${result.newUnmatched.length} endpoints resolve to no spec operation and are not in the baseline.`,
     );
   }
   if (result.stale.length > 0) {
     problems.push(
-      `${result.stale.length} baseline entr(y/ies) no longer occur: remove them from the baseline.`,
+      `${result.stale.length} baseline entries no longer occur: remove them from the baseline.`,
     );
   }
   if (result.added.length > 0) {
@@ -770,7 +770,7 @@ export function ratchetProblems(result: RatchetResult): string[] {
       result.baseRefMissing
         ? `No base ref resolved, so the ${result.added.length} baseline entries cannot be shown not to be new. ` +
             'Fetch master or set SCHEMA_DRIFT_BASE_REF.'
-        : `${result.added.length} baseline entr(y/ies) are not on the base branch: the baseline only shrinks.`,
+        : `${result.added.length} baseline entries are not on the base branch: the baseline only shrinks.`,
     );
   }
   return problems;
