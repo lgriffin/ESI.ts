@@ -123,7 +123,7 @@
     "bdd:assets": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/assets",
     "bdd:calendar": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/calendar",
     "bdd:character": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/character",
-    "bdd:clones": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/clones",
+    "bdd:clones": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0007-clones",
     "bdd:contacts": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/contacts",
     "bdd:contracts": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/contracts",
     "bdd:corporation": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/corporation",

@@ -6,7 +6,6 @@
     "tests/bdd/step-definitions/core/assets.steps.ts",
     "tests/bdd/step-definitions/core/calendar.steps.ts",
     "tests/bdd/step-definitions/core/character.steps.ts",
-    "tests/bdd/step-definitions/core/clones.steps.ts",
     "tests/bdd/step-definitions/core/contacts.steps.ts",
     "tests/bdd/step-definitions/core/contracts.steps.ts",
     "tests/bdd/step-definitions/core/corporation.steps.ts",
