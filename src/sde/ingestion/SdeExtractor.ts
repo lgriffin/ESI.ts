@@ -1,7 +1,7 @@
-import AdmZip from 'adm-zip';
-import * as yaml from 'js-yaml';
+import type AdmZip from 'adm-zip';
 import { SDE_METADATA_FILENAME } from './constants';
 import { SdeError } from '../errors';
+import { loadAdmZip, loadJsYaml } from '../optionalPeers';
 
 export interface SdeMetadata {
   buildNumber: string;
@@ -29,6 +29,11 @@ function findEntry(
   });
 }
 
+function openZip(zipPath: string): AdmZip {
+  const Zip = loadAdmZip();
+  return new Zip(zipPath);
+}
+
 function readEntryAsString(entry: AdmZip.IZipEntry): string {
   const buffer = entry.getData();
   return buffer.toString('utf-8');
@@ -36,7 +41,7 @@ function readEntryAsString(entry: AdmZip.IZipEntry): string {
 
 export class SdeExtractor {
   readMetadata(zipPath: string): SdeMetadata {
-    const zip = new AdmZip(zipPath);
+    const zip = openZip(zipPath);
     const entry = findEntry(zip, SDE_METADATA_FILENAME);
 
     if (!entry) {
@@ -46,7 +51,7 @@ export class SdeExtractor {
     }
 
     const content = readEntryAsString(entry);
-    const parsed = yaml.load(content) as Record<string, unknown>;
+    const parsed = loadJsYaml().load(content) as Record<string, unknown>;
 
     const bn = parsed.buildNumber;
     const rd = parsed.releaseDate;
@@ -59,12 +64,12 @@ export class SdeExtractor {
   }
 
   parseFile(zipPath: string, filename: string): ParsedSdeFile {
-    const zip = new AdmZip(zipPath);
+    const zip = openZip(zipPath);
     return this.parseFileFromZip(zip, filename);
   }
 
   parseFiles(zipPath: string, filenames: string[]): ParsedSdeFile[] {
-    const zip = new AdmZip(zipPath);
+    const zip = openZip(zipPath);
     const results: ParsedSdeFile[] = [];
 
     for (const filename of filenames) {
@@ -80,12 +85,12 @@ export class SdeExtractor {
   }
 
   extractAll(zipPath: string, outputDir: string): void {
-    const zip = new AdmZip(zipPath);
+    const zip = openZip(zipPath);
     zip.extractAllTo(outputDir, true);
   }
 
   listFiles(zipPath: string): string[] {
-    const zip = new AdmZip(zipPath);
+    const zip = openZip(zipPath);
     return zip
       .getEntries()
       .filter(
@@ -109,7 +114,7 @@ export class SdeExtractor {
     filename: string,
   ): ParsedSdeFile {
     const content = readEntryAsString(entry);
-    const parsed = yaml.load(content) as Record<
+    const parsed = loadJsYaml().load(content) as Record<
       string | number,
       Record<string, unknown>
     >;

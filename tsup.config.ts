@@ -21,5 +21,7 @@ export default defineConfig({
   outDir: 'dist',
   target: 'es2022',
   sourcemap: true,
+  // Defines __filename in the ESM bundles; src/sde/optionalPeers.ts needs it.
+  shims: true,
   external: ['pino', 'zod', 'better-sqlite3', 'adm-zip', 'js-yaml'],
 });

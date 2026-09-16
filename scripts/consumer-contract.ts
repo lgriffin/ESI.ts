@@ -9,13 +9,17 @@
  * 2. Copy `tests/consumer/` next to the tarball, outside the repository so
  *    module resolution cannot fall back to the repo's own `node_modules`.
  * 3. `npm install` the tarball plus `typescript` and `@types/node` at the
- *    versions this repository uses.
+ *    versions this repository uses, but not the optional peers of `./sde`
+ *    (js-yaml, adm-zip): `./sde` must load without them and name them when a
+ *    feature needs one. Steps 4 to 6 also run without them.
  * 4. Check that every sub-path in the packed `exports` map is imported by the
  *    CommonJS, ES module and bundler consumers.
  * 5. Type-check (`skipLibCheck: false`, so the shipped declarations are
  *    checked too) under `nodenext` and under `bundler` resolution.
  * 6. Run the emitted CommonJS and ES module consumers with node, then the
  *    dual-build parity check over every sub-path.
+ * 7. Install js-yaml and adm-zip, then load real SDE YAML and ZIP files
+ *    through both the CommonJS and ES module builds of `./sde`.
  *
  * Defects the contract has found are recorded as known issues against their
  * beads. Each one logs while it reproduces and fails the run once it stops,
@@ -132,30 +136,6 @@ function checkEverySubpathIsImported(consumer: string): void {
   console.log(`  ${subpaths.length} sub-paths, all imported by each consumer`);
 }
 
-/**
- * Known issue esi-v2s.16: `./sde` loads js-yaml and adm-zip, which the package
- * does not declare. Probe the clean install, then install both so the rest of
- * the contract can run. Once `./sde` loads without them this fails and asks
- * for the workaround to be removed.
- */
-function probeSdeDependencies(consumer: string): void {
-  const probe = exec('node', ['runtime/sde-probe.mjs'], consumer);
-  if (probe.status === 0) {
-    throw new Error(
-      'Known issue esi-v2s.16 no longer reproduces: ./sde loads without js-yaml and adm-zip. Remove probeSdeDependencies() and runtime/sde-probe.mjs.',
-    );
-  }
-  if (probe.status !== 3) {
-    throw new Error(`The ./sde probe failed unexpectedly:\n${probe.output}`);
-  }
-  console.log('  known issue esi-v2s.16 still reproduces:');
-  process.stdout.write(indent(indent(probe.output)));
-  npmInstall(consumer, [
-    `js-yaml@${installedVersion('js-yaml')}`,
-    `adm-zip@${installedVersion('adm-zip')}`,
-  ]);
-}
-
 function main(): void {
   const args = process.argv.slice(2);
   const skipBuild = args.includes('--skip-build');
@@ -188,8 +168,14 @@ function main(): void {
       `@types/node@${installedVersion('@types/node')}`,
     ]);
 
-    step('Known issue esi-v2s.16: undeclared ./sde dependencies');
-    probeSdeDependencies(consumer);
+    // Everything up to the last step runs without js-yaml and adm-zip, the
+    // optional peers of ./sde, so no entry point may need them to load.
+    step('./sde without its optional peers (js-yaml, adm-zip)');
+    process.stdout.write(
+      indent(
+        run('node', ['runtime/sde-optional-peers.mjs', 'absent'], consumer),
+      ),
+    );
 
     step('Every exported sub-path is exercised');
     checkEverySubpathIsImported(consumer);
@@ -209,6 +195,17 @@ function main(): void {
 
     step('Dual-build parity for every sub-path');
     process.stdout.write(indent(run('node', ['runtime/parity.mjs'], consumer)));
+
+    step('./sde with its optional peers installed');
+    npmInstall(consumer, [
+      `js-yaml@${installedVersion('js-yaml')}`,
+      `adm-zip@${installedVersion('adm-zip')}`,
+    ]);
+    process.stdout.write(
+      indent(
+        run('node', ['runtime/sde-optional-peers.mjs', 'present'], consumer),
+      ),
+    );
 
     ok = true;
     console.log('\nConsumer contract passed.');

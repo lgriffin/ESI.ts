@@ -100,6 +100,15 @@ import { TestDataFactory } from '@lgriffin/esi.ts/testing';
 
 ESI.ts includes a standalone module for querying CCP's EVE Online Static Data Export — 102 YAML files loaded into in-memory Maps with 109 typed interfaces, Zod validation, and ~97 query methods. No database, no external services.
 
+Reading SDE files needs two optional peer dependencies, which `npm install @lgriffin/esi.ts` does not install:
+
+```bash
+npm install js-yaml    # SdeDataProvider.fromDirectory and fromZip (parses the YAML)
+npm install adm-zip    # SdeDataProvider.fromZip (reads the ZIP archive)
+```
+
+`@lgriffin/esi.ts/sde` loads without them, and `MemorySdeProvider` never needs them. A method that needs one that is missing throws an `SdeError` naming the package and the install command.
+
 ```typescript
 import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
 

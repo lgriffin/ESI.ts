@@ -29,7 +29,7 @@ Everything a consumer can reach without importing from `dist/` by path:
 - **Every entry point in `package.json` `exports`:** `.`, `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory`, and `./package.json`. `./testing` (`TestDataFactory` and friends) is public; consumers use it in their own tests.
 - **The types those entry points export.** That includes interfaces consumers _implement_, such as `ILogger`, `ICircuitBreaker`, `IDeduplicator` and `IRetryStrategy`, as well as ones they only call.
 - **Runtime behaviour documented in the guides.** This covers which error class is thrown and its `retryable` flag ([ERRORS.md](ERRORS.md)), what a response schema accepts ([RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md)), pagination results ([PAGINATION.md](PAGINATION.md)), default configuration values, and log events other code may key on ([LOGGING.md](LOGGING.md)).
-- **The environment.** `engines.node`, `dependencies` whose types appear in the public API (`zod`), and `peerDependencies` (`better-sqlite3`).
+- **The environment.** `engines.node`, `dependencies` whose types appear in the public API (`zod`), and `peerDependencies` (`better-sqlite3`, `js-yaml`, `adm-zip`), including their ranges.
 
 Not public: anything not reachable from an entry point, file layout under `src/`, test files, CI, generated files' internal shape where no exported type depends on it, and log message wording.
 

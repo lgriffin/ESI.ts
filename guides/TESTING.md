@@ -419,12 +419,9 @@ Every other tier imports from `src/`, so none of them sees the package a consume
 3. Type-checks with `skipLibCheck: false`, so the shipped declarations are checked too, under `module: nodenext` (the `.cts` file resolves through the `require` condition, the `.mts` file through `import`) and under `moduleResolution: bundler`.
 4. Runs the emitted CommonJS and ES module consumers: a real `EsiClient` against a stubbed `fetch`, a malformed body rejected with `EsiValidationError` and a 404, both recognised by the classes and guards imported from `./errors`, schemas, `TestDataFactory` and the SDE providers.
 5. `runtime/parity.mjs` loads every sub-path under both `require` and `import` and fails if the CJS and ESM builds export different names, or if, within one build, two sub-paths export the same name as different values (a class exported from `.` and `./errors` must be one class; the root `schemas` namespace is compared with `./schemas`).
+6. `runtime/sde-optional-peers.mjs` covers `js-yaml` and `adm-zip`, the optional peer dependencies of `./sde`. Steps 2 to 5 run without them installed; before that, `absent` checks that `./sde` loads and that `fromDirectory` and `fromZip` throw an `SdeError` naming the missing package. At the end the runner installs both and `present` loads real YAML and ZIP files through the CJS and ESM builds.
 
-Defects the contract has found are recorded as known issues against their beads. Each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround:
-
-| Bead         | Defect                                                                                                   | Workaround in the contract                                     |
-| ------------ | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `esi-v2s.16` | `./sde` loads `js-yaml` and `adm-zip`, which are devDependencies, so it fails to load in a clean install | `runtime/sde-probe.mjs`, then both are installed by the runner |
+Defects the contract finds are recorded as known issues against their beads: each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround. There are none open; `esi-v2s.15` (error class identity across sub-paths) and `esi-v2s.16` (`./sde` peer dependencies) were the last two.
 
 ## Integration Tests
 

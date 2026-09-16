@@ -4,6 +4,16 @@ ESI.ts includes a standalone module for querying CCP's EVE Online Static Data Ex
 
 ## Quick Start
 
+### Install the Optional Peer Dependencies
+
+`SdeDataProvider` reads CCP's files with `js-yaml` (YAML, for `fromDirectory` and `fromZip`) and `adm-zip` (ZIP archives, for `fromZip`). Both are optional peer dependencies, so install them next to the library:
+
+```bash
+npm install @lgriffin/esi.ts js-yaml adm-zip
+```
+
+Importing `@lgriffin/esi.ts/sde` does not load them, and `MemorySdeProvider` never needs them. If a call needs one that is not installed, it throws an `SdeError` naming the package and its install command.
+
 ### 1. Download SDE Data
 
 ```bash
