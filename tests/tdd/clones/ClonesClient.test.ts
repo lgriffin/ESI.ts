@@ -67,5 +67,7 @@ describe('ClonesClient', () => {
     );
   });
 
-  describeClientErrors('ClonesClient', () => clonesClient.getClones(123456789));
+  describeClientErrors('ClonesClient', (apiClient) =>
+    new ClonesClient(apiClient).getClones(123456789),
+  );
 });

@@ -95,5 +95,7 @@ describe('WarsClient', () => {
     );
   });
 
-  describeClientErrors('WarsClient', () => warsClient.getWars());
+  describeClientErrors('WarsClient', (apiClient) =>
+    new WarsClient(apiClient).getWars(),
+  );
 });

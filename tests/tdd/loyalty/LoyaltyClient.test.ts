@@ -97,7 +97,7 @@ describe('LoyaltyClient', () => {
     );
   });
 
-  describeClientErrors('LoyaltyClient', () =>
-    loyaltyClient.getLoyaltyPoints(123456),
+  describeClientErrors('LoyaltyClient', (apiClient) =>
+    new LoyaltyClient(apiClient).getLoyaltyPoints(123456),
   );
 });

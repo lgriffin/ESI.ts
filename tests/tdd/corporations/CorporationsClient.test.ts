@@ -640,7 +640,7 @@ describe('CorporationsClient', () => {
     );
   });
 
-  describeClientErrors('CorporationsClient', () =>
-    corporationsClient.getCorporationInfo(123456789),
+  describeClientErrors('CorporationsClient', (apiClient) =>
+    new CorporationsClient(apiClient).getCorporationInfo(123456789),
   );
 });

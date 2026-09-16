@@ -42,5 +42,7 @@ describe('StatusClient', () => {
     );
   });
 
-  describeClientErrors('StatusClient', () => statusClient.getStatus());
+  describeClientErrors('StatusClient', (apiClient) =>
+    new StatusClient(apiClient).getStatus(),
+  );
 });

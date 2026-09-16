@@ -230,7 +230,7 @@ describe('MailClient', () => {
     );
   });
 
-  describeClientErrors('MailClient', () =>
-    mailClient.getMailHeaders(123456789),
+  describeClientErrors('MailClient', (apiClient) =>
+    new MailClient(apiClient).getMailHeaders(123456789),
   );
 });

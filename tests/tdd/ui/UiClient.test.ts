@@ -87,7 +87,7 @@ describe('UiClient', () => {
     );
   });
 
-  describeClientErrors('UiClient', () =>
-    uiClient.openInformationWindow(123456789),
+  describeClientErrors('UiClient', (apiClient) =>
+    new UiClient(apiClient).openInformationWindow(123456789),
   );
 });

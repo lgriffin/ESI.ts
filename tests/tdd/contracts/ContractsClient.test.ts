@@ -317,7 +317,7 @@ describe('ContractClient', () => {
     );
   });
 
-  describeClientErrors('ContractsClient', () =>
-    contractClient.getCharacterContracts(123456789),
+  describeClientErrors('ContractsClient', (apiClient) =>
+    new ContractsClient(apiClient).getCharacterContracts(123456789),
   );
 });

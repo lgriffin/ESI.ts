@@ -65,7 +65,7 @@ describe('IncursionsClient', () => {
     );
   });
 
-  describeClientErrors('IncursionsClient', () =>
-    incursionsClient.getIncursions(),
+  describeClientErrors('IncursionsClient', (apiClient) =>
+    new IncursionsClient(apiClient).getIncursions(),
   );
 });

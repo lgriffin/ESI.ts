@@ -141,7 +141,7 @@ describe('SkillsClient', () => {
     );
   });
 
-  describeClientErrors('SkillsClient', () =>
-    skillsClient.getCharacterAttributes(123456),
+  describeClientErrors('SkillsClient', (apiClient) =>
+    new CharacterSkillsClient(apiClient).getCharacterAttributes(123456),
   );
 });

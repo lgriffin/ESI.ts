@@ -326,5 +326,7 @@ describe('FactionClient', () => {
     );
   });
 
-  describeClientErrors('FactionClient', () => factionClient.getStats());
+  describeClientErrors('FactionClient', (apiClient) =>
+    new FactionClient(apiClient).getStats(),
+  );
 });

@@ -613,5 +613,7 @@ describe('UniverseClient', () => {
     expect(sentBody).toBe(JSON.stringify([123]));
   });
 
-  describeClientErrors('UniverseClient', () => universeClient.getAncestries());
+  describeClientErrors('UniverseClient', (apiClient) =>
+    new UniverseClient(apiClient).getAncestries(),
+  );
 });

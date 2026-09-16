@@ -249,7 +249,7 @@ describe('SkyhooksClient', () => {
     expect(headers['Authorization']).toMatch(/^Bearer /);
   });
 
-  describeClientErrors('SkyhooksClient', () =>
-    authSkyhooksClient.getSovereigntyHubs(98000002),
+  describeClientErrors('SkyhooksClient', (apiClient) =>
+    new SkyhooksClient(apiClient).getSovereigntyHubs(98000002),
   );
 });

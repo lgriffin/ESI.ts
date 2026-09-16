@@ -166,7 +166,7 @@ describe('CalendarClient', () => {
     );
   });
 
-  describeClientErrors('CalendarClient', () =>
-    calendarClient.getCalendarEvents(123456789),
+  describeClientErrors('CalendarClient', (apiClient) =>
+    new CalendarClient(apiClient).getCalendarEvents(123456789),
   );
 });

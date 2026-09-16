@@ -89,7 +89,7 @@ describe('SovereigntyClient', () => {
     );
   });
 
-  describeClientErrors('SovereigntyClient', () =>
-    sovereigntyClient.getSovereigntyCampaigns(),
+  describeClientErrors('SovereigntyClient', (apiClient) =>
+    new SovereigntyClient(apiClient).getSovereigntyCampaigns(),
   );
 });

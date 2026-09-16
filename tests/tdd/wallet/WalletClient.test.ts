@@ -268,7 +268,7 @@ describe('WalletClient', () => {
     );
   });
 
-  describeClientErrors('WalletClient', () =>
-    walletClient.getCharacterWallet(123456789),
+  describeClientErrors('WalletClient', (apiClient) =>
+    new WalletClient(apiClient).getCharacterWallet(123456789),
   );
 });

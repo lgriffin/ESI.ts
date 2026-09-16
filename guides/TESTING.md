@@ -760,7 +760,7 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 
 ### Shared Error Test Helper
 
-The `describeClientErrors` helper (`tests/tdd/helpers/clientErrorTests.ts`) generates a standard error handling `describe` block that tests all 5 HTTP error codes (500, 404, 401, 403, 429) against the exact messages from `ApiRequestHandler.STATUS_MESSAGES`. Error scenarios are ordered with 500 first and 429 last to avoid rate limiter blocking in subsequent tests.
+The `describeClientErrors` helper (`tests/tdd/helpers/clientErrorTests.ts`) generates a standard error handling `describe` block that tests all 5 HTTP error codes (500, 404, 401, 403, 429) against the exact messages from `ApiRequestHandler.STATUS_MESSAGES`, and checks that the thrown error carries the status code. Each case builds a fresh `ApiClient` and passes it to the callback, which must construct the domain client from it rather than reuse the suite's client: a 429 blocks the endpoint's rate-limit group for 60 seconds on the client that received it, and a shared client would make every later test in the file time out once `jest --randomize` puts the 429 case first.
 
 ```typescript
 import { describeClientErrors } from '../helpers/clientErrorTests';
@@ -768,7 +768,9 @@ import { describeClientErrors } from '../helpers/clientErrorTests';
 describe('MarketClient', () => {
   // ... other tests ...
 
-  describeClientErrors('MarketClient', () => client.getMarketPrices());
+  describeClientErrors('MarketClient', (apiClient) =>
+    new MarketClient(apiClient).getMarketPrices(),
+  );
 });
 ```
 

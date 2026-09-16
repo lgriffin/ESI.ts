@@ -150,7 +150,7 @@ describe('CorporationProjectsClient', () => {
     );
   });
 
-  describeClientErrors('CorporationProjectsClient', () =>
-    corporationProjectsClient.getCorporationProjects(98000001),
+  describeClientErrors('CorporationProjectsClient', (apiClient) =>
+    new CorporationProjectsClient(apiClient).getCorporationProjects(98000001),
   );
 });

@@ -208,7 +208,7 @@ describe('MercenaryClient', () => {
     expect(headers['Authorization']).toMatch(/^Bearer /);
   });
 
-  describeClientErrors('MercenaryClient', () =>
-    mercenaryClient.getMercenaryDens(123456),
+  describeClientErrors('MercenaryClient', (apiClient) =>
+    new MercenaryClient(apiClient).getMercenaryDens(123456),
   );
 });

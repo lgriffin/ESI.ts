@@ -56,7 +56,9 @@ describe('SearchClient', () => {
     );
   });
 
-  describeClientErrors('SearchClient', () =>
-    searchClient.characterSearch(1689391488, 'test', ['character']),
+  describeClientErrors('SearchClient', (apiClient) =>
+    new SearchClient(apiClient).characterSearch(1689391488, 'test', [
+      'character',
+    ]),
   );
 });
