@@ -93,6 +93,9 @@ import {
   FactionWarfareSystemSchema,
   FactionWarfareWarSchema,
   FactionWarfareLeaderboardSchema,
+  FactionWarfareFactionLeaderboardSchema,
+  FactionWarfareCharacterLeaderboardSchema,
+  FactionWarfareCorporationLeaderboardSchema,
   FactionWarfareCorporationStatsSchema,
 
   // fittings
@@ -1141,6 +1144,84 @@ const schemaCases: SchemaTestCase[] = [
         last_week: [{ amount: 500 }],
         active_total: [{ amount: 5000 }],
       },
+    },
+  },
+  {
+    name: 'FactionWarfareFactionLeaderboardSchema',
+    schema: FactionWarfareFactionLeaderboardSchema,
+    validData: {
+      kills: {
+        yesterday: [{ faction_id: 500001, amount: 10 }, { faction_id: 500002 }],
+        last_week: [{ faction_id: 500001, amount: 50 }],
+        active_total: [{ faction_id: 500001, amount: 500 }],
+      },
+      victory_points: {
+        yesterday: [{ faction_id: 500001, amount: 100 }],
+        last_week: [{ faction_id: 500001, amount: 500 }],
+        active_total: [{ faction_id: 500001, amount: 5000 }],
+      },
+    },
+    invalidData: {
+      kills: {
+        yesterday: [{ faction_id: '500001', amount: 10 }],
+        last_week: [],
+        active_total: [],
+      },
+      victory_points: { yesterday: [], last_week: [], active_total: [] },
+    },
+  },
+  {
+    name: 'FactionWarfareCharacterLeaderboardSchema',
+    schema: FactionWarfareCharacterLeaderboardSchema,
+    validData: {
+      kills: {
+        yesterday: [
+          { character_id: 90000001, amount: 10 },
+          { character_id: 90000002 },
+        ],
+        last_week: [{ character_id: 90000001, amount: 50 }],
+        active_total: [{ character_id: 90000001, amount: 500 }],
+      },
+      victory_points: {
+        yesterday: [{ character_id: 90000001, amount: 100 }],
+        last_week: [{ character_id: 90000001, amount: 500 }],
+        active_total: [{ character_id: 90000001, amount: 5000 }],
+      },
+    },
+    invalidData: {
+      kills: {
+        yesterday: [{ character_id: '90000001', amount: 10 }],
+        last_week: [],
+        active_total: [],
+      },
+      victory_points: { yesterday: [], last_week: [], active_total: [] },
+    },
+  },
+  {
+    name: 'FactionWarfareCorporationLeaderboardSchema',
+    schema: FactionWarfareCorporationLeaderboardSchema,
+    validData: {
+      kills: {
+        yesterday: [
+          { corporation_id: 1000180, amount: 10 },
+          { corporation_id: 1000181 },
+        ],
+        last_week: [{ corporation_id: 1000180, amount: 50 }],
+        active_total: [{ corporation_id: 1000180, amount: 500 }],
+      },
+      victory_points: {
+        yesterday: [{ corporation_id: 1000180, amount: 100 }],
+        last_week: [{ corporation_id: 1000180, amount: 500 }],
+        active_total: [{ corporation_id: 1000180, amount: 5000 }],
+      },
+    },
+    invalidData: {
+      kills: {
+        yesterday: [{ corporation_id: '1000180', amount: 10 }],
+        last_week: [],
+        active_total: [],
+      },
+      victory_points: { yesterday: [], last_week: [], active_total: [] },
     },
   },
   {

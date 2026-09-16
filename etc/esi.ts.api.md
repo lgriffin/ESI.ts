@@ -5131,9 +5131,9 @@ export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
     constructor(client: ApiClient);
     getCharacterStats(characterId: number): Promise<FactionWarfareCharacterStats>;
     getCorporationStats(corporationId: number): Promise<FactionWarfareCorporationStats>;
-    getLeaderboardsCharacters(): Promise<FactionWarfareLeaderboard>;
-    getLeaderboardsCorporations(): Promise<FactionWarfareLeaderboard>;
-    getLeaderboardsOverall(): Promise<FactionWarfareLeaderboard>;
+    getLeaderboardsCharacters(): Promise<FactionWarfareCharacterLeaderboard>;
+    getLeaderboardsCorporations(): Promise<FactionWarfareCorporationLeaderboard>;
+    getLeaderboardsOverall(): Promise<FactionWarfareFactionLeaderboard>;
     getStats(): Promise<FactionWarfareStats[]>;
     getSystems(): Promise<FactionWarfareSystem[]>;
     getWars(): Promise<FactionWarfareWar[]>;
@@ -5154,6 +5154,41 @@ const FactionSchema: z.ZodObject<{
     solar_system_id: z.ZodOptional<z.ZodNumber>;
     corporation_id: z.ZodOptional<z.ZodNumber>;
     militia_corporation_id: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type FactionWarfareCharacterLeaderboard = z.infer<typeof FactionWarfareCharacterLeaderboardSchema>;
+
+// @public
+const FactionWarfareCharacterLeaderboardSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -5178,6 +5213,41 @@ const FactionWarfareCharacterStatsSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type FactionWarfareCorporationLeaderboard = z.infer<typeof FactionWarfareCorporationLeaderboardSchema>;
+
+// @public
+const FactionWarfareCorporationLeaderboardSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type FactionWarfareCorporationStats = z.infer<typeof FactionWarfareCorporationStatsSchema>;
 
 // @public (undocumented)
@@ -5198,36 +5268,83 @@ const FactionWarfareCorporationStatsSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
-export type FactionWarfareLeaderboard = z.infer<typeof FactionWarfareLeaderboardSchema>;
+export type FactionWarfareFactionLeaderboard = z.infer<typeof FactionWarfareFactionLeaderboardSchema>;
 
-// @public (undocumented)
-const FactionWarfareLeaderboardSchema: z.ZodObject<{
+// @public
+const FactionWarfareFactionLeaderboardSchema: z.ZodObject<{
     kills: z.ZodObject<{
         yesterday: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
         last_week: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
         active_total: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
     }, z.core.$loose>;
     victory_points: z.ZodObject<{
         yesterday: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
         last_week: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
         active_total: z.ZodArray<z.ZodObject<{
-            amount: z.ZodNumber;
-            id: z.ZodOptional<z.ZodNumber>;
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+}, z.core.$loose>;
+
+// @public @deprecated (undocumented)
+export type FactionWarfareLeaderboard = z.infer<typeof FactionWarfareLeaderboardSchema>;
+
+// @public @deprecated
+const FactionWarfareLeaderboardSchema: z.ZodObject<{
+    kills: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+    }, z.core.$loose>;
+    victory_points: z.ZodObject<{
+        yesterday: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        last_week: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$loose>>;
+        active_total: z.ZodArray<z.ZodObject<{
+            amount: z.ZodOptional<z.ZodNumber>;
+            faction_id: z.ZodOptional<z.ZodNumber>;
+            character_id: z.ZodOptional<z.ZodNumber>;
+            corporation_id: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
     }, z.core.$loose>;
 }, z.core.$loose>;
@@ -7748,6 +7865,9 @@ declare namespace schemas {
         FactionWarfareCharacterStatsSchema,
         FactionWarfareSystemSchema,
         FactionWarfareWarSchema,
+        FactionWarfareFactionLeaderboardSchema,
+        FactionWarfareCharacterLeaderboardSchema,
+        FactionWarfareCorporationLeaderboardSchema,
         FactionWarfareLeaderboardSchema,
         FactionWarfareCorporationStatsSchema,
         FittingSchema,

@@ -5,7 +5,9 @@ import {
   FactionWarfareCharacterStatsSchema,
   FactionWarfareSystemSchema,
   FactionWarfareWarSchema,
-  FactionWarfareLeaderboardSchema,
+  FactionWarfareFactionLeaderboardSchema,
+  FactionWarfareCharacterLeaderboardSchema,
+  FactionWarfareCorporationLeaderboardSchema,
   FactionWarfareCorporationStatsSchema,
 } from '../../schemas/faction-warfare';
 
@@ -28,19 +30,19 @@ export const factionEndpoints = {
     path: 'fw/leaderboards',
     method: 'GET',
     requiresAuth: false,
-    responseSchema: FactionWarfareLeaderboardSchema,
+    responseSchema: FactionWarfareFactionLeaderboardSchema,
   },
   getCharacters: {
     path: 'fw/leaderboards/characters',
     method: 'GET',
     requiresAuth: false,
-    responseSchema: FactionWarfareLeaderboardSchema,
+    responseSchema: FactionWarfareCharacterLeaderboardSchema,
   },
   getCorporations: {
     path: 'fw/leaderboards/corporations',
     method: 'GET',
     requiresAuth: false,
-    responseSchema: FactionWarfareLeaderboardSchema,
+    responseSchema: FactionWarfareCorporationLeaderboardSchema,
   },
   getStats: {
     path: 'fw/stats',

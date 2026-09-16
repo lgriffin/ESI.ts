@@ -78,7 +78,9 @@ import type {
   FactionWarfareCharacterStats,
   FactionWarfareSystem,
   FactionWarfareWar,
-  FactionWarfareLeaderboard,
+  FactionWarfareFactionLeaderboard,
+  FactionWarfareCharacterLeaderboard,
+  FactionWarfareCorporationLeaderboard,
   FactionWarfareCorporationStats,
 } from '../faction-warfare';
 import type { Fitting } from '../fittings';
@@ -425,8 +427,20 @@ type _FactionWarfareSystem = AssertTrue<
 type _FactionWarfareWar = AssertTrue<
   HasAllSpecKeys<EsiSpec.FwWarsGet, FactionWarfareWar>
 >;
-type _FactionWarfareLeaderboard = AssertTrue<
-  HasAllSpecKeys<EsiSpec.FwLeaderboardsGet, FactionWarfareLeaderboard>
+type _FactionWarfareFactionLeaderboard = AssertTrue<
+  HasAllSpecKeys<EsiSpec.FwLeaderboardsGet, FactionWarfareFactionLeaderboard>
+>;
+type _FactionWarfareCharacterLeaderboard = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.FwLeaderboardsCharactersGet,
+    FactionWarfareCharacterLeaderboard
+  >
+>;
+type _FactionWarfareCorporationLeaderboard = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.FwLeaderboardsCorporationsGet,
+    FactionWarfareCorporationLeaderboard
+  >
 >;
 type _FactionWarfareCorporationStats = AssertTrue<
   HasAllSpecKeys<

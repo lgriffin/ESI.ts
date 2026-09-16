@@ -438,6 +438,87 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('Corporation leaderboard ranks corporations', ({
+    given,
+    when,
+    then,
+  }) => {
+    const expectedLeaderboard = {
+      kills: {
+        yesterday: [
+          { corporation_id: 1000180, amount: 60 },
+          { corporation_id: 1000181, amount: 45 },
+        ],
+        last_week: [{ corporation_id: 1000180, amount: 410 }],
+        active_total: [{ corporation_id: 1000180, amount: 22000 }],
+      },
+      victory_points: {
+        yesterday: [{ corporation_id: 1000181, amount: 9000 }],
+        last_week: [{ corporation_id: 1000180, amount: 64000 }],
+        active_total: [{ corporation_id: 1000180, amount: 3100000 }],
+      },
+    };
+    let result: any;
+
+    given('faction warfare is active for corporation leaderboard', () => {
+      queueResponse({
+        match: esiPath('fw/leaderboards/corporations'),
+        body: expectedLeaderboard,
+      });
+    });
+
+    when('the client requests the corporation leaderboard', async () => {
+      result = await client.factions.getLeaderboardsCorporations();
+    });
+
+    then('the client shall return top corporation rankings', () => {
+      expect(lastRequest().url.pathname).toBe('/fw/leaderboards/corporations');
+      expect(result).toEqual(expectedLeaderboard);
+      expect(
+        result.kills.yesterday.map((entry: any) => entry.corporation_id),
+      ).toEqual([1000180, 1000181]);
+    });
+  });
+
+  test('Leaderboard entry without a score amount', ({ given, when, then }) => {
+    // ESI's spec marks amount optional on every leaderboard entry.
+    const leaderboard = {
+      kills: {
+        yesterday: [
+          { faction_id: 500001, amount: 180 },
+          { faction_id: 500004 },
+        ],
+        last_week: [{ faction_id: 500001, amount: 1200 }],
+        active_total: [{ faction_id: 500001, amount: 500000 }],
+      },
+      victory_points: {
+        yesterday: [{ faction_id: 500001, amount: 12000 }],
+        last_week: [{ faction_id: 500001, amount: 85000 }],
+        active_total: [{ faction_id: 500001, amount: 12000000 }],
+      },
+    };
+    let result: any;
+
+    given('a faction leaderboard entry that carries no amount', () => {
+      queueResponse({ match: esiPath('fw/leaderboards'), body: leaderboard });
+    });
+
+    when(
+      'the client requests the overall leaderboard with an unscored entry',
+      async () => {
+        result = await client.factions.getLeaderboardsOverall();
+      },
+    );
+
+    then('the client shall return the unscored entry without an amount', () => {
+      expect(result.kills.yesterday).toEqual([
+        { faction_id: 500001, amount: 180 },
+        { faction_id: 500004 },
+      ]);
+      expect(result.kills.yesterday[1].amount).toBeUndefined();
+    });
+  });
+
   test('Overview gathers stats, systems, and wars in one pass', ({
     given,
     when,

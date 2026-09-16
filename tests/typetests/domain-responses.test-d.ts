@@ -21,6 +21,10 @@ import type {
   CorporationProjectContributor,
   CorporationProjectContributorsListing,
   CorporationProjectsListing,
+  FactionWarfareCharacterLeaderboard,
+  FactionWarfareCorporationLeaderboard,
+  FactionWarfareFactionLeaderboard,
+  FactionWarfareLeaderboard,
 } from '../../src';
 
 // --- EsiResponse shape ---
@@ -135,3 +139,24 @@ expectType<CorporationProjectContributor[]>(corpContributors.contributors);
 expectType<number>(corpContributor.id);
 expectType<string>(corpContributor.name);
 expectType<number>(corpContributor.contributed);
+
+// --- Faction Warfare leaderboards ---
+
+declare const factionBoard: FactionWarfareFactionLeaderboard;
+expectType<number | undefined>(factionBoard.kills.yesterday[0]!.faction_id);
+expectType<number | undefined>(factionBoard.kills.yesterday[0]!.amount);
+
+declare const characterBoard: FactionWarfareCharacterLeaderboard;
+expectType<number | undefined>(
+  characterBoard.victory_points.active_total[0]!.character_id,
+);
+
+declare const corporationBoard: FactionWarfareCorporationLeaderboard;
+expectType<number | undefined>(
+  corporationBoard.kills.last_week[0]!.corporation_id,
+);
+
+// Each board still satisfies the deprecated shared type.
+expectAssignable<FactionWarfareLeaderboard>(factionBoard);
+expectAssignable<FactionWarfareLeaderboard>(characterBoard);
+expectAssignable<FactionWarfareLeaderboard>(corporationBoard);
