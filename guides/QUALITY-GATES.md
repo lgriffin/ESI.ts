@@ -127,6 +127,7 @@ All workflows live in `.github/workflows/`. Every action is pinned to a full com
 | `package-checks.yml`       | Pull request to `master`, `main`                                             | No                            | Status, step summary                          |
 | `codeql.yml`               | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC                  | No                            | Code scanning alerts                          |
 | `zizmor.yml`               | Push and PR to `master`/`main`/`develop` touching workflows or `.zizmor.yml` | No                            | Status                                        |
+| `skill-eval.yml`           | PR touching `.claude/skills/**` or the skill eval runner; manual             | No                            | Status, artifacts                             |
 | `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                                      | No                            | Artifact                                      |
 | `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                                      | No                            | Artifact                                      |
 | `nightly-audit.yml`        | Daily 05:00 UTC; manual                                                      | No                            | `security-audit` issue                        |
@@ -177,6 +178,10 @@ GitHub CodeQL analysis for `javascript-typescript` on pushes and pull requests t
 ### `zizmor.yml` — Workflow Security
 
 Runs `zizmor` (pinned version, via `uvx`) over `.github/` with `.zizmor.yml` when a push or pull request to `master`, `main` or `develop` changes `.github/workflows/**` or `.zizmor.yml`. `.zizmor.yml` suppresses three rules with a reason each: `cache-poisoning` and `use-trusted-publishing` for `release.yml`, and `dependabot-cooldown` for `dependabot.yml`. Not a required check.
+
+### `skill-eval.yml` — Skill Eval
+
+Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. `live` then runs the native `claude plugin eval` suite through the same script, which enforces the manifest's per-case score, LLM-grader `min_mean`, deterministic pass rate and `max_cost_usd` budget. `live` fails rather than skips when the `ANTHROPIC_API_KEY` secret is absent — including on fork PRs, where a maintainer re-runs it via `workflow_dispatch`. Not a required check yet.
 
 ### `nightly-schemathesis.yml` — Nightly Schemathesis API Fuzz
 

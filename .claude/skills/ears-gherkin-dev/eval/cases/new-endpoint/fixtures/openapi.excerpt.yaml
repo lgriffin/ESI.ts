@@ -1,0 +1,36 @@
+# Excerpt of the ESI OpenAPI spec (fixture).
+/markets/{region_id}/types:
+  get:
+    operationId: GetMarketsRegionIdTypes
+    summary: List type IDs relevant to a market
+    description: >
+      Return a list of type IDs that have active orders in the region, for
+      efficient market indexing. Paginated: the response carries an X-Pages
+      header and further pages are requested with ?page=N.
+    parameters:
+      - name: region_id
+        in: path
+        required: true
+        schema: { type: integer }
+      - name: page
+        in: query
+        schema: { type: integer, minimum: 1, default: 1 }
+    responses:
+      '200':
+        description: A list of type IDs
+        headers:
+          X-Pages: { schema: { type: integer } }
+          Cache-Control: { schema: { type: string } }
+        content:
+          application/json:
+            schema:
+              type: array
+              maxItems: 1000
+              items: { type: integer, format: int64 }
+      '404':
+        description: Not found (region does not exist)
+      '420':
+        description: Error limited
+      '503':
+        description: Service unavailable
+    x-cached-seconds: 600
