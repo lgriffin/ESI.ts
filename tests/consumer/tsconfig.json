@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "skipLibCheck": false,
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "rootDir": "src",
+    "outDir": "out"
+  },
+  "include": ["src/**/*.cts", "src/**/*.mts"]
+}

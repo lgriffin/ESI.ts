@@ -358,6 +358,39 @@ jobs:
             exit 1
           fi
 
+  consumer-contract:
+    name: Consumer Contract (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    # Packs the library, installs the tarball into tests/consumer/ copied to a
+    # temporary directory, type-checks it under nodenext (CJS and ESM) and
+    # bundler resolution, runs the CJS and ESM consumers, and checks every
+    # sub-path in `exports` loads with the same names under require and import.
+    # Node 18 has no require(esm), so it is the line that catches a `require`
+    # condition resolving to an ES module.
+
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run the consumer contract test
+        run: npm run test:consumer
+
   api-semver:
     name: API SemVer Gate
     runs-on: ubuntu-latest
@@ -580,6 +613,7 @@ jobs:
         fuzz-tests,
         full-test-suite,
         api-surface,
+        consumer-contract,
         api-semver,
         documentation,
         lockfile,

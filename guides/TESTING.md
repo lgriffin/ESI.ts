@@ -15,6 +15,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level â
 | Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
+| Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
 | **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
@@ -403,6 +404,27 @@ Related tools:
 33 tests for authenticated endpoints using a real OAuth token:
 
 - Location, Skills, Wallet, Assets, Characters, Clones, Contacts, Killmails, Mail, Fittings, Industry, Market (auth), Loyalty, Contracts, Calendar, Search, Faction Warfare
+
+### Consumer contract
+
+**Location:** `tests/consumer/` (a private downstream package), driven by `scripts/consumer-contract.ts`
+**Run:** `npm run test:consumer` (`-- --skip-build` packs the existing `dist/`, `-- --keep` keeps the workspace)
+**CI:** `consumer-contract` in `ci.yml`, Node 18, 20 and 22, inside `ci-success`. Not part of `npm test`.
+
+Every other tier imports from `src/`, so none of them sees the package a consumer installs. This one does:
+
+1. Builds and runs `npm pack`, then installs the tarball, plus the repository's `typescript` and `@types/node` versions, into a copy of `tests/consumer/` in a temporary directory outside the repository, so resolution cannot fall back to the repo's `node_modules`.
+2. Fails if a sub-path in the packed `exports` map is not imported by each consumer source (`src/require.cts`, `src/import.mts`, `bundler/index.mts`).
+3. Type-checks with `skipLibCheck: false`, so the shipped declarations are checked too, under `module: nodenext` (the `.cts` file resolves through the `require` condition, the `.mts` file through `import`) and under `moduleResolution: bundler`.
+4. Runs the emitted CommonJS and ES module consumers: a real `EsiClient` against a stubbed `fetch`, a malformed body rejected with `EsiValidationError`, schemas, `TestDataFactory` and the SDE providers.
+5. `runtime/parity.mjs` loads every sub-path under both `require` and `import` and fails if the CJS and ESM builds export different names.
+
+Defects the contract has found are recorded as known issues against their beads. Each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround:
+
+| Bead         | Defect                                                                                                                | Workaround in the contract                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `esi-v2s.15` | `./errors` bundles its own copy of the error classes, so its guards and `instanceof` miss errors thrown by the client | `knownIssue()` in both consumers instead of an assertion       |
+| `esi-v2s.16` | `./sde` loads `js-yaml` and `adm-zip`, which are devDependencies, so it fails to load in a clean install              | `runtime/sde-probe.mjs`, then both are installed by the runner |
 
 ## Integration Tests
 
@@ -863,35 +885,36 @@ npm run generate:types
 
 ## File Reference
 
-| Path                                           | Purpose                                           |
-| ---------------------------------------------- | ------------------------------------------------- |
-| `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds)      |
-| `jest.benchmark.config.cjs`                    | Benchmark test config (60s timeout)               |
-| `jest.integration.config.cjs`                  | Integration test config (30s timeout)             |
-| `jest.contract.config.cjs`                     | Contract test config (60s timeout)                |
-| `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)                    |
-| `tests/tdd/`                                   | 130 TDD test files                                |
-| `tests/tdd/helpers/clientErrorTests.ts`        | Shared HTTP error test generator (5 status codes) |
-| `tests/tdd/core/apiSurfaceSnapshots.test.ts`   | API export & shape snapshot tests (5 tests)       |
-| `tests/tdd/core/concurrency.test.ts`           | Async scheduling correctness (11 tests)           |
-| `tests/tdd/core/utilFunctions.test.ts`         | Core utility function tests (25 tests)            |
-| `tests/tdd/schemas/schemaRejection.test.ts`    | Full schema rejection coverage (423 tests)        |
-| `tests/benchmark/`                             | 4 performance benchmark suites (17 tests)         |
-| `tests/bdd/features/`                          | 40 Gherkin feature files                          |
-| `tests/bdd/step-definitions/`                  | 40 step definition files + shared helpers         |
-| `tests/integration/full-stack.test.ts`         | Mocked full-lifecycle integration (20 tests)      |
-| `tests/integration/live-esi.test.ts`           | Live API smoke tests (40 tests)                   |
-| `tests/integration/client-integration.test.ts` | Live EsiClient integration (11 tests)             |
-| `tests/integration/esi-spec-contract.test.ts`  | ESI spec drift detection (10 tests)               |
-| `tests/integration/gated-auth.test.ts`         | Authenticated endpoint tests (33 tests)           |
-| `tests/contract/esi-contract.test.ts`          | Deep contract validation (8 categories)           |
-| `tests/contract/esi-snapshot.test.ts`          | Spec snapshot comparison                          |
-| `tests/contract/helpers.ts`                    | Shared spec parsing utilities                     |
-| `tests/fuzz/parameter-fuzz.test.ts`            | Validation function fuzzing                       |
-| `tests/fuzz/url-construction-fuzz.test.ts`     | URL construction fuzzing                          |
-| `tests/fuzz/schema-fuzz.test.ts`               | Zod schema fuzzing                                |
-| `tests/fuzz/pagination-fuzz.test.ts`           | Pagination parameter fuzzing                      |
-| `tests/typetests/index.test-d.ts`              | Consumer type tests (tsd)                         |
-| `src/testing/TestDataFactory.ts`               | Mock data factory for tests                       |
-| `scripts/validate-esi-endpoints.ts`            | Standalone ESI spec validation script             |
-| `scripts/generate-esi-types.ts`                | Type/cache/scope generator from live spec         |
+| Path                                           | Purpose                                             |
+| ---------------------------------------------- | --------------------------------------------------- |
+| `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds)        |
+| `jest.benchmark.config.cjs`                    | Benchmark test config (60s timeout)                 |
+| `jest.integration.config.cjs`                  | Integration test config (30s timeout)               |
+| `jest.contract.config.cjs`                     | Contract test config (60s timeout)                  |
+| `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)                      |
+| `tests/tdd/`                                   | 130 TDD test files                                  |
+| `tests/tdd/helpers/clientErrorTests.ts`        | Shared HTTP error test generator (5 status codes)   |
+| `tests/tdd/core/apiSurfaceSnapshots.test.ts`   | API export & shape snapshot tests (5 tests)         |
+| `tests/tdd/core/concurrency.test.ts`           | Async scheduling correctness (11 tests)             |
+| `tests/tdd/core/utilFunctions.test.ts`         | Core utility function tests (25 tests)              |
+| `tests/tdd/schemas/schemaRejection.test.ts`    | Full schema rejection coverage (423 tests)          |
+| `tests/benchmark/`                             | 4 performance benchmark suites (17 tests)           |
+| `tests/bdd/features/`                          | 40 Gherkin feature files                            |
+| `tests/bdd/step-definitions/`                  | 40 step definition files + shared helpers           |
+| `tests/integration/full-stack.test.ts`         | Mocked full-lifecycle integration (20 tests)        |
+| `tests/integration/live-esi.test.ts`           | Live API smoke tests (40 tests)                     |
+| `tests/integration/client-integration.test.ts` | Live EsiClient integration (11 tests)               |
+| `tests/integration/esi-spec-contract.test.ts`  | ESI spec drift detection (10 tests)                 |
+| `tests/integration/gated-auth.test.ts`         | Authenticated endpoint tests (33 tests)             |
+| `tests/contract/esi-contract.test.ts`          | Deep contract validation (8 categories)             |
+| `tests/contract/esi-snapshot.test.ts`          | Spec snapshot comparison                            |
+| `tests/contract/helpers.ts`                    | Shared spec parsing utilities                       |
+| `tests/fuzz/parameter-fuzz.test.ts`            | Validation function fuzzing                         |
+| `tests/fuzz/url-construction-fuzz.test.ts`     | URL construction fuzzing                            |
+| `tests/fuzz/schema-fuzz.test.ts`               | Zod schema fuzzing                                  |
+| `tests/fuzz/pagination-fuzz.test.ts`           | Pagination parameter fuzzing                        |
+| `tests/typetests/index.test-d.ts`              | Consumer type tests (tsd)                           |
+| `tests/consumer/`                              | Consumer contract package (`npm run test:consumer`) |
+| `src/testing/TestDataFactory.ts`               | Mock data factory for tests                         |
+| `scripts/validate-esi-endpoints.ts`            | Standalone ESI spec validation script               |
+| `scripts/generate-esi-types.ts`                | Type/cache/scope generator from live spec           |
