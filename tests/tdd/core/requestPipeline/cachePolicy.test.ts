@@ -3,6 +3,8 @@ import {
   trySpecAwareCacheHit,
   tryStaleCacheResponse,
   cacheResponse,
+  evictRejectedResponse,
+  invalidateAfterWrite,
 } from '../../../../src/core/requestPipeline/cachePolicy';
 import { ApiClient } from '../../../../src/core/ApiClient';
 import { ICache } from '../../../../src/core/cache/ICache';
@@ -289,6 +291,114 @@ describe('requestPipeline/cachePolicy', () => {
 
       const entry = cache.get(url);
       expect(entry).toBeNull();
+    });
+
+    describe('entry lifetime', () => {
+      const ONE_HOUR_MS = 60 * 60 * 1000;
+      const statusUrl = `${BASE_URL}/status`;
+      const store = (raw: Record<string, string>, templatePath?: string) =>
+        cacheResponse(
+          client,
+          statusUrl,
+          'GET',
+          'status',
+          { raw, etag: '"etag-123"' } as unknown as ParsedHeaders,
+          { players: 100 },
+          true,
+          resolveCache,
+          templatePath,
+        );
+
+      it('keeps a spec-TTL entry for one hour past the spec TTL', () => {
+        store({}, 'status');
+        expect(cache.get(statusUrl)!.ttl).toBe(30_000 + ONE_HOUR_MS);
+      });
+
+      it('keeps a Cache-Control entry for one hour past max-age', () => {
+        store({ 'cache-control': 'public, max-age=120' });
+        expect(cache.get(statusUrl)!.ttl).toBe(120_000 + ONE_HOUR_MS);
+      });
+
+      it('keeps a max-age=0 entry for the retention hour rather than forever', () => {
+        store({ 'cache-control': 'max-age=0' });
+        expect(cache.get(statusUrl)!.ttl).toBe(ONE_HOUR_MS);
+      });
+
+      it('leaves an entry with no freshness TTL to the cache defaultTtl', () => {
+        store({});
+        expect(cache.get(statusUrl)!.ttl).toBe(60000);
+      });
+
+      describe('against the clock', () => {
+        let now: number;
+
+        beforeEach(() => {
+          now = Date.now();
+          jest.spyOn(Date, 'now').mockImplementation(() => now);
+        });
+
+        afterEach(() => {
+          jest.restoreAllMocks();
+        });
+
+        it('stops the spec-TTL hit at the TTL but keeps the entry for stale use', () => {
+          store({}, 'status');
+
+          now += 30_001;
+
+          expect(
+            trySpecAwareCacheHit(
+              client,
+              statusUrl,
+              'GET',
+              'status',
+              resolveCache,
+            ),
+          ).toBeNull();
+          const stale = tryStaleCacheResponse(
+            client,
+            statusUrl,
+            { raw: {} } as unknown as ParsedHeaders,
+            resolveCache,
+          );
+          expect(stale!.body).toEqual({ players: 100 });
+          expect(cache.getETag(statusUrl)).toBe('"etag-123"');
+        });
+
+        it('discards the entry once the retention hour has passed', () => {
+          store({}, 'status');
+
+          now += 30_000 + ONE_HOUR_MS + 1;
+
+          expect(
+            tryStaleCacheResponse(
+              client,
+              statusUrl,
+              { raw: {} } as unknown as ParsedHeaders,
+              resolveCache,
+            ),
+          ).toBeNull();
+          expect(cache.getStats().totalEntries).toBe(0);
+        });
+
+        it('lets a write evict an entry kept past its TTL', () => {
+          store({}, 'status');
+          now += 30_001;
+
+          invalidateAfterWrite(client, 'POST', 'status', resolveCache);
+
+          expect(cache.get(statusUrl)).toBeNull();
+        });
+
+        it('lets a rejected body evict an entry kept past its TTL', () => {
+          store({}, 'status');
+          now += 30_001;
+
+          evictRejectedResponse(client, 'status', false, resolveCache);
+
+          expect(cache.get(statusUrl)).toBeNull();
+        });
+      });
     });
 
     it('should invalidate cache for non-GET methods', () => {

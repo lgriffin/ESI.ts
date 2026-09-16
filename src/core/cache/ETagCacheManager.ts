@@ -89,8 +89,9 @@ export class ETagCacheManager implements ICache {
     headers: Record<string, string>,
     customTtl?: number,
   ): void {
-    // Remove oldest entries if cache is full
-    if (this.cache.size >= this.config.maxEntries) {
+    // Remove the oldest entry if the cache is full. Replacing an entry that is
+    // already stored does not grow the cache, so it evicts nothing.
+    if (!this.cache.has(url) && this.cache.size >= this.config.maxEntries) {
       this.evictOldest();
     }
 

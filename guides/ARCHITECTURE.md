@@ -394,7 +394,7 @@ Every domain method takes the same route. Order matters: a stage cannot see the 
 3. **Retry** (`RetryStrategy.execute`). Wraps everything below. See [§5](#5-retry-and-deduplication).
 4. **Deduplication.** Inside each attempt, an identical in-flight GET without a body joins the existing promise.
 5. **`executeSingleFetch`.** Build headers (`Accept`, `User-Agent`, `X-Compatibility-Date`, `Accept-Language` if set, `Authorization` only when `requiresAuth`, `If-None-Match` when an ETag is cached) → request interceptors → circuit breaker check → rate limiter check → fetch with timeout → parse headers → rate limiter learns from the response → circuit breaker records the outcome.
-6. **Status handling.** 201 parses the body if there is one and returns. 204 returns `undefined`. 304 serves the cached body, or throws `EsiError(304)` if there is none. A 5xx with a cached copy serves it stale. Any other non-2xx throws `EsiError`; 401 and 403 carry remediation text.
+6. **Status handling.** 201 parses the body if there is one and returns. 204 returns `undefined`. 304 serves the cached body and stores it again, restarting its TTL, or throws `EsiError(304)` if there is none. A 5xx with a cached copy serves it stale. Any other non-2xx throws `EsiError`; 401 and 403 carry remediation text.
 7. **Cache write and pagination.** A successful GET with an ETag is cached. A non-GET that reaches this step invalidates cached entries whose key contains the path. Cursor pagination reads `x-cursor-before` / `x-cursor-after`; offset pagination follows `x-pages` and merges the pages.
 8. **Response interceptors → Zod validation → envelope.** Interceptors see the assembled response. When `validateResponse` is on (the default) the body is replaced by `safeParse().data`, or `EsiValidationError` is thrown. `withMetadata()` and `withSafeMode()` wrap the result last.
 
@@ -544,22 +544,22 @@ Tier 3  Full request    200 → cache it (if ESI sent an ETag)
 
 **Spec TTL.** `esi-cache-ttls.generated.ts` maps `METHOD:template` to the `x-cache-age` value from the OpenAPI spec. Only GETs whose template has an entry are eligible. Within that window the stored body is returned with `cacheHitType: 'spec-ttl'`.
 
-**TTL of a stored entry.** Generated spec TTL, else `Cache-Control: max-age`, else the cache's `defaultTtl` (5 minutes). Only responses that carry an `ETag` are stored.
+**Lifetime of a stored entry.** The freshness TTL is the generated spec TTL, else `Cache-Control: max-age`. An entry is kept for its freshness TTL plus one hour (`STALE_RETENTION_MS` in `cachePolicy.ts`), so after the spec-TTL window closes the entry still supplies `If-None-Match` and a stale body. An entry whose response gave no freshness TTL is kept for the cache's `defaultTtl` (5 minutes). Only responses that carry an `ETag` are stored. A 304 stores the entry again, which restarts both windows.
 
-**Stale on error.** When ESI returns a 5xx and a cached entry exists, that entry is returned with `stale: true` and `cacheHitType: 'stale-on-error'` instead of throwing. Because nothing is thrown, the retry strategy does not retry that call.
+**Stale on error.** When ESI returns a 5xx and a cached entry exists, that entry is returned with `stale: true` and `cacheHitType: 'stale-on-error'` instead of throwing. Because nothing is thrown, the retry strategy does not retry that call. For a spec-TTL endpoint this applies from the end of the spec TTL until the retention hour runs out.
 
 **Write invalidation.** A non-GET response that reaches the cache-write step deletes every entry whose key contains the request path. 201 and 204 responses return before that step, so they do not invalidate today.
 
 **Keys and isolation.** Public endpoints are keyed by URL and shared across callers of the same client. Authenticated endpoints prefix the key with the first 16 hex characters of a SHA-256 hash of the `Authorization` header (`src/core/cache/cacheKey.ts`), so two characters never share a cached body. See [SECURITY.md](SECURITY.md).
 
-**Eviction.** When `maxEntries` is reached the oldest entry is evicted. A timer removes expired entries every `cleanupInterval`; `shutdown()` stops it.
+**Eviction.** When `maxEntries` is reached, storing a new key evicts the oldest entry; replacing a stored key evicts nothing. Retention past the freshness TTL does not raise this bound. A timer removes expired entries every `cleanupInterval`; `shutdown()` stops it.
 
 ```typescript
 const client = new EsiClient({
   enableETagCache: true, // default
   etagCacheConfig: {
     maxEntries: 1000, // default
-    defaultTtl: 300_000, // ms, used when neither spec nor Cache-Control gives one
+    defaultTtl: 300_000, // ms, entry lifetime when neither spec nor Cache-Control gives a TTL
     cleanupInterval: 60_000, // ms
   },
 });
