@@ -31,12 +31,8 @@
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import * as path from 'path';
-import {
-  AstBuilder,
-  GherkinClassicTokenMatcher,
-  Parser,
-} from '@cucumber/gherkin';
-import { IdGenerator } from '@cucumber/messages';
+import { pathToFileURL } from 'url';
+import type { GherkinDocument } from '@cucumber/messages';
 
 import {
   REPO_ROOT,
@@ -48,6 +44,34 @@ import {
 } from './rule-schema-checks';
 
 const DEFAULT_PATHS = ['tests/bdd/features'];
+
+// @cucumber/gherkin and @cucumber/messages are ESM-only. Loading them with a
+// dynamic import that TypeScript cannot downlevel to require() keeps this
+// check working on every supported Node; spec-audit.ts explains the shim.
+const dynamicImport = new Function('specifier', 'return import(specifier)') as (
+  specifier: string,
+) => Promise<unknown>;
+
+async function importEsm<T>(packageName: string): Promise<T> {
+  const url = pathToFileURL(require.resolve(packageName)).href;
+  return (await dynamicImport(url)) as T;
+}
+
+type ParseGherkin = (source: string) => GherkinDocument;
+
+async function loadGherkinParser(): Promise<ParseGherkin> {
+  const [gherkin, messages] = await Promise.all([
+    importEsm<typeof import('@cucumber/gherkin')>('@cucumber/gherkin'),
+    importEsm<typeof import('@cucumber/messages')>('@cucumber/messages'),
+  ]);
+  // Incrementing ids: IdGenerator.uuid() needs global crypto.randomUUID(),
+  // which Node 18 lacks, and the check never reads node ids.
+  return (source) =>
+    new gherkin.Parser(
+      new gherkin.AstBuilder(messages.IdGenerator.incrementing()),
+      new gherkin.GherkinClassicTokenMatcher(),
+    ).parse(source);
+}
 const IS_CI = process.env.GITHUB_ACTIONS === 'true';
 
 interface Finding {
@@ -84,7 +108,7 @@ function collectFeatureFiles(target: string): string[] {
   return found.sort();
 }
 
-function checkFile(abs: string, rel: string): FileResult {
+function checkFile(abs: string, rel: string, parse: ParseGherkin): FileResult {
   const result: FileResult = {
     file: rel,
     findings: [],
@@ -106,13 +130,9 @@ function checkFile(abs: string, rel: string): FileResult {
   if (source === null) return result;
   result.checked = true;
 
-  const parser = new Parser(
-    new AstBuilder(IdGenerator.uuid()),
-    new GherkinClassicTokenMatcher(),
-  );
   let document;
   try {
-    document = parser.parse(readFileSync(abs, 'utf-8'));
+    document = parse(readFileSync(abs, 'utf-8'));
   } catch (error) {
     result.findings.push({
       file: rel,
@@ -155,7 +175,7 @@ function annotate(
   console.log(`::${level}${paramStr}::${message.replace(/\n/g, ' ')}`);
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const verbose = args.includes('--verbose') || args.includes('-v');
   const targets = args.filter((a) => !a.startsWith('-'));
@@ -167,11 +187,16 @@ function main(): void {
     process.exit(1);
   }
 
+  const parse = await loadGherkinParser();
   const { warnOnly } = loadRuleSchemaExceptions();
   const warnOnlySet = new Set(warnOnly);
 
   const results = files.map((abs) =>
-    checkFile(abs, path.relative(REPO_ROOT, abs).split(path.sep).join('/')),
+    checkFile(
+      abs,
+      path.relative(REPO_ROOT, abs).split(path.sep).join('/'),
+      parse,
+    ),
   );
 
   let errors = 0;
@@ -258,4 +283,7 @@ function main(): void {
   );
 }
 
-main();
+main().catch((error: unknown) => {
+  console.error(error);
+  process.exit(1);
+});

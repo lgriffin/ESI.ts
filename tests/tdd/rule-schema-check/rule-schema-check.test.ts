@@ -464,16 +464,7 @@ function runCheck(target: string): { output: string; status: number } {
 
 const inconsistent = runCheck(`${FIXTURES}/inconsistent/${CLONES}`);
 
-const CLI_UNAVAILABLE =
-  /ERR_REQUIRE_ESM|Must use import to load ES Module/.test(inconsistent.output);
-if (CLI_UNAVAILABLE) {
-  console.warn(
-    `rule-schema-check CLI fixtures skipped: the check needs require(esm), ` +
-      `which Node ${process.versions.node} does not provide. See esi-v2s.8.`,
-  );
-}
-
-(CLI_UNAVAILABLE ? describe.skip : describe)('rule-schema-check CLI', () => {
+describe('rule-schema-check CLI', () => {
   it('fails on a Rule promising an optional field without qualification', () => {
     expect(inconsistent.status).toBe(1);
     expect(inconsistent.output).toContain(

@@ -19,7 +19,7 @@ Feature: Corporation Projects Management
       When the client requests corporation projects
       Then the client shall return an array of projects
 
-  Rule: When one project is requested by corporation ID and project ID, the Corporation Projects client shall return a record carrying project_id, state, progress, start_time, and finish_time.
+  Rule: When one project is requested by corporation ID and project ID, the Corporation Projects client shall return a record carrying project_id, state, progress, and start_time, and finish_time when present.
     The detail view adds finish_time over the list view, which is what lets a
     caller show a deadline or a completion date rather than a bare progress
     figure.
