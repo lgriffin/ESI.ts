@@ -154,24 +154,24 @@ One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `format:check`, `bu
 
 Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` it. `pr-info`, `static-analysis`, `lockfile`, `dependency-audit` and `zizmor` run in parallel with it. No job has a job-level `if:`, and every job is in the gate (GATE-01).
 
-| Job (display name)                       | What it does                                                                                                                                                                              | In gate |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
-| `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                    |   yes   |
-| `lint-and-build` (Lint & Build)          | ESLint, Prettier check, build, typecheck; uploads `dist/`                                                                                                                                 |   yes   |
-| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`                                      |   yes   |
-| `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                          |   yes   |
-| `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                      |   yes   |
-| `bdd-tests` (BDD Scenarios)              | `npm run bdd`                                                                                                                                                                             |   yes   |
-| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set                                                                                                        |   yes   |
-| `contract-tests` (Contract Tests)        | `npm run contract:live` with `ESI_LIVE_TESTS=true`; fails if the variable is missing rather than skipping; soft-skips on 503                                                              |   yes   |
-| `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                               |   yes   |
-| `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                       |   yes   |
-| `api-surface` (API Surface Check)        | Rebuilds `etc/esi.ts.api.md` and fails on a difference (GATE-03)                                                                                                                          |   yes   |
-| `lockfile` (Lockfile Consistency)        | `npm install --package-lock-only --ignore-scripts` then `git diff --exit-code package-lock.json`. For `dependabot[bot]` the step exits early with a notice; the job still reports success |   yes   |
-| `dependency-audit` (Dependency Audit)    | Audits base and head, fails only on advisories the PR introduces. Its steps skip when `package.json` and `package-lock.json` are unchanged; the job still reports success                 |   yes   |
-| `documentation` (Generate Documentation) | Runs TypeDoc and uploads `docs-site/public/api/`, so a docs break is caught before `release.yml` runs `npm run docs`                                                                      |   yes   |
-| `zizmor` (Workflow Security (zizmor))    | `uvx zizmor@<pinned>` over `.github/` with `.zizmor.yml`, on every pull request                                                                                                           |   yes   |
-| `ci-success` (ci-success)                | Fails unless every other job succeeded, and fails if a job is missing from its `needs` (GATE-01)                                                                                          |    —    |
+| Job (display name)                       | What it does                                                                                                                                                                                  | In gate |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
+| `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                        |   yes   |
+| `lint-and-build` (Lint & Build)          | ESLint, Prettier check, build, typecheck; uploads `dist/`                                                                                                                                     |   yes   |
+| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`                                          |   yes   |
+| `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                              |   yes   |
+| `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                          |   yes   |
+| `bdd-tests` (BDD Scenarios)              | `npm run bdd`                                                                                                                                                                                 |   yes   |
+| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set. Then `npm run lint:bdd-seam`, which fails on any scenario that spies on or reassigns an ESI client method |   yes   |
+| `contract-tests` (Contract Tests)        | `npm run contract:live` with `ESI_LIVE_TESTS=true`; fails if the variable is missing rather than skipping; soft-skips on 503                                                                  |   yes   |
+| `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                                   |   yes   |
+| `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                           |   yes   |
+| `api-surface` (API Surface Check)        | Rebuilds `etc/esi.ts.api.md` and fails on a difference (GATE-03)                                                                                                                              |   yes   |
+| `lockfile` (Lockfile Consistency)        | `npm install --package-lock-only --ignore-scripts` then `git diff --exit-code package-lock.json`. For `dependabot[bot]` the step exits early with a notice; the job still reports success     |   yes   |
+| `dependency-audit` (Dependency Audit)    | Audits base and head, fails only on advisories the PR introduces. Its steps skip when `package.json` and `package-lock.json` are unchanged; the job still reports success                     |   yes   |
+| `documentation` (Generate Documentation) | Runs TypeDoc and uploads `docs-site/public/api/`, so a docs break is caught before `release.yml` runs `npm run docs`                                                                          |   yes   |
+| `zizmor` (Workflow Security (zizmor))    | `uvx zizmor@<pinned>` over `.github/` with `.zizmor.yml`, on every pull request                                                                                                               |   yes   |
+| `ci-success` (ci-success)                | Fails unless every other job succeeded, and fails if a job is missing from its `needs` (GATE-01)                                                                                              |    —    |
 
 The generated-types, schema-drift and contract steps all call the live ESI spec. Each captures its log and, if the failure contains `HTTP 503`, downgrades it to a `::warning::` and passes (`TEST-08`).
 
@@ -208,6 +208,8 @@ Test order is not randomised. Under `--randomize`, 80 tests in 20 client suites 
 ### `nightly-mutation.yml` — Nightly Mutation Testing
 
 Daily at 02:00 UTC on Node 22 with a 240-minute timeout. Runs `npm run mutation` (Stryker, `stryker.config.mjs`) over `src/core/**` excluding endpoint definitions and pure interface files. Thresholds are `high: 80`, `low: 60`, `break: 65`; a score below `break` fails the run. The HTML report is uploaded as `mutation-report` whether or not it passed. No issue is filed. Details in [TESTING.md](TESTING.md).
+
+A second job, `bdd-mutation-testing` (300-minute timeout), runs `npm run mutation:bdd` (`stryker.bdd.config.mjs`): all of `src/` except generated files, types, interfaces and test helpers, with only the BDD step definitions as the test suite, so a surviving mutant is a behaviour no Rule protects. There is no global break threshold. `npm run mutation:bdd:ratchet` then scores the JSON report per directory (`src/<area>`, and `src/core/<sub>` inside core), writes the table to the step summary, and fails if any directory falls below its entry in `mutation-bdd-thresholds.json`. Directories without an entry are reported, not gated; the file starts empty, and `-- --update` raises entries to the current scores but never lowers one. The report is uploaded as `bdd-mutation-report`.
 
 ### `nightly-audit.yml` — Nightly Security Audit
 
@@ -425,10 +427,11 @@ npx ts-node scripts/audit-check.ts --filter --in audit-raw.json --out audit-repo
 
 ### Other exception files
 
-The same "explicit, reasoned exception" pattern appears in three more places:
+The same "explicit, reasoned exception" pattern appears in four more places:
 
 | File                                   | Consumed by                    | Rule                                                                                              |
 | -------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `mutation-bdd-thresholds.json`         | `npm run mutation:bdd:ratchet` | Per-directory BDD mutation floors; `--update` only raises them                                    |
 | `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | A ratchet: now empty, and the audit fails if a listed file passes, so entries can only be removed |
 | `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted deviating field names                                                      |
 | `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map       |
@@ -441,41 +444,43 @@ The same "explicit, reasoned exception" pattern appears in three more places:
 
 ### Build and static checks
 
-| Script                    | Runs                                                    |
-| ------------------------- | ------------------------------------------------------- |
-| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                 |
-| `typecheck`               | `tsc --noEmit`                                          |
-| `lint` / `lint:fix`       | ESLint over `src`                                       |
-| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`         |
-| `knip`                    | Dead code and unused exports (`knip.json`)              |
-| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md` |
-| `api-report:check`        | api-extractor, check mode                               |
-| `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`       |
-| `prepare`                 | Install husky hooks, then build                         |
+| Script                    | Runs                                                                                    |
+| ------------------------- | --------------------------------------------------------------------------------------- |
+| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                 |
+| `typecheck`               | `tsc --noEmit`                                                                          |
+| `lint` / `lint:fix`       | ESLint over `src`                                                                       |
+| `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`eslint.bdd-seam.rules.cjs`) |
+| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                         |
+| `knip`                    | Dead code and unused exports (`knip.json`)                                              |
+| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
+| `api-report:check`        | api-extractor, check mode                                                               |
+| `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`                                       |
+| `prepare`                 | Install husky hooks, then build                                                         |
 
 ### Tests
 
-| Script                              | Runs                                                                                                                                                                |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `test` / `test:watch`               | Jest unit config: `tests/tdd` plus BDD step definitions                                                                                                             |
-| `coverage`                          | The same, with coverage thresholds                                                                                                                                  |
-| `bdd`                               | BDD step definitions only                                                                                                                                           |
-| `bdd:<suite>`                       | One BDD suite, for example `bdd:market`, `bdd:resilience`, `bdd:sde`. See `npm run help -- bdd`                                                                     |
-| `spec:audit` / `spec:audit:verbose` | EARS and Gherkin structure audit over the feature files                                                                                                             |
-| `test:integration`                  | Integration tests, mocked                                                                                                                                           |
-| `test:integration:live`             | `tests/integration/live-esi.test.ts` against live ESI (`jest.integration.live.config.cjs`). Fails in global setup unless `ESI_LIVE_TESTS=true`                      |
-| `test:integration:gated`            | Authenticated integration tests (`ESI_GATED_TESTS`, reads `.env`)                                                                                                   |
-| `test:all`                          | `test`, `bdd`, `test:integration`, `fuzz`, `test:types`                                                                                                             |
-| `contract`                          | Contract tests; the live-spec suites skip unless `ESI_LIVE_TESTS=true`                                                                                              |
-| `contract:live`                     | Contract tests against the live spec and the committed snapshot (`jest.contract.live.config.cjs`). Fails in global setup unless `ESI_LIVE_TESTS=true`; what CI runs |
-| `contract:snapshot`                 | Refresh the committed spec snapshot                                                                                                                                 |
-| `contract:diff`                     | oasdiff breaking changes, snapshot versus live spec (Docker)                                                                                                        |
-| `fuzz`                              | Property-based fuzz tests (fast-check)                                                                                                                              |
-| `fuzz:api`                          | Schemathesis against a Prism mock (Docker)                                                                                                                          |
-| `mock:esi`                          | Prism mock of ESI on port 4010                                                                                                                                      |
-| `test:types`                        | tsd type tests                                                                                                                                                      |
-| `benchmark`                         | Benchmark suite                                                                                                                                                     |
-| `mutation` / `mutation:report`      | Stryker                                                                                                                                                             |
+| Script                                  | Runs                                                                                                                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test` / `test:watch`                   | Jest unit config: `tests/tdd` plus BDD step definitions                                                                                                             |
+| `coverage`                              | The same, with coverage thresholds                                                                                                                                  |
+| `bdd`                                   | BDD step definitions only                                                                                                                                           |
+| `bdd:<suite>`                           | One BDD suite, for example `bdd:market`, `bdd:resilience`, `bdd:sde`. See `npm run help -- bdd`                                                                     |
+| `spec:audit` / `spec:audit:verbose`     | EARS and Gherkin structure audit over the feature files                                                                                                             |
+| `test:integration`                      | Integration tests, mocked                                                                                                                                           |
+| `test:integration:live`                 | `tests/integration/live-esi.test.ts` against live ESI (`jest.integration.live.config.cjs`). Fails in global setup unless `ESI_LIVE_TESTS=true`                      |
+| `test:integration:gated`                | Authenticated integration tests (`ESI_GATED_TESTS`, reads `.env`)                                                                                                   |
+| `test:all`                              | `test`, `bdd`, `test:integration`, `fuzz`, `test:types`                                                                                                             |
+| `contract`                              | Contract tests; the live-spec suites skip unless `ESI_LIVE_TESTS=true`                                                                                              |
+| `contract:live`                         | Contract tests against the live spec and the committed snapshot (`jest.contract.live.config.cjs`). Fails in global setup unless `ESI_LIVE_TESTS=true`; what CI runs |
+| `contract:snapshot`                     | Refresh the committed spec snapshot                                                                                                                                 |
+| `contract:diff`                         | oasdiff breaking changes, snapshot versus live spec (Docker)                                                                                                        |
+| `fuzz`                                  | Property-based fuzz tests (fast-check)                                                                                                                              |
+| `fuzz:api`                              | Schemathesis against a Prism mock (Docker)                                                                                                                          |
+| `mock:esi`                              | Prism mock of ESI on port 4010                                                                                                                                      |
+| `test:types`                            | tsd type tests                                                                                                                                                      |
+| `benchmark`                             | Benchmark suite                                                                                                                                                     |
+| `mutation` / `mutation:report`          | Stryker                                                                                                                                                             |
+| `mutation:bdd` / `mutation:bdd:ratchet` | Stryker with only the BDD step definitions as tests; per-directory score ratchet against `mutation-bdd-thresholds.json`                                             |
 
 ### Spec alignment and generation
 

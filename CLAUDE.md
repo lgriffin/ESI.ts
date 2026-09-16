@@ -9,6 +9,7 @@ npm run build          # Dual CJS/ESM bundle (tsup) + declarations (tsc)
 npm run typecheck      # Type-check without emitting (tsc --noEmit)
 npm run clean          # Remove dist/, coverage/, docs-site/public/api/
 npm run lint           # ESLint (src/)
+npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
 npm run format:check   # Prettier check
 npm run validate       # lint + format + build + coverage + knip
 npm run check:all      # validate + ESI endpoint validation + spec lint + version check + EARS spec audit
@@ -30,6 +31,7 @@ npm run benchmark      # Performance benchmark tests (jest.benchmark.config.cjs)
 npm run test:types     # Type tests (tsd)
 npm run test:all       # All test suites
 npm run mutation       # Mutation testing (Stryker)
+npm run mutation:bdd   # BDD-only mutation run; mutation:bdd:ratchet gates per-directory scores
 ```
 
 Coverage thresholds: branches 80%, functions 75%, lines 90%, statements 90%.
