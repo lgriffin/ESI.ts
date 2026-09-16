@@ -373,17 +373,15 @@ describe('API SemVer gate', () => {
 
     it('returns an empty report for a revision without the file', () => {
       const first = git('rev-list', '--max-parents=0', 'HEAD');
-      git('checkout', '--quiet', '--orphan', 'empty');
-      git('rm', '-r', '--cached', '--quiet', '.');
-      git(
-        'commit',
-        '--quiet',
-        '--no-verify',
-        '--allow-empty',
-        '-m',
-        'chore: empty',
-      );
-      expect(readReportAt('empty', repo)).toBe('');
+      // Build the commit without checking it out: the other tests read
+      // HEAD^1 and HEAD^2, so moving HEAD here would break any that run after.
+      const emptyTree = execFileSync('git', ['mktree'], {
+        cwd: repo,
+        encoding: 'utf8',
+        input: '',
+      }).trim();
+      const empty = git('commit-tree', emptyTree, '-m', 'chore: empty');
+      expect(readReportAt(empty, repo)).toBe('');
       expect(readReportAt(first, repo)).not.toBe('');
     });
 

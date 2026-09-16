@@ -393,7 +393,7 @@ describe('IndustryClient', () => {
     );
   });
 
-  describeClientErrors('IndustryClient', () =>
-    industryClient.getIndustryFacilities(),
+  describeClientErrors('IndustryClient', (apiClient) =>
+    new IndustryClient(apiClient).getIndustryFacilities(),
   );
 });

@@ -11,18 +11,22 @@ name: Nightly No-Retry Test Run
 # someone later adds jest.retryTimes, a test that only passes on retry turns
 # this run red and names the test, even while the PR suites stay green.
 #
-# Order is not randomised. With --randomize, 80 tests in 20 client suites
-# under tests/tdd/ time out: the describeClientErrors HTTP 429 case blocks the
-# endpoint's rate-limit group for 60s on the suite's shared ApiClient (built
-# without a test-mode rate limiter), so every test that runs after it in the
-# file waits past the 5s timeout. In declaration order the 429 case runs last.
-# Until that order dependence is fixed, a randomised run would be red every
-# night and bury the flake signal this workflow exists for.
+# Test order is randomised with a fresh seed each night, so a test that only
+# passes because of the tests that ran before it in the same file fails here.
+# The seed is printed in the job log and the step summary; run
+# `npx jest --config jest.unit.config.cjs --randomize --seed=<seed>` locally,
+# or dispatch this workflow with that seed, to replay the same order.
 
 on:
   schedule:
     - cron: '0 3 * * *'
   workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Jest --randomize seed to replay (leave empty for a new one)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -52,11 +56,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Choose test order seed
+        id: seed
+        env:
+          SEED_INPUT: ${{ inputs.seed }}
+        run: |
+          if [ -n "$SEED_INPUT" ]; then
+            if ! [[ "$SEED_INPUT" =~ ^-?[0-9]{1,10}$ ]] || [ "$SEED_INPUT" -lt -2147483648 ] || [ "$SEED_INPUT" -gt 2147483647 ]; then
+              echo "::error::seed must be an integer between -2147483648 and 2147483647"
+              exit 1
+            fi
+            SEED="$SEED_INPUT"
+          else
+            SEED=$(shuf -i 1-2147483647 -n 1)
+          fi
+          echo "seed=$SEED" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Jest seed::$SEED (replay: npx jest --config jest.unit.config.cjs --randomize --seed=$SEED)"
+
       - name: Run unit and BDD tests
         id: jest
+        env:
+          SEED: ${{ steps.seed.outputs.seed }}
         run: |
           mkdir -p reports/no-retry
+          echo "$SEED" > reports/no-retry/seed.txt
+          echo "Jest --randomize seed: $SEED"
           npx jest --config jest.unit.config.cjs --ci \
+            --randomize --seed="$SEED" \
             --json --outputFile=reports/no-retry/jest-results.json
 
       - name: Fail if any test needed a retry
@@ -92,6 +118,7 @@ jobs:
         if: always()
         env:
           JEST_OUTCOME: ${{ steps.jest.outcome }}
+          SEED: ${{ steps.seed.outputs.seed }}
         run: |
           REPORT=reports/no-retry/jest-results.json
           {
@@ -99,6 +126,7 @@ jobs:
             echo ""
             echo "- **Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "- **Jest outcome:** $JEST_OUTCOME"
+            echo "- **Test order seed:** \`$SEED\` (replay: \`npx jest --config jest.unit.config.cjs --randomize --seed=$SEED\`)"
             if jq -e . "$REPORT" > /dev/null 2>&1; then
               echo "- **Tests:** $(jq '.numPassedTests' "$REPORT") passed, $(jq '.numFailedTests' "$REPORT") failed, $(jq '.numPendingTests' "$REPORT") skipped"
               FAILED=$(jq -r '.testResults[] as $f | $f.assertionResults[] | select(.status == "failed") | "- `\($f.name | sub(".*/tests/"; "tests/"))`: \(.fullName)"' "$REPORT" | head -50)

@@ -218,7 +218,7 @@ describe('ParagonHubClient', () => {
     expect(headers['Authorization']).toMatch(/^Bearer /);
   });
 
-  describeClientErrors('ParagonHubClient', () =>
-    authParagonHubClient.getPublicListings(),
+  describeClientErrors('ParagonHubClient', (apiClient) =>
+    new ParagonHubClient(apiClient).getPublicListings(),
   );
 });

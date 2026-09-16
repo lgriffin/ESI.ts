@@ -347,7 +347,7 @@ describe('CharacterClient', () => {
     );
   });
 
-  describeClientErrors('CharacterClient', () =>
-    characterClient.getCharacterPublicInfo(123456789),
+  describeClientErrors('CharacterClient', (apiClient) =>
+    new CharacterClient(apiClient).getCharacterPublicInfo(123456789),
   );
 });

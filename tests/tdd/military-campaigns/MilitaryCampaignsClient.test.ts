@@ -237,7 +237,7 @@ describe('MilitaryCampaignsClient', () => {
     });
   });
 
-  describeClientErrors('MilitaryCampaignsClient', () =>
-    client.getMilitaryCampaigns(),
+  describeClientErrors('MilitaryCampaignsClient', (apiClient) =>
+    new MilitaryCampaignsClient(apiClient).getMilitaryCampaigns(),
   );
 });

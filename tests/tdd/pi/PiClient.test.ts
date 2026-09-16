@@ -187,5 +187,7 @@ describe('PiClient', () => {
     );
   });
 
-  describeClientErrors('PiClient', () => piClient.getColonies(123456));
+  describeClientErrors('PiClient', (apiClient) =>
+    new PiClient(apiClient).getColonies(123456),
+  );
 });

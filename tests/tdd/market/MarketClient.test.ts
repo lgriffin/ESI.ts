@@ -440,4 +440,6 @@ describe('MarketClient', () => {
   });
 });
 
-describeClientErrors('MarketClient', () => marketClient.getMarketPrices());
+describeClientErrors('MarketClient', (apiClient) =>
+  new MarketClient(apiClient).getMarketPrices(),
+);

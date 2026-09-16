@@ -111,7 +111,7 @@ describe('FittingsClient', () => {
     );
   });
 
-  describeClientErrors('FittingsClient', () =>
-    fittingsClient.getFittings(123456),
+  describeClientErrors('FittingsClient', (apiClient) =>
+    new FittingsClient(apiClient).getFittings(123456),
   );
 });

@@ -292,5 +292,7 @@ describe('FreelanceJobsClient', () => {
     });
   });
 
-  describeClientErrors('FreelanceJobsClient', () => client.getFreelanceJobs());
+  describeClientErrors('FreelanceJobsClient', (apiClient) =>
+    new FreelanceJobsClient(apiClient).getFreelanceJobs(),
+  );
 });

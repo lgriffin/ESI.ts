@@ -181,7 +181,7 @@ describe('CosmeticsClient', () => {
     expect(result).toHaveProperty('id');
   });
 
-  describeClientErrors('CosmeticsClient', () =>
-    authCosmeticsClient.getCharacterSkinr(123456),
+  describeClientErrors('CosmeticsClient', (apiClient) =>
+    new CosmeticsClient(apiClient).getCharacterSkinr(123456),
   );
 });

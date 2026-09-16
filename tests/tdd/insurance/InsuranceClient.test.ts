@@ -64,7 +64,7 @@ describe('InsuranceClient', () => {
     );
   });
 
-  describeClientErrors('InsuranceClient', () =>
-    insuranceClient.getInsurancePrices(),
+  describeClientErrors('InsuranceClient', (apiClient) =>
+    new InsuranceClient(apiClient).getInsurancePrices(),
   );
 });

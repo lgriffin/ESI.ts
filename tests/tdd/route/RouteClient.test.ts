@@ -88,7 +88,7 @@ describe('RouteClient', () => {
     expect(sentBody).toEqual({});
   });
 
-  describeClientErrors('RouteClient', () =>
-    client.getRoute(30000142, 30000144),
+  describeClientErrors('RouteClient', (apiClient) =>
+    new RouteClient(apiClient).getRoute(30000142, 30000144),
   );
 });

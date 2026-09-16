@@ -87,7 +87,7 @@ describe('AccessListsClient', () => {
     );
   });
 
-  describeClientErrors('AccessListsClient', () =>
-    accessListsClient.getAccessList(123456789, 42),
+  describeClientErrors('AccessListsClient', (apiClient) =>
+    new AccessListsClient(apiClient).getAccessList(123456789, 42),
   );
 });

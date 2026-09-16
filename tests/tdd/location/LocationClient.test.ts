@@ -94,7 +94,7 @@ describe('LocationClient', () => {
     );
   });
 
-  describeClientErrors('LocationClient', () =>
-    locationClient.getCharacterLocation(123456),
+  describeClientErrors('LocationClient', (apiClient) =>
+    new LocationClient(apiClient).getCharacterLocation(123456),
   );
 });

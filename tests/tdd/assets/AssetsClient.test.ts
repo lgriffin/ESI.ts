@@ -259,7 +259,7 @@ describe('AssetsClient', () => {
     expect(sentBody).toBe(JSON.stringify([1, 2, 3]));
   });
 
-  describeClientErrors('AssetsClient', () =>
-    assetsClient.getCharacterAssets(123456789),
+  describeClientErrors('AssetsClient', (apiClient) =>
+    new AssetsClient(apiClient).getCharacterAssets(123456789),
   );
 });

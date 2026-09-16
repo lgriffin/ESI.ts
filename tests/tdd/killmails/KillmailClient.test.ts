@@ -136,7 +136,7 @@ describe('KillmailsClient', () => {
     );
   });
 
-  describeClientErrors('KillmailsClient', () =>
-    killmailsClient.getCharacterRecentKillmails(123456),
+  describeClientErrors('KillmailsClient', (apiClient) =>
+    new KillmailsClient(apiClient).getCharacterRecentKillmails(123456),
   );
 });
