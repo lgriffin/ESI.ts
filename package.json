@@ -158,7 +158,7 @@
     "bdd:ui": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/ui",
     "bdd:universe": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/universe",
     "bdd:wallet": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/wallet",
-    "bdd:wars": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/wars",
+    "bdd:wars": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0038-wars",
     "bdd:token-management": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/token-management",
     "bdd:integration": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/integration",
     "bdd:performance": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/performance",
