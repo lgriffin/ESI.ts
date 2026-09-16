@@ -11,7 +11,7 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 113
+ * - Type pairs asserted: 114
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
@@ -171,7 +171,11 @@ import type {
   SchematicInfo,
   SearchResult,
 } from '../universe';
-import type { WalletTransaction, WalletJournal } from '../wallet';
+import type {
+  WalletTransaction,
+  CorporationWalletTransaction,
+  WalletJournal,
+} from '../wallet';
 import type { War } from '../wars';
 
 // --- Utility types ---
@@ -771,6 +775,12 @@ type _WalletTransaction = AssertTrue<
   HasAllSpecKeys<
     EsiSpec.CharactersCharacterIdWalletTransactionsGet,
     WalletTransaction
+  >
+>;
+type _CorporationWalletTransaction = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CorporationsCorporationIdWalletsDivisionTransactionsGet,
+    CorporationWalletTransaction
   >
 >;
 

@@ -71,6 +71,8 @@ const builderSchemas: Record<string, z.ZodType> = {
   createCorporationInfo: schemas.CorporationInfoSchema,
   createMarketOrder: schemas.MarketOrderSchema,
   createWalletTransaction: schemas.WalletTransactionSchema,
+  createCorporationWalletTransaction:
+    schemas.CorporationWalletTransactionSchema,
   createContract: schemas.ContractSchema,
   createPublicContract: schemas.PublicContractSchema,
   createSovereigntySystem: schemas.SovereigntySystemSchema,

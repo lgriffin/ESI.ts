@@ -226,7 +226,6 @@ describe('WalletClient', () => {
         client_id: 456,
         location_id: 789,
         is_buy: true,
-        is_personal: true,
         journal_ref_id: 101112,
       },
     ];
@@ -248,7 +247,6 @@ describe('WalletClient', () => {
         client_id: number;
         location_id: number;
         is_buy: boolean;
-        is_personal: boolean;
         journal_ref_id: number;
       }) => {
         expect(transaction).toHaveProperty('transaction_id');
@@ -259,7 +257,7 @@ describe('WalletClient', () => {
         expect(transaction).toHaveProperty('client_id');
         expect(transaction).toHaveProperty('location_id');
         expect(transaction).toHaveProperty('is_buy');
-        expect(transaction).toHaveProperty('is_personal');
+        expect(transaction).not.toHaveProperty('is_personal');
         expect(transaction).toHaveProperty('journal_ref_id');
       },
     );

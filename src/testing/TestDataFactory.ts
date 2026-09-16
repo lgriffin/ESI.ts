@@ -10,6 +10,7 @@ import {
   CharacterSkill,
   MarketOrder,
   WalletTransaction,
+  CorporationWalletTransaction,
   Contract,
   PublicContract,
   SovereigntySystem,
@@ -650,6 +651,28 @@ export class TestDataFactory {
       is_buy: false,
       is_personal: true,
       journal_ref_id: 987654321,
+      ...overrides,
+    };
+  }
+
+  /**
+   * A corporation wallet transaction as
+   * `GET /corporations/{corporation_id}/wallets/{division}/transactions` sends
+   * it: no is_personal.
+   */
+  static createCorporationWalletTransaction(
+    overrides: Partial<CorporationWalletTransaction> = {},
+  ): CorporationWalletTransaction {
+    return {
+      transaction_id: 123456790,
+      date: '2023-12-01T12:00:00Z',
+      type_id: 34,
+      location_id: 60003760,
+      unit_price: 5.5,
+      quantity: 1000,
+      client_id: 1689391488,
+      is_buy: true,
+      journal_ref_id: 987654322,
       ...overrides,
     };
   }

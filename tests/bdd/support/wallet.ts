@@ -103,14 +103,17 @@ export const walletFixtures = {
     }),
   ],
 
+  /**
+   * A corporation division's trades. ESI sends no is_personal on this route
+   * (CorporationsCorporationIdWalletsDivisionTransactionsGet).
+   */
   corporationTransactions: () => [
-    TestDataFactory.createWalletTransaction({
+    TestDataFactory.createCorporationWalletTransaction({
       transaction_id: 987654321,
       type_id: 34,
       unit_price: 5.5,
       quantity: 10000000,
       is_buy: true,
-      is_personal: false,
     }),
   ],
 

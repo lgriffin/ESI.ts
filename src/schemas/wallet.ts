@@ -13,6 +13,15 @@ export const WalletTransactionSchema = z.looseObject({
   journal_ref_id: z.number(),
 });
 
+/**
+ * A corporation division's trade, from
+ * `GET /corporations/{corporation_id}/wallets/{division}/transactions`. ESI
+ * sends no is_personal on this route.
+ */
+export const CorporationWalletTransactionSchema = WalletTransactionSchema.omit({
+  is_personal: true,
+});
+
 export const WalletJournalSchema = z.looseObject({
   id: z.number(),
   date: z.string(),

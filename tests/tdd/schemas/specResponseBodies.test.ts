@@ -15,6 +15,7 @@ import { freelanceJobsEndpoints } from '../../../src/core/endpoints/freelanceJob
 import { industryEndpoints } from '../../../src/core/endpoints/industryEndpoints';
 import { mailEndpoints } from '../../../src/core/endpoints/mailEndpoints';
 import { metaEndpoints } from '../../../src/core/endpoints/metaEndpoints';
+import { walletEndpoints } from '../../../src/core/endpoints/walletEndpoints';
 
 interface BodyCase {
   route: string;
@@ -220,6 +221,24 @@ const cases: BodyCase[] = [
     body: {
       routes: [{ method: 'GET', path: '/alliances', status: 'OK' }],
     },
+  },
+  {
+    // CorporationsCorporationIdWalletsDivisionTransactionsGet: no is_personal.
+    route: 'GET /corporations/{corporation_id}/wallets/{division}/transactions',
+    schema: walletEndpoints.getCorporationWalletTransactions.responseSchema,
+    body: [
+      {
+        transaction_id: 5000000001,
+        date: '2026-09-15T10:00:00Z',
+        location_id: 60003760,
+        type_id: 34,
+        unit_price: 5.5,
+        quantity: 10000,
+        client_id: 90000002,
+        is_buy: true,
+        journal_ref_id: 6000000001,
+      },
+    ],
   },
 ];
 

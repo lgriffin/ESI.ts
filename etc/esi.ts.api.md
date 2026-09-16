@@ -3795,6 +3795,22 @@ const CorporationWalletDivisionSchema: z.ZodObject<{
     balance: z.ZodNumber;
 }, z.core.$loose>;
 
+// @public (undocumented)
+export type CorporationWalletTransaction = z.infer<typeof CorporationWalletTransactionSchema>;
+
+// @public
+const CorporationWalletTransactionSchema: z.ZodObject<{
+    date: z.ZodString;
+    type_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    quantity: z.ZodNumber;
+    transaction_id: z.ZodNumber;
+    unit_price: z.ZodNumber;
+    client_id: z.ZodNumber;
+    is_buy: z.ZodBoolean;
+    journal_ref_id: z.ZodNumber;
+}, z.core.$loose>;
+
 // Warning: (ae-forgotten-export) The symbol "cosmeticsEndpoints" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -8117,6 +8133,7 @@ declare namespace schemas {
         SchematicInfoSchema,
         SearchResultSchema,
         WalletTransactionSchema,
+        CorporationWalletTransactionSchema,
         WalletJournalSchema,
         WarSchema
     }
@@ -9347,7 +9364,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     // (undocumented)
     fetchAllCorporationWalletJournal(corporationId: number, division: number, concurrency?: number): Promise<WalletJournal[]>;
     // (undocumented)
-    fetchAllCorporationWalletTransactions(corporationId: number, division: number, concurrency?: number): Promise<WalletTransaction[]>;
+    fetchAllCorporationWalletTransactions(corporationId: number, division: number, concurrency?: number): Promise<CorporationWalletTransaction[]>;
     getCharacterWallet(characterId: number): Promise<number>;
     getCharacterWalletJournal(characterId: number): Promise<WalletJournal[]>;
     getCharacterWalletTransactions(characterId: number): Promise<WalletTransaction[]>;
@@ -9356,7 +9373,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
         division: number;
         balance: number;
     }[]>;
-    getCorporationWalletTransactions(corporationId: number, division: number): Promise<WalletTransaction[]>;
+    getCorporationWalletTransactions(corporationId: number, division: number): Promise<CorporationWalletTransaction[]>;
     // (undocumented)
     streamCharacterWalletJournal(characterId: number): AsyncGenerator<PageResult<WalletJournal>, void, undefined>;
     // (undocumented)
@@ -9364,7 +9381,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     // (undocumented)
     streamCorporationWalletJournal(corporationId: number, division: number): AsyncGenerator<PageResult<WalletJournal>, void, undefined>;
     // (undocumented)
-    streamCorporationWalletTransactions(corporationId: number, division: number): AsyncGenerator<PageResult<WalletTransaction>, void, undefined>;
+    streamCorporationWalletTransactions(corporationId: number, division: number): AsyncGenerator<PageResult<CorporationWalletTransaction>, void, undefined>;
 }
 
 // @public (undocumented)

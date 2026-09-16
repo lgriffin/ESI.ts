@@ -598,62 +598,63 @@ const notFound = TestDataFactory.createError(404);
 
 Available factory methods:
 
-| Method                               | Returns                        |
-| ------------------------------------ | ------------------------------ |
-| `createAllianceInfo()`               | `AllianceInfo`                 |
-| `createAllianceContact()`            | `AllianceContact`              |
-| `createAllianceContactLabel()`       | `AllianceContactLabel`         |
-| `createCharacterInfo()`              | `CharacterInfo`                |
-| `createCharacterPortrait()`          | `CharacterPortrait`            |
-| `createCharacterAttributes()`        | `CharacterAttributes`          |
-| `createCharacterSkill()`             | `CharacterSkill`               |
-| `createCharacterRoles()`             | Roles object                   |
-| `createCharacterLocation()`          | Location object                |
-| `createCharacterSkills()`            | Skills summary                 |
-| `createCharacterAsset()`             | Asset object                   |
-| `createCharacterMarketOrder()`       | Character market order         |
-| `createCharacterOrderHistory()`      | Order history entry            |
-| `createCharacterMedal()`             | Medal object                   |
-| `createCharacterNotification()`      | Notification object            |
-| `createCorporationInfo()`            | `CorporationInfo`              |
-| `createCorporationHistoryEntry()`    | Corp history entry             |
-| `createCorporationMemberRoles()`     | Member roles object            |
-| `createCorporationAsset()`           | Corp asset object              |
-| `createCorporationStructure()`       | Structure object               |
-| `createCorporationWallet()`          | Wallet division                |
-| `createMarketOrder()`                | `MarketOrder`                  |
-| `createMarketPrice()`                | Price object                   |
-| `createMarketHistory()`              | History entry                  |
-| `createWalletTransaction()`          | `WalletTransaction`            |
-| `createWalletJournalEntry()`         | Journal entry                  |
-| `createContract()`                   | `Contract`                     |
-| `createPublicContract()`             | `PublicContract`               |
-| `createFleetInfo()`                  | Fleet object                   |
-| `createFleetMember()`                | Fleet member                   |
-| `createFleetWing()`                  | Fleet wing                     |
-| `createIndustryJob()`                | Industry job                   |
-| `createCorporationIndustryJob()`     | Corporation industry job       |
-| `createBlueprint()`                  | Blueprint object               |
-| `createSolarSystem()`                | System object                  |
-| `createStation()`                    | Station object                 |
-| `createStructure()`                  | Structure object               |
-| `createItemType()`                   | Type object                    |
-| `createItemGroup()`                  | Group object                   |
-| `createStar()`                       | Star object                    |
-| `createPlanet()`                     | Planet object                  |
-| `createSearchResults()`              | Search result set              |
-| `createEntityName()`                 | Named entity                   |
-| `createSovereigntySystem()`          | Sovereignty system (combined)  |
-| `createSovereigntyHub()`             | Sovereignty hub                |
-| `createOrbitalSkyhook()`             | Orbital skyhook                |
-| `createRaidableSkyhook()`            | Raidable skyhook               |
-| `createMercenaryDen()`               | Mercenary den                  |
-| `createMercenaryTacticalOperation()` | Mercenary tactical operation   |
-| `createAccessListEntry()`            | Access list entry              |
-| `createError(statusCode)`            | `EsiError`                     |
-| `createTestScenarios()`              | Full test scenario set         |
-| `createPerformanceTestData(size)`    | Bulk test data                 |
-| `createRealisticTestData()`          | Linked alliance/corp/character |
+| Method                                 | Returns                        |
+| -------------------------------------- | ------------------------------ |
+| `createAllianceInfo()`                 | `AllianceInfo`                 |
+| `createAllianceContact()`              | `AllianceContact`              |
+| `createAllianceContactLabel()`         | `AllianceContactLabel`         |
+| `createCharacterInfo()`                | `CharacterInfo`                |
+| `createCharacterPortrait()`            | `CharacterPortrait`            |
+| `createCharacterAttributes()`          | `CharacterAttributes`          |
+| `createCharacterSkill()`               | `CharacterSkill`               |
+| `createCharacterRoles()`               | Roles object                   |
+| `createCharacterLocation()`            | Location object                |
+| `createCharacterSkills()`              | Skills summary                 |
+| `createCharacterAsset()`               | Asset object                   |
+| `createCharacterMarketOrder()`         | Character market order         |
+| `createCharacterOrderHistory()`        | Order history entry            |
+| `createCharacterMedal()`               | Medal object                   |
+| `createCharacterNotification()`        | Notification object            |
+| `createCorporationInfo()`              | `CorporationInfo`              |
+| `createCorporationHistoryEntry()`      | Corp history entry             |
+| `createCorporationMemberRoles()`       | Member roles object            |
+| `createCorporationAsset()`             | Corp asset object              |
+| `createCorporationStructure()`         | Structure object               |
+| `createCorporationWallet()`            | Wallet division                |
+| `createMarketOrder()`                  | `MarketOrder`                  |
+| `createMarketPrice()`                  | Price object                   |
+| `createMarketHistory()`                | History entry                  |
+| `createWalletTransaction()`            | `WalletTransaction`            |
+| `createCorporationWalletTransaction()` | `CorporationWalletTransaction` |
+| `createWalletJournalEntry()`           | Journal entry                  |
+| `createContract()`                     | `Contract`                     |
+| `createPublicContract()`               | `PublicContract`               |
+| `createFleetInfo()`                    | Fleet object                   |
+| `createFleetMember()`                  | Fleet member                   |
+| `createFleetWing()`                    | Fleet wing                     |
+| `createIndustryJob()`                  | Industry job                   |
+| `createCorporationIndustryJob()`       | Corporation industry job       |
+| `createBlueprint()`                    | Blueprint object               |
+| `createSolarSystem()`                  | System object                  |
+| `createStation()`                      | Station object                 |
+| `createStructure()`                    | Structure object               |
+| `createItemType()`                     | Type object                    |
+| `createItemGroup()`                    | Group object                   |
+| `createStar()`                         | Star object                    |
+| `createPlanet()`                       | Planet object                  |
+| `createSearchResults()`                | Search result set              |
+| `createEntityName()`                   | Named entity                   |
+| `createSovereigntySystem()`            | Sovereignty system (combined)  |
+| `createSovereigntyHub()`               | Sovereignty hub                |
+| `createOrbitalSkyhook()`               | Orbital skyhook                |
+| `createRaidableSkyhook()`              | Raidable skyhook               |
+| `createMercenaryDen()`                 | Mercenary den                  |
+| `createMercenaryTacticalOperation()`   | Mercenary tactical operation   |
+| `createAccessListEntry()`              | Access list entry              |
+| `createError(statusCode)`              | `EsiError`                     |
+| `createTestScenarios()`                | Full test scenario set         |
+| `createPerformanceTestData(size)`      | Bulk test data                 |
+| `createRealisticTestData()`            | Linked alliance/corp/character |
 
 Every payload builder's default output passes the Zod schema its endpoint is validated with. `tests/tdd/testing/TestDataFactory.schemas.test.ts` enforces this, so a new builder must be added to its map. The same test checks that builders leave out fields ESI never sends (an entity's own ID on its detail route, for example) and include the fields its spec marks required.
 
