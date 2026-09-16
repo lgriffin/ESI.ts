@@ -2,6 +2,7 @@ import {
   STATUS_MESSAGES,
   handleEarlyStatus,
   handleErrorResponse,
+  readEsiErrorReason,
   wrapError,
 } from '../../../../src/core/requestPipeline/statusHandling';
 import { ApiClient } from '../../../../src/core/ApiClient';
@@ -339,6 +340,57 @@ describe('requestPipeline/statusHandling', () => {
     it('should wrap string errors', () => {
       expect(() => wrapError('string error')).toThrow('string error');
       expect(() => wrapError('string error')).toThrow('ESIJS_ERROR');
+    });
+  });
+  describe('ESI error reason', () => {
+    const client = new ApiClient('test', BASE_URL);
+    const resolveCache = () => null;
+    const parsed = { raw: {} } as unknown as ParsedHeaders;
+
+    it.each([
+      ['{"error":"token is expired"}', 'token is expired'],
+      ['{"error":"  padded  "}', 'padded'],
+      ['{"error":""}', undefined],
+      ['{"error":42}', undefined],
+      ['{"message":"not ESI shape"}', undefined],
+      ['<html>Bad Gateway</html>', undefined],
+      ['', undefined],
+    ])('reads %s as %p', async (body, expected) => {
+      const response = new Response(body || null, { status: 403 });
+      expect(await readEsiErrorReason(response)).toBe(expected);
+    });
+
+    it('caps a long reason so an error body cannot flood the message', async () => {
+      const response = new Response(
+        JSON.stringify({ error: 'x'.repeat(1000) }),
+        { status: 400 },
+      );
+      expect((await readEsiErrorReason(response))!.length).toBe(200);
+    });
+
+    it('carries the reason in the thrown message, ahead of the hint', () => {
+      const response = new Response(null, { status: 403 });
+      const error = (() => {
+        try {
+          handleErrorResponse(
+            client,
+            response,
+            `${BASE_URL}/v1/characters/1/clones/`,
+            parsed,
+            false,
+            resolveCache,
+            true,
+            'token is expired',
+          );
+        } catch (e) {
+          return e as EsiError;
+        }
+        throw new Error('expected handleErrorResponse to throw');
+      })();
+
+      expect(error.message).toMatch(
+        /^Forbidden: token is expired — .*OAuth scopes required/,
+      );
     });
   });
 });

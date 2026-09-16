@@ -11,6 +11,7 @@ export {
   STATUS_MESSAGES,
   handleEarlyStatus,
   handleErrorResponse,
+  readEsiErrorReason,
   wrapError,
 } from './statusHandling';
 export {

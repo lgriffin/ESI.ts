@@ -6,6 +6,7 @@ import {
   invalidateAfterWrite,
   handleEarlyStatus,
   handleErrorResponse,
+  readEsiErrorReason,
   wrapError,
   handleCursorPagination,
   handleOffsetPagination,
@@ -96,6 +97,7 @@ const executeRequest = async (
         useETag,
         resolveCache,
         requiresAuth,
+        await readEsiErrorReason(response),
       );
       return finish(staleOrThrow);
     }

@@ -214,6 +214,8 @@ The remediation text is appended to the status message on the main request path:
 
 Page requests made by the pagination handlers carry the plain status text without remediation.
 
+When the response body is ESI's `{ "error": "<reason>" }`, the reason follows the status text on both paths, capped at 200 characters: `Forbidden: token is expired — your access token does not have …`. Any other body adds nothing.
+
 The rate limiter can also raise an `EsiError(429, "Rate limit group '<group>' still blocked for <n>s")` without sending anything, when a group stays blocked beyond its wait budget. It has no `url` and is retryable.
 
 ---

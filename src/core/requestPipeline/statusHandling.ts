@@ -76,8 +76,32 @@ export function handleEarlyStatus(
   return null;
 }
 
+const MAX_REASON_LENGTH = 200;
+
+/**
+ * The reason ESI gives for an error, from its `{ "error": "..." }` body.
+ * Undefined for any other body. Consumes the response body.
+ */
+export async function readEsiErrorReason(
+  response: Response,
+): Promise<string | undefined> {
+  try {
+    const parsed = JSON.parse(await response.text()) as unknown;
+    const reason =
+      typeof parsed === 'object' && parsed !== null
+        ? (parsed as { error?: unknown }).error
+        : undefined;
+    if (typeof reason !== 'string') return undefined;
+    const trimmed = reason.trim();
+    return trimmed ? trimmed.slice(0, MAX_REASON_LENGTH) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Handle error HTTP responses (4xx, 5xx). May serve stale cache on 5xx.
+ * `esiReason` (see readEsiErrorReason) is appended to the status message.
  */
 export function handleErrorResponse(
   client: ApiClient,
@@ -87,8 +111,12 @@ export function handleErrorResponse(
   useETag: boolean,
   resolveCache: (client: ApiClient) => ICache | null,
   requiresAuth: boolean = false,
+  esiReason?: string,
 ): EsiHandlerResponse | never {
-  const errorMessage = STATUS_MESSAGES[response.status] || response.statusText;
+  const statusMessage = STATUS_MESSAGES[response.status] || response.statusText;
+  const errorMessage = esiReason
+    ? `${statusMessage}: ${esiReason}`
+    : statusMessage;
 
   if (response.status >= 500 && useETag) {
     const staleResult = tryStaleCacheResponse(
