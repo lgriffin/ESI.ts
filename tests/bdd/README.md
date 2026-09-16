@@ -40,7 +40,11 @@ tests/bdd/
 Each `.feature` file maps to exactly one `*.steps.ts` file, wired together by
 `loadFeature(<path>)` / `defineFeature`.
 
-## The rules
+## The rules the audit enforces
+
+Every rule in this section has a check in the `scripts/spec-audit*.ts` pair and a
+fixture in `tests/tdd/spec-audit/fixtures/`. If it is listed here, CI fails when
+it is broken.
 
 ### 1. One EARS requirement per `Rule:` block — the title _is_ the requirement
 
@@ -71,6 +75,10 @@ Rule: If a response omits the ETag header, then the ETag cache shall store no en
 No scenarios at feature level. If a scenario does not verify a stated
 requirement, either the requirement is missing or the scenario is.
 
+A feature with no `Rule:` block at all states no requirement, so it fails too —
+as does a feature with no description, since the description is where a reader
+learns what the file covers.
+
 ### 3. The five EARS patterns
 
 | Pattern            | Template                                                     |
@@ -82,8 +90,17 @@ requirement, either the requirement is missing or the scenario is.
 | Unwanted behaviour | `If <condition>, then the <system> shall <response>.`        |
 
 `When` is instantaneous; `While` lasts for a duration. If you can ask "how long
-does it last?", use `While`. The `If` form is the only one that takes `then`,
-and `then` must come before `shall`.
+does it last?", use `While`. The `If` form is the only one that takes `then`:
+the condition must be non-empty, followed by a comma, then `then`, and `then`
+must come before `shall`. `When`, `While` and `Where` take a comma after their
+clause, before the system name.
+
+## Review conventions the audit does not check
+
+The audit parses feature-file ASTs and never opens a `.steps.ts` file, so
+nothing in this section is caught automatically. It is caught in review.
+Automating the transport-seam rule is Phase 1 of the ramp-up epic (`esi-v2s`);
+step-file structure and missing/unused step detection are Phase 2.
 
 ### 4. Scenario names describe the case, not the requirement
 
@@ -128,7 +145,7 @@ and `RetryStrategy` objects rather than mocking either.
 Stubbing a client method is only acceptable when it is _incidental setup_ for a
 scenario about something else — for example a cross-domain workflow where one
 lookup is not the behaviour under test. Most of the suite predates this rule;
-see the epic tracked in beads for the conversion backlog.
+the conversion backlog is `esi-v2s.2` in beads.
 
 ### 6. Step bodies delegate to the support layer
 
@@ -154,10 +171,46 @@ npm run spec:audit:verbose     # plus requirement and scenario counts
 npx ts-node scripts/spec-audit.ts tests/bdd/features/core/0023-market.feature
 ```
 
-It parses the real Gherkin AST and checks everything in "The rules" above. It
-runs in CI and emits inline annotations on the offending lines.
+It parses the real Gherkin AST, runs in CI, and emits inline annotations on the
+offending lines. It checks exactly this, and nothing else:
+
+| Check                                                            | Fixture                                                                    |
+| :--------------------------------------------------------------- | :------------------------------------------------------------------------- |
+| Rule title contains exactly one `shall`                          | `rule-without-shall`, `rule-with-two-shalls`                               |
+| Rule title uses no `should` / `may` / `will` / `must`            | `rule-wrong-obligation`                                                    |
+| Rule title contains no vague, unmeasurable or escape-clause term | `rule-vague-language`                                                      |
+| Rule title names the system rather than a pronoun                | `rule-pronoun-before-shall`                                                |
+| `If` titles read `If <condition>, then … shall …`                | `rule-if-without-then`, `rule-if-without-comma`, `rule-if-empty-condition` |
+| `When` / `While` / `Where` titles put a comma after the clause   | `rule-when-without-comma`                                                  |
+| Rule description states no further requirement                   | `rule-requirement-in-description`                                          |
+| Every Rule has at least one Scenario                             | `rule-without-scenarios`                                                   |
+| Every Scenario sits under a Rule                                 | `scenario-outside-rule`                                                    |
+| Every Feature has at least one Rule                              | `feature-without-rules`                                                    |
+| Every Feature has a description                                  | `feature-without-description`                                              |
+
+`tests/tdd/spec-audit/spec-audit.test.ts` runs the fixtures through the audit,
+so a check that stops firing fails the unit suite rather than passing quietly.
+It drives the CLI in a child process, because `@cucumber/gherkin` is ESM-only
+and Jest cannot load it: the checks that need no Gherkin AST live in
+`scripts/spec-audit-checks.ts`, free of that dependency, and are imported
+directly.
+
+That ESM-only dependency also means the audit needs a Node with `require(esm)`
+— 20.19 or 22.12 and above. On an older Node it cannot start at all, and the
+fixture suite skips with a warning rather than asserting against the startup
+error. Tracked as `esi-v2s.8`.
 
 `scripts/spec-audit-exceptions.json` lists feature files not yet converted to
-Rule form. It is a **ratchet**: a listed file that starts passing fails the run
-until its entry is removed, so the list can only shrink. Never add to it — new
-feature files are Rule-compliant from the start.
+Rule form. It is a **ratchet in both directions**, and the run fails when:
+
+- an entry is present that is not in the committed baseline on the integration
+  branch — a PR cannot exempt its own feature file;
+- a listed file now passes the audit — the improvement has to be locked in;
+- a listed path does not name an existing `.feature` file — stale entries make
+  the remaining work look larger than it is.
+
+The baseline is read with `git show <ref>:scripts/spec-audit-exceptions.json`,
+trying `$SPEC_AUDIT_BASE_REF`, then `origin/master`, then `master`. If no ref
+resolves the baseline is empty, so every entry reads as an addition; the
+ratchet fails closed. The list is empty today — new feature files are
+Rule-compliant from the start.

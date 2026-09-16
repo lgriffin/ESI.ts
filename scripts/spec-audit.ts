@@ -6,7 +6,8 @@
  * form, and is actually testable. This script enforces that shape:
  *
  *   - Every `Rule:` title IS an atomic EARS requirement (exactly one "shall").
- *   - Every Scenario lives under the Rule it verifies.
+ *   - Every Feature states at least one Rule, and every Scenario lives under
+ *     the Rule it verifies.
  *   - Requirement text is free of vague, unmeasurable, or escape-clause
  *     language, and follows EARS grammar for If/While/When/Where.
  *
@@ -14,13 +15,18 @@
  * via @cucumber/gherkin rather than matching lines with regexes, so `Rule:`
  * nesting, descriptions and Scenario Outlines are understood structurally.
  *
+ * The requirement-language and exception-list checks live in
+ * `spec-audit-checks.ts`, which imports no ESM, so the audit's own unit tests
+ * can load them under Jest. This file owns the AST walk and the CLI.
+ *
  * Usage: npx ts-node scripts/spec-audit.ts [paths...] [--verbose]
  *        npm run spec:audit
  *
  * Reads `scripts/spec-audit-exceptions.json`. Files listed there are not yet
- * converted to Rule form and are skipped — but the allowlist is a ratchet: a
- * listed file that now passes cleanly fails the run until it is removed, so
- * the exception list can only shrink.
+ * converted to Rule form and are skipped — but the allowlist is a ratchet, so
+ * the run also fails when an entry is added relative to the integration
+ * branch, when a listed file now passes cleanly, or when a listed path no
+ * longer names a feature file. The list can therefore only shrink.
  *
  * Exit code 0 on pass, 1 on any finding.
  */
@@ -35,89 +41,21 @@ import {
 import { IdGenerator } from '@cucumber/messages';
 import type { Feature, Rule, Scenario } from '@cucumber/messages';
 
-const EXCEPTIONS_PATH = path.resolve(__dirname, 'spec-audit-exceptions.json');
-const REPO_ROOT = path.resolve(__dirname, '..');
+import {
+  REPO_ROOT,
+  checkEarsPatternStructure,
+  checkExceptionList,
+  checkMissingSystemName,
+  countShall,
+  findVagueTerms,
+  findWrongObligationKeywords,
+  loadBaselineExceptions,
+  loadExceptions,
+} from './spec-audit-checks';
+
 const DEFAULT_PATHS = ['tests/bdd/features'];
 
 const IS_CI = process.env.GITHUB_ACTIONS === 'true';
-
-// ---------------------------------------------------------------------------
-// Requirement language rules
-// ---------------------------------------------------------------------------
-
-/**
- * Words that make a requirement untestable. A requirement containing any of
- * these cannot be verified, because two readers will disagree on whether the
- * system met it.
- */
-const VAGUE_TERMS: Record<string, string[]> = {
-  'vague adverb': [
-    'quickly',
-    'slowly',
-    'efficiently',
-    'properly',
-    'reasonably',
-    'approximately',
-    'usually',
-    'typically',
-    'generally',
-    'soon',
-    'eventually',
-    'immediately',
-    'gracefully',
-    'correctly',
-    'appropriately',
-  ],
-  'unmeasurable adjective': [
-    'user-friendly',
-    'flexible',
-    'intuitive',
-    'robust',
-    'scalable',
-    'efficient',
-    'seamless',
-    'responsive',
-    'reliable',
-    'powerful',
-    'smart',
-    'easy-to-use',
-    'graceful',
-  ],
-  'vague quantifier': [
-    'various',
-    'some',
-    'many',
-    'few',
-    'several',
-    'most',
-    'a lot',
-  ],
-  'escape clause': [
-    'as appropriate',
-    'if possible',
-    'as needed',
-    'where practical',
-    'to the extent feasible',
-    'if necessary',
-    'when applicable',
-  ],
-  'continuation term': ['etc.', 'and so on', 'and/or', 'such as'],
-  'indefinite temporal term': [
-    'timely',
-    'in a timely manner',
-    'in real time',
-    'promptly',
-    'without delay',
-    'as soon as possible',
-    'periodic',
-  ],
-};
-
-/** EARS reserves "shall" for mandatory behaviour; these dilute it. */
-const WRONG_OBLIGATION_KEYWORDS = ['should', 'may', 'will', 'must'];
-
-/** A requirement must name the system it constrains, not point at it. */
-const PRONOUNS_BEFORE_SHALL = ['it', 'they', 'he', 'she', 'we', 'you'];
 
 // ---------------------------------------------------------------------------
 // Findings
@@ -134,101 +72,6 @@ interface FileReport {
   findings: Finding[];
   ruleCount: number;
   scenarioCount: number;
-}
-
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function findWrongObligationKeywords(title: string): string[] {
-  const pattern = new RegExp(
-    `\\b(${WRONG_OBLIGATION_KEYWORDS.join('|')})\\b`,
-    'gi',
-  );
-  const matches = title.match(pattern) ?? [];
-  return [...new Set(matches.map((m) => m.toLowerCase()))].sort();
-}
-
-function findVagueTerms(title: string): Array<[string, string]> {
-  const found: Array<[string, string]> = [];
-  for (const [category, terms] of Object.entries(VAGUE_TERMS)) {
-    for (const term of terms) {
-      const escaped = escapeRegExp(term);
-      // A trailing "." already terminates the word, so no closing boundary.
-      const pattern = term.endsWith('.')
-        ? new RegExp(`\\b${escaped}`, 'i')
-        : new RegExp(`\\b${escaped}\\b`, 'i');
-      if (pattern.test(title)) {
-        found.push([term, category]);
-      }
-    }
-  }
-  return found;
-}
-
-/**
- * Check EARS structural grammar.
- *
- * The templates are:
- *   If <condition>, then the <system> shall <response>.
- *   While <state>, the <system> shall <response>.
- *   When <trigger>, the <system> shall <response>.
- *   Where <feature is included>, the <system> shall <response>.
- */
-function checkEarsPatternStructure(title: string): string[] {
-  const errors: string[] = [];
-  const lower = title.toLowerCase();
-
-  if (/^\s*if\b/.test(lower)) {
-    const shallPos = lower.indexOf('shall');
-    const thenMatch = /\bthen\b/.exec(lower);
-    const thenPos = thenMatch ? thenMatch.index : -1;
-    if (shallPos !== -1 && (thenPos === -1 || thenPos > shallPos)) {
-      errors.push(
-        "EARS 'If' pattern requires 'then' before 'shall' " +
-          '(template: If <condition>, then the <system> shall <response>).',
-      );
-    }
-  }
-
-  for (const keyword of ['while', 'when', 'where']) {
-    if (new RegExp(`^\\s*${keyword}\\b`).test(lower)) {
-      const keywordEnd = lower.indexOf(keyword) + keyword.length;
-      const beforeShall = lower.includes('shall')
-        ? lower.slice(0, lower.indexOf('shall'))
-        : lower;
-      if (!beforeShall.slice(keywordEnd).includes(',')) {
-        const capitalised = keyword[0]!.toUpperCase() + keyword.slice(1);
-        errors.push(
-          `EARS '${capitalised}' clause should be followed by a comma before ` +
-            `the system name (template: ${capitalised} <clause>, the <system> ` +
-            `shall <response>).`,
-        );
-      }
-      break;
-    }
-  }
-
-  return errors;
-}
-
-function checkMissingSystemName(title: string): string[] {
-  const pattern = new RegExp(
-    `\\b(${PRONOUNS_BEFORE_SHALL.join('|')})\\s+shall\\b`,
-    'i',
-  );
-  const match = pattern.exec(title);
-  if (match) {
-    return [
-      `Pronoun '${match[1]!.toLowerCase()}' found before 'shall' — use an ` +
-        'explicit system name.',
-    ];
-  }
-  return [];
-}
-
-function countShall(text: string): number {
-  return (text.match(/\bshall\b/gi) ?? []).length;
 }
 
 // ---------------------------------------------------------------------------
@@ -324,6 +167,19 @@ function auditFeature(feature: Feature, file: string): FileReport {
     });
   }
 
+  // A Feature with no Rule blocks states no requirement, so there is nothing
+  // for its scenarios to be traceable to — and before this check it passed the
+  // audit silently.
+  if (ruleCount === 0) {
+    findings.push({
+      file,
+      line: feature.location.line,
+      message:
+        `Feature '${feature.name}' contains no Rule blocks. Every feature ` +
+        'must state at least one EARS requirement as a Rule title.',
+    });
+  }
+
   if (feature.description.trim().length === 0) {
     findings.push({
       file,
@@ -375,7 +231,7 @@ function auditFile(absPath: string, relPath: string): FileReport {
 }
 
 // ---------------------------------------------------------------------------
-// Path resolution and exceptions
+// Path resolution and reporting
 // ---------------------------------------------------------------------------
 
 function collectFeatureFiles(target: string): string[] {
@@ -397,21 +253,6 @@ function collectFeatureFiles(target: string): string[] {
     }
   }
   return found.sort();
-}
-
-interface Exceptions {
-  /** Feature files not yet converted to Rule form. Ratcheted: can only shrink. */
-  unconverted: string[];
-}
-
-function loadExceptions(): Exceptions {
-  if (!existsSync(EXCEPTIONS_PATH)) {
-    return { unconverted: [] };
-  }
-  const parsed = JSON.parse(readFileSync(EXCEPTIONS_PATH, 'utf-8')) as Partial<
-    Exceptions & { $comment?: string }
-  >;
-  return { unconverted: parsed.unconverted ?? [] };
 }
 
 function annotate(
@@ -451,6 +292,14 @@ function main(): void {
   const ignoreExceptions = args.includes('--ignore-exceptions');
   const exceptions = ignoreExceptions ? { unconverted: [] } : loadExceptions();
   const unconverted = new Set(exceptions.unconverted);
+
+  const { added: addedExceptions, dangling: danglingExceptions } =
+    exceptions.unconverted.length > 0
+      ? checkExceptionList(
+          exceptions.unconverted,
+          loadBaselineExceptions().entries,
+        )
+      : { added: [], dangling: [] };
 
   const reports: FileReport[] = [];
   const skipped: string[] = [];
@@ -492,6 +341,23 @@ function main(): void {
     annotate('error', message, 'scripts/spec-audit-exceptions.json');
   }
 
+  for (const rel of addedExceptions) {
+    const message =
+      `${rel} was added to spec-audit-exceptions.json. The exception list is ` +
+      'a ratchet: entries may only be removed. Make the feature Rule-compliant ' +
+      'rather than exempting it.';
+    console.error(`\n  [ERROR] ${message}`);
+    annotate('error', message, 'scripts/spec-audit-exceptions.json');
+  }
+
+  for (const rel of danglingExceptions) {
+    const message =
+      `${rel} is listed in spec-audit-exceptions.json but no such .feature ` +
+      'file exists. Remove the stale entry.';
+    console.error(`\n  [ERROR] ${message}`);
+    annotate('error', message, 'scripts/spec-audit-exceptions.json');
+  }
+
   const totalFindings = failing.reduce((n, r) => n + r.findings.length, 0);
 
   console.log('\n--- Summary ---');
@@ -512,11 +378,14 @@ function main(): void {
     }
   }
 
-  if (totalFindings > 0 || staleExceptions.length > 0) {
+  const badExceptions =
+    staleExceptions.length + addedExceptions.length + danglingExceptions.length;
+
+  if (totalFindings > 0 || badExceptions > 0) {
     console.error(
       `\nFAIL: ${totalFindings} finding(s) across ${failing.length} file(s)` +
-        (staleExceptions.length > 0
-          ? `, ${staleExceptions.length} stale exception(s)`
+        (badExceptions > 0
+          ? `, ${badExceptions} exception-list problem(s)`
           : '') +
         '.',
     );
