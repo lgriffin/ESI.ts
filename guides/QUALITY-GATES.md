@@ -21,6 +21,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Coverage thresholds + PR comment           |   ·    |            ·             |        ●         |       ·       |      ·       |
 | BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |      ●       |
 | EARS spec audit                            |   ·    |            ·             |        ●         |       ·       |      ·       |
+| Determinism lint (time in `src/`)          |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |      ●       |
 | Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Contract tests                             |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |      ·       |
@@ -173,7 +174,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | Job (display name)                       | What it does                                                                                                                                                                                                                                                                                  | In gate |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
 | `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                                                                                                                        |   yes   |
-| `lint-and-build` (Lint & Build)          | ESLint, Prettier check, build, typecheck; uploads `dist/`                                                                                                                                                                                                                                     |   yes   |
+| `lint-and-build` (Lint & Build)          | ESLint, `lint:determinism` (fetches master for its baseline), Prettier check, build, typecheck; uploads `dist/`                                                                                                                                                                               |   yes   |
 | `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`. The two live-spec checks block only when the pull request touches their inputs (below)                                                  |   yes   |
 | `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                                                                                                                              |   yes   |
 | `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                                                                                                                          |   yes   |
@@ -514,7 +515,7 @@ npx ts-node scripts/audit-check.ts --filter --in audit-raw.json --out audit-repo
 
 ### Other exception files
 
-The same "explicit, reasoned exception" pattern appears in four more places:
+The same "explicit, reasoned exception" pattern appears in five more places:
 
 | File                                   | Consumed by                    | Rule                                                                                              |
 | -------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
@@ -522,6 +523,7 @@ The same "explicit, reasoned exception" pattern appears in four more places:
 | `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | A ratchet: now empty, and the audit fails if a listed file passes, so entries can only be removed |
 | `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                  |
 | `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)         |
+| `scripts/determinism-baseline.json`    | `npm run lint:determinism`     | Clock, timer and `Math.random()` sites per file and construct; shrink-only, stale counts fail     |
 | `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map       |
 
 ---
@@ -538,6 +540,7 @@ The same "explicit, reasoned exception" pattern appears in four more places:
 | `typecheck`               | `tsc --noEmit`                                                                          |
 | `lint` / `lint:fix`       | ESLint over `src`                                                                       |
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`eslint.bdd-seam.rules.cjs`) |
+| `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline            |
 | `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                         |
 | `knip`                    | Dead code and unused exports (`knip.json`)                                              |
 | `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
