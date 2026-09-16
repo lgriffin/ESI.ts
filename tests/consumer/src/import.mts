@@ -20,6 +20,9 @@ import {
   EsiError,
   EsiValidationError,
   isEsiError,
+  isNotFound,
+  isRetryable,
+  isValidationError as isValidationErrorFromErrors,
 } from '@lgriffin/esi.ts/errors';
 import {
   CharacterInfoSchema,
@@ -32,29 +35,16 @@ import { MemorySdeProvider as MemoryOnlyProvider } from '@lgriffin/esi.ts/sde/me
 const require = createRequire(import.meta.url);
 const pkg = require('@lgriffin/esi.ts/package.json') as { version: string };
 
-/**
- * A defect this contract found and a bead tracks. It logs while the defect
- * reproduces and fails once it does not, so the fix has to remove the call.
- */
-function knownIssue(bead: string, holds: boolean, expectation: string): void {
-  if (holds) {
-    throw new Error(
-      `Known issue ${bead} no longer reproduces (${expectation}). Remove the knownIssue() call.`,
-    );
-  }
-  console.warn(`known issue ${bead} still reproduces: ${expectation} is false`);
-}
-
 const STATUS = {
   players: 12345,
   server_version: '2345678',
   start_time: '2026-09-16T11:00:00Z',
 };
 
-function stubFetch(body: unknown): void {
+function stubFetch(body: unknown, status = 200): void {
   globalThis.fetch = async () =>
     new Response(JSON.stringify(body), {
-      status: 200,
+      status,
       headers: { 'content-type': 'application/json' },
     });
 }
@@ -80,11 +70,28 @@ try {
   );
   assert.ok(isValidationError(failure), 'root isValidationError');
   assert.ok(failure instanceof RootEsiError, 'instanceof the root EsiError');
-  knownIssue(
-    'esi-v2s.15',
-    isEsiError(failure),
-    'isEsiError from ./errors recognises an error thrown by the root client',
+  // ./errors shares its classes and guards with the root entry, so they
+  // recognise what the root client throws (esi-v2s.15).
+  assert.equal(
+    EsiError,
+    RootEsiError,
+    './errors EsiError is the root EsiError',
   );
+  assert.ok(isEsiError(failure), './errors isEsiError on a client error');
+  assert.ok(failure instanceof EsiError, 'instanceof the ./errors EsiError');
+  assert.ok(
+    isValidationErrorFromErrors(failure),
+    './errors isValidationError on a client error',
+  );
+
+  stubFetch({ error: 'Not found' }, 404);
+  client.clearCache();
+  const notFound = await client.status.getStatus().then(
+    () => assert.fail('a 404 should be rejected'),
+    (err: unknown) => err,
+  );
+  assert.ok(isNotFound(notFound), './errors isNotFound on a client 404');
+  assert.ok(!isRetryable(notFound), './errors isRetryable on a client 404');
 } finally {
   client.shutdown();
 }
