@@ -895,7 +895,7 @@ npm test                   # Unit tests (171 suites, 4,957 tests)
 npm run test:all           # Unit + BDD + integration + fuzz + type tests
 npm run coverage           # Tests with coverage report (thresholds enforced)
 npm run bdd                # BDD scenario tests
-npm run contract:live      # Deep contract tests against live ESI spec
+ESI_LIVE_TESTS=true npm run contract:live  # Deep contract tests against live ESI spec (fails without the variable)
 npm run fuzz               # Property-based fuzz tests (fast-check)
 npm run mutation           # Mutation testing (Stryker)
 npm run benchmark          # Performance benchmark tests

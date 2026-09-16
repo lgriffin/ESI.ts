@@ -361,7 +361,7 @@ Known-drift tests warn rather than fail because the discrepancies are tracked de
 
 **Location:** `tests/contract/`
 **Config:** `jest.contract.config.cjs`
-**Run:** `ESI_LIVE_TESTS=true npm run contract` or `npm run contract:live`
+**Run:** `ESI_LIVE_TESTS=true npm run contract:live` (fails in global setup if `ESI_LIVE_TESTS` is not `true`, instead of skipping every suite)
 
 15 tests across 2 suites that fetch the live ESI OpenAPI spec and structurally validate every endpoint definition:
 
@@ -828,7 +828,7 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 | Unit + BDD                | Every push                  | `npm test`                                            |
 | Mocked integration        | Every push                  | `npm run test:integration`                            |
 | Benchmarks                | Every PR                    | `npm run benchmark`                                   |
-| Deep contract tests       | Every PR                    | `npm run contract:live`                               |
+| Deep contract tests       | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
 | Property-based fuzz tests | Every PR                    | `npm run fuzz`                                        |
 | Consumer type tests       | Every PR                    | `npm run test:types`                                  |
 | Live smoke tests          | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
