@@ -309,6 +309,32 @@ describe('SdeDataProvider', () => {
         fs.unlinkSync(zipPath);
       }
     });
+
+    it('should read the same version metadata as fromDirectory when _sde.yaml nests it under sde:', () => {
+      const dir = createTempDir();
+      writeYaml(dir, '_sde.yaml', {
+        sde: { buildNumber: 3141592, releaseDate: '2026-09-01' },
+      });
+      writeYaml(dir, 'categories.yaml', {
+        6: { name: { en: 'Ship' }, published: true },
+      });
+      const zipPath = createSdeZip(dir);
+      const fromDir = SdeDataProvider.fromDirectory(dir);
+      const fromZip = SdeDataProvider.fromZip(zipPath);
+      try {
+        expect(fromDir.getVersion().version).toBe('3141592');
+        expect(fromDir.getVersion().buildDate).toBe('2026-09-01');
+        expect(fromZip.getVersion().version).toBe(fromDir.getVersion().version);
+        expect(fromZip.getVersion().buildDate).toBe(
+          fromDir.getVersion().buildDate,
+        );
+      } finally {
+        fromDir.close();
+        fromZip.close();
+        fs.unlinkSync(zipPath);
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
   });
 
   // ---------------------------------------------------------------

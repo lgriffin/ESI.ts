@@ -45,8 +45,9 @@ for (const peer of PEERS) {
   );
 }
 
-// Flat, because SdeExtractor.readMetadata does not read a nested `sde:` block.
-const META_YAML = "buildNumber: 3141592\nreleaseDate: '2026-09-01'\n";
+// Nested under `sde:`, so the version checks in expectLoaded pass only when
+// both fromDirectory and fromZip read that layout (esi-v2s.20).
+const META_YAML = "sde:\n  buildNumber: 3141592\n  releaseDate: '2026-09-01'\n";
 const CATEGORIES_YAML = '6:\n  name:\n    en: Ship\n  published: true\n';
 
 const work = mkdtempSync(path.join(tmpdir(), 'esi-sde-peers-'));
@@ -118,6 +119,11 @@ function expectLoaded(condition, factory, load) {
     provider.getVersion().version,
     '3141592',
     `${condition}: ${factory} version`,
+  );
+  assert.equal(
+    provider.getVersion().buildDate,
+    '2026-09-01',
+    `${condition}: ${factory} build date`,
   );
   assert.equal(
     provider.getCategory(6)?.name,

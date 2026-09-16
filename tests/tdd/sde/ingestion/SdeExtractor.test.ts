@@ -66,6 +66,32 @@ describe('SdeExtractor', () => {
       expect(metadata.releaseDate).toBe('');
     });
 
+    it('should read build number and release date nested under an sde: block', () => {
+      const zipPath = createTestZip({
+        '_sde.yaml': { sde: { buildNumber: 12345, releaseDate: '2026-01-15' } },
+      });
+      tempFiles.push(zipPath);
+
+      const metadata = extractor.readMetadata(zipPath);
+      expect(metadata.buildNumber).toBe('12345');
+      expect(metadata.releaseDate).toBe('2026-01-15');
+    });
+
+    it('should prefer the nested sde: block when both layouts are present', () => {
+      const zipPath = createTestZip({
+        '_sde.yaml': {
+          buildNumber: 1,
+          releaseDate: '2000-01-01',
+          sde: { buildNumber: 2, releaseDate: '2026-01-15' },
+        },
+      });
+      tempFiles.push(zipPath);
+
+      const metadata = extractor.readMetadata(zipPath);
+      expect(metadata.buildNumber).toBe('2');
+      expect(metadata.releaseDate).toBe('2026-01-15');
+    });
+
     it('should handle string buildNumber and releaseDate', () => {
       const zipPath = createTestZip({
         '_sde.yaml': {
