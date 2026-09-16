@@ -69,7 +69,7 @@ Feature: Insurance Management
     Scenario: Five hundred ship types in one response
       Given a large insurance dataset covering many ship types
       When the client processes the large insurance response
-      Then the client shall handle it efficiently
+      Then the client shall handle the large insurance response efficiently
 
   # ── Error responses ─────────────────────────────────────────────────
 
@@ -85,7 +85,7 @@ Feature: Insurance Management
     Scenario: ESI answering 503
       Given the ESI service is temporarily unavailable
       When the client requests insurance prices expecting an error
-      Then the client shall return a 503 service unavailable error
+      Then the client shall return a 503 service unavailable error for insurance prices
 
     Scenario: ESI answering 429 after the error limit
       Given the API rate limit has been exceeded
