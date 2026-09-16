@@ -5,3 +5,4 @@ docs-site/public/api/
 *.tgz
 *.generated.ts
 etc/*.api.md
+tests/tdd/api-semver-gate/fixtures/*.api.md

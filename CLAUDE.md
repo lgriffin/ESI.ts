@@ -45,6 +45,7 @@ npm run generate:endpoints  # Generate endpoint definition scaffold (etc/endpoin
 npm run generate:all        # Run all generation + validation in sequence
 npm run schema:drift        # Check hand-written Zod schemas against OpenAPI spec
 npm run api-report          # Update API surface report (etc/esi.ts.api.md)
+npm run api-report:semver   # Fail if the report lost a line without a feat!/BREAKING CHANGE commit
 ```
 
 CI verifies generated types are fresh via `git diff --exit-code`.

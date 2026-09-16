@@ -202,6 +202,7 @@
     "mutation:bdd:ratchet": "ts-node scripts/mutation-ratchet.ts",
     "api-report": "api-extractor run --local --verbose",
     "api-report:check": "api-extractor run --verbose",
+    "api-report:semver": "ts-node scripts/api-semver-gate.ts",
     "schema:drift": "ts-node scripts/generate-schema-drift-report.ts",
     "schema:drift:ci": "ts-node scripts/generate-schema-drift-report.ts --ci",
     "audit:check": "ts-node scripts/audit-check.ts --check",

@@ -358,6 +358,41 @@ jobs:
             exit 1
           fi
 
+  api-semver:
+    name: API SemVer Gate
+    runs-on: ubuntu-latest
+    # api-surface proves the committed etc/esi.ts.api.md matches the code; this
+    # job asks whether the pull request's commits declare what that report
+    # change does. A line the report loses (a removal or a signature change)
+    # needs a `type!:` commit or a `BREAKING CHANGE:` footer, so release-please
+    # cannot cut a minor for a breaking change. Pure additions pass. A removal
+    # that breaks nobody can say so with an `API-Compatible: <why>` trailer.
+    #
+    # HEAD is GitHub's merge commit for the pull request, so the script
+    # compares the report at HEAD^1 (base tip) and HEAD, and reads the commits
+    # in HEAD^1..HEAD^2 — the ones this pull request adds. Merge commits land
+    # on master as they are, which is what release-please reads.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # need both parents of the merge commit and the PR's commits
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --ignore-scripts skips `prepare` (a full build); the gate only needs ts-node.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Check breaking API changes are declared
+        run: npm run api-report:semver
+
   documentation:
     name: Generate Documentation
     runs-on: ubuntu-latest
@@ -545,6 +580,7 @@ jobs:
         fuzz-tests,
         full-test-suite,
         api-surface,
+        api-semver,
         documentation,
         lockfile,
         dependency-audit,

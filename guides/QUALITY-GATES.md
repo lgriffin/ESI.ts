@@ -26,6 +26,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Contract tests                             |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |      ·       |
 | Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |      ●       |
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |      ·       |
+| Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Are The Types Wrong (packed tarball)       |   ·    |            ·             |      ◐ (5)       |       ·       |      ·       |
 | Dependency audit (diff-aware / allowlist)  |   ·    |            ·             | ● new advisories | ◐ files issue | ● ≥ high (6) |
@@ -84,6 +85,19 @@ To add a blocking job: add the job, add its id to `ci-success.needs`. To add an 
 ### GATE-03 · The public API surface is diffed
 
 The `api-surface` job in `ci.yml` builds, runs `npm run api-report` (api-extractor in local mode, which rewrites `etc/esi.ts.api.md`), and compares the result with the committed file. Both sides are CRLF-normalised and sorted so that Windows line endings and enum ordering do not cause false failures. A difference fails the job with "API surface report is out of date". Fix it by running `npm run api-report` locally and committing the report alongside the change.
+
+The `api-semver` job then checks that the change is declared correctly for release-please. It compares the committed report between the base tip (`HEAD^1` of GitHub's merge commit) and the merge result (`HEAD`), line by line as multisets, ignoring blanks, `//` comments and warnings, `import` lines and bracket-only lines:
+
+| Report change                       | Passes when                                                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| None                                | Always                                                                                                      |
+| Lines only added                    | Always. A new export, member or overload ships as a minor or a patch                                        |
+| A line lost (removal or signature)  | A commit in `HEAD^1..HEAD^2` is `type!:` or has a `BREAKING CHANGE:` footer, so release-please cuts a major |
+| A line lost, and no consumer breaks | A commit carries an `API-Compatible: <why>` trailer; the reason is echoed in the log and step summary       |
+
+The rule is deliberately strict. A changed line is often a widening (an optional parameter, a union member, an `implements` clause), and the gate cannot tell those from a narrowing, so the author states which it is. Replayed one commit at a time over the 34 non-merge commits in history that touched the report, 21 lost at least one line and none carried a marker: renames and removals such as `generatedSchemas`, the `ILogger` interface gaining required methods, and union widenings. What additions miss is a new required member on an interface consumers implement (`ILogger`, `ICircuitBreaker`, `IRetryStrategy`); that stays a reviewer call. The gate reads commit messages, not the pull request title, because pull requests land on `master` as merge commits and release-please reads each commit; a squash merge would bypass it. Only the root entry point is in the report, so the sub-path exports (`./schemas`, `./errors`, `./testing`, `./sde`) are not covered; the consumer contract test at least proves they still resolve.
+
+Locally, on a feature branch: `npm run api-report:semver -- --base $(git merge-base origin/master HEAD) --pr-head HEAD`.
 
 ### GATE-04 · knip does not block anywhere yet
 
@@ -154,24 +168,25 @@ One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `format:check`, `bu
 
 Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` it. `pr-info`, `static-analysis`, `lockfile`, `dependency-audit` and `zizmor` run in parallel with it. No job has a job-level `if:`, and every job is in the gate (GATE-01).
 
-| Job (display name)                       | What it does                                                                                                                                                                                  | In gate |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
-| `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                        |   yes   |
-| `lint-and-build` (Lint & Build)          | ESLint, Prettier check, build, typecheck; uploads `dist/`                                                                                                                                     |   yes   |
-| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`                                          |   yes   |
-| `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                              |   yes   |
-| `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                          |   yes   |
-| `bdd-tests` (BDD Scenarios)              | `npm run bdd`                                                                                                                                                                                 |   yes   |
-| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set. Then `npm run lint:bdd-seam`, which fails on any scenario that spies on or reassigns an ESI client method |   yes   |
-| `contract-tests` (Contract Tests)        | `npm run contract:live` with `ESI_LIVE_TESTS=true`; fails if the variable is missing rather than skipping; soft-skips on 503                                                                  |   yes   |
-| `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                                   |   yes   |
-| `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                           |   yes   |
-| `api-surface` (API Surface Check)        | Rebuilds `etc/esi.ts.api.md` and fails on a difference (GATE-03)                                                                                                                              |   yes   |
-| `lockfile` (Lockfile Consistency)        | `npm install --package-lock-only --ignore-scripts` then `git diff --exit-code package-lock.json`. For `dependabot[bot]` the step exits early with a notice; the job still reports success     |   yes   |
-| `dependency-audit` (Dependency Audit)    | Audits base and head, fails only on advisories the PR introduces. Its steps skip when `package.json` and `package-lock.json` are unchanged; the job still reports success                     |   yes   |
-| `documentation` (Generate Documentation) | Runs TypeDoc and uploads `docs-site/public/api/`, so a docs break is caught before `release.yml` runs `npm run docs`                                                                          |   yes   |
-| `zizmor` (Workflow Security (zizmor))    | `uvx zizmor@<pinned>` over `.github/` with `.zizmor.yml`, on every pull request                                                                                                               |   yes   |
-| `ci-success` (ci-success)                | Fails unless every other job succeeded, and fails if a job is missing from its `needs` (GATE-01)                                                                                              |    —    |
+| Job (display name)                       | What it does                                                                                                                                                                                       | In gate |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
+| `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                             |   yes   |
+| `lint-and-build` (Lint & Build)          | ESLint, Prettier check, build, typecheck; uploads `dist/`                                                                                                                                          |   yes   |
+| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`                                               |   yes   |
+| `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                                   |   yes   |
+| `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                               |   yes   |
+| `bdd-tests` (BDD Scenarios)              | `npm run bdd`                                                                                                                                                                                      |   yes   |
+| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set. Then `npm run lint:bdd-seam`, which fails on any scenario that spies on or reassigns an ESI client method      |   yes   |
+| `contract-tests` (Contract Tests)        | `npm run contract:live` with `ESI_LIVE_TESTS=true`; fails if the variable is missing rather than skipping; soft-skips on 503                                                                       |   yes   |
+| `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                                        |   yes   |
+| `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                                |   yes   |
+| `api-surface` (API Surface Check)        | Rebuilds `etc/esi.ts.api.md` and fails on a difference (GATE-03)                                                                                                                                   |   yes   |
+| `api-semver` (API SemVer Gate)           | `npm run api-report:semver`: fails when the report lost or changed a line and no commit in the pull request is `type!:`, has a `BREAKING CHANGE:` footer or an `API-Compatible:` trailer (GATE-03) |   yes   |
+| `lockfile` (Lockfile Consistency)        | `npm install --package-lock-only --ignore-scripts` then `git diff --exit-code package-lock.json`. For `dependabot[bot]` the step exits early with a notice; the job still reports success          |   yes   |
+| `dependency-audit` (Dependency Audit)    | Audits base and head, fails only on advisories the PR introduces. Its steps skip when `package.json` and `package-lock.json` are unchanged; the job still reports success                          |   yes   |
+| `documentation` (Generate Documentation) | Runs TypeDoc and uploads `docs-site/public/api/`, so a docs break is caught before `release.yml` runs `npm run docs`                                                                               |   yes   |
+| `zizmor` (Workflow Security (zizmor))    | `uvx zizmor@<pinned>` over `.github/` with `.zizmor.yml`, on every pull request                                                                                                                    |   yes   |
+| `ci-success` (ci-success)                | Fails unless every other job succeeded, and fails if a job is missing from its `needs` (GATE-01)                                                                                                   |    —    |
 
 The generated-types, schema-drift and contract steps all call the live ESI spec. Each captures its log and, if the failure contains `HTTP 503`, downgrades it to a `::warning::` and passes (`TEST-08`).
 
@@ -454,6 +469,7 @@ The same "explicit, reasoned exception" pattern appears in four more places:
 | `knip`                    | Dead code and unused exports (`knip.json`)                                              |
 | `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
 | `api-report:check`        | api-extractor, check mode                                                               |
+| `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)              |
 | `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`                                       |
 | `prepare`                 | Install husky hooks, then build                                                         |
 
