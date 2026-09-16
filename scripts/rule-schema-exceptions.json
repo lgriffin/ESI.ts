@@ -1,0 +1,29 @@
+{
+  "$comment": "Domain feature files whose Rule/schema findings are reported as warnings instead of errors by npm run validate:spec-consistency. A ratchet: an entry absent from the integration branch fails the run, and so does an entry whose file has no findings left. Entries can only be removed. A new or reconciled feature file is gated as an error from the start.",
+  "warnOnly": [
+    "tests/bdd/features/core/0001-alliance.feature",
+    "tests/bdd/features/core/0002-character.feature",
+    "tests/bdd/features/core/0003-corporation.feature",
+    "tests/bdd/features/core/0004-corporation-projects.feature",
+    "tests/bdd/features/core/0007-clones.feature",
+    "tests/bdd/features/core/0008-contacts.feature",
+    "tests/bdd/features/core/0009-contracts.feature",
+    "tests/bdd/features/core/0011-dogma.feature",
+    "tests/bdd/features/core/0014-fleets.feature",
+    "tests/bdd/features/core/0015-freelance-jobs.feature",
+    "tests/bdd/features/core/0017-industry.feature",
+    "tests/bdd/features/core/0020-location.feature",
+    "tests/bdd/features/core/0022-mail.feature",
+    "tests/bdd/features/core/0023-market.feature",
+    "tests/bdd/features/core/0024-mercenary.feature",
+    "tests/bdd/features/core/0026-military-campaigns.feature",
+    "tests/bdd/features/core/0027-paragon-hub.feature",
+    "tests/bdd/features/core/0031-skills.feature",
+    "tests/bdd/features/core/0032-skyhooks.feature",
+    "tests/bdd/features/core/0033-sovereignty.feature",
+    "tests/bdd/features/core/0034-status.feature",
+    "tests/bdd/features/core/0036-universe.feature",
+    "tests/bdd/features/core/0037-wallet.feature",
+    "tests/bdd/features/core/0038-wars.feature"
+  ]
+}
