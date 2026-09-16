@@ -1,5 +1,5 @@
 import { ESLint } from 'eslint';
-import tsParser from '@typescript-eslint/parser';
+import tseslint from 'typescript-eslint';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const seamRules = require('../../../eslint.bdd-seam.rules.cjs');
@@ -9,7 +9,7 @@ const eslint = new ESLint({
   overrideConfig: [
     {
       files: ['**/*.ts'],
-      languageOptions: { parser: tsParser },
+      languageOptions: { parser: tseslint.parser },
       rules: seamRules,
     },
   ],
