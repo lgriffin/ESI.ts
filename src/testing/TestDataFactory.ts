@@ -11,6 +11,7 @@ import {
   MarketOrder,
   WalletTransaction,
   Contract,
+  PublicContract,
   SovereigntySystem,
   SovereigntyHub,
   OrbitalSkyhook,
@@ -614,6 +615,25 @@ export class TestDataFactory {
       reward: 500000,
       collateral: 10000000,
       volume: 1000,
+      ...overrides,
+    };
+  }
+
+  static createPublicContract(
+    overrides: Partial<PublicContract> = {},
+  ): PublicContract {
+    return {
+      contract_id: 123456790,
+      issuer_id: 1689391488,
+      issuer_corporation_id: 1344654522,
+      start_location_id: 60003760,
+      type: 'item_exchange',
+      title: 'Test Item Exchange Contract',
+      for_corporation: false,
+      date_issued: '2023-12-01T12:00:00Z',
+      date_expired: '2023-12-15T12:00:00Z',
+      price: 50000000,
+      volume: 10,
       ...overrides,
     };
   }

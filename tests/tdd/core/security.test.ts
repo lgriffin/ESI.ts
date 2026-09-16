@@ -42,6 +42,7 @@ describe('Security: Token Handling', () => {
         players: 100,
         server_version: '1',
         start_time: '2024-01-01T00:00:00Z',
+        vip: false,
       }),
       { headers: standardHeaders() },
     );

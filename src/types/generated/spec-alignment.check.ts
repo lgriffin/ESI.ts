@@ -53,7 +53,12 @@ import type {
 } from '../character';
 import type { CloneInfo } from '../clones';
 import type { Contact, ContactLabel } from '../contacts';
-import type { Contract, ContractItem, ContractBid } from '../contracts';
+import type {
+  Contract,
+  ContractItem,
+  ContractBid,
+  PublicContract,
+} from '../contracts';
 import type {
   CorporationInfo,
   CorporationAllianceHistory,
@@ -298,6 +303,9 @@ type _ContactLabel = AssertTrue<
 // Contracts
 type _Contract = AssertTrue<
   HasAllSpecKeys<EsiSpec.CharactersCharacterIdContractsGet, Contract>
+>;
+type _PublicContract = AssertTrue<
+  HasAllSpecKeys<EsiSpec.ContractsPublicRegionIdGet, PublicContract>
 >;
 type _ContractItem = AssertTrue<
   HasAllSpecKeys<

@@ -58,6 +58,7 @@ import {
 
   // contracts
   ContractSchema,
+  PublicContractSchema,
   ContractItemSchema,
   ContractBidSchema,
 
@@ -693,6 +694,8 @@ const schemaCases: SchemaTestCase[] = [
       issuer_id: 100,
       issuer_corporation_id: 200,
       type: 'item_exchange',
+      status: 'outstanding',
+      availability: 'personal',
       date_issued: '2024-01-01T00:00:00Z',
       date_expired: '2024-02-01T00:00:00Z',
     },
@@ -702,6 +705,27 @@ const schemaCases: SchemaTestCase[] = [
       issuer_corporation_id: 200,
       type: 'item_exchange',
       date_issued: '2024-01-01T00:00:00Z',
+      date_expired: '2024-02-01T00:00:00Z',
+    },
+  },
+  {
+    name: 'PublicContractSchema',
+    schema: PublicContractSchema,
+    validData: {
+      contract_id: 1,
+      issuer_id: 100,
+      issuer_corporation_id: 200,
+      type: 'auction',
+      date_issued: '2024-01-01T00:00:00Z',
+      date_expired: '2024-02-01T00:00:00Z',
+      buyout: 25000000,
+    },
+    invalidData: {
+      contract_id: 1,
+      issuer_id: 100,
+      issuer_corporation_id: 200,
+      type: 'auction',
+      date_issued: 20240101,
       date_expired: '2024-02-01T00:00:00Z',
     },
   },
@@ -2148,6 +2172,7 @@ const schemaCases: SchemaTestCase[] = [
       players: 25000,
       server_version: '2024.1.1',
       start_time: '2024-01-01T11:05:00Z',
+      vip: false,
     },
     invalidData: {
       players: 'bad',

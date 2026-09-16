@@ -25,6 +25,8 @@ import type {
   FactionWarfareCorporationLeaderboard,
   FactionWarfareFactionLeaderboard,
   FactionWarfareLeaderboard,
+  Contract,
+  PublicContract,
 } from '../../src';
 
 // --- EsiResponse shape ---
@@ -86,6 +88,7 @@ declare const status: ServerStatus;
 expectType<number>(status.players);
 expectType<string>(status.server_version);
 expectType<string>(status.start_time);
+expectType<boolean>(status.vip);
 
 declare const killmail: Killmail;
 expectType<number>(killmail.killmail_id);
@@ -160,3 +163,13 @@ expectType<number | undefined>(
 expectAssignable<FactionWarfareLeaderboard>(factionBoard);
 expectAssignable<FactionWarfareLeaderboard>(characterBoard);
 expectAssignable<FactionWarfareLeaderboard>(corporationBoard);
+
+// --- Contracts ---
+
+declare const characterContract: Contract;
+expectAssignable<string>(characterContract.status);
+expectAssignable<string>(characterContract.availability);
+
+declare const publicContract: PublicContract;
+expectType<number>(publicContract.contract_id);
+expectAssignable<string>(publicContract.type);

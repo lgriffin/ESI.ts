@@ -41,6 +41,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 10000,
           server_version: '1',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         { headers: standardHeaders({ etag: '"test-etag-1"' }) },
       );
@@ -85,6 +86,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 5000,
           server_version: '1',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         { headers: standardHeaders() },
       );
@@ -140,6 +142,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 1,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders({ etag: '"clear-etag"' }),
@@ -190,6 +193,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 9999,
           server_version: '2',
           start_time: '2024-06-01T00:00:00Z',
+          vip: false,
         }),
         { headers: standardHeaders() },
       );
@@ -240,6 +244,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 1,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),
@@ -278,6 +283,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 1,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),
@@ -320,6 +326,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 1,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),
@@ -353,6 +360,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 1,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),
@@ -385,6 +393,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 42,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),
@@ -418,6 +427,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 1,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),
@@ -433,6 +443,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 2,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),
@@ -474,6 +485,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 1,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),
@@ -519,6 +531,7 @@ describe('Cross-Cutting Concerns', () => {
           players: 1,
           server_version: '1.0',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         {
           headers: standardHeaders(),

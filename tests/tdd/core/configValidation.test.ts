@@ -88,6 +88,7 @@ describe('Config Validation', () => {
           players: 100,
           server_version: '1',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         { headers: standardHeaders() },
       );
@@ -150,6 +151,7 @@ describe('Config Validation', () => {
           players: 42,
           server_version: '1',
           start_time: '2024-01-01T00:00:00Z',
+          vip: false,
         }),
         { headers: standardHeaders() },
       );

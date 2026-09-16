@@ -15,6 +15,7 @@ const STATUS_BODY = JSON.stringify({
   players: 30000,
   server_version: '2148422',
   start_time: '2026-04-29T11:00:00Z',
+  vip: false,
 });
 
 defineFeature(feature, (test) => {
