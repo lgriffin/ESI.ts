@@ -24,11 +24,12 @@ import { EsiError } from '../core/util/error';
 
 export class TestDataFactory {
   // Alliance test data
+
+  /** `GET /alliances/{alliance_id}`: the alliance ID is in the path, not the body. */
   static createAllianceInfo(
     overrides: Partial<AllianceInfo> = {},
   ): AllianceInfo {
     return {
-      alliance_id: 99005338,
       name: 'Goonswarm Federation',
       ticker: 'CONDI',
       creator_id: 1689391488,
@@ -240,6 +241,11 @@ export class TestDataFactory {
       system_id: 30000142,
       name: 'Jita',
       constellation_id: 20000020,
+      position: {
+        x: -129064861735000000,
+        y: 60755306910000000,
+        z: 117469227060000000,
+      },
       security_status: 0.9459991455078125,
       star_id: 40000001,
       stargates: [50000001, 50000002],
@@ -277,9 +283,9 @@ export class TestDataFactory {
     };
   }
 
+  /** `GET /universe/structures/{structure_id}`: the ID is in the path, not the body. */
   static createStructure(overrides: Record<string, any> = {}): any {
     return {
-      structure_id: 1021975535893,
       name: 'Test Citadel',
       owner_id: 1689391488,
       solar_system_id: 30000142,
@@ -289,13 +295,13 @@ export class TestDataFactory {
     };
   }
 
+  /** `GET /universe/types/{type_id}`: the category is on the group, not the type. */
   static createItemType(overrides: Record<string, any> = {}): any {
     return {
       type_id: 34,
       name: 'Tritanium',
       description: 'The most common ore type in the known universe.',
       group_id: 18,
-      category_id: 4,
       market_group_id: 1857,
       mass: 1.0,
       volume: 0.01,
@@ -318,9 +324,9 @@ export class TestDataFactory {
     };
   }
 
+  /** `GET /universe/stars/{star_id}`: the star ID is in the path, not the body. */
   static createStar(overrides: Record<string, any> = {}): any {
     return {
-      star_id: 40000001,
       name: 'Jita - Star',
       type_id: 3802,
       solar_system_id: 30000142,
@@ -344,14 +350,18 @@ export class TestDataFactory {
     };
   }
 
+  /**
+   * `GET /characters/{character_id}/search`: one list per requested category,
+   * keyed by the singular category name.
+   */
   static createSearchResults(overrides: Record<string, any> = {}): any {
     return {
-      systems: [],
-      stations: [],
-      structures: [],
-      characters: [],
-      corporations: [],
-      alliances: [],
+      solar_system: [],
+      station: [],
+      structure: [],
+      character: [],
+      corporation: [],
+      alliance: [],
       ...overrides,
     };
   }
@@ -554,11 +564,12 @@ export class TestDataFactory {
   }
 
   // Corporation test data
+
+  /** `GET /corporations/{corporation_id}`: the ID is in the path, not the body. */
   static createCorporationInfo(
     overrides: Partial<CorporationInfo> = {},
   ): CorporationInfo {
     return {
-      corporation_id: 1344654522,
       name: 'GoonWaffe',
       ticker: 'GEWNS',
       ceo_id: 1689391488,
@@ -623,6 +634,7 @@ export class TestDataFactory {
       issuer_id: 1689391488,
       issuer_corporation_id: 1344654522,
       assignee_id: 987654321,
+      acceptor_id: 0,
       start_location_id: 60003760,
       end_location_id: 60008494,
       type: 'courier',

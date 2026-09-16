@@ -654,7 +654,7 @@ Available factory methods:
 | `createPerformanceTestData(size)`    | Bulk test data                 |
 | `createRealisticTestData()`          | Linked alliance/corp/character |
 
-Every payload builder's default output passes the Zod schema its endpoint is validated with. `tests/tdd/testing/TestDataFactory.schemas.test.ts` enforces this, so a new builder must be added to its map.
+Every payload builder's default output passes the Zod schema its endpoint is validated with. `tests/tdd/testing/TestDataFactory.schemas.test.ts` enforces this, so a new builder must be added to its map. The same test checks that builders leave out fields ESI never sends (an entity's own ID on its detail route, for example) and include the fields its spec marks required.
 
 ## TDD Test Pattern
 

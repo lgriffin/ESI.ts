@@ -22,9 +22,7 @@ function corporationRecordPath(id: number): RegExp {
 
 /** The public corporation record as ESI sends it: no corporation_id field. */
 function corporationRecord(overrides: Record<string, unknown> = {}) {
-  const { corporation_id: _omitted, ...record } =
-    TestDataFactory.createCorporationInfo();
-  return { ...record, ...overrides };
+  return TestDataFactory.createCorporationInfo(overrides);
 }
 
 defineFeature(feature, (test) => {

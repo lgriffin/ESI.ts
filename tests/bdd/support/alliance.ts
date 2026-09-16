@@ -29,15 +29,12 @@ export const allianceMatches = {
 
 export const allianceFixtures = {
   /** ESI does not echo alliance_id in the record body. */
-  goonswarmRecord: () => {
-    const { alliance_id: _omitted, ...record } =
-      TestDataFactory.createAllianceInfo({
-        name: 'Goonswarm Federation',
-        ticker: 'CONDI',
-        creator_id: 1689391488,
-      });
-    return record;
-  },
+  goonswarmRecord: () =>
+    TestDataFactory.createAllianceInfo({
+      name: 'Goonswarm Federation',
+      ticker: 'CONDI',
+      creator_id: 1689391488,
+    }),
 
   record: () => TestDataFactory.createAllianceInfo(),
 
