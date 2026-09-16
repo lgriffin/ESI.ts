@@ -1,12 +1,14 @@
 Feature: ETag Caching
   The EsiClient caches GET responses that carry an ETag header, keyed by
-  endpoint. Each entry takes its TTL from the endpoint's cache metadata in the
-  ESI spec where there is one, so a repeat request inside that window is
-  answered from memory with no HTTP call at all. Otherwise the TTL comes from
-  the Cache-Control max-age or the configured default, and a repeat request is
-  sent with If-None-Match. Entries are only created for responses that
-  actually carry an ETag. The cache is on by default; enableETagCache: false
-  turns it off.
+  endpoint. Each entry takes its freshness TTL from the endpoint's cache
+  metadata in the ESI spec where there is one, so a repeat request inside that
+  window is answered from memory with no HTTP call at all. Otherwise the TTL
+  comes from the Cache-Control max-age, and a repeat request is sent with
+  If-None-Match. An entry is kept for an hour past its freshness TTL, or for
+  the configured default when the response gave none, so a request after the
+  TTL still revalidates. Entries are only created for responses that actually
+  carry an ETag. The cache is on by default; enableETagCache: false turns it
+  off.
 
   The cache is also what lets a request survive a server error: a 5xx answered
   while an unexpired entry exists is served from that entry and flagged stale.
@@ -72,9 +74,9 @@ Feature: ETag Caching
     A server error on a resource the client already holds is better answered
     with the last good copy than with a failure. The entry has to be unexpired:
     the cache evicts an expired entry on lookup, so there is nothing to serve.
-    For an endpoint with a spec cache TTL an unexpired entry is served before
-    any request leaves the client, so this path serves endpoints without one,
-    whose revalidation request goes out with If-None-Match. The stale body is
+    An entry expires an hour after its freshness TTL, so for an endpoint with a
+    spec cache TTL this path serves the requests made after that TTL. The
+    revalidation request goes out with If-None-Match. The stale body is
     returned without retrying, and withMetadata reports stale as true and
     cacheHitType as stale-on-error.
 

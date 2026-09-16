@@ -19,6 +19,26 @@ export interface EsiHandlerResponse {
 }
 
 /**
+ * How long a cached entry is kept after its freshness TTL elapses. Past the
+ * freshness TTL the entry is no longer served without a request, but it still
+ * supplies the ETag for an `If-None-Match` revalidation and the body served
+ * stale when ESI answers with a 5xx. One hour spans ESI's daily downtime. The
+ * cache's `maxEntries` still bounds memory.
+ */
+const STALE_RETENTION_MS = 60 * 60 * 1000;
+
+/**
+ * The lifetime to store an entry for: its freshness TTL plus the stale
+ * retention window. Undefined when the response gave no freshness TTL, so the
+ * cache applies its own `defaultTtl`.
+ */
+function retentionTtl(freshnessTtlMs: number | undefined): number | undefined {
+  return freshnessTtlMs === undefined
+    ? undefined
+    : freshnessTtlMs + STALE_RETENTION_MS;
+}
+
+/**
  * Look up the spec-defined cache TTL for a given method + template path.
  * Returns TTL in milliseconds, or undefined if not found.
  */
@@ -118,9 +138,13 @@ export function cacheResponse(
     const specTtlMs = templatePath
       ? lookupSpecTtl(method, templatePath)
       : undefined;
-    const ttl = specTtlMs ?? headerTtl;
+    const freshnessTtl = specTtlMs ?? headerTtl;
+    const ttl = retentionTtl(freshnessTtl);
     cache.set(key, parsed.etag, data, parsed.raw, ttl);
-    const ttlInfo = ttl ? ` (ttl=${ttl}ms)` : '';
+    const ttlInfo =
+      freshnessTtl !== undefined
+        ? ` (ttl=${freshnessTtl}ms, kept for ${ttl}ms)`
+        : '';
     logDebug(
       client,
       `Cached response for ${url} with ETag ${parsed.etag}${ttlInfo}`,

@@ -123,6 +123,20 @@ describe('ETagCacheManager', () => {
       expect(cacheManager.has('url0')).toBe(false); // Oldest should be evicted
       expect(cacheManager.has('url5')).toBe(true); // Newest should be present
     });
+
+    it('should evict nothing when replacing an entry in a full cache', () => {
+      for (let i = 0; i < 5; i++) {
+        cacheManager.set(`url${i}`, `"etag${i}"`, [], {});
+      }
+
+      cacheManager.set('url3', '"etag3b"', [], {});
+
+      expect(cacheManager.getStats().totalEntries).toBe(5);
+      for (let i = 0; i < 5; i++) {
+        expect(cacheManager.has(`url${i}`)).toBe(true);
+      }
+      expect(cacheManager.getETag('url3')).toBe('"etag3b"');
+    });
   });
 
   describe('Cleanup Operations', () => {
