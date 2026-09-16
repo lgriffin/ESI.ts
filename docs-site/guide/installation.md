@@ -8,6 +8,17 @@ npm install @lgriffin/esi.ts
 
 Requires Node.js 18 or later.
 
+### Optional peer dependencies
+
+Some sub-paths use packages that are optional peer dependencies, so `npm install @lgriffin/esi.ts` does not install them. Install them only for the features that need them:
+
+| Package   | Needed by                                               | Install               |
+| --------- | ------------------------------------------------------- | --------------------- |
+| `js-yaml` | `SdeDataProvider.fromDirectory` and `fromZip` (`./sde`) | `npm install js-yaml` |
+| `adm-zip` | `SdeDataProvider.fromZip` (`./sde`)                     | `npm install adm-zip` |
+
+Every entry point, including `@lgriffin/esi.ts/sde`, loads without them. A call that needs a missing one throws an `SdeError` whose message names the package and its install command. See [SDE](./sde.md).
+
 ## Sub-path Exports
 
 ESI.ts provides targeted imports to reduce bundle size:

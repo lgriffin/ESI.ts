@@ -4,8 +4,9 @@
 
 - Node.js 18+
 - SDE data downloaded locally (YAML files from CCP's Static Data Export)
+- `js-yaml` for `SdeDataProvider.fromDirectory` and `fromZip`, plus `adm-zip` for `fromZip`: `npm install js-yaml adm-zip`
 
-No additional runtime dependencies are required. The SDE module reads YAML files directly from disk into in-memory Maps.
+Both are optional peer dependencies of `@lgriffin/esi.ts`, so installing the library does not install them. Importing `@lgriffin/esi.ts/sde` works without them, and `MemorySdeProvider` never needs them; a call that reads YAML or a ZIP without the package it needs throws an `SdeError` naming the package and its install command. The SDE module reads YAML files directly from disk into in-memory Maps; no database is involved.
 
 ## Downloading SDE Data
 
@@ -16,6 +17,7 @@ npx ts-node scripts/sde-ingest.ts --output sde-data
 This downloads the latest SDE ZIP from CCP (~200 MB), extracts all YAML files to `./sde-data/`, and cleans up the archive. The directory is gitignored by default.
 
 Options:
+
 - `--output, -o` — output directory (default: `./sde-data`)
 - `--check` — check for the latest build without downloading
 - `--force` — re-download even if data already exists
@@ -61,9 +63,9 @@ Parses YAML files directly from the ZIP without extracting to disk.
 Every entity has a dedicated `getXxx(id)` method that returns `T | null`:
 
 ```ts
-const tritanium = sde.getType(34);        // EveType | null
+const tritanium = sde.getType(34); // EveType | null
 const jita = sde.getSolarSystem(30000142); // SolarSystem | null
-const caldari = sde.getFaction(500001);    // Faction | null
+const caldari = sde.getFaction(500001); // Faction | null
 ```
 
 ### Query by foreign key
@@ -71,9 +73,9 @@ const caldari = sde.getFaction(500001);    // Faction | null
 Methods like `getXxxsByYyy(fkValue)` return arrays of related entities:
 
 ```ts
-const minerals = sde.getTypesByGroup(18);                 // EveType[]
+const minerals = sde.getTypesByGroup(18); // EveType[]
 const forgeConstellations = sde.getConstellationsByRegion(10000002); // Constellation[]
-const jitaGates = sde.getStargatesBySystem(30000142);     // Stargate[]
+const jitaGates = sde.getStargatesBySystem(30000142); // Stargate[]
 const caldariCorps = sde.getNpcCorporationsByFaction(500001); // NpcCorporation[]
 ```
 
@@ -84,9 +86,9 @@ FK indexes are built lazily on first access and cached for subsequent queries.
 Text search methods do case-insensitive substring matching with an optional limit:
 
 ```ts
-const results = sde.searchTypesByName('Rifter', 10);       // EveType[]
-const systems = sde.searchSolarSystemsByName('Jita');       // SolarSystem[]
-const attrs = sde.searchDogmaAttributesByName('hp', 5);     // DogmaAttribute[]
+const results = sde.searchTypesByName('Rifter', 10); // EveType[]
+const systems = sde.searchSolarSystemsByName('Jita'); // SolarSystem[]
+const attrs = sde.searchDogmaAttributesByName('hp', 5); // DogmaAttribute[]
 ```
 
 ### Get all records
@@ -94,8 +96,8 @@ const attrs = sde.searchDogmaAttributesByName('hp', 5);     // DogmaAttribute[]
 Collection methods return every entity of a given type:
 
 ```ts
-const allRegions = sde.getAllRegions();       // Region[]
-const allFactions = sde.getAllFactions();     // Faction[]
+const allRegions = sde.getAllRegions(); // Region[]
+const allFactions = sde.getAllFactions(); // Faction[]
 const allMetaGroups = sde.getAllMetaGroups(); // MetaGroup[]
 ```
 
@@ -121,11 +123,13 @@ Table names follow the pattern `eve_<entity>` (e.g., `eve_types`, `eve_solar_sys
 Use `getAllEntities` with standard array methods:
 
 ```ts
-const publishedTypes = sde.getAllEntities<EveType>('eve_types')
-  .filter(t => t.published === true);
+const publishedTypes = sde
+  .getAllEntities<EveType>('eve_types')
+  .filter((t) => t.published === true);
 
-const highsecSystems = sde.getAllEntities<SolarSystem>('eve_solar_systems')
-  .filter(s => s.securityStatus >= 0.5);
+const highsecSystems = sde
+  .getAllEntities<SolarSystem>('eve_solar_systems')
+  .filter((s) => s.securityStatus >= 0.5);
 ```
 
 ## Error Handling
@@ -143,7 +147,8 @@ try {
 ```
 
 Error types:
-- `SdeError` — base class for all SDE errors
+
+- `SdeError` — base class for all SDE errors; also thrown when `js-yaml` or `adm-zip`, the optional peer dependencies, is needed but not installed (the message names the package and its `npm install` command)
 - `SdeDatabaseError` — data loading or parsing failure
 - `SdeValidationError` — Zod schema validation failure
 - `SdeVersionMismatchError` — version compatibility issue

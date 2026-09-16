@@ -97,6 +97,8 @@ Raised by the offline Static Data Export module, which shares no code with the H
 | `SdeValidationError`      | `validationError`, `entityType`, `entityId?` | A stored row failed its schema.                           |
 | `SdeVersionMismatchError` | `expected`, `actual`                         | The loaded SDE build is not the one the caller asked for. |
 
+`SdeDataProvider.fromDirectory` and `fromZip` also throw a plain `SdeError` when the call needs `js-yaml` or `adm-zip`, the optional peer dependencies of `./sde`, and it is not installed. The message names the package and its `npm install` command.
+
 ---
 
 ## Type guards and where to import them
