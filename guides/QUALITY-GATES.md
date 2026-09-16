@@ -21,7 +21,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Coverage thresholds + PR comment           |   ·    |            ·             |        ●         |       ·       |      ·       |
 | BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |      ●       |
 | EARS spec audit                            |   ·    |            ·             |        ●         |       ·       |      ·       |
-| Generated types fresh, schema drift        |   ·    |            ·             |      ● (3)       | ◐ files issue |      ●       |
+| Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |      ●       |
 | Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Contract tests                             |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |      ·       |
 | Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |      ●       |
@@ -47,6 +47,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 4. From `maintenance.yml`, which runs weekly and only uploads artifacts.
 5. Runs and reports a status, but is outside `ci-success`, so a red result does not stop a merge. See [What actually blocks a merge](#what-actually-blocks-a-merge).
 6. Threshold `high`, after removing advisories accepted in `scripts/audit-exceptions.json`.
+7. Blocks only when the pull request touches the check's inputs; otherwise a failure is pre-existing drift, reported as a warning and left to the nightly `spec-drift` issue. See [`static-analysis`](#ciyml--cicd-pipeline).
 
 ### What actually blocks a merge
 
@@ -106,13 +107,13 @@ knip runs with `--no-exit-code` in `ci.yml` (`static-analysis`), `release.yml` (
 
 ### GATE-05 · Nightlies file issues
 
-| Nightly                    | Finds a problem →                                                                    |
-| -------------------------- | ------------------------------------------------------------------------------------ |
-| `nightly-audit.yml`        | Creates or comments on an issue labelled `security-audit`; auto-closes it when clean |
-| `nightly-spec-drift.yml`   | Creates or comments on an issue labelled `spec-drift`; auto-closes it when clean     |
-| `nightly-mutation.yml`     | Uploads `reports/mutation/` as an artifact only                                      |
-| `nightly-schemathesis.yml` | Uploads `reports/schemathesis/` as an artifact only                                  |
-| `nightly-no-retry.yml`     | Fails the run and uploads `reports/no-retry/` as an artifact only                    |
+| Nightly                    | Finds a problem →                                                                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nightly-audit.yml`        | Creates or comments on an issue labelled `security-audit`; auto-closes it when clean                                                                |
+| `nightly-spec-drift.yml`   | Creates or comments on an issue labelled `spec-drift`; auto-closes it when clean. If the check itself fails, the same for `spec-drift-check-failed` |
+| `nightly-mutation.yml`     | Uploads `reports/mutation/` as an artifact only                                                                                                     |
+| `nightly-schemathesis.yml` | Uploads `reports/schemathesis/` as an artifact only                                                                                                 |
+| `nightly-no-retry.yml`     | Fails the run and uploads `reports/no-retry/` as an artifact only                                                                                   |
 
 Both issue-filing workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation, Schemathesis and the no-retry run still need an issue step (bead `esi-mbr`).
 
@@ -144,22 +145,22 @@ Test files are formatted but not linted, at commit or anywhere else (`TEST-09`).
 
 All workflows live in `.github/workflows/`. Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
 
-| Workflow                   | Trigger                                                          | Blocks                        | Output                                        |
-| -------------------------- | ---------------------------------------------------------------- | ----------------------------- | --------------------------------------------- |
-| `ci-fast.yml`              | Push, any branch                                                 | No (covered by `ci-success`)  | Status                                        |
-| `ci.yml`                   | Pull request to `master`, `main`, `develop`                      | Required check (`ci-success`) | Status, coverage comment, artifacts           |
-| `package-checks.yml`       | Pull request to `master`, `main`                                 | No                            | Status, step summary                          |
-| `codeql.yml`               | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC      | No                            | Code scanning alerts                          |
-| `skill-eval.yml`           | PR touching `.claude/skills/**` or the skill eval runner; manual | No                            | Status, artifacts                             |
-| `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                          | No                            | Artifact                                      |
-| `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                          | No                            | Artifact                                      |
-| `nightly-no-retry.yml`     | Daily 03:00 UTC; manual                                          | No                            | Artifact                                      |
-| `nightly-audit.yml`        | Daily 05:00 UTC; manual                                          | No                            | `security-audit` issue                        |
-| `nightly-spec-drift.yml`   | Daily 06:00 UTC; manual                                          | No                            | `spec-drift` issue                            |
-| `scorecard.yml`            | Mondays 04:00 UTC; manual; branch protection rule change         | No                            | SARIF to code scanning, public score          |
-| `maintenance.yml`          | Mondays 09:00 UTC; manual                                        | No                            | Artifacts                                     |
-| `release-please.yml`       | Push to `master`                                                 | —                             | Release PR, tag, GitHub release               |
-| `release.yml`              | Tag `v*.*.*` pushed; GitHub release published                    | Publishing                    | npm, GitHub Packages, gh-pages, signed assets |
+| Workflow                   | Trigger                                                          | Blocks                        | Output                                         |
+| -------------------------- | ---------------------------------------------------------------- | ----------------------------- | ---------------------------------------------- |
+| `ci-fast.yml`              | Push, any branch                                                 | No (covered by `ci-success`)  | Status                                         |
+| `ci.yml`                   | Pull request to `master`, `main`, `develop`                      | Required check (`ci-success`) | Status, coverage comment, artifacts            |
+| `package-checks.yml`       | Pull request to `master`, `main`                                 | No                            | Status, step summary                           |
+| `codeql.yml`               | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC      | No                            | Code scanning alerts                           |
+| `skill-eval.yml`           | PR touching `.claude/skills/**` or the skill eval runner; manual | No                            | Status, artifacts                              |
+| `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                          | No                            | Artifact                                       |
+| `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                          | No                            | Artifact                                       |
+| `nightly-no-retry.yml`     | Daily 03:00 UTC; manual                                          | No                            | Artifact                                       |
+| `nightly-audit.yml`        | Daily 05:00 UTC; manual                                          | No                            | `security-audit` issue                         |
+| `nightly-spec-drift.yml`   | Daily 06:00 UTC; manual                                          | No                            | `spec-drift` / `spec-drift-check-failed` issue |
+| `scorecard.yml`            | Mondays 04:00 UTC; manual; branch protection rule change         | No                            | SARIF to code scanning, public score           |
+| `maintenance.yml`          | Mondays 09:00 UTC; manual                                        | No                            | Artifacts                                      |
+| `release-please.yml`       | Push to `master`                                                 | —                             | Release PR, tag, GitHub release                |
+| `release.yml`              | Tag `v*.*.*` pushed; GitHub release published                    | Publishing                    | npm, GitHub Packages, gh-pages, signed assets  |
 
 ### `ci-fast.yml` — CI Fast
 
@@ -173,7 +174,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
 | `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                                                                                               |   yes   |
 | `lint-and-build` (Lint & Build)          | ESLint, Prettier check, build, typecheck; uploads `dist/`                                                                                                                                                                                                            |   yes   |
-| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`                                                                                                                 |   yes   |
+| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`. The two live-spec checks block only when the pull request touches their inputs (below)                         |   yes   |
 | `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                                                                                                     |   yes   |
 | `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                                                                                                 |   yes   |
 | `bdd-tests` (BDD Scenarios)              | `npm run bdd`                                                                                                                                                                                                                                                        |   yes   |
@@ -191,6 +192,15 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `ci-success` (ci-success)                | Fails unless every other job succeeded, and fails if a job is missing from its `needs` (GATE-01)                                                                                                                                                                     |    —    |
 
 The generated-types, schema-drift and contract steps all call the live ESI spec. Each captures its log and, if the failure contains `HTTP 503`, downgrades it to a `::warning::` and passes (`TEST-08`).
+
+Like `npm audit`, the generated-types and schema-drift checks report the state of the world: CCP changing ESI turns them red on every open pull request. `static-analysis` therefore first compares the merge commit with its base tip (`HEAD^1`) and blocks on each check only when the pull request touches that check's inputs:
+
+| Check                     | Inputs                                                                                                                                        |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Generated types freshness | `scripts/generate-esi-types.ts`, `src/types/generated/`, `src/core/endpoints/esi-cache-ttls.generated.ts`                                     |
+| Schema drift              | `scripts/generate-schema-drift-report.ts`, `scripts/schema-drift-exceptions.json`, `src/schemas/`, `src/core/endpoints/`, `package-lock.json` |
+
+Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` still blocks on both checks unconditionally.
 
 The lockfile check skips Dependabot because Dependabot's npm version produces byte-level lockfile differences. When regenerating a lockfile locally, use the npm major that CI uses so the file round-trips.
 
@@ -316,6 +326,8 @@ If any of the three checks found drift, the workflow ensures the `spec-drift` la
 - No open `spec-drift` issue: a new one is created.
 - An open one exists: the new body is added as a comment.
 - No drift at all: any open `spec-drift` issue is closed automatically with a dated comment.
+
+If `check-spec-drift` itself fails (the endpoint script exits `2`, the report is unreadable, `npm ci` or a `gh` call fails), the `report-check-failure` job opens an issue titled `spec-drift: nightly check failed` with the label `spec-drift-check-failed` and a link to the run, or comments on the open one. The next run that completes closes it. A cancelled run does neither.
 
 The run's step summary also carries the compatibility date, the three flags and the raw drift report.
 
