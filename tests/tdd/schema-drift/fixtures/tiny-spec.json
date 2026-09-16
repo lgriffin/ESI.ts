@@ -1,0 +1,73 @@
+{
+  "paths": {
+    "/corporations/{corporation_id}/projects": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Project" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/corporations/{corporation_id}/projects/{project_id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["players"],
+                  "properties": {
+                    "players": { "type": "integer" },
+                    "vip": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "required": ["id", "name", "progress"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "progress": {
+            "type": "object",
+            "required": ["current"],
+            "properties": {
+              "current": { "type": "integer" },
+              "desired": { "type": "integer" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
