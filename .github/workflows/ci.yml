@@ -257,9 +257,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # contract:live, not contract: if ESI_LIVE_TESTS were dropped from env below,
+      # `contract` would skip every suite and pass. contract:live throws instead.
       - name: Run contract tests
         run: |
-          if npm run contract 2>&1 | tee /tmp/contract.log; then
+          if npm run contract:live 2>&1 | tee /tmp/contract.log; then
             true
           elif grep -q "HTTP 503" /tmp/contract.log; then
             echo "::warning::ESI API returned 503 — skipping contract tests"

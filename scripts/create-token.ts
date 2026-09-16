@@ -458,7 +458,7 @@ async function main(): Promise<void> {
       console.log('\nUsage:');
       console.log('  # Load env vars and run live tests');
       console.log('  export $(grep -v "^#" .env | xargs)');
-      console.log('  npm run test:integration:live');
+      console.log('  ESI_LIVE_TESTS=true npm run test:integration:live');
       console.log('\n  # Or use Node --env-file flag (Node 20.6+)');
       console.log(
         '  node --env-file=.env -e "console.log(process.env.ESI_ACCESS_TOKEN)"',
