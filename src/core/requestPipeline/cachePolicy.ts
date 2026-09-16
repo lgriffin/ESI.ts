@@ -131,6 +131,22 @@ export function cacheResponse(
     );
   }
 
+  invalidateAfterWrite(client, method, endpoint, resolveCache);
+}
+
+/**
+ * Evict cached reads under the endpoint's path after a successful write, so a
+ * read that follows a POST/PUT/DELETE fetches rather than serving the
+ * pre-write copy. Called for every 2xx status, including the body-less
+ * 201/204 replies that return before a response is cached.
+ */
+export function invalidateAfterWrite(
+  client: ApiClient,
+  method: string,
+  endpoint: string,
+  resolveCache: (client: ApiClient) => ICache | null,
+): void {
+  const cache = resolveCache(client);
   if (method !== 'GET' && cache) {
     cache.deleteByPath(endpoint.split('?')[0]!);
   }

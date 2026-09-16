@@ -3,6 +3,7 @@ import { ApiClient } from './ApiClient';
 import {
   trySpecAwareCacheHit,
   cacheResponse,
+  invalidateAfterWrite,
   handleEarlyStatus,
   handleErrorResponse,
   wrapError,
@@ -60,6 +61,10 @@ const executeRequest = async (
       requestTimeout,
       templatePath,
     );
+
+    if (response.status === 201 || response.status === 204) {
+      invalidateAfterWrite(client, method, endpoint, resolveCache);
+    }
 
     if (response.status === 201) {
       let data: unknown;

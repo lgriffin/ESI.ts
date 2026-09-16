@@ -128,6 +128,60 @@ describe('ApiRequestHandler', () => {
     });
   });
 
+  describe('cache invalidation after a write', () => {
+    let cache: ETagCacheManager;
+
+    beforeEach(() => {
+      cache = new ETagCacheManager({ maxEntries: 100, defaultTtl: 60000 });
+      client.setCache(cache);
+      client.setAccessToken('test-token');
+      cache.set(
+        `${BASE_URL}/v1/characters/123/contacts/`,
+        '"etag-1"',
+        [{ contact_id: 1 }],
+        { 'content-type': 'application/json' },
+      );
+    });
+
+    afterEach(() => cache.shutdown());
+
+    it.each([
+      ['POST', 201, JSON.stringify([2])],
+      ['PUT', 204, null],
+      ['DELETE', 204, null],
+      ['PUT', 200, JSON.stringify({})],
+    ])(
+      'evicts cached reads under the path after a %s answered with %i',
+      async (method, status, body) => {
+        fetchMock.mockResolvedValueOnce(new Response(body, { status }));
+
+        await handleRequest(
+          client,
+          'v1/characters/123/contacts/',
+          method,
+          method === 'DELETE' ? undefined : [2],
+          true,
+        );
+
+        expect(cache.has(`${BASE_URL}/v1/characters/123/contacts/`)).toBe(
+          false,
+        );
+      },
+    );
+
+    it('keeps cached reads when the write is rejected', async () => {
+      fetchMock.mockResolvedValueOnce(
+        new Response('{"error":"forbidden"}', { status: 403 }),
+      );
+
+      await expect(
+        handleRequest(client, 'v1/characters/123/contacts/', 'POST', [2], true),
+      ).rejects.toThrow(EsiError);
+
+      expect(cache.has(`${BASE_URL}/v1/characters/123/contacts/`)).toBe(true);
+    });
+  });
+
   describe('5xx with stale cache', () => {
     it('should serve stale cache on 500 when cached data exists', async () => {
       const cache = new ETagCacheManager({

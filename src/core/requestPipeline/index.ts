@@ -4,6 +4,7 @@ export {
   trySpecAwareCacheHit,
   tryStaleCacheResponse,
   cacheResponse,
+  invalidateAfterWrite,
 } from './cachePolicy';
 export type { EsiHandlerResponse } from './cachePolicy';
 export {
