@@ -23,7 +23,6 @@
     "tests/bdd/step-definitions/core/incursions.steps.ts",
     "tests/bdd/step-definitions/core/industry.steps.ts",
     "tests/bdd/step-definitions/core/insurance.steps.ts",
-    "tests/bdd/step-definitions/core/killmails.steps.ts",
     "tests/bdd/step-definitions/core/location.steps.ts",
     "tests/bdd/step-definitions/core/loyalty.steps.ts",
     "tests/bdd/step-definitions/core/mail.steps.ts",
