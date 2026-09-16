@@ -43,7 +43,6 @@
     "tests/bdd/step-definitions/core/token-management.steps.ts",
     "tests/bdd/step-definitions/core/ui.steps.ts",
     "tests/bdd/step-definitions/core/universe.steps.ts",
-    "tests/bdd/step-definitions/core/wallet.steps.ts",
     "tests/bdd/step-definitions/integration/integration-workflows.steps.ts",
     "tests/bdd/step-definitions/performance/performance.steps.ts",
     "tests/bdd/step-definitions/sde/sde-character-lore.steps.ts",
