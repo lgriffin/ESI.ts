@@ -46,7 +46,7 @@ defineFeature(feature, (test) => {
     given('the ESI API is unavailable', () => {
       jest
         .spyOn(client.status, 'getStatus')
-        .mockRejectedValue(new EsiError('Service Unavailable', 503));
+        .mockRejectedValue(new EsiError(503, 'Service Unavailable'));
     });
 
     when('the client requests the status', async () => {
