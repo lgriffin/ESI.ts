@@ -60,16 +60,20 @@ Feature: Contract Management
 
   # ── Contract contents ───────────────────────────────────────────────
 
-  Rule: When bids are requested for an auction contract, the Contracts client shall return an array whose entries each carry bid_id, bidder_id, and amount.
+  Rule: When bids are requested for a character auction contract, the Contracts client shall return an array whose entries each carry bid_id, bidder_id, and amount.
     Bids decide who wins an auction, so the amount and the bidder are the
-    whole content of an entry. The private read and the public read return the
-    same entry shape, which is why both scenarios sit here; the difference is
-    only whether a token scopes the request to the caller's own contract.
+    whole content of an entry. The token scopes the read to a contract the
+    character is party to, which is why ESI names the bidder here.
 
     Scenario: Bid history on a character auction contract
       Given an auction contract with bids
       When the client requests contract bids
       Then the client shall return a list of bids
+
+  Rule: When bids are requested for a public auction contract, the Contracts client shall return an array whose entries each carry bid_id, date_bid, and amount.
+    The public read needs no token and ESI does not name the bidder on it
+    (ContractsPublicBidsContractIdGet has no bidder_id), so the public entry
+    shape differs from the character one.
 
     Scenario: Bid history on a public auction contract
       Given a public auction contract
@@ -85,6 +89,17 @@ Feature: Contract Management
       Given an item exchange contract
       When the client requests contract items
       Then the client shall return the list of items
+
+  Rule: When items are requested for a public contract, the Contracts client shall return an array whose entries each carry type_id, quantity, and is_included, and material_efficiency when present.
+    ESI sends no is_singleton on a public item line
+    (ContractsPublicItemsContractIdGet). A blueprint line carries its item_id,
+    copy flag, efficiencies and runs instead, which is what a buyer needs to
+    price it.
+
+    Scenario: Item lines on a public contract selling minerals and a blueprint copy
+      Given a public item exchange contract with a blueprint copy
+      When the client requests public contract items
+      Then the client shall return the public item lines
 
   Rule: When a contract is located in the character list and its bids and items are then requested, the Contracts client shall resolve every call in the sequence.
     This is the ordinary inspection path: find the contract, then open it. The

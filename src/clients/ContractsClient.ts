@@ -6,6 +6,8 @@ import {
   ContractBid,
   ContractItem,
   PublicContract,
+  PublicContractBid,
+  PublicContractItem,
 } from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
@@ -70,9 +72,10 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
    * Retrieve bids placed on a public auction contract.
    *
    * @param contractId - The ID of the public contract whose bids to retrieve
-   * @returns A list of bids with bidder, amount, and timestamp
+   * @returns A list of bids with amount and timestamp. ESI does not name the
+   *   bidder on a public contract.
    */
-  getPublicContractBids(contractId: number): Promise<ContractBid[]> {
+  getPublicContractBids(contractId: number): Promise<PublicContractBid[]> {
     return this.api.getPublicContractBids(contractId);
   }
 
@@ -80,9 +83,10 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
    * Retrieve the items included in a public contract.
    *
    * @param contractId - The ID of the public contract whose items to retrieve
-   * @returns A list of items in the contract with type, quantity, and included/excluded status
+   * @returns A list of items in the contract with type, quantity, and included/excluded
+   *   status; blueprint lines also carry item ID, efficiencies and runs
    */
-  getPublicContractItems(contractId: number): Promise<ContractItem[]> {
+  getPublicContractItems(contractId: number): Promise<PublicContractItem[]> {
     return this.api.getPublicContractItems(contractId);
   }
 

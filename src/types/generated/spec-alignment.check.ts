@@ -11,7 +11,7 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 104
+ * - Type pairs asserted: 106
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
@@ -58,6 +58,8 @@ import type {
   ContractItem,
   ContractBid,
   PublicContract,
+  PublicContractItem,
+  PublicContractBid,
 } from '../contracts';
 import type {
   CorporationInfo,
@@ -318,6 +320,12 @@ type _ContractBid = AssertTrue<
     EsiSpec.CharactersCharacterIdContractsContractIdBidsGet,
     ContractBid
   >
+>;
+type _PublicContractItem = AssertTrue<
+  HasAllSpecKeys<EsiSpec.ContractsPublicItemsContractIdGet, PublicContractItem>
+>;
+type _PublicContractBid = AssertTrue<
+  HasAllSpecKeys<EsiSpec.ContractsPublicBidsContractIdGet, PublicContractBid>
 >;
 
 // Corporation

@@ -61,6 +61,8 @@ import {
   PublicContractSchema,
   ContractItemSchema,
   ContractBidSchema,
+  PublicContractItemSchema,
+  PublicContractBidSchema,
 
   // corporation
   CorporationInfoSchema,
@@ -693,8 +695,11 @@ const schemaCases: SchemaTestCase[] = [
       contract_id: 1,
       issuer_id: 100,
       issuer_corporation_id: 200,
+      assignee_id: 0,
+      acceptor_id: 0,
       type: 'item_exchange',
       status: 'outstanding',
+      for_corporation: false,
       availability: 'personal',
       date_issued: '2024-01-01T00:00:00Z',
       date_expired: '2024-02-01T00:00:00Z',
@@ -745,6 +750,35 @@ const schemaCases: SchemaTestCase[] = [
       quantity: 10,
       is_singleton: false,
       is_included: true,
+    },
+  },
+  {
+    name: 'PublicContractItemSchema',
+    schema: PublicContractItemSchema,
+    validData: {
+      record_id: 1,
+      type_id: 587,
+      quantity: 10,
+      is_included: true,
+    },
+    invalidData: {
+      record_id: 1,
+      type_id: 587,
+      quantity: 10,
+      is_included: 'yes',
+    },
+  },
+  {
+    name: 'PublicContractBidSchema',
+    schema: PublicContractBidSchema,
+    validData: {
+      bid_id: 1,
+      date_bid: '2024-01-01T00:00:00Z',
+      amount: 1000000.0,
+    },
+    invalidData: {
+      bid_id: 1,
+      date_bid: '2024-01-01T00:00:00Z',
     },
   },
   {

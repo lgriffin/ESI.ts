@@ -65,6 +65,14 @@ const cases: Array<{
     body: characterContract,
     field: 'availability',
   },
+  ...(['assignee_id', 'acceptor_id', 'for_corporation'] as const).map(
+    (field) => ({
+      schema: 'ContractSchema',
+      zod: ContractSchema as z.ZodType,
+      body: characterContract,
+      field,
+    }),
+  ),
 ];
 
 describe('Schemas require the fields ESI marks required', () => {

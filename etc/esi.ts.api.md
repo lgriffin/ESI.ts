@@ -2151,7 +2151,7 @@ export type Contract = z.infer<typeof ContractSchema>;
 // @public (undocumented)
 export type ContractBid = z.infer<typeof ContractBidSchema>;
 
-// @public (undocumented)
+// @public
 const ContractBidSchema: z.ZodObject<{
     bid_id: z.ZodNumber;
     bidder_id: z.ZodNumber;
@@ -2165,14 +2165,13 @@ export type ContractId = Brand<number, 'ContractId'>;
 // @public (undocumented)
 export type ContractItem = z.infer<typeof ContractItemSchema>;
 
-// @public (undocumented)
+// @public
 const ContractItemSchema: z.ZodObject<{
     record_id: z.ZodNumber;
     type_id: z.ZodNumber;
     quantity: z.ZodNumber;
     raw_quantity: z.ZodOptional<z.ZodNumber>;
     is_singleton: z.ZodBoolean;
-    is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
     is_included: z.ZodBoolean;
 }, z.core.$loose>;
 
@@ -2181,14 +2180,14 @@ const ContractSchema: z.ZodObject<{
     contract_id: z.ZodNumber;
     issuer_id: z.ZodNumber;
     issuer_corporation_id: z.ZodNumber;
-    assignee_id: z.ZodOptional<z.ZodNumber>;
-    acceptor_id: z.ZodOptional<z.ZodNumber>;
+    assignee_id: z.ZodNumber;
+    acceptor_id: z.ZodNumber;
     start_location_id: z.ZodOptional<z.ZodNumber>;
     end_location_id: z.ZodOptional<z.ZodNumber>;
     type: z.ZodType<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown, z.core.$ZodTypeInternals<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown>>;
     status: z.ZodType<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown>>;
     title: z.ZodOptional<z.ZodString>;
-    for_corporation: z.ZodOptional<z.ZodBoolean>;
+    for_corporation: z.ZodBoolean;
     availability: z.ZodType<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown, z.core.$ZodTypeInternals<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown>>;
     date_issued: z.ZodString;
     date_expired: z.ZodString;
@@ -2219,8 +2218,8 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     getCorporationContractBids(corporationId: number, contractId: number): Promise<ContractBid[]>;
     getCorporationContractItems(corporationId: number, contractId: number): Promise<ContractItem[]>;
     getCorporationContracts(corporationId: number): Promise<Contract[]>;
-    getPublicContractBids(contractId: number): Promise<ContractBid[]>;
-    getPublicContractItems(contractId: number): Promise<ContractItem[]>;
+    getPublicContractBids(contractId: number): Promise<PublicContractBid[]>;
+    getPublicContractItems(contractId: number): Promise<PublicContractItem[]>;
     getPublicContracts(regionId: number): Promise<PublicContract[]>;
     // (undocumented)
     streamCharacterContracts(characterId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
@@ -7496,6 +7495,32 @@ const PlanetInfoSchema: z.ZodObject<{
 // @public (undocumented)
 export type PublicContract = z.infer<typeof PublicContractSchema>;
 
+// @public (undocumented)
+export type PublicContractBid = z.infer<typeof PublicContractBidSchema>;
+
+// @public
+const PublicContractBidSchema: z.ZodObject<{
+    bid_id: z.ZodNumber;
+    date_bid: z.ZodString;
+    amount: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type PublicContractItem = z.infer<typeof PublicContractItemSchema>;
+
+// @public
+const PublicContractItemSchema: z.ZodObject<{
+    record_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    quantity: z.ZodNumber;
+    is_included: z.ZodBoolean;
+    item_id: z.ZodOptional<z.ZodNumber>;
+    is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
+    material_efficiency: z.ZodOptional<z.ZodNumber>;
+    time_efficiency: z.ZodOptional<z.ZodNumber>;
+    runs: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
 // @public
 const PublicContractSchema: z.ZodObject<{
     contract_id: z.ZodNumber;
@@ -7846,7 +7871,9 @@ declare namespace schemas {
         ContractSchema,
         PublicContractSchema,
         ContractItemSchema,
+        PublicContractItemSchema,
         ContractBidSchema,
+        PublicContractBidSchema,
         SkinrLicenseSchema,
         CharacterSkinrSchema,
         SkinrComponentRunsSchema,

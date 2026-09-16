@@ -316,6 +316,8 @@ exports[`API surface snapshots schema exports should match snapshot 1`] = `
   "ParagonHubSkinrTargetSchema",
   "PlanetInfoSchema",
   "PlanetaryColonySchema",
+  "PublicContractBidSchema",
+  "PublicContractItemSchema",
   "PublicContractSchema",
   "RaceSchema",
   "RaidableSkyhookSchema",
