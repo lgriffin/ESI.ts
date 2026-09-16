@@ -90,7 +90,7 @@ ESI.ts provides sub-path exports for targeted imports, reducing bundle size when
 import { MarketOrderSchema } from '@lgriffin/esi.ts/schemas';
 
 // Error classes and type guards
-import { EsiError, isCircuitOpen } from '@lgriffin/esi.ts/errors';
+import { EsiError, isRetryable } from '@lgriffin/esi.ts/errors';
 
 // Test utilities
 import { TestDataFactory } from '@lgriffin/esi.ts/testing';
@@ -147,6 +147,27 @@ const wallet = await authedClient.wallet.getCharacterWallet(characterId);
 await client.shutdown();
 ```
 
+## Guides
+
+The README orients; the guides are canonical. Each one opens with the [engineering charter](guides/CHARTER.md) requirements it implements.
+
+| Guide                                              | Covers                                                                              |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [Architecture](guides/ARCHITECTURE.md)             | Layers, request path, caching, retry, rate limiting, circuit breaker, interceptors  |
+| [Design rules](guides/DESIGN-RULES.md)             | Naming and schema conventions, adding an endpoint, adding a client, generated files |
+| [Errors](guides/ERRORS.md)                         | Error classes, type guards, retryability, token refresh, safe mode                  |
+| [Logging](guides/LOGGING.md)                       | `ILogger`, per-client loggers, pino, `ESI_LOG_LEVEL`, silencing in tests            |
+| [Pagination](guides/PAGINATION.md)                 | Offset and cursor pagination, `stream*`, `fetchAll*`, batch helpers                 |
+| [Runtime validation](guides/RUNTIME-VALIDATION.md) | Zod response and request validation                                                 |
+| [Security](guides/SECURITY.md)                     | Runtime defences and supply-chain controls ([policy](SECURITY.md))                  |
+| [Testing](guides/TESTING.md)                       | Test tiers, coverage, EARS specification                                            |
+| [Mutation testing](guides/MUTATION-TESTING.md)     | Stryker configuration and scores                                                    |
+| [Quality gates](guides/QUALITY-GATES.md)           | What runs at commit, push, PR, nightly and release; every workflow and script       |
+| [Release](guides/RELEASE.md)                       | Cutting a release, changelog, provenance, signatures, supported versions            |
+| [OKF bundle](guides/OKF.md)                        | The generated Open Knowledge Format catalogue of ESI                                |
+| [Documentation](guides/DOCUMENTATION.md)           | Documentation surfaces and the TypeDoc reference                                    |
+| [Beads](guides/BEADS.md)                           | Issue tracking workflow                                                             |
+
 ## Configuration
 
 ```typescript
@@ -172,9 +193,10 @@ const client = new EsiClient({
   validateResponse: true, // Runtime Zod validation of ESI responses (default: true)
   validateRequest: false, // Opt-in request body Zod validation for POST/PUT/DELETE (default: false)
   retryStrategy: customRetryStrategy, // Injectable IRetryStrategy (default: built-in exponential backoff)
+  enableCircuitBreaker: false, // Opt-in circuit breaker (default: false); circuitBreakerConfig is ignored unless true
   circuitBreakerConfig: {
     keyStrategy: 'resolved', // CB keying: 'resolved' (per-URL) or 'template' (per-route) (default: 'resolved')
-    cleanupIntervalMs: 300000, // Automatic stale circuit cleanup interval (default: 5 min)
+    cleanupIntervalMs: 3600000, // Stale circuit cleanup interval (default: disabled)
   },
 });
 ```
@@ -483,47 +505,15 @@ See [guides/RUNTIME-VALIDATION.md](guides/RUNTIME-VALIDATION.md) for the full gu
 
 ## Caching
 
-ETag caching is enabled by default. The client automatically:
-
-1. Stores ETag and response data on GET requests
-2. Sends `If-None-Match` on subsequent requests
-3. Returns cached data on `304 Not Modified`
-4. Parses `Cache-Control: max-age` from ESI for per-endpoint TTL
-5. Serves stale cached data when ESI returns 5xx errors
-6. Invalidates related GET caches when POST/PUT/DELETE requests are made
+ETag caching is on by default and works in three tiers: a GET inside the spec-defined TTL is answered from cache with no HTTP call, an older entry is revalidated with `If-None-Match`, and a 5xx with a cached copy serves the stale body instead of throwing. Authenticated cache entries are isolated per token.
 
 ```typescript
-// Cache stats
-const stats = client.getCacheStats();
-console.log(`${stats.totalEntries}/${stats.maxEntries} entries cached`);
-
-// Manual cache operations
+const client = new EsiClient({ etagCacheConfig: { maxEntries: 2000 } });
+client.getCacheStats();
 client.clearCache();
-client.updateCacheConfig({ maxEntries: 2000 });
-
-// Disable caching entirely
-const uncachedClient = new EsiClient({ enableETagCache: false });
 ```
 
-### Spec-Aware Cache TTLs
-
-The library reads `x-cache-age` from the ESI OpenAPI spec (126 of 195 endpoints). Within the TTL window, repeated GET requests return cached data with **zero HTTP calls** — not even a conditional GET.
-
-This layers on top of ETag caching in three tiers:
-
-1. **Spec TTL** — data can't have changed yet, return cached data immediately
-2. **ETag conditional GET** — data might have changed, send `If-None-Match` to check
-3. **Full request** — no cache entry, fetch fresh data
-
-```typescript
-const client = new EsiClient();
-
-// First call — fetches from ESI
-const alliances = await client.alliance.getAlliances();
-
-// Second call within the next 3600s — returns cached data, zero HTTP calls
-const same = await client.alliance.getAlliances();
-```
+See [Caching in the architecture guide](guides/ARCHITECTURE.md#4-caching) for TTL precedence, invalidation, keys and configuration.
 
 ## Batch Requests
 
@@ -534,7 +524,7 @@ import { EsiClient } from '@lgriffin/esi.ts';
 
 const client = new EsiClient();
 
-// Fetch 500 type details with at most 10 concurrent requests
+// Fetch 500 type details with at most 10 concurrent requests (default 20)
 const result = await client.batch(
   typeIds,
   (id) => client.universe.getTypeById(id),
@@ -549,129 +539,36 @@ const result = await client.batch(
 console.log(`${result.results.size} succeeded, ${result.errors.size} failed`);
 ```
 
-For POST endpoints that accept arrays (e.g., `postUniverseNames` with a 1000-ID limit), `batchPost` auto-chunks and concatenates:
+For POST endpoints that accept arrays (e.g., `postNamesAndCategories` with a 1000-ID limit), `batchPost` auto-chunks and concatenates:
 
 ```typescript
 const allNames = await client.batchPost(
   largeIdArray,
-  (chunk) => client.universe.postUniverseNames(chunk),
+  (chunk) => client.universe.postNamesAndCategories(chunk),
   1000, // chunk size
 );
 ```
 
 ## Streaming Pagination
 
-For large paginated endpoints (market orders, contracts, assets), streaming yields one page at a time via `AsyncGenerator` instead of eagerly fetching all pages into memory:
+Paginated endpoints can be consumed three ways: the plain method fetches every page and returns one array, `stream*` methods yield one validated page at a time, and `fetchAll*` methods fetch the remaining pages concurrently.
 
 ```typescript
-import { EsiClient } from '@lgriffin/esi.ts';
-
-const client = new EsiClient();
-
-// Stream all market orders in The Forge, page by page
 for await (const page of client.market.streamMarketOrders(10000002)) {
   console.log(
     `Page ${page.page}/${page.totalPages}: ${page.data.length} orders`,
   );
-
-  // Process each order as it arrives
-  for (const order of page.data) {
-    if (order.is_buy_order && order.price > 1_000_000) {
-      console.log(`High-value buy: ${order.type_id} @ ${order.price} ISK`);
-    }
-  }
-
-  // Early termination — stops fetching remaining pages
-  if (page.page >= 3) break;
+  if (page.page >= 3) break; // stops fetching the remaining pages
 }
 ```
 
-21 domain clients expose 73+ streaming methods. `BaseEsiClient.streamEndpoint()` is also public as an escape hatch for any paginated endpoint not yet wrapped with a convenience method.
-
-Available streaming methods (representative selection):
-
-- **MarketClient** — `streamMarketOrders`, `streamMarketTypes`, `streamCharacterOrderHistory`, `streamCorporationOrders`, `streamCorporationOrderHistory`, `streamMarketOrdersInStructure`
-- **CorporationsClient** — `streamCorporationMembers`, `streamCorporationStructures`, `streamCorporationBlueprints`, + 14 more
-- **CharacterClient** — `streamCharacterBlueprints`, `streamCharacterNotifications`, `streamCharacterStandings`, + 5 more
-- **ContractsClient** — `streamPublicContracts`, `streamCharacterContracts`, `streamCorporationContracts`
-- **WalletClient** — `streamCharacterWalletJournal`, `streamCorporationWalletJournal`, `streamCharacterWalletTransactions`
-- **IndustryClient** — `streamCorporationIndustryJobs`, `streamCorporationMiningObservers`, + 6 more
-- **ContactsClient** — `streamAllianceContacts`, `streamCharacterContacts`, `streamCorporationContacts`, + 3 more
-- **AssetsClient** — `streamCharacterAssets`, `streamCorporationAssets`
-- **KillmailsClient** — `streamCharacterRecentKillmails`, `streamCorporationRecentKillmails`
-- **MailClient** — `streamCharacterMail`, `streamCharacterMailLabels`
-- **FleetsClient** — `streamFleetMembers`, `streamFleetWings`
-- **CalendarClient** — `streamCalendarEvents`
-- **FittingsClient** — `streamCharacterFittings`
-- **SkillsClient** — `streamCharacterSkillQueue`
-- **LoyaltyClient** — `streamCorporationLoyaltyStoreOffers`
-- **BookmarksClient** — `streamCharacterBookmarks`, `streamCorporationBookmarks`
-- **ClonesClient** — `streamCharacterImplants`
-- **PIClient** — `streamCharacterPlanets`
-- **WarsClient** — `streamWars`
-- **FactionWarfareClient** — `streamFactionWarfareStats`
-- **AllianceClient** — `streamAllianceCorporations`
-
-Try it: `npm run example:streaming`
+Try it: `npm run example:streaming`. See [guides/PAGINATION.md](guides/PAGINATION.md) for the full method list, concurrency defaults and failure behaviour.
 
 ## Cursor-based Pagination
 
-Newer ESI routes (Freelance Jobs, and future routes) use cursor-based pagination with opaque `before`/`after` tokens in the response body. See the [ESI blog post](https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page) for background.
+Newer ESI routes such as Freelance Jobs page with opaque `before` / `after` cursor tokens instead of page numbers. `fetchAllCursorPages` follows them to the end of the dataset, and a saved `after` token can be polled later for changed records.
 
-```typescript
-import { EsiClient, fetchAllCursorPages } from '@lgriffin/esi.ts';
-
-const client = new EsiClient();
-
-// Fetch first page — returns { cursor: { before, after }, freelance_jobs: [...] }
-const page = await client.freelanceJobs.getFreelanceJobs();
-console.log(page.freelance_jobs); // job records
-console.log(page.cursor.after); // opaque token for next page
-
-// Fetch next page using the cursor
-const nextPage = await client.freelanceJobs.getFreelanceJobs(
-  undefined,
-  page.cursor.after,
-);
-
-// Auto-fetch all pages in one call
-const allJobs = await fetchAllCursorPages(
-  (before, after) => client.freelanceJobs.getFreelanceJobs(before, after),
-  (response) => response.freelance_jobs,
-  (response) => response.cursor,
-);
-
-// Authenticated endpoints — character/corporation freelance jobs
-const authedClient = new EsiClient({ accessToken: 'your-token' });
-const myJobs =
-  await authedClient.freelanceJobs.getCharacterFreelanceJobs(characterId);
-const corpJobs =
-  await authedClient.freelanceJobs.getCorporationFreelanceJobs(corporationId);
-```
-
-**Polling for changes** — cursor tokens persist across sessions, so you can save the last `after` token and poll later to get only records that changed:
-
-```typescript
-// After initial scan, save the final cursor
-let savedCursor = lastPage.cursor.after;
-
-// Later: check for updates (hours, days, or weeks later)
-const updates = await client.freelanceJobs.getFreelanceJobs(
-  undefined,
-  savedCursor,
-);
-if (updates.freelance_jobs.length > 0) {
-  // Process changed records — duplicates are expected for modified records
-  savedCursor = updates.cursor.after;
-}
-```
-
-Key points:
-
-- Cursor tokens are **opaque strings** — never parse or validate them
-- An **empty result array** signals the end of the dataset (not a short page)
-- **Duplicates across pages** are expected when records are modified between requests
-- Existing offset-based routes (`getMarketOrders`, etc.) are unchanged
+See [guides/PAGINATION.md](guides/PAGINATION.md) for cursor semantics and examples.
 
 ## Generated Types
 
@@ -720,43 +617,20 @@ const scope: EsiScope = 'esi-assets.read_assets.v1';
 
 ## Error Handling
 
-API errors throw `EsiError` with `statusCode`, `message`, and `url` properties:
+Failed calls throw `EsiError` (with `statusCode`, a sanitised `url` and `retryable`) or one of its subclasses, `TimeoutError` and `EsiValidationError`. An open circuit throws `CircuitOpenError`. Type guards such as `isRetryable`, `isTimeout`, `isValidationError` and `isCircuitOpen` narrow them, and `withSafeMode()` returns a result envelope instead of throwing.
 
 ```typescript
-import {
-  EsiError,
-  TimeoutError,
-  EsiValidationError,
-  isTimeout,
-  isRetryable,
-  isValidationError,
-  isCircuitOpen,
-} from '@lgriffin/esi.ts';
+import { EsiError, isCircuitOpen } from '@lgriffin/esi.ts';
 
 try {
-  const alliance = await client.alliance.getAllianceById(99999999);
-  console.log('Alliance:', alliance.name);
+  await client.alliance.getAllianceById(99999999);
 } catch (err) {
-  if (isCircuitOpen(err)) {
-    console.log('Circuit breaker is open — endpoint temporarily unavailable');
-  } else if (isValidationError(err)) {
-    console.log('Response validation failed:', err.validationError);
-  } else if (isTimeout(err)) {
-    console.log(`Request timed out after ${err.timeoutMs}ms`);
-  } else if (err instanceof EsiError) {
-    console.log(`ESI error ${err.statusCode}: ${err.message}`);
-    console.log(`Retryable: ${err.retryable}`);
-  }
+  if (isCircuitOpen(err)) console.log(`Retry in ${err.retryAfterMs} ms`);
+  else if (err instanceof EsiError) console.log(err.statusCode, err.retryable);
 }
 ```
 
-- **204 No Content** — returns `undefined` (valid for DELETE/POST actions)
-- **304 Not Modified** — handled internally, returns cached data
-- **4xx/5xx** — throws `EsiError`
-- **5xx with cache** — returns stale cached data instead of throwing
-- **Timeout** — throws `TimeoutError` (extends `EsiError` with `statusCode: 0` and `timeoutMs`)
-- **Retryable errors** — `EsiError.retryable` returns `true` for 502, 503, 504, 420, 429, and timeouts
-- **Validation errors** — throws `EsiValidationError` (extends `EsiError`) when response data doesn't match the expected Zod schema
+See [guides/ERRORS.md](guides/ERRORS.md) for the class hierarchy, retryability rules and safe mode.
 
 ## Response Metadata
 
@@ -789,42 +663,17 @@ The `meta` object includes:
 
 ## Rate Limiting
 
-ESI.ts automatically manages rate limiting using ESI's per-group token bucket system. The 36 rate limit groups from the ESI OpenAPI spec are extracted at build time, so each group (e.g., `market-order`, `char-notification`) gets its own independent bucket. A burst of market requests won't starve unrelated endpoints.
-
-Rate limiting works out of the box with no configuration. For multi-character applications, enable per-user bucketing:
+Rate limiting is always on and needs no configuration. Each ESI rate-limit group from the OpenAPI spec gets its own bucket, the limiter learns remaining tokens from ESI's response headers, and a 420 or 429 blocks only the affected group. Multi-character applications can give each token its own buckets:
 
 ```typescript
-import { EsiClient } from '@lgriffin/esi.ts';
-
 const client = new EsiClient({
   rateLimiterConfig: {
-    userKeyExtractor: (headers) => headers['authorization'] ?? 'anon',
+    userKeyExtractor: (headers) => headers['Authorization'] ?? 'anon',
   },
 });
 ```
 
-Monitor rate limit status per group:
-
-```typescript
-const limiter = client.getRateLimiter();
-
-// Worst-case across all groups (backward-compatible)
-const status = limiter.getStatus();
-console.log(status.remaining, status.limit, status.group);
-
-// Specific group
-const marketStatus = limiter.getGroupStatus('market-order');
-console.log(marketStatus?.remaining); // tokens remaining in this group
-
-// All active groups
-const all = limiter.getAllGroupStatuses();
-for (const [group, info] of all) {
-  console.log(`${group}: ${info.remaining}/${info.limit}`);
-}
-
-// Check if a specific group is blocked
-console.log(limiter.isBlocked('char-notification')); // true if 429'd
-```
+See [Rate limiting in the architecture guide](guides/ARCHITECTURE.md#6-rate-limiting) for the throttling rules, per-endpoint overrides and monitoring. Retry, deduplication, the opt-in [circuit breaker](guides/ARCHITECTURE.md#7-circuit-breaker) and [request/response interceptors](guides/ARCHITECTURE.md#8-interceptors) are documented alongside it.
 
 ## Lightweight Clients
 
@@ -1090,32 +939,9 @@ The project uses husky with lint-staged to run ESLint and Prettier on staged fil
 
 ### CI/CD
 
-Every pull request runs the full validation suite:
+Every push runs lint, format, build, typecheck and unit tests; pull requests to `master` run the full matrix behind a single Quality Gate check. Actions are SHA-pinned, packages publish with npm provenance, and release assets are cosign-signed.
 
-- ESLint (with security and sonarjs plugins)
-- Prettier formatting check
-- TypeScript compilation
-- Generated types staleness check (regenerates from live ESI OpenAPI spec and verifies no diff)
-- Unit tests across Node.js 18, 20, and 22
-- BDD scenario tests
-- Coverage threshold enforcement (branches: 80%, functions: 75%, lines: 90%, statements: 90%)
-- Auth/scopes cross-validation
-- Spec-alignment type assertions
-- Schema drift detection
-- Mutation testing (Stryker)
-- Dead code detection via knip
-- npm security audit — diff-aware on PRs (fails only on advisories the PR introduces), state-of-the-world nightly and at release, with a reviewed-acceptance allowlist in `scripts/audit-exceptions.json`
-
-**Supply chain security:**
-
-- All GitHub Actions pinned by SHA hash (not mutable tags) to prevent supply chain attacks
-- Least-privilege `permissions:` on all workflows and jobs
-- Script injection prevention (user-controlled inputs passed via `env:`, never interpolated in `run:`)
-- npm publish with `--provenance` for SLSA attestations (verifiable build origin)
-- GitHub release artifacts signed with Cosign (keyless) and published with SHA256 checksums
-- OpenSSF Scorecard runs weekly via the `scorecard.yml` workflow
-
-See [.github/workflows/README.md](.github/workflows/README.md) for full workflow details.
+See [guides/QUALITY-GATES.md](guides/QUALITY-GATES.md) for the gate matrix and every workflow, and [guides/SECURITY.md](guides/SECURITY.md) for the supply-chain controls.
 
 ## Contributing
 

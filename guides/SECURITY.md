@@ -1,196 +1,137 @@
-# Security Guide for ESI.ts
+# Security Controls
 
-## Security Policy
+**Implements:** SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06, SEC-07, SEC-08 — see [CHARTER.md](CHARTER.md#part-6--security)
 
-### Supported Versions
+How ESI.ts defends a consumer at runtime and how the repository defends the package on its way to a registry. The disclosure policy (supported versions, how to report, response timeline, scope) lives in the root [SECURITY.md](../SECURITY.md) and is not repeated here.
 
-| Version | Supported |
-| ------- | --------- |
-| 9.x     | Yes       |
-| 8.x     | No        |
-| 7.x     | No        |
+Runtime defences live in the request pipeline and are proven by unit tests. Supply-chain defences live in the workflows and are scored weekly. They are one posture.
 
-### Reporting a Vulnerability
+---
 
-If you discover a security vulnerability in ESI.ts, please report it responsibly. **Do not open a public GitHub issue for security vulnerabilities.**
+## 1. Runtime defence chain
 
-- **GitHub Security Advisories (preferred):** Use the [Security Advisories](https://github.com/lgriffin/ESI.ts/security/advisories/new) feature to report privately.
-- **Email:** Contact the maintainer directly via the email address listed on the [GitHub profile](https://github.com/lgriffin).
+Every request passes these checks in this order. The first two happen once, when the client is constructed; the rest happen per call.
 
-Include a clear description, steps to reproduce, potential impact, and any suggested fixes.
+| #   | Control                       | Where                                                          | Behaviour                                                                                                                                                        |
+| --- | ----------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | HTTPS enforced                | `validateBaseUrl` in `src/core/util/validation.ts`             | A base URL whose protocol is not `https:` throws at construction. There is no flag to disable this.                                                              |
+| 2   | Host allowlisted              | same                                                           | Only `esi.evetech.net` is allowed. Any other host throws unless `unsafeAllowCustomHost: true` is set.                                                            |
+| 3   | Path parameters checked       | `validatePathParam`, called from `buildEndpointPath`           | Rejects empty values, non-finite numbers and any of `/ \ ? # @ ! $ & ' ( ) * + , ; = < > { } \| ^` and backtick. The value is then `encodeURIComponent`-encoded. |
+| 4   | Query parameters bounded      | `validateQueryParam`, called from `buildEndpointPath`          | Rejects `null`, non-finite numbers and values longer than 2000 characters. The value is then encoded.                                                            |
+| 5   | Token gated by the definition | `buildRequestHeaders` in `src/core/requestPipeline/headers.ts` | The `Authorization` header is attached only when the endpoint definition sets `requiresAuth`. A missing token throws `NO_AUTH_TOKEN` before any network call.    |
+| 6   | URLs sanitised in errors      | `sanitizeUrl` in `src/core/util/error.ts`                      | `EsiError.url` and the `EsiValidationError` message pass through it. See below.                                                                                  |
 
-### Response Timeline
+All validation failures throw an `Error` typed `VALIDATION_ERROR`. The error family is described in [ERRORS.md](ERRORS.md).
 
-| Severity         | Response               |
-| ---------------- | ---------------------- |
-| Acknowledgment   | Within 48 hours        |
-| Critical fix     | Within 7 days          |
-| Non-critical fix | Next scheduled release |
+### Construction
 
-## Built-in Security Measures
+`EsiClient`, `EsiClientBuilder` and `EsiApiFactory` all call `validateBaseUrl` with the configured `baseUrl`, falling back to `ESI_BASE_URL` and then `https://esi.evetech.net`. `unsafeAllowCustomHost` relaxes the host check only. It exists for test servers and proxies, and its name is meant to show up in code review.
 
-ESI.ts implements several layers of security protection in the request pipeline.
+### Path and query encoding
 
-### Token Protection
+The unsafe-character check and the encoding step do different jobs. The check refuses values that would change the route (`../`, `?`, `#`, `@`). The encoding step neutralises anything else: a `%2f` or a null byte in a path parameter is not rejected, but it reaches ESI as a literal `%252f` or `%00` inside a single path segment and cannot introduce a new one.
 
-Tokens are only attached to requests that require authentication. Public ESI endpoints never receive an `Authorization` header, even when the client is configured with an access token.
+### Token handling
 
-**How it works:** The `ApiRequestHandler` checks the endpoint's scope requirements before building headers. If the endpoint has no required scope, the token is omitted entirely — not sent and redacted, but never attached in the first place.
+- The bearer token is attached only where the definition declares `requiresAuth: true`. Public endpoints never see it, even when the client holds a token.
+- `npm run validate:auth-scopes` checks that `requiresAuth` is set if and only if the generated scope map lists a scope for the endpoint (DES-04). A mismatch either leaks a token or breaks a call. See [DESIGN-RULES.md](DESIGN-RULES.md).
+- The token travels only in the `Authorization` header, never in a query string.
+- `FileTokenStorage` in `src/auth/storage` writes to a sibling temporary file and renames it over the target, with POSIX mode `0o600` by default.
 
-**Test coverage:** `security.test.ts` — 23 tests verifying:
+### Cache isolation
 
-- Token is not sent to public endpoints (`/status/`, `/alliances/`, etc.)
-- Token is sent only to authenticated endpoints (`/characters/{id}/wallet/`)
-- Token appears in the `Authorization: Bearer` header, not in query strings or URLs
+`buildCacheKey` in `src/core/cache/cacheKey.ts` returns the bare URL for public endpoints, so they share one cache entry. For an endpoint with `requiresAuth`, the key is prefixed with the first 16 hex characters of a SHA-256 hash of the `Authorization` header. Two characters requesting the same authenticated path never share a cached body or ETag, and the token never appears in a key in clear text.
 
-### HTTPS Enforcement
+### URL sanitisation
 
-All requests enforce HTTPS. The library rejects any base URL that does not use the `https://` scheme.
+`sanitizeUrl` replaces the value of any of these query parameters with `[REDACTED]`: `token`, `access_token`, `api_key`, `refresh_token`, `client_secret`, `code`, `key`, `secret`, `auth`, `password`, `bearer`. If the URL cannot be parsed, everything after `?` is replaced with `[params-redacted]`. The function is exported from the root and from `@lgriffin/esi.ts/errors` for consumers who log URLs themselves.
 
-**Test coverage:** `security.test.ts` validates that `http://` URLs are rejected at client construction time.
+Log lines written by the pipeline (for example `Hitting endpoint: <url>`) do not pass through `sanitizeUrl`. ESI does not carry credentials in query strings, so in normal use there is nothing to redact, but a custom request interceptor that adds a secret to the URL would see it logged at `info`. Logging configuration is covered in [LOGGING.md](LOGGING.md).
 
-### Host Allowlist (SSRF Protection)
+---
 
-By default, outbound requests are restricted to known EVE Online ESI endpoints:
+## 2. Security test suite
 
-- `esi.evetech.net`
-- `login.eveonline.com`
+`tests/tdd/core/security.test.ts` is the executable form of the defence chain. Each `describe` group proves one control.
 
-Custom hosts require the `unsafeAllowCustomHost: true` flag, making SSRF bypass an explicit opt-in rather than a silent misconfiguration.
+| Group                                    | Proves                                                                                        |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `Security: Token Handling`               | No `Authorization` header on a public endpoint; the header is present on an authenticated one |
+| `Security: HTTPS Enforcement`            | `http://` is rejected by the client constructor and by `validateBaseUrl` directly             |
+| `Security: Host Allowlist`               | Unknown hosts are rejected by default and accepted only with the unsafe flag                  |
+| `Security: Path Parameter Injection`     | `../`, `?`, `#`, `\`, `/` and `@` are rejected; ordinary IDs and names pass                   |
+| `Security: Query Parameter Length Limit` | A query value over 2000 characters is rejected; one within the limit passes                   |
+| `Security: NaN/Infinity Path Params`     | `NaN`, `Infinity` and `-Infinity` are rejected as path parameters                             |
+| `Security: Null/Empty Path Params`       | `null`, `undefined` and the empty string are rejected as path parameters                      |
 
-**Test coverage:** `security.test.ts` validates that requests to non-allowlisted hosts are rejected unless the unsafe flag is set.
+Controls tested outside that file:
 
-### Path Parameter Injection Prevention
-
-All path parameters are validated before URL construction. The `validatePathParam()` function rejects values containing:
-
-- Path traversal sequences (`../`, `..\\`)
-- URL-encoded traversal (`%2f`, `%2e`)
-- Null bytes (`%00`)
-- Characters outside the expected alphanumeric + limited punctuation set
-
-**Test coverage:** `security.test.ts` validates that crafted path parameters (e.g., `../../etc/passwd`, `123%2f456`) are rejected.
-
-### Query Parameter Validation
-
-Query parameters are validated for:
-
-- Maximum length (prevents excessively long query strings)
-- Rejection of `NaN`, `Infinity`, and `null` values that could cause unexpected behavior
-- Type coercion safety
-
-**Test coverage:** `security.test.ts` validates rejection of invalid query parameter values.
-
-### URL Sanitization in Logs
-
-API tokens and sensitive parameters are redacted from logged URLs and error messages. If an error occurs during an authenticated request, the token value is replaced with `[REDACTED]` in any output.
-
-## Security Test Suite
-
-The dedicated security test file (`tests/tdd/core/security.test.ts`) contains 23 tests organized into the following categories:
-
-| Category                 | Tests | What's Validated                                                    |
-| ------------------------ | ----: | ------------------------------------------------------------------- |
-| Token leakage prevention |     4 | Token not sent to public endpoints, sent only to auth endpoints     |
-| HTTPS enforcement        |     2 | HTTP URLs rejected, HTTPS required                                  |
-| Host allowlist           |     3 | Non-ESI hosts rejected, allowlisted hosts accepted, unsafe override |
-| Path injection           |     5 | Path traversal, encoded traversal, null bytes, special characters   |
-| Query parameter limits   |     4 | Length limits, NaN/Infinity rejection, null handling                |
-| Input sanitization       |     5 | Combined injection attempts, header injection, type coercion        |
-
-### Running Security Tests
+| Control              | Test file                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------- |
+| URL sanitisation     | `tests/tdd/core/error.test.ts`, `tests/tdd/core/EsiError.test.ts`                       |
+| Per-token cache keys | `tests/tdd/core/cacheKey.test.ts`, `tests/tdd/core/requestPipeline/cachePolicy.test.ts` |
 
 ```bash
-# Run security tests specifically
 npx jest --config jest.unit.config.cjs tests/tdd/core/security.test.ts
-
-# Run all unit tests (includes security)
-npm test
+npm test   # includes the security suite
 ```
 
-## CI/CD Supply Chain Hardening
+---
 
-### GitHub Actions Pinning
+## 3. Supply-chain hardening
 
-All GitHub Actions across 11 workflow files are pinned by full commit SHA rather than mutable version tags. A compromised action author could retag `v4` to point at malicious code — SHA pinning prevents this.
+Which workflow runs at which stage, and whether it blocks, is set out in [QUALITY-GATES.md](QUALITY-GATES.md). This section states what each control does.
 
-### Workflow Permissions
+### Workflows
 
-Every workflow declares least-privilege `permissions:`. The top-level default is `contents: read`; individual jobs escalate only as needed (e.g., `id-token: write` for OIDC provenance during npm publish).
+| Control                   | Mechanism                                                                                                                                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actions pinned by SHA     | Every `uses:` references a full 40-character commit SHA with the version as a trailing comment. A retagged upstream action cannot change what runs.                                                                                    |
+| Least-privilege tokens    | Every workflow declares top-level `permissions:` as `contents: read` (CodeQL declares `{}`; Scorecard `read-all`, as its action requires). Jobs escalate individually, for example `id-token: write` only on publish and signing jobs. |
+| No credential persistence | Every checkout step sets `persist-credentials: false`.                                                                                                                                                                                 |
+| No expression injection   | `run:` blocks read event data through `env:` bindings rather than interpolating `${{ }}` into shell.                                                                                                                                   |
+| zizmor                    | `zizmor.yml` audits `.github/` on any push or PR that touches workflows or `.zizmor.yml`. Accepted findings are listed with reasons in `.zizmor.yml`.                                                                                  |
+| CodeQL                    | `codeql.yml` on push and PR to `master`, and weekly.                                                                                                                                                                                   |
+| OpenSSF Scorecard         | `scorecard.yml` weekly; results are published and uploaded as SARIF to code scanning.                                                                                                                                                  |
+| Dependabot                | `.github/dependabot.yml` opens weekly PRs for npm dependencies and for GitHub Actions, which keeps pinned SHAs current.                                                                                                                |
 
-### Script Injection Prevention
+### Dependency advisories
 
-GitHub Actions `run:` blocks never interpolate user-controlled expressions (`${{ github.event.pull_request.title }}`, etc.) directly. All such values are passed through `env:` bindings to prevent arbitrary command execution via crafted PR titles or branch names.
+`scripts/audit-check.ts` wraps `npm audit` with an acceptance allowlist in `scripts/audit-exceptions.json`.
 
-### npm Provenance Attestations
+- **`--diff`** fails a pull request only if it introduces an advisory the base branch did not have. A disclosure published against an existing dependency does not block unrelated work.
+- **`--check`** fails if the tree has an unaccepted advisory at or above a level (default `high`). The release gate runs it as `npm run audit:check`.
+- **`--filter`** strips accepted advisories from a report so the nightly audit does not re-file them.
 
-The npm publish step uses `--provenance` with OIDC `id-token: write` permission. This generates SLSA provenance attestations that let consumers verify a package was built from this repository's CI — not from a compromised local machine.
+Every exception needs a GHSA id, package, severity, reason and `expires` date. An expired exception is a hard failure, so acceptance is revisited rather than becoming permanent (SEC-05). The procedure for adding one is in [QUALITY-GATES.md](QUALITY-GATES.md).
 
-### ETag Cache Tenant Isolation
+### Published artefacts
 
-Cache keys for authenticated endpoints include a truncated SHA-256 hash of the `Authorization` header, preventing one user's cached responses from being served to another. Public endpoints remain shared for efficiency. See `src/core/cache/cacheKey.ts`.
+- **npm provenance.** Both publish jobs in `release.yml` (npmjs.org and GitHub Packages) run `npm publish --provenance` with `id-token: write`, so a consumer can verify the tarball was built by this repository's workflow.
+- **Signed release assets.** `create-assets` builds the tarball and documentation archive and writes `checksums.txt` with SHA-256. A separate `sign-and-publish-assets` job, the only one allowed to mint an OIDC token for signing, signs each asset with keyless `cosign sign-blob` and uploads the `.sig` and `.pem` files beside it.
 
-## Dependency Security
+How a release is cut and how to verify its assets is covered in [RELEASE.md](RELEASE.md).
 
-### Automated Scanning
+---
 
-- **npm audit** runs as part of `npm run check:all` and CI validation
-- **Dependabot** monitors dependencies for known CVEs and creates automated PRs
-- **GitHub Security Advisories** are enabled on the repository
+## 4. Local credentials
 
-### What Counts as a Security Issue
+`npm run token:create` runs `scripts/create-token.ts`, which performs the EVE SSO PKCE flow against a local callback on `http://localhost:3000/sso_callback` and writes the resulting tokens to `.env`. `npm run token:refresh` renews them.
 
-| Category            | Example                                                            | Report via        |
-| ------------------- | ------------------------------------------------------------------ | ----------------- |
-| Credential exposure | API tokens leaked in logs, URLs, or error messages                 | Security Advisory |
-| Injection           | Code injection, command injection, header injection via user input | Security Advisory |
-| SSRF bypass         | Circumventing host allowlist to reach unintended endpoints         | Security Advisory |
-| Path traversal      | Accessing resources outside intended scope via crafted input       | Security Advisory |
-| Dependency CVE      | Known CVE in a direct dependency exploitable in this context       | Security Advisory |
-| General bugs        | Non-security bugs, typos, feature requests                         | GitHub Issues     |
+- `.env` and `.env.test` are git-ignored. `.env.example` is the only environment file in git and holds no values.
+- Credentials never appear in committed fixtures, snapshots or examples. Tests that need a real token read it from `.env` and are gated behind `ESI_GATED_TESTS` (see [TESTING.md](TESTING.md)).
+- If a token is committed by mistake, revoke it in the EVE developer portal first; rewriting history does not un-leak it.
 
-## Scope
+---
 
-This policy applies to the ESI.ts library itself (`@lgriffin/esi.ts`). Vulnerabilities in the upstream EVE Online ESI API should be reported to CCP Games directly.
+## 5. Planned controls
 
-## Security Architecture
+Both are registered as gaps in the charter and tracked as bead `esi-wze` ([#270](https://github.com/lgriffin/ESI.ts/issues/270)).
 
-```
-Request Pipeline Security Checks
-─────────────────────────────────────────────────────
+### SBOM (SEC-06)
 
-Consumer Request
-       │
-       ▼
-┌──────────────────┐
-│  HTTPS Check     │  Reject http:// base URLs
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│  Host Allowlist   │  Only esi.evetech.net, login.eveonline.com
-└──────┬───────────┘  (unless unsafeAllowCustomHost: true)
-       │
-       ▼
-┌──────────────────┐
-│  Path Validation  │  Reject traversal, null bytes, encoded attacks
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│  Query Validation │  Length limits, reject NaN/Infinity/null
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│  Token Gating     │  Only attach token if endpoint requires auth scope
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│  URL Sanitization │  Redact tokens from logs and error messages
-└──────┬───────────┘
-       │
-       ▼
-    fetch()
-```
+Provenance says who built the package; an SBOM says what is inside it. The planned change adds `npm sbom --sbom-format cyclonedx` to the `create-assets` job, includes the SBOM in `checksums.txt`, and signs it in `sign-and-publish-assets` alongside the tarball, so it ships as a signed release asset.
+
+### CODEOWNERS and admin enforcement (SEC-07)
+
+Scorecard's code-review check looks for both. The planned change adds `.github/CODEOWNERS` assigning every path to the maintainer, and updates the `master` branch protection ruleset recorded in bead `esi-8we` so that it applies to administrators as well.

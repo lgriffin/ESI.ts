@@ -1,5 +1,7 @@
 # Open Knowledge Format (OKF) for ESI
 
+**Implements:** DES-03 · see [CHARTER.md](CHARTER.md) for the requirement text.
+
 This project generates an [OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf) knowledge bundle that catalogs every endpoint and response schema in the EVE Swagger Interface (ESI) API.
 
 ## What is OKF?
@@ -21,7 +23,7 @@ okf/
   index.md                              # Bundle root (okf_version: "0.2")
   log.md                                # Generation changelog
   domains/
-    index.md                            # Lists all 33 API domains
+    index.md                            # Lists every API domain
     alliance/
       index.md                          # Lists endpoints in this domain
       get-alliances.md                  # One concept per endpoint
@@ -31,12 +33,12 @@ okf/
       index.md
       get-markets-region-id-orders.md
       ...
-    ...  (33 domain directories)
+    ...  (one directory per domain)
   schemas/
     index.md                            # Lists all response schemas by domain
     alliance-detail.md                  # One concept per response data model
     markets-region-id-orders-get.md
-    ...  (161 schema concepts)
+    ...  (one concept per response schema)
 ```
 
 ## Concept types
@@ -50,7 +52,7 @@ Each endpoint concept captures the full operational profile:
 type: ESI Endpoint
 title: Get Markets Region ID Orders
 description: List orders in a region
-resource: "https://esi.evetech.net/ui/#/Market/GetMarketsRegionIdOrders"
+resource: 'https://esi.evetech.net/ui/#/Market/GetMarketsRegionIdOrders'
 tags: [market, public, paginated]
 generated:
   by: process:generate-okf
@@ -58,19 +60,19 @@ generated:
 status: stable
 sources:
   - id: esi-openapi
-    resource: "https://esi.evetech.net/meta/openapi.json"
+    resource: 'https://esi.evetech.net/meta/openapi.json'
     title: ESI OpenAPI Specification
 ---
 ```
 
 The body includes:
 
-| Section | Contents |
-|---------|----------|
-| **Endpoint** | HTTP method, path, auth requirement, cache TTL, rate limit group and budget |
-| **Scopes** | Required OAuth2 scopes (when authenticated) |
-| **Parameters** | Path and query parameters with types and descriptions |
-| **Response** | Link to the response schema concept, noting if it returns an array |
+| Section        | Contents                                                                    |
+| -------------- | --------------------------------------------------------------------------- |
+| **Endpoint**   | HTTP method, path, auth requirement, cache TTL, rate limit group and budget |
+| **Scopes**     | Required OAuth2 scopes (when authenticated)                                 |
+| **Parameters** | Path and query parameters with types and descriptions                       |
+| **Response**   | Link to the response schema concept, noting if it returns an array          |
 
 ### ESI Response Schema
 
@@ -88,7 +90,7 @@ generated:
 status: stable
 sources:
   - id: esi-openapi
-    resource: "https://esi.evetech.net/meta/openapi.json"
+    resource: 'https://esi.evetech.net/meta/openapi.json'
     title: ESI OpenAPI Specification
 ---
 ```
@@ -121,7 +123,7 @@ npm run generate:okf
 
 This fetches the live ESI OpenAPI spec from `https://esi.evetech.net/meta/openapi.json` and regenerates the entire `okf/` directory. The previous bundle is replaced on each run.
 
-The generator script is `scripts/generate-okf.ts`. It extracts:
+The generator script is `scripts/generate-okf.ts`. The bundle is a generated artefact: never edit files under `okf/` by hand (see [DESIGN-RULES.md](DESIGN-RULES.md)). It extracts:
 
 - Endpoint paths, methods, and descriptions
 - Authentication requirements and OAuth2 scopes
