@@ -81,24 +81,24 @@ this suite is scenarios that cannot fail.
 Steps live in `tests/bdd/step-definitions/<area>/<domain>.steps.ts`, one file
 per feature file, bound with `defineFeature` / `loadFeature`.
 
-**Mock at the transport seam.** Use `jest-fetch-mock`, never
-`jest.spyOn(client.<domain>, '<method>')` on the method the scenario exists to
-exercise — that produces a scenario asserting on its own fixture, which cannot
-fail for any bug in the client. `etag-caching.steps.ts` and
+**Mock at the transport seam (R3).** Queue HTTP responses with the helpers in
+`tests/bdd/support/`, such as `queueResponse({ status, headers, body })`, which
+run on `jest-fetch-mock`. Never use `jest.spyOn(client.<domain>, '<method>')`:
+the scenario then asserts on its own fixture and cannot fail for any bug in the
+client. ESLint bans `spyOn(client.*)` in `tests/bdd/**`. `etag-caching.steps.ts` and
 `response-headers.steps.ts` are the reference implementations for transport
 mocking; `resilience.steps.ts` is the reference for driving real
 `CircuitBreaker` and `RetryStrategy` objects.
 
 `fetch` is already mocked globally by `src/config/jest/jest.setup.ts`, so a
-step only queues the response with `fetchMock.mockResponseOnce(...)`. Removing
+step only queues the response through the seam helpers. Removing
 a spy without queueing a response does not hit the network — it fails on
 parsing an empty body, so both edits must land together.
 
-Stubbing a client method is acceptable only as incidental setup for a scenario
-about something else, such as a cross-domain workflow where one lookup is not
-the behaviour under test. Most of the existing suite predates this rule and is
-being converted; do not copy a neighbouring file without checking which pattern
-it uses.
+Incidental setup goes through the seam as well. Queue the extra response even
+when that lookup is not the behaviour under test. Much of the existing suite
+predates this rule and is being converted, so check which pattern a neighbouring
+file uses before you copy it.
 
 Before writing a new helper, check `tests/bdd/step-definitions/shared/` —
 `client-setup`, `common`, `error-helpers`, `performance-helpers`. Step bodies
@@ -167,6 +167,13 @@ asserts. Read the assertion and put that number in the requirement.
 - One EARS requirement per `Rule:` block — the title IS the requirement.
 - Every Scenario sits under the Rule it verifies.
 - Scenarios are declarative and name the case, not the requirement.
-- Mock `fetch`, not the method under test.
+- Mock at the transport seam (`tests/bdd/support/`), never with `spyOn(client.*)`.
 - Confirm RED before implementing.
 - Audit after every change.
+
+## Changing this skill
+
+Changes to this skill are gated (R14). Bump `skill.version` in
+`eval/eval.yaml`, then run `npx ts-node scripts/skill-eval.ts`; the offline
+judges must pass. On the PR, `skill-eval.yml` also runs the live eval cases
+against the manifest's thresholds and cost budget.

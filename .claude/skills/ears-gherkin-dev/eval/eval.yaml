@@ -1,0 +1,63 @@
+# Eval manifest for the ears-gherkin-dev skill (R14: skills are versioned,
+# evaluated and gated).
+#
+# The cases themselves are native `claude plugin eval` cases in cases/*/case.yaml.
+# This manifest carries what that format has no field for, and is read by
+# scripts/skill-eval.ts:
+#
+#   npx ts-node scripts/skill-eval.ts                  # offline, deterministic
+#   npx ts-node scripts/skill-eval.ts --live           # needs ANTHROPIC_API_KEY
+#   npx ts-node scripts/skill-eval.ts --check-version origin/master
+#
+# Bump skill.version whenever SKILL.md changes; CI fails otherwise.
+schema_version: 1
+
+skill:
+  name: ears-gherkin-dev
+  version: 1.0.0
+
+native:
+  eval_dir: eval
+  model: sonnet
+  judge_model: haiku
+  runs: 2
+  # with-without doubles the cost to measure the skill's lift; the gate reads
+  # absolute scores, so it is off by default.
+  ablation: none
+  # Cases write their outputs; Write must be granted by the operator.
+  allow_tools: [Write]
+
+thresholds:
+  # Weighted grader mean per case (claude plugin eval --threshold).
+  case_score_min: 0.8
+  # Share of deterministic verdicts that must pass: native regex/tool graders
+  # plus the runner's own judges and spec audit on every run's workspace.
+  deterministic_pass_rate: 1.0
+  llm:
+    # Mean pass rate of every llm grader verdict across all cases and runs.
+    min_mean: 0.75
+
+budget:
+  # Hard ceiling (claude plugin eval --max-cost-usd); a run stopped by it is
+  # partial and fails the gate, as does any total above it.
+  max_cost_usd: 6
+  # Every case.yaml must stay within these per-run bounds.
+  max_turns_per_run: 40
+  max_timeout_seconds: 900
+
+cases:
+  - name: new-endpoint
+    dir: cases/new-endpoint
+    outputs:
+      features: [out/0023-market.feature]
+      steps: [out/market-types.steps.ts]
+  - name: bug-fix
+    dir: cases/bug-fix
+    outputs:
+      features: [out/0023-market.feature]
+      steps: [out/market-order-pagination.steps.ts]
+  - name: review-feedback
+    dir: cases/review-feedback
+    outputs:
+      features: [out/0034-status.feature]
+      steps: [out/status.steps.ts]

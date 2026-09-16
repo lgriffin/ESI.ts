@@ -1,0 +1,106 @@
+schema_version: '1.1'
+name: review-feedback
+description: >
+  A PR received review comments with severities: a blocker for spying on the
+  method under test, and majors for a two-shall Rule and a weak assertion. The
+  skill must address every blocker and major without introducing new
+  violations.
+tags: [review-feedback, status]
+runs: 2
+expected_outcome: >
+  out/0034-status.feature splits the Rule into two single-shall Rules with each
+  scenario nested under the one it verifies; out/status.steps.ts replaces every
+  spyOn with queued responses and asserts the VIP flag's type; the final
+  message maps each review item to its resolution.
+
+context:
+  add_dirs: [fixtures]
+
+execution:
+  prompt: |
+    My PR adding VIP-mode coverage got review comments (fixtures/review.md).
+    Please address them using the ears-gherkin-dev skill. The submitted files
+    are fixtures/0034-status.feature and fixtures/status.steps.ts, and
+    fixtures/transport-seam.md describes the seam helpers.
+
+    This sandbox has no repository checkout, so you cannot run Jest or the
+    audit. Instead:
+    1. Write the revised feature file to out/0034-status.feature.
+    2. Write the revised step file to out/status.steps.ts.
+    3. In your final message, reply to the reviewer item by item (1-4), saying
+       what changed or why an item is deferred, and which checks you would run
+       before re-requesting review.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Write]
+
+graders:
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: 'ears-gherkin-dev'
+    min: 1
+
+  - name: two-rules
+    type: regex
+    target: { source: file, path: out/0034-status.feature }
+    pattern: '^\s*Rule:.*\bshall\b'
+    flags: m
+    match: count:2
+
+  - name: rule-single-shall
+    type: regex
+    target: { source: file, path: out/0034-status.feature }
+    pattern: '^\s*Rule:.*\bshall\b.*\bshall\b'
+    flags: mi
+    match: count:0
+
+  - name: no-feature-level-scenario
+    type: regex
+    target: { source: file, path: out/0034-status.feature }
+    pattern: '^Feature:(?:(?!^\s*Rule:)[\s\S])*^\s*Scenario'
+    flags: m
+    match: count:0
+
+  - name: no-client-spy
+    type: regex
+    target: { source: file, path: out/status.steps.ts }
+    pattern: 'spyOn\(\s*(?:this\.)?client\b'
+    match: count:0
+
+  - name: transport-seam
+    type: regex
+    target: { source: file, path: out/status.steps.ts }
+    pattern: 'queueResponse\s*\('
+
+  - name: blockers-and-majors-resolved
+    type: llm
+    focus: { source: file, path: out/status.steps.ts }
+    criteria: |
+      Pass when the revised step file resolves review items 1 and 3: no client
+      method is stubbed, each scenario queues its HTTP response at the
+      transport seam (a 200 with a status payload, and a 503), the 503 case
+      cannot be masked by automatic retries (retries disabled or enough
+      responses queued), and the VIP scenario asserts that the flag is a
+      boolean as well as its value. Every test(...) title must match a
+      Scenario name in the revised feature file.
+
+  - name: rules-split-cleanly
+    type: llm
+    focus: { source: file, path: out/0034-status.feature }
+    criteria: |
+      Pass when the two requirements are now separate Rules, each a single
+      EARS requirement naming the Status client (the error one in the
+      "If ..., then the Status client shall ..." form), each scenario sits
+      under the Rule it verifies, and the outage scenario name no longer
+      implies a VIP precondition it does not set up (review item 4). Fail if a
+      Rule claims something its scenarios do not assert.
+
+  - name: reply-maps-review-items
+    type: llm
+    criteria: |
+      Pass when the final message addresses review items 1, 2, 3 and 4
+      individually, treats the blocker and majors as fixed rather than
+      deferred, and lists the checks to run before re-requesting review
+      (the scenario run with Jest and npm run spec:audit) without claiming
+      they were already run.

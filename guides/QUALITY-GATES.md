@@ -129,21 +129,22 @@ Test files are formatted but not linted, at commit or anywhere else (`TEST-09`).
 
 All workflows live in `.github/workflows/`. Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
 
-| Workflow                   | Trigger                                                     | Blocks                        | Output                                        |
-| -------------------------- | ----------------------------------------------------------- | ----------------------------- | --------------------------------------------- |
-| `ci-fast.yml`              | Push, any branch                                            | No (covered by `ci-success`)  | Status                                        |
-| `ci.yml`                   | Pull request to `master`, `main`, `develop`                 | Required check (`ci-success`) | Status, coverage comment, artifacts           |
-| `package-checks.yml`       | Pull request to `master`, `main`                            | No                            | Status, step summary                          |
-| `codeql.yml`               | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC | No                            | Code scanning alerts                          |
-| `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                     | No                            | Artifact                                      |
-| `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                     | No                            | Artifact                                      |
-| `nightly-no-retry.yml`     | Daily 03:00 UTC; manual                                     | No                            | Artifact                                      |
-| `nightly-audit.yml`        | Daily 05:00 UTC; manual                                     | No                            | `security-audit` issue                        |
-| `nightly-spec-drift.yml`   | Daily 06:00 UTC; manual                                     | No                            | `spec-drift` issue                            |
-| `scorecard.yml`            | Mondays 04:00 UTC; manual; branch protection rule change    | No                            | SARIF to code scanning, public score          |
-| `maintenance.yml`          | Mondays 09:00 UTC; manual                                   | No                            | Artifacts                                     |
-| `release-please.yml`       | Push to `master`                                            | —                             | Release PR, tag, GitHub release               |
-| `release.yml`              | Tag `v*.*.*` pushed; GitHub release published               | Publishing                    | npm, GitHub Packages, gh-pages, signed assets |
+| Workflow                   | Trigger                                                          | Blocks                        | Output                                        |
+| -------------------------- | ---------------------------------------------------------------- | ----------------------------- | --------------------------------------------- |
+| `ci-fast.yml`              | Push, any branch                                                 | No (covered by `ci-success`)  | Status                                        |
+| `ci.yml`                   | Pull request to `master`, `main`, `develop`                      | Required check (`ci-success`) | Status, coverage comment, artifacts           |
+| `package-checks.yml`       | Pull request to `master`, `main`                                 | No                            | Status, step summary                          |
+| `codeql.yml`               | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC      | No                            | Code scanning alerts                          |
+| `skill-eval.yml`           | PR touching `.claude/skills/**` or the skill eval runner; manual | No                            | Status, artifacts                             |
+| `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                          | No                            | Artifact                                      |
+| `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                          | No                            | Artifact                                      |
+| `nightly-no-retry.yml`     | Daily 03:00 UTC; manual                                          | No                            | Artifact                                      |
+| `nightly-audit.yml`        | Daily 05:00 UTC; manual                                          | No                            | `security-audit` issue                        |
+| `nightly-spec-drift.yml`   | Daily 06:00 UTC; manual                                          | No                            | `spec-drift` issue                            |
+| `scorecard.yml`            | Mondays 04:00 UTC; manual; branch protection rule change         | No                            | SARIF to code scanning, public score          |
+| `maintenance.yml`          | Mondays 09:00 UTC; manual                                        | No                            | Artifacts                                     |
+| `release-please.yml`       | Push to `master`                                                 | —                             | Release PR, tag, GitHub release               |
+| `release.yml`              | Tag `v*.*.*` pushed; GitHub release published                    | Publishing                    | npm, GitHub Packages, gh-pages, signed assets |
 
 ### `ci-fast.yml` — CI Fast
 
@@ -189,6 +190,10 @@ GitHub CodeQL analysis for `javascript-typescript` on pushes and pull requests t
 The `zizmor` job in `ci.yml` runs `zizmor` (pinned version, via `uvx`) over `.github/` with `.zizmor.yml` on every pull request, inside `ci-success`. It used to live in a separate `zizmor.yml` that only ran when workflow files changed; a path-filtered workflow cannot be a required check, so it never blocked a merge.
 
 `.zizmor.yml` requires a justification comment on every ignore and currently has none. The three it used to carry were resolved: `cache-poisoning` on `release.yml` by setting `package-manager-cache: false` on its `setup-node` steps, `dependabot-cooldown` by configuring a Dependabot cooldown, and `use-trusted-publishing` was producing no finding.
+
+### `skill-eval.yml` — Skill Eval
+
+Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. `live` then runs the native `claude plugin eval` suite through the same script, which enforces the manifest's per-case score, LLM-grader `min_mean`, deterministic pass rate and `max_cost_usd` budget. `live` fails rather than skips when the `ANTHROPIC_API_KEY` secret is absent — including on fork PRs, where a maintainer re-runs it via `workflow_dispatch`. Not a required check yet.
 
 ### `nightly-schemathesis.yml` — Nightly Schemathesis API Fuzz
 
