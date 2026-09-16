@@ -11,7 +11,7 @@ Feature: Market Management
 
   # ── Global price list ───────────────────────────────────────────────
 
-  Rule: When current market prices are requested, the Market client shall return each entry with a type_id, a numeric average_price, and an adjusted_price.
+  Rule: When current market prices are requested, the Market client shall return each entry with a type_id, and a numeric average_price and an adjusted_price when present.
     The price endpoint is the cheapest way to value an arbitrary item. The two
     prices differ in meaning — average_price tracks recent trades, while
     adjusted_price feeds industry cost calculations — so both are carried

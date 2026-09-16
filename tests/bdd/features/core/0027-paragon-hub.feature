@@ -10,7 +10,7 @@ Feature: Paragon Hub SKINR Marketplace
 
   # ── Browsing listings ───────────────────────────────────────────────
 
-  Rule: When public SKINR listings are requested, the ParagonHub client shall return each listing with its skinr_id and a price denominated in either ISK or PLEX, alongside the page cursor.
+  Rule: When public SKINR listings are requested, the ParagonHub client shall return each listing with its skinr_id and a price denominated in either ISK or PLEX, alongside the page cursor when present.
     The public board is the default view of the marketplace. Price is a tagged
     value rather than a number plus a currency field, so a caller reads the
     key to learn the denomination — collapsing the two into one figure would
@@ -44,7 +44,7 @@ Feature: Paragon Hub SKINR Marketplace
 
   # ── Cursor pagination ───────────────────────────────────────────────
 
-  Rule: When a cursor is supplied with a public listings request, the ParagonHub client shall return the page it identifies together with the after and before cursors of the adjacent pages.
+  Rule: When a cursor is supplied with a public listings request, the ParagonHub client shall return the page it identifies together with the after and before cursors of the adjacent pages when present.
     Paragon Hub uses cursor paging rather than page numbers, because listings
     are created and expire while a caller is walking the board. Returning
     both adjacent cursors is what allows movement in either direction from

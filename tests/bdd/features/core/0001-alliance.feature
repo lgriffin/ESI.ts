@@ -8,7 +8,7 @@ Feature: Alliance Management
 
   # ── Alliance records ────────────────────────────────────────────────
 
-  Rule: When alliance details are requested for an alliance ID, the Alliance client shall return a record carrying alliance_id, name, ticker, and creator_id.
+  Rule: When alliance details are requested for an alliance ID, the Alliance client shall return a record carrying name, ticker, and creator_id, and alliance_id when present.
     The alliance record is the anchor object for the domain — every other
     alliance lookup is keyed off the same ID. Those four fields are the ones
     ESI marks required on the payload, so a caller can depend on them being

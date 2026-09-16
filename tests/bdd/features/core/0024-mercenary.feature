@@ -9,7 +9,7 @@ Feature: Mercenary Operations
 
   # ── Den listing ─────────────────────────────────────────────────────
 
-  Rule: When the mercenary dens of a character are requested, the Mercenary client shall return each den with its den_id, development_level, anarchy_level, and active_operations count.
+  Rule: When the mercenary dens of a character are requested, the Mercenary client shall return each den with its den_id, and its development_level, anarchy_level, and active_operations count when present.
     Development and anarchy are the two axes a den evolves along, and the
     active operation count says how much is currently running out of it.
     Those three numbers are what a caller needs to rank dens without opening

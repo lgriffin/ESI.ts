@@ -352,7 +352,7 @@ export function findFieldMentions(
  * field mentioned before them, so "carrying A and B when present" covers both.
  */
 const PRESENCE_QUALIFIERS: RegExp[] = [
-  /\b(?:when|if|where)\s+(?:(?:it|they|that|this|each|one)\s+(?:is|are)\s+)?present\b/i,
+  /\b(?:when|if|where)\s+(?:(?:it|they|both|that|this|each|one)\s+(?:is|are)\s+)?present\b/i,
   /\b(?:when|if|where)\s+ESI\s+(?:supplies|includes|returns|reports|sets)\s+(?:it|them|one)\b/i,
 ];
 

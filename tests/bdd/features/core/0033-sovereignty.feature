@@ -8,7 +8,7 @@ Feature: Sovereignty
 
   # ── Contested campaigns ─────────────────────────────────────────────
 
-  Rule: When sovereignty campaigns are requested, the Sovereignty client shall return one entry per contest carrying its event type, structure, attacker score, and defender score.
+  Rule: When sovereignty campaigns are requested, the Sovereignty client shall return one entry per contest carrying its event type and structure, and its attacker score and defender score when present.
     The two scores are the live state of a contest and are what a caller
     renders as the capture bar. Event type distinguishes a TCU defense from an
     IHub defense, which have different timers. Between contests ESI returns an
@@ -37,7 +37,7 @@ Feature: Sovereignty
 
   # ── System occupancy ────────────────────────────────────────────────
 
-  Rule: When sovereignty systems are requested, the Sovereignty client shall return one entry per solar system carrying the holding alliance claim and its military, industrial, and strategic development levels.
+  Rule: When sovereignty systems are requested, the Sovereignty client shall return one entry per solar system carrying its claim, with the holding alliance and its military, industrial, and strategic development levels when present.
     The three development levels are tracked independently under Equinox, each
     driving different upgrades, so they are reported as distinct fields rather
     than folded into a single index. The claim block also carries the holding

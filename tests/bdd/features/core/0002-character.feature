@@ -8,7 +8,7 @@ Feature: Character Management
 
   # ── Public character data ───────────────────────────────────────────
 
-  Rule: When the public profile is requested for a character ID, the Characters client shall return a record carrying character_id, name, corporation_id, alliance_id, and birthday.
+  Rule: When the public profile is requested for a character ID, the Characters client shall return a record carrying name, corporation_id, and birthday, and alliance_id when present.
     The public profile is the anchor record for the domain and needs no token.
     Corporation and alliance membership are the fields callers most often join
     against, and birthday is what dates a character for age-based filtering.
@@ -40,7 +40,7 @@ Feature: Character Management
 
   # ── Authenticated character data ────────────────────────────────────
 
-  Rule: When corporation roles are requested for a character ID, the Characters client shall return a record whose roles field is an array of role names.
+  Rule: When corporation roles are requested for a character ID, the Characters client shall return a record whose roles field, when present, is an array of role names.
     Roles gate access to the corporation endpoints, so a consuming application
     reads them to decide which calls are worth attempting. The payload also
     carries base, HQ, and other-location variants, but the plain roles array

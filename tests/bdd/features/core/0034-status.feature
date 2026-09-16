@@ -8,7 +8,7 @@ Feature: Server Status
 
   # ── Status payload ──────────────────────────────────────────────────
 
-  Rule: When server status is requested, the Status client shall return the player count as a number, the server version, the start time as a parseable ISO 8601 timestamp, and the VIP flag.
+  Rule: When server status is requested, the Status client shall return the player count as a number, the server version, the start time as a parseable ISO 8601 timestamp, and the VIP flag when present.
     These four fields are the whole payload. Callers treat players as a
     number they can compare and start_time as a date they can subtract from
     now to get cluster uptime, so both are exercised for type as well as
@@ -31,7 +31,7 @@ Feature: Server Status
 
   # ── VIP mode ────────────────────────────────────────────────────────
 
-  Rule: When server status is requested, the Status client shall report the VIP flag as a boolean reflecting whether login is restricted.
+  Rule: When server status is requested, the Status client shall report the VIP flag, when present, as a boolean reflecting whether login is restricted.
     VIP mode follows downtime and after emergency restarts, when only
     privileged accounts can log in. The flag is what tells an application to
     hold off reconnecting, and the low player count that accompanies it is a

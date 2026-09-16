@@ -207,6 +207,10 @@ describe('rule-schema-check', () => {
         'When the public profile is requested, the Characters client shall return name, corporation_id, and alliance_id if present.',
       ],
       [
+        'qualified with "when both are present"',
+        'When the public profile is requested, the Characters client shall return a description differing from the alliance_id when both are present.',
+      ],
+      [
         'qualified with "when ESI supplies it"',
         'When clone information is requested, the Clones client shall return the home location when ESI supplies it.',
       ],

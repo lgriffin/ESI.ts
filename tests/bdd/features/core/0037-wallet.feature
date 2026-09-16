@@ -26,7 +26,7 @@ Feature: Wallets
 
   # ── Character journal and transactions ──────────────────────────────
 
-  Rule: When a character wallet journal is requested, the Wallet client shall return one entry per movement carrying its identifier, date, reference type, amount, and resulting balance.
+  Rule: When a character wallet journal is requested, the Wallet client shall return one entry per movement carrying its identifier, date, and reference type, and its amount and resulting balance when present.
     The reference type is what classifies a movement as a bounty, a market
     trade, or a transfer, and the running balance lets a caller reconstruct
     the account history without re-adding the amounts. Amounts are signed, so

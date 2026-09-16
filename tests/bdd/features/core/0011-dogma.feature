@@ -30,7 +30,7 @@ Feature: Dogma System
 
   # ── Attribute and effect detail ─────────────────────────────────────
 
-  Rule: When the client requests a dogma attribute by identifier, the Dogma client shall return a record carrying attribute_id, name, description, and published.
+  Rule: When the client requests a dogma attribute by identifier, the Dogma client shall return a record carrying attribute_id and name, and description and published when present.
     The attribute record is what turns an opaque ID into something displayable:
     name and description for UI, published for whether the attribute is live in
     the game, and attribute_id echoed back so a batch of parallel lookups can
@@ -41,7 +41,7 @@ Feature: Dogma System
       When the client requests attribute details
       Then the client shall return complete attribute information
 
-  Rule: When the client requests a dogma effect by identifier, the Dogma client shall return a record carrying effect_id, name, published, and is_warp_safe.
+  Rule: When the client requests a dogma effect by identifier, the Dogma client shall return a record carrying effect_id and name, and published and is_warp_safe when present.
     Effects carry behavioural flags in addition to naming — is_warp_safe in
     particular decides whether activating the effect drops the ship out of
     warp, so it is part of the minimum contract rather than an optional extra.

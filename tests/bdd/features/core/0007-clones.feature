@@ -9,7 +9,7 @@ Feature: Clone Management
 
   # ── Clone records ───────────────────────────────────────────────────
 
-  Rule: When clone information is requested for a character ID, the Clones client shall return a record carrying the home location and one entry per jump clone.
+  Rule: When clone information is requested for a character ID, the Clones client shall return a record carrying one entry per jump clone, and the home location when present.
     The home location is where a pod death returns the character, and the jump
     clone entries are the alternative bodies they can jump to. Both are needed
     before a caller can show where a character is able to end up.

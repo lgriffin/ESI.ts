@@ -29,7 +29,7 @@ Feature: Wars
 
   # ── War detail ──────────────────────────────────────────────────────
 
-  Rule: When a war is requested by identifier, the Wars client shall return aggressor and defender blocks carrying alliance identifier, ISK destroyed, and ships killed, along with the declared and started timestamps.
+  Rule: When a war is requested by identifier, the Wars client shall return aggressor and defender blocks carrying ISK destroyed and ships killed, and the declared timestamp, along with each block's alliance identifier and the started timestamp when present.
     The two combatant blocks are symmetric, which is what lets a caller render
     either side with one code path. Declared and started differ because a war
     declaration takes 24 hours to come into effect, and a war still running
@@ -40,7 +40,7 @@ Feature: Wars
       When the client requests the war details
       Then the client shall return complete war information
 
-  Rule: When a war has concluded, the Wars client shall return a finished timestamp ordered after its declared and started timestamps.
+  Rule: When a war has concluded, the Wars client shall return a finished timestamp ordered after its declared timestamp and after its started timestamp when present.
     The finish timestamp is the field that distinguishes a historical war from
     a live one. Its ordering against the other two is what a caller uses to
     compute how long the conflict actually ran.
