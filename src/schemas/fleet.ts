@@ -41,7 +41,7 @@ export const FleetWingSchema = z.looseObject({
 
 export const CharacterFleetInfoSchema = z.looseObject({
   fleet_id: z.number(),
-  fleet_boss_id: z.number().optional(),
+  fleet_boss_id: z.number(),
   role: esiEnum([
     'fleet_commander',
     'wing_commander',

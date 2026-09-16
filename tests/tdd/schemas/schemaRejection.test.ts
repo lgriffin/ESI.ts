@@ -1386,6 +1386,7 @@ const schemaCases: SchemaTestCase[] = [
     schema: CharacterFleetInfoSchema,
     validData: {
       fleet_id: 1,
+      fleet_boss_id: 90000001,
       role: 'fleet_commander',
       squad_id: -1,
       wing_id: -1,
@@ -2049,6 +2050,8 @@ const schemaCases: SchemaTestCase[] = [
       system_id: 30000142,
       reinforce_exit_start: 0,
       reinforce_exit_end: 23,
+      allow_alliance_access: true,
+      allow_access_with_standings: false,
     },
     invalidData: {
       office_id: 'bad',
@@ -2256,6 +2259,7 @@ const schemaCases: SchemaTestCase[] = [
       name: 'Jita',
       constellation_id: 20000020,
       security_status: 0.9459,
+      position: { x: 1.0e17, y: 6.0e16, z: 1.1e17 },
     },
     invalidData: {
       system_id: 'bad',

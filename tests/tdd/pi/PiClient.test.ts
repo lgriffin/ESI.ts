@@ -115,6 +115,7 @@ describe('PiClient', () => {
         reinforce_exit_start: 2,
         reinforce_exit_end: 14,
         allow_alliance_access: true,
+        allow_access_with_standings: false,
         tax_rate: 0.05,
         alliance_tax_rate: 0.02,
         corp_tax_rate: 0.01,
