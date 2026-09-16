@@ -2,6 +2,7 @@ import type AdmZip from 'adm-zip';
 import { SDE_METADATA_FILENAME } from './constants';
 import { SdeError } from '../errors';
 import { loadAdmZip, loadJsYaml } from '../optionalPeers';
+import { parseSdeMetadata } from './metadata';
 
 export interface SdeMetadata {
   buildNumber: string;
@@ -50,17 +51,7 @@ export class SdeExtractor {
       );
     }
 
-    const content = readEntryAsString(entry);
-    const parsed = loadJsYaml().load(content) as Record<string, unknown>;
-
-    const bn = parsed.buildNumber;
-    const rd = parsed.releaseDate;
-    return {
-      buildNumber:
-        typeof bn === 'string' || typeof bn === 'number' ? String(bn) : '',
-      releaseDate:
-        typeof rd === 'string' || typeof rd === 'number' ? String(rd) : '',
-    };
+    return parseSdeMetadata(readEntryAsString(entry));
   }
 
   parseFile(zipPath: string, filename: string): ParsedSdeFile {

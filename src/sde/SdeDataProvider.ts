@@ -54,12 +54,25 @@ import type {
   EpicArc,
 } from './types';
 import type { SdeVersionInfo } from './version';
-import { SDE_FILE_REGISTRY } from './ingestion/constants';
+import {
+  SDE_FILE_REGISTRY,
+  SDE_METADATA_FILENAME,
+} from './ingestion/constants';
 import type { SdeFileSpec } from './ingestion/constants';
 import { SdeExtractor } from './ingestion/SdeExtractor';
+import type { SdeMetadata } from './ingestion/SdeExtractor';
+import { parseSdeMetadata } from './ingestion/metadata';
 import { transformRecordNative } from './ingestion/transforms';
 import { SdeError } from './errors';
 import { loadJsYaml } from './optionalPeers';
+
+function toVersionInfo(metadata: SdeMetadata | undefined): SdeVersionInfo {
+  return {
+    version: metadata?.buildNumber || 'unknown',
+    buildDate: metadata?.releaseDate || 'unknown',
+    importedAt: new Date().toISOString(),
+  };
+}
 
 export class SdeDataProvider implements IStaticDataProvider {
   private entities = new Map<
@@ -82,33 +95,12 @@ export class SdeDataProvider implements IStaticDataProvider {
       throw new SdeError(`SDE directory not found: ${resolvedDir}`);
     }
 
-    let version: SdeVersionInfo = {
-      version: 'unknown',
-      buildDate: 'unknown',
-      importedAt: new Date().toISOString(),
-    };
+    const metaPath = path.join(resolvedDir, SDE_METADATA_FILENAME);
+    const metadata = fs.existsSync(metaPath)
+      ? parseSdeMetadata(fs.readFileSync(metaPath, 'utf-8'))
+      : undefined;
 
-    const metaPath = path.join(resolvedDir, '_sde.yaml');
-    if (fs.existsSync(metaPath)) {
-      const metaContent = fs.readFileSync(metaPath, 'utf-8');
-      const parsed = loadJsYaml().load(metaContent) as Record<string, unknown>;
-      const sdeBlock = (parsed.sde ?? parsed) as Record<string, unknown>;
-      const bn = sdeBlock.buildNumber;
-      const rd = sdeBlock.releaseDate;
-      version = {
-        version:
-          typeof bn === 'string' || typeof bn === 'number'
-            ? String(bn)
-            : 'unknown',
-        buildDate:
-          typeof rd === 'string' || typeof rd === 'number'
-            ? String(rd)
-            : 'unknown',
-        importedAt: new Date().toISOString(),
-      };
-    }
-
-    const provider = new SdeDataProvider(version);
+    const provider = new SdeDataProvider(toVersionInfo(metadata));
 
     for (const spec of SDE_FILE_REGISTRY) {
       const filePath = path.join(resolvedDir, spec.yamlFile);
@@ -136,13 +128,7 @@ export class SdeDataProvider implements IStaticDataProvider {
     const extractor = new SdeExtractor();
     const metadata = extractor.readMetadata(resolvedPath);
 
-    const version: SdeVersionInfo = {
-      version: metadata.buildNumber || 'unknown',
-      buildDate: metadata.releaseDate || 'unknown',
-      importedAt: new Date().toISOString(),
-    };
-
-    const provider = new SdeDataProvider(version);
+    const provider = new SdeDataProvider(toVersionInfo(metadata));
 
     const yamlFiles = SDE_FILE_REGISTRY.map((s) => s.yamlFile);
     const parsedFiles = extractor.parseFiles(resolvedPath, yamlFiles);
