@@ -42,7 +42,7 @@ Each `.feature` file maps to exactly one `*.steps.ts` file, wired together by
 
 ## The rules the audit enforces
 
-Every rule in this section has a check in `scripts/spec-audit.ts` and a negative
+Every rule in this section has a check in the `scripts/spec-audit*.ts` pair and a
 fixture in `tests/tdd/spec-audit/fixtures/`. If it is listed here, CI fails when
 it is broken.
 
@@ -188,8 +188,12 @@ offending lines. It checks exactly this, and nothing else:
 | Every Feature has at least one Rule                              | `feature-without-rules`                                                    |
 | Every Feature has a description                                  | `feature-without-description`                                              |
 
-`tests/tdd/spec-audit/spec-audit.test.ts` runs each fixture through the audit,
+`tests/tdd/spec-audit/spec-audit.test.ts` runs the fixtures through the audit,
 so a check that stops firing fails the unit suite rather than passing quietly.
+It drives the CLI in a child process, because `@cucumber/gherkin` is ESM-only
+and Jest cannot load it: the checks that need no Gherkin AST live in
+`scripts/spec-audit-checks.ts`, free of that dependency, and are imported
+directly.
 
 `scripts/spec-audit-exceptions.json` lists feature files not yet converted to
 Rule form. It is a **ratchet in both directions**, and the run fails when:
