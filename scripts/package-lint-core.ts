@@ -29,7 +29,15 @@
  */
 
 import { execFileSync, spawnSync } from 'child_process';
-import { readdirSync, readFileSync } from 'fs';
+import {
+  closeSync,
+  mkdtempSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+} from 'fs';
+import { tmpdir } from 'os';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 
@@ -237,28 +245,66 @@ export function attwFindings(json: AttwJson): Finding[] {
   return findings;
 }
 
-export function runAttw(tarball: string): Finding[] {
-  const cli = path.join(
-    REPO_ROOT,
-    'node_modules',
-    '@arethetypeswrong',
-    'cli',
-    'dist',
-    'index.js',
-  );
-  // Exit 1 means "problems found", which the JSON describes. Anything else
-  // non-zero is attw itself failing.
-  const { status, stdout, stderr } = exec(
-    process.execPath,
-    [cli, path.resolve(tarball), '--format', 'json', '--profile', 'node16'],
-    REPO_ROOT,
-  );
-  if (status !== 0 && status !== 1) {
-    throw new Error(
-      `attw failed to run on ${tarball} (exit ${status})\n${stdout}${stderr}`,
-    );
+export const ATTW_CLI = path.join(
+  REPO_ROOT,
+  'node_modules',
+  '@arethetypeswrong',
+  'cli',
+  'dist',
+  'index.js',
+);
+
+/**
+ * Run attw on `tarball` and read its JSON report.
+ *
+ * attw's stdout goes to a file, not a pipe. With `--format json` attw writes
+ * the report and then calls `process.exit(1)` when it finds problems. On
+ * Linux, once the pipe to the parent is full, Node queues the rest of the
+ * write, and `process.exit` drops the queue: CI read a report cut off after
+ * 219 kB. Node writes to a file synchronously, so the file holds the whole
+ * report. `cli` is a parameter only so a test can substitute a stand-in that
+ * exits the same way.
+ */
+export function runAttw(tarball: string, cli = ATTW_CLI): Finding[] {
+  const dir = mkdtempSync(path.join(tmpdir(), 'esi-attw-'));
+  const reportFile = path.join(dir, 'attw.json');
+  try {
+    const fd = openSync(reportFile, 'w');
+    let result: ReturnType<typeof spawnSync>;
+    try {
+      result = spawnSync(
+        process.execPath,
+        [cli, path.resolve(tarball), '--format', 'json', '--profile', 'node16'],
+        {
+          cwd: REPO_ROOT,
+          encoding: 'utf8',
+          stdio: ['ignore', fd, 'pipe'],
+          maxBuffer: 64 * 1024 * 1024,
+        },
+      );
+    } finally {
+      closeSync(fd);
+    }
+    if (result.error) throw result.error;
+    const report = readFileSync(reportFile, 'utf8');
+    const stderr = String(result.stderr ?? '');
+    // Exit 1 means "problems found", which the JSON describes. Anything else
+    // non-zero is attw itself failing.
+    if (result.status !== 0 && result.status !== 1) {
+      throw new Error(
+        `attw failed to run on ${tarball} (exit ${result.status})\n${report}${stderr}`,
+      );
+    }
+    try {
+      return attwFindings(JSON.parse(report) as AttwJson);
+    } catch (error) {
+      throw new Error(
+        `attw on ${tarball} (exit ${result.status}) wrote ${report.length} characters that are not a complete JSON report: ${(error as Error).message}\n${stderr}`,
+      );
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
-  return attwFindings(JSON.parse(stdout) as AttwJson);
 }
 
 // ---------------------------------------------------------------------------

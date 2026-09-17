@@ -286,6 +286,71 @@ describeWithTools('package lint: publint and attw on packed fixtures', () => {
   });
 });
 
+describe('package lint: reading the attw report', () => {
+  let work: string;
+
+  // Stand-ins for the attw CLI. Each writes its report the way attw 0.18 does
+  // with --format json and problems found: one stdout write, then
+  // process.exit(1) without waiting for the write to drain.
+  const standIn = (name: string, body: string): string => {
+    const file = path.join(work, name);
+    writeFileSync(file, body);
+    return file;
+  };
+
+  beforeAll(() => {
+    work = mkdtempSync(path.join(tmpdir(), 'esi-attw-report-'));
+  });
+
+  afterAll(() => {
+    rmSync(work, { recursive: true, force: true });
+  });
+
+  it('reads the whole report when attw exits 1 straight after writing about 1 MB', () => {
+    const entrypoints = 4000;
+    const cli = standIn(
+      'large-report.cjs',
+      `
+      const resolution = { visibleProblems: [0] };
+      const entrypoints = {};
+      for (let i = 0; i < ${entrypoints}; i++) {
+        entrypoints['./entry-' + i] = {
+          resolutions: { 'node16-cjs': resolution, 'node16-esm': resolution, bundler: resolution },
+        };
+      }
+      const analysis = { types: { kind: 'included' }, problems: [{ kind: 'FalseCJS' }], entrypoints };
+      process.stdout.write(JSON.stringify({ analysis }, undefined, 2));
+      process.exit(1);
+      `,
+    );
+    const findings = runAttw('unused.tgz', cli);
+    expect(findings).toHaveLength(entrypoints * 3);
+    expect(findings.at(-1)!.key).toBe(
+      `attw:FalseCJS ./entry-${entrypoints - 1} bundler`,
+    );
+  });
+
+  it('names the tarball and the report length when the report is not complete JSON', () => {
+    const cli = standIn(
+      'truncated-report.cjs',
+      `process.stdout.write('{"analysis": {"types": "inclu'); process.exit(1);`,
+    );
+    expect(() => runAttw('fixture.tgz', cli)).toThrow(
+      /attw on fixture\.tgz \(exit 1\) wrote 29 characters that are not a complete JSON report/,
+    );
+  });
+
+  it('fails when attw itself fails rather than reporting problems', () => {
+    const cli = standIn(
+      'crash.cjs',
+      `process.stderr.write('boom'); process.exit(3);`,
+    );
+    expect(() => runAttw('fixture.tgz', cli)).toThrow(
+      /attw failed to run on fixture\.tgz \(exit 3\)\nboom/,
+    );
+  });
+});
+
 describe('size budgets: configuration', () => {
   const manifest = {
     dependencies: { zod: '^4.0.0' },
