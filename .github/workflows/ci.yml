@@ -57,6 +57,14 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      # The determinism baseline only shrinks against master's copy; without
+      # the ref the lint fails closed.
+      - name: Fetch the determinism baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Time and randomness only through the clock module
+        run: npm run lint:determinism
+
       - name: Check formatting
         run: npm run format:check
 

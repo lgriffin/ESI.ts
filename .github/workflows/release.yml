@@ -6,6 +6,11 @@ on:
       - 'v*.*.*'
   release:
     types: [published]
+  # release-please creates the tag and release with GITHUB_TOKEN, and events
+  # raised by GITHUB_TOKEN start no other workflow. Publish such a release by
+  # dispatching this workflow on its tag:
+  #   gh workflow run release.yml --ref vX.Y.Z
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,6 +22,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 🏷️ Require a version tag
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" != "tag" ] || ! [[ "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Run the release pipeline on a vX.Y.Z tag (gh workflow run release.yml --ref vX.Y.Z), not on $REF_TYPE '$REF_NAME'"
+            exit 1
+          fi
+
       - name: 📥 Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -30,6 +45,17 @@ jobs:
 
       - name: 📋 Install dependencies
         run: npm ci
+
+      - name: 🏷️ Tag matches package version
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "v${VERSION}" != "$REF_NAME" ]; then
+            echo "::error::Tag $REF_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+          npm run validate:versions
 
       - name: 🔍 Run linting
         run: npm run lint
@@ -83,7 +109,7 @@ jobs:
     name: 📦 Publish to NPM
     runs-on: ubuntu-latest
     needs: validate-release
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && github.event.action == 'published')
     permissions:
       contents: read
       id-token: write
@@ -117,7 +143,7 @@ jobs:
     name: 📦 Publish to GitHub Packages
     runs-on: ubuntu-latest
     needs: validate-release
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && github.event.action == 'published')
     permissions:
       packages: write
       id-token: write # npm provenance attestation
@@ -246,7 +272,7 @@ jobs:
     name: 🔏 Sign & Publish Release Assets
     runs-on: ubuntu-latest
     needs: create-assets
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && github.event.action == 'published')
     permissions:
       contents: write # upload assets to the GitHub Release
       id-token: write # keyless cosign signing (OIDC → Fulcio)
@@ -265,14 +291,15 @@ jobs:
       - name: 🔏 Install Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
+      # cosign 3 writes the signature, certificate and transparency-log entry
+      # into one Sigstore bundle, and refuses sign-blob without --bundle.
       - name: 🔏 Sign release artifacts (keyless)
         env:
           TARBALL: ${{ needs.create-assets.outputs.tarball }}
         run: |
           for artifact in "$TARBALL" docs.tar.gz; do
             cosign sign-blob --yes \
-              --output-signature "${artifact}.sig" \
-              --output-certificate "${artifact}.pem" \
+              --bundle "${artifact}.sigstore.json" \
               "$artifact"
           done
 
@@ -283,11 +310,9 @@ jobs:
         run: |
           gh release upload "$GITHUB_REF_NAME" --clobber \
             "$TARBALL" \
-            "${TARBALL}.sig" \
-            "${TARBALL}.pem" \
+            "${TARBALL}.sigstore.json" \
             docs.tar.gz \
-            docs.tar.gz.sig \
-            docs.tar.gz.pem \
+            docs.tar.gz.sigstore.json \
             checksums.txt \
             README.md \
             LICENSE

@@ -113,6 +113,7 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "lint:bdd-seam": "eslint --config eslint.bdd-seam.config.mjs tests/bdd",
+    "lint:determinism": "ts-node scripts/determinism-lint.ts",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "jest --config jest.unit.config.cjs",

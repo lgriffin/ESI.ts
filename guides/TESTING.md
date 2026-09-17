@@ -557,6 +557,14 @@ await expect(client.getAllianceById(99999999)).rejects.toThrow(
 );
 ```
 
+### Time and randomness
+
+An assertion about `Expires`, retry backoff or circuit half-open timing is only deterministic if the code under test takes its time from something the test controls. `npm run lint:determinism` (`eslint.determinism.rules.cjs`, driven by `scripts/determinism-lint.ts`) restricts these in `src/`: `Date.now()`, `new Date()` and `Date()` with no arguments, `performance.now()`, `process.hrtime`, `Math.random()`, `setTimeout`, `setInterval`, `setImmediate`, `queueMicrotask` (bare or through `globalThis`, `global`, `window`, `self`) and imports of `timers` / `timers/promises`. Parsing a date (`new Date(header)`, `Date.parse`) is allowed. The one allow-listed path is the clock module, `src/core/clock.ts`; inline `eslint-disable` comments are ignored.
+
+The sites that exist today are counted per file and construct in `scripts/determinism-baseline.json`. The baseline only shrinks: a count above its entry fails (a new site), a count below its entry fails until the entry is lowered (`npm run lint:determinism -- --update`, which never raises one), and an entry above `origin/master`'s fails. With no base ref resolvable (set `DETERMINISM_BASE_REF`, or fetch master) the check fails closed. Until call sites move to an injected clock, tests of existing timing code keep using `jest.useFakeTimers()`.
+
+Each restricted construct has a negative fixture in `tests/tdd/determinism-lint/fixtures/violations/`, linted through ESLint's Node API by `tests/tdd/determinism-lint/determinism-lint.test.ts`, alongside compliant fixtures (including the clock module at its allow-listed path) that must produce no findings and the ratchet's added, stale and no-base-ref cases.
+
 ### Test Helpers
 
 **`src/core/util/testHelpers.ts`** — provides `getBody()` wrapper used in TDD tests:
