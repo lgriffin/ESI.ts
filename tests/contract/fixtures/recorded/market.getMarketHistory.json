@@ -1,0 +1,61 @@
+{
+  "endpoint": "market.getMarketHistory",
+  "call": {
+    "client": "market",
+    "method": "getMarketHistory",
+    "args": [10000002, 34]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 412,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "markets/10000002/history/?type_id=34",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"485361ad7ac19932541de4c0ff9f45a6dbea3b9369b2826cdf1ecf09\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": [
+        {
+          "average": 3.85,
+          "date": "2025-08-01",
+          "highest": 3.85,
+          "lowest": 3.84,
+          "order_count": 2374,
+          "volume": 3089041705
+        },
+        {
+          "average": 3.89,
+          "date": "2025-08-02",
+          "highest": 3.91,
+          "lowest": 3.85,
+          "order_count": 2987,
+          "volume": 6720069409
+        },
+        {
+          "average": 3.88,
+          "date": "2025-08-03",
+          "highest": 3.9,
+          "lowest": 3.83,
+          "order_count": 3113,
+          "volume": 4265252641
+        }
+      ]
+    }
+  ]
+}

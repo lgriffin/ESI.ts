@@ -17,13 +17,13 @@
  * whose plan has problems, and `specs/step-library.spec.ts` uses the same plans
  * to report unused steps. That is this suite's dry run.
  *
- * jest-cucumber is used for parsing only. Its parser flattens Rules into the
- * feature's scenario list, so each scenario's Rule is recovered from the line
- * numbers of the `Rule:` keywords in the source.
+ * jest-cucumber is used for parsing only, through `outline.ts`, which recovers
+ * each scenario's Rule and is shared with `scripts/bdd-report.ts` so the
+ * report names scenarios exactly as the tests here are named.
  */
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import * as path from 'path';
-import { parseFeature } from 'jest-cucumber';
+import { outlineFeature } from './outline';
 import {
   DataTable,
   StepDefinition,
@@ -92,28 +92,8 @@ function describePattern(definition: StepDefinition): string {
 }
 
 // ---------------------------------------------------------------------------
-// Parsing
+// Planning
 // ---------------------------------------------------------------------------
-
-/** Line number and title of every `Rule:` keyword, skipping doc strings. */
-function ruleLines(source: string): Array<{ line: number; title: string }> {
-  const rules: Array<{ line: number; title: string }> = [];
-  let fence: string | null = null;
-  source.split(/\r?\n/).forEach((text, i) => {
-    const trimmed = text.trim();
-    if (fence) {
-      if (trimmed.startsWith(fence)) fence = null;
-      return;
-    }
-    if (trimmed.startsWith('"""') || trimmed.startsWith('```')) {
-      fence = trimmed.slice(0, 3);
-      return;
-    }
-    const match = /^Rule:\s*(.*)$/.exec(trimmed);
-    if (match) rules.push({ line: i + 1, title: match[1].trim() });
-  });
-  return rules;
-}
 
 /**
  * Resolve every step of a feature against the library, without running
@@ -124,32 +104,20 @@ export function planFeature(
   source: string,
   library: StepLibrary,
 ): FeaturePlan {
-  const parsed = parseFeature(source);
-  const rules = ruleLines(source);
+  const outline = outlineFeature(source);
   const problems: string[] = [];
+  const plan: FeaturePlan = {
+    file,
+    title: outline.title,
+    rules: [],
+    problems,
+  };
 
-  const scenarios = [
-    ...parsed.scenarios.map((s) => ({ ...s, examples: [s] })),
-    ...parsed.scenarioOutlines.map((o) => ({ ...o, examples: o.scenarios })),
-  ].sort((a, b) => a.lineNumber - b.lineNumber);
-
-  const byRule = new Map<string | null, PlannedRule>();
-  const plan: FeaturePlan = { file, title: parsed.title, rules: [], problems };
-
-  for (const scenario of scenarios) {
-    const owner = [...rules]
-      .reverse()
-      .find((r) => r.line < scenario.lineNumber);
-    const ruleTitle = owner ? owner.title : null;
-    let rule = byRule.get(ruleTitle);
-    if (!rule) {
-      rule = { title: ruleTitle, scenarios: [] };
-      byRule.set(ruleTitle, rule);
-      plan.rules.push(rule);
-    }
-
-    for (const example of scenario.examples) {
-      const steps = example.steps.map((step): PlannedStep => {
+  for (const outlined of outline.rules) {
+    const rule: PlannedRule = { title: outlined.title, scenarios: [] };
+    plan.rules.push(rule);
+    for (const scenario of outlined.scenarios) {
+      const steps = scenario.steps.map((step): PlannedStep => {
         const matches = library.steps
           .map((definition) => ({
             definition,
@@ -182,8 +150,8 @@ export function planFeature(
         };
       });
       rule.scenarios.push({
-        title: example.title,
-        line: example.lineNumber,
+        title: scenario.title,
+        line: scenario.line,
         steps,
       });
     }

@@ -11,6 +11,7 @@ npm run clean          # Remove dist/, coverage/, docs-site/public/api/
 npm run lint           # ESLint (src/)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
 npm run lint:determinism  # Time/timers/Math.random in src/ only via the clock module (shrink-only baseline)
+npm run lint:suite-health  # tests/: no .only/.skip/.todo, no assertion-free tests or Then steps, no swallowed assertions or unrestored console mocks
 npm run format:check   # Prettier check
 npm run validate       # lint + format + build + coverage + knip
 npm run check:all      # validate + ESI endpoint validation + spec lint + version check + EARS spec audit
@@ -32,7 +33,9 @@ npm run fuzz:api       # Schemathesis API fuzzing (requires Docker)
 npm run benchmark      # Performance benchmark tests (jest.benchmark.config.cjs)
 npm run test:types     # Type tests (tsd)
 npm run test:export-coverage  # Public exports no test references (--ci gates against scripts/export-coverage-baseline.json)
+npm run test:type-mutation  # Mutate built dist/*.d.ts, run tsd per mutant; -- --ratchet gates (nightly)
 npm run test:consumer  # Pack, install into a clean consumer, type-check + run CJS/ESM/sub-paths (not in npm test)
+npm run test:docs-examples  # Type-check every ts block in README/guides/SDE docs against the packed package (not in npm test)
 npm run test:all       # All test suites
 npm run mutation       # Mutation testing (Stryker)
 npm run mutation:bdd   # BDD-only mutation run; mutation:bdd:ratchet gates per-directory scores
@@ -71,6 +74,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `tests/fuzz/` — Property-based fuzz tests (fast-check)
 - `tests/typetests/` — Type-level tests (tsd)
 - `tests/consumer/` — Consumer contract package driven by `scripts/consumer-contract.ts` against the packed tarball
+- `tests/doc-examples/` — Prelude and stub fetch for `npm run test:docs-examples`; annotations in `guides/DOCUMENTATION.md`
 - `okf/` — Generated OKF v0.2 knowledge bundle (per-endpoint + per-schema concepts)
 
 ## Key Patterns

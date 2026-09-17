@@ -1,0 +1,10 @@
+{
+  "cosmetics.getSkinr": "ESI answers 404 for cosmetics/skinr/{skinr_id} and the route is not in the OpenAPI document for compatibility date 2026-05-19; no public SKINR ID can be derived because paragon-hub/skinr is also 404.",
+  "dogma.getDynamicItemInfo": "Needs the item ID of a mutated (abyssal) item; no public endpoint lists one reliably, so no stable seed exists.",
+  "meta.getName": "ESI answers 404 (page not found) for meta/name; the route is not in the OpenAPI document for compatibility date 2026-05-19.",
+  "militaryCampaign.getMilitaryCampaign": "Needs a campaign ID from military-campaigns, which ESI answers with 404 (not in the OpenAPI document for compatibility date 2026-05-19).",
+  "militaryCampaign.getMilitaryCampaignObjective": "Needs campaign and objective IDs from military-campaigns, which ESI answers with 404 (not in the OpenAPI document for compatibility date 2026-05-19).",
+  "militaryCampaign.getMilitaryCampaignObjectives": "Needs a campaign ID from military-campaigns, which ESI answers with 404 (not in the OpenAPI document for compatibility date 2026-05-19).",
+  "militaryCampaign.getMilitaryCampaigns": "ESI answers 404 (page not found) for military-campaigns; the route is not in the OpenAPI document for compatibility date 2026-05-19.",
+  "paragonHub.getPublicListings": "ESI answers 404 (page not found) for paragon-hub/skinr; the route is not in the OpenAPI document for compatibility date 2026-05-19."
+}
