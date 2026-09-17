@@ -545,6 +545,24 @@ export const FAULTS: readonly Fault[] = [
     }),
   },
   {
+    id: 'unnamed-status-without-reason-phrase',
+    title: 'Cloudflare 524 over HTTP/2 (no reason phrase) with an HTML body',
+    rule: {
+      feature: 'core/0051-resilience.feature',
+      rule: 'If a request is answered with an error status that carries no reason phrase, then the EsiClient shall reject with an EsiError whose message names that status.',
+    },
+    exchange: () => [html(524)],
+    expected: () => ({
+      settlement: {
+        rejects: { class: 'EsiError', statusCode: 524, message: /^HTTP 524$/ },
+      },
+      requests: 1,
+      cache: 'empty',
+      elapsedMs: INSTANT,
+      logs: [],
+    }),
+  },
+  {
     id: 'mutation-service-unavailable',
     title: '503 to a POST',
     appliesTo: (t) => !isGet(t),
