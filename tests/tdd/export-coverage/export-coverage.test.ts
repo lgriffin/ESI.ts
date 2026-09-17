@@ -119,6 +119,37 @@ describe('export coverage', () => {
       ]);
     });
 
+    it('reads per-condition types, and rejects conditions naming different files', () => {
+      const dir = mkdtempSync(path.join(tmpdir(), 'export-coverage-'));
+      const write = (entry: unknown) =>
+        writeFileSync(
+          path.join(dir, 'package.json'),
+          JSON.stringify({ exports: { '.': entry } }),
+        );
+      try {
+        mkdirSync(path.join(dir, 'src'));
+        writeFileSync(path.join(dir, 'src', 'index.ts'), 'export {};');
+        write({
+          import: { types: './dist/index.d.mts', default: './dist/index.mjs' },
+          require: { types: './dist/index.d.ts', default: './dist/index.js' },
+        });
+        expect(entryPointsFromPackage(dir).map((e) => e.subpath)).toEqual([
+          '.',
+        ]);
+
+        write({
+          import: { types: './dist/other.d.mts' },
+          require: { types: './dist/index.d.ts' },
+        });
+        expect(() => entryPointsFromPackage(dir)).toThrow(/for one <name>/);
+
+        write({ import: './dist/index.mjs' });
+        expect(() => entryPointsFromPackage(dir)).toThrow(/for one <name>/);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
     it('rejects an exports map that disagrees with tsup.config.ts', () => {
       const dir = mkdtempSync(path.join(tmpdir(), 'export-coverage-'));
       try {
