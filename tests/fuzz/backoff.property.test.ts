@@ -129,3 +129,14 @@ describeProperty<RetryDelay>({
   },
   property: backoffProperty,
 });
+
+// ── Shrunk counter-examples, kept as named examples (tests/fuzz/AGENTS.md) ──
+
+describe('retry backoff counter-examples', () => {
+  it('a zero base delay stays 0 ms past the 2^1024 overflow instead of NaN', () => {
+    // Shrunk from seed 149548608: attempt 1024 with baseDelayMs 0 gave NaN,
+    // which setTimeout treats as 1 ms and every bound check rejects.
+    expect(delayWith(retryDelay, 0, 1024, 0, 0)).toBe(0);
+    expect(delayWith(retryDelay, 0.5, 5000, 0, 30_000)).toBe(0);
+  });
+});
