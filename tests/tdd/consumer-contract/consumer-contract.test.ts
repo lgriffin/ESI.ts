@@ -174,6 +174,10 @@ function treeShake(consumer: string) {
   });
 }
 
+afterAll(async () => {
+  await Promise.resolve(esbuild.stop?.());
+});
+
 describe('consumer matrix: the cells', () => {
   it('covers ESM and CJS consumers under node16, nodenext and bundler', () => {
     expect(CELLS.map((c) => c.id)).toEqual([

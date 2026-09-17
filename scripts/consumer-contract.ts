@@ -236,7 +236,7 @@ function summarise(
   console.log(`\n${lines.join('\n')}`);
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const skipBuild = args.includes('--skip-build');
   const keep = args.includes('--keep');
@@ -371,16 +371,21 @@ function main(): void {
     const esbuild = require(
       require.resolve('esbuild', { paths: [consumer] }),
     ) as EsbuildLike;
-    const shaken = treeShakeCheck({
-      consumerDir: consumer,
-      esbuild,
-      packageName: PACKAGE_NAME,
-      ...TREE_SHAKE,
-      external: [
-        ...Object.keys(packed.dependencies ?? {}),
-        ...Object.keys(packed.peerDependencies ?? {}),
-      ],
-    });
+    let shaken: ReturnType<typeof treeShakeCheck>;
+    try {
+      shaken = treeShakeCheck({
+        consumerDir: consumer,
+        esbuild,
+        packageName: PACKAGE_NAME,
+        ...TREE_SHAKE,
+        external: [
+          ...Object.keys(packed.dependencies ?? {}),
+          ...Object.keys(packed.peerDependencies ?? {}),
+        ],
+      });
+    } finally {
+      await Promise.resolve(esbuild.stop?.());
+    }
     console.log(
       `  ./errors ${shaken.lightBytes} B (ceiling ${TREE_SHAKE.maxBytes} B), . ${shaken.heavyBytes} B`,
     );
@@ -428,9 +433,7 @@ Could not remove ${work}: ${err instanceof Error ? err.message : String(err)}`,
   }
 }
 
-try {
-  main();
-} catch (err) {
+main().catch((err: unknown) => {
   console.error(`\n${err instanceof Error ? err.message : String(err)}`);
   process.exit(1);
-}
+});

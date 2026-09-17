@@ -305,6 +305,8 @@ export interface EsbuildLike {
     outputFiles?: Array<{ text: string }>;
     metafile?: { inputs: Record<string, unknown> };
   };
+  /** Ends esbuild's worker, which holds its binary open on Windows. */
+  stop?(): void | Promise<void>;
 }
 
 export interface TreeShakeOptions {
