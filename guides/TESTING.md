@@ -4,23 +4,191 @@
 
 ESI.ts uses a multi-tier testing strategy to ensure correctness at every level — from individual functions to live API contract validation.
 
-| Tier                 |      Tests |   Suites | Purpose                                                                     |
-| -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |      4,357 |      130 | Per-module unit tests with mocked HTTP                                      |
-| BDD (behavioral)     |        600 |       41 | Gherkin-style scenarios covering user-facing behaviors                      |
-| Benchmark (perf)     |         18 |        1 | mitata micro-benchmarks, compared base against head statistically           |
-| Heap soak            |          1 |        1 | 100 000 requests through the pipeline, heap flat after forced GC            |
-| Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
-| Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
-| Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                               |
-| Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
-| Contract (replay)    |        110 |        4 | Recorded public ESI payloads replayed through the pipeline, no network      |
-| Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
-| Composition          |         41 |        7 | Pipeline stages interacting under concurrent calls, every schedule explored |
-| Type (tsd)           |            |        1 | Consumer API type correctness                                               |
-| Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
-| Doc examples         |            |        1 | Every `ts` block in README, guides and SDE docs type-checked vs the tarball |
-| **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
+Each tier owns one class of failure, and each has a signal that proves it can fail: a negative fixture, a killed mutant or a caught fault. A tier that cannot fail manufactures confidence, so every number below is a ratchet that starts at today's value and moves one way.
+
+| Tier                 |     Tests |  Suites | Purpose                                                                     |
+| -------------------- | --------: | ------: | --------------------------------------------------------------------------- |
+| TDD (unit)           |     5,732 |     177 | Per-module unit tests with mocked HTTP                                      |
+| BDD (behavioral)     |       358 |      38 | Gherkin scenarios over 53 feature files, mocked only at the transport seam  |
+| Composition          |        41 |       7 | Pipeline stages interacting under concurrent calls, every schedule explored |
+| Benchmark (perf)     |        18 |       1 | mitata micro-benchmarks, compared base against head statistically           |
+| Heap soak            |         1 |       1 | 100 000 requests through the pipeline, heap flat after forced GC            |
+| Integration (mocked) |        20 |       1 | Full request lifecycle with mocked fetch                                    |
+| Integration (live)   |        61 |       3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
+| Integration (gated)  |        33 |       1 | Authenticated endpoints with real OAuth token                               |
+| Contract (deep)      |        15 |       2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
+| Contract (replay)    |       110 |       4 | Recorded public ESI payloads replayed through the pipeline, no network      |
+| Fuzz and properties  |       938 |      12 | Invariants over the input space, model-based where state machines exist     |
+| Fault injection      |       148 |       2 | Transport faults through the real pipeline; nightly payload fuzz            |
+| Type (tsd)           |           |       1 | Consumer API type correctness, scored by type mutation                      |
+| Consumer contract    |           |       1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
+| Doc examples         |           |       1 | Every `ts` block in README, guides and SDE docs type-checked vs the tarball |
+| **Total**            | **6,131** | **222** | (`npm test` runs TDD + BDD + composition; the rest have their own configs)  |
+
+`npm test` (TDD, BDD and composition) takes about 30 seconds; the whole pull-request set is budgeted at 12 minutes of wall clock, and anything slower runs nightly against a ratchet file that gates the next pull request instead.
+
+## The test system in C4
+
+Three views, in the notation of [`guides/ARCHITECTURE.md`](ARCHITECTURE.md): what the suite talks to, what runs when, and how a test reaches the code under test.
+
+### Level 1 — Context
+
+Who runs the tests, and the outside things they depend on. Only two tiers reach the network, and both fail loudly when their environment is missing rather than skipping.
+
+```mermaid
+flowchart TB
+    contributor(["Contributor"])
+    reviewer(["Reviewer"])
+
+    subgraph boundary [" "]
+        suite["ESI.ts test suite<br/>16 tiers, one per failure class"]
+    end
+
+    esi[/"ESI API<br/>live, public + authenticated"/]
+    spec[/"ESI OpenAPI document"/]
+    registry[/"npm registry"/]
+    actions[/"GitHub Actions"/]
+
+    contributor -- "npm test, npm run faults, ..." --> suite
+    suite -- "recordings, live smoke, contract" --> esi
+    spec -. "generated types, cache TTLs, drift" .-> suite
+    suite -- "packed tarball installed by the consumer matrix" --> registry
+    suite -- "jobs, ratchet files, nightly issues" --> actions
+    actions -- "one required check: ci-success" --> reviewer
+
+    style contributor fill:#08427b,color:#fff,stroke:#073b6f
+    style reviewer fill:#08427b,color:#fff,stroke:#073b6f
+    style suite fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style esi fill:#999,color:#fff,stroke:#888
+    style spec fill:#999,color:#fff,stroke:#888
+    style registry fill:#999,color:#fff,stroke:#888
+    style actions fill:#999,color:#fff,stroke:#888
+    style boundary fill:none,stroke:#1168bd,stroke-width:2px,stroke-dasharray:5
+```
+
+### Level 2 — Containers
+
+Each tier is a container with its own runner and trigger. A tier moves right as it gets slower: what cannot fit the pull-request budget runs nightly and gates through a ratchet file rather than by blocking.
+
+```mermaid
+flowchart LR
+    subgraph local ["Local — pre-commit and pre-push"]
+        direction TB
+        staged["lint-staged<br/>ESLint + Prettier"]
+        related["jest --findRelatedTests"]
+        gates["typecheck · spec:audit · knip"]
+    end
+
+    subgraph pr ["Pull request — budget 12 min, gate: ci-success"]
+        direction TB
+        unit["Unit + BDD + composition<br/>jest.unit.config.cjs"]
+        props["Properties and fuzz<br/>jest.fuzz.config.cjs"]
+        faults["Fault catalogue<br/>jest.faults.config.cjs"]
+        replay["Recorded replay<br/>jest.contract.replay.config.cjs"]
+        types["tsd · api-extractor · publint · attw · size-limit"]
+        consumer["Consumer matrix<br/>ESM/CJS x node16/nodenext/bundler"]
+        docs["Documentation examples"]
+        mutpr["Mutation of changed files<br/>Stryker --incremental"]
+        bench["Benchmarks base vs head<br/>only when hot paths change"]
+        statics["Static analysis<br/>export coverage · determinism · suite health · seam lint"]
+    end
+
+    subgraph night ["Nightly — reports, never blocks directly"]
+        direction TB
+        nmut["Full mutation, unit + BDD + type"]
+        nprops["Properties at 10 000 runs"]
+        nfaults["Payload fuzz, every endpoint"]
+        nrec["Re-record payloads, diff, open a PR"]
+        nbench["Benchmarks vs pinned reference + heap soak"]
+        nlive["Live ESI smoke and contract"]
+        nflake["No-retry run · interleavings · audit · spec drift"]
+    end
+
+    subgraph release ["Release"]
+        direction TB
+        rmatrix["Consumer matrix against the signed tarball"]
+        rsem["API report, SemVer gate, version consistency"]
+    end
+
+    contributor(["Contributor"]) --> local
+    local --> pr
+    pr --> release
+    night -- "updates ratchet files, opens one issue per tier" --> pr
+
+    style contributor fill:#08427b,color:#fff,stroke:#073b6f
+    style local fill:none,stroke:#1168bd,stroke-width:2px
+    style pr fill:none,stroke:#1168bd,stroke-width:2px
+    style night fill:none,stroke:#999,stroke-width:2px,stroke-dasharray:5
+    style release fill:none,stroke:#999,stroke-width:2px
+```
+
+### Level 3 — Components of a test run
+
+How a test reaches the code. Everything above the seam is test-owned; everything below it is the real library. Nothing between a public client method and `fetch` is stubbed, which is what lets a scenario fail for a bug anywhere in `src/`.
+
+```mermaid
+flowchart TB
+    subgraph drivers ["Test drivers"]
+        direction LR
+        steps["BDD steps<br/>tests/bdd/steps"]
+        interleave["Interleaving scheduler<br/>tests/tdd/composition"]
+        catalogue["Fault catalogue<br/>tests/faults"]
+        fixtures["Recorded payloads<br/>tests/contract/fixtures"]
+        properties["Property runner<br/>tests/fuzz"]
+    end
+
+    seam["Transport seam — queueResponse()<br/>strict: an unrequested or unconsumed response fails the test"]
+
+    subgraph lib ["ESI.ts, running for real"]
+        direction TB
+        client["Domain client method"]
+        pipeline["Request pipeline<br/>rate limiter · circuit breaker · dedupe · retry"]
+        cache["ETag cache and pagination"]
+        validate["Zod validation"]
+    end
+
+    fetchboundary[/"fetch()"/]
+
+    assertions["Assertions<br/>expect · assertNoProblems · assertThat · named invariants"]
+
+    steps --> seam
+    interleave --> seam
+    catalogue --> seam
+    fixtures --> seam
+    properties --> seam
+    seam --> client
+    client --> pipeline
+    pipeline --> cache
+    cache --> validate
+    pipeline -. "only the live tiers get here" .-> fetchboundary
+    validate --> assertions
+    seam -- "recorded request sequence" --> assertions
+
+    style drivers fill:none,stroke:#1168bd,stroke-width:2px
+    style lib fill:none,stroke:#0e5aa7,stroke-width:2px
+    style seam fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style assertions fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style fetchboundary fill:#999,color:#fff,stroke:#888
+```
+
+### What each tier's signal is
+
+A tier is only as good as its proof that it can fail.
+
+| Tier                 | Signal that it can fail                                                              |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| Static analysis      | One negative fixture per check, linted at its real path in a Jest suite              |
+| Type tests           | Type mutation: 8 operators applied to the built declarations, scored per entry point |
+| Unit and composition | Stryker mutation, per directory, ratcheted                                           |
+| Properties           | Each property registers known-bad implementations and must fail against them         |
+| Specification (BDD)  | BDD-only mutation run, plus a report that every scenario actually executed           |
+| Fault injection      | Every fault names its Rule and a distinct outcome; a weak fault fixture is rejected  |
+| Recorded replay      | A fixture edited to violate its schema must be rejected                              |
+| Consumer contract    | Five broken packages must fail the matrix, with a clean control                      |
+| Benchmarks and soak  | An injected slowdown and an injected leak must be flagged                            |
+| Suite health         | A fixture per lint rule, and the lint rules' own Jest suite                          |
+
+The shrink-only lists that hold today's known gaps live beside the tier that owns them: `tests/faults/known-gaps.json`, `tests/contract/fixtures/known-mismatches.json` and `unrecordable.json`, `scripts/*-baseline.json`, `mutation-thresholds.json`, `mutation-bdd-thresholds.json` and `scripts/type-mutation-thresholds.json`. Each fails closed when its baseline cannot be read, and fails when an entry stops reproducing, so a fix cannot quietly leave a stale exception behind.
 
 ## Coverage
 
