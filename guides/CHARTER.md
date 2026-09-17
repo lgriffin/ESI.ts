@@ -150,7 +150,7 @@ Each resilience concern (retry, rate limiting, circuit breaking, deduplication, 
 The package **shall** publish a dual CJS and ESM build with declaration files for the six entry points: root, `schemas`, `errors`, `testing`, `sde` and `sde/memory`.
 
 - **Why:** Subpath entries are the tree-shaking story while the root barrel stays wide.
-- **Verified by:** `tsup.config.ts`, `package-checks.yml` (Are The Types Wrong on the packed tarball).
+- **Verified by:** `tsup.config.ts`, the `package-lint` job in `ci.yml` (publint and Are The Types Wrong on the packed tarball), and the consumer contract.
 
 #### ARCH-06 · Ubiquitous · Gap
 

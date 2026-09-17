@@ -423,6 +423,13 @@ Every other tier imports from `src/`, so none of them sees the package a consume
 
 Defects the contract finds are recorded as known issues against their beads: each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround. There are none open; `esi-v2s.15` (error class identity across sub-paths) and `esi-v2s.16` (`./sde` peer dependencies) were the last two.
 
+### Package lint and size budgets
+
+**Run:** `npm run lint:package` (publint and Are The Types Wrong on the `npm pack` tarball) and `npm run size` (size-limit, after a build)
+**CI:** `package-lint` in `ci.yml`, inside `ci-success`. Negative fixtures: `tests/tdd/package-lint/`, part of `npm test`.
+
+The consumer contract installs and runs the tarball; these check it statically. The linters block on any finding outside `scripts/package-lint-baseline.json` under node16 CJS, node16 ESM and bundler resolution, and `.size-limit.cjs` sets a ceiling for the ESM and CJS build of every `exports` sub-path, measured as the entry plus the shared chunks it loads. The unit suite runs both tools against a package with a broken `exports` map and a clean control, and runs size-limit against a budget set below its fixture's size, so a check that stops firing fails `npm test`. Rules, the baseline ratchet and how to raise a budget: [QUALITY-GATES.md](QUALITY-GATES.md#package-lint-and-size-budgets).
+
 ## Integration Tests
 
 Integration tests live in `tests/integration/` and hit the real ESI API. They are **not** part of the default `npm test` run and require a separate config.

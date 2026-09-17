@@ -30,7 +30,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |      ·       |
-| Are The Types Wrong (packed tarball)       |   ·    |            ·             |      ◐ (5)       |       ·       |      ·       |
+| publint, attw, size budgets (packed)       |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Consumer contract (packed tarball)         |   ·    |            ·             |    ● 18/20/22    |       ·       |      ·       |
 | Dependency audit (diff-aware / allowlist)  |   ·    |            ·             | ● new advisories | ◐ files issue | ● ≥ high (6) |
 | knip dead-code                             |   ·    |            ·             |        ◐         | ◐ weekly (4)  |      ◐       |
@@ -61,7 +61,7 @@ Branch protection on `master` should require exactly one status check, with "req
 
 `ci-success` fans in every job in `ci.yml`, so requiring any of those jobs individually adds nothing, and requiring a job that can be skipped or path-filtered is exactly what the gate exists to avoid. `Lint, Build & Test` from `ci-fast.yml` repeats `lint-and-build` and `unit-tests` for pushes before a pull request exists; it stays useful as early feedback but does not need to be required. The previous required checks were `Quality Gate` (renamed to `ci-success`) and `Lint, Build & Test`; branch protection has to be switched to `ci-success` when this change merges, or pull requests wait forever for a `Quality Gate` check that no longer reports.
 
-Everything else on a pull request is visible but advisory: `package-checks.yml` (Are The Types Wrong) and `codeql.yml`. Force-pushes and branch deletion are disabled. Administrators are not yet included in enforcement (tracked under `SEC-07`).
+Everything else on a pull request is visible but advisory: `codeql.yml` and `skill-eval.yml`. Force-pushes and branch deletion are disabled. Administrators are not yet included in enforcement (tracked under `SEC-07`).
 
 `.github/CODEOWNERS` names `@lgriffin` as owner of everything, with explicit entries for the files automation rewrites (`package.json`, `package-lock.json`, `.github/`, `.zizmor.yml`, the release-please config and manifest). It only blocks a merge once "Require review from Code Owners" is enabled on `master`. With a single owner, that setting also means the owner cannot satisfy it on their own pull requests (GitHub does not let an author approve their own PR), so those need an admin override; on Dependabot and release-please PRs it requires the owner's approval.
 
@@ -151,7 +151,6 @@ All workflows live in `.github/workflows/`. Every action is pinned to a full com
 | -------------------------- | ---------------------------------------------------------------- | ----------------------------- | ---------------------------------------------- |
 | `ci-fast.yml`              | Push, any branch                                                 | No (covered by `ci-success`)  | Status                                         |
 | `ci.yml`                   | Pull request to `master`, `main`, `develop`                      | Required check (`ci-success`) | Status, coverage comment, artifacts            |
-| `package-checks.yml`       | Pull request to `master`, `main`                                 | No                            | Status, step summary                           |
 | `codeql.yml`               | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC      | No                            | Code scanning alerts                           |
 | `skill-eval.yml`           | PR touching `.claude/skills/**` or the skill eval runner; manual | No                            | Status, artifacts                              |
 | `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                          | No                            | Artifact                                       |
@@ -185,6 +184,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                                                                                                                                   |   yes   |
 | `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                                                                                                                           |   yes   |
 | `consumer-contract` (Consumer Contract)  | `npm run test:consumer` on Node 18, 20 and 22: installs the `npm pack` tarball into a clean consumer, type-checks and runs it under CommonJS, ES module and bundler resolution, and checks every `exports` sub-path (see [TESTING.md](TESTING.md#consumer-contract))                          |   yes   |
+| `package-lint` (Package Lint)            | `npm run lint:package -- --skip-build` then `npm run size`, on the `dist/` uploaded by `lint-and-build`: publint and attw on the `npm pack` tarball, and a size ceiling per `exports` sub-path (see [Package lint and size budgets](#package-lint-and-size-budgets))                          |   yes   |
 | `api-surface` (API Surface Check)        | Rebuilds `etc/esi.ts.api.md` and fails on a difference (GATE-03)                                                                                                                                                                                                                              |   yes   |
 | `api-semver` (API SemVer Gate)           | `npm run api-report:semver`: fails when the report lost or changed a line and no commit in the pull request is `type!:`, has a `BREAKING CHANGE:` footer or an `API-Compatible:` trailer, or when a declared break spans several commits and the pull request title is not `type!:` (GATE-03) |   yes   |
 | `lockfile` (Lockfile Consistency)        | `npm install --package-lock-only --ignore-scripts` then `git diff --exit-code package-lock.json`. For `dependabot[bot]` the step exits early with a notice; the job still reports success                                                                                                     |   yes   |
@@ -205,10 +205,6 @@ Like `npm audit`, the generated-types and schema-drift checks report the state o
 Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` still blocks on both checks unconditionally. Schema drift that is already tracked turns neither red: it is listed in a ratcheted baseline, described under [Schema drift](#schema-drift).
 
 The lockfile check skips Dependabot because Dependabot's npm version produces byte-level lockfile differences. When regenerating a lockfile locally, use the npm major that CI uses so the file round-trips.
-
-### `package-checks.yml` — Package Checks
-
-Builds, runs `npm pack`, and checks the tarball with Are The Types Wrong (`@arethetypeswrong/cli`), ignoring the `false-cjs` and `no-resolution` rules. The full table is written to the step summary. This verifies the dual CJS/ESM entry points (`ARCH-05`). It is outside `ci-success` and not a required check. The blocking check on the packed tarball is `consumer-contract` in `ci.yml`, which installs and runs it rather than inspecting it.
 
 ### `codeql.yml` — CodeQL
 
@@ -471,6 +467,35 @@ Report mode prints the unreferenced names by entry point and exits `0`. `--ci` e
 
 The seed baseline has 424 entries: `.` 197 of 366 exports, `./schemas` 46 of 201, `./errors` 1 of 24, `./testing` 0 of 1, `./sde` 90 of 123 and `./sde/memory` 90 of 122. Most are response and SDE row types; the runtime functions among them are tracked in `esi-23g.19`.
 
+## Package lint and size budgets
+
+The `package-lint` job in `ci.yml` checks what `npm publish` would ship, statically, before the consumer contract installs and runs it. It downloads the `dist/` that `lint-and-build` uploaded rather than building again, packs it once, and runs two commands.
+
+### `npm run lint:package`: publint and Are The Types Wrong
+
+`scripts/package-lint.ts` builds (unless `--skip-build`), runs `npm pack`, and hands the tarball to both tools; `--tarball <path>` lints one that is already packed. The logic lives in `scripts/package-lint-core.ts`.
+
+| Tool                            | Blocks on                                               | Does not block                 |
+| ------------------------------- | ------------------------------------------------------- | ------------------------------ |
+| publint (API, on the tarball)   | Errors and warnings                                     | Suggestions, which are printed |
+| attw (`--format json`, tarball) | Any problem under `node16-cjs`, `node16-esm`, `bundler` | `node10` (below)               |
+
+`node10` is out of the profile on purpose. It ignores `exports`, so no sub-path other than `.` resolves under it; `engines.node` is `>=18`, where every runtime reads `exports`; and TypeScript deprecated `moduleResolution: node10`, while this repository builds with TypeScript 6. The root entry still resolves under `node10` through `main` and `types`, but the check makes no promise about it. The advisory `package-checks.yml` this job replaces ignored `no-resolution` for that reason and `false-cjs` across the board; the first is now out of profile and the second is baselined per entry point.
+
+Known findings are in `scripts/package-lint-baseline.json`, keyed `<tool>:<code> <where>` (for example `attw:FalseCJS ./errors node16-esm`) with the tracking bead as the value. It is a ratchet like the others: a blocking finding outside the baseline fails, an entry that no longer occurs fails, and an entry the base ref's copy lacks fails. The base ref is `PACKAGE_LINT_BASE_REF`, else `origin/master`, else `master`; the job fetches master first, and with no ref the check fails closed. Today's seven entries are one defect, `esi-23g.29`: every `import` condition resolves to a `.d.ts` in a `type: commonjs` package, so TypeScript reads the ES module entry points as CommonJS ("Masquerading as CJS"). Fixing it changes the `exports` map, so it is tracked rather than done here.
+
+### `npm run size`: a budget per sub-path
+
+`.size-limit.cjs` holds a budget for the ESM build and one for the CJS build of each `exports` sub-path (`.`, `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory`). `scripts/size-limit-checks.cjs` derives the checks from the `exports` map, so a new sub-path without a budget, or a budget for a removed one, fails before anything is measured.
+
+Each check bundles the entry with esbuild the way a consumer loading that sub-path would: the entry plus every shared `chunk-*` file it imports (tsup builds with `splitting: true`), minified and uncompressed, for `platform: node`. `dependencies` and `peerDependencies` (`pino`, `zod`, `better-sqlite3`, `js-yaml`, `adm-zip`) and Node built-ins stay external, so the number is this package's own code, and a helper that starts inlining a dependency shows up. Budgets are the size measured at 9.9.0 plus 5%; each line's comment records the measurement.
+
+To raise a budget, run `npm run build && npm run size`, set the new measurement plus 5%, update the comment, and justify the growth in the pull request body. `.size-limit.cjs` and the package-lint baseline have explicit `CODEOWNERS` entries.
+
+### Negative fixtures
+
+`tests/tdd/package-lint/package-lint.test.ts`, part of `npm test`, runs the real tools against packages it writes to a temporary directory. A package whose `./sub` entry names a missing `types` file must produce `publint:FILE_DOES_NOT_EXIST` and an attw problem under all three resolutions, while a clean control produces none. A size-limit fixture whose CJS budget is below its entry plus chunk must exit 1, while its ESM check passes. The ratchet rules and the budget-to-exports matching have unit tests in the same file. attw 0.18 and size-limit 12 need Node 20, so the suites that run the tools skip on Node 18.
+
 ---
 
 ## Dependency audit
@@ -540,6 +565,7 @@ The same "explicit, reasoned exception" pattern appears in five more places:
 | `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)         |
 | `scripts/determinism-baseline.json`    | `npm run lint:determinism`     | Clock, timer and `Math.random()` sites per file and construct; shrink-only, stale counts fail     |
 | `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map       |
+| `scripts/package-lint-baseline.json`   | `npm run lint:package`         | Known publint/attw finding → bead id; shrink-only, stale entries fail                             |
 
 ---
 
@@ -556,6 +582,8 @@ The same "explicit, reasoned exception" pattern appears in five more places:
 | `lint` / `lint:fix`       | ESLint over `src`                                                                       |
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`eslint.bdd-seam.rules.cjs`) |
 | `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline            |
+| `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)             |
+| `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)               |
 | `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                         |
 | `knip`                    | Dead code and unused exports (`knip.json`)                                              |
 | `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
@@ -657,6 +685,7 @@ npm run schema:drift:ci
 npm run test:export-coverage -- --ci
 npm run generate:types && git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts
 npm run api-report && git diff etc/esi.ts.api.md  # commit any change
+npm run lint:package && npm run size              # packed-tarball lint, size budgets
 npm run audit:check
 ```
 

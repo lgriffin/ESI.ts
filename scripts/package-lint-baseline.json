@@ -1,0 +1,12 @@
+{
+  "description": "Known publint and attw findings on the packed tarball (npm run lint:package). Key: <tool>:<code> <where>. Value: the bead that tracks the fix. Shrink-only: a finding that stops occurring must be removed, and a pull request cannot add an entry master lacks. See scripts/package-lint-core.ts.",
+  "findings": {
+    "publint:EXPORTS_TYPES_INVALID_FORMAT exports[\".\"].types": "esi-23g.29",
+    "attw:FalseCJS . node16-esm": "esi-23g.29",
+    "attw:FalseCJS ./schemas node16-esm": "esi-23g.29",
+    "attw:FalseCJS ./errors node16-esm": "esi-23g.29",
+    "attw:FalseCJS ./testing node16-esm": "esi-23g.29",
+    "attw:FalseCJS ./sde node16-esm": "esi-23g.29",
+    "attw:FalseCJS ./sde/memory node16-esm": "esi-23g.29"
+  }
+}
