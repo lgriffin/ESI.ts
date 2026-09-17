@@ -447,6 +447,12 @@ A mutant is **killed** when tsd reports a failure in a type test, **invalid** wh
 About eight thousand candidates exist, so at most 500 run. Entry points take turns picking their next mutant in order of a seeded hash of the mutant's id (built from file, symbol, operator and the mutated text, not offsets), so the same seed and surface always give the same sample, and each mutant a change adds displaces at most one sampled mutant instead of reshuffling the rest. `--ratchet` refuses a non-default `--seed` or `--max`, because the floors in `scripts/type-mutation-thresholds.json` were measured on the default sample. The report is `reports/type-mutation/type-mutation.{json,md}`.
 
 `tests/tdd/type-mutation/` holds the negative fixture: a one-interface package whose tsd test pins `Widget.id` and never mentions `Widget.label`. The suite runs the real mutation against it and fails unless making `id` optional is killed and making `label` optional survives, alongside unit tests for each operator, the sampler and the ratchet.
+## Suite-health lint
+
+**Run:** `npm run lint:suite-health` (ESLint over `tests/`, fixture trees excluded)
+**CI:** `ci-fast.yml` on every push; the `spec-audit` job in `ci.yml`, inside `ci-success`
+
+Keeps a green suite from quietly becoming a decorative one. It rejects a committed `.only`, `fit` or `fdescribe`; a `.skip`, `xit`, `xdescribe` or `.todo`; a test with no assertion; a `catch` that swallows an assertion's failure without rethrowing or asserting; and a `console` method mocked and never restored. The same applies to jest-cucumber scenarios (`test.only`, `test.skip` inside `defineFeature`) and to BDD Then steps: under `tests/bdd` every `Then(...)` step file and every legacy `then(...)` step must assert. `expect`, any `expect*` helper and `fc.assert` count as assertions. There is no baseline; every finding fails. Gate a live-only suite with a condition (`LIVE ? describe : describe.skip`), not a committed `.skip`. The rule table and the reasoning are in [QUALITY-GATES.md](QUALITY-GATES.md#suite-health-lint); each rule has a fixture in `tests/tdd/suite-health/fixtures/` that its Jest suite must see rejected.
 
 ## Integration Tests
 
