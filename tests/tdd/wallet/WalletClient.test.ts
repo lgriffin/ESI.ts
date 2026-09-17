@@ -2,6 +2,7 @@ import { WalletClient } from '../../../src/clients/WalletClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import type { CorporationWalletTransaction } from '../../../src/types/api-responses';
 import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
@@ -216,7 +217,7 @@ describe('WalletClient', () => {
   });
 
   it('should return corporation wallet transactions', async () => {
-    const mockResponse = [
+    const mockResponse: CorporationWalletTransaction[] = [
       {
         transaction_id: 1,
         date: '2024-01-01T00:00:00Z',
