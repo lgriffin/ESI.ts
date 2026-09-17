@@ -13,6 +13,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
 | Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                               |
 | Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
+| Contract (replay)    |        110 |        4 | Recorded public ESI payloads replayed through the pipeline, no network      |
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
 | Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
@@ -382,6 +383,26 @@ Related tools:
 
 - `npm run contract:snapshot` — saves a baseline spec for drift comparison
 - `npm run contract:diff` — runs oasdiff (Docker) to detect breaking spec changes
+
+### Tier 7b: Recorded Payload Replay
+
+**Location:** `tests/contract/replay/`, fixtures in `tests/contract/fixtures/recorded/`, agent notes in [`tests/contract/AGENTS.md`](../tests/contract/AGENTS.md)
+**Config:** `jest.contract.replay.config.cjs`
+**Run:** `npm run contract:replay` (no network; CI job `contract-replay`). One endpoint: `npm run contract:replay -- -t "market.getMarketOrders"`.
+**Record:** `ESI_LIVE_TESTS=true npm run contract:record [-- --only=<endpoint key>]` (refuses to run without `ESI_LIVE_TESTS=true`)
+
+Tier 7 checks the spec against the endpoint definitions. This tier checks the other truth: the bodies ESI actually sends. `tests/contract/record.ts` records one sanitised response per public (unauthenticated) GET endpoint definition, calling the real client method with a capturing `fetch` so the URL, `User-Agent` and `X-Compatibility-Date` are the client's own, then sending that request itself one at a time (stopping on a 420, waiting out a 429 once, pausing when the error limit runs low). Each fixture keeps the `ETag`, `Expires`, `Last-Modified`, `Cache-Control`, `Content-Type` and `X-Pages` headers, the compatibility date, the hash of the OpenAPI document served for it and the operation's `x-cache-age`. Arrays, maps and long strings are truncated, every cut is listed in `truncated`, paginated endpoints keep two pages with `X-Pages` rewritten to match and the upstream count kept in `upstreamPages`. Fixtures are capped at 24 KiB each and 256 KiB together (`tests/contract/recorded/policy.ts`); 78 fixtures take about 150 KiB.
+
+Each replay goes through the BDD transport seam, so the whole pipeline runs, and checks that:
+
+- the endpoint's Zod schema accepts the recorded body;
+- the returned value keeps every key path of the recording, and a field added to the body survives validation;
+- offset pagination sends one request per recorded page;
+- within the recorded `x-cache-age` a second call is served from the cache, and after it the client revalidates with `If-None-Match` set to the recorded ETag.
+
+`coverage.test.ts` fails when a public GET endpoint has neither a fixture nor an entry in `tests/contract/fixtures/unrecordable.json`, when an entry or fixture is stale, when a fixture was recorded under a different compatibility date than the client sends, and when the size budget is exceeded. `unrecordable.json` and `known-mismatches.json` (endpoints whose replay fails today, each with the reason) only shrink against `origin/master`, and the check fails closed when no base ref can be read. The failure signal is `tests/contract/fixtures/recorded-negative/status.getStatus.json`, a recording with `players` edited to a string, which the replay must reject with an `EsiValidationError` naming `players`.
+
+`.github/workflows/nightly-recorded-payloads.yml` re-records every night, restores fixtures whose shape did not change (`npm run contract:shape-diff -- --revert-unchanged`: status, which cache headers are sent, and the JSON type at each key path; values such as prices, IDs and ETags are ignored), replays the rest and opens a pull request with the shape diff and the replay result. Nothing merges automatically. A failed run keeps an issue labelled `recorded-payloads-check-failed` open.
 
 ### Tier 8: Property-Based Fuzz Tests
 
@@ -867,6 +888,8 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 | Mocked integration        | Every push                  | `npm run test:integration`                            |
 | Benchmarks                | Every PR                    | `npm run benchmark`                                   |
 | Deep contract tests       | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
+| Recorded payload replay   | Every PR                    | `npm run contract:replay`                             |
+| Payload re-recording      | Nightly                     | `ESI_LIVE_TESTS=true npm run contract:record`         |
 | Property-based fuzz tests | Every PR                    | `npm run fuzz`                                        |
 | Consumer type tests       | Every PR                    | `npm run test:types`                                  |
 | Live smoke tests          | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
