@@ -31,6 +31,7 @@ npm run fuzz           # Property-based fuzz tests (fast-check)
 npm run fuzz:api       # Schemathesis API fuzzing (requires Docker)
 npm run benchmark      # Performance benchmark tests (jest.benchmark.config.cjs)
 npm run test:types     # Type tests (tsd)
+npm run test:export-coverage  # Public exports no test references (--ci gates against scripts/export-coverage-baseline.json)
 npm run test:consumer  # Pack, install into a clean consumer, type-check + run CJS/ESM/sub-paths (not in npm test)
 npm run test:all       # All test suites
 npm run mutation       # Mutation testing (Stryker)

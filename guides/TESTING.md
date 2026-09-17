@@ -806,6 +806,10 @@ TDD tests cover implementation details (internal functions, edge cases, error pa
 
 `publicApiSurface.test.ts` acts as a breaking-change detector. If someone renames a method, removes an export, or changes a class hierarchy, this test fails immediately — before the change ships as a semver-violating release.
 
+### Why check that every export is referenced by a test?
+
+Coverage percentages measure the code tests run, so an exported function nothing calls and an exported type nothing names are invisible to them. `npm run test:export-coverage` lists, per `package.json` entry point, the exports no file under `tests/` resolves to (the TypeScript checker decides, so a name in a comment or string does not count). CI fails on a new unreferenced export and the baseline in `scripts/export-coverage-baseline.json` only shrinks. See [QUALITY-GATES.md](QUALITY-GATES.md#export-coverage).
+
 ## Schema Validation Tests
 
 Zod schema validation is tested at multiple levels:
