@@ -477,20 +477,84 @@ jobs:
             exit 1
           fi
 
-  consumer-contract:
-    name: Consumer Contract (Node ${{ matrix.node-version }})
+  consumer-tarball:
+    name: Consumer Tarball
     runs-on: ubuntu-latest
     needs: lint-and-build
-    # Packs the library, installs the tarball into tests/consumer/ copied to a
-    # temporary directory, type-checks it under nodenext (CJS and ESM) and
-    # bundler resolution, runs the CJS and ESM consumers, and checks every
-    # sub-path in `exports` loads with the same names under require and import.
-    # Node 18 has no require(esm), so it is the line that catches a `require`
-    # condition resolving to an ES module.
+    # Packs the dist/ that lint-and-build uploaded, once, so every
+    # consumer-contract cell installs the same tarball bytes. release.yml runs
+    # the same contract against the tarball it publishes.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          package-manager-cache: false
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: build-files
+          path: dist/
+
+      # npm 10, the version Node 20 bundles, runs `prepare` on `npm pack`
+      # even with --ignore-scripts (fixed in npm 11), and `prepare` rebuilds
+      # dist/. npm 11 packs the dist/ downloaded above, which is the point of
+      # this job: every cell installs those bytes.
+      - name: Pack
+        run: |
+          mkdir -p consumer-tarball
+          npx --yes npm@11.17.0 pack --ignore-scripts --pack-destination consumer-tarball
+          count=$(ls -1 consumer-tarball/*.tgz | wc -l)
+          if [ "$count" -ne 1 ]; then
+            echo "::error::Expected one tarball, found $count"
+            exit 1
+          fi
+
+      - name: Upload the tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: consumer-tarball
+          path: consumer-tarball/*.tgz
+          retention-days: 1
+          if-no-files-found: error
+
+  consumer-contract:
+    name: Consumer Contract (Node ${{ matrix.node-version }}, TypeScript ${{ matrix.typescript }})
+    runs-on: ubuntu-latest
+    needs: consumer-tarball
+    # Installs the packed tarball into tests/consumer/ copied to a temporary
+    # directory, then type-checks six cells (ES module and CommonJS consumers
+    # under node16, nodenext and bundler resolution, skipLibCheck off), loads
+    # and runs every sub-path on this Node, checks dual-build parity, and
+    # bundles ./errors with esbuild to prove it leaves the clients behind.
+    # See scripts/consumer-contract.ts.
+    #
+    # Each row pairs a Node line with a TypeScript version: `oldest` is the
+    # declared floor (OLDEST_TYPESCRIPT), `repo` the version this repository
+    # builds with, `latest` npm's latest tag. Node 18 has no require(esm), so
+    # it catches a `require` condition resolving to an ES module. The wider
+    # matrix (TypeScript next, current Node) runs nightly in
+    # consumer-matrix-nightly.yml.
 
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [18, 20, 22]
+        include:
+          - node-version: 18
+            typescript: oldest
+          - node-version: 20
+            typescript: repo
+          - node-version: 22
+            typescript: latest
+          - node-version: 24
+            typescript: repo
 
     steps:
       - name: Checkout code
@@ -504,11 +568,21 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      # --ignore-scripts skips `prepare` (a full build); the runner only needs
+      # ts-node, and the tarball below is what gets tested.
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
-      - name: Run the consumer contract test
-        run: npm run test:consumer
+      - name: Download the tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: consumer-tarball
+          path: consumer-tarball/
+
+      - name: Run the consumer contract
+        env:
+          TYPESCRIPT: ${{ matrix.typescript }}
+        run: npm run test:consumer -- --tarball "$(ls consumer-tarball/*.tgz)" --typescript "$TYPESCRIPT"
 
   doc-examples:
     name: Documentation Examples
@@ -518,6 +592,32 @@ jobs:
     # the packed tarball (nodenext and bundler resolution), runs the blocks
     # marked runnable against a stubbed fetch, and checks the negative fixtures
     # are still rejected. See guides/DOCUMENTATION.md.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The known-broken baseline ratchet compares against master's copy;
+      # without the ref the check fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      # npm ci ran `prepare`, which builds dist/; pack that rather than
+      # building twice. A missing dist/ fails every import, not silently.
+      - name: Check the documentation examples
+        run: npm run test:docs-examples -- --skip-build
+
   package-lint:
     name: Package Lint
     runs-on: ubuntu-latest
@@ -757,6 +857,97 @@ jobs:
         if: steps.deps.outputs.changed == 'true'
         run: npm run audit:diff -- --base /tmp/base-audit.json --head /tmp/head-audit.json
 
+  benchmarks:
+    name: Benchmarks (base vs head)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # A benchmark can only say "slower than what": this job builds the pull
+    # request's base tip and head on the same runner and runs them in
+    # alternating processes, so runner-to-runner noise cancels. The
+    # comparison fails only on a statistically significant slowdown of at
+    # least 10% (see scripts/bench-compare-core.ts); a missing baseline fails.
+    #
+    # Most pull requests cannot change these numbers, and a benchmark that
+    # blocks unrelated work teaches people to bump thresholds. So the job runs
+    # the measurement only when the hot paths, the harness or the lockfile
+    # change; otherwise it reports success with a summary line, which keeps it
+    # inside ci-success without a job-level `if:`.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # HEAD^1 is the base tip; HEAD^1..HEAD^2 are this pull request's commits
+
+      - name: Check whether this pull request touches the hot paths
+        id: hot
+        run: |
+          if git diff --quiet HEAD^1 HEAD -- src/core/ src/schemas/ tests/benchmark/ scripts/bench-ab.ts scripts/bench-compare.ts scripts/bench-compare-core.ts package-lock.json; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Benchmarks not run: nothing under src/core/, src/schemas/, tests/benchmark/, the bench scripts or package-lock.json changed." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.hot.outputs.run == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --ignore-scripts skips `prepare` (a full build); the harness is bundled
+      # from src/ by esbuild.
+      - name: Install dependencies
+        if: steps.hot.outputs.run == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Check out the base tip
+        if: steps.hot.outputs.run == 'true'
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/base" HEAD^1
+          if git diff --quiet HEAD^1 HEAD -- package-lock.json; then
+            ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/base/node_modules"
+          else
+            (cd "$RUNNER_TEMP/base" && npm ci --ignore-scripts)
+          fi
+
+      - name: Run base and head in alternating processes
+        if: steps.hot.outputs.run == 'true'
+        run: npm run bench:ab -- --base "$RUNNER_TEMP/base" --head . --out reports/bench --rounds 10 --min-cpu-ms 200
+
+      # Exit 3 is a regression and nothing else. A pull request that is slower
+      # on purpose says so in a commit trailer, `Performance-Accepted: <why>`,
+      # which a reviewer then weighs; the nightly reference catches it again
+      # until a maintainer accepts it there. Exit 1 (no baseline, too few
+      # rounds, a dropped task) is never excused.
+      - name: Compare
+        if: steps.hot.outputs.run == 'true'
+        run: |
+          set +e
+          npm run bench:compare -- --dir reports/bench --title "Benchmarks, head against base"
+          status=$?
+          set -e
+          if [ "$status" -eq 3 ]; then
+            accepted=$(git log --format=%B HEAD^1..HEAD^2 | grep -m1 -i '^Performance-Accepted:' || true)
+            if [ -n "$accepted" ]; then
+              echo "::warning::Benchmark regression accepted by commit trailer. $accepted"
+              echo "Regression accepted by commit trailer: \`$accepted\`" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "::error::Statistically significant benchmark regression. If the slowdown is intended, add a 'Performance-Accepted: <reason>' trailer to a commit in this pull request."
+          fi
+          exit "$status"
+
+      - name: Upload benchmark results
+        if: always() && steps.hot.outputs.run == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: benchmark-results
+          path: reports/bench/
+          retention-days: 30
+
   zizmor:
     name: Workflow Security (zizmor)
     runs-on: ubuntu-latest
@@ -775,6 +966,71 @@ jobs:
 
       - name: Run zizmor
         run: uvx zizmor@1.25.2 --config .zizmor.yml .github/
+
+  mutation-pr:
+    name: Mutation (changed files)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # Runway tier K (bead esi-23g.12). Mutates only the src/ files this pull
+    # request changes, reusing the nightly results for everything else, and
+    # fails if a touched directory drops below its floor in
+    # mutation-thresholds.json or if that file lowers a floor. No `needs`, so
+    # it starts with lint-and-build and fits the PR wall-clock budget.
+    #
+    # Like every job here it has no job-level `if:`. A pull request that
+    # changes nothing in the unit mutation scope still runs the job: the
+    # thresholds file is still checked, the known-weak fixture still runs, and
+    # the mutation step exits 0 with a "Skipped" line in the job summary.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 2 # HEAD^1 is the base tip of the pull request merge commit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22' # Stryker 10 requires Node >= 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Written by nightly-mutation.yml on master. Restore only: a pull request
+      # never saves this cache. A miss is not a pass: mutation:pr then mutates
+      # every file in the touched directories from scratch.
+      - name: Restore the nightly incremental mutation report
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: reports/mutation/stryker-incremental.json
+          key: stryker-incremental-unit-${{ github.event.pull_request.base.sha }}
+          restore-keys: |
+            stryker-incremental-unit-${{ github.event.pull_request.base.sha }}-
+            stryker-incremental-unit-
+
+      # The tier's signal on itself: a deliberately weak test must leave
+      # surviving mutants that the ratchet fails.
+      - name: Known-weak fixture leaves surviving mutants
+        run: npm run mutation:fixture
+
+      - name: Mutate changed src/ files and check directory ratchets
+        timeout-minutes: 8
+        env:
+          MUTATION_BASE_REF: HEAD^1
+        run: npm run mutation:pr -- --concurrency 4
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mutation-pr-report
+          path: |
+            reports/mutation/mutation.html
+            reports/mutation/mutation.json
+          if-no-files-found: ignore
+          retention-days: 7
 
   # ci-success is the single required status check for this workflow (R10).
   #
@@ -808,6 +1064,7 @@ jobs:
         fuzz-tests,
         full-test-suite,
         api-surface,
+        consumer-tarball,
         consumer-contract,
         doc-examples,
         package-lint,
@@ -815,7 +1072,9 @@ jobs:
         documentation,
         lockfile,
         dependency-audit,
+        benchmarks,
         zizmor,
+        mutation-pr,
       ]
     if: always()
 

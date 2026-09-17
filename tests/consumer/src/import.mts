@@ -31,6 +31,12 @@ import {
 import { TestDataFactory } from '@lgriffin/esi.ts/testing';
 import { MemorySdeProvider, type EveType } from '@lgriffin/esi.ts/sde';
 import { MemorySdeProvider as MemoryOnlyProvider } from '@lgriffin/esi.ts/sde/memory';
+import * as rootModule from '@lgriffin/esi.ts';
+import * as errorsModule from '@lgriffin/esi.ts/errors';
+import * as schemasModule from '@lgriffin/esi.ts/schemas';
+import * as testingModule from '@lgriffin/esi.ts/testing';
+import * as sdeModule from '@lgriffin/esi.ts/sde';
+import * as sdeMemoryModule from '@lgriffin/esi.ts/sde/memory';
 
 const require = createRequire(import.meta.url);
 const pkg = require('@lgriffin/esi.ts/package.json') as { version: string };
@@ -51,6 +57,30 @@ function stubFetch(body: unknown, status = 200): void {
 }
 
 assert.equal(typeof pkg.version, 'string');
+
+// esi-23g.29: the `import` condition resolves to ES module declarations
+// (.d.mts), matching the .mjs it loads. Declarations TypeScript reads as
+// CommonJS give every namespace a synthesised `default` (module.exports), so
+// `import esi from '@lgriffin/esi.ts'` type-checks and then fails to load.
+type HasDefault<M> = 'default' extends keyof M ? true : false;
+const esmTyped: [
+  HasDefault<typeof rootModule>,
+  HasDefault<typeof errorsModule>,
+  HasDefault<typeof schemasModule>,
+  HasDefault<typeof testingModule>,
+  HasDefault<typeof sdeModule>,
+  HasDefault<typeof sdeMemoryModule>,
+] = [false, false, false, false, false, false];
+for (const [index, namespace] of [
+  rootModule,
+  errorsModule,
+  schemasModule,
+  testingModule,
+  sdeModule,
+  sdeMemoryModule,
+].entries()) {
+  assert.equal(esmTyped[index], 'default' in namespace, `sub-path ${index}`);
+}
 
 // The root entry: a real client, its pipeline and response validation.
 const client = new EsiClient({
