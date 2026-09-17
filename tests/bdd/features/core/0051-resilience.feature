@@ -196,6 +196,18 @@ Feature: Resilience and Error Recovery
         | 420    |
         | 429    |
 
+  Rule: When a 420 or 429 response carries a Retry-After header in HTTP-date form, the rate limiter shall block the rate-limit group of the request until that date.
+    RFC 9110 lets Retry-After be a number of seconds or an HTTP date. Read as a
+    number of seconds, a date is not a number, and a block that ends at no
+    point in time never clears: every later request in the group went through
+    the limiter's ten re-checks and logged a warning at each one.
+
+    Scenario: A 429 whose Retry-After is a date 30 seconds ahead blocks the group until then
+      Given a request pipeline without retries
+      And ESI answers the server status request with HTTP 429 and a Retry-After date 30 seconds ahead
+      When the client requests the server status
+      Then the status rate-limit group is blocked until the Retry-After date
+
   Rule: If a GET request exceeds the configured timeout while retries remain, then the EsiClient shall issue the same request again.
     A timeout reaches the retry strategy as a TimeoutError with status code 0,
     which it treats as transient: the server may only have been slow. A caller

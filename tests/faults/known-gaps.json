@@ -12,17 +12,6 @@
       "targets": ["market.getMarketOrders"],
       "bead": "esi-l38.2",
       "reason": "Page 1 is cached before pages 2..N arrive, so a later page failing leaves page 1 alone in the cache, served as if complete on the next call inside the TTL or after a 304."
-    },
-    {
-      "fault": "too-many-requests-retry-after-http-date",
-      "targets": [
-        "status.getStatus",
-        "location.getCharacterLocation",
-        "market.getMarketOrders",
-        "freelanceJobs.getFreelanceJobs"
-      ],
-      "bead": "esi-23g.8",
-      "reason": "Retry-After is parsed with parseInt only; an HTTP-date value makes blockedUntil NaN, so the retry goes out at once and every later request in the group logs ten 'blocked for NaNs' warnings."
     }
   ]
 }

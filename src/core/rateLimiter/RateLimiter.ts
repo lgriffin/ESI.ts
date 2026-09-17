@@ -27,6 +27,19 @@ function getTokenCost(statusCode: number): number {
   return 2;
 }
 
+/**
+ * When a Retry-After header lets requests resume, as epoch milliseconds.
+ * RFC 9110 allows delay-seconds or an HTTP date. Undefined for anything else,
+ * so an unreadable header never sets a block that cannot end.
+ */
+function retryAfterDeadline(value: string, now: number): number | undefined {
+  const trimmed = value.trim();
+  if (/^\d+$/.test(trimmed)) return now + parseInt(trimmed, 10) * 1000;
+  if (!/[A-Za-z]/.test(trimmed)) return undefined;
+  const date = Date.parse(trimmed);
+  return Number.isNaN(date) ? undefined : date;
+}
+
 export interface RateLimitEndpointOverride {
   maxTokens: number;
   windowSizeMs: number;
@@ -253,8 +266,8 @@ export class RateLimiter implements IRateLimiter {
     bucket.lastUpdated = Date.now();
 
     if ('retry-after' in headers) {
-      const retrySeconds = parseInt(headers['retry-after'], 10);
-      bucket.blockedUntil = Date.now() + retrySeconds * 1000;
+      const until = retryAfterDeadline(headers['retry-after'], Date.now());
+      if (until !== undefined) bucket.blockedUntil = until;
     }
 
     if (statusCode === 420 || statusCode === 429) {

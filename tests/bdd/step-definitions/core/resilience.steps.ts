@@ -91,6 +91,29 @@ function statusClientWithTestModeRateLimiter(): StatusClient {
   return new StatusClient(api);
 }
 
+/**
+ * A status client on the default pipeline with no retries, returned with its
+ * live rate limiter so a scenario can read the group block a response set.
+ */
+function statusClientWithRateLimiter(): {
+  statusClient: StatusClient;
+  limiter: RateLimiter;
+} {
+  const api = new ApiClient(
+    'bdd-resilience',
+    'https://esi.evetech.net',
+    'bdd-access-token',
+  );
+  configureApiClient(api, { retryConfig: NO_RETRIES, logLevel: 'error' });
+  const limiter = new RateLimiter({ minDelayMs: 0 });
+  api.setRateLimiter(limiter);
+  return { statusClient: new StatusClient(api), limiter };
+}
+
+/** An HTTP date (whole seconds, as the header carries) `seconds` from now. */
+const httpDateAhead = (seconds: number): string =>
+  new Date(Math.ceil(Date.now() / 1000) * 1000 + seconds * 1000).toUTCString();
+
 /** Every fetch the client made, whether or not the seam served it. */
 const requestsSent = (): number => fetchMock.mock.calls.length;
 
@@ -581,6 +604,48 @@ defineFeature(feature, (test) => {
     and(/^the client sent (\d+) requests?$/, (count: string) => {
       expect(requestsSent()).toBe(Number(count));
     });
+  });
+
+  test('A 429 whose Retry-After is a date 30 seconds ahead blocks the group until then', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let statusClient: StatusClient;
+    let limiter: RateLimiter;
+    let retryAfter: string;
+    let outcome: Outcome;
+
+    given('a request pipeline without retries', () => {
+      ({ statusClient, limiter } = statusClientWithRateLimiter());
+    });
+
+    and(
+      'ESI answers the server status request with HTTP 429 and a Retry-After date 30 seconds ahead',
+      () => {
+        retryAfter = httpDateAhead(30);
+        queueError(429, 'Too many requests', {
+          match: STATUS_PATH,
+          headers: { 'retry-after': retryAfter },
+        });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(statusClient.getStatus());
+    });
+
+    then(
+      'the status rate-limit group is blocked until the Retry-After date',
+      () => {
+        expectEsiError(outcome, 429);
+        expect(requestsSent()).toBe(1);
+        expect(limiter.getGroupStatus('status')?.blockedUntil).toBe(
+          Date.parse(retryAfter),
+        );
+      },
+    );
   });
 
   test('HTTP <status> on the first attempt is retried once the rate limiter allows it', ({
