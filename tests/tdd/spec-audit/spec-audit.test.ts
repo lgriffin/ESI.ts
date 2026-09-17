@@ -20,7 +20,11 @@ import { execFileSync } from 'child_process';
 import { readdirSync } from 'fs';
 import * as path from 'path';
 
-import { checkExceptionList } from '../../../scripts/spec-audit-checks';
+import {
+  checkBugTags,
+  checkExceptionList,
+  loadBeadIds,
+} from '../../../scripts/spec-audit-checks';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const FIXTURES = 'tests/tdd/spec-audit/fixtures';
@@ -102,6 +106,11 @@ describe('spec-audit', () => {
       ],
       ['Feature stating no requirement at all', 'contains no Rule blocks'],
       ['Feature with no description', 'has no description'],
+      ['bug with no tracker tag', 'Tagged @bug with no tracker tag'],
+      [
+        'bug linked to a bead the export does not contain',
+        'Tag @esi-zzzz.999 names no bead in .beads/issues.jsonl',
+      ],
     ];
 
     it.each(cases)('rejects a %s', (_name, expected) => {
@@ -116,6 +125,55 @@ describe('spec-audit', () => {
   describe('the compliant fixture', () => {
     it('produces no findings', () => {
       expect(output).not.toContain('compliant.feature');
+    });
+  });
+
+  describe('bug tags', () => {
+    const beads = new Set(['esi-23g.11']);
+
+    it('accepts @bug beside a bead the export contains', () => {
+      expect(checkBugTags(['@bug', '@esi-23g.11'], [], beads)).toEqual([]);
+    });
+
+    it('accepts @bug beside a GitHub issue', () => {
+      expect(checkBugTags(['@bug', '@gh-332'], [], beads)).toEqual([]);
+    });
+
+    it('accepts @bug whose tracker tag is inherited from the Rule', () => {
+      expect(checkBugTags(['@bug'], ['@esi-23g.11'], beads)).toEqual([]);
+    });
+
+    it('rejects @bug with no tracker on the element or an ancestor', () => {
+      expect(checkBugTags(['@bug'], [], beads)).toHaveLength(1);
+    });
+
+    it.each(['@gh-0', '@gh-abc', '@ESI-23g', '@esi-', '@issue-12'])(
+      'does not count %s as a tracker tag',
+      (tag) => {
+        expect(checkBugTags(['@bug', tag], [], beads)).toEqual([
+          expect.stringContaining('Tagged @bug with no tracker tag'),
+        ]);
+      },
+    );
+
+    it('fails closed when the beads export cannot be read', () => {
+      expect(checkBugTags(['@bug', '@esi-23g.11'], [], null)).toEqual([
+        expect.stringContaining('could not be read'),
+      ]);
+    });
+
+    it('reads bead ids from the committed export', () => {
+      const ids = loadBeadIds();
+
+      expect(ids).not.toBeNull();
+      expect(ids!.size).toBeGreaterThan(0);
+      expect([...ids!].every((id) => id.startsWith('esi-'))).toBe(true);
+    });
+
+    it('returns null for a missing export', () => {
+      expect(
+        loadBeadIds(path.join(REPO_ROOT, 'no-such-export.jsonl')),
+      ).toBeNull();
     });
   });
 
