@@ -10,6 +10,7 @@ import { listFixtureFiles, loadFixture } from '../recorded/fixture';
 import { KNOWN_MISMATCHES_PATH } from '../recorded/policy';
 import { readReasonList } from '../recorded/ratchet';
 import { describeIssues, replayFixture } from '../recorded/replay';
+import { assertNoProblems, assertThat } from '../../support/assertions';
 
 const definitions = new Map(
   publicGetEndpoints().map((e) => [e.key, e.definition]),
@@ -36,46 +37,41 @@ describe('recorded ESI payloads replay through the client pipeline', () => {
       if (key in knownMismatches) {
         it('still fails to replay, as known-mismatches.json records', async () => {
           const definition = definitions.get(key);
-          if (!definition)
-            throw new Error(`${key} is not a public GET endpoint`);
+          assertThat(
+            definition !== undefined,
+            `${key} is not a public GET endpoint`,
+          );
           const report = await replayFixture(fixture, definition);
-          if (!report.rejection && report.problems.length === 0) {
-            throw new Error(
-              `${key} now replays cleanly. Remove it from tests/contract/fixtures/known-mismatches.json. ${repro(key)}`,
-            );
-          }
+          assertThat(
+            report.rejection !== undefined || report.problems.length > 0,
+            `${key} now replays cleanly. Remove it from tests/contract/fixtures/known-mismatches.json. ${repro(key)}`,
+          );
         });
         return;
       }
 
       it('is accepted by the schema, keeps its keys, and caches by its headers', async () => {
         const definition = definitions.get(key);
-        if (!definition) {
-          throw new Error(
-            `${where} replays ${key}, which is not a public GET endpoint definition`,
-          );
-        }
+        assertThat(
+          definition !== undefined,
+          `${where} replays ${key}, which is not a public GET endpoint definition`,
+        );
         const report = await replayFixture(fixture, definition);
         if (report.rejection) {
-          throw new Error(
+          assertNoProblems(
             [
-              `The ${key} response schema rejects the body ESI sent (recorded ${fixture.recordedAt}, compatibility date ${fixture.compatibilityDate}):`,
-              ...describeIssues(report.rejection).map((l) => `  ${l}`),
+              ...describeIssues(report.rejection),
               `Fixture: ${where}`,
               'Fix the schema (a loosening is a fix per guides/SEMVER.md) or, if it cannot be fixed here, list it in tests/contract/fixtures/known-mismatches.json.',
               repro(key),
-            ].join('\n'),
+            ],
+            `The ${key} response schema rejects the body ESI sent (recorded ${fixture.recordedAt}, compatibility date ${fixture.compatibilityDate}):`,
           );
         }
-        if (report.problems.length > 0) {
-          throw new Error(
-            [
-              `Replaying ${where}:`,
-              ...report.problems.map((p) => `  ${p}`),
-              repro(key),
-            ].join('\n'),
-          );
-        }
+        assertNoProblems(
+          report.problems.length > 0 ? [...report.problems, repro(key)] : [],
+          `Replaying ${where}:`,
+        );
       });
     },
   );
