@@ -271,8 +271,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # --json records every test Jest ran, so the report below can prove each
+      # scenario in the feature files executed, not only that those that ran
+      # passed. Jest does not create the output file's directory.
       - name: Run all BDD tests
-        run: npm run bdd
+        run: |
+          mkdir -p reports/bdd
+          npm run bdd -- --json --outputFile=reports/bdd/jest-results.json
+
+      # Runs after a failing suite too, so the summary names the Rules that
+      # broke. Fails when a scenario stated in a feature file did not execute.
+      - name: Report scenarios by Rule and check each one executed
+        if: ${{ !cancelled() }}
+        run: npm run bdd:report
+
+      - name: Upload the JUnit report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bdd-junit
+          path: reports/bdd/
+          if-no-files-found: error
+          retention-days: 30
 
   spec-audit:
     name: EARS Spec Audit
