@@ -254,6 +254,35 @@ describe('pull request ratchet gate', () => {
     );
     expect(text).toContain('**Ratchet failures**');
   });
+
+  it('escapes a replacement that would otherwise break the summary table', () => {
+    const mutant = {
+      status: 'Survived' as const,
+      mutatorName: 'StringLiteral',
+      replacement: 'a\\|b `c` |d',
+      location: { start: { line: 7, column: 1 } },
+    };
+    const text = renderPrSummary({
+      plan: touched,
+      scores: [],
+      thresholds: {},
+      files: [],
+      undetected: [
+        {
+          file: 'src/core/cache/ETagCacheManager.ts',
+          line: 7,
+          status: mutant.status,
+          mutator: mutant.mutatorName,
+          replacement: mutant.replacement,
+        },
+      ],
+      failures: [],
+      baseline: 'test baseline',
+    });
+    expect(text).toContain(
+      "| `src/core/cache/ETagCacheManager.ts:7` | Survived | StringLiteral | `a\\\\\\|b 'c' \\|d` |",
+    );
+  });
 });
 
 describe('thresholds file ratchet direction', () => {

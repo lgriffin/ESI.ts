@@ -535,7 +535,13 @@ function cell(text: string, max = 60): string {
   const oneLine = text.replace(/\s+/g, ' ').trim();
   const clipped =
     oneLine.length > max ? `${oneLine.slice(0, max - 1)}…` : oneLine;
-  return `\`${clipped.replace(/`/g, "'").replace(/\|/g, '\\|')}\``;
+  // Escape backslashes before the pipes they would otherwise escape, and swap
+  // backticks so the code span cannot end early.
+  const escaped = clipped
+    .replace(/\\/g, '\\\\')
+    .replace(/\|/g, '\\|')
+    .replace(/`/g, "'");
+  return `\`${escaped}\``;
 }
 
 export function renderPrSummary(args: {
