@@ -787,4 +787,65 @@ defineFeature(feature, (test) => {
       staleClient.shutdown();
     });
   });
+
+  test('A repeat character assets call inside the TTL returns both pages', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const characterId = 90000001;
+    const asset = (itemId: number) => ({
+      item_id: itemId,
+      type_id: 34,
+      quantity: 1,
+      location_id: 60003760,
+      location_type: 'station',
+      location_flag: 'Hangar',
+      is_singleton: false,
+    });
+    const pages = [[asset(1000000001), asset(1000000002)], [asset(1000000003)]];
+    let assetsClient: EsiClient;
+    const results: unknown[] = [];
+
+    given('a client with an access token and an empty cache', () => {
+      assetsClient = new EsiClient({
+        clientId: 'bdd-paginated-cache',
+        baseUrl: 'https://esi.evetech.net',
+        accessToken: 'bdd-access-token',
+        retryConfig: FAST_RETRY,
+        rateLimiterConfig: { minDelayMs: 0 },
+        logLevel: 'error',
+      });
+    });
+
+    and(
+      /^ESI answers the character assets request with (\d+) pages$/,
+      (count: string) => {
+        for (let page = 1; page <= Number(count); page++) {
+          fetchMock.mockResponseOnce(JSON.stringify(pages[page - 1]), {
+            headers: {
+              ETag: `"assets-page-${page}"`,
+              'X-Pages': count,
+              'Content-Type': 'application/json',
+            },
+          });
+        }
+      },
+    );
+
+    when('the client requests the character assets twice', async () => {
+      results.push(await assetsClient.assets.getCharacterAssets(characterId));
+      results.push(await assetsClient.assets.getCharacterAssets(characterId));
+    });
+
+    then('both calls resolve with the assets from both pages', () => {
+      expect(results).toEqual([pages.flat(), pages.flat()]);
+    });
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      assetsClient.shutdown();
+    });
+  });
 });

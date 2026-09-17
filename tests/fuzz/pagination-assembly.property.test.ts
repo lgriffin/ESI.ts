@@ -646,3 +646,22 @@ describeProperty<Pipeline>({
   property: cursorProperty,
   timeoutMs: 120_000,
 });
+
+// ── Shrunk counter-examples, kept as named examples (tests/fuzz/AGENTS.md) ──
+
+describe('pagination counter-examples', () => {
+  const page = (size: number): PageSpec => ({
+    size,
+    xPages: null,
+    failures: 0,
+    failure: 'status',
+  });
+
+  it('esi-l38.1: a repeat authenticated paginated call inside the TTL returns every page', async () => {
+    // Shrunk from seed -82969071: the combined array was cached under the
+    // unauthenticated key, so the token-scoped lookup found page 1 alone.
+    await expect(
+      runEager(requirePipeline(), RESOURCES[1]!, [page(0), page(1)]),
+    ).resolves.toBeUndefined();
+  });
+});

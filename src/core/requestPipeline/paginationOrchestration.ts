@@ -86,6 +86,7 @@ export async function handleOffsetPagination(
       useETag,
       resolveCache,
       templatePath,
+      requiresAuth,
     );
     return { headers: parsed.raw, body: allData, status: 200 };
   } catch (paginationError: unknown) {
