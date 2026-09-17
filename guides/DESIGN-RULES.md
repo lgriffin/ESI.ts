@@ -27,6 +27,8 @@ Two long-standing exceptions are kept for compatibility: the `skills` registry k
 
 Response validation replaces the body with `safeParse().data`. A strict `z.object` strips any field it does not name, so a field CCP adds tomorrow would silently disappear from every consumer. Hand-written response schemas therefore use `z.looseObject`, which keeps unknown keys:
 
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 import { z } from 'zod';
 import { esiEnum } from './esiEnum';
@@ -56,6 +58,8 @@ Error classes declare their fields `readonly`. Merges copy: `EsiClientBuilder.wi
 ### Logging from a client
 
 Clients log through the per-client helpers in `src/core/logger/clientLog.ts`, passing `this._client` so the line is attributed to the owning `ApiClient`:
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
 logWarn(this._client, 'AllianceClient.getContacts() is deprecated.', {
@@ -88,6 +92,8 @@ Do not import the global logger in a client. [LOGGING.md](LOGGING.md) covers res
 Arguments are consumed positionally by `buildEndpointPath`: path parameters, then query parameters in declaration order (an `undefined` query argument is omitted), then the body. Offset pagination is not declared; the pipeline follows `x-pages` whenever ESI returns it. See [PAGINATION.md](PAGINATION.md).
 
 A representative map, adapted from `src/core/endpoints/marketEndpoints.ts` and `contactEndpoints.ts`:
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
 import { z } from 'zod';
@@ -177,6 +183,8 @@ Reports fields missing on either side, required/optional disagreements and type 
 
 When ESI deprecates an operation, keep the definition and add the field rather than a comment:
 
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 getOldThing: {
   path: 'old/thing/',
@@ -196,6 +204,8 @@ getOldThing: {
 ### 3.7 Expose it on the client
 
 Every key in the map is already callable through `this.api`. Add a named, documented method on the domain client so it appears in the public surface with camelCase arguments and a JSDoc block:
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
 /**
@@ -232,6 +242,8 @@ Needed only when ESI adds a tag that no existing client covers. Every step below
 2. **Types.** `src/types/<domain>.ts` with `z.infer` aliases, re-exported from `src/types/api-responses.ts`.
 3. **Endpoint map.** `src/core/endpoints/<domain>Endpoints.ts`, following section 3.
 4. **Client class.** `src/clients/<Domain>Client.ts`:
+
+   <!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
    ```ts
    import { ApiClient } from '../core/ApiClient';

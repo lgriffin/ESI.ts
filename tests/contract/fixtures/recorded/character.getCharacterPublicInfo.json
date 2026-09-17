@@ -1,0 +1,38 @@
+{
+  "endpoint": "character.getCharacterPublicInfo",
+  "call": {
+    "client": "characters",
+    "method": "getCharacterPublicInfo",
+    "args": [92025524]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 86400,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "characters/92025524/",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=86400, must-revalidate, stale-if-error=900",
+        "content-type": "application/json",
+        "etag": "W/\"02bd4cc31b4f9ff93fc11f7771af046f5e77228b5766d13488f1dff074815ed1\"",
+        "expires": "Fri, 18 Sep 2026 14:13:02 GMT",
+        "last-modified": "Wed, 16 Sep 2026 18:09:22 GMT"
+      },
+      "body": {
+        "birthday": "2012-05-16T11:51:00Z",
+        "bloodline_id": 7,
+        "corporation_id": 98356193,
+        "gender": "male",
+        "name": "FC Cart",
+        "race_id": 8,
+        "alliance_id": 434243723,
+        "description": "",
+        "security_status": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "endpoint": "market.getMarketPrices",
+  "call": {
+    "client": "market",
+    "method": "getMarketPrices",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 15801,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "markets/prices/",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"41285cf643939deae8af4869bab06de3d1d2417efe80491e6768c218\"",
+        "expires": "Thu, 17 Sep 2026 15:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:05:00 GMT"
+      },
+      "body": [
+        {
+          "adjusted_price": 29.90038995596332,
+          "average_price": 27.84,
+          "type_id": 18
+        },
+        {
+          "adjusted_price": 950.9407861998985,
+          "average_price": 7207.51,
+          "type_id": 19
+        },
+        {
+          "adjusted_price": 407.49754172595846,
+          "average_price": 522.65,
+          "type_id": 20
+        }
+      ]
+    }
+  ]
+}

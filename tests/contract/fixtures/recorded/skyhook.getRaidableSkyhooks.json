@@ -1,0 +1,63 @@
+{
+  "endpoint": "skyhook.getRaidableSkyhooks",
+  "call": {
+    "client": "skyhooks",
+    "method": "getRaidableSkyhooks",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 300,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.skyhooks",
+      "kind": "array",
+      "original": 149,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "skyhooks/raidable",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=300, must-revalidate, stale-if-error=900",
+        "content-type": "application/json",
+        "etag": "W/\"e063148e84a9674a58261c36fdef6d84c8b068af36cddc70f146928d5c55c3b6\"",
+        "expires": "Thu, 17 Sep 2026 14:18:19 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:12:24 GMT"
+      },
+      "body": {
+        "skyhooks": [
+          {
+            "planet_id": 40229601,
+            "solar_system_id": 30003618,
+            "theft_vulnerability": {
+              "start": "2026-09-17T12:14:02Z",
+              "end": "2026-09-17T14:14:02Z"
+            }
+          },
+          {
+            "planet_id": 40202075,
+            "solar_system_id": 30003185,
+            "theft_vulnerability": {
+              "start": "2026-09-17T12:16:31Z",
+              "end": "2026-09-17T14:16:31Z"
+            }
+          },
+          {
+            "planet_id": 40101161,
+            "solar_system_id": 30001587,
+            "theft_vulnerability": {
+              "start": "2026-09-17T12:21:31Z",
+              "end": "2026-09-17T14:21:31Z"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

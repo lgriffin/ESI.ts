@@ -1,0 +1,61 @@
+{
+  "endpoint": "faction.getSystems",
+  "call": {
+    "client": "factions",
+    "method": "getSystems",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 1800,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 160,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "fw/systems",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"c14ba2c41ca876384aa669ec353fc90f48e9233c876b7aa3b2f2e473\"",
+        "expires": "Thu, 17 Sep 2026 14:40:24 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:10:24 GMT"
+      },
+      "body": [
+        {
+          "contested": "uncontested",
+          "occupier_faction_id": 500003,
+          "owner_faction_id": 500003,
+          "solar_system_id": 30002957,
+          "victory_points": 0,
+          "victory_points_threshold": 75000
+        },
+        {
+          "contested": "contested",
+          "occupier_faction_id": 500003,
+          "owner_faction_id": 500002,
+          "solar_system_id": 30002097,
+          "victory_points": 5059,
+          "victory_points_threshold": 75000
+        },
+        {
+          "contested": "uncontested",
+          "occupier_faction_id": 500004,
+          "owner_faction_id": 500004,
+          "solar_system_id": 30004999,
+          "victory_points": 0,
+          "victory_points_threshold": 75000
+        }
+      ]
+    }
+  ]
+}

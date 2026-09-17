@@ -1,0 +1,208 @@
+name: Nightly Recorded Payloads
+
+# Re-records the public ESI payload fixtures (tests/contract/AGENTS.md),
+# compares them with the committed ones by shape, not value, and opens a pull
+# request when a shape changed. Nothing merges automatically: a shape change
+# is a review, and the pull request says whether the replay still passes.
+
+on:
+  schedule:
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-recorded-payloads
+  cancel-in-progress: false
+
+jobs:
+  rerecord:
+    name: Re-record public ESI payloads
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # push the automation branch the pull request comes from
+      pull-requests: write # open or update that pull request
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      # Exit 1 means some endpoints could not be recorded; their committed
+      # fixtures are kept and the run fails at the end. Exit 2 means the
+      # recording could not proceed (420, spec unavailable, stale recipe).
+      - name: Re-record fixtures
+        id: record
+        env:
+          ESI_LIVE_TESTS: 'true'
+        run: |
+          set +e -o pipefail
+          npm run contract:record -- --report=record-report.json 2>&1 | tee record.log
+          code=$?
+          set -e
+          echo "exit=$code" >> "$GITHUB_OUTPUT"
+          if [ "$code" -eq 2 ]; then
+            echo "::error::The recorder could not proceed; see the log above."
+            exit 2
+          fi
+
+      - name: Compare shapes with the committed fixtures
+        id: shape
+        run: |
+          set +e
+          npm run contract:shape-diff -- --revert-unchanged --report=shape-diff.md
+          code=$?
+          set -e
+          if [ "$code" -eq 2 ]; then
+            echo "::error::The shape diff could not run."
+            exit 2
+          fi
+          if [ "$code" -eq 1 ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Replay the new recordings
+        id: replay
+        if: steps.shape.outputs.changed == 'true'
+        run: |
+          set +e -o pipefail
+          npm run contract:replay 2>&1 | tee replay.log
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "result=passes" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=fails" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the pull request body
+        if: steps.shape.outputs.changed == 'true'
+        env:
+          REPLAY_RESULT: ${{ steps.replay.outputs.result }}
+        run: |
+          npx prettier --write "tests/contract/fixtures/**/*.json" > /dev/null
+          {
+            echo "Automated by the nightly recorded payloads workflow. Do not merge without review."
+            echo ""
+            cat shape-diff.md
+            echo ""
+            echo "## Replay"
+            echo ""
+            if [ "$REPLAY_RESULT" = "passes" ]; then
+              echo "\`npm run contract:replay\` passes with these recordings."
+            else
+              echo "\`npm run contract:replay\` **fails** with these recordings: a schema or the pipeline no longer accepts what ESI sends. Last lines:"
+              echo ""
+              echo '```'
+              grep -E "●|^\s{4}" replay.log | tail -60
+              echo '```'
+            fi
+            echo ""
+            echo "Reproduce: \`ESI_LIVE_TESTS=true npm run contract:record && npm run contract:shape-diff\`"
+          } > pr-body.md
+
+      - name: Open or update the pull request
+        if: steps.shape.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: automation/recorded-payload-shapes
+          delete-branch: true
+          add-paths: |
+            tests/contract/fixtures/recorded/*.json
+            tests/contract/fixtures/unrecordable.json
+          commit-message: 'test(contract): re-record ESI payloads whose shape changed'
+          title: 'test(contract): recorded ESI payloads changed shape'
+          body-path: pr-body.md
+          labels: payload-drift
+
+      - name: Summary
+        env:
+          RECORD_EXIT: ${{ steps.record.outputs.exit }}
+          CHANGED: ${{ steps.shape.outputs.changed }}
+          REPLAY_RESULT: ${{ steps.replay.outputs.result }}
+        run: |
+          {
+            echo "## Recorded payloads"
+            echo ""
+            echo "- Recorder exit: $RECORD_EXIT"
+            echo "- Shape changed: $CHANGED"
+            echo "- Replay with new recordings: ${REPLAY_RESULT:-not run}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -f shape-diff.md ]; then cat shape-diff.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Fail when endpoints could not be recorded
+        if: steps.record.outputs.exit != '0'
+        run: |
+          echo "::error::Some public endpoints not listed in tests/contract/fixtures/unrecordable.json could not be recorded:"
+          grep "not recorded:" record.log || true
+          exit 1
+
+  # A red scheduled run notifies nobody, so a failed run keeps one open issue
+  # labelled recorded-payloads-check-failed, and the next clean run closes it.
+  report-failure:
+    name: Report a failed re-recording
+    runs-on: ubuntu-latest
+    needs: rerecord
+    if: always() && (needs.rerecord.result == 'failure' || needs.rerecord.result == 'success')
+    permissions:
+      issues: write # create, comment on and close the failure issue
+
+    steps:
+      - name: Open or update the failure issue
+        if: needs.rerecord.result == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh label create "recorded-payloads-check-failed" \
+            --repo "$GITHUB_REPOSITORY" \
+            --description "Automated: the nightly payload re-recording failed" \
+            --color "B60205" 2>/dev/null || true
+          ISSUE_NUMBER=$(gh issue list --repo "$GITHUB_REPOSITORY" \
+            --label "recorded-payloads-check-failed" --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
+              --body "The nightly payload re-recording failed again: ${RUN_URL}"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "recorded payloads: nightly re-recording failed" \
+              --label "recorded-payloads-check-failed" \
+              --body "The nightly re-recording of public ESI payloads failed: ${RUN_URL}
+
+          Recorder exit 1: endpoints not listed in tests/contract/fixtures/unrecordable.json could not be recorded (see 'not recorded:' lines). Exit 2: the run could not proceed (a 420, the OpenAPI document unavailable, or a stale recipe in tests/contract/recorded/catalogue.ts).
+
+          Reproduce: ESI_LIVE_TESTS=true npm run contract:record"
+          fi
+
+      - name: Close the failure issue after a clean run
+        if: needs.rerecord.result == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER=$(gh issue list --repo "$GITHUB_REPOSITORY" \
+            --label "recorded-payloads-check-failed" --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue close "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
+              --comment "The nightly payload re-recording completed. Closing automatically."
+          fi

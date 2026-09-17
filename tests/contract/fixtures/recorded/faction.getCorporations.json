@@ -1,0 +1,160 @@
+{
+  "endpoint": "faction.getCorporations",
+  "call": {
+    "client": "factions",
+    "method": "getLeaderboardsCorporations",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.kills.active_total",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.kills.last_week",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.kills.yesterday",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.victory_points.active_total",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.victory_points.last_week",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.victory_points.yesterday",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "fw/leaderboards/corporations",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": {
+        "kills": {
+          "active_total": [
+            {
+              "amount": 166061,
+              "corporation_id": 1000180
+            },
+            {
+              "amount": 144917,
+              "corporation_id": 1000181
+            },
+            {
+              "amount": 115671,
+              "corporation_id": 1000179
+            }
+          ],
+          "last_week": [
+            {
+              "amount": 734,
+              "corporation_id": 1836808734
+            },
+            {
+              "amount": 402,
+              "corporation_id": 98541136
+            },
+            {
+              "amount": 292,
+              "corporation_id": 98726134
+            }
+          ],
+          "yesterday": [
+            {
+              "amount": 73,
+              "corporation_id": 1836808734
+            },
+            {
+              "amount": 66,
+              "corporation_id": 98541136
+            },
+            {
+              "amount": 64,
+              "corporation_id": 98802730
+            }
+          ]
+        },
+        "victory_points": {
+          "active_total": [
+            {
+              "amount": 84666656,
+              "corporation_id": 1000180
+            },
+            {
+              "amount": 78673096,
+              "corporation_id": 1000181
+            },
+            {
+              "amount": 60385089,
+              "corporation_id": 1000182
+            }
+          ],
+          "last_week": [
+            {
+              "amount": 480449,
+              "corporation_id": 1000180
+            },
+            {
+              "amount": 322488,
+              "corporation_id": 1000182
+            },
+            {
+              "amount": 304528,
+              "corporation_id": 1000181
+            }
+          ],
+          "yesterday": [
+            {
+              "amount": 71426,
+              "corporation_id": 1000180
+            },
+            {
+              "amount": 48798,
+              "corporation_id": 1000181
+            },
+            {
+              "amount": 41024,
+              "corporation_id": 1000182
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -417,7 +417,10 @@ describe('CircuitBreaker', () => {
     });
 
     it('should not start cleanup timer when cleanupIntervalMs is 0', () => {
+      const setIntervalSpy = jest.spyOn(global, 'setInterval');
       const cb = new CircuitBreaker({ cleanupIntervalMs: 0 });
+      expect(setIntervalSpy).not.toHaveBeenCalled();
+      setIntervalSpy.mockRestore();
 
       // Should not throw or have issues
       cb.recordFailure('v1/a/', 500);
@@ -448,8 +451,7 @@ describe('CircuitBreaker', () => {
       const cb = new CircuitBreaker({ cleanupIntervalMs: 100 });
 
       cb.destroy();
-      cb.destroy();
-      // No errors expected
+      expect(() => cb.destroy()).not.toThrow();
     });
 
     it('should stop scheduled cleanup after destroy', async () => {

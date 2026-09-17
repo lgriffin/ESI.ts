@@ -1,0 +1,31 @@
+{
+  "endpoint": "pi.getSchematicInformation",
+  "call": {
+    "client": "pi",
+    "method": "getSchematicInformation",
+    "args": [65]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "universe/schematics/65",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"6b36271ceae47381963abbecb6ce8b16f4aa5cefa82386a92899126b\"",
+        "expires": "Thu, 17 Sep 2026 14:34:01 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:34:01 GMT"
+      },
+      "body": {
+        "cycle_time": 3600,
+        "schematic_name": "Superconductors"
+      }
+    }
+  ]
+}

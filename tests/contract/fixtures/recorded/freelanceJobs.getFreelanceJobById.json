@@ -1,0 +1,112 @@
+{
+  "endpoint": "freelanceJobs.getFreelanceJobById",
+  "call": {
+    "client": "freelanceJobs",
+    "method": "getFreelanceJobById",
+    "args": ["68fd5fe6-4752-4e7c-89de-067fd3e54ecc"]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 60,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.details.description",
+      "kind": "string",
+      "original": 469,
+      "kept": 400
+    }
+  ],
+  "pages": [
+    {
+      "url": "freelance-jobs/68fd5fe6-4752-4e7c-89de-067fd3e54ecc",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=60",
+        "content-type": "application/json",
+        "expires": "Thu, 17 Sep 2026 14:14:20 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:06:03 GMT"
+      },
+      "body": {
+        "id": "68fd5fe6-4752-4e7c-89de-067fd3e54ecc",
+        "name": "ALL TYPES OF VELDSPAR",
+        "state": "Active",
+        "last_modified": "2026-09-17T14:06:03.181Z",
+        "progress": {
+          "current": 2732877,
+          "desired": 13000000
+        },
+        "reward": {
+          "initial": 104000000,
+          "remaining": 82136984
+        },
+        "details": {
+          "description": "<font size=\"14\" color=\"#bfffffff\">Help gather resourses to keep production going.<br><br>Thank you for you help.<br><br>MINERS WANTED!<br>Join Today<br></font><font size=\"14\" color=\"#ffd98d00\"><loc><a href=\"showinfo:2//98773441\">H8N LOYALS</a></loc><br></font><font size=\"14\" color=\"#bfffffff\"> </font><font size=\"14\" color=\"#ff6868e1\"><a href=\"joinChannel:player_bb3489c0d92311ef903600109bd0f828\">[-",
+          "career": "Industrialist",
+          "created": "2026-09-15T20:22:04.636Z",
+          "expires": "2026-09-29T20:15:00Z",
+          "creator": {
+            "character": {
+              "id": 2121716911,
+              "name": "Amej Mahi"
+            },
+            "corporation": {
+              "id": 98773441,
+              "name": "H8N LOYALS"
+            }
+          }
+        },
+        "configuration": {
+          "version": 1,
+          "parameters": {
+            "corporation_item_delivery": {
+              "corporation_item_delivery": {
+                "item_type": {
+                  "values": [
+                    {
+                      "value_type": "item_group",
+                      "values": ["462"]
+                    }
+                  ]
+                },
+                "corporation_office_location": {
+                  "values": [
+                    {
+                      "value_type": "structure",
+                      "values": ["1032715081490"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "method": "DeliverItem"
+        },
+        "contribution": {
+          "max_committed_participants": 10000,
+          "reward_per_contribution": 8,
+          "submission_multiplier": 1
+        },
+        "access_and_visibility": {
+          "acl_protected": false,
+          "broadcast_locations": [
+            {
+              "id": 30004079,
+              "name": "Aphend"
+            },
+            {
+              "id": 30001718,
+              "name": "Paye"
+            },
+            {
+              "id": 30001671,
+              "name": "Tash-Murkon Prime"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

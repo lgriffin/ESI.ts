@@ -1,0 +1,55 @@
+{
+  "endpoint": "universe.getSystemKills",
+  "call": {
+    "client": "universe",
+    "method": "getSystemKills",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 3232,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "universe/system_kills",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"e57f224baf17857445acd05c5ed90d4af32f0a77d6b6cd1ffdc51a91\"",
+        "expires": "Thu, 17 Sep 2026 14:51:37 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:51:37 GMT"
+      },
+      "body": [
+        {
+          "npc_kills": 1298,
+          "pod_kills": 0,
+          "ship_kills": 0,
+          "system_id": 30002175
+        },
+        {
+          "npc_kills": 35,
+          "pod_kills": 0,
+          "ship_kills": 0,
+          "system_id": 30004877
+        },
+        {
+          "npc_kills": 1789,
+          "pod_kills": 0,
+          "ship_kills": 0,
+          "system_id": 30000482
+        }
+      ]
+    }
+  ]
+}

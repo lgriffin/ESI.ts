@@ -548,9 +548,7 @@ describeIfLive('ESI Spec Contract', () => {
         );
       }
 
-      if (issues.length > 0) {
-        throw new Error(issues.join('\n'));
-      }
+      expect(issues).toEqual([]);
     });
   });
 
@@ -629,9 +627,7 @@ describeIfLive('ESI Spec Contract', () => {
         );
       }
 
-      if (issues.length > 0) {
-        throw new Error(issues.join('\n'));
-      }
+      expect(issues).toEqual([]);
     });
   });
 });

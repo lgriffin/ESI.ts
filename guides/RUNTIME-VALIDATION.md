@@ -39,7 +39,7 @@ In practice, the validation overhead is negligible compared to network latency. 
 
 When validation fails, an `EsiValidationError` is thrown:
 
-```typescript
+```typescript runnable
 import {
   EsiClient,
   EsiValidationError,
@@ -102,6 +102,8 @@ This is intentional. CCP regularly adds new fields to ESI responses. Loose objec
 ### Type derivation
 
 All TypeScript types in `src/types/` are derived from their Zod schemas using `z.infer<>`. The schemas are the single source of truth — there is no drift between the runtime validation and the compile-time types.
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```typescript
 // In src/schemas/character.ts

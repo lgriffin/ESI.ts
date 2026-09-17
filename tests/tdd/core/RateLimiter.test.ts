@@ -177,7 +177,7 @@ describe('RateLimiter', () => {
       limiter.setTestMode(true);
       limiter.updateFromResponse({ 'retry-after': '60' }, 429);
       // Should not hang — test mode skips the update
-      await limiter.checkRateLimit();
+      await expect(limiter.checkRateLimit()).resolves.toBeUndefined();
     });
 
     it('should enforce minimum delay between requests', async () => {
@@ -863,12 +863,23 @@ describe('RateLimiter', () => {
         userKeyExtractor: (headers) => headers['authorization'] ?? 'anon',
       });
 
+      const lastCleanup = () =>
+        (userLimiter as unknown as { lastCleanup: number }).lastCleanup;
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+
       await userLimiter.checkRateLimit(undefined, undefined, {
         authorization: 'Bearer user-a',
       });
+      expect(lastCleanup()).toBe(1_000_000);
+
+      nowSpy.mockReturnValue(1_000_001);
       await userLimiter.checkRateLimit(undefined, undefined, {
         authorization: 'Bearer user-a',
       });
+      // The interval has not elapsed, so cleanup did not run again.
+      expect(lastCleanup()).toBe(1_000_000);
+
+      nowSpy.mockRestore();
       userLimiter.setTestMode(true);
     });
   });

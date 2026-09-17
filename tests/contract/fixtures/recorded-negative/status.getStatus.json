@@ -1,0 +1,34 @@
+{
+  "negativeEdit": "Not a real response: copied from fixtures/recorded/status.getStatus.json with players changed from an integer to the string \"many\".",
+  "endpoint": "status.getStatus",
+  "call": {
+    "client": "status",
+    "method": "getStatus",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 30,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "status",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=30, must-revalidate, stale-if-error=900",
+        "content-type": "application/json",
+        "etag": "W/\"788fc569d42fad1227e62937edd419a8e266a03d884e9d49a2fe509624674c59\"",
+        "expires": "Thu, 17 Sep 2026 14:13:28 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:12:31 GMT"
+      },
+      "body": {
+        "server_version": "3503375",
+        "players": "many",
+        "vip": false,
+        "start_time": "2026-09-17T11:03:16Z"
+      }
+    }
+  ]
+}

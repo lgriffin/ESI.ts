@@ -1,0 +1,57 @@
+{
+  "endpoint": "market.getMarketTypes",
+  "call": {
+    "client": "market",
+    "method": "getMarketTypes",
+    "args": [10000002]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 600,
+  "upstreamPages": 20,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 1000,
+      "kept": 3
+    },
+    {
+      "page": 2,
+      "at": "$",
+      "kind": "array",
+      "original": 1000,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "markets/10000002/types/",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"a6ef2f60dd439a88dc7768ce207aa8dcbb3168b7d74a762599cc7c10\"",
+        "expires": "Thu, 17 Sep 2026 14:22:27 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:12:27 GMT",
+        "x-pages": "2"
+      },
+      "body": [49152, 32772, 32774]
+    },
+    {
+      "url": "markets/10000002/types/?page=2",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"fc80df81ca08547f81bf7e1b1783a3941c0dff7f4a5ca9b5d24fb0a2\"",
+        "expires": "Thu, 17 Sep 2026 14:22:27 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:12:27 GMT",
+        "x-pages": "2"
+      },
+      "body": [34165, 34166, 233]
+    }
+  ]
+}

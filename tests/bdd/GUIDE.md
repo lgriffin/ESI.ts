@@ -323,6 +323,15 @@ In CI the findings also appear as inline annotations on the offending lines.
 | `No scenarios found under this rule`          | Requirement with nothing verifying it          | Write the scenario, or delete the Rule                            |
 | `scenario(s) outside of any Rule block`       | Scenario at feature level                      | Nest it under the Rule it verifies                                |
 | `has no description`                          | Feature with no prose                          | Add two or three sentences after `Feature:`                       |
+| `Tagged @bug with no tracker tag`             | A known defect with no link to its history     | Add `@esi-<bead>` or `@gh-<issue>` beside `@bug`, or on its Rule  |
+| `names no bead in .beads/issues.jsonl`        | The bead id is wrong or was never exported     | Correct the id, or file the bead and commit the refreshed export  |
+
+`npm run bdd:report`, run after the full BDD suite, reports two more:
+
+| Finding                 | What it means                                                                  | Fix                                                                                       |
+| :---------------------- | :----------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
+| `feature-not-run`       | No test file binds the feature, or its test file did not run or failed to load | Add the spec entry, or fix the error the finding quotes                                   |
+| `scenario-not-executed` | The scenario's test was skipped, or no test with its title ran                 | Remove the skip; in a legacy step file, make `test('…')` match the scenario title exactly |
 
 ### The vague-language check
 
@@ -439,7 +448,9 @@ but `collapseRulesAndBackgrounds` flattens each Rule's children into the
 feature's scenario list and discards the Rule title. In a feature still run by
 a legacy `defineFeature` file:
 
-- Rule titles do not appear in Jest output.
+- Rule titles do not appear in Jest output. The JUnit report from
+  `npm run bdd:report` names every case `Feature › Rule › Scenario` from the
+  feature file, so CI reports show them for both kinds of binding.
 - A Rule-level `Background:` _is_ supported — it is merged with the feature-level
   Background and applied to that Rule's scenarios.
 - Scenario names must be unique within the whole file, not just within their
