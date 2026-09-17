@@ -431,6 +431,36 @@ Defects the contract finds are recorded as known issues against their beads: eac
 **CI:** `doc-examples` in `ci.yml`, Node 20, inside `ci-success`. Not part of `npm test`; the unit suite checks the annotations, the baseline and the fixtures against a stub package.
 
 Packs the library as the consumer contract does and type-checks every fenced `ts`/`typescript` block in `README.md`, `guides/*.md`, `src/sde/README.md` and `src/sde/docs/*.md` as its own module under nodenext and bundler resolution, then runs the blocks marked `runnable` against a stubbed `fetch`. The annotation convention, the prelude and the shrink-only known-broken baseline are described in [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked).
+### Type mutation
+
+**Location:** `scripts/type-mutation.ts` (CLI), `scripts/type-mutation-core.ts` (operators, sampling, ratchet), `scripts/type-mutation-run.ts` (workspaces, tsd)
+**Run:** `npm run build && npm run test:type-mutation` (`-- --ratchet` gates, `-- --update` raises floors, `--max`, `--seed`, `--workers`)
+**CI:** `type-mutation-testing` in `nightly-mutation.yml`. Not a pull request job.
+
+The tsd suite (`npm run test:types`) is only as good as the promises it pins. Type mutation checks that the way Stryker checks the unit suite: it makes one deliberate edit to a copy of the built declarations and runs the tsd tests against it, with their `../../src` imports pointed at the copy. Mutants come from the declarations the `package.json` `exports` entries reach, found with the TypeScript compiler API:
+
+| Operator               | Edit                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `return-unknown`       | A function, method, accessor or call signature returns `unknown`                     |
+| `drop-readonly`        | A `readonly` modifier or `readonly T[]` loses `readonly`                             |
+| `optional-to-required` | `x?:` becomes `x:` (properties and parameters)                                       |
+| `required-to-optional` | `x:` becomes `x?:` (parameters only when nothing required follows)                   |
+| `union-drop-member`    | The first, last or a nullish member of a union is dropped                            |
+| `widen-literal`        | A literal, or a union of same-kind literals, becomes `string`, `number` or `boolean` |
+| `remove-overload`      | One signature of an overload group is removed                                        |
+| `constraint-unknown`   | `T extends X` becomes `T extends unknown`                                            |
+
+A mutant is **killed** when tsd reports a failure in a type test, **invalid** when the mutated declarations themselves no longer compile (excluded from the score; a generated test imports every entry point, so this is seen even where no type test reaches), and **survives** when tsd passes. A survivor is a missing tsd case. The score per entry point is killed / (killed + survived).
+
+About eight thousand candidates exist, so at most 500 run. Entry points take turns picking their next mutant in order of a seeded hash of the mutant's id (built from file, symbol, operator and the mutated text, not offsets), so the same seed and surface always give the same sample, and each mutant a change adds displaces at most one sampled mutant instead of reshuffling the rest. `--ratchet` refuses a non-default `--seed` or `--max`, because the floors in `scripts/type-mutation-thresholds.json` were measured on the default sample. The report is `reports/type-mutation/type-mutation.{json,md}`.
+
+`tests/tdd/type-mutation/` holds the negative fixture: a one-interface package whose tsd test pins `Widget.id` and never mentions `Widget.label`. The suite runs the real mutation against it and fails unless making `id` optional is killed and making `label` optional survives, alongside unit tests for each operator, the sampler and the ratchet.
+## Suite-health lint
+
+**Run:** `npm run lint:suite-health` (ESLint over `tests/`, fixture trees excluded)
+**CI:** `ci-fast.yml` on every push; the `spec-audit` job in `ci.yml`, inside `ci-success`
+
+Keeps a green suite from quietly becoming a decorative one. It rejects a committed `.only`, `fit` or `fdescribe`; a `.skip`, `xit`, `xdescribe` or `.todo`; a test with no assertion; a `catch` that swallows an assertion's failure without rethrowing or asserting; and a `console` method mocked and never restored. The same applies to jest-cucumber scenarios (`test.only`, `test.skip` inside `defineFeature`) and to BDD Then steps: under `tests/bdd` every `Then(...)` step file and every legacy `then(...)` step must assert. `expect`, any `expect*` helper and `fc.assert` count as assertions. There is no baseline; every finding fails. Gate a live-only suite with a condition (`LIVE ? describe : describe.skip`), not a committed `.skip`. The rule table and the reasoning are in [QUALITY-GATES.md](QUALITY-GATES.md#suite-health-lint); each rule has a fixture in `tests/tdd/suite-health/fixtures/` that its Jest suite must see rejected.
 
 ## Integration Tests
 
@@ -894,6 +924,7 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 | Deep contract tests       | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
 | Property-based fuzz tests | Every PR                    | `npm run fuzz`                                        |
 | Consumer type tests       | Every PR                    | `npm run test:types`                                  |
+| Type mutation             | Nightly                     | `npm run test:type-mutation -- --ratchet`             |
 | Live smoke tests          | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
 | Spec drift detection      | Weekly                      | `npm run contract:snapshot && npm run contract:diff`  |
 | Gated auth tests          | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated` |

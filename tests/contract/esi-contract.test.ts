@@ -96,11 +96,7 @@ describeIfLive('ESI Deep Contract Tests', () => {
         }
       }
 
-      if (mismatches.length > 0) {
-        throw new Error(
-          `Found ${mismatches.length} path parameter mismatch(es):\n  ${mismatches.join('\n  ')}`,
-        );
-      }
+      expect(mismatches).toEqual([]);
     });
   });
 
@@ -147,11 +143,7 @@ describeIfLive('ESI Deep Contract Tests', () => {
         }
       }
 
-      if (missing.length > 0) {
-        throw new Error(
-          `Found ${missing.length} missing required query param(s):\n  ${missing.join('\n  ')}`,
-        );
-      }
+      expect(missing).toEqual([]);
     });
   });
 
@@ -192,11 +184,7 @@ describeIfLive('ESI Deep Contract Tests', () => {
         }
       }
 
-      if (mismatches.length > 0) {
-        throw new Error(
-          `Found ${mismatches.length} request body mismatch(es):\n  ${mismatches.join('\n  ')}`,
-        );
-      }
+      expect(mismatches).toEqual([]);
     });
   });
 
@@ -241,11 +229,7 @@ describeIfLive('ESI Deep Contract Tests', () => {
         }
       }
 
-      if (mismatches.length > 0) {
-        throw new Error(
-          `Found ${mismatches.length} auth mismatch(es):\n  ${mismatches.join('\n  ')}`,
-        );
-      }
+      expect(mismatches).toEqual([]);
     });
   });
 
@@ -306,11 +290,7 @@ describeIfLive('ESI Deep Contract Tests', () => {
         }
       }
 
-      if (mismatches.length > 0) {
-        throw new Error(
-          `Found ${mismatches.length} HTTP method mismatch(es):\n  ${mismatches.join('\n  ')}`,
-        );
-      }
+      expect(mismatches).toEqual([]);
     });
   });
 

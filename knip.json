@@ -5,5 +5,6 @@
   "ignore": ["src/types/generated/spec-alignment.check.ts"],
   "ignoreExportsUsedInFile": true,
   "ignoreMembers": ["HttpMethod"],
-  "exclude": ["unresolved"]
+  "exclude": ["unresolved"],
+  "eslint": { "entry": ["eslint.suite-health.rules.cjs"] }
 }
