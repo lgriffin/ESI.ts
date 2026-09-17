@@ -44,7 +44,7 @@ const CONSUMER_SOURCES = [
   'bundler/index.mts',
 ];
 
-function step(title: string): void {
+export function step(title: string): void {
   console.log(`\n▶ ${title}`);
 }
 
@@ -55,7 +55,7 @@ function indent(text: string): string {
     .join('\n');
 }
 
-function exec(
+export function exec(
   command: string,
   args: string[],
   cwd: string,
@@ -76,7 +76,7 @@ function exec(
   };
 }
 
-function run(command: string, args: string[], cwd: string): string {
+export function run(command: string, args: string[], cwd: string): string {
   const { status, output } = exec(command, args, cwd);
   if (status !== 0) {
     throw new Error(
@@ -86,13 +86,13 @@ function run(command: string, args: string[], cwd: string): string {
   return output;
 }
 
-function installedVersion(dependency: string): string {
+export function installedVersion(dependency: string): string {
   const manifest = path.join(ROOT, 'node_modules', dependency, 'package.json');
   return (JSON.parse(readFileSync(manifest, 'utf8')) as { version: string })
     .version;
 }
 
-function npmInstall(consumer: string, packages: string[]): void {
+export function npmInstall(consumer: string, packages: string[]): void {
   run(
     'npm',
     ['install', '--no-audit', '--no-fund', '--no-package-lock', ...packages],
@@ -136,6 +136,28 @@ function checkEverySubpathIsImported(consumer: string): void {
   console.log(`  ${subpaths.length} sub-paths, all imported by each consumer`);
 }
 
+/**
+ * Builds (unless `skipBuild`) and packs the library into `work`, returning the
+ * tarball's path. Shared with `doc-examples.ts`.
+ */
+export function buildAndPack(work: string, skipBuild: boolean): string {
+  if (!skipBuild) {
+    step('Build');
+    run('npm', ['run', 'build'], ROOT);
+  }
+
+  step('Pack');
+  // --ignore-scripts: `prepare` would rebuild; the build above (or the
+  // existing dist/ with --skip-build) is what gets packed.
+  run('npm', ['pack', '--ignore-scripts', '--pack-destination', work], ROOT);
+  const tarballs = readdirSync(work).filter((f) => f.endsWith('.tgz'));
+  if (tarballs.length !== 1) {
+    throw new Error(`Expected one tarball, found: ${tarballs.join(', ')}`);
+  }
+  console.log(`  ${tarballs[0]}`);
+  return path.join(work, tarballs[0]!);
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const skipBuild = args.includes('--skip-build');
@@ -144,26 +166,13 @@ function main(): void {
   const work = mkdtempSync(path.join(tmpdir(), 'esi-consumer-'));
   let ok = false;
   try {
-    if (!skipBuild) {
-      step('Build');
-      run('npm', ['run', 'build'], ROOT);
-    }
-
-    step('Pack');
-    // --ignore-scripts: `prepare` would rebuild; the build above (or the
-    // existing dist/ with --skip-build) is what gets packed.
-    run('npm', ['pack', '--ignore-scripts', '--pack-destination', work], ROOT);
-    const tarballs = readdirSync(work).filter((f) => f.endsWith('.tgz'));
-    if (tarballs.length !== 1) {
-      throw new Error(`Expected one tarball, found: ${tarballs.join(', ')}`);
-    }
-    console.log(`  ${tarballs[0]}`);
+    const tarball = buildAndPack(work, skipBuild);
 
     step('Install into a fresh consumer');
     const consumer = path.join(work, 'consumer');
     cpSync(FIXTURE, consumer, { recursive: true });
     npmInstall(consumer, [
-      path.join(work, tarballs[0]!),
+      tarball,
       `typescript@${installedVersion('typescript')}`,
       `@types/node@${installedVersion('@types/node')}`,
     ]);
@@ -218,9 +227,11 @@ function main(): void {
   }
 }
 
-try {
-  main();
-} catch (err) {
-  console.error(`\n${err instanceof Error ? err.message : String(err)}`);
-  process.exit(1);
+if (require.main === module) {
+  try {
+    main();
+  } catch (err) {
+    console.error(`\n${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  }
 }

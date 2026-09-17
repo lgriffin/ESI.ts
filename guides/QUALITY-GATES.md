@@ -22,6 +22,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |      ●       |
 | EARS spec audit                            |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Determinism lint (time in `src/`)          |   ·    |            ·             |        ●         |       ·       |      ·       |
+| Test lints: transport seam, suite health   |   ·    |            ●             |        ●         |       ·       |      ·       |
 | Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |      ●       |
 | Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |      ·       |
@@ -32,6 +33,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Are The Types Wrong (packed tarball)       |   ·    |            ·             |      ◐ (5)       |       ·       |      ·       |
 | Consumer contract (packed tarball)         |   ·    |            ·             |    ● 18/20/22    |       ·       |      ·       |
+| Documentation examples (packed tarball)    |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Dependency audit (diff-aware / allowlist)  |   ·    |            ·             | ● new advisories | ◐ files issue | ● ≥ high (6) |
 | knip dead-code                             |   ·    |            ·             |        ◐         | ◐ weekly (4)  |      ◐       |
 | CodeQL                                     |   ·    | ◐ protected branches (5) |      ◐ (5)       |   ◐ weekly    |      ·       |
@@ -39,6 +41,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | TypeDoc generation                         |   ·    |            ·             |        ●         |       ·       |      ●       |
 | Unit + BDD, fails if any test was retried  |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Stryker mutation                           |   ·    |            ·             |        ·         |       ◐       |      ·       |
+| Type mutation (tsd ratchet)                |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Schemathesis API fuzz                      |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Missing-endpoint spec drift                |   ·    |            ·             |        ·         | ◐ files issue |      ·       |
 | OpenSSF Scorecard                          |   ·    |            ·             |        ·         |   ◐ weekly    |      ·       |
@@ -139,7 +142,7 @@ Installed by husky through the `prepare` script (which also runs a build after `
 | `pre-commit` | `npx lint-staged`                    | Staged `src/**/*.ts`: `eslint --fix` then `prettier --write`. Staged `tests/**/*.ts` and `*.{json,md,yml,yaml}`: `prettier --write` |
 | `commit-msg` | `npx --no -- commitlint --edit "$1"` | Rejects messages that do not follow `@commitlint/config-conventional`                                                               |
 
-Test files are formatted but not linted, at commit or anywhere else (`TEST-09`). Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
+Test files are formatted but not linted at commit. In CI they get two narrow lint configs, `lint:bdd-seam` and `lint:suite-health` ([Suite-health lint](#suite-health-lint)); the `src/` rule set does not apply to them yet (`TEST-09`). Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
 
 ---
 
@@ -166,7 +169,7 @@ All workflows live in `.github/workflows/`. Every action is pinned to a full com
 
 ### `ci-fast.yml` — CI Fast
 
-One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `format:check`, `build`, `typecheck`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
+One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
 
 ### `ci.yml` — CI/CD Pipeline
 
@@ -180,11 +183,12 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                                                                                                                              |   yes   |
 | `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                                                                                                                          |   yes   |
 | `bdd-tests` (BDD Scenarios)              | `npm run bdd`                                                                                                                                                                                                                                                                                 |   yes   |
-| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set. Then `npm run lint:bdd-seam`, which fails on any scenario that spies on or reassigns an ESI client method                                                                                                 |   yes   |
+| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set. Then `npm run lint:bdd-seam`, which fails on any scenario that spies on or reassigns an ESI client method, and `npm run lint:suite-health` ([Suite-health lint](#suite-health-lint))                      |   yes   |
 | `contract-tests` (Contract Tests)        | `npm run contract:live` with `ESI_LIVE_TESTS=true`; fails if the variable is missing rather than skipping; soft-skips on 503                                                                                                                                                                  |   yes   |
 | `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                                                                                                                                   |   yes   |
 | `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                                                                                                                           |   yes   |
 | `consumer-contract` (Consumer Contract)  | `npm run test:consumer` on Node 18, 20 and 22: installs the `npm pack` tarball into a clean consumer, type-checks and runs it under CommonJS, ES module and bundler resolution, and checks every `exports` sub-path (see [TESTING.md](TESTING.md#consumer-contract))                          |   yes   |
+| `doc-examples` (Documentation Examples)  | `npm run test:docs-examples` on Node 20: type-checks every `ts` block in the README, guides and SDE docs against the packed tarball, runs the `runnable` ones and rejects the negative fixtures (see [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked))                 |   yes   |
 | `api-surface` (API Surface Check)        | Rebuilds `etc/esi.ts.api.md` and fails on a difference (GATE-03)                                                                                                                                                                                                                              |   yes   |
 | `api-semver` (API SemVer Gate)           | `npm run api-report:semver`: fails when the report lost or changed a line and no commit in the pull request is `type!:`, has a `BREAKING CHANGE:` footer or an `API-Compatible:` trailer, or when a declared break spans several commits and the pull request title is not `type!:` (GATE-03) |   yes   |
 | `lockfile` (Lockfile Consistency)        | `npm install --package-lock-only --ignore-scripts` then `git diff --exit-code package-lock.json`. For `dependabot[bot]` the step exits early with a notice; the job still reports success                                                                                                     |   yes   |
@@ -239,6 +243,8 @@ Test order within each file is randomised (`jest --randomize`), so a test that p
 Daily at 02:00 UTC on Node 22 with a 240-minute timeout. Runs `npm run mutation` (Stryker, `stryker.config.mjs`) over `src/core/**` excluding endpoint definitions and pure interface files. Thresholds are `high: 80`, `low: 60`, `break: 65`; a score below `break` fails the run. The HTML report is uploaded as `mutation-report` whether or not it passed. No issue is filed. Details in [TESTING.md](TESTING.md).
 
 A second job, `bdd-mutation-testing` (300-minute timeout), runs `npm run mutation:bdd` (`stryker.bdd.config.mjs`): all of `src/` except generated files, types, interfaces and test helpers, with only the BDD step definitions as the test suite, so a surviving mutant is a behaviour no Rule protects. There is no global break threshold. `npm run mutation:bdd:ratchet` then scores the JSON report per directory (`src/<area>`, and `src/core/<sub>` inside core), writes the table to the step summary, and fails if any directory falls below its entry in `mutation-bdd-thresholds.json`. Directories without an entry are reported, not gated; the file starts empty, and `-- --update` raises entries to the current scores but never lowers one. The report is uploaded as `bdd-mutation-report`.
+
+A third job, `type-mutation-testing` (45-minute timeout), is the type-level equivalent. After `npm run build` it runs `npm run test:type-mutation -- --ratchet` (`scripts/type-mutation.ts`): each mutant is one edit to a copy of `dist/**/*.d.ts` (return type to `unknown`, `readonly` dropped, optional to required and back, a union member dropped, a literal widened, an overload removed, a generic constraint to `unknown`), found with the TypeScript compiler API in the declarations the `exports` entries reach, and the tsd suite runs against it with its `src` imports pointed at the copy. A mutant is killed when a type test fails, invalid (excluded from the score, like Stryker's compile errors) when the mutated declarations no longer compile, and survives when tsd passes. At most 500 mutants run, shared between entry points and ranked by a seeded hash of each mutant's id (seed 1, printed), so the sample is reproducible and each added mutant displaces at most one sampled mutant rather than reshuffling it. The run fails if an entry point scores below its floor in `scripts/type-mutation-thresholds.json`, if a floor names an entry point that scored nothing, or if the file lowers or drops a floor relative to `origin/master` (fetched explicitly; no base ref fails closed). The score table and every surviving mutant (file, symbol, operator, before and after) go to the step summary and to the `type-mutation-report` artifact. No issue is filed.
 
 ### `nightly-audit.yml` — Nightly Security Audit
 
@@ -471,6 +477,24 @@ Report mode prints the unreferenced names by entry point and exits `0`. `--ci` e
 
 The seed baseline has 424 entries: `.` 197 of 366 exports, `./schemas` 46 of 201, `./errors` 1 of 24, `./testing` 0 of 1, `./sde` 90 of 123 and `./sde/memory` 90 of 122. Most are response and SDE row types; the runtime functions among them are tracked in `esi-23g.19`.
 
+## Suite-health lint
+
+`npm run lint:suite-health` lints every `.ts`, `.mts` and `.cts` file under `tests/` except the `fixtures/` and `step-fixtures/` trees, which break rules on purpose. It is Testing Runway tier N: it catches the decay that turns a green suite into a decorative one. It is not the `src/` rule set; the config and rules are in `eslint.suite-health.rules.cjs`, loaded by `eslint.suite-health.config.mjs`.
+
+| Rule                                      | Rejects                                                                                                                                                                                                                                                                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jest/no-focused-tests`                   | `.only`, `fit`, `fdescribe`                                                                                                                                                                                                                                                                                   |
+| `suite-health/no-focused-scenario`        | `test.only` on the scenario parameter of a jest-cucumber `defineFeature` callback, which `eslint-plugin-jest` does not see as Jest's `test`                                                                                                                                                                   |
+| `jest/no-disabled-tests`                  | `.skip`, `xit`, `xtest`, `xdescribe`, `pending()`, a test without a callback                                                                                                                                                                                                                                  |
+| `suite-health/no-disabled-scenario`       | `test.skip` and `test.todo` on a `defineFeature` scenario, and Jest's `it.todo` / `test.todo`                                                                                                                                                                                                                 |
+| `jest/expect-expect`                      | A test with no assertion. `expect`, any `expect*` helper (`expectEsiError`, tsd's `expectType`) and `fc.assert` count. Under `tests/bdd` a `Then` step file registration and a legacy `then` step are checked the same way; spec files register no callbacks, so a scenario is covered through its Then steps |
+| `suite-health/no-swallowed-assertion`     | A `try` block containing an assertion whose `catch` neither rethrows nor asserts                                                                                                                                                                                                                              |
+| `suite-health/no-unrestored-console-mock` | `jest.spyOn(console, m).mockImplementation(...)` or `.mockReturnValue(...)` not restored in the file (no `mockRestore()` on the spy, no `jest.restoreAllMocks()`), and `console.m = jest.fn()` never reassigned                                                                                               |
+
+Every rule is an error and there is no baseline: the initial run found no focused, skipped, swallowed or silenced tests, and the 18 tests without an assertion were fixed. A conditional skip (`LIVE ? describe : describe.skip`) is not flagged; that is how the live tiers opt out. `describeClientErrors` needs no configuration: its `it` blocks are linted where the helper defines them. `tests/bdd/support/binder.ts` is exempt from `jest/expect-expect`, because the test it registers per scenario asserts through the Then steps.
+
+`tests/tdd/suite-health/suite-health-lint.test.ts` loads the same config and lints one fixture per rule, as if it lived at a real test path, and requires exactly the expected findings, plus a compliant fixture that must produce none. It runs in `npm test`, so a rule that stops firing fails the unit suite. The script runs in `ci-fast.yml` on every push and in the `spec-audit` job inside `ci-success`.
+
 ---
 
 ## Dependency audit
@@ -535,6 +559,7 @@ The same "explicit, reasoned exception" pattern appears in five more places:
 | File                                   | Consumed by                    | Rule                                                                                              |
 | -------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
 | `mutation-bdd-thresholds.json`         | `npm run mutation:bdd:ratchet` | Per-directory BDD mutation floors; `--update` only raises them                                    |
+| `type-mutation-thresholds.json`        | `npm run test:type-mutation`   | In `scripts/`. Per-entry-point type mutation floors; only rise against `origin/master`            |
 | `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | A ratchet: now empty, and the audit fails if a listed file passes, so entries can only be removed |
 | `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                  |
 | `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)         |
@@ -556,6 +581,7 @@ The same "explicit, reasoned exception" pattern appears in five more places:
 | `lint` / `lint:fix`       | ESLint over `src`                                                                       |
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`eslint.bdd-seam.rules.cjs`) |
 | `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline            |
+| `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`eslint.suite-health.rules.cjs`) |
 | `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                         |
 | `knip`                    | Dead code and unused exports (`knip.json`)                                              |
 | `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
@@ -586,7 +612,9 @@ The same "explicit, reasoned exception" pattern appears in five more places:
 | `mock:esi`                              | Prism mock of ESI on port 4010                                                                                                                                      |
 | `test:consumer`                         | Consumer contract: pack, install into a clean consumer, type-check and run it (not part of `npm test`; see [TESTING.md](TESTING.md#consumer-contract))              |
 | `test:export-coverage`                  | Public exports no test references, by entry point; `--ci` gates against `scripts/export-coverage-baseline.json`                                                     |
+| `test:docs-examples`                    | Documentation examples checked against the packed tarball (not part of `npm test`; see [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked))     |
 | `test:types`                            | tsd type tests                                                                                                                                                      |
+| `test:type-mutation`                    | Mutates the built `dist/**/*.d.ts` and runs tsd against each mutant; `-- --ratchet` gates per-entry-point scores (`scripts/type-mutation-thresholds.json`)          |
 | `benchmark`                             | Benchmark suite                                                                                                                                                     |
 | `mutation` / `mutation:report`          | Stryker                                                                                                                                                             |
 | `mutation:bdd` / `mutation:bdd:ratchet` | Stryker with only the BDD step definitions as tests; per-directory score ratchet against `mutation-bdd-thresholds.json`                                             |

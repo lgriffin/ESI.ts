@@ -17,6 +17,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
 | Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
+| Doc examples         |            |        1 | Every `ts` block in README, guides and SDE docs type-checked vs the tarball |
 | **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
@@ -261,6 +262,12 @@ npm run bdd:performance
 
 Individual modules can be run selectively: `npm run bdd:market`, `npm run bdd:alliance`, etc.
 
+The feature files are an EARS specification, and three gates decide whether a Rule protects anything (`tests/bdd/README.md`, "When a Rule is protection"):
+
+- **Well-formed:** `npm run spec:audit` holds every Rule to one `shall`, at least one Scenario under it, no Scenario outside a Rule, and a tracker tag (`@esi-<bead>` or `@gh-<issue>`) beside every `@bug`.
+- **Executed:** `mkdir -p reports/bdd`, `npm run bdd -- --json --outputFile=reports/bdd/jest-results.json` then `npm run bdd:report` joins the run to the feature files. It fails when any scenario did not execute (`feature-not-run`, `scenario-not-executed`), and writes `reports/bdd/junit.xml` with each test case named `Feature › Rule › Scenario`. CI uploads it as the `bdd-junit` artifact and puts the Rules not verified in the job summary.
+- **Able to fail:** `npm run mutation:bdd:ratchet` floors the BDD-only mutation score per source directory in `mutation-bdd-thresholds.json`. The file is empty today, so no directory is ratcheted yet.
+
 #### BDD Test Categories
 
 - **Core** (`bdd/features/core/`): Domain-specific scenarios for all 37 domain clients plus cross-cutting concerns (ETag caching, response headers)
@@ -444,6 +451,44 @@ Every other tier imports from `src/`, so none of them sees the package a consume
 
 Defects the contract finds are recorded as known issues against their beads: each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround. There are none open; `esi-v2s.15` (error class identity across sub-paths) and `esi-v2s.16` (`./sde` peer dependencies) were the last two.
 
+### Documentation examples
+
+**Location:** `scripts/doc-examples.ts` and `scripts/doc-examples-core.ts`; prelude and stub fetch in `tests/doc-examples/`; self-tests and fixtures in `tests/tdd/doc-examples/`
+**Run:** `npm run test:docs-examples` (`-- --skip-build` packs the existing `dist/`, `-- --keep` keeps the workspace)
+**CI:** `doc-examples` in `ci.yml`, Node 20, inside `ci-success`. Not part of `npm test`; the unit suite checks the annotations, the baseline and the fixtures against a stub package.
+
+Packs the library as the consumer contract does and type-checks every fenced `ts`/`typescript` block in `README.md`, `guides/*.md`, `src/sde/README.md` and `src/sde/docs/*.md` as its own module under nodenext and bundler resolution, then runs the blocks marked `runnable` against a stubbed `fetch`. The annotation convention, the prelude and the shrink-only known-broken baseline are described in [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked).
+### Type mutation
+
+**Location:** `scripts/type-mutation.ts` (CLI), `scripts/type-mutation-core.ts` (operators, sampling, ratchet), `scripts/type-mutation-run.ts` (workspaces, tsd)
+**Run:** `npm run build && npm run test:type-mutation` (`-- --ratchet` gates, `-- --update` raises floors, `--max`, `--seed`, `--workers`)
+**CI:** `type-mutation-testing` in `nightly-mutation.yml`. Not a pull request job.
+
+The tsd suite (`npm run test:types`) is only as good as the promises it pins. Type mutation checks that the way Stryker checks the unit suite: it makes one deliberate edit to a copy of the built declarations and runs the tsd tests against it, with their `../../src` imports pointed at the copy. Mutants come from the declarations the `package.json` `exports` entries reach, found with the TypeScript compiler API:
+
+| Operator               | Edit                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `return-unknown`       | A function, method, accessor or call signature returns `unknown`                     |
+| `drop-readonly`        | A `readonly` modifier or `readonly T[]` loses `readonly`                             |
+| `optional-to-required` | `x?:` becomes `x:` (properties and parameters)                                       |
+| `required-to-optional` | `x:` becomes `x?:` (parameters only when nothing required follows)                   |
+| `union-drop-member`    | The first, last or a nullish member of a union is dropped                            |
+| `widen-literal`        | A literal, or a union of same-kind literals, becomes `string`, `number` or `boolean` |
+| `remove-overload`      | One signature of an overload group is removed                                        |
+| `constraint-unknown`   | `T extends X` becomes `T extends unknown`                                            |
+
+A mutant is **killed** when tsd reports a failure in a type test, **invalid** when the mutated declarations themselves no longer compile (excluded from the score; a generated test imports every entry point, so this is seen even where no type test reaches), and **survives** when tsd passes. A survivor is a missing tsd case. The score per entry point is killed / (killed + survived).
+
+About eight thousand candidates exist, so at most 500 run. Entry points take turns picking their next mutant in order of a seeded hash of the mutant's id (built from file, symbol, operator and the mutated text, not offsets), so the same seed and surface always give the same sample, and each mutant a change adds displaces at most one sampled mutant instead of reshuffling the rest. `--ratchet` refuses a non-default `--seed` or `--max`, because the floors in `scripts/type-mutation-thresholds.json` were measured on the default sample. The report is `reports/type-mutation/type-mutation.{json,md}`.
+
+`tests/tdd/type-mutation/` holds the negative fixture: a one-interface package whose tsd test pins `Widget.id` and never mentions `Widget.label`. The suite runs the real mutation against it and fails unless making `id` optional is killed and making `label` optional survives, alongside unit tests for each operator, the sampler and the ratchet.
+## Suite-health lint
+
+**Run:** `npm run lint:suite-health` (ESLint over `tests/`, fixture trees excluded)
+**CI:** `ci-fast.yml` on every push; the `spec-audit` job in `ci.yml`, inside `ci-success`
+
+Keeps a green suite from quietly becoming a decorative one. It rejects a committed `.only`, `fit` or `fdescribe`; a `.skip`, `xit`, `xdescribe` or `.todo`; a test with no assertion; a `catch` that swallows an assertion's failure without rethrowing or asserting; and a `console` method mocked and never restored. The same applies to jest-cucumber scenarios (`test.only`, `test.skip` inside `defineFeature`) and to BDD Then steps: under `tests/bdd` every `Then(...)` step file and every legacy `then(...)` step must assert. `expect`, any `expect*` helper and `fc.assert` count as assertions. There is no baseline; every finding fails. Gate a live-only suite with a condition (`LIVE ? describe : describe.skip`), not a committed `.skip`. The rule table and the reasoning are in [QUALITY-GATES.md](QUALITY-GATES.md#suite-health-lint); each rule has a fixture in `tests/tdd/suite-health/fixtures/` that its Jest suite must see rejected.
+
 ## Integration Tests
 
 Integration tests live in `tests/integration/` and hit the real ESI API. They are **not** part of the default `npm test` run and require a separate config.
@@ -561,6 +606,8 @@ Common setup:
 
 All unit and BDD tests use [jest-fetch-mock](https://github.com/jefflau/jest-fetch-mock) to intercept `fetch` calls. No real HTTP requests are made during unit/BDD tests.
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import fetchMock from 'jest-fetch-mock';
 
@@ -570,6 +617,8 @@ expect(result.name).toBe('Jita');
 ```
 
 Error scenarios mock non-200 status codes:
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 fetchMock.mockResponseOnce('Not Found', { status: 404 });
@@ -590,6 +639,8 @@ Each restricted construct has a negative fixture in `tests/tdd/determinism-lint/
 
 **`src/core/util/testHelpers.ts`** — provides `getBody()` wrapper used in TDD tests:
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { getBody } from '../../../src/core/util/testHelpers';
 
@@ -598,6 +649,8 @@ expect(result.name).toBe('Goonswarm Federation');
 ```
 
 **`src/testing/TestDataFactory.ts`** — factory for creating mock data with sensible defaults and optional overrides:
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
@@ -683,6 +736,8 @@ Every payload builder's default output passes the Zod schema its endpoint is val
 
 Each domain client has one test file. Tests instantiate the client directly with a mock `ApiClient`, mock the fetch response, call the method, and assert the result.
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { AllianceClient } from '../../../src/clients/AllianceClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
@@ -741,6 +796,8 @@ Feature: Alliance API
 
 **Step definitions** (`tests/bdd/step-definitions/core/alliance.steps.ts`):
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { EsiClient } from '../../../src/EsiClient';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
@@ -774,6 +831,8 @@ describe('Feature: Alliance API', () => {
 
 API errors are modeled with `EsiError` (from `src/core/util/error.ts`):
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { EsiError } from '../../../src/core/util/error';
 
@@ -791,6 +850,8 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 ### Shared Error Test Helper
 
 The `describeClientErrors` helper (`tests/tdd/helpers/clientErrorTests.ts`) generates a standard error handling `describe` block that tests all 5 HTTP error codes (500, 404, 401, 403, 429) against the exact messages from `ApiRequestHandler.STATUS_MESSAGES`, and checks that the thrown error carries the status code. Each case builds a fresh `ApiClient` and passes it to the callback, which must construct the domain client from it rather than reuse the suite's client: a 429 blocks the endpoint's rate-limit group for 60 seconds on the client that received it, and a shared client would make every later test in the file time out once `jest --randomize` puts the 429 case first.
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 import { describeClientErrors } from '../helpers/clientErrorTests';
@@ -892,6 +953,7 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 | Payload re-recording      | Nightly                     | `ESI_LIVE_TESTS=true npm run contract:record`         |
 | Property-based fuzz tests | Every PR                    | `npm run fuzz`                                        |
 | Consumer type tests       | Every PR                    | `npm run test:types`                                  |
+| Type mutation             | Nightly                     | `npm run test:type-mutation -- --ratchet`             |
 | Live smoke tests          | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
 | Spec drift detection      | Weekly                      | `npm run contract:snapshot && npm run contract:diff`  |
 | Gated auth tests          | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated` |
@@ -954,6 +1016,7 @@ npm run generate:types
 | `tests/fuzz/pagination-fuzz.test.ts`           | Pagination parameter fuzzing                        |
 | `tests/typetests/index.test-d.ts`              | Consumer type tests (tsd)                           |
 | `tests/consumer/`                              | Consumer contract package (`npm run test:consumer`) |
+| `tests/doc-examples/`                          | Doc example prelude and stub fetch                  |
 | `src/testing/TestDataFactory.ts`               | Mock data factory for tests                         |
 | `scripts/validate-esi-endpoints.ts`            | Standalone ESI spec validation script               |
 | `scripts/generate-esi-types.ts`                | Type/cache/scope generator from live spec           |
