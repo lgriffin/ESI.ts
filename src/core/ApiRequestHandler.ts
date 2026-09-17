@@ -3,6 +3,7 @@ import { ApiClient } from './ApiClient';
 import {
   trySpecAwareCacheHit,
   cacheResponse,
+  currentWriteGeneration,
   invalidateAfterWrite,
   handleEarlyStatus,
   handleErrorResponse,
@@ -49,6 +50,7 @@ const executeRequest = async (
   };
 
   try {
+    const writeGeneration = currentWriteGeneration(client, resolveCache);
     const { response, parsed, url } = await executeSingleFetch(
       client,
       endpoint,
@@ -114,6 +116,7 @@ const executeRequest = async (
       resolveCache,
       templatePath,
       requiresAuth,
+      writeGeneration,
     );
 
     const cursorResult = handleCursorPagination(parsed, data);
@@ -151,6 +154,7 @@ const executeRequest = async (
       pageFetch,
       resolveCache,
       templatePath,
+      writeGeneration,
     );
     return finish(paginatedResult);
   } catch (error: unknown) {
