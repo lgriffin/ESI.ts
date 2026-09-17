@@ -225,7 +225,7 @@ async function runEager(
   pages: PageSpec[],
 ): Promise<void> {
   const server = pagedServer(resource, pages);
-  installFakeEsi(server.reply);
+  const requests = installFakeEsi(server.reply);
   const { clock, restore } = useFakeClock();
   const api = createFakeEsiApiClient(p, resource.accessToken);
   try {
@@ -249,7 +249,12 @@ async function runEager(
       );
     });
 
+    const sentBeforeRepeat = requests.length;
     const repeat = await resource.eager(p, api);
+    invariant(
+      requests.length === sentBeforeRepeat,
+      `${resource.name}: a repeat call inside the spec TTL sent ${requests.length - sentBeforeRepeat} requests, expected 0 (served from the cache)`,
+    );
     assertSameIds(
       repeat,
       expected,
@@ -258,7 +263,14 @@ async function runEager(
     );
 
     clock.now += resource.specTtlMs + 1000;
+    const sentBeforeRevalidation = requests.length;
     const revalidated = await resource.eager(p, api);
+    const revalidation = requests.slice(sentBeforeRevalidation);
+    invariant(
+      revalidation.length === 1 &&
+        revalidation[0]!.headers['if-none-match'] === '"page-1"',
+      `${resource.name}: a call after the spec TTL sent ${revalidation.length} requests (If-None-Match ${String(revalidation[0]?.headers['if-none-match'])}), expected one revalidation of page 1 answered by 304`,
+    );
     assertSameIds(
       revalidated,
       expected,
