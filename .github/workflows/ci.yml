@@ -449,11 +449,14 @@ jobs:
           name: build-files
           path: dist/
 
-      # --ignore-scripts skips `prepare`, which would rebuild dist/.
+      # npm 10, the version Node 20 bundles, runs `prepare` on `npm pack`
+      # even with --ignore-scripts (fixed in npm 11), and `prepare` rebuilds
+      # dist/. npm 11 packs the dist/ downloaded above, which is the point of
+      # this job: every cell installs those bytes.
       - name: Pack
         run: |
           mkdir -p consumer-tarball
-          npm pack --ignore-scripts --pack-destination consumer-tarball
+          npx --yes npm@11.17.0 pack --ignore-scripts --pack-destination consumer-tarball
           count=$(ls -1 consumer-tarball/*.tgz | wc -l)
           if [ "$count" -ne 1 ]; then
             echo "::error::Expected one tarball, found $count"

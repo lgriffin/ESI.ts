@@ -43,10 +43,13 @@ jobs:
       - name: Install dependencies and build
         run: npm ci
 
+      # npm 10, the version Node 20 bundles, runs `prepare` on `npm pack` even
+      # with --ignore-scripts (fixed in npm 11), which would build dist/ a
+      # second time. npm 11 packs the one the install above built.
       - name: Pack
         run: |
           mkdir -p consumer-tarball
-          npm pack --ignore-scripts --pack-destination consumer-tarball
+          npx --yes npm@11.17.0 pack --ignore-scripts --pack-destination consumer-tarball
 
       - name: Upload the tarball
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
