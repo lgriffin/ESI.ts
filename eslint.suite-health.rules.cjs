@@ -16,8 +16,19 @@ const tseslint = require('typescript-eslint');
  * `expectAssignable`, `expectError`. `describeClientErrors` needs no entry: it
  * registers its own `it` blocks, and those are linted where it is defined, in
  * tests/tdd/helpers/clientErrorTests.ts.
+ *
+ * `assertNoProblems` and `assertThat` (tests/support/assertions.ts) are the
+ * assertion in the tiers that check many endpoints in one test and report
+ * every problem together; see the comment there for why `expect` does not
+ * fit those. Both throw, so a test that calls one still fails on a problem.
  */
-const ASSERT_FUNCTION_NAMES = ['expect', 'expect*', 'fc.assert'];
+const ASSERT_FUNCTION_NAMES = [
+  'expect',
+  'expect*',
+  'fc.assert',
+  'assertNoProblems',
+  'assertThat',
+];
 
 /**
  * In tests/bdd, calls whose callback must assert besides Jest's own `it`/`test`:
