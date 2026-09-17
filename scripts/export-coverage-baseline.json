@@ -188,7 +188,6 @@
       "TokenProvider",
       "TypeInfo",
       "UnwrapArray",
-      "ValidationDirection",
       "WalletJournal",
       "WalletTransaction",
       "War",
@@ -199,7 +198,6 @@
       "logTrace",
       "toPinoLogger"
     ],
-    "./errors": ["ValidationDirection"],
     "./schemas": [
       "CharacterSkinrComponentsSchema",
       "CharacterSkinrSchema",
