@@ -215,11 +215,24 @@ describe('CircuitBreaker', () => {
       cb.recordFailure('v1/status/', 500);
       cb.recordFailure('v1/status/', 500);
 
-      // 1st call transitions open→half-open (does not count as attempt)
+      // 1st call transitions open→half-open and is the one allowed probe
       cb.checkCircuit('v1/status/');
-      // 2nd call: halfOpenAttempts(0) < max(1), increments to 1
+      // 2nd call: halfOpenAttempts(1) >= max(1), throws
+      expect(() => cb.checkCircuit('v1/status/')).toThrow(CircuitOpenError);
+    });
+
+    it('should admit exactly halfOpenMaxAttempts probes, counting the transition call', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 1,
+        resetTimeoutMs: 0,
+        halfOpenMaxAttempts: 3,
+      });
+
+      cb.recordFailure('v1/status/', 503);
+
       cb.checkCircuit('v1/status/');
-      // 3rd call: halfOpenAttempts(1) >= max(1), throws
+      cb.checkCircuit('v1/status/');
+      cb.checkCircuit('v1/status/');
       expect(() => cb.checkCircuit('v1/status/')).toThrow(CircuitOpenError);
     });
   });

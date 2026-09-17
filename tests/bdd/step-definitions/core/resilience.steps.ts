@@ -1071,6 +1071,130 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('A second call while the probe is in flight is refused without a request', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let resetMs: number;
+    let outcomes: Outcome[] = [];
+
+    given(
+      /^a client whose circuit breaker opens after (\d+) failures? and resets after (\d+) milliseconds, with no retries or deduplication$/,
+      (threshold: string, reset: string) => {
+        resetMs = Number(reset);
+        client = circuitClient(Number(threshold), {
+          circuitBreakerConfig: {
+            failureThreshold: Number(threshold),
+            resetTimeoutMs: resetMs,
+          },
+          enableRequestDeduplication: false,
+        });
+      },
+    );
+
+    and('the circuit for the server status endpoint has opened', async () => {
+      queueError(503, 'unavailable', { match: STATUS_PATH });
+      expectEsiError(await settle(client.status.getStatus()), 503);
+    });
+
+    and('the reset timeout has elapsed', async () => {
+      await sleep(resetMs + 20);
+    });
+
+    and(
+      /^ESI answers the server status probe with a payload after (\d+) milliseconds$/,
+      (delay: string) => {
+        queueResponse({
+          match: STATUS_PATH,
+          body: FIRST_PAYLOAD,
+          delayMs: Number(delay),
+        });
+      },
+    );
+
+    when('the client requests the server status twice at once', async () => {
+      outcomes = await Promise.allSettled([
+        client.status.getStatus(),
+        client.status.getStatus(),
+      ]);
+    });
+
+    then('the first call resolves with the server status', () => {
+      expectResolvedWith(outcomes[0], FIRST_PAYLOAD);
+    });
+
+    and('the last call rejects with CircuitOpenError', () => {
+      expectCircuitOpen(outcomes[outcomes.length - 1]);
+    });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      // The opening failure and the probe; the call behind the probe sent none.
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A slow success that lands after the circuit opened leaves it open', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcomes: Outcome[] = [];
+
+    given(
+      /^a client whose circuit breaker opens after (\d+) failures?, with no retries or deduplication$/,
+      (threshold: string) => {
+        client = circuitClient(Number(threshold), {
+          enableRequestDeduplication: false,
+        });
+      },
+    );
+
+    and(
+      /^ESI answers the first server status request with a payload after (\d+) milliseconds$/,
+      (delay: string) => {
+        queueResponse({
+          match: STATUS_PATH,
+          body: FIRST_PAYLOAD,
+          delayMs: Number(delay),
+        });
+      },
+    );
+
+    and(
+      /^ESI answers the second server status request with HTTP (\d+)$/,
+      (status: string) => {
+        queueError(Number(status), 'unavailable', { match: STATUS_PATH });
+      },
+    );
+
+    when('the client requests the server status twice at once', async () => {
+      outcomes = await Promise.allSettled([
+        client.status.getStatus(),
+        client.status.getStatus(),
+      ]);
+    });
+
+    then('the first call resolves with the server status', () => {
+      expectResolvedWith(outcomes[0], FIRST_PAYLOAD);
+    });
+
+    and(
+      /^the last call rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(outcomes[outcomes.length - 1], Number(status));
+      },
+    );
+
+    and('the circuit for the server status endpoint is open', () => {
+      expect(circuitState(client, STATUS_PATH)).toBe('open');
+    });
+  });
+
   test('The second of four attempts opens the circuit and ends the call', ({
     given,
     and,
@@ -1111,6 +1235,81 @@ defineFeature(feature, (test) => {
   });
 
   // ── Deduplication of in-flight requests ────────────────────────────
+
+  test('Market orders whose second page fails four times are fetched again from page 1', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const regionId = 10000002;
+    const order = (orderId: number) => ({
+      order_id: orderId,
+      type_id: 34,
+      location_id: 60003760,
+      volume_total: 10,
+      volume_remain: 5,
+      min_volume: 1,
+      price: 5.5,
+      is_buy_order: false,
+      system_id: 30000142,
+      duration: 90,
+      issued: '2026-09-01T00:00:00Z',
+      range: 'region',
+    });
+    const pageOne = [order(6000000001), order(6000000002)];
+    const pageTwo = [order(6000000003)];
+    const firstPage = /orders\/\?order_type=all$/;
+    const secondPage = /[?&]page=2$/;
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client with retries enabled', () => {
+      client = createSeamClient();
+    });
+
+    and(
+      /^ESI answers the market orders request with (\d+) pages, failing page 2 with HTTP (\d+) (\d+) times$/,
+      (pages: string, status: string, times: string) => {
+        const pageHeaders = { etag: '"orders-page-1"', 'x-pages': pages };
+        queueResponse({
+          match: firstPage,
+          headers: pageHeaders,
+          body: pageOne,
+          times: 2,
+        });
+        queueError(Number(status), 'unavailable', {
+          match: secondPage,
+          times: Number(times),
+        });
+        queueResponse({
+          match: secondPage,
+          headers: { 'x-pages': pages },
+          body: pageTwo,
+        });
+      },
+    );
+
+    when('the client requests the market orders', async () => {
+      outcome = await settle(client.market.getMarketOrders(regionId));
+    });
+
+    then('the client resolves with the orders from both pages', () => {
+      expectResolvedWith(outcome, [...pageOne, ...pageTwo]);
+    });
+
+    and('the repeated page 1 request carried no If-None-Match header', () => {
+      const pageOneRequests = sentRequests().filter((r) =>
+        firstPage.test(r.url.toString()),
+      );
+      expect(pageOneRequests).toHaveLength(2);
+      expect(pageOneRequests[1]!.headers['if-none-match']).toBeUndefined();
+    });
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(sentRequests()).toHaveLength(Number(count));
+    });
+  });
 
   test('Two concurrent server status requests share one HTTP request', ({
     given,

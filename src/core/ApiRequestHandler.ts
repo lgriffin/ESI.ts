@@ -136,19 +136,24 @@ const executeRequest = async (
     }
 
     const data = await parseJsonBody(client, response, url);
-    cacheResponse(
-      client,
-      url,
-      method,
-      endpoint,
-      parsed,
-      data,
-      useETag,
-      resolveCache,
-      templatePath,
-      requiresAuth,
-      writeGeneration,
-    );
+    // A multi-page response is cached by handleOffsetPagination once every
+    // page is in. Caching page 1 here would let a retried call revalidate
+    // against page 1 alone and resolve with it after a 304.
+    if (parsed.xPages <= 1 || parsed.hasCursorPagination) {
+      cacheResponse(
+        client,
+        url,
+        method,
+        endpoint,
+        parsed,
+        data,
+        useETag,
+        resolveCache,
+        templatePath,
+        requiresAuth,
+        writeGeneration,
+      );
+    }
 
     const cursorResult = handleCursorPagination(parsed, data);
     if (cursorResult) return finish(cursorResult);

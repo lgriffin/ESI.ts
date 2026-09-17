@@ -666,6 +666,7 @@ stateDiagram-v2
     Closed --> Open: failures >= failureThreshold
 
     Open --> Open: resetTimeoutMs not elapsed
+    Open --> Open: success of a call admitted before it opened
     Open --> HalfOpen: next request after resetTimeoutMs
 
     HalfOpen --> Closed: probe succeeds
@@ -684,8 +685,9 @@ stateDiagram-v2
 
     note left of HalfOpen
         Probe requests are admitted up to
-        halfOpenMaxAttempts. Extra requests
-        throw CircuitOpenError.
+        halfOpenMaxAttempts, counting the call
+        that moved the circuit to half-open.
+        Extra requests throw CircuitOpenError.
     end note
 ```
 
