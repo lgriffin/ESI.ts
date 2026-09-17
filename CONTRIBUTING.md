@@ -76,7 +76,10 @@ npm run lint
   under it, and enforced in CI by `npm run spec:audit`. Read
   [`tests/bdd/GUIDE.md`](tests/bdd/GUIDE.md) before changing observable client
   behaviour; [`tests/bdd/README.md`](tests/bdd/README.md) is the short version.
-- **Benchmark tests** live in `tests/benchmark/`.
+- **Benchmarks and the heap soak** live in `tests/benchmark/`; see
+  [`tests/benchmark/AGENTS.md`](tests/benchmark/AGENTS.md). They are not Jest
+  tests: a change is compared with its base statistically rather than against a
+  wall-clock limit.
 - **Shared test helpers** live in `tests/tdd/helpers/` (e.g., `clientErrorTests.ts` for HTTP error path testing).
 - Run all tests:
   ```bash
@@ -86,9 +89,10 @@ npm run lint
   ```bash
   npm run coverage
   ```
-- Run benchmarks:
+- Run benchmarks and the heap soak:
   ```bash
-  npm run benchmark
+  npm run benchmark   # this tree only
+  npm run soak        # 100 000 requests, forced GC
   ```
 
 All pull requests must include tests for new or changed functionality. Coverage thresholds are enforced in CI. See `guides/TESTING.md` for the full testing guide.

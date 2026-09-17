@@ -269,7 +269,7 @@ This table is the canonical tier order. Both testing guides merge into one and c
 | 6    | Integration, mocked full stack | `tests/integration`              | 6                                       | jest.integration          | PR (full suite)          |
 | 7    | Integration, live              | same, `ESI_LIVE_TESTS`           | ~50                                     | jest.integration          | manual                   |
 | 8    | Integration, gated auth        | same, `ESI_GATED_TESTS` + `.env` | 30+                                     | jest.integration          | manual                   |
-| 9    | Benchmark                      | `tests/benchmark`                | 5                                       | jest.benchmark            | manual                   |
+| 9    | Benchmark and heap soak        | `tests/benchmark`                | 18 tasks + soak                         | mitata + soak driver      | PR (hot paths), nightly  |
 | 10   | Mutation                       | `src/core/**`                    | —                                       | Stryker                   | nightly, 4 h budget      |
 | 11   | API fuzz                       | Prism mock + Schemathesis        | —                                       | Docker                    | nightly                  |
 
