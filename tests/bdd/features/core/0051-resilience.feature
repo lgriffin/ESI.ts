@@ -331,6 +331,21 @@ Feature: Resilience and Error Recovery
       Then the client rejects with CircuitOpenError
       And the client sent 2 requests
 
+  Rule: If a page after the first exhausts its retries and nothing is cached for the resource, then the EsiClient shall repeat page 1 without an If-None-Match header.
+    The retry strategy repeats a failed paginated call from page 1. Page 1's
+    ETag names page 1 alone, so revalidating with it would let a 304 be
+    answered from a cache entry holding one page, and the call would resolve
+    with a prefix of the dataset. The first page is cached only once every
+    page has been fetched.
+
+    Scenario: Market orders whose second page fails four times are fetched again from page 1
+      Given a client with retries enabled
+      And ESI answers the market orders request with 2 pages, failing page 2 with HTTP 503 4 times
+      When the client requests the market orders
+      Then the client resolves with the orders from both pages
+      And the repeated page 1 request carried no If-None-Match header
+      And the client sent 7 requests
+
   # ── Deduplication of in-flight requests ─────────────────────────────
 
   Rule: When identical GET requests are issued while the first is still in flight, the EsiClient shall issue one HTTP request and resolve every caller with its response.

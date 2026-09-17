@@ -1053,6 +1053,81 @@ defineFeature(feature, (test) => {
 
   // ── Deduplication of in-flight requests ────────────────────────────
 
+  test('Market orders whose second page fails four times are fetched again from page 1', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const regionId = 10000002;
+    const order = (orderId: number) => ({
+      order_id: orderId,
+      type_id: 34,
+      location_id: 60003760,
+      volume_total: 10,
+      volume_remain: 5,
+      min_volume: 1,
+      price: 5.5,
+      is_buy_order: false,
+      system_id: 30000142,
+      duration: 90,
+      issued: '2026-09-01T00:00:00Z',
+      range: 'region',
+    });
+    const pageOne = [order(6000000001), order(6000000002)];
+    const pageTwo = [order(6000000003)];
+    const firstPage = /orders\/\?order_type=all$/;
+    const secondPage = /[?&]page=2$/;
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client with retries enabled', () => {
+      client = createSeamClient();
+    });
+
+    and(
+      /^ESI answers the market orders request with (\d+) pages, failing page 2 with HTTP (\d+) (\d+) times$/,
+      (pages: string, status: string, times: string) => {
+        const pageHeaders = { etag: '"orders-page-1"', 'x-pages': pages };
+        queueResponse({
+          match: firstPage,
+          headers: pageHeaders,
+          body: pageOne,
+          times: 2,
+        });
+        queueError(Number(status), 'unavailable', {
+          match: secondPage,
+          times: Number(times),
+        });
+        queueResponse({
+          match: secondPage,
+          headers: { 'x-pages': pages },
+          body: pageTwo,
+        });
+      },
+    );
+
+    when('the client requests the market orders', async () => {
+      outcome = await settle(client.market.getMarketOrders(regionId));
+    });
+
+    then('the client resolves with the orders from both pages', () => {
+      expectResolvedWith(outcome, [...pageOne, ...pageTwo]);
+    });
+
+    and('the repeated page 1 request carried no If-None-Match header', () => {
+      const pageOneRequests = sentRequests().filter((r) =>
+        firstPage.test(r.url.toString()),
+      );
+      expect(pageOneRequests).toHaveLength(2);
+      expect(pageOneRequests[1]!.headers['if-none-match']).toBeUndefined();
+    });
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(sentRequests()).toHaveLength(Number(count));
+    });
+  });
+
   test('Two concurrent server status requests share one HTTP request', ({
     given,
     and,

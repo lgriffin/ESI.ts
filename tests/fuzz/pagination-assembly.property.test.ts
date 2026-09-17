@@ -664,4 +664,12 @@ describe('pagination counter-examples', () => {
       runEager(requirePipeline(), RESOURCES[1]!, [page(0), page(1)]),
     ).resolves.toBeUndefined();
   });
+
+  it('a page that exhausts its retries does not leave page 1 to be revalidated alone', async () => {
+    // Shrunk from seed -1942222520: page 1 was cached before page 2 failed,
+    // the retried call got a 304 for page 1 and resolved with page 1 only.
+    await expect(
+      runExhausted(requirePipeline(), RESOURCES[0]!, 2, 2),
+    ).resolves.toBeUndefined();
+  });
 });
