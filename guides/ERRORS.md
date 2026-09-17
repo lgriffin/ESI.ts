@@ -32,19 +32,19 @@ Every field listed is `readonly`. Every class sets `name` to its own class name,
 
 Raised for any HTTP-level failure, and the base of the two request-scoped subclasses. Source: `src/core/util/error.ts`.
 
-| Member             | Type                  | Meaning                                                                                    |
-| ------------------ | --------------------- | ------------------------------------------------------------------------------------------ |
-| `statusCode`       | `number`              | HTTP status. `0` when no status exists (timeout, validation, safe-mode wrap).              |
-| `message`          | `string`              | Status text, with remediation appended for 401 and 403.                                    |
-| `url`              | `string \| undefined` | Request URL passed through `sanitizeUrl`. Absent on rate-limiter and safe-mode errors.     |
-| `requestId`        | `string \| undefined` | The `X-Esi-Request-Id` response header, when ESI sent one. Quote it when reporting to CCP. |
-| `retryable`        | `boolean` (getter)    | `true` for status `0`, `420`, `429`, `502`, `503`, `504`.                                  |
-| `isRateLimited()`  | method                | `statusCode` is `420` or `429`.                                                            |
-| `isNotFound()`     | method                | `statusCode` is `404`.                                                                     |
-| `isUnauthorized()` | method                | `statusCode` is `401`.                                                                     |
-| `isForbidden()`    | method                | `statusCode` is `403`.                                                                     |
-| `isServerError()`  | method                | `statusCode` is `500` or above.                                                            |
-| `isTimeout()`      | method                | `statusCode` is `0`. Also true for validation errors; prefer the `isTimeout` guard.        |
+| Member             | Type                  | Meaning                                                                                                                           |
+| ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `statusCode`       | `number`              | HTTP status. `0` when no status exists (timeout, validation, safe-mode wrap).                                                     |
+| `message`          | `string`              | Status text (`HTTP <status>` when neither the client nor the server names the status), with remediation appended for 401 and 403. |
+| `url`              | `string \| undefined` | Request URL passed through `sanitizeUrl`. Absent on rate-limiter and safe-mode errors.                                            |
+| `requestId`        | `string \| undefined` | The `X-Esi-Request-Id` response header, when ESI sent one. Quote it when reporting to CCP.                                        |
+| `retryable`        | `boolean` (getter)    | `true` for status `0`, `420`, `429`, `502`, `503`, `504`.                                                                         |
+| `isRateLimited()`  | method                | `statusCode` is `420` or `429`.                                                                                                   |
+| `isNotFound()`     | method                | `statusCode` is `404`.                                                                                                            |
+| `isUnauthorized()` | method                | `statusCode` is `401`.                                                                                                            |
+| `isForbidden()`    | method                | `statusCode` is `403`.                                                                                                            |
+| `isServerError()`  | method                | `statusCode` is `500` or above.                                                                                                   |
+| `isTimeout()`      | method                | `statusCode` is `0`. Also true for validation errors; prefer the `isTimeout` guard.                                               |
 
 ### `TimeoutError extends EsiError`
 

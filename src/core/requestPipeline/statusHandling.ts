@@ -20,10 +20,24 @@ export const STATUS_MESSAGES: Record<number, string> = {
   422: 'Unprocessable Entity',
   429: 'Too many requests',
   500: 'Internal server error',
+  502: 'Bad Gateway',
   503: 'Service Unavailable',
   504: 'Gateway Timeout',
   520: 'Internal server error, did the request terminate too soon?',
 };
+
+/**
+ * The text an error status is reported with: the client's own message, else
+ * the reason phrase, else `HTTP <status>`. HTTP/2 carries no reason phrase, so
+ * `statusText` is empty for any status missing from STATUS_MESSAGES.
+ */
+export function statusMessage(response: Response): string {
+  return (
+    STATUS_MESSAGES[response.status] ||
+    response.statusText ||
+    `HTTP ${response.status}`
+  );
+}
 
 /**
  * Handle early-return HTTP statuses (201, 204, 304).
@@ -123,10 +137,8 @@ export function handleErrorResponse(
   requiresAuth: boolean = false,
   esiReason?: string,
 ): EsiHandlerResponse | never {
-  const statusMessage = STATUS_MESSAGES[response.status] || response.statusText;
-  const errorMessage = esiReason
-    ? `${statusMessage}: ${esiReason}`
-    : statusMessage;
+  const text = statusMessage(response);
+  const errorMessage = esiReason ? `${text}: ${esiReason}` : text;
 
   if (response.status >= 500 && useETag) {
     const staleResult = tryStaleCacheResponse(

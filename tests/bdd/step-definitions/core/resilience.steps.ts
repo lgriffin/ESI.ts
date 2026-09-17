@@ -44,6 +44,8 @@ const RESOLVED_NAMES = [
   { id: 95465499, name: 'CCP Bartender', category: 'character' },
 ];
 const DOGMA_ATTRIBUTE_IDS = [2, 3, 4];
+const HTML_ERROR_PAGE =
+  '<html><head><title>Error</title></head><body>upstream failed</body></html>';
 
 const NO_RETRIES = { maxRetries: 0 };
 
@@ -436,6 +438,47 @@ defineFeature(feature, (test) => {
       expectEsiError(outcome, 429);
       expect(requestsSent()).toBe(1);
     });
+  });
+
+  test('HTTP <status> without a reason phrase is named in the error', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client configured for the status endpoint', () => {
+      client = createSeamClient({ retryConfig: NO_RETRIES });
+    });
+
+    and(
+      /^ESI answers the server status request with HTTP (\d+), no reason phrase and an HTML page$/,
+      (status: string) => {
+        queueResponse({
+          status: Number(status),
+          headers: { 'content-type': 'text/html' },
+          body: HTML_ERROR_PAGE,
+          match: STATUS_PATH,
+        });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(client.status.getStatus());
+    });
+
+    then(
+      /^the client rejects with an EsiError carrying status (\d+) and the message "(.+)"$/,
+      (status: string, message: string) => {
+        expectEsiError(outcome, Number(status));
+        expect(
+          ((outcome as PromiseRejectedResult).reason as Error).message,
+        ).toBe(message);
+        expect(requestsSent()).toBe(1);
+      },
+    );
   });
 
   test('Unresponsive endpoint reaches the caller as a TimeoutError', ({

@@ -119,6 +119,23 @@ Feature: Resilience and Error Recovery
       When the client requests the server status
       Then the client shall throw a 429 rate limit error
 
+  Rule: If a request is answered with an error status that carries no reason phrase, then the EsiClient shall reject with an EsiError whose message names that status.
+    HTTP/2 has no reason phrase, so a status the client keeps no text of its
+    own for would otherwise reach the caller with an empty message. Known
+    statuses keep their usual text; any other status reads HTTP followed by its
+    code. An HTML error page from a proxy adds nothing to the message.
+
+    Scenario Outline: HTTP <status> without a reason phrase is named in the error
+      Given a client configured for the status endpoint
+      And ESI answers the server status request with HTTP <status>, no reason phrase and an HTML page
+      When the client requests the server status
+      Then the client rejects with an EsiError carrying status <status> and the message "<message>"
+
+      Examples:
+        | status | message     |
+        | 502    | Bad Gateway |
+        | 418    | HTTP 418    |
+
   Rule: If every attempt at a request exceeds the configured timeout, then the EsiClient shall reject the call with a TimeoutError.
     A distinct error type matters here because a timeout carries no HTTP status
     and no response body. TimeoutError extends EsiError with status code 0, and

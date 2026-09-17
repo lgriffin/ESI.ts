@@ -14,18 +14,6 @@
       "reason": "Page 1 is cached before pages 2..N arrive, so a later page failing leaves page 1 alone in the cache, served as if complete on the next call inside the TTL or after a 304."
     },
     {
-      "fault": "bad-gateway-without-reason-phrase",
-      "targets": [
-        "status.getStatus",
-        "location.getCharacterLocation",
-        "market.getMarketOrders",
-        "freelanceJobs.getFreelanceJobs",
-        "universe.postNamesAndCategories"
-      ],
-      "bead": "esi-23g.8",
-      "reason": "Statuses missing from STATUS_MESSAGES fall back to response.statusText, which HTTP/2 never sends, so a 502 rejects with an empty message."
-    },
-    {
       "fault": "too-many-requests-retry-after-http-date",
       "targets": [
         "status.getStatus",

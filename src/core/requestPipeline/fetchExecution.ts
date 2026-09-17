@@ -8,7 +8,7 @@ import { ICircuitBreaker } from '../circuitBreaker/ICircuitBreaker';
 import { buildError } from '../util/error';
 import { buildRequestHeaders } from './headers';
 import { applyRequestMiddleware } from './middlewareBridge';
-import { STATUS_MESSAGES, readEsiErrorReason } from './statusHandling';
+import { readEsiErrorReason, statusMessage } from './statusHandling';
 
 export interface RawFetchResult {
   response: Response;
@@ -239,12 +239,11 @@ export async function fetchOnePage(
   );
 
   if (!response.ok) {
-    const statusMessage =
-      STATUS_MESSAGES[response.status] || response.statusText;
+    const text = statusMessage(response);
     const reason = await readEsiErrorReason(response);
     throw new EsiError(
       response.status,
-      reason ? `${statusMessage}: ${reason}` : statusMessage,
+      reason ? `${text}: ${reason}` : text,
       url,
       parsed.requestId ?? undefined,
     );
