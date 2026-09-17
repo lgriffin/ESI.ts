@@ -127,6 +127,8 @@ All methods are defined on `IStaticDataProvider`. Single-entity lookups return `
 
 ### Types, Groups, Categories
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getType(typeId: number): EveType | null
 getTypesByGroup(groupId: number): EveType[]
@@ -138,6 +140,8 @@ searchTypesByName(query: string, limit?: number): EveType[]
 ```
 
 ### Geography
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getRegion(regionId: number): Region | null
@@ -152,6 +156,8 @@ searchSolarSystemsByName(query: string, limit?: number): SolarSystem[]
 ```
 
 ### Universe (Stars, Planets, Moons, Belts)
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getStar(starId: number): Star | null
@@ -169,6 +175,8 @@ getAllLandmarks(): Landmark[]
 ```
 
 ### Character and Lore
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getFaction(factionId: number): Faction | null
@@ -189,6 +197,8 @@ getAllSchools(): School[]
 
 ### NPC Infrastructure
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getNpcCorporation(corporationId: number): NpcCorporation | null
 getNpcCorporationsByFaction(factionId: number): NpcCorporation[]
@@ -206,6 +216,8 @@ getAllNpcCorporationDivisions(): NpcCorporationDivision[]
 
 ### Market
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getMarketGroup(marketGroupId: number): MarketGroup | null
 getMarketGroupsByParent(parentGroupId: number): MarketGroup[]
@@ -216,6 +228,8 @@ searchMarketGroupsByName(query: string, limit?: number): MarketGroup[]
 
 ### Meta and UI
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getMetaGroup(metaGroupId: number): MetaGroup | null
 getAllMetaGroups(): MetaGroup[]
@@ -224,6 +238,8 @@ getGraphic(graphicId: number): Graphic | null
 ```
 
 ### Dogma
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getDogmaAttribute(attributeId: number): DogmaAttribute | null
@@ -238,6 +254,8 @@ getAllDogmaUnits(): DogmaUnit[]
 
 ### Industry
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getBlueprint(blueprintTypeId: number): Blueprint | null
 getPlanetSchematic(planetSchematicId: number): PlanetSchematic | null
@@ -248,6 +266,8 @@ getAllIndustryActivities(): IndustryActivity[]
 
 ### Agent System
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getAgentType(agentTypeId: number): AgentType | null
 getAllAgentTypes(): AgentType[]
@@ -257,12 +277,16 @@ getAgentsInSpaceBySystem(systemId: number): AgentInSpace[]
 
 ### Certificates
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getCertificate(certificateId: number): Certificate | null
 getAllCertificates(): Certificate[]
 ```
 
 ### Skins
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getSkin(skinId: number): Skin | null
@@ -271,6 +295,8 @@ getSkinLicensesBySkin(skinId: number): SkinLicense[]
 ```
 
 ### Station Operations and Services
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getStationOperation(stationOperationId: number): StationOperation | null
@@ -281,6 +307,8 @@ getAllStationServices(): StationService[]
 
 ### Type Extensions
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getTypeDogma(typeId: number): TypeDogma | null
 getTypeMaterial(typeId: number): TypeMaterial | null
@@ -288,6 +316,8 @@ getTypeBonus(typeId: number): TypeBonus | null
 ```
 
 ### Missions and Content
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getMission(missionId: number): Mission | null
@@ -298,6 +328,8 @@ getAllEpicArcs(): EpicArc[]
 
 ### Notifications
 
+<!-- doc-example: no-check method signature listing, not a statement -->
+
 ```typescript
 getNotificationType(notificationTypeId: number): NotificationType | null
 ```
@@ -305,6 +337,8 @@ getNotificationType(notificationTypeId: number): NotificationType | null
 ### Generic Accessors
 
 For entity types without dedicated methods, or for dynamic access:
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getEntity<T>(tableName: string, id: number | string): T | null
@@ -314,6 +348,8 @@ getAllEntities<T>(tableName: string): T[]
 Table names follow the pattern `eve_<entity>` (e.g., `eve_types`, `eve_solar_systems`, `eve_blueprints`). See `SDE_FILE_REGISTRY` in `src/sde/ingestion/constants.ts` for the full list.
 
 ### Version and Lifecycle
+
+<!-- doc-example: no-check method signature listing, not a statement -->
 
 ```typescript
 getVersion(): SdeVersionInfo    // { version, buildDate, importedAt }

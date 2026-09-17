@@ -10,6 +10,8 @@
  *     the Rule it verifies.
  *   - Requirement text is free of vague, unmeasurable, or escape-clause
  *     language, and follows EARS grammar for If/While/When/Where.
+ *   - A `@bug` tag names where the bug is tracked (`@esi-<bead>` or
+ *     `@gh-<issue>`), and a bead tag names a bead in `.beads/issues.jsonl`.
  *
  * Ported from the hermes project's audit.py, but parsing the real Gherkin AST
  * via @cucumber/gherkin rather than matching lines with regexes, so `Rule:`
@@ -49,6 +51,7 @@ import type {
 
 import {
   REPO_ROOT,
+  checkBugTags,
   checkEarsPatternStructure,
   checkExceptionList,
   checkMissingSystemName,
@@ -56,6 +59,7 @@ import {
   findVagueTerms,
   findWrongObligationKeywords,
   loadBaselineExceptions,
+  loadBeadIds,
   loadExceptions,
 } from './spec-audit-checks';
 import { StepFinding, auditStepLayout } from './spec-audit-steps';
@@ -132,7 +136,32 @@ interface FileReport {
 // Rule and file auditing
 // ---------------------------------------------------------------------------
 
-function auditRule(rule: Rule, file: string, findings: Finding[]): number {
+type Beads = ReadonlySet<string> | null;
+
+/** Bug-tag findings for one element, reported at the line of its tags. */
+function auditTags(
+  element: { tags: readonly { name: string; location: { line: number } }[] },
+  inherited: readonly string[],
+  what: string,
+  file: string,
+  beads: Beads,
+  findings: Finding[],
+): string[] {
+  const own = element.tags.map((t) => t.name);
+  const line = element.tags[0]?.location.line ?? null;
+  for (const message of checkBugTags(own, inherited, beads)) {
+    findings.push({ file, line, message: `${what}: ${message}` });
+  }
+  return [...inherited, ...own];
+}
+
+function auditRule(
+  rule: Rule,
+  file: string,
+  findings: Finding[],
+  inherited: readonly string[],
+  beads: Beads,
+): number {
   const title = rule.name.trim();
   const line = rule.location.line;
   const prefix = `Rule '${title}':`;
@@ -186,6 +215,19 @@ function auditRule(rule: Rule, file: string, findings: Finding[]): number {
     );
   }
 
+  const ruleTags = auditTags(
+    rule,
+    inherited,
+    prefix.slice(0, -1),
+    file,
+    beads,
+    findings,
+  );
+  for (const child of rule.children) {
+    if (child.scenario)
+      auditScenario(child.scenario, ruleTags, file, beads, findings);
+  }
+
   const scenarios = rule.children.filter((c) => c.scenario).length;
   if (scenarios === 0) {
     add('No scenarios found under this rule.');
@@ -193,8 +235,34 @@ function auditRule(rule: Rule, file: string, findings: Finding[]): number {
   return scenarios;
 }
 
-function auditFeature(feature: Feature, file: string): FileReport {
+function auditScenario(
+  scenario: Scenario,
+  inherited: readonly string[],
+  file: string,
+  beads: Beads,
+  findings: Finding[],
+): void {
+  const what = `Scenario '${scenario.name}'`;
+  const tags = auditTags(scenario, inherited, what, file, beads, findings);
+  for (const examples of scenario.examples) {
+    auditTags(examples, tags, `${what} Examples`, file, beads, findings);
+  }
+}
+
+function auditFeature(
+  feature: Feature,
+  file: string,
+  beads: Beads,
+): FileReport {
   const findings: Finding[] = [];
+  const featureTags = auditTags(
+    feature,
+    [],
+    `Feature '${feature.name}'`,
+    file,
+    beads,
+    findings,
+  );
   let ruleCount = 0;
   let scenarioCount = 0;
 
@@ -203,8 +271,15 @@ function auditFeature(feature: Feature, file: string): FileReport {
   for (const child of feature.children) {
     if (child.rule) {
       ruleCount += 1;
-      scenarioCount += auditRule(child.rule, file, findings);
+      scenarioCount += auditRule(
+        child.rule,
+        file,
+        findings,
+        featureTags,
+        beads,
+      );
     } else if (child.scenario) {
+      auditScenario(child.scenario, featureTags, file, beads, findings);
       orphanScenarios.push(child.scenario);
     }
   }
@@ -251,6 +326,7 @@ function auditFile(
   parse: ParseGherkin,
   absPath: string,
   relPath: string,
+  beads: Beads,
 ): FileReport {
   let document;
   try {
@@ -281,7 +357,7 @@ function auditFile(
     };
   }
 
-  return auditFeature(document.feature, relPath);
+  return auditFeature(document.feature, relPath, beads);
 }
 
 // ---------------------------------------------------------------------------
@@ -379,13 +455,14 @@ async function main(): Promise<void> {
   }
 
   const parse = await loadGherkinParser();
+  const beads = loadBeadIds();
   const reports: FileReport[] = [];
   const skipped: string[] = [];
   const staleExceptions: string[] = [];
 
   for (const abs of files) {
     const rel = path.relative(REPO_ROOT, abs);
-    const report = auditFile(parse, abs, rel);
+    const report = auditFile(parse, abs, rel, beads);
     if (unconverted.has(rel)) {
       // Still allowlisted — but if it now passes, the entry must come out so
       // the file cannot silently regress later.

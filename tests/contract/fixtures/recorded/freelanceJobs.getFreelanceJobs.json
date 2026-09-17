@@ -1,0 +1,83 @@
+{
+  "endpoint": "freelanceJobs.getFreelanceJobs",
+  "call": {
+    "client": "freelanceJobs",
+    "method": "getFreelanceJobs",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.freelance_jobs",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "freelance-jobs",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "application/json",
+        "expires": "Thu, 17 Sep 2026 14:13:20 GMT"
+      },
+      "body": {
+        "cursor": {
+          "before": "1.GNYgzCpN5Bg=",
+          "after": "1.GNYhMOx0CCQ="
+        },
+        "freelance_jobs": [
+          {
+            "id": "68fd5fe6-4752-4e7c-89de-067fd3e54ecc",
+            "name": "ALL TYPES OF VELDSPAR",
+            "state": "Active",
+            "last_modified": "2026-09-17T14:06:03.181Z",
+            "progress": {
+              "current": 2732877,
+              "desired": 13000000
+            },
+            "reward": {
+              "initial": 104000000,
+              "remaining": 82136984
+            }
+          },
+          {
+            "id": "115ab093-5347-48ea-a850-757ed574d8ea",
+            "name": "New Player Support Program by \"Tenebris Academy\"",
+            "state": "Active",
+            "last_modified": "2026-09-17T14:09:11.595Z",
+            "progress": {
+              "current": 2970,
+              "desired": 190000
+            },
+            "reward": {
+              "initial": 760000000,
+              "remaining": 748120000
+            }
+          },
+          {
+            "id": "ba5847a4-1c09-43cd-b03d-18b2e22e1f70",
+            "name": "E-V军等",
+            "state": "Active",
+            "last_modified": "2026-09-17T14:11:10.585Z",
+            "progress": {
+              "current": 1528,
+              "desired": 10000
+            },
+            "reward": {
+              "initial": 2000000000,
+              "remaining": 1694400000
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

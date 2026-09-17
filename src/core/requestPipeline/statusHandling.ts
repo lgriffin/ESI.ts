@@ -56,7 +56,15 @@ export function handleEarlyStatus(
           status,
           cacheHitType: 'etag-304',
         });
-        const headers = { ...cachedEntry.headers, ...parsed.raw };
+        const headers: Record<string, string> = {
+          ...cachedEntry.headers,
+          ...parsed.raw,
+        };
+        // The stored ETag names the stored body. A concurrent request may have
+        // replaced the entry after this one was sent with an older
+        // If-None-Match, so the 304's own ETag can name a body the cache no
+        // longer holds and must not overwrite the stored one.
+        if ('etag' in parsed.raw) headers['etag'] = cachedEntry.etag;
         // A 304 confirms the stored body is current: store it again so its
         // freshness TTL, and the retention window after it, start over.
         cache.set(

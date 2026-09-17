@@ -11,3 +11,9 @@ Feature: Compliant specimen
       Given a response with an ETag header
       When the client issues the request
       Then the ETag cache holds an entry for that request
+
+    @bug @gh-1
+    Scenario: A known defect tracked by an issue
+      Given a response with an ETag header
+      When the client issues the request
+      Then the ETag cache holds an entry for that request

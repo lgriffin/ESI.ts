@@ -1,0 +1,118 @@
+{
+  "endpoint": "killmail.getKillmail",
+  "call": {
+    "client": "killmails",
+    "method": "getKillmail",
+    "args": [90762794, "c5b20a0cd4dd491639c95eb0ddbb60b534e98150"]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 2592000,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.attackers",
+      "kind": "array",
+      "original": 7,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.victim.items",
+      "kind": "array",
+      "original": 14,
+      "kept": 4
+    }
+  ],
+  "pages": [
+    {
+      "url": "killmails/90762794/c5b20a0cd4dd491639c95eb0ddbb60b534e98150",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"54e88b5a8dbe9bbe654c4ebff529f30d2f2cb3ae15c7d9d616f8348e\"",
+        "expires": "Sat, 17 Oct 2026 14:13:16 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:13:16 GMT"
+      },
+      "body": {
+        "attackers": [
+          {
+            "alliance_id": 99010015,
+            "character_id": 826019399,
+            "corporation_id": 712577137,
+            "damage_done": 1189,
+            "final_blow": true,
+            "security_status": 0.7,
+            "ship_type_id": 11993,
+            "weapon_type_id": 2629
+          },
+          {
+            "alliance_id": 99010015,
+            "character_id": 91682676,
+            "corporation_id": 712577137,
+            "damage_done": 1128,
+            "final_blow": false,
+            "security_status": -1.2,
+            "ship_type_id": 11993,
+            "weapon_type_id": 27441
+          },
+          {
+            "alliance_id": 99010015,
+            "character_id": 1475312152,
+            "corporation_id": 712577137,
+            "damage_done": 978,
+            "final_blow": false,
+            "security_status": 0,
+            "ship_type_id": 11993,
+            "weapon_type_id": 27441
+          }
+        ],
+        "killmail_id": 90762794,
+        "killmail_time": "2021-02-15T21:07:54Z",
+        "solar_system_id": 30001647,
+        "victim": {
+          "alliance_id": 99008899,
+          "character_id": 2113679694,
+          "corporation_id": 98588267,
+          "damage_taken": 4823,
+          "items": [
+            {
+              "flag": 24,
+              "item_type_id": 3504,
+              "quantity_destroyed": 1,
+              "singleton": 0
+            },
+            {
+              "flag": 93,
+              "item_type_id": 31288,
+              "quantity_destroyed": 1,
+              "singleton": 0
+            },
+            {
+              "flag": 23,
+              "item_type_id": 35660,
+              "quantity_destroyed": 1,
+              "singleton": 0
+            },
+            {
+              "flag": 20,
+              "item_type_id": 2575,
+              "quantity_dropped": 1,
+              "singleton": 0
+            }
+          ],
+          "position": {
+            "x": -393466904.25587916,
+            "y": 687127063.2341827,
+            "z": -671335877.1634642
+          },
+          "ship_type_id": 632
+        },
+        "war_id": 700000
+      }
+    }
+  ]
+}
