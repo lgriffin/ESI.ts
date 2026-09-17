@@ -1,52 +1,103 @@
 /**
  * npm run mutation:bdd:ratchet [-- --update]
+ * npm run mutation:ratchet [-- --update]      (runs with --suite unit)
  *
- * Reads the BDD-only Stryker JSON report, prints the per-directory score
- * table (also to $GITHUB_STEP_SUMMARY when set), and fails if any directory
- * scores below its entry in mutation-bdd-thresholds.json. A directory with no
- * entry is reported but not gated. --update raises entries to today's scores
- * and never lowers one, so relaxing a ratchet takes a reviewed edit to the
- * thresholds file.
+ * Reads a Stryker JSON report, prints the per-directory score table (also to
+ * $GITHUB_STEP_SUMMARY when set), and fails if any directory scores below its
+ * floor.
+ *
+ * - BDD suite: reports/mutation-bdd/mutation.json against
+ *   mutation-bdd-thresholds.json. A directory with no entry is reported but
+ *   not gated.
+ * - Unit suite: reports/mutation/mutation.json against
+ *   mutation-thresholds.json. Every scored directory needs an entry.
+ *
+ * --update raises entries to today's scores and never lowers one, so relaxing
+ * a ratchet takes a reviewed edit to the thresholds file, which the pull
+ * request job (npm run mutation:pr) rejects.
  */
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import {
   MutationReport,
-  Thresholds,
   applyRatchet,
+  parseThresholds,
   renderTable,
   scoreByDirectory,
 } from './mutation-ratchet-core';
 
 const ROOT = path.resolve(__dirname, '..');
-const REPORT = path.join(ROOT, 'reports/mutation-bdd/mutation.json');
-const THRESHOLDS = path.join(ROOT, 'mutation-bdd-thresholds.json');
+
+const SUITES = {
+  bdd: {
+    report: 'reports/mutation-bdd/mutation.json',
+    thresholds: 'mutation-bdd-thresholds.json',
+    heading: 'BDD-only mutation score',
+    label: 'BDD mutation',
+    column: 'BDD mutation score',
+    requireEntry: false,
+    run: 'npm run mutation:bdd',
+  },
+  unit: {
+    report: 'reports/mutation/mutation.json',
+    thresholds: 'mutation-thresholds.json',
+    heading: 'Unit-suite mutation score',
+    label: 'mutation',
+    column: 'Mutation score',
+    requireEntry: true,
+    run: 'npm run mutation',
+  },
+} as const;
 
 function main(): void {
-  if (!existsSync(REPORT)) {
-    console.error(
-      `No report at ${path.relative(ROOT, REPORT)}. Run npm run mutation:bdd first.`,
-    );
+  const suiteArg = process.argv.indexOf('--suite');
+  const name = suiteArg === -1 ? 'bdd' : process.argv[suiteArg + 1];
+  if (name !== 'bdd' && name !== 'unit') {
+    console.error(`Unknown --suite ${String(name)}; expected bdd or unit.`);
+    process.exit(2);
+  }
+  const suite = SUITES[name];
+  const reportPath = path.join(ROOT, suite.report);
+  const thresholdsPath = path.join(ROOT, suite.thresholds);
+
+  if (!existsSync(reportPath)) {
+    console.error(`No report at ${suite.report}. Run ${suite.run} first.`);
     process.exit(1);
   }
-  const report = JSON.parse(readFileSync(REPORT, 'utf8')) as MutationReport;
-  const thresholds = JSON.parse(readFileSync(THRESHOLDS, 'utf8')) as Thresholds;
+  if (!existsSync(thresholdsPath)) {
+    console.error(`No thresholds file at ${suite.thresholds}; failing closed.`);
+    process.exit(1);
+  }
+  const report = JSON.parse(readFileSync(reportPath, 'utf8')) as MutationReport;
+  const thresholds = parseThresholds(
+    readFileSync(thresholdsPath, 'utf8'),
+    suite.thresholds,
+  );
 
   const scores = scoreByDirectory(report);
-  const table = renderTable(scores, thresholds);
-  const { failures, raised } = applyRatchet(scores, thresholds);
+  const table = renderTable(scores, thresholds, suite.column);
+  const options = { label: suite.label, requireEntry: suite.requireEntry };
+  const { raised } = applyRatchet(scores, thresholds, options);
+  const update = process.argv.includes('--update');
+  // After --update a directory that lacked an entry has one; a directory
+  // below its floor still fails, because the floor was not lowered.
+  const { failures } = applyRatchet(
+    scores,
+    update ? raised : thresholds,
+    options,
+  );
 
   console.log(table);
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(
       process.env.GITHUB_STEP_SUMMARY,
-      `## BDD-only mutation score\n\n${table}\n`,
+      `## ${suite.heading}\n\n${table}\n`,
     );
   }
 
-  if (process.argv.includes('--update')) {
-    writeFileSync(THRESHOLDS, `${JSON.stringify(raised, null, 2)}\n`);
-    console.log(`\nRaised ratchets written to ${path.basename(THRESHOLDS)}.`);
+  if (update) {
+    writeFileSync(thresholdsPath, `${JSON.stringify(raised, null, 2)}\n`);
+    console.log(`\nRaised ratchets written to ${suite.thresholds}.`);
   }
 
   if (failures.length > 0) {

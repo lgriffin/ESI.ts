@@ -21,17 +21,14 @@ import {
   readReasonList,
   shrinkOnlyProblems,
 } from '../recorded/ratchet';
-
-const fail = (problems: string[]) => {
-  if (problems.length > 0) throw new Error(problems.join('\n'));
-};
+import { assertNoProblems, assertThat } from '../../support/assertions';
 
 const files = listFixtureFiles();
 const fixtures = files.map((file) => ({ file, fixture: loadFixture(file) }));
 
 describe('recorded fixture coverage', () => {
   it('covers every public GET endpoint, or lists why it cannot', () => {
-    fail(
+    assertNoProblems(
       coverageProblems({
         publicEndpoints: publicGetEndpoints().map((e) => e.key),
         fixtures: fixtures.map((f) => f.fixture.endpoint),
@@ -42,7 +39,7 @@ describe('recorded fixture coverage', () => {
   });
 
   it('names each fixture file after the endpoint it records', () => {
-    fail(
+    assertNoProblems(
       fixtures
         .filter(
           ({ file, fixture }) =>
@@ -59,7 +56,9 @@ describe('recorded fixture coverage', () => {
     ['unrecordable.json', UNRECORDABLE_PATH],
     ['known-mismatches.json', KNOWN_MISMATCHES_PATH],
   ])('%s only shrinks', (name, file) => {
-    fail(shrinkOnlyProblems(name, readReasonList(file), readBaseList(file)));
+    assertNoProblems(
+      shrinkOnlyProblems(name, readReasonList(file), readBaseList(file)),
+    );
   });
 });
 
@@ -68,7 +67,7 @@ describe('recorded fixture budget', () => {
   const size = (f: string) => fs.statSync(f).size;
 
   it(`keeps every fixture under ${FIXTURE_MAX_BYTES} bytes`, () => {
-    fail(
+    assertNoProblems(
       all
         .filter((f) => size(f) > FIXTURE_MAX_BYTES)
         .map(
@@ -80,17 +79,16 @@ describe('recorded fixture budget', () => {
 
   it(`keeps all fixtures together under ${FIXTURE_BUDGET_BYTES} bytes`, () => {
     const total = all.reduce((sum, f) => sum + size(f), 0);
-    if (total > FIXTURE_BUDGET_BYTES) {
-      throw new Error(
-        `Recorded fixtures total ${total} bytes, over the ${FIXTURE_BUDGET_BYTES}-byte budget in tests/contract/recorded/policy.ts.`,
-      );
-    }
+    assertThat(
+      total <= FIXTURE_BUDGET_BYTES,
+      `Recorded fixtures total ${total} bytes, over the ${FIXTURE_BUDGET_BYTES}-byte budget in tests/contract/recorded/policy.ts.`,
+    );
   });
 });
 
 describe('recorded fixture metadata', () => {
   it(`was recorded under the compatibility date the client sends (${COMPATIBILITY_DATE})`, () => {
-    fail(
+    assertNoProblems(
       fixtures
         .filter(
           ({ fixture }) => fixture.compatibilityDate !== COMPATIBILITY_DATE,
@@ -103,7 +101,7 @@ describe('recorded fixture metadata', () => {
   });
 
   it('keeps X-Pages equal to the number of recorded pages, and the upstream count', () => {
-    fail(
+    assertNoProblems(
       fixtures.flatMap(({ fixture }) => {
         const problems: string[] = [];
         fixture.pages.forEach((page, i) => {
@@ -135,7 +133,7 @@ describe('recorded fixture metadata', () => {
       'x-cursor-before',
       'x-pages',
     ]);
-    fail(
+    assertNoProblems(
       fixtures.flatMap(({ fixture }) =>
         fixture.pages.flatMap((p) =>
           Object.keys(p.headers)
