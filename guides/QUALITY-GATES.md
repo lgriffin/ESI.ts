@@ -116,6 +116,7 @@ knip runs with `--no-exit-code` in `ci.yml` (`static-analysis`), `release.yml` (
 | `nightly-mutation.yml`     | Uploads `reports/mutation/` as an artifact only                                                                                                     |
 | `nightly-schemathesis.yml` | Uploads `reports/schemathesis/` as an artifact only                                                                                                 |
 | `nightly-no-retry.yml`     | Fails the run and uploads `reports/no-retry/` as an artifact only                                                                                   |
+| `nightly-interleave.yml`   | Fails the run; the log names the broken invariant and the replay command                                                                            |
 
 Both issue-filing workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation, Schemathesis and the no-retry run still need an issue step (bead `esi-mbr`).
 
@@ -157,6 +158,7 @@ All workflows live in `.github/workflows/`. Every action is pinned to a full com
 | `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                          | No                            | Artifact                                       |
 | `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                          | No                            | Artifact                                       |
 | `nightly-no-retry.yml`     | Daily 03:00 UTC; manual                                          | No                            | Artifact                                       |
+| `nightly-interleave.yml`   | Daily 03:30 UTC; manual                                          | No                            | Status, step summary                           |
 | `nightly-audit.yml`        | Daily 05:00 UTC; manual                                          | No                            | `security-audit` issue                         |
 | `nightly-spec-drift.yml`   | Daily 06:00 UTC; manual                                          | No                            | `spec-drift` / `spec-drift-check-failed` issue |
 | `scorecard.yml`            | Mondays 04:00 UTC; manual; branch protection rule change         | No                            | SARIF to code scanning, public score           |
@@ -233,6 +235,10 @@ Daily at 01:00 UTC on Node 22 with a 40-minute timeout. Pulls a digest-pinned Sc
 Daily at 03:00 UTC on Node 20 with a 60-minute timeout. Runs the `npm test` suite (`jest.unit.config.cjs`: `tests/tdd` plus the BDD step definitions) and writes Jest's JSON report. No Jest retries are configured anywhere, so there is nothing to switch off; instead the job reads the report and fails, naming each test, if any test was invoked more than once. A future `jest.retryTimes` that hides a flaky test therefore turns this run red even while pull request runs stay green. A missing or unparsable report also fails it. The report is uploaded as `no-retry-report`, and the step summary lists pass and fail counts and the failed tests. No issue is filed.
 
 Test order within each file is randomised (`jest --randomize`), so a test that passes only because of what ran before it in the same file fails here rather than hiding behind declaration order. Each run picks a new seed, or uses the `seed` input of a manual dispatch. The seed appears as a notice annotation and in the job log, the step summary, and `seed.txt` in the uploaded report; `npx jest --config jest.unit.config.cjs --randomize --seed=<seed>` replays the same order locally.
+
+### `nightly-interleave.yml` — Nightly Interleaving Run
+
+Daily at 03:30 UTC on Node 20 with a 60-minute timeout. Runs the composition tier (`tests/tdd/composition`) with `ESI_INTERLEAVE_MODE=random`: each scenario starts four overlapping calls and runs `ESI_INTERLEAVE_RUNS` schedules (5000 by default) chosen by a PRNG seeded with `ESI_INTERLEAVE_SEED`. Pull requests already explore every schedule of two and three calls inside `npm test`. Each run picks a new seed, or uses the `seed` input of a manual dispatch; the seed is a notice annotation and in the step summary with the command that replays the run, and a failing schedule prints its own `ESI_INTERLEAVE_REPLAY` command. No issue is filed. See [TESTING.md](TESTING.md#composition-and-concurrency).
 
 ### `nightly-mutation.yml` — Nightly Mutation Testing
 
