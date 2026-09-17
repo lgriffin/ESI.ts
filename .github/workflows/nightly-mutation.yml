@@ -29,8 +29,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # --incremental --force: every mutant runs, and Stryker also writes
+      # reports/mutation/stryker-incremental.json for pull requests to reuse.
       - name: Run mutation testing
-        run: npm run mutation
+        run: npm run mutation -- --incremental --force
+
+      # Pull requests (ci.yml mutation-pr) restore the newest entry by prefix.
+      # Saved only after a complete run: Stryker also writes a partial
+      # incremental file when interrupted, and a partial baseline would drop
+      # results for the files a pull request does not re-mutate.
+      - name: Publish the incremental report for pull requests
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: reports/mutation/stryker-incremental.json
+          key: stryker-incremental-unit-${{ github.sha }}-${{ github.run_id }}
+
+      # Every directory is scored against mutation-thresholds.json; pull
+      # requests only check the directories they touch, so drift from merges
+      # and test-only changes surfaces here.
+      - name: Check per-directory ratchet
+        run: npm run mutation:ratchet
 
       - name: Upload mutation report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -46,8 +64,8 @@ jobs:
           echo "## Nightly Mutation Testing" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
-          if [ -f reports/mutation/mutation.html ]; then
-            echo "- **Report:** uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+          if [ -f reports/mutation/mutation.json ]; then
+            echo "- **Report:** HTML, JSON and incremental report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
           fi
 
   bdd-mutation-testing:

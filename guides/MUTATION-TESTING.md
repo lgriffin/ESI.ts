@@ -9,37 +9,97 @@ This is fundamentally different from code coverage: you can have 100% line cover
 ## Quick Start
 
 ```bash
-npm run mutation           # Run mutation testing (full report)
-npm run mutation:report    # Run with HTML + clear-text reporters only
+npm run mutation             # Full unit-suite run over the mutate scope
+npm run mutation:ratchet     # Score reports/mutation/mutation.json per directory
+npm run mutation:pr          # What CI runs on a pull request: only your changed src/ files
+npm run mutation:fixture     # The tier's self-test on a known-weak fixture
+npm run mutation:bdd         # BDD-only run (see below)
+npm run mutation:bdd:ratchet # Score the BDD-only report per directory
 ```
 
-The HTML report is written to `reports/mutation/mutation.html`.
+Reports are written to `reports/mutation/` (`mutation.html`, `mutation.json` and, with `--incremental`, `stryker-incremental.json`).
+
+## Where mutation testing runs
+
+| Where                                  | What                                                                          | Gate                                                                |
+| -------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Pull request (`ci.yml`, `mutation-pr`) | Known-weak fixture, then the changed `src/` files in scope, incrementally     | Blocks via `ci-success`: touched directories vs their floors        |
+| Nightly (`nightly-mutation.yml`)       | Every file in scope (`--incremental --force`); publishes the incremental file | Fails the run: every directory vs its floor                         |
+| Nightly, BDD-only job                  | All of `src/`, BDD step definitions only                                      | Fails the run: directories listed in `mutation-bdd-thresholds.json` |
+
+The pull request job owns "this change weakened the tests of the code it touched". The nightly owns everything a pull request cannot see: test-only changes, merges that interact, and directories no pull request touched.
+
+## Pull requests
+
+`npm run mutation:pr` (`scripts/mutation-pr.ts`) does, in order:
+
+1. **Base.** `MUTATION_BASE_REF` (CI sets `HEAD^1`, the base tip of the pull request merge commit, with `fetch-depth: 2`), otherwise the merge base with `origin/master` or `master`. If none resolves, it fails closed (exit 2).
+2. **Ratchet direction.** `mutation-thresholds.json` is compared with the base copy. Raising or adding a floor passes; lowering or removing one fails (exit 1). A missing or unparsable head file, or an unparsable base copy, fails closed. The only case with nothing to compare is a base commit that predates the file.
+3. **Plan.** `git diff --name-only --diff-filter=d <base> -- src/`, intersected with the `mutate` patterns in `stryker.config.mjs`. If nothing is left, the job summary says "Skipped" with the reason (no `src/` change, or only files outside the scope) and the step exits 0. The job still ran the thresholds check and the fixture, so it reports `success` honestly rather than being `skipped`, which `ci-success` would count as a failure.
+4. **Run.** `stryker run --incremental --mutate <files>`. The files are the changed ones plus any file in the same score directories that the restored nightly report cannot vouch for: absent from it, or with a source that has changed since. Stryker drops (rather than re-runs) stale mutants in files outside `--mutate`, so without this a directory score would silently shrink. With no restored report, every file in the touched directories is mutated from scratch: slower, never wrong.
+5. **Gate.** Each touched directory is scored from the merged report (fresh results for changed code, nightly results for the rest) and fails if it is below its floor, or has no floor at all. The job summary lists the directory table, per-file scores for the changed files, and every surviving or uncovered mutant in them with its line, mutator and replacement. The HTML and JSON reports are uploaded as `mutation-pr-report`.
+
+Run it locally the same way; it diffs your working tree (committed or not) against the merge base with master:
+
+```bash
+npm run mutation:pr -- --concurrency 4
+```
+
+To reuse a nightly baseline locally, download the `mutation-report` artifact from the latest nightly and put its `stryker-incremental.json` in `reports/mutation/`.
+
+### The incremental baseline
+
+The nightly unit job runs `npm run mutation -- --incremental --force`: every mutant runs, and Stryker also writes `reports/mutation/stryker-incremental.json`. After a complete run (never after a failed or interrupted one, when Stryker may write a partial file) the job saves it with `actions/cache/save` under `stryker-incremental-unit-<sha>-<run id>`. Caches written on `master` are readable by pull requests into `master`, so `mutation-pr` restores with `actions/cache/restore`, preferring an entry for its base commit and otherwise the newest. Pull requests never save the cache.
+
+Stryker reuses a result only when the mutant's code is unchanged and, for a killed mutant, its killing test is unchanged, or, for a survivor, no test was added. The older the baseline, the more mutants re-run: a one-day-old baseline on an active branch reused 51 of 169 mutants in `ETagCacheManager.ts`.
+
+### Ratchet: `mutation-thresholds.json`
+
+One floor per score directory: `src/core` for files directly in core, `src/core/<sub>` below it (the same `directoryOf` as the BDD ratchet in `scripts/mutation-ratchet-core.ts`). Values are Stryker's mutation score (detected / (detected + undetected)), rounded down to one decimal.
+
+- A pull request that raises a directory's score may raise its floor in the same change. State the new score in the pull request body in one line; ratchet bumps without a reason are how ratchet fatigue starts.
+- A floor never goes down. If a change truly has to lower one (for example, deleting dead code that only had killed mutants), that is a reviewed exception in its own pull request, and it fails `mutation-pr` there on purpose.
+- A new directory in scope must arrive with its floor; the failure message says which value to add.
+- `npm run mutation:ratchet -- --update` (after a full `npm run mutation`) raises every floor to today's score and adds missing ones. It never lowers a floor.
+
+**Seeding.** Each floor is the lower of two real runs: a full local run of this branch's base (`npm run mutation -- --incremental --force`, concurrency 4, 54 minutes) and the last nightly that produced a report (16 September 2026, `bc563d4d`, run 35067980626). They agree within two points for most directories but not all — `src/core/logger` scored 55.5% on the nightly and 33.3% locally, and `src/core/rateLimiter` 73% against 70.9% — mostly because a mutant that times out counts as detected, and how many time out depends on the machine. Taking the lower value means the first pull request to touch a directory is not failed by that spread. The nightly raises nothing on its own; floors move up only in reviewed pull requests.
+
+### The known-weak fixture
+
+`tests/mutation-fixture/weakClamp.ts` is a `clamp` function whose fixture test only checks an in-range value. `npm run mutation:fixture` mutates it with `stryker.fixture.config.mjs` and fails unless the report shows at least one killed mutant (the run can detect a fault), at least one survivor (a weak test is visible), and a ratchet failure for it against a 100% floor. `mutation-pr` runs it before the real run, so every pull request proves the pipeline can still go red. Do not strengthen that test. The last local run: 5 killed, 4 survived, 2 without coverage, score 45.4%, 15 seconds. Pointing the fixture's Jest `roots` at the original tree instead of the sandbox — the same mistake the module mapper used to make — turns that into 0 killed and 11 survived, and the check exits 1 with "no fixture mutant was killed".
+
+`tests/tdd/mutation-ratchet/` holds the unit tests for the ratchet itself: a directory below its floor fails, a missing or unreadable thresholds file or base ref fails closed, a lowered or removed floor is rejected, a pull request with no in-scope `src/` change skips, and the plan widens to whole directories when the baseline cannot vouch for a file.
+
+### Why the BDD-only run is not on pull requests
+
+The BDD-only nightly has not yet completed a run (4,495 mutants across all of `src/`, and every run so far was cancelled), so there is no incremental baseline to restore and `mutation-bdd-thresholds.json` is still empty: a pull request run would gate nothing. Running the step definitions as the dry run for a `src/core/requestPipeline` change would also take most of the 12-minute pull request budget on its own. Once the BDD nightly publishes a report and floors, a pull request run scoped to `src/core/requestPipeline` is the natural next step.
 
 ## How It Works
 
-1. **Instrumentation**: Stryker parses all files matching the `mutate` glob and identifies possible mutations (2800+ in this project).
-2. **Dry run**: Stryker runs the full test suite once to establish a baseline and map which tests cover which code.
-3. **Mutation**: For each mutant, Stryker modifies the source and runs only the tests that cover the changed code (`perTest` coverage analysis).
+1. **Instrumentation**: Stryker parses all files matching the `mutate` glob and identifies possible mutations (about 2,100 in the unit scope).
+2. **Dry run**: Stryker runs the related tests once to establish a baseline and map which tests cover which code (`enableFindRelatedTests`).
+3. **Mutation**: For each mutant, Stryker modifies the source and runs only the tests that cover the changed code (`perTest` coverage analysis). The TypeScript checker discards mutants that do not compile first.
 4. **Scoring**: Each mutant is classified:
 
-| Status         | Meaning                                                                 |
-| -------------- | ----------------------------------------------------------------------- |
-| **Killed**     | A test failed — the mutation was detected                               |
-| **Survived**   | All tests passed — a potential blind spot                               |
-| **Timeout**    | A test timed out — likely an infinite loop mutation, counts as detected |
-| **NoCoverage** | No test executes this code path                                         |
-| **Ignored**    | Static/module-level code, skipped via `ignoreStatic`                    |
+| Status           | Meaning                                                                 |
+| ---------------- | ----------------------------------------------------------------------- |
+| **Killed**       | A test failed — the mutation was detected                               |
+| **Survived**     | All tests passed — a potential blind spot                               |
+| **Timeout**      | A test timed out — likely an infinite loop mutation, counts as detected |
+| **NoCoverage**   | No test executes this code path                                         |
+| **CompileError** | The TypeScript checker rejected it; not counted                         |
+| **Ignored**      | Excluded mutator (`StringLiteral`) or static code; not counted          |
 
 ## Configuration
 
-Config file: `stryker.config.mjs`
+Config files: `stryker.config.mjs` (unit suite, nightly and pull requests), `stryker.bdd.config.mjs` (BDD-only), `stryker.fixture.config.mjs` (known-weak fixture).
 
 ### Scope
 
-Stryker mutates `src/core/**/*.ts` with these exclusions:
+The unit run mutates `src/core/**/*.ts` with these exclusions:
 
 - `src/core/endpoints/**` — endpoint definitions are data declarations, not logic
-- `src/core/logger/ILogger.ts`, `src/core/cache/ICache.ts`, `src/core/rateLimiter/IRateLimiter.ts` — interfaces with no runtime code
+- Interface-only files (`ILogger.ts`, `ICache.ts`, `IRateLimiter.ts`, `IRetryStrategy.ts`, `ICircuitBreaker.ts`, `IDeduplicator.ts`) and the `requestPipeline` barrel and dependency wiring
 
 Files NOT in scope (and why):
 
@@ -52,25 +112,23 @@ Files NOT in scope (and why):
 | `src/EsiClient.ts`, `src/EsiClientBuilder.ts` | High-level orchestration tested via integration tests |
 | `*.generated.ts`                              | Auto-generated from OpenAPI spec                      |
 
+A pull request that changes only out-of-scope `src/` files skips the mutation step and names those files in the summary.
+
 ### Thresholds
 
-```
-break: 65    — CI fails if mutation score drops below 65%
-low:  60    — score below 60% is highlighted red
-high: 80    — score above 80% is highlighted green
-```
+The unit config has no global `break`; the per-directory floors in `mutation-thresholds.json` are the gate. `high: 80` and `low: 60` only colour the HTML report.
 
 ### Sandbox and Module Resolution
 
-Stryker runs tests in an isolated sandbox (`.stryker-tmp/sandbox-XXX/`) containing mutated source files. Since tests live outside the sandbox at `tests/`, a `moduleNameMapper` redirects relative imports like `../../../src/core/...` to the sandbox's mutated source:
+Stryker runs tests in an isolated sandbox (`.stryker-tmp/sandbox-XXX/`) containing mutated source files. Since tests live outside the sandbox at `tests/`, a `moduleNameMapper` redirects relative imports like `../../../src/core/...`, and a bare `../../../src` (the package root), to the sandbox's mutated source:
 
 ```js
 moduleNameMapper: {
-  '^(?:\\.\\./)+src/(.*)$': '<rootDir>/src/$1',
+  '^(?:\\.\\./)+src(/.*)?$': '<rootDir>/src$1',
 }
 ```
 
-Without this, tests would import the original (un-mutated) source and every mutant would show as "NoCoverage."
+Without this, tests would import the original (un-mutated) source and every mutant would survive or show as "NoCoverage". Before the root import was mapped, `tests/tdd/auth/index.test.ts` compared classes loaded from the sandbox with classes loaded from the original tree, and the nightly's dry run failed on it (17 September 2026).
 
 ### Static Mutants
 
@@ -84,44 +142,27 @@ The HTML report at `reports/mutation/mutation.html` shows:
 - **Individual mutants** with their status, the original code, and the mutation applied
 - **Covering tests** for each mutant (which tests would need to kill it)
 
-### Baseline Scores (as of v7.2.0)
-
-| Module              | Score | Key Files                                        |
-| ------------------- | ----- | ------------------------------------------------ |
-| `util/`             | 87%   | error.ts, validation.ts, headersUtil.ts          |
-| `middleware/`       | 92%   | Middleware.ts                                    |
-| `circuitBreaker/`   | 72%   | CircuitBreaker.ts                                |
-| `rateLimiter/`      | 70%   | RateLimiter.ts                                   |
-| `ApiRequestHandler` | 58%   | Main request pipeline                            |
-| `cache/`            | 57%   | ETagCacheManager.ts                              |
-| `pagination/`       | 57%   | PaginationHandler.ts, CursorPaginationHandler.ts |
+Current per-directory floors are in `mutation-thresholds.json`; `npm run mutation:ratchet` prints today's scores next to them.
 
 ## Improving the Score
 
 When a mutant survives, it means changing that line doesn't break any test. To kill it:
 
-1. Open the HTML report and find the survived mutant
+1. Open the HTML report (or the `mutation-pr` job summary) and find the survived mutant
 2. Read what the mutation does (e.g., `a > b` changed to `a >= b`)
 3. Write a test case where the original behavior and mutated behavior produce different results
+4. Raise the directory's floor in `mutation-thresholds.json` to the new score, with a one-line reason in the pull request
 
-High-value targets for improvement:
-
-- **`ApiRequestHandler.ts`** (74 survived) — the core request pipeline has many edge cases around retries, error handling, and header parsing
-- **`PaginationHandler.ts`** (35 survived) — page boundary conditions
-- **`RateLimiter.ts`** (54 survived) — rate limit bucket edge cases
-- **`ETagCacheManager.ts`** (39 survived) — cache hit/miss/stale conditions
-
-## CI Integration
-
-Mutation testing runs as a non-blocking CI job (`mutation-testing` in `ci.yml`):
-
-- Triggered on every push/PR
-- `continue-on-error: true` — does not block the quality gate
-- 30-minute timeout
-- HTML report uploaded as a CI artifact
-
-To promote mutation testing to a blocking check, remove `continue-on-error: true` and add `mutation-testing` to the quality gate's `needs` list.
+The weakest directories at seeding were `src/core/cache` (`ETagCacheManager.ts`), `src/core/logger` and `src/core/requestPipeline` (`statusHandling.ts`, `cachePolicy.ts`).
 
 ## Runtime
 
-Mutation testing takes approximately 3-20 minutes depending on the number of mutants and test coverage. The `perTest` coverage analysis and `ignoreStatic` settings significantly reduce runtime by only running relevant tests per mutant.
+| Run                                                                                                 | Wall time                                                      |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Pull request, one-function change to `ETagCacheManager.ts`, local, concurrency 4, same-day baseline | 1 min 9 s (169 mutants instrumented, 1 of 1,845 files mutated) |
+| The same change against a one-day-old baseline (51 of 169 mutants reused)                           | 2 min 22 s                                                     |
+| Known-weak fixture, local                                                                           | 15 s                                                           |
+| Full unit run, local, concurrency 4 (1,907 mutants)                                                 | 54 min                                                         |
+| Full unit run, nightly (GitHub runner, concurrency 6)                                               | about 2 h                                                      |
+
+The pull request step has an 8-minute timeout inside a 12-minute job. A change that invalidates most of a large directory (for example, a rewrite of `RateLimiter.ts` with no baseline) can exceed it; that fails the job rather than passing it.

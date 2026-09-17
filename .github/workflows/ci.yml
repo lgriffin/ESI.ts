@@ -657,6 +657,71 @@ jobs:
       - name: Run zizmor
         run: uvx zizmor@1.25.2 --config .zizmor.yml .github/
 
+  mutation-pr:
+    name: Mutation (changed files)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # Runway tier K (bead esi-23g.12). Mutates only the src/ files this pull
+    # request changes, reusing the nightly results for everything else, and
+    # fails if a touched directory drops below its floor in
+    # mutation-thresholds.json or if that file lowers a floor. No `needs`, so
+    # it starts with lint-and-build and fits the PR wall-clock budget.
+    #
+    # Like every job here it has no job-level `if:`. A pull request that
+    # changes nothing in the unit mutation scope still runs the job: the
+    # thresholds file is still checked, the known-weak fixture still runs, and
+    # the mutation step exits 0 with a "Skipped" line in the job summary.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 2 # HEAD^1 is the base tip of the pull request merge commit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Written by nightly-mutation.yml on master. Restore only: a pull request
+      # never saves this cache. A miss is not a pass: mutation:pr then mutates
+      # every file in the touched directories from scratch.
+      - name: Restore the nightly incremental mutation report
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: reports/mutation/stryker-incremental.json
+          key: stryker-incremental-unit-${{ github.event.pull_request.base.sha }}
+          restore-keys: |
+            stryker-incremental-unit-${{ github.event.pull_request.base.sha }}-
+            stryker-incremental-unit-
+
+      # The tier's signal on itself: a deliberately weak test must leave
+      # surviving mutants that the ratchet fails.
+      - name: Known-weak fixture leaves surviving mutants
+        run: npm run mutation:fixture
+
+      - name: Mutate changed src/ files and check directory ratchets
+        timeout-minutes: 8
+        env:
+          MUTATION_BASE_REF: HEAD^1
+        run: npm run mutation:pr -- --concurrency 4
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mutation-pr-report
+          path: |
+            reports/mutation/mutation.html
+            reports/mutation/mutation.json
+          if-no-files-found: ignore
+          retention-days: 7
+
   # ci-success is the single required status check for this workflow (R10).
   #
   # Semantics:
@@ -694,6 +759,7 @@ jobs:
         lockfile,
         dependency-audit,
         zizmor,
+        mutation-pr,
       ]
     if: always()
 
