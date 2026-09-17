@@ -3,6 +3,8 @@ import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import { getBody } from '../../../src/core/util/testHelpers';
 import fetchMock from 'jest-fetch-mock';
+import { MetaRouteStatusSchema } from '../../../src/schemas/meta';
+import type { MetaRouteStatus } from '../../../src/types/api-responses';
 
 fetchMock.enableMocks();
 
@@ -143,9 +145,12 @@ describe('MetaClient', () => {
   });
 
   it('should return the ESI status', async () => {
-    const mockResponse = {
-      routes: [{ method: 'GET', path: '/alliances', status: 'OK' }],
+    const route: MetaRouteStatus = {
+      method: 'GET',
+      path: '/alliances',
+      status: 'OK',
     };
+    const mockResponse = { routes: [route] };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
@@ -157,5 +162,24 @@ describe('MetaClient', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/meta/status',
     );
+  });
+
+  describe('MetaRouteStatusSchema', () => {
+    it('accepts a route status ESI sends', () => {
+      expect(
+        MetaRouteStatusSchema.safeParse({
+          method: 'POST',
+          path: '/characters/affiliation',
+          status: 'Degraded',
+        }).success,
+      ).toBe(true);
+    });
+
+    it('rejects a route without a path', () => {
+      expect(
+        MetaRouteStatusSchema.safeParse({ method: 'GET', status: 'OK' })
+          .success,
+      ).toBe(false);
+    });
   });
 });
