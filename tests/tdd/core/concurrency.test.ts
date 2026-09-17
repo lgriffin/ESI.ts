@@ -60,9 +60,7 @@ describe('Concurrency', () => {
       expect(results).toHaveLength(20);
       results.forEach((r) => {
         expect(r.status).toBe('rejected');
-        if (r.status === 'rejected') {
-          expect(r.reason).toBe(error);
-        }
+        expect((r as PromiseRejectedResult).reason).toBe(error);
       });
     });
 

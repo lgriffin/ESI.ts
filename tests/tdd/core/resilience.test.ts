@@ -46,16 +46,14 @@ describe('Resilience: Error Handling and Recovery', () => {
         headers: standardHeaders({ 'retry-after': '10' }),
       });
 
-      try {
-        await client.status.getStatus();
-        fail('Should have thrown');
-      } catch (e) {
-        expect(e).toBeInstanceOf(EsiError);
-        const err = e as EsiError;
-        expect(err.statusCode).toBe(429);
-        expect(err.retryable).toBe(true);
-        expect(err.isRateLimited()).toBe(true);
-      }
+      const request = client.status.getStatus();
+      await expect(request).rejects.toBeInstanceOf(EsiError);
+      await expect(request).rejects.toMatchObject({
+        statusCode: 429,
+        retryable: true,
+      });
+      const err = (await request.catch((e: unknown) => e)) as EsiError;
+      expect(err.isRateLimited()).toBe(true);
     });
 
     it('should automatically retry on 429 when retryConfig is set', async () => {
@@ -180,16 +178,12 @@ describe('Resilience: Error Handling and Recovery', () => {
         headers: standardHeaders(),
       });
 
-      try {
-        await client.status.getStatus();
-        fail('Should have thrown');
-      } catch (e) {
-        expect(e).toBeInstanceOf(EsiError);
-        const err = e as EsiError;
-        expect(err.statusCode).toBe(403);
-        expect(err.message).toContain('Forbidden');
-        expect(err.isForbidden()).toBe(true);
-      }
+      const request = client.status.getStatus();
+      await expect(request).rejects.toBeInstanceOf(EsiError);
+      await expect(request).rejects.toMatchObject({ statusCode: 403 });
+      await expect(request).rejects.toThrow('Forbidden');
+      const err = (await request.catch((e: unknown) => e)) as EsiError;
+      expect(err.isForbidden()).toBe(true);
     });
   });
 
@@ -213,16 +207,14 @@ describe('Resilience: Error Handling and Recovery', () => {
         headers: standardHeaders(),
       });
 
-      try {
-        await client.status.getStatus();
-        fail('Should have thrown');
-      } catch (e) {
-        expect(e).toBeInstanceOf(EsiError);
-        const err = e as EsiError;
-        expect(err.statusCode).toBe(420);
-        expect(err.isRateLimited()).toBe(true);
-        expect(err.retryable).toBe(true);
-      }
+      const request = client.status.getStatus();
+      await expect(request).rejects.toBeInstanceOf(EsiError);
+      await expect(request).rejects.toMatchObject({
+        statusCode: 420,
+        retryable: true,
+      });
+      const err = (await request.catch((e: unknown) => e)) as EsiError;
+      expect(err.isRateLimited()).toBe(true);
     });
 
     it('should record circuit breaker failure on 420 when enabled', async () => {

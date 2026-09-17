@@ -46,11 +46,9 @@ describe('Schema Validation', () => {
 
       const result = CharacterInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.character_id).toBe(1689391488);
-        expect(result.data.name).toBe('Test Character');
-        expect(result.data.gender).toBe('male');
-      }
+      expect(result.data?.character_id).toBe(1689391488);
+      expect(result.data?.name).toBe('Test Character');
+      expect(result.data?.gender).toBe('male');
     });
 
     it('should parse valid AllianceInfo data successfully', () => {
@@ -65,11 +63,9 @@ describe('Schema Validation', () => {
 
       const result = AllianceInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.alliance_id).toBe(99005338);
-        expect(result.data.name).toBe('Goonswarm Federation');
-        expect(result.data.ticker).toBe('CONDI');
-      }
+      expect(result.data?.alliance_id).toBe(99005338);
+      expect(result.data?.name).toBe('Goonswarm Federation');
+      expect(result.data?.ticker).toBe('CONDI');
     });
 
     it('should parse valid MarketOrder data successfully', () => {
@@ -90,11 +86,9 @@ describe('Schema Validation', () => {
 
       const result = MarketOrderSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.order_id).toBe(5000001);
-        expect(result.data.is_buy_order).toBe(false);
-        expect(result.data.price).toBe(5.5);
-      }
+      expect(result.data?.order_id).toBe(5000001);
+      expect(result.data?.is_buy_order).toBe(false);
+      expect(result.data?.price).toBe(5.5);
     });
 
     it('should parse valid SolarSystemInfo data successfully', () => {
@@ -118,12 +112,10 @@ describe('Schema Validation', () => {
 
       const result = SolarSystemInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.system_id).toBe(30000142);
-        expect(result.data.name).toBe('Jita');
-        expect(result.data.planets).toHaveLength(1);
-        expect(result.data.planets![0].planet_id).toBe(40009077);
-      }
+      expect(result.data?.system_id).toBe(30000142);
+      expect(result.data?.name).toBe('Jita');
+      expect(result.data?.planets).toHaveLength(1);
+      expect(result.data?.planets![0].planet_id).toBe(40009077);
     });
 
     it('should parse valid CharacterPortrait data successfully', () => {
@@ -136,9 +128,7 @@ describe('Schema Validation', () => {
 
       const result = CharacterPortraitSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.px64x64).toContain('size=64');
-      }
+      expect(result.data?.px64x64).toContain('size=64');
     });
 
     it('should parse valid CharacterAttributes data successfully', () => {
@@ -154,9 +144,7 @@ describe('Schema Validation', () => {
 
       const result = CharacterAttributesSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.intelligence).toBe(24);
-      }
+      expect(result.data?.intelligence).toBe(24);
     });
 
     it('should parse valid MarketHistory data successfully', () => {
@@ -171,9 +159,7 @@ describe('Schema Validation', () => {
 
       const result = MarketHistorySchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.average).toBe(5.5);
-      }
+      expect(result.data?.average).toBe(5.5);
     });
   });
 
@@ -326,12 +312,10 @@ describe('Schema Validation', () => {
 
       const result = CharacterInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.description).toBeUndefined();
-        expect(result.data.alliance_id).toBeUndefined();
-        expect(result.data.security_status).toBeUndefined();
-        expect(result.data.title).toBeUndefined();
-      }
+      expect(result.data?.description).toBeUndefined();
+      expect(result.data?.alliance_id).toBeUndefined();
+      expect(result.data?.security_status).toBeUndefined();
+      expect(result.data?.title).toBeUndefined();
     });
 
     it('should accept AllianceInfo without optional executor_corporation_id', () => {
@@ -346,10 +330,8 @@ describe('Schema Validation', () => {
 
       const result = AllianceInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.executor_corporation_id).toBeUndefined();
-        expect(result.data.faction_id).toBeUndefined();
-      }
+      expect(result.data?.executor_corporation_id).toBeUndefined();
+      expect(result.data?.faction_id).toBeUndefined();
     });
 
     it('should accept MarketOrder without optional state field', () => {
@@ -370,9 +352,7 @@ describe('Schema Validation', () => {
 
       const result = MarketOrderSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.state).toBeUndefined();
-      }
+      expect(result.data?.state).toBeUndefined();
     });
 
     it('should accept SolarSystemInfo without optional planets and stargates', () => {
@@ -386,11 +366,9 @@ describe('Schema Validation', () => {
 
       const result = SolarSystemInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.planets).toBeUndefined();
-        expect(result.data.stargates).toBeUndefined();
-        expect(result.data.stations).toBeUndefined();
-      }
+      expect(result.data?.planets).toBeUndefined();
+      expect(result.data?.stargates).toBeUndefined();
+      expect(result.data?.stations).toBeUndefined();
     });
 
     it('should accept CharacterPortrait with no portrait fields', () => {
@@ -398,12 +376,10 @@ describe('Schema Validation', () => {
 
       const result = CharacterPortraitSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.px64x64).toBeUndefined();
-        expect(result.data.px128x128).toBeUndefined();
-        expect(result.data.px256x256).toBeUndefined();
-        expect(result.data.px512x512).toBeUndefined();
-      }
+      expect(result.data?.px64x64).toBeUndefined();
+      expect(result.data?.px128x128).toBeUndefined();
+      expect(result.data?.px256x256).toBeUndefined();
+      expect(result.data?.px512x512).toBeUndefined();
     });
   });
 
@@ -423,11 +399,9 @@ describe('Schema Validation', () => {
 
       const result = CharacterInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        const parsed = result.data as Record<string, unknown>;
-        expect(parsed['extra_field']).toBe('extra_value');
-        expect(parsed['another_field']).toBe(42);
-      }
+      const parsed = result.data as Record<string, unknown>;
+      expect(parsed['extra_field']).toBe('extra_value');
+      expect(parsed['another_field']).toBe(42);
     });
 
     it('should preserve extra fields on AllianceInfo', () => {
@@ -443,10 +417,8 @@ describe('Schema Validation', () => {
 
       const result = AllianceInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        const parsed = result.data as Record<string, unknown>;
-        expect(parsed['new_api_field']).toBe(true);
-      }
+      const parsed = result.data as Record<string, unknown>;
+      expect(parsed['new_api_field']).toBe(true);
     });
 
     it('should preserve extra fields on MarketOrder', () => {
@@ -468,10 +440,8 @@ describe('Schema Validation', () => {
 
       const result = MarketOrderSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        const parsed = result.data as Record<string, unknown>;
-        expect(parsed['undocumented_field']).toBe('surprise');
-      }
+      const parsed = result.data as Record<string, unknown>;
+      expect(parsed['undocumented_field']).toBe('surprise');
     });
   });
 
@@ -727,9 +697,7 @@ describe('Schema Validation', () => {
 
       const result = AllianceContactSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.label_ids).toBeUndefined();
-      }
+      expect(result.data?.label_ids).toBeUndefined();
     });
 
     it('should accept CorporationHistory with is_deleted omitted', () => {
@@ -741,9 +709,7 @@ describe('Schema Validation', () => {
 
       const result = CorporationHistorySchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.is_deleted).toBeUndefined();
-      }
+      expect(result.data?.is_deleted).toBeUndefined();
     });
 
     it('should accept CharacterRole with all optional arrays omitted', () => {
@@ -751,12 +717,10 @@ describe('Schema Validation', () => {
 
       const result = CharacterRoleSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.roles).toBeUndefined();
-        expect(result.data.roles_at_hq).toBeUndefined();
-        expect(result.data.roles_at_base).toBeUndefined();
-        expect(result.data.roles_at_other).toBeUndefined();
-      }
+      expect(result.data?.roles).toBeUndefined();
+      expect(result.data?.roles_at_hq).toBeUndefined();
+      expect(result.data?.roles_at_base).toBeUndefined();
+      expect(result.data?.roles_at_other).toBeUndefined();
     });
   });
 
@@ -779,12 +743,10 @@ describe('Schema Validation', () => {
 
       const result = MedalSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.graphics).toHaveLength(2);
-        expect(result.data.graphics[0].part).toBe(1);
-        expect(result.data.graphics[0].color).toBe(16777215);
-        expect(result.data.graphics[1].color).toBeUndefined();
-      }
+      expect(result.data?.graphics).toHaveLength(2);
+      expect(result.data?.graphics[0].part).toBe(1);
+      expect(result.data?.graphics[0].color).toBe(16777215);
+      expect(result.data?.graphics[1].color).toBeUndefined();
     });
 
     it('should reject Medal with invalid graphics array element', () => {
@@ -825,11 +787,9 @@ describe('Schema Validation', () => {
 
       const result = SolarSystemInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.planets).toHaveLength(2);
-        expect(result.data.planets![0].moons).toEqual([40009079, 40009080]);
-        expect(result.data.planets![1].asteroid_belts).toBeUndefined();
-      }
+      expect(result.data?.planets).toHaveLength(2);
+      expect(result.data?.planets![0].moons).toEqual([40009079, 40009080]);
+      expect(result.data?.planets![1].asteroid_belts).toBeUndefined();
     });
 
     it('should reject SolarSystemInfo with invalid nested planet data', () => {
@@ -865,9 +825,7 @@ describe('Schema Validation', () => {
 
       const result = ConstellationInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.position.x).toBe(-128947482560.0);
-      }
+      expect(result.data?.position.x).toBe(-128947482560.0);
     });
 
     it('should validate TypeInfo with nested dogma_attributes array', () => {
@@ -887,10 +845,8 @@ describe('Schema Validation', () => {
 
       const result = TypeInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.dogma_attributes).toHaveLength(2);
-        expect(result.data.dogma_effects).toHaveLength(1);
-      }
+      expect(result.data?.dogma_attributes).toHaveLength(2);
+      expect(result.data?.dogma_effects).toHaveLength(1);
     });
   });
 
@@ -906,9 +862,7 @@ describe('Schema Validation', () => {
 
       const result = ConstellationInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.systems).toEqual([30000142, 30000143, 30000144]);
-      }
+      expect(result.data?.systems).toEqual([30000142, 30000143, 30000144]);
     });
 
     it('should reject ConstellationInfo when systems array contains strings', () => {
@@ -933,9 +887,7 @@ describe('Schema Validation', () => {
 
       const result = RegionInfoSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.constellations).toHaveLength(3);
-      }
+      expect(result.data?.constellations).toHaveLength(3);
     });
 
     it('should reject RegionInfo when constellations array contains wrong types', () => {
@@ -969,9 +921,7 @@ describe('Schema Validation', () => {
 
       const result = AllianceIconSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.px64x64).toContain('size=64');
-      }
+      expect(result.data?.px64x64).toContain('size=64');
     });
 
     it('should accept AllianceContactLabel with valid data', () => {

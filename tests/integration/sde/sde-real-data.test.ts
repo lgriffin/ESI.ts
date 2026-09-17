@@ -281,10 +281,9 @@ const canRun =
 
     it('getSkinLicensesBySkin returns licenses', () => {
       const skins = sde.getAllEntities<Skin>('eve_skins');
-      if (skins.length > 0) {
-        const licenses = sde.getSkinLicensesBySkin(skins[0].skinId);
-        expect(Array.isArray(licenses)).toBe(true);
-      }
+      expect(skins.length).toBeGreaterThan(0);
+      const licenses = sde.getSkinLicensesBySkin(skins[0].skinId);
+      expect(Array.isArray(licenses)).toBe(true);
     });
   });
 
@@ -317,12 +316,12 @@ const canRun =
 
   describe('blueprints', () => {
     it('blueprint 681 should have manufacturing activity', () => {
+      // 681 is the Clone Grade Beta Blueprint, the first entry in blueprints.yaml.
       const bp = sde.getBlueprint(681);
-      if (bp) {
-        expect(bp.activities).toBeDefined();
-        expect(bp.activities.manufacturing).toBeDefined();
-        expect(bp.activities.manufacturing!.time).toBeGreaterThan(0);
-      }
+      expect(bp).not.toBeNull();
+      expect(bp!.activities).toBeDefined();
+      expect(bp!.activities.manufacturing).toBeDefined();
+      expect(bp!.activities.manufacturing!.time).toBeGreaterThan(0);
     });
   });
 

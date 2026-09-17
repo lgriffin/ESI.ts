@@ -5,6 +5,11 @@ import { FileTokenStorage } from '../../../src/auth/storage/FileTokenStorage';
 import { makeStoredToken } from '../helpers/ssoFixtures';
 import type { StoredToken } from '../../../src/auth/types';
 
+// File modes are a POSIX concept: Windows ignores the requested mode.
+const IS_WINDOWS = process.platform === 'win32';
+const describeOnPosix = IS_WINDOWS ? describe.skip : describe;
+const describeOnWindows = IS_WINDOWS ? describe : describe.skip;
+
 describe('FileTokenStorage', () => {
   let dir: string;
   let file: string;
@@ -39,14 +44,20 @@ describe('FileTokenStorage', () => {
     expect(fs.readdirSync(path.dirname(file))).toEqual(['tokens.json']);
   });
 
-  it('applies the requested file mode on POSIX platforms', async () => {
-    const storage = new FileTokenStorage(file, { mode: 0o640 });
-    await storage.set(1, makeStoredToken({ characterId: 1 }));
-    if (process.platform !== 'win32') {
+  describeOnPosix('on POSIX platforms', () => {
+    it('applies the requested file mode', async () => {
+      const storage = new FileTokenStorage(file, { mode: 0o640 });
+      await storage.set(1, makeStoredToken({ characterId: 1 }));
       expect(fs.statSync(file).mode & 0o777).toBe(0o640);
-    } else {
+    });
+  });
+
+  describeOnWindows('on Windows', () => {
+    it('writes the file despite the requested mode', async () => {
+      const storage = new FileTokenStorage(file, { mode: 0o640 });
+      await storage.set(1, makeStoredToken({ characterId: 1 }));
       expect(fs.existsSync(file)).toBe(true);
-    }
+    });
   });
 
   it('round-trips through a second instance', async () => {

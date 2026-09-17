@@ -191,16 +191,15 @@ describe('CircuitBreaker', () => {
       cb.recordFailure('v1/status/', 500);
       cb.recordFailure('v1/status/', 500);
 
+      let thrown: unknown;
       try {
         cb.checkCircuit('v1/status/');
-        fail('Expected CircuitOpenError');
       } catch (err) {
-        expect(err).toBeInstanceOf(CircuitOpenError);
-        const coe = err as CircuitOpenError;
-        expect(coe.endpoint).toBe('v1/status/');
-        expect(coe.failures).toBe(2);
-        expect(coe.retryAfterMs).toBeGreaterThan(0);
+        thrown = err;
       }
+      expect(thrown).toBeInstanceOf(CircuitOpenError);
+      expect(thrown).toMatchObject({ endpoint: 'v1/status/', failures: 2 });
+      expect((thrown as CircuitOpenError).retryAfterMs).toBeGreaterThan(0);
     });
   });
 

@@ -189,17 +189,17 @@ describe('CursorPaginationHandler', () => {
       jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(abortError);
 
       try {
-        await CursorPaginationHandler.fetchPage(
+        const request = CursorPaginationHandler.fetchPage(
           client,
           'some/endpoint',
           'GET',
           false,
         );
-        fail('Expected TimeoutError');
-      } catch (err) {
-        expect(err).toBeInstanceOf(TimeoutError);
-        expect(isTimeout(err)).toBe(true);
-        expect((err as TimeoutError).timeoutMs).toBe(30000);
+        await expect(request).rejects.toBeInstanceOf(TimeoutError);
+        await expect(request).rejects.toMatchObject({ timeoutMs: 30000 });
+        expect(isTimeout(await request.catch((err: unknown) => err))).toBe(
+          true,
+        );
       } finally {
         jest.restoreAllMocks();
         fetchMock.enableMocks();
@@ -578,18 +578,14 @@ describe('CursorPaginationHandler', () => {
     it('should throw EsiError (not plain Error) for HTTP errors via pipeline', async () => {
       fetchMock.mockResponseOnce('', { status: 503 });
 
-      try {
-        await CursorPaginationHandler.fetchPage(
-          client,
-          'corps/123/projects',
-          'GET',
-          false,
-        );
-        fail('Expected EsiError');
-      } catch (err) {
-        expect(err).toBeInstanceOf(EsiError);
-        expect((err as EsiError).statusCode).toBe(503);
-      }
+      const request = CursorPaginationHandler.fetchPage(
+        client,
+        'corps/123/projects',
+        'GET',
+        false,
+      );
+      await expect(request).rejects.toBeInstanceOf(EsiError);
+      await expect(request).rejects.toMatchObject({ statusCode: 503 });
     });
 
     it('should require rate limiter when using pipeline (no pageFetch)', async () => {

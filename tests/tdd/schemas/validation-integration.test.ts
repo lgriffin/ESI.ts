@@ -286,17 +286,15 @@ describe('Validation Integration', () => {
         { issues: [] },
       );
 
-      let caught = false;
+      let caught: unknown;
       try {
         throw error;
       } catch (e) {
-        if (e instanceof EsiError) {
-          caught = true;
-          expect(e.statusCode).toBe(0);
-        }
+        caught = e;
       }
 
-      expect(caught).toBe(true);
+      expect(caught).toBeInstanceOf(EsiError);
+      expect((caught as EsiError).statusCode).toBe(0);
     });
 
     it('should maintain EsiError helper methods', () => {

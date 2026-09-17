@@ -242,19 +242,15 @@ describe('Token Refresh', () => {
         .mockResponseOnce('', { status: 401 })
         .mockResponseOnce('', { status: 401 });
 
-      try {
-        await handleRequest(
-          client,
-          'latest/characters/123/',
-          'GET',
-          undefined,
-          true,
-        );
-        fail('Should have thrown');
-      } catch (error) {
-        expect(error).toBeInstanceOf(EsiError);
-        expect((error as EsiError).statusCode).toBe(401);
-      }
+      const request = handleRequest(
+        client,
+        'latest/characters/123/',
+        'GET',
+        undefined,
+        true,
+      );
+      await expect(request).rejects.toBeInstanceOf(EsiError);
+      await expect(request).rejects.toMatchObject({ statusCode: 401 });
     });
   });
 });
