@@ -1,0 +1,45 @@
+{
+  "sites": {
+    "src/auth/EsiTokenManager.ts": {
+      "date-now": 1
+    },
+    "src/auth/storage/FileTokenStorage.ts": {
+      "date-now": 1
+    },
+    "src/core/ApiRequestHandler.ts": {
+      "date-now": 3
+    },
+    "src/core/cache/ETagCacheManager.ts": {
+      "date-now": 2,
+      "set-interval": 1
+    },
+    "src/core/circuitBreaker/CircuitBreaker.ts": {
+      "date-now": 4,
+      "set-interval": 1
+    },
+    "src/core/rateLimiter/RateLimiter.ts": {
+      "date-now": 16
+    },
+    "src/core/requestPipeline/cachePolicy.ts": {
+      "date-now": 1
+    },
+    "src/core/requestPipeline/fetchExecution.ts": {
+      "set-timeout": 1
+    },
+    "src/core/requestPipeline/middlewareBridge.ts": {
+      "date-now": 1
+    },
+    "src/core/util/retry.ts": {
+      "math-random": 1
+    },
+    "src/core/util/sleep.ts": {
+      "set-timeout": 1
+    },
+    "src/sde/SdeDataProvider.ts": {
+      "new-date": 1
+    },
+    "src/sde/ingestion/SdeDatabaseBuilder.ts": {
+      "new-date": 1
+    }
+  }
+}
