@@ -210,24 +210,28 @@ export const handleRequest = async (
 ): Promise<EsiHandlerResponse> => {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const startTime = Date.now();
-  const specHit = trySpecAwareCacheHit(
-    client,
-    rawUrl,
-    method,
-    templatePath,
-    resolveCache,
-    requiresAuth,
-  );
-  if (specHit) {
-    return applyResponseInterceptors(
+  const specCacheHit = (): Promise<EsiHandlerResponse> | null => {
+    const hit = trySpecAwareCacheHit(
       client,
-      specHit,
       rawUrl,
-      endpoint,
       method,
-      startTime,
+      templatePath,
+      resolveCache,
+      requiresAuth,
     );
-  }
+    return hit
+      ? applyResponseInterceptors(
+          client,
+          hit,
+          rawUrl,
+          endpoint,
+          method,
+          startTime,
+        )
+      : null;
+  };
+  const specHit = specCacheHit();
+  if (specHit) return specHit;
 
   const doExecute = () =>
     executeRequest(
@@ -244,10 +248,17 @@ export const handleRequest = async (
   const dedup = client.getDeduplicator();
   const canDedup = dedup && method === 'GET' && !body;
 
-  const operation = () =>
-    canDedup
+  let attempted = false;
+  const operation = () => {
+    // A retry waited out a backoff, during which a concurrent call may have
+    // cached a fresh copy. Serve it rather than spend another request.
+    const retryHit = attempted ? specCacheHit() : null;
+    attempted = true;
+    if (retryHit) return retryHit;
+    return canDedup
       ? dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
       : doExecute();
+  };
 
   const retryStrategy = resolveRetryStrategy(client);
 
