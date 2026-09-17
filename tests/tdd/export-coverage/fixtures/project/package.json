@@ -1,0 +1,13 @@
+{
+  "name": "export-coverage-fixture",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts"
+    },
+    "./extra": {
+      "types": "./dist/extra.d.ts"
+    },
+    "./package.json": "./package.json"
+  }
+}
