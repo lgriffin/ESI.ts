@@ -131,6 +131,12 @@ Feature: Resilience and Error Recovery
       When the client makes a request
       Then the client shall throw a timeout error
 
+    Scenario: A body that stops arriving after the headers reaches the caller as a TimeoutError
+      Given a client configured with a short timeout
+      And the endpoint sends its headers and then stops sending the body
+      When the client makes a request
+      Then the client shall throw a timeout error
+
   # ── Retry classes ───────────────────────────────────────────────────
 
   Rule: If a GET request is answered with HTTP 502, 503, or 504 while retries remain, then the EsiClient shall issue the same request again and resolve with the response to the retry.
@@ -181,6 +187,20 @@ Feature: Resilience and Error Recovery
     Scenario: A timed-out first attempt is retried
       Given a client with retries enabled and a 50 millisecond timeout
       And ESI holds the first server status request past the timeout and answers the retry at once
+      When the client requests the server status
+      Then the client resolves with the payload from the retry
+      And the client sent 2 requests
+
+  Rule: If the connection of a GET request drops before the response body is complete while retries remain, then the EsiClient shall issue the same request again.
+    A reset part way through the body is a network failure, like a reset before
+    the headers: the attempt fails with an EsiError of status code 0 whose
+    message starts Network request failed, and the retry strategy treats it as
+    transient. It is not a malformed body, so it is not reported as a JSON
+    parse error, which is never retried.
+
+    Scenario: A connection reset part way through the body is retried
+      Given a client with retries enabled
+      And ESI resets the connection part way through the first server status body and answers the retry with a payload
       When the client requests the server status
       Then the client resolves with the payload from the retry
       And the client sent 2 requests

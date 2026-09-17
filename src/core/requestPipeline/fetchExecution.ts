@@ -48,6 +48,24 @@ function networkError(err: unknown, url: string): EsiError {
 }
 
 /**
+ * Read the whole body while the request timer is still running, then let
+ * `text()` and `json()` answer from that copy. Later stages read the body
+ * after this function returns, when a stalled or reset stream would no longer
+ * be under the timeout or classed as a network failure.
+ */
+async function bufferBody(response: Response): Promise<void> {
+  if (typeof response.text !== 'function') return;
+  const text = await response.text();
+  Object.defineProperties(response, {
+    text: { value: () => Promise.resolve(text), configurable: true },
+    json: {
+      value: () => Promise.resolve(text).then((t) => JSON.parse(t) as unknown),
+      configurable: true,
+    },
+  });
+}
+
+/**
  * Execute a single HTTP fetch with rate limiting, circuit breaker, and timeout.
  */
 export async function executeSingleFetch(
@@ -114,6 +132,9 @@ export async function executeSingleFetch(
     let response: Response;
     try {
       response = await client.getFetch()(url, options);
+      // The timeout covers the body as well as the headers, and a body that
+      // fails to arrive is a network failure, not a malformed response.
+      await bufferBody(response);
     } catch (err) {
       clearTimeout(timer);
       if (cb) {

@@ -14,30 +14,6 @@
       "reason": "Page 1 is cached before pages 2..N arrive, so a later page failing leaves page 1 alone in the cache, served as if complete on the next call inside the TTL or after a 304."
     },
     {
-      "fault": "connection-reset-mid-body",
-      "targets": [
-        "status.getStatus",
-        "location.getCharacterLocation",
-        "market.getMarketOrders",
-        "freelanceJobs.getFreelanceJobs",
-        "universe.postNamesAndCategories"
-      ],
-      "bead": "esi-23g.8",
-      "reason": "A body read that fails after the headers is reported as [JSON_PARSE_ERROR], not a retryable network failure, so a reset mid-body is never retried."
-    },
-    {
-      "fault": "body-stalls-after-headers",
-      "targets": [
-        "status.getStatus",
-        "location.getCharacterLocation",
-        "market.getMarketOrders",
-        "freelanceJobs.getFreelanceJobs",
-        "universe.postNamesAndCategories"
-      ],
-      "bead": "esi-23g.8",
-      "reason": "The request timer is cleared once headers arrive, so a body that stops arriving hangs the call forever instead of raising TimeoutError."
-    },
-    {
       "fault": "bad-gateway-without-reason-phrase",
       "targets": [
         "status.getStatus",

@@ -467,6 +467,43 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('A body that stops arriving after the headers reaches the caller as a TimeoutError', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client configured with a short timeout', () => {
+      client = createSeamClient({ timeout: 50, retryConfig: NO_RETRIES });
+    });
+
+    and(
+      'the endpoint sends its headers and then stops sending the body',
+      () => {
+        queueResponse({
+          body: FIRST_PAYLOAD,
+          match: STATUS_PATH,
+          fault: { kind: 'body-stall', bytes: 12 },
+        });
+      },
+    );
+
+    when('the client makes a request', async () => {
+      outcome = await settle(client.status.getStatus());
+    });
+
+    then('the client shall throw a timeout error', () => {
+      expect(requestsSent()).toBe(1);
+      expect(outcome.status).toBe('rejected');
+      expect((outcome as PromiseRejectedResult).reason).toBeInstanceOf(
+        TimeoutError,
+      );
+    });
+  });
+
   // ── Retry classes ──────────────────────────────────────────────────
 
   test('HTTP <status> on the first attempt is retried', ({
@@ -529,6 +566,44 @@ defineFeature(feature, (test) => {
 
     when('the client requests the server status', async () => {
       outcome = await settle(statusClient.getStatus());
+    });
+
+    then('the client resolves with the payload from the retry', () => {
+      expectResolvedWith(outcome, RETRY_PAYLOAD);
+    });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A connection reset part way through the body is retried', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client with retries enabled', () => {
+      client = createSeamClient();
+    });
+
+    and(
+      'ESI resets the connection part way through the first server status body and answers the retry with a payload',
+      () => {
+        queueResponse({
+          body: FIRST_PAYLOAD,
+          match: STATUS_PATH,
+          fault: { kind: 'body-error', code: 'ECONNRESET', bytes: 12 },
+        });
+        queueResponse({ body: RETRY_PAYLOAD, match: STATUS_PATH });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(client.status.getStatus());
     });
 
     then('the client resolves with the payload from the retry', () => {
