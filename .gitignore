@@ -89,6 +89,7 @@ docs-site/public/api/
 # Stryker mutation testing
 .stryker-tmp/
 .stryker-tmp-bdd/
+.stryker-tmp-fixture/
 
 # Generated OKF knowledge bundle
 okf/

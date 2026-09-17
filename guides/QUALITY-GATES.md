@@ -40,6 +40,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | zizmor (workflow security)                 |   ·    |            ·             |        ●         |       ·       |      ·       |
 | TypeDoc generation                         |   ·    |            ·             |        ●         |       ·       |      ●       |
 | Unit + BDD, fails if any test was retried  |   ·    |            ·             |        ·         |       ◐       |      ·       |
+| Stryker mutation                           |   ·    |            ·             | ● changed files  |       ◐       |      ·       |
 | Stryker mutation                           |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Type mutation (tsd ratchet)                |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Schemathesis API fuzz                      |   ·    |            ·             |        ·         |       ◐       |      ·       |
@@ -116,7 +117,7 @@ knip runs with `--no-exit-code` in `ci.yml` (`static-analysis`), `release.yml` (
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `nightly-audit.yml`        | Creates or comments on an issue labelled `security-audit`; auto-closes it when clean                                                                |
 | `nightly-spec-drift.yml`   | Creates or comments on an issue labelled `spec-drift`; auto-closes it when clean. If the check itself fails, the same for `spec-drift-check-failed` |
-| `nightly-mutation.yml`     | Uploads `reports/mutation/` as an artifact only                                                                                                     |
+| `nightly-mutation.yml`     | Fails if a directory is below its mutation floor; uploads `reports/mutation/`; caches the incremental report for pull requests                      |
 | `nightly-schemathesis.yml` | Uploads `reports/schemathesis/` as an artifact only                                                                                                 |
 | `nightly-no-retry.yml`     | Fails the run and uploads `reports/no-retry/` as an artifact only                                                                                   |
 | `nightly-interleave.yml`   | Fails the run; the log names the broken invariant and the replay command                                                                            |
@@ -175,7 +176,7 @@ One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `lint:bdd-seam`, `l
 
 ### `ci.yml` — CI/CD Pipeline
 
-Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` it. `pr-info`, `static-analysis`, `lockfile`, `dependency-audit` and `zizmor` run in parallel with it. No job has a job-level `if:`, and every job is in the gate (GATE-01).
+Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` it. `pr-info`, `static-analysis`, `lockfile`, `dependency-audit`, `zizmor` and `mutation-pr` run in parallel with it. No job has a job-level `if:`, and every job is in the gate (GATE-01).
 
 | Job (display name)                       | What it does                                                                                                                                                                                                                                                                                  | In gate |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
@@ -197,6 +198,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `dependency-audit` (Dependency Audit)    | Audits base and head, fails only on advisories the PR introduces. Its steps skip when `package.json` and `package-lock.json` are unchanged; the job still reports success                                                                                                                     |   yes   |
 | `documentation` (Generate Documentation) | Runs TypeDoc and uploads `docs-site/public/api/`, so a docs break is caught before `release.yml` runs `npm run docs`                                                                                                                                                                          |   yes   |
 | `zizmor` (Workflow Security (zizmor))    | `uvx zizmor@<pinned>` over `.github/` with `.zizmor.yml`, on every pull request                                                                                                                                                                                                               |   yes   |
+| `mutation-pr` (Mutation (changed files)) | `npm run mutation:fixture` (a known-weak fixture must leave survivors), then `npm run mutation:pr`: incremental Stryker over changed `src/` files in scope, reusing the nightly cache; fails on a lowered floor in `mutation-thresholds.json`, or a touched directory below or without one    |   yes   |
 | `ci-success` (ci-success)                | Fails unless every other job succeeded, and fails if a job is missing from its `needs` (GATE-01)                                                                                                                                                                                              |    —    |
 
 The generated-types, schema-drift and contract steps all call the live ESI spec. Each captures its log and, if the failure contains `HTTP 503`, downgrades it to a `::warning::` and passes (`TEST-08`).
@@ -246,7 +248,7 @@ Daily at 03:30 UTC on Node 20 with a 60-minute timeout. Runs the composition tie
 
 ### `nightly-mutation.yml` — Nightly Mutation Testing
 
-Daily at 02:00 UTC on Node 22 with a 240-minute timeout. Runs `npm run mutation` (Stryker, `stryker.config.mjs`) over `src/core/**` excluding endpoint definitions and pure interface files. Thresholds are `high: 80`, `low: 60`, `break: 65`; a score below `break` fails the run. The HTML report is uploaded as `mutation-report` whether or not it passed. No issue is filed. Details in [TESTING.md](TESTING.md).
+Daily at 02:00 UTC on Node 22 with a 240-minute timeout. Runs `npm run mutation -- --incremental --force` (Stryker, `stryker.config.mjs`) over `src/core/**` excluding endpoint definitions and pure interface files. After a complete run it saves `reports/mutation/stryker-incremental.json` to the Actions cache (key `stryker-incremental-unit-<sha>-<run id>`), which `mutation-pr` in `ci.yml` restores. There is no global break threshold: `npm run mutation:ratchet` scores every directory against `mutation-thresholds.json` and fails if one is below its floor or has none. The HTML, JSON and incremental reports are uploaded as `mutation-report` whether or not it passed. No issue is filed. Details in [MUTATION-TESTING.md](MUTATION-TESTING.md).
 
 A second job, `bdd-mutation-testing` (300-minute timeout), runs `npm run mutation:bdd` (`stryker.bdd.config.mjs`): all of `src/` except generated files, types, interfaces and test helpers, with only the BDD step definitions as the test suite, so a surviving mutant is a behaviour no Rule protects. There is no global break threshold. `npm run mutation:bdd:ratchet` then scores the JSON report per directory (`src/<area>`, and `src/core/<sub>` inside core), writes the table to the step summary, and fails if any directory falls below its entry in `mutation-bdd-thresholds.json`. Directories without an entry are reported, not gated; the file starts empty, and `-- --update` raises entries to the current scores but never lowers one. The report is uploaded as `bdd-mutation-report`.
 
@@ -560,11 +562,12 @@ npx ts-node scripts/audit-check.ts --filter --in audit-raw.json --out audit-repo
 
 ### Other exception files
 
-The same "explicit, reasoned exception" pattern appears in five more places:
+The same "explicit, reasoned exception" pattern appears in six more places:
 
 | File                                   | Consumed by                    | Rule                                                                                              |
 | -------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
 | `mutation-bdd-thresholds.json`         | `npm run mutation:bdd:ratchet` | Per-directory BDD mutation floors; `--update` only raises them                                    |
+| `mutation-thresholds.json`             | `npm run mutation:pr`          | Per-directory unit mutation floors; every mutated directory needs one; they may only rise         |
 | `type-mutation-thresholds.json`        | `npm run test:type-mutation`   | In `scripts/`. Per-entry-point type mutation floors; only rise against `origin/master`            |
 | `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | A ratchet: now empty, and the audit fails if a listed file passes, so entries can only be removed |
 | `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                  |
@@ -624,6 +627,8 @@ The same "explicit, reasoned exception" pattern appears in five more places:
 | `benchmark`                             | Benchmark suite                                                                                                                                                     |
 | `mutation` / `mutation:report`          | Stryker                                                                                                                                                             |
 | `mutation:bdd` / `mutation:bdd:ratchet` | Stryker with only the BDD step definitions as tests; per-directory score ratchet against `mutation-bdd-thresholds.json`                                             |
+| `mutation:ratchet` / `mutation:pr`      | Unit-suite per-directory ratchet against `mutation-thresholds.json`; `:pr` mutates only the changed `src/` files (MUTATION-TESTING.md)                              |
+| `mutation:fixture`                      | Stryker over the known-weak fixture in `tests/mutation-fixture/`; fails unless mutants both die and survive                                                         |
 
 ### Spec alignment and generation
 
