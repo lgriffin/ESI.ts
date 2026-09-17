@@ -726,6 +726,97 @@ jobs:
         if: steps.deps.outputs.changed == 'true'
         run: npm run audit:diff -- --base /tmp/base-audit.json --head /tmp/head-audit.json
 
+  benchmarks:
+    name: Benchmarks (base vs head)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # A benchmark can only say "slower than what": this job builds the pull
+    # request's base tip and head on the same runner and runs them in
+    # alternating processes, so runner-to-runner noise cancels. The
+    # comparison fails only on a statistically significant slowdown of at
+    # least 10% (see scripts/bench-compare-core.ts); a missing baseline fails.
+    #
+    # Most pull requests cannot change these numbers, and a benchmark that
+    # blocks unrelated work teaches people to bump thresholds. So the job runs
+    # the measurement only when the hot paths, the harness or the lockfile
+    # change; otherwise it reports success with a summary line, which keeps it
+    # inside ci-success without a job-level `if:`.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # HEAD^1 is the base tip; HEAD^1..HEAD^2 are this pull request's commits
+
+      - name: Check whether this pull request touches the hot paths
+        id: hot
+        run: |
+          if git diff --quiet HEAD^1 HEAD -- src/core/ src/schemas/ tests/benchmark/ scripts/bench-ab.ts scripts/bench-compare.ts scripts/bench-compare-core.ts package-lock.json; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Benchmarks not run: nothing under src/core/, src/schemas/, tests/benchmark/, the bench scripts or package-lock.json changed." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.hot.outputs.run == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --ignore-scripts skips `prepare` (a full build); the harness is bundled
+      # from src/ by esbuild.
+      - name: Install dependencies
+        if: steps.hot.outputs.run == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Check out the base tip
+        if: steps.hot.outputs.run == 'true'
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/base" HEAD^1
+          if git diff --quiet HEAD^1 HEAD -- package-lock.json; then
+            ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/base/node_modules"
+          else
+            (cd "$RUNNER_TEMP/base" && npm ci --ignore-scripts)
+          fi
+
+      - name: Run base and head in alternating processes
+        if: steps.hot.outputs.run == 'true'
+        run: npm run bench:ab -- --base "$RUNNER_TEMP/base" --head . --out reports/bench --rounds 10 --min-cpu-ms 200
+
+      # Exit 3 is a regression and nothing else. A pull request that is slower
+      # on purpose says so in a commit trailer, `Performance-Accepted: <why>`,
+      # which a reviewer then weighs; the nightly reference catches it again
+      # until a maintainer accepts it there. Exit 1 (no baseline, too few
+      # rounds, a dropped task) is never excused.
+      - name: Compare
+        if: steps.hot.outputs.run == 'true'
+        run: |
+          set +e
+          npm run bench:compare -- --dir reports/bench --title "Benchmarks, head against base"
+          status=$?
+          set -e
+          if [ "$status" -eq 3 ]; then
+            accepted=$(git log --format=%B HEAD^1..HEAD^2 | grep -m1 -i '^Performance-Accepted:' || true)
+            if [ -n "$accepted" ]; then
+              echo "::warning::Benchmark regression accepted by commit trailer. $accepted"
+              echo "Regression accepted by commit trailer: \`$accepted\`" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "::error::Statistically significant benchmark regression. If the slowdown is intended, add a 'Performance-Accepted: <reason>' trailer to a commit in this pull request."
+          fi
+          exit "$status"
+
+      - name: Upload benchmark results
+        if: always() && steps.hot.outputs.run == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: benchmark-results
+          path: reports/bench/
+          retention-days: 30
+
   zizmor:
     name: Workflow Security (zizmor)
     runs-on: ubuntu-latest
@@ -848,6 +939,7 @@ jobs:
         documentation,
         lockfile,
         dependency-audit,
+        benchmarks,
         zizmor,
         mutation-pr,
       ]

@@ -8,7 +8,8 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
 | TDD (unit)           |      4,357 |      130 | Per-module unit tests with mocked HTTP                                      |
 | BDD (behavioral)     |        600 |       41 | Gherkin-style scenarios covering user-facing behaviors                      |
-| Benchmark (perf)     |         17 |        4 | Performance regression guards for core infrastructure                       |
+| Benchmark (perf)     |         18 |        1 | mitata micro-benchmarks, compared base against head statistically           |
+| Heap soak            |          1 |        1 | 100 000 requests through the pipeline, heap flat after forced GC            |
 | Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
 | Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
 | Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                               |
@@ -194,8 +195,15 @@ npm run test:watch
 # With coverage report
 npm run coverage
 
-# Performance benchmarks — 4 suites, 17 tests
+# Micro-benchmarks for this tree — 18 tasks, no comparison
 npm run benchmark
+
+# Benchmarks against another tree, then the statistical comparison
+npm run bench:ab -- --base ../base-worktree --head .
+npm run bench:compare
+
+# Heap soak: 100 000 requests, forced GC, bounded cache
+npm run soak
 ```
 
 ### Running Subsets
@@ -273,7 +281,7 @@ The feature files are an EARS specification, and three gates decide whether a Ru
 
 - **Core** (`bdd/features/core/`): Domain-specific scenarios for all 37 domain clients plus cross-cutting concerns (ETag caching, response headers)
 - **Integration** (`bdd/features/integration/`): Cross-domain workflows — character profile assembly, market analysis, fleet operations
-- **Performance** (`bdd/features/performance/`): Concurrent requests, large dataset handling, memory efficiency, error handling performance
+- **Performance** (`bdd/features/performance/`): Smoke checks of concurrency, large payloads and the error path. These scenarios state no latency or throughput budget; the only time bounds they keep are the ones that separate overlapping requests from serial dispatch, and the numbers live in Tier 2.5
 
 ### Composition and concurrency
 
@@ -295,22 +303,22 @@ Owns one failure class: request pipeline stages that are each correct alone but 
 
 On every PR each scenario runs every schedule of two and three calls; the schedule counts are pinned, so a change that stops calls overlapping fails instead of silently testing less. The whole tier takes about 5 seconds. Nightly, four calls run in seeded random order. A failure prints the broken invariant, the event log and the command that replays the schedule (`ESI_INTERLEAVE_REPLAY=...`, plus `ESI_INTERLEAVE_MODE=random` for a nightly failure). The scheduler's own tests (`interleave.test.ts`) show it enumerating exactly the schedules that exist, finding and replaying a planted race, and failing closed on deadlock, nondeterminism and malformed environment variables.
 
-### Tier 2.5: Benchmark Tests
+### Tier 2.5: Benchmarks and the heap soak
 
-**Location:** `tests/benchmark/`
-**Config:** `jest.benchmark.config.cjs`
-**Run:** `npm run benchmark`
+**Location:** `tests/benchmark/` (see [`tests/benchmark/AGENTS.md`](../tests/benchmark/AGENTS.md))
+**Run:** `npm run benchmark`, `npm run bench:ab`, `npm run bench:compare`, `npm run soak`
 
-17 tests across 4 suites using `performance.now()` timing with CI-safe upper-bound assertions:
+This tier owns one failure class: the client got slower, or started holding memory. Bundle size is owned by the size-limit budgets.
 
-| Suite                              | Tests | What it benchmarks                                                                                                         |
-| ---------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------- |
-| `rateLimiter.benchmark.test.ts`    |     3 | 10K `checkRateLimit` calls, 50-group `updateFromResponse`, `getStatus` with 100 groups                                     |
-| `circuitBreaker.benchmark.test.ts` |     4 | 100K `checkCircuit` calls (closed state), state transition cycling, `getStats` with 200 endpoints, 10K distinct endpoints  |
-| `cache.benchmark.test.ts`          |     5 | `ETagCacheManager` set at 1K entries, 10K get (hits), 10K get (misses), eviction throughput, cleanup cycle                 |
-| `batchRequest.benchmark.test.ts`   |     5 | `batchFetch` at 1K/10K keys, scheduling overhead with instant fetchers, `batchPost` at 10K IDs, progress tracking overhead |
+The Jest benchmark suites that used to live here asserted raw wall-clock upper bounds (`expect(elapsed).toBeLessThan(500)`) that sat 10 to 100 times above the real cost. A bound that loose cannot see a 30% regression, and a tighter one flakes on a shared runner, so they were retired rather than converted.
 
-Benchmarks use loose upper-bound time assertions (e.g., "< 2s") to remain stable across CI environments. They guard against performance regressions, not exact timing.
+**Micro-benchmarks.** `tests/benchmark/tasks.ts` holds 18 tasks over the paths a client pays for on every call: parse and Zod-validate a small object, a 1000-order market page and a nested colony layout; ETag cache hit, miss, write and write-at-capacity; cache-key derivation; response-header parsing (`ETag`, `Expires`, `X-Pages`, rate-limit headers); the rate limiter's acquire; the circuit breaker's check; `batchFetch`; and two whole-pipeline requests against an instant transport. `harness.ts` runs them with [mitata](https://github.com/evanwashere/mitata), which batches fast operations so a 50 ns call is not lost in timer resolution, forces a collection before each task, and reports per-sample nanoseconds. mitata was chosen over tinybench for that batching and because it exposes the samples the comparison works on.
+
+**Comparison.** A benchmark number alone means nothing; the question is "slower than what". `npm run bench:ab` bundles the harness for two trees — typically a pull request's base tip and its head — and runs them in alternating processes on one machine, so runner-to-runner noise cancels. The observation per task is one per-process median; `npm run bench:compare` applies a one-sided Mann-Whitney U test per task, Holm-adjusted across tasks at alpha = 0.05, and calls a task regressed only if the ratio of medians is also at least 1.10 and the absolute difference at least 2 ns/op. Improvements are reported. A missing baseline, too few rounds or a dropped task fails closed. The decision logic is unit-tested against synthetic distributions in `tests/tdd/benchmark/`.
+
+**Heap soak.** `tests/benchmark/soak.ts` drives 100 000 requests through a real `EsiClient` against an in-process transport, with a bounded ETag cache and a distinct key per request. Under `--expose-gc` it forces a full collection at 50 sample points and fails when a least-squares fit over the second half projects growth beyond the threshold, when the cache exceeds its bound, or when timers or process listeners survive `shutdown()`. `npm run soak -- --inject-leak --expect-fail` runs the same soak with a response interceptor that retains every response and passes only if the leak is flagged; the unit suite runs that fixture too, so the detector is checked on every pull request.
+
+**Where it runs.** The `benchmarks` job in `ci.yml` runs the A/B comparison only when `src/core/`, `src/schemas/`, the harness, the bench scripts or the lockfile change, and otherwise reports success with a summary line. `nightly-benchmarks.yml` compares master with a pinned reference commit, runs the soak, publishes the trend to the `bench-data` branch, and keeps one `performance-nightly` issue open while either fails.
 
 ### Tier 3: Integration Tests (Mocked)
 
@@ -479,6 +487,7 @@ Defects the contract finds are recorded as known issues against their beads: eac
 **CI:** `doc-examples` in `ci.yml`, Node 20, inside `ci-success`. Not part of `npm test`; the unit suite checks the annotations, the baseline and the fixtures against a stub package.
 
 Packs the library as the consumer contract does and type-checks every fenced `ts`/`typescript` block in `README.md`, `guides/*.md`, `src/sde/README.md` and `src/sde/docs/*.md` as its own module under nodenext and bundler resolution, then runs the blocks marked `runnable` against a stubbed `fetch`. The annotation convention, the prelude and the shrink-only known-broken baseline are described in [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked).
+
 ### Type mutation
 
 **Location:** `scripts/type-mutation.ts` (CLI), `scripts/type-mutation-core.ts` (operators, sampling, ratchet), `scripts/type-mutation-run.ts` (workspaces, tsd)
@@ -503,6 +512,7 @@ A mutant is **killed** when tsd reports a failure in a type test, **invalid** wh
 About eight thousand candidates exist, so at most 500 run. Entry points take turns picking their next mutant in order of a seeded hash of the mutant's id (built from file, symbol, operator and the mutated text, not offsets), so the same seed and surface always give the same sample, and each mutant a change adds displaces at most one sampled mutant instead of reshuffling the rest. `--ratchet` refuses a non-default `--seed` or `--max`, because the floors in `scripts/type-mutation-thresholds.json` were measured on the default sample. The report is `reports/type-mutation/type-mutation.{json,md}`.
 
 `tests/tdd/type-mutation/` holds the negative fixture: a one-interface package whose tsd test pins `Widget.id` and never mentions `Widget.label`. The suite runs the real mutation against it and fails unless making `id` optional is killed and making `label` optional survives, alongside unit tests for each operator, the sampler and the ratchet.
+
 ## Suite-health lint
 
 **Run:** `npm run lint:suite-health` (ESLint over `tests/`, fixture trees excluded)
@@ -610,10 +620,9 @@ npm run example:token-refresh      # Token refresh flow demo
 
 ### Configuration
 
-Five Jest configs drive the test suites:
+Four Jest configs drive the test suites (the benchmarks and the soak are not Jest tests; see Tier 2.5):
 
 - **Unit + BDD**: `jest.unit.config.cjs` — runs TDD and BDD tests with `jest-fetch-mock`
-- **Benchmark**: `jest.benchmark.config.cjs` — runs performance benchmark tests (60s timeout)
 - **Integration**: `jest.integration.config.cjs` — runs integration tests against live ESI (30s timeout)
 - **Contract**: `jest.contract.config.cjs` — runs deep contract tests against live spec (60s timeout)
 - **Fuzz**: `jest.fuzz.config.cjs` — runs property-based fuzz tests with fast-check (30s timeout)
@@ -968,7 +977,9 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 | ------------------------- | --------------------------- | ----------------------------------------------------- |
 | Unit + BDD                | Every push                  | `npm test`                                            |
 | Mocked integration        | Every push                  | `npm run test:integration`                            |
-| Benchmarks                | Every PR                    | `npm run benchmark`                                   |
+| Benchmarks (A/B vs base)  | Every PR touching hot paths | `npm run bench:ab` then `npm run bench:compare`       |
+| Benchmarks vs reference   | Nightly                     | `nightly-benchmarks.yml`                              |
+| Heap soak                 | Nightly                     | `npm run soak`                                        |
 | Deep contract tests       | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
 | Recorded payload replay   | Every PR                    | `npm run contract:replay`                             |
 | Payload re-recording      | Nightly                     | `ESI_LIVE_TESTS=true npm run contract:record`         |
@@ -1010,7 +1021,6 @@ npm run generate:types
 | Path                                           | Purpose                                             |
 | ---------------------------------------------- | --------------------------------------------------- |
 | `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds)        |
-| `jest.benchmark.config.cjs`                    | Benchmark test config (60s timeout)                 |
 | `jest.integration.config.cjs`                  | Integration test config (30s timeout)               |
 | `jest.contract.config.cjs`                     | Contract test config (60s timeout)                  |
 | `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)                      |
@@ -1020,7 +1030,10 @@ npm run generate:types
 | `tests/tdd/core/concurrency.test.ts`           | Async scheduling correctness (11 tests)             |
 | `tests/tdd/core/utilFunctions.test.ts`         | Core utility function tests (25 tests)              |
 | `tests/tdd/schemas/schemaRejection.test.ts`    | Full schema rejection coverage (423 tests)          |
-| `tests/benchmark/`                             | 4 performance benchmark suites (17 tests)           |
+| `tests/benchmark/`                             | Micro-benchmark harness, task catalogue, heap soak  |
+| `scripts/bench-ab.ts`                          | Runs two trees in alternating processes             |
+| `scripts/bench-compare-core.ts`                | Mann-Whitney U, Holm, bootstrap, the verdict        |
+| `scripts/soak-core.ts`                         | Heap trend, cache bound, timer and listener checks  |
 | `tests/bdd/features/`                          | 40 Gherkin feature files                            |
 | `tests/bdd/step-definitions/`                  | 40 step definition files + shared helpers           |
 | `tests/integration/full-stack.test.ts`         | Mocked full-lifecycle integration (20 tests)        |

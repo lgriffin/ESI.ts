@@ -1,136 +1,122 @@
 Feature: Performance Characteristics
-  These scenarios pin the throughput and latency budgets the library is
-  expected to hold: how much overhead a single call adds over its transport
-  delay, that concurrent calls overlap instead of queueing, and how long
-  parsing and handing back a large collection takes.
+  These scenarios are smoke checks of the behaviour that performance depends
+  on: a response is waited for rather than answered early, concurrent calls
+  overlap instead of queueing, and large or repeated payloads come back
+  complete and in order. They state no latency or throughput budget. How fast
+  each path is, and whether a change made it slower, is measured by the
+  benchmark tier (tests/benchmark, npm run bench:ab), which compares a change
+  with its base statistically on one machine instead of against a wall-clock
+  limit a slow runner can miss.
 
-  Responses are queued at the HTTP transport, each with a simulated network
-  delay, so every bound below measures the real request pipeline (rate
-  limiter, fetch, JSON parsing, the ETag cache, pagination and Zod validation)
-  plus any aggregation the caller does, rather than the speed of live ESI.
-  Each bound stated in a requirement is the one the scenario under it asserts.
-  The bounds are coarse regression guards sized for slow CI runners, with at
-  least ten times the pipeline cost observed locally as headroom; they catch
-  serialised dispatch, stalls and per-call delays, not a constant-factor
-  slowdown in parsing.
+  Responses are queued at the HTTP transport, several with a simulated
+  network delay, so every scenario runs the real request pipeline: rate
+  limiter, fetch, JSON parsing, the ETag cache, pagination and Zod validation.
+  The only time bounds below are the ones that separate overlapping requests
+  from requests sent one after another, and each sits at or above half of the
+  serial figure, far from the pipeline's own cost.
 
-  The concurrency bounds hold only with the rate limiter's minimum request
+  The concurrency Rules hold only with the rate limiter's minimum request
   spacing set to zero. Its default of 50 milliseconds staggers dispatch on
-  purpose, which alone would push a group of 20 concurrent requests close to
-  one second.
+  purpose.
 
-  # ── Single-request latency ──────────────────────────────────────────
+  # ── Single requests ─────────────────────────────────────────────────
 
-  Rule: When five single-endpoint requests are issued one after another, the EsiClient shall keep the mean measured response time below 500 milliseconds.
+  Rule: When five single-endpoint requests are issued one after another, the EsiClient shall return each body as ESI sent it, no sooner than its transport delay.
     The alliance, character, corporation, market price and solar system calls
-    wait 200, 150, 180, 300 and 100 milliseconds at the transport, a mean of
-    186, so the 500 millisecond mean leaves 314 milliseconds of pipeline
-    overhead per call. Each call is also held under its own transport delay
-    plus 250 milliseconds, and no more than 5 milliseconds below that delay,
-    which catches a response that never waited on the transport. Every result
-    is compared with the body ESI sent.
+    wait 200, 150, 180, 300 and 100 milliseconds at the transport. Each result
+    is compared with the body ESI sent, one request goes out per call, and each
+    call takes at least its delay less a 5 millisecond timer tolerance, which
+    catches a response that never waited on the transport. There is no upper
+    bound: a slow runner is not a fault.
 
     Scenario: Five sequential single-endpoint requests with stubbed latencies of 100 to 300 milliseconds
       Given normal system load
       When the client makes API requests and measure response times
-      Then response times shall be within acceptable limits
+      Then each response shall match the body ESI sent
 
-  Rule: When the transport delays a response, the EsiClient shall return that response within 150 milliseconds of the transport delay.
-    Overhead is measured as a fixed margin rather than a ratio, because the
-    per-call cost of scheduling and parsing does not grow with the wait. The
-    scenario sweeps transport delays of 50, 200, 500 and 1000 milliseconds,
-    one character lookup each, and also requires each measurement to sit no
-    more than 5 milliseconds below its delay, which catches a response that
-    never waited on the transport.
+  Rule: When the transport delays a response by up to 1000 milliseconds, the EsiClient shall wait for that response and return its body.
+    The scenario sweeps transport delays of 50, 200, 500 and 1000 milliseconds,
+    one character lookup each, and requires each call to take at least its
+    delay less the timer tolerance, so a long wait is neither cut short nor
+    answered from somewhere other than the transport.
 
     Scenario: Stubbed latencies of 50, 200, 500, and 1000 milliseconds
       Given different network latencies
       When the client makes requests under different conditions
-      Then the client shall handle varying conditions gracefully
+      Then the client shall wait for each delayed response
 
   # ── Concurrent requests ─────────────────────────────────────────────
 
-  Rule: Where minimum request spacing is disabled, when 50 requests are issued concurrently, the EsiClient shall return all 50 responses within 500 milliseconds.
+  Rule: Where minimum request spacing is disabled, when 50 requests are issued concurrently, the EsiClient shall return all 50 responses within 2500 milliseconds.
     Each of the 50 character lookups waits 100 milliseconds at the transport,
-    so running them one after another would take 5000. The 500 millisecond
-    bound is ten times shorter than that serial figure, and fails once an
-    internal lock or a shared queue limits the group to ten requests in flight
-    or fewer. With the default 50 millisecond spacing the dispatches alone
-    would span 2450 milliseconds, which is why the requirement is conditional
-    on spacing being off.
+    so sending them one after another would take 5000. The bound is half that:
+    it fails when requests queue behind one another, or when no more than two
+    are allowed in flight, and leaves the overlapping case, about 110
+    milliseconds, more than twenty times its own duration in headroom.
 
     Scenario: Fifty concurrent character lookups each stubbed at 100 milliseconds
       Given high concurrent load
       When the client makes simultaneous requests
-      Then the client shall handle them efficiently
+      Then the requests shall overlap rather than run one after another
 
-  Rule: Where minimum request spacing is disabled, when five requests spanning five domain clients are issued concurrently, the EsiClient shall return all five responses within 400 milliseconds.
+  Rule: Where minimum request spacing is disabled, when five requests spanning five domain clients are issued concurrently, the EsiClient shall return all five responses within 650 milliseconds.
     Alliance, character, corporation, universe and market calls wait 120, 100,
-    150, 80 and 200 milliseconds at the transport, 650 in total. The bound sits
-    200 milliseconds above the slowest leg, room for five parses on a slow
-    runner while still far below the serial total, so concurrency has to hold
-    across different domain clients and not only across repeated calls to one
-    of them.
+    150, 80 and 200 milliseconds at the transport, 650 in total, so sent one
+    after another they cannot finish sooner than 650. Overlapping, they settle
+    near the slowest leg, about 210, so concurrency has to hold across
+    different domain clients and not only across repeated calls to one.
 
     Scenario: Alliance, character, corporation, system, and market calls issued together
       Given mixed API types for concurrent requests
       When the client makes concurrent requests across different APIs
       Then all mixed requests shall complete successfully
 
-  # ── Large payload throughput ────────────────────────────────────────
+  # ── Large and repeated payloads ─────────────────────────────────────
 
-  Rule: When a region order book of 10000 orders is returned across 10 pages, the EsiClient shall make all 10000 parsed orders available to the caller within 2000 milliseconds.
-    A Jita region order book is this size, so it is the payload that decides
-    whether the library is usable for market tooling. ESI serves it 1000
-    orders per page, so the 2000 millisecond window covers ten sequential
-    fetches and parses, the page concatenation, Zod validation of the whole
-    book and the caller's own pass over the result: a rate of 5000 orders per
-    second. The scenario also checks that every page was requested once, in
-    order, and that the orders and aggregates match what ESI sent.
+  Rule: When a region order book of 10000 orders is returned across 10 pages, the EsiClient shall request each page once, in order, and return all 10000 orders in the order ESI sent them.
+    A Jita region order book is this size, served 1000 orders a page. The
+    scenario checks the page sequence, the order identifiers and the caller's
+    aggregates over the whole book. The cost of fetching, parsing and
+    validating a page is a benchmark (pipeline/GET 1000 region market orders).
 
     Scenario: Ten thousand market orders filtered and aggregated
       Given large market data
       When the client processes the market dataset
-      Then performance shall remain acceptable
+      Then every page shall be fetched once and every order returned
 
-  Rule: When a 5000-entry member list and a 100-entry roles list are requested together, the EsiClient shall return both lists within 1500 milliseconds.
-    Member identifiers come back as a bare number array, which is the cheapest
-    shape ESI returns, so this bound is about the cost of the surrounding
-    pipeline rather than of parsing. 1500 milliseconds for 5000 entries is a
-    rate above 3000 entries per second, and the window covers both
-    authenticated fetches, their validation and counting members by role.
+  Rule: When a 5000-entry member list and a 100-entry roles list are requested together, the EsiClient shall return both lists as ESI sent them, each over an authenticated request.
+    Member identifiers come back as a bare number array, the cheapest shape
+    ESI returns, alongside role records; the scenario counts members by role
+    over the result.
 
     Scenario: Five thousand member identifiers with one hundred role records
       Given a large corporation
       When the client processes member data
-      Then performance shall scale appropriately
+      Then both lists shall be returned complete
 
-  Rule: When a 1000-order response without an ETag is read 100 times in sequence, the EsiClient shall complete the 100 reads within 5000 milliseconds.
-    A long-running process repeats the same call for its whole lifetime, so
-    per-call cost has to stay flat: 5000 milliseconds over 100 iterations is a
-    50 millisecond mean per read. Without an ETag nothing is cached, so every
-    read is a full fetch, parse and validation, and the scenario checks that
-    100 requests went out. It also compares the first and last iteration's
-    order count and average price, which would diverge if state accumulated
-    between reads.
+  Rule: When a 1000-order response without an ETag is read 100 times in sequence, the EsiClient shall send 100 requests and return the same 1000 orders on the last read as on the first.
+    Without an ETag nothing is cached, so every read is a full fetch, parse and
+    validation. The scenario compares the first and last iteration's order
+    count and average price, which would diverge if state accumulated between
+    reads. Whether memory stays flat over a long run is the heap soak's
+    question (npm run soak), not this scenario's.
 
     Scenario: One hundred sequential reads of a thousand-order dataset
       Given memory-intensive operations
       When the client processes large amounts of data iteratively
-      Then memory usage shall remain efficient
+      Then every read shall return the same complete dataset
 
   # ── Failure paths ───────────────────────────────────────────────────
 
   Rule: Where minimum request spacing is disabled, if requests within a concurrent group of 20 reject with a 500 error, then the EsiClient shall settle every request in that group within 1000 milliseconds.
     ESI answers six of the 20 character lookups with a 500 and the other 14
     with a character record, each after 100 milliseconds. A 500 is not
-    retried, so each lookup is exactly one request. Rejections travel the same
-    path as successes, so a group containing failures settles in the same
-    window as one without: 1000 milliseconds, against the 2000 a serialised
-    error path would cost. Each rejection reaches the caller as an EsiError
-    carrying status 500.
+    retried, so each lookup is exactly one request. Sent one after another the
+    group would take 2000 milliseconds; the bound is half that, so rejections
+    have to overlap like successes do. Each rejection reaches the caller as an
+    EsiError carrying status 500.
 
     Scenario: Six of twenty concurrent lookups reject with a 500 error
       Given error conditions exist
       When errors occur during requests
-      Then error handling shall not significantly impact performance
+      Then failed requests shall settle alongside successful ones
