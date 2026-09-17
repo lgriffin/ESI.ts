@@ -512,6 +512,7 @@ describe('UniverseClient', () => {
         name: 'Jita',
         constellation_id: 20000020,
         security_status: 0.9459,
+        position: { x: 1.0e17, y: 6.0e16, z: 1.1e17 },
       }),
     );
     const result = await getBody(() => universeClient.getSystemById(30000142));

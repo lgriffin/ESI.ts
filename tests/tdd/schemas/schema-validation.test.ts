@@ -103,6 +103,7 @@ describe('Schema Validation', () => {
         name: 'Jita',
         constellation_id: 20000020,
         security_status: 0.9459131,
+        position: { x: 1.0e17, y: 6.0e16, z: 1.1e17 },
         star_id: 40009081,
         stargates: [50000056, 50000057],
         stations: [60003760],
@@ -380,6 +381,7 @@ describe('Schema Validation', () => {
         name: 'Jita',
         constellation_id: 20000020,
         security_status: 0.9459131,
+        position: { x: 1.0e17, y: 6.0e16, z: 1.1e17 },
       };
 
       const result = SolarSystemInfoSchema.safeParse(data);
@@ -535,6 +537,7 @@ describe('Schema Validation', () => {
         name: 'Jita',
         constellation_id: 20000020,
         security_status: 0.9459131,
+        position: { x: 1.0e17, y: 6.0e16, z: 1.1e17 },
         planets: [
           {
             planet_id: 40009077,
@@ -807,6 +810,7 @@ describe('Schema Validation', () => {
         name: 'Jita',
         constellation_id: 20000020,
         security_status: 0.9459131,
+        position: { x: 1.0e17, y: 6.0e16, z: 1.1e17 },
         planets: [
           {
             planet_id: 40009077,
@@ -834,6 +838,7 @@ describe('Schema Validation', () => {
         name: 'Jita',
         constellation_id: 20000020,
         security_status: 0.9459131,
+        position: { x: 1.0e17, y: 6.0e16, z: 1.1e17 },
         planets: [
           {
             planet_id: 'not-a-number',

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
+  MailHeaderSchema,
   MailMessageSchema,
   MailLabelSchema,
   MailLabelsResponseSchema,
@@ -13,7 +14,7 @@ export const mailEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    responseSchema: z.array(MailMessageSchema),
+    responseSchema: z.array(MailHeaderSchema),
   },
   sendMail: {
     path: 'characters/{characterId}/mail/',

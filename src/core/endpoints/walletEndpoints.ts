@@ -3,6 +3,7 @@ import { EndpointMap } from './EndpointDefinition';
 import {
   WalletJournalSchema,
   WalletTransactionSchema,
+  CorporationWalletTransactionSchema,
 } from '../../schemas/wallet';
 import { CorporationWalletDivisionSchema } from '../../schemas/corporation';
 
@@ -47,6 +48,6 @@ export const walletEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId', 'division'],
-    responseSchema: z.array(WalletTransactionSchema),
+    responseSchema: z.array(CorporationWalletTransactionSchema),
   },
 } as const satisfies EndpointMap;

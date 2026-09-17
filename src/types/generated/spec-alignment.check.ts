@@ -11,12 +11,12 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 104
+ * - Type pairs asserted: 114
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
  *   Loyalty, Mail, Market, PI, Skills, Sovereignty, Status, Universe, Wallet, Wars)
- * - Skipped types: 18 (documented inline with reasons — key name mismatches,
+ * - Skipped types: 14 (documented inline with reasons — key name mismatches,
  *   structural differences, inline array elements, or no spec counterpart)
  */
 
@@ -58,11 +58,13 @@ import type {
   ContractItem,
   ContractBid,
   PublicContract,
+  PublicContractItem,
+  PublicContractBid,
 } from '../contracts';
 import type {
   CorporationInfo,
   CorporationAllianceHistory,
-  // CorporationMedal -- skipped: uses 'date' instead of spec 'created_at'
+  CorporationMedal,
   CorporationStarbase,
   CorporationDivisions,
   CorporationFacility,
@@ -70,7 +72,7 @@ import type {
   CorporationMemberTitle,
   CorporationMemberTracking,
   CorporationMemberRole,
-  // CorporationRoleHistory -- skipped: uses 'before'/'after' instead of spec 'new_roles'/'old_roles'
+  CorporationRoleHistory,
   CorporationShareholder,
   CorporationStarbaseDetail,
   CorporationStructure,
@@ -100,10 +102,13 @@ import type {
   FreelanceJobDetail,
   CharacterFreelanceJobsListing,
   CorporationFreelanceJobsListing,
+  FreelanceJobParticipation,
+  FreelanceJobParticipantsListing,
 } from '../freelance-jobs';
 import type { Incursion } from '../incursions';
 import type {
   IndustryJob,
+  CorporationIndustryJob,
   MiningLedgerEntry,
   IndustryFacility,
   IndustrySystem,
@@ -119,7 +124,7 @@ import type {
   CharacterShip,
 } from '../location';
 import type { LoyaltyPoints, LoyaltyStoreOffer } from '../loyalty';
-import type { MailMessage } from '../mail';
+import type { MailHeader, MailMessage } from '../mail';
 import type {
   MarketOrder,
   CharacterMarketOrder,
@@ -138,6 +143,7 @@ import type {
   SovereigntySystemStructure,
   // SovereigntySystem -- skipped: uses completely different nested structure vs flat spec shape
 } from '../sovereignty';
+import type { MetaStatus } from '../meta';
 import type { ServerStatus } from '../status';
 import type {
   SolarSystemInfo,
@@ -165,7 +171,11 @@ import type {
   SchematicInfo,
   SearchResult,
 } from '../universe';
-import type { WalletTransaction, WalletJournal } from '../wallet';
+import type {
+  WalletTransaction,
+  CorporationWalletTransaction,
+  WalletJournal,
+} from '../wallet';
 import type { War } from '../wars';
 
 // --- Utility types ---
@@ -319,6 +329,12 @@ type _ContractBid = AssertTrue<
     ContractBid
   >
 >;
+type _PublicContractItem = AssertTrue<
+  HasAllSpecKeys<EsiSpec.ContractsPublicItemsContractIdGet, PublicContractItem>
+>;
+type _PublicContractBid = AssertTrue<
+  HasAllSpecKeys<EsiSpec.ContractsPublicBidsContractIdGet, PublicContractBid>
+>;
 
 // Corporation
 type _CorporationInfo = AssertTrue<
@@ -330,10 +346,9 @@ type _CorporationAllianceHistory = AssertTrue<
     CorporationAllianceHistory
   >
 >;
-// Skip: CorporationMedal -- schema uses 'date' instead of spec 'created_at' (intentional key name difference)
-// type _CorporationMedal = AssertTrue<
-//   HasAllSpecKeys<EsiSpec.CorporationsCorporationIdMedalsGet, CorporationMedal>
-// >;
+type _CorporationMedal = AssertTrue<
+  HasAllSpecKeys<EsiSpec.CorporationsCorporationIdMedalsGet, CorporationMedal>
+>;
 type _CorporationStarbase = AssertTrue<
   HasAllSpecKeys<
     EsiSpec.CorporationsCorporationIdStarbasesGet,
@@ -376,10 +391,12 @@ type _CorporationMemberRole = AssertTrue<
     CorporationMemberRole
   >
 >;
-// Skip: CorporationRoleHistory -- schema uses 'before'/'after' instead of spec 'new_roles'/'old_roles' (intentional key name difference)
-// type _CorporationRoleHistory = AssertTrue<
-//   HasAllSpecKeys<EsiSpec.CorporationsCorporationIdRolesHistoryGet, CorporationRoleHistory>
-// >;
+type _CorporationRoleHistory = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CorporationsCorporationIdRolesHistoryGet,
+    CorporationRoleHistory
+  >
+>;
 type _CorporationShareholder = AssertTrue<
   HasAllSpecKeys<
     EsiSpec.CorporationsCorporationIdShareholdersGet,
@@ -497,7 +514,18 @@ type _CorporationFreelanceJobsListing = AssertTrue<
 >;
 // Skip: EsiCursor -- synthetic client-side utility type, no spec counterpart
 // Skip: FreelanceJobSummary -- represents inline array element within FreelanceJobsListing, no separate spec interface
-// Skip: FreelanceJobParticipation -- hand-written schema uses different key names (status/contributions vs spec state/contributed)
+type _FreelanceJobParticipation = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CharactersFreelanceJobsParticipation,
+    FreelanceJobParticipation
+  >
+>;
+type _FreelanceJobParticipantsListing = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CorporationsFreelanceJobsParticipants,
+    FreelanceJobParticipantsListing
+  >
+>;
 // Skip: FreelanceJobParticipant -- represents inline array element within CorporationsFreelanceJobsParticipants, no separate spec interface
 
 // Incursions
@@ -506,6 +534,12 @@ type _Incursion = AssertTrue<HasAllSpecKeys<EsiSpec.IncursionsGet, Incursion>>;
 // Industry
 type _IndustryJob = AssertTrue<
   HasAllSpecKeys<EsiSpec.CharactersCharacterIdIndustryJobsGet, IndustryJob>
+>;
+type _CorporationIndustryJob = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CorporationsCorporationIdIndustryJobsGet,
+    CorporationIndustryJob
+  >
 >;
 type _MiningLedgerEntry = AssertTrue<
   HasAllSpecKeys<EsiSpec.CharactersCharacterIdMiningGet, MiningLedgerEntry>
@@ -571,11 +605,13 @@ type _LoyaltyStoreOffer = AssertTrue<
 >;
 
 // Mail
+type _MailHeader = AssertTrue<
+  HasAllSpecKeys<EsiSpec.CharactersCharacterIdMailGet, MailHeader>
+>;
 type _MailMessage = AssertTrue<
-  HasAllSpecKeys<EsiSpec.CharactersCharacterIdMailGet, MailMessage>
+  HasAllSpecKeys<EsiSpec.CharactersCharacterIdMailMailIdGet, MailMessage>
 >;
 // Skip: MailLabel -- represents inner label element within CharactersCharacterIdMailLabelsGet wrapper, no separate spec interface
-// Skip: MailMessage vs CharactersCharacterIdMailMailIdGet -- detail endpoint uses 'read' instead of 'is_read', intentional key name difference
 
 // Market
 type _MarketHistory = AssertTrue<
@@ -646,6 +682,9 @@ type _SovereigntySystemStructure = AssertTrue<
 // type _SovereigntySystem = AssertTrue<
 //   HasAllSpecKeys<EsiSpec.SovereigntyMapGet, SovereigntySystem>
 // >;
+
+// Meta
+type _MetaStatus = AssertTrue<HasAllSpecKeys<EsiSpec.MetaStatus, MetaStatus>>;
 
 // Status
 type _ServerStatus = AssertTrue<HasAllSpecKeys<EsiSpec.Status, ServerStatus>>;
@@ -736,6 +775,12 @@ type _WalletTransaction = AssertTrue<
   HasAllSpecKeys<
     EsiSpec.CharactersCharacterIdWalletTransactionsGet,
     WalletTransaction
+  >
+>;
+type _CorporationWalletTransaction = AssertTrue<
+  HasAllSpecKeys<
+    EsiSpec.CorporationsCorporationIdWalletsDivisionTransactionsGet,
+    CorporationWalletTransaction
   >
 >;
 

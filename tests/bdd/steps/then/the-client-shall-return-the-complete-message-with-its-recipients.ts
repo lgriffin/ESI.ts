@@ -8,9 +8,9 @@ Then(
     expect(lastRequest().url.pathname).toBe(
       mailPaths.mail(MAIL_CHARACTER_ID, MAIL_ID),
     );
-    expect(this.result.mail_id).toBe(MAIL_ID);
     expect(this.result.subject).toBe('Fleet Operation Tonight');
     expect(this.result.from).toBe(123456789);
+    expect(this.result.read).toBe(true);
     expect(this.result.recipients).toEqual([
       { recipient_id: MAIL_CHARACTER_ID, recipient_type: 'character' },
       { recipient_id: 99005338, recipient_type: 'alliance' },

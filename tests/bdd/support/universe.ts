@@ -65,27 +65,6 @@ const JITA_POSITION = {
   z: 117469227060000000,
 };
 
-/** Station records as ESI sends them: position is required. */
-function stationRecord(overrides: Record<string, unknown> = {}) {
-  return TestDataFactory.createStation({
-    position: { x: 3813196800, y: 1016750000, z: -2305570000 },
-    ...overrides,
-  });
-}
-
-/** Star records as ESI sends them: no star_id in the body. */
-function starRecord(overrides: Record<string, unknown> = {}) {
-  const { star_id: _omitted, ...record } = TestDataFactory.createStar();
-  return { ...record, ...overrides };
-}
-
-/** Structure records as ESI sends them: no structure_id in the body. */
-function structureRecord(overrides: Record<string, unknown> = {}) {
-  const { structure_id: _omitted, ...record } =
-    TestDataFactory.createStructure();
-  return { ...record, ...overrides };
-}
-
 export const universeFixtures = {
   jita: () =>
     TestDataFactory.createSolarSystem({
@@ -112,7 +91,7 @@ export const universeFixtures = {
     Array.from({ length: LARGE_INDEX_SIZE }, (_, i) => 30000001 + i),
 
   jitaStation: () =>
-    stationRecord({
+    TestDataFactory.createStation({
       station_id: JITA_STATION_ID,
       name: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
       owner: 1000035,
@@ -134,7 +113,7 @@ export const universeFixtures = {
     }),
 
   citadel: () =>
-    structureRecord({
+    TestDataFactory.createStructure({
       name: 'Test Citadel',
       owner_id: 1689391488,
       solar_system_id: JITA,
@@ -168,7 +147,7 @@ export const universeFixtures = {
     }),
 
   jitaStar: () =>
-    starRecord({
+    TestDataFactory.createStar({
       name: 'Jita - Star',
       type_id: 3802,
       solar_system_id: JITA,
@@ -231,10 +210,11 @@ export const universeFixtures = {
       planets: [{ planet_id: EXPLORATION.planetId }, { planet_id: 40009078 }],
     }),
 
-  explorationStar: () => starRecord({ solar_system_id: EXPLORATION.systemId }),
+  explorationStar: () =>
+    TestDataFactory.createStar({ solar_system_id: EXPLORATION.systemId }),
 
   explorationStation: () =>
-    stationRecord({
+    TestDataFactory.createStation({
       station_id: EXPLORATION.stationId,
       system_id: EXPLORATION.systemId,
     }),

@@ -26,12 +26,13 @@ export const CorporationAllianceHistorySchema = z.looseObject({
   start_date: z.string(),
 });
 
+/** A medal design, from `GET /corporations/{corporation_id}/medals`. */
 export const CorporationMedalSchema = z.looseObject({
   medal_id: z.number(),
   title: z.string(),
   description: z.string(),
   creator_id: z.number(),
-  date: z.string(),
+  created_at: z.string(),
 });
 
 export const CorporationStarbaseSchema = z.looseObject({
@@ -44,7 +45,7 @@ export const CorporationStarbaseSchema = z.looseObject({
     'onlining',
     'reinforced',
     'unanchoring',
-  ]),
+  ]).optional(),
   moon_id: z.number().optional(),
   onlined_since: z.string().optional(),
   reinforced_until: z.string().optional(),
@@ -55,7 +56,7 @@ export const CorporationDivisionsSchema = z.looseObject({
   hangar: z
     .array(
       z.looseObject({
-        division: z.number(),
+        division: z.number().optional(),
         name: z.string().optional(),
       }),
     )
@@ -63,7 +64,7 @@ export const CorporationDivisionsSchema = z.looseObject({
   wallet: z
     .array(
       z.looseObject({
-        division: z.number(),
+        division: z.number().optional(),
         name: z.string().optional(),
       }),
     )
@@ -76,10 +77,13 @@ export const CorporationFacilitySchema = z.looseObject({
   system_id: z.number(),
 });
 
+/**
+ * A medal awarded to a member, from
+ * `GET /corporations/{corporation_id}/medals/issued`. ESI sends no title or
+ * description: join on medal_id to the medal list for those.
+ */
 export const CorporationIssuedMedalSchema = z.looseObject({
   medal_id: z.number(),
-  title: z.string(),
-  description: z.string(),
   character_id: z.number(),
   issued_at: z.string(),
   issuer_id: z.number(),
@@ -94,7 +98,7 @@ export const CorporationMemberTitleSchema = z.looseObject({
 
 export const CorporationMemberTrackingSchema = z.looseObject({
   character_id: z.number(),
-  start_date: z.string(),
+  start_date: z.string().optional(),
   base_id: z.number().optional(),
   location_id: z.number().optional(),
   logoff_date: z.string().optional(),
@@ -115,13 +119,17 @@ export const CorporationMemberRoleSchema = z.looseObject({
   grantable_roles_at_other: z.array(z.string()).optional(),
 });
 
+/**
+ * One role change, from `GET /corporations/{corporation_id}/roles/history`:
+ * the member's full role set of `role_type` before and after the change.
+ */
 export const CorporationRoleHistorySchema = z.looseObject({
   character_id: z.number(),
   changed_at: z.string(),
   issuer_id: z.number(),
   role_type: z.string(),
-  before: z.array(z.string()),
-  after: z.array(z.string()),
+  old_roles: z.array(z.string()),
+  new_roles: z.array(z.string()),
 });
 
 export const CorporationShareholderSchema = z.looseObject({
@@ -130,14 +138,12 @@ export const CorporationShareholderSchema = z.looseObject({
   share_count: z.number(),
 });
 
+/**
+ * A control tower's configuration, from
+ * `GET /corporations/{corporation_id}/starbases/{starbase_id}`. ESI sends no
+ * state here; it is on the starbase list.
+ */
 export const CorporationStarbaseDetailSchema = z.looseObject({
-  state: esiEnum([
-    'offline',
-    'online',
-    'onlining',
-    'reinforced',
-    'unanchoring',
-  ]),
   fuels: z
     .array(
       z.looseObject({
@@ -146,19 +152,19 @@ export const CorporationStarbaseDetailSchema = z.looseObject({
       }),
     )
     .optional(),
-  allow_alliance_members: z.boolean().optional(),
-  allow_corporation_members: z.boolean().optional(),
-  anchor: z.string().optional(),
-  attack_if_at_war: z.boolean().optional(),
-  attack_if_other_security_status_dropping: z.boolean().optional(),
+  allow_alliance_members: z.boolean(),
+  allow_corporation_members: z.boolean(),
+  anchor: z.string(),
+  attack_if_at_war: z.boolean(),
+  attack_if_other_security_status_dropping: z.boolean(),
   attack_security_status_threshold: z.number().optional(),
   attack_standing_threshold: z.number().optional(),
-  fuel_bay_take: z.string().optional(),
-  fuel_bay_view: z.string().optional(),
-  offline: z.string().optional(),
-  online: z.string().optional(),
-  unanchor: z.string().optional(),
-  use_alliance_standings: z.boolean().optional(),
+  fuel_bay_take: z.string(),
+  fuel_bay_view: z.string(),
+  offline: z.string(),
+  online: z.string(),
+  unanchor: z.string(),
+  use_alliance_standings: z.boolean(),
 });
 
 export const CorporationStructureSchema = z.looseObject({
@@ -187,7 +193,7 @@ export const CorporationStructureSchema = z.looseObject({
 });
 
 export const CorporationTitleSchema = z.looseObject({
-  title_id: z.number(),
+  title_id: z.number().optional(),
   name: z.string().optional(),
   roles: z.array(z.string()).optional(),
   grantable_roles: z.array(z.string()).optional(),

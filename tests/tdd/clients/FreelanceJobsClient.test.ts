@@ -115,7 +115,7 @@ describe('FreelanceJobsClient', () => {
 
     it('should return empty listing at end of dataset', async () => {
       const empty = {
-        cursor: { before: 'b-end', after: null },
+        cursor: { before: 'b-end' },
         freelance_jobs: [],
       };
       fetchMock.mockResponseOnce(JSON.stringify(empty));
@@ -123,7 +123,7 @@ describe('FreelanceJobsClient', () => {
       const result = await client.getFreelanceJobs(undefined, 'last-cursor');
 
       expect(result.freelance_jobs).toHaveLength(0);
-      expect(result.cursor?.after).toBeNull();
+      expect(result.cursor?.after).toBeUndefined();
     });
   });
 
@@ -205,10 +205,9 @@ describe('FreelanceJobsClient', () => {
       authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
       const mockParticipation = {
-        job_id: 'job-1',
-        character_id: 12345,
-        status: 'committed',
-        contributions: 5,
+        state: 'Committed',
+        contributed: 5,
+        last_modified: '2026-09-15T10:00:00Z',
       };
 
       fetchMock.mockResponseOnce(JSON.stringify(mockParticipation));
@@ -218,7 +217,8 @@ describe('FreelanceJobsClient', () => {
         'job-1',
       );
 
-      expect(result.status).toBe('committed');
+      expect(result.state).toBe('Committed');
+      expect(result.contributed).toBe(5);
       expect(fetchMock.mock.calls[0][0]).toBe(
         'https://esi.evetech.net/characters/12345/freelance-jobs/job-1/participation',
       );
@@ -263,20 +263,12 @@ describe('FreelanceJobsClient', () => {
       );
       authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
-      const mockParticipants = [
-        {
-          character_id: 111,
-          corporation_id: 98574078,
-          status: 'committed',
-          contributions: 10,
-        },
-        {
-          character_id: 222,
-          corporation_id: 98574078,
-          status: 'committed',
-          contributions: 3,
-        },
-      ];
+      const mockParticipants = {
+        participants: [
+          { id: 111, name: 'Pilot One', state: 'Committed', contributed: 10 },
+          { id: 222, name: 'Pilot Two', state: 'Committed', contributed: 3 },
+        ],
+      };
 
       fetchMock.mockResponseOnce(JSON.stringify(mockParticipants));
 
@@ -285,7 +277,7 @@ describe('FreelanceJobsClient', () => {
         'job-1',
       );
 
-      expect(result).toHaveLength(2);
+      expect(result.participants.map((p) => p.id)).toEqual([111, 222]);
       expect(fetchMock.mock.calls[0][0]).toBe(
         'https://esi.evetech.net/corporations/98574078/freelance-jobs/job-1/participants',
       );

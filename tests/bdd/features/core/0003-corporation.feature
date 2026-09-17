@@ -81,6 +81,49 @@ Feature: Corporation Management
       When the client requests structures
       Then the client shall return structure information
 
+  Rule: When the configuration of a starbase is requested, the Corporations client shall return a record carrying anchor, online, fuel_bay_take, use_alliance_standings, and attack_if_at_war.
+    A control tower's configuration says who may anchor, online and take fuel
+    from it, and when it opens fire. ESI always sends these settings
+    (CorporationsCorporationIdStarbasesStarbaseIdGet) and sends no state
+    here; the state is on the starbase list.
+
+    Scenario: Configuration of a tower that fires on war targets
+      Given an authenticated director with a starbase
+      When the client requests the starbase configuration
+      Then the client shall return the tower access and defence settings
+
+  # ── Medals and role audit ───────────────────────────────────────────
+
+  Rule: When medals are requested for a corporation ID, the Corporations client shall return an array whose entries each carry medal_id, title, creator_id, and created_at.
+    The medal list describes the decorations a corporation has designed. ESI
+    stamps each with created_at (CorporationsCorporationIdMedalsGet).
+
+    Scenario: Medal designed by a director
+      Given a corporation with a designed medal
+      When the client requests corporation medals
+      Then the client shall return the medal designs
+
+  Rule: When issued medals are requested for a corporation ID, the Corporations client shall return an array whose entries each carry medal_id, character_id, issuer_id, reason, status, and issued_at.
+    An issued medal links a design to the pilot who received it. ESI sends no
+    title or description on it (CorporationsCorporationIdMedalsIssuedGet): a
+    caller joins on medal_id to the medal list for those.
+
+    Scenario: Medal awarded to a member
+      Given a corporation that has awarded a medal
+      When the client requests issued corporation medals
+      Then the client shall return the awards
+
+  Rule: When the member role history is requested for a corporation ID, the Corporations client shall return an array whose entries each carry character_id, role_type, old_roles, and new_roles.
+    The role history is the audit trail of who changed whose roles. Each entry
+    lists the full role set before and after the change
+    (CorporationsCorporationIdRolesHistoryGet), so a caller diffs the two to
+    see what was granted or revoked.
+
+    Scenario: Station manager role granted to a member
+      Given a corporation whose director granted a role
+      When the client requests the member role history
+      Then the client shall return the role change
+
   Rule: When a corporation endpoint returns an array of records, the Corporations client shall deliver each entry to the caller with its fields unmodified.
     Zod schemas in this library are loose objects, so fields ESI adds beyond
     the declared shape survive the round trip rather than being stripped. Both

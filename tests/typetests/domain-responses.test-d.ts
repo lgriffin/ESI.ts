@@ -27,6 +27,8 @@ import type {
   FactionWarfareLeaderboard,
   Contract,
   PublicContract,
+  PublicContractBid,
+  ContractBid,
 } from '../../src';
 
 // --- EsiResponse shape ---
@@ -169,6 +171,15 @@ expectAssignable<FactionWarfareLeaderboard>(corporationBoard);
 declare const characterContract: Contract;
 expectAssignable<string>(characterContract.status);
 expectAssignable<string>(characterContract.availability);
+expectType<number>(characterContract.acceptor_id);
+expectType<number>(characterContract.assignee_id);
+expectType<boolean>(characterContract.for_corporation);
+
+declare const characterBid: ContractBid;
+expectType<number>(characterBid.bidder_id);
+
+declare const publicBid: PublicContractBid;
+expectType<number>(publicBid.amount);
 
 declare const publicContract: PublicContract;
 expectType<number>(publicContract.contract_id);

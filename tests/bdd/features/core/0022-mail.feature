@@ -37,10 +37,11 @@ Feature: Mail Management
       When the client requests their empty inbox headers
       Then the client shall return an empty mail list
 
-  Rule: When a single message is requested by mail ID, the Mail client shall return that message with its mail_id, subject, sender, and recipient list when present.
-    The per-message endpoint is the only place the recipient list appears, so
-    fetching one message is how a caller discovers who else received it. The
-    mail_id echoed back confirms which message was resolved.
+  Rule: When a single message is requested by mail ID, the Mail client shall return that message with its subject, sender, read flag, and recipient list when present.
+    The per-message endpoint is where the body appears, and the recipient list
+    tells a caller who else received it. ESI does not echo the mail_id here,
+    and names the read flag `read` rather than the header's `is_read`
+    (CharactersCharacterIdMailMailIdGet).
 
     Scenario: Requesting a mail by ID returns its sender and recipients
       Given a character with a specific mail
@@ -49,7 +50,7 @@ Feature: Mail Management
 
   # ── Labels and mailing lists ────────────────────────────────────────
 
-  Rule: When the mail labels of a character are requested, the Mail client shall return the label_id and name of each label, and the total unread count and each label's unread_count when present.
+  Rule: When the mail labels of a character are requested, the Mail client shall return the label_id, name, and unread_count of each label, and the total unread count, when present.
     A label is both a folder and a counter. The aggregate total is reported
     separately from the per-label counts because a single unread message can
     carry more than one label, making the per-label counts sum to at least the

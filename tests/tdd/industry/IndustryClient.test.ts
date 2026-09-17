@@ -243,7 +243,6 @@ describe('IndustryClient', () => {
         job_id: 1,
         installer_id: 2,
         facility_id: 3,
-        station_id: 60003760,
         location_id: 4,
         activity_id: 5,
         blueprint_id: 6,

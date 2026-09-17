@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
   FreelanceJobsListingSchema,
@@ -6,7 +5,7 @@ import {
   CharacterFreelanceJobsListingSchema,
   FreelanceJobParticipationSchema,
   CorporationFreelanceJobsListingSchema,
-  FreelanceJobParticipantSchema,
+  FreelanceJobParticipantsListingSchema,
 } from '../../schemas/freelance-jobs';
 
 export const freelanceJobsEndpoints = {
@@ -52,6 +51,6 @@ export const freelanceJobsEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId', 'jobId'],
-    responseSchema: z.array(FreelanceJobParticipantSchema),
+    responseSchema: FreelanceJobParticipantsListingSchema,
   },
 } as const satisfies EndpointMap;

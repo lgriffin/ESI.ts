@@ -74,16 +74,14 @@ defineFeature(feature, (test) => {
         corporation_id: corporationId,
         alliance_id: allianceId,
       });
-      const { corporation_id: _k, ...corporationDetail } =
-        TestDataFactory.createCorporationInfo({
-          name: 'GoonWaffe',
-          alliance_id: allianceId,
-        });
-      const { alliance_id: _a, ...allianceDetail } =
-        TestDataFactory.createAllianceInfo({
-          name: 'Goonswarm Federation',
-          executor_corporation_id: corporationId,
-        });
+      const corporationDetail = TestDataFactory.createCorporationInfo({
+        name: 'GoonWaffe',
+        alliance_id: allianceId,
+      });
+      const allianceDetail = TestDataFactory.createAllianceInfo({
+        name: 'Goonswarm Federation',
+        executor_corporation_id: corporationId,
+      });
 
       queueResponse({
         match: route(`/characters/${characterId}/`),
@@ -311,11 +309,10 @@ defineFeature(feature, (test) => {
     const memberIds = Array.from({ length: 150 }, (_, i) => characterId + i);
 
     given('a corporation director role', () => {
-      const { corporation_id: _k, ...corporationDetail } =
-        TestDataFactory.createCorporationInfo({
-          name: 'Test Corporation',
-          member_count: 150,
-        });
+      const corporationDetail = TestDataFactory.createCorporationInfo({
+        name: 'Test Corporation',
+        member_count: 150,
+      });
 
       queueResponse({
         match: route(`/corporations/${corporationId}`),
@@ -465,7 +462,6 @@ defineFeature(feature, (test) => {
           type_id: 17918,
           name: 'Rattlesnake',
           group_id: 27,
-          category_id: 6,
         }),
       });
       queueResponse({
@@ -474,7 +470,6 @@ defineFeature(feature, (test) => {
           type_id: 17812,
           name: 'Republic Fleet Firetail',
           group_id: 25,
-          category_id: 6,
         }),
       });
     });
@@ -654,8 +649,9 @@ defineFeature(feature, (test) => {
         name: 'Test Pilot',
         corporation_id: corporationId,
       });
-      const { corporation_id: _k, ...corporationDetail } =
-        TestDataFactory.createCorporationInfo({ name: 'GoonWaffe' });
+      const corporationDetail = TestDataFactory.createCorporationInfo({
+        name: 'GoonWaffe',
+      });
 
       queueResponse({
         match: route(`/characters/${characterId}/`),
@@ -732,10 +728,12 @@ defineFeature(feature, (test) => {
         corporation_id: corporationId,
         alliance_id: allianceId,
       });
-      const { corporation_id: _k, ...corporationDetail } =
-        TestDataFactory.createCorporationInfo({ name: 'GoonWaffe' });
-      const { alliance_id: _a, ...allianceDetail } =
-        TestDataFactory.createAllianceInfo({ name: 'Goonswarm Federation' });
+      const corporationDetail = TestDataFactory.createCorporationInfo({
+        name: 'GoonWaffe',
+      });
+      const allianceDetail = TestDataFactory.createAllianceInfo({
+        name: 'Goonswarm Federation',
+      });
 
       queueResponse({
         match: route(`/characters/${characterId}/`),

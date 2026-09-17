@@ -1,17 +1,18 @@
 import { z } from 'zod';
 import { esiEnum } from './esiEnum';
 
+/** A calendar entry; ESI marks every field optional. */
 export const CalendarEventSchema = z.looseObject({
-  event_id: z.number(),
-  event_date: z.string(),
-  title: z.string(),
-  importance: z.number(),
+  event_id: z.number().optional(),
+  event_date: z.string().optional(),
+  title: z.string().optional(),
+  importance: z.number().optional(),
   event_response: esiEnum([
     'declined',
     'not_responded',
     'accepted',
     'tentative',
-  ]),
+  ]).optional(),
 });
 
 export const CalendarEventDetailSchema = z.looseObject({
@@ -33,12 +34,13 @@ export const CalendarEventDetailSchema = z.looseObject({
   response: z.string(),
 });
 
+/** An event attendee; ESI marks both fields optional. */
 export const CalendarEventAttendeeSchema = z.looseObject({
-  character_id: z.number(),
+  character_id: z.number().optional(),
   event_response: esiEnum([
     'declined',
     'not_responded',
     'accepted',
     'tentative',
-  ]),
+  ]).optional(),
 });

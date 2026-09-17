@@ -27,6 +27,8 @@ describe('ContractClient', () => {
         contract_id: 1,
         issuer_id: 123,
         issuer_corporation_id: 98000001,
+        assignee_id: 0,
+        acceptor_id: 0,
         start_location_id: 456,
         type: 'item_exchange',
         status: 'outstanding',
@@ -161,7 +163,6 @@ describe('ContractClient', () => {
     const mockResponse = [
       {
         bid_id: 1,
-        bidder_id: 98000002,
         amount: 1000000,
         date_bid: '2024-07-01T12:00:00Z',
       },
@@ -192,7 +193,6 @@ describe('ContractClient', () => {
         item_id: 1,
         type_id: 2,
         quantity: 3,
-        is_singleton: false,
         is_included: true,
       },
     ];
@@ -223,6 +223,8 @@ describe('ContractClient', () => {
         contract_id: 1,
         issuer_id: 123,
         issuer_corporation_id: 98000001,
+        assignee_id: 0,
+        acceptor_id: 0,
         start_location_id: 456,
         type: 'item_exchange',
         status: 'outstanding',

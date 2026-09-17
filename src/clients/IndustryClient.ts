@@ -3,6 +3,7 @@ import { BaseEsiClient } from './BaseEsiClient';
 import { industryEndpoints } from '../core/endpoints/industryEndpoints';
 import {
   IndustryJob,
+  CorporationIndustryJob,
   MiningLedgerEntry,
   IndustryFacility,
   IndustrySystem,
@@ -87,7 +88,9 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
    * @returns An array of the corporation's industry jobs
    * @requires Authentication
    */
-  getCorporationIndustryJobs(corporationId: number): Promise<IndustryJob[]> {
+  getCorporationIndustryJobs(
+    corporationId: number,
+  ): Promise<CorporationIndustryJob[]> {
     return this.api.getCorporationIndustryJobs(corporationId);
   }
 
@@ -134,8 +137,8 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
   fetchAllCorporationIndustryJobs(
     corporationId: number,
     concurrency?: number,
-  ): Promise<IndustryJob[]> {
-    return this.fetchAllEndpoint<IndustryJob>(
+  ): Promise<CorporationIndustryJob[]> {
+    return this.fetchAllEndpoint<CorporationIndustryJob>(
       'getCorporationIndustryJobs',
       [corporationId],
       concurrency,
@@ -214,8 +217,8 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
 
   streamCorporationIndustryJobs(
     corporationId: number,
-  ): AsyncGenerator<PageResult<IndustryJob>, void, undefined> {
-    return this.streamEndpoint<IndustryJob>(
+  ): AsyncGenerator<PageResult<CorporationIndustryJob>, void, undefined> {
+    return this.streamEndpoint<CorporationIndustryJob>(
       'getCorporationIndustryJobs',
       corporationId,
     );

@@ -474,7 +474,7 @@ describe('CorporationsClient', () => {
           title: 'Valor',
           description: 'For bravery',
           creator_id: 95465499,
-          date: '2023-01-15T00:00:00Z',
+          created_at: '2023-01-15T00:00:00Z',
         },
       ]),
     );
@@ -494,8 +494,6 @@ describe('CorporationsClient', () => {
           medal_id: 1,
           character_id: 99,
           issued_at: '2024-01-01T00:00:00Z',
-          title: 'Valor',
-          description: 'For bravery in combat',
           issuer_id: 95465499,
           reason: 'Distinguished service',
           status: 'public' as const,
@@ -552,8 +550,8 @@ describe('CorporationsClient', () => {
           changed_at: '2024-01-01T00:00:00Z',
           role_type: 'roles',
           issuer_id: 95465499,
-          before: ['Director'],
-          after: ['Director', 'Personnel_Manager'],
+          old_roles: ['Director'],
+          new_roles: ['Director', 'Personnel_Manager'],
         },
       ]),
     );
@@ -604,15 +602,25 @@ describe('CorporationsClient', () => {
   it('should return valid structure for getCorporationStarbaseDetail', async () => {
     fetchMock.mockResponseOnce(
       JSON.stringify({
-        state: 'online',
         fuel_bay_view: 'alliance_member',
+        fuel_bay_take: 'config_starbase_equipment_role',
+        anchor: 'config_starbase_equipment_role',
+        unanchor: 'config_starbase_equipment_role',
+        online: 'config_starbase_equipment_role',
+        offline: 'config_starbase_equipment_role',
+        allow_corporation_members: true,
+        allow_alliance_members: false,
+        use_alliance_standings: false,
+        attack_if_other_security_status_dropping: false,
+        attack_if_at_war: true,
         fuels: [{ type_id: 16275, quantity: 960 }],
       }),
     );
     const result = await getBody(() =>
       corporationsClient.getCorporationStarbaseDetail(123456789, 1),
     );
-    expect(result).toHaveProperty('state');
+    expect(result).toHaveProperty('fuel_bay_view', 'alliance_member');
+    expect(result).not.toHaveProperty('state');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/corporations/123456789/starbases/1',
     );

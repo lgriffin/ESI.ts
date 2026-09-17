@@ -11,7 +11,7 @@ export const SolarSystemInfoSchema = z.looseObject({
   system_id: z.number(),
   name: z.string(),
   constellation_id: z.number(),
-  position: PositionSchema.optional(),
+  position: PositionSchema,
   security_class: z.string().optional(),
   security_status: z.number(),
   star_id: z.number().optional(),
@@ -226,9 +226,10 @@ export const SystemKillSchema = z.looseObject({
   ship_kills: z.number(),
 });
 
+/** One resolved name from `POST /universe/ids`; ESI marks both fields optional. */
 const IdNameSchema = z.looseObject({
-  id: z.number(),
-  name: z.string(),
+  id: z.number().optional(),
+  name: z.string().optional(),
 });
 
 export const BulkIdResultSchema = z.looseObject({

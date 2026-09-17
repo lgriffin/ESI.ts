@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { esiEnum } from './esiEnum';
 
 export const MetaChangelogEntrySchema = z.looseObject({
   method: z.string(),
@@ -21,6 +22,14 @@ export const MetaNameSchema = z.looseObject({
   name: z.string(),
 });
 
+/** One route's health in `GET /meta/status`. */
+export const MetaRouteStatusSchema = z.looseObject({
+  method: esiEnum(['GET', 'POST', 'PUT', 'DELETE']),
+  path: z.string(),
+  status: esiEnum(['Unknown', 'OK', 'Degraded', 'Down', 'Recovering']),
+});
+
+/** `GET /meta/status`: the health of each ESI route (MetaStatus). */
 export const MetaStatusSchema = z.looseObject({
-  status: z.string(),
+  routes: z.array(MetaRouteStatusSchema),
 });

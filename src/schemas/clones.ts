@@ -4,8 +4,8 @@ import { esiEnum } from './esiEnum';
 export const CloneInfoSchema = z.looseObject({
   home_location: z
     .looseObject({
-      location_id: z.number(),
-      location_type: esiEnum(['station', 'structure']),
+      location_id: z.number().optional(),
+      location_type: esiEnum(['station', 'structure']).optional(),
     })
     .optional(),
   jump_clones: z.array(

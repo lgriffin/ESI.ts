@@ -61,6 +61,8 @@ import {
   PublicContractSchema,
   ContractItemSchema,
   ContractBidSchema,
+  PublicContractItemSchema,
+  PublicContractBidSchema,
 
   // corporation
   CorporationInfoSchema,
@@ -117,6 +119,7 @@ import {
   FreelanceJobParticipationSchema,
   CorporationFreelanceJobsListingSchema,
   FreelanceJobParticipantSchema,
+  FreelanceJobParticipantsListingSchema,
 
   // incursions
   IncursionSchema,
@@ -147,6 +150,7 @@ import {
   LoyaltyStoreOfferSchema,
 
   // mail
+  MailHeaderSchema,
   MailMessageSchema,
   MailLabelSchema,
   MailLabelsResponseSchema,
@@ -693,8 +697,11 @@ const schemaCases: SchemaTestCase[] = [
       contract_id: 1,
       issuer_id: 100,
       issuer_corporation_id: 200,
+      assignee_id: 0,
+      acceptor_id: 0,
       type: 'item_exchange',
       status: 'outstanding',
+      for_corporation: false,
       availability: 'personal',
       date_issued: '2024-01-01T00:00:00Z',
       date_expired: '2024-02-01T00:00:00Z',
@@ -745,6 +752,35 @@ const schemaCases: SchemaTestCase[] = [
       quantity: 10,
       is_singleton: false,
       is_included: true,
+    },
+  },
+  {
+    name: 'PublicContractItemSchema',
+    schema: PublicContractItemSchema,
+    validData: {
+      record_id: 1,
+      type_id: 587,
+      quantity: 10,
+      is_included: true,
+    },
+    invalidData: {
+      record_id: 1,
+      type_id: 587,
+      quantity: 10,
+      is_included: 'yes',
+    },
+  },
+  {
+    name: 'PublicContractBidSchema',
+    schema: PublicContractBidSchema,
+    validData: {
+      bid_id: 1,
+      date_bid: '2024-01-01T00:00:00Z',
+      amount: 1000000.0,
+    },
+    invalidData: {
+      bid_id: 1,
+      date_bid: '2024-01-01T00:00:00Z',
     },
   },
   {
@@ -805,14 +841,14 @@ const schemaCases: SchemaTestCase[] = [
       title: 'Service Medal',
       description: 'For service',
       creator_id: 100,
-      date: '2024-01-01T00:00:00Z',
+      created_at: '2024-01-01T00:00:00Z',
     },
     invalidData: {
       medal_id: 'bad',
       title: 'Service Medal',
       description: 'For service',
       creator_id: 100,
-      date: '2024-01-01T00:00:00Z',
+      created_at: '2024-01-01T00:00:00Z',
     },
   },
   {
@@ -861,8 +897,6 @@ const schemaCases: SchemaTestCase[] = [
     schema: CorporationIssuedMedalSchema,
     validData: {
       medal_id: 1,
-      title: 'Bravery',
-      description: 'For bravery',
       character_id: 100,
       issued_at: '2024-01-01T00:00:00Z',
       issuer_id: 200,
@@ -871,8 +905,6 @@ const schemaCases: SchemaTestCase[] = [
     },
     invalidData: {
       medal_id: 'bad',
-      title: 'Bravery',
-      description: 'For bravery',
       character_id: 100,
       issued_at: '2024-01-01T00:00:00Z',
       issuer_id: 200,
@@ -923,16 +955,16 @@ const schemaCases: SchemaTestCase[] = [
       changed_at: '2024-01-01T00:00:00Z',
       issuer_id: 200,
       role_type: 'roles',
-      before: ['Director'],
-      after: [],
+      old_roles: ['Director'],
+      new_roles: [],
     },
     invalidData: {
       character_id: 'bad',
       changed_at: '2024-01-01T00:00:00Z',
       issuer_id: 200,
       role_type: 'roles',
-      before: ['Director'],
-      after: [],
+      old_roles: ['Director'],
+      new_roles: [],
     },
   },
   {
@@ -953,11 +985,22 @@ const schemaCases: SchemaTestCase[] = [
     name: 'CorporationStarbaseDetailSchema',
     schema: CorporationStarbaseDetailSchema,
     validData: {
-      state: 'online',
+      fuel_bay_view: 'alliance_member',
+      fuel_bay_take: 'config_starbase_equipment_role',
+      anchor: 'config_starbase_equipment_role',
+      unanchor: 'config_starbase_equipment_role',
+      online: 'config_starbase_equipment_role',
+      offline: 'config_starbase_equipment_role',
+      allow_corporation_members: true,
+      allow_alliance_members: false,
+      use_alliance_standings: false,
+      attack_if_other_security_status_dropping: false,
+      attack_if_at_war: true,
       fuels: [{ type_id: 4246, quantity: 1000 }],
     },
     invalidData: {
-      state: 12345,
+      fuel_bay_view: 'alliance_member',
+      fuels: [{ type_id: 4246, quantity: 1000 }],
     },
   },
   {
@@ -1343,6 +1386,7 @@ const schemaCases: SchemaTestCase[] = [
     schema: CharacterFleetInfoSchema,
     validData: {
       fleet_id: 1,
+      fleet_boss_id: 90000001,
       role: 'fleet_commander',
       squad_id: -1,
       wing_id: -1,
@@ -1359,8 +1403,8 @@ const schemaCases: SchemaTestCase[] = [
   {
     name: 'EsiCursorSchema',
     schema: EsiCursorSchema,
-    validData: { before: null, after: null },
-    invalidData: { before: 123, after: null },
+    validData: { after: 'next-page-cursor' },
+    invalidData: { before: null },
   },
   {
     name: 'FreelanceJobSummarySchema',
@@ -1482,16 +1526,14 @@ const schemaCases: SchemaTestCase[] = [
     name: 'FreelanceJobParticipationSchema',
     schema: FreelanceJobParticipationSchema,
     validData: {
-      job_id: 'job-1',
-      character_id: 100,
-      status: 'active',
-      contributions: 5,
+      state: 'Committed',
+      contributed: 5,
+      last_modified: '2024-01-01T00:00:00Z',
     },
     invalidData: {
-      job_id: 123,
-      character_id: 100,
-      status: 'active',
-      contributions: 5,
+      state: 'Committed',
+      contributed: '5',
+      last_modified: '2024-01-01T00:00:00Z',
     },
   },
   {
@@ -1516,17 +1558,27 @@ const schemaCases: SchemaTestCase[] = [
     name: 'FreelanceJobParticipantSchema',
     schema: FreelanceJobParticipantSchema,
     validData: {
-      character_id: 100,
-      corporation_id: 200,
-      status: 'committed',
-      contributions: 10,
+      id: 100,
+      name: 'Pilot',
+      state: 'Committed',
+      contributed: 10,
     },
     invalidData: {
-      character_id: 'bad',
-      corporation_id: 200,
-      status: 'committed',
-      contributions: 10,
+      id: 'bad',
+      name: 'Pilot',
+      state: 'Committed',
+      contributed: 10,
     },
+  },
+  {
+    name: 'FreelanceJobParticipantsListingSchema',
+    schema: FreelanceJobParticipantsListingSchema,
+    validData: {
+      participants: [
+        { id: 100, name: 'Pilot', state: 'Committed', contributed: 10 },
+      ],
+    },
+    invalidData: { participants: 'bad' },
   },
 
   // ── incursions ────────────────────────────────────────────────────────────
@@ -1805,16 +1857,31 @@ const schemaCases: SchemaTestCase[] = [
 
   // ── mail ──────────────────────────────────────────────────────────────────
   {
-    name: 'MailMessageSchema',
-    schema: MailMessageSchema,
+    name: 'MailHeaderSchema',
+    schema: MailHeaderSchema,
     validData: {
       mail_id: 1,
       subject: 'Hello',
       from: 100,
       timestamp: '2024-01-01T00:00:00Z',
+      is_read: false,
     },
     invalidData: {
       mail_id: 'bad',
+    },
+  },
+  {
+    name: 'MailMessageSchema',
+    schema: MailMessageSchema,
+    validData: {
+      subject: 'Hello',
+      from: 100,
+      timestamp: '2024-01-01T00:00:00Z',
+      read: true,
+      body: 'Fly safe',
+    },
+    invalidData: {
+      read: 'bad',
     },
   },
   {
@@ -1983,6 +2050,8 @@ const schemaCases: SchemaTestCase[] = [
       system_id: 30000142,
       reinforce_exit_start: 0,
       reinforce_exit_end: 23,
+      allow_alliance_access: true,
+      allow_access_with_standings: false,
     },
     invalidData: {
       office_id: 'bad',
@@ -2190,6 +2259,7 @@ const schemaCases: SchemaTestCase[] = [
       name: 'Jita',
       constellation_id: 20000020,
       security_status: 0.9459,
+      position: { x: 1.0e17, y: 6.0e16, z: 1.1e17 },
     },
     invalidData: {
       system_id: 'bad',

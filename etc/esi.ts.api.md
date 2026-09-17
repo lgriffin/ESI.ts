@@ -471,44 +471,44 @@ export type BulkIdResult = z.infer<typeof BulkIdResultSchema>;
 // @public (undocumented)
 const BulkIdResultSchema: z.ZodObject<{
     agents: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     alliances: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     characters: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     constellations: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     corporations: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     factions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     inventory_types: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     regions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     systems: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     stations: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        id: z.ZodNumber;
-        name: z.ZodString;
+        id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
@@ -555,10 +555,10 @@ export type CalendarEvent = z.infer<typeof CalendarEventSchema>;
 // @public (undocumented)
 export type CalendarEventAttendee = z.infer<typeof CalendarEventAttendeeSchema>;
 
-// @public (undocumented)
+// @public
 const CalendarEventAttendeeSchema: z.ZodObject<{
-    character_id: z.ZodNumber;
-    event_response: z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>;
+    character_id: z.ZodOptional<z.ZodNumber>;
+    event_response: z.ZodOptional<z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -578,13 +578,13 @@ const CalendarEventDetailSchema: z.ZodObject<{
     response: z.ZodString;
 }, z.core.$loose>;
 
-// @public (undocumented)
+// @public
 const CalendarEventSchema: z.ZodObject<{
-    event_id: z.ZodNumber;
-    event_date: z.ZodString;
-    title: z.ZodString;
-    importance: z.ZodNumber;
-    event_response: z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>;
+    event_id: z.ZodOptional<z.ZodNumber>;
+    event_date: z.ZodOptional<z.ZodString>;
+    title: z.ZodOptional<z.ZodString>;
+    importance: z.ZodOptional<z.ZodNumber>;
+    event_response: z.ZodOptional<z.ZodType<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown, z.core.$ZodTypeInternals<(string & {}) | "declined" | "not_responded" | "accepted" | "tentative", unknown>>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -687,7 +687,7 @@ export type CharacterFleetInfo = z.infer<typeof CharacterFleetInfoSchema>;
 // @public (undocumented)
 const CharacterFleetInfoSchema: z.ZodObject<{
     fleet_id: z.ZodNumber;
-    fleet_boss_id: z.ZodOptional<z.ZodNumber>;
+    fleet_boss_id: z.ZodNumber;
     role: z.ZodType<(string & {}) | "fleet_commander" | "wing_commander" | "squad_commander" | "squad_member", unknown, z.core.$ZodTypeInternals<(string & {}) | "fleet_commander" | "wing_commander" | "squad_commander" | "squad_member", unknown>>;
     squad_id: z.ZodNumber;
     wing_id: z.ZodNumber;
@@ -699,8 +699,8 @@ export type CharacterFreelanceJobsListing = z.infer<typeof CharacterFreelanceJob
 // @public (undocumented)
 const CharacterFreelanceJobsListingSchema: z.ZodObject<{
     cursor: z.ZodOptional<z.ZodObject<{
-        before: z.ZodNullable<z.ZodString>;
-        after: z.ZodNullable<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>;
     freelance_jobs: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -1867,8 +1867,8 @@ export type CharacterTitle = z.infer<typeof CharacterTitleSchema>;
 
 // @public (undocumented)
 const CharacterTitleSchema: z.ZodObject<{
-    title_id: z.ZodNumber;
-    name: z.ZodString;
+    title_id: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -1952,8 +1952,8 @@ export type CloneInfo = z.infer<typeof CloneInfoSchema>;
 // @public (undocumented)
 const CloneInfoSchema: z.ZodObject<{
     home_location: z.ZodOptional<z.ZodObject<{
-        location_id: z.ZodNumber;
-        location_type: z.ZodType<(string & {}) | "station" | "structure", unknown, z.core.$ZodTypeInternals<(string & {}) | "station" | "structure", unknown>>;
+        location_id: z.ZodOptional<z.ZodNumber>;
+        location_type: z.ZodOptional<z.ZodType<(string & {}) | "station" | "structure", unknown, z.core.$ZodTypeInternals<(string & {}) | "station" | "structure", unknown>>>;
     }, z.core.$loose>>;
     jump_clones: z.ZodArray<z.ZodObject<{
         jump_clone_id: z.ZodNumber;
@@ -2151,7 +2151,7 @@ export type Contract = z.infer<typeof ContractSchema>;
 // @public (undocumented)
 export type ContractBid = z.infer<typeof ContractBidSchema>;
 
-// @public (undocumented)
+// @public
 const ContractBidSchema: z.ZodObject<{
     bid_id: z.ZodNumber;
     bidder_id: z.ZodNumber;
@@ -2165,14 +2165,13 @@ export type ContractId = Brand<number, 'ContractId'>;
 // @public (undocumented)
 export type ContractItem = z.infer<typeof ContractItemSchema>;
 
-// @public (undocumented)
+// @public
 const ContractItemSchema: z.ZodObject<{
     record_id: z.ZodNumber;
     type_id: z.ZodNumber;
     quantity: z.ZodNumber;
     raw_quantity: z.ZodOptional<z.ZodNumber>;
     is_singleton: z.ZodBoolean;
-    is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
     is_included: z.ZodBoolean;
 }, z.core.$loose>;
 
@@ -2181,14 +2180,14 @@ const ContractSchema: z.ZodObject<{
     contract_id: z.ZodNumber;
     issuer_id: z.ZodNumber;
     issuer_corporation_id: z.ZodNumber;
-    assignee_id: z.ZodOptional<z.ZodNumber>;
-    acceptor_id: z.ZodOptional<z.ZodNumber>;
+    assignee_id: z.ZodNumber;
+    acceptor_id: z.ZodNumber;
     start_location_id: z.ZodOptional<z.ZodNumber>;
     end_location_id: z.ZodOptional<z.ZodNumber>;
     type: z.ZodType<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown, z.core.$ZodTypeInternals<(string & {}) | "unknown" | "item_exchange" | "auction" | "courier" | "loan", unknown>>;
     status: z.ZodType<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "outstanding" | "in_progress" | "finished_issuer" | "finished_contractor" | "finished" | "rejected" | "failed" | "deleted" | "reversed", unknown>>;
     title: z.ZodOptional<z.ZodString>;
-    for_corporation: z.ZodOptional<z.ZodBoolean>;
+    for_corporation: z.ZodBoolean;
     availability: z.ZodType<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown, z.core.$ZodTypeInternals<(string & {}) | "corporation" | "alliance" | "public" | "personal", unknown>>;
     date_issued: z.ZodString;
     date_expired: z.ZodString;
@@ -2219,8 +2218,8 @@ export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
     getCorporationContractBids(corporationId: number, contractId: number): Promise<ContractBid[]>;
     getCorporationContractItems(corporationId: number, contractId: number): Promise<ContractItem[]>;
     getCorporationContracts(corporationId: number): Promise<Contract[]>;
-    getPublicContractBids(contractId: number): Promise<ContractBid[]>;
-    getPublicContractItems(contractId: number): Promise<ContractItem[]>;
+    getPublicContractBids(contractId: number): Promise<PublicContractBid[]>;
+    getPublicContractItems(contractId: number): Promise<PublicContractItem[]>;
     getPublicContracts(regionId: number): Promise<PublicContract[]>;
     // (undocumented)
     streamCharacterContracts(characterId: number): AsyncGenerator<PageResult<Contract>, void, undefined>;
@@ -2356,11 +2355,11 @@ export type CorporationDivisions = z.infer<typeof CorporationDivisionsSchema>;
 // @public (undocumented)
 const CorporationDivisionsSchema: z.ZodObject<{
     hangar: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        division: z.ZodNumber;
+        division: z.ZodOptional<z.ZodNumber>;
         name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
     wallet: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        division: z.ZodNumber;
+        division: z.ZodOptional<z.ZodNumber>;
         name: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>>;
 }, z.core.$loose>;
@@ -2381,8 +2380,8 @@ export type CorporationFreelanceJobsListing = z.infer<typeof CorporationFreelanc
 // @public (undocumented)
 const CorporationFreelanceJobsListingSchema: z.ZodObject<{
     cursor: z.ZodOptional<z.ZodObject<{
-        before: z.ZodNullable<z.ZodString>;
-        after: z.ZodNullable<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>;
     freelance_jobs: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -2422,6 +2421,35 @@ const CorporationIconSchema: z.ZodObject<{
 export type CorporationId = Brand<number, 'CorporationId'>;
 
 // @public (undocumented)
+export type CorporationIndustryJob = z.infer<typeof CorporationIndustryJobSchema>;
+
+// @public
+const CorporationIndustryJobSchema: z.ZodObject<{
+    status: z.ZodType<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown>>;
+    runs: z.ZodNumber;
+    start_date: z.ZodString;
+    facility_id: z.ZodNumber;
+    duration: z.ZodNumber;
+    job_id: z.ZodNumber;
+    installer_id: z.ZodNumber;
+    activity_id: z.ZodNumber;
+    blueprint_id: z.ZodNumber;
+    blueprint_type_id: z.ZodNumber;
+    blueprint_location_id: z.ZodNumber;
+    output_location_id: z.ZodNumber;
+    cost: z.ZodOptional<z.ZodNumber>;
+    licensed_runs: z.ZodOptional<z.ZodNumber>;
+    probability: z.ZodOptional<z.ZodNumber>;
+    product_type_id: z.ZodOptional<z.ZodNumber>;
+    end_date: z.ZodString;
+    pause_date: z.ZodOptional<z.ZodString>;
+    completed_date: z.ZodOptional<z.ZodString>;
+    completed_character_id: z.ZodOptional<z.ZodNumber>;
+    successful_runs: z.ZodOptional<z.ZodNumber>;
+    location_id: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type CorporationInfo = z.infer<typeof CorporationInfoSchema>;
 
 // @public (undocumented)
@@ -2446,11 +2474,9 @@ const CorporationInfoSchema: z.ZodObject<{
 // @public (undocumented)
 export type CorporationIssuedMedal = z.infer<typeof CorporationIssuedMedalSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationIssuedMedalSchema: z.ZodObject<{
     medal_id: z.ZodNumber;
-    title: z.ZodString;
-    description: z.ZodString;
     character_id: z.ZodNumber;
     issued_at: z.ZodString;
     issuer_id: z.ZodNumber;
@@ -2506,13 +2532,13 @@ const CorporationMarketOrderSchema: z.ZodObject<{
 // @public (undocumented)
 export type CorporationMedal = z.infer<typeof CorporationMedalSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationMedalSchema: z.ZodObject<{
     medal_id: z.ZodNumber;
     title: z.ZodString;
     description: z.ZodString;
     creator_id: z.ZodNumber;
-    date: z.ZodString;
+    created_at: z.ZodString;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -2546,7 +2572,7 @@ export type CorporationMemberTracking = z.infer<typeof CorporationMemberTracking
 // @public (undocumented)
 const CorporationMemberTrackingSchema: z.ZodObject<{
     character_id: z.ZodNumber;
-    start_date: z.ZodString;
+    start_date: z.ZodOptional<z.ZodString>;
     base_id: z.ZodOptional<z.ZodNumber>;
     location_id: z.ZodOptional<z.ZodNumber>;
     logoff_date: z.ZodOptional<z.ZodString>;
@@ -2694,14 +2720,14 @@ const CorporationProjectSummarySchema: z.ZodObject<{
 // @public (undocumented)
 export type CorporationRoleHistory = z.infer<typeof CorporationRoleHistorySchema>;
 
-// @public (undocumented)
+// @public
 const CorporationRoleHistorySchema: z.ZodObject<{
     character_id: z.ZodNumber;
     changed_at: z.ZodString;
     issuer_id: z.ZodNumber;
     role_type: z.ZodString;
-    before: z.ZodArray<z.ZodString>;
-    after: z.ZodArray<z.ZodString>;
+    old_roles: z.ZodArray<z.ZodString>;
+    new_roles: z.ZodArray<z.ZodString>;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "corporationEndpoints" needs to be exported by the entry point index.d.ts
@@ -3688,26 +3714,25 @@ export type CorporationStarbase = z.infer<typeof CorporationStarbaseSchema>;
 // @public (undocumented)
 export type CorporationStarbaseDetail = z.infer<typeof CorporationStarbaseDetailSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationStarbaseDetailSchema: z.ZodObject<{
-    state: z.ZodType<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown>>;
     fuels: z.ZodOptional<z.ZodArray<z.ZodObject<{
         type_id: z.ZodNumber;
         quantity: z.ZodNumber;
     }, z.core.$loose>>>;
-    allow_alliance_members: z.ZodOptional<z.ZodBoolean>;
-    allow_corporation_members: z.ZodOptional<z.ZodBoolean>;
-    anchor: z.ZodOptional<z.ZodString>;
-    attack_if_at_war: z.ZodOptional<z.ZodBoolean>;
-    attack_if_other_security_status_dropping: z.ZodOptional<z.ZodBoolean>;
+    allow_alliance_members: z.ZodBoolean;
+    allow_corporation_members: z.ZodBoolean;
+    anchor: z.ZodString;
+    attack_if_at_war: z.ZodBoolean;
+    attack_if_other_security_status_dropping: z.ZodBoolean;
     attack_security_status_threshold: z.ZodOptional<z.ZodNumber>;
     attack_standing_threshold: z.ZodOptional<z.ZodNumber>;
-    fuel_bay_take: z.ZodOptional<z.ZodString>;
-    fuel_bay_view: z.ZodOptional<z.ZodString>;
-    offline: z.ZodOptional<z.ZodString>;
-    online: z.ZodOptional<z.ZodString>;
-    unanchor: z.ZodOptional<z.ZodString>;
-    use_alliance_standings: z.ZodOptional<z.ZodBoolean>;
+    fuel_bay_take: z.ZodString;
+    fuel_bay_view: z.ZodString;
+    offline: z.ZodString;
+    online: z.ZodString;
+    unanchor: z.ZodString;
+    use_alliance_standings: z.ZodBoolean;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -3715,7 +3740,7 @@ const CorporationStarbaseSchema: z.ZodObject<{
     starbase_id: z.ZodNumber;
     type_id: z.ZodNumber;
     system_id: z.ZodNumber;
-    state: z.ZodType<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown>>;
+    state: z.ZodOptional<z.ZodType<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown, z.core.$ZodTypeInternals<(string & {}) | "offline" | "online" | "onlining" | "reinforced" | "unanchoring", unknown>>>;
     moon_id: z.ZodOptional<z.ZodNumber>;
     onlined_since: z.ZodOptional<z.ZodString>;
     reinforced_until: z.ZodOptional<z.ZodString>;
@@ -3752,7 +3777,7 @@ export type CorporationTitle = z.infer<typeof CorporationTitleSchema>;
 
 // @public (undocumented)
 const CorporationTitleSchema: z.ZodObject<{
-    title_id: z.ZodNumber;
+    title_id: z.ZodOptional<z.ZodNumber>;
     name: z.ZodOptional<z.ZodString>;
     roles: z.ZodOptional<z.ZodArray<z.ZodString>>;
     grantable_roles: z.ZodOptional<z.ZodArray<z.ZodString>>;
@@ -3768,6 +3793,22 @@ const CorporationTitleSchema: z.ZodObject<{
 const CorporationWalletDivisionSchema: z.ZodObject<{
     division: z.ZodNumber;
     balance: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CorporationWalletTransaction = z.infer<typeof CorporationWalletTransactionSchema>;
+
+// @public
+const CorporationWalletTransactionSchema: z.ZodObject<{
+    date: z.ZodString;
+    type_id: z.ZodNumber;
+    location_id: z.ZodNumber;
+    quantity: z.ZodNumber;
+    transaction_id: z.ZodNumber;
+    unit_price: z.ZodNumber;
+    client_id: z.ZodNumber;
+    is_buy: z.ZodBoolean;
+    journal_ref_id: z.ZodNumber;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "cosmeticsEndpoints" needs to be exported by the entry point index.d.ts
@@ -3917,8 +3958,8 @@ const CustomsOfficeSchema: z.ZodObject<{
     system_id: z.ZodNumber;
     reinforce_exit_start: z.ZodNumber;
     reinforce_exit_end: z.ZodNumber;
-    allow_access_with_standings: z.ZodOptional<z.ZodBoolean>;
-    allow_alliance_access: z.ZodOptional<z.ZodBoolean>;
+    allow_access_with_standings: z.ZodBoolean;
+    allow_alliance_access: z.ZodBoolean;
     alliance_tax_rate: z.ZodOptional<z.ZodNumber>;
     corporation_tax_rate: z.ZodOptional<z.ZodNumber>;
     standing_level: z.ZodOptional<z.ZodString>;
@@ -3994,7 +4035,7 @@ interface DogmaAttributesAttributeIdGet {
 // @public (undocumented)
 const DogmaAttributeSchema: z.ZodObject<{
     attribute_id: z.ZodNumber;
-    name: z.ZodString;
+    name: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodString>;
     icon_id: z.ZodOptional<z.ZodNumber>;
     default_value: z.ZodOptional<z.ZodNumber>;
@@ -4061,7 +4102,7 @@ export type DogmaEffect = z.infer<typeof DogmaEffectSchema>;
 // @public (undocumented)
 const DogmaEffectSchema: z.ZodObject<{
     effect_id: z.ZodNumber;
-    name: z.ZodString;
+    name: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodString>;
     icon_id: z.ZodOptional<z.ZodNumber>;
     display_name: z.ZodOptional<z.ZodString>;
@@ -4345,10 +4386,10 @@ export interface EsiClientConfig {
 // @public (undocumented)
 export type EsiCursor = z.infer<typeof EsiCursorSchema>;
 
-// @public (undocumented)
+// @public
 const EsiCursorSchema: z.ZodObject<{
-    before: z.ZodNullable<z.ZodString>;
-    after: z.ZodNullable<z.ZodString>;
+    before: z.ZodOptional<z.ZodString>;
+    after: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -5609,7 +5650,8 @@ const FreelanceJobDetailSchema: z.ZodObject<{
         description: z.ZodString;
         career: z.ZodString;
         created: z.ZodString;
-        expires: z.ZodString;
+        expires: z.ZodOptional<z.ZodString>;
+        finished: z.ZodOptional<z.ZodString>;
         creator: z.ZodObject<{
             character: z.ZodObject<{
                 id: z.ZodNumber;
@@ -5626,16 +5668,22 @@ const FreelanceJobDetailSchema: z.ZodObject<{
         parameters: z.ZodRecord<z.ZodString, z.ZodUnknown>;
         method: z.ZodString;
     }, z.core.$loose>;
-    contribution: z.ZodObject<{
+    contribution: z.ZodOptional<z.ZodObject<{
         max_committed_participants: z.ZodNumber;
+        contribution_per_participant_limit: z.ZodOptional<z.ZodNumber>;
         reward_per_contribution: z.ZodOptional<z.ZodNumber>;
+        submission_limit: z.ZodOptional<z.ZodNumber>;
         submission_multiplier: z.ZodOptional<z.ZodNumber>;
-    }, z.core.$loose>;
+    }, z.core.$loose>>;
     access_and_visibility: z.ZodObject<{
         acl_protected: z.ZodBoolean;
-        broadcast_locations: z.ZodArray<z.ZodObject<{
+        broadcast_locations: z.ZodOptional<z.ZodArray<z.ZodObject<{
             id: z.ZodNumber;
             name: z.ZodString;
+        }, z.core.$loose>>>;
+        restrictions: z.ZodOptional<z.ZodObject<{
+            minimum_age: z.ZodOptional<z.ZodNumber>;
+            maximum_age: z.ZodOptional<z.ZodNumber>;
         }, z.core.$loose>>;
     }, z.core.$loose>;
 }, z.core.$loose>;
@@ -5643,25 +5691,39 @@ const FreelanceJobDetailSchema: z.ZodObject<{
 // @public (undocumented)
 export type FreelanceJobParticipant = z.infer<typeof FreelanceJobParticipantSchema>;
 
-// @public (undocumented)
+// @public
 const FreelanceJobParticipantSchema: z.ZodObject<{
-    character_id: z.ZodNumber;
-    corporation_id: z.ZodNumber;
-    status: z.ZodString;
-    contributions: z.ZodNumber;
-    last_contribution: z.ZodOptional<z.ZodString>;
+    id: z.ZodNumber;
+    name: z.ZodString;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown>>;
+    contributed: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type FreelanceJobParticipantsListing = z.infer<typeof FreelanceJobParticipantsListingSchema>;
+
+// @public
+const FreelanceJobParticipantsListingSchema: z.ZodObject<{
+    cursor: z.ZodOptional<z.ZodObject<{
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+    participants: z.ZodArray<z.ZodObject<{
+        id: z.ZodNumber;
+        name: z.ZodString;
+        state: z.ZodType<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown>>;
+        contributed: z.ZodNumber;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
 export type FreelanceJobParticipation = z.infer<typeof FreelanceJobParticipationSchema>;
 
-// @public (undocumented)
+// @public
 const FreelanceJobParticipationSchema: z.ZodObject<{
-    job_id: z.ZodString;
-    character_id: z.ZodNumber;
-    status: z.ZodString;
-    contributions: z.ZodNumber;
-    last_contribution: z.ZodOptional<z.ZodString>;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Committed" | "Kicked" | "Resigned", unknown>>;
+    contributed: z.ZodNumber;
+    last_modified: z.ZodString;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "freelanceJobsEndpoints" needs to be exported by the entry point index.d.ts
@@ -5671,7 +5733,7 @@ export class FreelanceJobsClient extends BaseEsiClient<typeof freelanceJobsEndpo
     constructor(client: ApiClient);
     getCharacterFreelanceJobParticipation(characterId: number, jobId: string): Promise<FreelanceJobParticipation>;
     getCharacterFreelanceJobs(characterId: number, before?: string, after?: string): Promise<CharacterFreelanceJobsListing>;
-    getCorporationFreelanceJobParticipants(corporationId: number, jobId: string): Promise<FreelanceJobParticipant[]>;
+    getCorporationFreelanceJobParticipants(corporationId: number, jobId: string): Promise<FreelanceJobParticipantsListing>;
     getCorporationFreelanceJobs(corporationId: number, before?: string, after?: string): Promise<CorporationFreelanceJobsListing>;
     getFreelanceJobById(jobId: string): Promise<FreelanceJobDetail>;
     getFreelanceJobs(before?: string, after?: string): Promise<FreelanceJobsListing>;
@@ -5773,8 +5835,8 @@ interface FreelanceJobsListing_2 {
 // @public (undocumented)
 const FreelanceJobsListingSchema: z.ZodObject<{
     cursor: z.ZodOptional<z.ZodObject<{
-        before: z.ZodNullable<z.ZodString>;
-        after: z.ZodNullable<z.ZodString>;
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
     }, z.core.$loose>>;
     freelance_jobs: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -6127,7 +6189,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     // (undocumented)
     fetchAllCharacterMiningLedger(characterId: number, concurrency?: number): Promise<MiningLedgerEntry[]>;
     // (undocumented)
-    fetchAllCorporationIndustryJobs(corporationId: number, concurrency?: number): Promise<IndustryJob[]>;
+    fetchAllCorporationIndustryJobs(corporationId: number, concurrency?: number): Promise<CorporationIndustryJob[]>;
     // (undocumented)
     fetchAllCorporationMiningObserver(corporationId: number, observerId: number, concurrency?: number): Promise<MiningObserverEntry[]>;
     // (undocumented)
@@ -6140,7 +6202,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     fetchAllMoonExtractionTimers(corporationId: number, concurrency?: number): Promise<MoonExtractionTimer[]>;
     getCharacterIndustryJobs(characterId: number): Promise<IndustryJob[]>;
     getCharacterMiningLedger(characterId: number): Promise<MiningLedgerEntry[]>;
-    getCorporationIndustryJobs(corporationId: number): Promise<IndustryJob[]>;
+    getCorporationIndustryJobs(corporationId: number): Promise<CorporationIndustryJob[]>;
     getCorporationMiningObserver(corporationId: number, observerId: number): Promise<MiningObserverEntry[]>;
     getCorporationMiningObservers(corporationId: number): Promise<MiningObserver[]>;
     getIndustryFacilities(): Promise<IndustryFacility[]>;
@@ -6151,7 +6213,7 @@ export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
     // (undocumented)
     streamCharacterMiningLedger(characterId: number): AsyncGenerator<PageResult<MiningLedgerEntry>, void, undefined>;
     // (undocumented)
-    streamCorporationIndustryJobs(corporationId: number): AsyncGenerator<PageResult<IndustryJob>, void, undefined>;
+    streamCorporationIndustryJobs(corporationId: number): AsyncGenerator<PageResult<CorporationIndustryJob>, void, undefined>;
     // (undocumented)
     streamCorporationMiningObserver(corporationId: number, observerId: number): AsyncGenerator<PageResult<MiningObserverEntry>, void, undefined>;
     // (undocumented)
@@ -6196,7 +6258,7 @@ const IndustryFacilitySchema: z.ZodObject<{
 // @public (undocumented)
 export type IndustryJob = z.infer<typeof IndustryJobSchema>;
 
-// @public (undocumented)
+// @public
 const IndustryJobSchema: z.ZodObject<{
     job_id: z.ZodNumber;
     installer_id: z.ZodNumber;
@@ -6638,14 +6700,14 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     deleteMail(characterId: number, mailId: number): Promise<void>;
     deleteMailLabel(characterId: number, labelId: number): Promise<void>;
     // (undocumented)
-    fetchAllMailHeaders(characterId: number, concurrency?: number): Promise<MailMessage[]>;
+    fetchAllMailHeaders(characterId: number, concurrency?: number): Promise<MailHeader[]>;
     // (undocumented)
     fetchAllMailingLists(characterId: number, concurrency?: number): Promise<{
         mailing_list_id: number;
         name: string;
     }[]>;
     getMail(characterId: number, mailId: number): Promise<MailMessage>;
-    getMailHeaders(characterId: number): Promise<MailMessage[]>;
+    getMailHeaders(characterId: number): Promise<MailHeader[]>;
     getMailingLists(characterId: number): Promise<{
         mailing_list_id: number;
         name: string;
@@ -6656,7 +6718,7 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     }>;
     sendMail(characterId: number, body: object): Promise<number>;
     // (undocumented)
-    streamMailHeaders(characterId: number): AsyncGenerator<PageResult<MailMessage>, void, undefined>;
+    streamMailHeaders(characterId: number): AsyncGenerator<PageResult<MailHeader>, void, undefined>;
     // (undocumented)
     streamMailingLists(characterId: number): AsyncGenerator<PageResult<{
         mailing_list_id: number;
@@ -6664,6 +6726,23 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
     }>, void, undefined>;
     updateMailMetadata(characterId: number, mailId: number, body: object): Promise<void>;
 }
+
+// @public (undocumented)
+export type MailHeader = z.infer<typeof MailHeaderSchema>;
+
+// @public
+const MailHeaderSchema: z.ZodObject<{
+    mail_id: z.ZodOptional<z.ZodNumber>;
+    subject: z.ZodOptional<z.ZodString>;
+    from: z.ZodOptional<z.ZodNumber>;
+    timestamp: z.ZodOptional<z.ZodString>;
+    labels: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    is_read: z.ZodOptional<z.ZodBoolean>;
+    recipients: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        recipient_id: z.ZodNumber;
+        recipient_type: z.ZodType<(string & {}) | "character" | "corporation" | "alliance" | "mailing_list", unknown, z.core.$ZodTypeInternals<(string & {}) | "character" | "corporation" | "alliance" | "mailing_list", unknown>>;
+    }, z.core.$loose>>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const MailingListSchema: z.ZodObject<{
@@ -6676,8 +6755,8 @@ export type MailLabel = z.infer<typeof MailLabelSchema>;
 
 // @public (undocumented)
 const MailLabelSchema: z.ZodObject<{
-    label_id: z.ZodNumber;
-    name: z.ZodString;
+    label_id: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodOptional<z.ZodString>;
     color: z.ZodOptional<z.ZodString>;
     unread_count: z.ZodOptional<z.ZodNumber>;
 }, z.core.$loose>;
@@ -6685,8 +6764,8 @@ const MailLabelSchema: z.ZodObject<{
 // @public (undocumented)
 const MailLabelsResponseSchema: z.ZodObject<{
     labels: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        label_id: z.ZodNumber;
-        name: z.ZodString;
+        label_id: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
         color: z.ZodOptional<z.ZodString>;
         unread_count: z.ZodOptional<z.ZodNumber>;
     }, z.core.$loose>>>;
@@ -6696,14 +6775,13 @@ const MailLabelsResponseSchema: z.ZodObject<{
 // @public (undocumented)
 export type MailMessage = z.infer<typeof MailMessageSchema>;
 
-// @public (undocumented)
+// @public
 const MailMessageSchema: z.ZodObject<{
-    mail_id: z.ZodOptional<z.ZodNumber>;
     subject: z.ZodOptional<z.ZodString>;
     from: z.ZodOptional<z.ZodNumber>;
     timestamp: z.ZodOptional<z.ZodString>;
     labels: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
-    is_read: z.ZodOptional<z.ZodBoolean>;
+    read: z.ZodOptional<z.ZodBoolean>;
     body: z.ZodOptional<z.ZodString>;
     recipients: z.ZodOptional<z.ZodArray<z.ZodObject<{
         recipient_id: z.ZodNumber;
@@ -7118,6 +7196,16 @@ const MetaNameSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type MetaRouteStatus = z.infer<typeof MetaRouteStatusSchema>;
+
+// @public
+const MetaRouteStatusSchema: z.ZodObject<{
+    method: z.ZodType<(string & {}) | "GET" | "POST" | "PUT" | "DELETE", unknown, z.core.$ZodTypeInternals<(string & {}) | "GET" | "POST" | "PUT" | "DELETE", unknown>>;
+    path: z.ZodString;
+    status: z.ZodType<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 export type MetaStatus = z.infer<typeof MetaStatusSchema>;
 
 // @public (undocumented)
@@ -7130,9 +7218,13 @@ interface MetaStatus_2 {
     })[];
 }
 
-// @public (undocumented)
+// @public
 const MetaStatusSchema: z.ZodObject<{
-    status: z.ZodString;
+    routes: z.ZodArray<z.ZodObject<{
+        method: z.ZodType<(string & {}) | "GET" | "POST" | "PUT" | "DELETE", unknown, z.core.$ZodTypeInternals<(string & {}) | "GET" | "POST" | "PUT" | "DELETE", unknown>>;
+        path: z.ZodString;
+        status: z.ZodType<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unknown" | "OK" | "Degraded" | "Down" | "Recovering", unknown>>;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -7496,6 +7588,32 @@ const PlanetInfoSchema: z.ZodObject<{
 // @public (undocumented)
 export type PublicContract = z.infer<typeof PublicContractSchema>;
 
+// @public (undocumented)
+export type PublicContractBid = z.infer<typeof PublicContractBidSchema>;
+
+// @public
+const PublicContractBidSchema: z.ZodObject<{
+    bid_id: z.ZodNumber;
+    date_bid: z.ZodString;
+    amount: z.ZodNumber;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type PublicContractItem = z.infer<typeof PublicContractItemSchema>;
+
+// @public
+const PublicContractItemSchema: z.ZodObject<{
+    record_id: z.ZodNumber;
+    type_id: z.ZodNumber;
+    quantity: z.ZodNumber;
+    is_included: z.ZodBoolean;
+    item_id: z.ZodOptional<z.ZodNumber>;
+    is_blueprint_copy: z.ZodOptional<z.ZodBoolean>;
+    material_efficiency: z.ZodOptional<z.ZodNumber>;
+    time_efficiency: z.ZodOptional<z.ZodNumber>;
+    runs: z.ZodOptional<z.ZodNumber>;
+}, z.core.$loose>;
+
 // @public
 const PublicContractSchema: z.ZodObject<{
     contract_id: z.ZodNumber;
@@ -7846,7 +7964,9 @@ declare namespace schemas {
         ContractSchema,
         PublicContractSchema,
         ContractItemSchema,
+        PublicContractItemSchema,
         ContractBidSchema,
+        PublicContractBidSchema,
         SkinrLicenseSchema,
         CharacterSkinrSchema,
         SkinrComponentRunsSchema,
@@ -7907,8 +8027,10 @@ declare namespace schemas {
         FreelanceJobParticipationSchema,
         CorporationFreelanceJobsListingSchema,
         FreelanceJobParticipantSchema,
+        FreelanceJobParticipantsListingSchema,
         IncursionSchema,
         IndustryJobSchema,
+        CorporationIndustryJobSchema,
         MiningLedgerEntrySchema,
         IndustryFacilitySchema,
         IndustrySystemSchema,
@@ -7923,6 +8045,7 @@ declare namespace schemas {
         CharacterShipSchema,
         LoyaltyPointsSchema,
         LoyaltyStoreOfferSchema,
+        MailHeaderSchema,
         MailMessageSchema,
         MailLabelSchema,
         MailLabelsResponseSchema,
@@ -7948,6 +8071,7 @@ declare namespace schemas {
         MetaChangelogSchema,
         MetaCompatibilityDatesSchema,
         MetaNameSchema,
+        MetaRouteStatusSchema,
         MetaStatusSchema,
         ParagonHubCursorSchema,
         ParagonHubSkinrPriceSchema,
@@ -8009,6 +8133,7 @@ declare namespace schemas {
         SchematicInfoSchema,
         SearchResultSchema,
         WalletTransactionSchema,
+        CorporationWalletTransactionSchema,
         WalletJournalSchema,
         WarSchema
     }
@@ -8204,11 +8329,11 @@ const SolarSystemInfoSchema: z.ZodObject<{
     system_id: z.ZodNumber;
     name: z.ZodString;
     constellation_id: z.ZodNumber;
-    position: z.ZodOptional<z.ZodObject<{
+    position: z.ZodObject<{
         x: z.ZodNumber;
         y: z.ZodNumber;
         z: z.ZodNumber;
-    }, z.core.$loose>>;
+    }, z.core.$loose>;
     security_class: z.ZodOptional<z.ZodString>;
     security_status: z.ZodNumber;
     star_id: z.ZodOptional<z.ZodNumber>;
@@ -9239,7 +9364,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     // (undocumented)
     fetchAllCorporationWalletJournal(corporationId: number, division: number, concurrency?: number): Promise<WalletJournal[]>;
     // (undocumented)
-    fetchAllCorporationWalletTransactions(corporationId: number, division: number, concurrency?: number): Promise<WalletTransaction[]>;
+    fetchAllCorporationWalletTransactions(corporationId: number, division: number, concurrency?: number): Promise<CorporationWalletTransaction[]>;
     getCharacterWallet(characterId: number): Promise<number>;
     getCharacterWalletJournal(characterId: number): Promise<WalletJournal[]>;
     getCharacterWalletTransactions(characterId: number): Promise<WalletTransaction[]>;
@@ -9248,7 +9373,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
         division: number;
         balance: number;
     }[]>;
-    getCorporationWalletTransactions(corporationId: number, division: number): Promise<WalletTransaction[]>;
+    getCorporationWalletTransactions(corporationId: number, division: number): Promise<CorporationWalletTransaction[]>;
     // (undocumented)
     streamCharacterWalletJournal(characterId: number): AsyncGenerator<PageResult<WalletJournal>, void, undefined>;
     // (undocumented)
@@ -9256,7 +9381,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     // (undocumented)
     streamCorporationWalletJournal(corporationId: number, division: number): AsyncGenerator<PageResult<WalletJournal>, void, undefined>;
     // (undocumented)
-    streamCorporationWalletTransactions(corporationId: number, division: number): AsyncGenerator<PageResult<WalletTransaction>, void, undefined>;
+    streamCorporationWalletTransactions(corporationId: number, division: number): AsyncGenerator<PageResult<CorporationWalletTransaction>, void, undefined>;
 }
 
 // @public (undocumented)

@@ -5,6 +5,7 @@ import {
   MetaCompatibilityDatesSchema,
   MetaNameSchema,
   MetaStatusSchema,
+  MetaRouteStatusSchema,
 } from '../schemas/meta';
 
 export type MetaChangelog = z.infer<typeof MetaChangelogSchema>;
@@ -14,3 +15,4 @@ export type MetaCompatibilityDates = z.infer<
 >;
 export type MetaName = z.infer<typeof MetaNameSchema>;
 export type MetaStatus = z.infer<typeof MetaStatusSchema>;
+export type MetaRouteStatus = z.infer<typeof MetaRouteStatusSchema>;

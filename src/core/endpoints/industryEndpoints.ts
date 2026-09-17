@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
   IndustryJobSchema,
+  CorporationIndustryJobSchema,
   MiningLedgerEntrySchema,
   IndustryFacilitySchema,
   IndustrySystemSchema,
@@ -30,7 +31,7 @@ export const industryEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
-    responseSchema: z.array(IndustryJobSchema),
+    responseSchema: z.array(CorporationIndustryJobSchema),
   },
   getMoonExtractionTimers: {
     path: 'corporation/{corporationId}/mining/extractions',

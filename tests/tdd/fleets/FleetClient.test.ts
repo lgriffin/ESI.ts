@@ -22,6 +22,7 @@ describe('FleetClient', () => {
   it('should return valid structure for getCharacterFleetInfo', async () => {
     const mockResponse = {
       fleet_id: 1234567890,
+      fleet_boss_id: 90000001,
       role: 'fleet_commander',
       squad_id: 1,
       wing_id: 2,

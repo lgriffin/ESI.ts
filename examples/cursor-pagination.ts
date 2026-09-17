@@ -108,7 +108,7 @@ async function autoFetchAll() {
     const allJobs = await fetchAllCursorPages(
       (before, after) => client.freelanceJobs.getFreelanceJobs(before, after),
       (response) => response.freelance_jobs,
-      (response) => response.cursor ?? { before: null, after: null },
+      (response) => response.cursor ?? {},
     );
 
     console.log(`  Fetched ${allJobs.length} total freelance jobs`);
@@ -144,14 +144,15 @@ async function fetchJobDetail() {
     console.log(`  Creator: ${detail.details.creator.character.name}`);
     console.log(`  Corporation: ${detail.details.creator.corporation.name}`);
     console.log(`  Method: ${detail.configuration.method}`);
-    console.log(`  Expires: ${detail.details.expires}`);
-    console.log(
-      `  Max participants: ${detail.contribution.max_committed_participants}`,
-    );
-    if (detail.access_and_visibility.broadcast_locations.length > 0) {
-      const locations = detail.access_and_visibility.broadcast_locations
-        .map((l) => l.name)
-        .join(', ');
+    console.log(`  Expires: ${detail.details.expires ?? 'no expiry'}`);
+    if (detail.contribution) {
+      console.log(
+        `  Max participants: ${detail.contribution.max_committed_participants}`,
+      );
+    }
+    const broadcast = detail.access_and_visibility.broadcast_locations ?? [];
+    if (broadcast.length > 0) {
+      const locations = broadcast.map((l) => l.name).join(', ');
       console.log(`  Broadcast locations: ${locations}`);
     }
   } finally {

@@ -1,6 +1,7 @@
 Feature: Meta API Management
   The Meta client exposes ESI's own description of itself: the OpenAPI
-  specification, served in a JSON form and a YAML form of the same document.
+  specification, served in a JSON form and a YAML form of the same document,
+  and the health of each ESI route.
   Callers use it to discover endpoints, check the spec version pinned by a
   build, or drive code generation, which is how this library's own generated
   types and endpoint metadata are produced.
@@ -45,6 +46,19 @@ Feature: Meta API Management
       Given both JSON and YAML specifications are available
       When the client retrieves both formats
       Then they shall contain equivalent information
+
+  # ── Route status ────────────────────────────────────────────────────
+
+  Rule: When the route status of ESI is requested, the Meta client shall return one entry per route carrying its method, path, and status.
+    ESI reports health per route rather than as one flag, so a caller can tell
+    that market reads are degraded while everything else is fine. The body is
+    { routes: [...] } (MetaStatus), each entry naming the HTTP method, the
+    route path, and a status such as OK, Degraded or Down.
+
+    Scenario: One healthy route and one degraded route
+      Given ESI reports the status of its routes
+      When the client requests the route status
+      Then the client shall return the status of each route
 
   # ── Error propagation ───────────────────────────────────────────────
 

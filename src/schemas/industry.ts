@@ -1,6 +1,19 @@
 import { z } from 'zod';
 import { esiEnum } from './esiEnum';
 
+const IndustryJobStatusSchema = esiEnum([
+  'active',
+  'cancelled',
+  'delivered',
+  'paused',
+  'ready',
+  'reverted',
+]);
+
+/**
+ * A character industry job, from
+ * `GET /characters/{character_id}/industry/jobs`.
+ */
 export const IndustryJobSchema = z.looseObject({
   job_id: z.number(),
   installer_id: z.number(),
@@ -16,14 +29,7 @@ export const IndustryJobSchema = z.looseObject({
   licensed_runs: z.number().optional(),
   probability: z.number().optional(),
   product_type_id: z.number().optional(),
-  status: esiEnum([
-    'active',
-    'cancelled',
-    'delivered',
-    'paused',
-    'ready',
-    'reverted',
-  ]),
+  status: IndustryJobStatusSchema,
   duration: z.number(),
   start_date: z.string(),
   end_date: z.string(),
@@ -31,6 +37,17 @@ export const IndustryJobSchema = z.looseObject({
   completed_date: z.string().optional(),
   completed_character_id: z.number().optional(),
   successful_runs: z.number().optional(),
+});
+
+/**
+ * A corporation industry job, from
+ * `GET /corporations/{corporation_id}/industry/jobs`. ESI places it by
+ * `location_id`; there is no `station_id` on the corporation route.
+ */
+export const CorporationIndustryJobSchema = IndustryJobSchema.omit({
+  station_id: true,
+}).extend({
+  location_id: z.number(),
 });
 
 export const MiningLedgerEntrySchema = z.looseObject({

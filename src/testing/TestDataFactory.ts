@@ -10,6 +10,7 @@ import {
   CharacterSkill,
   MarketOrder,
   WalletTransaction,
+  CorporationWalletTransaction,
   Contract,
   PublicContract,
   SovereigntySystem,
@@ -24,11 +25,12 @@ import { EsiError } from '../core/util/error';
 
 export class TestDataFactory {
   // Alliance test data
+
+  /** `GET /alliances/{alliance_id}`: the alliance ID is in the path, not the body. */
   static createAllianceInfo(
     overrides: Partial<AllianceInfo> = {},
   ): AllianceInfo {
     return {
-      alliance_id: 99005338,
       name: 'Goonswarm Federation',
       ticker: 'CONDI',
       creator_id: 1689391488,
@@ -240,6 +242,11 @@ export class TestDataFactory {
       system_id: 30000142,
       name: 'Jita',
       constellation_id: 20000020,
+      position: {
+        x: -129064861735000000,
+        y: 60755306910000000,
+        z: 117469227060000000,
+      },
       security_status: 0.9459991455078125,
       star_id: 40000001,
       stargates: [50000001, 50000002],
@@ -277,9 +284,9 @@ export class TestDataFactory {
     };
   }
 
+  /** `GET /universe/structures/{structure_id}`: the ID is in the path, not the body. */
   static createStructure(overrides: Record<string, any> = {}): any {
     return {
-      structure_id: 1021975535893,
       name: 'Test Citadel',
       owner_id: 1689391488,
       solar_system_id: 30000142,
@@ -289,13 +296,13 @@ export class TestDataFactory {
     };
   }
 
+  /** `GET /universe/types/{type_id}`: the category is on the group, not the type. */
   static createItemType(overrides: Record<string, any> = {}): any {
     return {
       type_id: 34,
       name: 'Tritanium',
       description: 'The most common ore type in the known universe.',
       group_id: 18,
-      category_id: 4,
       market_group_id: 1857,
       mass: 1.0,
       volume: 0.01,
@@ -318,9 +325,9 @@ export class TestDataFactory {
     };
   }
 
+  /** `GET /universe/stars/{star_id}`: the star ID is in the path, not the body. */
   static createStar(overrides: Record<string, any> = {}): any {
     return {
-      star_id: 40000001,
       name: 'Jita - Star',
       type_id: 3802,
       solar_system_id: 30000142,
@@ -344,14 +351,18 @@ export class TestDataFactory {
     };
   }
 
+  /**
+   * `GET /characters/{character_id}/search`: one list per requested category,
+   * keyed by the singular category name.
+   */
   static createSearchResults(overrides: Record<string, any> = {}): any {
     return {
-      systems: [],
-      stations: [],
-      structures: [],
-      characters: [],
-      corporations: [],
-      alliances: [],
+      solar_system: [],
+      station: [],
+      structure: [],
+      character: [],
+      corporation: [],
+      alliance: [],
       ...overrides,
     };
   }
@@ -495,6 +506,33 @@ export class TestDataFactory {
     };
   }
 
+  /**
+   * A corporation industry job as `GET /corporations/{corporation_id}/industry/jobs`
+   * sends it: placed by `location_id`, where a character job has `station_id`.
+   */
+  static createCorporationIndustryJob(
+    overrides: Record<string, any> = {},
+  ): any {
+    return {
+      job_id: 2000001,
+      installer_id: 1689391488,
+      facility_id: 1021975535893,
+      location_id: 1021975535893,
+      activity_id: 1,
+      blueprint_id: 1000000001,
+      blueprint_type_id: 17918,
+      blueprint_location_id: 1021975535893,
+      output_location_id: 1021975535893,
+      product_type_id: 17918,
+      runs: 1,
+      status: 'active',
+      duration: 86400,
+      start_date: '2024-01-15T12:00:00Z',
+      end_date: '2024-01-16T12:00:00Z',
+      ...overrides,
+    };
+  }
+
   static createBlueprint(overrides: Record<string, any> = {}): any {
     return {
       item_id: 1000000001,
@@ -554,11 +592,12 @@ export class TestDataFactory {
   }
 
   // Corporation test data
+
+  /** `GET /corporations/{corporation_id}`: the ID is in the path, not the body. */
   static createCorporationInfo(
     overrides: Partial<CorporationInfo> = {},
   ): CorporationInfo {
     return {
-      corporation_id: 1344654522,
       name: 'GoonWaffe',
       ticker: 'GEWNS',
       ceo_id: 1689391488,
@@ -616,6 +655,28 @@ export class TestDataFactory {
     };
   }
 
+  /**
+   * A corporation wallet transaction as
+   * `GET /corporations/{corporation_id}/wallets/{division}/transactions` sends
+   * it: no is_personal.
+   */
+  static createCorporationWalletTransaction(
+    overrides: Partial<CorporationWalletTransaction> = {},
+  ): CorporationWalletTransaction {
+    return {
+      transaction_id: 123456790,
+      date: '2023-12-01T12:00:00Z',
+      type_id: 34,
+      location_id: 60003760,
+      unit_price: 5.5,
+      quantity: 1000,
+      client_id: 1689391488,
+      is_buy: true,
+      journal_ref_id: 987654322,
+      ...overrides,
+    };
+  }
+
   // Contract test data
   static createContract(overrides: Partial<Contract> = {}): Contract {
     return {
@@ -623,6 +684,7 @@ export class TestDataFactory {
       issuer_id: 1689391488,
       issuer_corporation_id: 1344654522,
       assignee_id: 987654321,
+      acceptor_id: 0,
       start_location_id: 60003760,
       end_location_id: 60008494,
       type: 'courier',

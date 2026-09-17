@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const DogmaAttributeSchema = z.looseObject({
   attribute_id: z.number(),
-  name: z.string(),
+  name: z.string().optional(),
   description: z.string().optional(),
   icon_id: z.number().optional(),
   default_value: z.number().optional(),
@@ -15,7 +15,7 @@ export const DogmaAttributeSchema = z.looseObject({
 
 export const DogmaEffectSchema = z.looseObject({
   effect_id: z.number(),
-  name: z.string(),
+  name: z.string().optional(),
   description: z.string().optional(),
   icon_id: z.number().optional(),
   display_name: z.string().optional(),

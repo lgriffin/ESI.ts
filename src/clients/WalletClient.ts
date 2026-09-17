@@ -1,7 +1,11 @@
 import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { walletEndpoints } from '../core/endpoints/walletEndpoints';
-import { WalletJournal, WalletTransaction } from '../types/api-responses';
+import {
+  CorporationWalletTransaction,
+  WalletJournal,
+  WalletTransaction,
+} from '../types/api-responses';
 import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
 export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
@@ -83,7 +87,7 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
   getCorporationWalletTransactions(
     corporationId: number,
     division: number,
-  ): Promise<WalletTransaction[]> {
+  ): Promise<CorporationWalletTransaction[]> {
     return this.api.getCorporationWalletTransactions(corporationId, division);
   }
 
@@ -125,8 +129,8 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
     corporationId: number,
     division: number,
     concurrency?: number,
-  ): Promise<WalletTransaction[]> {
-    return this.fetchAllEndpoint<WalletTransaction>(
+  ): Promise<CorporationWalletTransaction[]> {
+    return this.fetchAllEndpoint<CorporationWalletTransaction>(
       'getCorporationWalletTransactions',
       [corporationId, division],
       concurrency,
@@ -165,8 +169,8 @@ export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
   streamCorporationWalletTransactions(
     corporationId: number,
     division: number,
-  ): AsyncGenerator<PageResult<WalletTransaction>, void, undefined> {
-    return this.streamEndpoint<WalletTransaction>(
+  ): AsyncGenerator<PageResult<CorporationWalletTransaction>, void, undefined> {
+    return this.streamEndpoint<CorporationWalletTransaction>(
       'getCorporationWalletTransactions',
       corporationId,
       division,

@@ -5,6 +5,8 @@ import {
   PublicContractSchema,
   ContractBidSchema,
   ContractItemSchema,
+  PublicContractBidSchema,
+  PublicContractItemSchema,
 } from '../../schemas/contracts';
 
 export const contractEndpoints = {
@@ -62,13 +64,13 @@ export const contractEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['contractId'],
-    responseSchema: z.array(ContractBidSchema),
+    responseSchema: z.array(PublicContractBidSchema),
   },
   getPublicContractItems: {
     path: 'contracts/public/items/{contractId}',
     method: 'GET',
     requiresAuth: false,
     pathParams: ['contractId'],
-    responseSchema: z.array(ContractItemSchema),
+    responseSchema: z.array(PublicContractItemSchema),
   },
 } as const satisfies EndpointMap;

@@ -63,6 +63,7 @@ const builderSchemas: Record<string, z.ZodType> = {
   createFleetMember: schemas.FleetMemberSchema,
   createFleetWing: schemas.FleetWingSchema,
   createIndustryJob: schemas.IndustryJobSchema,
+  createCorporationIndustryJob: schemas.CorporationIndustryJobSchema,
   createBlueprint: schemas.BlueprintSchema,
   createCharacterAsset: schemas.CharacterAssetSchema,
   createCharacterLocation: schemas.CharacterLocationSchema,
@@ -70,6 +71,8 @@ const builderSchemas: Record<string, z.ZodType> = {
   createCorporationInfo: schemas.CorporationInfoSchema,
   createMarketOrder: schemas.MarketOrderSchema,
   createWalletTransaction: schemas.WalletTransactionSchema,
+  createCorporationWalletTransaction:
+    schemas.CorporationWalletTransactionSchema,
   createContract: schemas.ContractSchema,
   createPublicContract: schemas.PublicContractSchema,
   createSovereigntySystem: schemas.SovereigntySystemSchema,
@@ -115,6 +118,14 @@ describe('TestDataFactory payloads carry no fields ESI never sends', () => {
     ['createFleetInfo', ['fleet_id', 'fleet_boss_id']],
     // GET /fleets/{fleet_id}/wings: wings and squads are keyed by `id`.
     ['createFleetWing', ['wing_id']],
+    // GET /alliances/{alliance_id} and GET /corporations/{corporation_id}.
+    ['createAllianceInfo', ['alliance_id']],
+    ['createCorporationInfo', ['corporation_id']],
+    // GET /universe/stars/{star_id} and GET /universe/structures/{structure_id}.
+    ['createStar', ['star_id']],
+    ['createStructure', ['structure_id']],
+    // GET /universe/types/{type_id}: the category is on the type's group.
+    ['createItemType', ['category_id']],
   ] as const)('%s() omits %j', (name, fields) => {
     const payload = (TestDataFactory[name] as () => Record<string, unknown>)();
     for (const field of fields) {
@@ -122,10 +133,45 @@ describe('TestDataFactory payloads carry no fields ESI never sends', () => {
     }
   });
 
+  it('createSearchResults() keys its result lists by the singular category ESI uses', () => {
+    // GET /characters/{character_id}/search: CharactersCharacterIdSearchGet.
+    const categories = [
+      'agent',
+      'alliance',
+      'character',
+      'constellation',
+      'corporation',
+      'faction',
+      'inventory_type',
+      'region',
+      'solar_system',
+      'station',
+      'structure',
+    ];
+    const results = TestDataFactory.createSearchResults();
+    for (const key of Object.keys(results)) {
+      expect(categories).toContain(key);
+    }
+  });
+
   it('createFleetWing() keys its squads by id', () => {
     const wing = TestDataFactory.createFleetWing();
     for (const squad of wing.squads) {
       expect(Object.keys(squad).sort()).toEqual(['id', 'name']);
+    }
+  });
+});
+
+describe('TestDataFactory payloads carry the fields ESI marks required', () => {
+  it.each([
+    // GET /universe/systems/{system_id}: UniverseSystemsSystemIdGet.
+    ['createSolarSystem', ['position']],
+    // GET /characters/{character_id}/contracts: CharactersCharacterIdContractsGet.
+    ['createContract', ['acceptor_id', 'assignee_id', 'for_corporation']],
+  ] as const)('%s() sets %j', (name, fields) => {
+    const payload = (TestDataFactory[name] as () => Record<string, unknown>)();
+    for (const field of fields) {
+      expect(payload).toHaveProperty(field);
     }
   });
 });

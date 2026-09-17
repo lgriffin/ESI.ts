@@ -4,7 +4,7 @@ describe('TestDataFactory', () => {
   describe('Alliance factories', () => {
     it('should create alliance info with defaults', () => {
       const info = TestDataFactory.createAllianceInfo();
-      expect(info.alliance_id).toBe(99005338);
+      expect(info).not.toHaveProperty('alliance_id');
       expect(info.name).toBe('Goonswarm Federation');
       expect(info.ticker).toBe('CONDI');
     });
@@ -12,7 +12,7 @@ describe('TestDataFactory', () => {
     it('should create alliance info with overrides', () => {
       const info = TestDataFactory.createAllianceInfo({ name: 'Test' });
       expect(info.name).toBe('Test');
-      expect(info.alliance_id).toBe(99005338);
+      expect(info.ticker).toBe('CONDI');
     });
 
     it('should create alliance contact with defaults', () => {
@@ -284,7 +284,8 @@ describe('TestDataFactory', () => {
 
     it('should create star with defaults', () => {
       const star = TestDataFactory.createStar();
-      expect(star.star_id).toBe(40000001);
+      expect(star).not.toHaveProperty('star_id');
+      expect(star.solar_system_id).toBe(30000142);
     });
 
     it('should create star with overrides', () => {
@@ -304,15 +305,15 @@ describe('TestDataFactory', () => {
 
     it('should create search results with defaults', () => {
       const results = TestDataFactory.createSearchResults();
-      expect(results.systems).toEqual([]);
-      expect(results.characters).toEqual([]);
+      expect(results.solar_system).toEqual([]);
+      expect(results.character).toEqual([]);
     });
 
     it('should create search results with overrides', () => {
       const results = TestDataFactory.createSearchResults({
-        systems: [30000142],
+        solar_system: [30000142],
       });
-      expect(results.systems).toEqual([30000142]);
+      expect(results.solar_system).toEqual([30000142]);
     });
 
     it('should create entity name with defaults', () => {
@@ -330,7 +331,7 @@ describe('TestDataFactory', () => {
   describe('Corporation factories', () => {
     it('should create corporation info with defaults', () => {
       const info = TestDataFactory.createCorporationInfo();
-      expect(info.corporation_id).toBe(1344654522);
+      expect(info).not.toHaveProperty('corporation_id');
       expect(info.name).toBe('GoonWaffe');
     });
 

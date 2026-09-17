@@ -92,9 +92,10 @@ export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
   }
 
   /**
-   * Retrieves the ESI status.
+   * Retrieves the health of each ESI route.
    *
-   * @returns An object containing the ESI status
+   * @returns `{ routes }`, one entry per route with its method, path and
+   *   status ('OK', 'Degraded', 'Down', ...)
    */
   getStatus(): Promise<MetaStatus> {
     return this.api.getStatus();

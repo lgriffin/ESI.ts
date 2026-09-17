@@ -263,13 +263,10 @@ defineFeature(feature, (test) => {
 
   test('Bid history on a public auction contract', ({ given, when, then }) => {
     const contractId = 200000002;
+    // ContractsPublicBidsContractIdGet: ESI names no bidder on public bids.
     const expectedBids = [
-      {
-        bid_id: 1,
-        bidder_id: 111111111,
-        amount: 12000000,
-        date_bid: '2024-01-15T10:00:00Z',
-      },
+      { bid_id: 1, amount: 12000000, date_bid: '2024-01-15T10:00:00Z' },
+      { bid_id: 2, amount: 14000000, date_bid: '2024-01-15T11:30:00Z' },
     ];
     let result: any;
 
@@ -290,6 +287,59 @@ defineFeature(feature, (test) => {
       );
       expect(lastRequest().headers.authorization).toBeUndefined();
       expect(result).toEqual(expectedBids);
+    });
+  });
+
+  test('Item lines on a public contract selling minerals and a blueprint copy', ({
+    given,
+    when,
+    then,
+  }) => {
+    const contractId = 200000001;
+    // ContractsPublicItemsContractIdGet: no is_singleton or raw_quantity.
+    const publicItems = [
+      { record_id: 1, type_id: 34, quantity: 1000000, is_included: true },
+      {
+        record_id: 2,
+        type_id: 691,
+        quantity: 1,
+        is_included: true,
+        item_id: 1040011111111,
+        is_blueprint_copy: true,
+        material_efficiency: 10,
+        time_efficiency: 20,
+        runs: 5,
+      },
+    ];
+    let result: any;
+
+    given('a public item exchange contract with a blueprint copy', () => {
+      queueResponse({
+        match: exactPath(`/contracts/public/items/${contractId}`),
+        body: publicItems,
+      });
+    });
+
+    when('the client requests public contract items', async () => {
+      result = await client.contracts.getPublicContractItems(contractId);
+    });
+
+    then('the client shall return the public item lines', () => {
+      expect(lastRequest().url.pathname).toBe(
+        `/contracts/public/items/${contractId}`,
+      );
+      expect(lastRequest().headers.authorization).toBeUndefined();
+      expect(
+        result.map((i: any) => [
+          i.type_id,
+          i.quantity,
+          i.is_included,
+          i.material_efficiency,
+        ]),
+      ).toEqual([
+        [34, 1000000, true, undefined],
+        [691, 1, true, 10],
+      ]);
     });
   });
 
