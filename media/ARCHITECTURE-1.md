@@ -1,5 +1,26 @@
 # ESI.ts Architecture
 
+**Implements:** `ARCH-01` · `ARCH-02` · `ARCH-03` · `ARCH-04` · `ARCH-05` · `ARCH-06` · `ARCH-07` · `ARCH-08` · `ARCH-09` — see [CHARTER.md](CHARTER.md) Part 2.
+
+How ESI.ts is layered, the route every request takes, and how each piece of middleware behaves. The charter states the requirements; this guide explains how the code meets them. Where the two disagree, the code is the fact and the difference is called out.
+
+Topics with their own guide are summarised here and linked:
+
+| Topic                                                | Canonical guide                                |
+| ---------------------------------------------------- | ---------------------------------------------- |
+| Naming, endpoint definitions, adding a client        | [DESIGN-RULES.md](DESIGN-RULES.md)             |
+| Error classes, guards, retryability, safe mode       | [ERRORS.md](ERRORS.md)                         |
+| `ILogger`, per-client loggers, levels                | [LOGGING.md](LOGGING.md)                       |
+| Offset and cursor pagination, `stream*`, `fetchAll*` | [PAGINATION.md](PAGINATION.md)                 |
+| Zod schemas and validation options                   | [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md) |
+| Runtime defences and supply chain                    | [SECURITY.md](SECURITY.md)                     |
+| Test tiers                                           | [TESTING.md](TESTING.md)                       |
+| CI workflows and gates                               | [QUALITY-GATES.md](QUALITY-GATES.md)           |
+| Releases                                             | [RELEASE.md](RELEASE.md)                       |
+| Major, minor or patch; breaking-change markers       | [SEMVER.md](SEMVER.md)                         |
+
+---
+
 ## C4 Model
 
 ### C4 Level 1 — System Context
@@ -8,10 +29,10 @@ System context showing ESI.ts in its operating environment.
 
 | Element                  | Description                                                                             |
 | ------------------------ | --------------------------------------------------------------------------------------- |
-| **Consumer Application** | Node.js or browser app that needs EVE Online data                                       |
+| **Consumer Application** | Node.js (18 or newer) application that needs EVE Online data                            |
 | **ESI.ts**               | TypeScript SDK — auth, caching, rate limiting, circuit breaking, pagination, validation |
-| **EVE Online ESI API**   | CCP's public REST API at esi.evetech.net (37 domains, OAuth2)                           |
-| **EVE SSO**              | OAuth2 authorization server — issues and refreshes access tokens                        |
+| **EVE Online ESI API**   | CCP's REST API at `esi.evetech.net`, secured by EVE SSO (OAuth2)                        |
+| **EVE SSO**              | OAuth2 authorisation server — issues and refreshes access tokens                        |
 | **ESI OpenAPI Spec**     | Machine-readable API spec used at build time for code generation                        |
 
 ```mermaid
@@ -41,18 +62,19 @@ flowchart TB
 
 ### C4 Level 2 — Container Diagram
 
-Major containers (layers) within ESI.ts and their relationships.
+Five layers on one request path, plus side modules that share nothing with the HTTP pipeline.
 
-| Container          | Technology                                               | Purpose                                                                               |
-| ------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **Public API**     | EsiClient, EsiClientBuilder, EsiApiFactory               | Three entry points, all wired via `configureApiClient()`                              |
-| **Domain Clients** | 37 hand-written clients                                  | AllianceClient, CharacterClient, MarketClient, etc. Typed methods + `stream*` methods |
-| **Endpoint Defs**  | EndpointDefinition + `createClient()`                    | Path, method, auth, schemas. Returns typed `InferEndpointResult<D>`                   |
-| **Schemas**        | 35 hand-written + 33 generated Zod schemas               | Runtime validation (hand-written) and drift detection (generated, internal-only)      |
-| **Pipeline**       | ApiRequestHandler + 7 modules                            | Headers, caching, status handling, fetch, pagination, middleware                      |
-| **Resilience**     | CircuitBreaker, RateLimiter, RetryStrategy, Deduplicator | Per-endpoint CB, per-group rate limits, exponential backoff, GET coalescing           |
-| **Infrastructure** | ApiClient, pino Logger, error utilities                  | HTTP client, logging, error types                                                     |
-| **Generated**      | Types, TTLs, rate limits, scopes                         | Auto-generated from ESI OpenAPI spec, CI-verified freshness                           |
+| Container                | Where                                                                                                     | Purpose                                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Construction**         | `src/EsiClient.ts`, `src/EsiClientBuilder.ts`                                                             | `EsiClient`, `EsiClientBuilder` → `CustomEsiClient`, `EsiApiFactory`. All three call `configureApiClient()`                       |
+| **Domain clients**       | `src/clients/` (one class per ESI domain + `BaseEsiClient`)                                               | Named methods, `stream*` and `fetchAll*` wrappers, `withMetadata()` and `withSafeMode()` views. No HTTP knowledge                 |
+| **Endpoint definitions** | `src/core/endpoints/*Endpoints.ts`                                                                        | Declarative maps of path, method, auth, pagination kind and schemas. `createClient()` turns a map into typed methods              |
+| **Schemas**              | `src/schemas/`                                                                                            | Hand-written Zod schemas for runtime validation; return types are inferred from them                                              |
+| **Request pipeline**     | `src/core/ApiRequestHandler.ts`, `src/core/requestPipeline/`                                              | Pure functions: cache policy, headers, fetch execution, status handling, pagination, middleware bridge, dependency resolution     |
+| **Resilience**           | `src/core/` (`RetryStrategy`, `RateLimiter`, `CircuitBreaker`, `RequestDeduplicator`, `ETagCacheManager`) | Each behind an interface with a setter on `ApiClient`                                                                             |
+| **Transport**            | `ApiClient.getFetch()`                                                                                    | `globalThis.fetch` unless replaced with `setFetch()`. Timeout by `AbortController`                                                |
+| **Generated**            | `src/types/generated/`, `src/core/endpoints/*.generated.ts`                                               | Types, cache TTLs, rate-limit groups and scopes generated from the ESI OpenAPI spec; CI verifies freshness                        |
+| **Side modules**         | `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory`                                             | Subpath entry points. The SDE module is an offline lookup layer with its own error hierarchy and shares no code with the pipeline |
 
 ```mermaid
 flowchart TB
@@ -60,13 +82,13 @@ flowchart TB
 
     subgraph esits ["ESI.ts Library"]
         direction TB
-        publicApi["Public API"]
+        publicApi["Construction"]
         domainClients["Domain Clients"]
         endpointDefs["Endpoint Defs"]
         schemas["Schemas"]
         pipeline["Request Pipeline"]
         resilience["Resilience"]
-        infra["Infrastructure"]
+        transport["Transport"]
         generated["Generated Artifacts"]
     end
 
@@ -78,9 +100,9 @@ flowchart TB
     endpointDefs --> schemas
     endpointDefs --> pipeline
     pipeline --> resilience
-    pipeline --> infra
-    pipeline -. "TTLs" .-> generated
-    infra -- "HTTPS" --> esi
+    pipeline --> transport
+    pipeline -. "TTLs, groups" .-> generated
+    transport -- "HTTPS" --> esi
 
     style consumer fill:#08427b,color:#fff,stroke:#073b6f
     style publicApi fill:#1168bd,color:#fff,stroke:#0e5aa7
@@ -89,7 +111,7 @@ flowchart TB
     style schemas fill:#1168bd,color:#fff,stroke:#0e5aa7
     style pipeline fill:#1168bd,color:#fff,stroke:#0e5aa7
     style resilience fill:#1168bd,color:#fff,stroke:#0e5aa7
-    style infra fill:#1168bd,color:#fff,stroke:#0e5aa7
+    style transport fill:#1168bd,color:#fff,stroke:#0e5aa7
     style generated fill:#438dd5,color:#fff,stroke:#3c7fc0
     style esi fill:#999,color:#fff,stroke:#888
     style esits fill:#e8e8e8,stroke:#aaa
@@ -97,20 +119,20 @@ flowchart TB
 
 ### C4 Level 3 — Component: Core Request Pipeline
 
-Components within the `src/core/requestPipeline/` module and the coordinator.
+`ApiRequestHandler.ts` coordinates; each module in `src/core/requestPipeline/` has one responsibility and receives its dependencies as parameters (`ARCH-03`). `dependencies.ts` is the only place a dependency is resolved from the `ApiClient`.
 
-| Component                   | File                       | Exports                                                                               |
-| --------------------------- | -------------------------- | ------------------------------------------------------------------------------------- |
-| **handleRequest**           | ApiRequestHandler.ts       | Spec-cache check, deduplication, retry wrapping, delegates to executeRequest          |
-| **handleSinglePageRequest** | ApiRequestHandler.ts       | Per-page fetches with retry (used by AsyncPaginationIterator)                         |
-| **executeRequest**          | ApiRequestHandler.ts       | Full fetch-parse-cache-paginate cycle                                                 |
-| **dependencies**            | dependencies.ts            | `resolveCache`, `resolveRateLimiter`, `resolveCircuitBreaker`, `resolveRetryStrategy` |
-| **headers**                 | headers.ts                 | `buildRequestHeaders`, `parseCacheControlTtl`                                         |
-| **cachePolicy**             | cachePolicy.ts             | `lookupSpecTtl`, `trySpecAwareCacheHit`, `cacheResponse`                              |
-| **statusHandling**          | statusHandling.ts          | `handleEarlyStatus` (304/201), `handleErrorResponse` (4xx/5xx), `wrapError`           |
-| **middlewareBridge**        | middlewareBridge.ts        | `applyRequestMiddleware`, `applyResponseInterceptors`                                 |
-| **fetchExecution**          | fetchExecution.ts          | `executeSingleFetch`, `fetchOnePage`, `parseJsonBody`                                 |
-| **pagination**              | paginationOrchestration.ts | `handleCursorPagination`, `handleOffsetPagination`                                    |
+| Component                   | File                       | Exports                                                                                     |
+| --------------------------- | -------------------------- | ------------------------------------------------------------------------------------------- |
+| **handleRequest**           | ApiRequestHandler.ts       | Spec-cache check, deduplication, retry wrapping; delegates to `executeRequest`              |
+| **handleSinglePageRequest** | ApiRequestHandler.ts       | One page with retry, used by `stream*` and `fetchAll*` (see [PAGINATION.md](PAGINATION.md)) |
+| **executeRequest**          | ApiRequestHandler.ts       | Fetch, status handling, cache write, pagination, response interceptors                      |
+| **dependencies**            | dependencies.ts            | `resolveCache`, `resolveRateLimiter`, `resolveCircuitBreaker`, `resolveRetryStrategy`       |
+| **headers**                 | headers.ts                 | `buildRequestHeaders`, `parseCacheControlTtl`                                               |
+| **cachePolicy**             | cachePolicy.ts             | `lookupSpecTtl`, `trySpecAwareCacheHit`, `tryStaleCacheResponse`, `cacheResponse`           |
+| **statusHandling**          | statusHandling.ts          | `handleEarlyStatus` (201/204/304), `handleErrorResponse` (4xx/5xx), `wrapError`             |
+| **middlewareBridge**        | middlewareBridge.ts        | `applyRequestMiddleware`, `applyResponseInterceptors`                                       |
+| **fetchExecution**          | fetchExecution.ts          | `executeSingleFetch`, `fetchOnePage`, `parseJsonBody`                                       |
+| **pagination**              | paginationOrchestration.ts | `handleCursorPagination`, `handleOffsetPagination`                                          |
 
 ```mermaid
 flowchart TB
@@ -136,13 +158,13 @@ flowchart TB
     handleReq --> execReq
     handleSingle --> fetchExec
     handleSingle --> deps
-    execReq --> headers
-    execReq --> mwBridge
     execReq --> fetchExec
     execReq --> status
     execReq --> cache
     execReq --> pagOrch
-    fetchExec --> deps
+    execReq --> mwBridge
+    fetchExec --> headers
+    fetchExec --> mwBridge
 
     style coordinator fill:#e3f2fd,stroke:#1565c0
     style pipelineMods fill:#e8f5e9,stroke:#2e7d32
@@ -160,56 +182,50 @@ flowchart TB
 
 ### C4 Level 3 — Component: Resilience
 
-How the resilience components compose in the request path.
+How the resilience components nest around one call. Retry is outermost; deduplication sits inside each attempt; the circuit breaker and rate limiter run inside the fetch.
 
-| Component               | Interface         | Purpose                                                                                    |
-| ----------------------- | ----------------- | ------------------------------------------------------------------------------------------ |
-| **RetryStrategy**       | `IRetryStrategy`  | Exponential backoff + jitter. Retries 5xx, 429, timeouts. 401 token refresh callback.      |
-| **CircuitBreaker**      | `ICircuitBreaker` | Per-endpoint state machine (closed/open/half-open). keyStrategy: `resolved` or `template`. |
-| **RateLimiter**         | `IRateLimiter`    | 36 per-group token buckets from spec. Per-user opt-in. Decelerate at 20% remaining.        |
-| **RequestDeduplicator** | `IDeduplicator`   | In-flight coalescing for identical GET requests.                                           |
-| **ETagCacheManager**    | `ICache`          | Spec-aware TTL cache + If-None-Match conditionals. Stale fallback on 5xx.                  |
+| Component               | Interface         | Purpose                                                                                            |
+| ----------------------- | ----------------- | -------------------------------------------------------------------------------------------------- |
+| **RetryStrategy**       | `IRetryStrategy`  | Exponential backoff with jitter on retryable `EsiError`s; one 401 token refresh per call           |
+| **RequestDeduplicator** | `IDeduplicator`   | Coalesces identical in-flight GETs without a body                                                  |
+| **CircuitBreaker**      | `ICircuitBreaker` | Opt-in per-key state machine (closed / open / half-open); key by resolved path or template         |
+| **RateLimiter**         | `IRateLimiter`    | Per-group buckets from the generated spec, learns from response headers, blocks a group on 420/429 |
+| **ETagCacheManager**    | `ICache`          | Spec-TTL hits, `If-None-Match` conditionals, stale fallback on 5xx                                 |
 
 ```mermaid
 flowchart LR
-    subgraph pipeline ["Request Pipeline"]
-        handler["handleRequest"]
+    subgraph pipeline ["handleRequest"]
+        spec["Spec-TTL cache hit?"]
+        retry["RetryStrategy.execute"]
         dedup["Deduplicator"]
         execReq["executeRequest"]
     end
 
-    subgraph resilienceLayer ["Resilience"]
-        retry["RetryStrategy"]
+    subgraph fetch ["executeSingleFetch"]
         cb["CircuitBreaker"]
         rl["RateLimiter"]
+        net["fetch"]
     end
 
     subgraph caching ["Caching"]
         etag["ETagCache"]
     end
 
-    handler -- "1. Retry" --> retry
-    handler -- "2. Dedup" --> dedup
-    retry -- "3. Execute" --> execReq
-    execReq -- "4. Circuit" --> cb
-    execReq -- "5. Rate limit" --> rl
-    execReq -- "6. Cache" --> etag
+    spec -- "miss" --> retry
+    retry -- "each attempt" --> dedup
+    dedup --> execReq
+    execReq --> cb --> rl --> net
+    execReq -- "write / 304 / stale" --> etag
+    spec -. "read" .-> etag
 
     style pipeline fill:#e3f2fd,stroke:#1565c0
-    style resilienceLayer fill:#fff3e0,stroke:#e65100
+    style fetch fill:#fff3e0,stroke:#e65100
     style caching fill:#e8f5e9,stroke:#2e7d32
-    style handler fill:#bbdefb,stroke:#1565c0
-    style dedup fill:#bbdefb,stroke:#1565c0
-    style execReq fill:#bbdefb,stroke:#1565c0
-    style retry fill:#ffe0b2,stroke:#e65100
-    style cb fill:#ffe0b2,stroke:#e65100
-    style rl fill:#ffe0b2,stroke:#e65100
-    style etag fill:#c8e6c9,stroke:#2e7d32
 ```
 
 ---
 
-## 1. Clean Architecture Layers
+## 1. Layers
 
 Dependency direction flows inward. Outer layers depend on inner layers, never the reverse.
 
@@ -220,53 +236,52 @@ graph TB
         Consumer["Consumer Application"]
     end
 
-    subgraph PublicAPI["Public API Layer"]
+    subgraph PublicAPI["Construction Layer"]
         EsiClient["EsiClient"]
         EsiClientBuilder["EsiClientBuilder"]
         EsiApiFactory["EsiApiFactory"]
         Index["index.ts exports"]
     end
 
-    subgraph DomainClients["Domain Client Layer (37 domain clients)"]
+    subgraph DomainClients["Domain Client Layer"]
         Alliance["AllianceClient"]
         Character["CharacterClient"]
         Market["MarketClient"]
         Universe["UniverseClient"]
-        More["... 28 more"]
+        More["... one per ESI domain"]
     end
 
     subgraph EndpointLayer["Endpoint Definition Layer"]
         EndpointDef["EndpointDefinition<br/>(responseSchema + requestSchema)"]
-        EndpointFiles["*Endpoints.ts (35 files)"]
+        EndpointFiles["*Endpoints.ts (one per domain)"]
         CreateClient["createClient()<br/>→ InferEndpointResult&lt;D&gt;"]
         Registry["ClientRegistry"]
     end
 
     subgraph SchemaLayer["Schema Validation Layer (Zod)"]
-        Schemas["src/schemas/ (35 hand-written)"]
-        GenSchemas["src/schemas/generated/<br/>(33 files, internal-only)"]
+        Schemas["src/schemas/ (hand-written)"]
         SchemaValidation["Runtime Validation"]
     end
 
     subgraph CoreLayer["Core Request Orchestration"]
         ConfigureClient["configureApiClient()"]
-        Pipeline["src/core/requestPipeline/<br/>(7 modules)"]
-        Handler["ApiRequestHandler<br/>(~250 line coordinator)"]
+        Pipeline["src/core/requestPipeline/"]
+        Handler["ApiRequestHandler<br/>(coordinator)"]
         SpecTtlCache["Spec-Aware Cache (TTL bypass)"]
         BatchHandler["BatchRequestHandler"]
         Middleware["MiddlewareManager"]
         RateLimiter["RateLimiter"]
         CircuitBreaker["CircuitBreaker"]
         Cache["ETagCacheManager"]
-        Pagination["PaginationHandler"]
+        Pagination["Offset pagination"]
         CursorPagination["CursorPaginationHandler"]
         AsyncPaginator["AsyncPaginationIterator"]
         TokenRefresh["Token Refresh"]
     end
 
     subgraph GeneratedLayer["Generated (from ESI OpenAPI Spec)"]
-        GenTypes["esi-spec.generated.ts (161 interfaces)"]
-        GenTtls["esi-cache-ttls.generated.ts (126 TTLs)"]
+        GenTypes["esi-spec.generated.ts"]
+        GenTtls["esi-cache-ttls.generated.ts"]
         GenRateLimits["esi-rate-limit-groups.generated.ts"]
         GenScopes["esi-scopes.generated.ts"]
     end
@@ -311,7 +326,6 @@ graph TB
     CreateClient --> Handler
 
     SchemaValidation --> Schemas
-    GenSchemas -.->|"drift detection only"| Schemas
 
     Registry --> Alliance
     Registry --> Character
@@ -319,6 +333,7 @@ graph TB
     Registry --> Universe
 
     EsiClient --> ConfigureClient
+    EsiClientBuilder --> ConfigureClient
     EsiApiFactory --> ConfigureClient
     ConfigureClient --> ApiClient
 
@@ -328,12 +343,14 @@ graph TB
     SpecTtlCache --> GenTtls
     Pipeline --> Middleware
     Pipeline --> RateLimiter
+    RateLimiter --> GenRateLimits
     Pipeline --> CircuitBreaker
     Pipeline --> Cache
     Pipeline --> Pagination
+    Pipeline --> CursorPagination
     Pipeline --> TokenRefresh
+    AsyncPaginator --> Handler
     EsiClient --> BatchHandler
-    BatchHandler --> Handler
 
     Cache -.->|implements| ICache
     RateLimiter -.->|implements| IRateLimiter
@@ -359,24 +376,27 @@ graph TB
     style GeneratedLayer fill:#e8eaf6,stroke:#283593
 ```
 
-**Key changes from previous iteration:**
+**Design points:**
 
-- **Request pipeline decomposed**: `ApiRequestHandler` is now a thin ~250-line coordinator. Seven focused modules in `src/core/requestPipeline/` handle headers, caching, status, pagination, middleware, fetch execution, and dependency resolution.
-- **`configureApiClient()`**: Single factory function (`src/core/configureApiClient.ts`) that wires middleware for all three client creation surfaces (EsiClient, CustomEsiClient, EsiApiFactory). Eliminates silent middleware gaps between construction paths.
-- **`IRetryStrategy` interface**: Retry logic is now behind `IRetryStrategy`, joinining ICache, IRateLimiter, ICircuitBreaker, and IDeduplicator as swappable strategy contracts.
-- **Typed `createClient()` returns**: `InferEndpointResult<D>` uses `z.infer<>` on the endpoint's `responseSchema` to produce typed return values. No more `Promise<unknown>` or `as Promise<X>` casts.
-- **Request body validation**: `EndpointDefinition` now supports `requestSchema` (Zod). When `validateRequest` is enabled on the client, request bodies are validated before HTTP calls.
-- **Generated schemas internal-only**: `src/schemas/generated/` (33 per-domain files auto-generated from OpenAPI spec) are not exported from the public API. They are used exclusively for schema drift detection (`npm run schema:drift`).
+- **One wiring function.** `configureApiClient()` (`src/core/configureApiClient.ts`) is the single place configuration becomes middleware, for all three construction surfaces.
+- **Typed returns from schemas.** `InferEndpointResult<D>` applies `z.infer<>` to the endpoint's `responseSchema`. An endpoint without a schema returns `unknown` (`DES-02`).
+- **Strategies, not imports.** Cache, rate limiter, circuit breaker, deduplicator, retry strategy, transport and logger are all interfaces with a setter on `ApiClient` (`ARCH-04`).
+- **Generated metadata, hand-written judgement.** Cache TTLs, rate-limit groups and scopes are generated; clients, endpoint maps and schemas are written by hand and diffed against the spec (`ARCH-01`).
+
+---
 
 ## 2. Request Lifecycle
 
-Every ESI call traverses the same pipeline: validation, caching, resilience, fetch, and response processing. The lifecycle is split into two diagrams for readability — the **happy path** (cache miss → fetch → respond) and the **error/edge-case handling** (304, 401, 5xx, pagination).
+Every domain method takes the same route. Order matters: a stage cannot see the effect of a later one.
 
-**Entry path**: Consumer calls a domain client method (e.g. `client.market.getMarketPrices()`). The domain client validates parameters, builds the URL path, and delegates to `createClient()`. If `validateRequest` is enabled and the endpoint defines a `requestSchema`, the request body is validated via Zod before any HTTP call — invalid bodies throw `EsiValidationError` with `direction: 'request'`.
-
-**Spec-aware cache**: Before touching the network, `handleRequest()` checks the spec-aware cache. If the endpoint has a known TTL from the generated `esi-cache-ttls.generated.ts` and the cached entry is within that TTL, the response is returned immediately with zero HTTP calls. This is the fastest path through the system.
-
-**Retry wrapping**: The entire operation (from `executeRequest()` through the HTTP call) is wrapped in `RetryStrategy.execute()`, which provides exponential backoff with jitter on 5xx, 429, and timeout errors. On 401 errors with a configured token provider, it triggers a token refresh and retries once.
+1. **Domain method → `createClient` closure** (`src/core/endpoints/createClient.ts`). Logs a deprecation warning if the definition carries `deprecated`. `buildEndpointPath` assembles the path, query and body, and appends `datasource` when one is set. The request body is validated against `requestSchema` only when `validateRequest` is on; failure throws `EsiValidationError` with `direction: 'request'`.
+2. **Spec-aware cache check** (`trySpecAwareCacheHit`). For a GET whose template has a generated TTL, a cached entry younger than that TTL is returned with no network call.
+3. **Retry** (`RetryStrategy.execute`). Wraps everything below. See [§5](#5-retry-and-deduplication).
+4. **Deduplication.** Inside each attempt, an identical in-flight GET without a body joins the existing promise.
+5. **`executeSingleFetch`.** Build headers (`Accept`, `User-Agent`, `X-Compatibility-Date`, `Accept-Language` if set, `Authorization` only when `requiresAuth`, `If-None-Match` when an ETag is cached) → request interceptors → circuit breaker check → rate limiter check → fetch with timeout → parse headers → rate limiter learns from the response → circuit breaker records the outcome.
+6. **Status handling.** 201 parses the body if there is one and returns. 204 returns `undefined`. 304 serves the cached body and stores it again, restarting its TTL, or throws `EsiError(304)` if there is none. A 5xx with a cached copy serves it stale. Any other non-2xx throws `EsiError`; 401 and 403 carry remediation text.
+7. **Cache write and pagination.** A successful GET with an ETag is cached. A non-GET that reaches this step invalidates cached entries whose key contains the path. Cursor pagination reads `x-cursor-before` / `x-cursor-after`; offset pagination follows `x-pages` and merges the pages.
+8. **Response interceptors → Zod validation → envelope.** Interceptors see the assembled response. When `validateResponse` is on (the default) the body is replaced by `safeParse().data`, or `EsiValidationError` is thrown. `withMetadata()` and `withSafeMode()` wrap the result last.
 
 #### Happy Path
 
@@ -390,70 +410,71 @@ sequenceDiagram
     participant ESI as ESI API
 
     App->>DC: getMarketPrices()
-    DC->>CC: validate + build path
+    DC->>CC: build path (+ optional request validation)
     CC->>HR: handleRequest()
-    Note over HR: Spec-cache check
     HR->>HR: trySpecAwareCacheHit()
+    Note over HR: miss → retry → dedup → executeRequest
     HR->>FE: executeSingleFetch()
-    Note over FE: CB check → rate limit → fetch
+    Note over FE: headers → interceptors → CB → rate limit → fetch
     FE->>ESI: HTTP request
     ESI-->>FE: 200 + JSON
-    FE-->>HR: response + headers
-    Note over HR: Cache response (spec TTL)
-    HR-->>App: { headers, body }
+    FE-->>HR: response + parsed headers
+    Note over HR: cache write, pagination, response interceptors
+    HR-->>CC: { headers, body }
+    Note over CC: Zod validation
+    CC-->>App: typed data
 ```
 
 #### Error and Edge-Case Handling
 
 ```mermaid
 sequenceDiagram
-    participant HR as handleRequest
+    participant HR as executeRequest
     participant SH as statusHandling
     participant Cache as ETagCache
     participant PO as pagination
+    participant RS as RetryStrategy
 
     alt 304 Not Modified
         HR->>SH: handleEarlyStatus()
-        SH->>Cache: get(url)
-        Cache-->>HR: cached data
-    else 401 + TokenProvider
-        HR->>HR: refreshToken() + retry
+        SH->>Cache: get(key)
+        Cache-->>HR: cached data (or EsiError 304)
+    else 401 + token provider
+        HR-->>RS: throw EsiError 401
+        RS->>RS: refreshToken() once, re-run attempt
     else 5xx + cached data
         HR->>SH: handleErrorResponse()
         SH->>Cache: stale fallback
         Cache-->>HR: stale data
     else 4xx / 5xx (no cache)
         HR->>SH: handleErrorResponse()
-        SH-->>HR: throw EsiError
+        SH-->>RS: throw EsiError (retried if retryable)
+    else Cursor headers present
+        HR->>PO: handleCursorPagination()
+        PO-->>HR: data + cursors
     else Multi-page (x-pages > 1)
         HR->>PO: handleOffsetPagination()
         PO-->>HR: merged pages
-    else Cursor token present
-        HR->>PO: handleCursorPagination()
-        PO-->>HR: data + cursors
     end
 ```
 
-**Response interceptors**: After the response is assembled (whether from cache, a single fetch, or paginated fetches), `applyResponseInterceptors()` runs any registered response middleware — useful for logging, metrics, or response transformation.
-
-**Circuit breaker keying**: The `fetchExecution` module resolves the circuit breaker key based on `keyStrategy`. With `'resolved'` (default), each unique URL gets its own circuit. With `'template'`, all URLs matching the same endpoint template (e.g. `/characters/{character_id}/assets/`) share a circuit, which is better for detecting systemic ESI failures.
+---
 
 ## 3. Dependency Injection
 
-Every resilience feature in ESI.ts is behind an interface contract, making each component independently swappable. Dependencies are scoped to each `ApiClient` instance — there are no global singletons. When a dependency is `null`, that feature is simply disabled for that client (e.g., no circuit breaker means all requests pass through unchecked).
+Every resilience feature is behind an interface and scoped to one `ApiClient` instance; there are no shared singletons in the pipeline. A `null` dependency disables that feature for that client.
 
-`configureApiClient()` (`src/core/configureApiClient.ts`) is the single wiring point used by all three client creation surfaces (EsiClient, CustomEsiClient, EsiApiFactory). This eliminates a previous class of bugs where different construction paths could silently produce clients with different middleware configurations.
+`configureApiClient()` builds the defaults from `EsiClientConfig`. At request time `requestPipeline/dependencies.ts` resolves each one:
 
-At request time, `requestPipeline/dependencies.ts` resolves each dependency from the `ApiClient` instance. The resolution semantics differ per dependency:
-
-| Dependency        | Resolution                                        | When null                                                  |
-| ----------------- | ------------------------------------------------- | ---------------------------------------------------------- |
-| `ICache`          | `resolveCache()` → returns or `null`              | No ETag caching, no spec-TTL bypass                        |
-| `IRateLimiter`    | `resolveRateLimiter()` → returns or **throws**    | Rate limiter is required — constructor always provides one |
-| `ICircuitBreaker` | `resolveCircuitBreaker()` → returns or `null`     | No circuit breaking (opt-in feature)                       |
-| `IRetryStrategy`  | `resolveRetryStrategy()` → returns or **default** | Falls back to built-in `RetryStrategy`                     |
-| `IDeduplicator`   | Read directly from client                         | No in-flight GET coalescing                                |
-| `ILogger`         | pino behind `ILogger`                             | Always present (level controlled by `ESI_LOG_LEVEL`)       |
+| Dependency        | Setter on `ApiClient` | Default from `configureApiClient`                  | Resolution when absent                                              |
+| ----------------- | --------------------- | -------------------------------------------------- | ------------------------------------------------------------------- |
+| `ICache`          | `setCache()`          | `ETagCacheManager` unless `enableETagCache: false` | `resolveCache()` → `null`: no ETag, spec-TTL or stale caching       |
+| `IRateLimiter`    | `setRateLimiter()`    | `RateLimiter`, always                              | `resolveRateLimiter()` **throws** `CONFIGURATION_ERROR`             |
+| `ICircuitBreaker` | `setCircuitBreaker()` | `CircuitBreaker` only if `enableCircuitBreaker`    | `resolveCircuitBreaker()` → `null`: no circuit breaking             |
+| `IRetryStrategy`  | `setRetryStrategy()`  | none; `retryConfig` of 3 retries, 1 s, 30 s        | `resolveRetryStrategy()` → `new RetryStrategy(retryConfig)`         |
+| `IDeduplicator`   | `setDeduplicator()`   | `RequestDeduplicator` unless disabled              | read directly; `null` means no coalescing                           |
+| `FetchLike`       | `setFetch()`          | none                                               | `globalThis.fetch`                                                  |
+| `ILogger`         | `setLogger()`         | only when `logger` or `logLevel` is configured     | global logger, then the pino default (see [LOGGING.md](LOGGING.md)) |
 
 ```mermaid
 flowchart LR
@@ -467,6 +488,8 @@ flowchart LR
         cb["ICircuitBreaker"]
         dedup["IDeduplicator"]
         retry["IRetryStrategy"]
+        fetch["FetchLike"]
+        logger["ILogger"]
     end
 
     subgraph Resolution ["dependencies.ts"]
@@ -487,131 +510,319 @@ flowchart LR
     style Resolution fill:#e8f5e9,stroke:#2e7d32
 ```
 
-## 4. Circuit Breaker State Machine
+### Middleware inventory
 
-The circuit breaker prevents cascading failures by tracking consecutive error responses per endpoint. When failures exceed the threshold, the circuit "opens" and all subsequent requests to that endpoint fail immediately with `CircuitOpenError` — no HTTP call is made. After a cooldown period, the circuit enters "half-open" state and allows a limited number of probe requests through. If the probe succeeds, the circuit closes and normal traffic resumes. If it fails, the circuit re-opens.
+| Concern         | Interface                                    | Default            | Key defaults                                                               |
+| --------------- | -------------------------------------------- | ------------------ | -------------------------------------------------------------------------- |
+| Rate limiter    | `IRateLimiter`                               | on, mandatory      | Buckets from generated groups; 420/429 → 60 s block; 50 ms minimum spacing |
+| Circuit breaker | `ICircuitBreaker`                            | off, opt-in        | 5 failures, 30 s reset, 1 half-open probe, key by resolved path            |
+| Deduplicator    | `IDeduplicator`                              | on                 | GET without body only                                                      |
+| Retry           | `IRetryStrategy`                             | on                 | 3 retries, 1 s base, 30 s cap, GET only                                    |
+| ETag cache      | `ICache`                                     | on                 | 1000 entries, 5 min default TTL, 60 s sweep                                |
+| Interceptors    | `RequestInterceptor` / `ResponseInterceptor` | none               | Sequential, unsubscribe closure returned                                   |
+| Transport       | `FetchLike`                                  | global fetch       | 30 s timeout                                                               |
+| Logger          | `ILogger`                                    | pino, level `warn` | Per-client, falls back to global, then default                             |
 
-The half-open state uses a `try/finally` pattern with a `cbRecorded` flag in `fetchExecution.ts` to ensure the probe slot is always released, even on early exceptions before the HTTP response is received.
+---
+
+## 4. Caching
+
+Caching is on by default and has three tiers, checked in order.
+
+```
+Request (GET)
+  │
+  ▼
+Tier 1  Spec TTL        entry younger than the generated TTL → return it, no HTTP call
+  │ miss or expired
+  ▼
+Tier 2  ETag            send If-None-Match → 304 returns the cached body
+  │ changed or no entry
+  ▼
+Tier 3  Full request    200 → cache it (if ESI sent an ETag)
+```
+
+**Spec TTL.** `esi-cache-ttls.generated.ts` maps `METHOD:template` to the `x-cache-age` value from the OpenAPI spec. Only GETs whose template has an entry are eligible. Within that window the stored body is returned with `cacheHitType: 'spec-ttl'`.
+
+**Lifetime of a stored entry.** The freshness TTL is the generated spec TTL, else `Cache-Control: max-age`. An entry is kept for its freshness TTL plus one hour (`STALE_RETENTION_MS` in `cachePolicy.ts`), so after the spec-TTL window closes the entry still supplies `If-None-Match` and a stale body. An entry whose response gave no freshness TTL is kept for the cache's `defaultTtl` (5 minutes). Only responses that carry an `ETag` are stored. A 304 stores the entry again, which restarts both windows.
+
+**Stale on error.** When ESI returns a 5xx and a cached entry exists, that entry is returned with `stale: true` and `cacheHitType: 'stale-on-error'` instead of throwing. Because nothing is thrown, the retry strategy does not retry that call. For a spec-TTL endpoint this applies from the end of the spec TTL until the retention hour runs out.
+
+**Write invalidation.** A non-GET response that reaches the cache-write step deletes every entry whose key contains the request path. 201 and 204 responses return before that step, so they do not invalidate today.
+
+**Keys and isolation.** Public endpoints are keyed by URL and shared across callers of the same client. Authenticated endpoints prefix the key with the first 16 hex characters of a SHA-256 hash of the `Authorization` header (`src/core/cache/cacheKey.ts`), so two characters never share a cached body. See [SECURITY.md](SECURITY.md).
+
+**Eviction.** When `maxEntries` is reached, storing a new key evicts the oldest entry; replacing a stored key evicts nothing. Retention past the freshness TTL does not raise this bound. A timer removes expired entries every `cleanupInterval`; `shutdown()` stops it.
+
+```typescript
+const client = new EsiClient({
+  enableETagCache: true, // default
+  etagCacheConfig: {
+    maxEntries: 1000, // default
+    defaultTtl: 300_000, // ms, entry lifetime when neither spec nor Cache-Control gives a TTL
+    cleanupInterval: 60_000, // ms
+  },
+});
+
+const stats = client.getCacheStats(); // { totalEntries, maxEntries, hits, misses, hitRate, oldestEntry, newestEntry } or null
+client.updateCacheConfig({ maxEntries: 2000 });
+client.clearCache();
+
+// See where a response came from
+const result = await client.alliance.withMetadata().getAllianceById(99000001);
+result.meta.fromCache; // boolean
+result.meta.cacheHitType; // 'spec-ttl' | 'etag-304' | 'stale-on-error' | undefined
+```
+
+Set `enableETagCache: false` to disable all three tiers.
+
+---
+
+## 5. Retry and Deduplication
+
+**Retry** (`src/core/RetryStrategy.ts`) wraps each call from `handleRequest` and each page from `handleSinglePageRequest`.
+
+| Rule            | Behaviour                                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| What is retried | An `EsiError` whose `retryable` is true: status 0 (network or timeout), 420, 429, 502, 503, 504                               |
+| Which methods   | GET only, unless `retryMutations: true`                                                                                       |
+| Delay           | `baseDelayMs × 2^attempt × jitter(0.75–1.25)`, capped at `maxDelayMs`                                                         |
+| Defaults        | `configureApiClient` sets `maxRetries: 3`, `baseDelayMs: 1000`, `maxDelayMs: 30000`; `retryAttempts` overrides only the count |
+| Token refresh   | One refresh per call on a 401 when the endpoint requires auth and a token provider is set; the attempt is then re-run         |
+| Refresh failure | Rethrown as-is if it is an `EsiError` or `CircuitOpenError`, otherwise a `TOKEN_REFRESH_FAILED` error                         |
+| Circuit open    | `CircuitOpenError` is rethrown immediately and never retried                                                                  |
+
+Concurrent refreshes on one `ApiClient` share one in-flight provider call. Supply a custom `IRetryStrategy` through `retryStrategy` in the config or `ApiClient.setRetryStrategy()`.
+
+**Deduplication** (`src/core/RequestDeduplicator.ts`) keys by the resolved endpoint path and applies only to GETs without a body. Callers that arrive while a request is in flight receive the same promise, including its rejection. Because it sits inside the retry loop, each retry attempt re-enters the deduplicator. Disable it with `enableRequestDeduplication: false`.
+
+---
+
+## 6. Rate Limiting
+
+ESI assigns most endpoints to a named rate-limit group with its own token bucket. The groups are extracted from the OpenAPI spec into `esi-rate-limit-groups.generated.ts`, so a burst against `market-order` does not throttle `char-notification`. Rate limiting is always on and needs no configuration.
+
+**What the limiter does before each fetch** (`RateLimiter.checkRateLimit`):
+
+1. **Blocked group.** If the group is blocked, sleep until the block ends and check again, up to ten times. If it is still blocked, throw a retryable `EsiError(429)` rather than send the request.
+2. **Legacy error limit.** If `x-esi-error-limit-remain` is 10 or fewer, wait up to 5 s; if it is exhausted, wait for `x-esi-error-limit-reset`.
+3. **Bucket pressure.** If the group's bucket is empty, wait 1 s. If remaining tokens are at or below `decelerationThreshold` (20%) of the limit, add a delay that grows to 1 s as the bucket drains.
+4. **Minimum spacing.** Serialise requests so they are at least `minDelayMs` (50 ms) apart.
+
+**What it learns after each fetch** (`updateFromResponse`): `x-ratelimit-remaining`, `-limit` and `-used` overwrite the bucket, and `x-ratelimit-group` selects the bucket when ESI names one. `Retry-After` blocks the group for that long; a 420 or 429 blocks it for 60 s if nothing longer is set. The limiter does not decrement tokens locally; ESI's headers are the source of truth. ESI's own charging table (2xx = 2, 3xx = 1, 4xx = 5, 5xx = 0) is exposed as `RateLimiter.getTokenCost(status)` for callers that want to budget.
+
+**Endpoints without a group** share one fallback bucket that is only ever blocked by a 420/429.
+
+```typescript
+const client = new EsiClient({
+  rateLimiterConfig: {
+    minDelayMs: 50, // default
+    decelerationThreshold: 0.2, // default
+    // Multi-character apps: one set of group buckets and one error limit per key
+    userKeyExtractor: (headers) => headers['Authorization'] ?? 'anon',
+    // Tighter local budget for one endpoint (key uses snake_case params, no trailing slash)
+    endpointOverrides: {
+      'GET:markets/{region_id}/orders': {
+        maxTokens: 100,
+        windowSizeMs: 60_000,
+      },
+    },
+  },
+});
+```
+
+`userKeyExtractor` receives the outgoing request headers, after request interceptors have run. Idle user bucket sets are dropped after 15 minutes.
+
+**Monitoring.** Per-response rate-limit state is available on `withMetadata()` results as `meta.rateLimit`. The `IRateLimiter` instance exposes `getStatus()` (worst bucket across all groups), `getGroupStatus(group)`, `getAllGroupStatuses()` and `isBlocked(group?)`; the last three read the shared buckets, not per-user ones. `EsiClient` does not expose the limiter directly; hold a reference by constructing an `ApiClient` yourself or by passing your own `IRateLimiter` to `ApiClient.setRateLimiter()`.
+
+```mermaid
+flowchart TB
+    start["checkRateLimit()"] --> blocked{"Group blocked?"}
+    blocked -->|Yes| wait["Sleep until unblocked<br/>(10 checks, then EsiError 429)"]
+    blocked -->|No| legacy{"Error limit ≤ 10?"}
+    wait --> legacy
+    legacy -->|Yes| slow["Wait ≤ 5 s or until reset"]
+    legacy -->|No| bucket{"Bucket empty or ≤ 20%?"}
+    slow --> bucket
+    bucket -->|Yes| decel["Wait up to 1 s"]
+    bucket -->|No| spacing["Minimum spacing"]
+    decel --> spacing
+    spacing --> pass["Send request"]
+
+    style start fill:#e8f5e9,stroke:#2e7d32
+```
+
+---
+
+## 7. Circuit Breaker
+
+The circuit breaker stops sending requests to a key that keeps failing. It is **off by default**; turn it on with `enableCircuitBreaker: true`. `circuitBreakerConfig` on its own does nothing.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Closed
 
-    Closed --> Closed: Success / 4xx error
-    Closed --> Open: failures >= threshold (5xx/420/429/network)
+    Closed --> Closed: success or 4xx (resets count)
+    Closed --> Open: failures >= failureThreshold
 
-    Open --> Open: timeout not elapsed
-    Open --> HalfOpen: timeout elapsed
+    Open --> Open: resetTimeoutMs not elapsed
+    Open --> HalfOpen: next request after resetTimeoutMs
 
     HalfOpen --> Closed: probe succeeds
-    HalfOpen --> Open: probe fails (5xx)
+    HalfOpen --> Open: probe fails
 
     note right of Closed
-        All requests pass through.
-        Consecutive 5xx/420/429/network
-        failures increment counter.
-        Any success resets counter.
+        Failures: status 0 (network, timeout),
+        420, 429, 5xx. Any other response
+        is a success and resets the count.
     end note
 
     note right of Open
-        All requests blocked with
-        CircuitOpenError.
-        Waits for resetTimeoutMs
-        (default 30s).
+        checkCircuit throws CircuitOpenError
+        with retryAfterMs. No HTTP call.
     end note
 
     note left of HalfOpen
-        Allows limited probe requests
-        (halfOpenMaxAttempts, default 1).
-        Probe slot released via try/finally
-        on early exceptions.
-        Success closes circuit.
-        Failure re-opens it.
+        Probe requests are admitted up to
+        halfOpenMaxAttempts. Extra requests
+        throw CircuitOpenError.
     end note
 ```
 
-**Configuration options:**
+**Where it runs.** In `executeSingleFetch`, after request interceptors and before the rate limiter. A `try/finally` with a `cbRecorded` flag records a failure if anything between the check and the response throws, including a rate-limiter abort, so a half-open probe slot is never leaked. The retry strategy rethrows `CircuitOpenError` without retrying.
 
-| Option                | Default      | Description                                                                                                       |
-| --------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------- |
-| `failureThreshold`    | 5            | Consecutive failures before opening                                                                               |
-| `resetTimeoutMs`      | 30000        | Time before transition to half-open                                                                               |
-| `halfOpenMaxAttempts` | 1            | Probes allowed in half-open                                                                                       |
-| `staleThresholdMs`    | 3600000      | Age before a closed circuit is eligible for cleanup                                                               |
-| `keyStrategy`         | `'resolved'` | `'resolved'` uses full resolved URL (per-resource); `'template'` uses endpoint template path (per-endpoint-group) |
-| `cleanupIntervalMs`   | disabled     | Opt-in scheduled cleanup interval for stale circuits                                                              |
+**Configuration** (`CircuitBreakerConfig`):
 
-**`destroy()` method**: Clears the cleanup timer and all circuit records. Call on shutdown to prevent leaked timers.
+| Option                | Default      | Description                                                                                   |
+| --------------------- | ------------ | --------------------------------------------------------------------------------------------- |
+| `failureThreshold`    | 5            | Consecutive failures before opening                                                           |
+| `resetTimeoutMs`      | 30000        | Time after the last failure before a request may probe                                        |
+| `halfOpenMaxAttempts` | 1            | Probe admissions counted in half-open                                                         |
+| `keyStrategy`         | `'resolved'` | How requests map to circuits; see below                                                       |
+| `staleThresholdMs`    | 3600000      | Age after which a closed, zero-failure circuit is removed by `cleanup()`                      |
+| `cleanupIntervalMs`   | disabled     | Runs `cleanup()` on an unref'd timer when set above 0; `staleThresholdMs` is a sensible value |
 
-## 5. CI/CD Pipeline
+**Keying.**
 
-CI runs in two tiers. **ci-fast.yml** triggers on every push and runs lint, format, build, typecheck, and unit tests on Node 20 — this gives developers sub-5-minute feedback. **ci.yml** triggers on PRs to master and runs the full matrix: Node 18/20/22, BDD scenarios, contract tests against live ESI, fuzz testing (fast-check), mutation testing (Stryker), and the quality gate.
+| Strategy     | Key                                                        | Effect                                                             |
+| ------------ | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| `'resolved'` | Resolved path without query, e.g. `characters/12345/`      | One failing character does not open the circuit for others         |
+| `'template'` | Endpoint definition path, e.g. `characters/{characterId}/` | One circuit for the whole endpoint; detects a systemic ESI failure |
 
-The quality gate blocks merge unless all checks pass, including coverage thresholds (80% branches, 75% functions, 90% lines, 90% statements) and spec freshness (generated files must match `git diff --exit-code`).
+**Handling and diagnostics.**
 
-```mermaid
-flowchart TB
-    subgraph Trigger ["Triggers"]
-        Push["Push"]
-        PR["PR to master"]
-        Tag["Git tag"]
-    end
+```typescript
+import { EsiClient, isCircuitOpen } from '@lgriffin/esi.ts';
 
-    subgraph Validation ["Validation"]
-        Lint["ESLint"]
-        Format["Prettier"]
-        Build["tsc + tsup"]
-        Knip["Knip"]
-        Audit["npm audit"]
-        Auth["Auth/Scopes"]
-    end
+const client = new EsiClient({
+  enableCircuitBreaker: true,
+  circuitBreakerConfig: { keyStrategy: 'template' },
+});
 
-    subgraph Testing ["Testing"]
-        Unit["Unit tests"]
-        BDD["BDD scenarios"]
-        Spec["Spec alignment"]
-        Cov["Coverage gate"]
-        Matrix["Node 18/20/22"]
-    end
+try {
+  await client.characters.getCharacterPublicInfo(12345);
+} catch (err) {
+  if (isCircuitOpen(err)) {
+    console.log(`${err.endpoint} open, retry in ${err.retryAfterMs} ms`);
+  }
+}
 
-    subgraph QG ["Quality Gate"]
-        Gate["All pass"]
-    end
+const stats = client.getCircuitBreakerStats();
+// { totalCircuits, openCircuits, circuits: { [key]: { state, failures } } } or null when disabled
 
-    subgraph Release ["Release"]
-        NPM["npm publish"]
-        Docs["TypeDoc"]
-        Pages["GitHub Pages"]
-    end
+client.resetCircuitBreaker('characters/{characterId}/'); // one key, in the format of the active strategy
+client.resetCircuitBreaker(); // all circuits
 
-    Push --> Validation
-    PR --> Validation
-    Tag --> Validation
-    Validation --> Testing
-    Unit --> Cov
-    BDD --> Cov
-    Spec --> Cov
-    Unit --> Matrix
-    Cov --> Gate
-    Tag --> Release
-    Gate --> Release
-
-    style Trigger fill:#e3f2fd,stroke:#1565c0
-    style Validation fill:#fff3e0,stroke:#e65100
-    style Testing fill:#e8f5e9,stroke:#2e7d32
-    style QG fill:#fce4ec,stroke:#c62828
-    style Release fill:#f3e5f5,stroke:#6a1b9a
+client.shutdown(); // stops the cleanup timer and clears circuits
 ```
 
-## 6. Client Creation Patterns
+`CircuitOpenError` is not a subclass of `EsiError`. See [ERRORS.md](ERRORS.md).
 
-ESI.ts offers three construction patterns, from "give me everything" to "give me one client." All three flow through `configureApiClient()`, so middleware wiring is identical regardless of which pattern is used. This was a deliberate design choice after discovering that the previous architecture had silent middleware gaps between construction paths.
+---
 
-| Pattern              | Use case                 | What you get                                                                                    |
-| -------------------- | ------------------------ | ----------------------------------------------------------------------------------------------- |
-| **EsiClient**        | Most consumers           | All 37 domain clients via property getters (`client.market`, `client.alliance`, etc.)           |
-| **EsiClientBuilder** | Tree-shaking / selective | Only the clients you request, with fluent configuration (`.addClients()`, `.withAccessToken()`) |
-| **EsiApiFactory**    | Single-domain scripts    | One domain client with a fresh `ApiClient` — lightest footprint                                 |
+## 8. Interceptors
+
+Interceptors hook into the pipeline for logging, metrics, tracing headers or response transformation. `MiddlewareManager` (`src/core/middleware/Middleware.ts`) holds two ordered lists; `middlewareBridge.ts` applies them.
+
+```typescript
+interface RequestContext {
+  url: string; // full URL
+  endpoint: string; // resolved path
+  method: string;
+  headers: Record<string, string>; // a copy; return it to apply changes
+  body?: unknown;
+}
+
+interface ResponseContext {
+  url: string;
+  endpoint: string;
+  method: string;
+  status: number;
+  headers: Record<string, string>;
+  body: unknown;
+  durationMs: number;
+  fromCache: boolean;
+}
+
+type RequestInterceptor = (
+  ctx: RequestContext,
+) => RequestContext | Promise<RequestContext>;
+type ResponseInterceptor = (
+  ctx: ResponseContext,
+) => ResponseContext | Promise<ResponseContext>;
+```
+
+**Registration and removal.** Pass arrays as `requestInterceptors` / `responseInterceptors` in the config, or add them at runtime. Each `add*` returns an unsubscribe function that removes that interceptor.
+
+```typescript
+const client = new EsiClient({
+  requestInterceptors: [
+    (ctx) => ({
+      ...ctx,
+      headers: { ...ctx.headers, 'X-Trace-Id': crypto.randomUUID() },
+    }),
+  ],
+});
+
+const unsubscribe = client.addResponseInterceptor((ctx) => {
+  metrics.histogram('esi.response_ms', ctx.durationMs, {
+    status: ctx.status,
+    cached: ctx.fromCache,
+  });
+  return ctx;
+});
+unsubscribe();
+```
+
+**Ordering and scope.**
+
+| Rule                      | Behaviour                                                                                                                     |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Order                     | Registration order. Each interceptor is awaited and receives the previous one's return value                                  |
+| Request interceptors run  | On every HTTP attempt: each retry and each page. After header construction, before the circuit breaker and rate limiter       |
+| Request changes applied   | `url`, `headers` and `body`. `method` and `endpoint` are informational                                                        |
+| Response interceptors run | Once per `handleRequest` call on the assembled result, including spec-TTL and stale cache hits, after offset pages are merged |
+| Response changes applied  | `headers` and `body`. Zod validation runs after, on the modified body                                                         |
+| Not run                   | Response interceptors do not run when the call throws, or on the per-page path used by `stream*` and `fetchAll*`              |
+| Cost when unused          | Both bridges return immediately when no interceptor is registered                                                             |
+
+An interceptor that throws fails the request with that error. Because request interceptors see the `Authorization` header, treat them as trusted code.
+
+---
+
+## 9. Client Creation Patterns
+
+Three construction surfaces, all wired by `configureApiClient()`, so middleware is identical whichever one is used.
+
+| Pattern              | Use case              | What you get                                                                 |
+| -------------------- | --------------------- | ---------------------------------------------------------------------------- |
+| **EsiClient**        | Most consumers        | Every domain client as a lazy getter (`client.market`, `client.alliance`, …) |
+| **EsiClientBuilder** | Selective             | A `CustomEsiClient` with only the clients you add, and fluent configuration  |
+| **EsiApiFactory**    | Single-domain scripts | One domain client on its own `ApiClient`                                     |
+
+`ClientRegistry` maps each client name to its class. `ARCH-08` requires every surface to expose the same set; `CustomEsiClient` currently lacks getters for corporation projects, cosmetics, Paragon Hub and military campaigns (bead `esi-eqq`).
+
+Timers are owned by the client: call `shutdown()` to stop the cache sweep and circuit-breaker cleanup and clear the deduplicator.
 
 ```mermaid
 flowchart TB
@@ -629,7 +840,7 @@ flowchart TB
         cw["Unified wiring"]
     end
 
-    subgraph Infra ["Shared Infrastructure"]
+    subgraph Infra ["Per-ApiClient Infrastructure"]
         ac["ApiClient"]
         cache["ETagCache"]
         rl["RateLimiter"]
@@ -655,388 +866,138 @@ flowchart TB
     style Infra fill:#eceff1,stroke:#37474f
 ```
 
-## 7. Middleware Pipeline
+---
 
-The request pipeline is split into three phases, each handled by dedicated modules in `src/core/requestPipeline/`. Request interceptors run before the HTTP call and can modify headers, URLs, or bodies — useful for trace IDs, custom auth headers, or request logging. Response interceptors run after the response is assembled and can transform the body or add metadata.
+## 10. Response and Request Validation
 
-The middleware system is pluggable via `MiddlewareManager`, which maintains ordered lists of request and response interceptors. Interceptors are registered through the `ApiClient` and are applied by `middlewareBridge.ts`.
-
-```mermaid
-flowchart LR
-    subgraph Request ["Request Phase"]
-        R1["Build headers"]
-        R2["Request middleware"]
-    end
-
-    subgraph Execution ["Execution"]
-        CB["CB check"]
-        RL["Rate limit"]
-        Fetch["Fetch"]
-    end
-
-    subgraph Response ["Response Phase"]
-        Status["Status handling"]
-        Cache["Cache response"]
-        Page["Pagination"]
-        Intercept["Response middleware"]
-    end
-
-    R1 --> R2
-    R2 --> CB --> RL --> Fetch
-    Fetch --> Status --> Cache --> Page --> Intercept
-
-    style Request fill:#e3f2fd,stroke:#1565c0
-    style Execution fill:#fce4ec,stroke:#c62828
-    style Response fill:#e8f5e9,stroke:#2e7d32
-```
-
-## 8. Test Architecture
-
-The test suite is organized into tiers, each serving a different purpose in the confidence pyramid. The project currently has 4,100+ tests across 143+ suites, all runnable via `npm test`.
-
-**TDD unit tests** (`tests/tdd/`) form the base — fast, isolated, mocked at the HTTP boundary via `jest-fetch-mock`. These cover all 37 domain clients, core infrastructure (cache, rate limiter, circuit breaker, middleware), the decomposed request pipeline modules, construction parity between the three client creation surfaces, and request body validation.
-
-**BDD scenario tests** (`tests/bdd/`) use jest-cucumber with Gherkin-style `.feature` files. They cover 39 domain scenarios, performance scenarios (concurrency, memory, large datasets), and integration scenarios (cross-domain workflows). BDD tests use `TestDataFactory` for consistent fixture generation.
-
-**Integration tests** (`tests/integration/`) run against live ESI when `ESI_LIVE_TESTS=true`. Smoke tests cover 42 public endpoints, and gated auth tests require an access token.
-
-**Compile-time alignment** (`spec-alignment.check.ts`) uses 104 `AssertTrue<HasAllSpecKeys<>>` assertions across 24 domains to ensure hand-written Zod schemas don't drift from the OpenAPI spec at the type level.
-
-| Tier        | Location             | Count          | What it validates                                                                     |
-| ----------- | -------------------- | -------------- | ------------------------------------------------------------------------------------- |
-| Unit (TDD)  | `tests/tdd/`         | ~3,600         | Domain clients, core infra, pipeline modules, construction parity, request validation |
-| BDD         | `tests/bdd/`         | ~500           | Domain scenarios, resilience, cross-domain workflows                                  |
-| Integration | `tests/integration/` | ~50            | Live ESI smoke tests, end-to-end client flows                                         |
-| Contract    | `tests/contract/`    | varies         | OpenAPI spec drift detection against live spec                                        |
-| Fuzz        | `tests/fuzz/`        | property-based | Edge cases via fast-check random generation                                           |
-| Type        | `tests/typetests/`   | compile-time   | tsd type-level assertions                                                             |
-| Mutation    | Stryker              | `src/core/**`  | Mutation score threshold (65% break, 80% high)                                        |
-
-```mermaid
-flowchart TB
-    subgraph Unit ["TDD Unit Tests"]
-        clients["37 domain clients"]
-        core["Core infrastructure"]
-        pipeline["Pipeline modules"]
-        parity["Construction parity"]
-    end
-
-    subgraph BDD ["BDD Scenarios"]
-        domain["37 domain features"]
-        perf["Performance"]
-        integ["Integration"]
-    end
-
-    subgraph Live ["Live / Contract"]
-        smoke["42 endpoint smoke"]
-        contract["OpenAPI contract"]
-        fuzz["Fuzz (fast-check)"]
-    end
-
-    subgraph Gates ["Quality Gates"]
-        cov["Coverage thresholds"]
-        spec["Spec alignment"]
-        mutation["Mutation score"]
-    end
-
-    Unit --> cov
-    BDD --> cov
-    Live --> contract
-    Unit --> spec
-
-    style Unit fill:#e8f5e9,stroke:#2e7d32
-    style BDD fill:#fff3e0,stroke:#e65100
-    style Live fill:#e8eaf6,stroke:#283593
-    style Gates fill:#fce4ec,stroke:#c62828
-```
-
-## 9. Rate Limiting Strategy
-
-ESI enforces 36 independent rate limit groups (e.g., `market-order: 12000 tokens/15m`, `char-notification: 15 tokens/15m`). The rate limiter maintains a separate token bucket per group, extracted from the ESI OpenAPI meta spec at build time (`esi-rate-limit-groups.generated.ts`).
-
-**Per-group bucketing**: Each endpoint maps to a rate limit group via the generated spec. When `checkRateLimit(templatePath, method)` is called, the limiter resolves the group and checks/decelerates only that group's bucket. A 429 on one group blocks only that group.
-
-**Per-user bucketing** (opt-in): When `userKeyExtractor` is configured, each user key gets its own set of group buckets, preventing one user's rate limit exhaustion from affecting others in multi-character apps.
-
-**Server sync**: Response headers (`x-ratelimit-remaining`, `x-ratelimit-group`) are authoritative -- they override spec-derived initial values.
-
-**Token costs** vary by response status to account for the different impact each has on ESI's rate limit budget:
-
-| Status | Cost     | Rationale                                           |
-| ------ | -------- | --------------------------------------------------- |
-| 2xx    | 2 tokens | Normal successful request                           |
-| 3xx    | 1 token  | Cache hit (304) — low server cost                   |
-| 4xx    | 5 tokens | Client error — penalized to discourage bad requests |
-| 5xx    | 0 tokens | Server error — not the client's fault               |
-
-```mermaid
-flowchart TB
-    subgraph Check ["Rate Limit Check"]
-        start["checkRateLimit()"]
-        resolve["Resolve group"]
-        blocked{"Blocked?"}
-        legacy{"Legacy < 10?"}
-        bucket{"Bucket < 20%?"}
-        pass["Proceed"]
-    end
-
-    start --> resolve --> blocked
-    blocked -->|Yes| stop["Wait / throw"]
-    blocked -->|No| legacy
-    legacy -->|Yes| slow["Slow down"]
-    legacy -->|No| bucket
-    bucket -->|Yes| decel["Decelerate"]
-    bucket -->|No| pass
-
-    style Check fill:#e8f5e9,stroke:#2e7d32
-```
-
-## 10. Response and Request Validation Pipeline
-
-Bidirectional validation powered by Zod schemas. Response validation runs by default; request validation is opt-in.
+Validation lives in `createClient()`, so it is centralised rather than repeated in each domain client. Response validation is on by default; request validation is opt-in. The full guide, including schema conventions and how to extend a schema, is [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md).
 
 ```mermaid
 sequenceDiagram
     participant Consumer
-    participant Client as Domain Client
     participant CreateClient as createClient()
-    participant Handler as ApiRequestHandler
+    participant Handler as handleRequest
     participant ESI as ESI API
     participant ReqSchema as Request Zod Schema
     participant RespSchema as Response Zod Schema
 
-    Consumer->>Client: client.alliance.getAllianceById(id)
-    Client->>CreateClient: invoke endpoint method
+    Consumer->>CreateClient: client.alliance.getAllianceById(id)
 
     alt validateRequest enabled + requestSchema defined
-        CreateClient->>ReqSchema: def.requestSchema.safeParse(body)
+        CreateClient->>ReqSchema: safeParse(body)
         alt Invalid request body
             ReqSchema-->>Consumer: throw EsiValidationError(direction: 'request')
         end
     end
 
-    CreateClient->>Handler: handleRequest(endpoint, method, ...)
+    CreateClient->>Handler: handleRequest(path, method, ...)
     Handler->>ESI: HTTP GET /alliances/{id}/
     ESI-->>Handler: JSON response
-    Handler-->>CreateClient: { headers, body }
+    Handler-->>CreateClient: { headers, body } (after response interceptors)
 
     alt validateResponse enabled (default)
-        CreateClient->>RespSchema: def.responseSchema.safeParse(body)
+        CreateClient->>RespSchema: safeParse(body)
         alt Valid response
-            RespSchema-->>CreateClient: { success: true, data }
-            Note over CreateClient: Return type: InferEndpointResult&lt;D&gt;<br/>(z.infer on responseSchema)
-            CreateClient-->>Client: validated, typed data
-            Client-->>Consumer: AllianceInfo
+            CreateClient-->>Consumer: result.data (typed)
         else Invalid response
-            RespSchema-->>CreateClient: { success: false, error }
-            CreateClient-->>Consumer: throw EsiValidationError
+            CreateClient-->>Consumer: throw EsiValidationError(direction: 'response')
         end
     else validateResponse disabled
-        CreateClient-->>Client: raw body (no validation)
-        Client-->>Consumer: unvalidated data
+        CreateClient-->>Consumer: raw body
     end
 ```
 
-**Key design points:**
+- **Loose objects.** Schemas use `z.looseObject()`, so fields ESI adds later survive `safeParse().data` (`DES-01`).
+- **Typed returns.** `InferEndpointResult<D>` is `z.infer` of the response schema; cursor endpoints return `CursorResult<Element>`.
+- **Drift.** `npm run schema:drift` compares the hand-written schemas with the live OpenAPI spec.
 
-- **Bidirectional validation**: Request bodies can be validated before HTTP calls (`requestSchema` + `validateRequest: true`), and response bodies are validated after (`responseSchema`, on by default). Both use `EsiValidationError` with a `direction` field.
-- **Validation location**: Validation happens in `createClient()` (in `src/core/endpoints/createClient.ts`), keeping validation centralized rather than scattered across 37 domain clients.
-- **Typed returns via `InferEndpointResult<D>`**: The return type of each endpoint method is inferred from `z.infer<responseSchema>`. For cursor-paginated endpoints, the type is wrapped in `CursorResult<ElementType>`. This eliminates `as Promise<X>` casts.
-- **Loose object mode**: All Zod schemas use `z.looseObject()` so extra fields returned by ESI that are not yet in the schema are preserved in the output.
-- **Type derivation**: Types in `src/types/` are derived from schemas via `z.infer<>`, ensuring compile-time types and runtime validation always agree.
-- **Generated schemas are internal**: The auto-generated schemas in `src/schemas/generated/` are not publicly exported. They serve as baselines for `npm run schema:drift`, which compares hand-written schemas against the generated ones.
+---
 
-## 11. Request Pipeline Decomposition
+## 11. Pagination and Streaming
 
-Prior to v8.0.0, `ApiRequestHandler.ts` was an 815-line monolith handling headers, caching, status codes, pagination, middleware, fetch execution, and dependency resolution in a single file. It was the most-changed file in the codebase and the primary source of merge conflicts.
+ESI pages data two ways, and the library exposes three styles on top. The full guide, with concurrency defaults and failure semantics, is [PAGINATION.md](PAGINATION.md).
 
-The decomposition extracted seven focused modules into `src/core/requestPipeline/`, each with a single responsibility. The coordinator shrank to ~250 lines and now only orchestrates the call sequence — no business logic lives in the coordinator itself.
+| Style             | Entry point                                             | Path through the pipeline                                                                                |
+| ----------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Eager offset      | Any paginated domain method                             | `executeRequest` reads `x-pages`, fetches the rest and returns one merged array                          |
+| Streaming offset  | `stream*` methods, `BaseEsiClient.streamEndpoint()`     | `AsyncPaginationIterator.fetchPages()` yields one validated page at a time via `handleSinglePageRequest` |
+| Concurrent offset | `fetchAll*` methods, `BaseEsiClient.fetchAllEndpoint()` | `fetchAllPages()` fetches page 1, then the rest in batches, via `handleSinglePageRequest`                |
+| Cursor            | Endpoints with `cursorPagination`                       | `createClient` appends `before` / `after`; result is `CursorResult` with `cursors`                       |
 
-**Why this structure**: Each module is independently testable (see `tests/tdd/core/requestPipeline/`), and changes to caching policy don't risk breaking pagination or status handling. The barrel export (`index.ts`) preserves the existing import paths for consumers within the codebase.
-
-| Module                       | Responsibility             | Key exports                                                                           |
-| ---------------------------- | -------------------------- | ------------------------------------------------------------------------------------- |
-| `dependencies.ts`            | DI resolution              | `resolveCache`, `resolveRateLimiter`, `resolveCircuitBreaker`, `resolveRetryStrategy` |
-| `headers.ts`                 | HTTP header construction   | `buildRequestHeaders`, `parseCacheControlTtl`                                         |
-| `cachePolicy.ts`             | Spec-aware caching         | `lookupSpecTtl`, `trySpecAwareCacheHit`, `cacheResponse`                              |
-| `statusHandling.ts`          | HTTP status interpretation | `handleEarlyStatus`, `handleErrorResponse`, `wrapError`                               |
-| `middlewareBridge.ts`        | Interceptor execution      | `applyRequestMiddleware`, `applyResponseInterceptors`                                 |
-| `fetchExecution.ts`          | HTTP fetch + CB/RL         | `executeSingleFetch`, `fetchOnePage`, `parseJsonBody`                                 |
-| `paginationOrchestration.ts` | Multi-page assembly        | `handleCursorPagination`, `handleOffsetPagination`                                    |
-
-This diagram is identical to the C4 Level 3 Pipeline component diagram above, repeated here for navigability:
+`handleSinglePageRequest` applies retry, the circuit breaker, the rate limiter and request interceptors, but not the spec-TTL cache, deduplication, cache writes or response interceptors.
 
 ```mermaid
 flowchart TB
-    subgraph Coord ["ApiRequestHandler.ts"]
-        direction LR
-        HR["handleRequest"]
-        HSPR["handleSinglePage"]
-        ER["executeRequest"]
-    end
-
-    subgraph Mods ["requestPipeline/"]
-        Deps["dependencies"]
-        Hdrs["headers"]
-        CP["cachePolicy"]
-        SH["statusHandling"]
-        MB["middlewareBridge"]
-        FE["fetchExecution"]
-        PO["pagination"]
-    end
-
-    HR --> CP
-    HR --> Deps
-    HR --> ER
-    HSPR --> FE
-    HSPR --> Deps
-    ER --> Hdrs
-    ER --> MB
-    ER --> FE
-    ER --> SH
-    ER --> CP
-    ER --> PO
-
-    style Coord fill:#e3f2fd,stroke:#1565c0
-    style Mods fill:#e8f5e9,stroke:#2e7d32
-```
-
-## 12. Streaming Architecture
-
-Many ESI endpoints return paginated data — market orders, corporation members, industry jobs. Rather than forcing consumers to manually loop over pages, ESI.ts provides `stream*` methods that return `AsyncGenerator<PageResult<T>>`. Consumers iterate with `for await...of` and get typed, validated data one page at a time.
-
-`BaseEsiClient.streamEndpoint()` is public and handles the mechanics: it calls `AsyncPaginationIterator.fetchPages()`, which fetches page 1 to discover `totalPages`, yields it, then fetches pages 2..N sequentially, yielding each. Each page goes through `handleSinglePageRequest()` with full retry strategy support. The iteration stops early if a page returns empty data.
-
-21 domain clients expose 73 `stream*` methods, each a thin one-liner delegation:
-
-```typescript
-streamMarketOrders(regionId: number, ...): AsyncGenerator<PageResult<MarketOrder>> {
-  return this.streamEndpoint('getRegionMarketOrders', regionId, ...);
-}
-```
-
-```mermaid
-flowchart TB
-    subgraph Consumer ["Consumer"]
-        fa["for await (page of stream...)"]
-    end
-
-    subgraph Domain ["Domain Client"]
-        sm["streamMarketOrders()"]
-    end
-
-    subgraph Base ["BaseEsiClient"]
-        se["streamEndpoint()"]
-    end
-
-    subgraph Iterator ["AsyncPaginationIterator"]
-        fp["fetchPages()"]
-        p1["Page 1 → yield"]
-        pn["Pages 2..N → yield"]
-    end
-
-    subgraph Pipeline ["Request Pipeline"]
-        sp["handleSinglePage"]
-        retry["RetryStrategy"]
-    end
-
-    fa --> sm --> se --> fp
-    fp --> p1 --> pn
-    p1 --> sp --> retry
+    fa["for await (page of client.market.streamMarketOrders(id))"] --> se["BaseEsiClient.streamEndpoint()"]
+    se --> fp["fetchPages()"]
+    fp --> p1["Page 1 → read x-pages → yield"]
+    p1 --> pn["Pages 2..N → yield"]
+    p1 --> sp["handleSinglePageRequest"]
     pn --> sp
+    sp --> retry["RetryStrategy → executeSingleFetch"]
 
-    style Consumer fill:#e3f2fd,stroke:#1565c0
-    style Domain fill:#e8f5e9,stroke:#2e7d32
-    style Base fill:#fff3e0,stroke:#e65100
-    style Iterator fill:#fce4ec,stroke:#c62828
-    style Pipeline fill:#eceff1,stroke:#37474f
+    style fa fill:#e3f2fd,stroke:#1565c0
+    style se fill:#fff3e0,stroke:#e65100
+    style fp fill:#fce4ec,stroke:#c62828
+    style sp fill:#eceff1,stroke:#37474f
 ```
 
-**Pattern**: Each `stream*` method is a thin one-liner that delegates to `this.streamEndpoint(endpointName, ...args)`:
+---
 
-```typescript
-streamMarketOrders(regionId: number, ...): AsyncGenerator<PageResult<MarketOrder>> {
-  return this.streamEndpoint('getRegionMarketOrders', regionId, ...);
-}
+## 12. Errors
+
+```
+Error
+├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {0, 420, 429, 502, 503, 504}
+│   ├── TimeoutError (+ timeoutMs)
+│   └── EsiValidationError (+ ZodError, direction: request | response)
+├── CircuitOpenError (endpoint, failures, retryAfterMs)   not an EsiError
+└── SdeError → SdeDatabaseError | SdeValidationError | SdeVersionMismatchError
 ```
 
-**Return type**: `AsyncGenerator<PageResult<T>, void, undefined>` where `PageResult<T>` contains `{ data: T[], page: number, totalPages: number }`.
+Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `TOKEN_REFRESH_FAILED`, …) are still plain `Error`s with a type prefix; `ARCH-07` records that as a gap. Guards, safe mode and the full retryability rules are in [ERRORS.md](ERRORS.md).
 
-**Cursor pagination**: Cursor-paginated endpoints use a separate path through `CursorPaginationHandler` and are accessed via `createClient()` rather than the streaming interface.
+---
 
-## 13. Supply Chain Security
+## 13. Logging
 
-ESI.ts hardens its CI/CD pipeline against supply chain attacks following OpenSSF Scorecard recommendations.
+Pipeline code logs through `logInfo` / `logWarn` / … in `src/core/logger/clientLog.ts`, which resolve the logger per call: the client's own logger, then the global logger from `setLogger()`, then the pino default at `ESI_LOG_LEVEL` (default `warn`). `ARCH-09` requires all pipeline logging to take the per-client route; the rate limiter still logs with no client handle and so reaches the global logger. See [LOGGING.md](LOGGING.md).
 
-### Pinned Dependencies
+---
 
-All GitHub Actions are pinned by full SHA hash rather than mutable version tags. This prevents a compromised upstream action from injecting malicious code into CI runs. 12 distinct actions across 11 workflow files are pinned.
+## 14. Code Generation
 
-### Least-Privilege Permissions
+`npm run generate:types` reads the live ESI OpenAPI spec and writes four artefacts (`ARCH-01`):
 
-Every workflow declares explicit `permissions:` at both the top level and per-job. No workflow runs with the default `write-all` token. Each job requests only the permissions it needs (e.g., `id-token: write` only for the npm publish job that generates SLSA provenance).
-
-### Script Injection Prevention
-
-User-controlled inputs (PR titles, branch names, commit messages) are passed via `env:` bindings, never interpolated directly in `run:` blocks.
-
-### npm Provenance
-
-The release pipeline publishes with `--provenance`, generating SLSA provenance attestations via GitHub's OIDC token. Consumers can verify that a published package was built from this repository's CI.
-
-### ETag Cache Tenant Isolation
-
-Cache keys for authenticated endpoints include a SHA-256 hash of the `Authorization` header (`src/core/cache/cacheKey.ts`), preventing cross-tenant data leakage in multi-character applications. Public endpoints share cache entries across all clients for efficiency.
-
-## 14. Code Generation and CI Gates
-
-ESI.ts bridges the gap between CCP's OpenAPI spec and TypeScript by auto-generating five artifact categories from the live spec. This ensures the SDK stays aligned with upstream API changes without manual intervention. The generation pipeline runs via `npm run generate:types` and produces:
-
-- **161 TypeScript interfaces** (`esi-spec.generated.ts`) — one per ESI response shape
-- **33 Zod schemas** (`src/schemas/generated/`) — per-domain runtime validators used only for drift detection
-- **126 cache TTLs** (`esi-cache-ttls.generated.ts`) — per-endpoint TTLs for spec-aware caching
-- **36 rate limit groups** (`esi-rate-limit-groups.generated.ts`) — per-group token bucket configuration
-- **OAuth scope mappings** (`esi-scopes.generated.ts`) — per-endpoint required scopes
-
-CI enforces that generated files are fresh via `git diff --exit-code` — if the spec changes and someone forgets to regenerate, the build fails.
+| Artefact                                                | Consumed by                                                |
+| ------------------------------------------------------- | ---------------------------------------------------------- |
+| `src/types/generated/esi-spec.generated.ts`             | The `EsiSpec` type namespace and `spec-alignment.check.ts` |
+| `src/core/endpoints/esi-cache-ttls.generated.ts`        | Spec-aware caching (`lookupSpecTtl`)                       |
+| `src/core/endpoints/esi-rate-limit-groups.generated.ts` | `RateLimiter` group buckets                                |
+| `src/core/endpoints/esi-scopes.generated.ts`            | `validate:auth-scopes`, scope lookups for consumers        |
 
 ```mermaid
 flowchart TB
-    subgraph Source ["ESI OpenAPI Spec"]
-        spec["swagger.json"]
-    end
+    spec["ESI OpenAPI spec"] --> gen["generate:types"]
+    gen --> types["esi-spec.generated.ts"]
+    gen --> ttls["esi-cache-ttls.generated.ts"]
+    gen --> rates["esi-rate-limit-groups.generated.ts"]
+    gen --> scopes["esi-scopes.generated.ts"]
 
-    subgraph Gen ["generate:types"]
-        types["161 interfaces"]
-        schemas["33 Zod schemas"]
-        ttls["126 TTLs"]
-        rates["36 rate groups"]
-        scopes["OAuth scopes"]
-    end
+    types --> fresh["git diff freshness"]
+    types --> align["spec-alignment type assertions"]
+    scopes --> auth["validate:auth-scopes"]
+    spec --> drift["schema:drift vs hand-written Zod"]
 
-    subgraph Gates ["CI Gates"]
-        fresh["git diff freshness"]
-        auth["Auth/scopes check"]
-        align["Spec alignment"]
-        drift["Schema drift"]
-    end
-
-    spec --> types & schemas & ttls & rates & scopes
-    types --> fresh
-    scopes --> auth
-    types --> align
-    schemas --> drift
-
-    style Source fill:#f5f5f5,stroke:#999
-    style Gen fill:#e3f2fd,stroke:#1565c0
-    style Gates fill:#fce4ec,stroke:#c62828
+    style spec fill:#f5f5f5,stroke:#999
+    style gen fill:#e3f2fd,stroke:#1565c0
 ```
 
-| Gate                               | Mechanism                                                      | What it catches                                                                                              |
-| ---------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Generated freshness**            | `git diff --exit-code` on generated files                      | Stale types after ESI spec updates                                                                           |
-| **Auth/scopes cross-validation**   | `scripts/validate-auth-scopes.ts`                              | `requiresAuth=false` on authenticated endpoints (would 401), or missing scope entries (breaks OAuth consent) |
-| **Spec-alignment type assertions** | `AssertTrue<HasAllSpecKeys<SpecType, ZodType>>` (compile-time) | Zod schema missing a field the spec defines (104 pairs, 24 domains)                                          |
-| **Schema drift detection**         | `npm run schema:drift`                                         | Hand-written schemas diverging from OpenAPI spec baselines                                                   |
+| Check                         | Mechanism                                                       | What it catches                                                      |
+| ----------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Generated freshness           | `git diff --exit-code` after regeneration                       | Stale generated files after an ESI spec change                       |
+| Auth / scope cross-validation | `scripts/validate-auth-scopes.ts`                               | `requiresAuth` disagreeing with the scope map (`DES-04`)             |
+| Spec-alignment assertions     | `AssertTrue<HasAllSpecKeys<SpecType, ZodType>>` at compile time | A hand-written schema missing a field the spec defines               |
+| Schema drift                  | `npm run schema:drift`                                          | Hand-written schemas diverging from the spec's field names and types |
 
-**Generated schemas are internal-only**: The auto-generated Zod schemas in `src/schemas/generated/` are not exported from the public API surface (`src/index.ts`). They serve exclusively as baselines for drift detection. The 35 hand-written schemas in `src/schemas/` remain the source of truth for runtime validation.
+Generated files are never edited by hand (`DES-03`). Where each check runs in CI is in [QUALITY-GATES.md](QUALITY-GATES.md); supply-chain controls such as SHA-pinned actions and npm provenance are in [SECURITY.md](SECURITY.md); the test tiers are in [TESTING.md](TESTING.md).

@@ -6,7 +6,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 
 | Tier                 |      Tests |   Suites | Purpose                                                                     |
 | -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |      3,580 |      100 | Per-module unit tests with mocked HTTP                                      |
+| TDD (unit)           |      4,357 |      130 | Per-module unit tests with mocked HTTP                                      |
 | BDD (behavioral)     |        600 |       41 | Gherkin-style scenarios covering user-facing behaviors                      |
 | Benchmark (perf)     |         17 |        4 | Performance regression guards for core infrastructure                       |
 | Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
@@ -15,7 +15,8 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
-| **Total**            | **4,700+** | **143+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
+| Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
+| **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
 
@@ -23,10 +24,10 @@ Current coverage (unit + BDD, measured by Jest):
 
 | Metric     |  Value | Threshold |
 | ---------- | -----: | --------: |
-| Statements | 98.47% |       90% |
-| Branches   | 90.10% |       80% |
-| Functions  | 97.54% |       75% |
-| Lines      | 98.59% |       90% |
+| Statements | 98.37% |       90% |
+| Branches   | 95.14% |       80% |
+| Functions  | 96.09% |       75% |
+| Lines      | 98.17% |       90% |
 
 Coverage is collected from `src/**/*.ts` (excluding `.d.ts` and `src/types/`).
 
@@ -181,7 +182,7 @@ tests/
 ## Running Tests
 
 ```bash
-# All unit + BDD tests (default) — 143 suites, 4,182 tests
+# All unit + BDD tests (default) — 171 suites, 4,957 tests
 npm test
 
 # Watch mode for development
@@ -227,7 +228,7 @@ npm run bdd:performance
 **Config:** `jest.unit.config.cjs`
 **Run:** `npm test`
 
-100 test files covering:
+130 test files covering:
 
 - **Domain clients** (37 files) — One per ESI API module (AllianceClient, MarketClient, etc.). Each mocks `fetch` and verifies correct URL construction, response parsing, and type safety. All 30 non-trivial clients include HTTP error path coverage (401, 403, 404, 429, 500) via the shared `describeClientErrors` helper.
 - **Core infrastructure** (35+ files) — Circuit breaker, rate limiter, pagination (offset + cursor), ETag cache, request deduplication, retry with backoff, middleware pipeline, endpoint definitions, validation, error handling, timeout behavior, diagnostics, and configuration.
@@ -361,7 +362,7 @@ Known-drift tests warn rather than fail because the discrepancies are tracked de
 
 **Location:** `tests/contract/`
 **Config:** `jest.contract.config.cjs`
-**Run:** `ESI_LIVE_TESTS=true npm run contract` or `npm run contract:live`
+**Run:** `ESI_LIVE_TESTS=true npm run contract:live` (fails in global setup if `ESI_LIVE_TESTS` is not `true`, instead of skipping every suite)
 
 15 tests across 2 suites that fetch the live ESI OpenAPI spec and structurally validate every endpoint definition:
 
@@ -394,6 +395,7 @@ Related tools:
 - **URL construction fuzzing** (`url-construction-fuzz.test.ts`) — `buildEndpointPath()` with adversarial path params, path traversal strings, and random inputs. Verifies: no unsubstituted `{param}` placeholders, slashes always rejected, special chars safely encoded.
 - **Schema fuzzing** (`schema-fuzz.test.ts`) — all Zod schemas in `src/schemas/` tested with `fc.anything()`. Verifies: `safeParse()` never throws (returns `{success: false}` instead), all primitive edge cases handled.
 - **Pagination fuzzing** (`pagination-fuzz.test.ts`) — page parameter via `buildEndpointPath()` with zero, negative, float, NaN, Infinity, and large values. Verifies: NaN/Infinity rejected, valid page numbers accepted.
+- **Response validation fault injection** (`response-validation-fault-injection.test.ts`) — bodies that violate an endpoint's `responseSchema` (one corrupted or missing field, one corrupted array element, or arbitrary JSON of the wrong shape, each kept only if the endpoint's own schema rejects it) served through the BDD transport seam, so they travel the real `handleRequest` pipeline to validation in `createClient`. Covers `status.getStatus` (object), `market.getMarketPrices` (array) and `characters.getCharacterPublicInfo` (path parameter). Verifies: the client rejects with an `EsiValidationError` (`direction: 'response'`, status `0`, the request URL) whose Zod issues match the schema's own verdict; exactly one request is sent, with no retry; safe mode returns the error as `{ ok: false }` instead; with `validateResponse: false` the same body comes back unchanged; no unhandled rejection is left behind.
 
 ### Tier 9: Gated Auth Tests (Live)
 
@@ -403,6 +405,23 @@ Related tools:
 33 tests for authenticated endpoints using a real OAuth token:
 
 - Location, Skills, Wallet, Assets, Characters, Clones, Contacts, Killmails, Mail, Fittings, Industry, Market (auth), Loyalty, Contracts, Calendar, Search, Faction Warfare
+
+### Consumer contract
+
+**Location:** `tests/consumer/` (a private downstream package), driven by `scripts/consumer-contract.ts`
+**Run:** `npm run test:consumer` (`-- --skip-build` packs the existing `dist/`, `-- --keep` keeps the workspace)
+**CI:** `consumer-contract` in `ci.yml`, Node 18, 20 and 22, inside `ci-success`. Not part of `npm test`.
+
+Every other tier imports from `src/`, so none of them sees the package a consumer installs. This one does:
+
+1. Builds and runs `npm pack`, then installs the tarball, plus the repository's `typescript` and `@types/node` versions, into a copy of `tests/consumer/` in a temporary directory outside the repository, so resolution cannot fall back to the repo's `node_modules`.
+2. Fails if a sub-path in the packed `exports` map is not imported by each consumer source (`src/require.cts`, `src/import.mts`, `bundler/index.mts`).
+3. Type-checks with `skipLibCheck: false`, so the shipped declarations are checked too, under `module: nodenext` (the `.cts` file resolves through the `require` condition, the `.mts` file through `import`) and under `moduleResolution: bundler`.
+4. Runs the emitted CommonJS and ES module consumers: a real `EsiClient` against a stubbed `fetch`, a malformed body rejected with `EsiValidationError` and a 404, both recognised by the classes and guards imported from `./errors`, schemas, `TestDataFactory` and the SDE providers.
+5. `runtime/parity.mjs` loads every sub-path under both `require` and `import` and fails if the CJS and ESM builds export different names, or if, within one build, two sub-paths export the same name as different values (a class exported from `.` and `./errors` must be one class; the root `schemas` namespace is compared with `./schemas`).
+6. `runtime/sde-optional-peers.mjs` covers `js-yaml` and `adm-zip`, the optional peer dependencies of `./sde`. Steps 2 to 5 run without them installed; before that, `absent` checks that `./sde` loads and that `fromDirectory` and `fromZip` throw an `SdeError` naming the missing package. At the end the runner installs both and `present` loads real YAML and ZIP files through the CJS and ESM builds.
+
+Defects the contract finds are recorded as known issues against their beads: each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround. There are none open; `esi-v2s.15` (error class identity across sub-paths) and `esi-v2s.16` (`./sde` peer dependencies) were the last two.
 
 ## Integration Tests
 
@@ -538,6 +557,14 @@ await expect(client.getAllianceById(99999999)).rejects.toThrow(
 );
 ```
 
+### Time and randomness
+
+An assertion about `Expires`, retry backoff or circuit half-open timing is only deterministic if the code under test takes its time from something the test controls. `npm run lint:determinism` (`eslint.determinism.rules.cjs`, driven by `scripts/determinism-lint.ts`) restricts these in `src/`: `Date.now()`, `new Date()` and `Date()` with no arguments, `performance.now()`, `process.hrtime`, `Math.random()`, `setTimeout`, `setInterval`, `setImmediate`, `queueMicrotask` (bare or through `globalThis`, `global`, `window`, `self`) and imports of `timers` / `timers/promises`. Parsing a date (`new Date(header)`, `Date.parse`) is allowed. The one allow-listed path is the clock module, `src/core/clock.ts`; inline `eslint-disable` comments are ignored.
+
+The sites that exist today are counted per file and construct in `scripts/determinism-baseline.json`. The baseline only shrinks: a count above its entry fails (a new site), a count below its entry fails until the entry is lowered (`npm run lint:determinism -- --update`, which never raises one), and an entry above `origin/master`'s fails. With no base ref resolvable (set `DETERMINISM_BASE_REF`, or fetch master) the check fails closed. Until call sites move to an injected clock, tests of existing timing code keep using `jest.useFakeTimers()`.
+
+Each restricted construct has a negative fixture in `tests/tdd/determinism-lint/fixtures/violations/`, linted through ESLint's Node API by `tests/tdd/determinism-lint/determinism-lint.test.ts`, alongside compliant fixtures (including the clock module at its allow-listed path) that must produce no findings and the ratchet's added, stale and no-base-ref cases.
+
 ### Test Helpers
 
 **`src/core/util/testHelpers.ts`** — provides `getBody()` wrapper used in TDD tests:
@@ -571,60 +598,65 @@ const notFound = TestDataFactory.createError(404);
 
 Available factory methods:
 
-| Method                               | Returns                        |
-| ------------------------------------ | ------------------------------ |
-| `createAllianceInfo()`               | `AllianceInfo`                 |
-| `createAllianceContact()`            | `AllianceContact`              |
-| `createAllianceContactLabel()`       | `AllianceContactLabel`         |
-| `createCharacterInfo()`              | `CharacterInfo`                |
-| `createCharacterPortrait()`          | `CharacterPortrait`            |
-| `createCharacterAttributes()`        | `CharacterAttributes`          |
-| `createCharacterSkill()`             | `CharacterSkill`               |
-| `createCharacterRoles()`             | Roles object                   |
-| `createCharacterLocation()`          | Location object                |
-| `createCharacterSkills()`            | Skills summary                 |
-| `createCharacterAsset()`             | Asset object                   |
-| `createCharacterMarketOrder()`       | Character market order         |
-| `createCharacterOrderHistory()`      | Order history entry            |
-| `createCharacterMedal()`             | Medal object                   |
-| `createCharacterNotification()`      | Notification object            |
-| `createCorporationInfo()`            | `CorporationInfo`              |
-| `createCorporationHistoryEntry()`    | Corp history entry             |
-| `createCorporationMemberRoles()`     | Member roles object            |
-| `createCorporationAsset()`           | Corp asset object              |
-| `createCorporationStructure()`       | Structure object               |
-| `createCorporationWallet()`          | Wallet division                |
-| `createMarketOrder()`                | `MarketOrder`                  |
-| `createMarketPrice()`                | Price object                   |
-| `createMarketHistory()`              | History entry                  |
-| `createWalletTransaction()`          | `WalletTransaction`            |
-| `createWalletJournalEntry()`         | Journal entry                  |
-| `createContract()`                   | `Contract`                     |
-| `createFleetInfo()`                  | Fleet object                   |
-| `createFleetMember()`                | Fleet member                   |
-| `createFleetWing()`                  | Fleet wing                     |
-| `createIndustryJob()`                | Industry job                   |
-| `createBlueprint()`                  | Blueprint object               |
-| `createSolarSystem()`                | System object                  |
-| `createStation()`                    | Station object                 |
-| `createStructure()`                  | Structure object               |
-| `createItemType()`                   | Type object                    |
-| `createItemGroup()`                  | Group object                   |
-| `createStar()`                       | Star object                    |
-| `createPlanet()`                     | Planet object                  |
-| `createSearchResults()`              | Search result set              |
-| `createEntityName()`                 | Named entity                   |
-| `createSovereigntySystem()`          | Sovereignty system (combined)  |
-| `createSovereigntyHub()`             | Sovereignty hub                |
-| `createOrbitalSkyhook()`             | Orbital skyhook                |
-| `createRaidableSkyhook()`            | Raidable skyhook               |
-| `createMercenaryDen()`               | Mercenary den                  |
-| `createMercenaryTacticalOperation()` | Mercenary tactical operation   |
-| `createAccessListEntry()`            | Access list entry              |
-| `createError(statusCode)`            | `EsiError`                     |
-| `createTestScenarios()`              | Full test scenario set         |
-| `createPerformanceTestData(size)`    | Bulk test data                 |
-| `createRealisticTestData()`          | Linked alliance/corp/character |
+| Method                                 | Returns                        |
+| -------------------------------------- | ------------------------------ |
+| `createAllianceInfo()`                 | `AllianceInfo`                 |
+| `createAllianceContact()`              | `AllianceContact`              |
+| `createAllianceContactLabel()`         | `AllianceContactLabel`         |
+| `createCharacterInfo()`                | `CharacterInfo`                |
+| `createCharacterPortrait()`            | `CharacterPortrait`            |
+| `createCharacterAttributes()`          | `CharacterAttributes`          |
+| `createCharacterSkill()`               | `CharacterSkill`               |
+| `createCharacterRoles()`               | Roles object                   |
+| `createCharacterLocation()`            | Location object                |
+| `createCharacterSkills()`              | Skills summary                 |
+| `createCharacterAsset()`               | Asset object                   |
+| `createCharacterMarketOrder()`         | Character market order         |
+| `createCharacterOrderHistory()`        | Order history entry            |
+| `createCharacterMedal()`               | Medal object                   |
+| `createCharacterNotification()`        | Notification object            |
+| `createCorporationInfo()`              | `CorporationInfo`              |
+| `createCorporationHistoryEntry()`      | Corp history entry             |
+| `createCorporationMemberRoles()`       | Member roles object            |
+| `createCorporationAsset()`             | Corp asset object              |
+| `createCorporationStructure()`         | Structure object               |
+| `createCorporationWallet()`            | Wallet division                |
+| `createMarketOrder()`                  | `MarketOrder`                  |
+| `createMarketPrice()`                  | Price object                   |
+| `createMarketHistory()`                | History entry                  |
+| `createWalletTransaction()`            | `WalletTransaction`            |
+| `createCorporationWalletTransaction()` | `CorporationWalletTransaction` |
+| `createWalletJournalEntry()`           | Journal entry                  |
+| `createContract()`                     | `Contract`                     |
+| `createPublicContract()`               | `PublicContract`               |
+| `createFleetInfo()`                    | Fleet object                   |
+| `createFleetMember()`                  | Fleet member                   |
+| `createFleetWing()`                    | Fleet wing                     |
+| `createIndustryJob()`                  | Industry job                   |
+| `createCorporationIndustryJob()`       | Corporation industry job       |
+| `createBlueprint()`                    | Blueprint object               |
+| `createSolarSystem()`                  | System object                  |
+| `createStation()`                      | Station object                 |
+| `createStructure()`                    | Structure object               |
+| `createItemType()`                     | Type object                    |
+| `createItemGroup()`                    | Group object                   |
+| `createStar()`                         | Star object                    |
+| `createPlanet()`                       | Planet object                  |
+| `createSearchResults()`                | Search result set              |
+| `createEntityName()`                   | Named entity                   |
+| `createSovereigntySystem()`            | Sovereignty system (combined)  |
+| `createSovereigntyHub()`               | Sovereignty hub                |
+| `createOrbitalSkyhook()`               | Orbital skyhook                |
+| `createRaidableSkyhook()`              | Raidable skyhook               |
+| `createMercenaryDen()`                 | Mercenary den                  |
+| `createMercenaryTacticalOperation()`   | Mercenary tactical operation   |
+| `createAccessListEntry()`              | Access list entry              |
+| `createError(statusCode)`              | `EsiError`                     |
+| `createTestScenarios()`                | Full test scenario set         |
+| `createPerformanceTestData(size)`      | Bulk test data                 |
+| `createRealisticTestData()`            | Linked alliance/corp/character |
+
+Every payload builder's default output passes the Zod schema its endpoint is validated with. `tests/tdd/testing/TestDataFactory.schemas.test.ts` enforces this, so a new builder must be added to its map. The same test checks that builders leave out fields ESI never sends (an entity's own ID on its detail route, for example) and include the fields its spec marks required.
 
 ## TDD Test Pattern
 
@@ -737,7 +769,7 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 
 ### Shared Error Test Helper
 
-The `describeClientErrors` helper (`tests/tdd/helpers/clientErrorTests.ts`) generates a standard error handling `describe` block that tests all 5 HTTP error codes (500, 404, 401, 403, 429) against the exact messages from `ApiRequestHandler.STATUS_MESSAGES`. Error scenarios are ordered with 500 first and 429 last to avoid rate limiter blocking in subsequent tests.
+The `describeClientErrors` helper (`tests/tdd/helpers/clientErrorTests.ts`) generates a standard error handling `describe` block that tests all 5 HTTP error codes (500, 404, 401, 403, 429) against the exact messages from `ApiRequestHandler.STATUS_MESSAGES`, and checks that the thrown error carries the status code. Each case builds a fresh `ApiClient` and passes it to the callback, which must construct the domain client from it rather than reuse the suite's client: a 429 blocks the endpoint's rate-limit group for 60 seconds on the client that received it, and a shared client would make every later test in the file time out once `jest --randomize` puts the 429 case first.
 
 ```typescript
 import { describeClientErrors } from '../helpers/clientErrorTests';
@@ -745,7 +777,9 @@ import { describeClientErrors } from '../helpers/clientErrorTests';
 describe('MarketClient', () => {
   // ... other tests ...
 
-  describeClientErrors('MarketClient', () => client.getMarketPrices());
+  describeClientErrors('MarketClient', (apiClient) =>
+    new MarketClient(apiClient).getMarketPrices(),
+  );
 });
 ```
 
@@ -773,6 +807,10 @@ TDD tests cover implementation details (internal functions, edge cases, error pa
 ### Why snapshot the public API surface?
 
 `publicApiSurface.test.ts` acts as a breaking-change detector. If someone renames a method, removes an export, or changes a class hierarchy, this test fails immediately — before the change ships as a semver-violating release.
+
+### Why check that every export is referenced by a test?
+
+Coverage percentages measure the code tests run, so an exported function nothing calls and an exported type nothing names are invisible to them. `npm run test:export-coverage` lists, per `package.json` entry point, the exports no file under `tests/` resolves to (the TypeScript checker decides, so a name in a comment or string does not count). CI fails on a new unreferenced export and the baseline in `scripts/export-coverage-baseline.json` only shrinks. See [QUALITY-GATES.md](QUALITY-GATES.md#export-coverage).
 
 ## Schema Validation Tests
 
@@ -803,7 +841,7 @@ BDD scenarios cover the validation feature from a consumer perspective, verifyin
 ## Adding New Tests
 
 1. **TDD test**: Create `tests/tdd/<domain>/<ClientName>.test.ts`. Mock fetch responses, call client methods, assert results.
-2. **BDD test**: Add a `.feature` file in `tests/bdd/features/core/` and a matching `.steps.ts` in `tests/bdd/step-definitions/core/`. Use `jest.spyOn` on `EsiClient` properties.
+2. **BDD test**: Add a `.feature` file in `tests/bdd/features/core/`, a spec entry at the same path under `tests/bdd/specs/core/`, and one file per new step in `tests/bdd/steps/<keyword>/`. Queue HTTP responses at the transport seam; see `tests/bdd/README.md`.
 3. **Integration test**: Add to `tests/integration/`. Use real fetch (no mocks). Keep tests idempotent and read-only against ESI.
 4. **Test data**: Add factory methods to `src/testing/TestDataFactory.ts` if new response types are needed.
 
@@ -828,7 +866,7 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 | Unit + BDD                | Every push                  | `npm test`                                            |
 | Mocked integration        | Every push                  | `npm run test:integration`                            |
 | Benchmarks                | Every PR                    | `npm run benchmark`                                   |
-| Deep contract tests       | Every PR                    | `npm run contract:live`                               |
+| Deep contract tests       | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
 | Property-based fuzz tests | Every PR                    | `npm run fuzz`                                        |
 | Consumer type tests       | Every PR                    | `npm run test:types`                                  |
 | Live smoke tests          | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
@@ -863,35 +901,36 @@ npm run generate:types
 
 ## File Reference
 
-| Path                                           | Purpose                                           |
-| ---------------------------------------------- | ------------------------------------------------- |
-| `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds)      |
-| `jest.benchmark.config.cjs`                    | Benchmark test config (60s timeout)               |
-| `jest.integration.config.cjs`                  | Integration test config (30s timeout)             |
-| `jest.contract.config.cjs`                     | Contract test config (60s timeout)                |
-| `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)                    |
-| `tests/tdd/`                                   | 99 TDD test files                                 |
-| `tests/tdd/helpers/clientErrorTests.ts`        | Shared HTTP error test generator (5 status codes) |
-| `tests/tdd/core/apiSurfaceSnapshots.test.ts`   | API export & shape snapshot tests (5 tests)       |
-| `tests/tdd/core/concurrency.test.ts`           | Async scheduling correctness (11 tests)           |
-| `tests/tdd/core/utilFunctions.test.ts`         | Core utility function tests (25 tests)            |
-| `tests/tdd/schemas/schemaRejection.test.ts`    | Full schema rejection coverage (423 tests)        |
-| `tests/benchmark/`                             | 4 performance benchmark suites (17 tests)         |
-| `tests/bdd/features/`                          | 40 Gherkin feature files                          |
-| `tests/bdd/step-definitions/`                  | 40 step definition files + shared helpers         |
-| `tests/integration/full-stack.test.ts`         | Mocked full-lifecycle integration (20 tests)      |
-| `tests/integration/live-esi.test.ts`           | Live API smoke tests (40 tests)                   |
-| `tests/integration/client-integration.test.ts` | Live EsiClient integration (11 tests)             |
-| `tests/integration/esi-spec-contract.test.ts`  | ESI spec drift detection (10 tests)               |
-| `tests/integration/gated-auth.test.ts`         | Authenticated endpoint tests (33 tests)           |
-| `tests/contract/esi-contract.test.ts`          | Deep contract validation (8 categories)           |
-| `tests/contract/esi-snapshot.test.ts`          | Spec snapshot comparison                          |
-| `tests/contract/helpers.ts`                    | Shared spec parsing utilities                     |
-| `tests/fuzz/parameter-fuzz.test.ts`            | Validation function fuzzing                       |
-| `tests/fuzz/url-construction-fuzz.test.ts`     | URL construction fuzzing                          |
-| `tests/fuzz/schema-fuzz.test.ts`               | Zod schema fuzzing                                |
-| `tests/fuzz/pagination-fuzz.test.ts`           | Pagination parameter fuzzing                      |
-| `tests/typetests/index.test-d.ts`              | Consumer type tests (tsd)                         |
-| `src/testing/TestDataFactory.ts`               | Mock data factory for tests                       |
-| `scripts/validate-esi-endpoints.ts`            | Standalone ESI spec validation script             |
-| `scripts/generate-esi-types.ts`                | Type/cache/scope generator from live spec         |
+| Path                                           | Purpose                                             |
+| ---------------------------------------------- | --------------------------------------------------- |
+| `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds)        |
+| `jest.benchmark.config.cjs`                    | Benchmark test config (60s timeout)                 |
+| `jest.integration.config.cjs`                  | Integration test config (30s timeout)               |
+| `jest.contract.config.cjs`                     | Contract test config (60s timeout)                  |
+| `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)                      |
+| `tests/tdd/`                                   | 130 TDD test files                                  |
+| `tests/tdd/helpers/clientErrorTests.ts`        | Shared HTTP error test generator (5 status codes)   |
+| `tests/tdd/core/apiSurfaceSnapshots.test.ts`   | API export & shape snapshot tests (5 tests)         |
+| `tests/tdd/core/concurrency.test.ts`           | Async scheduling correctness (11 tests)             |
+| `tests/tdd/core/utilFunctions.test.ts`         | Core utility function tests (25 tests)              |
+| `tests/tdd/schemas/schemaRejection.test.ts`    | Full schema rejection coverage (423 tests)          |
+| `tests/benchmark/`                             | 4 performance benchmark suites (17 tests)           |
+| `tests/bdd/features/`                          | 40 Gherkin feature files                            |
+| `tests/bdd/step-definitions/`                  | 40 step definition files + shared helpers           |
+| `tests/integration/full-stack.test.ts`         | Mocked full-lifecycle integration (20 tests)        |
+| `tests/integration/live-esi.test.ts`           | Live API smoke tests (40 tests)                     |
+| `tests/integration/client-integration.test.ts` | Live EsiClient integration (11 tests)               |
+| `tests/integration/esi-spec-contract.test.ts`  | ESI spec drift detection (10 tests)                 |
+| `tests/integration/gated-auth.test.ts`         | Authenticated endpoint tests (33 tests)             |
+| `tests/contract/esi-contract.test.ts`          | Deep contract validation (8 categories)             |
+| `tests/contract/esi-snapshot.test.ts`          | Spec snapshot comparison                            |
+| `tests/contract/helpers.ts`                    | Shared spec parsing utilities                       |
+| `tests/fuzz/parameter-fuzz.test.ts`            | Validation function fuzzing                         |
+| `tests/fuzz/url-construction-fuzz.test.ts`     | URL construction fuzzing                            |
+| `tests/fuzz/schema-fuzz.test.ts`               | Zod schema fuzzing                                  |
+| `tests/fuzz/pagination-fuzz.test.ts`           | Pagination parameter fuzzing                        |
+| `tests/typetests/index.test-d.ts`              | Consumer type tests (tsd)                           |
+| `tests/consumer/`                              | Consumer contract package (`npm run test:consumer`) |
+| `src/testing/TestDataFactory.ts`               | Mock data factory for tests                         |
+| `scripts/validate-esi-endpoints.ts`            | Standalone ESI spec validation script               |
+| `scripts/generate-esi-types.ts`                | Type/cache/scope generator from live spec           |

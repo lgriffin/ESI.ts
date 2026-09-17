@@ -4,6 +4,21 @@ Typed, in-memory query layer for the EVE Online Static Data Export (SDE). Reads 
 
 ## Quick Start
 
+### Install the optional peer dependencies
+
+`SdeDataProvider` reads CCP's files with two packages that are optional peer dependencies of `@lgriffin/esi.ts`, so they are not installed with it:
+
+| Package   | Needed by                                                    | Install               |
+| --------- | ------------------------------------------------------------ | --------------------- |
+| `js-yaml` | `SdeDataProvider.fromDirectory` and `fromZip` (YAML parsing) | `npm install js-yaml` |
+| `adm-zip` | `SdeDataProvider.fromZip` (ZIP reading)                      | `npm install adm-zip` |
+
+Importing `@lgriffin/esi.ts/sde` does not load either package, and `MemorySdeProvider` (also available from `@lgriffin/esi.ts/sde/memory`) never needs them. They are loaded the first time a YAML file or a ZIP archive is read; if one is missing, that call throws an `SdeError` such as:
+
+```
+js-yaml is required to parse SDE YAML files. It is an optional peer dependency of @lgriffin/esi.ts; install it with: npm install js-yaml
+```
+
 ### 1. Download SDE data
 
 ```bash
@@ -94,6 +109,7 @@ src/sde/
   schemas.ts                  110 Zod validation schemas
   version.ts                  SdeVersionInfo type
   errors.ts                   SdeError hierarchy
+  optionalPeers.ts            Lazy loading of js-yaml and adm-zip (optional peers)
   ingestion/
     constants.ts              SDE_FILE_REGISTRY (102 file specs)
     transforms.ts             Field normalization + locale extraction
