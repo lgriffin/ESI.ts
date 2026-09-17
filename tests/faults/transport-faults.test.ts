@@ -4,6 +4,7 @@
  */
 import fetchMock from 'jest-fetch-mock';
 import { useHttpTransport } from '../bdd/support/transport';
+import { assertThat } from '../support/assertions';
 import { FAULTS } from './catalogue';
 import { knownGapFor } from './knownGaps';
 import { checkFault, failureMessage, useVirtualClock } from './runner';
@@ -28,15 +29,12 @@ describe('Transport fault catalogue (through the transport seam)', () => {
     const problems = await checkFault(target, fault);
     const gap = knownGapFor(fault.id, target.name);
     if (gap) {
-      if (problems.length === 0) {
-        throw new Error(
-          `Known gap "${fault.id}" on ${target.name} (${gap.bead}) no longer reproduces: the client now meets the expected outcome. Remove the entry from tests/faults/known-gaps.json.`,
-        );
-      }
+      assertThat(
+        problems.length > 0,
+        `Known gap "${fault.id}" on ${target.name} (${gap.bead}) no longer reproduces: the client now meets the expected outcome. Remove the entry from tests/faults/known-gaps.json.`,
+      );
       return;
     }
-    if (problems.length > 0) {
-      throw new Error(failureMessage(target, fault, problems));
-    }
+    assertThat(problems.length === 0, failureMessage(target, fault, problems));
   });
 });

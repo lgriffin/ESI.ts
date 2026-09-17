@@ -34,6 +34,7 @@ import {
   sentRequests,
   useHttpTransport,
 } from '../bdd/support/transport';
+import { assertThat } from '../support/assertions';
 import {
   UNKNOWN_FIELD,
   applyMutation,
@@ -63,7 +64,9 @@ function readInt(name: string, fallback: number): number {
   return value;
 }
 
-// eslint-disable-next-line sonarjs/pseudo-random
+// An unseeded night picks its own seed, so each run explores different bodies;
+// it is printed below and FAULTS_SEED replays it. Math.random is the right
+// source for that: nothing here is a security decision.
 const SEED = readInt('FAULTS_SEED', Math.floor(Math.random() * 2 ** 31));
 const RUNS = readInt('FAULTS_RUNS', 100);
 
@@ -273,16 +276,15 @@ describe(`Nightly payload fuzz (seed ${SEED}, ${RUNS} runs per endpoint)`, () =>
       }),
       { seed: SEED, numRuns: RUNS, endOnFailure: true },
     );
-    if (details.failed) {
-      const broke = (details.errorInstance as { message?: unknown } | null)
-        ?.message;
-      throw new Error(
-        [
-          String(broke ?? 'the property failed'),
-          `Counterexample: ${canon(details.counterexample)}`,
-          reproduce(name),
-        ].join('\n'),
-      );
-    }
+    const broke = (details.errorInstance as { message?: unknown } | null)
+      ?.message;
+    assertThat(
+      !details.failed,
+      [
+        String(broke ?? 'the property failed'),
+        `Counterexample: ${canon(details.counterexample)}`,
+        reproduce(name),
+      ].join('\n'),
+    );
   });
 });
