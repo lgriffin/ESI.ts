@@ -1,0 +1,64 @@
+{
+  "$comment": "Faults that expose a bug not yet fixed, with the bead that owns the fix. This list only shrinks: catalogue.selftest.test.ts fails on an entry origin/master does not have, and transport-faults.test.ts fails once a listed fault stops reproducing.",
+  "gaps": [
+    {
+      "fault": "later-page-unavailable",
+      "targets": ["market.getMarketOrders"],
+      "bead": "esi-l38.2",
+      "reason": "Page 1 is cached before pages 2..N arrive. When page 2 exhausts its retries, the call-level retry re-requests page 1 with If-None-Match and the exchange derails (PAGINATION.md Known gaps #3)."
+    },
+    {
+      "fault": "x-pages-shrinks-to-missing-page",
+      "targets": ["market.getMarketOrders"],
+      "bead": "esi-l38.2",
+      "reason": "Page 1 is cached before pages 2..N arrive, so a later page failing leaves page 1 alone in the cache, served as if complete on the next call inside the TTL or after a 304."
+    },
+    {
+      "fault": "connection-reset-mid-body",
+      "targets": [
+        "status.getStatus",
+        "location.getCharacterLocation",
+        "market.getMarketOrders",
+        "freelanceJobs.getFreelanceJobs",
+        "universe.postNamesAndCategories"
+      ],
+      "bead": "esi-23g.8",
+      "reason": "A body read that fails after the headers is reported as [JSON_PARSE_ERROR], not a retryable network failure, so a reset mid-body is never retried."
+    },
+    {
+      "fault": "body-stalls-after-headers",
+      "targets": [
+        "status.getStatus",
+        "location.getCharacterLocation",
+        "market.getMarketOrders",
+        "freelanceJobs.getFreelanceJobs",
+        "universe.postNamesAndCategories"
+      ],
+      "bead": "esi-23g.8",
+      "reason": "The request timer is cleared once headers arrive, so a body that stops arriving hangs the call forever instead of raising TimeoutError."
+    },
+    {
+      "fault": "bad-gateway-without-reason-phrase",
+      "targets": [
+        "status.getStatus",
+        "location.getCharacterLocation",
+        "market.getMarketOrders",
+        "freelanceJobs.getFreelanceJobs",
+        "universe.postNamesAndCategories"
+      ],
+      "bead": "esi-23g.8",
+      "reason": "Statuses missing from STATUS_MESSAGES fall back to response.statusText, which HTTP/2 never sends, so a 502 rejects with an empty message."
+    },
+    {
+      "fault": "too-many-requests-retry-after-http-date",
+      "targets": [
+        "status.getStatus",
+        "location.getCharacterLocation",
+        "market.getMarketOrders",
+        "freelanceJobs.getFreelanceJobs"
+      ],
+      "bead": "esi-23g.8",
+      "reason": "Retry-After is parsed with parseInt only; an HTTP-date value makes blockedUntil NaN, so the retry goes out at once and every later request in the group logs ten 'blocked for NaNs' warnings."
+    }
+  ]
+}
