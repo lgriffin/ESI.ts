@@ -1,0 +1,36 @@
+{
+  "endpoint": "universe.getStructures",
+  "call": {
+    "client": "universe",
+    "method": "getStructures",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 838,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "universe/structures",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"5f4830d0ec1e349eacc558fa6d45249df4dbc38ead58ae327d103811\"",
+        "expires": "Thu, 17 Sep 2026 14:43:56 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:43:56 GMT"
+      },
+      "body": [1035768592387, 1054645155845, 1043878365194]
+    }
+  ]
+}

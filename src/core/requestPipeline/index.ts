@@ -4,6 +4,8 @@ export {
   trySpecAwareCacheHit,
   tryStaleCacheResponse,
   cacheResponse,
+  currentWriteGeneration,
+  hasCachedEntry,
   invalidateAfterWrite,
   evictRejectedResponse,
 } from './cachePolicy';

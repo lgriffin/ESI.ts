@@ -1,0 +1,36 @@
+{
+  "endpoint": "meta.getCompatibilityDates",
+  "call": {
+    "client": "meta",
+    "method": "getCompatibilityDates",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.compatibility_dates",
+      "kind": "array",
+      "original": 14,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "meta/compatibility-dates",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=600",
+        "content-type": "application/json",
+        "expires": "Thu, 17 Sep 2026 14:22:59 GMT"
+      },
+      "body": {
+        "compatibility_dates": ["2026-08-18", "2026-08-04", "2026-07-21"]
+      }
+    }
+  ]
+}

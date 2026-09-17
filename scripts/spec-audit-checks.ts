@@ -329,3 +329,92 @@ export function checkExceptionList(
 
   return { added, dangling };
 }
+
+// ---------------------------------------------------------------------------
+// Bug tags
+// ---------------------------------------------------------------------------
+
+export const BEADS_EXPORT_PATH = path.resolve(
+  REPO_ROOT,
+  '.beads',
+  'issues.jsonl',
+);
+
+/**
+ * A tag naming where a bug is tracked: a bead (`@esi-23g.11`) or a GitHub
+ * issue (`@gh-123`). Bead ids are `esi-` followed by dot-separated lower-case
+ * alphanumeric segments.
+ */
+const BEAD_TAG = /^@(esi-[a-z0-9]+(?:\.[a-z0-9]+)*)$/;
+const GITHUB_TAG = /^@gh-[1-9]\d*$/;
+
+/**
+ * Every bead id in the committed beads export, or null when the export is
+ * absent or unreadable, so a caller can refuse to accept an id it cannot
+ * check rather than accepting it unchecked.
+ */
+export function loadBeadIds(
+  file: string = BEADS_EXPORT_PATH,
+): Set<string> | null {
+  let raw: string;
+  try {
+    raw = readFileSync(file, 'utf-8');
+  } catch {
+    return null;
+  }
+  const ids = new Set<string>();
+  for (const line of raw.split(/\r?\n/)) {
+    if (line.trim().length === 0) continue;
+    try {
+      const record = JSON.parse(line) as { id?: unknown };
+      if (typeof record.id === 'string') ids.add(record.id);
+    } catch {
+      // A malformed line names no bead; the ids around it still count.
+    }
+  }
+  return ids;
+}
+
+/**
+ * Findings for one tagged element: a Feature, Rule, Scenario or Examples
+ * block. `tags` are the element's own; `inherited` are its ancestors', which
+ * Gherkin applies to it, so a tracker tag on a Rule covers `@bug` on each of
+ * its scenarios. A `@bug` with no tracker is a known defect nobody can find
+ * the history of, and a bead id the export does not know is a dead link.
+ */
+export function checkBugTags(
+  tags: readonly string[],
+  inherited: readonly string[],
+  knownBeads: ReadonlySet<string> | null,
+): string[] {
+  const errors: string[] = [];
+  const all = [...inherited, ...tags];
+
+  if (tags.includes('@bug')) {
+    const trackers = all.filter((t) => BEAD_TAG.test(t) || GITHUB_TAG.test(t));
+    if (trackers.length === 0) {
+      errors.push(
+        'Tagged @bug with no tracker tag. Add the bead or issue that tracks ' +
+          'it beside @bug: @esi-<id> for a bead, @gh-<number> for a GitHub issue.',
+      );
+    }
+  }
+
+  for (const tag of tags) {
+    const bead = BEAD_TAG.exec(tag)?.[1];
+    if (!bead) continue;
+    if (knownBeads === null) {
+      errors.push(
+        `Tag ${tag} names a bead, but .beads/issues.jsonl could not be read, ` +
+          'so the reference cannot be checked. Restore the beads export.',
+      );
+    } else if (!knownBeads.has(bead)) {
+      errors.push(
+        `Tag ${tag} names no bead in .beads/issues.jsonl. File the bead and ` +
+          'commit the refreshed export in the same change, or correct the id.',
+      );
+    }
+  }
+
+  return errors;
+}

@@ -257,7 +257,7 @@ A page failure during offset pagination that is itself an `EsiError` or `Circuit
 
 Every `EsiError` passes its URL through `sanitizeUrl` in the constructor, and `EsiValidationError` sanitises the URL in its message too. The function is exported so you can apply the same rule to your own logs.
 
-```typescript
+```typescript runnable
 import { sanitizeUrl } from '@lgriffin/esi.ts/errors';
 
 sanitizeUrl('https://esi.evetech.net/latest/x/?token=abc&page=2');
@@ -277,12 +277,14 @@ Plain `[CODE]` errors are not sanitised. `PAGINATION_INCOMPLETE` includes the re
 `withSafeMode()` on any domain client returns the same methods, resolving to a discriminated union instead of throwing:
 
 ```typescript
+import type { EsiError, EsiResponseMeta } from '@lgriffin/esi.ts';
+
 type EsiResult<T> =
   | { ok: true; data: T; meta: EsiResponseMeta }
   | { ok: false; error: EsiError; meta?: EsiResponseMeta };
 ```
 
-```typescript
+```typescript runnable
 import { EsiClient } from '@lgriffin/esi.ts';
 
 const esi = new EsiClient({ clientId: 'my-app' });

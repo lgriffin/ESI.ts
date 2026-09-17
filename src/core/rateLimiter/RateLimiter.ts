@@ -65,6 +65,8 @@ interface GroupBucket {
 interface ErrorLimitState {
   remain: number;
   reset: number;
+  /** When the window of a budget reported as exhausted ends (epoch ms). */
+  exhaustedUntil: number;
 }
 
 interface UserBucketSet {
@@ -74,7 +76,11 @@ interface UserBucketSet {
 }
 
 const DEFAULT_WINDOW_MS = 900_000;
-const DEFAULT_ERROR_LIMIT: ErrorLimitState = { remain: 100, reset: 0 };
+const DEFAULT_ERROR_LIMIT: ErrorLimitState = {
+  remain: 100,
+  reset: 0,
+  exhaustedUntil: 0,
+};
 
 export class RateLimiter implements IRateLimiter {
   private readonly minDelayMs: number;
@@ -246,6 +252,7 @@ export class RateLimiter implements IRateLimiter {
   ): void {
     if (this.isTestMode) return;
 
+    const now = Date.now();
     const responseGroup = headers['x-ratelimit-group'] || undefined;
     const bucket = this.getBucket(
       templatePath,
@@ -263,25 +270,44 @@ export class RateLimiter implements IRateLimiter {
     if ('x-ratelimit-used' in headers) {
       bucket.used = parseInt(headers['x-ratelimit-used'], 10);
     }
-    bucket.lastUpdated = Date.now();
+    bucket.lastUpdated = now;
 
     if ('retry-after' in headers) {
-      const until = retryAfterDeadline(headers['retry-after'], Date.now());
+      const until = retryAfterDeadline(headers['retry-after'], now);
       if (until !== undefined) bucket.blockedUntil = until;
     }
 
     if (statusCode === 420 || statusCode === 429) {
-      if (bucket.blockedUntil <= Date.now()) {
-        bucket.blockedUntil = Date.now() + 60_000;
+      if (bucket.blockedUntil <= now) {
+        bucket.blockedUntil = now + 60_000;
       }
     }
 
     const errorLimit = this.resolveErrorLimit(requestHeaders);
-    if ('x-esi-error-limit-remain' in headers) {
-      errorLimit.remain = parseInt(headers['x-esi-error-limit-remain'], 10);
+    const reportedRemain =
+      'x-esi-error-limit-remain' in headers
+        ? parseInt(headers['x-esi-error-limit-remain'], 10)
+        : undefined;
+    // Inside the window of a budget already reported as exhausted, a response
+    // reporting budget left was processed before the one that exhausted it
+    // and arrived late. Believing it would lift the back-off for every
+    // endpoint while ESI still counts errors against the spent budget.
+    if (
+      reportedRemain !== undefined &&
+      reportedRemain > 0 &&
+      errorLimit.remain <= 0 &&
+      now < errorLimit.exhaustedUntil
+    ) {
+      return;
+    }
+    if (reportedRemain !== undefined) {
+      errorLimit.remain = reportedRemain;
     }
     if ('x-esi-error-limit-reset' in headers) {
       errorLimit.reset = parseInt(headers['x-esi-error-limit-reset'], 10);
+    }
+    if (reportedRemain !== undefined && reportedRemain <= 0) {
+      errorLimit.exhaustedUntil = now + errorLimit.reset * 1000;
     }
   }
 

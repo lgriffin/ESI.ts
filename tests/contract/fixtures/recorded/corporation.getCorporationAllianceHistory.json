@@ -1,0 +1,38 @@
+{
+  "endpoint": "corporation.getCorporationAllianceHistory",
+  "call": {
+    "client": "corporations",
+    "method": "getCorporationAllianceHistory",
+    "args": [98356193]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "corporations/98356193/alliancehistory",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"459baca02811efd336492d3e3ee2972e4df242d079c68aaf11aefd21\"",
+        "expires": "Thu, 17 Sep 2026 15:13:01 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:13:01 GMT"
+      },
+      "body": [
+        {
+          "alliance_id": 434243723,
+          "record_id": 899732,
+          "start_date": "2014-11-13T12:37:00Z"
+        },
+        {
+          "record_id": 899467,
+          "start_date": "2014-11-12T11:34:00Z"
+        }
+      ]
+    }
+  ]
+}

@@ -3,6 +3,8 @@ import { ApiClient } from './ApiClient';
 import {
   trySpecAwareCacheHit,
   cacheResponse,
+  currentWriteGeneration,
+  hasCachedEntry,
   invalidateAfterWrite,
   handleEarlyStatus,
   handleErrorResponse,
@@ -49,6 +51,16 @@ const executeRequest = async (
   };
 
   try {
+    const writeGeneration = currentWriteGeneration(client, resolveCache);
+    const revalidating =
+      useETag &&
+      method === 'GET' &&
+      hasCachedEntry(
+        client,
+        `${client.getLink()}/${endpoint}`,
+        resolveCache,
+        requiresAuth,
+      );
     const { response, parsed, url } = await executeSingleFetch(
       client,
       endpoint,
@@ -75,6 +87,27 @@ const executeRequest = async (
         data = undefined;
       }
       return finish({ headers: parsed.raw, body: data, status: 201 });
+    }
+
+    if (
+      response.status === 304 &&
+      revalidating &&
+      !hasCachedEntry(client, url, resolveCache, requiresAuth)
+    ) {
+      // The entry this request revalidated left the cache while it was in
+      // flight (a write to its path evicted it, or it expired), so the 304 has
+      // no body to stand for. The repeat finds no entry, sends no
+      // If-None-Match and gets the current representation.
+      return await executeRequest(
+        client,
+        endpoint,
+        method,
+        body,
+        requiresAuth,
+        useETag,
+        requestTimeout,
+        templatePath,
+      );
     }
 
     const earlyResult = handleEarlyStatus(
@@ -114,6 +147,7 @@ const executeRequest = async (
       resolveCache,
       templatePath,
       requiresAuth,
+      writeGeneration,
     );
 
     const cursorResult = handleCursorPagination(parsed, data);
@@ -151,6 +185,7 @@ const executeRequest = async (
       pageFetch,
       resolveCache,
       templatePath,
+      writeGeneration,
     );
     return finish(paginatedResult);
   } catch (error: unknown) {
@@ -210,24 +245,28 @@ export const handleRequest = async (
 ): Promise<EsiHandlerResponse> => {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const startTime = Date.now();
-  const specHit = trySpecAwareCacheHit(
-    client,
-    rawUrl,
-    method,
-    templatePath,
-    resolveCache,
-    requiresAuth,
-  );
-  if (specHit) {
-    return applyResponseInterceptors(
+  const specCacheHit = (): Promise<EsiHandlerResponse> | null => {
+    const hit = trySpecAwareCacheHit(
       client,
-      specHit,
       rawUrl,
-      endpoint,
       method,
-      startTime,
+      templatePath,
+      resolveCache,
+      requiresAuth,
     );
-  }
+    return hit
+      ? applyResponseInterceptors(
+          client,
+          hit,
+          rawUrl,
+          endpoint,
+          method,
+          startTime,
+        )
+      : null;
+  };
+  const specHit = specCacheHit();
+  if (specHit) return specHit;
 
   const doExecute = () =>
     executeRequest(
@@ -244,10 +283,17 @@ export const handleRequest = async (
   const dedup = client.getDeduplicator();
   const canDedup = dedup && method === 'GET' && !body;
 
-  const operation = () =>
-    canDedup
+  let attempted = false;
+  const operation = () => {
+    // A retry waited out a backoff, during which a concurrent call may have
+    // cached a fresh copy. Serve it rather than spend another request.
+    const retryHit = attempted ? specCacheHit() : null;
+    attempted = true;
+    if (retryHit) return retryHit;
+    return canDedup
       ? dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
       : doExecute();
+  };
 
   const retryStrategy = resolveRetryStrategy(client);
 

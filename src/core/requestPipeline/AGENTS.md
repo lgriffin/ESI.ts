@@ -24,7 +24,8 @@ Checked against `ApiRequestHandler.ts` and `fetchExecution.ts`:
 1. **Spec-aware cache hit.** `trySpecAwareCacheHit` answers from the cache
    inside the TTL and sends no HTTP request.
 2. **Retry.** `RetryStrategy.execute` handles backoff and refreshes the token
-   on a 401.
+   on a 401. Each retry checks the spec-aware cache again first, because a
+   concurrent call may have cached a fresh copy during the backoff.
 3. **Deduplication.** Identical in-flight GETs without a body share one
    request.
 4. **`executeSingleFetch`.** This stage runs `buildRequestHeaders` (auth,

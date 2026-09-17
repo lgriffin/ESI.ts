@@ -39,7 +39,7 @@ In practice, the validation overhead is negligible compared to network latency. 
 
 When validation fails, an `EsiValidationError` is thrown:
 
-```typescript
+```typescript runnable
 import {
   EsiClient,
   EsiValidationError,
@@ -106,6 +106,8 @@ Schemas check that a field is present and of the right type, not that its value 
 ### Type derivation
 
 All TypeScript types in `src/types/` are derived from their Zod schemas using `z.infer<>`. The schemas are the single source of truth — there is no drift between the runtime validation and the compile-time types.
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```typescript
 // In src/schemas/character.ts
