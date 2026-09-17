@@ -1,0 +1,82 @@
+{
+  "endpoint": "faction.getStats",
+  "call": {
+    "client": "factions",
+    "method": "getStats",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "fw/stats",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": [
+        {
+          "faction_id": 500001,
+          "kills": {
+            "last_week": 2512,
+            "total": 1327791,
+            "yesterday": 344
+          },
+          "pilots": 57243,
+          "systems_controlled": 55,
+          "victory_points": {
+            "last_week": 1249706,
+            "total": 213827989,
+            "yesterday": 179496
+          }
+        },
+        {
+          "faction_id": 500002,
+          "kills": {
+            "last_week": 2771,
+            "total": 1192032,
+            "yesterday": 298
+          },
+          "pilots": 34603,
+          "systems_controlled": 25,
+          "victory_points": {
+            "last_week": 1169102,
+            "total": 185143668,
+            "yesterday": 153782
+          }
+        },
+        {
+          "faction_id": 500003,
+          "kills": {
+            "last_week": 2290,
+            "total": 1190240,
+            "yesterday": 270
+          },
+          "pilots": 33023,
+          "systems_controlled": 45,
+          "victory_points": {
+            "last_week": 1244784,
+            "total": 186127517,
+            "yesterday": 176983
+          }
+        }
+      ]
+    }
+  ]
+}

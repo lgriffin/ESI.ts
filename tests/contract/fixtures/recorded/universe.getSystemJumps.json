@@ -1,0 +1,49 @@
+{
+  "endpoint": "universe.getSystemJumps",
+  "call": {
+    "client": "universe",
+    "method": "getSystemJumps",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 5067,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "universe/system_jumps",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"7cb957d8453e2528cb162b17189d05251a6d67d2d1a2fef4f15770d9\"",
+        "expires": "Thu, 17 Sep 2026 14:50:02 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:50:02 GMT"
+      },
+      "body": [
+        {
+          "ship_jumps": 27,
+          "system_id": 30004559
+        },
+        {
+          "ship_jumps": 26,
+          "system_id": 30003019
+        },
+        {
+          "ship_jumps": 13,
+          "system_id": 30003556
+        }
+      ]
+    }
+  ]
+}

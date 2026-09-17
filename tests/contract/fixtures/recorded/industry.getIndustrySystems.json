@@ -1,0 +1,109 @@
+{
+  "endpoint": "industry.getIndustrySystems",
+  "call": {
+    "client": "industry",
+    "method": "getIndustrySystems",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 5485,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].cost_indices",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].cost_indices",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].cost_indices",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "industry/systems",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"de0bc58ce9e08a1b79c2a057e3bedf8a457f25737b87c698f4f33c16\"",
+        "expires": "Thu, 17 Sep 2026 14:20:29 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:20:29 GMT"
+      },
+      "body": [
+        {
+          "cost_indices": [
+            {
+              "activity": "manufacturing",
+              "cost_index": 0.0014
+            },
+            {
+              "activity": "researching_time_efficiency",
+              "cost_index": 0.0014
+            },
+            {
+              "activity": "researching_material_efficiency",
+              "cost_index": 0.0014
+            }
+          ],
+          "solar_system_id": 30020141
+        },
+        {
+          "cost_indices": [
+            {
+              "activity": "manufacturing",
+              "cost_index": 0.0352
+            },
+            {
+              "activity": "researching_time_efficiency",
+              "cost_index": 0.0177
+            },
+            {
+              "activity": "researching_material_efficiency",
+              "cost_index": 0.0139
+            }
+          ],
+          "solar_system_id": 30021392
+        },
+        {
+          "cost_indices": [
+            {
+              "activity": "manufacturing",
+              "cost_index": 0.0227
+            },
+            {
+              "activity": "researching_time_efficiency",
+              "cost_index": 0.0014
+            },
+            {
+              "activity": "researching_material_efficiency",
+              "cost_index": 0.0014
+            }
+          ],
+          "solar_system_id": 30021407
+        }
+      ]
+    }
+  ]
+}

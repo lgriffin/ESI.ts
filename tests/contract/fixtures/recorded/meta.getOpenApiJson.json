@@ -1,0 +1,573 @@
+{
+  "endpoint": "meta.getOpenApiJson",
+  "call": {
+    "client": "meta",
+    "method": "getOpenApiJson",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.components.headers.ContentLanguage.schema.enum",
+      "kind": "array",
+      "original": 8,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.components.parameters.AcceptLanguage.schema.enum",
+      "kind": "array",
+      "original": 8,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.components.schemas",
+      "kind": "map",
+      "original": 313,
+      "kept": 4
+    },
+    {
+      "page": 1,
+      "at": "$.components.schemas.AlliancesAllianceIdContactsGet.items.properties.contact_type.enum",
+      "kind": "array",
+      "original": 4,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.components.securitySchemes.OAuth2.flows.authorizationCode.scopes",
+      "kind": "map",
+      "original": 72,
+      "kept": 4
+    },
+    {
+      "page": 1,
+      "at": "$.paths",
+      "kind": "map",
+      "original": 203,
+      "kept": 4
+    },
+    {
+      "page": 1,
+      "at": "$.paths./alliances.get.parameters",
+      "kind": "array",
+      "original": 5,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.paths./alliances/{alliance_id}.get.parameters",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.paths./alliances/{alliance_id}/contacts.get.parameters",
+      "kind": "array",
+      "original": 7,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.paths./alliances/{alliance_id}/contacts/labels.get.parameters",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.tags",
+      "kind": "array",
+      "original": 36,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "meta/openapi.json",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=600",
+        "content-type": "application/openapi+json"
+      },
+      "body": {
+        "components": {
+          "headers": {
+            "CacheControl": {
+              "description": "Directives for caching mechanisms. It controls how the response can be cached, by whom, and for how long.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            "ContentLanguage": {
+              "description": "The language used in the response.",
+              "schema": {
+                "enum": ["en", "de", "fr"],
+                "type": "string"
+              }
+            },
+            "ETag": {
+              "description": "The ETag value of the response body. Use this with If-None-Match to check whether the resource has changed.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            "LastModified": {
+              "description": "The last modified date of the response. Use this with If-Modified-Since to check whether the resource has changed.",
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "parameters": {
+            "AcceptLanguage": {
+              "description": "The language to use for the response.",
+              "in": "header",
+              "name": "Accept-Language",
+              "schema": {
+                "default": "en",
+                "enum": ["en", "de", "fr"],
+                "type": "string"
+              }
+            },
+            "CompatibilityDate": {
+              "description": "The compatibility date for the request.",
+              "in": "header",
+              "name": "X-Compatibility-Date",
+              "required": true,
+              "schema": {
+                "enum": ["2026-05-19"],
+                "format": "date",
+                "type": "string"
+              }
+            },
+            "IfModifiedSince": {
+              "description": "The date the resource was last modified. A 304 will be returned if the resource has not been modified since this date.",
+              "in": "header",
+              "name": "If-Modified-Since",
+              "schema": {
+                "type": "string"
+              }
+            },
+            "IfNoneMatch": {
+              "description": "The ETag of the previous request. A 304 will be returned if this matches the current ETag.",
+              "in": "header",
+              "name": "If-None-Match",
+              "schema": {
+                "type": "string"
+              }
+            },
+            "Tenant": {
+              "description": "The tenant ID for the request.",
+              "example": "",
+              "in": "header",
+              "name": "X-Tenant",
+              "schema": {
+                "default": "tranquility",
+                "type": "string"
+              }
+            }
+          },
+          "schemas": {
+            "AccessListID": {
+              "examples": [1],
+              "format": "int64",
+              "type": "integer",
+              "x-common-model": "true"
+            },
+            "AllianceID": {
+              "examples": [99000001],
+              "format": "int64",
+              "type": "integer",
+              "x-common-model": "true"
+            },
+            "AlliancesAllianceIdContactsGet": {
+              "items": {
+                "properties": {
+                  "contact_id": {
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "contact_type": {
+                    "enum": ["character", "corporation", "alliance"],
+                    "type": "string"
+                  },
+                  "label_ids": {
+                    "items": {
+                      "description": "Label IDs applied to the contact",
+                      "format": "int64",
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  },
+                  "standing": {
+                    "description": "Standing of the contact",
+                    "format": "double",
+                    "type": "number"
+                  }
+                },
+                "required": ["standing", "contact_type", "contact_id"],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "AlliancesAllianceIdContactsLabelsGet": {
+              "items": {
+                "properties": {
+                  "label_id": {
+                    "format": "int64",
+                    "type": "integer"
+                  },
+                  "label_name": {
+                    "type": "string"
+                  }
+                },
+                "required": ["label_id", "label_name"],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "securitySchemes": {
+            "OAuth2": {
+              "flows": {
+                "authorizationCode": {
+                  "authorizationUrl": "https://login.eveonline.com/v2/oauth/authorize",
+                  "scopes": {
+                    "esi-access.read_lists.v1": "esi-access.read_lists.v1",
+                    "esi-activities.read_character.v1": "esi-activities.read_character.v1",
+                    "esi-alliances.read_contacts.v1": "esi-alliances.read_contacts.v1",
+                    "esi-assets.read_assets.v1": "esi-assets.read_assets.v1"
+                  },
+                  "tokenUrl": "https://login.eveonline.com/v2/oauth/token"
+                }
+              },
+              "type": "oauth2"
+            }
+          }
+        },
+        "info": {
+          "contact": {
+            "name": "ESI Support",
+            "url": "https://developers.eveonline.com/docs/support/"
+          },
+          "license": {
+            "name": "EVE Developer License",
+            "url": "https://developers.eveonline.com/license-agreement"
+          },
+          "termsOfService": "https://support.eveonline.com/hc/en-us/articles/8414770561948-EVE-Online-Terms-of-Service",
+          "title": "EVE SKINR Ingenuity (ESI) - tranquility",
+          "version": "2026-05-19"
+        },
+        "openapi": "3.1.0",
+        "paths": {
+          "/alliances": {
+            "get": {
+              "description": "List all active player alliances",
+              "operationId": "GetAlliances",
+              "parameters": [
+                {
+                  "$ref": "#/components/parameters/AcceptLanguage"
+                },
+                {
+                  "$ref": "#/components/parameters/IfNoneMatch"
+                },
+                {
+                  "$ref": "#/components/parameters/CompatibilityDate"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/AlliancesGet"
+                      }
+                    }
+                  },
+                  "description": "OK",
+                  "headers": {
+                    "Cache-Control": {
+                      "$ref": "#/components/headers/CacheControl"
+                    },
+                    "ETag": {
+                      "$ref": "#/components/headers/ETag"
+                    },
+                    "Last-Modified": {
+                      "$ref": "#/components/headers/LastModified"
+                    }
+                  }
+                },
+                "default": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Error"
+                      }
+                    }
+                  },
+                  "description": "Error"
+                }
+              },
+              "summary": "List all alliances",
+              "tags": ["Alliance"],
+              "x-cache-age": 3600,
+              "x-client-cache-ttl": 3600,
+              "x-compatibility-date": "2020-01-01",
+              "x-server-cache-mode": "ttl-based",
+              "x-server-cache-ttl": 3600
+            }
+          },
+          "/alliances/{alliance_id}": {
+            "get": {
+              "description": "Public information about an alliance",
+              "operationId": "GetAlliancesAllianceId",
+              "parameters": [
+                {
+                  "description": "The ID of the alliance",
+                  "in": "path",
+                  "name": "alliance_id",
+                  "required": true,
+                  "schema": {
+                    "$ref": "#/components/schemas/AllianceID",
+                    "description": "The ID of the alliance"
+                  }
+                },
+                {
+                  "$ref": "#/components/parameters/AcceptLanguage"
+                },
+                {
+                  "$ref": "#/components/parameters/IfNoneMatch"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/AlliancesDetail"
+                      }
+                    }
+                  },
+                  "description": "OK",
+                  "headers": {
+                    "Cache-Control": {
+                      "$ref": "#/components/headers/CacheControl"
+                    },
+                    "ETag": {
+                      "$ref": "#/components/headers/ETag"
+                    },
+                    "Last-Modified": {
+                      "$ref": "#/components/headers/LastModified"
+                    }
+                  }
+                },
+                "default": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Error"
+                      }
+                    }
+                  },
+                  "description": "Error"
+                }
+              },
+              "summary": "Get alliance's public information",
+              "tags": ["Alliance"],
+              "x-cache-age": 3600,
+              "x-cache-mode": "ttl-based",
+              "x-client-cache-ttl": 3600,
+              "x-compatibility-date": "2020-01-01",
+              "x-server-cache-mode": "ttl-based",
+              "x-server-cache-ttl": 3600
+            }
+          },
+          "/alliances/{alliance_id}/contacts": {
+            "get": {
+              "description": "Return contacts of an alliance",
+              "operationId": "GetAlliancesAllianceIdContacts",
+              "parameters": [
+                {
+                  "description": "The ID of the alliance",
+                  "in": "path",
+                  "name": "alliance_id",
+                  "required": true,
+                  "schema": {
+                    "$ref": "#/components/schemas/AllianceID"
+                  }
+                },
+                {
+                  "in": "query",
+                  "name": "page",
+                  "schema": {
+                    "description": "Which page of results to return.",
+                    "format": "int32",
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                {
+                  "$ref": "#/components/parameters/AcceptLanguage"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/AlliancesAllianceIdContactsGet"
+                      }
+                    }
+                  },
+                  "description": "OK",
+                  "headers": {
+                    "Cache-Control": {
+                      "$ref": "#/components/headers/CacheControl"
+                    },
+                    "ETag": {
+                      "$ref": "#/components/headers/ETag"
+                    },
+                    "Last-Modified": {
+                      "$ref": "#/components/headers/LastModified"
+                    },
+                    "X-Pages": {
+                      "description": "The total number of pages in the result set.",
+                      "schema": {
+                        "format": "int64",
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "default": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Error"
+                      }
+                    }
+                  },
+                  "description": "Error"
+                }
+              },
+              "security": [
+                {
+                  "OAuth2": ["esi-alliances.read_contacts.v1"]
+                }
+              ],
+              "summary": "Get alliance contacts",
+              "tags": ["Contacts"],
+              "x-cache-age": 300,
+              "x-client-cache-ttl": 300,
+              "x-compatibility-date": "2020-01-01",
+              "x-rate-limit": {
+                "group": "alliance-social",
+                "max-tokens": 300,
+                "window-size": "15m"
+              },
+              "x-server-cache-mode": "ttl-based",
+              "x-server-cache-ttl": 300
+            }
+          },
+          "/alliances/{alliance_id}/contacts/labels": {
+            "get": {
+              "description": "Return custom labels for an alliance's contacts",
+              "operationId": "GetAlliancesAllianceIdContactsLabels",
+              "parameters": [
+                {
+                  "description": "The ID of the alliance",
+                  "in": "path",
+                  "name": "alliance_id",
+                  "required": true,
+                  "schema": {
+                    "$ref": "#/components/schemas/AllianceID"
+                  }
+                },
+                {
+                  "$ref": "#/components/parameters/AcceptLanguage"
+                },
+                {
+                  "$ref": "#/components/parameters/IfNoneMatch"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/AlliancesAllianceIdContactsLabelsGet"
+                      }
+                    }
+                  },
+                  "description": "OK",
+                  "headers": {
+                    "Cache-Control": {
+                      "$ref": "#/components/headers/CacheControl"
+                    },
+                    "ETag": {
+                      "$ref": "#/components/headers/ETag"
+                    },
+                    "Last-Modified": {
+                      "$ref": "#/components/headers/LastModified"
+                    }
+                  }
+                },
+                "default": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Error"
+                      }
+                    }
+                  },
+                  "description": "Error"
+                }
+              },
+              "security": [
+                {
+                  "OAuth2": ["esi-alliances.read_contacts.v1"]
+                }
+              ],
+              "summary": "Get alliance contact labels",
+              "tags": ["Contacts"],
+              "x-cache-age": 300,
+              "x-client-cache-ttl": 300,
+              "x-compatibility-date": "2020-01-01",
+              "x-rate-limit": {
+                "group": "alliance-social",
+                "max-tokens": 300,
+                "window-size": "15m"
+              },
+              "x-server-cache-mode": "ttl-based",
+              "x-server-cache-ttl": 300
+            }
+          }
+        },
+        "servers": [
+          {
+            "url": "https://esi.evetech.net"
+          }
+        ],
+        "tags": [
+          {
+            "name": "Access List"
+          },
+          {
+            "name": "Activities"
+          },
+          {
+            "name": "Alliance"
+          }
+        ]
+      }
+    }
+  ]
+}

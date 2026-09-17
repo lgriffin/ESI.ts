@@ -1,0 +1,93 @@
+{
+  "endpoint": "sovereignty.getSovereigntySystems",
+  "call": {
+    "client": "sovereignty",
+    "method": "getSovereigntySystems",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 300,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.solar_systems",
+      "kind": "array",
+      "original": 5485,
+      "kept": 5
+    }
+  ],
+  "pages": [
+    {
+      "url": "sovereignty/systems",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=300, must-revalidate, stale-if-error=900",
+        "content-type": "application/json",
+        "etag": "W/\"79bd5d0e2c1732d2c6ad6933a72bc0a4bc5b30eb29e42e4e0d53fdd4161c1174\"",
+        "expires": "Thu, 17 Sep 2026 14:18:19 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:12:30 GMT"
+      },
+      "body": {
+        "solar_systems": [
+          {
+            "solar_system_id": 30000001,
+            "claim": {
+              "faction": {
+                "faction_id": 500007
+              }
+            }
+          },
+          {
+            "solar_system_id": 30000002,
+            "claim": {
+              "faction": {
+                "faction_id": 500007
+              }
+            }
+          },
+          {
+            "solar_system_id": 30000003,
+            "claim": {
+              "faction": {
+                "faction_id": 500007
+              }
+            }
+          },
+          {
+            "solar_system_id": 30000208,
+            "claim": {
+              "alliance": {
+                "alliance_id": 99003581,
+                "corporation_id": 98599770,
+                "claimed_since": "2020-10-08T00:38:16Z",
+                "sovereignty_hub": {
+                  "id": 1034510825648,
+                  "vulnerability_window": {
+                    "start": "2026-09-18T09:30:00Z",
+                    "end": "2026-09-18T12:30:00Z"
+                  }
+                },
+                "is_capital_system": false,
+                "development": {
+                  "activity_defense_multiplier": 6,
+                  "military_level": 5,
+                  "industrial_level": 5,
+                  "strategic_level": 5
+                }
+              }
+            }
+          },
+          {
+            "solar_system_id": 30000326,
+            "claim": {
+              "unclaimed": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
