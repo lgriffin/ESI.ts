@@ -4,19 +4,20 @@
 
 ESI.ts uses a multi-tier testing strategy to ensure correctness at every level — from individual functions to live API contract validation.
 
-| Tier                 |      Tests |   Suites | Purpose                                                                     |
-| -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
-| TDD (unit)           |      4,357 |      130 | Per-module unit tests with mocked HTTP                                      |
-| BDD (behavioral)     |        600 |       41 | Gherkin-style scenarios covering user-facing behaviors                      |
-| Benchmark (perf)     |         17 |        4 | Performance regression guards for core infrastructure                       |
-| Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
-| Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
-| Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                               |
-| Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
-| Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
-| Type (tsd)           |            |        1 | Consumer API type correctness                                               |
-| Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
-| **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
+| Tier                 |      Tests |   Suites | Purpose                                                                          |
+| -------------------- | ---------: | -------: | -------------------------------------------------------------------------------- |
+| TDD (unit)           |      4,357 |      130 | Per-module unit tests with mocked HTTP                                           |
+| BDD (behavioral)     |        600 |       41 | Gherkin-style scenarios covering user-facing behaviors                           |
+| Benchmark (perf)     |         17 |        4 | Performance regression guards for core infrastructure                            |
+| Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                         |
+| Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract      |
+| Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                                    |
+| Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)          |
+| Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination                  |
+| Fault injection      |        143 |        2 | Transport faults through the real pipeline; nightly payload fuzz (205 endpoints) |
+| Type (tsd)           |            |        1 | Consumer API type correctness                                                    |
+| Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer       |
+| **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)            |
 
 ## Coverage
 
@@ -397,6 +398,24 @@ Related tools:
 - **Pagination fuzzing** (`pagination-fuzz.test.ts`) — page parameter via `buildEndpointPath()` with zero, negative, float, NaN, Infinity, and large values. Verifies: NaN/Infinity rejected, valid page numbers accepted.
 - **Response validation fault injection** (`response-validation-fault-injection.test.ts`) — bodies that violate an endpoint's `responseSchema` (one corrupted or missing field, one corrupted array element, or arbitrary JSON of the wrong shape, each kept only if the endpoint's own schema rejects it) served through the BDD transport seam, so they travel the real `handleRequest` pipeline to validation in `createClient`. Covers `status.getStatus` (object), `market.getMarketPrices` (array) and `characters.getCharacterPublicInfo` (path parameter). Verifies: the client rejects with an `EsiValidationError` (`direction: 'response'`, status `0`, the request URL) whose Zod issues match the schema's own verdict; exactly one request is sent, with no retry; safe mode returns the error as `{ ok: false }` instead; with `validateResponse: false` the same body comes back unchanged; no unhandled rejection is left behind.
 
+### Fault injection
+
+**Location:** `tests/faults/` (read `tests/faults/AGENTS.md` first)
+**Config:** `jest.faults.config.cjs`, `jest.faults.nightly.config.cjs`
+**Run:** `npm run faults` (every PR, about 5 s), `npm run faults:nightly` (nightly, about 10 s)
+
+This tier owns what the client does when the network misbehaves. It serves faults through the BDD transport seam, so the whole pipeline runs: rate limiter, retry, deduplication, ETag cache, JSON parsing and validation. Timers and `Date` run on Jest's fake clock, driven by the runner, so a 60-second rate-limit block costs nothing and elapsed time is exact.
+
+**The catalogue** (`catalogue.ts`) is a list of named faults, each a transformation of a target's good exchange: truncated, empty or HTML bodies on a 200; the wrong Content-Type; Expires in the past or unparseable; a 304 with no ETag or no cached entry; a reset before the headers, a reset part way through the body, a stalled body, no response before the timeout; 5xx with an HTML body with and without a cached entry; 502 without a reason phrase; 400 and 500 with ESI's error JSON; 420 with and without `X-ESI-Error-Limit-*`; 429 with Retry-After in seconds, as an HTTP date and absent; X-Pages that grows or shrinks between pages; schema violations, `null`, unknown fields and schema-valid absurd values.
+
+Every fault cites the `Rule:` (or guide section) that specifies the answer and asserts the whole outcome: the error class, status or code and an anchored message, or the resolved value and `meta.stale`; the exact request count; what the cache holds afterwards, probed through the transport; the elapsed virtual time; and every warn/error log entry. `npm run faults` applies the catalogue to five targets: `status.getStatus` (public GET), `location.getCharacterLocation` (authenticated GET), `market.getMarketOrders` (X-Pages), `freelanceJobs.getFreelanceJobs` (cursor) and `universe.postNamesAndCategories` (POST).
+
+**The signal.** `catalogue.selftest.test.ts` holds the tier's ratchet: the number of faults without a resolvable Rule or a fully specified outcome stays **0**. It proves the gate with `fixtures/weak-fault.ts`, which must be rejected on every count, and proves the runner by running a real fault with wrong expectations and requiring every broken invariant to be reported. Faults that expose an unfixed bug sit in `known-gaps.json` with their bead; the list only shrinks against `origin/master` (it fails closed without the ref), and a listed fault that starts passing fails the run.
+
+**Nightly payload fuzz** (`payload-fuzz.nightly.test.ts`) covers every endpoint definition with a `responseSchema`. `zodArbitrary.ts` derives fast-check arbitraries from the Zod schema; each generated body must come back unchanged, and each single-point mutation must either reject with an `EsiValidationError` carrying one Zod issue at the mutated path (a dropped required field, a wrong type, a `null`) or, for an unknown field, resolve with the field preserved. The seed is printed; `FAULTS_SEED` replays it and `FAULTS_RUNS` sets cases per endpoint (default 100). `nightly-faults.yml` runs it with the catalogue and keeps one issue, "Nightly fault tier failing", open while it fails.
+
+Decisions the tier pins, so a change to them is deliberate: Content-Type is not trusted (the body decides); Expires is ignored for freshness; page 1's X-Pages is authoritative; and schema-valid but absurd values (a negative `volume_remain`) pass through unchanged and unlogged, because schemas check shape and ESI is the source of truth.
+
 ### Tier 9: Gated Auth Tests (Live)
 
 **Location:** `tests/integration/gated-auth.test.ts`
@@ -523,13 +542,14 @@ npm run example:token-refresh      # Token refresh flow demo
 
 ### Configuration
 
-Five Jest configs drive the test suites:
+Seven Jest configs drive the test suites:
 
 - **Unit + BDD**: `jest.unit.config.cjs` — runs TDD and BDD tests with `jest-fetch-mock`
 - **Benchmark**: `jest.benchmark.config.cjs` — runs performance benchmark tests (60s timeout)
 - **Integration**: `jest.integration.config.cjs` — runs integration tests against live ESI (30s timeout)
 - **Contract**: `jest.contract.config.cjs` — runs deep contract tests against live spec (60s timeout)
 - **Fuzz**: `jest.fuzz.config.cjs` — runs property-based fuzz tests with fast-check (30s timeout)
+- **Faults**: `jest.faults.config.cjs` (PR) and `jest.faults.nightly.config.cjs` (nightly) — the fault catalogue and payload fuzz in `tests/faults/`
 
 Common setup:
 
@@ -851,27 +871,29 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 
 ### Known gaps
 
-| Gap                      | Severity | Notes                                                                                                                     |
-| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Phantom endpoints        | Low      | 17 codebase endpoints not yet in public ESI spec (access-lists, freelance-jobs, mercenary, skyhooks — newer EVE features) |
-| Type drift               | Medium   | ~45 fields in spec not yet in hand-written types; ~14 optionality mismatches                                              |
-| Route method mismatch    | Low      | Route endpoint is POST in code but GET in spec — needs investigation                                                      |
-| No chaos/fault injection | Low      | No tests for partial network failures, DNS resolution failures, or TLS errors                                             |
-| Corporate auth endpoints | Medium   | Gated tests only cover character-level auth, not corporation director endpoints                                           |
+| Gap                      | Severity | Notes                                                                                                                                      |
+| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Phantom endpoints        | Low      | 17 codebase endpoints not yet in public ESI spec (access-lists, freelance-jobs, mercenary, skyhooks — newer EVE features)                  |
+| Type drift               | Medium   | ~45 fields in spec not yet in hand-written types; ~14 optionality mismatches                                                               |
+| Route method mismatch    | Low      | Route endpoint is POST in code but GET in spec — needs investigation                                                                       |
+| DNS and TLS failures     | Low      | The fault tier covers resets, stalls and timeouts; DNS and TLS failures reach the client as the same `fetch failed` and are not told apart |
+| Corporate auth endpoints | Medium   | Gated tests only cover character-level auth, not corporation director endpoints                                                            |
 
 ### Recommended CI schedule
 
-| Job                       | Frequency                   | Config                                                |
-| ------------------------- | --------------------------- | ----------------------------------------------------- |
-| Unit + BDD                | Every push                  | `npm test`                                            |
-| Mocked integration        | Every push                  | `npm run test:integration`                            |
-| Benchmarks                | Every PR                    | `npm run benchmark`                                   |
-| Deep contract tests       | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
-| Property-based fuzz tests | Every PR                    | `npm run fuzz`                                        |
-| Consumer type tests       | Every PR                    | `npm run test:types`                                  |
-| Live smoke tests          | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
-| Spec drift detection      | Weekly                      | `npm run contract:snapshot && npm run contract:diff`  |
-| Gated auth tests          | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated` |
+| Job                          | Frequency                   | Config                                                |
+| ---------------------------- | --------------------------- | ----------------------------------------------------- |
+| Unit + BDD                   | Every push                  | `npm test`                                            |
+| Mocked integration           | Every push                  | `npm run test:integration`                            |
+| Benchmarks                   | Every PR                    | `npm run benchmark`                                   |
+| Deep contract tests          | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
+| Property-based fuzz tests    | Every PR                    | `npm run fuzz`                                        |
+| Fault catalogue              | Every PR                    | `npm run faults`                                      |
+| Payload fuzz (all endpoints) | Nightly                     | `npm run faults:nightly`                              |
+| Consumer type tests          | Every PR                    | `npm run test:types`                                  |
+| Live smoke tests             | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
+| Spec drift detection         | Weekly                      | `npm run contract:snapshot && npm run contract:diff`  |
+| Gated auth tests             | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated` |
 
 ## Debugging
 

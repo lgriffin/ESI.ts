@@ -27,6 +27,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Contract tests                             |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |      ·       |
 | Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |      ●       |
+| Fault catalogue (transport faults)         |   ·    |            ·             |        ●         | ◐ files issue |      ·       |
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |      ·       |
@@ -40,6 +41,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Unit + BDD, fails if any test was retried  |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Stryker mutation                           |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Schemathesis API fuzz                      |   ·    |            ·             |        ·         |       ◐       |      ·       |
+| Payload fuzz, every endpoint (seeded)      |   ·    |            ·             |        ·         | ◐ files issue |      ·       |
 | Missing-endpoint spec drift                |   ·    |            ·             |        ·         | ◐ files issue |      ·       |
 | OpenSSF Scorecard                          |   ·    |            ·             |        ·         |   ◐ weekly    |      ·       |
 
@@ -109,15 +111,16 @@ knip runs with `--no-exit-code` in `ci.yml` (`static-analysis`), `release.yml` (
 
 ### GATE-05 · Nightlies file issues
 
-| Nightly                    | Finds a problem →                                                                                                                                   |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nightly-audit.yml`        | Creates or comments on an issue labelled `security-audit`; auto-closes it when clean                                                                |
-| `nightly-spec-drift.yml`   | Creates or comments on an issue labelled `spec-drift`; auto-closes it when clean. If the check itself fails, the same for `spec-drift-check-failed` |
-| `nightly-mutation.yml`     | Uploads `reports/mutation/` as an artifact only                                                                                                     |
-| `nightly-schemathesis.yml` | Uploads `reports/schemathesis/` as an artifact only                                                                                                 |
-| `nightly-no-retry.yml`     | Fails the run and uploads `reports/no-retry/` as an artifact only                                                                                   |
+| Nightly                    | Finds a problem →                                                                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nightly-audit.yml`        | Creates or comments on an issue labelled `security-audit`; auto-closes it when clean                                                                              |
+| `nightly-spec-drift.yml`   | Creates or comments on an issue labelled `spec-drift`; auto-closes it when clean. If the check itself fails, the same for `spec-drift-check-failed`               |
+| `nightly-mutation.yml`     | Uploads `reports/mutation/` as an artifact only                                                                                                                   |
+| `nightly-schemathesis.yml` | Uploads `reports/schemathesis/` as an artifact only                                                                                                               |
+| `nightly-no-retry.yml`     | Fails the run and uploads `reports/no-retry/` as an artifact only                                                                                                 |
+| `nightly-faults.yml`       | Opens an issue titled `Nightly fault tier failing`, or comments on it when open; closes it on a green run. The fuzz seed is in the log, the summary and the issue |
 
-Both issue-filing workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation, Schemathesis and the no-retry run still need an issue step (bead `esi-mbr`).
+The label-based workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation, Schemathesis and the no-retry run still need an issue step (bead `esi-mbr`).
 
 ### GATE-06 · Scripts resolve to files
 
@@ -157,6 +160,7 @@ All workflows live in `.github/workflows/`. Every action is pinned to a full com
 | `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                          | No                            | Artifact                                       |
 | `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                          | No                            | Artifact                                       |
 | `nightly-no-retry.yml`     | Daily 03:00 UTC; manual                                          | No                            | Artifact                                       |
+| `nightly-faults.yml`       | Daily 03:30 UTC; manual (seed input)                             | No                            | `Nightly fault tier failing` issue             |
 | `nightly-audit.yml`        | Daily 05:00 UTC; manual                                          | No                            | `security-audit` issue                         |
 | `nightly-spec-drift.yml`   | Daily 06:00 UTC; manual                                          | No                            | `spec-drift` / `spec-drift-check-failed` issue |
 | `scorecard.yml`            | Mondays 04:00 UTC; manual; branch protection rule change         | No                            | SARIF to code scanning, public score           |
@@ -183,6 +187,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set. Then `npm run lint:bdd-seam`, which fails on any scenario that spies on or reassigns an ESI client method                                                                                                 |   yes   |
 | `contract-tests` (Contract Tests)        | `npm run contract:live` with `ESI_LIVE_TESTS=true`; fails if the variable is missing rather than skipping; soft-skips on 503                                                                                                                                                                  |   yes   |
 | `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                                                                                                                                   |   yes   |
+| `fault-catalogue` (Fault Catalogue)      | `npm run faults`: every transport fault in `tests/faults/catalogue.ts` once per representative endpoint, plus the catalogue self-test and the known-gaps ratchet (fetches master for its baseline). See [TESTING.md](TESTING.md#fault-injection)                                              |   yes   |
 | `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                                                                                                                           |   yes   |
 | `consumer-contract` (Consumer Contract)  | `npm run test:consumer` on Node 18, 20 and 22: installs the `npm pack` tarball into a clean consumer, type-checks and runs it under CommonJS, ES module and bundler resolution, and checks every `exports` sub-path (see [TESTING.md](TESTING.md#consumer-contract))                          |   yes   |
 | `api-surface` (API Surface Check)        | Rebuilds `etc/esi.ts.api.md` and fails on a difference (GATE-03)                                                                                                                                                                                                                              |   yes   |
@@ -582,6 +587,8 @@ The same "explicit, reasoned exception" pattern appears in five more places:
 | `contract:snapshot`                     | Refresh the committed spec snapshot                                                                                                                                 |
 | `contract:diff`                         | oasdiff breaking changes, snapshot versus live spec (Docker)                                                                                                        |
 | `fuzz`                                  | Property-based fuzz tests (fast-check)                                                                                                                              |
+| `faults`                                | Fault catalogue and its self-test (`jest.faults.config.cjs`); see [TESTING.md](TESTING.md#fault-injection)                                                          |
+| `faults:nightly`                        | Seeded payload fuzz over every endpoint definition (`jest.faults.nightly.config.cjs`); `FAULTS_SEED` replays, `FAULTS_RUNS` sets cases per endpoint                 |
 | `fuzz:api`                              | Schemathesis against a Prism mock (Docker)                                                                                                                          |
 | `mock:esi`                              | Prism mock of ESI on port 4010                                                                                                                                      |
 | `test:consumer`                         | Consumer contract: pack, install into a clean consumer, type-check and run it (not part of `npm test`; see [TESTING.md](TESTING.md#consumer-contract))              |

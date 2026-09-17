@@ -67,6 +67,7 @@ What happens:
 3. **Pagination stops early** at the first empty page, logging a warning, and never goes past page 1000.
 4. **The concatenated array is cached** under the page-1 URL, validated once against the endpoint's `responseSchema`, and passed through response interceptors.
 5. **Metadata comes from page 1.** `meta.pages` is the `x-pages` value; `meta.etag` is page 1's ETag.
+6. **Page 1's `x-pages` is authoritative.** The `x-pages` header on pages 2 to N is not read, so a count that grows mid-walk is not followed; a count that shrinks ends at the first empty page, or rejects with the `EsiError` of a page that no longer exists. The fault catalogue pins both (`x-pages-grows-between-pages`, `x-pages-shrinks-to-empty-page`; see [TESTING.md](TESTING.md#fault-injection)).
 
 A later call that is inside the spec TTL, or that gets a 304 on page 1, is answered from the cached array without fetching pages 2 to N.
 
