@@ -138,6 +138,18 @@ describe('interleaving scheduler', () => {
     );
   });
 
+  it('escapes the test name for a double-quoted shell argument in the reproduce command', async () => {
+    const scenario = lostUpdate();
+    const failure = (await explore(scenario, {
+      ...exhaustive,
+      testName: 'odd "name" with \\ and $HOME',
+    }).catch((e: unknown) => e)) as Error;
+
+    expect(failure.message).toContain(
+      '-t "odd \\"name\\" with \\\\ and \\$HOME"',
+    );
+  });
+
   it('replays the reported schedule and fails the same way', async () => {
     const first = (await explore(lostUpdate(), exhaustive).catch(
       (e: unknown) => e,

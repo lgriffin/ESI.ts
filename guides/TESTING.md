@@ -14,7 +14,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level â
 | Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                               |
 | Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
-| Composition          |         40 |        7 | Pipeline stages interacting under concurrent calls, every schedule explored |
+| Composition          |         41 |        7 | Pipeline stages interacting under concurrent calls, every schedule explored |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
 | Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
 | **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |

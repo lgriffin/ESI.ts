@@ -538,7 +538,8 @@ function reproduceCommand(
   testName: string | undefined,
   mode: ExploreOptions['mode'],
 ): string {
-  const filter = (testName ?? scenario).replace(/"/g, '\\"');
+  // Escape what a double-quoted shell argument would interpret.
+  const filter = (testName ?? scenario).replace(/[\\"$`]/g, '\\$&');
   // Random mode selects the nightly scenario variants, so a replay needs it.
   const modeVar = mode === 'random' ? 'ESI_INTERLEAVE_MODE=random ' : '';
   return `${modeVar}ESI_INTERLEAVE_REPLAY=${choices.join(',')} npx jest --config jest.unit.config.cjs --testPathPatterns=composition -t "${filter}"`;
