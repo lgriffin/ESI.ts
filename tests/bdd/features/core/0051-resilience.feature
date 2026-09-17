@@ -119,6 +119,23 @@ Feature: Resilience and Error Recovery
       When the client requests the server status
       Then the client shall throw a 429 rate limit error
 
+  Rule: If a request is answered with an error status that carries no reason phrase, then the EsiClient shall reject with an EsiError whose message names that status.
+    HTTP/2 has no reason phrase, so a status the client keeps no text of its
+    own for would otherwise reach the caller with an empty message. Known
+    statuses keep their usual text; any other status reads HTTP followed by its
+    code. An HTML error page from a proxy adds nothing to the message.
+
+    Scenario Outline: HTTP <status> without a reason phrase is named in the error
+      Given a client configured for the status endpoint
+      And ESI answers the server status request with HTTP <status>, no reason phrase and an HTML page
+      When the client requests the server status
+      Then the client rejects with an EsiError carrying status <status> and the message "<message>"
+
+      Examples:
+        | status | message     |
+        | 502    | Bad Gateway |
+        | 418    | HTTP 418    |
+
   Rule: If every attempt at a request exceeds the configured timeout, then the EsiClient shall reject the call with a TimeoutError.
     A distinct error type matters here because a timeout carries no HTTP status
     and no response body. TimeoutError extends EsiError with status code 0, and
@@ -128,6 +145,12 @@ Feature: Resilience and Error Recovery
     Scenario: Unresponsive endpoint reaches the caller as a TimeoutError
       Given a client configured with a short timeout
       And the endpoint does not respond in time
+      When the client makes a request
+      Then the client shall throw a timeout error
+
+    Scenario: A body that stops arriving after the headers reaches the caller as a TimeoutError
+      Given a client configured with a short timeout
+      And the endpoint sends its headers and then stops sending the body
       When the client makes a request
       Then the client shall throw a timeout error
 
@@ -173,6 +196,18 @@ Feature: Resilience and Error Recovery
         | 420    |
         | 429    |
 
+  Rule: When a 420 or 429 response carries a Retry-After header in HTTP-date form, the rate limiter shall block the rate-limit group of the request until that date.
+    RFC 9110 lets Retry-After be a number of seconds or an HTTP date. Read as a
+    number of seconds, a date is not a number, and a block that ends at no
+    point in time never clears: every later request in the group went through
+    the limiter's ten re-checks and logged a warning at each one.
+
+    Scenario: A 429 whose Retry-After is a date 30 seconds ahead blocks the group until then
+      Given a request pipeline without retries
+      And ESI answers the server status request with HTTP 429 and a Retry-After date 30 seconds ahead
+      When the client requests the server status
+      Then the status rate-limit group is blocked until the Retry-After date
+
   Rule: If a GET request exceeds the configured timeout while retries remain, then the EsiClient shall issue the same request again.
     A timeout reaches the retry strategy as a TimeoutError with status code 0,
     which it treats as transient: the server may only have been slow. A caller
@@ -181,6 +216,20 @@ Feature: Resilience and Error Recovery
     Scenario: A timed-out first attempt is retried
       Given a client with retries enabled and a 50 millisecond timeout
       And ESI holds the first server status request past the timeout and answers the retry at once
+      When the client requests the server status
+      Then the client resolves with the payload from the retry
+      And the client sent 2 requests
+
+  Rule: If the connection of a GET request drops before the response body is complete while retries remain, then the EsiClient shall issue the same request again.
+    A reset part way through the body is a network failure, like a reset before
+    the headers: the attempt fails with an EsiError of status code 0 whose
+    message starts Network request failed, and the retry strategy treats it as
+    transient. It is not a malformed body, so it is not reported as a JSON
+    parse error, which is never retried.
+
+    Scenario: A connection reset part way through the body is retried
+      Given a client with retries enabled
+      And ESI resets the connection part way through the first server status body and answers the retry with a payload
       When the client requests the server status
       Then the client resolves with the payload from the retry
       And the client sent 2 requests

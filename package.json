@@ -184,6 +184,8 @@
     "fuzz": "jest --config jest.fuzz.config.cjs",
     "fuzz:properties": "jest --config jest.fuzz.config.cjs --testPathPatterns=property.test",
     "fuzz:api": "bash scripts/run-schemathesis.sh",
+    "faults": "jest --config jest.faults.config.cjs",
+    "faults:nightly": "jest --config jest.faults.nightly.config.cjs",
     "mock:esi": "prism mock https://esi.evetech.net/meta/openapi.json -p 4010",
     "test:types": "tsd --files 'tests/typetests/*.test-d.ts'",
     "test:export-coverage": "ts-node scripts/export-coverage.ts",

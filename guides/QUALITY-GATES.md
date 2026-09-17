@@ -28,6 +28,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Contract tests                             |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |      ·       |
 | Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |      ●       |
+| Fault catalogue (transport faults)         |   ·    |            ·             |        ●         | ◐ files issue |      ·       |
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |      ·       |
@@ -46,6 +47,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Stryker mutation                           |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Type mutation (tsd ratchet)                |   ·    |            ·             |        ·         |       ◐       |      ·       |
 | Schemathesis API fuzz                      |   ·    |            ·             |        ·         |       ◐       |      ·       |
+| Payload fuzz, every endpoint (seeded)      |   ·    |            ·             |        ·         | ◐ files issue |      ·       |
 | Missing-endpoint spec drift                |   ·    |            ·             |        ·         | ◐ files issue |      ·       |
 | OpenSSF Scorecard                          |   ·    |            ·             |        ·         |   ◐ weekly    |      ·       |
 
@@ -126,7 +128,7 @@ knip runs with `--no-exit-code` in `ci.yml` (`static-analysis`), `release.yml` (
 | `nightly-no-retry.yml`     | Fails the run and uploads `reports/no-retry/` as an artifact only                                                                                   |
 | `nightly-interleave.yml`   | Fails the run; the log names the broken invariant and the replay command                                                                            |
 
-Both issue-filing workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation, Schemathesis and the no-retry run still need an issue step (bead `esi-mbr`).
+The label-based workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation, Schemathesis and the no-retry run still need an issue step (bead `esi-mbr`).
 
 ### GATE-06 · Scripts resolve to files
 
@@ -632,6 +634,8 @@ The same "explicit, reasoned exception" pattern appears in six more places:
 | `contract:snapshot`                     | Refresh the committed spec snapshot                                                                                                                                 |
 | `contract:diff`                         | oasdiff breaking changes, snapshot versus live spec (Docker)                                                                                                        |
 | `fuzz`                                  | Property-based fuzz tests (fast-check)                                                                                                                              |
+| `faults`                                | Fault catalogue and its self-test (`jest.faults.config.cjs`); see [TESTING.md](TESTING.md#fault-injection)                                                          |
+| `faults:nightly`                        | Seeded payload fuzz over every endpoint definition (`jest.faults.nightly.config.cjs`); `FAULTS_SEED` replays, `FAULTS_RUNS` sets cases per endpoint                 |
 | `fuzz:api`                              | Schemathesis against a Prism mock (Docker)                                                                                                                          |
 | `mock:esi`                              | Prism mock of ESI on port 4010                                                                                                                                      |
 | `test:consumer`                         | Consumer contract: pack, install into a clean consumer, type-check and run it (not part of `npm test`; see [TESTING.md](TESTING.md#consumer-contract))              |

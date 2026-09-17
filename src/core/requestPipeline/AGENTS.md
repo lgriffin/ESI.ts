@@ -30,7 +30,9 @@ Checked against `ApiRequestHandler.ts` and `fetchExecution.ts`:
    request.
 4. **`executeSingleFetch`.** This stage runs `buildRequestHeaders` (auth,
    `If-None-Match`), then request middleware, the circuit-breaker check and
-   the rate-limiter check. Next comes `fetch` with a timeout. Last, it
+   the rate-limiter check. Next comes `fetch` with a timeout, which
+   also covers reading the whole body (a reset part way through the body is a
+   network failure, like a reset before the headers). Last, it
    updates the rate limiter and records the result with the circuit breaker.
 5. **Status handling.** 201 returns directly. `handleEarlyStatus` handles 204
    and 304. `handleErrorResponse` throws on 4xx/5xx, or serves stale cache on
