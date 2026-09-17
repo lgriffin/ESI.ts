@@ -1,6 +1,6 @@
 /**
  * npm run bench:ab -- --base <tree> --head <tree> [--out reports/bench]
- *                     [--rounds 10] [--min-cpu-ms 200] [--filter <regex>]
+ *                     [--rounds 10] [--min-cpu-ms 200] [--filter <substring>]
  * npm run benchmark [-- --rounds 3 --filter cache]
  *
  * `npm run benchmark` measures the working tree alone and prints a table of

@@ -5,7 +5,7 @@
  * candidate processes; `scripts/bench-compare.ts` decides.
  *
  *   node --expose-gc harness.cjs --out result.json [--min-cpu-ms 200]
- *                                [--filter <regex>] [--label head]
+ *                                [--filter <substring>] [--label head]
  *
  * mitata decides per task whether to batch (operations under ~65 µs are
  * timed 1024 at a time and divided, so a 50 ns operation is not lost in
@@ -33,7 +33,9 @@ async function main(): Promise<void> {
     throw new Error('run node with --expose-gc');
   }
   const minCpuMs = Number(arg('min-cpu-ms') ?? 200);
-  const filter = arg('filter') ? new RegExp(arg('filter')!) : undefined;
+  // A plain substring, not a pattern: nothing here needs a regular expression
+  // built from a command line.
+  const filter = arg('filter');
 
   const result: HarnessResult = {
     label: arg('label') ?? 'run',
@@ -44,7 +46,7 @@ async function main(): Promise<void> {
   };
 
   for (const task of tasks) {
-    if (filter && !filter.test(task.name)) continue;
+    if (filter && !task.name.includes(filter)) continue;
     const { fn, teardown } = await task.setup();
     try {
       // Hand every result to do_not_optimize so the JIT cannot discard work

@@ -106,3 +106,9 @@ numbers.
   the default profile until that is fixed; then add the circuit-breaker
   profile to the nightly.
 - Benchmarks run on Node 20 only.
+- On Node 18 the soak grows about 400 bytes per request whatever the client
+  does — its bundled undici retains something per `Response`, and the same run
+  is flat on Node 20 and 22. The unit suite therefore asserts the heap trend
+  of the clean run only on Node 20 and above; the cache bound, the timers, the
+  listeners and the leak fixture are asserted everywhere, and the nightly soak
+  runs on Node 20.
