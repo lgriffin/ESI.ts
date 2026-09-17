@@ -157,12 +157,14 @@ The weakest directories at seeding were `src/core/cache` (`ETagCacheManager.ts`)
 
 ## Runtime
 
-| Run                                                                                                 | Wall time                                                      |
-| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Pull request, one-function change to `ETagCacheManager.ts`, local, concurrency 4, same-day baseline | 1 min 9 s (169 mutants instrumented, 1 of 1,845 files mutated) |
-| The same change against a one-day-old baseline (51 of 169 mutants reused)                           | 2 min 22 s                                                     |
-| Known-weak fixture, local                                                                           | 15 s                                                           |
-| Full unit run, local, concurrency 4 (1,907 mutants)                                                 | 54 min                                                         |
-| Full unit run, nightly (GitHub runner, concurrency 6)                                               | about 2 h                                                      |
+| Run                                                                                                        | Wall time                                                      |
+| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Pull request, one-function change to `ETagCacheManager.ts`, local, concurrency 4, same-day baseline        | 1 min 9 s (169 mutants instrumented, 1 of 1,845 files mutated) |
+| The same change against a one-day-old baseline (51 of 169 mutants reused)                                  | 2 min 22 s                                                     |
+| Known-weak fixture, local                                                                                  | 15 s                                                           |
+| Known-weak fixture, GitHub runner                                                                          | 9 s                                                            |
+| Pull request job on a GitHub runner with no cached baseline (the whole `src/core/cache` directory mutated) | 5 min 12 s for the job, 4 min 41 s for the mutation step       |
+| Full unit run, local, concurrency 4 (1,907 mutants)                                                        | 54 min                                                         |
+| Full unit run, nightly (GitHub runner, concurrency 6)                                                      | about 2 h                                                      |
 
 The pull request step has an 8-minute timeout inside a 12-minute job. A change that invalidates most of a large directory (for example, a rewrite of `RateLimiter.ts` with no baseline) can exceed it; that fails the job rather than passing it.
