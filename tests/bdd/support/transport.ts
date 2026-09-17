@@ -37,7 +37,30 @@ export interface HttpResponse {
   match?: string | RegExp;
   /** Serve this response for the next N matching requests. Default 1. */
   times?: number;
+  /**
+   * Fail the exchange the way a network does instead of delivering the
+   * response cleanly. See `TransportFault`. Status, headers and body still
+   * describe what arrives before the failure.
+   */
+  fault?: TransportFault;
 }
+
+/**
+ * A network failure injected into one exchange.
+ *
+ * - `connection-error`: `fetch` rejects before any response arrives (DNS,
+ *   refused, reset). Shaped like undici's `TypeError('fetch failed')` with the
+ *   socket error as `cause`.
+ * - `body-error`: status and headers arrive, then the first `bytes` characters
+ *   of the body, then the connection drops. Reading the body rejects with
+ *   undici's `TypeError('terminated')`, socket error as `cause`.
+ * - `body-stall`: status and headers arrive, then the first `bytes` characters
+ *   of the body, then nothing more until the request is aborted.
+ */
+export type TransportFault =
+  | { kind: 'connection-error'; code: string }
+  | { kind: 'body-error'; code: string; bytes: number }
+  | { kind: 'body-stall'; bytes: number };
 
 export interface RecordedRequest {
   method: string;
@@ -55,6 +78,7 @@ interface MockRequest {
   method: string;
   headers: { forEach(cb: (value: string, key: string) => void): void };
   text(): Promise<string>;
+  signal?: AbortSignal;
 }
 
 /**
@@ -121,12 +145,68 @@ async function serve(request: MockRequest) {
   entry.remaining -= 1;
   if (entry.remaining === 0) queue.splice(index, 1);
 
-  const reply = toReply(entry);
-  if (!entry.delayMs) return reply;
+  const reply = entry.fault
+    ? () => faultyReply(entry, entry.fault!, request.signal)
+    : () => toReply(entry);
+  if (!entry.delayMs) return reply();
   const delay = entry.delayMs;
-  return new Promise<typeof reply>((resolve) =>
-    setTimeout(() => resolve(reply), delay),
-  );
+  // Like real fetch, a delayed response rejects as soon as the request is
+  // aborted, not when the delay would have ended.
+  return new Promise<ReturnType<typeof reply>>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      try {
+        resolve(reply());
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
+    }, delay);
+    request.signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        reject(new DOMException('This operation was aborted', 'AbortError'));
+      },
+      { once: true },
+    );
+  });
+}
+
+/** An error shaped like undici's: a TypeError whose `cause` is the socket error. */
+function undiciError(message: string, code: string): TypeError {
+  const cause = Object.assign(new Error(`read ${code}`), { code });
+  return Object.assign(new TypeError(message), { cause });
+}
+
+function faultyReply(
+  entry: HttpResponse,
+  fault: TransportFault,
+  signal: AbortSignal | undefined,
+): Response {
+  if (fault.kind === 'connection-error') {
+    throw undiciError('fetch failed', fault.code);
+  }
+  const encoded = encode(entry);
+  const prefix = new TextEncoder().encode(encoded.body.slice(0, fault.bytes));
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      if (prefix.length > 0) controller.enqueue(prefix);
+      if (fault.kind === 'body-error') {
+        controller.error(undiciError('terminated', fault.code));
+        return;
+      }
+      // body-stall: no more bytes, and no end, until the client aborts.
+      const abort = () =>
+        controller.error(
+          new DOMException('This operation was aborted', 'AbortError'),
+        );
+      if (signal?.aborted) abort();
+      else signal?.addEventListener('abort', abort, { once: true });
+    },
+  });
+  return new Response(body, {
+    status: encoded.status,
+    headers: encoded.headers,
+  });
 }
 
 /** Statuses whose responses carry no body; the Response constructor rejects even ''. */
@@ -178,6 +258,27 @@ export function finishTransport(): void {
       `The scenario's HTTP exchange did not match what it queued:\n  ${problems.join('\n  ')}`,
     );
   }
+}
+
+/**
+ * Empty the queue without failing, and report what `finishTransport` would
+ * have failed on. For harnesses that assert the exchange themselves (the fault
+ * catalogue) and must not leave one case's leftovers to the next.
+ */
+export function drainTransport(): {
+  unrequested: string[];
+  unexpected: string[];
+} {
+  const report = {
+    unrequested: queue.map(
+      (entry) =>
+        `${entry.status ?? 200}${entry.match ? ` for ${String(entry.match)}` : ''} (x${entry.remaining})`,
+    ),
+    unexpected: [...unexpected],
+  };
+  queue = [];
+  unexpected = [];
+  return report;
 }
 
 /**

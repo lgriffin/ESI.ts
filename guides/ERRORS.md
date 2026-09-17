@@ -32,23 +32,23 @@ Every field listed is `readonly`. Every class sets `name` to its own class name,
 
 Raised for any HTTP-level failure, and the base of the two request-scoped subclasses. Source: `src/core/util/error.ts`.
 
-| Member             | Type                  | Meaning                                                                                    |
-| ------------------ | --------------------- | ------------------------------------------------------------------------------------------ |
-| `statusCode`       | `number`              | HTTP status. `0` when no status exists (timeout, validation, safe-mode wrap).              |
-| `message`          | `string`              | Status text, with remediation appended for 401 and 403.                                    |
-| `url`              | `string \| undefined` | Request URL passed through `sanitizeUrl`. Absent on rate-limiter and safe-mode errors.     |
-| `requestId`        | `string \| undefined` | The `X-Esi-Request-Id` response header, when ESI sent one. Quote it when reporting to CCP. |
-| `retryable`        | `boolean` (getter)    | `true` for status `0`, `420`, `429`, `502`, `503`, `504`.                                  |
-| `isRateLimited()`  | method                | `statusCode` is `420` or `429`.                                                            |
-| `isNotFound()`     | method                | `statusCode` is `404`.                                                                     |
-| `isUnauthorized()` | method                | `statusCode` is `401`.                                                                     |
-| `isForbidden()`    | method                | `statusCode` is `403`.                                                                     |
-| `isServerError()`  | method                | `statusCode` is `500` or above.                                                            |
-| `isTimeout()`      | method                | `statusCode` is `0`. Also true for validation errors; prefer the `isTimeout` guard.        |
+| Member             | Type                  | Meaning                                                                                                                           |
+| ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `statusCode`       | `number`              | HTTP status. `0` when no status exists (timeout, validation, safe-mode wrap).                                                     |
+| `message`          | `string`              | Status text (`HTTP <status>` when neither the client nor the server names the status), with remediation appended for 401 and 403. |
+| `url`              | `string \| undefined` | Request URL passed through `sanitizeUrl`. Absent on rate-limiter and safe-mode errors.                                            |
+| `requestId`        | `string \| undefined` | The `X-Esi-Request-Id` response header, when ESI sent one. Quote it when reporting to CCP.                                        |
+| `retryable`        | `boolean` (getter)    | `true` for status `0`, `420`, `429`, `502`, `503`, `504`.                                                                         |
+| `isRateLimited()`  | method                | `statusCode` is `420` or `429`.                                                                                                   |
+| `isNotFound()`     | method                | `statusCode` is `404`.                                                                                                            |
+| `isUnauthorized()` | method                | `statusCode` is `401`.                                                                                                            |
+| `isForbidden()`    | method                | `statusCode` is `403`.                                                                                                            |
+| `isServerError()`  | method                | `statusCode` is `500` or above.                                                                                                   |
+| `isTimeout()`      | method                | `statusCode` is `0`. Also true for validation errors; prefer the `isTimeout` guard.                                               |
 
 ### `TimeoutError extends EsiError`
 
-Raised when the `AbortController` timer fires before `fetch` settles. `statusCode` is `0`, `timeoutMs` is the limit that expired, and the message reads `Request timed out after <n>ms`. The default limit is 30 000 ms, set with the `timeout` option on `EsiClient` or `ApiClient.setTimeout()`.
+Raised when the `AbortController` timer fires before the response has fully arrived: before the headers, or while the body is still being read. `statusCode` is `0`, `timeoutMs` is the limit that expired, and the message reads `Request timed out after <n>ms`. The default limit is 30 000 ms, set with the `timeout` option on `EsiClient` or `ApiClient.setTimeout()`.
 
 ### `EsiValidationError extends EsiError`
 
@@ -164,7 +164,7 @@ The defaults set by `EsiClient` are three retries, 1 s base delay and a 30 s cap
 
 > **Caution.** `EsiValidationError` has `statusCode` `0`, so `isRetryable(err)` and `err.retryable` return `true` for it, and `err.isTimeout()` returns `true` as well. Retrying a validation failure returns the same body. Test `isValidationError` before `isRetryable` in your own handling, and use the `isTimeout` guard rather than the method.
 
-A network failure that is not a timeout arrives as an `EsiError` with `statusCode` `0` and the message `Network request failed: <reason>`; the underlying error is on `err.cause`. Like a timeout, it is retryable, so `err.isTimeout()` also returns `true` for it; use the `isTimeout` guard, which matches only `TimeoutError`, to tell the two apart.
+A network failure that is not a timeout, before the headers or part way through the body, arrives as an `EsiError` with `statusCode` `0` and the message `Network request failed: <reason>`; the underlying error is on `err.cause`. Like a timeout, it is retryable, so `err.isTimeout()` also returns `true` for it; use the `isTimeout` guard, which matches only `TimeoutError`, to tell the two apart.
 
 ---
 

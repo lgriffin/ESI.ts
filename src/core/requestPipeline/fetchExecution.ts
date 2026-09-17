@@ -8,7 +8,7 @@ import { ICircuitBreaker } from '../circuitBreaker/ICircuitBreaker';
 import { buildError } from '../util/error';
 import { buildRequestHeaders } from './headers';
 import { applyRequestMiddleware } from './middlewareBridge';
-import { STATUS_MESSAGES, readEsiErrorReason } from './statusHandling';
+import { readEsiErrorReason, statusMessage } from './statusHandling';
 
 export interface RawFetchResult {
   response: Response;
@@ -45,6 +45,24 @@ function networkError(err: unknown, url: string): EsiError {
     new EsiError(0, `Network request failed: ${reason}`, url),
     { cause: err },
   );
+}
+
+/**
+ * Read the whole body while the request timer is still running, then let
+ * `text()` and `json()` answer from that copy. Later stages read the body
+ * after this function returns, when a stalled or reset stream would no longer
+ * be under the timeout or classed as a network failure.
+ */
+async function bufferBody(response: Response): Promise<void> {
+  if (typeof response.text !== 'function') return;
+  const text = await response.text();
+  Object.defineProperties(response, {
+    text: { value: () => Promise.resolve(text), configurable: true },
+    json: {
+      value: () => Promise.resolve(text).then((t) => JSON.parse(t) as unknown),
+      configurable: true,
+    },
+  });
 }
 
 /**
@@ -114,6 +132,9 @@ export async function executeSingleFetch(
     let response: Response;
     try {
       response = await client.getFetch()(url, options);
+      // The timeout covers the body as well as the headers, and a body that
+      // fails to arrive is a network failure, not a malformed response.
+      await bufferBody(response);
     } catch (err) {
       clearTimeout(timer);
       if (cb) {
@@ -218,12 +239,11 @@ export async function fetchOnePage(
   );
 
   if (!response.ok) {
-    const statusMessage =
-      STATUS_MESSAGES[response.status] || response.statusText;
+    const text = statusMessage(response);
     const reason = await readEsiErrorReason(response);
     throw new EsiError(
       response.status,
-      reason ? `${statusMessage}: ${reason}` : statusMessage,
+      reason ? `${text}: ${reason}` : text,
       url,
       parsed.requestId ?? undefined,
     );

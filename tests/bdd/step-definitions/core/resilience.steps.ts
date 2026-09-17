@@ -44,6 +44,8 @@ const RESOLVED_NAMES = [
   { id: 95465499, name: 'CCP Bartender', category: 'character' },
 ];
 const DOGMA_ATTRIBUTE_IDS = [2, 3, 4];
+const HTML_ERROR_PAGE =
+  '<html><head><title>Error</title></head><body>upstream failed</body></html>';
 
 const NO_RETRIES = { maxRetries: 0 };
 
@@ -88,6 +90,29 @@ function statusClientWithTestModeRateLimiter(): StatusClient {
   api.setRateLimiter(limiter);
   return new StatusClient(api);
 }
+
+/**
+ * A status client on the default pipeline with no retries, returned with its
+ * live rate limiter so a scenario can read the group block a response set.
+ */
+function statusClientWithRateLimiter(): {
+  statusClient: StatusClient;
+  limiter: RateLimiter;
+} {
+  const api = new ApiClient(
+    'bdd-resilience',
+    'https://esi.evetech.net',
+    'bdd-access-token',
+  );
+  configureApiClient(api, { retryConfig: NO_RETRIES, logLevel: 'error' });
+  const limiter = new RateLimiter({ minDelayMs: 0 });
+  api.setRateLimiter(limiter);
+  return { statusClient: new StatusClient(api), limiter };
+}
+
+/** An HTTP date (whole seconds, as the header carries) `seconds` from now. */
+const httpDateAhead = (seconds: number): string =>
+  new Date(Math.ceil(Date.now() / 1000) * 1000 + seconds * 1000).toUTCString();
 
 /** Every fetch the client made, whether or not the seam served it. */
 const requestsSent = (): number => fetchMock.mock.calls.length;
@@ -438,6 +463,47 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('HTTP <status> without a reason phrase is named in the error', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client configured for the status endpoint', () => {
+      client = createSeamClient({ retryConfig: NO_RETRIES });
+    });
+
+    and(
+      /^ESI answers the server status request with HTTP (\d+), no reason phrase and an HTML page$/,
+      (status: string) => {
+        queueResponse({
+          status: Number(status),
+          headers: { 'content-type': 'text/html' },
+          body: HTML_ERROR_PAGE,
+          match: STATUS_PATH,
+        });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(client.status.getStatus());
+    });
+
+    then(
+      /^the client rejects with an EsiError carrying status (\d+) and the message "(.+)"$/,
+      (status: string, message: string) => {
+        expectEsiError(outcome, Number(status));
+        expect(
+          ((outcome as PromiseRejectedResult).reason as Error).message,
+        ).toBe(message);
+        expect(requestsSent()).toBe(1);
+      },
+    );
+  });
+
   test('Unresponsive endpoint reaches the caller as a TimeoutError', ({
     given,
     when,
@@ -453,6 +519,43 @@ defineFeature(feature, (test) => {
     given('the endpoint does not respond in time', () => {
       holdNextRequestUntilAborted();
     });
+
+    when('the client makes a request', async () => {
+      outcome = await settle(client.status.getStatus());
+    });
+
+    then('the client shall throw a timeout error', () => {
+      expect(requestsSent()).toBe(1);
+      expect(outcome.status).toBe('rejected');
+      expect((outcome as PromiseRejectedResult).reason).toBeInstanceOf(
+        TimeoutError,
+      );
+    });
+  });
+
+  test('A body that stops arriving after the headers reaches the caller as a TimeoutError', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client configured with a short timeout', () => {
+      client = createSeamClient({ timeout: 50, retryConfig: NO_RETRIES });
+    });
+
+    and(
+      'the endpoint sends its headers and then stops sending the body',
+      () => {
+        queueResponse({
+          body: FIRST_PAYLOAD,
+          match: STATUS_PATH,
+          fault: { kind: 'body-stall', bytes: 12 },
+        });
+      },
+    );
 
     when('the client makes a request', async () => {
       outcome = await settle(client.status.getStatus());
@@ -503,6 +606,48 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('A 429 whose Retry-After is a date 30 seconds ahead blocks the group until then', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let statusClient: StatusClient;
+    let limiter: RateLimiter;
+    let retryAfter: string;
+    let outcome: Outcome;
+
+    given('a request pipeline without retries', () => {
+      ({ statusClient, limiter } = statusClientWithRateLimiter());
+    });
+
+    and(
+      'ESI answers the server status request with HTTP 429 and a Retry-After date 30 seconds ahead',
+      () => {
+        retryAfter = httpDateAhead(30);
+        queueError(429, 'Too many requests', {
+          match: STATUS_PATH,
+          headers: { 'retry-after': retryAfter },
+        });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(statusClient.getStatus());
+    });
+
+    then(
+      'the status rate-limit group is blocked until the Retry-After date',
+      () => {
+        expectEsiError(outcome, 429);
+        expect(requestsSent()).toBe(1);
+        expect(limiter.getGroupStatus('status')?.blockedUntil).toBe(
+          Date.parse(retryAfter),
+        );
+      },
+    );
+  });
+
   test('HTTP <status> on the first attempt is retried once the rate limiter allows it', ({
     given,
     and,
@@ -529,6 +674,44 @@ defineFeature(feature, (test) => {
 
     when('the client requests the server status', async () => {
       outcome = await settle(statusClient.getStatus());
+    });
+
+    then('the client resolves with the payload from the retry', () => {
+      expectResolvedWith(outcome, RETRY_PAYLOAD);
+    });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A connection reset part way through the body is retried', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client with retries enabled', () => {
+      client = createSeamClient();
+    });
+
+    and(
+      'ESI resets the connection part way through the first server status body and answers the retry with a payload',
+      () => {
+        queueResponse({
+          body: FIRST_PAYLOAD,
+          match: STATUS_PATH,
+          fault: { kind: 'body-error', code: 'ECONNRESET', bytes: 12 },
+        });
+        queueResponse({ body: RETRY_PAYLOAD, match: STATUS_PATH });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(client.status.getStatus());
     });
 
     then('the client resolves with the payload from the retry', () => {
