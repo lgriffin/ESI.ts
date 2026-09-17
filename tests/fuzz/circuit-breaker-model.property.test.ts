@@ -442,4 +442,21 @@ describe('circuit breaker counter-examples', () => {
       ),
     ).not.toThrow();
   });
+
+  it('a success from a call admitted before the circuit opened leaves it open', () => {
+    // Shrunk from seed 553883299: two calls in flight, the first fails and
+    // opens the circuit, the second succeeds and used to close it.
+    expect(() =>
+      runModel(
+        real,
+        { failureThreshold: 1, resetTimeoutMs: 3, halfOpenMaxAttempts: 2 },
+        [
+          new Attempt('status/'),
+          new Attempt('status/'),
+          new Complete(0, 0),
+          new Complete(0, 200),
+        ],
+      ),
+    ).not.toThrow();
+  });
 });

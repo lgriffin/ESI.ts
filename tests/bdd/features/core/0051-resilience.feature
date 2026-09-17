@@ -302,6 +302,21 @@ Feature: Resilience and Error Recovery
       And the last call rejects with CircuitOpenError
       And the client sent 2 requests
 
+  Rule: If a call admitted before the circuit opened succeeds while the circuit is open, then the circuit breaker shall keep the circuit open.
+    Calls already in flight when the threshold is reached still complete. Only
+    the probe issued after the reset timeout may close an open circuit; a late
+    success from an earlier call would otherwise close it at once, and under
+    concurrent traffic the breaker would never stay open.
+
+    Scenario: A slow success that lands after the circuit opened leaves it open
+      Given a client whose circuit breaker opens after 1 failure, with no retries or deduplication
+      And ESI answers the first server status request with a payload after 100 milliseconds
+      And ESI answers the second server status request with HTTP 503
+      When the client requests the server status twice at once
+      Then the first call resolves with the server status
+      And the last call rejects with an EsiError carrying status 503
+      And the circuit for the server status endpoint is open
+
   Rule: If the circuit opens while a call is still retrying, then the EsiClient shall reject that call with CircuitOpenError and issue no further attempt.
     Retry and circuit breaking compose: each failed attempt counts towards the
     threshold, and the retry strategy passes CircuitOpenError straight through

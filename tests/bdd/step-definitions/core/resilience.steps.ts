@@ -953,6 +953,65 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('A slow success that lands after the circuit opened leaves it open', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcomes: Outcome[] = [];
+
+    given(
+      /^a client whose circuit breaker opens after (\d+) failures?, with no retries or deduplication$/,
+      (threshold: string) => {
+        client = circuitClient(Number(threshold), {
+          enableRequestDeduplication: false,
+        });
+      },
+    );
+
+    and(
+      /^ESI answers the first server status request with a payload after (\d+) milliseconds$/,
+      (delay: string) => {
+        queueResponse({
+          match: STATUS_PATH,
+          body: FIRST_PAYLOAD,
+          delayMs: Number(delay),
+        });
+      },
+    );
+
+    and(
+      /^ESI answers the second server status request with HTTP (\d+)$/,
+      (status: string) => {
+        queueError(Number(status), 'unavailable', { match: STATUS_PATH });
+      },
+    );
+
+    when('the client requests the server status twice at once', async () => {
+      outcomes = await Promise.allSettled([
+        client.status.getStatus(),
+        client.status.getStatus(),
+      ]);
+    });
+
+    then('the first call resolves with the server status', () => {
+      expectResolvedWith(outcomes[0], FIRST_PAYLOAD);
+    });
+
+    and(
+      /^the last call rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(outcomes[outcomes.length - 1], Number(status));
+      },
+    );
+
+    and('the circuit for the server status endpoint is open', () => {
+      expect(circuitState(client, STATUS_PATH)).toBe('open');
+    });
+  });
+
   test('The second of four attempts opens the circuit and ends the call', ({
     given,
     and,

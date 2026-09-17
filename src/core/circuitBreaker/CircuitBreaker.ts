@@ -103,6 +103,10 @@ export class CircuitBreaker implements ICircuitBreaker {
     const record = this.circuits.get(key);
     if (!record) return;
 
+    // A success while open comes from a call admitted before the circuit
+    // opened. Only a half-open probe may close the circuit.
+    if (record.state === 'open') return;
+
     if (record.state === 'half-open') {
       logInfo(this.client, `Circuit closed for ${key} after successful probe`, {
         key,

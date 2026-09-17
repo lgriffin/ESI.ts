@@ -666,6 +666,7 @@ stateDiagram-v2
     Closed --> Open: failures >= failureThreshold
 
     Open --> Open: resetTimeoutMs not elapsed
+    Open --> Open: success of a call admitted before it opened
     Open --> HalfOpen: next request after resetTimeoutMs
 
     HalfOpen --> Closed: probe succeeds
