@@ -36,15 +36,16 @@ release.yml
 
 ### Jobs in `release.yml`
 
-| Job                       | Needs              | Runs on                   | Does                                                                                                                              |
-| ------------------------- | ------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `validate-release`        | —                  | tag push and release      | The publish gate, below                                                                                                           |
-| `publish-npm`             | `validate-release` | release only              | `npm ci`, `npm run build`, `npm publish --provenance` to `registry.npmjs.org`                                                     |
-| `publish-github`          | `validate-release` | release only              | Same build, `npm publish --provenance` to `npm.pkg.github.com`                                                                    |
-| `deploy-docs`             | `validate-release` | tag push and release      | `npm run docs`, then deploys `docs-site/public/api` (TypeDoc) to GitHub Pages                                                     |
-| `create-assets`           | `validate-release` | tag push and release      | `npm pack` (fails unless exactly one tarball), `docs.tar.gz` of the API reference, `checksums.txt` (SHA-256); uploads as artifact |
-| `sign-and-publish-assets` | `create-assets`    | release only              | Keyless `cosign sign-blob` on the tarball and docs archive, then `gh release upload` of all assets plus `README.md` and `LICENSE` |
-| `notify-success`          | all of the above   | when `publish-npm` passed | Log line only                                                                                                                     |
+| Job                       | Needs                                   | Runs on                   | Does                                                                                                                                                                      |
+| ------------------------- | --------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validate-release`        | —                                       | tag push and release      | The publish gate, below                                                                                                                                                   |
+| `publish-npm`             | `validate-release`, `consumer-contract` | release only              | `npm ci`, `npm run build`, `npm publish --provenance` to `registry.npmjs.org`                                                                                             |
+| `publish-github`          | `validate-release`, `consumer-contract` | release only              | Same build, `npm publish --provenance` to `npm.pkg.github.com`                                                                                                            |
+| `deploy-docs`             | `validate-release`                      | tag push and release      | `npm run docs`, then deploys `docs-site/public/api` (TypeDoc) to GitHub Pages                                                                                             |
+| `create-assets`           | `validate-release`                      | tag push and release      | `npm pack` (fails unless exactly one tarball), `docs.tar.gz` of the API reference, `checksums.txt` (SHA-256); uploads as artifact                                         |
+| `consumer-contract`       | `create-assets`                         | tag push and release      | The consumer contract (`npm run test:consumer -- --tarball`) against the tarball `create-assets` packed: Node 18, 20, 22 and 24, oldest, repository and latest TypeScript |
+| `sign-and-publish-assets` | `create-assets`, `consumer-contract`    | release only              | Keyless `cosign sign-blob` on the tarball and docs archive, then `gh release upload` of all assets plus `README.md` and `LICENSE`                                         |
+| `notify-success`          | all of the above                        | when `publish-npm` passed | Log line only                                                                                                                                                             |
 
 The workflow holds top-level `contents: read`. Only `publish-npm`, `publish-github` and `sign-and-publish-assets` receive `id-token: write`, and signing sits in its own job so that no build step shares a job with the ability to mint an OIDC token.
 
@@ -187,7 +188,7 @@ Repeat with `docs.tar.gz` for the documentation archive.
 
 The supported major versions are listed once, in the root [SECURITY.md](../SECURITY.md). Update that table in the same pull request as a major release.
 
-The package declares `"engines": { "node": ">=18.0.0" }` (REL-05). Pull requests run unit tests on Node 18, 20 and 22. Release jobs and the rest of CI run on Node 20, which is also the version in `.nvmrc`. Node 18 is the floor because the transport uses the global `fetch`.
+The package declares `"engines": { "node": ">=18.0.0" }` (REL-05) and supports TypeScript 5.4 or later for consumers (`OLDEST_TYPESCRIPT` in `scripts/consumer-contract-core.ts`; zod 4's declarations need `NoInfer`, added in 5.4). The consumer contract checks both floors on every pull request and release. Pull requests run unit tests on Node 18, 20 and 22. Release jobs and the rest of CI run on Node 20, which is also the version in `.nvmrc`. Node 18 is the floor because the transport uses the global `fetch`.
 
 ---
 
@@ -195,6 +196,7 @@ The package declares `"engines": { "node": ">=18.0.0" }` (REL-05). Pull requests
 
 Recorded 2026-09-16. Each item contradicts a requirement above and belongs in a bead, not a softened sentence.
 
+- **npm and GitHub Packages publish a fresh build, not the tested tarball.** `consumer-contract` runs against the tarball `create-assets` packs, which is the one signed and attached to the release. `publish-npm` and `publish-github` wait for it but run `npm run build` and `npm publish` themselves, so the registries receive a rebuild of the same commit. Publishing `release-artifacts/<tarball>` with `npm publish <file> --provenance` would make all three the same bytes; that changes the credentialed jobs, so it is a separate change.
 - **release-please needed repository permission to open its pull request.** It computed the version but failed with "GitHub Actions is not permitted to create or approve pull requests" until that repository setting was enabled (2026-09-16). Releases 9.8.0 and 9.9.0 were hand-written `chore: release X.Y.Z` commits.
 - **Releases created with the workflow's `GITHUB_TOKEN` do not trigger other workflows.** When release-please creates the tag and release, `release.yml` does not start on its own. Publish by dispatching it on the tag: `gh workflow run release.yml --ref vX.Y.Z`. The first `validate-release` steps reject a run that is not on a `vX.Y.Z` tag or whose tag does not match `package.json` and `PACKAGE_VERSION`.
 - **v9.7.0 has no signed assets.** Its `sign-and-publish-assets` job failed because cosign 3 requires `--bundle` for `sign-blob`; the job now writes a Sigstore bundle per asset. npm and GitHub Packages publishing succeeded for that release.
