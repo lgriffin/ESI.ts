@@ -867,7 +867,7 @@ npm run bdd       # BDD scenario tests only
 npm run contract  # Contract tests (skipped without ESI_LIVE_TESTS=true)
 npm run fuzz      # Property-based fuzz tests (601 tests)
 npm run mutation  # Mutation testing (Stryker)
-npm run benchmark # Performance benchmark tests
+npm run benchmark # Micro-benchmarks (mitata); npm run soak for the heap soak
 npm run test:types # tsd consumer type tests
 ```
 
@@ -915,7 +915,7 @@ npm run bdd                # BDD scenario tests
 ESI_LIVE_TESTS=true npm run contract:live  # Deep contract tests against live ESI spec (fails without the variable)
 npm run fuzz               # Property-based fuzz tests (fast-check)
 npm run mutation           # Mutation testing (Stryker)
-npm run benchmark          # Performance benchmark tests
+npm run benchmark          # Micro-benchmarks (mitata)
 npm run test:types         # Consumer type tests (tsd)
 npm run mock:esi           # Start Prism mock ESI server on port 4010
 
