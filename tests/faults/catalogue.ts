@@ -468,6 +468,32 @@ export const FAULTS: readonly Fault[] = [
     }),
   },
   {
+    id: 'bad-request-while-cached',
+    title: '400 with ESI error JSON while the cache holds an entry',
+    appliesTo: isGet,
+    prime: true,
+    rule: {
+      feature: 'core/0050-etag-caching.feature',
+      rule: 'If a GET request is answered with a 4xx status, then the EsiClient shall reject with an EsiError even while the ETag cache holds an entry for it.',
+    },
+    exchange: () => [
+      errorResponse(400, { error: 'Invalid datasource parameter' }),
+    ],
+    expected: () => ({
+      settlement: {
+        rejects: {
+          class: 'EsiError',
+          statusCode: 400,
+          message: /^Bad Request: Invalid datasource parameter$/,
+        },
+      },
+      requests: 1,
+      cache: 'holds-result',
+      elapsedMs: INSTANT,
+      logs: [],
+    }),
+  },
+  {
     id: 'internal-error-with-esi-reason',
     title: '500 with ESI error JSON',
     rule: {
