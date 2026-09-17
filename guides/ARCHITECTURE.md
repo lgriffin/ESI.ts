@@ -684,8 +684,9 @@ stateDiagram-v2
 
     note left of HalfOpen
         Probe requests are admitted up to
-        halfOpenMaxAttempts. Extra requests
-        throw CircuitOpenError.
+        halfOpenMaxAttempts, counting the call
+        that moved the circuit to half-open.
+        Extra requests throw CircuitOpenError.
     end note
 ```
 

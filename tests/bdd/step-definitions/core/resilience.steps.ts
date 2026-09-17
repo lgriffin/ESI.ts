@@ -888,6 +888,71 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('A second call while the probe is in flight is refused without a request', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let resetMs: number;
+    let outcomes: Outcome[] = [];
+
+    given(
+      /^a client whose circuit breaker opens after (\d+) failures? and resets after (\d+) milliseconds, with no retries or deduplication$/,
+      (threshold: string, reset: string) => {
+        resetMs = Number(reset);
+        client = circuitClient(Number(threshold), {
+          circuitBreakerConfig: {
+            failureThreshold: Number(threshold),
+            resetTimeoutMs: resetMs,
+          },
+          enableRequestDeduplication: false,
+        });
+      },
+    );
+
+    and('the circuit for the server status endpoint has opened', async () => {
+      queueError(503, 'unavailable', { match: STATUS_PATH });
+      expectEsiError(await settle(client.status.getStatus()), 503);
+    });
+
+    and('the reset timeout has elapsed', async () => {
+      await sleep(resetMs + 20);
+    });
+
+    and(
+      /^ESI answers the server status probe with a payload after (\d+) milliseconds$/,
+      (delay: string) => {
+        queueResponse({
+          match: STATUS_PATH,
+          body: FIRST_PAYLOAD,
+          delayMs: Number(delay),
+        });
+      },
+    );
+
+    when('the client requests the server status twice at once', async () => {
+      outcomes = await Promise.allSettled([
+        client.status.getStatus(),
+        client.status.getStatus(),
+      ]);
+    });
+
+    then('the first call resolves with the server status', () => {
+      expectResolvedWith(outcomes[0], FIRST_PAYLOAD);
+    });
+
+    and('the last call rejects with CircuitOpenError', () => {
+      expectCircuitOpen(outcomes[outcomes.length - 1]);
+    });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      // The opening failure and the probe; the call behind the probe sent none.
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
   test('The second of four attempts opens the circuit and ends the call', ({
     given,
     and,

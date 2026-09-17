@@ -286,6 +286,22 @@ Feature: Resilience and Error Recovery
       And the last call rejects with CircuitOpenError
       And the client sent 2 requests
 
+  Rule: While the probe for a half-open circuit is in flight, the EsiClient shall reject further calls to that endpoint with CircuitOpenError without issuing an HTTP request.
+    halfOpenMaxAttempts, default 1, is the number of probes a half-open circuit
+    admits. The call that moves the circuit from open to half-open is the
+    first of them; counting from the call after it would let one probe more
+    than configured reach an endpoint that has just been failing.
+
+    Scenario: A second call while the probe is in flight is refused without a request
+      Given a client whose circuit breaker opens after 1 failure and resets after 50 milliseconds, with no retries or deduplication
+      And the circuit for the server status endpoint has opened
+      And the reset timeout has elapsed
+      And ESI answers the server status probe with a payload after 100 milliseconds
+      When the client requests the server status twice at once
+      Then the first call resolves with the server status
+      And the last call rejects with CircuitOpenError
+      And the client sent 2 requests
+
   Rule: If the circuit opens while a call is still retrying, then the EsiClient shall reject that call with CircuitOpenError and issue no further attempt.
     Retry and circuit breaking compose: each failed attempt counts towards the
     threshold, and the retry strategy passes CircuitOpenError straight through

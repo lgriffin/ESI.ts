@@ -77,7 +77,8 @@ export class CircuitBreaker implements ICircuitBreaker {
       const elapsed = Date.now() - record.lastFailureTime;
       if (elapsed >= this.resetTimeoutMs) {
         record.state = 'half-open';
-        record.halfOpenAttempts = 0;
+        // This call is the first probe, so it counts towards halfOpenMaxAttempts.
+        record.halfOpenAttempts = 1;
         logInfo(
           this.client,
           `Circuit half-open for ${key}, allowing probe request`,

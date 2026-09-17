@@ -420,3 +420,26 @@ describeProperty<BreakerFactory>({
   },
   property: breakerProperty,
 });
+
+// ── Shrunk counter-examples, kept as named examples (tests/fuzz/AGENTS.md) ──
+
+describe('circuit breaker counter-examples', () => {
+  const real: BreakerFactory = (config) => new CircuitBreaker(config);
+
+  it('esi-l38.11: the call that moves an open circuit to half-open is its only probe', () => {
+    // Shrunk from seed 641468347: the transition call was not counted, so a
+    // second call was admitted with halfOpenMaxAttempts 1.
+    expect(() =>
+      runModel(
+        real,
+        { failureThreshold: 1, resetTimeoutMs: 297, halfOpenMaxAttempts: 1 },
+        [
+          new ReportFailure('characters/90000001/', 0),
+          new AdvanceClock(297),
+          new Attempt('characters/90000001/?page=2'),
+          new Attempt('characters/90000001/'),
+        ],
+      ),
+    ).not.toThrow();
+  });
+});
