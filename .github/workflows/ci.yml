@@ -343,6 +343,37 @@ jobs:
         env:
           ESI_LIVE_TESTS: 'true'
 
+  # Recorded ESI payloads replayed through the full client pipeline at the
+  # transport seam, with no network (tests/contract/AGENTS.md). Separate from
+  # contract-tests, which talks to live ESI and soft-skips on a 503.
+  contract-replay:
+    name: Contract Replay (recorded payloads)
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # unrecordable.json and known-mismatches.json only shrink against
+      # master's copy; without the ref the coverage test fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Replay recorded payloads
+        run: npm run contract:replay
+
   fuzz-tests:
     name: Fuzz Tests
     runs-on: ubuntu-latest
@@ -685,6 +716,7 @@ jobs:
         bdd-tests,
         spec-audit,
         contract-tests,
+        contract-replay,
         fuzz-tests,
         full-test-suite,
         api-surface,
