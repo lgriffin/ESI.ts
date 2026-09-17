@@ -32,7 +32,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |      ·       |
-| Are The Types Wrong (packed tarball)       |   ·    |            ·             |      ◐ (5)       |       ·       |      ·       |
+| publint, attw, size budgets (packed)       |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Consumer contract (packed tarball)         |   ·    |            ·             |    ● 18/20/22    |       ·       |      ·       |
 | Documentation examples (packed tarball)    |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Dependency audit (diff-aware / allowlist)  |   ·    |            ·             | ● new advisories | ◐ files issue | ● ≥ high (6) |
@@ -70,7 +70,7 @@ Branch protection on `master` should require exactly one status check, with "req
 
 `ci-success` fans in every job in `ci.yml`, so requiring any of those jobs individually adds nothing, and requiring a job that can be skipped or path-filtered is exactly what the gate exists to avoid. `Lint, Build & Test` from `ci-fast.yml` repeats `lint-and-build` and `unit-tests` for pushes before a pull request exists; it stays useful as early feedback but does not need to be required. The previous required checks were `Quality Gate` (renamed to `ci-success`) and `Lint, Build & Test`; branch protection has to be switched to `ci-success` when this change merges, or pull requests wait forever for a `Quality Gate` check that no longer reports.
 
-Everything else on a pull request is visible but advisory: `package-checks.yml` (Are The Types Wrong) and `codeql.yml`. Force-pushes and branch deletion are disabled. Administrators are not yet included in enforcement (tracked under `SEC-07`).
+Everything else on a pull request is visible but advisory: `codeql.yml` and `skill-eval.yml`. Force-pushes and branch deletion are disabled. Administrators are not yet included in enforcement (tracked under `SEC-07`).
 
 `.github/CODEOWNERS` names `@lgriffin` as owner of everything, with explicit entries for the files automation rewrites (`package.json`, `package-lock.json`, `.github/`, `.zizmor.yml`, the release-please config and manifest). It only blocks a merge once "Require review from Code Owners" is enabled on `master`. With a single owner, that setting also means the owner cannot satisfy it on their own pull requests (GitHub does not let an author approve their own PR), so those need an admin override; on Dependabot and release-please PRs it requires the owner's approval.
 
@@ -129,6 +129,9 @@ knip runs with `--no-exit-code` in `ci.yml` (`static-analysis`), `release.yml` (
 | `nightly-interleave.yml`   | Fails the run; the log names the broken invariant and the replay command                                                                            |
 
 The label-based workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation, Schemathesis and the no-retry run still need an issue step (bead `esi-mbr`).
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `consumer-matrix-nightly.yml` | Fails the run only; the step summary names the failing cell |
+Both issue-filing workflows keep at most one open issue per label: if one is open they comment on it, otherwise they create one. Mutation, Schemathesis, the no-retry run and the consumer matrix still need an issue step (bead `esi-mbr`).
 
 ### GATE-06 · Scripts resolve to files
 
@@ -158,24 +161,26 @@ Test files are formatted but not linted at commit. In CI they get two narrow lin
 
 All workflows live in `.github/workflows/`. Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
 
-| Workflow                   | Trigger                                                          | Blocks                        | Output                                                      |
-| -------------------------- | ---------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------- |
-| `ci-fast.yml`              | Push, any branch                                                 | No (covered by `ci-success`)  | Status                                                      |
-| `ci.yml`                   | Pull request to `master`, `main`, `develop`                      | Required check (`ci-success`) | Status, coverage comment, artifacts                         |
-| `package-checks.yml`       | Pull request to `master`, `main`                                 | No                            | Status, step summary                                        |
-| `codeql.yml`               | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC      | No                            | Code scanning alerts                                        |
-| `skill-eval.yml`           | PR touching `.claude/skills/**` or the skill eval runner; manual | No                            | Status, artifacts                                           |
-| `nightly-schemathesis.yml` | Daily 01:00 UTC; manual                                          | No                            | Artifact                                                    |
-| `nightly-mutation.yml`     | Daily 02:00 UTC; manual                                          | No                            | Artifact                                                    |
-| `nightly-no-retry.yml`     | Daily 03:00 UTC; manual                                          | No                            | Artifact                                                    |
-| `nightly-interleave.yml`   | Daily 03:30 UTC; manual                                          | No                            | Status, step summary                                        |
-| `nightly-audit.yml`        | Daily 05:00 UTC; manual                                          | No                            | `security-audit` issue                                      |
-| `nightly-spec-drift.yml`   | Daily 06:00 UTC; manual                                          | No                            | `spec-drift` / `spec-drift-check-failed` issue              |
-| `scorecard.yml`            | Mondays 04:00 UTC; manual; branch protection rule change         | No                            | SARIF to code scanning, public score                        |
-| `maintenance.yml`          | Mondays 09:00 UTC; manual                                        | No                            | Artifacts                                                   |
-| `release-please.yml`       | Push to `master`                                                 | —                             | Release PR, tag, GitHub release                             |
-| `release.yml`              | Tag `v*.*.*` pushed; GitHub release published                    | Publishing                    | npm, GitHub Packages, gh-pages, signed assets               |
-| `nightly-benchmarks.yml`   | Daily 04:30 UTC; manual                                          | No                            | `performance-nightly` issue, `bench-data` branch, artifacts |
+| Workflow                      | Trigger                                                          | Blocks                        | Output                                                      |
+| ----------------------------- | ---------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------- |
+| `ci-fast.yml`                 | Push, any branch                                                 | No (covered by `ci-success`)  | Status                                                      |
+| `ci.yml`                      | Pull request to `master`, `main`, `develop`                      | Required check (`ci-success`) | Status, coverage comment, artifacts                         |
+| `package-checks.yml`          | Pull request to `master`, `main`                                 | No                            | Status, step summary                                        |
+| `codeql.yml`                  | Push and PR to `master`/`main`/`develop`; Mondays 06:00 UTC      | No                            | Code scanning alerts                                        |
+| `skill-eval.yml`              | PR touching `.claude/skills/**` or the skill eval runner; manual | No                            | Status, artifacts                                           |
+| `nightly-schemathesis.yml`    | Daily 01:00 UTC; manual                                          | No                            | Artifact                                                    |
+| `nightly-mutation.yml`        | Daily 02:00 UTC; manual                                          | No                            | Artifact                                                    |
+| `nightly-no-retry.yml`        | Daily 03:00 UTC; manual                                          | No                            | Artifact                                                    |
+| `nightly-interleave.yml`      | Daily 03:30 UTC; manual                                          | No                            | Status, step summary                                        |
+| `nightly-audit.yml`           | Daily 05:00 UTC; manual                                          | No                            | `security-audit` issue                                      |
+| `nightly-spec-drift.yml`      | Daily 06:00 UTC; manual                                          | No                            | `spec-drift` / `spec-drift-check-failed` issue              |
+| `scorecard.yml`               | Mondays 04:00 UTC; manual; branch protection rule change         | No                            | SARIF to code scanning, public score                        |
+| `maintenance.yml`             | Mondays 09:00 UTC; manual                                        | No                            | Artifacts                                                   |
+| `release-please.yml`          | Push to `master`                                                 | —                             | Release PR, tag, GitHub release                             |
+| `release.yml`                 | Tag `v*.*.*` pushed; GitHub release published                    | Publishing                    | npm, GitHub Packages, gh-pages, signed assets               |
+| `nightly-benchmarks.yml`      | Daily 04:30 UTC; manual                                          | No                            | `performance-nightly` issue, `bench-data` branch, artifacts |
+| ----------------------------- | ---------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------- |
+| `consumer-matrix-nightly.yml` | Daily 04:45 UTC; manual                                          | No                            | Status, step summary                                        |
 
 ### `ci-fast.yml` — CI Fast
 
@@ -208,6 +213,8 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `mutation-pr` (Mutation (changed files)) | `npm run mutation:fixture` (a known-weak fixture must leave survivors), then `npm run mutation:pr`: incremental Stryker over changed `src/` files in scope, reusing the nightly cache; fails on a lowered floor in `mutation-thresholds.json`, or a touched directory below or without one                          |   yes   |
 | `ci-success` (ci-success)                | Fails unless every other job succeeded, and fails if a job is missing from its `needs` (GATE-01)                                                                                                                                                                                                                    |    —    |
 | `benchmarks` (Benchmarks (base vs head)) | Builds the base tip and the head on one runner and runs them in 10 alternating processes each (`npm run bench:ab`), then decides statistically (`npm run bench:compare`). Its steps skip when no hot path changed; the job still reports success. See [TESTING.md](TESTING.md#tier-25-benchmarks-and-the-heap-soak) |   yes   |
+| `consumer-tarball` (Consumer Tarball)    | Packs the `dist/` uploaded by `lint-and-build` once, so every `consumer-contract` row installs the same bytes                                                                                                                                                                                                       |   yes   |
+| `package-lint` (Package Lint)            | `npm run lint:package -- --skip-build` then `npm run size`, on the `dist/` uploaded by `lint-and-build`: publint and attw on the `npm pack` tarball, and a size ceiling per `exports` sub-path (see [Package lint and size budgets](#package-lint-and-size-budgets))                                                |   yes   |
 
 The generated-types, schema-drift and contract steps all call the live ESI spec. Each captures its log and, if the failure contains `HTTP 503`, downgrades it to a `::warning::` and passes (`TEST-08`).
 
@@ -221,10 +228,6 @@ Like `npm audit`, the generated-types and schema-drift checks report the state o
 Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` still blocks on both checks unconditionally. Schema drift that is already tracked turns neither red: it is listed in a ratcheted baseline, described under [Schema drift](#schema-drift).
 
 The lockfile check skips Dependabot because Dependabot's npm version produces byte-level lockfile differences. When regenerating a lockfile locally, use the npm major that CI uses so the file round-trips.
-
-### `package-checks.yml` — Package Checks
-
-Builds, runs `npm pack`, and checks the tarball with Are The Types Wrong (`@arethetypeswrong/cli`), ignoring the `false-cjs` and `no-resolution` rules. The full table is written to the step summary. This verifies the dual CJS/ESM entry points (`ARCH-05`). It is outside `ci-success` and not a required check. The blocking check on the packed tarball is `consumer-contract` in `ci.yml`, which installs and runs it rather than inspecting it.
 
 ### `codeql.yml` — CodeQL
 
@@ -253,6 +256,10 @@ Test order within each file is randomised (`jest --randomize`), so a test that p
 ### `nightly-interleave.yml` — Nightly Interleaving Run
 
 Daily at 03:30 UTC on Node 20 with a 60-minute timeout. Runs the composition tier (`tests/tdd/composition`) with `ESI_INTERLEAVE_MODE=random`: each scenario starts four overlapping calls and runs `ESI_INTERLEAVE_RUNS` schedules (5000 by default) chosen by a PRNG seeded with `ESI_INTERLEAVE_SEED`. Pull requests already explore every schedule of two and three calls inside `npm test`. Each run picks a new seed, or uses the `seed` input of a manual dispatch; the seed is a notice annotation and in the step summary with the command that replays the run, and a failing schedule prints its own `ESI_INTERLEAVE_REPLAY` command. No issue is filed. See [TESTING.md](TESTING.md#composition-and-concurrency).
+
+### `consumer-matrix-nightly.yml` — Nightly Consumer Matrix
+
+Daily at 04:45 UTC. Builds, packs, and runs `npm run test:consumer -- --tarball` on the rows pull requests skip: TypeScript `next` and `latest` on Node `lts/*` and `current`, and the oldest supported TypeScript on `current`. A failure is a toolchain release breaking a consumer, not a pull request; the job title and step summary name the Node and TypeScript versions and the failing cell. No issue is filed.
 
 ### `nightly-mutation.yml` — Nightly Mutation Testing
 
@@ -304,15 +311,16 @@ Much of this overlaps the nightlies, which file issues rather than artifacts. It
 
 `release.yml` runs on the `v*.*.*` tag push and again when the GitHub release is published:
 
-| Job                       | Runs on           | What it does                                                                                                                                                         |
-| ------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `validate-release`        | both triggers     | lint, format check, knip (non-blocking), `audit:check`, `CHANGELOG.md` has `## [<version>]`, build, `schema:drift:ci`, generated-types freshness, `test:all`, `docs` |
-| `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                              |
-| `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                        |
-| `deploy-docs`             | both triggers     | TypeDoc to gh-pages from `docs-site/public/api`                                                                                                                      |
-| `create-assets`           | both triggers     | `npm pack`, docs archive, `checksums.txt`; no OIDC permission                                                                                                        |
-| `sign-and-publish-assets` | release published | Keyless cosign signatures, uploads assets to the release; the only job that can mint an OIDC token for signing                                                       |
-| `notify-success`          | after publish     | Log line when the npm publish succeeded                                                                                                                              |
+| Job                       | Runs on           | What it does                                                                                                                                                                  |
+| ------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validate-release`        | both triggers     | lint, format check, knip (non-blocking), `audit:check`, `CHANGELOG.md` has `## [<version>]`, build, `schema:drift:ci`, generated-types freshness, `test:all`, `docs`          |
+| `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                                       |
+| `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                                 |
+| `deploy-docs`             | both triggers     | TypeDoc to gh-pages from `docs-site/public/api`                                                                                                                               |
+| `create-assets`           | both triggers     | `npm pack`, docs archive, `checksums.txt`; no OIDC permission                                                                                                                 |
+| `consumer-contract`       | both triggers     | `npm run test:consumer -- --tarball` on the tarball `create-assets` packed, same four rows as `ci.yml`; `publish-npm`, `publish-github` and `sign-and-publish-assets` need it |
+| `sign-and-publish-assets` | release published | Keyless cosign signatures, uploads assets to the release; the only job that can mint an OIDC token for signing                                                                |
+| `notify-success`          | after publish     | Log line when the npm publish succeeded                                                                                                                                       |
 
 Every publishing job `needs` `validate-release` (`REL-02`). Unlike the PR path, the release gate does not run `spec:audit`, `validate:auth-scopes`, contract tests or the API surface check. The procedure, versioning and support window are in [RELEASE.md](RELEASE.md).
 
@@ -494,7 +502,7 @@ A pull request that fixes drift therefore removes its entries in the same change
 
 Line and branch coverage only see code that something runs, so an exported helper that no test calls, or an exported type no test names, never shows up in them. `npm run test:export-coverage` asks the question of the public surface instead: for each `package.json` `exports` entry, which exported names does no test reference? The analysis is in `scripts/export-coverage-core.ts`, the CLI in `scripts/export-coverage.ts`, and its self-tests and fixture project in `tests/tdd/export-coverage/`. `ci.yml` runs it with `--ci` in `static-analysis`.
 
-- **The surface** is what the TypeScript checker reports as the exports of each entry's source (`./dist/<name>.d.ts` maps to `src/<name>.ts`), following named, type-only, `export *` and `export * as` re-exports. The entry list must match `tsup.config.ts`, or the check exits `2`.
+- **The surface** is what the TypeScript checker reports as the exports of each entry's source (`./dist/<name>.d.ts`, and the `import` condition's `./dist/<name>.d.mts`, map to `src/<name>.ts`), following named, type-only, `export *` and `export * as` re-exports. The entry list must match `tsup.config.ts`, or the check exits `2`.
 - **A reference** is an identifier in a `.ts`, `.mts` or `.cts` file under `tests/` that the checker resolves to the same declaration, whether imported from the entry, from the source module directly, or by package name (the consumer contract tests). Files under `fixtures`, `step-fixtures`, `snapshots` and `__snapshots__` directories do not count. Neither does a name in a comment or string, or an import that is never used. Type tests in `tests/typetests` count.
 - **Classes** count as referenced when the class is; members are not checked individually.
 
@@ -519,6 +527,33 @@ The seed baseline has 424 entries: `.` 197 of 366 exports, `./schemas` 46 of 201
 Every rule is an error and there is no baseline: the initial run found no focused, skipped, swallowed or silenced tests, and the 18 tests without an assertion were fixed. A conditional skip (`LIVE ? describe : describe.skip`) is not flagged; that is how the live tiers opt out. `describeClientErrors` needs no configuration: its `it` blocks are linted where the helper defines them. `tests/bdd/support/binder.ts` is exempt from `jest/expect-expect`, because the test it registers per scenario asserts through the Then steps.
 
 `tests/tdd/suite-health/suite-health-lint.test.ts` loads the same config and lints one fixture per rule, as if it lived at a real test path, and requires exactly the expected findings, plus a compliant fixture that must produce none. It runs in `npm test`, so a rule that stops firing fails the unit suite. The script runs in `ci-fast.yml` on every push and in the `spec-audit` job inside `ci-success`.
+
+## Package lint and size budgets
+
+The `package-lint` job in `ci.yml` checks what `npm publish` would ship, statically, before the consumer contract installs and runs it. It downloads the `dist/` that `lint-and-build` uploaded rather than building again, packs it once, and runs two commands.
+
+### `npm run lint:package`: publint and Are The Types Wrong
+
+`scripts/package-lint.ts` builds (unless `--skip-build`), runs `npm pack`, and hands the tarball to both tools; `--tarball <path>` lints one that is already packed. The logic lives in `scripts/package-lint-core.ts`.
+
+| Tool                            | Blocks on                                               | Does not block                 |
+| ------------------------------- | ------------------------------------------------------- | ------------------------------ |
+| publint (API, on the tarball)   | Errors and warnings                                     | Suggestions, which are printed |
+| attw (`--format json`, tarball) | Any problem under `node16-cjs`, `node16-esm`, `bundler` | `node10` (below)               |
+
+`node10` is out of the profile on purpose. It ignores `exports`, so no sub-path other than `.` resolves under it; `engines.node` is `>=18`, where every runtime reads `exports`; and TypeScript deprecated `moduleResolution: node10`, while this repository builds with TypeScript 6. The root entry still resolves under `node10` through `main` and `types`, but the check makes no promise about it. The advisory `package-checks.yml` this job replaces ignored `no-resolution` for that reason and `false-cjs` across the board; the first is now out of profile and the second is fixed (`esi-23g.29`, below).
+
+Known findings are in `scripts/package-lint-baseline.json`, keyed `<tool>:<code> <where>` (for example `attw:FalseCJS ./errors node16-esm`) with the tracking bead as the value. It is a ratchet like the others: a blocking finding outside the baseline fails, an entry that no longer occurs fails, and an entry the base ref's copy lacks fails. The base ref is `PACKAGE_LINT_BASE_REF`, else `origin/master`, else `master`; the job fetches master first, and with no ref the check fails closed. The baseline is empty. Its last seven entries were one defect, `esi-23g.29`: every `import` condition resolved to a `.d.ts` in a `type: commonjs` package, so TypeScript read the ES module entry points as CommonJS ("Masquerading as CJS"). The build now writes `.d.mts` declarations for the `import` condition (`scripts/esm-declarations.cjs`).
+
+### `npm run size`: a budget per sub-path
+
+`.size-limit.cjs` holds a budget for the ESM build and one for the CJS build of each `exports` sub-path (`.`, `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory`). `scripts/size-limit-checks.cjs` derives the checks from the `exports` map, so a new sub-path without a budget, or a budget for a removed one, fails before anything is measured.
+Each check bundles the entry with esbuild the way a consumer loading that sub-path would: the entry plus every shared `chunk-*` file it imports (tsup builds with `splitting: true`), minified and uncompressed, for `platform: node`. `dependencies` and `peerDependencies` (`pino`, `zod`, `better-sqlite3`, `js-yaml`, `adm-zip`) and Node built-ins stay external, so the number is this package's own code, and a helper that starts inlining a dependency shows up. Budgets are the size measured at 9.9.0 plus 5%; each line's comment records the measurement.
+To raise a budget, run `npm run build && npm run size`, set the new measurement plus 5%, update the comment, and justify the growth in the pull request body. `.size-limit.cjs` and the package-lint baseline have explicit `CODEOWNERS` entries.
+
+### Negative fixtures
+
+`tests/tdd/package-lint/package-lint.test.ts`, part of `npm test`, runs the real tools against packages it writes to a temporary directory. A package whose `./sub` entry names a missing `types` file must produce `publint:FILE_DOES_NOT_EXIST` and an attw problem under all three resolutions, while a clean control produces none. A size-limit fixture whose CJS budget is below its entry plus chunk must exit 1, while its ESM check passes. The ratchet rules and the budget-to-exports matching have unit tests in the same file. attw 0.18 and size-limit 12 need Node 20, so the suites that run the tools skip on Node 18.
 
 ---
 
@@ -591,6 +626,7 @@ The same "explicit, reasoned exception" pattern appears in six more places:
 | `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)         |
 | `scripts/determinism-baseline.json`    | `npm run lint:determinism`     | Clock, timer and `Math.random()` sites per file and construct; shrink-only, stale counts fail     |
 | `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map       |
+| `scripts/package-lint-baseline.json`   | `npm run lint:package`         | Known publint/attw finding → bead id; shrink-only, stale entries fail                             |
 
 ---
 
@@ -608,6 +644,8 @@ The same "explicit, reasoned exception" pattern appears in six more places:
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`eslint.bdd-seam.rules.cjs`) |
 | `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline            |
 | `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`eslint.suite-health.rules.cjs`) |
+| `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)             |
+| `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)               |
 | `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                         |
 | `knip`                    | Dead code and unused exports (`knip.json`)                                              |
 | `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
@@ -719,6 +757,7 @@ npm run schema:drift:ci
 npm run test:export-coverage -- --ci
 npm run generate:types && git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts
 npm run api-report && git diff etc/esi.ts.api.md  # commit any change
+npm run lint:package && npm run size              # packed-tarball lint, size budgets
 npm run audit:check
 ```
 

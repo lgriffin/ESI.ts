@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/%40lgriffin%2Fesi.ts.svg)](https://badge.fury.io/js/%40lgriffin%2Fesi.ts)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0%2B-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4%2B-blue)](https://www.typescriptlang.org/)
 [![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-95%25%2B-brightgreen)](https://github.com/lgriffin/ESI.ts)
 [![npm downloads](https://img.shields.io/npm/dm/%40lgriffin/esi.ts)](https://www.npmjs.com/package/@lgriffin/esi.ts)
@@ -59,6 +59,8 @@ A generated client faithfully reproduces these spec bugs. ESI.ts fixes them.
 ```bash
 npm install @lgriffin/esi.ts
 ```
+
+Requires Node.js 18 or later. TypeScript projects need TypeScript 5.4 or later, with ES module or CommonJS code under `node16`, `nodenext` or `bundler` module resolution; the consumer contract checks each of those against the published tarball.
 
 ### Building from Source
 

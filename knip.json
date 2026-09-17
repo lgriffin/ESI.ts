@@ -5,7 +5,9 @@
     "jest-junit",
     "lint-staged",
     "@stryker-mutator/api",
-    "mitata"
+    "mitata",
+    "publint",
+    "esbuild"
   ],
   "ignore": ["src/types/generated/spec-alignment.check.ts"],
   "ignoreExportsUsedInFile": true,

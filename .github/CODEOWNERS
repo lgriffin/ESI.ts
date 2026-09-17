@@ -19,6 +19,11 @@
 /.github/ @lgriffin
 /.zizmor.yml @lgriffin
 
+# Packaging ceilings: raising a size budget or baselining a publint/attw
+# finding is a decision the owner reviews.
+/.size-limit.cjs @lgriffin
+/scripts/package-lint-baseline.json @lgriffin
+
 # Release automation: release-please rewrites these on every release PR.
 /release-please-config.json @lgriffin
 /.release-please-manifest.json @lgriffin
