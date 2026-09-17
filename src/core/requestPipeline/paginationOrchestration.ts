@@ -87,7 +87,7 @@ export async function handleOffsetPagination(
       useETag,
       resolveCache,
       templatePath,
-      false,
+      requiresAuth,
       sentAtWriteGeneration,
     );
     return { headers: parsed.raw, body: allData, status: 200 };

@@ -1,0 +1,173 @@
+name: Nightly Property Run
+
+# Runs the model-based property tests (tests/fuzz/*.property.test.ts) with
+# 10000 runs per property, against a seed chosen once per night. The PR run in
+# ci.yml (fuzz-tests) uses fast-check's default of 100 runs; this run looks
+# much deeper for the same invariants without costing PR time.
+#
+# The seed is printed in the log and the step summary. A failing property
+# prints its own seed, counter-example path and the replay command. To replay
+# the whole run locally:
+#   FC_NUM_RUNS=10000 FC_SEED=<seed> npm run fuzz:properties
+# or dispatch this workflow with that seed.
+#
+# On a scheduled failure the report job opens, or comments on, one issue with
+# a fixed title, and closes it after the next green night. Found a
+# counter-example? tests/fuzz/AGENTS.md says what to commit.
+
+on:
+  schedule:
+    - cron: '30 3 * * *'
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'fast-check seed to replay (leave empty for a new one)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-properties
+  cancel-in-progress: false
+
+jobs:
+  properties:
+    name: Properties, 10000 runs each
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    outputs:
+      seed: ${{ steps.seed.outputs.seed }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Choose seed
+        id: seed
+        env:
+          SEED_INPUT: ${{ inputs.seed }}
+        run: |
+          if [ -n "$SEED_INPUT" ]; then
+            if ! [[ "$SEED_INPUT" =~ ^-?[0-9]{1,10}$ ]] || [ "$SEED_INPUT" -lt -2147483648 ] || [ "$SEED_INPUT" -gt 2147483647 ]; then
+              echo "::error::seed must be an integer between -2147483648 and 2147483647"
+              exit 1
+            fi
+            SEED="$SEED_INPUT"
+          else
+            SEED=$(shuf -i 1-2147483647 -n 1)
+          fi
+          echo "seed=$SEED" >> "$GITHUB_OUTPUT"
+          echo "::notice title=fast-check seed::$SEED (replay: FC_NUM_RUNS=10000 FC_SEED=$SEED npm run fuzz:properties)"
+
+      - name: Run properties
+        id: run
+        env:
+          FC_NUM_RUNS: '10000'
+          FC_SEED: ${{ steps.seed.outputs.seed }}
+        run: |
+          mkdir -p reports/properties
+          echo "FC_NUM_RUNS=$FC_NUM_RUNS FC_SEED=$FC_SEED"
+          npm run fuzz:properties -- --ci --json --outputFile=reports/properties/jest-results.json
+
+      - name: Check the report
+        if: always() && steps.run.outcome != 'skipped'
+        run: |
+          REPORT=reports/properties/jest-results.json
+          if ! jq -e . "$REPORT" > /dev/null 2>&1; then
+            echo "::error::$REPORT is missing or not valid JSON; Jest did not report"
+            exit 1
+          fi
+          TOTAL=$(jq '.numTotalTests' "$REPORT")
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "::error::No property tests ran; the run proves nothing"
+            exit 1
+          fi
+
+      - name: Upload report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: property-run-report
+          path: reports/properties/
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        env:
+          RUN_OUTCOME: ${{ steps.run.outcome }}
+          SEED: ${{ steps.seed.outputs.seed }}
+        run: |
+          REPORT=reports/properties/jest-results.json
+          {
+            echo "## Nightly Property Run"
+            echo ""
+            echo "- **Outcome:** $RUN_OUTCOME"
+            echo "- **Seed:** \`$SEED\` (replay: \`FC_NUM_RUNS=10000 FC_SEED=$SEED npm run fuzz:properties\`)"
+            if jq -e . "$REPORT" > /dev/null 2>&1; then
+              echo "- **Tests:** $(jq '.numPassedTests' "$REPORT") passed, $(jq '.numFailedTests' "$REPORT") failed"
+              FAILED=$(jq -r '.testResults[] as $f | $f.assertionResults[] | select(.status == "failed") | "- `\($f.name | sub(".*/tests/"; "tests/"))`: \(.fullName)"' "$REPORT" | head -50)
+              if [ -n "$FAILED" ]; then
+                echo ""
+                echo "### Failed properties"
+                echo "$FAILED"
+                echo ""
+                echo "Each failure message in the job log carries its seed, counter-example path and replay command."
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  report:
+    name: Open or close the tracking issue
+    runs-on: ubuntu-latest
+    needs: properties
+    if: always() && github.event_name == 'schedule'
+    permissions:
+      issues: write # open, comment on and close the nightly property issue
+
+    steps:
+      - name: Update the tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RESULT: ${{ needs.properties.result }}
+          SEED: ${{ needs.properties.outputs.seed }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          TITLE="Nightly property run failed"
+          ISSUE=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title \
+            --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")
+          if [ "$RESULT" = "success" ]; then
+            if [ -n "$ISSUE" ]; then
+              gh issue close "$ISSUE" --comment "Green again in $RUN_URL (seed $SEED). Closing."
+            fi
+            exit 0
+          fi
+          BODY=$(cat <<EOF
+          The nightly property run ended with \`$RESULT\`: $RUN_URL
+
+          - Seed: \`$SEED\`
+          - Replay everything: \`FC_NUM_RUNS=10000 FC_SEED=$SEED npm run fuzz:properties\`
+          - Each failing property prints its own seed, counter-example path and \`-t\` replay command in the job log.
+
+          Fix the defect and commit the shrunk counter-example as a named example test in the same PR (tests/fuzz/AGENTS.md).
+          EOF
+          )
+          if [ -n "$ISSUE" ]; then
+            gh issue comment "$ISSUE" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi

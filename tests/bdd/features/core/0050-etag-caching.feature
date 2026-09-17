@@ -68,6 +68,19 @@ Feature: ETag Caching
       When the server would return an error
       Then the client shall return the originally cached data
 
+  Rule: When an authenticated paginated GET has resolved with every page, the ETag cache shall answer a repeat call inside the spec TTL with every page.
+    The combined array is what the caller received, so it is what a cached
+    answer must return. Entries for authenticated endpoints are keyed by the
+    access token; the combined array has to be stored under that same key, or
+    the lookup finds the first page alone.
+
+    Scenario: A repeat character assets call inside the TTL returns both pages
+      Given a client with an access token and an empty cache
+      And ESI answers the character assets request with 2 pages
+      When the client requests the character assets twice
+      Then both calls resolve with the assets from both pages
+      And the client sent 2 requests
+
   # ── Serving from cache when ESI fails ───────────────────────────────
 
   Rule: If a GET request is answered with a 5xx status while the ETag cache holds an unexpired entry for it, then the EsiClient shall resolve with the cached body and flag the response as stale.

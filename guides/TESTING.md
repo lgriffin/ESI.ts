@@ -454,6 +454,28 @@ Each replay goes through the BDD transport seam, so the whole pipeline runs, and
 - **Pagination fuzzing** (`pagination-fuzz.test.ts`) — page parameter via `buildEndpointPath()` with zero, negative, float, NaN, Infinity, and large values. Verifies: NaN/Infinity rejected, valid page numbers accepted.
 - **Response validation fault injection** (`response-validation-fault-injection.test.ts`) — bodies that violate an endpoint's `responseSchema` (one corrupted or missing field, one corrupted array element, or arbitrary JSON of the wrong shape, each kept only if the endpoint's own schema rejects it) served through the BDD transport seam, so they travel the real `handleRequest` pipeline to validation in `createClient`. Covers `status.getStatus` (object), `market.getMarketPrices` (array) and `characters.getCharacterPublicInfo` (path parameter). Verifies: the client rejects with an `EsiValidationError` (`direction: 'response'`, status `0`, the request URL) whose Zod issues match the schema's own verdict; exactly one request is sent, with no retry; safe mode returns the error as `{ ok: false }` instead; with `validateResponse: false` the same body comes back unchanged; no unhandled rejection is left behind.
 
+#### Model-based properties
+
+**Location:** `tests/fuzz/*.property.test.ts` (rules in [`tests/fuzz/AGENTS.md`](../tests/fuzz/AGENTS.md))
+**Run:** `npm run fuzz` (PR), `npm run fuzz:properties` (properties only)
+**Nightly:** `.github/workflows/nightly-properties.yml`, 10000 runs per property, one seed per night, a single `Nightly property run failed` issue on failure
+
+These state invariants rather than examples. Each drives real code (a domain client against a fake ESI on the `jest-fetch-mock` seam, or the unit itself) and compares it with a small reference model:
+
+| Property                                 | Invariant                                                                                                                                                                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `circuit-breaker-model.property.test.ts` | Admit/reject decisions and reported state match a closed → open → half-open → closed model for any sequence of calls, overlapping outcomes, status codes and clock advances; half-open never admits more than `halfOpenMaxAttempts`  |
+| `pagination-assembly.property.test.ts`   | Eager, `fetchAll*` and cursor walks return every page exactly once and in order, for any page count, transient failures, X-Pages drift, response arrival order and cursor tokens; a page that exhausts retries never yields a prefix |
+| `cache-key.property.test.ts`             | Cache keys are deterministic across equivalent spellings, injective across different values (`+`, `%20`, space, `&`, `=`), in definition order, and never shared between access tokens                                               |
+| `etag-cache-model.property.test.ts`      | For any history of calls, identities, ESI changes, faults (304, 200 without ETag, 4xx, 5xx, network) and time, the requests sent, If-None-Match, results and stored entries match the caching rules                                  |
+| `backoff.property.test.ts`               | `retryDelay` is finite, within `[0, maxDelayMs]`, monotonic in attempt, and inside the 0.75–1.25× jitter window below the cap                                                                                                        |
+
+**Replay.** A failure prints the shrunk counter-example, seed, path and the exact command (`FC_SEED=… FC_PATH=… npx jest --config jest.fuzz.config.cjs --testPathPatterns <file> -t "<name>"`). `FC_NUM_RUNS` raises the run count.
+
+**Vacuity check.** Every property registers known-bad mutants (an extra half-open probe, a dropped page, a cache key that ignores the token, a 304 that does not refresh the TTL, uncapped backoff, …) and the suite asserts the property fails against each one. A mutant that survives fails CI, so the number of vacuous properties is held at 0.
+
+**Counter-examples** found by a property are committed as named example tests in the PR that fixes the bug. The first run found five: the uncounted half-open probe (`esi-l38.11`), a late success closing an open circuit, the unscoped cache key for combined pages (`esi-l38.1`), page 1 revalidated alone after a page exhausted its retries, and a `NaN` backoff past attempt 1023 with a zero base delay.
+
 ### Tier 9: Gated Auth Tests (Live)
 
 **Location:** `tests/integration/gated-auth.test.ts`
