@@ -1,0 +1,118 @@
+{
+  "endpoint": "insurance.getInsurancePrices",
+  "call": {
+    "client": "insurance",
+    "method": "getInsurancePrices",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 569,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].levels",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].levels",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].levels",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "insurance/prices",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"f13809dd14733aae0f846744acac168aca97f9b529bd2ee9bbe66971\"",
+        "expires": "Thu, 17 Sep 2026 14:50:07 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:50:07 GMT"
+      },
+      "body": [
+        {
+          "levels": [
+            {
+              "cost": 0,
+              "name": "Basic",
+              "payout": 0
+            },
+            {
+              "cost": 0,
+              "name": "Standard",
+              "payout": 0
+            },
+            {
+              "cost": 0,
+              "name": "Bronze",
+              "payout": 0
+            }
+          ],
+          "type_id": 34475
+        },
+        {
+          "levels": [
+            {
+              "cost": 107433.05,
+              "name": "Basic",
+              "payout": 1074330.5
+            },
+            {
+              "cost": 214866.1,
+              "name": "Standard",
+              "payout": 1289196.5999999999
+            },
+            {
+              "cost": 322299.14999999997,
+              "name": "Bronze",
+              "payout": 1504062.7
+            }
+          ],
+          "type_id": 34828
+        },
+        {
+          "levels": [
+            {
+              "cost": 1742871.25,
+              "name": "Basic",
+              "payout": 17428712.5
+            },
+            {
+              "cost": 3485742.5,
+              "name": "Standard",
+              "payout": 20914455
+            },
+            {
+              "cost": 5228613.75,
+              "name": "Bronze",
+              "payout": 24400197.5
+            }
+          ],
+          "type_id": 22544
+        }
+      ]
+    }
+  ]
+}

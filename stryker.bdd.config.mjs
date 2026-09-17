@@ -32,7 +32,8 @@ export default {
         path.join(projectRoot, 'tests/bdd/specs/**/*.spec.ts'),
       ],
       moduleNameMapper: {
-        '^(?:\\.\\./)+src/(.*)$': '<rootDir>/src/$1',
+        // Optional group: a bare `../src` (package root) maps to the sandbox too.
+        '^(?:\\.\\./)+src(/.*)?$': '<rootDir>/src$1',
       },
     },
   },

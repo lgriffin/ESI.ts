@@ -48,6 +48,8 @@ Use normalized field names (see Field Normalization below). Add a JSDoc comment 
 
 ### 2. Add the Zod schema in `schemas.ts`
 
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 export const NewThingSchema = z.looseObject({
   newThingId: z.int(),
@@ -62,6 +64,8 @@ Always use `z.looseObject({})` so extra fields from the SDE are preserved rather
 ### 3. Register in `ingestion/constants.ts`
 
 Add an entry to `SDE_FILE_REGISTRY`:
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
 {
@@ -81,6 +85,8 @@ Add an entry to `SDE_FILE_REGISTRY`:
 
 ### 4. Add methods to `IStaticDataProvider.ts`
 
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 // --- New Things ---
 getNewThing(newThingId: number): NewThing | null;
@@ -89,6 +95,8 @@ getNewThingsByCategory(categoryId: number): NewThing[];  // if FK query needed
 ```
 
 ### 5. Implement in `SdeDataProvider.ts`
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
 getNewThing(newThingId: number): NewThing | null {
@@ -110,6 +118,8 @@ The generic helpers handle all the Map lookups and lazy FK indexing.
 
 Add the field to `MemorySdeData`:
 
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 export interface MemorySdeData {
   // ... existing fields
@@ -119,11 +129,15 @@ export interface MemorySdeData {
 
 Register in the constructor:
 
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 register('eve_new_things', data.newThings, 'newThingId');
 ```
 
 Add the query methods using the generic helpers:
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
 getNewThing(newThingId: number): NewThing | null {
@@ -132,6 +146,8 @@ getNewThing(newThingId: number): NewThing | null {
 ```
 
 ### 7. Add factory methods in `SdeTestDataFactory.ts`
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
 static createNewThing(overrides: Partial<NewThing> = {}): NewThing {
@@ -148,6 +164,8 @@ static createNewThing(overrides: Partial<NewThing> = {}): NewThing {
 Use realistic default values based on actual SDE data when possible.
 
 ### 8. Export from `index.ts`
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```ts
 export type { NewThing } from './types';
@@ -180,6 +198,8 @@ destination:
 
 Becomes:
 
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 { destination: { solarSystemId: 30000140, stargateId: 50000802 } }
 ```
@@ -190,10 +210,10 @@ CCP YAML stores localized strings as maps:
 
 ```yaml
 name:
-  en: "Tritanium"
-  de: "Tritanium"
-  fr: "Tritanium"
-  ja: "トリタニウム"
+  en: 'Tritanium'
+  de: 'Tritanium'
+  fr: 'Tritanium'
+  ja: 'トリタニウム'
 ```
 
 The transform extracts the `en` locale to a plain string. If no `en` key exists, falls back to an empty string.
@@ -230,6 +250,8 @@ The script downloads from `https://developers.eveonline.com/static-data/eve-onli
 Each entity domain has tests for:
 
 **Schema tests** (`schemas.test.ts`):
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 it('should accept valid data', () => {
   const data = SdeTestDataFactory.createNewThing();
@@ -255,6 +277,8 @@ it('should reject missing required fields', () => {
 ```
 
 **Provider contract tests** (`IStaticDataProvider.contract.test.ts`):
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 it('should return entity by ID', () => {
   const result = provider.getNewThing(1);
@@ -268,6 +292,8 @@ it('should return null for unknown ID', () => {
 ```
 
 **Factory tests** (`SdeTestDataFactory.test.ts`):
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
+
 ```ts
 it('should create with defaults', () => {
   const thing = SdeTestDataFactory.createNewThing();
@@ -321,6 +347,7 @@ npm run validate
 ```
 
 The integration tests verify:
+
 - Well-known entity lookups (Tritanium, Jita, Caldari, etc.)
 - Minimum row counts (40K+ types, 8K+ systems, 200K+ moons, etc.)
 - Universe hierarchy navigation (star → planet → moon)

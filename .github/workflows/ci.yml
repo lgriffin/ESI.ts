@@ -271,8 +271,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # --json records every test Jest ran, so the report below can prove each
+      # scenario in the feature files executed, not only that those that ran
+      # passed. Jest does not create the output file's directory.
       - name: Run all BDD tests
-        run: npm run bdd
+        run: |
+          mkdir -p reports/bdd
+          npm run bdd -- --json --outputFile=reports/bdd/jest-results.json
+
+      # Runs after a failing suite too, so the summary names the Rules that
+      # broke. Fails when a scenario stated in a feature file did not execute.
+      - name: Report scenarios by Rule and check each one executed
+        if: ${{ !cancelled() }}
+        run: npm run bdd:report
+
+      - name: Upload the JUnit report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bdd-junit
+          path: reports/bdd/
+          if-no-files-found: error
+          retention-days: 30
 
   spec-audit:
     name: EARS Spec Audit
@@ -308,6 +328,9 @@ jobs:
       - name: Scenarios mock at the transport seam
         run: npm run lint:bdd-seam
 
+      - name: No focused, skipped, assertion-free or silenced tests
+        run: npm run lint:suite-health
+
   contract-tests:
     name: Contract Tests
     runs-on: ubuntu-latest
@@ -342,6 +365,37 @@ jobs:
           fi
         env:
           ESI_LIVE_TESTS: 'true'
+
+  # Recorded ESI payloads replayed through the full client pipeline at the
+  # transport seam, with no network (tests/contract/AGENTS.md). Separate from
+  # contract-tests, which talks to live ESI and soft-skips on a 503.
+  contract-replay:
+    name: Contract Replay (recorded payloads)
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # unrecordable.json and known-mismatches.json only shrink against
+      # master's copy; without the ref the coverage test fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Replay recorded payloads
+        run: npm run contract:replay
 
   fuzz-tests:
     name: Fuzz Tests
@@ -455,6 +509,40 @@ jobs:
 
       - name: Run the consumer contract test
         run: npm run test:consumer
+
+  doc-examples:
+    name: Documentation Examples
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    # Type-checks every ts block in README.md, guides/ and the SDE docs against
+    # the packed tarball (nodenext and bundler resolution), runs the blocks
+    # marked runnable against a stubbed fetch, and checks the negative fixtures
+    # are still rejected. See guides/DOCUMENTATION.md.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The known-broken baseline ratchet compares against master's copy;
+      # without the ref the check fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      # npm ci ran `prepare`, which builds dist/; pack that rather than
+      # building twice. A missing dist/ fails every import, not silently.
+      - name: Check the documentation examples
+        run: npm run test:docs-examples -- --skip-build
 
   api-semver:
     name: API SemVer Gate
@@ -748,6 +836,71 @@ jobs:
       - name: Run zizmor
         run: uvx zizmor@1.25.2 --config .zizmor.yml .github/
 
+  mutation-pr:
+    name: Mutation (changed files)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # Runway tier K (bead esi-23g.12). Mutates only the src/ files this pull
+    # request changes, reusing the nightly results for everything else, and
+    # fails if a touched directory drops below its floor in
+    # mutation-thresholds.json or if that file lowers a floor. No `needs`, so
+    # it starts with lint-and-build and fits the PR wall-clock budget.
+    #
+    # Like every job here it has no job-level `if:`. A pull request that
+    # changes nothing in the unit mutation scope still runs the job: the
+    # thresholds file is still checked, the known-weak fixture still runs, and
+    # the mutation step exits 0 with a "Skipped" line in the job summary.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 2 # HEAD^1 is the base tip of the pull request merge commit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22' # Stryker 10 requires Node >= 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Written by nightly-mutation.yml on master. Restore only: a pull request
+      # never saves this cache. A miss is not a pass: mutation:pr then mutates
+      # every file in the touched directories from scratch.
+      - name: Restore the nightly incremental mutation report
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: reports/mutation/stryker-incremental.json
+          key: stryker-incremental-unit-${{ github.event.pull_request.base.sha }}
+          restore-keys: |
+            stryker-incremental-unit-${{ github.event.pull_request.base.sha }}-
+            stryker-incremental-unit-
+
+      # The tier's signal on itself: a deliberately weak test must leave
+      # surviving mutants that the ratchet fails.
+      - name: Known-weak fixture leaves surviving mutants
+        run: npm run mutation:fixture
+
+      - name: Mutate changed src/ files and check directory ratchets
+        timeout-minutes: 8
+        env:
+          MUTATION_BASE_REF: HEAD^1
+        run: npm run mutation:pr -- --concurrency 4
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mutation-pr-report
+          path: |
+            reports/mutation/mutation.html
+            reports/mutation/mutation.json
+          if-no-files-found: ignore
+          retention-days: 7
+
   # ci-success is the single required status check for this workflow (R10).
   #
   # Semantics:
@@ -776,16 +929,19 @@ jobs:
         bdd-tests,
         spec-audit,
         contract-tests,
+        contract-replay,
         fuzz-tests,
         full-test-suite,
         api-surface,
         consumer-contract,
+        doc-examples,
         api-semver,
         documentation,
         lockfile,
         dependency-audit,
         benchmarks,
         zizmor,
+        mutation-pr,
       ]
     if: always()
 

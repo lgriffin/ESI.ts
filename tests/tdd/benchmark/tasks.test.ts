@@ -17,14 +17,18 @@ describe('benchmark task catalogue', () => {
     '%s sets up and runs',
     async (_name, task) => {
       const { fn, teardown } = await task.setup();
+      expect(typeof fn).toBe('function');
+      let completed = 0;
       try {
         for (let i = 0; i < 3; i++) {
           const result = fn();
           if (result instanceof Promise) await result;
+          completed++;
         }
       } finally {
         teardown?.();
       }
+      expect(completed).toBe(3);
     },
   );
 });

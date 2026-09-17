@@ -1,0 +1,160 @@
+{
+  "endpoint": "faction.getCharacters",
+  "call": {
+    "client": "factions",
+    "method": "getLeaderboardsCharacters",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.kills.active_total",
+      "kind": "array",
+      "original": 100,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.kills.last_week",
+      "kind": "array",
+      "original": 100,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.kills.yesterday",
+      "kind": "array",
+      "original": 100,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.victory_points.active_total",
+      "kind": "array",
+      "original": 100,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.victory_points.last_week",
+      "kind": "array",
+      "original": 100,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.victory_points.yesterday",
+      "kind": "array",
+      "original": 100,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "fw/leaderboards/characters",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": {
+        "kills": {
+          "active_total": [
+            {
+              "amount": 15829,
+              "character_id": 95299451
+            },
+            {
+              "amount": 13399,
+              "character_id": 1230873801
+            },
+            {
+              "amount": 12185,
+              "character_id": 1392757657
+            }
+          ],
+          "last_week": [
+            {
+              "amount": 285,
+              "character_id": 583637272
+            },
+            {
+              "amount": 176,
+              "character_id": 90157186
+            },
+            {
+              "amount": 94,
+              "character_id": 1991432800
+            }
+          ],
+          "yesterday": [
+            {
+              "amount": 65,
+              "character_id": 583637272
+            },
+            {
+              "amount": 39,
+              "character_id": 90157186
+            },
+            {
+              "amount": 25,
+              "character_id": 2049784221
+            }
+          ]
+        },
+        "victory_points": {
+          "active_total": [
+            {
+              "amount": 4765565,
+              "character_id": 2117652307
+            },
+            {
+              "amount": 4705196,
+              "character_id": 96338377
+            },
+            {
+              "amount": 4637211,
+              "character_id": 2121503405
+            }
+          ],
+          "last_week": [
+            {
+              "amount": 101907,
+              "character_id": 2124325888
+            },
+            {
+              "amount": 100679,
+              "character_id": 2124329852
+            },
+            {
+              "amount": 98487,
+              "character_id": 2124325894
+            }
+          ],
+          "yesterday": [
+            {
+              "amount": 15936,
+              "character_id": 2124325888
+            },
+            {
+              "amount": 15936,
+              "character_id": 2124325894
+            },
+            {
+              "amount": 15936,
+              "character_id": 2124325892
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

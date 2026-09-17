@@ -1,0 +1,74 @@
+{
+  "endpoint": "universe.getAncestries",
+  "call": {
+    "client": "universe",
+    "method": "getAncestries",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 43,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 415,
+      "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 459,
+      "kept": 400
+    }
+  ],
+  "pages": [
+    {
+      "url": "universe/ancestries",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": [
+        {
+          "bloodline_id": 7,
+          "description": "The Gallente prize political activism more so than other Empires. Many devote their efforts towards one or more causes that suit their ambitions. Activists understand that things will never change for the better unless someone has the courage to fight the good fight.",
+          "icon_id": 1653,
+          "id": 13,
+          "name": "Activists",
+          "short_description": "Making the universe a better place, one fight at a time."
+        },
+        {
+          "bloodline_id": 9,
+          "description": "Genetic engineering has through the centuries transformed Jovian society in every aspect imaginable. Many Jovians believe that enough has been done. The Unsullied is a group of Jovians that have rejected further generic experiments and instead adopt conventional methods to deal with sickness and old age. They are advocates of cyber-implants and want to use machines instead of genes in the search f",
+          "id": 26,
+          "name": "Unsullied",
+          "short_description": ""
+        },
+        {
+          "bloodline_id": 13,
+          "description": "The Khanid are not generally known to be as devout as the Amarrians, but those who are tend to be fanatics even by Amarrian standards. Religious Khanids are often inducted into zealous cults, generally based on their interpretation of the Scriptures. The Amarrians regard these religious Khanids with suspicious interest; on the one hand the cultists' extremism alarms them, but on the other their re",
+          "icon_id": 3033,
+          "id": 39,
+          "name": "Zealots",
+          "short_description": "Religious fanatics who pursue their faith with fervor."
+        }
+      ]
+    }
+  ]
+}

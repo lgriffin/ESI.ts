@@ -1,0 +1,50 @@
+{
+  "endpoint": "meta.getStatus",
+  "call": {
+    "client": "meta",
+    "method": "getStatus",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.routes",
+      "kind": "array",
+      "original": 237,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "meta/status",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "routes": [
+          {
+            "method": "GET",
+            "path": "/alliances",
+            "status": "OK"
+          },
+          {
+            "method": "GET",
+            "path": "/alliances/{alliance_id}",
+            "status": "OK"
+          },
+          {
+            "method": "GET",
+            "path": "/alliances/{alliance_id}/contacts",
+            "status": "OK"
+          }
+        ]
+      }
+    }
+  ]
+}

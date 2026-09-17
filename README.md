@@ -595,7 +595,12 @@ const order: EsiSpec.MarketsRegionIdOrdersGet = {
   volume_remain: 1000,
   volume_total: 5000,
   is_buy_order: false,
-  // ...
+  duration: 90,
+  issued: '2026-09-01T12:00:00Z',
+  location_id: 60003760,
+  system_id: 30000142,
+  min_volume: 1,
+  range: 'region',
 };
 ```
 
@@ -824,7 +829,9 @@ console.log(`Best sell: ${Math.min(...sellOrders.map((o) => o.price))}`);
 
 Always call `shutdown()` when you're done to clean up cache timers:
 
-```typescript
+```typescript runnable
+import { EsiClient } from '@lgriffin/esi.ts';
+
 const client = new EsiClient();
 try {
   const status = await client.status.getStatus();

@@ -1,0 +1,11 @@
+{
+  "src/core": 81.8,
+  "src/core/cache": 53.3,
+  "src/core/circuitBreaker": 75.2,
+  "src/core/logger": 33.3,
+  "src/core/middleware": 92.3,
+  "src/core/pagination": 72.2,
+  "src/core/rateLimiter": 70.9,
+  "src/core/requestPipeline": 67.5,
+  "src/core/util": 95.3
+}

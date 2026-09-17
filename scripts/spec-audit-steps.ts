@@ -349,8 +349,13 @@ function checkLegacyStepFiles(
   return findings;
 }
 
-function checkFeatureBindings(root: string): StepFinding[] {
-  const findings: StepFinding[] = [];
+/**
+ * The feature file each spec entry and legacy step file runs, keyed by feature:
+ * repository-relative feature path to the test files that bind it. A spec
+ * entry binds the feature at its mirrored path, whether or not that exists; a
+ * legacy step file binds its `loadFeature` argument.
+ */
+export function featureBindings(root: string): Map<string, string[]> {
   const bindings = new Map<string, string[]>();
   const bind = (feature: string, by: string) =>
     bindings.set(feature, [...(bindings.get(feature) ?? []), by]);
@@ -358,15 +363,10 @@ function checkFeatureBindings(root: string): StepFinding[] {
   for (const spec of walk(root, SPECS, (name) =>
     /^\d{4}-.*\.spec\.ts$/.test(name),
   )) {
-    const feature = `${FEATURES}/${spec.slice(SPECS.length + 1).replace(/\.spec\.ts$/, '.feature')}`;
-    if (!existsSync(path.join(root, feature))) {
-      findings.push({
-        check: 'spec-without-feature',
-        file: spec,
-        message: `Binds ${feature}, which does not exist. A spec entry mirrors its feature's path.`,
-      });
-    }
-    bind(feature, spec);
+    bind(
+      `${FEATURES}/${spec.slice(SPECS.length + 1).replace(/\.spec\.ts$/, '.feature')}`,
+      spec,
+    );
   }
 
   for (const legacy of walk(root, LEGACY, (name) =>
@@ -374,6 +374,25 @@ function checkFeatureBindings(root: string): StepFinding[] {
   )) {
     const feature = loadFeatureArgument(parse(root, legacy));
     if (feature) bind(toPosix(path.posix.normalize(feature)), legacy);
+  }
+
+  return bindings;
+}
+
+function checkFeatureBindings(root: string): StepFinding[] {
+  const findings: StepFinding[] = [];
+  const bindings = featureBindings(root);
+
+  for (const [feature, by] of bindings) {
+    for (const spec of by.filter((file) => file.startsWith(`${SPECS}/`))) {
+      if (!existsSync(path.join(root, feature))) {
+        findings.push({
+          check: 'spec-without-feature',
+          file: spec,
+          message: `Binds ${feature}, which does not exist. A spec entry mirrors its feature's path.`,
+        });
+      }
+    }
   }
 
   for (const feature of walk(root, FEATURES, (name) =>

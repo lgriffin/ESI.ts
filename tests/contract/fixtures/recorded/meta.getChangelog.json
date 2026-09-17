@@ -1,0 +1,454 @@
+{
+  "endpoint": "meta.getChangelog",
+  "call": {
+    "client": "meta",
+    "method": "getChangelog",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.changelog.2024-07-11",
+      "kind": "array",
+      "original": 7,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.changelog.2025-08-26",
+      "kind": "array",
+      "original": 4,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.changelog.2025-12-16",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.changelog.2026-05-19",
+      "kind": "array",
+      "original": 16,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.changelog.2026-07-21",
+      "kind": "array",
+      "original": 5,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.changelog.2026-08-04",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.changelog.2026-08-18",
+      "kind": "array",
+      "original": 8,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "meta/changelog",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=600",
+        "content-type": "application/json",
+        "expires": "Thu, 17 Sep 2026 14:22:59 GMT"
+      },
+      "body": {
+        "changelog": {
+          "2020-01-01": [
+            {
+              "method": "GET",
+              "path": "/meta/changelog",
+              "compatibility_date": "2020-01-01",
+              "type": "new",
+              "description": "Initial release of changelog."
+            },
+            {
+              "method": "GET",
+              "path": "/meta/compatibility-dates",
+              "compatibility_date": "2020-01-01",
+              "type": "new",
+              "description": "Initial release of compatibility dates."
+            }
+          ],
+          "2020-08-11": [
+            {
+              "method": "GET",
+              "path": "/status",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Field 'vip' is now always present"
+            }
+          ],
+          "2024-07-11": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/assets",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Add new location flags InfrastructureHangar & MoonMaterialBay."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/notifications",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Add several new notification types"
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/wallet/journal",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Add several new wallet journal ref types."
+            }
+          ],
+          "2024-07-16": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/notifications",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Add new notification types: `StructureLowReagentsAlert` and `StructureNoReagentsAlert`"
+            },
+            {
+              "method": "GET",
+              "path": "/universe/races",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Fixed the maxItems limit that would cause this endpoint to fail unnecessarily."
+            }
+          ],
+          "2025-02-18": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/skillqueue",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Skill queues with 151 entries can now be requested safely."
+            },
+            {
+              "method": "POST",
+              "path": "/fleets/{fleet_id}/members",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Always return 204 when inviting members to your fleet, even if they are offline or have a CSPA charge set."
+            }
+          ],
+          "2025-04-01": [
+            {
+              "method": "GET",
+              "path": "/fleets/{fleet_id}/recommended-fit",
+              "compatibility_date": "2025-04-01",
+              "type": "new",
+              "description": "Introduction of recommended fits."
+            }
+          ],
+          "2025-04-02": [
+            {
+              "method": "GET",
+              "path": "/fleets/{fleet_id}/recommended-fit",
+              "compatibility_date": "2025-04-02",
+              "type": "removed",
+              "description": ""
+            }
+          ],
+          "2025-04-08": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/notifications/contacts",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Update spec to indicate that notification IDs are int64s. More detail in this [blog post](https://developers.eveonline.com/blog/notificationid-is-reaching-int32-limits)."
+            }
+          ],
+          "2025-07-21": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/wallet/journal",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Updated enum with recently added types. See [eve-glue](https://github.com/esi/eve-glue/pull/44) for details."
+            },
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}/assets",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Newly added Freelance Jobs delivery hangar is now visible by name. See [eve-glue](https://github.com/esi/eve-glue/pull/45) for details."
+            },
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}/containers/logs",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "character_id is no longer always zero."
+            }
+          ],
+          "2025-08-26": [
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}/projects",
+              "compatibility_date": "2025-08-26",
+              "type": "new",
+              "description": "Initial release of Corporation Projects."
+            },
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}/projects/{project_id}",
+              "compatibility_date": "2025-08-26",
+              "type": "new",
+              "description": "Initial release of Corporation Projects."
+            },
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}/projects/{project_id}/contribution/{character_id}",
+              "compatibility_date": "2025-08-26",
+              "type": "new",
+              "description": "Initial release of Corporation Projects."
+            }
+          ],
+          "2025-09-26": [
+            {
+              "method": "GET",
+              "path": "/meta/changelog",
+              "compatibility_date": "2025-09-26",
+              "type": "breaking",
+              "description": "Replaced 'is_breaking' with a more detailed 'type'."
+            }
+          ],
+          "2025-09-30": [
+            {
+              "method": "POST",
+              "path": "/route/{origin_system_id}/{destination_system_id}",
+              "compatibility_date": "2025-09-30",
+              "type": "new",
+              "description": "Replacement of GET /route/{origin}/{destination}."
+            },
+            {
+              "method": "GET",
+              "path": "/route/{origin}/{destination}",
+              "compatibility_date": "2025-09-30",
+              "type": "removed",
+              "description": ""
+            }
+          ],
+          "2025-11-06": [
+            {
+              "method": "GET",
+              "path": "/meta/status",
+              "compatibility_date": "2025-11-06",
+              "type": "new",
+              "description": "Replacement of GET /status.json."
+            }
+          ],
+          "2025-12-16": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/freelance-jobs",
+              "compatibility_date": "2025-12-16",
+              "type": "new",
+              "description": "Initial release of Freelance Jobs."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/freelance-jobs/{job_id}/participation",
+              "compatibility_date": "2025-12-16",
+              "type": "new",
+              "description": "Initial release of Freelance Jobs."
+            },
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}/freelance-jobs",
+              "compatibility_date": "2025-12-16",
+              "type": "new",
+              "description": "Initial release of Freelance Jobs."
+            }
+          ],
+          "2026-01-27": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/skillqueue",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Enabled event-based cache invalidation."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/skills",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Enabled event-based cache invalidation."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/skills",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Field 'active_skill_level' now reflects Expert Systems levels correctly."
+            }
+          ],
+          "2026-05-19": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/access-lists",
+              "compatibility_date": "2026-05-19",
+              "type": "new",
+              "description": "Initial release of Access Lists."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/access-lists/{access_list_id}",
+              "compatibility_date": "2026-05-19",
+              "type": "new",
+              "description": "Initial release of Access Lists."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/mercenary-tactical-operations",
+              "compatibility_date": "2026-05-19",
+              "type": "new",
+              "description": "Initial release of Mercenary Dens."
+            }
+          ],
+          "2026-06-09": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}",
+              "compatibility_date": "2026-06-09",
+              "type": "changed",
+              "description": "Added 'character_title_id' and 'achievement_score'"
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}",
+              "compatibility_date": "2026-06-09",
+              "type": "breaking",
+              "description": "Renamed 'title' to 'corporation_title'"
+            }
+          ],
+          "2026-07-01": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}",
+              "compatibility_date": "2026-06-09",
+              "type": "changed",
+              "description": "Changed 'security_status' to have a precision of 1"
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}",
+              "compatibility_date": "2020-01-01",
+              "type": "changed",
+              "description": "Changed 'security_status' to have a precision of 1"
+            }
+          ],
+          "2026-07-17": [
+            {
+              "method": "GET",
+              "path": "/meta/name",
+              "compatibility_date": "2026-07-17",
+              "type": "new",
+              "description": "Initial release. Nobody agrees on what ESI stands for."
+            }
+          ],
+          "2026-07-21": [
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}",
+              "compatibility_date": "2026-07-21",
+              "type": "changed",
+              "description": "Added 'friendly_fire', 'palette', 'status', 'tax_rates.loyalty_point', and 'type' fields"
+            },
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}",
+              "compatibility_date": "2026-07-21",
+              "type": "breaking",
+              "description": "Fields 'ceo_id' and 'creator_id' are now optional"
+            },
+            {
+              "method": "GET",
+              "path": "/corporations/{corporation_id}",
+              "compatibility_date": "2026-07-21",
+              "type": "breaking",
+              "description": "Moved 'tax_rate' to 'tax_rates.isk'"
+            }
+          ],
+          "2026-08-04": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/military-campaigns/objectives",
+              "compatibility_date": "2026-08-04",
+              "type": "new",
+              "description": "Initial release of Military Campaigns."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/military-campaigns/objectives/{objective_id}",
+              "compatibility_date": "2026-08-04",
+              "type": "new",
+              "description": "Initial release of Military Campaigns."
+            },
+            {
+              "method": "GET",
+              "path": "/military-campaigns",
+              "compatibility_date": "2026-08-04",
+              "type": "new",
+              "description": "Initial release of Military Campaigns."
+            }
+          ],
+          "2026-08-18": [
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/cosmetics/skinr",
+              "compatibility_date": "2026-08-18",
+              "type": "new",
+              "description": "Initial release of SKINR."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/cosmetics/skinr/components",
+              "compatibility_date": "2026-08-18",
+              "type": "new",
+              "description": "Initial release of SKINR."
+            },
+            {
+              "method": "GET",
+              "path": "/characters/{character_id}/paragon-hub/skinr",
+              "compatibility_date": "2026-08-18",
+              "type": "new",
+              "description": "Initial release of SKINR."
+            }
+          ],
+          "2026-09-03": [
+            {
+              "method": "POST",
+              "path": "/route/{origin_system_id}/{destination_system_id}",
+              "compatibility_date": "2025-09-30",
+              "type": "changed",
+              "description": "Field 'security_penalty' can now be set to zero (defaulted to 50 before)."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

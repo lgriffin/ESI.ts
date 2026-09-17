@@ -143,8 +143,9 @@ clause, before the system name.
 
 ## Review conventions the audit does not check
 
-These are caught in review, with two exceptions: rule 5 has its own lint gate,
-and step-file structure (rules 7 and 8) is checked by the audit and the dry run.
+These are caught in review, with three exceptions: rule 5 has its own lint gate,
+step-file structure (rules 7 and 8) is checked by the audit and the dry run, and
+the audit checks bug tags (rule 9).
 
 ### 4. Scenario names describe the case, not the requirement
 
@@ -261,6 +262,24 @@ on a step with no definition, a step with several, and a definition no feature
 uses. A spec entry also refuses to run a feature with a missing or ambiguous
 step, so these fail `npm test` too.
 
+### 9. A `@bug` tag names where the bug is tracked
+
+A scenario or Rule tagged `@bug` records a known defect, so it carries the
+tracker tag for that defect beside it:
+
+```gherkin
+@bug @gh-123
+Scenario: <the case that reproduces the bug>
+```
+
+- `@esi-<id>` names a bead. The id must be in `.beads/issues.jsonl`, so file
+  the bead and commit the refreshed export in the same change.
+- `@gh-<number>` names a GitHub issue. Its format is checked, not its existence.
+
+Tags are inherited, so a tracker tag on a Rule covers `@bug` on each of its
+scenarios. A tracker tag on a scenario does not cover `@bug` on its Rule. Any
+`@esi-` tag must name a known bead, with or without `@bug`.
+
 ## Workflow for a behaviour change
 
 1. Write or update the EARS requirement as a `Rule:` title in the right
@@ -297,6 +316,8 @@ files:
 | Every Scenario sits under a Rule                                 | `scenario-outside-rule`                                                    |
 | Every Feature has at least one Rule                              | `feature-without-rules`                                                    |
 | Every Feature has a description                                  | `feature-without-description`                                              |
+| `@bug` has a tracker tag on the element or an ancestor (rule 9)  | `bug-without-tracker`                                                      |
+| A `@esi-` tag names a bead in `.beads/issues.jsonl` (rule 9)     | `bug-unknown-bead`                                                         |
 
 Then, on a full run (no paths given), the step files. These checks live in
 `scripts/spec-audit-steps.ts` and read step files with the TypeScript parser,
@@ -356,6 +377,65 @@ fetched; the CI job fetches `master` before it runs. The one exception is a
 baseline whose file has no `legacyStepFiles` key at all, which only happens on
 the change that introduces the key: additions cannot be detected there, and the
 check is skipped.
+
+## The execution check and the JUnit report
+
+The audit proves a Rule has scenarios. It cannot prove they run: a spec entry
+outside Jest's `testMatch`, a step file whose suite fails to load, a skipped
+test, or a scenario renamed in the feature but not in its legacy step file all
+leave a Rule that reads as verified. `npm run bdd:report`
+(`scripts/bdd-report.ts`) reads the Jest JSON of a full BDD run and joins it to
+the feature files, naming scenarios through `support/outline.ts`, the outline
+the binder names its tests from:
+
+```bash
+mkdir -p reports/bdd   # Jest does not create the directory
+npm run bdd -- --json --outputFile=reports/bdd/jest-results.json
+npm run bdd:report
+```
+
+Run it after the full suite only. A filtered run (`npm run bdd:market`) leaves
+every other feature out of the results, and the report says so.
+
+| Check                                                                                                                 | Fixture                              |
+| :-------------------------------------------------------------------------------------------------------------------- | :----------------------------------- |
+| Every feature is bound to a test file that ran and loaded (`feature-not-run`)                                         | `results-feature-not-run.json`       |
+| Every scenario, and every example of an outline, matches an executed test, passed or failed (`scenario-not-executed`) | `results-scenario-not-executed.json` |
+
+The fixtures are Jest results for the miniature repository in
+`tests/tdd/spec-audit/report-fixtures/`, and `bdd-report.test.ts` runs them.
+A failing scenario is not a finding here: `npm run bdd` owns that failure.
+Today every one of the specification's scenarios executes, so there is no
+exception list: the count of unexecuted scenarios is zero, and any scenario
+that stops executing fails CI.
+
+The same run writes `reports/bdd/junit.xml`. Each test case is named
+`Feature › Rule › Scenario`, with the feature file and the scenario's line, so
+a report shows the requirement a failure breaks. The name comes from the
+feature file rather than from Jest's describe path, because jest-cucumber's
+`defineFeature` drops Rule titles and a legacy step file has no Rule in its
+path. A failed scenario is a `<failure>`; a scenario that did not run is an
+`<error>`. In CI the `bdd-tests` job uploads `reports/bdd/` as the `bdd-junit`
+artifact and writes the Rules not verified to the job summary.
+
+## When a Rule is protection
+
+A Rule is protection only when three things hold, each owned by one gate:
+
+1. **It is well-formed**: `npm run spec:audit` requires one `shall`, at least
+   one Scenario, and no Scenario outside a Rule.
+2. **Its scenarios execute**: `npm run bdd:report`, above.
+3. **Its scenarios can fail**: `npm run mutation:bdd:ratchet` floors the
+   BDD-only mutation score of each source directory in
+   `mutation-bdd-thresholds.json`.
+
+Rules whose domain mutation score is not ratcheted are documentation, not
+protection. A scenario that executes and passes can still pass whatever the
+client does. `mutation-bdd-thresholds.json` is empty today (`{}`), so no
+directory is ratcheted and no Rule is yet protected in this third sense. Floors
+are per directory (`src/clients`, `src/core/<sub>`), so a domain's Rules count
+once the directory holding its client has an entry. Add one with
+`npm run mutation:bdd:ratchet -- --update` after the nightly BDD mutation run.
 
 ## The consistency check
 
