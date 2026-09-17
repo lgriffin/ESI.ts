@@ -22,15 +22,16 @@ import {
   eventIndex,
   expectExplored,
   rejectedStatus,
+  actorNames,
+  SCENARIO_TIMEOUT_MS,
   scenarioOptions,
   statusPayload,
+  widths,
 } from './support/world';
 
 interface World {
   client: EsiClient;
 }
-
-const ACTORS = ['A', 'B'];
 
 function startedBeforeFirstDelivery(trace: Trace, actor: string): boolean {
   const start = eventIndex(
@@ -47,7 +48,12 @@ function resolvedPlayers(trace: Trace, actor: string): number | undefined {
     : undefined;
 }
 
-function scenario(name: string, failure: 500 | 503): Scenario<World> {
+function scenario(
+  name: string,
+  failure: 500 | 503,
+  width: number,
+): Scenario<World> {
+  const ACTORS = actorNames(width);
   return {
     name,
     setup: async () => ({ client: createPipelineClient() }),
@@ -138,7 +144,7 @@ function scenario(name: string, failure: 500 | 503): Scenario<World> {
                 : `${concurrent} requests; the retries should share one`;
             },
           }),
-      'the call after both settle resolves, fetching only if nothing good was cached':
+      'the call after all settle resolves, fetching only if nothing good was cached':
         (trace) => {
           const late = trace.outcomes.get('late');
           if (resolvedPlayers(trace, 'late') !== 1) {
@@ -159,17 +165,29 @@ function scenario(name: string, failure: 500 | 503): Scenario<World> {
   };
 }
 
+jest.setTimeout(SCENARIO_TIMEOUT_MS);
+
+/** Exhaustive schedule counts, by failure status and number of calls. */
+const PINNED: Record<string, number> = {
+  '500/2': 4,
+  '500/3': 24,
+  '503/2': 10,
+  '503/3': 84,
+};
+
 describe('composition: deduplication when the shared request fails', () => {
-  it.each([
-    [500, 'a non-retryable 500', 4],
-    [503, 'a retryable 503', 10],
-  ] as const)('two status calls sharing %s', async (failure, label, pinned) => {
-    const testName = `two status calls sharing ${failure}`;
-    const options = scenarioOptions(testName);
-    const report = await explore(
-      scenario(`two status calls sharing ${label}`, failure),
-      options,
-    );
-    expectExplored(report, pinned, options);
+  describe.each(widths())('%i calls', (width) => {
+    it.each([
+      [500, 'a non-retryable 500'],
+      [503, 'a retryable 503'],
+    ] as const)('status calls sharing %s', async (failure, label) => {
+      const testName = `${width} calls status calls sharing ${failure}`;
+      const options = scenarioOptions(testName);
+      const report = await explore(
+        scenario(`${width} status calls sharing ${label}`, failure, width),
+        options,
+      );
+      expectExplored(report, PINNED[`${failure}/${width}`]!, options);
+    });
   });
 });

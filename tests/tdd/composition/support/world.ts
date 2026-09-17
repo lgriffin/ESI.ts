@@ -22,7 +22,6 @@ export const BACKOFF_MS = 500;
 
 export const STATUS_PATH = '/status';
 export const DOGMA_ATTRIBUTES_PATH = '/dogma/attributes';
-export const RACES_PATH = '/universe/races';
 export const CHARACTER_ID = 90000001;
 export const CONTACTS_PATH = `/characters/${CHARACTER_ID}/contacts`;
 
@@ -70,9 +69,28 @@ export function contactsPayload(contactIds: number[]) {
   }));
 }
 
+/**
+ * Per-test timeout. An exhaustive exploration takes a few seconds on a PR run;
+ * the nightly random run sets ESI_INTERLEAVE_RUNS high enough to need more.
+ */
+export const SCENARIO_TIMEOUT_MS = 20 * 60 * 1000;
+
 /** Exploration options for a scenario, from the environment. */
-export function scenarioOptions(testName: string): ExploreOptions {
+export function scenarioOptions(testName?: string): ExploreOptions {
   return { ...optionsFromEnv(), testName };
+}
+
+/**
+ * How many concurrent calls a scenario starts. Every PR explores two and
+ * three calls exhaustively; the nightly run (ESI_INTERLEAVE_MODE=random)
+ * samples four, where exhaustive exploration would take too long.
+ */
+export function widths(): number[] {
+  return optionsFromEnv(process.env, () => 0).mode === 'random' ? [4] : [2, 3];
+}
+
+export function actorNames(width: number): string[] {
+  return ['A', 'B', 'C', 'D', 'E'].slice(0, width);
 }
 
 export function isCircuitOpen(outcome: Outcome | undefined): boolean {
@@ -108,11 +126,6 @@ export function deliveryIndex(trace: Trace, ordinal: number): number {
     trace,
     (e) => e.kind === 'deliver' && e.ordinal === ordinal,
   );
-}
-
-/** The position in the event log at which request `ordinal` was sent. */
-export function sendIndex(trace: Trace, ordinal: number): number {
-  return eventIndex(trace, (e) => e.kind === 'send' && e.ordinal === ordinal);
 }
 
 /**

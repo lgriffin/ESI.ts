@@ -242,6 +242,17 @@ describe('interleaving scheduler', () => {
     expect(failure.message).toContain('nondeterministic scenario');
   });
 
+  it('rejects a replayed choice that is out of range for its step', async () => {
+    const failure = (await explore(twoFetches(), {
+      ...exhaustive,
+      replay: [5],
+    }).catch((e: unknown) => e)) as Error;
+
+    expect(failure.message).toContain(
+      'choice 5 at step 0 is out of range; options were: start A | start B',
+    );
+  });
+
   it('stops at maxSchedules and reports the exploration as incomplete', async () => {
     const report = await explore(twoFetches(), {
       ...exhaustive,

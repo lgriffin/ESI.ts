@@ -21,8 +21,11 @@ import {
   createPipelineClient,
   describeOutcome,
   expectExplored,
+  actorNames,
   isCircuitOpen,
+  SCENARIO_TIMEOUT_MS,
   scenarioOptions,
+  widths,
 } from './support/world';
 
 const THRESHOLD = 2;
@@ -31,7 +34,12 @@ interface World {
   client: EsiClient;
 }
 
-function scenario(name: string, dedupe: boolean): Scenario<World> {
+function scenario(
+  name: string,
+  dedupe: boolean,
+  width: number,
+): Scenario<World> {
+  const names = actorNames(width);
   return {
     name,
     setup: async () => ({
@@ -44,10 +52,10 @@ function scenario(name: string, dedupe: boolean): Scenario<World> {
       }),
     }),
     teardown: (w) => w.client.shutdown(),
-    actors: [
-      { name: 'A', run: (w) => w.client.status.getStatus() },
-      { name: 'B', run: (w) => w.client.status.getStatus() },
-    ],
+    actors: names.map((name) => ({
+      name,
+      run: (w: World) => w.client.status.getStatus(),
+    })),
     followUp: [{ name: 'late', run: (w) => w.client.status.getStatus() }],
     respond: () => ({ status: 503, body: { error: 'service unavailable' } }),
     invariants: {
@@ -62,7 +70,7 @@ function scenario(name: string, dedupe: boolean): Scenario<World> {
         return undefined;
       },
       'every concurrent call rejects with CircuitOpenError': (trace) => {
-        for (const actor of ['A', 'B']) {
+        for (const actor of names) {
           const outcome = trace.outcomes.get(actor);
           if (!isCircuitOpen(outcome)) {
             return `${actor} ${describeOutcome(outcome)}`;
@@ -85,7 +93,7 @@ function scenario(name: string, dedupe: boolean): Scenario<World> {
         });
         if (opened === -1) return `the circuit never opened (${failures} 503s)`;
         const after = trace.events.slice(opened + 1);
-        const unsettled = ['A', 'B'].filter(
+        const unsettled = names.filter(
           (actor) =>
             !trace.events
               .slice(0, opened + 1)
@@ -96,7 +104,7 @@ function scenario(name: string, dedupe: boolean): Scenario<World> {
           ? undefined
           : `${fired} backoff timers fired after the circuit opened, for ${unsettled} unsettled call(s)`;
       },
-      'a call after both settle is refused without a request': (trace) => {
+      'a call after all settle is refused without a request': (trace) => {
         const late = trace.outcomes.get('late');
         const lateRequests = trace.requests.filter(
           (r) => r.phase === 'follow-up',
@@ -110,17 +118,32 @@ function scenario(name: string, dedupe: boolean): Scenario<World> {
   };
 }
 
+jest.setTimeout(SCENARIO_TIMEOUT_MS);
+
+/** Exhaustive schedule counts, by deduplication and number of calls. */
+const PINNED: Record<string, number> = {
+  'false/2': 42,
+  'false/3': 1974,
+  'true/2': 12,
+  'true/3': 114,
+};
+
 describe('composition: retry inside a circuit that has just opened', () => {
-  it.each([
-    ['without deduplication', false, 42],
-    ['with deduplication', true, 12],
-  ])(
-    'two retrying status calls %s never send into the open circuit',
-    async (label, dedupe, pinned) => {
-      const testName = `two retrying status calls ${label} never send into the open circuit`;
-      const options = scenarioOptions(testName);
-      const report = await explore(scenario(testName, dedupe), options);
-      expectExplored(report, pinned, options);
-    },
-  );
+  describe.each(widths())('%i calls', (width) => {
+    it.each([
+      ['without deduplication', false],
+      ['with deduplication', true],
+    ])(
+      'retrying status calls %s never send into the open circuit',
+      async (label, dedupe) => {
+        const testName = `${width} calls retrying status calls ${label} never send into the open circuit`;
+        const options = scenarioOptions(testName);
+        const report = await explore(
+          scenario(testName, dedupe, width),
+          options,
+        );
+        expectExplored(report, PINNED[`${dedupe}/${width}`]!, options);
+      },
+    );
+  });
 });

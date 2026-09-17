@@ -25,8 +25,11 @@ import {
   deliveryIndex,
   describeOutcome,
   expectExplored,
+  actorNames,
+  SCENARIO_TIMEOUT_MS,
   scenarioOptions,
   statusPayload,
+  widths,
 } from './support/world';
 
 interface World {
@@ -49,7 +52,12 @@ function refreshedPlayers(refresh: Refresh): number {
   return refresh === '200' ? 2 : 1;
 }
 
-function scenario(name: string, refresh: Refresh): Scenario<World> {
+function scenario(
+  name: string,
+  refresh: Refresh,
+  width: number,
+): Scenario<World> {
+  const names = actorNames(width);
   const call = (w: World) => w.client.status.withMetadata().getStatus();
   const refreshResponse: HttpResponse =
     refresh === '200'
@@ -67,59 +75,62 @@ function scenario(name: string, refresh: Refresh): Scenario<World> {
       return { client };
     },
     teardown: (w) => w.client.shutdown(),
-    actors: [
-      { name: 'A', run: call },
-      { name: 'B', run: call },
-    ],
+    actors: names.map((actor) => ({ name: actor, run: call })),
     followUp: [{ name: 'fresh', run: call }],
     respond: (request) =>
       request.ordinal === 1
         ? refreshResponse
         : { status: 503, body: { error: 'service unavailable' } },
     invariants: {
-      'the 503 caller gets the body the cache holds when the 503 arrives, flagged stale':
+      'a caller settling before the refresh arrived gets the old body flagged stale':
         (trace: Trace) => {
-          const failed = trace.requests.find((r) => r.response?.status === 503);
-          const results = ['A', 'B'].map((a) => metaOf(trace.outcomes.get(a)));
-          if (results.some((r) => !r)) {
-            return ['A', 'B']
-              .map((a) => `${a} ${describeOutcome(trace.outcomes.get(a))}`)
-              .join('; ');
+          const arrived = deliveryIndex(trace, 1);
+          for (const actor of names) {
+            const settled = trace.events.findIndex(
+              (e) => e.kind === 'settle' && e.actor === actor,
+            );
+            if (settled > arrived) continue;
+            const result = metaOf(trace.outcomes.get(actor));
+            if (!result?.meta.stale || result.data.players !== 1) {
+              return `${actor} settled before the refresh arrived and ${result ? `resolved players ${result.data.players}, stale ${result.meta.stale}` : describeOutcome(trace.outcomes.get(actor))}`;
+            }
           }
-          const stale = results.filter((r) => r!.meta.stale);
-          if (!failed) {
-            return stale.length === 0
-              ? undefined
-              : 'a response was flagged stale although no request failed';
-          }
-          if (stale.length !== 1) {
-            return `${stale.length} responses flagged stale for one 503`;
-          }
-          const refreshFirst =
-            deliveryIndex(trace, 1) < deliveryIndex(trace, failed.ordinal);
-          const expected = refreshFirst ? refreshedPlayers(refresh) : 1;
-          return stale[0]!.data.players === expected
-            ? undefined
-            : `stale response carried players ${stale[0]!.data.players}, but the cache held players ${expected} when the 503 arrived`;
+          return undefined;
         },
-      'the refreshed caller gets the refreshed body, not flagged stale': (
+      'a caller settling after the refresh arrived gets the refreshed body': (
         trace,
       ) => {
-        const fresh = ['A', 'B']
-          .map((a) => metaOf(trace.outcomes.get(a)))
-          .filter((r) => r && !r.meta.stale);
-        return fresh.length >= 1 &&
-          fresh.every((r) => r!.data.players === refreshedPlayers(refresh))
+        const arrived = deliveryIndex(trace, 1);
+        for (const actor of names) {
+          const settled = trace.events.findIndex(
+            (e) => e.kind === 'settle' && e.actor === actor,
+          );
+          if (settled < arrived) continue;
+          const players = metaOf(trace.outcomes.get(actor))?.data.players;
+          if (players !== refreshedPlayers(refresh)) {
+            return `${actor} settled after the refresh arrived but ${describeOutcome(trace.outcomes.get(actor))}`;
+          }
+        }
+        return undefined;
+      },
+      'exactly the callers answered with a 503 are flagged stale': (trace) => {
+        const failures = trace.requests.filter(
+          (r) => r.response?.status === 503,
+        ).length;
+        const stale = names.filter(
+          (a) => metaOf(trace.outcomes.get(a))?.meta.stale,
+        ).length;
+        return stale === failures
           ? undefined
-          : `non-stale callers resolved players ${fresh.map((r) => r?.data.players).join(', ')}`;
+          : `${stale} responses flagged stale for ${failures} 503s`;
       },
       'a 503 is served stale without a retry': (trace) => {
         const concurrent = trace.requests.filter(
           (r) => r.phase === 'concurrent',
         ).length;
-        return concurrent <= 2
+        return concurrent <= width
           ? undefined
-          : `${concurrent} requests were sent for two calls`;
+          : `${concurrent} requests were sent for ${width} calls`;
       },
       'a call inside the TTL afterwards gets the refreshed entry without a request':
         (trace) => {
@@ -138,17 +149,29 @@ function scenario(name: string, refresh: Refresh): Scenario<World> {
   };
 }
 
+jest.setTimeout(SCENARIO_TIMEOUT_MS);
+
+/** Exhaustive schedule counts, by refresh and number of calls. */
+const PINNED: Record<string, number> = {
+  '200/2': 6,
+  '200/3': 72,
+  '304/2': 6,
+  '304/3': 72,
+};
+
 describe('composition: stale-on-error while the entry is being refreshed', () => {
-  it.each([
-    ['200', 6],
-    ['304', 6],
-  ] as const)(
-    'a 503 racing a %s refresh of the same status entry',
-    async (refresh, pinned) => {
-      const testName = `a 503 racing a ${refresh} refresh of the same status entry`;
-      const options = scenarioOptions(testName);
-      const report = await explore(scenario(testName, refresh), options);
-      expectExplored(report, pinned, options);
-    },
-  );
+  describe.each(widths())('%i calls', (width) => {
+    it.each(['200', '304'] as const)(
+      'a 503 racing a %s refresh of the same status entry',
+      async (refresh) => {
+        const testName = `${width} calls a 503 racing a ${refresh} refresh of the same status entry`;
+        const options = scenarioOptions(testName);
+        const report = await explore(
+          scenario(testName, refresh, width),
+          options,
+        );
+        expectExplored(report, PINNED[`${refresh}/${width}`]!, options);
+      },
+    );
+  });
 });

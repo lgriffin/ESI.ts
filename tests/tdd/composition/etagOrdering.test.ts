@@ -23,8 +23,11 @@ import {
   createPipelineClient,
   describeOutcome,
   expectExplored,
+  actorNames,
+  SCENARIO_TIMEOUT_MS,
   scenarioOptions,
   statusPayload,
+  widths,
 } from './support/world';
 
 interface World {
@@ -42,16 +45,8 @@ function metaOf(outcome: Outcome | undefined): WithMeta | undefined {
   return outcome?.ok ? (outcome.value as WithMeta) : undefined;
 }
 
-/** Statuses of the concurrent responses, in the order they arrived. */
-function deliveredStatuses(trace: Trace): number[] {
-  return trace.events
-    .filter((e) => e.kind === 'deliver')
-    .map((e) => trace.requests[e.ordinal! - 1]!)
-    .filter((r) => r.phase === 'concurrent')
-    .map((r) => r.response!.status ?? 200);
-}
-
-function scenario(name: string): Scenario<World> {
+function scenario(name: string, width: number): Scenario<World> {
+  const names = actorNames(width);
   const call = (w: World) => w.client.status.withMetadata().getStatus();
   return {
     name,
@@ -65,10 +60,7 @@ function scenario(name: string): Scenario<World> {
       return { client };
     },
     teardown: (w) => w.client.shutdown(),
-    actors: [
-      { name: 'A', run: call },
-      { name: 'B', run: call },
-    ],
+    actors: names.map((actor) => ({ name: actor, run: call })),
     followUp: [
       { name: 'fresh', run: call },
       {
@@ -87,7 +79,7 @@ function scenario(name: string): Scenario<World> {
         };
       }
       return request.ordinal === 1
-        ? { headers: { etag: '"v2"' }, body: statusPayload(2) }
+        ? { status: 200, headers: { etag: '"v2"' }, body: statusPayload(2) }
         : { status: 304, headers: { etag: '"v1"' } };
     },
     invariants: {
@@ -104,7 +96,7 @@ function scenario(name: string): Scenario<World> {
       'every caller resolves with metadata naming the ETag of its body': (
         trace,
       ) => {
-        for (const actor of ['A', 'B', 'fresh', 'next']) {
+        for (const actor of [...names, 'fresh', 'next']) {
           const result = metaOf(trace.outcomes.get(actor));
           if (!result) {
             return `${actor} ${describeOutcome(trace.outcomes.get(actor))}`;
@@ -116,16 +108,26 @@ function scenario(name: string): Scenario<World> {
         }
         return undefined;
       },
-      'a 304 delivered after the 200 serves the newer body': (trace) => {
-        const order = deliveredStatuses(trace);
-        if (order.join(',') !== '200,304') return undefined;
-        const bodies = ['A', 'B'].map(
-          (a) => metaOf(trace.outcomes.get(a))?.data.players,
-        );
-        return bodies.every((p) => p === 2)
-          ? undefined
-          : `callers resolved players ${bodies.join(' and ')} after the 200 for players 2 was cached`;
-      },
+      'a caller settling after the 200 arrived gets the newer body, and one settling before it the older':
+        (trace) => {
+          const arrived = trace.events.findIndex(
+            (e) =>
+              e.kind === 'deliver' &&
+              trace.requests[e.ordinal! - 1]!.response?.status === 200,
+          );
+          if (arrived === -1) return 'the 200 was never delivered';
+          for (const actor of names) {
+            const settled = trace.events.findIndex(
+              (e) => e.kind === 'settle' && e.actor === actor,
+            );
+            const players = metaOf(trace.outcomes.get(actor))?.data.players;
+            const expected = settled > arrived ? 2 : 1;
+            if (players !== expected) {
+              return `${actor} settled ${settled > arrived ? 'after' : 'before'} the 200 for players 2 arrived but resolved players ${players}`;
+            }
+          }
+          return undefined;
+        },
       'a call inside the TTL afterwards is served the newer body without a request':
         (trace) => {
           const fresh = metaOf(trace.outcomes.get('fresh'));
@@ -157,12 +159,19 @@ function scenario(name: string): Scenario<World> {
   };
 }
 
+jest.setTimeout(SCENARIO_TIMEOUT_MS);
+
+/** Exhaustive schedule counts, by number of calls. */
+const PINNED: Record<number, number> = { 2: 6, 3: 66 };
+
 describe('composition: ETag cache write ordering', () => {
-  it('a 304 for the old ETag never overwrites a concurrent 200 for the new one', async () => {
-    const testName =
-      'a 304 for the old ETag never overwrites a concurrent 200 for the new one';
-    const options = scenarioOptions(testName);
-    const report = await explore(scenario(testName), options);
-    expectExplored(report, 6, options);
-  });
+  it.each(widths())(
+    '%i calls: a 304 for the old ETag never overwrites a concurrent 200 for the new one',
+    async (width) => {
+      const testName = `${width} calls: a 304 for the old ETag never overwrites a concurrent 200 for the new one`;
+      const options = scenarioOptions(testName);
+      const report = await explore(scenario(testName, width), options);
+      expectExplored(report, PINNED[width]!, options);
+    },
+  );
 });

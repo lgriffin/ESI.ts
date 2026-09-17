@@ -536,9 +536,12 @@ function reproduceCommand(
   scenario: string,
   choices: number[],
   testName: string | undefined,
+  mode: ExploreOptions['mode'],
 ): string {
   const filter = (testName ?? scenario).replace(/"/g, '\\"');
-  return `ESI_INTERLEAVE_REPLAY=${choices.join(',')} npx jest --config jest.unit.config.cjs --testPathPatterns=composition -t "${filter}"`;
+  // Random mode selects the nightly scenario variants, so a replay needs it.
+  const modeVar = mode === 'random' ? 'ESI_INTERLEAVE_MODE=random ' : '';
+  return `${modeVar}ESI_INTERLEAVE_REPLAY=${choices.join(',')} npx jest --config jest.unit.config.cjs --testPathPatterns=composition -t "${filter}"`;
 }
 
 async function runOnce<W>(
@@ -554,7 +557,7 @@ async function runOnce<W>(
       `  mode: ${mode}${mode === 'random' ? `, seed ${options.seed} (ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=${options.seed})` : ''}`,
       `  schedule (choice per step): [${run.trace.choices.join(',')}]`,
       `  events:\n${formatTrace(run.trace)}`,
-      `  reproduce: ${reproduceCommand(scenario.name, run.trace.choices, options.testName)}`,
+      `  reproduce: ${reproduceCommand(scenario.name, run.trace.choices, options.testName, options.mode)}`,
     ].join('\n');
   try {
     await run.execute();

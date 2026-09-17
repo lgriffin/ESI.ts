@@ -27,12 +27,15 @@ import {
   createPipelineClient,
   describeOutcome,
   expectExplored,
+  SCENARIO_TIMEOUT_MS,
   scenarioOptions,
   statusPayload,
+  widths,
 } from './support/world';
 
 const RESET_SECONDS = 30;
 const INCURSIONS_PATH = '/incursions';
+const INSURANCE_PATH = '/insurance/prices';
 
 interface World {
   client: EsiClient;
@@ -42,17 +45,20 @@ const ALL_ACTORS: Actor<World>[] = [
   { name: 'status', run: (w) => w.client.status.getStatus() },
   { name: 'dogma', run: (w) => w.client.dogma.getAttributes() },
   { name: 'incursions', run: (w) => w.client.incursions.getIncursions() },
+  { name: 'insurance', run: (w) => w.client.insurance.getInsurancePrices() },
 ];
 
 const PATHS: Record<string, string> = {
   dogma: DOGMA_ATTRIBUTES_PATH,
   incursions: INCURSIONS_PATH,
+  insurance: INSURANCE_PATH,
 };
 
 const BODIES: Record<string, unknown> = {
   [STATUS_PATH]: statusPayload(1),
   [DOGMA_ATTRIBUTES_PATH]: [1, 2],
   [INCURSIONS_PATH]: [],
+  [INSURANCE_PATH]: [],
 };
 
 function scenario(name: string, actors: Actor<World>[]): Scenario<World> {
@@ -130,20 +136,20 @@ function scenario(name: string, actors: Actor<World>[]): Scenario<World> {
   };
 }
 
+jest.setTimeout(SCENARIO_TIMEOUT_MS);
+
+/** Exhaustive schedule counts, by number of calls. */
+const PINNED: Record<number, number> = { 2: 27, 3: 1278 };
+
 describe('composition: ESI error-limit back-off across endpoints', () => {
-  it.each([
-    ['status and dogma', 2, 27],
-    ['status, dogma and incursions', 3, 1278],
-  ] as const)(
-    'a 420 exhausting the error limit holds back %s',
-    async (label, count, pinned) => {
-      const testName = `a 420 exhausting the error limit holds back ${label}`;
+  it.each(widths())(
+    '%i calls: a 420 exhausting the error limit holds back every endpoint',
+    async (width) => {
+      const actors = ALL_ACTORS.slice(0, width);
+      const testName = `${width} calls: a 420 exhausting the error limit holds back every endpoint`;
       const options = scenarioOptions(testName);
-      const report = await explore(
-        scenario(testName, ALL_ACTORS.slice(0, count)),
-        options,
-      );
-      expectExplored(report, pinned, options);
+      const report = await explore(scenario(testName, actors), options);
+      expectExplored(report, PINNED[width]!, options);
     },
   );
 });
