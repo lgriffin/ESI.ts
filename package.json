@@ -14,34 +14,64 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     },
     "./schemas": {
-      "types": "./dist/schemas/index.d.ts",
-      "import": "./dist/schemas/index.mjs",
-      "require": "./dist/schemas/index.js"
+      "import": {
+        "types": "./dist/schemas/index.d.mts",
+        "default": "./dist/schemas/index.mjs"
+      },
+      "require": {
+        "types": "./dist/schemas/index.d.ts",
+        "default": "./dist/schemas/index.js"
+      }
     },
     "./errors": {
-      "types": "./dist/errors.d.ts",
-      "import": "./dist/errors.mjs",
-      "require": "./dist/errors.js"
+      "import": {
+        "types": "./dist/errors.d.mts",
+        "default": "./dist/errors.mjs"
+      },
+      "require": {
+        "types": "./dist/errors.d.ts",
+        "default": "./dist/errors.js"
+      }
     },
     "./testing": {
-      "types": "./dist/testing/index.d.ts",
-      "import": "./dist/testing/index.mjs",
-      "require": "./dist/testing/index.js"
+      "import": {
+        "types": "./dist/testing/index.d.mts",
+        "default": "./dist/testing/index.mjs"
+      },
+      "require": {
+        "types": "./dist/testing/index.d.ts",
+        "default": "./dist/testing/index.js"
+      }
     },
     "./sde": {
-      "types": "./dist/sde/index.d.ts",
-      "import": "./dist/sde/index.mjs",
-      "require": "./dist/sde/index.js"
+      "import": {
+        "types": "./dist/sde/index.d.mts",
+        "default": "./dist/sde/index.mjs"
+      },
+      "require": {
+        "types": "./dist/sde/index.d.ts",
+        "default": "./dist/sde/index.js"
+      }
     },
     "./sde/memory": {
-      "types": "./dist/sde/memory.d.ts",
-      "import": "./dist/sde/memory.mjs",
-      "require": "./dist/sde/memory.js"
+      "import": {
+        "types": "./dist/sde/memory.d.mts",
+        "default": "./dist/sde/memory.mjs"
+      },
+      "require": {
+        "types": "./dist/sde/memory.d.ts",
+        "default": "./dist/sde/memory.js"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -52,7 +82,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "tsup && tsc --emitDeclarationOnly",
+    "build": "tsup && tsc --emitDeclarationOnly && node scripts/esm-declarations.cjs",
     "typecheck": "tsc --noEmit",
     "help": "ts-node scripts/npm-help.ts",
     "start": "ts-node examples/character-profile.ts",
