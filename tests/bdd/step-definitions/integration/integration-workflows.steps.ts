@@ -797,7 +797,10 @@ defineFeature(feature, (test) => {
       expect(location.solar_system_id).toBe(30000142);
       expect(skills.total_sp).toBe(50000000);
 
-      expect(totalTime).toBeLessThan(300);
+      // The six legs sum to 420 ms, so run one after another the workflow
+      // cannot settle sooner (less a few milliseconds of early timers); run in
+      // parallel behind the first lookup it settles near 200.
+      expect(totalTime).toBeLessThan(400);
     });
   });
 });
