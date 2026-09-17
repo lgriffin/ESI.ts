@@ -809,8 +809,16 @@ export function renderScoreTable(
   ].join('\n');
 }
 
+/**
+ * Makes type text safe inside a code span in a GFM table cell. The table
+ * scanner reads a backslash as escaping the character after it, so a
+ * backslash in the input (a string literal type such as `'a\\'`) would
+ * swallow the escape in front of a following pipe and split the cell.
+ * Backslashes are escaped first, then pipes. A backtick cannot be escaped
+ * inside a code span, so it becomes a single quote.
+ */
 function cell(s: string): string {
-  return s.replace(/\|/g, '\\|').replace(/`/g, "'");
+  return s.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/`/g, "'");
 }
 
 export function renderSurvivors(results: MutantResult[]): string {

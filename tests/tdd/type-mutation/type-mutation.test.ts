@@ -9,6 +9,7 @@ import {
   classify,
   describeEdit,
   mutationsIn,
+  renderSurvivors,
   sampleMutants,
   scoreByEntryPoint,
 } from '../../../scripts/type-mutation-core';
@@ -334,6 +335,28 @@ describe('type mutation classification and ratchet', () => {
         "import { d } from 'tsd';",
       ].join('\n'),
     );
+  });
+
+  it('keeps a survivor row at five cells when its type text has backslashes and pipes', () => {
+    const results = [
+      {
+        ...mutant('m', ['.']),
+        // The type text 'a\|b' | `c`: a backslash directly before a pipe.
+        before: "'a\\|b' | `c`",
+        after: 'unknown',
+        status: 'Survived' as const,
+      },
+    ];
+    const row = renderSurvivors(results).split('\n')[2]!;
+    // GFM's table scanner: a backslash escapes the next character, and only
+    // an unescaped pipe separates cells.
+    const cells = row
+      .slice(1, -1)
+      .match(/(?:\\.|[^|\\])+/g)!
+      .map((c) => c.trim());
+    expect(cells).toHaveLength(5);
+    expect(cells[3]).toBe("`'a\\\\\\|b' \\| 'c'`");
+    expect(cells[4]).toBe('`unknown`');
   });
 });
 
