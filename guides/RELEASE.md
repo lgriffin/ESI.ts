@@ -32,7 +32,7 @@ release.yml
 1. **Commits land on `master`** through a pull request. Each commit message follows the conventional-commit format (REL-01). The `commit-msg` Husky hook runs `commitlint` against `@commitlint/config-conventional`.
 2. **release-please runs on every push to `master`.** It reads the commits since the last release, works out the next version, and opens or updates a release pull request. That pull request edits `package.json`, `.release-please-manifest.json`, `CHANGELOG.md` and the extra file `src/core/constants.ts`.
 3. **Merging the release pull request** makes release-please create the `vX.Y.Z` tag and the GitHub release.
-4. **`release.yml` runs twice**, once for the tag push (`v*.*.*`) and once for the `release: published` event. Both runs validate, build the documentation and build the assets. Only the `release` run publishes packages and signs assets, because those jobs are guarded by `if: github.event_name == 'release'`.
+4. **`release.yml` runs twice**, once for the tag push (`v*.*.*`) and once for the `release: published` event. Both runs validate, build the documentation and build the assets. Only the `release` run, or a manual `workflow_dispatch` run on the tag, publishes packages and signs assets; those jobs are guarded by the event name.
 
 ### Jobs in `release.yml`
 
@@ -48,7 +48,7 @@ release.yml
 
 The workflow holds top-level `contents: read`. Only `publish-npm`, `publish-github` and `sign-and-publish-assets` receive `id-token: write`, and signing sits in its own job so that no build step shares a job with the ability to mint an OIDC token.
 
-There is no `workflow_dispatch` trigger on either release workflow. A release cannot be started from the Actions tab; it starts from a tag and a published GitHub release.
+`release.yml` also has a `workflow_dispatch` trigger, for releases release-please creates with `GITHUB_TOKEN` (see [Known state](#known-state)). Dispatch it on the tag, `gh workflow run release.yml --ref vX.Y.Z`; `validate-release` fails on any other ref, and on a tag that does not match `package.json`. `release-please.yml` has no manual trigger.
 
 ---
 
@@ -157,11 +157,12 @@ sha256sum -c checksums.txt
 
 ```bash
 cosign verify-blob lgriffin-esi.ts-X.Y.Z.tgz \
-  --signature lgriffin-esi.ts-X.Y.Z.tgz.sig \
-  --certificate lgriffin-esi.ts-X.Y.Z.tgz.pem \
+  --bundle lgriffin-esi.ts-X.Y.Z.tgz.sigstore.json \
   --certificate-identity "https://github.com/lgriffin/ESI.ts/.github/workflows/release.yml@refs/tags/vX.Y.Z" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
+
+Releases from 10.0.0 on carry a Sigstore bundle (`.sigstore.json`) per asset. Earlier releases carried a separate `.sig` and `.pem`, verified with `--signature` and `--certificate` instead of `--bundle`.
 
 Repeat with `docs.tar.gz` for the documentation archive.
 
@@ -194,9 +195,8 @@ The package declares `"engines": { "node": ">=18.0.0" }` (REL-05). Pull requests
 
 Recorded 2026-09-16. Each item contradicts a requirement above and belongs in a bead, not a softened sentence.
 
-- **release-please is not cutting releases.** `release-please.yml` has failed on recent pushes to `master` with a GitHub GraphQL error, and releases since 9.7.0 have been cut by a hand-written `chore: release X.Y.Z` commit editing the same five files release-please would.
-- **`constants.ts` has no release-please marker.** A generic `extra-files` entry is only updated where the file carries an `x-release-please-version` annotation. Without it a release PR would bump `package.json` and leave `PACKAGE_VERSION` behind, which `validate:versions` would catch only if someone ran it.
-- **Releases created with the workflow's `GITHUB_TOKEN` do not trigger other workflows.** If release-please creates the tag and release itself, `release.yml` will not start. Past releases were published by hand, which is why they did trigger it.
-- **Signing is broken.** `sign-and-publish-assets` failed on v9.7.0: the installed cosign now requires a `--bundle` output for `sign-blob`, so no assets, checksums or signatures were attached to that release. npm and GitHub Packages publishing succeeded.
+- **release-please needed repository permission to open its pull request.** It computed the version but failed with "GitHub Actions is not permitted to create or approve pull requests" until that repository setting was enabled (2026-09-16). Releases 9.8.0 and 9.9.0 were hand-written `chore: release X.Y.Z` commits.
+- **Releases created with the workflow's `GITHUB_TOKEN` do not trigger other workflows.** When release-please creates the tag and release, `release.yml` does not start on its own. Publish by dispatching it on the tag: `gh workflow run release.yml --ref vX.Y.Z`. The first `validate-release` steps reject a run that is not on a `vX.Y.Z` tag or whose tag does not match `package.json` and `PACKAGE_VERSION`.
+- **v9.7.0 has no signed assets.** Its `sign-and-publish-assets` job failed because cosign 3 requires `--bundle` for `sign-blob`; the job now writes a Sigstore bundle per asset. npm and GitHub Packages publishing succeeded for that release.
 - **The changelog does not match the registry (REL-04).** npm has 8.0.0, 9.4.0 and 9.6.0 with no changelog entry; the changelog jumps from 7.4.0 to 9.0.0 and from 9.1.0 to 9.7.0. 9.8.0 and 9.9.0 have dated entries but no tag and no npm publish.
 - **SBOM** is not yet a release asset (SEC-06); see [SECURITY.md](SECURITY.md).
