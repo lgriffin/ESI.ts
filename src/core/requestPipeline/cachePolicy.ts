@@ -91,6 +91,17 @@ export function trySpecAwareCacheHit(
   return null;
 }
 
+/** Whether the cache holds an unexpired entry for the URL. */
+export function hasCachedEntry(
+  client: ApiClient,
+  url: string,
+  resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
+): boolean {
+  const cache = resolveCache(client);
+  return !!cache && cache.has(buildCacheKey(url, client, requiresAuth));
+}
+
 /**
  * Attempt to return a stale cached response (used on server errors).
  */

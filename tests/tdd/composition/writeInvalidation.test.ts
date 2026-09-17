@@ -130,7 +130,10 @@ function scenario(name: string, cache: Cache): Scenario<World> {
 }
 
 describe('composition: write invalidation racing an in-flight read', () => {
-  it.each([['cold', 6]] as const)(
+  it.each([
+    ['cold', 6],
+    ['revalidating', 6],
+  ] as const)(
     'a contact DELETE racing a contact list read with a %s cache',
     async (cache, pinned) => {
       const testName = `a contact DELETE racing a contact list read with a ${cache} cache`;

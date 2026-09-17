@@ -4,6 +4,7 @@ import {
   trySpecAwareCacheHit,
   cacheResponse,
   currentWriteGeneration,
+  hasCachedEntry,
   invalidateAfterWrite,
   handleEarlyStatus,
   handleErrorResponse,
@@ -51,6 +52,15 @@ const executeRequest = async (
 
   try {
     const writeGeneration = currentWriteGeneration(client, resolveCache);
+    const revalidating =
+      useETag &&
+      method === 'GET' &&
+      hasCachedEntry(
+        client,
+        `${client.getLink()}/${endpoint}`,
+        resolveCache,
+        requiresAuth,
+      );
     const { response, parsed, url } = await executeSingleFetch(
       client,
       endpoint,
@@ -77,6 +87,27 @@ const executeRequest = async (
         data = undefined;
       }
       return finish({ headers: parsed.raw, body: data, status: 201 });
+    }
+
+    if (
+      response.status === 304 &&
+      revalidating &&
+      !hasCachedEntry(client, url, resolveCache, requiresAuth)
+    ) {
+      // The entry this request revalidated left the cache while it was in
+      // flight (a write to its path evicted it, or it expired), so the 304 has
+      // no body to stand for. The repeat finds no entry, sends no
+      // If-None-Match and gets the current representation.
+      return await executeRequest(
+        client,
+        endpoint,
+        method,
+        body,
+        requiresAuth,
+        useETag,
+        requestTimeout,
+        templatePath,
+      );
     }
 
     const earlyResult = handleEarlyStatus(
