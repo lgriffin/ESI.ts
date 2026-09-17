@@ -22,6 +22,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |      ●       |
 | EARS spec audit                            |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Determinism lint (time in `src/`)          |   ·    |            ·             |        ●         |       ·       |      ·       |
+| Test lints: transport seam, suite health   |   ·    |            ●             |        ●         |       ·       |      ·       |
 | Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |      ●       |
 | Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |      ·       |
 | Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |      ·       |
@@ -139,7 +140,7 @@ Installed by husky through the `prepare` script (which also runs a build after `
 | `pre-commit` | `npx lint-staged`                    | Staged `src/**/*.ts`: `eslint --fix` then `prettier --write`. Staged `tests/**/*.ts` and `*.{json,md,yml,yaml}`: `prettier --write` |
 | `commit-msg` | `npx --no -- commitlint --edit "$1"` | Rejects messages that do not follow `@commitlint/config-conventional`                                                               |
 
-Test files are formatted but not linted, at commit or anywhere else (`TEST-09`). Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
+Test files are formatted but not linted at commit. In CI they get two narrow lint configs, `lint:bdd-seam` and `lint:suite-health` ([Suite-health lint](#suite-health-lint)); the `src/` rule set does not apply to them yet (`TEST-09`). Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
 
 ---
 
@@ -166,7 +167,7 @@ All workflows live in `.github/workflows/`. Every action is pinned to a full com
 
 ### `ci-fast.yml` — CI Fast
 
-One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `format:check`, `build`, `typecheck`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
+One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
 
 ### `ci.yml` — CI/CD Pipeline
 
@@ -180,7 +181,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `unit-tests` (Unit Tests)                | `npm test` on Node 18, 20 and 22                                                                                                                                                                                                                                                              |   yes   |
 | `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                                                                                                                          |   yes   |
 | `bdd-tests` (BDD Scenarios)              | `npm run bdd`                                                                                                                                                                                                                                                                                 |   yes   |
-| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set. Then `npm run lint:bdd-seam`, which fails on any scenario that spies on or reassigns an ESI client method                                                                                                 |   yes   |
+| `spec-audit` (EARS Spec Audit)           | `npm run spec:audit`; emits inline GitHub annotations when `GITHUB_ACTIONS` is set. Then `npm run lint:bdd-seam`, which fails on any scenario that spies on or reassigns an ESI client method, and `npm run lint:suite-health` ([Suite-health lint](#suite-health-lint))                      |   yes   |
 | `contract-tests` (Contract Tests)        | `npm run contract:live` with `ESI_LIVE_TESTS=true`; fails if the variable is missing rather than skipping; soft-skips on 503                                                                                                                                                                  |   yes   |
 | `fuzz-tests` (Fuzz Tests)                | `npm run fuzz` (fast-check)                                                                                                                                                                                                                                                                   |   yes   |
 | `full-test-suite` (Complete Test Suite)  | `npm run test:all`: unit, BDD, mocked integration, fuzz, type tests                                                                                                                                                                                                                           |   yes   |
@@ -471,6 +472,24 @@ Report mode prints the unreferenced names by entry point and exits `0`. `--ci` e
 
 The seed baseline has 424 entries: `.` 197 of 366 exports, `./schemas` 46 of 201, `./errors` 1 of 24, `./testing` 0 of 1, `./sde` 90 of 123 and `./sde/memory` 90 of 122. Most are response and SDE row types; the runtime functions among them are tracked in `esi-23g.19`.
 
+## Suite-health lint
+
+`npm run lint:suite-health` lints every `.ts`, `.mts` and `.cts` file under `tests/` except the `fixtures/` and `step-fixtures/` trees, which break rules on purpose. It is Testing Runway tier N: it catches the decay that turns a green suite into a decorative one. It is not the `src/` rule set; the config and rules are in `eslint.suite-health.rules.cjs`, loaded by `eslint.suite-health.config.mjs`.
+
+| Rule                                      | Rejects                                                                                                                                                                                                                                                                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jest/no-focused-tests`                   | `.only`, `fit`, `fdescribe`                                                                                                                                                                                                                                                                                   |
+| `suite-health/no-focused-scenario`        | `test.only` on the scenario parameter of a jest-cucumber `defineFeature` callback, which `eslint-plugin-jest` does not see as Jest's `test`                                                                                                                                                                   |
+| `jest/no-disabled-tests`                  | `.skip`, `xit`, `xtest`, `xdescribe`, `pending()`, a test without a callback                                                                                                                                                                                                                                  |
+| `suite-health/no-disabled-scenario`       | `test.skip` and `test.todo` on a `defineFeature` scenario, and Jest's `it.todo` / `test.todo`                                                                                                                                                                                                                 |
+| `jest/expect-expect`                      | A test with no assertion. `expect`, any `expect*` helper (`expectEsiError`, tsd's `expectType`) and `fc.assert` count. Under `tests/bdd` a `Then` step file registration and a legacy `then` step are checked the same way; spec files register no callbacks, so a scenario is covered through its Then steps |
+| `suite-health/no-swallowed-assertion`     | A `try` block containing an assertion whose `catch` neither rethrows nor asserts                                                                                                                                                                                                                              |
+| `suite-health/no-unrestored-console-mock` | `jest.spyOn(console, m).mockImplementation(...)` or `.mockReturnValue(...)` not restored in the file (no `mockRestore()` on the spy, no `jest.restoreAllMocks()`), and `console.m = jest.fn()` never reassigned                                                                                               |
+
+Every rule is an error and there is no baseline: the initial run found no focused, skipped, swallowed or silenced tests, and the 18 tests without an assertion were fixed. A conditional skip (`LIVE ? describe : describe.skip`) is not flagged; that is how the live tiers opt out. `describeClientErrors` needs no configuration: its `it` blocks are linted where the helper defines them. `tests/bdd/support/binder.ts` is exempt from `jest/expect-expect`, because the test it registers per scenario asserts through the Then steps.
+
+`tests/tdd/suite-health/suite-health-lint.test.ts` loads the same config and lints one fixture per rule, as if it lived at a real test path, and requires exactly the expected findings, plus a compliant fixture that must produce none. It runs in `npm test`, so a rule that stops firing fails the unit suite. The script runs in `ci-fast.yml` on every push and in the `spec-audit` job inside `ci-success`.
+
 ---
 
 ## Dependency audit
@@ -556,6 +575,7 @@ The same "explicit, reasoned exception" pattern appears in five more places:
 | `lint` / `lint:fix`       | ESLint over `src`                                                                       |
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`eslint.bdd-seam.rules.cjs`) |
 | `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline            |
+| `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`eslint.suite-health.rules.cjs`) |
 | `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                         |
 | `knip`                    | Dead code and unused exports (`knip.json`)                                              |
 | `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
