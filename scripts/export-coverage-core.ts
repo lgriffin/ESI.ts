@@ -37,14 +37,31 @@ export interface EntryPoint {
   source: string;
 }
 
+/** The `types` targets of one `exports` entry: top level, `import` and `require`. */
+function declarationTargets(target: object): string[] {
+  const types: string[] = [];
+  const read = (value: unknown) => {
+    if (value && typeof value === 'object') {
+      const t = (value as { types?: unknown }).types;
+      if (typeof t === 'string') types.push(t);
+    }
+  };
+  read(target);
+  read((target as { import?: unknown }).import);
+  read((target as { require?: unknown }).require);
+  return types;
+}
+
 /**
  * The package's public entry points, read from `package.json` `exports`.
  *
- * Each entry's `types` condition (`./dist/<name>.d.ts`) maps back to
- * `src/<name>.ts`. When the project has a `tsup.config.ts`, its `entry` list
- * must name exactly the same sources: an entry point that is built but not
- * exported, or exported but not built, means the surface this check reads is
- * not the surface that ships, so it throws rather than guess.
+ * Each entry's declaration files map back to `src/<name>.ts`: a top-level
+ * `types` condition (`./dist/<name>.d.ts`), or one `types` per `import` and
+ * `require` condition (`./dist/<name>.d.mts` and `./dist/<name>.d.ts`),
+ * which must name the same `<name>`. When the project has a `tsup.config.ts`,
+ * its `entry` list must name exactly the same sources: an entry point that is
+ * built but not exported, or exported but not built, means the surface this
+ * check reads is not the surface that ships, so it throws rather than guess.
  */
 export function entryPointsFromPackage(root: string): EntryPoint[] {
   const pkg = JSON.parse(
@@ -57,15 +74,17 @@ export function entryPointsFromPackage(root: string): EntryPoint[] {
   const entries: EntryPoint[] = [];
   for (const [subpath, target] of Object.entries(pkg.exports)) {
     if (typeof target !== 'object' || target === null) continue; // ./package.json
-    const types = (target as { types?: unknown }).types;
-    const match =
-      typeof types === 'string' ? /^\.\/dist\/(.+)\.d\.ts$/.exec(types) : null;
-    if (!match) {
+    const types = declarationTargets(target);
+    const names = new Set(
+      types.map((t) => /^\.\/dist\/(.+)\.d\.[mc]?ts$/.exec(t)?.[1] ?? null),
+    );
+    const name = names.size === 1 ? [...names][0] : null;
+    if (!name) {
       throw new Error(
-        `exports['${subpath}'].types must be ./dist/<name>.d.ts (got ${JSON.stringify(types)}).`,
+        `exports['${subpath}'] types must all be ./dist/<name>.d.ts, .d.mts or .d.cts for one <name> (got ${JSON.stringify(types)}).`,
       );
     }
-    const source = path.join(root, 'src', `${match[1]}.ts`);
+    const source = path.join(root, 'src', `${name}.ts`);
     if (!existsSync(source)) {
       throw new Error(
         `exports['${subpath}'] has no source file at ${toPosix(path.relative(root, source))}.`,
