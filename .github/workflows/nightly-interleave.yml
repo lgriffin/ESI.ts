@@ -1,0 +1,106 @@
+name: Nightly Interleaving Run
+
+# The composition tier (tests/tdd/composition) explores every schedule of two
+# and three overlapping calls on each pull request, inside `npm test`. Four
+# calls have too many schedules to enumerate, so this run samples them: each
+# scenario runs ESI_INTERLEAVE_RUNS schedules chosen by a seeded PRNG, with a
+# fresh seed each night.
+#
+# A failure names the broken invariant and prints the event sequence and the
+# exact command that replays the failing schedule. To replay the whole run,
+# dispatch this workflow with the seed from the job log or step summary, or
+# run locally:
+#   ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=<seed> ESI_INTERLEAVE_RUNS=<runs> \
+#     npx jest --config jest.unit.config.cjs --testPathPatterns=composition
+
+on:
+  schedule:
+    - cron: '30 3 * * *'
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'ESI_INTERLEAVE_SEED to replay (leave empty for a new one)'
+        required: false
+        default: ''
+        type: string
+      runs:
+        description: 'Schedules per scenario'
+        required: false
+        default: '5000'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-interleave
+  cancel-in-progress: false
+
+jobs:
+  interleave:
+    name: Composition tier, seeded random schedules
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Choose seed and schedule count
+        id: seed
+        env:
+          SEED_INPUT: ${{ inputs.seed }}
+          RUNS_INPUT: ${{ inputs.runs }}
+        run: |
+          if [ -n "$SEED_INPUT" ]; then
+            if ! [[ "$SEED_INPUT" =~ ^[0-9]{1,10}$ ]] || [ "$SEED_INPUT" -gt 2147483647 ]; then
+              echo "::error::seed must be an integer between 0 and 2147483647"
+              exit 1
+            fi
+            SEED="$SEED_INPUT"
+          else
+            SEED=$(shuf -i 1-2147483647 -n 1)
+          fi
+          RUNS="${RUNS_INPUT:-5000}"
+          if ! [[ "$RUNS" =~ ^[0-9]{1,7}$ ]] || [ "$RUNS" -lt 1 ]; then
+            echo "::error::runs must be a positive integer"
+            exit 1
+          fi
+          echo "seed=$SEED" >> "$GITHUB_OUTPUT"
+          echo "runs=$RUNS" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Interleaving seed::$SEED (replay: ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=$SEED ESI_INTERLEAVE_RUNS=$RUNS npx jest --config jest.unit.config.cjs --testPathPatterns=composition)"
+
+      - name: Run the composition tier in random mode
+        id: jest
+        env:
+          ESI_INTERLEAVE_MODE: random
+          ESI_INTERLEAVE_SEED: ${{ steps.seed.outputs.seed }}
+          ESI_INTERLEAVE_RUNS: ${{ steps.seed.outputs.runs }}
+        run: npx jest --config jest.unit.config.cjs --ci --testPathPatterns=composition
+
+      - name: Summary
+        if: always()
+        env:
+          JEST_OUTCOME: ${{ steps.jest.outcome }}
+          SEED: ${{ steps.seed.outputs.seed }}
+          RUNS: ${{ steps.seed.outputs.runs }}
+        run: |
+          {
+            echo "## Nightly Interleaving Run"
+            echo ""
+            echo "- **Outcome:** $JEST_OUTCOME"
+            echo "- **Seed:** \`$SEED\`, $RUNS schedules per scenario"
+            echo "- **Replay:** \`ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=$SEED ESI_INTERLEAVE_RUNS=$RUNS npx jest --config jest.unit.config.cjs --testPathPatterns=composition\`"
+            echo "- A failing schedule prints its own \`ESI_INTERLEAVE_REPLAY=...\` command in the job log."
+          } >> "$GITHUB_STEP_SUMMARY"

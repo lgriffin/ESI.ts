@@ -15,6 +15,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level â
 | Contract (deep)      |         15 |        2 | Endpoint definitions validated against live OpenAPI spec (8 categories)     |
 | Contract (replay)    |        110 |        4 | Recorded public ESI payloads replayed through the pipeline, no network      |
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
+| Composition          |         41 |        7 | Pipeline stages interacting under concurrent calls, every schedule explored |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
 | Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
 | Doc examples         |            |        1 | Every `ts` block in README, guides and SDE docs type-checked vs the tarball |
@@ -273,6 +274,26 @@ The feature files are an EARS specification, and three gates decide whether a Ru
 - **Core** (`bdd/features/core/`): Domain-specific scenarios for all 37 domain clients plus cross-cutting concerns (ETag caching, response headers)
 - **Integration** (`bdd/features/integration/`): Cross-domain workflows â€” character profile assembly, market analysis, fleet operations
 - **Performance** (`bdd/features/performance/`): Concurrent requests, large dataset handling, memory efficiency, error handling performance
+
+### Composition and concurrency
+
+**Location:** `tests/tdd/composition/` (agent notes in its `AGENTS.md`)
+**Config:** `jest.unit.config.cjs`, so it runs in `npm test` and Stryker covers it
+**Run:** `npx jest --config jest.unit.config.cjs --testPathPatterns=composition`
+**Nightly:** `nightly-interleave.yml`
+
+Owns one failure class: request pipeline stages that are each correct alone but wrong together when calls overlap. Each scenario drives a real `EsiClient` with every stage on (rate limiter out of test mode, circuit breaker, deduplication, retry, ETag cache, Zod validation) and mocks only HTTP, at the BDD transport seam. The interleaving scheduler (`support/interleave.ts`) holds each request at the seam and chooses step by step which call starts, which response arrives and when fake time advances, then checks named invariants over the sequence of requests (method, path, If-None-Match) and outcomes.
+
+| Scenario                    | Interaction                                              |
+| --------------------------- | -------------------------------------------------------- |
+| `retryCircuit.test.ts`      | Retry inside a circuit that has just opened              |
+| `staleRefresh.test.ts`      | Stale-on-error while the stale entry is being refreshed  |
+| `dedupeRejection.test.ts`   | Deduplication when the shared in-flight request fails    |
+| `etagOrdering.test.ts`      | A 304 for an old ETag arriving after a 200 for a new one |
+| `errorLimit.test.ts`        | The ESI error-limit back-off holding back every endpoint |
+| `writeInvalidation.test.ts` | A write invalidating the cache while a read is in flight |
+
+On every PR each scenario runs every schedule of two and three calls; the schedule counts are pinned, so a change that stops calls overlapping fails instead of silently testing less. The whole tier takes about 5 seconds. Nightly, four calls run in seeded random order. A failure prints the broken invariant, the event log and the command that replays the schedule (`ESI_INTERLEAVE_REPLAY=...`, plus `ESI_INTERLEAVE_MODE=random` for a nightly failure). The scheduler's own tests (`interleave.test.ts`) show it enumerating exactly the schedules that exist, finding and replaying a planted race, and failing closed on deadlock, nondeterminism and malformed environment variables.
 
 ### Tier 2.5: Benchmark Tests
 
