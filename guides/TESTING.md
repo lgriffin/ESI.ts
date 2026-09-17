@@ -549,6 +549,8 @@ Common setup:
 
 All unit and BDD tests use [jest-fetch-mock](https://github.com/jefflau/jest-fetch-mock) to intercept `fetch` calls. No real HTTP requests are made during unit/BDD tests.
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import fetchMock from 'jest-fetch-mock';
 
@@ -558,6 +560,8 @@ expect(result.name).toBe('Jita');
 ```
 
 Error scenarios mock non-200 status codes:
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 fetchMock.mockResponseOnce('Not Found', { status: 404 });
@@ -578,6 +582,8 @@ Each restricted construct has a negative fixture in `tests/tdd/determinism-lint/
 
 **`src/core/util/testHelpers.ts`** — provides `getBody()` wrapper used in TDD tests:
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { getBody } from '../../../src/core/util/testHelpers';
 
@@ -586,6 +592,8 @@ expect(result.name).toBe('Goonswarm Federation');
 ```
 
 **`src/testing/TestDataFactory.ts`** — factory for creating mock data with sensible defaults and optional overrides:
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
@@ -671,6 +679,8 @@ Every payload builder's default output passes the Zod schema its endpoint is val
 
 Each domain client has one test file. Tests instantiate the client directly with a mock `ApiClient`, mock the fetch response, call the method, and assert the result.
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { AllianceClient } from '../../../src/clients/AllianceClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
@@ -729,6 +739,8 @@ Feature: Alliance API
 
 **Step definitions** (`tests/bdd/step-definitions/core/alliance.steps.ts`):
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { EsiClient } from '../../../src/EsiClient';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
@@ -762,6 +774,8 @@ describe('Feature: Alliance API', () => {
 
 API errors are modeled with `EsiError` (from `src/core/util/error.ts`):
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { EsiError } from '../../../src/core/util/error';
 
@@ -779,6 +793,8 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 ### Shared Error Test Helper
 
 The `describeClientErrors` helper (`tests/tdd/helpers/clientErrorTests.ts`) generates a standard error handling `describe` block that tests all 5 HTTP error codes (500, 404, 401, 403, 429) against the exact messages from `ApiRequestHandler.STATUS_MESSAGES`, and checks that the thrown error carries the status code. Each case builds a fresh `ApiClient` and passes it to the callback, which must construct the domain client from it rather than reuse the suite's client: a 429 blocks the endpoint's rate-limit group for 60 seconds on the client that received it, and a shared client would make every later test in the file time out once `jest --randomize` puts the 429 case first.
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 import { describeClientErrors } from '../helpers/clientErrorTests';
