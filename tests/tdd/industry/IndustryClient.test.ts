@@ -2,6 +2,7 @@ import { IndustryClient } from '../../../src/clients/IndustryClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import type { CorporationIndustryJob } from '../../../src/types/api-responses';
 import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
@@ -238,7 +239,7 @@ describe('IndustryClient', () => {
   });
 
   it('should return valid structure for getCorporationIndustryJobs', async () => {
-    const mockResponse = [
+    const mockResponse: CorporationIndustryJob[] = [
       {
         job_id: 1,
         installer_id: 2,
