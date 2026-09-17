@@ -91,9 +91,7 @@ describeIfLive('Live ESI: Alliances', () => {
 
     const data = (await response.json()) as unknown[];
     expect(Array.isArray(data)).toBe(true);
-    if (data.length > 0) {
-      expect(typeof data[0]).toBe('number');
-    }
+    expect(data).toEqual(data.map(() => expect.any(Number)));
   });
 
   it('should return valid alliance info for a known alliance', async () => {
@@ -121,15 +119,17 @@ describeIfLive('Live ESI: Incursions', () => {
 
     const data = (await response.json()) as Array<Record<string, unknown>>;
     expect(Array.isArray(data)).toBe(true);
-    // Incursions may be empty if none are active, so only validate shape when present
-    if (data.length > 0) {
-      const first = data[0];
-      expect(first).toHaveProperty('type');
-      expect(first).toHaveProperty('state');
-      expect(first).toHaveProperty('constellation_id');
-      expect(first).toHaveProperty('staging_solar_system_id');
-      expect(typeof first.constellation_id).toBe('number');
-    }
+    // Incursions may be empty if none are active: every entry present has the shape
+    expect(data).toEqual(
+      data.map(() =>
+        expect.objectContaining({
+          type: expect.anything(),
+          state: expect.anything(),
+          constellation_id: expect.any(Number),
+          staging_solar_system_id: expect.anything(),
+        }),
+      ),
+    );
   });
 });
 
@@ -167,13 +167,15 @@ describeIfLive('Live ESI: Sovereignty', () => {
 
     const data = (await response.json()) as Array<Record<string, unknown>>;
     expect(Array.isArray(data)).toBe(true);
-    // Campaigns may be empty; validate shape if present
-    if (data.length > 0) {
-      const first = data[0];
-      expect(first).toHaveProperty('campaign_id');
-      expect(first).toHaveProperty('solar_system_id');
-      expect(typeof first.campaign_id).toBe('number');
-    }
+    // Campaigns may be empty: every entry present has the shape
+    expect(data).toEqual(
+      data.map(() =>
+        expect.objectContaining({
+          campaign_id: expect.any(Number),
+          solar_system_id: expect.anything(),
+        }),
+      ),
+    );
   });
 
   it('should return sovereignty map', async () => {
@@ -195,13 +197,16 @@ describeIfLive('Live ESI: Sovereignty', () => {
 
     const data = (await response.json()) as Array<Record<string, unknown>>;
     expect(Array.isArray(data)).toBe(true);
-    // May be empty; validate shape if present
-    if (data.length > 0) {
-      const first = data[0];
-      expect(first).toHaveProperty('alliance_id');
-      expect(first).toHaveProperty('solar_system_id');
-      expect(first).toHaveProperty('structure_type_id');
-    }
+    // May be empty: every entry present has the shape
+    expect(data).toEqual(
+      data.map(() =>
+        expect.objectContaining({
+          alliance_id: expect.anything(),
+          solar_system_id: expect.anything(),
+          structure_type_id: expect.anything(),
+        }),
+      ),
+    );
   });
 });
 
@@ -492,15 +497,20 @@ describeIfLive('Live ESI: Market', () => {
 
     const data = (await response.json()) as Array<Record<string, unknown>>;
     expect(Array.isArray(data)).toBe(true);
-    if (data.length > 0) {
-      const record = data[0];
-      expect(record).toHaveProperty('date');
-      expect(record).toHaveProperty('average');
-      expect(record).toHaveProperty('highest');
-      expect(record).toHaveProperty('lowest');
-      expect(record).toHaveProperty('volume');
-      expect(record).toHaveProperty('order_count');
-    }
+    // Tritanium in The Forge always trades: the history is never empty
+    expect(data.length).toBeGreaterThan(0);
+    expect(data).toEqual(
+      data.map(() =>
+        expect.objectContaining({
+          date: expect.anything(),
+          average: expect.anything(),
+          highest: expect.anything(),
+          lowest: expect.anything(),
+          volume: expect.anything(),
+          order_count: expect.anything(),
+        }),
+      ),
+    );
   });
 
   it('should return market groups', async () => {
@@ -632,24 +642,21 @@ describeIfLive('Live ESI: Faction Warfare', () => {
 // ---------------------------------------------------------------------------
 describeIfLive('Live ESI: Killmails', () => {
   it('should return killmail details for a known public killmail', async () => {
-    // This is a well-known public killmail; if it 404s the endpoint still works
-    // but the specific killmail may have been purged — so we guard gracefully.
+    // A public killmail (2016-10-22). Killmails are immutable, so this id and
+    // hash keep resolving. (The hash used before was wrong: ESI answered 422 and
+    // the body assertions never ran.)
     const killmailId = 56733821;
-    const killmailHash = '42b0981c3089220ce83502e8fa7b4f432069be84';
+    const killmailHash = '6a8ae016e6946613ccb901e9d6414625ad6b93aa';
     const response = await fetch(
       `${ESI_BASE}/killmails/${killmailId}/${killmailHash}/`,
     );
+    expect(response.status).toBe(200);
 
-    if (response.ok) {
-      const data = (await response.json()) as Record<string, unknown>;
-      expect(data).toHaveProperty('killmail_id');
-      expect(data.killmail_id).toBe(killmailId);
-      expect(data).toHaveProperty('killmail_time');
-      expect(data).toHaveProperty('victim');
-      expect(typeof data.killmail_time).toBe('string');
-    } else {
-      // Killmail may no longer be available — that is acceptable
-      expect([404, 422, 500, 502, 503]).toContain(response.status);
-    }
+    const data = (await response.json()) as Record<string, unknown>;
+    expect(data).toHaveProperty('killmail_id');
+    expect(data.killmail_id).toBe(killmailId);
+    expect(data).toHaveProperty('killmail_time');
+    expect(data).toHaveProperty('victim');
+    expect(typeof data.killmail_time).toBe('string');
   });
 });

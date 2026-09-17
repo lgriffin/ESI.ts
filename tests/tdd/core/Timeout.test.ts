@@ -83,13 +83,9 @@ describe('Timeout in request handler', () => {
       }),
     );
 
-    try {
-      await handleRequest(client, 'v1/status/', 'GET');
-      fail('Should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(TimeoutError);
-      expect((e as TimeoutError).timeoutMs).toBe(10);
-    }
+    const request = handleRequest(client, 'v1/status/', 'GET');
+    await expect(request).rejects.toBeInstanceOf(TimeoutError);
+    await expect(request).rejects.toMatchObject({ timeoutMs: 10 });
   });
 
   it('per-request timeout overrides client timeout', async () => {
@@ -101,21 +97,17 @@ describe('Timeout in request handler', () => {
       }),
     );
 
-    try {
-      await handleRequest(
-        client,
-        'v1/status/',
-        'GET',
-        undefined,
-        false,
-        true,
-        undefined,
-        10,
-      );
-      fail('Should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(TimeoutError);
-      expect((e as TimeoutError).timeoutMs).toBe(10);
-    }
+    const request = handleRequest(
+      client,
+      'v1/status/',
+      'GET',
+      undefined,
+      false,
+      true,
+      undefined,
+      10,
+    );
+    await expect(request).rejects.toBeInstanceOf(TimeoutError);
+    await expect(request).rejects.toMatchObject({ timeoutMs: 10 });
   });
 });

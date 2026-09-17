@@ -12,9 +12,7 @@ describe('esiEnum', () => {
   it('should accept unknown string values', () => {
     const result = schema.safeParse('new_unknown_state');
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data).toBe('new_unknown_state');
-    }
+    expect(result.data).toBe('new_unknown_state');
   });
 
   it('should reject non-string values', () => {
@@ -29,8 +27,6 @@ describe('esiEnum', () => {
   it('should preserve the original string value', () => {
     const result = schema.safeParse('future_ccp_value');
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data).toBe('future_ccp_value');
-    }
+    expect(result.data).toBe('future_ccp_value');
   });
 });

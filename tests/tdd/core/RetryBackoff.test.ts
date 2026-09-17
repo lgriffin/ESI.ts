@@ -119,13 +119,9 @@ describe('Retry with exponential backoff', () => {
       });
     }
 
-    try {
-      await handleRequest(client, 'v1/status/', 'GET');
-      fail('Should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(EsiError);
-      expect((e as EsiError).statusCode).toBe(502);
-    }
+    const request = handleRequest(client, 'v1/status/', 'GET');
+    await expect(request).rejects.toBeInstanceOf(EsiError);
+    await expect(request).rejects.toMatchObject({ statusCode: 502 });
     expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
@@ -135,13 +131,9 @@ describe('Retry with exponential backoff', () => {
       headers: standardHeaders(),
     });
 
-    try {
-      await handleRequest(client, 'v1/status/', 'GET');
-      fail('Should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(EsiError);
-      expect((e as EsiError).statusCode).toBe(400);
-    }
+    const request = handleRequest(client, 'v1/status/', 'GET');
+    await expect(request).rejects.toBeInstanceOf(EsiError);
+    await expect(request).rejects.toMatchObject({ statusCode: 400 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -151,12 +143,9 @@ describe('Retry with exponential backoff', () => {
       headers: standardHeaders(),
     });
 
-    try {
-      await handleRequest(client, 'v1/status/', 'GET');
-      fail('Should have thrown');
-    } catch (e) {
-      expect((e as EsiError).statusCode).toBe(403);
-    }
+    await expect(
+      handleRequest(client, 'v1/status/', 'GET'),
+    ).rejects.toMatchObject({ statusCode: 403 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -166,12 +155,9 @@ describe('Retry with exponential backoff', () => {
       headers: standardHeaders(),
     });
 
-    try {
-      await handleRequest(client, 'v1/status/', 'GET');
-      fail('Should have thrown');
-    } catch (e) {
-      expect((e as EsiError).statusCode).toBe(404);
-    }
+    await expect(
+      handleRequest(client, 'v1/status/', 'GET'),
+    ).rejects.toMatchObject({ statusCode: 404 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -181,12 +167,9 @@ describe('Retry with exponential backoff', () => {
       headers: standardHeaders(),
     });
 
-    try {
-      await handleRequest(client, 'v1/universe/names/', 'POST', [1, 2]);
-      fail('Should have thrown');
-    } catch (e) {
-      expect((e as EsiError).statusCode).toBe(502);
-    }
+    await expect(
+      handleRequest(client, 'v1/universe/names/', 'POST', [1, 2]),
+    ).rejects.toMatchObject({ statusCode: 502 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -235,12 +218,9 @@ describe('Retry with exponential backoff', () => {
       // Trip the circuit
     }
 
-    try {
-      await handleRequest(client, 'v1/status/', 'GET');
-      fail('Should have thrown CircuitOpenError');
-    } catch (e) {
-      expect(e).toBeInstanceOf(CircuitOpenError);
-    }
+    await expect(
+      handleRequest(client, 'v1/status/', 'GET'),
+    ).rejects.toBeInstanceOf(CircuitOpenError);
   });
 
   it('does not retry when retryConfig is not set', async () => {
@@ -251,12 +231,9 @@ describe('Retry with exponential backoff', () => {
       headers: standardHeaders(),
     });
 
-    try {
-      await handleRequest(client, 'v1/status/', 'GET');
-      fail('Should have thrown');
-    } catch (e) {
-      expect((e as EsiError).statusCode).toBe(502);
-    }
+    await expect(
+      handleRequest(client, 'v1/status/', 'GET'),
+    ).rejects.toMatchObject({ statusCode: 502 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

@@ -2844,12 +2844,13 @@ describe('Schema Rejection Tests', () => {
         const result = schema.safeParse(dataWithExtra);
         expect(result.success).toBe(true);
 
-        if (result.success && preservesExtra !== false) {
-          // looseObject preserves unknown keys
-          const data = result.data as Record<string, unknown>;
-          expect(data._extra_test_field).toBe('should be allowed');
-          expect(data._extra_number).toBe(42);
-        }
+        // looseObject preserves unknown keys; a z.object() schema
+        // (preservesExtra: false) only has to parse to an object.
+        const preserved =
+          preservesExtra === false
+            ? {}
+            : { _extra_test_field: 'should be allowed', _extra_number: 42 };
+        expect(result.data).toMatchObject(preserved);
       });
     },
   );

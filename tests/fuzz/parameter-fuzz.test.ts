@@ -56,10 +56,8 @@ describe('Parameter Validation Fuzz Tests', () => {
         fc.property(
           fc.string().filter((s) => s.length > 0 && !UNSAFE_PATH_CHARS.test(s)),
           (input) => {
-            if (typeof input === 'string') {
-              const result = validatePathParam('test_id', input);
-              expect(typeof result).toBe('string');
-            }
+            const result = validatePathParam('test_id', input);
+            expect(typeof result).toBe('string');
           },
         ),
         { numRuns: 500 },

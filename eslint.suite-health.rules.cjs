@@ -4,8 +4,9 @@
  * They catch the decay that turns a green suite into a decorative one: a
  * focused test that silently disables the rest, a skipped or todo test, a test
  * or step that asserts nothing, an assertion whose failure a catch block
- * swallows, and console output silenced and never restored. Shared with the
- * rules' own test in tests/tdd/suite-health/.
+ * swallows, an assertion that runs only when a branch is taken, an async
+ * assertion nobody awaits, and console output silenced and never restored.
+ * Shared with the rules' own test in tests/tdd/suite-health/.
  */
 const jestPlugin = require('eslint-plugin-jest');
 const tseslint = require('typescript-eslint');
@@ -344,6 +345,21 @@ const rules = {
     { assertFunctionNames: ASSERT_FUNCTION_NAMES },
   ],
   'suite-health/no-swallowed-assertion': 'error',
+  // An expect in a catch block, an if/else, a ternary or a promise .catch
+  // callback runs only on that path. When the path is not taken the test
+  // passes without asserting, or fails for an unrelated reason: in
+  // `try { await call(); fail() } catch (e) { expect(e)... }` a resolved call
+  // reaches the catch as fail's ReferenceError. Assert with
+  // expect(...).rejects, or capture the error and assert unconditionally.
+  // (This rule replaced eslint-plugin-jest's no-try-expect.)
+  'jest/no-conditional-expect': 'error',
+  // fail(), pending(), spyOn() and jasmine.* are Jasmine globals. jest-circus
+  // does not define them, so `fail('should have thrown')` throws a
+  // ReferenceError instead of failing with its message.
+  'jest/no-jasmine-globals': 'error',
+  // expect(promise).rejects/.resolves that is not awaited or returned settles
+  // after the test has passed.
+  'jest/valid-expect': 'error',
   'suite-health/no-unrestored-console-mock': 'error',
 };
 

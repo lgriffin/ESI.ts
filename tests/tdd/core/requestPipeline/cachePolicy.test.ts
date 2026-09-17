@@ -38,11 +38,11 @@ describe('requestPipeline/cachePolicy', () => {
     });
 
     it('should return milliseconds (not seconds)', () => {
-      const result = lookupSpecTtl('GET', '/v1/status/');
-      if (result !== undefined) {
-        // ESI cache TTLs are at least 1 second = 1000ms
-        expect(result).toBeGreaterThanOrEqual(1000);
-      }
+      // The endpoint template path, as the request pipeline passes it. The
+      // status endpoint has a spec TTL; ESI TTLs are at least 1 second = 1000ms.
+      const result = lookupSpecTtl('GET', 'status/');
+      expect(result).toBeDefined();
+      expect(result).toBeGreaterThanOrEqual(1000);
     });
   });
 
@@ -104,16 +104,16 @@ describe('requestPipeline/cachePolicy', () => {
         client,
         url,
         'GET',
-        '/v1/status/',
+        'status',
         resolveCache,
       );
 
-      // If there's a spec TTL for /v1/status, the hit should work
-      if (result) {
-        expect(result.fromCache).toBe(true);
-        expect(result.cacheHitType).toBe('spec-ttl');
-        expect(result.body).toEqual({ players: 100 });
-      }
+      // The status endpoint has a spec TTL, so the fresh entry is a spec-ttl hit
+      expect(result).toMatchObject({
+        fromCache: true,
+        cacheHitType: 'spec-ttl',
+        body: { players: 100 },
+      });
 
       cache.shutdown();
     });

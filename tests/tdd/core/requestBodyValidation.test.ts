@@ -144,32 +144,22 @@ describe('request body validation', () => {
     it('should include direction "request" in the validation error', async () => {
       const client = createClient(apiClient, endpointsWithRequestSchema);
 
-      try {
-        await (client.postNames as (...args: unknown[]) => Promise<unknown>)([
-          123,
-        ]);
-        fail('Expected EsiValidationError to be thrown');
-      } catch (err) {
-        expect(err).toBeInstanceOf(EsiValidationError);
-        const validationError = err as EsiValidationError;
-        expect(validationError.direction).toBe('request');
-        expect(validationError.message).toContain('Request body');
-      }
+      const request = (
+        client.postNames as (...args: unknown[]) => Promise<unknown>
+      )([123]);
+      await expect(request).rejects.toBeInstanceOf(EsiValidationError);
+      await expect(request).rejects.toMatchObject({ direction: 'request' });
+      await expect(request).rejects.toThrow('Request body');
     });
 
     it('should include the endpoint URL in the error', async () => {
       const client = createClient(apiClient, endpointsWithRequestSchema);
 
-      try {
-        await (client.postNames as (...args: unknown[]) => Promise<unknown>)([
-          123,
-        ]);
-        fail('Expected EsiValidationError to be thrown');
-      } catch (err) {
-        expect(err).toBeInstanceOf(EsiValidationError);
-        const validationError = err as EsiValidationError;
-        expect(validationError.message).toContain('universe/ids');
-      }
+      const request = (
+        client.postNames as (...args: unknown[]) => Promise<unknown>
+      )([123]);
+      await expect(request).rejects.toBeInstanceOf(EsiValidationError);
+      await expect(request).rejects.toThrow('universe/ids');
     });
 
     it('should validate integer constraint on number arrays', async () => {

@@ -91,11 +91,8 @@ describe('Endpoint Definitions', () => {
               (ph: string) => ph.slice(1, -1),
             );
 
-            if (def.pathParams) {
-              expect([...def.pathParams]).toEqual(placeholders);
-            } else {
-              expect(placeholders).toHaveLength(0);
-            }
+            // No pathParams declared means the path has no placeholders.
+            expect([...(def.pathParams ?? [])]).toEqual(placeholders);
           });
 
           it('path placeholders use valid identifier names', () => {
@@ -116,20 +113,21 @@ describe('Endpoint Definitions', () => {
             }
           });
 
-          it('GET endpoints do not have hasBody or bodyBuilder', () => {
-            if (def.method === 'GET') {
+          if (def.method === 'GET') {
+            it('GET endpoints do not have hasBody or bodyBuilder', () => {
               expect(def.hasBody).toBeFalsy();
               expect(def.bodyBuilder).toBeUndefined();
-            }
-          });
+            });
+          }
 
-          it('queryParams values are valid query keys', () => {
-            if (def.queryParams) {
-              for (const [, queryKey] of Object.entries(def.queryParams)) {
+          const { queryParams } = def;
+          if (queryParams) {
+            it('queryParams values are valid query keys', () => {
+              for (const [, queryKey] of Object.entries(queryParams)) {
                 expect(queryKey).toMatch(/^[a-z][a-z0-9_]*$/);
               }
-            }
-          });
+            });
+          }
 
           it('requiresAuth is a boolean', () => {
             expect(typeof def.requiresAuth).toBe('boolean');

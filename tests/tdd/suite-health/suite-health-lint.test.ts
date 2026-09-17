@@ -75,6 +75,24 @@ describe('suite-health lint (npm run lint:suite-health)', () => {
       2,
     ],
     [
+      'conditional-expect.ts',
+      'tests/tdd/core/Example.test.ts',
+      'jest/no-conditional-expect',
+      3,
+    ],
+    [
+      'jasmine-globals.ts',
+      'tests/integration/example.test.ts',
+      'jest/no-jasmine-globals',
+      1,
+    ],
+    [
+      'unawaited-async-expect.ts',
+      'tests/tdd/core/Example.test.ts',
+      'jest/valid-expect',
+      2,
+    ],
+    [
       'unrestored-console-mock.ts',
       'tests/fuzz/example.test.ts',
       'suite-health/no-unrestored-console-mock',

@@ -13,6 +13,16 @@ import { ParsedHeaders } from '../../../../src/core/util/headersUtil';
 
 const BASE_URL = 'https://esi.evetech.net';
 
+/** What `fn` throws. Fails the test if `fn` returns instead. */
+function thrownBy(fn: () => unknown): unknown {
+  try {
+    fn();
+  } catch (error) {
+    return error;
+  }
+  throw new Error('expected a throw, but the call returned');
+}
+
 describe('requestPipeline/statusHandling', () => {
   describe('STATUS_MESSAGES', () => {
     it('should have messages for common HTTP statuses', () => {
@@ -201,7 +211,7 @@ describe('requestPipeline/statusHandling', () => {
         ),
       ).toThrow(EsiError);
 
-      try {
+      const error = thrownBy(() =>
         handleErrorResponse(
           client,
           response,
@@ -209,10 +219,9 @@ describe('requestPipeline/statusHandling', () => {
           parsed,
           false,
           resolveCache,
-        );
-      } catch (e) {
-        expect((e as EsiError).statusCode).toBe(420);
-      }
+        ),
+      );
+      expect((error as EsiError).statusCode).toBe(420);
     });
 
     it('should throw EsiError for 429 status', () => {
@@ -230,7 +239,7 @@ describe('requestPipeline/statusHandling', () => {
         ),
       ).toThrow(EsiError);
 
-      try {
+      const error = thrownBy(() =>
         handleErrorResponse(
           client,
           response,
@@ -238,10 +247,9 @@ describe('requestPipeline/statusHandling', () => {
           parsed,
           false,
           resolveCache,
-        );
-      } catch (e) {
-        expect((e as EsiError).statusCode).toBe(429);
-      }
+        ),
+      );
+      expect((error as EsiError).statusCode).toBe(429);
     });
 
     it('should serve stale cache on 500 when useETag is true and cache has data', () => {
@@ -312,7 +320,7 @@ describe('requestPipeline/statusHandling', () => {
       const response = new Response(null, { status: 401 });
       const parsed = { raw: {}, requestId: 'r1' } as unknown as ParsedHeaders;
 
-      try {
+      const e = thrownBy(() =>
         handleErrorResponse(
           client,
           response,
@@ -320,22 +328,20 @@ describe('requestPipeline/statusHandling', () => {
           parsed,
           false,
           resolveCache,
-        );
-        throw new Error('expected handleErrorResponse to throw');
-      } catch (e) {
-        expect(e).toBeInstanceOf(EsiError);
-        const msg = (e as EsiError).message;
-        expect(msg).toContain('the access token was missing, expired');
-        expect(msg).toContain('ESI_ACCESS_TOKEN');
-        expect(msg).toContain('onTokenRefresh');
-      }
+        ),
+      );
+      expect(e).toBeInstanceOf(EsiError);
+      const msg = (e as EsiError).message;
+      expect(msg).toContain('the access token was missing, expired');
+      expect(msg).toContain('ESI_ACCESS_TOKEN');
+      expect(msg).toContain('onTokenRefresh');
     });
 
     it('should include a 403 hint about missing OAuth scopes', () => {
       const response = new Response(null, { status: 403 });
       const parsed = { raw: {}, requestId: 'r1' } as unknown as ParsedHeaders;
 
-      try {
+      const e = thrownBy(() =>
         handleErrorResponse(
           client,
           response,
@@ -343,12 +349,10 @@ describe('requestPipeline/statusHandling', () => {
           parsed,
           false,
           resolveCache,
-        );
-        throw new Error('expected handleErrorResponse to throw');
-      } catch (e) {
-        expect(e).toBeInstanceOf(EsiError);
-        expect((e as EsiError).message).toContain('OAuth scopes required');
-      }
+        ),
+      );
+      expect(e).toBeInstanceOf(EsiError);
+      expect((e as EsiError).message).toContain('OAuth scopes required');
     });
   });
 

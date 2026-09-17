@@ -136,13 +136,9 @@ describeIfLive('Client Integration: EsiClient against live ESI', () => {
     beforeAll(() => delay(300));
 
     it('should throw EsiError with statusCode 404 for a non-existent alliance', async () => {
-      try {
-        await client.alliance.getAllianceById(999999999);
-        fail('Expected an EsiError to be thrown');
-      } catch (e) {
-        expect(e).toBeInstanceOf(EsiError);
-        expect((e as EsiError).statusCode).toBe(404);
-      }
+      const request = client.alliance.getAllianceById(999999999);
+      await expect(request).rejects.toBeInstanceOf(EsiError);
+      await expect(request).rejects.toMatchObject({ statusCode: 404 });
     });
   });
 

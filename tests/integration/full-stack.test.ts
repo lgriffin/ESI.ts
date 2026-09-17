@@ -458,13 +458,9 @@ describe('Integration: Error Propagation', () => {
       headers: standardHeaders(),
     });
 
-    try {
-      await client.status.getStatus();
-      fail('Should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(EsiError);
-      expect((e as EsiError).statusCode).toBe(404);
-    }
+    const request = client.status.getStatus();
+    await expect(request).rejects.toBeInstanceOf(EsiError);
+    await expect(request).rejects.toMatchObject({ statusCode: 404 });
   });
 
   it('should throw EsiError with correct status on 403', async () => {
@@ -473,13 +469,9 @@ describe('Integration: Error Propagation', () => {
       headers: standardHeaders(),
     });
 
-    try {
-      await client.market.getMarketPrices();
-      fail('Should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(EsiError);
-      expect((e as EsiError).statusCode).toBe(403);
-    }
+    const request = client.market.getMarketPrices();
+    await expect(request).rejects.toBeInstanceOf(EsiError);
+    await expect(request).rejects.toMatchObject({ statusCode: 403 });
   });
 
   it('should serve stale cache on 5xx when cache is available', async () => {

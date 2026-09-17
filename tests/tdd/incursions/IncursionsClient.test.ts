@@ -40,26 +40,25 @@ describe('IncursionsClient', () => {
     const result = await getBody(() => incursionsClient.getIncursions());
 
     expect(Array.isArray(result)).toBe(true);
-    if (Array.isArray(result)) {
-      result.forEach((incursion: any) => {
-        expect(incursion).toHaveProperty('constellation_id');
-        expect(typeof incursion.constellation_id).toBe('number');
-        expect(incursion).toHaveProperty('faction_id');
-        expect(typeof incursion.faction_id).toBe('number');
-        expect(incursion).toHaveProperty('has_boss');
-        expect(typeof incursion.has_boss).toBe('boolean');
-        expect(incursion).toHaveProperty('infested_solar_systems');
-        expect(Array.isArray(incursion.infested_solar_systems)).toBe(true);
-        expect(incursion).toHaveProperty('influence');
-        expect(typeof incursion.influence).toBe('number');
-        expect(incursion).toHaveProperty('staging_solar_system_id');
-        expect(typeof incursion.staging_solar_system_id).toBe('number');
-        expect(incursion).toHaveProperty('state');
-        expect(typeof incursion.state).toBe('string');
-        expect(incursion).toHaveProperty('type');
-        expect(typeof incursion.type).toBe('string');
-      });
-    }
+    expect(result).toHaveLength(mockResponse.length);
+    (result as any[]).forEach((incursion: any) => {
+      expect(incursion).toHaveProperty('constellation_id');
+      expect(typeof incursion.constellation_id).toBe('number');
+      expect(incursion).toHaveProperty('faction_id');
+      expect(typeof incursion.faction_id).toBe('number');
+      expect(incursion).toHaveProperty('has_boss');
+      expect(typeof incursion.has_boss).toBe('boolean');
+      expect(incursion).toHaveProperty('infested_solar_systems');
+      expect(Array.isArray(incursion.infested_solar_systems)).toBe(true);
+      expect(incursion).toHaveProperty('influence');
+      expect(typeof incursion.influence).toBe('number');
+      expect(incursion).toHaveProperty('staging_solar_system_id');
+      expect(typeof incursion.staging_solar_system_id).toBe('number');
+      expect(incursion).toHaveProperty('state');
+      expect(typeof incursion.state).toBe('string');
+      expect(incursion).toHaveProperty('type');
+      expect(typeof incursion.type).toBe('string');
+    });
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/incursions',
     );

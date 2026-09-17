@@ -34,14 +34,24 @@ describe('a suite', () => {
     fc.assert(fc.property(fc.integer(), (n) => n === n));
   });
 
-  it('asserts in the catch block', async () => {
-    expect.assertions(1);
+  it('asserts a rejection with .rejects', async () => {
+    const request = Promise.reject(new RangeError('boom'));
+    await expect(request).rejects.toBeInstanceOf(RangeError);
+    await expect(request).rejects.toThrow('boom');
+  });
+
+  it('captures a thrown error and asserts it unconditionally', () => {
+    let thrown: unknown;
     try {
-      await call();
-      expect(true).toBe(false);
+      JSON.parse('{');
     } catch (error) {
-      expect(error).toBeInstanceOf(Error);
+      thrown = error;
     }
+    expect(thrown).toBeInstanceOf(SyntaxError);
+  });
+
+  it('returns an async assertion', () => {
+    return expect(call()).resolves.toBe(1);
   });
 
   it('rethrows what it cannot handle', async () => {

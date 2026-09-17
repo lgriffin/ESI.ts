@@ -17,12 +17,10 @@ describe('Common Schemas', () => {
 
       const result = RateLimitMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.remaining).toBe(95);
-        expect(result.data.limit).toBe(100);
-        expect(result.data.used).toBe(5);
-        expect(result.data.group).toBe('esi-global');
-      }
+      expect(result.data?.remaining).toBe(95);
+      expect(result.data?.limit).toBe(100);
+      expect(result.data?.used).toBe(5);
+      expect(result.data?.group).toBe('esi-global');
     });
 
     it('should accept null for group field', () => {
@@ -35,9 +33,7 @@ describe('Common Schemas', () => {
 
       const result = RateLimitMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.group).toBeNull();
-      }
+      expect(result.data?.group).toBeNull();
     });
 
     it('should reject when remaining is a string', () => {
@@ -103,21 +99,19 @@ describe('Common Schemas', () => {
 
       const result = EsiResponseMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.headers['content-type']).toBe('application/json');
-        expect(result.data.fromCache).toBe(false);
-        expect(result.data.stale).toBe(false);
-        expect(result.data.cacheHitType).toBe('etag-304');
-        expect(result.data.warning).toEqual({
-          code: 199,
-          message: 'Deprecated endpoint',
-        });
-        expect(result.data.requestId).toBe('abc-123');
-        expect(result.data.date).toBe('2023-01-15T12:00:00Z');
-        expect(result.data.contentLanguage).toBe('en');
-        expect(result.data.rateLimit!.remaining).toBe(95);
-        expect(result.data.responseTimeMs).toBe(150);
-      }
+      expect(result.data?.headers['content-type']).toBe('application/json');
+      expect(result.data?.fromCache).toBe(false);
+      expect(result.data?.stale).toBe(false);
+      expect(result.data?.cacheHitType).toBe('etag-304');
+      expect(result.data?.warning).toEqual({
+        code: 199,
+        message: 'Deprecated endpoint',
+      });
+      expect(result.data?.requestId).toBe('abc-123');
+      expect(result.data?.date).toBe('2023-01-15T12:00:00Z');
+      expect(result.data?.contentLanguage).toBe('en');
+      expect(result.data?.rateLimit!.remaining).toBe(95);
+      expect(result.data?.responseTimeMs).toBe(150);
     });
 
     it('should validate with only required fields', () => {
@@ -129,18 +123,16 @@ describe('Common Schemas', () => {
 
       const result = EsiResponseMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.headers).toEqual({});
-        expect(result.data.fromCache).toBe(true);
-        expect(result.data.stale).toBe(false);
-        expect(result.data.cacheHitType).toBeUndefined();
-        expect(result.data.warning).toBeUndefined();
-        expect(result.data.requestId).toBeUndefined();
-        expect(result.data.date).toBeUndefined();
-        expect(result.data.contentLanguage).toBeUndefined();
-        expect(result.data.rateLimit).toBeUndefined();
-        expect(result.data.responseTimeMs).toBeUndefined();
-      }
+      expect(result.data?.headers).toEqual({});
+      expect(result.data?.fromCache).toBe(true);
+      expect(result.data?.stale).toBe(false);
+      expect(result.data?.cacheHitType).toBeUndefined();
+      expect(result.data?.warning).toBeUndefined();
+      expect(result.data?.requestId).toBeUndefined();
+      expect(result.data?.date).toBeUndefined();
+      expect(result.data?.contentLanguage).toBeUndefined();
+      expect(result.data?.rateLimit).toBeUndefined();
+      expect(result.data?.responseTimeMs).toBeUndefined();
     });
 
     it('should reject when headers is missing', () => {
@@ -184,11 +176,9 @@ describe('Common Schemas', () => {
 
       const result = EsiResponseMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        const parsed = result.data as Record<string, unknown>;
-        expect(parsed['customMetaField']).toBe('custom-value');
-        expect(parsed['anotherExtra']).toBe(42);
-      }
+      const parsed = result.data as Record<string, unknown>;
+      expect(parsed['customMetaField']).toBe('custom-value');
+      expect(parsed['anotherExtra']).toBe(42);
     });
   });
 
@@ -203,9 +193,7 @@ describe('Common Schemas', () => {
 
       const result = EsiResponseMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.cacheHitType).toBe('spec-ttl');
-      }
+      expect(result.data?.cacheHitType).toBe('spec-ttl');
     });
 
     it('should accept etag-304', () => {
@@ -218,9 +206,7 @@ describe('Common Schemas', () => {
 
       const result = EsiResponseMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.cacheHitType).toBe('etag-304');
-      }
+      expect(result.data?.cacheHitType).toBe('etag-304');
     });
 
     it('should accept stale-on-error', () => {
@@ -233,9 +219,7 @@ describe('Common Schemas', () => {
 
       const result = EsiResponseMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.cacheHitType).toBe('stale-on-error');
-      }
+      expect(result.data?.cacheHitType).toBe('stale-on-error');
     });
 
     it('should reject invalid cacheHitType values', () => {
@@ -259,9 +243,7 @@ describe('Common Schemas', () => {
 
       const result = EsiResponseMetaSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.cacheHitType).toBeUndefined();
-      }
+      expect(result.data?.cacheHitType).toBeUndefined();
     });
   });
 
@@ -281,11 +263,9 @@ describe('Common Schemas', () => {
 
       const result = responseSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.data.id).toBe(1);
-        expect(result.data.data.name).toBe('Test');
-        expect(result.data.meta.fromCache).toBe(false);
-      }
+      expect(result.data?.data.id).toBe(1);
+      expect(result.data?.data.name).toBe('Test');
+      expect(result.data?.meta.fromCache).toBe(false);
     });
 
     it('should reject when data does not match the provided schema', () => {
@@ -348,9 +328,7 @@ describe('Common Schemas', () => {
 
       const result = responseSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.data).toEqual([1, 2, 3, 4, 5]);
-      }
+      expect(result.data?.data).toEqual([1, 2, 3, 4, 5]);
     });
 
     it('should work with a full meta object including optional fields', () => {
@@ -376,11 +354,9 @@ describe('Common Schemas', () => {
 
       const result = responseSchema.safeParse(data);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.data.value).toBe('hello');
-        expect(result.data.meta.cacheHitType).toBe('spec-ttl');
-        expect(result.data.meta.rateLimit!.remaining).toBe(99);
-      }
+      expect(result.data?.data.value).toBe('hello');
+      expect(result.data?.meta.cacheHitType).toBe('spec-ttl');
+      expect(result.data?.meta.rateLimit!.remaining).toBe(99);
     });
   });
 });
