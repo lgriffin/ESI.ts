@@ -1,0 +1,42 @@
+{
+  "endpoint": "corporation.getCorporationInfo",
+  "call": {
+    "client": "corporations",
+    "method": "getCorporationInfo",
+    "args": [98356193]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "corporations/98356193",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=3600, must-revalidate, stale-if-error=900",
+        "content-type": "application/json",
+        "etag": "W/\"ee59f79bec8bcf08724221585e2c2dae952c2f5b48125c885d2aebab7196366c\"",
+        "expires": "Thu, 17 Sep 2026 15:13:01 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:43:55 GMT"
+      },
+      "body": {
+        "name": "C C P Alliance Holding",
+        "ticker": "BSRB",
+        "description": "We must push little cart!",
+        "url": "http://www.eveonline.com/",
+        "date_founded": "2014-11-12T11:33:40Z",
+        "ceo_id": 92025524,
+        "creator_id": 92025524,
+        "alliance_id": 434243723,
+        "home_station_id": 60014839,
+        "member_count": 1,
+        "tax_rate": 0,
+        "shares": 1000,
+        "war_eligible": true
+      }
+    }
+  ]
+}

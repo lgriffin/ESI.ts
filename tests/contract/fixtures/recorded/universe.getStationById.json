@@ -1,0 +1,53 @@
+{
+  "endpoint": "universe.getStationById",
+  "call": {
+    "client": "universe",
+    "method": "getStationById",
+    "args": [60000361]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.services",
+      "kind": "array",
+      "original": 12,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "universe/stations/60000361",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": {
+        "max_dockable_ship_volume": 50000000,
+        "name": "Jita IV - Moon 6 - Ytiri Storage",
+        "office_rental_cost": 5301943,
+        "owner": 1000004,
+        "position": {
+          "x": -107072593920,
+          "y": -18704916480,
+          "z": 436343562240
+        },
+        "race_id": 1,
+        "reprocessing_efficiency": 0.5,
+        "reprocessing_stations_take": 0.05,
+        "services": ["courier-missions", "reprocessing-plant", "market"],
+        "station_id": 60000361,
+        "system_id": 30000142,
+        "type_id": 1531
+      }
+    }
+  ]
+}

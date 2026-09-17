@@ -1,0 +1,90 @@
+{
+  "endpoint": "universe.getBloodlines",
+  "call": {
+    "client": "universe",
+    "method": "getBloodlines",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 18,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 431,
+      "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 509,
+      "kept": 400
+    }
+  ],
+  "pages": [
+    {
+      "url": "universe/bloodlines",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": [
+        {
+          "bloodline_id": 5,
+          "charisma": 3,
+          "corporation_id": 1000066,
+          "description": "True Amarrians are proud and supercilious, with a great sense of tradition and ancestry. They are considered arrogant and tyrannical by most others. The Empire's defeat at the hands of the mysterious Jovians, and the Minmatar uprising that followed, left an indelible mark on Amarrian culture. This double failure, a turning point in their history, has shaped an entire generation of policy and philo",
+          "intelligence": 7,
+          "memory": 6,
+          "name": "Amarr",
+          "perception": 4,
+          "race_id": 4,
+          "ship_type_id": 596,
+          "willpower": 10
+        },
+        {
+          "bloodline_id": 10,
+          "charisma": 7,
+          "corporation_id": 1000178,
+          "description": "The different branches of Jovians that exist are not the result of variations in geographical or climatic differences, but rather that of genetic engineering through the centuries. The Modifiers are the enthusiasts of the Jovian family. They are curious and constantly willing to try or experience something new and fresh. Modifiers have lower life expectancy that other Jovians and are more suscepti",
+          "intelligence": 7,
+          "memory": 7,
+          "name": "Modifier",
+          "perception": 10,
+          "race_id": 16,
+          "ship_type_id": null,
+          "willpower": 9
+        },
+        {
+          "bloodline_id": 25,
+          "charisma": 9,
+          "corporation_id": 1000293,
+          "description": "The Narodnya appear to be one of the three mysterious subdivisions of the Triglavian race that individuals can fall into alongside their membership of the so-called Clades.",
+          "intelligence": 9,
+          "memory": 9,
+          "name": "Narodnya",
+          "perception": 9,
+          "race_id": 135,
+          "ship_type_id": null,
+          "willpower": 9
+        }
+      ]
+    }
+  ]
+}

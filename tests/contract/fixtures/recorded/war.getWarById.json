@@ -1,0 +1,47 @@
+{
+  "endpoint": "war.getWarById",
+  "call": {
+    "client": "wars",
+    "method": "getWarById",
+    "args": [700000]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "wars/700000",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"4bac72ab2c990dfdf233f190f5d50013e02701346b5aea0f343f9d74\"",
+        "expires": "Thu, 17 Sep 2026 15:13:15 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:13:15 GMT"
+      },
+      "body": {
+        "aggressor": {
+          "alliance_id": 99010015,
+          "isk_destroyed": 1609631930.9,
+          "ships_killed": 8
+        },
+        "allies": [],
+        "declared": "2021-02-14T20:49:00Z",
+        "defender": {
+          "alliance_id": 99008899,
+          "isk_destroyed": 0,
+          "ships_killed": 0
+        },
+        "finished": "2021-03-30T00:20:00Z",
+        "id": 700000,
+        "mutual": false,
+        "open_for_allies": false,
+        "retracted": "2021-03-29T00:20:00Z",
+        "started": "2021-02-15T20:49:00Z"
+      }
+    }
+  ]
+}

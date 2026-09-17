@@ -1,0 +1,79 @@
+{
+  "endpoint": "loyalty.getLoyaltyStoreOffers",
+  "call": {
+    "client": "loyalty",
+    "method": "getLoyaltyStoreOffers",
+    "args": [1000035]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 310,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "loyalty/stores/1000035/offers",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": [
+        {
+          "ak_cost": 0,
+          "isk_cost": 5500000,
+          "lp_cost": 5500,
+          "offer_id": 3587,
+          "quantity": 5000,
+          "required_items": [
+            {
+              "quantity": 5000,
+              "type_id": 2506
+            }
+          ],
+          "type_id": 27339
+        },
+        {
+          "ak_cost": 0,
+          "isk_cost": 4200000,
+          "lp_cost": 4200,
+          "offer_id": 3588,
+          "quantity": 5000,
+          "required_items": [
+            {
+              "quantity": 5000,
+              "type_id": 202
+            }
+          ],
+          "type_id": 27377
+        },
+        {
+          "ak_cost": 0,
+          "isk_cost": 1850000,
+          "lp_cost": 1850,
+          "offer_id": 3589,
+          "quantity": 5000,
+          "required_items": [
+            {
+              "quantity": 5000,
+              "type_id": 2516
+            }
+          ],
+          "type_id": 27327
+        }
+      ]
+    }
+  ]
+}
