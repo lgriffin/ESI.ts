@@ -81,6 +81,9 @@ temp/
 
 # Test reports and coverage
 reports/
+
+# Benchmark harness bundles (scripts/bench-ab.ts)
+.bench-out/
 report/
 
 # Generated documentation (TypeDoc output; docs/*.md are hand-written and tracked)
@@ -89,6 +92,7 @@ docs-site/public/api/
 # Stryker mutation testing
 .stryker-tmp/
 .stryker-tmp-bdd/
+.stryker-tmp-fixture/
 
 # Generated OKF knowledge bundle
 okf/

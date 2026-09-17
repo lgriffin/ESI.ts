@@ -16,31 +16,29 @@ const feature = loadFeature(
 );
 
 /**
- * How the budgets below are chosen.
+ * What these scenarios time, and what they leave to the benchmark tier.
  *
  * Every scenario runs the real request pipeline against the HTTP seam: path
- * building, rate limiter, circuit breaker, deduplication, fetch, JSON parsing,
- * the ETag cache, pagination and Zod validation. Network latency is the
- * `delayMs` on each queued response, so a measured interval is
- * `transport delay + pipeline cost + caller's own work`.
+ * building, rate limiter, deduplication, fetch, JSON parsing, the ETag cache,
+ * pagination and Zod validation. Network latency is the `delayMs` on each
+ * queued response.
  *
- * Observed on a developer machine (with and without coverage instrumentation):
- * 2-15 ms of pipeline cost per small call, about 40-65 ms for the ten-page
- * 10000-order book, and 350-550 ms for 100 reads of a 1000-order response.
- * Shared CI runners are often several times slower and stall for GC or a
- * noisy neighbour, so each budget leaves at least 10x headroom over the
- * pipeline cost observed locally. That makes them coarse guards against a
- * pathological regression, not micro-benchmarks: serialised dispatch, a
- * rate-limiter stall, a hidden sleep, or per-call work that adds tens of
- * milliseconds to every read. A constant-factor slowdown in JSON parsing or
- * Zod validation will not trip them; the schema-validation benchmark
- * (`npm run benchmark`) is the place to watch for that.
+ * No scenario asserts how fast the pipeline is. A wall-clock budget loose
+ * enough never to fail on a slow runner cannot see a 30% slowdown, and one
+ * tight enough to see it fails on a slow runner. Per-path cost is measured by
+ * tests/benchmark instead: base against head on one machine, with a
+ * statistical decision (`npm run bench:ab`, then `npm run bench:compare`).
  *
- * A lower bound of `delay - EARLY_TIMER_TOLERANCE_MS` guards the other
- * direction: an elapsed time shorter than the transport delay means the
- * response did not come from the transport at all (a cache hit or a stub).
- * Node timers may fire up to a millisecond early relative to
- * `performance.now()`, so the tolerance is a few milliseconds, not zero.
+ * Two kinds of time bound remain, and neither depends on runner speed:
+ * - a lower bound of `delay - EARLY_TIMER_TOLERANCE_MS`. An elapsed time
+ *   shorter than the transport delay means the response did not come from the
+ *   transport (a cache hit or a stub). Node timers may fire up to a
+ *   millisecond early relative to `performance.now()`, so the tolerance is a
+ *   few milliseconds, not zero;
+ * - for a concurrent group, an upper bound at or above half the time the group
+ *   takes sent one after another. Serial dispatch cannot beat it however fast
+ *   the machine, and overlapping requests settle near the slowest single
+ *   delay, many times below it.
  */
 const EARLY_TIMER_TOLERANCE_MS = 5;
 
@@ -105,12 +103,6 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    // Headroom per call over its transport delay. Local pipeline cost is
-    // 2-16 ms (the first call warms the pipeline); 250 absorbs a slow runner
-    // but not a stall of that order, such as the rate limiter's one-second
-    // wait on an empty token bucket. An extra fetch fails the strict seam.
-    const PER_CALL_OVERHEAD_BUDGET_MS = 250;
-
     const calls = [
       {
         api: 'alliance.getAllianceById',
@@ -179,7 +171,7 @@ defineFeature(feature, (test) => {
       },
     );
 
-    then('response times shall be within acceptable limits', () => {
+    then('each response shall match the body ESI sent', () => {
       expect(sentRequests()).toHaveLength(calls.length);
       calls.forEach((expected, i) => {
         const { api, elapsed, result } = measured[i]!;
@@ -188,15 +180,7 @@ defineFeature(feature, (test) => {
         expect(elapsed).toBeGreaterThanOrEqual(
           expected.delayMs - EARLY_TIMER_TOLERANCE_MS,
         );
-        expect(elapsed).toBeLessThan(
-          expected.delayMs + PER_CALL_OVERHEAD_BUDGET_MS,
-        );
       });
-
-      const mean =
-        measured.reduce((sum, m) => sum + m.elapsed, 0) / measured.length;
-      // Transport delays average 186 ms; 500 leaves 314 ms of mean overhead.
-      expect(mean).toBeLessThan(500);
     });
   });
 
@@ -236,7 +220,7 @@ defineFeature(feature, (test) => {
         }
       });
 
-      then('the client shall handle varying conditions gracefully', () => {
+      then('the client shall wait for each delayed response', () => {
         expect(sentRequests()).toHaveLength(networkConditions.length);
         networkConditions.forEach(({ name, delay, characterId }, i) => {
           const m = measured[i]!;
@@ -246,9 +230,6 @@ defineFeature(feature, (test) => {
           expect(m.elapsed).toBeGreaterThanOrEqual(
             delay - EARLY_TIMER_TOLERANCE_MS,
           );
-          // The fixed overhead margin the Rule states. The pipeline's own cost
-          // for one small body is a few milliseconds.
-          expect(m.elapsed).toBeLessThan(delay + 150);
         });
       });
     },
@@ -293,18 +274,17 @@ defineFeature(feature, (test) => {
       totalTime = timed.elapsed;
     });
 
-    then('the client shall handle them efficiently', () => {
+    then('the requests shall overlap rather than run one after another', () => {
       expect(sentRequests()).toHaveLength(concurrentRequests);
       expect(results.map((r) => r.character_id)).toEqual(characterIds);
       expect(results.map((r) => r.name)).toEqual(
         characterIds.map((id) => `Character ${id}`),
       );
-      // Serial dispatch would take 50 x 100 = 5000 ms, and a cap of 10
-      // requests in flight would take 500. Observed locally: about 110 ms,
-      // so the bound leaves 400 ms over the transport delay for 50 passes
-      // through the pipeline that cost about 10 ms here.
+      // Serial dispatch takes at least 50 x 100 = 5000 ms, and two requests in
+      // flight at a time at least 2500. Overlapping, the group settles near
+      // 110 ms.
       expect(totalTime).toBeGreaterThanOrEqual(100 - EARLY_TIMER_TOLERANCE_MS);
-      expect(totalTime).toBeLessThan(500);
+      expect(totalTime).toBeLessThan(2500);
     });
   });
 
@@ -377,11 +357,10 @@ defineFeature(feature, (test) => {
         system,
         prices,
       ]);
-      // The slowest leg is 200 ms and the five legs sum to 650 when run one
-      // after another. Observed locally: about 212 ms. 400 leaves 200 ms for
-      // five small parses on a slow runner and still sits far below 650.
+      // The five legs sum to 650 ms, so sent one after another they cannot
+      // settle sooner; overlapping, they settle near the 200 ms slowest leg.
       expect(totalTime).toBeGreaterThanOrEqual(200 - EARLY_TIMER_TOLERANCE_MS);
-      expect(totalTime).toBeLessThan(400);
+      expect(totalTime).toBeLessThan(650);
     });
   });
 
@@ -405,7 +384,6 @@ defineFeature(feature, (test) => {
       totalVolume: number;
       locationCounts: Record<string, number>;
     };
-    let processingTime: number;
 
     given('large market data', () => {
       for (let page = 1; page <= pageCount; page++) {
@@ -427,43 +405,35 @@ defineFeature(feature, (test) => {
     });
 
     when('the client processes the market dataset', async () => {
-      const timed = await timeExecution(async () => {
-        const fetched = await client.market.getMarketOrders(JITA_REGION);
+      orders = await client.market.getMarketOrders(JITA_REGION);
 
-        let bestBuyPrice = -Infinity;
-        let bestSellPrice = Infinity;
-        let buyCount = 0;
-        let totalVolume = 0;
-        const locationCounts: Record<string, number> = {};
-        for (const order of fetched) {
-          if (order.is_buy_order) {
-            buyCount++;
-            bestBuyPrice = Math.max(bestBuyPrice, order.price);
-          } else {
-            bestSellPrice = Math.min(bestSellPrice, order.price);
-          }
-          totalVolume += order.volume_remain;
-          locationCounts[order.location_id] =
-            (locationCounts[order.location_id] ?? 0) + 1;
+      let bestBuyPrice = -Infinity;
+      let bestSellPrice = Infinity;
+      let buyCount = 0;
+      let totalVolume = 0;
+      const locationCounts: Record<string, number> = {};
+      for (const order of orders) {
+        if (order.is_buy_order) {
+          buyCount++;
+          bestBuyPrice = Math.max(bestBuyPrice, order.price);
+        } else {
+          bestSellPrice = Math.min(bestSellPrice, order.price);
         }
-        return {
-          fetched,
-          summary: {
-            buyCount,
-            sellCount: fetched.length - buyCount,
-            bestBuyPrice,
-            bestSellPrice,
-            totalVolume,
-            locationCounts,
-          },
-        };
-      });
-      orders = timed.result.fetched;
-      summary = timed.result.summary;
-      processingTime = timed.elapsed;
+        totalVolume += order.volume_remain;
+        locationCounts[order.location_id] =
+          (locationCounts[order.location_id] ?? 0) + 1;
+      }
+      summary = {
+        buyCount,
+        sellCount: orders.length - buyCount,
+        bestBuyPrice,
+        bestSellPrice,
+        totalVolume,
+        locationCounts,
+      };
     });
 
-    then('performance shall remain acceptable', () => {
+    then('every page shall be fetched once and every order returned', () => {
       const requests = sentRequests();
       expect(requests).toHaveLength(pageCount);
       expect(requests.map((r) => r.url.searchParams.get('page'))).toEqual([
@@ -486,14 +456,6 @@ defineFeature(feature, (test) => {
       expect(Object.values(summary.locationCounts)).toEqual(
         Array.from({ length: 10 }, () => 1000),
       );
-
-      // Ten fetches and JSON parses of 1000 orders, the page concatenation,
-      // one Zod pass over the 10000-order book and the caller's aggregation
-      // take 40-65 ms locally. 2000 ms (5000 orders per second) absorbs a
-      // slow runner; what it catches is a stall between pages of about
-      // 200 ms (a rate-limiter wait or retry backoff per page) or per-order
-      // work in the 0.2 ms range.
-      expect(processingTime).toBeLessThan(2000);
     });
   });
 
@@ -523,7 +485,6 @@ defineFeature(feature, (test) => {
     let directors: number;
     let managers: number;
     let withoutRoles: number;
-    let processingTime: number;
 
     given('a large corporation', () => {
       queueResponse({
@@ -537,29 +498,19 @@ defineFeature(feature, (test) => {
     });
 
     when('the client processes member data', async () => {
-      const timed = await timeExecution(async () => {
-        const [fetchedMembers, roles] = await Promise.all([
-          client.corporations.getCorporationMembers(CORPORATION_ID),
-          client.corporations.getCorporationRoles(CORPORATION_ID),
-        ]);
-        const has = (role: string) =>
-          roles.filter((m) => m.roles?.includes(role)).length;
-        return {
-          fetchedMembers,
-          directors: has('Director'),
-          managers: has('Personnel_Manager'),
-          withoutRoles: roles.filter((m) => (m.roles ?? []).length === 0)
-            .length,
-        };
-      });
-      members = timed.result.fetchedMembers;
-      directors = timed.result.directors;
-      managers = timed.result.managers;
-      withoutRoles = timed.result.withoutRoles;
-      processingTime = timed.elapsed;
+      const [fetchedMembers, roles] = await Promise.all([
+        client.corporations.getCorporationMembers(CORPORATION_ID),
+        client.corporations.getCorporationRoles(CORPORATION_ID),
+      ]);
+      const has = (role: string) =>
+        roles.filter((m) => m.roles?.includes(role)).length;
+      members = fetchedMembers;
+      directors = has('Director');
+      managers = has('Personnel_Manager');
+      withoutRoles = roles.filter((m) => (m.roles ?? []).length === 0).length;
     });
 
-    then('performance shall scale appropriately', () => {
+    then('both lists shall be returned complete', () => {
       const requests = sentRequests();
       expect(requests).toHaveLength(2);
       for (const request of requests) {
@@ -570,11 +521,6 @@ defineFeature(feature, (test) => {
       expect(directors).toBe(10);
       expect(managers).toBe(40);
       expect(withoutRoles).toBe(50);
-
-      // Two fetches and a Zod pass over 5000 numbers and 100 role records
-      // take about 5 ms locally. 1500 ms is the Rule's bound; it is very
-      // loose here, and fails only on a stall of the order of a second.
-      expect(processingTime).toBeLessThan(1500);
     });
   });
 
@@ -586,8 +532,7 @@ defineFeature(feature, (test) => {
       const dataset = orderBook(datasetSize, 6000000001);
       const expectedAverage =
         dataset.reduce((sum, o) => sum + o.price, 0) / datasetSize;
-      let summaries: Array<{ orderCount: number; averagePrice: number }> = [];
-      let totalTime: number;
+      const summaries: Array<{ orderCount: number; averagePrice: number }> = [];
 
       given('memory-intensive operations', () => {
         // No ETag, so nothing is cached and every read is a full fetch, JSON
@@ -603,25 +548,19 @@ defineFeature(feature, (test) => {
       when(
         'the client processes large amounts of data iteratively',
         async () => {
-          const timed = await timeExecution(async () => {
-            const out: typeof summaries = [];
-            for (let i = 0; i < iterations; i++) {
-              const orders = await client.market.getMarketOrders(JITA_REGION);
-              out.push({
-                orderCount: orders.length,
-                averagePrice:
-                  orders.reduce((sum, order) => sum + order.price, 0) /
-                  orders.length,
-              });
-            }
-            return out;
-          });
-          summaries = timed.result;
-          totalTime = timed.elapsed;
+          for (let i = 0; i < iterations; i++) {
+            const orders = await client.market.getMarketOrders(JITA_REGION);
+            summaries.push({
+              orderCount: orders.length,
+              averagePrice:
+                orders.reduce((sum, order) => sum + order.price, 0) /
+                orders.length,
+            });
+          }
         },
       );
 
-      then('memory usage shall remain efficient', () => {
+      then('every read shall return the same complete dataset', () => {
         expect(sentRequests()).toHaveLength(iterations);
         expect(summaries).toHaveLength(iterations);
 
@@ -631,14 +570,6 @@ defineFeature(feature, (test) => {
         expect(last.orderCount).toBe(datasetSize);
         expect(first.averagePrice).toBeCloseTo(expectedAverage, 10);
         expect(last.averagePrice).toBeCloseTo(first.averagePrice, 10);
-
-        // One full read of 1000 orders costs 3.5-5.5 ms locally, so 100 reads
-        // take 350-550 ms. 5000 ms (a 50 ms mean per read) absorbs a slow
-        // runner, and fails once a regression adds about 45 ms to every read:
-        // a hidden delay, or state that grows and is rescanned on each read.
-        // Adding a 60 ms synchronous cost to the orders schema was confirmed
-        // to fail this scenario at about 6300 ms.
-        expect(totalTime).toBeLessThan(5000);
       });
     },
     SCENARIO_TIMEOUT_MS,
@@ -689,7 +620,7 @@ defineFeature(feature, (test) => {
       totalTime = timed.elapsed;
     });
 
-    then('error handling shall not significantly impact performance', () => {
+    then('failed requests shall settle alongside successful ones', () => {
       expect(sentRequests()).toHaveLength(totalRequests);
 
       const errors = results.filter((r) => r.error !== undefined);
@@ -704,10 +635,8 @@ defineFeature(feature, (test) => {
         expect((error as EsiError).statusCode).toBe(500);
       }
 
-      // Serialised, 20 x 100 ms would be 2000; with the default 50 ms request
-      // spacing, dispatch alone would stagger the group by 950. Observed
-      // locally: 105-120 ms. 1000 leaves 900 ms over the transport delay for
-      // 20 pipeline passes, six of them building an EsiError.
+      // One after another, 20 x 100 ms is at least 2000; the bound is half.
+      // Overlapping, the group settles near 110 ms.
       expect(totalTime).toBeGreaterThanOrEqual(100 - EARLY_TIMER_TOLERANCE_MS);
       expect(totalTime).toBeLessThan(1000);
     });

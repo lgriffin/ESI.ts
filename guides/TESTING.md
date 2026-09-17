@@ -8,7 +8,8 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | -------------------- | ---------: | -------: | --------------------------------------------------------------------------- |
 | TDD (unit)           |      4,357 |      130 | Per-module unit tests with mocked HTTP                                      |
 | BDD (behavioral)     |        600 |       41 | Gherkin-style scenarios covering user-facing behaviors                      |
-| Benchmark (perf)     |         17 |        4 | Performance regression guards for core infrastructure                       |
+| Benchmark (perf)     |         18 |        1 | mitata micro-benchmarks, compared base against head statistically           |
+| Heap soak            |          1 |        1 | 100 000 requests through the pipeline, heap flat after forced GC            |
 | Integration (mocked) |         20 |        1 | Full request lifecycle with mocked fetch                                    |
 | Integration (live)   |         61 |        3 | Real HTTP against live ESI — smoke tests, client integration, spec contract |
 | Integration (gated)  |         33 |        1 | Authenticated endpoints with real OAuth token                               |
@@ -194,8 +195,15 @@ npm run test:watch
 # With coverage report
 npm run coverage
 
-# Performance benchmarks — 4 suites, 17 tests
+# Micro-benchmarks for this tree — 18 tasks, no comparison
 npm run benchmark
+
+# Benchmarks against another tree, then the statistical comparison
+npm run bench:ab -- --base ../base-worktree --head .
+npm run bench:compare
+
+# Heap soak: 100 000 requests, forced GC, bounded cache
+npm run soak
 ```
 
 ### Running Subsets
@@ -273,7 +281,7 @@ The feature files are an EARS specification, and three gates decide whether a Ru
 
 - **Core** (`bdd/features/core/`): Domain-specific scenarios for all 37 domain clients plus cross-cutting concerns (ETag caching, response headers)
 - **Integration** (`bdd/features/integration/`): Cross-domain workflows — character profile assembly, market analysis, fleet operations
-- **Performance** (`bdd/features/performance/`): Concurrent requests, large dataset handling, memory efficiency, error handling performance
+- **Performance** (`bdd/features/performance/`): Smoke checks of concurrency, large payloads and the error path. These scenarios state no latency or throughput budget; the only time bounds they keep are the ones that separate overlapping requests from serial dispatch, and the numbers live in Tier 2.5
 
 ### Composition and concurrency
 
@@ -295,22 +303,22 @@ Owns one failure class: request pipeline stages that are each correct alone but 
 
 On every PR each scenario runs every schedule of two and three calls; the schedule counts are pinned, so a change that stops calls overlapping fails instead of silently testing less. The whole tier takes about 5 seconds. Nightly, four calls run in seeded random order. A failure prints the broken invariant, the event log and the command that replays the schedule (`ESI_INTERLEAVE_REPLAY=...`, plus `ESI_INTERLEAVE_MODE=random` for a nightly failure). The scheduler's own tests (`interleave.test.ts`) show it enumerating exactly the schedules that exist, finding and replaying a planted race, and failing closed on deadlock, nondeterminism and malformed environment variables.
 
-### Tier 2.5: Benchmark Tests
+### Tier 2.5: Benchmarks and the heap soak
 
-**Location:** `tests/benchmark/`
-**Config:** `jest.benchmark.config.cjs`
-**Run:** `npm run benchmark`
+**Location:** `tests/benchmark/` (see [`tests/benchmark/AGENTS.md`](../tests/benchmark/AGENTS.md))
+**Run:** `npm run benchmark`, `npm run bench:ab`, `npm run bench:compare`, `npm run soak`
 
-17 tests across 4 suites using `performance.now()` timing with CI-safe upper-bound assertions:
+This tier owns one failure class: the client got slower, or started holding memory. Bundle size is owned by the size-limit budgets.
 
-| Suite                              | Tests | What it benchmarks                                                                                                         |
-| ---------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------- |
-| `rateLimiter.benchmark.test.ts`    |     3 | 10K `checkRateLimit` calls, 50-group `updateFromResponse`, `getStatus` with 100 groups                                     |
-| `circuitBreaker.benchmark.test.ts` |     4 | 100K `checkCircuit` calls (closed state), state transition cycling, `getStats` with 200 endpoints, 10K distinct endpoints  |
-| `cache.benchmark.test.ts`          |     5 | `ETagCacheManager` set at 1K entries, 10K get (hits), 10K get (misses), eviction throughput, cleanup cycle                 |
-| `batchRequest.benchmark.test.ts`   |     5 | `batchFetch` at 1K/10K keys, scheduling overhead with instant fetchers, `batchPost` at 10K IDs, progress tracking overhead |
+The Jest benchmark suites that used to live here asserted raw wall-clock upper bounds (`expect(elapsed).toBeLessThan(500)`) that sat 10 to 100 times above the real cost. A bound that loose cannot see a 30% regression, and a tighter one flakes on a shared runner, so they were retired rather than converted.
 
-Benchmarks use loose upper-bound time assertions (e.g., "< 2s") to remain stable across CI environments. They guard against performance regressions, not exact timing.
+**Micro-benchmarks.** `tests/benchmark/tasks.ts` holds 18 tasks over the paths a client pays for on every call: parse and Zod-validate a small object, a 1000-order market page and a nested colony layout; ETag cache hit, miss, write and write-at-capacity; cache-key derivation; response-header parsing (`ETag`, `Expires`, `X-Pages`, rate-limit headers); the rate limiter's acquire; the circuit breaker's check; `batchFetch`; and two whole-pipeline requests against an instant transport. `harness.ts` runs them with [mitata](https://github.com/evanwashere/mitata), which batches fast operations so a 50 ns call is not lost in timer resolution, forces a collection before each task, and reports per-sample nanoseconds. mitata was chosen over tinybench for that batching and because it exposes the samples the comparison works on.
+
+**Comparison.** A benchmark number alone means nothing; the question is "slower than what". `npm run bench:ab` bundles the harness for two trees — typically a pull request's base tip and its head — and runs them in alternating processes on one machine, so runner-to-runner noise cancels. The observation per task is one per-process median; `npm run bench:compare` applies a one-sided Mann-Whitney U test per task, Holm-adjusted across tasks at alpha = 0.05, and calls a task regressed only if the ratio of medians is also at least 1.10 and the absolute difference at least 2 ns/op. Improvements are reported. A missing baseline, too few rounds or a dropped task fails closed. The decision logic is unit-tested against synthetic distributions in `tests/tdd/benchmark/`.
+
+**Heap soak.** `tests/benchmark/soak.ts` drives 100 000 requests through a real `EsiClient` against an in-process transport, with a bounded ETag cache and a distinct key per request. Under `--expose-gc` it forces a full collection at 50 sample points and fails when a least-squares fit over the second half projects growth beyond the threshold, when the cache exceeds its bound, or when timers or process listeners survive `shutdown()`. `npm run soak -- --inject-leak --expect-fail` runs the same soak with a response interceptor that retains every response and passes only if the leak is flagged; the unit suite runs that fixture too, so the detector is checked on every pull request.
+
+**Where it runs.** The `benchmarks` job in `ci.yml` runs the A/B comparison only when `src/core/`, `src/schemas/`, the harness, the bench scripts or the lockfile change, and otherwise reports success with a summary line. `nightly-benchmarks.yml` compares master with a pinned reference commit, runs the soak, publishes the trend to the `bench-data` branch, and keeps one `performance-nightly` issue open while either fails.
 
 ### Tier 3: Integration Tests (Mocked)
 
@@ -445,6 +453,24 @@ Each replay goes through the BDD transport seam, so the whole pipeline runs, and
 - **Schema fuzzing** (`schema-fuzz.test.ts`) — all Zod schemas in `src/schemas/` tested with `fc.anything()`. Verifies: `safeParse()` never throws (returns `{success: false}` instead), all primitive edge cases handled.
 - **Pagination fuzzing** (`pagination-fuzz.test.ts`) — page parameter via `buildEndpointPath()` with zero, negative, float, NaN, Infinity, and large values. Verifies: NaN/Infinity rejected, valid page numbers accepted.
 - **Response validation fault injection** (`response-validation-fault-injection.test.ts`) — bodies that violate an endpoint's `responseSchema` (one corrupted or missing field, one corrupted array element, or arbitrary JSON of the wrong shape, each kept only if the endpoint's own schema rejects it) served through the BDD transport seam, so they travel the real `handleRequest` pipeline to validation in `createClient`. Covers `status.getStatus` (object), `market.getMarketPrices` (array) and `characters.getCharacterPublicInfo` (path parameter). Verifies: the client rejects with an `EsiValidationError` (`direction: 'response'`, status `0`, the request URL) whose Zod issues match the schema's own verdict; exactly one request is sent, with no retry; safe mode returns the error as `{ ok: false }` instead; with `validateResponse: false` the same body comes back unchanged; no unhandled rejection is left behind.
+
+### Fault injection
+
+**Location:** `tests/faults/` (read `tests/faults/AGENTS.md` first)
+**Config:** `jest.faults.config.cjs`, `jest.faults.nightly.config.cjs`
+**Run:** `npm run faults` (every PR, about 5 s), `npm run faults:nightly` (nightly, about 10 s)
+
+This tier owns what the client does when the network misbehaves. It serves faults through the BDD transport seam, so the whole pipeline runs: rate limiter, retry, deduplication, ETag cache, JSON parsing and validation. Timers and `Date` run on Jest's fake clock, driven by the runner, so a 60-second rate-limit block costs nothing and elapsed time is exact.
+
+**The catalogue** (`catalogue.ts`) is a list of named faults, each a transformation of a target's good exchange: truncated, empty or HTML bodies on a 200; the wrong Content-Type; Expires in the past or unparseable; a 304 with no ETag or no cached entry; a reset before the headers, a reset part way through the body, a stalled body, no response before the timeout; 5xx with an HTML body with and without a cached entry; 502 without a reason phrase; 400 and 500 with ESI's error JSON; 420 with and without `X-ESI-Error-Limit-*`; 429 with Retry-After in seconds, as an HTTP date and absent; X-Pages that grows or shrinks between pages; schema violations, `null`, unknown fields and schema-valid absurd values.
+
+Every fault cites the `Rule:` (or guide section) that specifies the answer and asserts the whole outcome: the error class, status or code and an anchored message, or the resolved value and `meta.stale`; the exact request count; what the cache holds afterwards, probed through the transport; the elapsed virtual time; and every warn/error log entry. `npm run faults` applies the catalogue to five targets: `status.getStatus` (public GET), `location.getCharacterLocation` (authenticated GET), `market.getMarketOrders` (X-Pages), `freelanceJobs.getFreelanceJobs` (cursor) and `universe.postNamesAndCategories` (POST).
+
+**The signal.** `catalogue.selftest.test.ts` holds the tier's ratchet: the number of faults without a resolvable Rule or a fully specified outcome stays **0**. It proves the gate with `fixtures/weak-fault.ts`, which must be rejected on every count, and proves the runner by running a real fault with wrong expectations and requiring every broken invariant to be reported. Faults that expose an unfixed bug sit in `known-gaps.json` with their bead; the list only shrinks against `origin/master` (it fails closed without the ref), and a listed fault that starts passing fails the run.
+
+**Nightly payload fuzz** (`payload-fuzz.nightly.test.ts`) covers every endpoint definition with a `responseSchema`. `zodArbitrary.ts` derives fast-check arbitraries from the Zod schema; each generated body must come back unchanged, and each single-point mutation must either reject with an `EsiValidationError` carrying one Zod issue at the mutated path (a dropped required field, a wrong type, a `null`) or, for an unknown field, resolve with the field preserved. The seed is printed; `FAULTS_SEED` replays it and `FAULTS_RUNS` sets cases per endpoint (default 100). `nightly-faults.yml` runs it with the catalogue and keeps one issue, "Nightly fault tier failing", open while it fails.
+
+Decisions the tier pins, so a change to them is deliberate: Content-Type is not trusted (the body decides); Expires is ignored for freshness; page 1's X-Pages is authoritative; and schema-valid but absurd values (a negative `volume_remain`) pass through unchanged and unlogged, because schemas check shape and ESI is the source of truth.
 
 ### Tier 9: Gated Auth Tests (Live)
 
@@ -627,13 +653,13 @@ npm run example:token-refresh      # Token refresh flow demo
 
 ### Configuration
 
-Five Jest configs drive the test suites:
+Seven Jest configs drive the test suites:
 
 - **Unit + BDD**: `jest.unit.config.cjs` — runs TDD and BDD tests with `jest-fetch-mock`
-- **Benchmark**: `jest.benchmark.config.cjs` — runs performance benchmark tests (60s timeout)
 - **Integration**: `jest.integration.config.cjs` — runs integration tests against live ESI (30s timeout)
 - **Contract**: `jest.contract.config.cjs` — runs deep contract tests against live spec (60s timeout)
 - **Fuzz**: `jest.fuzz.config.cjs` — runs property-based fuzz tests with fast-check (30s timeout)
+- **Faults**: `jest.faults.config.cjs` (PR) and `jest.faults.nightly.config.cjs` (nightly) — the fault catalogue and payload fuzz in `tests/faults/`
 
 Common setup:
 
@@ -971,30 +997,33 @@ Unit and BDD tests run through `jest.unit.config.cjs`. Integration tests use `je
 
 ### Known gaps
 
-| Gap                      | Severity | Notes                                                                                                                     |
-| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Phantom endpoints        | Low      | 17 codebase endpoints not yet in public ESI spec (access-lists, freelance-jobs, mercenary, skyhooks — newer EVE features) |
-| Type drift               | Medium   | ~45 fields in spec not yet in hand-written types; ~14 optionality mismatches                                              |
-| Route method mismatch    | Low      | Route endpoint is POST in code but GET in spec — needs investigation                                                      |
-| No chaos/fault injection | Low      | No tests for partial network failures, DNS resolution failures, or TLS errors                                             |
-| Corporate auth endpoints | Medium   | Gated tests only cover character-level auth, not corporation director endpoints                                           |
+| Gap                      | Severity | Notes                                                                                                                                      |
+| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Phantom endpoints        | Low      | 17 codebase endpoints not yet in public ESI spec (access-lists, freelance-jobs, mercenary, skyhooks — newer EVE features)                  |
+| Type drift               | Medium   | ~45 fields in spec not yet in hand-written types; ~14 optionality mismatches                                                               |
+| Route method mismatch    | Low      | Route endpoint is POST in code but GET in spec — needs investigation                                                                       |
+| DNS and TLS failures     | Low      | The fault tier covers resets, stalls and timeouts; DNS and TLS failures reach the client as the same `fetch failed` and are not told apart |
+| Corporate auth endpoints | Medium   | Gated tests only cover character-level auth, not corporation director endpoints                                                            |
 
 ### Recommended CI schedule
 
-| Job                       | Frequency                   | Config                                                |
-| ------------------------- | --------------------------- | ----------------------------------------------------- |
-| Unit + BDD                | Every push                  | `npm test`                                            |
-| Mocked integration        | Every push                  | `npm run test:integration`                            |
-| Benchmarks                | Every PR                    | `npm run benchmark`                                   |
-| Deep contract tests       | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
-| Recorded payload replay   | Every PR                    | `npm run contract:replay`                             |
-| Payload re-recording      | Nightly                     | `ESI_LIVE_TESTS=true npm run contract:record`         |
-| Property-based fuzz tests | Every PR                    | `npm run fuzz`                                        |
-| Consumer type tests       | Every PR                    | `npm run test:types`                                  |
-| Type mutation             | Nightly                     | `npm run test:type-mutation -- --ratchet`             |
-| Live smoke tests          | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
-| Spec drift detection      | Weekly                      | `npm run contract:snapshot && npm run contract:diff`  |
-| Gated auth tests          | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated` |
+| Job                          | Frequency                   | Config                                                |
+| ---------------------------- | --------------------------- | ----------------------------------------------------- |
+| Unit + BDD                   | Every push                  | `npm test`                                            |
+| Mocked integration           | Every push                  | `npm run test:integration`                            |
+| Benchmarks                   | Every PR                    | `npm run benchmark`                                   |
+| Deep contract tests          | Every PR                    | `ESI_LIVE_TESTS=true npm run contract:live`           |
+| Recorded payload replay      | Every PR                    | `npm run contract:replay`                             |
+| Payload re-recording         | Nightly                     | `ESI_LIVE_TESTS=true npm run contract:record`         |
+| Property-based fuzz tests    | Every PR                    | `npm run fuzz`                                        |
+| Consumer type tests          | Every PR                    | `npm run test:types`                                  |
+| Type mutation                | Nightly                     | `npm run test:type-mutation -- --ratchet`             |
+| Live smoke tests             | Daily/weekly                | `ESI_LIVE_TESTS=true npm run test:integration`        |
+| Spec drift detection         | Weekly                      | `npm run contract:snapshot && npm run contract:diff`  |
+| Gated auth tests             | Weekly (with token refresh) | `ESI_GATED_TESTS=true npm run test:integration:gated` |
+| ---------------------------- | --------------------------- | ----------------------------------------------------- |
+| Fault catalogue              | Every PR                    | `npm run faults`                                      |
+| Payload fuzz (all endpoints) | Nightly                     | `npm run faults:nightly`                              |
 
 ## Debugging
 
@@ -1027,7 +1056,6 @@ npm run generate:types
 | Path                                           | Purpose                                             |
 | ---------------------------------------------- | --------------------------------------------------- |
 | `jest.unit.config.cjs`                         | Unit + BDD test config (coverage thresholds)        |
-| `jest.benchmark.config.cjs`                    | Benchmark test config (60s timeout)                 |
 | `jest.integration.config.cjs`                  | Integration test config (30s timeout)               |
 | `jest.contract.config.cjs`                     | Contract test config (60s timeout)                  |
 | `jest.fuzz.config.cjs`                         | Fuzz test config (30s timeout)                      |
@@ -1037,7 +1065,10 @@ npm run generate:types
 | `tests/tdd/core/concurrency.test.ts`           | Async scheduling correctness (11 tests)             |
 | `tests/tdd/core/utilFunctions.test.ts`         | Core utility function tests (25 tests)              |
 | `tests/tdd/schemas/schemaRejection.test.ts`    | Full schema rejection coverage (423 tests)          |
-| `tests/benchmark/`                             | 4 performance benchmark suites (17 tests)           |
+| `tests/benchmark/`                             | Micro-benchmark harness, task catalogue, heap soak  |
+| `scripts/bench-ab.ts`                          | Runs two trees in alternating processes             |
+| `scripts/bench-compare-core.ts`                | Mann-Whitney U, Holm, bootstrap, the verdict        |
+| `scripts/soak-core.ts`                         | Heap trend, cache bound, timer and listener checks  |
 | `tests/bdd/features/`                          | 40 Gherkin feature files                            |
 | `tests/bdd/step-definitions/`                  | 40 step definition files + shared helpers           |
 | `tests/integration/full-stack.test.ts`         | Mocked full-lifecycle integration (20 tests)        |

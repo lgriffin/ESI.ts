@@ -5,6 +5,7 @@
     "jest-junit",
     "lint-staged",
     "@stryker-mutator/api",
+    "mitata",
     "publint",
     "esbuild"
   ],
