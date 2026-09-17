@@ -2,6 +2,7 @@ import { MailClient } from '../../../src/clients/MailClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import type { MailHeader } from '../../../src/types/api-responses';
 import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
@@ -21,7 +22,7 @@ describe('MailClient', () => {
   });
 
   it('should return mail headers', async () => {
-    const mockResponse = [
+    const mockResponse: MailHeader[] = [
       {
         mail_id: 1,
         subject: 'Test Mail',

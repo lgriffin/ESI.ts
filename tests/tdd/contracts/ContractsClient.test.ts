@@ -2,6 +2,7 @@ import { ContractsClient } from '../../../src/clients/ContractsClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import type { PublicContractItem } from '../../../src/types/api-responses';
 import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
@@ -187,7 +188,7 @@ describe('ContractClient', () => {
   });
 
   it('should return valid structure for getPublicContractItems', async () => {
-    const mockResponse = [
+    const mockResponse: PublicContractItem[] = [
       {
         record_id: 1,
         item_id: 1,
