@@ -98,10 +98,10 @@ function lookalikes(v: Value): Value[] {
   return [
     ` ${v}`,
     `${v} `,
-    v.replace(' ', '+'),
-    v.replace('+', ' '),
-    v.replace(' ', '%20'),
-    v.replace('%20', ' '),
+    v.split(' ').join('+'),
+    v.split('+').join(' '),
+    v.split(' ').join('%20'),
+    v.split('%20').join(' '),
     encodeURIComponent(v),
     '',
   ];
