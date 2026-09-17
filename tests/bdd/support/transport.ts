@@ -57,10 +57,17 @@ interface MockRequest {
   text(): Promise<string>;
 }
 
+/**
+ * Holds a request after it is recorded and before a queued response is
+ * matched to it. See `setRequestGate`.
+ */
+export type RequestGate = (request: RecordedRequest) => Promise<void>;
+
 let installed = false;
 let queue: QueuedResponse[] = [];
 let recorded: RecordedRequest[] = [];
 let unexpected: string[] = [];
+let gate: RequestGate | null = null;
 
 function matches(entry: QueuedResponse, url: string): boolean {
   if (entry.match === undefined) return true;
@@ -94,12 +101,14 @@ async function serve(request: MockRequest) {
     headers[key] = value;
   });
   const text = await request.text().catch(() => '');
-  recorded.push({
+  const entryRecorded: RecordedRequest = {
     method: request.method,
     url: new URL(request.url),
     headers,
     body: text === '' ? undefined : text,
-  });
+  };
+  recorded.push(entryRecorded);
+  if (gate) await gate(entryRecorded);
 
   const index = queue.findIndex((entry) => matches(entry, request.url));
   if (index === -1) {
@@ -207,6 +216,18 @@ export function queueError(
   options: Omit<HttpResponse, 'status' | 'body'> = {},
 ): void {
   queueResponse({ ...options, status, body: { error: message } });
+}
+
+/**
+ * Hold every request at the seam until `next` resolves for it, then match it
+ * against the queue as usual. The composition tier's interleaving scheduler
+ * (tests/tdd/composition/support/interleave.ts) uses this to decide when each
+ * response arrives and to queue the response a request gets at that moment;
+ * the queue stays strict. Pass `null` to remove the gate. Scenarios that never
+ * set a gate are unaffected.
+ */
+export function setRequestGate(next: RequestGate | null): void {
+  gate = next;
 }
 
 /** Every request the client sent in this scenario, in order. */
