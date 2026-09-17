@@ -16,6 +16,7 @@ ESI.ts uses a multi-tier testing strategy to ensure correctness at every level �
 | Fuzz (fast-check)    |        601 |        4 | Property-based testing of validation, URLs, schemas, pagination             |
 | Type (tsd)           |            |        1 | Consumer API type correctness                                               |
 | Consumer contract    |            |        1 | The `npm pack` tarball installed, type-checked and run by a clean consumer  |
+| Doc examples         |            |        1 | Every `ts` block in README, guides and SDE docs type-checked vs the tarball |
 | **Total**            | **4,957+** | **171+** | (`npm test` runs TDD + BDD; `npm run test:all` includes fuzz + types)       |
 
 ## Coverage
@@ -423,6 +424,13 @@ Every other tier imports from `src/`, so none of them sees the package a consume
 
 Defects the contract finds are recorded as known issues against their beads: each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround. There are none open; `esi-v2s.15` (error class identity across sub-paths) and `esi-v2s.16` (`./sde` peer dependencies) were the last two.
 
+### Documentation examples
+
+**Location:** `scripts/doc-examples.ts` and `scripts/doc-examples-core.ts`; prelude and stub fetch in `tests/doc-examples/`; self-tests and fixtures in `tests/tdd/doc-examples/`
+**Run:** `npm run test:docs-examples` (`-- --skip-build` packs the existing `dist/`, `-- --keep` keeps the workspace)
+**CI:** `doc-examples` in `ci.yml`, Node 20, inside `ci-success`. Not part of `npm test`; the unit suite checks the annotations, the baseline and the fixtures against a stub package.
+
+Packs the library as the consumer contract does and type-checks every fenced `ts`/`typescript` block in `README.md`, `guides/*.md`, `src/sde/README.md` and `src/sde/docs/*.md` as its own module under nodenext and bundler resolution, then runs the blocks marked `runnable` against a stubbed `fetch`. The annotation convention, the prelude and the shrink-only known-broken baseline are described in [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked).
 ### Type mutation
 
 **Location:** `scripts/type-mutation.ts` (CLI), `scripts/type-mutation-core.ts` (operators, sampling, ratchet), `scripts/type-mutation-run.ts` (workspaces, tsd)
@@ -571,6 +579,8 @@ Common setup:
 
 All unit and BDD tests use [jest-fetch-mock](https://github.com/jefflau/jest-fetch-mock) to intercept `fetch` calls. No real HTTP requests are made during unit/BDD tests.
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import fetchMock from 'jest-fetch-mock';
 
@@ -580,6 +590,8 @@ expect(result.name).toBe('Jita');
 ```
 
 Error scenarios mock non-200 status codes:
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 fetchMock.mockResponseOnce('Not Found', { status: 404 });
@@ -600,6 +612,8 @@ Each restricted construct has a negative fixture in `tests/tdd/determinism-lint/
 
 **`src/core/util/testHelpers.ts`** — provides `getBody()` wrapper used in TDD tests:
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { getBody } from '../../../src/core/util/testHelpers';
 
@@ -608,6 +622,8 @@ expect(result.name).toBe('Goonswarm Federation');
 ```
 
 **`src/testing/TestDataFactory.ts`** — factory for creating mock data with sensible defaults and optional overrides:
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
@@ -693,6 +709,8 @@ Every payload builder's default output passes the Zod schema its endpoint is val
 
 Each domain client has one test file. Tests instantiate the client directly with a mock `ApiClient`, mock the fetch response, call the method, and assert the result.
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { AllianceClient } from '../../../src/clients/AllianceClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
@@ -751,6 +769,8 @@ Feature: Alliance API
 
 **Step definitions** (`tests/bdd/step-definitions/core/alliance.steps.ts`):
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { EsiClient } from '../../../src/EsiClient';
 import { TestDataFactory } from '../../../src/testing/TestDataFactory';
@@ -784,6 +804,8 @@ describe('Feature: Alliance API', () => {
 
 API errors are modeled with `EsiError` (from `src/core/util/error.ts`):
 
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
+
 ```typescript
 import { EsiError } from '../../../src/core/util/error';
 
@@ -801,6 +823,8 @@ jest.spyOn(client.alliance, 'getAllianceById').mockRejectedValue(error);
 ### Shared Error Test Helper
 
 The `describeClientErrors` helper (`tests/tdd/helpers/clientErrorTests.ts`) generates a standard error handling `describe` block that tests all 5 HTTP error codes (500, 404, 401, 403, 429) against the exact messages from `ApiRequestHandler.STATUS_MESSAGES`, and checks that the thrown error carries the status code. Each case builds a fresh `ApiClient` and passes it to the callback, which must construct the domain client from it rather than reuse the suite's client: a 429 blocks the endpoint's rate-limit group for 60 seconds on the client that received it, and a shared client would make every later test in the file time out once `jest --randomize` puts the 429 case first.
+
+<!-- doc-example: no-check contributor example: a test inside this repository, importing src/ -->
 
 ```typescript
 import { describeClientErrors } from '../helpers/clientErrorTests';
@@ -963,6 +987,7 @@ npm run generate:types
 | `tests/fuzz/pagination-fuzz.test.ts`           | Pagination parameter fuzzing                        |
 | `tests/typetests/index.test-d.ts`              | Consumer type tests (tsd)                           |
 | `tests/consumer/`                              | Consumer contract package (`npm run test:consumer`) |
+| `tests/doc-examples/`                          | Doc example prelude and stub fetch                  |
 | `src/testing/TestDataFactory.ts`               | Mock data factory for tests                         |
 | `scripts/validate-esi-endpoints.ts`            | Standalone ESI spec validation script               |
 | `scripts/generate-esi-types.ts`                | Type/cache/scope generator from live spec           |

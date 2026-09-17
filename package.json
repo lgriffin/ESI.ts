@@ -181,6 +181,7 @@
     "test:export-coverage": "ts-node scripts/export-coverage.ts",
     "test:type-mutation": "ts-node scripts/type-mutation.ts",
     "test:consumer": "ts-node scripts/consumer-contract.ts",
+    "test:docs-examples": "ts-node scripts/doc-examples.ts",
     "generate:types": "ts-node scripts/generate-esi-types.ts",
     "generate:okf": "ts-node scripts/generate-okf.ts",
     "generate:endpoints": "ts-node scripts/generate-endpoint-scaffold.ts",
