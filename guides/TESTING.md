@@ -408,18 +408,27 @@ Related tools:
 
 ### Consumer contract
 
-**Location:** `tests/consumer/` (a private downstream package), driven by `scripts/consumer-contract.ts`
-**Run:** `npm run test:consumer` (`-- --skip-build` packs the existing `dist/`, `-- --keep` keeps the workspace)
-**CI:** `consumer-contract` in `ci.yml`, Node 18, 20 and 22, inside `ci-success`. Not part of `npm test`.
+**Location:** `tests/consumer/` (a private downstream package), driven by `scripts/consumer-contract.ts`, with the matrix checks in `scripts/consumer-contract-core.ts`
+**Run:** `npm run test:consumer` (`-- --skip-build` packs the existing `dist/`, `-- --tarball <path>` tests a tarball already packed, `-- --typescript oldest|repo|latest|next|<version>` picks the compiler, `-- --keep` keeps the workspace)
+**CI:** `consumer-tarball` packs once, then `consumer-contract` in `ci.yml` installs that tarball on four rows: Node 18 with TypeScript 5.4 (the oldest supported), Node 20 and 24 with the repository's TypeScript, Node 22 with npm `latest`. Both jobs are inside `ci-success`. `consumer-matrix-nightly.yml` adds TypeScript `next` and current Node, and `release.yml` runs the four rows against the tarball it signs before anything is published. Negative fixtures: `tests/tdd/consumer-contract/`, part of `npm test`.
 
 Every other tier imports from `src/`, so none of them sees the package a consumer installs. This one does:
 
-1. Builds and runs `npm pack`, then installs the tarball, plus the repository's `typescript` and `@types/node` versions, into a copy of `tests/consumer/` in a temporary directory outside the repository, so resolution cannot fall back to the repo's `node_modules`.
-2. Fails if a sub-path in the packed `exports` map is not imported by each consumer source (`src/require.cts`, `src/import.mts`, `bundler/index.mts`).
-3. Type-checks with `skipLibCheck: false`, so the shipped declarations are checked too, under `module: nodenext` (the `.cts` file resolves through the `require` condition, the `.mts` file through `import`) and under `moduleResolution: bundler`.
-4. Runs the emitted CommonJS and ES module consumers: a real `EsiClient` against a stubbed `fetch`, a malformed body rejected with `EsiValidationError` and a 404, both recognised by the classes and guards imported from `./errors`, schemas, `TestDataFactory` and the SDE providers.
-5. `runtime/parity.mjs` loads every sub-path under both `require` and `import` and fails if the CJS and ESM builds export different names, or if, within one build, two sub-paths export the same name as different values (a class exported from `.` and `./errors` must be one class; the root `schemas` namespace is compared with `./schemas`).
-6. `runtime/sde-optional-peers.mjs` covers `js-yaml` and `adm-zip`, the optional peer dependencies of `./sde`. Steps 2 to 5 run without them installed; before that, `absent` checks that `./sde` loads and that `fromDirectory` and `fromZip` throw an `SdeError` naming the missing package. At the end the runner installs both and `present` loads real YAML and ZIP files through the CJS and ESM builds.
+1. Installs the tarball, plus `typescript` at the chosen version, a matching `@types/node` and `esbuild`, into a copy of `tests/consumer/` in a temporary directory outside the repository, so resolution cannot fall back to the repo's `node_modules`.
+2. Fails if the packed `exports` map does not list exactly the documented sub-paths (`DOCUMENTED_SUBPATHS`, the list in [SEMVER.md](SEMVER.md)), or if one is not imported by each consumer source (`src/require.cts`, `src/import.mts`, `bundler/index.mts`).
+3. Type-checks six cells with `skipLibCheck: false`, so the shipped declarations are checked too. Each cell pairs an ES module or CommonJS consumer with `node16`, `nodenext` or `bundler` resolution, and each one includes a generated probe that imports every documented sub-path. The ES module probe also fails if a namespace type has a `default` member, which is what CommonJS declarations behind the `import` condition produce (esi-23g.29). Every cell runs, and the step summary shows the table.
+4. Loads every documented sub-path through `require` and `import` on the running Node, then runs the emitted CommonJS and ES module consumers: a real `EsiClient` against a stubbed `fetch`, a malformed body rejected with `EsiValidationError`, and a 404, both recognised by the classes and guards imported from `./errors`. It also runs schemas, `TestDataFactory` and the SDE providers.
+5. `runtime/parity.mjs` loads every sub-path under both `require` and `import`. It fails if the CJS and ESM builds export different names, or if two sub-paths in one build export the same name as different values. A class exported from `.` and `./errors` must be one class, and the root `schemas` namespace is compared with `./schemas`.
+6. Bundles `import { isEsiError } from '@lgriffin/esi.ts/errors'` with esbuild. The bundle must not contain an endpoint path from the root entry, must not include `dist/index.mjs`, and must stay under 1,600 B (1,497 B measured, plus 5%). A bundle of `EsiClient` from `.` is the control and must contain both.
+7. `runtime/sde-optional-peers.mjs` covers `js-yaml` and `adm-zip`, the optional peer dependencies of `./sde`. Steps 2 to 6 run without them installed. Before that step, `absent` checks that `./sde` loads and that `fromDirectory` and `fromZip` throw an `SdeError` naming the missing package. At the end the runner installs both, and `present` loads real YAML and ZIP files through the CJS and ESM builds.
+
+The fixture suite writes small dual packages into a temporary `node_modules` and runs the same cell, runtime and tree-shaking checks against them with the repository's TypeScript and esbuild. The correct package must pass every check. Each broken package must be rejected by the check that owns its defect:
+
+- A documented sub-path missing from `exports`: the exports check, every cell and the runtime probe.
+- A `.d.mts` with an extensionless relative specifier: the `node16` and `nodenext` ES module cells.
+- `import` types pointing at `.d.ts` in a `"type": "commonjs"` package: every ES module cell.
+- `require` types pointing at `.d.mts`: the `node16` CommonJS cell.
+- A light entry re-exported through the heavy one: the tree-shaking check.
 
 Defects the contract finds are recorded as known issues against their beads: each logs while it reproduces and fails the run once it stops, so the fix has to remove the workaround. There are none open; `esi-v2s.15` (error class identity across sub-paths) and `esi-v2s.16` (`./sde` peer dependencies) were the last two.
 
