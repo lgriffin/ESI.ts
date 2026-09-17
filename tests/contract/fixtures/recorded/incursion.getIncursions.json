@@ -1,0 +1,88 @@
+{
+  "endpoint": "incursion.getIncursions",
+  "call": {
+    "client": "incursions",
+    "method": "getIncursions",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 300,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 5,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].infested_solar_systems",
+      "kind": "array",
+      "original": 7,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].infested_solar_systems",
+      "kind": "array",
+      "original": 7,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].infested_solar_systems",
+      "kind": "array",
+      "original": 9,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "incursions",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"5f6b6c2c3608f3b316f0fe720ad8104925b65c39634f3cc891eeb1df\"",
+        "expires": "Thu, 17 Sep 2026 14:14:36 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:09:36 GMT"
+      },
+      "body": [
+        {
+          "constellation_id": 20000774,
+          "faction_id": 500019,
+          "has_boss": true,
+          "infested_solar_systems": [30005288, 30005289, 30005290],
+          "influence": 1,
+          "staging_solar_system_id": 30005290,
+          "state": "mobilizing",
+          "type": "Incursion"
+        },
+        {
+          "constellation_id": 20000319,
+          "faction_id": 500019,
+          "has_boss": true,
+          "infested_solar_systems": [30002165, 30002166, 30002167],
+          "influence": 1,
+          "staging_solar_system_id": 30002171,
+          "state": "mobilizing",
+          "type": "Incursion"
+        },
+        {
+          "constellation_id": 20000526,
+          "faction_id": 500019,
+          "has_boss": true,
+          "infested_solar_systems": [30003616, 30003608, 30003609],
+          "influence": 1,
+          "staging_solar_system_id": 30003615,
+          "state": "mobilizing",
+          "type": "Incursion"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "endpoint": "character.getCorporationHistory",
+  "call": {
+    "client": "characters",
+    "method": "getCharacterCorporationHistory",
+    "args": [92025524]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 86400,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "characters/92025524/corporationhistory/",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"92581f11b027c5e781a2af3bf6ffa2ec076b004c25c8b8e2e641a318\"",
+        "expires": "Fri, 18 Sep 2026 14:13:02 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:13:02 GMT"
+      },
+      "body": [
+        {
+          "corporation_id": 98356193,
+          "record_id": 35837187,
+          "start_date": "2014-11-12T11:34:00Z"
+        },
+        {
+          "corporation_id": 1000168,
+          "record_id": 19752376,
+          "start_date": "2012-05-16T11:51:00Z"
+        }
+      ]
+    }
+  ]
+}

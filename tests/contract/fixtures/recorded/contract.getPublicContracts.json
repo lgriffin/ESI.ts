@@ -1,0 +1,173 @@
+{
+  "endpoint": "contract.getPublicContracts",
+  "call": {
+    "client": "contracts",
+    "method": "getPublicContracts",
+    "args": [10000002]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 1800,
+  "upstreamPages": 35,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 1000,
+      "kept": 3
+    },
+    {
+      "page": 2,
+      "at": "$",
+      "kind": "array",
+      "original": 1000,
+      "kept": 4
+    }
+  ],
+  "pages": [
+    {
+      "url": "contracts/public/10000002",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"e458e31a7483b487a00593220cc4d5ea957f883a79ad524b090319c1\"",
+        "expires": "Thu, 17 Sep 2026 14:36:47 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:06:47 GMT",
+        "x-pages": "2"
+      },
+      "body": [
+        {
+          "collateral": 0,
+          "contract_id": 235206105,
+          "date_expired": "2026-09-17T14:09:59Z",
+          "date_issued": "2026-08-20T14:09:59Z",
+          "days_to_complete": 0,
+          "end_location_id": 60003760,
+          "for_corporation": true,
+          "issuer_corporation_id": 98762754,
+          "issuer_id": 2123930579,
+          "price": 590000000,
+          "reward": 0,
+          "start_location_id": 60003760,
+          "title": "",
+          "type": "item_exchange",
+          "volume": 0.01
+        },
+        {
+          "collateral": 0,
+          "contract_id": 235206166,
+          "date_expired": "2026-09-17T14:11:52Z",
+          "date_issued": "2026-08-20T14:11:52Z",
+          "days_to_complete": 0,
+          "end_location_id": 60003760,
+          "issuer_corporation_id": 98838714,
+          "issuer_id": 2124534109,
+          "price": 5000000000,
+          "reward": 0,
+          "start_location_id": 60003760,
+          "title": "",
+          "type": "item_exchange",
+          "volume": 1
+        },
+        {
+          "collateral": 0,
+          "contract_id": 235206741,
+          "date_expired": "2026-09-17T14:30:47Z",
+          "date_issued": "2026-08-20T14:30:47Z",
+          "days_to_complete": 0,
+          "end_location_id": 60003760,
+          "issuer_corporation_id": 98355545,
+          "issuer_id": 94529635,
+          "price": 45000000,
+          "reward": 0,
+          "start_location_id": 60003760,
+          "title": "",
+          "type": "item_exchange",
+          "volume": 0.01
+        }
+      ]
+    },
+    {
+      "url": "contracts/public/10000002?page=2",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"11c11f055d3f66a41c189450cc77c3286d20066c7d7f5bb7ff9bee6c\"",
+        "expires": "Thu, 17 Sep 2026 14:36:47 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:06:47 GMT",
+        "x-pages": "2"
+      },
+      "body": [
+        {
+          "collateral": 0,
+          "contract_id": 235260754,
+          "date_expired": "2026-09-19T09:25:42Z",
+          "date_issued": "2026-08-22T09:25:42Z",
+          "days_to_complete": 0,
+          "end_location_id": 60003760,
+          "issuer_corporation_id": 339592145,
+          "issuer_id": 1754634253,
+          "price": 239999999,
+          "reward": 0,
+          "start_location_id": 60003760,
+          "title": "3002 hp",
+          "type": "item_exchange",
+          "volume": 20
+        },
+        {
+          "collateral": 0,
+          "contract_id": 235260759,
+          "date_expired": "2026-09-19T09:25:54Z",
+          "date_issued": "2026-08-22T09:25:54Z",
+          "days_to_complete": 0,
+          "end_location_id": 60003760,
+          "issuer_corporation_id": 98662524,
+          "issuer_id": 870224116,
+          "price": 344000000,
+          "reward": 0,
+          "start_location_id": 60003760,
+          "title": "",
+          "type": "item_exchange",
+          "volume": 5
+        },
+        {
+          "collateral": 0,
+          "contract_id": 235260763,
+          "date_expired": "2026-09-19T09:26:11Z",
+          "date_issued": "2026-08-22T09:26:11Z",
+          "days_to_complete": 0,
+          "end_location_id": 60003760,
+          "issuer_corporation_id": 339592145,
+          "issuer_id": 1754634253,
+          "price": 219999999,
+          "reward": 0,
+          "start_location_id": 60003760,
+          "title": "2934 hp",
+          "type": "item_exchange",
+          "volume": 20
+        },
+        {
+          "collateral": 0,
+          "contract_id": 235262888,
+          "date_expired": "2026-09-19T10:45:36Z",
+          "date_issued": "2026-08-22T10:45:36Z",
+          "days_to_complete": 0,
+          "end_location_id": 60003760,
+          "for_corporation": true,
+          "issuer_corporation_id": 339592145,
+          "issuer_id": 1754634253,
+          "price": 49999999,
+          "reward": 0,
+          "start_location_id": 60003760,
+          "title": "cheap AMARR ship DCU",
+          "type": "item_exchange",
+          "volume": 5
+        }
+      ]
+    }
+  ]
+}

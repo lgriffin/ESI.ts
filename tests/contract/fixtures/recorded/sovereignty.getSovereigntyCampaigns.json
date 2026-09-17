@@ -1,0 +1,28 @@
+{
+  "endpoint": "sovereignty.getSovereigntyCampaigns",
+  "call": {
+    "client": "sovereignty",
+    "method": "getSovereigntyCampaigns",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 5,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "sovereignty/campaigns",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"ed2e5773d709f4a0654d954884b08db4e152aeb8a70cb70b54e01bc4\"",
+        "expires": "Thu, 17 Sep 2026 14:13:21 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:13:16 GMT"
+      },
+      "body": []
+    }
+  ]
+}

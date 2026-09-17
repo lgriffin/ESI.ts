@@ -63,7 +63,7 @@ Resolution happens per call, so `setLogger()` affects clients that were construc
 - A few call sites have no client handle and pass none: the rate limiter (every `[ESI Rate Limit]` event) and the batch helpers. Those events skip step 1 and go to the global or default logger. See [Known gaps](#known-gaps).
 - The ETag cache logs its "initialized" line from its constructor, before it is attached to a client, so that one line also goes to the global or default logger.
 
-```ts
+```ts runnable
 import { EsiClient, createDefaultLogger, setLogger } from '@lgriffin/esi.ts';
 
 // Per-client: this client's pipeline events go to its own logger.

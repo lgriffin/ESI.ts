@@ -91,6 +91,17 @@ export function trySpecAwareCacheHit(
   return null;
 }
 
+/** Whether the cache holds an unexpired entry for the URL. */
+export function hasCachedEntry(
+  client: ApiClient,
+  url: string,
+  resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
+): boolean {
+  const cache = resolveCache(client);
+  return !!cache && cache.has(buildCacheKey(url, client, requiresAuth));
+}
+
 /**
  * Attempt to return a stale cached response (used on server errors).
  */
@@ -117,7 +128,58 @@ export function tryStaleCacheResponse(
 }
 
 /**
+ * Successful writes seen by a cache, so a read that was in flight when one of
+ * them invalidated its path does not store the pre-write body afterwards.
+ * `recent` keeps the last RECENT_WRITES paths; a read that outlived more
+ * writes than that is treated as overtaken.
+ */
+interface WriteLog {
+  generation: number;
+  recent: { generation: number; path: string }[];
+}
+
+const RECENT_WRITES = 64;
+const writeLogs = new WeakMap<ICache, WriteLog>();
+
+function writeLogFor(cache: ICache): WriteLog {
+  let log = writeLogs.get(cache);
+  if (!log) {
+    log = { generation: 0, recent: [] };
+    writeLogs.set(cache, log);
+  }
+  return log;
+}
+
+/**
+ * The client's write generation. Take it before sending a GET and pass it to
+ * cacheResponse, which then declines to store the response if a write has
+ * invalidated the same path since.
+ */
+export function currentWriteGeneration(
+  client: ApiClient,
+  resolveCache: (client: ApiClient) => ICache | null,
+): number {
+  const cache = resolveCache(client);
+  return cache ? writeLogFor(cache).generation : 0;
+}
+
+function invalidatedSince(
+  cache: ICache,
+  generation: number,
+  key: string,
+): boolean {
+  const log = writeLogFor(cache);
+  if (log.generation === generation) return false;
+  if (log.generation - generation > log.recent.length) return true;
+  return log.recent.some(
+    (write) => write.generation > generation && key.includes(write.path),
+  );
+}
+
+/**
  * Cache a successful response, or invalidate cache for non-GET methods.
+ * `sentAtWriteGeneration` (see currentWriteGeneration) skips storing a GET
+ * response whose path a write invalidated while the request was in flight.
  */
 export function cacheResponse(
   client: ApiClient,
@@ -130,10 +192,22 @@ export function cacheResponse(
   resolveCache: (client: ApiClient) => ICache | null,
   templatePath?: string,
   requiresAuth: boolean = false,
+  sentAtWriteGeneration?: number,
 ): void {
   const cache = resolveCache(client);
   if (useETag && method === 'GET' && cache && parsed.etag) {
     const key = buildCacheKey(url, client, requiresAuth);
+    if (
+      sentAtWriteGeneration !== undefined &&
+      invalidatedSince(cache, sentAtWriteGeneration, key)
+    ) {
+      logDebug(
+        client,
+        `Not caching ${url}: a write invalidated it while the request was in flight`,
+        { method },
+      );
+      return;
+    }
     const headerTtl = parseCacheControlTtl(parsed.raw);
     const specTtlMs = templatePath
       ? lookupSpecTtl(method, templatePath)
@@ -195,6 +269,11 @@ export function invalidateAfterWrite(
 ): void {
   const cache = resolveCache(client);
   if (method !== 'GET' && cache) {
-    cache.deleteByPath(endpoint.split('?')[0]!);
+    const path = endpoint.split('?')[0]!;
+    cache.deleteByPath(path);
+    const log = writeLogFor(cache);
+    log.generation += 1;
+    log.recent.push({ generation: log.generation, path });
+    if (log.recent.length > RECENT_WRITES) log.recent.shift();
   }
 }

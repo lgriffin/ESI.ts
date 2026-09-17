@@ -1,0 +1,62 @@
+{
+  "testResults": [
+    {
+      "name": "tests/bdd/specs/core/0001-alpha.spec.ts",
+      "status": "passed",
+      "message": "",
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "Feature: Alpha",
+            "Rule: When orders are requested, the Alpha client shall return every order."
+          ],
+          "title": "Five orders are returned",
+          "status": "passed",
+          "duration": 12,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "Feature: Alpha",
+            "Rule: If ESI answers with a server error, then the Alpha client shall retry the request."
+          ],
+          "title": "HTTP 502 is retried",
+          "status": "failed",
+          "duration": 7,
+          "failureMessages": ["Error: expected 2 requests, received 1"]
+        },
+        {
+          "ancestorTitles": [
+            "Feature: Alpha",
+            "Rule: If ESI answers with a server error, then the Alpha client shall retry the request."
+          ],
+          "title": "HTTP 503 is retried",
+          "status": "pending",
+          "duration": 5,
+          "failureMessages": []
+        }
+      ]
+    },
+    {
+      "name": "tests/bdd/step-definitions/core/beta.steps.ts",
+      "status": "passed",
+      "message": "",
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Beta"],
+          "title": "Status is returned",
+          "status": "passed",
+          "duration": 3,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["Beta"],
+          "title": "Status comes back twice",
+          "status": "passed",
+          "duration": 3,
+          "failureMessages": []
+        }
+      ]
+    }
+  ]
+}

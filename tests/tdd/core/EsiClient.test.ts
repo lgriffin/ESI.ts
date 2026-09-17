@@ -150,12 +150,18 @@ describe('EsiClient', () => {
     it('should clear cache', () => {
       const client = new EsiClient();
       client.clearCache();
+      expect(client.getCacheStats()).toMatchObject({
+        totalEntries: 0,
+        hits: 0,
+        misses: 0,
+      });
       client.shutdown();
     });
 
     it('should update cache config', () => {
       const client = new EsiClient();
       client.updateCacheConfig({ maxEntries: 100 });
+      expect(client.getCacheStats()?.maxEntries).toBe(100);
       client.shutdown();
     });
   });
@@ -170,13 +176,15 @@ describe('EsiClient', () => {
 
     it('should reset circuit breaker', () => {
       const client = new EsiClient({ enableCircuitBreaker: true });
-      client.resetCircuitBreaker();
+      expect(() => client.resetCircuitBreaker()).not.toThrow();
+      expect(client.getCircuitBreakerStats()?.totalCircuits).toBe(0);
       client.shutdown();
     });
 
     it('should reset specific endpoint circuit breaker', () => {
       const client = new EsiClient({ enableCircuitBreaker: true });
-      client.resetCircuitBreaker('v1/status/');
+      expect(() => client.resetCircuitBreaker('v1/status/')).not.toThrow();
+      expect(client.getCircuitBreakerStats()?.totalCircuits).toBe(0);
       client.shutdown();
     });
   });
@@ -187,14 +195,14 @@ describe('EsiClient', () => {
         enableCircuitBreaker: true,
         enableETagCache: true,
       });
-      client.shutdown();
+      expect(() => client.shutdown()).not.toThrow();
     });
 
     it('should shutdown with deduplicator', () => {
       const client = new EsiClient({
         enableRequestDeduplication: true,
       });
-      client.shutdown();
+      expect(() => client.shutdown()).not.toThrow();
     });
 
     it('should shutdown without optional components', () => {
@@ -203,7 +211,7 @@ describe('EsiClient', () => {
         enableETagCache: false,
         enableRequestDeduplication: false,
       });
-      client.shutdown();
+      expect(() => client.shutdown()).not.toThrow();
     });
   });
 
