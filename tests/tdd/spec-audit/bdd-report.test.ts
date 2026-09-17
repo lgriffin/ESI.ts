@@ -18,6 +18,7 @@ import {
   LedgerCheck,
   buildLedger,
   caseName,
+  cell,
   readFeatures,
   toJUnit,
   toSummary,
@@ -165,6 +166,10 @@ describe('bdd-report', () => {
       expect(summary).toContain(
         '| If ESI answers with a server error, then the Alpha client shall retry the request. | HTTP 502 is retried | failed | `tests/bdd/features/core/0001-alpha.feature:15` |',
       );
+    });
+
+    it('escapes backslashes before pipes in table cells', () => {
+      expect(cell('a\\|b\nc')).toBe('a\\\\\\|b c');
     });
 
     it('says so when every Rule is verified', () => {

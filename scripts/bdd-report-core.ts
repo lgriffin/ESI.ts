@@ -329,8 +329,15 @@ export function toJUnit(ledger: Ledger): string {
 /** Rows listed in the summary; the JUnit artifact carries every case. */
 export const SUMMARY_ROWS = 50;
 
-function cell(text: string): string {
-  return text.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+/**
+ * Text safe inside a Markdown table cell. Backslashes are escaped first, so a
+ * title ending in `\` cannot turn the escaped pipe after it into a column break.
+ */
+export function cell(text: string): string {
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, ' ');
 }
 
 export function toSummary(ledger: Ledger): string {
