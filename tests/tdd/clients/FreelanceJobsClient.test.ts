@@ -2,6 +2,7 @@ import { FreelanceJobsClient } from '../../../src/clients/FreelanceJobsClient';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
+import type { FreelanceJobParticipantsListing } from '../../../src/types/api-responses';
 import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
@@ -263,7 +264,7 @@ describe('FreelanceJobsClient', () => {
       );
       authedApiClient.setRateLimiter(rateLimiter);
       const authedClient = new FreelanceJobsClient(authedApiClient);
-      const mockParticipants = {
+      const mockParticipants: FreelanceJobParticipantsListing = {
         participants: [
           { id: 111, name: 'Pilot One', state: 'Committed', contributed: 10 },
           { id: 222, name: 'Pilot Two', state: 'Committed', contributed: 3 },
