@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.1.1](https://github.com/lgriffin/ESI.ts/compare/v10.1.0...v10.1.1) (2026-09-18)
+
+
+### Documentation
+
+* **mutation:** record the first complete sharded run, and fix what it exposed ([7acf195](https://github.com/lgriffin/ESI.ts/commit/7acf1950d5781dad571e2f79e52d03324683f7bd))
+* **mutation:** record the first complete sharded run, and fix what it exposed ([3209241](https://github.com/lgriffin/ESI.ts/commit/32092415c551cbc7cc75266fa7158ab884040aad))
+
 ## [10.1.0](https://github.com/lgriffin/ESI.ts/compare/v10.0.0...v10.1.0) (2026-09-18)
 
 
