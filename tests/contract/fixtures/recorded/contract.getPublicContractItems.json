@@ -3,7 +3,7 @@
   "call": {
     "client": "contracts",
     "method": "getPublicContractItems",
-    "args": [235228065]
+    "args": [235231765]
   },
   "recordedAt": "2026-09-18",
   "compatibilityDate": "2026-05-19",
@@ -13,25 +13,23 @@
   "truncated": [],
   "pages": [
     {
-      "url": "contracts/public/items/235228065",
+      "url": "contracts/public/items/235231765",
       "status": 200,
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"44129d468a075e974815edf52ad5c51ee60c3c1b09b24dd0e0927b9e\"",
-        "expires": "Fri, 18 Sep 2026 09:01:25 GMT",
-        "last-modified": "Fri, 18 Sep 2026 08:01:25 GMT",
+        "etag": "\"2caf92be72df6134463c7dec150979126e0db6b92cd8c6514166aea0\"",
+        "expires": "Fri, 18 Sep 2026 12:10:12 GMT",
+        "last-modified": "Fri, 18 Sep 2026 11:10:12 GMT",
         "x-pages": "1"
       },
       "body": [
         {
           "is_included": true,
-          "item_id": 1054247920132,
-          "material_efficiency": 10,
+          "item_id": 1040964903944,
           "quantity": 1,
-          "record_id": 5292620350,
-          "time_efficiency": 20,
-          "type_id": 1208
+          "record_id": 5292733595,
+          "type_id": 47753
         }
       ]
     }
