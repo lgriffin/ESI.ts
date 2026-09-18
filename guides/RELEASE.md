@@ -126,6 +126,14 @@ npm run test:all
 
 ---
 
+### One tarball, everywhere
+
+`create-assets` runs `npm pack` once. That tarball is what the consumer matrix installs, what cosign signs, what goes on the GitHub Release, and — since `esi-23g.42` — what both `publish-npm` and `publish-github` upload, rather than each rebuilding from a fresh checkout.
+
+Both publish jobs re-verify `checksums.txt` before uploading. If the bytes changed between packing and publishing, the artefact cosign signed and the artefact npm serves are already different, and the run stops rather than shipping the discrepancy.
+
+That is what makes the canary's `signatures` check meaningful: the provenance attestation, the cosign bundle and the npm tarball all describe the same bytes.
+
 ## What is published where
 
 | Destination                            | Artefact                                                           | Integrity                                                                  |
