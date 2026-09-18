@@ -748,7 +748,7 @@ npm run check:local:fast   # quick only: no build
 npm run check:local:all    # adds the slow tiers (type mutation)
 ```
 
-What it runs, and what it deliberately does not, is `scripts/verify-local-core.ts`. The list is held to CI by `tests/tdd/verify-local/verify-local.test.ts`, which reads every `npm run` in `ci.yml` and fails unless each one is in the tier list, reachable from a composite, or excluded with a written reason — so a tier added to CI cannot silently go unrun locally. `format:check` is one of the excluded ones: on a Windows checkout CRLF endings fail it across the whole repository, so run it on a specific path instead.
+What it runs, and what it deliberately does not, is `scripts/verify-local-core.ts`. The list is held to CI by `tests/tdd/verify-local/verify-local.test.ts`, which reads `ci.yml` two ways and fails unless each thing it finds is in the tier list, reachable from a composite, or excluded with a written reason — so a tier added to CI cannot silently go unrun locally. It reads every `npm run`, and every tool a step invokes directly through `npx`, `uvx`, `pipx` or `bunx`. The second was added after `zizmor` spent a day as a CI-only gate precisely because nothing looked for it: it is not an npm script, so the first pass never saw it. `format:check` is one of the excluded ones: on a Windows checkout CRLF endings fail it across the whole repository, so run it on a specific path instead.
 
 Two older aggregate scripts cover the static side:
 

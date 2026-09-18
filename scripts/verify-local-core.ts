@@ -58,6 +58,11 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'lint:workflows',
+    covers: 'zizmor over .github/, the audit ci.yml runs',
+    stage: 'quick',
+  },
+  {
     script: 'spec:audit',
     covers: 'feature files are EARS-compliant',
     stage: 'quick',
@@ -126,6 +131,24 @@ export const COMPOSITES: Record<string, string[]> = {
  * CI scripts `check:local` deliberately does not run, and why. Every entry is
  * a decision someone can argue with, which is the point of writing it down.
  */
+/**
+ * CI steps that run a tool directly rather than through an npm script, and
+ * what runs each one locally.
+ *
+ * `scriptsInWorkflow` only sees `npm run`, so until this existed a gate could
+ * be added to ci.yml as `npx something` and never be covered here — which is
+ * how zizmor stayed CI-only. A tool listed here must name a tier that runs it.
+ */
+export const TOOLS_RUN_BY: Record<string, string> = {
+  zizmor: 'lint:workflows',
+};
+
+/** Tools CI invokes directly that `check:local` deliberately does not run. */
+export const TOOLS_NOT_RUN_LOCALLY: Record<string, string> = {
+  npm: 'ci.yml pins npm itself for one step - `npx --yes npm@11.17.0 pack` - because npm 10 runs `prepare` on `npm pack` even with --ignore-scripts and rebuilds dist/, which would defeat that job. A workaround for the npm the runner bundles, not a gate; esi-23g.43 tracks it',
+  knip: 'ci.yml runs it with --no-exit-code, so it gates nothing; a local tier mirroring a check that cannot fail would say more than it knows (esi-p56 tracks making it block)',
+};
+
 export const NOT_RUN_LOCALLY: Record<string, string> = {
   bdd: 'a subset of `test`, which runs the same Jest config unfiltered',
   'bdd:report': 'reporting only; `test` already executes every scenario',
@@ -198,6 +221,49 @@ export function scriptsInWorkflow(yaml: string): string[] {
     if (script !== undefined) found.add(script);
   }
   return [...found].sort();
+}
+
+/**
+ * Every tool a workflow invokes directly through a runner such as `npx` or
+ * `uvx`, normalised: `uvx zizmor@1.25.2` is `zizmor`.
+ */
+export function toolsInWorkflow(yaml: string): string[] {
+  const found = new Set<string>();
+  for (const match of yaml.matchAll(
+    /\b(?:npx|uvx|pipx|bunx)(?:\s+(?:--?[\w-]+|run))*\s+((?:@[\w./-]+\/)?[\w.-]+)/g,
+  )) {
+    const raw = match[1];
+    if (raw === undefined) continue;
+    // Drop a version pin: `zizmor@1.25.2` and `zizmor` are one tool.
+    const name = raw.replace(/@[\d.]+$/, '');
+    if (name.startsWith('-')) continue;
+    found.add(name);
+  }
+  return [...found].sort();
+}
+
+/** Tools CI invokes directly that this runner neither runs nor explains. */
+export function uncoveredCiTools(
+  tools: string[],
+  tiers: Tier[],
+  runBy: Record<string, string> = TOOLS_RUN_BY,
+  notRun: Record<string, string> = TOOLS_NOT_RUN_LOCALLY,
+): string[] {
+  const run = new Set(tiers.map((t) => t.script));
+  const problems: string[] = [];
+  for (const tool of tools) {
+    const tier = runBy[tool];
+    if (tier !== undefined) {
+      // A mapping to a tier nobody runs is worse than no mapping: it reads as
+      // covered.
+      if (!run.has(tier)) {
+        problems.push(`${tool}: mapped to ${tier}, which is not a tier`);
+      }
+      continue;
+    }
+    if (!(tool in notRun)) problems.push(tool);
+  }
+  return problems.sort();
 }
 
 /**
