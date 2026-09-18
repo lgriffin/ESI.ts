@@ -1,0 +1,64 @@
+name: Nightly Mutation Retry
+
+# One reclaimed runner should cost one shard, not the whole matrix.
+#
+# GitHub-hosted runners intermittently drop a long job with "The runner has
+# received a shutdown signal" and exit 143. Observed on this repository: the
+# unsharded BDD run at 30 minutes (2026-09-17), the core-pipeline shard at 36,
+# the core-rest shard at 45 — while core-rest had itself finished at 59 minutes
+# earlier the same day. It is random, not a length limit, and it is not
+# something the shard can defend against: the runner goes, not the process.
+#
+# The merge refuses an incomplete set by design, so a single reclaim costs
+# every shard's score. This re-runs the failed jobs once. `gh run rerun
+# --failed` also re-runs their dependents, so the merge and the ratchet run
+# again with the artifacts the surviving shards already uploaded — which
+# persist across attempts of the same run.
+#
+# It has to be its own workflow: a job inside the run cannot re-run its own
+# run ("cannot be rerun; This workflow is already running"), so the retry waits
+# for the run to finish via workflow_run.
+#
+# Bounded at one extra attempt. A shard that fails twice is not a reclaim, and
+# the second failure should be read rather than papered over.
+
+on:
+  workflow_run:
+    workflows: ['Nightly Mutation Testing']
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  retry:
+    name: Re-run reclaimed shards
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt == 1
+    permissions:
+      actions: write
+
+    steps:
+      - name: Re-run the failed jobs once
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          echo "Run $RUN_ID finished as failure on attempt 1; re-running its failed jobs."
+          gh run rerun "$RUN_ID" --repo "$REPO" --failed
+          echo "Requested. Attempt 2 re-runs the failed shards and, after them, the merge and ratchet."
+
+      - name: Say so in the summary
+        env:
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          {
+            echo "## Nightly mutation retry"
+            echo
+            echo "Re-ran the failed jobs of [the nightly run]($RUN_URL), once."
+            echo
+            echo "A shard that fails on attempt 2 is not a reclaimed runner — read that one."
+          } >> "$GITHUB_STEP_SUMMARY"
