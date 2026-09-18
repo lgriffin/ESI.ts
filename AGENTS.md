@@ -59,6 +59,7 @@ Every change is classified by [`guides/SEMVER.md`](guides/SEMVER.md) before it i
 - **Deprecate before removing.** Removals ship in a major release only, after `@deprecated` JSDoc (and `DeprecationInfo` for endpoints) in an earlier minor release, unless ESI has already removed the endpoint.
 - **Keep the API report honest.** When an exported shape changes, run `npm run api-report` and commit `etc/esi.ts.api.md`. If the report loses a line but the change is compatible, add an `API-Compatible: <why>` trailer.
 - **Pull request titles are conventional commits.** A squash merge of several commits uses the title as the commit release-please reads, so it carries `!` whenever any commit in the pull request is breaking. Prefer a merge commit when a pull request mixes `fix:`/`feat:` with other types.
+- **These rules live in CLAUDE.md and AGENTS.md both.** `tests/tdd/scripts/agent-docs.test.ts` fails if the two copies drift, so an agent cannot read a stale one and ship a break under `fix:`. Edit both, or neither.
 
 ## Reviewer Checklist
 
