@@ -846,6 +846,40 @@ const CharacterRoleSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+interface CharactersAccessListsDetail {
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    id: number;
+    // (undocumented)
+    membership: {
+        alliances: ({
+            access: 'Unspecified' | 'Allowed' | 'Blocked' | 'Manager' | 'Admin';
+            alliance_id: number;
+        })[];
+        allow_everyone: boolean;
+        characters: ({
+            access: 'Unspecified' | 'Allowed' | 'Blocked' | 'Manager' | 'Admin';
+            character_id: number;
+        })[];
+        corporations: ({
+            access: 'Unspecified' | 'Allowed' | 'Blocked' | 'Manager' | 'Admin';
+            corporation_id: number;
+        })[];
+    };
+    // (undocumented)
+    name: string;
+}
+
+// @public (undocumented)
+interface CharactersAccessListsListing {
+    // (undocumented)
+    access_lists: ({
+        id: number;
+    })[];
+}
+
+// @public (undocumented)
 interface CharactersAffiliationPost {
     // (undocumented)
     alliance_id?: number;
@@ -1792,6 +1826,29 @@ interface CharactersLocation {
 }
 
 // @public (undocumented)
+interface CharactersMercenaryTacticalOperationsDetail {
+    // (undocumented)
+    dungeon_type_id: number;
+    // (undocumented)
+    expires: string;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    mercenary_den_id: number;
+    // (undocumented)
+    state: 'Unspecified' | 'Available' | 'Started' | 'Completed' | 'Expired' | 'Removed';
+}
+
+// @public (undocumented)
+interface CharactersMercenaryTacticalOperationsListing {
+    // (undocumented)
+    operations: ({
+        id: string;
+        mercenary_den_id: number;
+    })[];
+}
+
+// @public (undocumented)
 interface CharactersOnline {
     // (undocumented)
     last_login?: string;
@@ -1846,6 +1903,50 @@ interface CharactersSkills {
     total_sp: number;
     // (undocumented)
     unallocated_sp?: number;
+}
+
+// @public (undocumented)
+interface CharactersStructuresMercenaryDensDetail {
+    // (undocumented)
+    evolution: {
+        anarchy: {
+            amount: number;
+            level: 'Unspecified' | 'Level0' | 'Level1' | 'Level2' | 'Level3' | 'Level4';
+        };
+        development: {
+            amount: number;
+            level: 'Unspecified' | 'Level0' | 'Level1' | 'Level2' | 'Level3' | 'Level4';
+        };
+    };
+    // (undocumented)
+    id: number;
+    // (undocumented)
+    infomorphs: {
+        amount: number;
+    };
+    // (undocumented)
+    reinforcement_timer?: {
+        end: string;
+    };
+    // (undocumented)
+    skyhook: {
+        corporation_id: number;
+        id: number;
+        planet_id: number;
+    };
+    // (undocumented)
+    state: 'Unspecified' | 'Running' | 'Paused' | 'Disabled';
+    // (undocumented)
+    type_id: number;
+}
+
+// @public (undocumented)
+interface CharactersStructuresMercenaryDensListing {
+    // (undocumented)
+    mercenary_dens: ({
+        id: number;
+        planet_id: number;
+    })[];
 }
 
 // @public
@@ -3709,6 +3810,99 @@ interface CorporationsProjectsListing {
 }
 
 // @public (undocumented)
+interface CorporationsStructuresSkyhooksDetail {
+    // (undocumented)
+    effective_workforce?: number;
+    // (undocumented)
+    id: number;
+    // (undocumented)
+    is_active: boolean;
+    // (undocumented)
+    planet_id: number;
+    // (undocumented)
+    reagents?: ({
+        last_cycle: string;
+        secured_stock: number;
+        type_id: number;
+        unsecured_stock: number;
+    })[];
+    // (undocumented)
+    reinforcement_timer?: {
+        end: string;
+    };
+    // (undocumented)
+    state: 'Unspecified' | 'ShieldVulnerable' | 'ArmorReinforced' | 'ArmorVulnerable' | 'HullReinforced' | 'HullVulnerable';
+    // (undocumented)
+    theft_vulnerability?: {
+        end: string;
+        start: string;
+    };
+}
+
+// @public (undocumented)
+interface CorporationsStructuresSkyhooksListing {
+    // (undocumented)
+    skyhooks: ({
+        id: number;
+        planet_id: number;
+    })[];
+}
+
+// @public (undocumented)
+interface CorporationsStructuresSovereigntyHubsDetail {
+    // (undocumented)
+    fuel_access_list_id?: number;
+    // (undocumented)
+    id: number;
+    // (undocumented)
+    reagent_bay: {
+        last_updated: string;
+        reagents: ({
+            amount: number;
+            burning_per_hour: number;
+            type_id: number;
+        })[];
+    };
+    // (undocumented)
+    resources: {
+        power: {
+            allocated: number;
+            available: number;
+        };
+        workforce: {
+            allocated: number;
+            available: number;
+        };
+    };
+    // (undocumented)
+    solar_system_id: number;
+    // (undocumented)
+    upgrades: ({
+        power_state: 'Unspecified' | 'Online' | 'Offline' | 'Low' | 'Pending';
+        type_id: number;
+    })[];
+    // (undocumented)
+    vulnerability_window?: {
+        end: string;
+        start: string;
+    };
+    // (undocumented)
+    workforce_transport: {
+        configuration: unknown;
+        state: unknown;
+    };
+}
+
+// @public (undocumented)
+interface CorporationsStructuresSovereigntyHubsListing {
+    // (undocumented)
+    sovereignty_hubs: ({
+        id: number;
+        solar_system_id: number;
+    })[];
+}
+
+// @public (undocumented)
 export type CorporationStarbase = z.infer<typeof CorporationStarbaseSchema>;
 
 // @public (undocumented)
@@ -4456,6 +4650,10 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetAlliancesAllianceIdIcons': AlliancesAllianceIdIconsGet;
     // (undocumented)
+    'GetCharactersAccessListsDetail': CharactersAccessListsDetail;
+    // (undocumented)
+    'GetCharactersAccessListsListing': CharactersAccessListsListing;
+    // (undocumented)
     'GetCharactersCharacterId': CharactersDetail;
     // (undocumented)
     'GetCharactersCharacterIdAgentsResearch': CharactersCharacterIdAgentsResearchGet[];
@@ -4552,6 +4750,14 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetCharactersFreelanceJobsParticipation': CharactersFreelanceJobsParticipation;
     // (undocumented)
+    'GetCharactersMercenaryTacticalOperationsDetail': CharactersMercenaryTacticalOperationsDetail;
+    // (undocumented)
+    'GetCharactersMercenaryTacticalOperationsListing': CharactersMercenaryTacticalOperationsListing;
+    // (undocumented)
+    'GetCharactersStructuresMercenaryDensDetail': CharactersStructuresMercenaryDensDetail;
+    // (undocumented)
+    'GetCharactersStructuresMercenaryDensListing': CharactersStructuresMercenaryDensListing;
+    // (undocumented)
     'GetContractsPublicBidsContractId': ContractsPublicBidsContractIdGet[];
     // (undocumented)
     'GetContractsPublicItemsContractId': ContractsPublicItemsContractIdGet[];
@@ -4644,6 +4850,14 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetCorporationsProjectsListing': CorporationsProjectsListing;
     // (undocumented)
+    'GetCorporationsStructuresSkyhooksDetail': CorporationsStructuresSkyhooksDetail;
+    // (undocumented)
+    'GetCorporationsStructuresSkyhooksListing': CorporationsStructuresSkyhooksListing;
+    // (undocumented)
+    'GetCorporationsStructuresSovereigntyHubsDetail': CorporationsStructuresSovereigntyHubsDetail;
+    // (undocumented)
+    'GetCorporationsStructuresSovereigntyHubsListing': CorporationsStructuresSovereigntyHubsListing;
+    // (undocumented)
     'GetDogmaAttributesAttributeId': DogmaAttributesAttributeIdGet;
     // (undocumented)
     'GetDogmaDynamicItemsTypeIdItemId': DogmaDynamicItemsTypeIdItemIdGet;
@@ -4700,11 +4914,11 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetMetaStatus': MetaStatus_2;
     // (undocumented)
+    'GetSkyhooksRaidable': SkyhooksRaidable;
+    // (undocumented)
     'GetSovereigntyCampaigns': SovereigntyCampaignsGet[];
     // (undocumented)
-    'GetSovereigntyMap': SovereigntyMapGet[];
-    // (undocumented)
-    'GetSovereigntyStructures': SovereigntyStructuresGet[];
+    'GetSovereigntySystems': SovereigntySystems;
     // (undocumented)
     'GetStatus': Status;
     // (undocumented)
@@ -4863,6 +5077,11 @@ export type EsiScope = 'esi-access.read_lists.v1' | 'esi-activities.read_charact
 
 declare namespace EsiSpec {
     export {
+        CharactersAccessListsDetail,
+        CharactersAccessListsListing,
+        CharactersMercenaryTacticalOperationsDetail,
+        CharactersMercenaryTacticalOperationsListing,
+        SkyhooksRaidable,
         AlliancesAllianceIdIconsGet,
         AlliancesDetail,
         CharactersCharacterIdAssetsGet,
@@ -4992,9 +5211,14 @@ declare namespace EsiSpec {
         CharactersSkillqueueSkill,
         CharactersSkills,
         SovereigntyCampaignsGet,
-        SovereigntyMapGet,
-        SovereigntyStructuresGet,
+        SovereigntySystems,
         Status,
+        CharactersStructuresMercenaryDensDetail,
+        CharactersStructuresMercenaryDensListing,
+        CorporationsStructuresSkyhooksDetail,
+        CorporationsStructuresSkyhooksListing,
+        CorporationsStructuresSovereigntyHubsDetail,
+        CorporationsStructuresSovereigntyHubsListing,
         UniverseAncestriesGet,
         UniverseAsteroidBeltsAsteroidBeltIdGet,
         UniverseBloodlinesGet,
@@ -8322,6 +8546,19 @@ export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
 }
 
 // @public (undocumented)
+interface SkyhooksRaidable {
+    // (undocumented)
+    skyhooks: ({
+        planet_id: number;
+        solar_system_id: number;
+        theft_vulnerability: {
+            end: string;
+            start: string;
+        };
+    })[];
+}
+
+// @public (undocumented)
 export type SolarSystemInfo = z.infer<typeof SolarSystemInfoSchema>;
 
 // @public (undocumented)
@@ -8504,37 +8741,16 @@ const SovereigntyHubSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
-interface SovereigntyMapGet {
-    // (undocumented)
-    alliance_id?: number;
-    // (undocumented)
-    corporation_id?: number;
-    // (undocumented)
-    faction_id?: number;
-    // (undocumented)
-    system_id: number;
-}
-
-// @public (undocumented)
-interface SovereigntyStructuresGet {
-    // (undocumented)
-    alliance_id: number;
-    // (undocumented)
-    solar_system_id: number;
-    // (undocumented)
-    structure_id: number;
-    // (undocumented)
-    structure_type_id: number;
-    // (undocumented)
-    vulnerability_occupancy_level?: number;
-    // (undocumented)
-    vulnerable_end_time?: string;
-    // (undocumented)
-    vulnerable_start_time?: string;
-}
-
-// @public (undocumented)
 export type SovereigntySystem = z.infer<typeof SovereigntySystemSchema>;
+
+// @public (undocumented)
+interface SovereigntySystems {
+    // (undocumented)
+    solar_systems: ({
+        claim: unknown;
+        solar_system_id: number;
+    })[];
+}
 
 // @public (undocumented)
 const SovereigntySystemSchema: z.ZodObject<{

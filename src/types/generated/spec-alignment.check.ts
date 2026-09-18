@@ -11,12 +11,12 @@
  * synthetic IDs; the spec should not have fields the schema doesn't know about).
  *
  * Coverage summary:
- * - Type pairs asserted: 114
+ * - Type pairs asserted: 113
  * - Domains covered: 24 (Alliance, Assets, Calendar, Character, Clones, Contacts,
  *   Contracts, Corporation, Dogma, Faction Warfare, Fittings, Fleet,
  *   Freelance Jobs, Incursions, Industry, Insurance, Killmails, Location,
  *   Loyalty, Mail, Market, PI, Skills, Sovereignty, Status, Universe, Wallet, Wars)
- * - Skipped types: 14 (documented inline with reasons — key name mismatches,
+ * - Skipped types: 15 (documented inline with reasons — key name mismatches,
  *   structural differences, inline array elements, or no spec counterpart)
  */
 
@@ -675,13 +675,14 @@ type _SkillQueue = AssertTrue<
 type _SovereigntyCampaign = AssertTrue<
   HasAllSpecKeys<EsiSpec.SovereigntyCampaignsGet, SovereigntyCampaign>
 >;
-type _SovereigntySystemStructure = AssertTrue<
-  HasAllSpecKeys<EsiSpec.SovereigntyStructuresGet, SovereigntySystemStructure>
->;
-// Skip: SovereigntySystem -- schema uses nested structure (solar_systems[].claim) vs flat spec shape (alliance_id, corporation_id, faction_id, system_id)
-// type _SovereigntySystem = AssertTrue<
-//   HasAllSpecKeys<EsiSpec.SovereigntyMapGet, SovereigntySystem>
-// >;
+// Skip: SovereigntySystemStructure -- CCP removed GET sovereignty/structures in
+// the 2026-05-19 spec, so SovereigntyStructuresGet no longer exists to compare
+// against. The Zod schema stays: SovereigntyClient never called that route, and
+// the type is still exported for consumers holding stored data.
+// Skip: SovereigntySystem -- CCP removed GET sovereignty/map in the same spec.
+// It was already skipped before that, because the schema uses a nested shape
+// (solar_systems[].claim) against the spec's flat one (alliance_id,
+// corporation_id, faction_id, system_id).
 
 // Meta
 type _MetaStatus = AssertTrue<HasAllSpecKeys<EsiSpec.MetaStatus, MetaStatus>>;

@@ -1,6 +1,7 @@
 // Auto-generated from ESI OpenAPI spec — do not edit manually
+// Compatibility date: 2026-05-19
 // Total scopes: 72
-// Endpoints requiring scopes: 127
+// Endpoints requiring scopes: 137
 
 export type EsiScope =
   | 'esi-access.read_lists.v1'
@@ -79,6 +80,8 @@ export type EsiScope =
 export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'GET:alliances/{alliance_id}/contacts': ['esi-alliances.read_contacts.v1'],
   'GET:alliances/{alliance_id}/contacts/labels': ['esi-alliances.read_contacts.v1'],
+  'GET:characters/{character_id}/access-lists': ['esi-access.read_lists.v1'],
+  'GET:characters/{character_id}/access-lists/{access_list_id}': ['esi-access.read_lists.v1'],
   'GET:characters/{character_id}/agents_research': ['esi-characters.read_agents_research.v1'],
   'GET:characters/{character_id}/assets': ['esi-assets.read_assets.v1'],
   'POST:characters/{character_id}/assets/locations': ['esi-assets.read_assets.v1'],
@@ -122,6 +125,8 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'DELETE:characters/{character_id}/mail/labels/{label_id}': ['esi-mail.organize_mail.v1'],
   'GET:characters/{character_id}/mail/lists': ['esi-mail.read_mail.v1'],
   'GET:characters/{character_id}/medals': ['esi-characters.read_medals.v1'],
+  'GET:characters/{character_id}/mercenary-tactical-operations': ['esi-activities.read_character.v1'],
+  'GET:characters/{character_id}/mercenary-tactical-operations/{operation_id}': ['esi-activities.read_character.v1'],
   'GET:characters/{character_id}/mining': ['esi-industry.read_character_mining.v1'],
   'GET:characters/{character_id}/notifications': ['esi-characters.read_notifications.v1'],
   'GET:characters/{character_id}/notifications/contacts': ['esi-characters.read_notifications.v1'],
@@ -136,6 +141,8 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'GET:characters/{character_id}/skillqueue': ['esi-skills.read_skillqueue.v1'],
   'GET:characters/{character_id}/skills': ['esi-skills.read_skills.v1'],
   'GET:characters/{character_id}/standings': ['esi-characters.read_standings.v1'],
+  'GET:characters/{character_id}/structures/mercenary-dens': ['esi-structures.read_character.v1'],
+  'GET:characters/{character_id}/structures/mercenary-dens/{mercenary_den_id}': ['esi-structures.read_character.v1'],
   'GET:characters/{character_id}/titles': ['esi-characters.read_titles.v1'],
   'GET:characters/{character_id}/wallet': ['esi-wallet.read_character_wallet.v1'],
   'GET:characters/{character_id}/wallet/journal': ['esi-wallet.read_character_wallet.v1'],
@@ -180,6 +187,10 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'GET:corporations/{corporation_id}/starbases': ['esi-corporations.read_starbases.v1'],
   'GET:corporations/{corporation_id}/starbases/{starbase_id}': ['esi-corporations.read_starbases.v1'],
   'GET:corporations/{corporation_id}/structures': ['esi-corporations.read_structures.v1'],
+  'GET:corporations/{corporation_id}/structures/skyhooks': ['esi-structures.read_corporation.v1'],
+  'GET:corporations/{corporation_id}/structures/skyhooks/{skyhook_id}': ['esi-structures.read_corporation.v1'],
+  'GET:corporations/{corporation_id}/structures/sovereignty-hubs': ['esi-structures.read_corporation.v1'],
+  'GET:corporations/{corporation_id}/structures/sovereignty-hubs/{sovereignty_hub_id}': ['esi-structures.read_corporation.v1'],
   'GET:corporations/{corporation_id}/titles': ['esi-corporations.read_titles.v1'],
   'GET:corporations/{corporation_id}/wallets': ['esi-wallet.read_corporation_wallets.v1'],
   'GET:corporations/{corporation_id}/wallets/{division}/journal': ['esi-wallet.read_corporation_wallets.v1'],

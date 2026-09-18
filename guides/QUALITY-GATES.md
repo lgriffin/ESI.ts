@@ -380,7 +380,7 @@ npx ts-node scripts/check-spec-drift.ts --latest
 # Against a specific date
 npx ts-node scripts/check-spec-drift.ts --compatibility-date=2026-08-04
 
-# No flag: the script's baseline date, 2025-12-16
+# No flag: the script's own baseline date, 2025-12-16
 npx ts-node scripts/check-spec-drift.ts
 ```
 
@@ -416,7 +416,11 @@ The other two checks run locally as `npm run generate:types` followed by `git di
 
 ### Compatibility dates
 
-CCP versions breaking changes to ESI with compatibility dates. A new endpoint only appears in a spec requested with a date at or after its introduction, so the nightly uses `--latest`. The available dates are listed at `https://esi.evetech.net/meta/compatibility-dates`. Note that the other spec-reading scripts (`generate-schema-drift-report.ts`, `run-schemathesis.sh`, `.redocly.yaml`) pin `2025-12-16`.
+CCP versions breaking changes to ESI with compatibility dates. A new endpoint only appears in a spec requested with a date at or after its introduction, so the nightly uses `--latest`. The available dates are listed at `https://esi.evetech.net/meta/compatibility-dates`.
+
+`COMPATIBILITY_DATE` in `src/core/constants.ts` is the one the client sends on every request, and `generate-esi-types.ts` now defaults to it rather than keeping its own copy. Each file it writes records the date in its header, and `tests/tdd/scripts/generated-spec-date.test.ts` fails when a header stops matching the constant. That pairing is what was missing: the two dates had drifted to 2026-05-19 and 2025-12-16, so twelve routes ESI added in between had no cache TTL and were revalidated on every call, and no committed file said which spec the artefacts came from (esi-23g.31).
+
+The other spec-reading tools still pin `2025-12-16` independently — `generate-schema-drift-report.ts`, `generate-okf.ts`, `generate-endpoint-scaffold.ts`, `snapshot-openapi.ts`, `validate-esi-endpoints.ts`, `create-token.ts`, `run-schemathesis.sh`, `tests/contract/helpers.ts` and `redocly.yaml`. Moving those moves their baselines too (`schema-drift-baseline.json` most of all), so each is its own change; `esi-v2s.25` tracks the drift report's.
 
 ### Responding to drift
 
