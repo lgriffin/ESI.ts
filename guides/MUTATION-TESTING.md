@@ -22,11 +22,11 @@ Reports are written to `reports/mutation/` (`mutation.html`, `mutation.json` and
 
 ## Where mutation testing runs
 
-| Where                                  | What                                                                                      | Gate                                                                                                           |
-| -------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Pull request (`ci.yml`, `mutation-pr`) | Known-weak fixture, then the changed `src/` files in scope, incrementally                 | Blocks via `ci-success`: touched directories vs their floors, and the fixture. A cold run that times out warns |
-| Nightly (`nightly-mutation.yml`)       | Every file in scope (`--incremental --force`); publishes the incremental file             | Fails the run: every directory vs its floor                                                                    |
-| Nightly, BDD-only matrix               | All of `src/`, BDD step definitions only, one job per shard in `mutation-bdd-shards.json` | Fails the run: every scored directory vs its floor in `mutation-bdd-thresholds.json`                           |
+| Where                                  | What                                                                                            | Gate                                                                                                           |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Pull request (`ci.yml`, `mutation-pr`) | Known-weak fixture, then the changed `src/` files in scope, incrementally                       | Blocks via `ci-success`: touched directories vs their floors, and the fixture. A cold run that times out warns |
+| Nightly (`nightly-mutation.yml`)       | Every file in scope (`--incremental --force`), one job per shard in `mutation-unit-shards.json` | Fails the run: every directory vs its floor, scored on the merged report                                       |
+| Nightly, BDD-only matrix               | All of `src/`, BDD step definitions only, one job per shard in `mutation-bdd-shards.json`       | Fails the run: every scored directory vs its floor in `mutation-bdd-thresholds.json`                           |
 
 The pull request job owns "this change weakened the tests of the code it touched". The nightly owns everything a pull request cannot see: test-only changes, merges that interact, and directories no pull request touched.
 
@@ -63,6 +63,26 @@ To reuse a nightly baseline locally, download the `mutation-report` artifact fro
 A cold run mutates every file in the touched directories, not just the changed ones. #355 hit an eight-minute wall at 48% of 589 mutants, having killed every one it reached — nothing was wrong with the change, and failing the pull request for it teaches people to read a red mutation job as noise. A timeout _with_ the baseline restored still blocks: that run should only have had the changed files to mutate, so it is broken rather than slow.
 
 The tier keeps a hard signal either way. `npm run mutation:fixture` runs first in the same job and fails when the known-weak fixture stops leaving survivors, so the gate can still fail even on a run that measures nothing. The policy is `classifyPrMutationRun` in `scripts/mutation-ratchet-core.ts`, pinned by `tests/tdd/mutation-ratchet/mutation-pr.test.ts`; `esi-23g.52` covers why a baseline can be missing in the first place.
+
+### Why the unit run is sharded
+
+A single job over all of `src/core` took almost exactly two hours on 14, 15 and 16 September 2026 — 119m40s, 120m08s, 119m26s — and then stopped finishing inside its 240-minute timeout. Nothing about the mutants changed: the unit suite grew from ~4,957 tests to 6,468, and with `coverageAnalysis: perTest` every added test slows every mutant. A nightly that never completes scores nothing and publishes no baseline, which is how the pull request gate came to mutate from scratch and time out as well (`esi-23g.52`).
+
+`mutation-unit-shards.json` splits `src/core` five ways, balanced by mutant count. Counts are a property of the source and the mutator config rather than of the test suite, so these are the same numbers the BDD shards use:
+
+| Shard                   | Directories                                               | Mutants |
+| :---------------------- | :-------------------------------------------------------- | ------: |
+| `core-backoff`          | rateLimiter, circuitBreaker                               |     594 |
+| `core-request-pipeline` | requestPipeline                                           |     503 |
+| `core-root`             | `src/core` itself, and endpoints, which the globs exclude |     453 |
+| `core-cache`            | cache, pagination, middleware                             |     448 |
+| `core-support`          | logger, util                                              |     387 |
+
+They sum to 2,385, which is what the unsharded run instruments — the arithmetic is the check that nothing fell between them.
+
+`UNIT_MUTATION_SHARD=<name> npm run mutation` runs one, writing to `reports/mutation/shards/<name>/`. `npm run mutation:unit:merge` puts them back together for the ratchet and refuses a run with a shard missing, empty or overlapping another. `tests/tdd/mutation-ratchet/unitShards.test.ts` asserts the shards partition `src/core`, so a regrouping cannot drop a directory: orphaning `src/core/endpoints` fails 46 of its cases.
+
+Each shard saves its own incremental file under `stryker-unit-shard-<name>-…`, deliberately a different key prefix from the one `ci.yml` restores. One shard's incremental is a fifth of a baseline, and a pull request that restored it would report a baseline it does not have — which the gate reads as "a timeout here is broken, not slow". Teaching `mutation:pr` to use them is `esi-23g.55`; until then pull request runs stay cold and warn rather than block.
 
 The nightly unit job runs `npm run mutation -- --incremental --force`: every mutant runs, and Stryker also writes `reports/mutation/stryker-incremental.json`. After a complete run (never after a failed or interrupted one, when Stryker may write a partial file) the job saves it with `actions/cache/save` under `stryker-incremental-unit-<sha>-<run id>`. Caches written on `master` are readable by pull requests into `master`, so `mutation-pr` restores with `actions/cache/restore`, preferring an entry for its base commit and otherwise the newest. Pull requests never save the cache.
 
