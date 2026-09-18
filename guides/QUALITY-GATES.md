@@ -740,14 +740,24 @@ The same "explicit, reasoned exception" pattern appears in six more places:
 
 ## Running the gates locally
 
-Two aggregate scripts cover the static side of the pull request gate:
+`npm run check:local` runs every tier `ci.yml` gates on that works offline, in one command, and keeps going after a failure so the answer is the whole list rather than the first thing to break:
+
+```bash
+npm run check:local        # the quick tiers, then build and the tiers that need dist/
+npm run check:local:fast   # quick only: no build
+npm run check:local:all    # adds the slow tiers (type mutation)
+```
+
+What it runs, and what it deliberately does not, is `scripts/verify-local-core.ts`. The list is held to CI by `tests/tdd/verify-local/verify-local.test.ts`, which reads every `npm run` in `ci.yml` and fails unless each one is in the tier list, reachable from a composite, or excluded with a written reason — so a tier added to CI cannot silently go unrun locally. `format:check` is one of the excluded ones: on a Windows checkout CRLF endings fail it across the whole repository, so run it on a specific path instead.
+
+Two older aggregate scripts cover the static side:
 
 ```bash
 npm run validate     # lint, format:check, build, coverage, knip (non-blocking)
 npm run check:all    # validate + validate:esi + validate:spec + validate:versions + spec:audit
 ```
 
-Neither reproduces `ci-success` completely. `check:all` needs network access for the spec checks. To cover what `ci.yml` blocks on that neither aggregate runs:
+Neither reproduces `ci-success` completely, and neither includes the tiers added around the unit suite. `check:all` needs network access for the spec checks. What `check:local` leaves out, because it needs the network or a base branch:
 
 ```bash
 npm run typecheck

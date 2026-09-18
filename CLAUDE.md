@@ -17,6 +17,7 @@ npm run size           # size-limit budget per exports sub-path, ESM and CJS (.s
 npm run format:check   # Prettier check
 npm run validate       # lint + format + build + coverage + knip
 npm run check:all      # validate + ESI endpoint validation + spec lint + version check + EARS spec audit
+npm run check:local    # Every CI tier that runs offline, in one go (--fast: no build; --all: adds type mutation)
 ```
 
 ### Testing
