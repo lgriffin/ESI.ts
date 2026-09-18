@@ -65,22 +65,69 @@ interface PackageJson {
   exports?: Record<string, unknown> | string;
 }
 
-/** Every `exports` entry with a `types` condition, in declaration order. */
+/**
+ * One entry's declaration file: a top-level `types`, or the `types` of the
+ * `require` or `import` condition.
+ *
+ * `require` is preferred because the mutation targets `dist/**\/*.d.ts` and
+ * the `import` condition names the `.d.mts` twin that scripts/esm-declarations.cjs
+ * copies from it. Taking both would mutate every declaration twice and halve
+ * every score for no extra signal; the `.d.mts` surface is covered instead by
+ * the consumer matrix, which type-checks it under `node16` resolution.
+ */
+function typesTargetOf(target: unknown): string | undefined {
+  if (typeof target !== 'object' || target === null) return undefined;
+  const conditions = target as {
+    types?: unknown;
+    require?: { types?: unknown };
+    import?: { types?: unknown };
+  };
+  for (const candidate of [
+    conditions.types,
+    conditions.require?.types,
+    conditions.import?.types,
+  ]) {
+    if (typeof candidate === 'string') return candidate;
+  }
+  return undefined;
+}
+
+/**
+ * Every `exports` entry with a `types` condition, in declaration order.
+ *
+ * Throws when `exports` lists entries and none of them resolve. That case used
+ * to fall through to the `pkg.types` fallback below, which silently collapsed
+ * six entry points into one: when the package moved its `types` under the
+ * `import` and `require` conditions, every sub-path stopped being scored, the
+ * root absorbed all 6,019 candidates and its score fell from 10.5% to 3%. The
+ * ratchet caught it, but a run that scores one entry point instead of six
+ * should not be reachable in the first place.
+ */
 export function entryPointsOf(
   pkg: PackageJson,
   packageRoot: string,
 ): EntryPoint[] {
   const entries: EntryPoint[] = [];
-  if (pkg.exports && typeof pkg.exports === 'object') {
-    for (const [name, target] of Object.entries(pkg.exports)) {
-      if (target && typeof target === 'object' && 'types' in target) {
-        const types = (target as { types?: unknown }).types;
-        if (typeof types === 'string') {
-          entries.push({ name, typesFile: path.resolve(packageRoot, types) });
-        }
-      }
+  const declared =
+    pkg.exports && typeof pkg.exports === 'object'
+      ? Object.entries(pkg.exports)
+      : [];
+
+  for (const [name, target] of declared) {
+    const types = typesTargetOf(target);
+    if (types !== undefined) {
+      entries.push({ name, typesFile: path.resolve(packageRoot, types) });
     }
   }
+
+  if (entries.length === 0 && declared.length > 0) {
+    throw new Error(
+      `None of the ${declared.length} 'exports' entries has a 'types' target, ` +
+        "directly or under 'require'/'import'. Scoring would fall back to the " +
+        'package root alone and report five ratchets as unscored.',
+    );
+  }
+
   if (entries.length === 0 && pkg.types) {
     entries.push({
       name: '.',

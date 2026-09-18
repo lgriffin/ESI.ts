@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 import {
@@ -8,6 +9,7 @@ import {
   applyRatchet,
   classify,
   describeEdit,
+  entryPointsOf,
   mutationsIn,
   renderSurvivors,
   sampleMutants,
@@ -400,4 +402,93 @@ describe('type mutation against a fixture package', () => {
       { entryPoint: '.', killed: 1, survived: 1, invalid: 0, score: 50 },
     ]);
   }, 120_000);
+});
+
+/**
+ * The entry points are what makes a per-sub-path ratchet mean anything. When
+ * the package moved its `types` under the `import` and `require` conditions
+ * (#336), nothing here resolved any more: the run fell back to the package
+ * root, scored `.` alone on all 6,019 candidates, dropped its score from 10.5%
+ * to 3% and reported the five sub-path ratchets as unscored. These cases are
+ * the shapes that would do it again.
+ */
+describe('entryPointsOf', () => {
+  const root = '/pkg';
+
+  it('resolves every entry of the real package.json', () => {
+    const pkg = JSON.parse(
+      readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf8'),
+    );
+    expect(entryPointsOf(pkg, REPO_ROOT).map((e) => e.name)).toEqual([
+      '.',
+      './schemas',
+      './errors',
+      './testing',
+      './sde',
+      './sde/memory',
+    ]);
+  });
+
+  it('reads a top-level types condition', () => {
+    const pkg = { exports: { '.': { types: './dist/index.d.ts' } } };
+    expect(entryPointsOf(pkg, root)[0]?.typesFile).toBe(
+      path.resolve(root, './dist/index.d.ts'),
+    );
+  });
+
+  it('reads types from the require condition', () => {
+    const pkg = {
+      exports: { '.': { require: { types: './dist/index.d.ts' } } },
+    };
+    expect(entryPointsOf(pkg, root)).toHaveLength(1);
+  });
+
+  it('prefers the require declaration over the .d.mts twin', () => {
+    const pkg = {
+      exports: {
+        '.': {
+          import: { types: './dist/index.d.mts' },
+          require: { types: './dist/index.d.ts' },
+        },
+      },
+    };
+    expect(entryPointsOf(pkg, root)[0]?.typesFile).toBe(
+      path.resolve(root, './dist/index.d.ts'),
+    );
+  });
+
+  it('falls back to the import condition when it is the only one', () => {
+    const pkg = {
+      exports: { '.': { import: { types: './dist/index.d.mts' } } },
+    };
+    expect(entryPointsOf(pkg, root)[0]?.typesFile).toBe(
+      path.resolve(root, './dist/index.d.mts'),
+    );
+  });
+
+  it('skips an entry that is a plain string, such as ./package.json', () => {
+    const pkg = {
+      exports: {
+        '.': { require: { types: './dist/index.d.ts' } },
+        './package.json': './package.json',
+      },
+    };
+    expect(entryPointsOf(pkg, root).map((e) => e.name)).toEqual(['.']);
+  });
+
+  it('throws rather than scoring the root alone when no entry resolves', () => {
+    const pkg = {
+      types: './dist/index.d.ts',
+      exports: {
+        '.': { import: { default: './dist/index.mjs' } },
+        './errors': { require: { default: './dist/errors.js' } },
+      },
+    };
+    expect(() => entryPointsOf(pkg, root)).toThrow(/None of the 2/);
+  });
+
+  it('still falls back to types when there is no exports map at all', () => {
+    const pkg = { types: './dist/index.d.ts' };
+    expect(entryPointsOf(pkg, root).map((e) => e.name)).toEqual(['.']);
+  });
 });
