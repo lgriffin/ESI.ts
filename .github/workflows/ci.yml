@@ -1031,8 +1031,10 @@ jobs:
 
       # Written by nightly-mutation.yml on master. Restore only: a pull request
       # never saves this cache. A miss is not a pass: mutation:pr then mutates
-      # every file in the touched directories from scratch.
+      # every file in the touched directories from scratch, which may not fit
+      # the deadline below — see the gate step for what that then means.
       - name: Restore the nightly incremental mutation report
+        id: mutation-baseline
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: reports/mutation/stryker-incremental.json
@@ -1046,11 +1048,23 @@ jobs:
       - name: Known-weak fixture leaves surviving mutants
         run: npm run mutation:fixture
 
+      # A run that measures a regression blocks. A run that measures nothing,
+      # because it had no baseline to build on and ran out of time, warns: an
+      # absence of measurement is not evidence of a regression, and failing the
+      # pull request for it teaches people to read a red mutation job as noise.
+      # A timeout *with* the baseline restored still blocks — that run should
+      # only have had the changed files to mutate. scripts/mutation-ratchet-core.ts
+      # holds the policy, tests/tdd/mutation-ratchet/mutation-pr.test.ts pins it.
+      #
+      # The tier keeps a hard signal either way: the known-weak fixture above
+      # must still leave surviving mutants, and it fails the job when it does not.
       - name: Mutate changed src/ files and check directory ratchets
-        timeout-minutes: 8
+        timeout-minutes: 10
         env:
           MUTATION_BASE_REF: HEAD^1
-        run: npm run mutation:pr -- --concurrency 4
+          MUTATION_BASELINE_RESTORED: ${{ steps.mutation-baseline.outputs.cache-matched-key != '' }}
+          MUTATION_PR_TIMEOUT_SECONDS: '480'
+        run: npm run mutation:pr:gate -- --concurrency 4
 
       - name: Upload mutation report
         if: always()

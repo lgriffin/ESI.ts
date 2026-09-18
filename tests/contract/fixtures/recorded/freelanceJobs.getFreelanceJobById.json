@@ -3,9 +3,9 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["68fd5fe6-4752-4e7c-89de-067fd3e54ecc"]
+    "args": ["30740f7d-169d-4ddd-a516-7625c2ae8912"]
   },
-  "recordedAt": "2026-09-17",
+  "recordedAt": "2026-09-18",
   "compatibilityDate": "2026-05-19",
   "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
   "specCacheSeconds": 60,
@@ -15,94 +15,84 @@
       "page": 1,
       "at": "$.details.description",
       "kind": "string",
-      "original": 469,
+      "original": 744,
       "kept": 400
     }
   ],
   "pages": [
     {
-      "url": "freelance-jobs/68fd5fe6-4752-4e7c-89de-067fd3e54ecc",
+      "url": "freelance-jobs/30740f7d-169d-4ddd-a516-7625c2ae8912",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Thu, 17 Sep 2026 14:14:20 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:06:03 GMT"
+        "expires": "Fri, 18 Sep 2026 11:42:23 GMT",
+        "last-modified": "Fri, 18 Sep 2026 11:36:05 GMT"
       },
       "body": {
-        "id": "68fd5fe6-4752-4e7c-89de-067fd3e54ecc",
-        "name": "ALL TYPES OF VELDSPAR",
+        "id": "30740f7d-169d-4ddd-a516-7625c2ae8912",
+        "name": "SAT - Combat Air Patrol",
         "state": "Active",
-        "last_modified": "2026-09-17T14:06:03.181Z",
+        "last_modified": "2026-09-18T11:36:05.796Z",
         "progress": {
-          "current": 2732877,
-          "desired": 13000000
+          "current": 4587,
+          "desired": 50000
         },
         "reward": {
-          "initial": 104000000,
-          "remaining": 82136984
+          "initial": 50000000,
+          "remaining": 45413000
         },
         "details": {
-          "description": "<font size=\"14\" color=\"#bfffffff\">Help gather resourses to keep production going.<br><br>Thank you for you help.<br><br>MINERS WANTED!<br>Join Today<br></font><font size=\"14\" color=\"#ffd98d00\"><loc><a href=\"showinfo:2//98773441\">H8N LOYALS</a></loc><br></font><font size=\"14\" color=\"#bfffffff\"> </font><font size=\"14\" color=\"#ff6868e1\"><a href=\"joinChannel:player_bb3489c0d92311ef903600109bd0f828\">[-",
-          "career": "Industrialist",
-          "created": "2026-09-15T20:22:04.636Z",
-          "expires": "2026-09-29T20:15:00Z",
+          "description": "<font size=\"14\" color=\"#bfffffff\"><br></font><font size=\"14\" color=\"#ffd98d00\"><a href=\"recruitmentAd:224734549//182334\">SAT Systems Mining</a></font><font size=\"14\" color=\"#bfffffff\"> <br><br>SAT Systems Mining Corporation seeks bold combat pilots to shield our supply lines, hunt down marauding rats, and secure vital systems — join the frontline and earn while you learn.<br><br>Responsibilities:<",
+          "career": "Enforcer",
+          "created": "2026-09-11T20:37:50.504Z",
+          "expires": "2026-10-11T20:30:00Z",
           "creator": {
             "character": {
-              "id": 2121716911,
-              "name": "Amej Mahi"
+              "id": 520308510,
+              "name": "Koudo"
             },
             "corporation": {
-              "id": 98773441,
-              "name": "H8N LOYALS"
+              "id": 224734549,
+              "name": "SAT Systems Mining Corporation"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "corporation_item_delivery": {
-              "corporation_item_delivery": {
-                "item_type": {
-                  "values": [
-                    {
-                      "value_type": "item_group",
-                      "values": ["462"]
-                    }
-                  ]
-                },
-                "corporation_office_location": {
-                  "values": [
-                    {
-                      "value_type": "structure",
-                      "values": ["1032715081490"]
-                    }
-                  ]
-                }
+            "location": {
+              "matcher": {
+                "values": [
+                  {
+                    "value_type": "region",
+                    "values": ["10000037"]
+                  }
+                ]
               }
             }
           },
-          "method": "DeliverItem"
+          "method": "KillNPC"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 8,
+          "reward_per_contribution": 1000,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30004079,
-              "name": "Aphend"
+              "id": 30003017,
+              "name": "Harerget"
             },
             {
-              "id": 30001718,
-              "name": "Paye"
+              "id": 30003010,
+              "name": "Halle"
             },
             {
-              "id": 30001671,
-              "name": "Tash-Murkon Prime"
+              "id": 30100035,
+              "name": "Forte"
             }
           ]
         }

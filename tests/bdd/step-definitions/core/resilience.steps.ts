@@ -34,6 +34,8 @@ const NAMES_PATH = 'universe/names';
 const DOGMA_ATTRIBUTES_PATH = 'dogma/attributes';
 const ONLINE_CHARACTER_ID = 95465499;
 const ONLINE_PATH = `characters/${ONLINE_CHARACTER_ID}/online`;
+const CONTACTS_CHARACTER_ID = 95465499;
+const CONTACTS_PATH = `characters/${CONTACTS_CHARACTER_ID}/contacts`;
 
 const FIRST_PAYLOAD = {
   players: 20000,
@@ -42,6 +44,14 @@ const FIRST_PAYLOAD = {
   vip: false,
 };
 const RETRY_PAYLOAD = { ...FIRST_PAYLOAD, players: 24000 };
+/** Two contacts before the delete, one after. */
+const contactsPayload = (count: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    contact_id: 2000 + i,
+    contact_type: 'character',
+    standing: 5,
+  }));
+
 const ONLINE_PAYLOAD = {
   online: true,
   last_login: '2026-09-18T08:00:00Z',
@@ -1406,6 +1416,87 @@ defineFeature(feature, (test) => {
         expectResolvedWith(outcome, ONLINE_PAYLOAD);
       }
     });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A contact list read started after a delete does not join one in flight', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let afterDelete: unknown;
+
+    given('a client with request deduplication and no ETag cache', () => {
+      client = createSeamClient({ enableETagCache: false });
+    });
+
+    and(
+      /^ESI answers the character contact list after (\d+) milliseconds with (\d+) contacts?$/,
+      (delay: string, count: string) => {
+        queueResponse({
+          body: contactsPayload(Number(count)),
+          delayMs: Number(delay),
+          match: CONTACTS_PATH,
+        });
+      },
+    );
+
+    and(
+      /^ESI answers the character contact delete after (\d+) milliseconds$/,
+      (delay: string) => {
+        queueResponse({
+          status: 204,
+          delayMs: Number(delay),
+          match: CONTACTS_PATH,
+        });
+      },
+    );
+
+    // The second contact-list response. jest-cucumber binds steps by position,
+    // so a step that appears twice is registered twice.
+    and(
+      /^ESI answers the character contact list after (\d+) milliseconds with (\d+) contacts?$/,
+      (delay: string, count: string) => {
+        queueResponse({
+          body: contactsPayload(Number(count)),
+          delayMs: Number(delay),
+          match: CONTACTS_PATH,
+        });
+      },
+    );
+
+    when(
+      'the client reads the contact list, deletes a contact once that read is in flight, then reads the list again',
+      async () => {
+        const inFlight = client.contacts.getCharacterContacts(
+          CONTACTS_CHARACTER_ID,
+        );
+        // The first read has to have reached the transport, or there is nothing
+        // for the third call to have joined and the scenario proves nothing.
+        await new Promise((resolve) => setTimeout(resolve, 5));
+
+        await client.contacts.deleteCharacterContacts(
+          CONTACTS_CHARACTER_ID,
+          [2001],
+        );
+        afterDelete = await client.contacts.getCharacterContacts(
+          CONTACTS_CHARACTER_ID,
+        );
+        await inFlight;
+      },
+    );
+
+    then(
+      /^the read after the delete resolves with (\d+) contacts?$/,
+      (count: string) => {
+        expect(afterDelete).toHaveLength(Number(count));
+      },
+    );
 
     and(/^the client sent (\d+) requests?$/, (count: string) => {
       expect(requestsSent()).toBe(Number(count));

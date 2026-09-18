@@ -171,27 +171,35 @@ function scenario(
 
 jest.setTimeout(SCENARIO_TIMEOUT_MS);
 
-/** Exhaustive schedule counts, by cache state and number of calls. */
+/**
+ * Exhaustive schedule counts, by cache state and number of calls.
+ *
+ * `revalidating/3` was 42 until write invalidation started detaching in-flight
+ * reads (esi-23g.34). Detaching is another point the scheduler can interleave
+ * at, so the same scenario now has 50 distinct schedules rather than 42, and
+ * the cold-cache variants at width 3 — excluded while the defect was open —
+ * have 44. Every schedule satisfies the same invariants; only the number of
+ * ways to reach them grew.
+ */
 const PINNED: Record<string, number> = {
   'cold/2': 6,
   'revalidating/2': 6,
-  'revalidating/3': 42,
+  'cold/3': 44,
+  'revalidating/3': 50,
 };
 
 /**
- * With a cold cache and more than one reader, a read that starts after the
- * DELETE has completed can join a GET that was sent before it through
- * request deduplication and resolve with the pre-write list. That is a known
- * defect, not a property of this tier, so those variants are left out until it
- * is fixed; the revalidating variants still run with several readers.
+ * Every cache state at every width. The cold-cache variants with more than one
+ * reader were excluded while esi-23g.34 was open: a read starting after the
+ * DELETE completed could join a GET sent before it and resolve with the
+ * pre-write list. Write invalidation now detaches in-flight reads of the
+ * written path (IDeduplicator.detachByPath), so they run.
  */
-function cacheStates(width: number): Cache[] {
-  return width === 2 ? ['cold', 'revalidating'] : ['revalidating'];
-}
+const CACHE_STATES: Cache[] = ['cold', 'revalidating'];
 
 describe('composition: write invalidation racing an in-flight read', () => {
   describe.each(widths())('%i calls', (width) => {
-    it.each(cacheStates(width))(
+    it.each(CACHE_STATES)(
       'a contact DELETE racing contact list reads with a %s cache',
       async (cache) => {
         const testName = `${width} calls a contact DELETE racing contact list reads with a ${cache} cache`;

@@ -147,6 +147,8 @@ export const NOT_RUN_LOCALLY: Record<string, string> = {
   'mutation:fixture':
     'Stryker over the known-weak fixture; minutes, and nightly owns it',
   'mutation:pr': 'needs a base ref to scope the changed files',
+  'mutation:pr:gate':
+    'mutation:pr under a deadline, so it needs a base ref too; the policy it applies is unit-tested instead',
 };
 
 export class VerifyLocalError extends Error {}

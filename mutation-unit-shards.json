@@ -1,0 +1,41 @@
+{
+  "$comment": "How the unit-suite mutation run (stryker.config.mjs) is split across jobs. One job over all of src/core took almost exactly two hours on 14, 15 and 16 September 2026 and then stopped finishing at all: the unit suite grew from ~4,957 tests to 6,468, and with coverageAnalysis perTest every added test slows every mutant. The run of 2026-09-18 was still going at 3h35m against a 240-minute timeout. A nightly that never completes never saves reports/mutation/stryker-incremental.json, which is the baseline ci.yml's mutation-pr job restores — so the pull request gate mutated everything from scratch and timed out too (esi-23g.52).",
+  "$invariant": "The shards partition src/core: every TypeScript file under it belongs to exactly one shard. tests/tdd/mutation-ratchet/unitShards.test.ts fails on a file claimed twice or not at all, so a shard boundary cannot quietly drop a directory from the run. The exclusions in stryker.config.mjs apply to every shard alike, so the union of the shards mutates exactly what the unsharded glob did.",
+  "$balance": "Mutant counts are a property of the source and the mutator config, not of the test suite, so these are the same numbers measured for the BDD shards: requestPipeline 503, rateLimiter 401, pagination 231, circuitBreaker 193, cache 182, middleware 35. src/core/endpoints falls to core-root and contributes nothing, because stryker.config.mjs excludes it; claiming it anyway is what keeps the partition total.",
+  "shards": [
+    {
+      "name": "core-request-pipeline",
+      "include": ["src/core/requestPipeline"]
+    },
+    {
+      "name": "core-backoff",
+      "include": ["src/core/rateLimiter", "src/core/circuitBreaker"]
+    },
+    {
+      "name": "core-cache",
+      "include": [
+        "src/core/cache",
+        "src/core/pagination",
+        "src/core/middleware"
+      ]
+    },
+    {
+      "name": "core-support",
+      "include": ["src/core/logger", "src/core/util"]
+    },
+    {
+      "name": "core-root",
+      "include": ["src/core"],
+      "exclude": [
+        "src/core/requestPipeline",
+        "src/core/rateLimiter",
+        "src/core/circuitBreaker",
+        "src/core/cache",
+        "src/core/pagination",
+        "src/core/middleware",
+        "src/core/logger",
+        "src/core/util"
+      ]
+    }
+  ]
+}
