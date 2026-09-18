@@ -649,3 +649,102 @@ export function fixtureSignalProblems(report: MutationReport): string[] {
   }
   return problems;
 }
+
+// ---------------------------------------------------------------------------
+// The pull request gate's outcome
+// ---------------------------------------------------------------------------
+
+/** Exit codes scripts/mutation-pr.ts uses, plus the ones a kill produces. */
+export const PR_EXIT = {
+  pass: 0,
+  /** A directory scored below its floor. */
+  ratchet: 1,
+  /** The check could not establish what to compare against. */
+  broken: 2,
+  /** `timeout` killed the run. */
+  timedOut: 124,
+  /** SIGTERM and SIGKILL, as a shell reports them. */
+  sigterm: 143,
+  sigkill: 137,
+} as const;
+
+export interface PrGateOutcome {
+  /** Whether ci-success should go red. */
+  blocking: boolean;
+  /** One line for the annotation and the step summary. */
+  message: string;
+}
+
+/**
+ * What a pull request mutation run means, given how it ended and whether it
+ * had the nightly baseline to build on.
+ *
+ * The one distinction worth drawing is between a run that **measured
+ * something worse** and a run that **measured nothing**. A directory below its
+ * floor is a regression and blocks, cold run or not. A run that could not
+ * finish has found nothing, and failing the pull request for it teaches people
+ * that a red mutation job is noise — which is how a gate stops being read.
+ *
+ * A timeout is only excused without a baseline. `nightly-mutation.yml` saves
+ * `stryker-incremental.json`; with it restored, only the changed files are
+ * re-mutated and the run is minutes. Without it every file in the touched
+ * directories is mutated from scratch, which is how #355 hit an eight-minute
+ * wall at 48% of 589 mutants having killed every one it reached. A timeout
+ * *with* a baseline is a real problem and still blocks.
+ *
+ * `broken` always blocks: it means the check could not read its thresholds or
+ * its base ref, which is the fail-closed case the rest of this file is built
+ * around.
+ */
+export function classifyPrMutationRun(args: {
+  exitCode: number;
+  hadBaseline: boolean;
+}): PrGateOutcome {
+  const { exitCode, hadBaseline } = args;
+
+  if (exitCode === PR_EXIT.pass) {
+    return { blocking: false, message: 'Mutation gate passed.' };
+  }
+
+  if (exitCode === PR_EXIT.ratchet) {
+    return {
+      blocking: true,
+      message:
+        'A directory scored below its floor. This run measured a regression, ' +
+        'so it blocks whether or not the nightly baseline was available.',
+    };
+  }
+
+  if (exitCode === PR_EXIT.broken) {
+    return {
+      blocking: true,
+      message:
+        'The mutation check could not establish what to compare against, so it fails closed.',
+    };
+  }
+
+  const killed: number[] = [PR_EXIT.timedOut, PR_EXIT.sigterm, PR_EXIT.sigkill];
+  if (killed.includes(exitCode)) {
+    if (hadBaseline) {
+      return {
+        blocking: true,
+        message:
+          'The run did not finish even with the nightly baseline restored, ' +
+          'which should have left only the changed files to mutate. Treat that as broken, not slow.',
+      };
+    }
+    return {
+      blocking: false,
+      message:
+        'No nightly baseline was restored, so every file in the touched directories ' +
+        'was mutated from scratch and the run ran out of time. Nothing was measured — ' +
+        'which is not the same as nothing being wrong. The nightly scores every ' +
+        'directory; see esi-23g.52 for why the baseline can be missing.',
+    };
+  }
+
+  return {
+    blocking: true,
+    message: `The mutation run exited ${exitCode}, which this gate does not recognise.`,
+  };
+}
