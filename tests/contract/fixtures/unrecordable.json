@@ -1,10 +1,10 @@
 {
-  "cosmetics.getSkinr": "ESI answers 404 for cosmetics/skinr/{skinr_id} and the route is not in the OpenAPI document for compatibility date 2026-05-19; no public SKINR ID can be derived because paragon-hub/skinr is also 404.",
+  "cosmetics.getSkinr": "Route exists from compatibility date 2026-08-18; the client sends 2026-05-19 (COMPATIBILITY_DATE), so ESI answers 404 for cosmetics/skinr/{skinr_id}. A SKINR ID would come from paragon-hub/skinr, which is 404 for the same reason. Recordable once the date is bumped — esi-23g.54.",
   "dogma.getDynamicItemInfo": "Needs the item ID of a mutated (abyssal) item; no public endpoint lists one reliably, so no stable seed exists.",
-  "meta.getName": "ESI answers 404 (page not found) for meta/name; the route is not in the OpenAPI document for compatibility date 2026-05-19.",
-  "militaryCampaign.getMilitaryCampaign": "Needs a campaign ID from military-campaigns, which ESI answers with 404 (not in the OpenAPI document for compatibility date 2026-05-19).",
-  "militaryCampaign.getMilitaryCampaignObjective": "Needs campaign and objective IDs from military-campaigns, which ESI answers with 404 (not in the OpenAPI document for compatibility date 2026-05-19).",
-  "militaryCampaign.getMilitaryCampaignObjectives": "Needs a campaign ID from military-campaigns, which ESI answers with 404 (not in the OpenAPI document for compatibility date 2026-05-19).",
-  "militaryCampaign.getMilitaryCampaigns": "ESI answers 404 (page not found) for military-campaigns; the route is not in the OpenAPI document for compatibility date 2026-05-19.",
-  "paragonHub.getPublicListings": "ESI answers 404 (page not found) for paragon-hub/skinr; the route is not in the OpenAPI document for compatibility date 2026-05-19."
+  "meta.getName": "Route exists from compatibility date 2026-08-18; the client sends 2026-05-19 (COMPATIBILITY_DATE), so ESI answers 404 for meta/name. Recordable once the date is bumped — esi-23g.54.",
+  "militaryCampaign.getMilitaryCampaign": "Needs a campaign ID from military-campaigns, which is 404 until the compatibility date reaches 2026-08-18. Recordable once the date is bumped — esi-23g.54.",
+  "militaryCampaign.getMilitaryCampaignObjective": "Needs campaign and objective IDs from military-campaigns, which is 404 until the compatibility date reaches 2026-08-18. Recordable once the date is bumped — esi-23g.54.",
+  "militaryCampaign.getMilitaryCampaignObjectives": "Needs a campaign ID from military-campaigns, which is 404 until the compatibility date reaches 2026-08-18. Recordable once the date is bumped — esi-23g.54.",
+  "militaryCampaign.getMilitaryCampaigns": "Route exists from compatibility date 2026-08-18; the client sends 2026-05-19 (COMPATIBILITY_DATE), so ESI answers 404 for military-campaigns. Recordable once the date is bumped — esi-23g.54.",
+  "paragonHub.getPublicListings": "Route exists from compatibility date 2026-08-18; the client sends 2026-05-19 (COMPATIBILITY_DATE), so ESI answers 404 for paragon-hub/skinr. Recordable once the date is bumped — esi-23g.54."
 }
