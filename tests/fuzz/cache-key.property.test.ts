@@ -16,7 +16,10 @@
  *   Identity        for an authenticated endpoint, different access tokens
  *                   never share a key, and no authenticated key equals the
  *                   unauthenticated key of the same URL. For a public
- *                   endpoint the token does not change the key.
+ *                   endpoint the token does not change the key. This holds for
+ *                   the deduplication key as well as the cache key: both
+ *                   outlive a single request, so both have to say whose data
+ *                   they stand for (esi-23g.36).
  *
  * Method and body are not part of the key by design: only GET responses are
  * cached (cacheResponse, trySpecAwareCacheHit), so a POST or a request with a
@@ -27,7 +30,7 @@ import { createHash } from 'crypto';
 import * as fc from 'fast-check';
 
 import { ApiClient } from '../../src/core/ApiClient';
-import { buildCacheKey } from '../../src/core/cache/cacheKey';
+import { buildCacheKey, buildDedupeKey } from '../../src/core/cache/cacheKey';
 import { buildEndpointPath } from '../../src/core/endpoints/buildEndpointPath';
 import type { EndpointDefinition } from '../../src/core/endpoints/EndpointDefinition';
 import { describeProperty, invariant } from './support/property';
@@ -35,7 +38,15 @@ import { describeProperty, invariant } from './support/property';
 interface KeyDerivation {
   buildEndpointPath: typeof buildEndpointPath;
   buildCacheKey: typeof buildCacheKey;
+  buildDedupeKey: typeof buildDedupeKey;
 }
+
+/** Either key function: both take (subject, client, requiresAuth). */
+type KeyFn = (
+  subject: string,
+  client: ApiClient,
+  requiresAuth?: boolean,
+) => string;
 
 const BASE = 'https://esi.evetech.net';
 
@@ -173,41 +184,55 @@ function keyProperty(d: KeyDerivation) {
   });
 }
 
-function identityProperty(d: KeyDerivation) {
-  return fc.property(
-    fc.uniqueArray(fc.string({ minLength: 1, maxLength: 40 }), {
-      minLength: 2,
-      maxLength: 8,
-    }),
-    argsArb,
-    (tokens, args) => {
-      const url = `${BASE}/${d.buildEndpointPath(DEFINITION, args).path}`;
-      const anonymous = new ApiClient('fuzz', BASE);
-      const publicKey = d.buildCacheKey(url, anonymous, true);
-      const seen = new Map<string, string>();
-      for (const token of tokens) {
-        const client = new ApiClient('fuzz', BASE, token);
-        const authKey = d.buildCacheKey(url, client, true);
-        invariant(
-          authKey !== publicKey,
-          `token ${JSON.stringify(token)} shares the unauthenticated key ${publicKey}`,
-        );
-        const clash = seen.get(authKey);
-        invariant(
-          clash === undefined,
-          `tokens ${JSON.stringify(clash)} and ${JSON.stringify(token)} share the key ${authKey}`,
-        );
-        seen.set(authKey, token);
-        invariant(
-          d.buildCacheKey(url, client, false) === url,
-          `a public endpoint's key depends on the token: ${d.buildCacheKey(url, client, false)}`,
-        );
-      }
-    },
-  );
+/**
+ * Different tokens never share a key, and an authenticated key is never the
+ * public one. Shared by the cache key and the deduplication key, because the
+ * reason is the same for both: a path does not say whose data it returns.
+ */
+function identityPropertyOver(pick: (d: KeyDerivation) => KeyFn) {
+  return (d: KeyDerivation) =>
+    fc.property(
+      fc.uniqueArray(fc.string({ minLength: 1, maxLength: 40 }), {
+        minLength: 2,
+        maxLength: 8,
+      }),
+      argsArb,
+      (tokens, args) => {
+        const keyOf = pick(d);
+        const subject = `${BASE}/${d.buildEndpointPath(DEFINITION, args).path}`;
+        const anonymous = new ApiClient('fuzz', BASE);
+        const publicKey = keyOf(subject, anonymous, true);
+        const seen = new Map<string, string>();
+        for (const token of tokens) {
+          const client = new ApiClient('fuzz', BASE, token);
+          const authKey = keyOf(subject, client, true);
+          invariant(
+            authKey !== publicKey,
+            `token ${JSON.stringify(token)} shares the unauthenticated key ${publicKey}`,
+          );
+          const clash = seen.get(authKey);
+          invariant(
+            clash === undefined,
+            `tokens ${JSON.stringify(clash)} and ${JSON.stringify(token)} share the key ${authKey}`,
+          );
+          seen.set(authKey, token);
+          invariant(
+            keyOf(subject, client, false) === subject,
+            `a public endpoint's key depends on the token: ${keyOf(subject, client, false)}`,
+          );
+        }
+      },
+    );
 }
 
-const real = (): KeyDerivation => ({ buildEndpointPath, buildCacheKey });
+const identityProperty = identityPropertyOver((d) => d.buildCacheKey);
+const dedupeIdentityProperty = identityPropertyOver((d) => d.buildDedupeKey);
+
+const real = (): KeyDerivation => ({
+  buildEndpointPath,
+  buildCacheKey,
+  buildDedupeKey,
+});
 
 describeProperty<KeyDerivation>({
   name: 'cache keys are deterministic, injective and in canonical query order',
@@ -271,4 +296,33 @@ describeProperty<KeyDerivation>({
     }),
   },
   property: identityProperty,
+});
+
+/**
+ * The deduplication key. `key ignores the access token` is esi-23g.36 itself:
+ * the key was the bare endpoint, so two concurrent authenticated GETs under
+ * different tokens coalesced and one caller was handed the other identity's
+ * response.
+ */
+describeProperty<KeyDerivation>({
+  name: 'authenticated deduplication keys never collide across access tokens',
+  file: __filename,
+  subject: real,
+  mutants: {
+    'key ignores the access token': () => ({
+      ...real(),
+      buildDedupeKey: (endpoint) => endpoint,
+    }),
+    'token hash truncated to one hex digit': () => ({
+      ...real(),
+      buildDedupeKey: (endpoint, client, requiresAuth = false) => {
+        const header = requiresAuth
+          ? client.getAuthorizationHeader()
+          : undefined;
+        if (!header) return endpoint;
+        return `${createHash('sha256').update(header).digest('hex').slice(0, 1)}:${endpoint}`;
+      },
+    }),
+  },
+  property: dedupeIdentityProperty,
 });

@@ -32,6 +32,8 @@ const feature = loadFeature('tests/bdd/features/core/0051-resilience.feature');
 const STATUS_PATH = 'status';
 const NAMES_PATH = 'universe/names';
 const DOGMA_ATTRIBUTES_PATH = 'dogma/attributes';
+const ONLINE_CHARACTER_ID = 95465499;
+const ONLINE_PATH = `characters/${ONLINE_CHARACTER_ID}/online`;
 
 const FIRST_PAYLOAD = {
   players: 20000,
@@ -40,6 +42,11 @@ const FIRST_PAYLOAD = {
   vip: false,
 };
 const RETRY_PAYLOAD = { ...FIRST_PAYLOAD, players: 24000 };
+const ONLINE_PAYLOAD = {
+  online: true,
+  last_login: '2026-09-18T08:00:00Z',
+  logins: 42,
+};
 const RESOLVED_NAMES = [
   { id: 95465499, name: 'CCP Bartender', category: 'character' },
 ];
@@ -1346,6 +1353,57 @@ defineFeature(feature, (test) => {
       expect(outcomes).toHaveLength(2);
       for (const outcome of outcomes) {
         expectResolvedWith(outcome, FIRST_PAYLOAD);
+      }
+    });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A concurrent online request under a new access token is not coalesced', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcomes: Outcome[];
+
+    given('a client with request deduplication and no ETag cache', () => {
+      client = createSeamClient({ enableETagCache: false });
+    });
+
+    and(
+      /^ESI answers the character online request after (\d+) milliseconds with a payload (\d+) times$/,
+      (delay: string, times: string) => {
+        queueResponse({
+          body: ONLINE_PAYLOAD,
+          delayMs: Number(delay),
+          match: ONLINE_PATH,
+          times: Number(times),
+        });
+      },
+    );
+
+    when(
+      'the client requests the character online status, changes its access token, and requests it again before the first resolves',
+      async () => {
+        const first = client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
+        // Let the first request reach the transport before the second starts.
+        // Requests only coalesce while one is in flight, so without this the
+        // scenario would pass whatever the deduplication key is.
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        client.setAccessToken('a-second-characters-token');
+        const second = client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
+        outcomes = await Promise.allSettled([first, second]);
+      },
+    );
+
+    then('both calls resolve with the online payload', () => {
+      expect(outcomes).toHaveLength(2);
+      for (const outcome of outcomes) {
+        expectResolvedWith(outcome, ONLINE_PAYLOAD);
       }
     });
 
