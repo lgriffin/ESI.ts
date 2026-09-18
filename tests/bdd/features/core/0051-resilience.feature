@@ -437,6 +437,23 @@ Feature: Resilience and Error Recovery
       Then both calls reject with an EsiError carrying status 404
       And the client sent 1 request
 
+  Rule: When a write to a path succeeds, the EsiClient shall answer a read of that path started afterwards with a new HTTP request rather than one already in flight.
+    Deduplication keys on the path, and a write does not change the path. A
+    caller that deletes a contact and then re-reads the list is asking about
+    the world after the delete; joining a read sent before it answers with the
+    list as it was. Callers that had already joined keep that answer, because
+    they asked first — the request in flight is left running and only detached
+    from callers yet to arrive.
+
+    Scenario: A contact list read started after a delete does not join one in flight
+      Given a client with request deduplication and no ETag cache
+      And ESI answers the character contact list after 60 milliseconds with 2 contacts
+      And ESI answers the character contact delete after 0 milliseconds
+      And ESI answers the character contact list after 0 milliseconds with 1 contact
+      When the client reads the contact list, deletes a contact once that read is in flight, then reads the list again
+      Then the read after the delete resolves with 1 contact
+      And the client sent 3 requests
+
   Rule: When an identical GET request is issued after the first has settled, the EsiClient shall issue a new HTTP request.
     Deduplication covers only requests in flight together. It is not a cache:
     once a request settles, the next identical one goes to the network unless
