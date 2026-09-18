@@ -234,6 +234,7 @@
     "validate:auth-scopes": "ts-node scripts/validate-auth-scopes.ts",
     "validate:spec": "redocly lint",
     "validate": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code",
+    "release:canary": "ts-node scripts/release-canary.ts",
     "validate:versions": "ts-node scripts/validate-versions.ts",
     "spec:audit": "ts-node scripts/spec-audit.ts",
     "spec:audit:verbose": "ts-node scripts/spec-audit.ts --verbose",

@@ -145,6 +145,48 @@ That is what makes the canary's `signatures` check meaningful: the provenance at
 
 The published file list is the `files` field in `package.json`. `publishConfig.access` is `public`.
 
+### The post-publish canary (tier P)
+
+Everything above the publish step checks what CI built. `post-publish-canary.yml` checks what the registry serves, which is not the same artefact: `publish-npm` rebuilds rather than uploading the tarball the consumer matrix tested (`esi-23g.42`), and a broken `exports` map is invisible until somebody installs it.
+
+It runs on the `release: published` event, installs the version into an empty directory with nothing from this repository on disk, and establishes four things:
+
+| Check        | What it proves                                                                        |
+| :----------- | :------------------------------------------------------------------------------------ |
+| `registry`   | npm serves that exact version, and its tarball resolves                               |
+| `signatures` | `npm audit signatures` verifies the registry signature and the provenance attestation |
+| `subpaths`   | every documented sub-path loads under both `require` and `import`                     |
+| `live`       | one real call to public ESI returns data                                              |
+
+A check that did not report, or was skipped, counts as a failure — "we did not look" must not read the same as "we looked and it was fine". A failure opens one issue per version, labelled `release-verification`, and re-running comments on it rather than opening another.
+
+Run it by hand against any published version:
+
+```bash
+npm run release:canary -- --version 10.0.0          # from a checkout
+gh workflow run post-publish-canary.yml -f version=10.0.0
+```
+
+Its own signal is a version that predates a sub-path. `9.0.0` has no `./sde`, so the canary fails on it with `ERR_PACKAGE_PATH_NOT_EXPORTED`, which is the shape a broken `exports` map takes; `10.0.0` verifies all four checks. That is the fire drill the plan asked for, without publishing a deliberately broken pre-release.
+
+### If the canary fails: deprecate and fix forward
+
+A published version cannot be replaced or re-uploaded. npm allows `unpublish` only within 72 hours and only when nothing depends on it, and using it breaks anyone who already installed. So:
+
+1. **Deprecate it,** naming the problem and the version to use instead. The version stays installable for anyone already pinned to it, and everybody else gets a warning on install:
+
+   ```bash
+   npm deprecate '@lgriffin/esi.ts@X.Y.Z' 'Broken exports map; use X.Y.Z+1'
+   ```
+
+2. **Fix forward.** A patch release, or a major if the fix changes the public contract — the fact that the broken version shipped does not change how `guides/SEMVER.md` classifies the fix.
+
+3. **Re-run the canary** against the new version and close the `release-verification` issue with the passing run linked.
+
+4. **Write down what the gates missed** as an issue against the runway epic. A canary failure means every tier before it passed on something consumers could not use, and that gap is the more useful finding.
+
+---
+
 ### Verifying a release
 
 **npm provenance.** In a project that depends on the package:
