@@ -1,5 +1,4 @@
 {
   "meta.getChangelog": "Schema rejects ESI's body: MetaChangelogSchema is the per-date map, but ESI (MetaChangelog) wraps it as { changelog: { <date>: [...] } }, so every real call throws EsiValidationError. Fixing it changes the inferred MetaChangelog type (major per guides/SEMVER.md), so it needs approval.",
-  "skyhook.getRaidableSkyhooks": "Schema rejects ESI's body: the endpoint expects an array of RaidableSkyhook, but ESI (SkyhooksRaidable) sends { skyhooks: [...] }, so every real call throws EsiValidationError. Fixing it changes the method's return type (major per guides/SEMVER.md), so it needs approval.",
-  "sovereignty.getSovereigntySystems": "Cache TTL not applied: sovereignty/systems has x-cache-age 300 in the OpenAPI document for compatibility date 2026-05-19 (the date the client sends), but esi-cache-ttls.generated.ts is generated from 2025-12-16, where the route does not exist, so the client revalidates on every call instead of serving its cache for 300s."
+  "skyhook.getRaidableSkyhooks": "Schema rejects ESI's body: the endpoint expects an array of RaidableSkyhook, but ESI (SkyhooksRaidable) sends { skyhooks: [...] }, so every real call throws EsiValidationError. Fixing it changes the method's return type (major per guides/SEMVER.md), so it needs approval."
 }

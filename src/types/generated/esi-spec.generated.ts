@@ -1,7 +1,65 @@
 /* eslint-disable */
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Spec hash: bb54445bf632
-// Total interfaces: 161
+// Compatibility date: 2026-05-19
+// Spec hash: 858bd24cd22f
+// Total interfaces: 171
+
+// --- Access List ---
+
+export interface CharactersAccessListsDetail {
+  description: string;
+  id: number;
+  membership: {
+    alliances: ({
+      access: 'Unspecified' | 'Allowed' | 'Blocked' | 'Manager' | 'Admin';
+      alliance_id: number;
+    })[];
+    allow_everyone: boolean;
+    characters: ({
+      access: 'Unspecified' | 'Allowed' | 'Blocked' | 'Manager' | 'Admin';
+      character_id: number;
+    })[];
+    corporations: ({
+      access: 'Unspecified' | 'Allowed' | 'Blocked' | 'Manager' | 'Admin';
+      corporation_id: number;
+    })[];
+  };
+  name: string;
+}
+
+export interface CharactersAccessListsListing {
+  access_lists: ({
+    id: number;
+  })[];
+}
+
+// --- Activities ---
+
+export interface CharactersMercenaryTacticalOperationsDetail {
+  dungeon_type_id: number;
+  expires: string;
+  id: string;
+  mercenary_den_id: number;
+  state: 'Unspecified' | 'Available' | 'Started' | 'Completed' | 'Expired' | 'Removed';
+}
+
+export interface CharactersMercenaryTacticalOperationsListing {
+  operations: ({
+    id: string;
+    mercenary_den_id: number;
+  })[];
+}
+
+export interface SkyhooksRaidable {
+  skyhooks: ({
+    planet_id: number;
+    solar_system_id: number;
+    theft_vulnerability: {
+      end: string;
+      start: string;
+    };
+  })[];
+}
 
 // --- Alliance ---
 
@@ -1641,21 +1699,11 @@ export interface SovereigntyCampaignsGet {
   structure_id: number;
 }
 
-export interface SovereigntyMapGet {
-  alliance_id?: number;
-  corporation_id?: number;
-  faction_id?: number;
-  system_id: number;
-}
-
-export interface SovereigntyStructuresGet {
-  alliance_id: number;
-  solar_system_id: number;
-  structure_id: number;
-  structure_type_id: number;
-  vulnerability_occupancy_level?: number;
-  vulnerable_end_time?: string;
-  vulnerable_start_time?: string;
+export interface SovereigntySystems {
+  solar_systems: ({
+    claim: unknown;
+    solar_system_id: number;
+  })[];
 }
 
 // --- Status ---
@@ -1665,6 +1713,113 @@ export interface Status {
   server_version: string;
   start_time: string;
   vip: boolean;
+}
+
+// --- Structures ---
+
+export interface CharactersStructuresMercenaryDensDetail {
+  evolution: {
+    anarchy: {
+      amount: number;
+      level: 'Unspecified' | 'Level0' | 'Level1' | 'Level2' | 'Level3' | 'Level4';
+    };
+    development: {
+      amount: number;
+      level: 'Unspecified' | 'Level0' | 'Level1' | 'Level2' | 'Level3' | 'Level4';
+    };
+  };
+  id: number;
+  infomorphs: {
+    amount: number;
+  };
+  reinforcement_timer?: {
+    end: string;
+  };
+  skyhook: {
+    corporation_id: number;
+    id: number;
+    planet_id: number;
+  };
+  state: 'Unspecified' | 'Running' | 'Paused' | 'Disabled';
+  type_id: number;
+}
+
+export interface CharactersStructuresMercenaryDensListing {
+  mercenary_dens: ({
+    id: number;
+    planet_id: number;
+  })[];
+}
+
+export interface CorporationsStructuresSkyhooksDetail {
+  effective_workforce?: number;
+  id: number;
+  is_active: boolean;
+  planet_id: number;
+  reagents?: ({
+    last_cycle: string;
+    secured_stock: number;
+    type_id: number;
+    unsecured_stock: number;
+  })[];
+  reinforcement_timer?: {
+    end: string;
+  };
+  state: 'Unspecified' | 'ShieldVulnerable' | 'ArmorReinforced' | 'ArmorVulnerable' | 'HullReinforced' | 'HullVulnerable';
+  theft_vulnerability?: {
+    end: string;
+    start: string;
+  };
+}
+
+export interface CorporationsStructuresSkyhooksListing {
+  skyhooks: ({
+    id: number;
+    planet_id: number;
+  })[];
+}
+
+export interface CorporationsStructuresSovereigntyHubsDetail {
+  fuel_access_list_id?: number;
+  id: number;
+  reagent_bay: {
+    last_updated: string;
+    reagents: ({
+      amount: number;
+      burning_per_hour: number;
+      type_id: number;
+    })[];
+  };
+  resources: {
+    power: {
+      allocated: number;
+      available: number;
+    };
+    workforce: {
+      allocated: number;
+      available: number;
+    };
+  };
+  solar_system_id: number;
+  upgrades: ({
+    power_state: 'Unspecified' | 'Online' | 'Offline' | 'Low' | 'Pending';
+    type_id: number;
+  })[];
+  vulnerability_window?: {
+    end: string;
+    start: string;
+  };
+  workforce_transport: {
+    configuration: unknown;
+    state: unknown;
+  };
+}
+
+export interface CorporationsStructuresSovereigntyHubsListing {
+  sovereignty_hubs: ({
+    id: number;
+    solar_system_id: number;
+  })[];
 }
 
 // --- Universe ---
@@ -2058,6 +2213,8 @@ export interface EsiOperationTypes {
   'GetAlliancesAllianceIdContacts': AlliancesAllianceIdContactsGet[];
   'GetAlliancesAllianceIdContactsLabels': AlliancesAllianceIdContactsLabelsGet[];
   'GetAlliancesAllianceIdIcons': AlliancesAllianceIdIconsGet;
+  'GetCharactersAccessListsDetail': CharactersAccessListsDetail;
+  'GetCharactersAccessListsListing': CharactersAccessListsListing;
   'GetCharactersCharacterId': CharactersDetail;
   'GetCharactersCharacterIdAgentsResearch': CharactersCharacterIdAgentsResearchGet[];
   'GetCharactersCharacterIdAssets': CharactersCharacterIdAssetsGet[];
@@ -2106,6 +2263,10 @@ export interface EsiOperationTypes {
   'GetCharactersCharacterIdWalletTransactions': CharactersCharacterIdWalletTransactionsGet[];
   'GetCharactersFreelanceJobsListing': CharactersFreelanceJobsListing;
   'GetCharactersFreelanceJobsParticipation': CharactersFreelanceJobsParticipation;
+  'GetCharactersMercenaryTacticalOperationsDetail': CharactersMercenaryTacticalOperationsDetail;
+  'GetCharactersMercenaryTacticalOperationsListing': CharactersMercenaryTacticalOperationsListing;
+  'GetCharactersStructuresMercenaryDensDetail': CharactersStructuresMercenaryDensDetail;
+  'GetCharactersStructuresMercenaryDensListing': CharactersStructuresMercenaryDensListing;
   'GetContractsPublicBidsContractId': ContractsPublicBidsContractIdGet[];
   'GetContractsPublicItemsContractId': ContractsPublicItemsContractIdGet[];
   'GetContractsPublicRegionId': ContractsPublicRegionIdGet[];
@@ -2152,6 +2313,10 @@ export interface EsiOperationTypes {
   'GetCorporationsProjectsContributors': CorporationsProjectsContributors;
   'GetCorporationsProjectsDetail': CorporationsProjectsDetail;
   'GetCorporationsProjectsListing': CorporationsProjectsListing;
+  'GetCorporationsStructuresSkyhooksDetail': CorporationsStructuresSkyhooksDetail;
+  'GetCorporationsStructuresSkyhooksListing': CorporationsStructuresSkyhooksListing;
+  'GetCorporationsStructuresSovereigntyHubsDetail': CorporationsStructuresSovereigntyHubsDetail;
+  'GetCorporationsStructuresSovereigntyHubsListing': CorporationsStructuresSovereigntyHubsListing;
   'GetDogmaAttributesAttributeId': DogmaAttributesAttributeIdGet;
   'GetDogmaDynamicItemsTypeIdItemId': DogmaDynamicItemsTypeIdItemIdGet;
   'GetDogmaEffectsEffectId': DogmaEffectsEffectIdGet;
@@ -2180,9 +2345,9 @@ export interface EsiOperationTypes {
   'GetMetaChangelog': MetaChangelog;
   'GetMetaCompatibilityDates': MetaCompatibilityDates;
   'GetMetaStatus': MetaStatus;
+  'GetSkyhooksRaidable': SkyhooksRaidable;
   'GetSovereigntyCampaigns': SovereigntyCampaignsGet[];
-  'GetSovereigntyMap': SovereigntyMapGet[];
-  'GetSovereigntyStructures': SovereigntyStructuresGet[];
+  'GetSovereigntySystems': SovereigntySystems;
   'GetStatus': Status;
   'GetUniverseAncestries': UniverseAncestriesGet[];
   'GetUniverseAsteroidBeltsAsteroidBeltId': UniverseAsteroidBeltsAsteroidBeltIdGet;

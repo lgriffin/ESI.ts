@@ -21,7 +21,20 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 
-const DEFAULT_COMPATIBILITY_DATE = '2025-12-16';
+import { COMPATIBILITY_DATE } from '../src/core/constants';
+
+/**
+ * The date the generated artefacts describe, and the one the client sends on
+ * every request (`X-Compatibility-Date`). They were separate constants until
+ * 2026-09-18, and drifted: the client asked for 2026-05-19 while the cache
+ * TTLs came from 2025-12-16, so twelve routes ESI introduced in between had no
+ * TTL and were revalidated on every call (esi-23g.31).
+ *
+ * Each generated file now records the date it came from, and
+ * tests/tdd/scripts/generated-spec-date.test.ts fails if it stops matching, so
+ * the two cannot part company again without CI saying so.
+ */
+const DEFAULT_COMPATIBILITY_DATE = COMPATIBILITY_DATE;
 const ESI_OPENAPI_BASE = 'https://esi.evetech.net/meta/openapi.json';
 const ESI_COMPATIBILITY_DATES_URL =
   'https://esi.evetech.net/meta/compatibility-dates';
@@ -356,9 +369,15 @@ function extractCacheTtls(spec: OpenApiSpec): CacheTtlEntry[] {
 
 // --- Generated file writers ---
 
+/** The header line that lets a committed artefact say which spec it came from. */
+function specDateLine(compatibilityDate: string): string {
+  return `// Compatibility date: ${compatibilityDate}`;
+}
+
 function writeTypesFile(
   interfaces: GeneratedInterface[],
   specHash: string,
+  compatibilityDate: string,
 ): void {
   const byTag = new Map<string, GeneratedInterface[]>();
   for (const iface of interfaces) {
@@ -370,6 +389,7 @@ function writeTypesFile(
   const lines: string[] = [
     '/* eslint-disable */',
     '// Auto-generated from ESI OpenAPI spec — do not edit manually',
+    specDateLine(compatibilityDate),
     `// Spec hash: ${specHash}`,
     `// Total interfaces: ${interfaces.length}`,
     '',
@@ -405,9 +425,13 @@ function writeTypesFile(
   fs.writeFileSync(TYPES_OUTPUT, lines.join('\n'), 'utf-8');
 }
 
-function writeTtlFile(entries: CacheTtlEntry[]): void {
+function writeTtlFile(
+  entries: CacheTtlEntry[],
+  compatibilityDate: string,
+): void {
   const lines: string[] = [
     '// Auto-generated from ESI OpenAPI spec — do not edit manually',
+    specDateLine(compatibilityDate),
     `// Endpoints with cache TTLs: ${entries.length}`,
     '',
     'export const esiCacheTtls: Record<string, number> = {',
@@ -477,9 +501,13 @@ function extractRateLimitGroups(spec: OpenApiSpec): RateLimitGroupEntry[] {
   return entries;
 }
 
-function writeRateLimitGroupsFile(entries: RateLimitGroupEntry[]): void {
+function writeRateLimitGroupsFile(
+  entries: RateLimitGroupEntry[],
+  compatibilityDate: string,
+): void {
   const lines: string[] = [
     '// Auto-generated from ESI OpenAPI spec — do not edit manually',
+    specDateLine(compatibilityDate),
     `// Endpoints with rate limit groups: ${entries.length}`,
     '',
     'export interface RateLimitGroupSpec {',
@@ -567,9 +595,11 @@ function extractEndpointScopes(spec: OpenApiSpec): EndpointScopeEntry[] {
 function writeScopesFile(
   allScopes: string[],
   entries: EndpointScopeEntry[],
+  compatibilityDate: string,
 ): void {
   const lines: string[] = [
     '// Auto-generated from ESI OpenAPI spec — do not edit manually',
+    specDateLine(compatibilityDate),
     `// Total scopes: ${allScopes.length}`,
     `// Endpoints requiring scopes: ${entries.length}`,
     '',
@@ -643,13 +673,13 @@ async function main(): Promise<void> {
   }
 
   console.log(`Generated ${interfaces.length} interfaces`);
-  writeTypesFile(interfaces, specHash);
+  writeTypesFile(interfaces, specHash, compatibilityDate);
   console.log(`Types written to ${TYPES_OUTPUT}`);
 
   // Generate cache TTLs
   const ttls = extractCacheTtls(spec);
   console.log(`Found ${ttls.length} endpoints with cache TTLs`);
-  writeTtlFile(ttls);
+  writeTtlFile(ttls, compatibilityDate);
   console.log(`Cache TTLs written to ${TTL_OUTPUT}`);
 
   // Generate rate limit groups
@@ -659,7 +689,7 @@ async function main(): Promise<void> {
   );
   const uniqueGroups = new Set(rateLimitGroups.map((e) => e.group));
   console.log(`Unique groups: ${uniqueGroups.size}`);
-  writeRateLimitGroupsFile(rateLimitGroups);
+  writeRateLimitGroupsFile(rateLimitGroups, compatibilityDate);
   console.log(`Rate limit groups written to ${RATE_LIMIT_GROUPS_OUTPUT}`);
 
   // Generate endpoint scope metadata
@@ -669,7 +699,7 @@ async function main(): Promise<void> {
   console.log(
     `Found ${endpointScopes.length} endpoints requiring OAuth scopes`,
   );
-  writeScopesFile(allScopes, endpointScopes);
+  writeScopesFile(allScopes, endpointScopes, compatibilityDate);
   console.log(`Scopes written to ${SCOPES_OUTPUT}`);
 }
 

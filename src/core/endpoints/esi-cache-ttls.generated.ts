@@ -1,5 +1,6 @@
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Endpoints with cache TTLs: 126
+// Compatibility date: 2026-05-19
+// Endpoints with cache TTLs: 136
 
 export const esiCacheTtls: Record<string, number> = {
   'GET:alliances': 3600,
@@ -8,6 +9,8 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:alliances/{alliance_id}/contacts/labels': 300,
   'GET:alliances/{alliance_id}/corporations': 3600,
   'GET:characters/{character_id}': 86400,
+  'GET:characters/{character_id}/access-lists': 300,
+  'GET:characters/{character_id}/access-lists/{access_list_id}': 300,
   'GET:characters/{character_id}/agents_research': 3600,
   'GET:characters/{character_id}/assets': 3600,
   'GET:characters/{character_id}/attributes': 120,
@@ -38,6 +41,8 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:characters/{character_id}/mail/labels': 30,
   'GET:characters/{character_id}/mail/lists': 120,
   'GET:characters/{character_id}/medals': 3600,
+  'GET:characters/{character_id}/mercenary-tactical-operations': 300,
+  'GET:characters/{character_id}/mercenary-tactical-operations/{operation_id}': 300,
   'GET:characters/{character_id}/mining': 600,
   'GET:characters/{character_id}/notifications': 600,
   'GET:characters/{character_id}/notifications/contacts': 600,
@@ -52,6 +57,8 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:characters/{character_id}/skillqueue': 60,
   'GET:characters/{character_id}/skills': 60,
   'GET:characters/{character_id}/standings': 3600,
+  'GET:characters/{character_id}/structures/mercenary-dens': 3600,
+  'GET:characters/{character_id}/structures/mercenary-dens/{mercenary_den_id}': 3600,
   'GET:characters/{character_id}/titles': 3600,
   'GET:characters/{character_id}/wallet': 120,
   'GET:characters/{character_id}/wallet/journal': 3600,
@@ -96,6 +103,10 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:corporations/{corporation_id}/starbases': 3600,
   'GET:corporations/{corporation_id}/starbases/{starbase_id}': 3600,
   'GET:corporations/{corporation_id}/structures': 3600,
+  'GET:corporations/{corporation_id}/structures/skyhooks': 3600,
+  'GET:corporations/{corporation_id}/structures/skyhooks/{skyhook_id}': 3600,
+  'GET:corporations/{corporation_id}/structures/sovereignty-hubs': 3600,
+  'GET:corporations/{corporation_id}/structures/sovereignty-hubs/{sovereignty_hub_id}': 3600,
   'GET:corporations/{corporation_id}/titles': 3600,
   'GET:corporations/{corporation_id}/wallets': 300,
   'GET:corporations/{corporation_id}/wallets/{division}/journal': 3600,
@@ -116,9 +127,9 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:markets/structures/{structure_id}': 300,
   'GET:meta/changelog': 600,
   'GET:meta/compatibility-dates': 600,
+  'GET:skyhooks/raidable': 300,
   'GET:sovereignty/campaigns': 5,
-  'GET:sovereignty/map': 3600,
-  'GET:sovereignty/structures': 120,
+  'GET:sovereignty/systems': 300,
   'GET:status': 30,
   'GET:universe/schematics/{schematic_id}': 3600,
   'GET:universe/structures': 3600,
