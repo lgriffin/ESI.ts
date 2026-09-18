@@ -22,11 +22,11 @@ Reports are written to `reports/mutation/` (`mutation.html`, `mutation.json` and
 
 ## Where mutation testing runs
 
-| Where                                  | What                                                                                      | Gate                                                                                 |
-| -------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Pull request (`ci.yml`, `mutation-pr`) | Known-weak fixture, then the changed `src/` files in scope, incrementally                 | Blocks via `ci-success`: touched directories vs their floors                         |
-| Nightly (`nightly-mutation.yml`)       | Every file in scope (`--incremental --force`); publishes the incremental file             | Fails the run: every directory vs its floor                                          |
-| Nightly, BDD-only matrix               | All of `src/`, BDD step definitions only, one job per shard in `mutation-bdd-shards.json` | Fails the run: every scored directory vs its floor in `mutation-bdd-thresholds.json` |
+| Where                                  | What                                                                                      | Gate                                                                                                           |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Pull request (`ci.yml`, `mutation-pr`) | Known-weak fixture, then the changed `src/` files in scope, incrementally                 | Blocks via `ci-success`: touched directories vs their floors, and the fixture. A cold run that times out warns |
+| Nightly (`nightly-mutation.yml`)       | Every file in scope (`--incremental --force`); publishes the incremental file             | Fails the run: every directory vs its floor                                                                    |
+| Nightly, BDD-only matrix               | All of `src/`, BDD step definitions only, one job per shard in `mutation-bdd-shards.json` | Fails the run: every scored directory vs its floor in `mutation-bdd-thresholds.json`                           |
 
 The pull request job owns "this change weakened the tests of the code it touched". The nightly owns everything a pull request cannot see: test-only changes, merges that interact, and directories no pull request touched.
 
@@ -49,6 +49,20 @@ npm run mutation:pr -- --concurrency 4
 To reuse a nightly baseline locally, download the `mutation-report` artifact from the latest nightly and put its `stryker-incremental.json` in `reports/mutation/`.
 
 ### The incremental baseline
+
+### When there is no baseline
+
+`npm run mutation:pr:gate` runs the check under a deadline and decides what the outcome means, because two very different things look alike from outside: a run that measured a regression, and a run that measured nothing.
+
+| Outcome                                          | With the nightly baseline | Without it |
+| :----------------------------------------------- | :------------------------ | :--------- |
+| A directory below its floor                      | blocks                    | blocks     |
+| The check cannot read its thresholds or base ref | blocks                    | blocks     |
+| The run does not finish in time                  | blocks                    | **warns**  |
+
+A cold run mutates every file in the touched directories, not just the changed ones. #355 hit an eight-minute wall at 48% of 589 mutants, having killed every one it reached — nothing was wrong with the change, and failing the pull request for it teaches people to read a red mutation job as noise. A timeout _with_ the baseline restored still blocks: that run should only have had the changed files to mutate, so it is broken rather than slow.
+
+The tier keeps a hard signal either way. `npm run mutation:fixture` runs first in the same job and fails when the known-weak fixture stops leaving survivors, so the gate can still fail even on a run that measures nothing. The policy is `classifyPrMutationRun` in `scripts/mutation-ratchet-core.ts`, pinned by `tests/tdd/mutation-ratchet/mutation-pr.test.ts`; `esi-23g.52` covers why a baseline can be missing in the first place.
 
 The nightly unit job runs `npm run mutation -- --incremental --force`: every mutant runs, and Stryker also writes `reports/mutation/stryker-incremental.json`. After a complete run (never after a failed or interrupted one, when Stryker may write a partial file) the job saves it with `actions/cache/save` under `stryker-incremental-unit-<sha>-<run id>`. Caches written on `master` are readable by pull requests into `master`, so `mutation-pr` restores with `actions/cache/restore`, preferring an entry for its base commit and otherwise the newest. Pull requests never save the cache.
 

@@ -12,6 +12,7 @@ import {
   MutationReport,
   PrPlan,
   applyRatchet,
+  classifyPrMutationRun,
   fixtureSignalProblems,
   gatePrRun,
   globToRegExp,
@@ -418,5 +419,65 @@ describe('known-weak fixture signal', () => {
       applyRatchet(scores, {}, { requireEntry: true, label: 'mutation' })
         .failures,
     ).toHaveLength(1);
+  });
+});
+
+/**
+ * What a pull request run's outcome means. The distinction the gate turns on
+ * is between measuring something worse and measuring nothing: the first is a
+ * regression and blocks, the second is an absence and warns. Getting it the
+ * other way round would either hide a regression or teach people that a red
+ * mutation job is noise, and a gate nobody reads is the failure mode this
+ * whole tier exists to prevent.
+ */
+describe('classifyPrMutationRun', () => {
+  it('passes a clean run', () => {
+    expect(
+      classifyPrMutationRun({ exitCode: 0, hadBaseline: true }).blocking,
+    ).toBe(false);
+  });
+
+  it('blocks a directory below its floor, baseline or not', () => {
+    for (const hadBaseline of [true, false]) {
+      const outcome = classifyPrMutationRun({ exitCode: 1, hadBaseline });
+      expect(outcome.blocking).toBe(true);
+      expect(outcome.message).toContain('below its floor');
+    }
+  });
+
+  it('blocks a broken check, which cannot say what it compared against', () => {
+    expect(
+      classifyPrMutationRun({ exitCode: 2, hadBaseline: false }).blocking,
+    ).toBe(true);
+  });
+
+  it('warns when a cold run runs out of time, having measured nothing', () => {
+    const outcome = classifyPrMutationRun({
+      exitCode: 124,
+      hadBaseline: false,
+    });
+    expect(outcome.blocking).toBe(false);
+    expect(outcome.message).toContain('Nothing was measured');
+  });
+
+  it('blocks a timeout that had the baseline, which should have been quick', () => {
+    const outcome = classifyPrMutationRun({ exitCode: 124, hadBaseline: true });
+    expect(outcome.blocking).toBe(true);
+    expect(outcome.message).toContain('not slow');
+  });
+
+  it.each([137, 143])('treats signal %i as a kill, not a verdict', (code) => {
+    expect(
+      classifyPrMutationRun({ exitCode: code, hadBaseline: false }).blocking,
+    ).toBe(false);
+    expect(
+      classifyPrMutationRun({ exitCode: code, hadBaseline: true }).blocking,
+    ).toBe(true);
+  });
+
+  it('blocks an exit code it does not recognise rather than assuming it is fine', () => {
+    const outcome = classifyPrMutationRun({ exitCode: 9, hadBaseline: false });
+    expect(outcome.blocking).toBe(true);
+    expect(outcome.message).toContain('does not recognise');
   });
 });
