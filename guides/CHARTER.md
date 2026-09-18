@@ -409,7 +409,7 @@ Every nightly job that finds a problem **shall** file or update a labelled GitHu
 Every npm script referenced in a document **shall** exist in `package.json`, and every script in `package.json` **shall** resolve to an existing file.
 
 - **Why:** `sde:seed` points at a script that does not exist. The docs currently reference zero missing scripts, which is worth keeping.
-- **Verified by:** To add: a check in `scripts/validate-versions.ts` or a new `scripts/validate-scripts.ts`.
+- **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`.
 
 ---
 
