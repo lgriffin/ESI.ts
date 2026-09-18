@@ -6,9 +6,12 @@
  * $GITHUB_STEP_SUMMARY when set), and fails if any directory scores below its
  * floor.
  *
- * - BDD suite: reports/mutation-bdd/mutation.json against
- *   mutation-bdd-thresholds.json. A directory with no entry is reported but
- *   not gated.
+ * - BDD suite: reports/mutation-bdd/mutation.json, merged from the shard
+ *   reports by npm run mutation:bdd:merge, against mutation-bdd-thresholds.json.
+ *   Every scored directory needs an entry: the file was empty for as long as
+ *   the run never finished, and a ratchet with nothing in it gates nothing,
+ *   which is the failure this tier exists to catch. Seed it from a completed
+ *   run with --update.
  * - Unit suite: reports/mutation/mutation.json against
  *   mutation-thresholds.json. Every scored directory needs an entry.
  *
@@ -35,8 +38,8 @@ const SUITES = {
     heading: 'BDD-only mutation score',
     label: 'BDD mutation',
     column: 'BDD mutation score',
-    requireEntry: false,
-    run: 'npm run mutation:bdd',
+    requireEntry: true,
+    run: 'npm run mutation:bdd && npm run mutation:bdd:merge',
   },
   unit: {
     report: 'reports/mutation/mutation.json',

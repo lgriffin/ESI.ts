@@ -249,6 +249,7 @@
     "mutation": "stryker run",
     "mutation:report": "stryker run --reporters html,clear-text",
     "mutation:bdd": "stryker run stryker.bdd.config.mjs",
+    "mutation:bdd:merge": "ts-node scripts/mutation-merge.ts",
     "mutation:bdd:ratchet": "ts-node scripts/mutation-ratchet.ts",
     "mutation:ratchet": "ts-node scripts/mutation-ratchet.ts --suite unit",
     "mutation:pr": "ts-node scripts/mutation-pr.ts",

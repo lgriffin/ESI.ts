@@ -40,7 +40,9 @@ npm run test:consumer  # Pack, install into a clean consumer, type-check + run C
 npm run test:docs-examples  # Type-check every ts block in README/guides/SDE docs against the packed package (not in npm test)
 npm run test:all       # All test suites
 npm run mutation       # Mutation testing (Stryker)
-npm run mutation:bdd   # BDD-only mutation run; mutation:bdd:ratchet gates per-directory scores
+npm run mutation:bdd   # BDD-only mutation run, sharded by BDD_MUTATION_SHARD (mutation-bdd-shards.json)
+npm run mutation:bdd:merge    # Rebuild one report from the shard reports; refuses an incomplete run
+npm run mutation:bdd:ratchet  # Gate per-directory scores against mutation-bdd-thresholds.json
 ```
 
 Coverage thresholds: branches 80%, functions 75%, lines 90%, statements 90%.
@@ -108,7 +110,7 @@ Key middleware in the pipeline:
 
 - **ci-fast.yml** — runs on all pushes: lint, format, build, typecheck, unit tests (Node 20)
 - **ci.yml** — runs on PRs to master: full matrix (Node 18/20/22), BDD, contract, fuzz, coverage with PR comment, quality gate
-- **nightly-mutation.yml** — runs nightly: mutation testing (Stryker) with 4-hour timeout
+- **nightly-mutation.yml** — runs nightly: unit mutation testing (Stryker) with a 4-hour timeout, the BDD-only run as one job per shard, and type mutation
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
 
 ## Semantic Versioning (enforced)
