@@ -135,12 +135,9 @@ Both issue-filing workflows keep at most one open issue per label: if one is ope
 
 ### GATE-06 · Scripts resolve to files
 
-Not yet machine-checked. Two scripts in `package.json` currently point at files that do not exist:
+Checked by `tests/tdd/scripts/package-scripts.test.ts`, so it runs in `npm test`: every path a script names under `scripts/`, `examples/` or `tests/`, and every runner config it is pointed at, must be a file that exists. Adding a script whose target is not there fails the suite and names the command that would break.
 
-| Script                  | Missing file                      |
-| ----------------------- | --------------------------------- |
-| `sde:seed`              | `scripts/seed-sde-test-db.ts`     |
-| `example:sde-cross-ref` | `examples/sde-cross-reference.ts` |
+Two scripts used to point at files that were never committed — `sde:seed` at `scripts/seed-sde-test-db.ts` and `example:sde-cross-ref` at `examples/sde-cross-reference.ts`. Both are gone; the three SDE examples that do exist (`sde-fitting`, `sde-industry`, `sde-market-tree`) have scripts now.
 
 ---
 
@@ -724,17 +721,16 @@ The same "explicit, reasoned exception" pattern appears in six more places:
 
 ### Documentation, tokens, SDE and examples
 
-| Script                           | Runs                                                                                                              |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `docs` / `docs:watch`            | TypeDoc into `docs-site/public/api`                                                                               |
-| `docs:serve`                     | Serve the TypeDoc output on port 8080                                                                             |
-| `token:create` / `token:refresh` | PKCE token into `.env`, and refresh it (see [SECURITY.md](SECURITY.md))                                           |
-| `sde:ingest`                     | Build the SDE database from CCP's archive                                                                         |
-| `sde:seed`                       | **Broken**: target script missing (GATE-06)                                                                       |
-| `health-check`                   | `EsiClient.healthCheck()` against live ESI                                                                        |
-| `start` / `example`              | `examples/character-profile.ts`                                                                                   |
-| `example:<name>`                 | One runnable example from `examples/`; see `npm run help -- example`. `example:sde-cross-ref` is broken (GATE-06) |
-| `help`                           | Grouped script listing                                                                                            |
+| Script                           | Runs                                                                    |
+| -------------------------------- | ----------------------------------------------------------------------- |
+| `docs` / `docs:watch`            | TypeDoc into `docs-site/public/api`                                     |
+| `docs:serve`                     | Serve the TypeDoc output on port 8080                                   |
+| `token:create` / `token:refresh` | PKCE token into `.env`, and refresh it (see [SECURITY.md](SECURITY.md)) |
+| `sde:ingest`                     | Build the SDE database from CCP's archive                               |
+| `health-check`                   | `EsiClient.healthCheck()` against live ESI                              |
+| `start` / `example`              | `examples/character-profile.ts`                                         |
+| `example:<name>`                 | One runnable example from `examples/`; see `npm run help -- example`    |
+| `help`                           | Grouped script listing                                                  |
 
 ---
 
