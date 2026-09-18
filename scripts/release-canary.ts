@@ -5,9 +5,12 @@
  * directory and establishes that it works: see scripts/release-canary-core.ts
  * for what the four checks are and why each one is there.
  *
- * Nothing from this repository is on the consumer's disk. The point is to test
- * what npm serves, not what the working tree builds, so the probe directory is
- * created outside the project and holds only a package.json and the install.
+ * Nothing from this repository is on the consumer's disk, and nothing from the
+ * shared npm cache either. The point is to test what the registry serves on
+ * this run, so the probe directory is created outside the project, holds only
+ * a package.json and the install, and every npm command runs against a cache
+ * directory of its own. A cached copy of the package would otherwise satisfy
+ * the install and the canary would verify bytes the registry never sent.
  *
  *   --version <v>   the version to verify; also read from CANARY_VERSION or
  *                   GITHUB_REF_NAME (a vX.Y.Z tag)
@@ -47,12 +50,14 @@ function run(
   command: string,
   args: string[],
   cwd: string,
+  env: NodeJS.ProcessEnv = process.env,
 ): { ok: boolean; output: string } {
   // `npm` on Windows is a shim that needs a shell; an absolute path — the Node
   // binary — must not go through one, or a space in "C:\Program Files" splits
   // the command.
   const result = spawnSync(command, args, {
     cwd,
+    env,
     encoding: 'utf8',
     shell: process.platform === 'win32' && !path.isAbsolute(command),
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -126,6 +131,10 @@ function main(): void {
   results.push(registry);
 
   const consumer = mkdtempSync(path.join(tmpdir(), 'esi-canary-'));
+  // Its own npm cache, so nothing already on this machine can satisfy the
+  // install. npm_config_cache is the environment form of `npm --cache`.
+  const cacheDir = path.join(consumer, '.npm-cache');
+  const npmEnv = { ...process.env, npm_config_cache: cacheDir };
   console.log(`Consumer directory: ${consumer}`);
 
   if (!registry.ok) {
@@ -146,8 +155,15 @@ function main(): void {
 
     const install = run(
       'npm',
-      ['install', `${PACKAGE_NAME}@${version}`, '--no-audit', '--no-fund'],
+      [
+        'install',
+        `${PACKAGE_NAME}@${version}`,
+        '--no-audit',
+        '--no-fund',
+        '--prefer-online',
+      ],
       consumer,
+      npmEnv,
     );
     if (!install.ok) {
       results.push({
@@ -164,7 +180,7 @@ function main(): void {
         });
       }
     } else {
-      const signatures = run('npm', ['audit', 'signatures'], consumer);
+      const signatures = run('npm', ['audit', 'signatures'], consumer, npmEnv);
       results.push({
         check: 'signatures',
         ok: signatures.ok,

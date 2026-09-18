@@ -50,11 +50,17 @@ jobs:
         with:
           persist-credentials: false
 
+      # No package-manager cache. zizmor flags cache-poisoning on a
+      # release-triggered workflow, and it is right twice over here: npm's
+      # cache is per-user and shared, so a cached copy of the package could
+      # satisfy the consumer install and the canary would verify bytes the
+      # registry never served on this run. release.yml sets the same flag for
+      # the same reason.
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '20'
-          cache: 'npm'
+          package-manager-cache: false
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
