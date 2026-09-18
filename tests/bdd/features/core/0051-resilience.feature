@@ -411,6 +411,21 @@ Feature: Resilience and Error Recovery
       Then both calls resolve with the payload
       And the client sent 1 request
 
+  Rule: When concurrent GET requests to one authenticated endpoint carry different access tokens, the EsiClient shall issue one HTTP request per token.
+    Deduplication keys on the request path, and a path says nothing about whose
+    data comes back: characters/{character_id}/online answers differently for
+    every token that asks it. The ETag cache already hashes the Authorization
+    header into its key for that reason, and coalescing has to draw the same
+    line. A caller that changes token while a call is in flight would otherwise
+    receive the previous identity's response.
+
+    Scenario: A concurrent online request under a new access token is not coalesced
+      Given a client with request deduplication and no ETag cache
+      And ESI answers the character online request after 20 milliseconds with a payload 2 times
+      When the client requests the character online status, changes its access token, and requests it again before the first resolves
+      Then both calls resolve with the online payload
+      And the client sent 2 requests
+
   Rule: If a shared in-flight GET request fails, then the EsiClient shall reject every caller that joined it.
     Callers that joined an in-flight request share its outcome, failure
     included. None of them receives a result the others did not.
