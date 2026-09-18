@@ -1,4 +1,5 @@
 import { ApiClient } from './ApiClient';
+import { buildDedupeKey } from './cache/cacheKey';
 
 import {
   trySpecAwareCacheHit,
@@ -295,8 +296,14 @@ export const handleRequest = async (
     const retryHit = attempted ? specCacheHit() : null;
     attempted = true;
     if (retryHit) return retryHit;
+    // Keyed by identity as well as endpoint: one client can hold more than one
+    // token over its life, and two concurrent authenticated GETs under
+    // different tokens must not be answered from one response.
     return canDedup
-      ? dedup.dedupe<EsiHandlerResponse>(endpoint, doExecute)
+      ? dedup.dedupe<EsiHandlerResponse>(
+          buildDedupeKey(endpoint, client, requiresAuth),
+          doExecute,
+        )
       : doExecute();
   };
 
