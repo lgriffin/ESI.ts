@@ -6340,6 +6340,7 @@ export interface IDeduplicator {
     clear(): void;
     // (undocumented)
     dedupe<T>(key: string, execute: () => Promise<T>): Promise<T>;
+    detachByPath?(pathSegment: string): number;
     // (undocumented)
     readonly pending: number;
 }
@@ -8051,6 +8052,7 @@ export class RequestDeduplicator implements IDeduplicator {
     clear(): void;
     // (undocumented)
     dedupe<T>(key: string, execute: () => Promise<T>): Promise<T>;
+    detachByPath(pathSegment: string): number;
     // (undocumented)
     get pending(): number;
     // (undocumented)

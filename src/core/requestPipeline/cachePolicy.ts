@@ -267,9 +267,17 @@ export function invalidateAfterWrite(
   endpoint: string,
   resolveCache: (client: ApiClient) => ICache | null,
 ): void {
+  if (method === 'GET') return;
+  const path = endpoint.split('?')[0]!;
+
+  // Before the cache, and whether or not there is one: a read that starts
+  // after this write must not be handed the response to a read that started
+  // before it. Deduplication would do exactly that, because its key is the
+  // path and the path has not changed.
+  client.getDeduplicator()?.detachByPath?.(path);
+
   const cache = resolveCache(client);
-  if (method !== 'GET' && cache) {
-    const path = endpoint.split('?')[0]!;
+  if (cache) {
     cache.deleteByPath(path);
     const log = writeLogFor(cache);
     log.generation += 1;

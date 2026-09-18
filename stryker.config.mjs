@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -16,14 +17,65 @@ const projectRoot = path.resolve(__dirname);
  * Scores are gated per directory by scripts/mutation-ratchet-core.ts against
  * mutation-thresholds.json, not by a global break threshold.
  *
+ * Sharding. One job over all of src/core stopped finishing inside its
+ * 240-minute timeout as the unit suite grew, and a nightly that never
+ * completes never saves the incremental baseline pull requests restore. Set
+ * UNIT_MUTATION_SHARD to a name in mutation-unit-shards.json to mutate that
+ * shard alone, writing its report and its own incremental file under
+ * reports/mutation/shards/<name>/. Unset, the config mutates everything, which
+ * is what a local run wants.
+ *
  * @type {import('@stryker-mutator/api/core').PartialStrykerOptions}
  */
+
+/** Shared by every shard, so their union is what the unsharded glob covered. */
+const COMMON_EXCLUSIONS = [
+  '!src/core/endpoints/**',
+  '!src/core/logger/ILogger.ts',
+  '!src/core/cache/ICache.ts',
+  '!src/core/rateLimiter/IRateLimiter.ts',
+  '!src/core/IRetryStrategy.ts',
+  '!src/core/circuitBreaker/ICircuitBreaker.ts',
+  '!src/core/IDeduplicator.ts',
+  '!src/core/requestPipeline/index.ts',
+  '!src/core/requestPipeline/dependencies.ts',
+];
+
+const { shards } = JSON.parse(
+  readFileSync(path.join(projectRoot, 'mutation-unit-shards.json'), 'utf8'),
+);
+
+const shardName = process.env.UNIT_MUTATION_SHARD?.trim();
+const shard = shardName
+  ? shards.find((candidate) => candidate.name === shardName)
+  : undefined;
+
+if (shardName && !shard) {
+  const names = shards.map((candidate) => candidate.name).join(', ');
+  throw new Error(
+    `UNIT_MUTATION_SHARD=${shardName} is not a shard in mutation-unit-shards.json (have: ${names}).`,
+  );
+}
+
+/** A shard's directories as Stryker globs, most specific exclusion last. */
+function mutateFor(definition) {
+  if (!definition) return ['src/core/**/*.ts', ...COMMON_EXCLUSIONS];
+  return [
+    ...definition.include.map((dir) => `${dir}/**/*.ts`),
+    ...(definition.exclude ?? []).map((dir) => `!${dir}/**`),
+    ...COMMON_EXCLUSIONS,
+  ];
+}
+
+const reportDir = shard
+  ? `reports/mutation/shards/${shard.name}`
+  : 'reports/mutation';
 export default {
   packageManager: 'npm',
   reporters: ['html', 'json', 'clear-text', 'progress'],
-  htmlReporter: { fileName: 'reports/mutation/mutation.html' },
-  jsonReporter: { fileName: 'reports/mutation/mutation.json' },
-  incrementalFile: 'reports/mutation/stryker-incremental.json',
+  htmlReporter: { fileName: `${reportDir}/mutation.html` },
+  jsonReporter: { fileName: `${reportDir}/mutation.json` },
+  incrementalFile: `${reportDir}/stryker-incremental.json`,
   testRunner: 'jest',
   jest: {
     configFile: 'jest.unit.config.cjs',
@@ -44,18 +96,7 @@ export default {
   tsconfigFile: 'tsconfig.json',
   coverageAnalysis: 'perTest',
   ignoreStatic: true,
-  mutate: [
-    'src/core/**/*.ts',
-    '!src/core/endpoints/**',
-    '!src/core/logger/ILogger.ts',
-    '!src/core/cache/ICache.ts',
-    '!src/core/rateLimiter/IRateLimiter.ts',
-    '!src/core/IRetryStrategy.ts',
-    '!src/core/circuitBreaker/ICircuitBreaker.ts',
-    '!src/core/IDeduplicator.ts',
-    '!src/core/requestPipeline/index.ts',
-    '!src/core/requestPipeline/dependencies.ts',
-  ],
+  mutate: mutateFor(shard),
   mutator: {
     excludedMutations: ['StringLiteral'],
   },
@@ -63,6 +104,6 @@ export default {
   thresholds: { high: 80, low: 60, break: null },
   concurrency: 6,
   timeoutMS: 30000,
-  tempDirName: '.stryker-tmp',
+  tempDirName: shard ? `.stryker-tmp-${shard.name}` : '.stryker-tmp',
   cleanTempDir: true,
 };
