@@ -21,8 +21,12 @@ import {
   duplicateScripts,
   exitCodeFor,
   renderSummary,
+  TOOLS_NOT_RUN_LOCALLY,
+  TOOLS_RUN_BY,
   scriptsInWorkflow,
   selectTiers,
+  toolsInWorkflow,
+  uncoveredCiTools,
   uncoveredCiScripts,
   unknownScripts,
 } from '../../../scripts/verify-local-core';
@@ -106,6 +110,66 @@ describe('the tier list covers what CI runs', () => {
   it('does not excuse a script it actually runs', () => {
     const both = TIERS.map((t) => t.script).filter((s) => s in NOT_RUN_LOCALLY);
     expect(both).toEqual([]);
+  });
+});
+
+describe('the tier list covers the tools CI runs directly', () => {
+  const tools = toolsInWorkflow(ciYaml);
+
+  it('finds the tools, rather than quietly finding none', () => {
+    // This is the case that would have caught the bug that shipped this
+    // check: the extraction regex held a literal backspace where  was
+    // meant, matched nothing, and every assertion below passed vacuously.
+    expect(tools.length).toBeGreaterThan(0);
+    expect(tools).toContain('zizmor');
+    expect(tools).toContain('knip');
+  });
+
+  it('runs or explains every tool ci.yml invokes directly', () => {
+    expect(uncoveredCiTools(tools, TIERS)).toEqual([]);
+  });
+
+  it('flags a tool that is neither run nor explained', () => {
+    expect(uncoveredCiTools(['semgrep'], TIERS)).toEqual(['semgrep']);
+  });
+
+  it('rejects a mapping to a tier that does not exist', () => {
+    // Worse than no mapping: it reads as covered.
+    expect(
+      uncoveredCiTools(['semgrep'], TIERS, { semgrep: 'lint:nope' }, {}),
+    ).toEqual(['semgrep: mapped to lint:nope, which is not a tier']);
+  });
+
+  it('gives every deliberate omission a reason', () => {
+    for (const [tool, reason] of Object.entries(TOOLS_NOT_RUN_LOCALLY)) {
+      expect(reason.length).toBeGreaterThan(20);
+      expect(TOOLS_RUN_BY[tool]).toBeUndefined();
+    }
+  });
+});
+
+describe('toolsInWorkflow', () => {
+  it.each([
+    ['run: npx knip --no-exit-code', ['knip']],
+    ['run: uvx zizmor@1.25.2 --config .zizmor.yml', ['zizmor']],
+    ['run: pipx run black .', ['black']],
+    ['run: npx @redocly/cli lint', ['@redocly/cli']],
+  ])('reads %p', (line, expected) => {
+    expect(toolsInWorkflow(line)).toEqual(expected);
+  });
+
+  it('strips a version pin so one tool is one tool', () => {
+    expect(toolsInWorkflow('uvx zizmor@1.25.2\nuvx zizmor@1.26.0')).toEqual([
+      'zizmor',
+    ]);
+  });
+
+  it('skips a flag that follows the runner', () => {
+    expect(toolsInWorkflow('npx --yes knip')).toEqual(['knip']);
+  });
+
+  it('finds nothing in a workflow that runs no tool directly', () => {
+    expect(toolsInWorkflow('run: npm run lint')).toEqual([]);
   });
 });
 
