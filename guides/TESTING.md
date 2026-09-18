@@ -443,7 +443,7 @@ The feature files are an EARS specification, and three gates decide whether a Ru
 
 - **Well-formed:** `npm run spec:audit` holds every Rule to one `shall`, at least one Scenario under it, no Scenario outside a Rule, and a tracker tag (`@esi-<bead>` or `@gh-<issue>`) beside every `@bug`.
 - **Executed:** `mkdir -p reports/bdd`, `npm run bdd -- --json --outputFile=reports/bdd/jest-results.json` then `npm run bdd:report` joins the run to the feature files. It fails when any scenario did not execute (`feature-not-run`, `scenario-not-executed`), and writes `reports/bdd/junit.xml` with each test case named `Feature › Rule › Scenario`. CI uploads it as the `bdd-junit` artifact and puts the Rules not verified in the job summary.
-- **Able to fail:** `npm run mutation:bdd:ratchet` floors the BDD-only mutation score per source directory in `mutation-bdd-thresholds.json`. The file is empty today, so no directory is ratcheted yet.
+- **Able to fail:** `npm run mutation:bdd:ratchet` floors the BDD-only mutation score per source directory in `mutation-bdd-thresholds.json`. The file is empty today, so no directory is ratcheted yet, and the ratchet fails on every scored directory until a completed nightly matrix seeds it (see `guides/MUTATION-TESTING.md`, "Sharding the BDD-only run").
 
 #### BDD Test Categories
 

@@ -434,8 +434,15 @@ protection. A scenario that executes and passes can still pass whatever the
 client does. `mutation-bdd-thresholds.json` is empty today (`{}`), so no
 directory is ratcheted and no Rule is yet protected in this third sense. Floors
 are per directory (`src/clients`, `src/core/<sub>`), so a domain's Rules count
-once the directory holding its client has an entry. Add one with
-`npm run mutation:bdd:ratchet -- --update` after the nightly BDD mutation run.
+once the directory holding its client has an entry.
+
+The floors were empty because the run that produces them never finished: one
+job mutating all of `src/` against the step definitions alone was killed at 30
+minutes. `nightly-mutation.yml` now runs that job once per shard in
+`mutation-bdd-shards.json` and merges the reports. Seed the floors by
+dispatching it with `seed_bdd_thresholds`, which uploads
+`mutation-bdd-thresholds.json` raised to that run's scores for review; see
+`guides/MUTATION-TESTING.md`.
 
 ## The consistency check
 

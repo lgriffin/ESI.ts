@@ -13,7 +13,8 @@ npm run mutation             # Full unit-suite run over the mutate scope
 npm run mutation:ratchet     # Score reports/mutation/mutation.json per directory
 npm run mutation:pr          # What CI runs on a pull request: only your changed src/ files
 npm run mutation:fixture     # The tier's self-test on a known-weak fixture
-npm run mutation:bdd         # BDD-only run (see below)
+npm run mutation:bdd         # BDD-only run (see below); one shard with BDD_MUTATION_SHARD=<name>
+npm run mutation:bdd:merge   # Put the shard reports back together for the ratchet
 npm run mutation:bdd:ratchet # Score the BDD-only report per directory
 ```
 
@@ -21,11 +22,11 @@ Reports are written to `reports/mutation/` (`mutation.html`, `mutation.json` and
 
 ## Where mutation testing runs
 
-| Where                                  | What                                                                          | Gate                                                                |
-| -------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Pull request (`ci.yml`, `mutation-pr`) | Known-weak fixture, then the changed `src/` files in scope, incrementally     | Blocks via `ci-success`: touched directories vs their floors        |
-| Nightly (`nightly-mutation.yml`)       | Every file in scope (`--incremental --force`); publishes the incremental file | Fails the run: every directory vs its floor                         |
-| Nightly, BDD-only job                  | All of `src/`, BDD step definitions only                                      | Fails the run: directories listed in `mutation-bdd-thresholds.json` |
+| Where                                  | What                                                                                      | Gate                                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Pull request (`ci.yml`, `mutation-pr`) | Known-weak fixture, then the changed `src/` files in scope, incrementally                 | Blocks via `ci-success`: touched directories vs their floors                         |
+| Nightly (`nightly-mutation.yml`)       | Every file in scope (`--incremental --force`); publishes the incremental file             | Fails the run: every directory vs its floor                                          |
+| Nightly, BDD-only matrix               | All of `src/`, BDD step definitions only, one job per shard in `mutation-bdd-shards.json` | Fails the run: every scored directory vs its floor in `mutation-bdd-thresholds.json` |
 
 The pull request job owns "this change weakened the tests of the code it touched". The nightly owns everything a pull request cannot see: test-only changes, merges that interact, and directories no pull request touched.
 
@@ -70,9 +71,20 @@ One floor per score directory: `src/core` for files directly in core, `src/core/
 
 `tests/tdd/mutation-ratchet/` holds the unit tests for the ratchet itself: a directory below its floor fails, a missing or unreadable thresholds file or base ref fails closed, a lowered or removed floor is rejected, a pull request with no in-scope `src/` change skips, and the plan widens to whole directories when the baseline cannot vouch for a file.
 
+### Sharding the BDD-only run
+
+One job mutating all of `src/` against the BDD suite alone does not finish: 4,495 mutants, and the only attempt was killed at 30 minutes, which is why `mutation-bdd-thresholds.json` was empty for as long as it was. `nightly-mutation.yml` therefore runs one job per shard in `mutation-bdd-shards.json`; `BDD_MUTATION_SHARD=<name> npm run mutation:bdd` mutates that shard alone and writes `reports/mutation-bdd/shards/<name>/`.
+
+A split run only means the same thing as the single run it replaces if nothing falls between the shards, so two checks hold it together:
+
+- `tests/tdd/mutation-ratchet/bddShards.test.ts` asserts the shards partition `src/`: every TypeScript file belongs to exactly one. A file claimed by none is never mutated and its directory's score quietly improves; a file claimed by two is counted twice. The exclusions in `stryker.bdd.config.mjs` are shared by every shard, so the union of the shards mutates exactly what the unsharded glob did.
+- `npm run mutation:bdd:merge` (`scripts/mutation-merge-core.ts`) refuses to merge a run with a shard missing, a shard that mutated nothing, or two shards reporting one file. Without that, a shard whose job died would leave its directories scored on whatever else ran, which reads as a pass.
+
+Seed the floors from a completed run: dispatch the workflow with `seed_bdd_thresholds`, which prints and uploads `mutation-bdd-thresholds.json` raised to that run's scores. Nothing commits it; `--update` never lowers a floor.
+
 ### Why the BDD-only run is not on pull requests
 
-The BDD-only nightly has not yet completed a run (4,495 mutants across all of `src/`, and every run so far was cancelled), so there is no incremental baseline to restore and `mutation-bdd-thresholds.json` is still empty: a pull request run would gate nothing. Running the step definitions as the dry run for a `src/core/requestPipeline` change would also take most of the 12-minute pull request budget on its own. Once the BDD nightly publishes a report and floors, a pull request run scoped to `src/core/requestPipeline` is the natural next step.
+Running the step definitions as the dry run for a `src/core/requestPipeline` change would take most of the 12-minute pull request budget on its own, and there is no incremental baseline to restore until the nightly matrix has published one. Once it has, a pull request run scoped to `src/core/requestPipeline` is the natural next step.
 
 ## How It Works
 

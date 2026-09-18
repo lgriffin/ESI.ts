@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:
+    inputs:
+      seed_bdd_thresholds:
+        description: "Print mutation-bdd-thresholds.json raised to this run's BDD scores, and upload it, for a maintainer to review and commit"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -68,10 +74,48 @@ jobs:
             echo "- **Report:** HTML, JSON and incremental report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
           fi
 
-  bdd-mutation-testing:
-    name: BDD-only Mutation Testing
+  # The shard names the matrix runs, read from mutation-bdd-shards.json so the
+  # list lives in one place. tests/tdd/mutation-ratchet/bddShards.test.ts
+  # proves those shards partition src/, which is what makes a sharded run mean
+  # the same thing as the single run it replaces.
+  bdd-mutation-shards:
+    name: BDD Mutation Shards
     runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.read.outputs.shards }}
+
+    steps:
+      - name: Checkout the shard list
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: mutation-bdd-shards.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read the shard names
+        id: read
+        run: |
+          shards=$(jq -c '[.shards[].name]' mutation-bdd-shards.json)
+          if [[ "$shards" == "[]" || -z "$shards" ]]; then
+            echo "::error::mutation-bdd-shards.json lists no shards"
+            exit 1
+          fi
+          echo "shards=$shards" | tee -a "$GITHUB_OUTPUT"
+
+  # Only the BDD step definitions run, so a surviving mutant is a behaviour no
+  # Rule protects. One job per shard: the unsharded run mutated all of src/
+  # against the BDD suite alone and never finished — its one attempt was killed
+  # at 30 minutes, which is why mutation-bdd-thresholds.json was still empty.
+  # fail-fast is off so one slow shard does not hide the others' scores.
+  bdd-mutation-testing:
+    name: BDD Mutation (${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    needs: bdd-mutation-shards
     timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.bdd-mutation-shards.outputs.shards) }}
 
     steps:
       - name: Checkout code
@@ -88,21 +132,99 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Only the BDD step definitions run, so a surviving mutant is a
-      # behaviour no Rule protects.
-      - name: Run BDD-only mutation testing
+      - name: Run BDD-only mutation testing for this shard
+        env:
+          BDD_MUTATION_SHARD: ${{ matrix.shard }}
         run: npm run mutation:bdd
 
-      - name: Check per-directory ratchet
+      - name: Upload this shard's report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
+        with:
+          name: bdd-mutation-shard-${{ matrix.shard }}
+          path: reports/mutation-bdd/shards/${{ matrix.shard }}/
+          retention-days: 30
+
+  # The ratchet is per directory, so it has to see the whole run. The merge
+  # fails on a shard that is missing, empty or overlapping another rather than
+  # scoring a directory on the jobs that happened to survive
+  # (scripts/mutation-merge-core.ts). `if: always()` so a failed shard reaches
+  # the merge and is named there instead of the gate being skipped.
+  bdd-mutation-ratchet:
+    name: BDD Mutation Ratchet
+    runs-on: ubuntu-latest
+    needs: [bdd-mutation-shards, bdd-mutation-testing]
+    if: always() && needs.bdd-mutation-shards.result == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # continue-on-error so that a run where every shard died still reaches the
+      # merge, which names the missing shards; a failed download would instead
+      # end the job with nothing said about why.
+      - name: Download every shard's report
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
+        with:
+          pattern: bdd-mutation-shard-*
+          path: reports/mutation-bdd/shards
+          merge-multiple: false
+
+      # download-artifact names each directory after the artifact, so strip the
+      # prefix back to the shard name the merge expects.
+      - name: Name the directories after their shards
+        run: |
+          mkdir -p reports/mutation-bdd/shards
+          cd reports/mutation-bdd/shards
+          shopt -s nullglob
+          for dir in bdd-mutation-shard-*; do
+            [ -d "$dir" ] || continue
+            mv "$dir" "${dir#bdd-mutation-shard-}"
+          done
+          ls -1
+
+      - name: Merge the shard reports
+        run: npm run mutation:bdd:merge
+
+      - name: Check per-directory ratchet
         run: npm run mutation:bdd:ratchet
 
-      - name: Upload BDD mutation report
+      # mutation-bdd-thresholds.json starts empty, so the ratchet above fails
+      # until a maintainer seeds it. This prints and uploads the file raised to
+      # the run's own scores; it never lowers a floor and nothing commits it.
+      - name: Raise the thresholds for review
+        if: always() && inputs.seed_bdd_thresholds
+        run: |
+          if [ ! -f reports/mutation-bdd/mutation.json ]; then
+            echo "::error::No merged report: the run has no scores to raise the thresholds to."
+            exit 1
+          fi
+          npm run mutation:bdd:ratchet -- --update || true
+          echo '## Proposed mutation-bdd-thresholds.json' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat mutation-bdd-thresholds.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the merged report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: bdd-mutation-report
-          path: reports/mutation-bdd/
+          path: |
+            reports/mutation-bdd/mutation.json
+            mutation-bdd-thresholds.json
           retention-days: 30
 
   type-mutation-testing:
