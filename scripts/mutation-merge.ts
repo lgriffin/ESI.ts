@@ -1,13 +1,16 @@
 /**
- * npm run mutation:bdd:merge [-- --shard-dir <dir>] [-- --out <file>]
+ * npm run mutation:bdd:merge  [-- --shards <file>] [--shard-dir <dir>] [--out <file>]
+ * npm run mutation:unit:merge (the same script, pointed at the unit shards)
  *
- * Merges the per-shard Stryker reports the BDD mutation matrix produced into
- * the single report the ratchet reads (npm run mutation:bdd:ratchet).
+ * Merges the per-shard Stryker reports a mutation matrix produced into the
+ * single report the ratchet reads.
  *
- * Reads  reports/mutation-bdd/shards/<shard>/mutation.json, one per shard in
- * mutation-bdd-shards.json, and writes reports/mutation-bdd/mutation.json.
+ * Defaults are the BDD run: reads reports/mutation-bdd/shards/<shard>/mutation.json,
+ * one per shard in mutation-bdd-shards.json, and writes
+ * reports/mutation-bdd/mutation.json. The unit run passes its own three paths.
  * A missing shard, an empty shard or two shards claiming one file is a hard
- * failure: see scripts/mutation-merge-core.ts for why each one has to be.
+ * failure either way: see scripts/mutation-merge-core.ts for why each one has
+ * to be.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -21,7 +24,7 @@ import {
 import type { MutationReport } from './mutation-ratchet-core';
 
 const ROOT = path.resolve(__dirname, '..');
-const SHARDS_FILE = 'mutation-bdd-shards.json';
+const DEFAULT_SHARDS_FILE = 'mutation-bdd-shards.json';
 
 function flag(name: string, fallback: string): string {
   const index = process.argv.indexOf(`--${name}`);
@@ -35,15 +38,16 @@ function flag(name: string, fallback: string): string {
 }
 
 function main(): void {
+  const shardsFile = flag('shards', DEFAULT_SHARDS_FILE);
   const shardDir = flag('shard-dir', 'reports/mutation-bdd/shards');
   const out = flag('out', 'reports/mutation-bdd/mutation.json');
 
-  const shardsPath = path.join(ROOT, SHARDS_FILE);
+  const shardsPath = path.resolve(ROOT, shardsFile);
   if (!existsSync(shardsPath)) {
-    console.error(`No ${SHARDS_FILE}; failing closed.`);
+    console.error(`No ${shardsFile}; failing closed.`);
     process.exit(1);
   }
-  const shards = parseShards(readFileSync(shardsPath, 'utf8'), SHARDS_FILE);
+  const shards = parseShards(readFileSync(shardsPath, 'utf8'), shardsFile);
 
   const reports: ShardReport[] = [];
   for (const shard of shards) {

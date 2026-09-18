@@ -15,10 +15,48 @@ permissions:
   contents: read
 
 jobs:
-  mutation-testing:
-    name: Mutation Testing
+  # The shard names the unit matrix runs, read from mutation-unit-shards.json
+  # so the list lives in one place. tests/tdd/mutation-ratchet/unitShards.test.ts
+  # proves those shards partition src/core.
+  unit-mutation-shards:
+    name: Unit Mutation Shards
     runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.read.outputs.shards }}
+
+    steps:
+      - name: Checkout the shard list
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: mutation-unit-shards.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read the shard names
+        id: read
+        run: |
+          shards=$(jq -c '[.shards[].name]' mutation-unit-shards.json)
+          if [[ "$shards" == "[]" || -z "$shards" ]]; then
+            echo "::error::mutation-unit-shards.json lists no shards"
+            exit 1
+          fi
+          echo "shards=$shards" | tee -a "$GITHUB_OUTPUT"
+
+  # One job per shard. A single job over all of src/core took almost exactly
+  # two hours on 14, 15 and 16 September 2026 and then stopped finishing inside
+  # this timeout at all: the unit suite grew past 6,000 tests, and with
+  # coverageAnalysis perTest every added test slows every mutant. A nightly
+  # that never completes never scores anything and never publishes a baseline.
+  # fail-fast is off so one slow shard does not hide the others' scores.
+  mutation-testing:
+    name: Mutation (${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    needs: unit-mutation-shards
     timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.unit-mutation-shards.outputs.shards) }}
 
     steps:
       - name: Checkout code
@@ -35,20 +73,78 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # --incremental --force: every mutant runs, and Stryker also writes
-      # reports/mutation/stryker-incremental.json for pull requests to reuse.
-      - name: Run mutation testing
+      - name: Run mutation testing for this shard
+        env:
+          UNIT_MUTATION_SHARD: ${{ matrix.shard }}
         run: npm run mutation -- --incremental --force
 
-      # Pull requests (ci.yml mutation-pr) restore the newest entry by prefix.
-      # Saved only after a complete run: Stryker also writes a partial
-      # incremental file when interrupted, and a partial baseline would drop
-      # results for the files a pull request does not re-mutate.
-      - name: Publish the incremental report for pull requests
+      # Deliberately a different key prefix from the one ci.yml restores
+      # (stryker-incremental-unit-). One shard's incremental file is a fifth of
+      # a baseline, and a pull request that restored it would report a baseline
+      # it does not have — which the gate reads as "a timeout here is broken,
+      # not slow". Teaching mutation:pr to use these is esi-23g.55.
+      - name: Publish this shard's incremental report
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: reports/mutation/stryker-incremental.json
-          key: stryker-incremental-unit-${{ github.sha }}-${{ github.run_id }}
+          path: reports/mutation/shards/${{ matrix.shard }}/stryker-incremental.json
+          key: stryker-unit-shard-${{ matrix.shard }}-${{ github.sha }}-${{ github.run_id }}
+
+      - name: Upload this shard's report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: mutation-shard-${{ matrix.shard }}
+          path: reports/mutation/shards/${{ matrix.shard }}/
+          retention-days: 30
+
+  # The ratchet is per directory, so it has to see the whole run. The merge
+  # refuses a shard that is missing, empty or overlapping another rather than
+  # scoring a directory on the jobs that happened to survive
+  # (scripts/mutation-merge-core.ts).
+  mutation-ratchet:
+    name: Unit Mutation Ratchet
+    runs-on: ubuntu-latest
+    needs: [unit-mutation-shards, mutation-testing]
+    if: always() && needs.unit-mutation-shards.result == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # continue-on-error so a run where every shard died still reaches the
+      # merge, which names the missing shards.
+      - name: Download every shard's report
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
+        with:
+          pattern: mutation-shard-*
+          path: reports/mutation/shards
+          merge-multiple: false
+
+      - name: Name the directories after their shards
+        run: |
+          mkdir -p reports/mutation/shards
+          cd reports/mutation/shards
+          shopt -s nullglob
+          for dir in mutation-shard-*; do
+            [ -d "$dir" ] || continue
+            mv "$dir" "${dir#mutation-shard-}"
+          done
+          ls -1
+
+      - name: Merge the shard reports
+        run: npm run mutation:unit:merge
 
       # Every directory is scored against mutation-thresholds.json; pull
       # requests only check the directories they touch, so drift from merges
@@ -56,12 +152,12 @@ jobs:
       - name: Check per-directory ratchet
         run: npm run mutation:ratchet
 
-      - name: Upload mutation report
+      - name: Upload the merged report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: mutation-report
-          path: reports/mutation/
+          path: reports/mutation/mutation.json
           retention-days: 30
 
       - name: Summary
@@ -70,9 +166,7 @@ jobs:
           echo "## Nightly Mutation Testing" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
-          if [ -f reports/mutation/mutation.json ]; then
-            echo "- **Report:** HTML, JSON and incremental report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "- **Shards:** ${{ join(fromJSON(needs.unit-mutation-shards.outputs.shards), ', ') }}" >> $GITHUB_STEP_SUMMARY
 
   # The shard names the matrix runs, read from mutation-bdd-shards.json so the
   # list lives in one place. tests/tdd/mutation-ratchet/bddShards.test.ts
