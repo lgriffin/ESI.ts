@@ -1,22 +1,23 @@
 {
   "$comment": "How the BDD-only mutation run (stryker.bdd.config.mjs) is split across jobs. One unsharded run mutates every file in src/ against the BDD suite alone and does not finish: its first and only attempt was killed at 30 minutes (nightly-mutation.yml, 2026-09-17), so mutation-bdd-thresholds.json has never been seeded and no Rule has a mutation floor. Each shard here is a set of directories; nightly-mutation.yml runs one job per shard and merges the reports before the ratchet, so the gate still sees one score per directory.",
   "$invariant": "The shards partition src/: every TypeScript file under it belongs to exactly one shard. tests/tdd/mutation-ratchet/bddShards.test.ts fails on a file claimed twice or not at all, so a shard boundary cannot quietly drop a directory from the run. The exclusions in stryker.bdd.config.mjs apply to every shard alike, so the union of the shards mutates exactly what the unsharded glob did.",
-  "$balance": "Mutable file counts as of 2026-09-18: core-endpoints 42, clients 39, schemas 38, rest 28, core-rest 24, core-pipeline 15. Rebalance by moving a directory between shards; the invariant test is what keeps that safe.",
+  "$balance": "Balanced by mutant count, measured with `BDD_MUTATION_SHARD=<name> npx stryker run stryker.bdd.config.mjs --dryRunOnly`. src/core was one shard of 1,545 mutants until 2026-09-18; it is now three, because that one took longer than the rest of the matrix put together and a reclaimed runner costs the whole run (the merge refuses an incomplete set, by design). Per directory: requestPipeline 503, rateLimiter 401, pagination 231, circuitBreaker 193, cache 182, middleware 35 — giving core-request-pipeline 538, core-backoff 594, core-cache 413. Rebalance by moving a directory between shards; the partition test is what makes that safe.",
   "shards": [
     {
       "name": "core-endpoints",
       "include": ["src/core/endpoints"]
     },
     {
-      "name": "core-pipeline",
-      "include": [
-        "src/core/requestPipeline",
-        "src/core/cache",
-        "src/core/circuitBreaker",
-        "src/core/rateLimiter",
-        "src/core/pagination",
-        "src/core/middleware"
-      ]
+      "name": "core-request-pipeline",
+      "include": ["src/core/requestPipeline", "src/core/middleware"]
+    },
+    {
+      "name": "core-backoff",
+      "include": ["src/core/rateLimiter", "src/core/circuitBreaker"]
+    },
+    {
+      "name": "core-cache",
+      "include": ["src/core/cache", "src/core/pagination"]
     },
     {
       "name": "core-rest",
