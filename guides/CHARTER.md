@@ -461,12 +461,12 @@ If a dependency advisory is accepted rather than fixed, then the acceptance **sh
 - **Why:** Allowlists rot. An expiry forces the conversation again.
 - **Verified by:** `scripts/audit-check.ts` with `scripts/audit-exceptions.json`.
 
-#### SEC-06 · Ubiquitous · Gap
+#### SEC-06 · Ubiquitous · Enforced
 
 Each release **shall** publish a CycloneDX or SPDX SBOM as a signed release asset.
 
 - **Why:** Provenance says who built it. An SBOM says what is inside. Scorecard and downstream policy tooling look for both.
-- **Verified by:** To add: `npm sbom --sbom-format cyclonedx` in `create-assets`, signed alongside the tarball.
+- **Verified by:** `release.yml` `create-assets` runs `npm run release:sbom`, which fails the release unless the CycloneDX SBOM names the package at the tagged version and lists every runtime dependency, and adds it to `checksums.txt`; `sign-and-publish-assets` signs it. `tests/tdd/release-sbom/` runs the generator against the repository.
 
 #### SEC-07 · Ubiquitous · Gap
 
