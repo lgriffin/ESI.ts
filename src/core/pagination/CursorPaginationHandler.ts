@@ -96,7 +96,9 @@ export class CursorPaginationHandler {
     let dataArray: unknown[];
     if (Array.isArray(data)) {
       dataArray = data as unknown[];
-    } else if (data !== null && data !== undefined) {
+    } else if (data !== null) {
+      // fetchOnePage's data is response.json(): any JSON value, never
+      // undefined (an empty body throws JSON_PARSE_ERROR instead).
       dataArray = [data];
     } else {
       dataArray = [];
