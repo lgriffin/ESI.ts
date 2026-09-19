@@ -29,7 +29,7 @@ Everything a consumer can reach without importing from `dist/` by path:
 - **Every entry point in `package.json` `exports`:** `.`, `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory`, and `./package.json`. `./testing` (`TestDataFactory` and friends) is public; consumers use it in their own tests.
 - **The types those entry points export.** That includes interfaces consumers _implement_, such as `ILogger`, `ICircuitBreaker`, `IDeduplicator` and `IRetryStrategy`, as well as ones they only call.
 - **Runtime behaviour documented in the guides.** This covers which error class is thrown and its `retryable` flag ([ERRORS.md](ERRORS.md)), what a response schema accepts ([RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md)), pagination results ([PAGINATION.md](PAGINATION.md)), default configuration values, and log events other code may key on ([LOGGING.md](LOGGING.md)).
-- **The environment.** `engines.node`, `dependencies` whose types appear in the public API (`zod`), and `peerDependencies` (`better-sqlite3`, `js-yaml`, `adm-zip`), including their ranges.
+- **The environment.** `engines.node`, the oldest supported TypeScript (5.4, checked by the consumer contract), `dependencies` whose types appear in the public API (`zod`), and `peerDependencies` (`better-sqlite3`, `js-yaml`, `adm-zip`), including their ranges.
 
 Not public: anything not reachable from an entry point, file layout under `src/`, test files, CI, generated files' internal shape where no exported type depends on it, and log message wording.
 
@@ -74,6 +74,7 @@ Ask: **could code that works against the last release stop compiling, throw, or 
 | Change                                                             | Bump  | Why                                          |
 | ------------------------------------------------------------------ | ----- | -------------------------------------------- |
 | Drop a Node line (raise `engines.node`)                            | major | REL-05; installs on that line stop working   |
+| Raise the oldest supported TypeScript (`OLDEST_TYPESCRIPT`)        | major | Consumers on that version stop compiling     |
 | Major version of a dependency whose types are public (`zod` 4 → 5) | major | Consumers' schemas and inferred types change |
 | Raise the minimum of a peer dependency (`better-sqlite3`)          | major | Existing installs no longer satisfy it       |
 | Add a new required runtime dependency or peer dependency           | major | Existing installs may break or warn          |

@@ -150,7 +150,7 @@ Each resilience concern (retry, rate limiting, circuit breaking, deduplication, 
 The package **shall** publish a dual CJS and ESM build with declaration files for the six entry points: root, `schemas`, `errors`, `testing`, `sde` and `sde/memory`.
 
 - **Why:** Subpath entries are the tree-shaking story while the root barrel stays wide.
-- **Verified by:** `tsup.config.ts`, `package-checks.yml` (Are The Types Wrong on the packed tarball).
+- **Verified by:** `tsup.config.ts`, the `package-lint` job in `ci.yml` (publint and Are The Types Wrong on the packed tarball), and the consumer contract.
 
 #### ARCH-06 · Ubiquitous · Gap
 
@@ -269,7 +269,7 @@ This table is the canonical tier order. Both testing guides merge into one and c
 | 6    | Integration, mocked full stack | `tests/integration`              | 6                                       | jest.integration          | PR (full suite)          |
 | 7    | Integration, live              | same, `ESI_LIVE_TESTS`           | ~50                                     | jest.integration          | manual                   |
 | 8    | Integration, gated auth        | same, `ESI_GATED_TESTS` + `.env` | 30+                                     | jest.integration          | manual                   |
-| 9    | Benchmark                      | `tests/benchmark`                | 5                                       | jest.benchmark            | manual                   |
+| 9    | Benchmark and heap soak        | `tests/benchmark`                | 18 tasks + soak                         | mitata + soak driver      | PR (hot paths), nightly  |
 | 10   | Mutation                       | `src/core/**`                    | —                                       | Stryker                   | nightly, 4 h budget      |
 | 11   | API fuzz                       | Prism mock + Schemathesis        | —                                       | Docker                    | nightly                  |
 
@@ -409,7 +409,7 @@ Every nightly job that finds a problem **shall** file or update a labelled GitHu
 Every npm script referenced in a document **shall** exist in `package.json`, and every script in `package.json` **shall** resolve to an existing file.
 
 - **Why:** `sde:seed` points at a script that does not exist. The docs currently reference zero missing scripts, which is worth keeping.
-- **Verified by:** To add: a check in `scripts/validate-versions.ts` or a new `scripts/validate-scripts.ts`.
+- **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`.
 
 ---
 
@@ -461,12 +461,12 @@ If a dependency advisory is accepted rather than fixed, then the acceptance **sh
 - **Why:** Allowlists rot. An expiry forces the conversation again.
 - **Verified by:** `scripts/audit-check.ts` with `scripts/audit-exceptions.json`.
 
-#### SEC-06 · Ubiquitous · Gap
+#### SEC-06 · Ubiquitous · Enforced
 
 Each release **shall** publish a CycloneDX or SPDX SBOM as a signed release asset.
 
 - **Why:** Provenance says who built it. An SBOM says what is inside. Scorecard and downstream policy tooling look for both.
-- **Verified by:** To add: `npm sbom --sbom-format cyclonedx` in `create-assets`, signed alongside the tarball.
+- **Verified by:** `release.yml` `create-assets` runs `npm run release:sbom`, which fails the release unless the CycloneDX SBOM names the package at the tagged version and lists every runtime dependency, and adds it to `checksums.txt`; `sign-and-publish-assets` signs it. `tests/tdd/release-sbom/` runs the generator against the repository.
 
 #### SEC-07 · Ubiquitous · Gap
 

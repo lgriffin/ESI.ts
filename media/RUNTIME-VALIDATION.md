@@ -39,7 +39,7 @@ In practice, the validation overhead is negligible compared to network latency. 
 
 When validation fails, an `EsiValidationError` is thrown:
 
-```typescript
+```typescript runnable
 import {
   EsiClient,
   EsiValidationError,
@@ -99,9 +99,15 @@ All schemas use Zod 4's `z.looseObject()` instead of `z.object().passthrough()`.
 
 This is intentional. CCP regularly adds new fields to ESI responses. Loose object mode ensures new fields flow through to your code without the library needing an update first.
 
+### Shape, not domain invariants
+
+Schemas check that a field is present and of the right type, not that its value makes sense. A market order with a negative `volume_remain`, or a server status with negative `players`, satisfies its schema and is returned exactly as ESI sent it, with no error and no log. ESI is the source of truth for its data; a consumer that depends on an invariant checks it. The fault catalogue pins this (`semantically-absurd-values`; see [TESTING.md](TESTING.md#fault-injection)).
+
 ### Type derivation
 
 All TypeScript types in `src/types/` are derived from their Zod schemas using `z.infer<>`. The schemas are the single source of truth — there is no drift between the runtime validation and the compile-time types.
+
+<!-- doc-example: no-check contributor example: code inside src/, not a consumer import -->
 
 ```typescript
 // In src/schemas/character.ts
