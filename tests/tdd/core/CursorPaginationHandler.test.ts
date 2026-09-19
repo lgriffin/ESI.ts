@@ -7,6 +7,8 @@ import {
   EsiError,
 } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
+import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
+import { logCalls, spyLogger } from '../helpers/spyLogger';
 
 fetchMock.enableMocks();
 
@@ -665,6 +667,136 @@ describe('CursorPaginationHandler', () => {
 
       expect(cursors.before).toBeNull();
       expect(cursors.after).toBe('after-only');
+    });
+  });
+
+  describe('exact logging, caching and failure budget', () => {
+    const run = (
+      pageFetch: Parameters<typeof CursorPaginationHandler.fetchAll>[8],
+    ) =>
+      CursorPaginationHandler.fetchAll(
+        client,
+        'corps/1/projects',
+        'GET',
+        false,
+        [{ id: 1 }],
+        { before: null, after: 'c1' },
+        undefined,
+        {},
+        pageFetch,
+      );
+
+    it('logs which path fetched the page, with the method', async () => {
+      const logger = spyLogger();
+      client.setLogger(logger);
+      fetchMock.mockResponseOnce(JSON.stringify([]));
+
+      await CursorPaginationHandler.fetchPage(
+        client,
+        'x',
+        'GET',
+        false,
+        undefined,
+        undefined,
+        async () => ({ data: [], cursors: { before: null, after: null } }),
+      );
+      await CursorPaginationHandler.fetchPage(client, 'x', 'GET', false, {
+        after: 'c1',
+      });
+
+      expect(
+        logCalls(logger).filter(([, message]) =>
+          message.startsWith('Cursor fetch'),
+        ),
+      ).toEqual([
+        ['info', 'Cursor fetch via callback: x', { method: 'GET' }],
+        ['info', 'Cursor fetch via pipeline: x?after=c1', { method: 'GET' }],
+      ]);
+    });
+
+    it('never revalidates a cursor page, even one the cache holds an ETag for', async () => {
+      const cache = new ETagCacheManager();
+      client.setCache(cache);
+      cache.set('https://esi.evetech.net/x?after=c1', '"p2"', [{ id: 2 }], {});
+      fetchMock.mockResponseOnce(JSON.stringify([{ id: 2 }]));
+
+      await CursorPaginationHandler.fetchPage(client, 'x', 'GET', false, {
+        after: 'c1',
+      });
+
+      const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(headers).not.toHaveProperty('If-None-Match');
+      cache.shutdown();
+    });
+
+    it('treats a JSON null body from the pipeline as no items', async () => {
+      fetchMock.mockResponseOnce('null');
+
+      const page = await CursorPaginationHandler.fetchPage(
+        client,
+        'x',
+        'GET',
+        false,
+      );
+
+      expect(page.data).toEqual([]);
+    });
+
+    it('logs each page, the empty page that ends it, and the total', async () => {
+      const logger = spyLogger();
+      client.setLogger(logger);
+      const pageFetch = jest
+        .fn()
+        .mockResolvedValueOnce({
+          data: [{ id: 2 }],
+          cursors: { before: null, after: 'c2' },
+        })
+        .mockResolvedValueOnce({
+          data: [],
+          cursors: { before: null, after: null },
+        });
+
+      expect(await run(pageFetch)).toEqual([{ id: 1 }, { id: 2 }]);
+
+      expect(
+        logCalls(logger).filter(([, message]) => !message.includes('via')),
+      ).toEqual([
+        ['info', 'Cursor page 2 fetched (1 items)', { page: 2, items: 1 }],
+        [
+          'info',
+          'Cursor pagination: empty page received, dataset complete.',
+          { pages: 3 },
+        ],
+        [
+          'info',
+          'Cursor pagination complete. 2 total items from 3 pages.',
+          { totalItems: 2, pages: 3 },
+        ],
+      ]);
+    });
+
+    it('gives up after exactly three consecutive failed pages', async () => {
+      client.setRetryConfig({ maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1 });
+      const logger = spyLogger();
+      client.setLogger(logger);
+      const pageFetch = jest.fn().mockRejectedValue(new Error('boom'));
+
+      expect(await run(pageFetch)).toEqual([{ id: 1 }]);
+
+      expect(pageFetch).toHaveBeenCalledTimes(3);
+      expect(logCalls(logger).filter(([level]) => level !== 'info')).toEqual([
+        ['error', 'Cursor page fetch failed: boom', { page: 1 }],
+        ['error', 'Cursor page fetch failed: boom', { page: 1 }],
+        ['error', 'Cursor page fetch failed: boom', { page: 1 }],
+        [
+          'warn',
+          '3 consecutive failures. Stopping cursor pagination.',
+          { consecutiveFailures: 3 },
+        ],
+      ]);
     });
   });
 });

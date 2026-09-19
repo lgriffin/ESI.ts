@@ -2,6 +2,7 @@ import { PaginationHandler } from '../../../src/core/pagination/PaginationHandle
 import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import { EsiError } from '../../../src/core/util/error';
+import { logCalls, spyLogger, SpyLogger } from '../helpers/spyLogger';
 
 describe('PaginationHandler', () => {
   let client: ApiClient;
@@ -323,6 +324,76 @@ describe('PaginationHandler', () => {
       );
 
       expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+    });
+  });
+
+  describe('exact logging', () => {
+    let logger: SpyLogger;
+    const fetchRemaining = (totalPages: number) =>
+      PaginationHandler.fetchRemainingPages(
+        client,
+        'x',
+        'GET',
+        false,
+        [{ id: 1 }],
+        totalPages,
+        undefined,
+        {},
+        pageFetch,
+      );
+
+    beforeEach(() => {
+      logger = spyLogger();
+      client.setLogger(logger);
+      client.setRetryConfig({ maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1 });
+    });
+
+    it('logs nothing and fetches nothing for a single page', async () => {
+      expect(await fetchRemaining(1)).toEqual([{ id: 1 }]);
+
+      expect(pageFetch).not.toHaveBeenCalled();
+      expect(logCalls(logger)).toEqual([]);
+    });
+
+    it('logs the plan, each page and the total, with their context', async () => {
+      pageFetch.mockResolvedValueOnce([{ id: 2 }]);
+
+      expect(await fetchRemaining(2)).toEqual([{ id: 1 }, { id: 2 }]);
+
+      expect(logCalls(logger)).toEqual([
+        [
+          'info',
+          'Fetching pages 2-2 for x...',
+          { method: 'GET', totalPages: 2 },
+        ],
+        ['info', 'Fetching page 2 via pipeline: x?page=2', { page: 2 }],
+        ['info', 'Fetched page 2/2 (1 items)', { page: 2, items: 1 }],
+        [
+          'info',
+          'Pagination complete. Fetched 2 total items from up to 2 pages.',
+          { totalItems: 2 },
+        ],
+      ]);
+    });
+
+    it('warns with the page number when a page comes back empty', async () => {
+      pageFetch.mockResolvedValueOnce([]);
+
+      await fetchRemaining(3);
+
+      expect(logger.warn.mock.calls).toEqual([
+        ['Page 2 is empty. Stopping pagination.', { page: 2 }],
+      ]);
+    });
+
+    it('logs the failing page before rethrowing', async () => {
+      pageFetch.mockRejectedValueOnce(new Error('boom'));
+
+      await expect(fetchRemaining(2)).rejects.toThrow('boom');
+
+      expect(logger.error.mock.calls).toEqual([
+        ['Failed to fetch page 2: boom', { page: 2 }],
+      ]);
     });
   });
 });
