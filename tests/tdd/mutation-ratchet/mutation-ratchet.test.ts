@@ -1,6 +1,7 @@
 import {
   MutationReport,
   applyRatchet,
+  detectedByEveryRun,
   directoryOf,
   scoreByDirectory,
 } from '../../../scripts/mutation-ratchet-core';
@@ -87,5 +88,92 @@ describe('BDD mutation ratchet', () => {
     expect(failures).toEqual([
       'src/clients: has a ratchet but no mutants were scored; was it excluded from the run?',
     ]);
+  });
+});
+
+describe('detectedByEveryRun', () => {
+  type Status = MutationReport['files'][string]['mutants'][number]['status'];
+
+  /** One file, one mutant per status, told apart by line. */
+  function run(
+    statuses: Status[],
+    file = 'src/core/cache/C.ts',
+  ): MutationReport {
+    return {
+      files: {
+        [file]: {
+          mutants: statuses.map((status, index) => ({
+            status,
+            mutatorName: 'ConditionalExpression',
+            replacement: 'true',
+            location: {
+              start: { line: index + 1, column: 4 },
+              end: { line: index + 1, column: 9 },
+            },
+          })),
+        },
+      },
+    };
+  }
+
+  it('counts a mutant as detected only when every run detected it', () => {
+    const latest = run(['Killed', 'Timeout', 'Timeout', 'Killed', 'Survived']);
+    const earlier = run([
+      'Killed',
+      'Killed',
+      'Survived',
+      'NoCoverage',
+      'Killed',
+    ]);
+
+    const merged = detectedByEveryRun(latest, [earlier]);
+
+    expect(
+      merged.files['src/core/cache/C.ts']?.mutants.map((m) => m.status),
+    ).toEqual(['Killed', 'Timeout', 'Survived', 'Survived', 'Survived']);
+    expect(scoreByDirectory(merged)[0]?.score).toBe(40);
+    expect(scoreByDirectory(latest)[0]?.score).toBe(80);
+  });
+
+  it('scores no higher than any of the runs it combines', () => {
+    const a = run(['Killed', 'Survived', 'Timeout', 'Killed']);
+    const b = run(['Survived', 'Killed', 'Killed', 'Killed']);
+
+    const merged = scoreByDirectory(detectedByEveryRun(a, [b]))[0]?.score;
+
+    expect(merged).toBe(50);
+    expect(merged).toBeLessThanOrEqual(scoreByDirectory(a)[0]?.score ?? 0);
+    expect(merged).toBeLessThanOrEqual(scoreByDirectory(b)[0]?.score ?? 0);
+  });
+
+  it('matches mutants by file, place, mutator and replacement, not by position in the list', () => {
+    const latest = run(['Killed', 'Killed']);
+    const earlier = run(['Survived'], 'src/core/cache/Other.ts');
+    const moved: MutationReport = {
+      files: {
+        'src\\core\\cache\\C.ts': {
+          mutants: [
+            {
+              ...run(['Survived']).files['src/core/cache/C.ts']!.mutants[0]!,
+              replacement: 'false',
+            },
+            run(['Killed', 'Survived']).files['src/core/cache/C.ts']!
+              .mutants[1]!,
+          ],
+        },
+      },
+    };
+
+    const merged = detectedByEveryRun(latest, [earlier, moved]);
+
+    expect(
+      merged.files['src/core/cache/C.ts']?.mutants.map((m) => m.status),
+    ).toEqual(['Killed', 'Survived']);
+  });
+
+  it('leaves the report alone when there is no earlier run', () => {
+    const latest = run(['Killed', 'Survived', 'NoCoverage', 'CompileError']);
+
+    expect(detectedByEveryRun(latest, [])).toEqual(latest);
   });
 });

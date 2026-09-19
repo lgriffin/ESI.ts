@@ -91,13 +91,13 @@ They sum to 2,385, which is what the unsharded run instruments — the arithmeti
 
 `UNIT_MUTATION_SHARD=<name> npm run mutation` runs one, writing to `reports/mutation/shards/<name>/`. `npm run mutation:unit:merge` puts them back together for the ratchet and refuses a run with a shard missing, empty or overlapping another. `tests/tdd/mutation-ratchet/unitShards.test.ts` asserts the shards partition `src/core`, so a regrouping cannot drop a directory: orphaning `src/core/endpoints` fails 46 of its cases.
 
-Each shard saves its own incremental file under `stryker-unit-shard-<name>-…`, deliberately a different key prefix from the one `ci.yml` restores. One shard's incremental is a fifth of a baseline, and a pull request that restored it would report a baseline it does not have — which the gate reads as "a timeout here is broken, not slow". Teaching `mutation:pr` to use them is `esi-23g.55`; until then pull request runs stay cold and warn rather than block.
+Each shard saves its own incremental file under `stryker-unit-shard-<name>-…`. A shard's file is a whole baseline for its own directories and knows nothing about the others, so the pull request job restores one only when it covers every file the run may mutate: `npm run mutation:pr:shard` plans the run before any baseline exists, names the one shard that claims all of those files (`baselineShardFor` in `scripts/mutation-merge-core.ts`), and `ci.yml` restores that shard's cache and copies it to `reports/mutation/stryker-incremental.json`. The common pull request touches one directory and gets a warm run whose timeout blocks. A change that spans shards (say `src/core/RetryStrategy.ts` and `src/core/cache/`) restores nothing and runs cold, which warns rather than blocks on a timeout: restoring one shard there would claim a baseline the run only half has (`esi-23g.55`).
 
 ### The incremental baseline
 
 Each nightly shard runs `npm run mutation -- --incremental --force`: every mutant runs, and Stryker also writes an incremental file, which the job saves with `actions/cache/save` under `stryker-unit-shard-<name>-<sha>-<run id>`.
 
-`mutation-pr` still restores `stryker-incremental-unit-<base sha>`, which no job writes since the run was sharded, so pull request runs are cold today and warn rather than block when they run out of time. `esi-23g.55` covers teaching it to restore the shards; the two key prefixes are deliberately different so a pull request cannot pick up one shard's file and report a baseline it does not have.
+`mutation-pr` restores the one shard's file that covers every file it will mutate, preferring the entry saved for the pull request's base commit, then the newest for that shard (see "Why the unit run is sharded" for how the shard is chosen). When no single shard covers the run, nothing is restored and the run is cold.
 
 Caches written on `master` are readable by pull requests into `master`. Pull requests never save one.
 
@@ -114,31 +114,31 @@ One floor per score directory: `src/core` for files directly in core, `src/core/
 
 **Seeding.** Each floor is the lower of two real runs: a full local run of this branch's base (`npm run mutation -- --incremental --force`, concurrency 4, 54 minutes) and the last nightly that produced a report (16 September 2026, `bc563d4d`, run 35067980626). They agree within two points for most directories but not all — `src/core/logger` scored 55.5% on the nightly and 33.3% locally, and `src/core/rateLimiter` 73% against 70.9% — mostly because a mutant that times out counts as detected, and how many time out depends on the machine. Taking the lower value means the first pull request to touch a directory is not failed by that spread. The nightly raises nothing on its own; floors move up only in reviewed pull requests.
 
+**Re-seeding, 19 September 2026.** The floors were raised from the first two complete sharded nightlies (runs 35352679266 and 35428381994), which differ only in a two-line change to `src/core/constants.ts`. Taking the lower of the two scores was not enough: 43 mutants changed status between the runs on the same code, 14 of them in `src/core/cache`, mostly a mutant that timed out on one runner and survived on the other. So each floor is the score of a report in which a mutant counts as detected only if _both_ runs detected it. That is below either run's own score, which is the point: a third run on the same code cannot score below it unless a mutant neither run left alive survives. No floor was lowered; `src/core` stays at 81.8% where that rule gave 81.7%.
+
 ### Where the scores stand
 
-The first complete run of the sharded unit matrix, 18 September 2026, run 35352679266. Five shards, 38 to 82 minutes each, merged into one report of 37 mutated files. It is the first time `src/core` has been scored since 16 September: the unsharded job stopped finishing inside its 240-minute timeout as the suite grew.
+The first two complete runs of the sharded unit matrix: 18 September 2026 (run 35352679266) and 19 September 2026 (run 35428381994). Five shards, 38 to 82 minutes each, merged into one report of 37 mutated files. The 18 September run was the first time `src/core` had been scored since 16 September: the unsharded job stopped finishing inside its 240-minute timeout as the suite grew.
 
-| Directory                  | Score | Detected / valid | Floor | Headroom |
-| :------------------------- | ----: | ---------------: | ----: | -------: |
-| `src/core`                 | 83.3% |          215/258 | 81.8% |     +1.5 |
-| `src/core/cache`           | 73.3% |           91/124 | 53.3% |    +20.0 |
-| `src/core/circuitBreaker`  | 77.7% |           98/126 | 75.2% |     +2.5 |
-| `src/core/logger`          | 59.2% |            16/27 | 33.3% |    +25.9 |
-| `src/core/middleware`      |  100% |            26/26 | 92.3% |     +7.7 |
-| `src/core/pagination`      | 73.9% |           88/119 | 72.2% |     +1.7 |
-| `src/core/rateLimiter`     | 78.3% |          210/268 | 70.9% |     +7.4 |
-| `src/core/requestPipeline` | 77.6% |          188/242 | 67.5% |    +10.1 |
-| `src/core/util`            | 96.1% |          149/155 | 95.3% |     +0.8 |
+| Directory                  | 18 Sept | 19 Sept | Detected / valid (19 Sept) | Floor | Floor before |
+| :------------------------- | ------: | ------: | -------------------------: | ----: | -----------: |
+| `src/core`                 |   83.3% |   83.3% |                    215/258 | 81.8% |        81.8% |
+| `src/core/cache`           |   73.3% |   70.1% |                     87/124 | 65.3% |        53.3% |
+| `src/core/circuitBreaker`  |   77.7% |   79.3% |                    100/126 | 77.7% |        75.2% |
+| `src/core/logger`          |   59.2% |   62.9% |                      17/27 | 55.5% |        33.3% |
+| `src/core/middleware`      |    100% |    100% |                      26/26 |  100% |        92.3% |
+| `src/core/pagination`      |   73.9% |   73.9% |                     88/119 | 73.9% |        72.2% |
+| `src/core/rateLimiter`     |   78.3% |   79.4% |                    213/268 | 77.9% |        70.9% |
+| `src/core/requestPipeline` |   77.6% |   76.0% |                    184/242 | 75.2% |        67.5% |
+| `src/core/util`            |   96.1% |   95.4% |                    148/155 | 95.4% |        95.3% |
 
-A snapshot, not a source of truth: the live numbers are whatever the last nightly published, and this table is here to say where the floors sit relative to reality on the day the matrix first worked.
+A snapshot, not a source of truth: the live numbers are whatever the last nightly published, and this table is here to say where the floors sat relative to reality when the matrix first worked.
 
-**Every directory is above its floor, and four are far above it.** That is not slack to be proud of — it is a measurement the ratchet is not yet holding. `src/core/logger` and `src/core/cache` gained most because the composition, property and fault tiers added tests that kill mutants the floors were set before, in September's seeding runs. Until the floors are raised, a change could give back twenty points of `src/core/cache` and no gate would notice.
+**The gap between a directory's score and its floor is now the flakiness of its mutants, not slack.** Before the re-seeding, four directories sat 7 to 26 points above their floors, a measurement the ratchet was not holding: a change could have given back twenty points of `src/core/cache` and no gate would have noticed. What is left between score and floor is the mutants that are detected on one runner and not another. Killing those deterministically (fake timers and an exact assertion, rather than a timeout that depends on machine speed) is what lets a floor rise to the score.
 
-Raising them is `npm run mutation:ratchet -- --update` after a full run, in a pull request that says what moved and why. It is deliberately not automatic: a floor that rises on its own is a floor nobody reads.
+Two caveats on comparing this table with an earlier one. A mutant that times out counts as detected, and how many time out depends on the machine, so a local run and a nightly disagree by a point or two on the same code — the seeding note above records `src/core/logger` at 55.5% nightly against 33.3% locally for exactly that reason, and two nightlies disagree too. And these are five separate shards merged, so each directory's score comes from the one shard that owns it rather than from a single process.
 
-Two caveats on comparing this table with an earlier one. A mutant that times out counts as detected, and how many time out depends on the machine, so a local run and a nightly disagree by a point or two on the same code — the seeding note above records `src/core/logger` at 55.5% nightly against 33.3% locally for exactly that reason. And these are five separate shards merged, so each directory's score comes from the one shard that owns it rather than from a single process.
-
-The BDD-only matrix has no scores here yet. `mutation-bdd-thresholds.json` is still `{}`: its `core-rest` shard lost a runner on this run and the merge refused the incomplete set, which is the behaviour described under "When a runner is reclaimed".
+The BDD-only floors in `mutation-bdd-thresholds.json` come from the same two nights by the same rule. 19 September was the first run in which every BDD shard finished; on 18 September the `core-rest` shard lost a runner and the merge refused the incomplete set, but the seven shards that did finish still count, so a mutant any of them left alive counts as undetected. Most directories were therefore measured once, and BDD-only scores are low by design (12% to 43%): the step definitions exercise behaviour through the transport seam, not every branch.
 
 ### The known-weak fixture
 
