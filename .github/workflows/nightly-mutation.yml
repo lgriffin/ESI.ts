@@ -78,11 +78,13 @@ jobs:
           UNIT_MUTATION_SHARD: ${{ matrix.shard }}
         run: npm run mutation -- --incremental --force
 
-      # Deliberately a different key prefix from the one ci.yml restores
-      # (stryker-incremental-unit-). One shard's incremental file is a fifth of
-      # a baseline, and a pull request that restored it would report a baseline
-      # it does not have — which the gate reads as "a timeout here is broken,
-      # not slow". Teaching mutation:pr to use these is esi-23g.55.
+      # One cache entry per shard. ci.yml's mutation-pr restores the one shard
+      # that covers every file a pull request run mutates (npm run
+      # mutation:pr:shard) and runs cold when a change spans shards: one
+      # shard's file is a baseline for its own directories only, and a run
+      # that claimed a baseline it half has would read a timeout as broken
+      # rather than slow (esi-23g.55). Keep the path in step with ci.yml: it is
+      # part of the cache version.
       - name: Publish this shard's incremental report
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -295,9 +297,9 @@ jobs:
       - name: Check per-directory ratchet
         run: npm run mutation:bdd:ratchet
 
-      # mutation-bdd-thresholds.json starts empty, so the ratchet above fails
-      # until a maintainer seeds it. This prints and uploads the file raised to
-      # the run's own scores; it never lowers a floor and nothing commits it.
+      # For raising the floors, or seeding a new directory's: prints and
+      # uploads mutation-bdd-thresholds.json raised to the run's own scores. It
+      # never lowers a floor and nothing commits it.
       - name: Raise the thresholds for review
         if: always() && inputs.seed_bdd_thresholds
         run: |

@@ -21,12 +21,20 @@
  *    is below its floor or has none. Per-file scores and undetected mutants
  *    go to $GITHUB_STEP_SUMMARY.
  *
+ * --baseline-shard (npm run mutation:pr:shard) runs step 3 alone, before any
+ * baseline is restored, and names the one nightly shard in
+ * mutation-unit-shards.json whose incremental report covers every file the
+ * run may mutate (esi-23g.55). It prints the choice and writes `shard=<name>`
+ * (empty for none) to $GITHUB_OUTPUT, for ci.yml to restore that shard's
+ * cache. A change spanning shards gets none and runs cold.
+ *
  * Exit codes: 0 pass or nothing to mutate, 1 ratchet failed, 2 the check
  * itself could not run.
  */
 import { execFileSync, spawnSync } from 'child_process';
 import { appendFileSync, existsSync, readFileSync } from 'fs';
 import * as path from 'path';
+import { baselineShardFor, parseShards } from './mutation-merge-core';
 import {
   Git,
   MutationCheckError,
@@ -46,6 +54,7 @@ const THRESHOLDS = 'mutation-thresholds.json';
 const CONFIG = 'stryker.config.mjs';
 const INCREMENTAL = 'reports/mutation/stryker-incremental.json';
 const REPORT = 'reports/mutation/mutation.json';
+const SHARDS = 'mutation-unit-shards.json';
 
 const EXIT_RATCHET = 1;
 const EXIT_BROKEN = 2;
@@ -143,7 +152,49 @@ function runStryker(mutate: string[], extra: string[]): void {
   }
 }
 
+function changedAndTracked(base: string): {
+  changedFiles: string[];
+  trackedFiles: string[];
+} {
+  return {
+    changedFiles: git([
+      'diff',
+      '--name-only',
+      '--diff-filter=d',
+      base,
+      '--',
+      'src/',
+    ])
+      .split('\n')
+      .filter(Boolean),
+    trackedFiles: git(['ls-files', 'src/']).split('\n').filter(Boolean),
+  };
+}
+
+/** --baseline-shard: which nightly shard's incremental report to restore. */
+function chooseBaselineShard(): number {
+  const base = resolveBaseRef(git, process.env.MUTATION_BASE_REF);
+  // No baseline yet, so the plan lists every file the run may mutate.
+  const plan = planPrRun({
+    ...changedAndTracked(base),
+    mutatePatterns: mutatePatterns(),
+    baselineSources: null,
+    readSource: (f) => readFileSync(path.join(ROOT, f), 'utf8'),
+  });
+  const shards = parseShards(
+    readFileSync(path.join(ROOT, SHARDS), 'utf8'),
+    SHARDS,
+  );
+  const choice = baselineShardFor(plan.mutate, shards);
+  console.log(`Nightly baseline: ${choice.shard ?? 'none'} (${choice.reason})`);
+  if (process.env.GITHUB_OUTPUT) {
+    appendFileSync(process.env.GITHUB_OUTPUT, `shard=${choice.shard ?? ''}\n`);
+  }
+  return 0;
+}
+
 function main(): number {
+  if (process.argv.includes('--baseline-shard')) return chooseBaselineShard();
   const started = Date.now();
   const base = resolveBaseRef(git, process.env.MUTATION_BASE_REF);
 
@@ -169,21 +220,9 @@ function main(): number {
     return EXIT_RATCHET;
   }
 
-  const changedFiles = git([
-    'diff',
-    '--name-only',
-    '--diff-filter=d',
-    base,
-    '--',
-    'src/',
-  ])
-    .split('\n')
-    .filter(Boolean);
-  const trackedFiles = git(['ls-files', 'src/']).split('\n').filter(Boolean);
   const baseline = readBaseline();
   const plan = planPrRun({
-    changedFiles,
-    trackedFiles,
+    ...changedAndTracked(base),
     mutatePatterns: mutatePatterns(),
     baselineSources: baseline.sources,
     readSource: (f) => readFileSync(path.join(ROOT, f), 'utf8'),

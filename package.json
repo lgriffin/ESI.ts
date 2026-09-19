@@ -261,6 +261,7 @@
     "mutation:bdd:ratchet": "ts-node scripts/mutation-ratchet.ts",
     "mutation:ratchet": "ts-node scripts/mutation-ratchet.ts --suite unit",
     "mutation:pr": "ts-node scripts/mutation-pr.ts",
+    "mutation:pr:shard": "ts-node scripts/mutation-pr.ts --baseline-shard",
     "mutation:pr:gate": "ts-node scripts/mutation-pr-gate.ts",
     "mutation:fixture": "ts-node scripts/mutation-fixture.ts",
     "api-report": "api-extractor run --local --verbose",

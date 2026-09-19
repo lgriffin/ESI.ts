@@ -186,3 +186,53 @@ export function mergeShardReports(
     fileCounts,
   };
 }
+
+/** Which nightly shard's incremental report a pull request run can build on. */
+export interface BaselineShardChoice {
+  /** The shard to restore, or null to run cold. */
+  shard: string | null;
+  /** One line for the job log and summary. */
+  reason: string;
+}
+
+/**
+ * The one shard whose incremental report covers every file a pull request
+ * run mutates, or null when no single shard does (esi-23g.55).
+ *
+ * The nightly saves one incremental report per shard. A shard's report is a
+ * complete baseline for its own directories and knows nothing about anyone
+ * else's, so it is only honest to restore when one shard claims every file:
+ * a run that restored it for a change spanning two shards would report a
+ * baseline it only half has, and the gate reads a timeout with a baseline as
+ * broken rather than slow. Spanning shards therefore runs cold, as before.
+ *
+ * @param files - every file the run may mutate: the pull request plan's files
+ *   in the touched directories, before any baseline narrows them
+ */
+export function baselineShardFor(
+  files: readonly string[],
+  shards: ShardDefinition[],
+): BaselineShardChoice {
+  if (files.length === 0) {
+    return { shard: null, reason: 'nothing to mutate, so no baseline needed.' };
+  }
+  const claimed = new Set<string>();
+  for (const file of files) {
+    const owners = shardsClaiming(file, shards);
+    if (owners.length !== 1) {
+      return {
+        shard: null,
+        reason: `${normalise(file)} belongs to ${owners.length === 0 ? 'no shard' : `shards ${owners.join(', ')}`}; running cold.`,
+      };
+    }
+    claimed.add(owners[0] as string);
+  }
+  if (claimed.size > 1) {
+    return {
+      shard: null,
+      reason: `the change spans shards ${[...claimed].sort().join(', ')}, and one shard's baseline cannot vouch for another's files; running cold.`,
+    };
+  }
+  const [shard] = [...claimed] as [string];
+  return { shard, reason: `every file to mutate is in shard ${shard}.` };
+}

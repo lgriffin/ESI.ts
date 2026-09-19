@@ -1029,19 +1029,38 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Written by nightly-mutation.yml on master. Restore only: a pull request
-      # never saves this cache. A miss is not a pass: mutation:pr then mutates
-      # every file in the touched directories from scratch, which may not fit
-      # the deadline below — see the gate step for what that then means.
+      # The nightly saves one incremental report per shard in
+      # mutation-unit-shards.json (esi-23g.55). A shard's report is a whole
+      # baseline for its own directories only, so this names the one shard
+      # that covers every file the run may mutate, or none when the change
+      # spans shards; none means a cold run, as a cache miss always did.
+      - name: Choose the nightly shard baseline
+        id: baseline-shard
+        env:
+          MUTATION_BASE_REF: HEAD^1
+        run: npm run mutation:pr:shard
+
+      # Restore only: a pull request never saves this cache. The path must be
+      # the one nightly-mutation.yml saved, because it is part of the cache
+      # version. A miss is not a pass: mutation:pr then mutates every file in
+      # the touched directories from scratch, which may not fit the deadline
+      # below — see the gate step for what that then means.
       - name: Restore the nightly incremental mutation report
         id: mutation-baseline
+        if: steps.baseline-shard.outputs.shard != ''
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: reports/mutation/stryker-incremental.json
-          key: stryker-incremental-unit-${{ github.event.pull_request.base.sha }}
+          path: reports/mutation/shards/${{ steps.baseline-shard.outputs.shard }}/stryker-incremental.json
+          key: stryker-unit-shard-${{ steps.baseline-shard.outputs.shard }}-${{ github.event.pull_request.base.sha }}
           restore-keys: |
-            stryker-incremental-unit-${{ github.event.pull_request.base.sha }}-
-            stryker-incremental-unit-
+            stryker-unit-shard-${{ steps.baseline-shard.outputs.shard }}-${{ github.event.pull_request.base.sha }}-
+            stryker-unit-shard-${{ steps.baseline-shard.outputs.shard }}-
+
+      - name: Put the shard baseline where mutation:pr reads it
+        if: steps.mutation-baseline.outputs.cache-matched-key != ''
+        env:
+          SHARD: ${{ steps.baseline-shard.outputs.shard }}
+        run: cp "reports/mutation/shards/$SHARD/stryker-incremental.json" reports/mutation/stryker-incremental.json
 
       # The tier's signal on itself: a deliberately weak test must leave
       # surviving mutants that the ratchet fails.
