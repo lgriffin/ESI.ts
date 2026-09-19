@@ -3,96 +3,90 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["30740f7d-169d-4ddd-a516-7625c2ae8912"]
+    "args": ["51789c50-a95f-4899-97eb-0e3a7858aec3"]
   },
-  "recordedAt": "2026-09-18",
+  "recordedAt": "2026-09-19",
   "compatibilityDate": "2026-05-19",
   "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
   "specCacheSeconds": 60,
   "upstreamPages": 1,
-  "truncated": [
-    {
-      "page": 1,
-      "at": "$.details.description",
-      "kind": "string",
-      "original": 744,
-      "kept": 400
-    }
-  ],
+  "truncated": [],
   "pages": [
     {
-      "url": "freelance-jobs/30740f7d-169d-4ddd-a516-7625c2ae8912",
+      "url": "freelance-jobs/51789c50-a95f-4899-97eb-0e3a7858aec3",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Fri, 18 Sep 2026 11:42:23 GMT",
-        "last-modified": "Fri, 18 Sep 2026 11:36:05 GMT"
+        "expires": "Sat, 19 Sep 2026 11:25:14 GMT",
+        "last-modified": "Sat, 19 Sep 2026 11:06:46 GMT"
       },
       "body": {
-        "id": "30740f7d-169d-4ddd-a516-7625c2ae8912",
-        "name": "SAT - Combat Air Patrol",
+        "id": "51789c50-a95f-4899-97eb-0e3a7858aec3",
+        "name": "Deliver Veldspar",
         "state": "Active",
-        "last_modified": "2026-09-18T11:36:05.796Z",
+        "last_modified": "2026-09-19T11:06:46.734Z",
         "progress": {
-          "current": 4587,
-          "desired": 50000
+          "current": 24414523,
+          "desired": 100000000
         },
         "reward": {
-          "initial": 50000000,
-          "remaining": 45413000
+          "initial": 900000000,
+          "remaining": 680269293
         },
         "details": {
-          "description": "<font size=\"14\" color=\"#bfffffff\"><br></font><font size=\"14\" color=\"#ffd98d00\"><a href=\"recruitmentAd:224734549//182334\">SAT Systems Mining</a></font><font size=\"14\" color=\"#bfffffff\"> <br><br>SAT Systems Mining Corporation seeks bold combat pilots to shield our supply lines, hunt down marauding rats, and secure vital systems — join the frontline and earn while you learn.<br><br>Responsibilities:<",
-          "career": "Enforcer",
-          "created": "2026-09-11T20:37:50.504Z",
-          "expires": "2026-10-11T20:30:00Z",
+          "description": "Deliver any veldspar for some quick ISK!",
+          "career": "Industrialist",
+          "created": "2026-09-12T15:15:06.972Z",
+          "expires": "2026-12-12T15:15:00Z",
           "creator": {
             "character": {
-              "id": 520308510,
-              "name": "Koudo"
+              "id": 95042104,
+              "name": "Filthy Vurm"
             },
             "corporation": {
-              "id": 224734549,
-              "name": "SAT Systems Mining Corporation"
+              "id": 98711423,
+              "name": "The Infinity Core"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "location": {
-              "matcher": {
-                "values": [
-                  {
-                    "value_type": "region",
-                    "values": ["10000037"]
-                  }
-                ]
+            "corporation_item_delivery": {
+              "corporation_item_delivery": {
+                "item_type": {
+                  "values": [
+                    {
+                      "value_type": "item_group",
+                      "values": ["462"]
+                    }
+                  ]
+                },
+                "corporation_office_location": {
+                  "values": [
+                    {
+                      "value_type": "structure",
+                      "values": ["1042117607013"]
+                    }
+                  ]
+                }
               }
             }
           },
-          "method": "KillNPC"
+          "method": "DeliverItem"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 1000,
+          "reward_per_contribution": 9,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30003017,
-              "name": "Harerget"
-            },
-            {
-              "id": 30003010,
-              "name": "Halle"
-            },
-            {
-              "id": 30100035,
-              "name": "Forte"
+              "id": 30002734,
+              "name": "Fricoure"
             }
           ]
         }
