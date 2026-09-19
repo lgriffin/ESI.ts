@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.2.0](https://github.com/lgriffin/ESI.ts/compare/v10.1.1...v10.2.0) (2026-09-19)
+
+
+### Added
+
+* **release:** attach a signed CycloneDX SBOM to each release ([bf6c045](https://github.com/lgriffin/ESI.ts/commit/bf6c0458b81fc9123ca29f712db8a89948e2b382))
+* **release:** attach a signed CycloneDX SBOM to each release ([1e29d7d](https://github.com/lgriffin/ESI.ts/commit/1e29d7de39237ecd250dcac3ef90da54a9c52df3))
+
+
+### Testing
+
+* **contract:** re-record ESI payloads whose shape changed ([2ea4198](https://github.com/lgriffin/ESI.ts/commit/2ea4198d8832d12618e9f9a9da0720ffb9b07f55))
+* **contract:** recorded ESI payloads changed shape ([06fa27a](https://github.com/lgriffin/ESI.ts/commit/06fa27ab0516af9f9d450059cb0cb3fcd6463345))
+
 ## [10.1.1](https://github.com/lgriffin/ESI.ts/compare/v10.1.0...v10.1.1) (2026-09-18)
 
 
