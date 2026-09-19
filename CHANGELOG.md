@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.2.1](https://github.com/lgriffin/ESI.ts/compare/v10.2.0...v10.2.1) (2026-09-19)
+
+
+### Changed
+
+* **core:** drop two branches no input can tell apart ([52e82b9](https://github.com/lgriffin/ESI.ts/commit/52e82b9f4c0852a9e25a0d108228ca59e0ca2a21))
+
+
+### Testing
+
+* **logger:** drop logFatal and logTrace from the export-coverage baseline ([e7fd0e6](https://github.com/lgriffin/ESI.ts/commit/e7fd0e6e8d9c05e70084cd401e49190ff1042cfa))
+* **logger:** kill every logger and util mutant ([9598d31](https://github.com/lgriffin/ESI.ts/commit/9598d317eadc5e12b00787a652f77099471ee7b1))
+* **logger:** kill every logger and util mutant, and hold logger at 100 ([ad42937](https://github.com/lgriffin/ESI.ts/commit/ad4293716552da85ae3a44b93d764d35ac85da42))
+* **pagination:** kill every pagination mutant ([6bff401](https://github.com/lgriffin/ESI.ts/commit/6bff40181e3bcbb4dd1afd6d8ed87b261f565ef9))
+* **pagination:** kill every pagination mutant ([cd15995](https://github.com/lgriffin/ESI.ts/commit/cd1599586e077cec6f534fec6bf608be46996bd3))
+
 ## [10.2.0](https://github.com/lgriffin/ESI.ts/compare/v10.1.1...v10.2.0) (2026-09-19)
 
 
