@@ -221,6 +221,7 @@ jobs:
 
     outputs:
       tarball: ${{ steps.pack.outputs.tarball }}
+      sbom: ${{ steps.sbom.outputs.sbom }}
 
     steps:
       - name: 📥 Checkout code
@@ -255,13 +256,26 @@ jobs:
           fi
           echo "tarball=$(ls -1 *.tgz)" >> "$GITHUB_OUTPUT"
 
+      # SEC-06. The CycloneDX bill of materials for the tarball just packed:
+      # its own package.json, versions pinned by package-lock.json, dev
+      # dependencies left out. The script fails the release if the SBOM does
+      # not name this package at this version or misses a runtime dependency;
+      # scripts/release-sbom-core.ts says why it does not run
+      # `npm sbom --omit dev` on the checkout.
+      - name: 📋 Generate the SBOM
+        id: sbom
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: npm run release:sbom -- --tarball "$TARBALL"
+
       - name: 🗜️ Create documentation archive
         run: tar -czf docs.tar.gz -C docs-site/public api
 
       - name: 🔢 Generate SHA256 checksums
         env:
           TARBALL: ${{ steps.pack.outputs.tarball }}
-        run: sha256sum "$TARBALL" docs.tar.gz > checksums.txt
+          SBOM: ${{ steps.sbom.outputs.sbom }}
+        run: sha256sum "$TARBALL" "$SBOM" docs.tar.gz > checksums.txt
 
       - name: ⬆️ Upload build artifacts for signing
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -269,6 +283,7 @@ jobs:
           name: release-artifacts
           path: |
             ${{ steps.pack.outputs.tarball }}
+            ${{ steps.sbom.outputs.sbom }}
             docs.tar.gz
             checksums.txt
           retention-days: 1
@@ -355,8 +370,9 @@ jobs:
       - name: 🔏 Sign release artifacts (keyless)
         env:
           TARBALL: ${{ needs.create-assets.outputs.tarball }}
+          SBOM: ${{ needs.create-assets.outputs.sbom }}
         run: |
-          for artifact in "$TARBALL" docs.tar.gz; do
+          for artifact in "$TARBALL" "$SBOM" docs.tar.gz; do
             cosign sign-blob --yes \
               --bundle "${artifact}.sigstore.json" \
               "$artifact"
@@ -366,10 +382,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARBALL: ${{ needs.create-assets.outputs.tarball }}
+          SBOM: ${{ needs.create-assets.outputs.sbom }}
         run: |
           gh release upload "$GITHUB_REF_NAME" --clobber \
             "$TARBALL" \
             "${TARBALL}.sigstore.json" \
+            "$SBOM" \
+            "${SBOM}.sigstore.json" \
             docs.tar.gz \
             docs.tar.gz.sigstore.json \
             checksums.txt \
