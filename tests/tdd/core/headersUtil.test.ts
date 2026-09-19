@@ -41,6 +41,19 @@ describe('parseWarning', () => {
     expect(parseWarning('abc - "message"')).toBeNull();
     expect(parseWarning('199')).toBeNull();
   });
+
+  it('matches the whole header, not a warning embedded in it', () => {
+    expect(parseWarning('x199 - "msg"')).toBeNull();
+    expect(parseWarning('x199 - msg')).toBeNull();
+    expect(parseWarning('199 - msg  ')).toBeNull();
+  });
+
+  it('reads text after a closing quote as an unquoted message', () => {
+    expect(parseWarning('199 - "msg" tail')).toEqual({
+      code: 199,
+      message: '"msg" tail',
+    });
+  });
 });
 
 describe('parseHeaders', () => {

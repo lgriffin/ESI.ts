@@ -62,10 +62,11 @@ export async function fetchAllPages<T = unknown>(
   const totalPages = parseInt(firstResponse.headers['x-pages'] || '1', 10);
   const result: T[] = extractArray<T>(firstBody);
 
-  if (totalPages <= 1) return result;
-
+  // Empty for one page (or an unreadable X-Pages, which parses to NaN), so
+  // the loop below does nothing and the first page is the whole result.
   const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
 
+  // Stryker disable next-line EqualityOperator: `<=` adds one pass over an empty slice, which fetches nothing and pushes nothing.
   for (let i = 0; i < remaining.length; i += concurrency) {
     const batch = remaining.slice(i, i + concurrency);
     const pages = await Promise.all(

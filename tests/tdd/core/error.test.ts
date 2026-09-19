@@ -5,6 +5,17 @@ import {
 } from '../../../src/core/util/error';
 
 describe('sanitizeUrl', () => {
+  it('returns an unparseable URL without a query unchanged', () => {
+    expect(sanitizeUrl('/relative/path')).toBe('/relative/path');
+  });
+
+  it('redacts the query of an unparseable URL, even one that is only a query', () => {
+    expect(sanitizeUrl('/characters/1/?token=secret')).toBe(
+      '/characters/1/?[params-redacted]',
+    );
+    expect(sanitizeUrl('?token=secret')).toBe('?[params-redacted]');
+  });
+
   it('should redact token param', () => {
     expect(sanitizeUrl('https://api.example.com/path?token=secret123')).toBe(
       'https://api.example.com/path?token=%5BREDACTED%5D',

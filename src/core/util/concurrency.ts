@@ -36,7 +36,10 @@ export async function runWithConcurrency<T, R>(
   options: ConcurrencyOptions = {},
 ): Promise<SettledResult<R>[]> {
   const limit = resolveLimit(options.concurrency);
-  const results: SettledResult<R>[] = new Array<SettledResult<R>>(items.length);
+  // Every index is written before this returns (at least one worker drains
+  // the queue, and both outcomes assign), so the array ends dense without
+  // presizing it.
+  const results: SettledResult<R>[] = [];
   let nextIndex = 0;
   let completed = 0;
 

@@ -194,8 +194,6 @@
       "WarId",
       "WithSafeMode",
       "createDefaultLogger",
-      "logFatal",
-      "logTrace",
       "toPinoLogger"
     ],
     "./errors": ["ValidationDirection"],
