@@ -11,7 +11,10 @@
  *    unreadable head file: fail closed. The base predating the file is the
  *    only case with nothing to compare.
  * 3. Plans the run from `git diff <base>`: changed src/ files inside the unit
- *    config's `mutate` scope. None: prints why, exits 0.
+ *    config's `mutate` scope, plus every file in a directory whose floor the
+ *    pull request adds or raises, because a raise is proven by fresh results
+ *    and a file outside `--mutate` keeps its nightly ones. Neither: prints
+ *    why, exits 0.
  * 4. Runs Stryker with --incremental and --mutate narrowed to those files, plus
  *    any file in the same directories that the restored nightly incremental
  *    report (reports/mutation/stryker-incremental.json) does not cover. With
@@ -46,6 +49,7 @@ import {
   resolveBaseRef,
   scoreFiles,
   thresholdDecreases,
+  thresholdRaises,
   undetectedMutants,
 } from './mutation-ratchet-core';
 
@@ -171,15 +175,27 @@ function changedAndTracked(base: string): {
   };
 }
 
+function readThresholds(base: string) {
+  const headPath = path.join(ROOT, THRESHOLDS);
+  return readThresholdPair(
+    git,
+    base,
+    THRESHOLDS,
+    existsSync(headPath) ? readFileSync(headPath, 'utf8') : null,
+  );
+}
+
 /** --baseline-shard: which nightly shard's incremental report to restore. */
 function chooseBaselineShard(): number {
   const base = resolveBaseRef(git, process.env.MUTATION_BASE_REF);
+  const thresholds = readThresholds(base);
   // No baseline yet, so the plan lists every file the run may mutate.
   const plan = planPrRun({
     ...changedAndTracked(base),
     mutatePatterns: mutatePatterns(),
     baselineSources: null,
     readSource: (f) => readFileSync(path.join(ROOT, f), 'utf8'),
+    raisedDirectories: thresholdRaises(thresholds.base, thresholds.head),
   });
   const shards = parseShards(
     readFileSync(path.join(ROOT, SHARDS), 'utf8'),
@@ -198,13 +214,7 @@ function main(): number {
   const started = Date.now();
   const base = resolveBaseRef(git, process.env.MUTATION_BASE_REF);
 
-  const headPath = path.join(ROOT, THRESHOLDS);
-  const thresholds = readThresholdPair(
-    git,
-    base,
-    THRESHOLDS,
-    existsSync(headPath) ? readFileSync(headPath, 'utf8') : null,
-  );
+  const thresholds = readThresholds(base);
   const head = thresholds.head;
   const decreases = thresholdDecreases(thresholds.base, head, THRESHOLDS);
   if (decreases.length > 0) {
@@ -226,6 +236,7 @@ function main(): number {
     mutatePatterns: mutatePatterns(),
     baselineSources: baseline.sources,
     readSource: (f) => readFileSync(path.join(ROOT, f), 'utf8'),
+    raisedDirectories: thresholdRaises(thresholds.base, head),
   });
 
   if (plan.skip) {
