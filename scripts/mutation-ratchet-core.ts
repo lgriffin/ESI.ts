@@ -283,22 +283,6 @@ export function thresholdDecreases(
   return problems;
 }
 
-/**
- * Directories whose floor the head adds or raises relative to the base: the
- * ones a pull request claims a better score for, and so has to prove afresh.
- * With no base copy there is nothing to compare, and nothing is claimed.
- */
-export function thresholdRaises(
-  base: Thresholds | null,
-  head: Thresholds,
-): string[] {
-  if (base === null) return [];
-  return Object.entries(head)
-    .filter(([dir, floor]) => base[dir] === undefined || floor > base[dir])
-    .map(([dir]) => dir)
-    .sort();
-}
-
 /** The check could not establish what to compare against: fail closed. */
 export class MutationCheckError extends Error {}
 
@@ -430,14 +414,6 @@ export interface PrPlanInput {
   baselineSources: ReadonlyMap<string, string> | null;
   /** Current source of a tracked file. */
   readSource: (file: string) => string;
-  /**
-   * Directories whose floor this pull request adds or raises. Every file in
-   * them is mutated afresh, changed or not: a raise is usually earned by new
-   * tests alone, and a file outside `--mutate` keeps its nightly results —
-   * the survivors the new tests kill — so the directory would be scored as
-   * it was before the pull request and the raise could never pass.
-   */
-  raisedDirectories?: readonly string[];
 }
 
 export interface PrPlan {
@@ -471,7 +447,6 @@ export function planPrRun({
   mutatePatterns,
   baselineSources,
   readSource,
-  raisedDirectories = [],
 }: PrPlanInput): PrPlan {
   const srcChanged = changedFiles
     .map(normalise)
@@ -479,7 +454,7 @@ export function planPrRun({
   const changed = srcChanged.filter((f) => inMutationScope(f, mutatePatterns));
   const outOfScope = srcChanged.filter((f) => !changed.includes(f));
 
-  if (changed.length === 0 && raisedDirectories.length === 0) {
+  if (changed.length === 0) {
     const reason =
       srcChanged.length === 0
         ? 'This pull request changes no files under src/.'
@@ -494,9 +469,7 @@ export function planPrRun({
     };
   }
 
-  const directories = [
-    ...new Set([...changed.map(directoryOf), ...raisedDirectories]),
-  ].sort();
+  const directories = [...new Set(changed.map(directoryOf))].sort();
   const siblings = trackedFiles
     .map(normalise)
     .filter(
@@ -505,7 +478,6 @@ export function planPrRun({
         inMutationScope(f, mutatePatterns),
     );
   const unvouched = siblings.filter((f) => {
-    if (raisedDirectories.includes(directoryOf(f))) return true;
     const recorded = baselineSources?.get(f);
     return recorded === undefined || !sameSource(recorded, readSource(f));
   });

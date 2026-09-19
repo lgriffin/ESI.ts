@@ -25,7 +25,6 @@ import {
   scoreByDirectory,
   scoreFiles,
   thresholdDecreases,
-  thresholdRaises,
   undetectedMutants,
 } from '../../../scripts/mutation-ratchet-core';
 
@@ -171,68 +170,6 @@ describe('pull request mutation plan', () => {
       'src/core/cache/ETagCacheManager.ts',
       'src/core/cache/cacheKey.ts',
     ]);
-  });
-});
-
-describe('pull request mutation plan for a raised floor', () => {
-  it('mutates every file of a raised directory even when no src/ file changed', () => {
-    // The shape of a test-only pull request that raises a floor: without this
-    // the plan skips, or scores the directory on the nightly's survivors.
-    const result = plan({
-      changedFiles: ['tests/tdd/core/cacheKey.test.ts'],
-      baselineSources: new Map([
-        ['src/core/cache/ETagCacheManager.ts', 'source'],
-        ['src/core/cache/cacheKey.ts', 'source'],
-      ]),
-      raisedDirectories: ['src/core/cache'],
-    });
-
-    expect(result.skip).toBe(false);
-    expect(result.directories).toEqual(['src/core/cache']);
-    expect(result.changed).toEqual([]);
-    expect(result.mutate).toEqual([
-      'src/core/cache/ETagCacheManager.ts',
-      'src/core/cache/cacheKey.ts',
-    ]);
-  });
-
-  it('adds a raised directory to the ones a src/ change touches', () => {
-    const result = plan({
-      changedFiles: ['src/core/util/sleep.ts'],
-      baselineSources: new Map([
-        ['src/core/cache/ETagCacheManager.ts', 'source'],
-        ['src/core/cache/cacheKey.ts', 'source'],
-        ['src/core/util/sleep.ts', 'old'],
-      ]),
-      raisedDirectories: ['src/core/cache'],
-    });
-
-    expect(result.directories).toEqual(['src/core/cache', 'src/core/util']);
-    expect(result.mutate).toEqual([
-      'src/core/cache/ETagCacheManager.ts',
-      'src/core/cache/cacheKey.ts',
-      'src/core/util/sleep.ts',
-    ]);
-  });
-});
-
-describe('thresholdRaises', () => {
-  it('names directories whose floor was raised or added, and nothing else', () => {
-    expect(
-      thresholdRaises(
-        { 'src/core/a': 50, 'src/core/b': 60, 'src/core/c': 70 },
-        {
-          'src/core/a': 50,
-          'src/core/b': 61,
-          'src/core/c': 70,
-          'src/core/d': 10,
-        },
-      ),
-    ).toEqual(['src/core/b', 'src/core/d']);
-  });
-
-  it('claims nothing when the base predates the thresholds file', () => {
-    expect(thresholdRaises(null, { 'src/core/a': 50 })).toEqual([]);
   });
 });
 

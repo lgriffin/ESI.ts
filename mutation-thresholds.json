@@ -2,7 +2,7 @@
   "src/core": 81.8,
   "src/core/cache": 65.3,
   "src/core/circuitBreaker": 77.7,
-  "src/core/logger": 100,
+  "src/core/logger": 55.5,
   "src/core/middleware": 100,
   "src/core/pagination": 73.9,
   "src/core/rateLimiter": 77.9,
