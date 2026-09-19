@@ -23,7 +23,10 @@ export interface ReportMutant {
   status: MutantStatus;
   mutatorName?: string;
   replacement?: string;
-  location?: { start: { line: number; column: number } };
+  location?: {
+    start: { line: number; column: number };
+    end?: { line: number; column: number };
+  };
 }
 
 export interface MutationReport {
@@ -99,6 +102,65 @@ export function scoreByDirectory(report: MutationReport): DirectoryScore[] {
       score: percent(t),
     }))
     .sort((a, b) => a.directory.localeCompare(b.directory));
+}
+
+function mutantKey(file: string, mutant: ReportMutant): string {
+  const { start, end } = mutant.location ?? { start: { line: 0, column: 0 } };
+  return [
+    normalise(file),
+    start.line,
+    start.column,
+    end?.line,
+    end?.column,
+    mutant.mutatorName,
+    mutant.replacement,
+  ].join(':');
+}
+
+/**
+ * `latest` with every mutant that an earlier run left undetected marked
+ * Survived, so a mutant counts as detected only when every run detected it.
+ *
+ * Seeding floors from this rather than from one run, or from the lower of two
+ * run scores, is what keeps timeout noise out of the gate: a mutant that timed
+ * out on one runner and survived on another is detected on one run only, and
+ * two nightlies on the same code differed by 43 such mutants. A later run can
+ * only score below the result if a mutant no run left alive survives.
+ *
+ * A mutant missing from an earlier report (its file was not in that run, or
+ * the code moved) takes its status from `latest` alone.
+ */
+export function detectedByEveryRun(
+  latest: MutationReport,
+  earlier: readonly MutationReport[],
+): MutationReport {
+  const undetected = new Set<string>();
+  for (const run of earlier) {
+    for (const [file, { mutants }] of Object.entries(run.files)) {
+      for (const mutant of mutants) {
+        if (mutant.status === 'Survived' || mutant.status === 'NoCoverage') {
+          undetected.add(mutantKey(file, mutant));
+        }
+      }
+    }
+  }
+  return {
+    ...latest,
+    files: Object.fromEntries(
+      Object.entries(latest.files).map(([file, entry]) => [
+        file,
+        {
+          ...entry,
+          mutants: entry.mutants.map((mutant) =>
+            (mutant.status === 'Killed' || mutant.status === 'Timeout') &&
+            undetected.has(mutantKey(file, mutant))
+              ? { ...mutant, status: 'Survived' as const }
+              : mutant,
+          ),
+        },
+      ]),
+    ),
+  };
 }
 
 export interface RatchetResult {
