@@ -3,92 +3,103 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["51789c50-a95f-4899-97eb-0e3a7858aec3"]
+    "args": ["115ab093-5347-48ea-a850-757ed574d8ea"]
   },
-  "recordedAt": "2026-09-19",
+  "recordedAt": "2026-09-20",
   "compatibilityDate": "2026-05-19",
   "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
   "specCacheSeconds": 60,
   "upstreamPages": 1,
-  "truncated": [],
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.details.description",
+      "kind": "string",
+      "original": 993,
+      "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$.access_and_visibility.broadcast_locations",
+      "kind": "array",
+      "original": 13,
+      "kept": 3
+    }
+  ],
   "pages": [
     {
-      "url": "freelance-jobs/51789c50-a95f-4899-97eb-0e3a7858aec3",
+      "url": "freelance-jobs/115ab093-5347-48ea-a850-757ed574d8ea",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sat, 19 Sep 2026 11:25:14 GMT",
-        "last-modified": "Sat, 19 Sep 2026 11:06:46 GMT"
+        "expires": "Sun, 20 Sep 2026 11:46:31 GMT",
+        "last-modified": "Sun, 20 Sep 2026 11:44:34 GMT"
       },
       "body": {
-        "id": "51789c50-a95f-4899-97eb-0e3a7858aec3",
-        "name": "Deliver Veldspar",
+        "id": "115ab093-5347-48ea-a850-757ed574d8ea",
+        "name": "New Player Support Program by \"Tenebris Academy\"",
         "state": "Active",
-        "last_modified": "2026-09-19T11:06:46.734Z",
+        "last_modified": "2026-09-20T11:44:34.729Z",
         "progress": {
-          "current": 24414523,
-          "desired": 100000000
+          "current": 15463,
+          "desired": 190000
         },
         "reward": {
-          "initial": 900000000,
-          "remaining": 680269293
+          "initial": 760000000,
+          "remaining": 698148000
         },
         "details": {
-          "description": "Deliver any veldspar for some quick ISK!",
-          "career": "Industrialist",
-          "created": "2026-09-12T15:15:06.972Z",
-          "expires": "2026-12-12T15:15:00Z",
+          "description": "<font size=\"14\" color=\"#bfffffff\"></font><font size=\"14\" color=\"#ffd98d00\"><a href=\"showinfo:2//98841752\">Tenebris Academy</a></font><font size=\"14\" color=\"#bfffffff\"> is recruiting! We are open to new and returning pilots looking to learn EVE, make ISK, and fly with an active community. The Academy is the training and staging corporation for Tenebris Initiative, guiding pilots toward our main Wor",
+          "career": "Enforcer",
+          "created": "2026-09-15T18:51:14.23Z",
+          "expires": "2026-10-15T18:45:00Z",
           "creator": {
             "character": {
-              "id": 95042104,
-              "name": "Filthy Vurm"
+              "id": 2119013113,
+              "name": "Hubert Ariot"
             },
             "corporation": {
-              "id": 98711423,
-              "name": "The Infinity Core"
+              "id": 98815087,
+              "name": "Tenebris Initiative"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "corporation_item_delivery": {
-              "corporation_item_delivery": {
-                "item_type": {
-                  "values": [
-                    {
-                      "value_type": "item_group",
-                      "values": ["462"]
-                    }
-                  ]
-                },
-                "corporation_office_location": {
-                  "values": [
-                    {
-                      "value_type": "structure",
-                      "values": ["1042117607013"]
-                    }
-                  ]
-                }
+            "location": {
+              "matcher": {
+                "values": []
               }
             }
           },
-          "method": "DeliverItem"
+          "method": "KillNPC"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 9,
+          "reward_per_contribution": 4000,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30002734,
-              "name": "Fricoure"
+              "id": 30100035,
+              "name": "Forte"
+            },
+            {
+              "id": 30100045,
+              "name": "Mettle"
+            },
+            {
+              "id": 30100046,
+              "name": "Venerate"
             }
-          ]
+          ],
+          "restrictions": {
+            "maximum_age": 90
+          }
         }
       }
     }
