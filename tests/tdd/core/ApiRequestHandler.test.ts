@@ -1,0 +1,374 @@
+import { ApiClient } from '../../../src/core/ApiClient';
+import {
+  handleRequest,
+  handleSinglePageRequest,
+} from '../../../src/core/ApiRequestHandler';
+import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
+import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
+import { EsiError } from '../../../src/core/util/error';
+import fetchMock from 'jest-fetch-mock';
+
+fetchMock.enableMocks();
+
+const BASE_URL = 'https://esi.evetech.net';
+
+describe('ApiRequestHandler', () => {
+  let client: ApiClient;
+  let rateLimiter: RateLimiter;
+
+  beforeEach(() => {
+    fetchMock.resetMocks();
+    rateLimiter = new RateLimiter();
+    rateLimiter.setTestMode(true);
+    client = new ApiClient('test', BASE_URL);
+    client.setRateLimiter(rateLimiter);
+  });
+
+  afterEach(() => {
+    rateLimiter.setTestMode(false);
+  });
+
+  describe('authentication', () => {
+    it('should throw NO_AUTH_TOKEN when requiresAuth is true and no token', async () => {
+      await expect(
+        handleRequest(client, 'v1/characters/123/', 'GET', undefined, true),
+      ).rejects.toThrow('Authorization header is required');
+    });
+
+    it('should include Authorization header when token is set', async () => {
+      client.setAccessToken('test-token');
+      fetchMock.mockResponseOnce(JSON.stringify({ name: 'Test' }));
+
+      await handleRequest(client, 'v1/characters/123/', 'GET', undefined, true);
+
+      const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(headers['Authorization']).toBe('Bearer test-token');
+    });
+  });
+
+  describe('Content-Type header', () => {
+    it('should set Content-Type for POST with body', async () => {
+      client.setAccessToken('test-token');
+      fetchMock.mockResponseOnce(JSON.stringify({}), { status: 201 });
+
+      await handleRequest(
+        client,
+        'v1/characters/123/contacts/',
+        'POST',
+        [{ contact_id: 1 }],
+        true,
+      );
+
+      const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(headers['Content-Type']).toBe('application/json');
+    });
+
+    it('should not set Content-Type for GET without body', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({}));
+
+      await handleRequest(client, 'v1/status/', 'GET');
+
+      const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(headers['Content-Type']).toBeUndefined();
+    });
+  });
+
+  describe('201 Created responses', () => {
+    it('should parse JSON body on 201', async () => {
+      client.setAccessToken('test-token');
+      fetchMock.mockResponseOnce(JSON.stringify({ id: 42 }), { status: 201 });
+
+      const result = await handleRequest(
+        client,
+        'v1/characters/123/fittings/',
+        'POST',
+        { name: 'Test' },
+        true,
+      );
+
+      expect(result.body).toEqual({ id: 42 });
+    });
+
+    it('should return undefined body on 201 with no JSON', async () => {
+      client.setAccessToken('test-token');
+      fetchMock.mockResponseOnce('not json', { status: 201 });
+
+      const result = await handleRequest(
+        client,
+        'v1/characters/123/fittings/',
+        'POST',
+        { name: 'Test' },
+        true,
+      );
+
+      expect(result.body).toBeUndefined();
+    });
+  });
+
+  describe('JSON parse errors', () => {
+    it('should throw JSON_PARSE_ERROR for invalid JSON', async () => {
+      fetchMock.mockResponseOnce('not valid json {{{}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+
+      await expect(
+        handleRequest(client, 'v1/status/', 'GET'),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('cache invalidation after a write', () => {
+    let cache: ETagCacheManager;
+
+    beforeEach(() => {
+      cache = new ETagCacheManager({ maxEntries: 100, defaultTtl: 60000 });
+      client.setCache(cache);
+      client.setAccessToken('test-token');
+      cache.set(
+        `${BASE_URL}/v1/characters/123/contacts/`,
+        '"etag-1"',
+        [{ contact_id: 1 }],
+        { 'content-type': 'application/json' },
+      );
+    });
+
+    afterEach(() => cache.shutdown());
+
+    it.each([
+      ['POST', 201, JSON.stringify([2])],
+      ['PUT', 204, null],
+      ['DELETE', 204, null],
+      ['PUT', 200, JSON.stringify({})],
+    ])(
+      'evicts cached reads under the path after a %s answered with %i',
+      async (method, status, body) => {
+        fetchMock.mockResolvedValueOnce(new Response(body, { status }));
+
+        await handleRequest(
+          client,
+          'v1/characters/123/contacts/',
+          method,
+          method === 'DELETE' ? undefined : [2],
+          true,
+        );
+
+        expect(cache.has(`${BASE_URL}/v1/characters/123/contacts/`)).toBe(
+          false,
+        );
+      },
+    );
+
+    it('keeps cached reads when the write is rejected', async () => {
+      fetchMock.mockResolvedValueOnce(
+        new Response('{"error":"forbidden"}', { status: 403 }),
+      );
+
+      await expect(
+        handleRequest(client, 'v1/characters/123/contacts/', 'POST', [2], true),
+      ).rejects.toThrow(EsiError);
+
+      expect(cache.has(`${BASE_URL}/v1/characters/123/contacts/`)).toBe(true);
+    });
+  });
+
+  describe('5xx with stale cache', () => {
+    it('should serve stale cache on 500 when cached data exists', async () => {
+      const cache = new ETagCacheManager({
+        maxEntries: 100,
+        defaultTtl: 60000,
+      });
+      client.setCache(cache);
+
+      cache.set(
+        `${BASE_URL}/v1/status/`,
+        '"etag-123"',
+        { players: 100 },
+        { 'content-type': 'application/json' },
+      );
+
+      fetchMock.mockResponseOnce('Internal Server Error', { status: 500 });
+
+      const result = await handleRequest(client, 'v1/status/', 'GET');
+
+      expect(result.body).toEqual({ players: 100 });
+      expect(result.fromCache).toBe(true);
+      expect(result.stale).toBe(true);
+
+      cache.shutdown();
+    });
+
+    it('should throw on 500 when no cached data exists', async () => {
+      fetchMock.mockResponseOnce('Internal Server Error', { status: 500 });
+
+      await expect(handleRequest(client, 'v1/status/', 'GET')).rejects.toThrow(
+        EsiError,
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw EsiError for 404 responses', async () => {
+      fetchMock.mockResponseOnce('Not found', { status: 404 });
+
+      await expect(
+        handleRequest(client, 'v1/characters/999999/', 'GET'),
+      ).rejects.toThrow(EsiError);
+    });
+
+    it('should throw EsiError for 403 responses', async () => {
+      fetchMock.mockResponseOnce('Forbidden', { status: 403 });
+
+      await expect(
+        handleRequest(client, 'v1/characters/123/', 'GET'),
+      ).rejects.toThrow(EsiError);
+    });
+  });
+
+  describe('handleSinglePageRequest', () => {
+    it('should fetch a single page and return data', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([{ id: 1 }, { id: 2 }]));
+
+      const result = await handleSinglePageRequest(
+        client,
+        'v1/alliances/',
+        'GET',
+      );
+
+      expect(result.body).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(result.headers).toBeDefined();
+    });
+
+    it('should include auth header when requiresAuth is true', async () => {
+      client.setAccessToken('single-page-token');
+      fetchMock.mockResponseOnce(JSON.stringify({ name: 'Test' }));
+
+      await handleSinglePageRequest(
+        client,
+        'v1/characters/123/',
+        'GET',
+        undefined,
+        true,
+      );
+
+      const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(headers['Authorization']).toBe('Bearer single-page-token');
+    });
+
+    it('should throw EsiError on HTTP error', async () => {
+      fetchMock.mockResponseOnce('Internal Server Error', { status: 500 });
+
+      await expect(
+        handleSinglePageRequest(client, 'v1/status/', 'GET'),
+      ).rejects.toThrow(EsiError);
+    });
+
+    it('should pass templatePath and requestTimeout', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({ status: 'ok' }));
+
+      const result = await handleSinglePageRequest(
+        client,
+        'v1/status/',
+        'GET',
+        undefined,
+        false,
+        'v1/status/',
+        5000,
+      );
+
+      expect(result.body).toEqual({ status: 'ok' });
+    });
+
+    it('should pass refreshToken when client has token provider', async () => {
+      client.setAccessToken('test-token');
+      client.setTokenProvider(async () => 'refreshed-token');
+      fetchMock.mockResponseOnce(JSON.stringify({ name: 'Test' }));
+
+      const result = await handleSinglePageRequest(
+        client,
+        'v1/characters/123/',
+        'GET',
+        undefined,
+        true,
+      );
+
+      expect(result.body).toEqual({ name: 'Test' });
+    });
+  });
+
+  describe('circuit breaker rate-limit integration', () => {
+    let cb: CircuitBreaker;
+
+    beforeEach(() => {
+      cb = new CircuitBreaker({ failureThreshold: 5 });
+      client.setCircuitBreaker(cb);
+    });
+
+    afterEach(() => {
+      cb.shutdown();
+    });
+
+    it('should record circuit breaker failure on 429 response', async () => {
+      fetchMock.mockResponseOnce('Too Many Requests', { status: 429 });
+
+      await expect(handleRequest(client, 'v1/status/', 'GET')).rejects.toThrow(
+        EsiError,
+      );
+
+      const stats = cb.getStats();
+      expect(stats.circuits['v1/status/']).toBeDefined();
+      expect(stats.circuits['v1/status/'].failures).toBe(1);
+    });
+
+    it('should record circuit breaker failure on 420 response', async () => {
+      fetchMock.mockResponseOnce('Error Limited', { status: 420 });
+
+      await expect(handleRequest(client, 'v1/status/', 'GET')).rejects.toThrow(
+        EsiError,
+      );
+
+      const stats = cb.getStats();
+      expect(stats.circuits['v1/status/']).toBeDefined();
+      expect(stats.circuits['v1/status/'].failures).toBe(1);
+    });
+
+    it('should record circuit breaker success on 200 response', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify({ players: 100 }));
+
+      await handleRequest(client, 'v1/status/', 'GET');
+
+      const stats = cb.getStats();
+      expect(stats.circuits['v1/status/'].state).toBe('closed');
+      expect(stats.circuits['v1/status/'].failures).toBe(0);
+    });
+
+    it('should record circuit breaker success on 200 and reset prior failures', async () => {
+      // First, record a failure
+      fetchMock.mockResponseOnce('Internal Server Error', { status: 500 });
+      await expect(handleRequest(client, 'v1/status/', 'GET')).rejects.toThrow(
+        EsiError,
+      );
+
+      expect(cb.getStats().circuits['v1/status/'].failures).toBe(1);
+
+      // Then a success should reset failures
+      fetchMock.mockResponseOnce(JSON.stringify({ players: 100 }));
+      await handleRequest(client, 'v1/status/', 'GET');
+
+      expect(cb.getStats().circuits['v1/status/'].failures).toBe(0);
+    });
+  });
+});

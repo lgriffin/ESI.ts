@@ -1,0 +1,10 @@
+{
+  "testResults": [
+    {
+      "name": "tests/bdd/step-definitions/core/beta.steps.ts",
+      "status": "failed",
+      "message": "  ● Test suite failed to run\n\n    Cannot find module '../../support/beta'",
+      "assertionResults": []
+    }
+  ]
+}

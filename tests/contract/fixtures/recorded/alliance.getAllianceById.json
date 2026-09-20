@@ -1,0 +1,35 @@
+{
+  "endpoint": "alliance.getAllianceById",
+  "call": {
+    "client": "alliance",
+    "method": "getAllianceById",
+    "args": [434243723]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "alliances/434243723/",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=3600, must-revalidate, stale-if-error=900",
+        "content-type": "application/json",
+        "etag": "W/\"8fa9422f7167e8755a844eec6301036d09745a4911a3eb8663fad15dc4d0e960\"",
+        "expires": "Thu, 17 Sep 2026 15:13:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:31:19 GMT"
+      },
+      "body": {
+        "creator_corporation_id": 109299958,
+        "creator_id": 180548812,
+        "date_founded": "2009-09-15T13:48:00Z",
+        "executor_corporation_id": 98356193,
+        "name": "C C P Alliance",
+        "ticker": "C C P"
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+export { esiEnum } from './esiEnum';
+export * from './common';
+export * from './access-lists';
+export * from './alliance';
+export * from './assets';
+export * from './calendar';
+export * from './character';
+export * from './clones';
+export * from './contacts';
+export * from './contracts';
+export * from './cosmetics';
+export * from './corporation';
+export * from './corporation-projects';
+export * from './dogma';
+export * from './faction-warfare';
+export * from './fittings';
+export * from './fleet';
+export * from './freelance-jobs';
+export * from './incursions';
+export * from './industry';
+export * from './insurance';
+export * from './killmails';
+export * from './location';
+export * from './loyalty';
+export * from './mail';
+export * from './market';
+export * from './mercenary';
+export * from './meta';
+export * from './paragon-hub';
+export * from './military-campaigns';
+export * from './pi';
+export * from './skills';
+export * from './skyhooks';
+export * from './sovereignty';
+export * from './status';
+export * from './universe';
+export * from './wallet';
+export * from './wars';
+
+// Drift detection (scripts/generate-schema-drift-report.ts) compares these
+// hand-written schemas directly against the live ESI OpenAPI spec at runtime.
+// No generated Zod schemas are needed.

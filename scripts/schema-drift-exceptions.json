@@ -1,0 +1,4 @@
+{
+  "_comment": "Fields listed here are known accepted deviations between hand-written Zod schemas and the ESI OpenAPI spec. Add schema name as key, array of field names as value.",
+  "AllianceInfoSchema": ["alliance_id"]
+}

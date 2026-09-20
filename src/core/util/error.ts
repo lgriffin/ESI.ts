@@ -1,7 +1,167 @@
-export const buildError = (message: string, type: string = 'ERROR', url?: string): Error => {
+const SENSITIVE_PARAMS = [
+  'token',
+  'access_token',
+  'api_key',
+  'refresh_token',
+  'client_secret',
+  'code',
+  'key',
+  'secret',
+  'auth',
+  'password',
+  'bearer',
+];
+
+export function sanitizeUrl(url?: string): string | undefined {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    for (const param of SENSITIVE_PARAMS) {
+      if (parsed.searchParams.has(param)) {
+        parsed.searchParams.set(param, '[REDACTED]');
+      }
+    }
+    return parsed.toString();
+  } catch {
+    const qIndex = url.indexOf('?');
+    return qIndex >= 0 ? url.substring(0, qIndex) + '?[params-redacted]' : url;
+  }
+}
+
+export class EsiError extends Error {
+  public readonly url?: string;
+
+  constructor(
+    public readonly statusCode: number,
+    message: string,
+    url?: string,
+    public readonly requestId?: string,
+  ) {
+    super(message);
+    this.name = 'EsiError';
+    this.url = sanitizeUrl(url);
+  }
+
+  isRateLimited(): boolean {
+    return this.statusCode === 420 || this.statusCode === 429;
+  }
+
+  isNotFound(): boolean {
+    return this.statusCode === 404;
+  }
+
+  isUnauthorized(): boolean {
+    return this.statusCode === 401;
+  }
+
+  isForbidden(): boolean {
+    return this.statusCode === 403;
+  }
+
+  isServerError(): boolean {
+    return this.statusCode >= 500;
+  }
+
+  isTimeout(): boolean {
+    return this.statusCode === 0;
+  }
+
+  get retryable(): boolean {
+    return (
+      this.statusCode === 0 ||
+      this.statusCode === 420 ||
+      this.statusCode === 429 ||
+      this.statusCode === 502 ||
+      this.statusCode === 503 ||
+      this.statusCode === 504
+    );
+  }
+}
+
+export function isEsiError(error: unknown): error is EsiError {
+  return error instanceof EsiError;
+}
+
+export function isRateLimited(error: unknown): error is EsiError {
+  return error instanceof EsiError && error.isRateLimited();
+}
+
+export function isNotFound(error: unknown): error is EsiError {
+  return error instanceof EsiError && error.isNotFound();
+}
+
+export function isUnauthorized(error: unknown): error is EsiError {
+  return error instanceof EsiError && error.isUnauthorized();
+}
+
+export function isForbidden(error: unknown): error is EsiError {
+  return error instanceof EsiError && error.isForbidden();
+}
+
+export function isServerError(error: unknown): error is EsiError {
+  return error instanceof EsiError && error.isServerError();
+}
+
+export class TimeoutError extends EsiError {
+  constructor(
+    public readonly timeoutMs: number,
+    url?: string,
+    requestId?: string,
+  ) {
+    super(0, `Request timed out after ${timeoutMs}ms`, url, requestId);
+    this.name = 'TimeoutError';
+  }
+}
+
+export function isTimeout(error: unknown): error is TimeoutError {
+  return error instanceof TimeoutError;
+}
+
+export function isRetryable(error: unknown): error is EsiError {
+  return error instanceof EsiError && error.retryable;
+}
+
+// Re-export CircuitOpenError for the type guard — avoid forcing consumers
+// to import from the circuitBreaker subpath just for error checking.
+import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
+
+export function isCircuitOpen(error: unknown): error is CircuitOpenError {
+  return error instanceof CircuitOpenError;
+}
+
+export const buildError = (
+  message: string,
+  type: string = 'ERROR',
+  url?: string,
+): Error => {
   const error = new Error(`[${type}] ${message}`);
   if (url) {
-      (error as any).url = url;
+    (error as Error & { url: string }).url = url;
   }
   return error;
 };
+
+export type ValidationDirection = 'request' | 'response';
+
+export class EsiValidationError extends EsiError {
+  public readonly validationError: unknown;
+  public readonly direction: ValidationDirection;
+
+  constructor(
+    url: string,
+    zodError: unknown,
+    requestId?: string,
+    direction: ValidationDirection = 'response',
+  ) {
+    const safeUrl = sanitizeUrl(url) ?? url;
+    const label = direction === 'request' ? 'Request body' : 'Response';
+    super(0, `${label} validation failed for ${safeUrl}`, url, requestId);
+    this.name = 'EsiValidationError';
+    this.validationError = zodError;
+    this.direction = direction;
+  }
+}
+
+export function isValidationError(error: unknown): error is EsiValidationError {
+  return error instanceof EsiValidationError;
+}

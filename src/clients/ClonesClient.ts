@@ -1,28 +1,50 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetClonesApi } from '../api/clones/getClones';
-import { GetImplantsApi } from '../api/clones/getImplants';
-import { PostJumpCloneActivationApi } from '../api/clones/postJumpCloneActivation';
+import { BaseEsiClient } from './BaseEsiClient';
+import { cloneEndpoints } from '../core/endpoints/cloneEndpoints';
+import { CloneInfo } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class ClonesClient {
-    private getClonesApi: GetClonesApi;
-    private getImplantsApi: GetImplantsApi;
-    private postJumpCloneActivationApi: PostJumpCloneActivationApi;
+export class ClonesClient extends BaseEsiClient<typeof cloneEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, cloneEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getClonesApi = new GetClonesApi(client);
-        this.getImplantsApi = new GetImplantsApi(client);
-        this.postJumpCloneActivationApi = new PostJumpCloneActivationApi(client);
-    }
+  /**
+   * Retrieve a character's clone state, including home station and available jump clones.
+   *
+   * @param characterId - The ID of the character whose clone information to retrieve
+   * @returns Clone information including home location and jump clone details
+   * @requires Authentication
+   */
+  getClones(characterId: number): Promise<CloneInfo> {
+    return this.api.getClones(characterId);
+  }
 
-    async getClones(characterId: number): Promise<any> {
-        return await this.getClonesApi.getClones(characterId);
-    }
+  /**
+   * Retrieve the implants currently installed in a character's active clone.
+   *
+   * @param characterId - The ID of the character whose implants to retrieve
+   * @returns An array of type IDs for the currently installed implants
+   * @requires Authentication
+   */
+  getImplants(characterId: number): Promise<number[]> {
+    return this.api.getImplants(characterId);
+  }
 
-    async getImplants(characterId: number): Promise<any> {
-        return await this.getImplantsApi.getImplants(characterId);
-    }
+  fetchAllImplants(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<number[]> {
+    return this.fetchAllEndpoint<number>(
+      'getImplants',
+      [characterId],
+      concurrency,
+    );
+  }
 
-    async activateJumpClone(characterId: number, jumpCloneId: number): Promise<any> {
-        return await this.postJumpCloneActivationApi.activateJumpClone(characterId, jumpCloneId);
-    }
+  streamImplants(
+    characterId: number,
+  ): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getImplants', characterId);
+  }
 }

@@ -2,397 +2,444 @@ import { MarketClient } from '../../../src/clients/MarketClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
 const config = getConfig();
 
 const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
-    .build();
+  .setClientId(config.projectName)
+  .setLink(config.link)
+  .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+  .build();
 
 const marketClient = new MarketClient(client);
 
 describe('MarketClient', () => {
-    beforeEach(() => {
-        fetchMock.resetMocks();
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
+
+  it('should return character orders', async () => {
+    const mockResponse = [
+      {
+        order_id: 1,
+        type_id: 34,
+        location_id: 60003760,
+        volume_total: 1000,
+        volume_remain: 500,
+        min_volume: 1,
+        price: 5.27,
+        is_buy_order: true,
+        is_corporation: false,
+        region_id: 10000002,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'station',
+      },
+      {
+        order_id: 2,
+        type_id: 35,
+        location_id: 60003760,
+        volume_total: 2000,
+        volume_remain: 1500,
+        min_volume: 1,
+        price: 15.43,
+        is_buy_order: false,
+        is_corporation: false,
+        region_id: 10000002,
+        duration: 30,
+        issued: '2024-01-02T00:00:00Z',
+        range: 'region',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => marketClient.getCharacterOrders(123456));
+
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0]).toHaveProperty('region_id');
+    expect(result[0]).toHaveProperty('is_corporation');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/orders/',
+    );
+  });
+
+  it('should return character order history', async () => {
+    const mockResponse = [
+      {
+        order_id: 1,
+        type_id: 34,
+        location_id: 60003760,
+        volume_total: 1000,
+        volume_remain: 0,
+        min_volume: 1,
+        price: 5.27,
+        is_buy_order: true,
+        is_corporation: false,
+        region_id: 10000002,
+        duration: 90,
+        issued: '2023-12-01T00:00:00Z',
+        range: 'station',
+        state: 'expired',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      marketClient.getCharacterOrderHistory(123456),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0]).toHaveProperty('state', 'expired');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/orders/history/',
+    );
+  });
+
+  it('should return corporation orders', async () => {
+    const mockResponse = [
+      {
+        order_id: 1,
+        type_id: 34,
+        location_id: 60003760,
+        volume_total: 1000,
+        volume_remain: 500,
+        min_volume: 1,
+        price: 5.27,
+        is_buy_order: true,
+        issued_by: 123456,
+        region_id: 10000002,
+        wallet_division: 1,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'station',
+      },
+      {
+        order_id: 2,
+        type_id: 35,
+        location_id: 60003760,
+        volume_total: 2000,
+        volume_remain: 1500,
+        min_volume: 1,
+        price: 15.43,
+        is_buy_order: false,
+        issued_by: 123456,
+        region_id: 10000002,
+        wallet_division: 1,
+        duration: 30,
+        issued: '2024-01-02T00:00:00Z',
+        range: 'region',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      marketClient.getCorporationOrders(123456),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0]).toHaveProperty('wallet_division');
+    expect(result[0]).toHaveProperty('issued_by');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456/orders/',
+    );
+  });
+
+  it('should return corporation order history', async () => {
+    const mockResponse = [
+      {
+        order_id: 1,
+        type_id: 34,
+        location_id: 60003760,
+        volume_total: 1000,
+        volume_remain: 0,
+        min_volume: 1,
+        price: 5.27,
+        is_buy_order: true,
+        issued_by: 123456,
+        region_id: 10000002,
+        wallet_division: 1,
+        duration: 90,
+        issued: '2023-12-01T00:00:00Z',
+        range: 'station',
+        state: 'cancelled',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      marketClient.getCorporationOrderHistory(123456),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0]).toHaveProperty('state', 'cancelled');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456/orders/history/',
+    );
+  });
+
+  it('should return market history', async () => {
+    const mockResponse = [
+      {
+        date: '2024-01-01',
+        order_count: 100,
+        volume: 1000,
+        highest: 10.0,
+        average: 9.0,
+        lowest: 8.0,
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      marketClient.getMarketHistory(123456, 678910),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    result.forEach(
+      (history: {
+        date: string;
+        order_count: number;
+        volume: number;
+        highest: number;
+        average: number;
+        lowest: number;
+      }) => {
+        expect(history).toHaveProperty('date');
+        expect(typeof history.date).toBe('string');
+        expect(history).toHaveProperty('order_count');
+        expect(typeof history.order_count).toBe('number');
+        expect(history).toHaveProperty('volume');
+        expect(typeof history.volume).toBe('number');
+        expect(history).toHaveProperty('highest');
+        expect(typeof history.highest).toBe('number');
+        expect(history).toHaveProperty('average');
+        expect(typeof history.average).toBe('number');
+        expect(history).toHaveProperty('lowest');
+        expect(typeof history.lowest).toBe('number');
+      },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/123456/history/?type_id=678910',
+    );
+  });
+
+  it('should return market orders', async () => {
+    const mockResponse = [
+      {
+        order_id: 1,
+        type_id: 34,
+        location_id: 60003760,
+        volume_total: 1000,
+        volume_remain: 500,
+        min_volume: 1,
+        price: 5.27,
+        is_buy_order: true,
+        system_id: 30000142,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'station',
+      },
+      {
+        order_id: 2,
+        type_id: 35,
+        location_id: 60003760,
+        volume_total: 2000,
+        volume_remain: 1500,
+        min_volume: 1,
+        price: 15.43,
+        is_buy_order: false,
+        system_id: 30000142,
+        duration: 30,
+        issued: '2024-01-02T00:00:00Z',
+        range: 'region',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => marketClient.getMarketOrders(123456));
+
+    expect(Array.isArray(result)).toBe(true);
+    result.forEach(
+      (order: {
+        order_id: number;
+        type_id: number;
+        location_id: number;
+        volume_total: number;
+        volume_remain: number;
+        price: number;
+        is_buy_order: boolean;
+      }) => {
+        expect(order).toHaveProperty('order_id');
+        expect(typeof order.order_id).toBe('number');
+        expect(order).toHaveProperty('type_id');
+        expect(typeof order.type_id).toBe('number');
+        expect(order).toHaveProperty('location_id');
+        expect(typeof order.location_id).toBe('number');
+        expect(order).toHaveProperty('volume_total');
+        expect(typeof order.volume_total).toBe('number');
+        expect(order).toHaveProperty('volume_remain');
+        expect(typeof order.volume_remain).toBe('number');
+        expect(order).toHaveProperty('price');
+        expect(typeof order.price).toBe('number');
+        expect(order).toHaveProperty('is_buy_order');
+        expect(typeof order.is_buy_order).toBe('boolean');
+      },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/123456/orders/?order_type=all',
+    );
+  });
+
+  it('should return market types', async () => {
+    const mockResponse = [34, 35, 36];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => marketClient.getMarketTypes(123456));
+
+    expect(Array.isArray(result)).toBe(true);
+    result.forEach((typeId: number) => {
+      expect(typeof typeId).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/123456/types/',
+    );
+  });
 
-    it('should return character orders', async () => {
-        const mockResponse = [
-            {
-                order_id: 1,
-                type_id: 34,
-                location_id: 60003760,
-                volume_total: 1000,
-                volume_remain: 500,
-                price: 5.27,
-                is_buy_order: true
-            },
-            {
-                order_id: 2,
-                type_id: 35,
-                location_id: 60003760,
-                volume_total: 2000,
-                volume_remain: 1500,
-                price: 15.43,
-                is_buy_order: false
-            }
-        ];
+  it('should return market groups', async () => {
+    const mockResponse = [1, 2, 3];
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => marketClient.getCharacterOrders(123456));
+    const result = await getBody(() => marketClient.getMarketGroups());
 
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
-            expect(order).toHaveProperty('order_id');
-            expect(typeof order.order_id).toBe('number');
-            expect(order).toHaveProperty('type_id');
-            expect(typeof order.type_id).toBe('number');
-            expect(order).toHaveProperty('location_id');
-            expect(typeof order.location_id).toBe('number');
-            expect(order).toHaveProperty('volume_total');
-            expect(typeof order.volume_total).toBe('number');
-            expect(order).toHaveProperty('volume_remain');
-            expect(typeof order.volume_remain).toBe('number');
-            expect(order).toHaveProperty('price');
-            expect(typeof order.price).toBe('number');
-            expect(order).toHaveProperty('is_buy_order');
-            expect(typeof order.is_buy_order).toBe('boolean');
-        });
+    expect(Array.isArray(result)).toBe(true);
+    result.forEach((groupId: number) => {
+      expect(typeof groupId).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/groups/',
+    );
+  });
 
-    it('should return character order history', async () => {
-        const mockResponse = [
-            {
-                order_id: 1,
-                type_id: 34,
-                location_id: 60003760,
-                volume_total: 1000,
-                volume_remain: 0,
-                price: 5.27,
-                is_buy_order: true
-            }
-        ];
+  it('should return market group information', async () => {
+    const mockResponse = {
+      market_group_id: 1,
+      name: 'Group 1',
+      description: 'Description 1',
+      types: [123, 456],
+    };
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => marketClient.getCharacterOrderHistory(123456));
+    const result = await getBody(() =>
+      marketClient.getMarketGroupInformation(1),
+    );
 
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
-            expect(order).toHaveProperty('order_id');
-            expect(typeof order.order_id).toBe('number');
-            expect(order).toHaveProperty('type_id');
-            expect(typeof order.type_id).toBe('number');
-            expect(order).toHaveProperty('location_id');
-            expect(typeof order.location_id).toBe('number');
-            expect(order).toHaveProperty('volume_total');
-            expect(typeof order.volume_total).toBe('number');
-            expect(order).toHaveProperty('volume_remain');
-            expect(typeof order.volume_remain).toBe('number');
-            expect(order).toHaveProperty('price');
-            expect(typeof order.price).toBe('number');
-            expect(order).toHaveProperty('is_buy_order');
-            expect(typeof order.is_buy_order).toBe('boolean');
-        });
-    });
+    expect(result).toHaveProperty('market_group_id');
+    expect(typeof result.market_group_id).toBe('number');
+    expect(result).toHaveProperty('name');
+    expect(typeof result.name).toBe('string');
+    expect(result).toHaveProperty('description');
+    expect(typeof result.description).toBe('string');
+    expect(result).toHaveProperty('types');
+    expect(Array.isArray(result.types)).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/groups/1/',
+    );
+  });
 
-    it('should return corporation orders', async () => {
-        const mockResponse = [
-            {
-                order_id: 1,
-                type_id: 34,
-                location_id: 60003760,
-                volume_total: 1000,
-                volume_remain: 500,
-                price: 5.27,
-                is_buy_order: true
-            },
-            {
-                order_id: 2,
-                type_id: 35,
-                location_id: 60003760,
-                volume_total: 2000,
-                volume_remain: 1500,
-                price: 15.43,
-                is_buy_order: false
-            }
-        ];
+  it('should return market prices', async () => {
+    const mockResponse = [
+      {
+        type_id: 34,
+        average_price: 5.27,
+        adjusted_price: 5.5,
+      },
+      {
+        type_id: 35,
+        average_price: 15.43,
+        adjusted_price: 15.8,
+      },
+    ];
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => marketClient.getCorporationOrders(123456));
+    const result = await getBody(() => marketClient.getMarketPrices());
 
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
-            expect(order).toHaveProperty('order_id');
-            expect(typeof order.order_id).toBe('number');
-            expect(order).toHaveProperty('type_id');
-            expect(typeof order.type_id).toBe('number');
-            expect(order).toHaveProperty('location_id');
-            expect(typeof order.location_id).toBe('number');
-            expect(order).toHaveProperty('volume_total');
-            expect(typeof order.volume_total).toBe('number');
-            expect(order).toHaveProperty('volume_remain');
-            expect(typeof order.volume_remain).toBe('number');
-            expect(order).toHaveProperty('price');
-            expect(typeof order.price).toBe('number');
-            expect(order).toHaveProperty('is_buy_order');
-            expect(typeof order.is_buy_order).toBe('boolean');
-        });
-    });
+    expect(Array.isArray(result)).toBe(true);
+    result.forEach(
+      (price: {
+        type_id: number;
+        average_price: number;
+        adjusted_price: number;
+      }) => {
+        expect(price).toHaveProperty('type_id');
+        expect(typeof price.type_id).toBe('number');
+        expect(price).toHaveProperty('average_price');
+        expect(typeof price.average_price).toBe('number');
+        expect(price).toHaveProperty('adjusted_price');
+        expect(typeof price.adjusted_price).toBe('number');
+      },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/prices/',
+    );
+  });
 
-    it('should return corporation order history', async () => {
-        const mockResponse = [
-            {
-                order_id: 1,
-                type_id: 34,
-                location_id: 60003760,
-                volume_total: 1000,
-                volume_remain: 0,
-                price: 5.27,
-                is_buy_order: true
-            }
-        ];
+  it('should return market orders in a structure', async () => {
+    const mockResponse = [
+      {
+        order_id: 1,
+        type_id: 34,
+        location_id: 123456789,
+        volume_total: 1000,
+        volume_remain: 500,
+        min_volume: 1,
+        price: 5.27,
+        is_buy_order: true,
+        duration: 90,
+        issued: '2024-01-01T00:00:00Z',
+        range: 'station',
+      },
+      {
+        order_id: 2,
+        type_id: 35,
+        location_id: 123456789,
+        volume_total: 2000,
+        volume_remain: 1500,
+        min_volume: 1,
+        price: 15.43,
+        is_buy_order: false,
+        duration: 30,
+        issued: '2024-01-02T00:00:00Z',
+        range: 'region',
+      },
+    ];
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => marketClient.getCorporationOrderHistory(123456));
+    const result = await getBody(() =>
+      marketClient.getMarketOrdersInStructure(123456789),
+    );
 
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
-            expect(order).toHaveProperty('order_id');
-            expect(typeof order.order_id).toBe('number');
-            expect(order).toHaveProperty('type_id');
-            expect(typeof order.type_id).toBe('number');
-            expect(order).toHaveProperty('location_id');
-            expect(typeof order.location_id).toBe('number');
-            expect(order).toHaveProperty('volume_total');
-            expect(typeof order.volume_total).toBe('number');
-            expect(order).toHaveProperty('volume_remain');
-            expect(typeof order.volume_remain).toBe('number');
-            expect(order).toHaveProperty('price');
-            expect(typeof order.price).toBe('number');
-            expect(order).toHaveProperty('is_buy_order');
-            expect(typeof order.is_buy_order).toBe('boolean');
-        });
-    });
-
-    it('should return market history', async () => {
-        const mockResponse = [
-            {
-                date: '2024-01-01',
-                order_count: 100,
-                volume: 1000,
-                highest: 10.0,
-                average: 9.0,
-                lowest: 8.0
-            }
-        ];
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => marketClient.getMarketHistory(123456, 678910));
-
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((history: { date: string, order_count: number, volume: number, highest: number, average: number, lowest: number }) => {
-            expect(history).toHaveProperty('date');
-            expect(typeof history.date).toBe('string');
-            expect(history).toHaveProperty('order_count');
-            expect(typeof history.order_count).toBe('number');
-            expect(history).toHaveProperty('volume');
-            expect(typeof history.volume).toBe('number');
-            expect(history).toHaveProperty('highest');
-            expect(typeof history.highest).toBe('number');
-            expect(history).toHaveProperty('average');
-            expect(typeof history.average).toBe('number');
-            expect(history).toHaveProperty('lowest');
-            expect(typeof history.lowest).toBe('number');
-        });
-    });
-
-    it('should return market orders', async () => {
-        const mockResponse = [
-            {
-                order_id: 1,
-                type_id: 34,
-                location_id: 60003760,
-                volume_total: 1000,
-                volume_remain: 500,
-                price: 5.27,
-                is_buy_order: true
-            },
-            {
-                order_id: 2,
-                type_id: 35,
-                location_id: 60003760,
-                volume_total: 2000,
-                volume_remain: 1500,
-                price: 15.43,
-                is_buy_order: false
-            }
-        ];
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => marketClient.getMarketOrders(123456));
-
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
-            expect(order).toHaveProperty('order_id');
-            expect(typeof order.order_id).toBe('number');
-            expect(order).toHaveProperty('type_id');
-            expect(typeof order.type_id).toBe('number');
-            expect(order).toHaveProperty('location_id');
-            expect(typeof order.location_id).toBe('number');
-            expect(order).toHaveProperty('volume_total');
-            expect(typeof order.volume_total).toBe('number');
-            expect(order).toHaveProperty('volume_remain');
-            expect(typeof order.volume_remain).toBe('number');
-            expect(order).toHaveProperty('price');
-            expect(typeof order.price).toBe('number');
-            expect(order).toHaveProperty('is_buy_order');
-            expect(typeof order.is_buy_order).toBe('boolean');
-        });
-    });
-
-    it('should return market types', async () => {
-        const mockResponse = [34, 35, 36];
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => marketClient.getMarketTypes(123456));
-
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((typeId: number) => {
-            expect(typeof typeId).toBe('number');
-        });
-    });
-
-    it('should return market groups', async () => {
-        const mockResponse = [
-            {
-                market_group_id: 1,
-                name: 'Group 1',
-                description: 'Description 1',
-                types: [123, 456]
-            }
-        ];
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => marketClient.getMarketGroups());
-
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((group: { market_group_id: number, name: string, description: string, types: number[] }) => {
-            expect(group).toHaveProperty('market_group_id');
-            expect(typeof group.market_group_id).toBe('number');
-            expect(group).toHaveProperty('name');
-            expect(typeof group.name).toBe('string');
-            expect(group).toHaveProperty('description');
-            expect(typeof group.description).toBe('string');
-            expect(group).toHaveProperty('types');
-            expect(Array.isArray(group.types)).toBe(true);
-        });
-    });
-
-    it('should return market group information', async () => {
-        const mockResponse = {
-            market_group_id: 1,
-            name: 'Group 1',
-            description: 'Description 1',
-            types: [123, 456]
-        };
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => marketClient.getMarketGroupInformation(1));
-
-        expect(result).toHaveProperty('market_group_id');
-        expect(typeof result.market_group_id).toBe('number');
-        expect(result).toHaveProperty('name');
-        expect(typeof result.name).toBe('string');
-        expect(result).toHaveProperty('description');
-        expect(typeof result.description).toBe('string');
-        expect(result).toHaveProperty('types');
-        expect(Array.isArray(result.types)).toBe(true);
-    });
-
-    it('should return market prices', async () => {
-        const mockResponse = [
-            {
-                type_id: 34,
-                average_price: 5.27,
-                adjusted_price: 5.50
-            },
-            {
-                type_id: 35,
-                average_price: 15.43,
-                adjusted_price: 15.80
-            }
-        ];
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => marketClient.getMarketPrices());
-
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((price: { type_id: number, average_price: number, adjusted_price: number }) => {
-            expect(price).toHaveProperty('type_id');
-            expect(typeof price.type_id).toBe('number');
-            expect(price).toHaveProperty('average_price');
-            expect(typeof price.average_price).toBe('number');
-            expect(price).toHaveProperty('adjusted_price');
-            expect(typeof price.adjusted_price).toBe('number');
-        });
-    });
-
-    it('should return market orders in a structure', async () => {
-        const mockResponse = [
-            {
-                order_id: 1,
-                type_id: 34,
-                location_id: 60003760,
-                volume_total: 1000,
-                volume_remain: 500,
-                price: 5.27,
-                is_buy_order: true
-            },
-            {
-                order_id: 2,
-                type_id: 35,
-                location_id: 60003760,
-                volume_total: 2000,
-                volume_remain: 1500,
-                price: 15.43,
-                is_buy_order: false
-            }
-        ];
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => marketClient.getMarketOrdersInStructure(123456789));
-
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((order: { order_id: number, type_id: number, location_id: number, volume_total: number, volume_remain: number, price: number, is_buy_order: boolean }) => {
-            expect(order).toHaveProperty('order_id');
-            expect(typeof order.order_id).toBe('number');
-            expect(order).toHaveProperty('type_id');
-            expect(typeof order.type_id).toBe('number');
-            expect(order).toHaveProperty('location_id');
-            expect(typeof order.location_id).toBe('number');
-            expect(order).toHaveProperty('volume_total');
-            expect(typeof order.volume_total).toBe('number');
-            expect(order).toHaveProperty('volume_remain');
-            expect(typeof order.volume_remain).toBe('number');
-            expect(order).toHaveProperty('price');
-            expect(typeof order.price).toBe('number');
-            expect(order).toHaveProperty('is_buy_order');
-            expect(typeof order.is_buy_order).toBe('boolean');
-        });
-    });
+    expect(Array.isArray(result)).toBe(true);
+    expect(result[0]).not.toHaveProperty('system_id');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/markets/structures/123456789/',
+    );
+  });
 });
+
+describeClientErrors('MarketClient', (apiClient) =>
+  new MarketClient(apiClient).getMarketPrices(),
+);

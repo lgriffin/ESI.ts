@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "include-component-in-tag": false,
+  "last-release-sha": "d07eea53e58a8e2abed5f1c7e1bc298d74d3d74c",
+  "packages": {
+    ".": {
+      "package-name": "@lgriffin/esi.ts",
+      "release-type": "node",
+      "changelog-type": "default",
+      "bump-minor-pre-major": false,
+      "bump-patch-for-minor-pre-major": false,
+      "draft": false,
+      "prerelease": false,
+      "changelog-sections": [
+        { "type": "feat", "section": "Added" },
+        { "type": "fix", "section": "Fixed" },
+        { "type": "chore", "section": "Changed" },
+        { "type": "docs", "section": "Documentation" },
+        { "type": "test", "section": "Testing" },
+        { "type": "refactor", "section": "Changed" },
+        { "type": "perf", "section": "Changed" }
+      ],
+      "extra-files": ["src/core/constants.ts"]
+    }
+  }
+}

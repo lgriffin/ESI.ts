@@ -1,0 +1,96 @@
+{
+  "endpoint": "freelanceJobs.getFreelanceJobById",
+  "call": {
+    "client": "freelanceJobs",
+    "method": "getFreelanceJobById",
+    "args": ["51789c50-a95f-4899-97eb-0e3a7858aec3"]
+  },
+  "recordedAt": "2026-09-19",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 60,
+  "upstreamPages": 1,
+  "truncated": [],
+  "pages": [
+    {
+      "url": "freelance-jobs/51789c50-a95f-4899-97eb-0e3a7858aec3",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=60",
+        "content-type": "application/json",
+        "expires": "Sat, 19 Sep 2026 11:25:14 GMT",
+        "last-modified": "Sat, 19 Sep 2026 11:06:46 GMT"
+      },
+      "body": {
+        "id": "51789c50-a95f-4899-97eb-0e3a7858aec3",
+        "name": "Deliver Veldspar",
+        "state": "Active",
+        "last_modified": "2026-09-19T11:06:46.734Z",
+        "progress": {
+          "current": 24414523,
+          "desired": 100000000
+        },
+        "reward": {
+          "initial": 900000000,
+          "remaining": 680269293
+        },
+        "details": {
+          "description": "Deliver any veldspar for some quick ISK!",
+          "career": "Industrialist",
+          "created": "2026-09-12T15:15:06.972Z",
+          "expires": "2026-12-12T15:15:00Z",
+          "creator": {
+            "character": {
+              "id": 95042104,
+              "name": "Filthy Vurm"
+            },
+            "corporation": {
+              "id": 98711423,
+              "name": "The Infinity Core"
+            }
+          }
+        },
+        "configuration": {
+          "version": 1,
+          "parameters": {
+            "corporation_item_delivery": {
+              "corporation_item_delivery": {
+                "item_type": {
+                  "values": [
+                    {
+                      "value_type": "item_group",
+                      "values": ["462"]
+                    }
+                  ]
+                },
+                "corporation_office_location": {
+                  "values": [
+                    {
+                      "value_type": "structure",
+                      "values": ["1042117607013"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "method": "DeliverItem"
+        },
+        "contribution": {
+          "max_committed_participants": 10000,
+          "reward_per_contribution": 9,
+          "submission_multiplier": 1
+        },
+        "access_and_visibility": {
+          "acl_protected": false,
+          "broadcast_locations": [
+            {
+              "id": 30002734,
+              "name": "Fricoure"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

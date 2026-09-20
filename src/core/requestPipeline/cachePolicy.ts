@@ -1,0 +1,287 @@
+import { ApiClient } from '../ApiClient';
+import { logDebug } from '../logger/clientLog';
+import { ICache } from '../cache/ICache';
+import { buildCacheKey } from '../cache/cacheKey';
+import { ParsedHeaders } from '../util/headersUtil';
+import { camelToSnake } from '../util/stringUtil';
+import { esiCacheTtls } from '../endpoints/esi-cache-ttls.generated';
+import { parseCacheControlTtl } from './headers';
+
+export interface EsiHandlerResponse {
+  headers: Record<string, string>;
+  body: unknown;
+  status?: number;
+  fromCache?: boolean;
+  stale?: boolean;
+  cacheHitType?: 'spec-ttl' | 'etag-304' | 'stale-on-error';
+  responseTimeMs?: number;
+  cursors?: import('../pagination/CursorPaginationHandler').CursorTokens;
+}
+
+/**
+ * How long a cached entry is kept after its freshness TTL elapses. Past the
+ * freshness TTL the entry is no longer served without a request, but it still
+ * supplies the ETag for an `If-None-Match` revalidation and the body served
+ * stale when ESI answers with a 5xx. One hour spans ESI's daily downtime. The
+ * cache's `maxEntries` still bounds memory.
+ */
+const STALE_RETENTION_MS = 60 * 60 * 1000;
+
+/**
+ * The lifetime to store an entry for: its freshness TTL plus the stale
+ * retention window. Undefined when the response gave no freshness TTL, so the
+ * cache applies its own `defaultTtl`.
+ */
+function retentionTtl(freshnessTtlMs: number | undefined): number | undefined {
+  return freshnessTtlMs === undefined
+    ? undefined
+    : freshnessTtlMs + STALE_RETENTION_MS;
+}
+
+/**
+ * Look up the spec-defined cache TTL for a given method + template path.
+ * Returns TTL in milliseconds, or undefined if not found.
+ */
+export function lookupSpecTtl(
+  method: string,
+  templatePath: string,
+): number | undefined {
+  const normalized = templatePath
+    .replace(/\/$/, '')
+    .replace(/\{(\w+)\}/g, (_, name: string) => `{${camelToSnake(name)}}`);
+  const key = `${method}:${normalized}`;
+  const seconds = esiCacheTtls[key];
+  return typeof seconds === 'number' ? seconds * 1000 : undefined;
+}
+
+/**
+ * Attempt a spec-aware cache hit (TTL-based, no network request).
+ */
+export function trySpecAwareCacheHit(
+  client: ApiClient,
+  url: string,
+  method: string,
+  templatePath: string | undefined,
+  resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
+): EsiHandlerResponse | null {
+  if (method !== 'GET' || !templatePath) return null;
+  const specTtlMs = lookupSpecTtl(method, templatePath);
+  if (!specTtlMs) return null;
+  const cache = resolveCache(client);
+  if (!cache) return null;
+  const key = buildCacheKey(url, client, requiresAuth);
+  const entry = cache.get(key);
+  if (!entry) return null;
+  const age = Date.now() - entry.timestamp;
+  if (age < specTtlMs) {
+    logDebug(
+      client,
+      `Spec-aware cache hit for ${url} (age=${Math.round(age / 1000)}s, ttl=${Math.round(specTtlMs / 1000)}s)`,
+      { method, templatePath },
+    );
+    return {
+      headers: entry.headers,
+      body: entry.data,
+      status: 200,
+      fromCache: true,
+      cacheHitType: 'spec-ttl',
+    };
+  }
+  return null;
+}
+
+/** Whether the cache holds an unexpired entry for the URL. */
+export function hasCachedEntry(
+  client: ApiClient,
+  url: string,
+  resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
+): boolean {
+  const cache = resolveCache(client);
+  return !!cache && cache.has(buildCacheKey(url, client, requiresAuth));
+}
+
+/**
+ * Attempt to return a stale cached response (used on server errors).
+ */
+export function tryStaleCacheResponse(
+  client: ApiClient,
+  url: string,
+  parsed: ParsedHeaders,
+  resolveCache: (client: ApiClient) => ICache | null,
+  requiresAuth: boolean = false,
+): EsiHandlerResponse | null {
+  const cache = resolveCache(client);
+  if (!cache) return null;
+  const key = buildCacheKey(url, client, requiresAuth);
+  const cachedEntry = cache.get(key);
+  if (!cachedEntry) return null;
+  return {
+    headers: { ...cachedEntry.headers, ...parsed.raw },
+    body: cachedEntry.data,
+    status: 200,
+    fromCache: true,
+    stale: true,
+    cacheHitType: 'stale-on-error',
+  };
+}
+
+/**
+ * Successful writes seen by a cache, so a read that was in flight when one of
+ * them invalidated its path does not store the pre-write body afterwards.
+ * `recent` keeps the last RECENT_WRITES paths; a read that outlived more
+ * writes than that is treated as overtaken.
+ */
+interface WriteLog {
+  generation: number;
+  recent: { generation: number; path: string }[];
+}
+
+const RECENT_WRITES = 64;
+const writeLogs = new WeakMap<ICache, WriteLog>();
+
+function writeLogFor(cache: ICache): WriteLog {
+  let log = writeLogs.get(cache);
+  if (!log) {
+    log = { generation: 0, recent: [] };
+    writeLogs.set(cache, log);
+  }
+  return log;
+}
+
+/**
+ * The client's write generation. Take it before sending a GET and pass it to
+ * cacheResponse, which then declines to store the response if a write has
+ * invalidated the same path since.
+ */
+export function currentWriteGeneration(
+  client: ApiClient,
+  resolveCache: (client: ApiClient) => ICache | null,
+): number {
+  const cache = resolveCache(client);
+  return cache ? writeLogFor(cache).generation : 0;
+}
+
+function invalidatedSince(
+  cache: ICache,
+  generation: number,
+  key: string,
+): boolean {
+  const log = writeLogFor(cache);
+  if (log.generation === generation) return false;
+  if (log.generation - generation > log.recent.length) return true;
+  return log.recent.some(
+    (write) => write.generation > generation && key.includes(write.path),
+  );
+}
+
+/**
+ * Cache a successful response, or invalidate cache for non-GET methods.
+ * `sentAtWriteGeneration` (see currentWriteGeneration) skips storing a GET
+ * response whose path a write invalidated while the request was in flight.
+ */
+export function cacheResponse(
+  client: ApiClient,
+  url: string,
+  method: string,
+  endpoint: string,
+  parsed: ParsedHeaders,
+  data: unknown,
+  useETag: boolean,
+  resolveCache: (client: ApiClient) => ICache | null,
+  templatePath?: string,
+  requiresAuth: boolean = false,
+  sentAtWriteGeneration?: number,
+): void {
+  const cache = resolveCache(client);
+  if (useETag && method === 'GET' && cache && parsed.etag) {
+    const key = buildCacheKey(url, client, requiresAuth);
+    if (
+      sentAtWriteGeneration !== undefined &&
+      invalidatedSince(cache, sentAtWriteGeneration, key)
+    ) {
+      logDebug(
+        client,
+        `Not caching ${url}: a write invalidated it while the request was in flight`,
+        { method },
+      );
+      return;
+    }
+    const headerTtl = parseCacheControlTtl(parsed.raw);
+    const specTtlMs = templatePath
+      ? lookupSpecTtl(method, templatePath)
+      : undefined;
+    const freshnessTtl = specTtlMs ?? headerTtl;
+    const ttl = retentionTtl(freshnessTtl);
+    cache.set(key, parsed.etag, data, parsed.raw, ttl);
+    const ttlInfo =
+      freshnessTtl !== undefined
+        ? ` (ttl=${freshnessTtl}ms, kept for ${ttl}ms)`
+        : '';
+    logDebug(
+      client,
+      `Cached response for ${url} with ETag ${parsed.etag}${ttlInfo}`,
+      {
+        method,
+        etag: parsed.etag,
+      },
+    );
+  }
+
+  invalidateAfterWrite(client, method, endpoint, resolveCache);
+}
+
+/**
+ * Evict the cached copy of a response the caller rejected. `executeRequest`
+ * caches a GET body before `createClient` validates it, so a body that fails
+ * the endpoint's schema would otherwise be served again, from the spec TTL or
+ * after a 304, until the entry expired.
+ */
+export function evictRejectedResponse(
+  client: ApiClient,
+  endpoint: string,
+  requiresAuth: boolean,
+  resolveCache: (client: ApiClient) => ICache | null,
+): void {
+  const cache = resolveCache(client);
+  if (!cache) return;
+  const url = `${client.getLink()}/${endpoint}`;
+  if (cache.delete(buildCacheKey(url, client, requiresAuth))) {
+    logDebug(
+      client,
+      `Evicted cached response for ${url} after it failed validation`,
+    );
+  }
+}
+
+/**
+ * Evict cached reads under the endpoint's path after a successful write, so a
+ * read that follows a POST/PUT/DELETE fetches rather than serving the
+ * pre-write copy. Called for every 2xx status, including the body-less
+ * 201/204 replies that return before a response is cached.
+ */
+export function invalidateAfterWrite(
+  client: ApiClient,
+  method: string,
+  endpoint: string,
+  resolveCache: (client: ApiClient) => ICache | null,
+): void {
+  if (method === 'GET') return;
+  const path = endpoint.split('?')[0]!;
+
+  // Before the cache, and whether or not there is one: a read that starts
+  // after this write must not be handed the response to a read that started
+  // before it. Deduplication would do exactly that, because its key is the
+  // path and the path has not changed.
+  client.getDeduplicator()?.detachByPath?.(path);
+
+  const cache = resolveCache(client);
+  if (cache) {
+    cache.deleteByPath(path);
+    const log = writeLogFor(cache);
+    log.generation += 1;
+    log.recent.push({ generation: log.generation, path });
+    if (log.recent.length > RECENT_WRITES) log.recent.shift();
+  }
+}

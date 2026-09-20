@@ -1,71 +1,394 @@
 {
   "name": "@lgriffin/esi.ts",
-  "version": "2.1.0",
+  "version": "10.2.1",
   "description": "This is a TypeScript Implementation for the EVE Online API offered through ESI",
-  "main": "dist/EsiClient.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./schemas": {
+      "import": {
+        "types": "./dist/schemas/index.d.mts",
+        "default": "./dist/schemas/index.mjs"
+      },
+      "require": {
+        "types": "./dist/schemas/index.d.ts",
+        "default": "./dist/schemas/index.js"
+      }
+    },
+    "./errors": {
+      "import": {
+        "types": "./dist/errors.d.mts",
+        "default": "./dist/errors.mjs"
+      },
+      "require": {
+        "types": "./dist/errors.d.ts",
+        "default": "./dist/errors.js"
+      }
+    },
+    "./testing": {
+      "import": {
+        "types": "./dist/testing/index.d.mts",
+        "default": "./dist/testing/index.mjs"
+      },
+      "require": {
+        "types": "./dist/testing/index.d.ts",
+        "default": "./dist/testing/index.js"
+      }
+    },
+    "./sde": {
+      "import": {
+        "types": "./dist/sde/index.d.mts",
+        "default": "./dist/sde/index.mjs"
+      },
+      "require": {
+        "types": "./dist/sde/index.d.ts",
+        "default": "./dist/sde/index.js"
+      }
+    },
+    "./sde/memory": {
+      "import": {
+        "types": "./dist/sde/memory.d.mts",
+        "default": "./dist/sde/memory.mjs"
+      },
+      "require": {
+        "types": "./dist/sde/memory.d.ts",
+        "default": "./dist/sde/memory.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
-    "build": "tsc",
-    "start": "ts-node demo/character-profile-demo.ts",
-    "dev": "ts-node demo/examples.ts",
-    "example": "ts-node demo/character-profile-demo.ts",
-    "universe-demo": "ts-node demo/universe-demo.ts",
-    "examples:flexible": "ts-node demo/flexible-examples.ts",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
+    "build": "tsup && tsc --emitDeclarationOnly && node scripts/esm-declarations.cjs",
+    "typecheck": "tsc --noEmit",
+    "help": "ts-node scripts/npm-help.ts",
+    "start": "ts-node examples/character-profile.ts",
+    "example": "ts-node examples/character-profile.ts",
+    "example:status": "ts-node examples/status.ts",
+    "example:character": "ts-node examples/character-lookup.ts",
+    "example:universe": "ts-node examples/universe-info.ts",
+    "example:market": "ts-node examples/market-prices.ts",
+    "example:alliance": "ts-node examples/alliance-info.ts",
+    "example:route": "ts-node examples/route-planner.ts",
+    "example:wars": "ts-node examples/wars.ts",
+    "example:sovereignty": "ts-node examples/sovereignty.ts",
+    "example:skyhooks": "ts-node examples/skyhooks.ts",
+    "example:mercenary": "ts-node examples/mercenary.ts",
+    "example:access-lists": "ts-node examples/access-lists.ts",
+    "example:cosmetics": "ts-node examples/cosmetics.ts",
+    "example:paragon-hub": "ts-node examples/paragon-hub.ts",
+    "example:industry": "ts-node examples/industry.ts",
+    "example:incursions": "ts-node examples/incursions.ts",
+    "example:dogma": "ts-node examples/dogma.ts",
+    "example:wallet": "ts-node examples/wallet-overview.ts",
+    "example:skills": "ts-node examples/skills-overview.ts",
+    "example:assets": "ts-node examples/assets-inventory.ts",
+    "example:contracts": "ts-node examples/contracts-browser.ts",
+    "example:killmails": "ts-node examples/killmails.ts",
+    "example:fleet": "ts-node examples/fleet-operations.ts",
+    "example:mail": "ts-node examples/mail-inbox.ts",
+    "example:location": "ts-node examples/location-tracker.ts",
+    "example:fittings": "ts-node examples/fittings-clones.ts",
+    "example:contacts": "ts-node examples/contacts.ts",
+    "example:rate-limiting": "ts-node examples/rate-limiting.ts",
+    "example:cursor-pagination": "ts-node examples/cursor-pagination.ts",
+    "example:token-refresh": "ts-node examples/token-refresh.ts",
+    "example:token-manager": "ts-node examples/token-manager.ts",
+    "example:retry-timeout-metadata": "ts-node examples/retry-timeout-metadata.ts",
+    "example:streaming": "ts-node examples/streaming-pagination.ts",
+    "example:character-details": "ts-node examples/character-details.ts",
+    "example:corporation-details": "ts-node examples/corporation-details.ts",
+    "example:calendar-search": "ts-node examples/calendar-search.ts",
+    "example:loyalty-pi": "ts-node examples/loyalty-pi.ts",
+    "example:faction-details": "ts-node examples/faction-warfare-details.ts",
+    "example:industry-mining": "ts-node examples/industry-mining.ts",
+    "example:market-orders": "ts-node examples/market-orders.ts",
+    "example:universe-encyclopedia": "ts-node examples/universe-encyclopedia.ts",
+    "example:corp-contracts-wallet": "ts-node examples/corp-contracts-wallet.ts",
+    "example:dogma-meta-sov": "ts-node examples/dogma-meta-sov.ts",
+    "example:universe-posts": "ts-node examples/universe-post-helpers.ts",
+    "example:corporation-projects": "ts-node examples/corporation-projects.ts",
+    "example:freelance-jobs": "ts-node examples/freelance-jobs.ts",
+    "example:military-campaigns": "ts-node examples/military-campaigns.ts",
+    "example:sde-basic": "ts-node examples/sde-basic-lookup.ts",
+    "example:sde-fitting": "ts-node examples/sde-fitting.ts",
+    "example:sde-industry": "ts-node examples/sde-industry.ts",
+    "example:sde-market-tree": "ts-node examples/sde-market-tree.ts",
+    "sde:ingest": "ts-node scripts/sde-ingest.ts",
+    "example:write-ops": "ts-node examples/write-operations.ts",
+    "token:create": "ts-node scripts/create-token.ts",
+    "token:refresh": "ts-node scripts/refresh-token.ts",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "lint:bdd-seam": "eslint --config eslint.bdd-seam.config.mjs tests/bdd",
+    "lint:determinism": "ts-node scripts/determinism-lint.ts",
+    "lint:suite-health": "eslint --config eslint.suite-health.config.mjs tests",
+    "lint:workflows": "ts-node scripts/workflow-lint.ts",
+    "lint:package": "ts-node scripts/package-lint.ts",
+    "size": "size-limit",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "jest --config jest.unit.config.cjs",
     "test:watch": "jest --config jest.unit.config.cjs --watch",
-    "test:improved": "jest --config jest.unit.config.cjs --testPathPattern=improved",
-    "bdd": "jest --config jest.unit.config.cjs --testPathPattern=bdd-",
-    "bdd:alliance": "jest --config jest.unit.config.cjs --testPathPattern=bdd-alliance",
-    "bdd:character": "jest --config jest.unit.config.cjs --testPathPattern=bdd-character",
-    "bdd:corporation": "jest --config jest.unit.config.cjs --testPathPattern=bdd-corporation",
-    "bdd:market": "jest --config jest.unit.config.cjs --testPathPattern=bdd-market",
-    "bdd:universe": "jest --config jest.unit.config.cjs --testPathPattern=bdd-universe",
-    "bdd:integration": "jest --config jest.unit.config.cjs --testPathPattern=bdd-integration",
-    "bdd:performance": "jest --config jest.unit.config.cjs --testPathPattern=bdd-performance",
+    "bdd": "jest --config jest.unit.config.cjs --testPathPatterns=tests/bdd/",
+    "bdd:steps": "jest --config jest.unit.config.cjs --testPathPatterns=step-library",
+    "bdd:alliance": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0001-alliance",
+    "bdd:assets": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/assets",
+    "bdd:calendar": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/calendar",
+    "bdd:character": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/character",
+    "bdd:clones": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0007-clones",
+    "bdd:contacts": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/contacts",
+    "bdd:contracts": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/contracts",
+    "bdd:corporation": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/corporation",
+    "bdd:corporation-projects": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0004-corporation-projects",
+    "bdd:dogma": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0011-dogma",
+    "bdd:etag-caching": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/etag-caching",
+    "bdd:factions": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/factions",
+    "bdd:fittings": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/fittings",
+    "bdd:fleets": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/fleets",
+    "bdd:freelance": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/freelance",
+    "bdd:incursions": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/incursions",
+    "bdd:industry": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/industry",
+    "bdd:insurance": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0018-insurance",
+    "bdd:killmails": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0019-killmails",
+    "bdd:location": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/location",
+    "bdd:loyalty": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/loyalty",
+    "bdd:mail": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0022-mail",
+    "bdd:market": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0023-market",
+    "bdd:meta": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0025-meta",
+    "bdd:pi": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/pi",
+    "bdd:route": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0029-route",
+    "bdd:search": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/search",
+    "bdd:skills": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/skills",
+    "bdd:skyhooks": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/skyhooks",
+    "bdd:sovereignty": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/sovereignty",
+    "bdd:mercenary": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/mercenary",
+    "bdd:military-campaigns": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/military-campaigns",
+    "bdd:access-lists": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0039-access-lists",
+    "bdd:sde": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/sde",
+    "bdd:status": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/status",
+    "bdd:resilience": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/resilience",
+    "bdd:ui": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/ui",
+    "bdd:universe": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0036-universe",
+    "bdd:wallet": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0037-wallet",
+    "bdd:wars": "jest --config jest.unit.config.cjs --testPathPatterns=specs/core/0038-wars",
+    "bdd:token-management": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/core/token-management",
+    "bdd:integration": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/integration",
+    "bdd:performance": "jest --config jest.unit.config.cjs --testPathPatterns=step-definitions/performance",
     "coverage": "jest --config jest.unit.config.cjs --coverage",
-    "test:all": "npm run test && npm run test:improved && npm run bdd",
+    "test:integration": "jest --config jest.integration.config.cjs",
+    "test:integration:live": "jest --config jest.integration.live.config.cjs",
+    "test:integration:gated": "node --env-file=.env -e \"require('child_process').execSync('npx jest --config jest.integration.config.cjs --testPathPatterns=gated-auth',{stdio:'inherit',env:Object.assign({},process.env,{ESI_GATED_TESTS:'true'})})\"",
+    "test:all": "npm run test && npm run bdd && npm run test:integration && npm run fuzz && npm run test:types",
+    "contract": "jest --config jest.contract.config.cjs",
+    "contract:live": "jest --config jest.contract.live.config.cjs",
+    "contract:snapshot": "ts-node scripts/snapshot-openapi.ts",
+    "contract:record": "ts-node tests/contract/record.ts",
+    "contract:replay": "jest --config jest.contract.replay.config.cjs",
+    "contract:shape-diff": "ts-node tests/contract/shape-diff.ts",
+    "contract:diff": "docker run --rm -v ./tests/contract/snapshots:/specs tufin/oasdiff breaking /specs/esi-openapi.snapshot.json https://esi.evetech.net/meta/openapi.json",
+    "benchmark": "ts-node scripts/bench-ab.ts --head .",
+    "bench:ab": "ts-node scripts/bench-ab.ts",
+    "bench:compare": "ts-node scripts/bench-compare.ts",
+    "bench:trend": "ts-node scripts/bench-trend.ts",
+    "soak": "node --expose-gc -r ts-node/register/transpile-only scripts/soak.ts",
+    "fuzz": "jest --config jest.fuzz.config.cjs",
+    "fuzz:properties": "jest --config jest.fuzz.config.cjs --testPathPatterns=property.test",
+    "fuzz:api": "bash scripts/run-schemathesis.sh",
+    "faults": "jest --config jest.faults.config.cjs",
+    "faults:nightly": "jest --config jest.faults.nightly.config.cjs",
+    "mock:esi": "prism mock https://esi.evetech.net/meta/openapi.json -p 4010",
+    "test:types": "tsd --files 'tests/typetests/*.test-d.ts'",
+    "test:export-coverage": "ts-node scripts/export-coverage.ts",
+    "test:type-mutation": "ts-node scripts/type-mutation.ts",
+    "test:consumer": "ts-node scripts/consumer-contract.ts",
+    "test:docs-examples": "ts-node scripts/doc-examples.ts",
+    "generate:types": "ts-node scripts/generate-esi-types.ts",
+    "generate:okf": "ts-node scripts/generate-okf.ts",
+    "generate:endpoints": "ts-node scripts/generate-endpoint-scaffold.ts",
+    "generate:all": "npm run generate:types && npm run generate:okf && npm run contract:snapshot && npm run schema:drift && npm run validate:esi",
+    "knip": "knip",
+    "validate:esi": "ts-node scripts/validate-esi-endpoints.ts",
+    "validate:auth-scopes": "ts-node scripts/validate-auth-scopes.ts",
+    "validate:spec": "redocly lint",
+    "validate": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code",
+    "release:canary": "ts-node scripts/release-canary.ts",
+    "release:sbom": "ts-node scripts/release-sbom.ts",
+    "validate:versions": "ts-node scripts/validate-versions.ts",
+    "spec:audit": "ts-node scripts/spec-audit.ts",
+    "spec:audit:verbose": "ts-node scripts/spec-audit.ts --verbose",
+    "bdd:report": "ts-node scripts/bdd-report.ts",
+    "validate:spec-consistency": "ts-node scripts/rule-schema-check.ts",
+    "check:local": "ts-node scripts/verify-local.ts",
+    "check:local:fast": "ts-node scripts/verify-local.ts --fast",
+    "check:local:all": "ts-node scripts/verify-local.ts --all",
+    "check:all": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code && npm run validate:esi && npm run validate:spec && npm run validate:versions && npm run spec:audit && npm run validate:spec-consistency",
     "docs": "typedoc --options typedoc.json",
     "docs:watch": "typedoc --options typedoc.json --watch",
-    "docs:serve": "npx http-server docs -p 8080 -o",
-    "clean": "rimraf dist coverage docs",
-    "clean:docs": "rimraf docs",
-    "prepare": "npm run build",
-    "health-check": "ts-node -e \"import('./src/EsiClient').then(({EsiClient}) => new EsiClient().healthCheck().then(console.log))\""
+    "docs:serve": "npx http-server docs-site/public/api -p 8080 -o",
+    "clean": "rm -rf dist coverage docs-site/public/api",
+    "clean:docs": "rm -rf docs-site/public/api",
+    "prepare": "husky && npm run build",
+    "health-check": "ts-node -e \"import('./src/EsiClient').then(({EsiClient}) => new EsiClient().healthCheck().then(console.log))\"",
+    "mutation": "stryker run",
+    "mutation:report": "stryker run --reporters html,clear-text",
+    "mutation:bdd": "stryker run stryker.bdd.config.mjs",
+    "mutation:bdd:merge": "ts-node scripts/mutation-merge.ts",
+    "mutation:unit:merge": "ts-node scripts/mutation-merge.ts --shards mutation-unit-shards.json --shard-dir reports/mutation/shards --out reports/mutation/mutation.json",
+    "mutation:bdd:ratchet": "ts-node scripts/mutation-ratchet.ts",
+    "mutation:ratchet": "ts-node scripts/mutation-ratchet.ts --suite unit",
+    "mutation:pr": "ts-node scripts/mutation-pr.ts",
+    "mutation:pr:shard": "ts-node scripts/mutation-pr.ts --baseline-shard",
+    "mutation:pr:gate": "ts-node scripts/mutation-pr-gate.ts",
+    "mutation:fixture": "ts-node scripts/mutation-fixture.ts",
+    "api-report": "api-extractor run --local --verbose",
+    "api-report:check": "api-extractor run --verbose",
+    "api-report:semver": "ts-node scripts/api-semver-gate.ts",
+    "schema:drift": "ts-node scripts/generate-schema-drift-report.ts",
+    "schema:drift:ci": "ts-node scripts/generate-schema-drift-report.ts --ci",
+    "audit:check": "ts-node scripts/audit-check.ts --check",
+    "audit:diff": "ts-node scripts/audit-check.ts --diff"
   },
-  "keywords": [],
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "tests/**/*.ts": [
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "keywords": [
+    "eve-online",
+    "esi",
+    "api-client",
+    "typescript",
+    "eve",
+    "caching",
+    "rate-limiting",
+    "mmo"
+  ],
   "author": "lgriffin",
   "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/lgriffin/ESI.ts#readme",
+  "bugs": {
+    "url": "https://github.com/lgriffin/ESI.ts/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/lgriffin/ESI.ts"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.20",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^20.19.17",
-    "@types/winston": "^2.4.4",
-    "@types/winston-loggly-bulk": "^3.0.6",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "chai": "^5.3.3",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "jest": "^29.7.0",
-    "jest-fetch-mock": "^3.0.3",
-    "jest-junit": "^16.0.0",
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.1.0",
+    "@cucumber/gherkin": "^42.0.1",
+    "@cucumber/messages": "^34.2.1",
+    "@microsoft/api-extractor": "^7.58.9",
+    "@redocly/cli": "^2.48.0",
+    "@size-limit/esbuild": "^12.1.0",
+    "@size-limit/file": "^12.1.0",
+    "@stoplight/prism-cli": "^5.14.2",
+    "@stryker-mutator/core": "^10.0.0",
+    "@stryker-mutator/jest-runner": "^10.0.0",
+    "@stryker-mutator/typescript-checker": "^10.0.0",
+    "@types/adm-zip": "^0.5.8",
+    "@types/jest": "^30.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^26.3.0",
+    "adm-zip": "^0.6.0",
+    "better-sqlite3": "^11.0.0",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.9.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jest": "^29.16.6",
+    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-sonarjs": "^4.0.3",
+    "fast-check": "^4.8.0",
+    "husky": "^9.1.7",
+    "jest": "^30.4.2",
+    "jest-cucumber": "^4.5.0",
+    "jest-fetch-mock": "^4.2.0",
+    "jest-junit": "^17.0.0",
+    "js-yaml": "^5.4.0",
+    "knip": "^6.6.1",
+    "lint-staged": "^17.0.8",
+    "mitata": "^1.0.34",
     "prettier": "^3.3.2",
-    "ts-jest": "^29.2.2",
+    "publint": "^0.3.24",
+    "size-limit": "^12.1.0",
+    "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.26.10",
-    "typescript": "^5.9.2"
+    "tsd": "^0.33.0",
+    "tsup": "^8.5.1",
+    "typedoc": "^0.28.18",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.68.0",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "adm-zip": ">=0.4.11",
+    "better-sqlite3": ">=9.0.0",
+    "js-yaml": ">=3.13.1"
+  },
+  "peerDependenciesMeta": {
+    "adm-zip": {
+      "optional": true
+    },
+    "better-sqlite3": {
+      "optional": true
+    },
+    "js-yaml": {
+      "optional": true
+    }
   },
   "dependencies": {
-    "axios": "^1.7.2",
-    "winston": "^3.13.0",
-    "winston-loggly-bulk": "^3.2.1",
-    "winston-transport": "^4.7.0"
+    "pino": "^9.6.0",
+    "zod": "^4.0.0"
+  },
+  "overrides": {
+    "lodash": "4.18.1",
+    "fast-xml-parser": ">=5.7.0",
+    "qs": ">=6.16.0",
+    "brace-expansion": ">=5.0.8",
+    "esbuild": "$esbuild",
+    "uuid": "~11.1.1",
+    "@faker-js/faker": ">=10.5.0",
+    "fast-uri": "^3.1.6",
+    "cosmiconfig": {
+      "js-yaml": "^4.3.2"
+    },
+    "json-schema-ref-parser": {
+      "js-yaml": "^3.15.2"
+    },
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "^3.15.2"
+    }
   }
 }

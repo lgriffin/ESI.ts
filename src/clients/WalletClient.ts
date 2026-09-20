@@ -1,49 +1,179 @@
-import { GetCharacterWalletApi } from '../api/wallet/getCharacterWallet';
-import { GetCharacterWalletJournalApi } from '../api/wallet/getCharacterWalletJournal';
-import { GetCharacterWalletTransactionsApi } from '../api/wallet/getCharacterWalletTransactions';
-import { GetCorporationWalletsApi } from '../api/wallet/getCorporationWallets';
-import { GetCorporationWalletJournalApi } from '../api/wallet/getCorporationWalletJournal';
-import { GetCorporationWalletTransactionsApi } from '../api/wallet/getCorporationWalletTransactions';
 import { ApiClient } from '../core/ApiClient';
+import { BaseEsiClient } from './BaseEsiClient';
+import { walletEndpoints } from '../core/endpoints/walletEndpoints';
+import {
+  CorporationWalletTransaction,
+  WalletJournal,
+  WalletTransaction,
+} from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class WalletClient {
-    private getCharacterWalletApi: GetCharacterWalletApi;
-    private getCharacterWalletJournalApi: GetCharacterWalletJournalApi;
-    private getCharacterWalletTransactionsApi: GetCharacterWalletTransactionsApi;
-    private getCorporationWalletsApi: GetCorporationWalletsApi;
-    private getCorporationWalletJournalApi: GetCorporationWalletJournalApi;
-    private getCorporationWalletTransactionsApi: GetCorporationWalletTransactionsApi;
+export class WalletClient extends BaseEsiClient<typeof walletEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, walletEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCharacterWalletApi = new GetCharacterWalletApi(client);
-        this.getCharacterWalletJournalApi = new GetCharacterWalletJournalApi(client);
-        this.getCharacterWalletTransactionsApi = new GetCharacterWalletTransactionsApi(client);
-        this.getCorporationWalletsApi = new GetCorporationWalletsApi(client);
-        this.getCorporationWalletJournalApi = new GetCorporationWalletJournalApi(client);
-        this.getCorporationWalletTransactionsApi = new GetCorporationWalletTransactionsApi(client);
-    }
+  /**
+   * Retrieves the current ISK balance of a character's wallet.
+   *
+   * @param characterId - The ID of the character
+   * @returns The character's wallet balance in ISK
+   * @requires Authentication
+   */
+  getCharacterWallet(characterId: number): Promise<number> {
+    return this.api.getCharacterWallet(characterId);
+  }
 
-    async getCharacterWallet(characterId: number): Promise<any> {
-        return await this.getCharacterWalletApi.getCharacterWallet(characterId);
-    }
+  /**
+   * Retrieves the wallet journal entries for a character, showing ISK transactions and their reasons.
+   *
+   * @param characterId - The ID of the character
+   * @returns A list of wallet journal entries
+   * @requires Authentication
+   */
+  getCharacterWalletJournal(characterId: number): Promise<WalletJournal[]> {
+    return this.api.getCharacterWalletJournal(characterId);
+  }
 
-    async getCharacterWalletJournal(characterId: number): Promise<any> {
-        return await this.getCharacterWalletJournalApi.getCharacterWalletJournal(characterId);
-    }
+  /**
+   * Retrieves the market transaction history for a character's wallet.
+   *
+   * @param characterId - The ID of the character
+   * @returns A list of market buy and sell transactions
+   * @requires Authentication
+   */
+  getCharacterWalletTransactions(
+    characterId: number,
+  ): Promise<WalletTransaction[]> {
+    return this.api.getCharacterWalletTransactions(characterId);
+  }
 
-    async getCharacterWalletTransactions(characterId: number): Promise<any> {
-        return await this.getCharacterWalletTransactionsApi.getCharacterWalletTransactions(characterId);
-    }
+  /**
+   * Retrieves the balances for all wallet divisions of a corporation.
+   *
+   * @param corporationId - The ID of the corporation
+   * @returns A list of wallet divisions with their balances
+   * @requires Authentication
+   */
+  getCorporationWallets(
+    corporationId: number,
+  ): Promise<{ division: number; balance: number }[]> {
+    return this.api.getCorporationWallets(corporationId);
+  }
 
-    async getCorporationWallets(corporationId: number): Promise<any> {
-        return await this.getCorporationWalletsApi.getCorporationWallets(corporationId);
-    }
+  /**
+   * Retrieves the wallet journal entries for a specific division of a corporation wallet.
+   *
+   * @param corporationId - The ID of the corporation
+   * @param division - The wallet division number (1-7)
+   * @returns A list of wallet journal entries for the specified division
+   * @requires Authentication
+   */
+  getCorporationWalletJournal(
+    corporationId: number,
+    division: number,
+  ): Promise<WalletJournal[]> {
+    return this.api.getCorporationWalletJournal(corporationId, division);
+  }
 
-    async getCorporationWalletJournal(corporationId: number, division: number): Promise<any> {
-        return await this.getCorporationWalletJournalApi.getCorporationWalletJournal(corporationId, division);
-    }
+  /**
+   * Retrieves the market transaction history for a specific division of a corporation wallet.
+   *
+   * @param corporationId - The ID of the corporation
+   * @param division - The wallet division number (1-7)
+   * @returns A list of market buy and sell transactions for the specified division
+   * @requires Authentication
+   */
+  getCorporationWalletTransactions(
+    corporationId: number,
+    division: number,
+  ): Promise<CorporationWalletTransaction[]> {
+    return this.api.getCorporationWalletTransactions(corporationId, division);
+  }
 
-    async getCorporationWalletTransactions(corporationId: number, division: number): Promise<any> {
-        return await this.getCorporationWalletTransactionsApi.getCorporationWalletTransactions(corporationId, division);
-    }
+  fetchAllCharacterWalletJournal(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<WalletJournal[]> {
+    return this.fetchAllEndpoint<WalletJournal>(
+      'getCharacterWalletJournal',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationWalletJournal(
+    corporationId: number,
+    division: number,
+    concurrency?: number,
+  ): Promise<WalletJournal[]> {
+    return this.fetchAllEndpoint<WalletJournal>(
+      'getCorporationWalletJournal',
+      [corporationId, division],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterWalletTransactions(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<WalletTransaction[]> {
+    return this.fetchAllEndpoint<WalletTransaction>(
+      'getCharacterWalletTransactions',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationWalletTransactions(
+    corporationId: number,
+    division: number,
+    concurrency?: number,
+  ): Promise<CorporationWalletTransaction[]> {
+    return this.fetchAllEndpoint<CorporationWalletTransaction>(
+      'getCorporationWalletTransactions',
+      [corporationId, division],
+      concurrency,
+    );
+  }
+
+  streamCharacterWalletJournal(
+    characterId: number,
+  ): AsyncGenerator<PageResult<WalletJournal>, void, undefined> {
+    return this.streamEndpoint<WalletJournal>(
+      'getCharacterWalletJournal',
+      characterId,
+    );
+  }
+
+  streamCorporationWalletJournal(
+    corporationId: number,
+    division: number,
+  ): AsyncGenerator<PageResult<WalletJournal>, void, undefined> {
+    return this.streamEndpoint<WalletJournal>(
+      'getCorporationWalletJournal',
+      corporationId,
+      division,
+    );
+  }
+
+  streamCharacterWalletTransactions(
+    characterId: number,
+  ): AsyncGenerator<PageResult<WalletTransaction>, void, undefined> {
+    return this.streamEndpoint<WalletTransaction>(
+      'getCharacterWalletTransactions',
+      characterId,
+    );
+  }
+
+  streamCorporationWalletTransactions(
+    corporationId: number,
+    division: number,
+  ): AsyncGenerator<PageResult<CorporationWalletTransaction>, void, undefined> {
+    return this.streamEndpoint<CorporationWalletTransaction>(
+      'getCorporationWalletTransactions',
+      corporationId,
+      division,
+    );
+  }
 }

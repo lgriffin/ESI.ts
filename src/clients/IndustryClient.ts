@@ -1,63 +1,271 @@
-import { GetCharacterIndustryJobsApi } from '../api/industry/getCharacterIndustryJobs';
-import { GetCharacterMiningLedgerApi } from '../api/industry/getCharacterMiningLedger';
-import { GetMoonExtractionTimersApi } from '../api/industry/getMoonExtractionTimers';
-import { GetCorporationMiningObserversApi } from '../api/industry/getCorporationMiningObservers';
-import { GetCorporationMiningObserverApi } from '../api/industry/getCorporationMiningObserver';
-import { GetCorporationIndustryJobsApi } from '../api/industry/getCorporationIndustryJobs';
-import { GetIndustryFacilitiesApi } from '../api/industry/getIndustryFacilities';
-import { GetIndustrySystemsApi } from '../api/industry/getIndustrySystems';
 import { ApiClient } from '../core/ApiClient';
+import { BaseEsiClient } from './BaseEsiClient';
+import { industryEndpoints } from '../core/endpoints/industryEndpoints';
+import {
+  IndustryJob,
+  CorporationIndustryJob,
+  MiningLedgerEntry,
+  IndustryFacility,
+  IndustrySystem,
+  MoonExtractionTimer,
+  MiningObserver,
+  MiningObserverEntry,
+} from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class IndustryClient {
-    private getCharacterIndustryJobsApi: GetCharacterIndustryJobsApi;
-    private getCharacterMiningLedgerApi: GetCharacterMiningLedgerApi;
-    private getMoonExtractionTimersApi: GetMoonExtractionTimersApi;
-    private getCorporationMiningObserversApi: GetCorporationMiningObserversApi;
-    private getCorporationMiningObserverApi: GetCorporationMiningObserverApi;
-    private getCorporationIndustryJobsApi: GetCorporationIndustryJobsApi;
-    private getIndustryFacilitiesApi: GetIndustryFacilitiesApi;
-    private getIndustrySystemsApi: GetIndustrySystemsApi;
+export class IndustryClient extends BaseEsiClient<typeof industryEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, industryEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCharacterIndustryJobsApi = new GetCharacterIndustryJobsApi(client);
-        this.getCharacterMiningLedgerApi = new GetCharacterMiningLedgerApi(client);
-        this.getMoonExtractionTimersApi = new GetMoonExtractionTimersApi(client);
-        this.getCorporationMiningObserversApi = new GetCorporationMiningObserversApi(client);
-        this.getCorporationMiningObserverApi = new GetCorporationMiningObserverApi(client);
-        this.getCorporationIndustryJobsApi = new GetCorporationIndustryJobsApi(client);
-        this.getIndustryFacilitiesApi = new GetIndustryFacilitiesApi(client);
-        this.getIndustrySystemsApi = new GetIndustrySystemsApi(client);
-    }
+  /**
+   * Retrieves all industry jobs for a character, including manufacturing, research, and invention.
+   *
+   * @param characterId - The ID of the character
+   * @returns An array of the character's industry jobs
+   * @requires Authentication
+   */
+  getCharacterIndustryJobs(characterId: number): Promise<IndustryJob[]> {
+    return this.api.getCharacterIndustryJobs(characterId);
+  }
 
-    async getCharacterIndustryJobs(characterId: number): Promise<any> {
-        return await this.getCharacterIndustryJobsApi.getCharacterIndustryJobs(characterId);
-    }
+  /**
+   * Retrieves a character's personal mining ledger, showing ore mined per day.
+   *
+   * @param characterId - The ID of the character
+   * @returns An array of mining ledger entries
+   * @requires Authentication
+   */
+  getCharacterMiningLedger(characterId: number): Promise<MiningLedgerEntry[]> {
+    return this.api.getCharacterMiningLedger(characterId);
+  }
 
-    async getCharacterMiningLedger(characterId: number): Promise<any> {
-        return await this.getCharacterMiningLedgerApi.getCharacterMiningLedger(characterId);
-    }
+  /**
+   * Retrieves moon extraction timers for a corporation's refineries.
+   *
+   * @param corporationId - The ID of the corporation
+   * @returns An array of moon extraction timers
+   * @requires Authentication
+   */
+  getMoonExtractionTimers(
+    corporationId: number,
+  ): Promise<MoonExtractionTimer[]> {
+    return this.api.getMoonExtractionTimers(corporationId);
+  }
 
-    async getMoonExtractionTimers(corporationId: number): Promise<any> {
-        return await this.getMoonExtractionTimersApi.getMoonExtractionTimers(corporationId);
-    }
+  /**
+   * Retrieves the list of mining observers (e.g., refineries) owned by a corporation.
+   *
+   * @param corporationId - The ID of the corporation
+   * @returns An array of mining observers
+   * @requires Authentication
+   */
+  getCorporationMiningObservers(
+    corporationId: number,
+  ): Promise<MiningObserver[]> {
+    return this.api.getCorporationMiningObservers(corporationId);
+  }
 
-    async getCorporationMiningObservers(corporationId: number): Promise<any> {
-        return await this.getCorporationMiningObserversApi.getCorporationMiningObservers(corporationId);
-    }
+  /**
+   * Retrieves mining activity recorded by a specific corporation mining observer.
+   *
+   * @param corporationId - The ID of the corporation
+   * @param observerId - The ID of the mining observer
+   * @returns An array of mining activity entries for the observer
+   * @requires Authentication
+   */
+  getCorporationMiningObserver(
+    corporationId: number,
+    observerId: number,
+  ): Promise<MiningObserverEntry[]> {
+    return this.api.getCorporationMiningObserver(corporationId, observerId);
+  }
 
-    async getCorporationMiningObserver(corporationId: number, observerId: number): Promise<any> {
-        return await this.getCorporationMiningObserverApi.getCorporationMiningObserver(corporationId, observerId);
-    }
+  /**
+   * Retrieves all industry jobs for a corporation, including manufacturing, research, and invention.
+   *
+   * @param corporationId - The ID of the corporation
+   * @returns An array of the corporation's industry jobs
+   * @requires Authentication
+   */
+  getCorporationIndustryJobs(
+    corporationId: number,
+  ): Promise<CorporationIndustryJob[]> {
+    return this.api.getCorporationIndustryJobs(corporationId);
+  }
 
-    async getCorporationIndustryJobs(corporationId: number): Promise<any> {
-        return await this.getCorporationIndustryJobsApi.getCorporationIndustryJobs(corporationId);
-    }
+  /**
+   * Retrieves a list of all publicly available industry facilities in the universe.
+   *
+   * @returns An array of industry facilities
+   */
+  getIndustryFacilities(): Promise<IndustryFacility[]> {
+    return this.api.getIndustryFacilities();
+  }
 
-    async getIndustryFacilities(): Promise<any> {
-        return await this.getIndustryFacilitiesApi.getIndustryFacilities();
-    }
+  /**
+   * Retrieves cost indices for solar systems with industry activity, used to calculate job installation fees.
+   *
+   * @returns An array of industry system cost indices
+   */
+  getIndustrySystems(): Promise<IndustrySystem[]> {
+    return this.api.getIndustrySystems();
+  }
 
-    async getIndustrySystems(): Promise<any> {
-        return await this.getIndustrySystemsApi.getIndustrySystems();
-    }
+  fetchAllCharacterIndustryJobs(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<IndustryJob[]> {
+    return this.fetchAllEndpoint<IndustryJob>(
+      'getCharacterIndustryJobs',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterMiningLedger(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<MiningLedgerEntry[]> {
+    return this.fetchAllEndpoint<MiningLedgerEntry>(
+      'getCharacterMiningLedger',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationIndustryJobs(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationIndustryJob[]> {
+    return this.fetchAllEndpoint<CorporationIndustryJob>(
+      'getCorporationIndustryJobs',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllMoonExtractionTimers(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<MoonExtractionTimer[]> {
+    return this.fetchAllEndpoint<MoonExtractionTimer>(
+      'getMoonExtractionTimers',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMiningObservers(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<MiningObserver[]> {
+    return this.fetchAllEndpoint<MiningObserver>(
+      'getCorporationMiningObservers',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMiningObserver(
+    corporationId: number,
+    observerId: number,
+    concurrency?: number,
+  ): Promise<MiningObserverEntry[]> {
+    return this.fetchAllEndpoint<MiningObserverEntry>(
+      'getCorporationMiningObserver',
+      [corporationId, observerId],
+      concurrency,
+    );
+  }
+
+  fetchAllIndustryFacilities(
+    concurrency?: number,
+  ): Promise<IndustryFacility[]> {
+    return this.fetchAllEndpoint<IndustryFacility>(
+      'getIndustryFacilities',
+      [],
+      concurrency,
+    );
+  }
+
+  fetchAllIndustrySystems(concurrency?: number): Promise<IndustrySystem[]> {
+    return this.fetchAllEndpoint<IndustrySystem>(
+      'getIndustrySystems',
+      [],
+      concurrency,
+    );
+  }
+
+  streamCharacterIndustryJobs(
+    characterId: number,
+  ): AsyncGenerator<PageResult<IndustryJob>, void, undefined> {
+    return this.streamEndpoint<IndustryJob>(
+      'getCharacterIndustryJobs',
+      characterId,
+    );
+  }
+
+  streamCharacterMiningLedger(
+    characterId: number,
+  ): AsyncGenerator<PageResult<MiningLedgerEntry>, void, undefined> {
+    return this.streamEndpoint<MiningLedgerEntry>(
+      'getCharacterMiningLedger',
+      characterId,
+    );
+  }
+
+  streamCorporationIndustryJobs(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationIndustryJob>, void, undefined> {
+    return this.streamEndpoint<CorporationIndustryJob>(
+      'getCorporationIndustryJobs',
+      corporationId,
+    );
+  }
+
+  streamMoonExtractionTimers(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<MoonExtractionTimer>, void, undefined> {
+    return this.streamEndpoint<MoonExtractionTimer>(
+      'getMoonExtractionTimers',
+      corporationId,
+    );
+  }
+
+  streamCorporationMiningObservers(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<MiningObserver>, void, undefined> {
+    return this.streamEndpoint<MiningObserver>(
+      'getCorporationMiningObservers',
+      corporationId,
+    );
+  }
+
+  streamCorporationMiningObserver(
+    corporationId: number,
+    observerId: number,
+  ): AsyncGenerator<PageResult<MiningObserverEntry>, void, undefined> {
+    return this.streamEndpoint<MiningObserverEntry>(
+      'getCorporationMiningObserver',
+      corporationId,
+      observerId,
+    );
+  }
+
+  streamIndustryFacilities(): AsyncGenerator<
+    PageResult<IndustryFacility>,
+    void,
+    undefined
+  > {
+    return this.streamEndpoint<IndustryFacility>('getIndustryFacilities');
+  }
+
+  streamIndustrySystems(): AsyncGenerator<
+    PageResult<IndustrySystem>,
+    void,
+    undefined
+  > {
+    return this.streamEndpoint<IndustrySystem>('getIndustrySystems');
+  }
 }

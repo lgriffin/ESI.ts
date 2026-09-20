@@ -1,0 +1,46 @@
+import { z } from 'zod';
+import { esiEnum } from './esiEnum';
+
+/** A calendar entry; ESI marks every field optional. */
+export const CalendarEventSchema = z.looseObject({
+  event_id: z.number().optional(),
+  event_date: z.string().optional(),
+  title: z.string().optional(),
+  importance: z.number().optional(),
+  event_response: esiEnum([
+    'declined',
+    'not_responded',
+    'accepted',
+    'tentative',
+  ]).optional(),
+});
+
+export const CalendarEventDetailSchema = z.looseObject({
+  event_id: z.number(),
+  date: z.string(),
+  title: z.string(),
+  text: z.string(),
+  owner_id: z.number(),
+  owner_name: z.string(),
+  owner_type: esiEnum([
+    'eve_server',
+    'corporation',
+    'faction',
+    'character',
+    'alliance',
+  ]),
+  duration: z.number(),
+  importance: z.number(),
+  response: z.string(),
+});
+
+/** An event attendee; ESI marks both fields optional. */
+export const CalendarEventAttendeeSchema = z.looseObject({
+  character_id: z.number().optional(),
+  event_response: esiEnum([
+    'declined',
+    'not_responded',
+    'accepted',
+    'tentative',
+  ]).optional(),
+});

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "project": ["src/**/*.ts"],
+  "ignoreDependencies": [
+    "jest-junit",
+    "lint-staged",
+    "@stryker-mutator/api",
+    "mitata",
+    "publint",
+    "esbuild"
+  ],
+  "ignore": ["src/types/generated/spec-alignment.check.ts"],
+  "ignoreExportsUsedInFile": true,
+  "ignoreMembers": ["HttpMethod"],
+  "exclude": ["unresolved"],
+  "eslint": { "entry": ["eslint.suite-health.rules.cjs"] }
+}

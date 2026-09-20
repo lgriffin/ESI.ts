@@ -1,0 +1,93 @@
+{
+  "endpoint": "universe.getFactions",
+  "call": {
+    "client": "universe",
+    "method": "getFactions",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 27,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 432,
+      "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 582,
+      "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 877,
+      "kept": 400
+    }
+  ],
+  "pages": [
+    {
+      "url": "universe/factions",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": [
+        {
+          "corporation_id": 1000084,
+          "description": "The largest of the five main empires, the Amarr Empire is a sprawling patch-work of feudal-like provinces held together by the might of the emperor. Religion has always played a big part in Amarrian politics and the Amarrians believe they are the rightful masters of the world, souring their relations with their neighbours. Another source of ill-feelings on part of the other empires is the fact tha",
+          "faction_id": 500003,
+          "is_unique": true,
+          "militia_corporation_id": 1000179,
+          "name": "Amarr Empire",
+          "size_factor": 5,
+          "solar_system_id": 30002187,
+          "station_count": 1041,
+          "station_system_count": 515
+        },
+        {
+          "corporation_id": 1000127,
+          "description": "Formed by two former members of the Caldari Navy, the pair go by the names Fatal and the Rabbit, the Guristas are a constant thorn in the side of the Caldari State. The Guristas are traditional pirates in the sense that their operation is not based around some creed or ideology, but rather a plain and simple greed. The Guristas have bases close to Caldari space and from them they embark on daring ",
+          "faction_id": 500010,
+          "is_unique": true,
+          "militia_corporation_id": 1000437,
+          "name": "Guristas Pirates",
+          "size_factor": 4,
+          "solar_system_id": 30001290,
+          "station_count": 9,
+          "station_system_count": 7
+        },
+        {
+          "corporation_id": 1000131,
+          "description": "The Society of Conscious Thought is three centuries old and was founded by a Jovian named Ior Labron, who was in search of spiritual enlightenment. The Society has since then taken many guises and been anything from a religious sect full of hermits to a political institute playing the power game. Today, the Society is mainly known for their scholastic achievements, their schools are widely regarde",
+          "faction_id": 500017,
+          "is_unique": true,
+          "name": "The Society of Conscious Thought",
+          "size_factor": 3,
+          "solar_system_id": 30002423,
+          "station_count": 138,
+          "station_system_count": 101
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+import { z } from 'zod';
+import { EndpointMap } from './EndpointDefinition';
+import {
+  MarketOrderSchema,
+  CharacterMarketOrderSchema,
+  CharacterMarketOrderHistorySchema,
+  CorporationMarketOrderSchema,
+  CorporationMarketOrderHistorySchema,
+  StructureMarketOrderSchema,
+  MarketHistorySchema,
+  MarketGroupSchema,
+  MarketPriceSchema,
+} from '../../schemas/market';
+
+export const marketEndpoints = {
+  getCharacterOrders: {
+    path: 'characters/{characterId}/orders/',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    responseSchema: z.array(CharacterMarketOrderSchema),
+  },
+  getCharacterOrderHistory: {
+    path: 'characters/{characterId}/orders/history/',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['characterId'],
+    responseSchema: z.array(CharacterMarketOrderHistorySchema),
+  },
+  getCorporationOrders: {
+    path: 'corporations/{corporationId}/orders/',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationMarketOrderSchema),
+  },
+  getCorporationOrderHistory: {
+    path: 'corporations/{corporationId}/orders/history/',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['corporationId'],
+    responseSchema: z.array(CorporationMarketOrderHistorySchema),
+  },
+  getMarketGroups: {
+    path: 'markets/groups/',
+    method: 'GET',
+    requiresAuth: false,
+    responseSchema: z.array(z.number()),
+  },
+  getMarketGroupInformation: {
+    path: 'markets/groups/{marketGroupId}/',
+    method: 'GET',
+    requiresAuth: false,
+    pathParams: ['marketGroupId'],
+    responseSchema: MarketGroupSchema,
+  },
+  getMarketPrices: {
+    path: 'markets/prices/',
+    method: 'GET',
+    requiresAuth: false,
+    responseSchema: z.array(MarketPriceSchema),
+  },
+  getMarketOrdersInStructure: {
+    path: 'markets/structures/{structureId}/',
+    method: 'GET',
+    requiresAuth: true,
+    pathParams: ['structureId'],
+    responseSchema: z.array(StructureMarketOrderSchema),
+  },
+  getMarketHistory: {
+    path: 'markets/{regionId}/history/',
+    method: 'GET',
+    requiresAuth: false,
+    pathParams: ['regionId'],
+    queryParams: { typeId: 'type_id' },
+    responseSchema: z.array(MarketHistorySchema),
+  },
+  getMarketOrders: {
+    path: 'markets/{regionId}/orders/',
+    method: 'GET',
+    requiresAuth: false,
+    pathParams: ['regionId'],
+    queryParams: { orderType: 'order_type' },
+    responseSchema: z.array(MarketOrderSchema),
+  },
+  getMarketTypes: {
+    path: 'markets/{regionId}/types/',
+    method: 'GET',
+    requiresAuth: false,
+    pathParams: ['regionId'],
+    responseSchema: z.array(z.number()),
+  },
+} as const satisfies EndpointMap;

@@ -1,0 +1,4 @@
+{
+  "description": "Known publint and attw findings on the packed tarball (npm run lint:package). Key: <tool>:<code> <where>. Value: the bead that tracks the fix. Shrink-only: a finding that stops occurring must be removed, and a pull request cannot add an entry master lacks. See scripts/package-lint-core.ts.",
+  "findings": {}
+}

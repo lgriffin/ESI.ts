@@ -1,0 +1,76 @@
+{
+  "endpoint": "universe.getRaces",
+  "call": {
+    "client": "universe",
+    "method": "getRaces",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 6,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 403,
+      "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 612,
+      "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$[].description",
+      "kind": "string",
+      "original": 551,
+      "kept": 400
+    }
+  ],
+  "pages": [
+    {
+      "url": "universe/races",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
+        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
+        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+      },
+      "body": [
+        {
+          "alliance_id": 500001,
+          "description": "Founded on the tenets of patriotism and hard work that carried its ancestors through hardships on an inhospitable homeworld, the Caldari State is today a corporate dictatorship, led by rulers who are determined to see it return to the meritocratic ideals of old. Ruthless and efficient in the boardroom as well as on the battlefield, the Caldari are living emblems of strength, persistence, and digni",
+          "name": "Caldari",
+          "race_id": 1
+        },
+        {
+          "alliance_id": 500002,
+          "description": "Once a thriving tribal civilization, the Minmatar were enslaved by the Amarr Empire for more than 700 years until a massive rebellion freed most, but not all, of those held in servitude. The Minmatar people today are resilient, ingenious, and hard-working. Many of them believe that democracy, though it has served them well for a long time, can never restore what was taken from them so long ago. Fo",
+          "name": "Minmatar",
+          "race_id": 2
+        },
+        {
+          "alliance_id": 500003,
+          "description": "The Amarr Empire is the largest and oldest of the four empires. Ruled by a mighty Empress, this vast theocratic society is supported by a broad foundation of slave labor. Amarr citizens tend to be highly educated and fervent individuals, and as a culture Amarr adheres to the basic tenet that what others call slavery is in fact one step on a indentured person's spiritual path toward fully embracing",
+          "name": "Amarr",
+          "race_id": 4
+        }
+      ]
+    }
+  ]
+}

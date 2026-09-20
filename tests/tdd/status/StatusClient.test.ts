@@ -3,38 +3,47 @@ import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import { getBody } from '../../../src/core/util/testHelpers';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
 describe('StatusClient', () => {
-    let statusClient: StatusClient;
+  let statusClient: StatusClient;
 
-    beforeEach(() => {
-        fetchMock.resetMocks();
-        
-        const config = getConfig();
-        const client = new ApiClientBuilder()
-            .setClientId(config.projectName)
-            .setLink(config.link)
-            .setAccessToken(config.authToken || undefined)
-            .build();
+  beforeEach(() => {
+    fetchMock.resetMocks();
 
-        statusClient = new StatusClient(client);
-    });
+    const config = getConfig();
+    const client = new ApiClientBuilder()
+      .setClientId(config.projectName)
+      .setLink(config.link)
+      .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+      .build();
 
-    it('should return the server status', async () => {
-        const mockResponse = {
-            players: 12345,
-            start_time: '2024-07-01T18:57:11Z',
-            server_version: '1.2.3',
-        };
+    statusClient = new StatusClient(client);
+  });
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+  it('should return the server status', async () => {
+    const mockResponse = {
+      players: 12345,
+      start_time: '2024-07-01T18:57:11Z',
+      server_version: '1.2.3',
+      vip: false,
+    };
 
-        const result = await statusClient.getStatus();
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        expect(result.players).toBe(12345);
-        expect(result.start_time).toBe('2024-07-01T18:57:11Z');
-        expect(result.server_version).toBe('1.2.3');
-    });
+    const result = await getBody(() => statusClient.getStatus());
+
+    expect(result.players).toBe(12345);
+    expect(result.start_time).toBe('2024-07-01T18:57:11Z');
+    expect(result.server_version).toBe('1.2.3');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/status',
+    );
+  });
+
+  describeClientErrors('StatusClient', (apiClient) =>
+    new StatusClient(apiClient).getStatus(),
+  );
 });

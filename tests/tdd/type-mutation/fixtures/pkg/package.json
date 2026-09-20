@@ -1,0 +1,13 @@
+{
+  "name": "type-mutation-fixture",
+  "private": true,
+  "types": "types/index.d.ts",
+  "files": [
+    "types"
+  ],
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts"
+    }
+  }
+}

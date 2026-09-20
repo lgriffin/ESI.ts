@@ -1,0 +1,146 @@
+name: Nightly Fault Tier
+
+# Runs the fault tier's nightly half (tests/faults/AGENTS.md): the seeded
+# payload fuzz over every endpoint definition (`npm run faults:nightly`), and
+# the transport fault catalogue (`npm run faults`) for good measure.
+#
+# The seed is chosen per run, printed in the log and the step summary, and can
+# be replayed by dispatching this workflow with it, or locally with
+# `FAULTS_SEED=<seed> npm run faults:nightly`.
+#
+# On failure the run opens one issue titled "Nightly fault tier failing", or
+# comments on it when it is already open. A later green run closes it.
+
+on:
+  schedule:
+    - cron: '30 3 * * *'
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'FAULTS_SEED to replay (leave empty for a new one)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-faults
+  cancel-in-progress: false
+
+env:
+  ISSUE_TITLE: Nightly fault tier failing
+
+jobs:
+  faults:
+    name: Fault tier (payload fuzz + catalogue)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write # open, comment on and close the single nightly-faults issue
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Choose the fuzz seed
+        id: seed
+        env:
+          SEED_INPUT: ${{ inputs.seed }}
+        run: |
+          if [ -n "$SEED_INPUT" ]; then
+            if ! [[ "$SEED_INPUT" =~ ^[0-9]{1,10}$ ]] || [ "$SEED_INPUT" -gt 2147483647 ]; then
+              echo "::error::seed must be an integer between 0 and 2147483647"
+              exit 1
+            fi
+            SEED="$SEED_INPUT"
+          else
+            SEED=$(shuf -i 0-2147483647 -n 1)
+          fi
+          echo "seed=$SEED" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Fault fuzz seed::$SEED (replay: FAULTS_SEED=$SEED npm run faults:nightly)"
+
+      - name: Fetch the known-gaps baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Payload fuzz over every endpoint
+        id: fuzz
+        continue-on-error: true
+        env:
+          FAULTS_SEED: ${{ steps.seed.outputs.seed }}
+        run: npm run faults:nightly -- --ci
+
+      - name: Transport fault catalogue
+        id: catalogue
+        continue-on-error: true
+        run: npm run faults -- --ci
+
+      - name: Summary
+        env:
+          SEED: ${{ steps.seed.outputs.seed }}
+          FUZZ: ${{ steps.fuzz.outcome }}
+          CATALOGUE: ${{ steps.catalogue.outcome }}
+        run: |
+          {
+            echo "## Nightly Fault Tier"
+            echo ""
+            echo "- **Payload fuzz:** $FUZZ (seed \`$SEED\`, replay: \`FAULTS_SEED=$SEED npm run faults:nightly\`)"
+            echo "- **Fault catalogue:** $CATALOGUE"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update the issue
+        if: steps.fuzz.outcome != 'success' || steps.catalogue.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SEED: ${{ steps.seed.outputs.seed }}
+          FUZZ: ${{ steps.fuzz.outcome }}
+          CATALOGUE: ${{ steps.catalogue.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          BODY=$(printf '%s\n' \
+            "The nightly fault tier failed on $(date -u +%Y-%m-%d)." \
+            "" \
+            "- Payload fuzz: $FUZZ (seed \`$SEED\`)" \
+            "- Fault catalogue: $CATALOGUE" \
+            "- Run: $RUN_URL" \
+            "" \
+            "Replay locally: \`FAULTS_SEED=$SEED npm run faults:nightly\` and \`npm run faults\`." \
+            "Each failure names the broken invariant and its reproduce command; see tests/faults/AGENTS.md.")
+          NUMBER=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
+            --json number,title --jq ".[] | select(.title == \"$ISSUE_TITLE\") | .number" | head -n 1)
+          if [ -n "$NUMBER" ]; then
+            gh issue comment "$NUMBER" --body "$BODY"
+          else
+            gh issue create --title "$ISSUE_TITLE" --body "$BODY"
+          fi
+
+      - name: Close the issue when green
+        if: steps.fuzz.outcome == 'success' && steps.catalogue.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          NUMBER=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
+            --json number,title --jq ".[] | select(.title == \"$ISSUE_TITLE\") | .number" | head -n 1)
+          if [ -n "$NUMBER" ]; then
+            gh issue close "$NUMBER" --comment "The nightly fault tier passed: $RUN_URL"
+          fi
+
+      - name: Fail the run
+        if: steps.fuzz.outcome != 'success' || steps.catalogue.outcome != 'success'
+        run: |
+          echo "::error::The nightly fault tier failed; see the steps above and the issue titled '$ISSUE_TITLE'."
+          exit 1

@@ -1,0 +1,11 @@
+{
+  "$comment": "Faults that expose a bug not yet fixed, with the bead that owns the fix. This list only shrinks: catalogue.selftest.test.ts fails on an entry origin/master does not have, and transport-faults.test.ts fails once a listed fault stops reproducing.",
+  "gaps": [
+    {
+      "fault": "later-page-unavailable",
+      "targets": ["market.getMarketOrders"],
+      "bead": "esi-l38.2",
+      "reason": "Page 1 is cached before pages 2..N arrive. When page 2 exhausts its retries, the call-level retry re-requests page 1 with If-None-Match and the exchange derails (PAGINATION.md Known gaps #3)."
+    }
+  ]
+}

@@ -1,0 +1,388 @@
+name: Nightly ESI Spec Drift
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-spec-drift:
+    name: Check ESI Spec Drift
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write # create/update the spec-drift issue
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for spec drift
+        id: drift
+        run: |
+          set +e
+          npx ts-node scripts/check-spec-drift.ts --latest > drift-report.json 2>drift-errors.txt
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "drift_found=false" >> "$GITHUB_OUTPUT"
+          elif [ $EXIT_CODE -eq 1 ]; then
+            echo "drift_found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Spec drift check failed with exit code $EXIT_CODE"
+            cat drift-errors.txt
+            exit $EXIT_CODE
+          fi
+
+          if ! jq -e . drift-report.json > /dev/null 2>&1; then
+            echo "::error::drift-report.json is missing or invalid"
+            cat drift-errors.txt
+            exit 1
+          fi
+
+          COMPAT_DATE=$(jq -r '.compatibilityDate' drift-report.json)
+          echo "compat_date=$COMPAT_DATE" >> "$GITHUB_OUTPUT"
+
+          MISSING_COUNT=$(jq '.missing | length' drift-report.json)
+          echo "missing_count=$MISSING_COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Check generated types freshness
+        id: types
+        run: |
+          set +e
+          if npm run generate:types 2>&1 | tee /tmp/gen-types.log; then
+            if git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts > /dev/null 2>&1; then
+              echo "stale=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "stale=true" >> "$GITHUB_OUTPUT"
+              {
+                echo "diff<<EOFDIFF"
+                git diff --stat src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts
+                echo "EOFDIFF"
+              } >> "$GITHUB_OUTPUT"
+            fi
+          elif grep -q "HTTP 503" /tmp/gen-types.log; then
+            echo "::warning::ESI API returned 503 — skipping generated types freshness check"
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "diff<<EOFDIFF"
+              echo "Generation failed — see workflow log"
+              echo "EOFDIFF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      # master is its own base: the nightly reports drift that is not in
+      # scripts/schema-drift-baseline.json and entries that no longer occur.
+      - name: Check schema drift
+        id: schema
+        env:
+          SCHEMA_DRIFT_BASE_REF: HEAD
+        run: |
+          set +e -o pipefail # without pipefail, $? is tee's and drift never registers
+          npm run schema:drift:ci 2>&1 | tee /tmp/schema-drift.log
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "schema_drift=false" >> "$GITHUB_OUTPUT"
+          elif grep -q "HTTP 503" /tmp/schema-drift.log; then
+            echo "::warning::ESI API returned 503 — skipping schema drift check"
+            echo "schema_drift=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "schema_drift=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "schema_report<<EOFSCHEMA"
+              tail -50 /tmp/schema-drift.log
+              echo "EOFSCHEMA"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine overall drift status
+        id: overall
+        env:
+          ENDPOINT_DRIFT: ${{ steps.drift.outputs.drift_found }}
+          TYPES_STALE: ${{ steps.types.outputs.stale }}
+          SCHEMA_DRIFT: ${{ steps.schema.outputs.schema_drift }}
+        run: |
+          if [ "$ENDPOINT_DRIFT" = "true" ] || [ "$TYPES_STALE" = "true" ] || [ "$SCHEMA_DRIFT" = "true" ]; then
+            echo "any_drift=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "any_drift=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure spec-drift label exists
+        if: steps.overall.outputs.any_drift == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "spec-drift" \
+            --description "Automated: ESI spec drift detected" \
+            --color "D93F0B" 2>/dev/null || true
+
+      - name: Check for existing drift issue
+        if: steps.overall.outputs.any_drift == 'true'
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING=$(gh issue list \
+            --label "spec-drift" \
+            --state open \
+            --json number \
+            --jq 'length')
+          echo "open_issues=$EXISTING" >> "$GITHUB_OUTPUT"
+
+      - name: Build issue body
+        if: steps.overall.outputs.any_drift == 'true'
+        id: body
+        env:
+          ENDPOINT_DRIFT: ${{ steps.drift.outputs.drift_found }}
+          COMPAT_DATE: ${{ steps.drift.outputs.compat_date }}
+          MISSING_COUNT: ${{ steps.drift.outputs.missing_count }}
+          TYPES_STALE: ${{ steps.types.outputs.stale }}
+          TYPES_DIFF: ${{ steps.types.outputs.diff }}
+          SCHEMA_DRIFT: ${{ steps.schema.outputs.schema_drift }}
+          SCHEMA_REPORT: ${{ steps.schema.outputs.schema_report }}
+        run: |
+          {
+            echo "body<<EOFBODY"
+
+            echo "## ESI Spec Drift Report — $(date -u +%Y-%m-%d)"
+            echo ""
+
+            if [ "$ENDPOINT_DRIFT" = "true" ]; then
+              echo "### Missing Endpoints"
+              echo ""
+              echo "**Compatibility date:** \`${COMPAT_DATE}\`"
+              echo "**Missing endpoints:** ${MISSING_COUNT}"
+              echo ""
+              echo "| Method | Path |"
+              echo "|--------|------|"
+              jq -r '.missing[] | "| \(.method) | \(.path) |"' drift-report.json
+              echo ""
+            fi
+
+            if [ "$TYPES_STALE" = "true" ]; then
+              echo "### Generated Types Stale"
+              echo ""
+              echo "Generated type files on \`master\` are out of date with the live ESI spec."
+              echo "Run \`npm run generate:types\` and commit the result."
+              echo ""
+              echo '```'
+              echo "$TYPES_DIFF"
+              echo '```'
+              echo ""
+            fi
+
+            if [ "$SCHEMA_DRIFT" = "true" ]; then
+              echo "### Schema Drift"
+              echo ""
+              echo "Hand-written Zod schemas have drifted from the ESI OpenAPI spec beyond \`scripts/schema-drift-baseline.json\`, or baseline entries no longer occur and should be removed."
+              echo "Run \`npm run schema:drift\` locally to review."
+              echo ""
+              echo '```'
+              echo "$SCHEMA_REPORT"
+              echo '```'
+              echo ""
+            fi
+
+            echo "## How to Resolve"
+            echo ""
+            echo "1. Run \`npx ts-node scripts/check-spec-drift.ts --latest\` to check missing endpoints"
+            echo "2. Run \`npm run generate:types\` to regenerate types from the live spec"
+            echo "3. Run \`npm run schema:drift\` to review Zod schema divergence"
+            echo "4. Close this issue when all gaps are addressed or intentionally skipped"
+            echo ""
+            echo "---"
+            echo "*Auto-generated by the nightly spec drift workflow*"
+
+            echo "EOFBODY"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build issue title
+        if: steps.overall.outputs.any_drift == 'true'
+        id: title
+        env:
+          ENDPOINT_DRIFT: ${{ steps.drift.outputs.drift_found }}
+          MISSING_COUNT: ${{ steps.drift.outputs.missing_count }}
+          TYPES_STALE: ${{ steps.types.outputs.stale }}
+          SCHEMA_DRIFT: ${{ steps.schema.outputs.schema_drift }}
+        run: |
+          PARTS=""
+          if [ "$ENDPOINT_DRIFT" = "true" ]; then
+            PARTS="${MISSING_COUNT} missing endpoints"
+          fi
+          if [ "$TYPES_STALE" = "true" ]; then
+            [ -n "$PARTS" ] && PARTS="$PARTS, "
+            PARTS="${PARTS}stale generated types"
+          fi
+          if [ "$SCHEMA_DRIFT" = "true" ]; then
+            [ -n "$PARTS" ] && PARTS="$PARTS, "
+            PARTS="${PARTS}schema drift"
+          fi
+          echo "title=spec-drift: ${PARTS}" >> "$GITHUB_OUTPUT"
+
+      - name: Create drift issue
+        if: steps.overall.outputs.any_drift == 'true' && steps.existing.outputs.open_issues == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ steps.title.outputs.title }}
+          ISSUE_BODY: ${{ steps.body.outputs.body }}
+        run: |
+          gh issue create \
+            --title "$ISSUE_TITLE" \
+            --label "spec-drift" \
+            --body "$ISSUE_BODY"
+
+      - name: Update existing drift issue
+        if: steps.overall.outputs.any_drift == 'true' && steps.existing.outputs.open_issues != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_BODY: ${{ steps.body.outputs.body }}
+        run: |
+          ISSUE_NUMBER=$(gh issue list \
+            --label "spec-drift" \
+            --state open \
+            --json number \
+            --jq '.[0].number')
+
+          gh issue comment "$ISSUE_NUMBER" \
+            --body "$ISSUE_BODY"
+
+      - name: Close issue if no drift
+        if: steps.overall.outputs.any_drift == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER=$(gh issue list \
+            --label "spec-drift" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue close "$ISSUE_NUMBER" \
+              --comment "All spec drift resolved as of $(date -u +%Y-%m-%d). Closing automatically."
+          fi
+
+      - name: Summary
+        env:
+          COMPAT_DATE: ${{ steps.drift.outputs.compat_date }}
+          ENDPOINT_DRIFT: ${{ steps.drift.outputs.drift_found }}
+          MISSING_COUNT: ${{ steps.drift.outputs.missing_count }}
+          TYPES_STALE: ${{ steps.types.outputs.stale }}
+          SCHEMA_DRIFT: ${{ steps.schema.outputs.schema_drift }}
+        run: |
+          echo "## ESI Spec Drift Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Compatibility date:** $COMPAT_DATE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Missing endpoints:** $ENDPOINT_DRIFT ($MISSING_COUNT)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Generated types stale:** $TYPES_STALE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Schema drift:** $SCHEMA_DRIFT" >> $GITHUB_STEP_SUMMARY
+          if [ -f drift-report.json ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat drift-report.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Drift is reported by check-spec-drift itself. This job covers the other
+  # outcome: the check could not run to completion (the endpoint script exited
+  # 2, the report was unreadable, npm ci failed, gh failed). A red scheduled
+  # run notifies nobody, so it keeps one open issue labelled
+  # spec-drift-check-failed, comments on it for each further failure, and
+  # closes it on the next run that completes.
+  report-check-failure:
+    name: Report a failed drift check
+    runs-on: ubuntu-latest
+    needs: check-spec-drift
+    if: always() && (needs.check-spec-drift.result == 'failure' || needs.check-spec-drift.result == 'success')
+    permissions:
+      issues: write # create/comment/close the spec-drift-check-failed issue
+
+    steps:
+      - name: Open or update the failure issue
+        if: needs.check-spec-drift.result == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          TODAY=$(date -u +%Y-%m-%d)
+
+          gh label create "spec-drift-check-failed" \
+            --repo "$GITHUB_REPOSITORY" \
+            --description "Automated: the nightly spec drift check could not complete" \
+            --color "B60205" 2>/dev/null || true
+
+          ISSUE_NUMBER=$(gh issue list \
+            --repo "$GITHUB_REPOSITORY" \
+            --label "spec-drift-check-failed" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" \
+              --repo "$GITHUB_REPOSITORY" \
+              --body "The nightly spec drift check failed again on ${TODAY}: ${RUN_URL}"
+          else
+            gh issue create \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "spec-drift: nightly check failed" \
+              --label "spec-drift-check-failed" \
+              --body "$(cat <<BODY
+          ## Nightly spec drift check failed — ${TODAY}
+
+          The nightly ESI spec drift workflow did not complete, so drift between this
+          repository and the live ESI spec is currently unmonitored.
+
+          Run: ${RUN_URL}
+
+          ## How to Resolve
+
+          1. Open the run and find the first failing step in \`check-spec-drift\`.
+          2. Exit code 2 from \`scripts/check-spec-drift.ts\`, or an invalid \`drift-report.json\`,
+             means the script could not fetch or parse the spec; reproduce with
+             \`npx ts-node scripts/check-spec-drift.ts --latest\`.
+          3. A failure in an issue step usually means the token lacks \`issues: write\`
+             or the GitHub API was unavailable; re-run the workflow.
+          4. This issue closes itself on the next run that completes.
+
+          ---
+          *Auto-generated by the nightly spec drift workflow*
+          BODY
+          )"
+          fi
+
+      - name: Close the failure issue after a completed run
+        if: needs.check-spec-drift.result == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER=$(gh issue list \
+            --repo "$GITHUB_REPOSITORY" \
+            --label "spec-drift-check-failed" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue close "$ISSUE_NUMBER" \
+              --repo "$GITHUB_REPOSITORY" \
+              --comment "The nightly spec drift check completed on $(date -u +%Y-%m-%d). Closing automatically."
+          fi

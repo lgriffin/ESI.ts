@@ -1,0 +1,50 @@
+{
+  "endpoint": "war.getWarKillmails",
+  "call": {
+    "client": "wars",
+    "method": "getWarKillmails",
+    "args": [700000]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 8,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "wars/700000/killmails",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"15beb255954194c24166c86a7c6aaaba7104e953b96e5d2d4c8c031b\"",
+        "expires": "Thu, 17 Sep 2026 14:13:55 GMT",
+        "last-modified": "Thu, 17 Sep 2026 14:08:55 GMT",
+        "x-pages": "1"
+      },
+      "body": [
+        {
+          "killmail_hash": "c5b20a0cd4dd491639c95eb0ddbb60b534e98150",
+          "killmail_id": 90762794
+        },
+        {
+          "killmail_hash": "b6661160901e5289662e24003db8550059b3d7b9",
+          "killmail_id": 90762796
+        },
+        {
+          "killmail_hash": "e709b3885ed558ea98322da5262ce8f8de5f078d",
+          "killmail_id": 90903089
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,258 @@
+import { defineFeature, loadFeature } from 'jest-cucumber';
+import { EsiClient } from '../../../../src/EsiClient';
+import { EsiError } from '../../../../src/core/util/error';
+import {
+  RETRYABLE_ATTEMPTS,
+  createSeamClient,
+  lastRequest,
+  queueError,
+  queueResponse,
+  sentRequests,
+  useHttpTransport,
+} from '../../support/transport';
+
+const feature = loadFeature('tests/bdd/features/core/0027-paragon-hub.feature');
+
+const TEST_CHARACTER_ID = 123456;
+const TEST_ALLIANCE_ID = 99000006;
+
+defineFeature(feature, (test) => {
+  let client: EsiClient;
+
+  useHttpTransport();
+
+  beforeEach(() => {
+    client = createSeamClient();
+  });
+
+  test('Public board returns ISK-priced and PLEX-priced listings with a cursor', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const expectedResponse = {
+      cursor: { after: 'cursor-abc', before: 'cursor-xyz' },
+      listings: [
+        {
+          id: '3868eaed-8278-4cb7-9709-7d7de9c20dc7',
+          state: 'listed',
+          last_modified: '2026-08-18T10:00:00Z',
+          seller_id: 90000001,
+          skinr_id: 'skinr-design-001',
+          created: '2026-08-17T08:00:00Z',
+          expires: '2026-09-17T08:00:00Z',
+          quantity: 5,
+          price: { isk: 500000000 },
+        },
+        {
+          id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+          state: 'listed',
+          last_modified: '2026-08-18T11:00:00Z',
+          seller_id: 90000002,
+          skinr_id: 'skinr-design-002',
+          created: '2026-08-16T14:00:00Z',
+          expires: '2026-09-16T14:00:00Z',
+          quantity: 1,
+          price: { plex: 100 },
+        },
+      ],
+    };
+
+    given('public SKINR listings exist', () => {
+      queueResponse({ match: '/paragon-hub/skinr', body: expectedResponse });
+    });
+
+    when('the client requests public listings', async () => {
+      result = await client.paragonHub.getPublicListings();
+    });
+
+    then('the client shall return listings with cursor data', () => {
+      const request = lastRequest();
+      expect(request.method).toBe('GET');
+      expect(request.url.pathname).toMatch(/\/paragon-hub\/skinr\/?$/);
+      expect(request.url.searchParams.has('after')).toBe(false);
+      expect(result).toEqual(expectedResponse);
+      expect(result.cursor).toEqual({
+        after: 'cursor-abc',
+        before: 'cursor-xyz',
+      });
+      expect(result.listings.map((l: any) => l.skinr_id)).toEqual([
+        'skinr-design-001',
+        'skinr-design-002',
+      ]);
+      expect(result.listings[0].price).toEqual({ isk: 500000000 });
+      expect(result.listings[1].price).toEqual({ plex: 100 });
+    });
+  });
+
+  test('Character listing reports the seller ID and public target', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const expectedResponse = {
+      cursor: { after: 'cursor-char-abc' },
+      listings: [
+        {
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+          state: 'listed',
+          last_modified: '2026-08-18T10:00:00Z',
+          seller_id: TEST_CHARACTER_ID,
+          skinr_id: 'skinr-design-003',
+          created: '2026-08-15T12:00:00Z',
+          expires: '2026-09-15T12:00:00Z',
+          quantity: 10,
+          price: { isk: 250000000 },
+          target: { public: true },
+        },
+      ],
+    };
+
+    given('the character has listed SKINR designs', () => {
+      queueResponse({
+        match: `/characters/${TEST_CHARACTER_ID}/paragon-hub/skinr`,
+        body: expectedResponse,
+      });
+    });
+
+    when('the client requests character listings', async () => {
+      result = await client.paragonHub.getCharacterListings(TEST_CHARACTER_ID);
+    });
+
+    then('the client shall return listings with target visibility', () => {
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/characters/${TEST_CHARACTER_ID}/paragon-hub/skinr/?$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedResponse);
+      expect(result.listings).toHaveLength(1);
+      expect(result.listings[0].seller_id).toBe(TEST_CHARACTER_ID);
+      expect(result.listings[0].target).toEqual({ public: true });
+    });
+  });
+
+  test('Alliance endpoint returns the designs targeted at that alliance', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const expectedResponse = {
+      listings: [
+        {
+          id: 'c3d4e5f6-a7b8-9012-cdef-345678901234',
+          state: 'listed',
+          last_modified: '2026-08-18T12:00:00Z',
+          seller_id: 90000003,
+          skinr_id: 'skinr-design-004',
+          created: '2026-08-14T10:00:00Z',
+          expires: '2026-09-14T10:00:00Z',
+          quantity: 3,
+          price: { isk: 750000000 },
+        },
+      ],
+    };
+
+    given('alliance-targeted SKINR listings exist', () => {
+      queueResponse({
+        match: `/paragon-hub/skinr/alliances/${TEST_ALLIANCE_ID}`,
+        body: expectedResponse,
+      });
+    });
+
+    when('the client requests alliance listings', async () => {
+      result = await client.paragonHub.getAllianceListings(TEST_ALLIANCE_ID);
+    });
+
+    then('the client shall return listings targeted at the alliance', () => {
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(
+        new RegExp(`/paragon-hub/skinr/alliances/${TEST_ALLIANCE_ID}/?$`),
+      );
+      expect(request.headers.authorization).toBe('Bearer bdd-access-token');
+      expect(result).toEqual(expectedResponse);
+      expect(result.listings.map((l: any) => l.skinr_id)).toEqual([
+        'skinr-design-004',
+      ]);
+    });
+  });
+
+  test('Cursor request returns the page with its forward and backward cursors', ({
+    given,
+    when,
+    then,
+  }) => {
+    let result: any;
+    const page2Response = {
+      cursor: { after: 'cursor-page3', before: 'cursor-page1' },
+      listings: [
+        {
+          id: 'd4e5f6a7-b8c9-0123-def0-456789012345',
+          state: 'listed',
+          last_modified: '2026-08-18T14:00:00Z',
+          seller_id: 90000004,
+          skinr_id: 'skinr-design-005',
+          created: '2026-08-13T09:00:00Z',
+          expires: '2026-09-13T09:00:00Z',
+          quantity: 2,
+          price: { plex: 50 },
+        },
+      ],
+    };
+
+    given('multiple pages of listings exist', () => {
+      queueResponse({ match: 'after=cursor-page2', body: page2Response });
+    });
+
+    when('the client requests the next page using a cursor', async () => {
+      result = await client.paragonHub.getPublicListings('cursor-page2');
+    });
+
+    then('the client shall return the next page of results', () => {
+      const request = lastRequest();
+      expect(request.url.pathname).toMatch(/\/paragon-hub\/skinr\/?$/);
+      expect(request.url.searchParams.get('after')).toBe('cursor-page2');
+      expect(request.url.searchParams.has('before')).toBe(false);
+      expect(result.cursor).toEqual({
+        after: 'cursor-page3',
+        before: 'cursor-page1',
+      });
+      expect(result.listings.map((l: any) => l.id)).toEqual([
+        'd4e5f6a7-b8c9-0123-def0-456789012345',
+      ]);
+    });
+  });
+
+  test('Listing request during an ESI outage is rejected with 503', ({
+    given,
+    when,
+    then,
+  }) => {
+    let caughtError: any;
+
+    given('the ESI service is down', () => {
+      // 503 is retryable, so the outage has to outlast the retry budget.
+      queueError(503, 'Service Unavailable', {
+        match: '/paragon-hub/skinr',
+        times: RETRYABLE_ATTEMPTS,
+      });
+    });
+
+    when('the client requests Paragon Hub data', async () => {
+      try {
+        await client.paragonHub.getPublicListings();
+      } catch (e) {
+        caughtError = e;
+      }
+    });
+
+    then('the client shall return a 503 error', () => {
+      expect(caughtError).toBeInstanceOf(EsiError);
+      expect((caughtError as EsiError).statusCode).toBe(503);
+      expect(sentRequests()).toHaveLength(RETRYABLE_ATTEMPTS);
+    });
+  });
+});

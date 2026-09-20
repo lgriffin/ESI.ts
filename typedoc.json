@@ -1,7 +1,7 @@
 {
   "entryPointStrategy": "expand",
   "entryPoints": ["src"],
-  "out": "docs",
+  "out": "docs-site/public/api",
   "name": "@lgriffin/esi.ts - EVE Online ESI API Client",
   "theme": "default",
   "readme": "./README.md",
@@ -26,7 +26,7 @@
     "**/*.test.ts",
     "**/*.spec.ts",
     "**/tests/**/*",
-    "**/demo/**/*",
+    "**/examples/**/*",
     "**/node_modules/**/*",
     "**/dist/**/*",
     "**/coverage/**/*"
@@ -38,7 +38,7 @@
     "Document",
     "Project",
     "Module",
-    "Namespace", 
+    "Namespace",
     "Enum",
     "Class",
     "Interface",

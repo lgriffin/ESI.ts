@@ -1,0 +1,198 @@
+import {
+  EsiError,
+  TimeoutError,
+  isEsiError,
+  isRateLimited,
+  isNotFound,
+  isUnauthorized,
+  isForbidden,
+  isServerError,
+  isTimeout,
+  isRetryable,
+  isCircuitOpen,
+} from '../../../src/core/util/error';
+import { CircuitOpenError } from '../../../src/core/circuitBreaker/CircuitBreaker';
+
+describe('EsiError', () => {
+  describe('instance methods', () => {
+    it('isRateLimited returns true for 420 and 429', () => {
+      expect(new EsiError(420, 'Error Limited').isRateLimited()).toBe(true);
+      expect(new EsiError(429, 'Too many requests').isRateLimited()).toBe(true);
+      expect(new EsiError(404, 'Not found').isRateLimited()).toBe(false);
+    });
+
+    it('isNotFound returns true for 404', () => {
+      expect(new EsiError(404, 'Not found').isNotFound()).toBe(true);
+      expect(new EsiError(400, 'Bad request').isNotFound()).toBe(false);
+    });
+
+    it('isUnauthorized returns true for 401', () => {
+      expect(new EsiError(401, 'Unauthorized').isUnauthorized()).toBe(true);
+      expect(new EsiError(403, 'Forbidden').isUnauthorized()).toBe(false);
+    });
+
+    it('isForbidden returns true for 403', () => {
+      expect(new EsiError(403, 'Forbidden').isForbidden()).toBe(true);
+      expect(new EsiError(401, 'Unauthorized').isForbidden()).toBe(false);
+    });
+
+    it('isServerError returns true for 5xx', () => {
+      expect(new EsiError(500, 'Internal server error').isServerError()).toBe(
+        true,
+      );
+      expect(new EsiError(503, 'Service Unavailable').isServerError()).toBe(
+        true,
+      );
+      expect(new EsiError(520, 'Unknown').isServerError()).toBe(true);
+      expect(new EsiError(429, 'Too many requests').isServerError()).toBe(
+        false,
+      );
+    });
+
+    it('isTimeout returns true for status code 0', () => {
+      expect(
+        new EsiError(0, 'Request timed out after 30000ms').isTimeout(),
+      ).toBe(true);
+      expect(new EsiError(500, 'Server error').isTimeout()).toBe(false);
+      expect(new EsiError(408, 'Request Timeout').isTimeout()).toBe(false);
+    });
+
+    it('retryable returns true for transient errors', () => {
+      expect(new EsiError(0, 'timeout').retryable).toBe(true);
+      expect(new EsiError(420, 'Error Limited').retryable).toBe(true);
+      expect(new EsiError(429, 'Too many requests').retryable).toBe(true);
+      expect(new EsiError(502, 'Bad Gateway').retryable).toBe(true);
+      expect(new EsiError(503, 'Service Unavailable').retryable).toBe(true);
+      expect(new EsiError(504, 'Gateway Timeout').retryable).toBe(true);
+    });
+
+    it('retryable returns false for non-transient errors', () => {
+      expect(new EsiError(400, 'Bad Request').retryable).toBe(false);
+      expect(new EsiError(401, 'Unauthorized').retryable).toBe(false);
+      expect(new EsiError(403, 'Forbidden').retryable).toBe(false);
+      expect(new EsiError(404, 'Not Found').retryable).toBe(false);
+      expect(new EsiError(500, 'Internal Server Error').retryable).toBe(false);
+    });
+  });
+
+  describe('standalone type guards', () => {
+    it('isEsiError narrows to EsiError', () => {
+      const esiErr = new EsiError(404, 'Not found', '/test');
+      const plainErr = new Error('plain');
+
+      expect(isEsiError(esiErr)).toBe(true);
+      expect(isEsiError(plainErr)).toBe(false);
+      expect(isEsiError(null)).toBe(false);
+      expect(isEsiError(undefined)).toBe(false);
+      expect(isEsiError('string')).toBe(false);
+    });
+
+    it('isRateLimited combines instanceof and status check', () => {
+      expect(isRateLimited(new EsiError(429, 'Too many requests'))).toBe(true);
+      expect(isRateLimited(new EsiError(420, 'Error Limited'))).toBe(true);
+      expect(isRateLimited(new EsiError(404, 'Not found'))).toBe(false);
+      expect(isRateLimited(new Error('not esi'))).toBe(false);
+      expect(isRateLimited(null)).toBe(false);
+    });
+
+    it('isNotFound combines instanceof and status check', () => {
+      expect(isNotFound(new EsiError(404, 'Not found'))).toBe(true);
+      expect(isNotFound(new EsiError(500, 'Server error'))).toBe(false);
+      expect(isNotFound(new Error('not esi'))).toBe(false);
+    });
+
+    it('isUnauthorized combines instanceof and status check', () => {
+      expect(isUnauthorized(new EsiError(401, 'Unauthorized'))).toBe(true);
+      expect(isUnauthorized(new EsiError(403, 'Forbidden'))).toBe(false);
+      expect(isUnauthorized(new Error('not esi'))).toBe(false);
+    });
+
+    it('isForbidden combines instanceof and status check', () => {
+      expect(isForbidden(new EsiError(403, 'Forbidden'))).toBe(true);
+      expect(isForbidden(new EsiError(401, 'Unauthorized'))).toBe(false);
+      expect(isForbidden(new Error('not esi'))).toBe(false);
+    });
+
+    it('isServerError combines instanceof and status check', () => {
+      expect(isServerError(new EsiError(500, 'Internal'))).toBe(true);
+      expect(isServerError(new EsiError(503, 'Unavailable'))).toBe(true);
+      expect(isServerError(new EsiError(404, 'Not found'))).toBe(false);
+      expect(isServerError(new Error('not esi'))).toBe(false);
+    });
+
+    it('isTimeout checks for TimeoutError instances', () => {
+      expect(
+        isTimeout(new TimeoutError(30000, 'https://esi.test/v1/status/')),
+      ).toBe(true);
+      expect(isTimeout(new EsiError(0, 'timed out'))).toBe(false);
+      expect(isTimeout(new EsiError(500, 'server error'))).toBe(false);
+      expect(isTimeout(new Error('not esi'))).toBe(false);
+      expect(isTimeout(null)).toBe(false);
+    });
+
+    it('isRetryable combines instanceof and retryable check', () => {
+      expect(isRetryable(new EsiError(429, 'Too many requests'))).toBe(true);
+      expect(isRetryable(new EsiError(503, 'Unavailable'))).toBe(true);
+      expect(isRetryable(new EsiError(0, 'timeout'))).toBe(true);
+      expect(isRetryable(new EsiError(404, 'Not found'))).toBe(false);
+      expect(isRetryable(new EsiError(400, 'Bad request'))).toBe(false);
+      expect(isRetryable(new Error('not esi'))).toBe(false);
+      expect(isRetryable(null)).toBe(false);
+    });
+
+    it('isCircuitOpen checks for CircuitOpenError instances', () => {
+      expect(isCircuitOpen(new CircuitOpenError('v1/status/', 5, 30000))).toBe(
+        true,
+      );
+      expect(isCircuitOpen(new EsiError(503, 'Service Unavailable'))).toBe(
+        false,
+      );
+      expect(isCircuitOpen(new Error('not circuit'))).toBe(false);
+      expect(isCircuitOpen(null)).toBe(false);
+      expect(isCircuitOpen(undefined)).toBe(false);
+    });
+  });
+
+  describe('URL sanitization', () => {
+    it('should redact sensitive query parameters', () => {
+      const err = new EsiError(
+        400,
+        'Bad request',
+        'https://esi.evetech.net/latest/foo?token=secret123&page=1',
+      );
+      expect(err.url).toContain('token=%5BREDACTED%5D');
+      expect(err.url).not.toContain('secret123');
+      expect(err.url).toContain('page=1');
+    });
+
+    it('should redact access_token parameter', () => {
+      const err = new EsiError(
+        401,
+        'Unauthorized',
+        'https://esi.evetech.net/latest/foo?access_token=mytoken',
+      );
+      expect(err.url).not.toContain('mytoken');
+    });
+
+    it('should preserve URLs without sensitive params', () => {
+      const err = new EsiError(
+        404,
+        'Not found',
+        'https://esi.evetech.net/latest/alliances/99005338/',
+      );
+      expect(err.url).toBe(
+        'https://esi.evetech.net/latest/alliances/99005338/',
+      );
+    });
+
+    it('should handle malformed URLs by stripping query string', () => {
+      const err = new EsiError(500, 'Error', 'not-a-url?secret=value');
+      expect(err.url).toBe('not-a-url?[params-redacted]');
+    });
+
+    it('should handle undefined URL', () => {
+      const err = new EsiError(500, 'Error');
+      expect(err.url).toBeUndefined();
+    });
+  });
+});

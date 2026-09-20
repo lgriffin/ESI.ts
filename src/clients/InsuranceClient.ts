@@ -1,14 +1,19 @@
 import { ApiClient } from '../core/ApiClient';
-import { InsuranceApi } from '../api/insurance/getInsurancePrices';
+import { BaseEsiClient } from './BaseEsiClient';
+import { insuranceEndpoints } from '../core/endpoints/insuranceEndpoints';
+import { InsurancePrice } from '../types/api-responses';
 
-export class InsuranceClient {
-    private insuranceApi: InsuranceApi;
+export class InsuranceClient extends BaseEsiClient<typeof insuranceEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, insuranceEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.insuranceApi = new InsuranceApi(client);
-    }
-
-    async getInsurancePrices(): Promise<any> {
-        return await this.insuranceApi.getInsurancePrices();
-    }
+  /**
+   * Retrieves available insurance levels and their costs for all ship types.
+   *
+   * @returns An array of insurance price listings per ship type
+   */
+  getInsurancePrices(): Promise<InsurancePrice[]> {
+    return this.api.getInsurancePrices() as Promise<InsurancePrice[]>;
+  }
 }

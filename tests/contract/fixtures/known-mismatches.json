@@ -1,0 +1,4 @@
+{
+  "meta.getChangelog": "Schema rejects ESI's body: MetaChangelogSchema is the per-date map, but ESI (MetaChangelog) wraps it as { changelog: { <date>: [...] } }, so every real call throws EsiValidationError. Fixing it changes the inferred MetaChangelog type (major per guides/SEMVER.md), so it needs approval.",
+  "skyhook.getRaidableSkyhooks": "Schema rejects ESI's body: the endpoint expects an array of RaidableSkyhook, but ESI (SkyhooksRaidable) sends { skyhooks: [...] }, so every real call throws EsiValidationError. Fixing it changes the method's return type (major per guides/SEMVER.md), so it needs approval."
+}

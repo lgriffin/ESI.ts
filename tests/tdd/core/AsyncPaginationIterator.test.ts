@@ -1,0 +1,462 @@
+import {
+  fetchAllPages,
+  fetchPages,
+  PageResult,
+} from '../../../src/core/pagination/AsyncPaginationIterator';
+import { ApiClient } from '../../../src/core/ApiClient';
+import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
+import { EsiValidationError } from '../../../src/core/util/error';
+import { z } from 'zod';
+import { logCalls, spyLogger } from '../helpers/spyLogger';
+
+import fetchMock from 'jest-fetch-mock';
+
+fetchMock.enableMocks();
+
+jest.mock('../../../src/core/ApiRequestHandler', () => {
+  const original = jest.requireActual('../../../src/core/ApiRequestHandler');
+  return {
+    ...original,
+    handleSinglePageRequest: jest.fn(),
+  };
+});
+
+import { handleSinglePageRequest } from '../../../src/core/ApiRequestHandler';
+const mockHandleRequest = handleSinglePageRequest as jest.MockedFunction<
+  typeof handleSinglePageRequest
+>;
+
+describe('AsyncPaginationIterator', () => {
+  let client: ApiClient;
+
+  beforeEach(() => {
+    fetchMock.resetMocks();
+    mockHandleRequest.mockReset();
+    client = new ApiClient('test', 'https://esi.evetech.net/latest');
+    const limiter = new RateLimiter();
+    limiter.setTestMode(true);
+    client.setRateLimiter(limiter);
+  });
+
+  describe('fetchPages', () => {
+    it('should yield a single page when x-pages is 1', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: { 'x-pages': '1' },
+        body: [{ id: 1 }, { id: 2 }],
+      });
+
+      const pages: PageResult<{ id: number }>[] = [];
+      for await (const page of fetchPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+      )) {
+        pages.push(page);
+      }
+
+      expect(pages).toHaveLength(1);
+      expect(pages[0].data).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(pages[0].page).toBe(1);
+      expect(pages[0].totalPages).toBe(1);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it('should yield a single page when x-pages header is absent', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: {},
+        body: [{ id: 1 }],
+      });
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(client, 'alliances', 'GET')) {
+        pages.push(page);
+      }
+
+      expect(pages).toHaveLength(1);
+      expect(pages[0].totalPages).toBe(1);
+    });
+
+    it('should yield multiple pages', async () => {
+      mockHandleRequest
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 1 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 2 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 3 }],
+        });
+
+      const pages: PageResult<{ id: number }>[] = [];
+      for await (const page of fetchPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+      )) {
+        pages.push(page);
+      }
+
+      expect(pages).toHaveLength(3);
+      expect(pages[0].page).toBe(1);
+      expect(pages[1].page).toBe(2);
+      expect(pages[2].page).toBe(3);
+      expect(pages[0].data).toEqual([{ id: 1 }]);
+      expect(pages[1].data).toEqual([{ id: 2 }]);
+      expect(pages[2].data).toEqual([{ id: 3 }]);
+    });
+
+    it('should stop early when a page returns empty data', async () => {
+      mockHandleRequest
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 1 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [],
+        });
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(client, 'alliances', 'GET')) {
+        pages.push(page);
+      }
+
+      expect(pages).toHaveLength(1);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(2);
+    });
+
+    it('should append page parameter correctly for URLs with existing query params', async () => {
+      mockHandleRequest
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '2' },
+          body: [{ id: 1 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '2' },
+          body: [{ id: 2 }],
+        });
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(
+        client,
+        'characters/123/assets?datasource=tranquility',
+        'GET',
+      )) {
+        pages.push(page);
+      }
+
+      expect(pages).toHaveLength(2);
+      const secondCallEndpoint = mockHandleRequest.mock.calls[1][1];
+      expect(secondCallEndpoint).toContain('&page=2');
+      expect(secondCallEndpoint).not.toContain('?page=2');
+    });
+
+    it('should wrap non-array response in an array', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: { 'x-pages': '1' },
+        body: { status: 'ok' },
+      });
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(client, 'status', 'GET')) {
+        pages.push(page);
+      }
+
+      expect(pages[0].data).toEqual([{ status: 'ok' }]);
+    });
+
+    it('should allow early break from consumer', async () => {
+      mockHandleRequest
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '10' },
+          body: [{ id: 1 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '10' },
+          body: [{ id: 2 }],
+        });
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(client, 'alliances', 'GET')) {
+        pages.push(page);
+        if (page.page >= 2) break;
+      }
+
+      expect(pages).toHaveLength(2);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle null/undefined body as empty array', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: { 'x-pages': '1' },
+        body: null,
+      });
+
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(client, 'empty', 'GET')) {
+        pages.push(page);
+      }
+
+      expect(pages[0].data).toEqual([]);
+    });
+
+    it('should pass requiresAuth and body through to handleSinglePageRequest', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: { 'x-pages': '1' },
+        body: [{ id: 1 }],
+      });
+
+      const requestBody = { ids: [1, 2, 3] };
+      const pages: PageResult[] = [];
+      for await (const page of fetchPages(
+        client,
+        'universe/names',
+        'POST',
+        true,
+        requestBody,
+      )) {
+        pages.push(page);
+      }
+
+      expect(mockHandleRequest).toHaveBeenCalledWith(
+        client,
+        'universe/names',
+        'POST',
+        requestBody,
+        true,
+        undefined,
+      );
+    });
+  });
+
+  describe('fetchAllPages', () => {
+    it('should return all items from a single page', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: { 'x-pages': '1' },
+        body: [{ id: 1 }, { id: 2 }],
+      });
+
+      const result = await fetchAllPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it('should merge all pages into a single array', async () => {
+      mockHandleRequest
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 1 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 2 }],
+        })
+        .mockResolvedValueOnce({
+          headers: { 'x-pages': '3' },
+          body: [{ id: 3 }],
+        });
+
+      const result = await fetchAllPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+      );
+
+      expect(result).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(3);
+    });
+
+    it('should fetch remaining pages concurrently within batch size', async () => {
+      const callOrder: number[] = [];
+      mockHandleRequest.mockImplementation(async (_c, endpoint: string) => {
+        const pageMatch = endpoint.match(/page=(\d+)/);
+        const page = pageMatch ? parseInt(pageMatch[1], 10) : 1;
+        callOrder.push(page);
+        return {
+          headers: { 'x-pages': '5' },
+          body: [{ id: page }],
+        };
+      });
+
+      const result = await fetchAllPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+        false,
+        undefined,
+        undefined,
+        undefined,
+        2,
+      );
+
+      expect(result).toHaveLength(5);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(5);
+    });
+
+    it('should return empty array when body is null', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: { 'x-pages': '1' },
+        body: null,
+      });
+
+      const result = await fetchAllPages(client, 'empty', 'GET');
+      expect(result).toEqual([]);
+    });
+
+    it('should handle missing x-pages header as single page', async () => {
+      mockHandleRequest.mockResolvedValueOnce({
+        headers: {},
+        body: [{ id: 1 }],
+      });
+
+      const result = await fetchAllPages<{ id: number }>(
+        client,
+        'alliances',
+        'GET',
+      );
+
+      expect(result).toEqual([{ id: 1 }]);
+      expect(mockHandleRequest).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('exact requests, logging and validation', () => {
+    const pageSchema = z.array(z.looseObject({ id: z.number() }));
+
+    const collect = async <T>(it: AsyncGenerator<PageResult<T>>) => {
+      const pages: PageResult<T>[] = [];
+      for await (const page of it) pages.push(page);
+      return pages;
+    };
+
+    it('requests pages 2..N as ?page=N, without auth by default', async () => {
+      mockHandleRequest.mockImplementation(async (_c, endpoint) => ({
+        headers: { 'x-pages': '3' },
+        body: [{ id: endpoint }],
+      }));
+
+      await fetchAllPages(client, 'alliances', 'GET');
+
+      expect(
+        mockHandleRequest.mock.calls.map((c) => [c[1], c[4]]).sort(),
+      ).toEqual([
+        ['alliances', false],
+        ['alliances?page=2', false],
+        ['alliances?page=3', false],
+      ]);
+    });
+
+    it('fetchPages requests without auth by default', async () => {
+      mockHandleRequest.mockResolvedValue({
+        headers: { 'x-pages': '1' },
+        body: [],
+      });
+
+      await collect(fetchPages(client, 'alliances', 'GET'));
+
+      expect(mockHandleRequest).toHaveBeenCalledWith(
+        client,
+        'alliances',
+        'GET',
+        undefined,
+        false,
+        undefined,
+      );
+    });
+
+    it('treats an undefined body as no items', async () => {
+      mockHandleRequest.mockResolvedValue({
+        headers: { 'x-pages': '1' },
+        body: undefined,
+      });
+
+      // toHaveLength, not toEqual([]): toEqual ignores undefined array items,
+      // so [undefined] would pass.
+      expect(await fetchAllPages(client, 'x', 'GET')).toHaveLength(0);
+      const [first] = await collect(fetchPages(client, 'x', 'GET'));
+      expect(first?.data).toHaveLength(0);
+    });
+
+    it('logs each extra page it fetches, with page and total', async () => {
+      const logger = spyLogger();
+      client.setLogger(logger);
+      mockHandleRequest.mockResolvedValue({
+        headers: { 'x-pages': '2' },
+        body: [{ id: 1 }],
+      });
+
+      await fetchAllPages(client, 'alliances', 'GET');
+      await collect(fetchPages(client, 'corps', 'GET'));
+
+      expect(logCalls(logger)).toEqual([
+        [
+          'info',
+          'Fetching page 2/2: alliances?page=2',
+          { page: 2, totalPages: 2 },
+        ],
+        ['info', 'Fetching page 2/2: corps?page=2', { page: 2, totalPages: 2 }],
+      ]);
+    });
+
+    it('rejects a page that fails its schema when validation is on', async () => {
+      mockHandleRequest.mockResolvedValue({
+        headers: { 'x-pages': '1' },
+        body: [{ id: 'not a number' }],
+      });
+
+      await expect(
+        fetchAllPages(
+          client,
+          'x',
+          'GET',
+          false,
+          undefined,
+          undefined,
+          pageSchema,
+        ),
+      ).rejects.toBeInstanceOf(EsiValidationError);
+      await expect(
+        collect(
+          fetchPages(
+            client,
+            'x',
+            'GET',
+            false,
+            undefined,
+            undefined,
+            pageSchema,
+          ),
+        ),
+      ).rejects.toBeInstanceOf(EsiValidationError);
+    });
+
+    it('returns the raw page when validation is off', async () => {
+      client.setValidateResponse(false);
+      mockHandleRequest.mockResolvedValue({
+        headers: { 'x-pages': '1' },
+        body: [{ id: 'not a number' }],
+      });
+
+      expect(
+        await fetchAllPages(
+          client,
+          'x',
+          'GET',
+          false,
+          undefined,
+          undefined,
+          pageSchema,
+        ),
+      ).toEqual([{ id: 'not a number' }]);
+    });
+  });
+});

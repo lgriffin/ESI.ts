@@ -1,0 +1,17 @@
+{
+  "src": 15.5,
+  "src/auth": 23.4,
+  "src/clients": 12.1,
+  "src/core": 28.8,
+  "src/core/cache": 22.3,
+  "src/core/circuitBreaker": 37.3,
+  "src/core/endpoints": 24.5,
+  "src/core/logger": 21.7,
+  "src/core/middleware": 26,
+  "src/core/pagination": 12.6,
+  "src/core/rateLimiter": 11.7,
+  "src/core/requestPipeline": 38.5,
+  "src/core/util": 42.8,
+  "src/schemas": 0,
+  "src/sde": 10.6
+}

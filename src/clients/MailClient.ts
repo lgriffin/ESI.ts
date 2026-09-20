@@ -1,70 +1,173 @@
-import { GetCharacterMailHeadersApi } from '../api/mail/getCharacterMailHeaders';
-import { PostCharacterMailApi } from '../api/mail/postCharacterMail';
-import { DeleteCharacterMailApi } from '../api/mail/deleteCharacterMail';
-import { GetCharacterMailApi } from '../api/mail/getCharacterMail';
-import { PutCharacterMailApi } from '../api/mail/putCharacterMail';
-import { GetCharacterMailLabelsApi } from '../api/mail/getCharacterMailLabels';
-import { PostCharacterMailLabelsApi } from '../api/mail/postCharacterMailLabels';
-import { DeleteCharacterMailLabelApi } from '../api/mail/deleteCharacterMailLabel';
-import { GetCharacterMailingListsApi } from '../api/mail/getCharacterMailingLists';
 import { ApiClient } from '../core/ApiClient';
+import { BaseEsiClient } from './BaseEsiClient';
+import { mailEndpoints } from '../core/endpoints/mailEndpoints';
+import { MailHeader, MailMessage, MailLabel } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class MailClient {
-    private getCharacterMailHeadersApi: GetCharacterMailHeadersApi;
-    private postCharacterMailApi: PostCharacterMailApi;
-    private deleteCharacterMailApi: DeleteCharacterMailApi;
-    private getCharacterMailApi: GetCharacterMailApi;
-    private putCharacterMailApi: PutCharacterMailApi;
-    private getCharacterMailLabelsApi: GetCharacterMailLabelsApi;
-    private postCharacterMailLabelsApi: PostCharacterMailLabelsApi;
-    private deleteCharacterMailLabelApi: DeleteCharacterMailLabelApi;
-    private getCharacterMailingListsApi: GetCharacterMailingListsApi;
+export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, mailEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCharacterMailHeadersApi = new GetCharacterMailHeadersApi(client);
-        this.postCharacterMailApi = new PostCharacterMailApi(client);
-        this.deleteCharacterMailApi = new DeleteCharacterMailApi(client);
-        this.getCharacterMailApi = new GetCharacterMailApi(client);
-        this.putCharacterMailApi = new PutCharacterMailApi(client);
-        this.getCharacterMailLabelsApi = new GetCharacterMailLabelsApi(client);
-        this.postCharacterMailLabelsApi = new PostCharacterMailLabelsApi(client);
-        this.deleteCharacterMailLabelApi = new DeleteCharacterMailLabelApi(client);
-        this.getCharacterMailingListsApi = new GetCharacterMailingListsApi(client);
-    }
+  /**
+   * Retrieves the mail headers (subject, sender, timestamp) for a character's inbox.
+   *
+   * @param characterId - The ID of the character whose mail headers to fetch
+   * @returns A list of mail message headers
+   * @requires Authentication
+   */
+  getMailHeaders(characterId: number): Promise<MailHeader[]> {
+    return this.api.getCharacterMailHeaders(characterId);
+  }
 
-    async getMailHeaders(characterId: number): Promise<any> {
-        return await this.getCharacterMailHeadersApi.getCharacterMailHeaders(characterId);
-    }
+  /**
+   * Sends a new mail on behalf of a character via POST.
+   *
+   * @param characterId - The ID of the character sending the mail
+   * @param body - The mail content including recipients, subject, and body text
+   * @returns The ID of the newly created mail
+   * @requires Authentication
+   */
+  sendMail(characterId: number, body: object): Promise<number> {
+    return this.api.sendMail(characterId, body) as Promise<number>;
+  }
 
-    async sendMail(characterId: number, body: object): Promise<any> {
-        return await this.postCharacterMailApi.sendMail(characterId, body);
-    }
+  /**
+   * Deletes a specific mail from a character's mailbox.
+   *
+   * @param characterId - The ID of the character who owns the mail
+   * @param mailId - The ID of the mail to delete
+   * @returns void
+   * @requires Authentication
+   */
+  deleteMail(characterId: number, mailId: number): Promise<void> {
+    return this.api.deleteMail(characterId, mailId) as Promise<void>;
+  }
 
-    async deleteMail(characterId: number, mailId: number): Promise<any> {
-        return await this.deleteCharacterMailApi.deleteMail(characterId, mailId);
-    }
+  /**
+   * Retrieves the full contents of a specific mail including its body text.
+   *
+   * @param characterId - The ID of the character who owns the mail
+   * @param mailId - The ID of the mail to retrieve
+   * @returns The full mail message including body, sender, and recipients
+   * @requires Authentication
+   */
+  getMail(characterId: number, mailId: number): Promise<MailMessage> {
+    return this.api.getMail(characterId, mailId);
+  }
 
-    async getMail(characterId: number, mailId: number): Promise<any> {
-        return await this.getCharacterMailApi.getMail(characterId, mailId);
-    }
+  /**
+   * Updates the metadata of a mail, such as read status or labels, via PUT.
+   *
+   * @param characterId - The ID of the character who owns the mail
+   * @param mailId - The ID of the mail to update
+   * @param body - The metadata fields to update (e.g., labels, read status)
+   * @returns void
+   * @requires Authentication
+   */
+  updateMailMetadata(
+    characterId: number,
+    mailId: number,
+    body: object,
+  ): Promise<void> {
+    return this.api.updateMailMetadata(
+      characterId,
+      mailId,
+      body,
+    ) as Promise<void>;
+  }
 
-    async updateMailMetadata(characterId: number, mailId: number, body: object): Promise<any> {
-        return await this.putCharacterMailApi.updateMailMetadata(characterId, mailId, body);
-    }
+  /**
+   * Retrieves the mail labels and total unread count for a character.
+   *
+   * @param characterId - The ID of the character whose labels to fetch
+   * @returns The character's mail labels and total unread mail count
+   * @requires Authentication
+   */
+  getMailLabels(
+    characterId: number,
+  ): Promise<{ total_unread_count?: number; labels?: MailLabel[] }> {
+    return this.api.getMailLabels(characterId);
+  }
 
-    async getMailLabels(characterId: number): Promise<any> {
-        return await this.getCharacterMailLabelsApi.getMailLabels(characterId);
-    }
+  /**
+   * Creates a new custom mail label for a character via POST.
+   *
+   * @param characterId - The ID of the character to create the label for
+   * @param body - The label definition including name and optional color
+   * @returns The ID of the newly created label
+   * @requires Authentication
+   */
+  createMailLabel(characterId: number, body: object): Promise<number> {
+    return this.api.createMailLabel(characterId, body) as Promise<number>;
+  }
 
-    async createMailLabel(characterId: number, body: object): Promise<any> {
-        return await this.postCharacterMailLabelsApi.createMailLabel(characterId, body);
-    }
+  /**
+   * Deletes a custom mail label from a character's mailbox.
+   *
+   * @param characterId - The ID of the character who owns the label
+   * @param labelId - The ID of the label to delete
+   * @returns void
+   * @requires Authentication
+   */
+  deleteMailLabel(characterId: number, labelId: number): Promise<void> {
+    return this.api.deleteMailLabel(characterId, labelId) as Promise<void>;
+  }
 
-    async deleteMailLabel(characterId: number, labelId: number): Promise<any> {
-        return await this.deleteCharacterMailLabelApi.deleteMailLabel(characterId, labelId);
-    }
+  /**
+   * Retrieves the mailing lists that a character is subscribed to.
+   *
+   * @param characterId - The ID of the character whose mailing lists to fetch
+   * @returns A list of mailing lists with their IDs and names
+   * @requires Authentication
+   */
+  getMailingLists(
+    characterId: number,
+  ): Promise<{ mailing_list_id: number; name: string }[]> {
+    return this.api.getMailingLists(characterId);
+  }
 
-    async getMailingLists(characterId: number): Promise<any> {
-        return await this.getCharacterMailingListsApi.getMailingLists(characterId);
-    }
+  fetchAllMailHeaders(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<MailHeader[]> {
+    return this.fetchAllEndpoint<MailHeader>(
+      'getCharacterMailHeaders',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllMailingLists(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<{ mailing_list_id: number; name: string }[]> {
+    return this.fetchAllEndpoint<{ mailing_list_id: number; name: string }>(
+      'getMailingLists',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  streamMailHeaders(
+    characterId: number,
+  ): AsyncGenerator<PageResult<MailHeader>, void, undefined> {
+    return this.streamEndpoint<MailHeader>(
+      'getCharacterMailHeaders',
+      characterId,
+    );
+  }
+
+  streamMailingLists(
+    characterId: number,
+  ): AsyncGenerator<
+    PageResult<{ mailing_list_id: number; name: string }>,
+    void,
+    undefined
+  > {
+    return this.streamEndpoint<{ mailing_list_id: number; name: string }>(
+      'getMailingLists',
+      characterId,
+    );
+  }
 }

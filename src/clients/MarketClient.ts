@@ -1,84 +1,261 @@
-import { getCharacterOrders } from '../api/market/getCharacterOrders';
-import { getCharacterOrderHistory } from '../api/market/getCharacterOrderHistory';
-import { getCorporationOrders } from '../api/market/getCorporationOrders';
-import { getCorporationOrderHistory } from '../api/market/getCorporationOrderHistory';
-import { getMarketHistory } from '../api/market/getMarketHistory';
-import { getMarketOrders } from '../api/market/getMarketOrders';
-import { getMarketTypes } from '../api/market/getMarketTypes';
-import { getMarketGroups } from '../api/market/getMarketGroups';
-import { getMarketGroupInformation } from '../api/market/getMarketGroupInformation';
-import { getMarketPrices } from '../api/market/getMarketPrices';
-import { getMarketOrdersInStructure } from '../api/market/getMarketOrdersInStructure';
 import { ApiClient } from '../core/ApiClient';
+import { BaseEsiClient } from './BaseEsiClient';
+import { marketEndpoints } from '../core/endpoints/marketEndpoints';
+import {
+  MarketOrder,
+  CharacterMarketOrder,
+  CharacterMarketOrderHistory,
+  CorporationMarketOrder,
+  CorporationMarketOrderHistory,
+  StructureMarketOrder,
+  MarketHistory,
+  MarketGroup,
+  MarketPrice,
+} from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class MarketClient {
-    private getCharacterOrdersApi: getCharacterOrders;
-    private getCharacterOrderHistoryApi: getCharacterOrderHistory;
-    private getCorporationOrdersApi: getCorporationOrders;
-    private getCorporationOrderHistoryApi: getCorporationOrderHistory;
-    private getMarketHistoryApi: getMarketHistory;
-    private getMarketOrdersApi: getMarketOrders;
-    private getMarketTypesApi: getMarketTypes;
-    private getMarketGroupsApi: getMarketGroups;
-    private getMarketGroupInformationApi: getMarketGroupInformation;
-    private getMarketPricesApi: getMarketPrices;
-    private getMarketOrdersInStructureApi: getMarketOrdersInStructure;
+export class MarketClient extends BaseEsiClient<typeof marketEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, marketEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCharacterOrdersApi = new getCharacterOrders(client);
-        this.getCharacterOrderHistoryApi = new getCharacterOrderHistory(client);
-        this.getCorporationOrdersApi = new getCorporationOrders(client);
-        this.getCorporationOrderHistoryApi = new getCorporationOrderHistory(client);
-        this.getMarketHistoryApi = new getMarketHistory(client);
-        this.getMarketOrdersApi = new getMarketOrders(client);
-        this.getMarketTypesApi = new getMarketTypes(client);
-        this.getMarketGroupsApi = new getMarketGroups(client);
-        this.getMarketGroupInformationApi = new getMarketGroupInformation(client);
-        this.getMarketPricesApi = new getMarketPrices(client);
-        this.getMarketOrdersInStructureApi = new getMarketOrdersInStructure(client);
-    }
+  /**
+   * Retrieves all active market orders placed by a character.
+   *
+   * @param characterId - The ID of the character whose orders to fetch
+   * @returns A list of the character's open market orders
+   * @requires Authentication
+   */
+  getCharacterOrders(characterId: number): Promise<CharacterMarketOrder[]> {
+    return this.api.getCharacterOrders(characterId);
+  }
 
-    async getCharacterOrders(characterId: number): Promise<any> {
-        return await this.getCharacterOrdersApi.getCharacterOrders(characterId);
-    }
+  /**
+   * Retrieves the history of expired and cancelled market orders for a character.
+   *
+   * @param characterId - The ID of the character whose order history to fetch
+   * @returns A list of the character's historical market orders
+   * @requires Authentication
+   */
+  getCharacterOrderHistory(
+    characterId: number,
+  ): Promise<CharacterMarketOrderHistory[]> {
+    return this.api.getCharacterOrderHistory(characterId);
+  }
 
-    async getCharacterOrderHistory(characterId: number): Promise<any> {
-        return await this.getCharacterOrderHistoryApi.getCharacterOrderHistory(characterId);
-    }
+  /**
+   * Retrieves all active market orders placed by members of a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose orders to fetch
+   * @returns A list of the corporation's open market orders
+   * @requires Authentication
+   */
+  getCorporationOrders(
+    corporationId: number,
+  ): Promise<CorporationMarketOrder[]> {
+    return this.api.getCorporationOrders(corporationId);
+  }
 
-    async getCorporationOrders(corporationId: number): Promise<any> {
-        return await this.getCorporationOrdersApi.getCorporationOrders(corporationId);
-    }
+  /**
+   * Retrieves the history of expired and cancelled market orders for a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose order history to fetch
+   * @returns A list of the corporation's historical market orders
+   * @requires Authentication
+   */
+  getCorporationOrderHistory(
+    corporationId: number,
+  ): Promise<CorporationMarketOrderHistory[]> {
+    return this.api.getCorporationOrderHistory(corporationId);
+  }
 
-    async getCorporationOrderHistory(corporationId: number): Promise<any> {
-        return await this.getCorporationOrderHistoryApi.getCorporationOrderHistory(corporationId);
-    }
+  /**
+   * Retrieves the daily price and volume history for a specific item type in a region.
+   *
+   * @param regionId - The ID of the region to fetch market history for
+   * @param typeId - The type ID of the item to get history for
+   * @returns A list of daily market history entries with price and volume data
+   */
+  getMarketHistory(regionId: number, typeId: number): Promise<MarketHistory[]> {
+    return this.api.getMarketHistory(regionId, typeId);
+  }
 
-    async getMarketHistory(regionId: number, typeId: number): Promise<any> {
-        return await this.getMarketHistoryApi.getMarketHistory(regionId, typeId);
-    }
+  /**
+   * Retrieves all active market orders in a region for all item types.
+   *
+   * @param regionId - The ID of the region to fetch orders for
+   * @returns A list of all active market orders in the region
+   */
+  getMarketOrders(regionId: number): Promise<MarketOrder[]> {
+    return this.api.getMarketOrders(regionId, 'all');
+  }
 
-    async getMarketOrders(regionId: number): Promise<any> {
-        return await this.getMarketOrdersApi.getMarketOrders(regionId);
-    }
+  /**
+   * Retrieves the list of type IDs that have active market orders in a region.
+   *
+   * @param regionId - The ID of the region to check for active types
+   * @returns A list of type IDs with active orders in the region
+   */
+  getMarketTypes(regionId: number): Promise<number[]> {
+    return this.api.getMarketTypes(regionId);
+  }
 
-    async getMarketTypes(regionId: number): Promise<any> {
-        return await this.getMarketTypesApi.getMarketTypes(regionId);
-    }
+  /**
+   * Retrieves the list of all market group IDs used to categorize items on the market.
+   *
+   * @returns A list of all market group IDs
+   */
+  getMarketGroups(): Promise<number[]> {
+    return this.api.getMarketGroups();
+  }
 
-    async getMarketGroups(): Promise<any> {
-        return await this.getMarketGroupsApi.getMarketGroups();
-    }
+  /**
+   * Retrieves detailed information about a specific market group, including its name, description, and contained types.
+   *
+   * @param marketGroupId - The ID of the market group to look up
+   * @returns The market group details including name, description, types, and optional parent group
+   */
+  getMarketGroupInformation(marketGroupId: number): Promise<MarketGroup> {
+    return this.api.getMarketGroupInformation(marketGroupId);
+  }
 
-    async getMarketGroupInformation(marketGroupId: number): Promise<any> {
-        return await this.getMarketGroupInformationApi.getMarketGroupInformation(marketGroupId);
-    }
+  /**
+   * Retrieves the global average and adjusted prices for all tradeable item types.
+   *
+   * @returns A list of item types with their average and adjusted market prices
+   */
+  getMarketPrices(): Promise<MarketPrice[]> {
+    return this.api.getMarketPrices();
+  }
 
-    async getMarketPrices(): Promise<any> {
-        return await this.getMarketPricesApi.getMarketPrices();
-    }
+  /**
+   * Retrieves all active market orders listed in a specific player-owned structure.
+   *
+   * @param structureId - The ID of the structure to fetch orders for
+   * @returns A list of active market orders in the structure
+   * @requires Authentication
+   */
+  getMarketOrdersInStructure(
+    structureId: number,
+  ): Promise<StructureMarketOrder[]> {
+    return this.api.getMarketOrdersInStructure(structureId);
+  }
 
-    async getMarketOrdersInStructure(structureId: number): Promise<any> {
-        return await this.getMarketOrdersInStructureApi.getMarketOrdersInStructure(structureId);
-    }
+  fetchAllMarketOrders(
+    regionId: number,
+    concurrency?: number,
+  ): Promise<MarketOrder[]> {
+    return this.fetchAllEndpoint<MarketOrder>(
+      'getMarketOrders',
+      [regionId, 'all'],
+      concurrency,
+    );
+  }
+
+  fetchAllMarketTypes(
+    regionId: number,
+    concurrency?: number,
+  ): Promise<number[]> {
+    return this.fetchAllEndpoint<number>(
+      'getMarketTypes',
+      [regionId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterOrderHistory(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<CharacterMarketOrderHistory[]> {
+    return this.fetchAllEndpoint<CharacterMarketOrderHistory>(
+      'getCharacterOrderHistory',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationOrders(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMarketOrder[]> {
+    return this.fetchAllEndpoint<CorporationMarketOrder>(
+      'getCorporationOrders',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationOrderHistory(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMarketOrderHistory[]> {
+    return this.fetchAllEndpoint<CorporationMarketOrderHistory>(
+      'getCorporationOrderHistory',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllMarketOrdersInStructure(
+    structureId: number,
+    concurrency?: number,
+  ): Promise<StructureMarketOrder[]> {
+    return this.fetchAllEndpoint<StructureMarketOrder>(
+      'getMarketOrdersInStructure',
+      [structureId],
+      concurrency,
+    );
+  }
+
+  streamMarketOrders(
+    regionId: number,
+  ): AsyncGenerator<PageResult<MarketOrder>, void, undefined> {
+    return this.streamEndpoint<MarketOrder>('getMarketOrders', regionId, 'all');
+  }
+
+  streamMarketTypes(
+    regionId: number,
+  ): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getMarketTypes', regionId);
+  }
+
+  streamCharacterOrderHistory(
+    characterId: number,
+  ): AsyncGenerator<PageResult<CharacterMarketOrderHistory>, void, undefined> {
+    return this.streamEndpoint<CharacterMarketOrderHistory>(
+      'getCharacterOrderHistory',
+      characterId,
+    );
+  }
+
+  streamCorporationOrders(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMarketOrder>, void, undefined> {
+    return this.streamEndpoint<CorporationMarketOrder>(
+      'getCorporationOrders',
+      corporationId,
+    );
+  }
+
+  streamCorporationOrderHistory(
+    corporationId: number,
+  ): AsyncGenerator<
+    PageResult<CorporationMarketOrderHistory>,
+    void,
+    undefined
+  > {
+    return this.streamEndpoint<CorporationMarketOrderHistory>(
+      'getCorporationOrderHistory',
+      corporationId,
+    );
+  }
+
+  streamMarketOrdersInStructure(
+    structureId: number,
+  ): AsyncGenerator<PageResult<StructureMarketOrder>, void, undefined> {
+    return this.streamEndpoint<StructureMarketOrder>(
+      'getMarketOrdersInStructure',
+      structureId,
+    );
+  }
 }

@@ -1,46 +1,58 @@
-class HeadersUtil {
-    private static headers: Record<string, string> = {};
-
-    static extractHeaders(fetchHeaders: Headers): Record<string, string> {
-        const headers: Record<string, string> = {};
-        fetchHeaders.forEach((value, key) => {
-            headers[key.toLowerCase()] = value;
-        });
-        this.headers = headers;
-        return headers;
-    }
-
-    static get xPages(): number {
-        return parseInt(this.headers['x-pages'] ?? '1', 10);
-    }
-
-    static get errorLimitRemain(): number {
-        return parseInt(this.headers['x-esi-error-limit-remain'] ?? '0', 10);
-    }
-
-    static get errorLimitReset(): number {
-        return parseInt(this.headers['x-esi-error-limit-reset'] ?? '0', 10);
-    }
-
-    static get expires(): string | null {
-        return this.headers['expires'] ?? null;
-    }
-
-    static get etag(): string | null {
-        return this.headers['etag'] ?? null;
-    }
-
-    static get lastModified(): string | null {
-        return this.headers['last-modified'] ?? null;
-    }
-
-    static get cacheControl(): string | null {
-        return this.headers['cache-control'] ?? null;
-    }
-
-    static getHeaders(): Record<string, string> {
-        return this.headers;
-    }
+export interface EsiWarning {
+  code: number;
+  message: string;
 }
 
-export default HeadersUtil;
+export interface ParsedHeaders {
+  raw: Record<string, string>;
+  xPages: number;
+  etag: string | null;
+  cacheControl: string | null;
+  expires: string | null;
+  lastModified: string | null;
+  cursorBefore: string | null;
+  cursorAfter: string | null;
+  hasCursorPagination: boolean;
+  warning: EsiWarning | null;
+  requestId: string | null;
+  date: string | null;
+  contentLanguage: string | null;
+}
+
+export function parseWarning(
+  value: string | null | undefined,
+): EsiWarning | null {
+  if (!value) return null;
+  const match =
+    /^(\d{3}) - "([^"]+)"$/.exec(value) ??
+    /^(\d{3}) - ([^ ].+[^ ])$/.exec(value);
+  if (!match) return null;
+  const [, code, message] = match;
+  return { code: parseInt(code!, 10), message: message! };
+}
+
+export function parseHeaders(fetchHeaders: Headers): ParsedHeaders {
+  const raw: Record<string, string> = {};
+  fetchHeaders.forEach((value, key) => {
+    raw[key.toLowerCase()] = value;
+  });
+
+  const cursorBefore = raw['x-cursor-before'] ?? null;
+  const cursorAfter = raw['x-cursor-after'] ?? null;
+
+  return {
+    raw,
+    xPages: parseInt(raw['x-pages'] ?? '1', 10),
+    etag: raw['etag'] ?? null,
+    cacheControl: raw['cache-control'] ?? null,
+    expires: raw['expires'] ?? null,
+    lastModified: raw['last-modified'] ?? null,
+    cursorBefore,
+    cursorAfter,
+    hasCursorPagination: 'x-cursor-before' in raw || 'x-cursor-after' in raw,
+    warning: parseWarning(raw['warning']),
+    requestId: raw['x-esi-request-id'] ?? null,
+    date: raw['date'] ?? null,
+    contentLanguage: raw['content-language'] ?? null,
+  };
+}

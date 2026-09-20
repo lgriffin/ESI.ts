@@ -1,0 +1,326 @@
+import { ContractsClient } from '../../../src/clients/ContractsClient';
+import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
+import { getConfig } from '../../../src/config/configManager';
+import fetchMock from 'jest-fetch-mock';
+import type { PublicContractItem } from '../../../src/types/api-responses';
+import { describeClientErrors } from '../helpers/clientErrorTests';
+
+fetchMock.enableMocks();
+
+const config = getConfig();
+
+const client = new ApiClientBuilder()
+  .setClientId(config.projectName)
+  .setLink(config.link)
+  .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+  .build();
+
+const contractClient = new ContractsClient(client);
+
+describe('ContractClient', () => {
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
+
+  it('should return valid structure for getContracts', async () => {
+    const mockResponse = [
+      {
+        contract_id: 1,
+        issuer_id: 123,
+        issuer_corporation_id: 98000001,
+        assignee_id: 0,
+        acceptor_id: 0,
+        start_location_id: 456,
+        type: 'item_exchange',
+        status: 'outstanding',
+        for_corporation: false,
+        availability: 'personal',
+        date_issued: '2024-07-01T12:00:00Z',
+        date_expired: '2024-07-15T12:00:00Z',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      contractClient.getCharacterContracts(123456789),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((contract) => {
+      expect(contract).toHaveProperty('contract_id');
+      expect(typeof contract.contract_id).toBe('number');
+      expect(contract).toHaveProperty('issuer_id');
+      expect(typeof contract.issuer_id).toBe('number');
+      expect(contract).toHaveProperty('start_location_id');
+      expect(typeof contract.start_location_id).toBe('number');
+      expect(contract).toHaveProperty('type');
+      expect(typeof contract.type).toBe('string');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/contracts',
+    );
+  });
+
+  it('should return valid structure for getContractBids', async () => {
+    const mockResponse = [
+      {
+        bid_id: 1,
+        bidder_id: 98000002,
+        amount: 1000000,
+        date_bid: '2024-07-01T12:00:00Z',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      contractClient.getCharacterContractBids(123456789, 1),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((bid) => {
+      expect(bid).toHaveProperty('bid_id');
+      expect(typeof bid.bid_id).toBe('number');
+      expect(bid).toHaveProperty('amount');
+      expect(typeof bid.amount).toBe('number');
+      expect(bid).toHaveProperty('date_bid');
+      expect(typeof bid.date_bid).toBe('string');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/contracts/1/bids',
+    );
+  });
+
+  it('should return valid structure for getContractItems', async () => {
+    const mockResponse = [
+      {
+        record_id: 1,
+        item_id: 1,
+        type_id: 2,
+        quantity: 3,
+        is_singleton: false,
+        is_included: true,
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      contractClient.getCharacterContractItems(123456789, 1),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((item) => {
+      expect(item).toHaveProperty('item_id');
+      expect(typeof item.item_id).toBe('number');
+      expect(item).toHaveProperty('type_id');
+      expect(typeof item.type_id).toBe('number');
+      expect(item).toHaveProperty('quantity');
+      expect(typeof item.quantity).toBe('number');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/contracts/1/items',
+    );
+  });
+
+  it('should return valid structure for getPublicContracts', async () => {
+    const mockResponse = [
+      {
+        contract_id: 1,
+        issuer_id: 123,
+        issuer_corporation_id: 98000001,
+        start_location_id: 456,
+        type: 'item_exchange',
+        status: 'outstanding',
+        for_corporation: false,
+        availability: 'public',
+        date_issued: '2024-07-01T12:00:00Z',
+        date_expired: '2024-07-15T12:00:00Z',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => contractClient.getPublicContracts(123));
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((contract) => {
+      expect(contract).toHaveProperty('contract_id');
+      expect(typeof contract.contract_id).toBe('number');
+      expect(contract).toHaveProperty('issuer_id');
+      expect(typeof contract.issuer_id).toBe('number');
+      expect(contract).toHaveProperty('start_location_id');
+      expect(typeof contract.start_location_id).toBe('number');
+      expect(contract).toHaveProperty('type');
+      expect(typeof contract.type).toBe('string');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/contracts/public/123',
+    );
+  });
+
+  it('should return valid structure for getPublicContractBids', async () => {
+    const mockResponse = [
+      {
+        bid_id: 1,
+        amount: 1000000,
+        date_bid: '2024-07-01T12:00:00Z',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => contractClient.getPublicContractBids(1));
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((bid) => {
+      expect(bid).toHaveProperty('bid_id');
+      expect(typeof bid.bid_id).toBe('number');
+      expect(bid).toHaveProperty('amount');
+      expect(typeof bid.amount).toBe('number');
+      expect(bid).toHaveProperty('date_bid');
+      expect(typeof bid.date_bid).toBe('string');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/contracts/public/bids/1',
+    );
+  });
+
+  it('should return valid structure for getPublicContractItems', async () => {
+    const mockResponse: PublicContractItem[] = [
+      {
+        record_id: 1,
+        item_id: 1,
+        type_id: 2,
+        quantity: 3,
+        is_included: true,
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      contractClient.getPublicContractItems(1),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((item) => {
+      expect(item).toHaveProperty('item_id');
+      expect(typeof item.item_id).toBe('number');
+      expect(item).toHaveProperty('type_id');
+      expect(typeof item.type_id).toBe('number');
+      expect(item).toHaveProperty('quantity');
+      expect(typeof item.quantity).toBe('number');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/contracts/public/items/1',
+    );
+  });
+
+  it('should return valid structure for getCorporationContracts', async () => {
+    const mockResponse = [
+      {
+        contract_id: 1,
+        issuer_id: 123,
+        issuer_corporation_id: 98000001,
+        assignee_id: 0,
+        acceptor_id: 0,
+        start_location_id: 456,
+        type: 'item_exchange',
+        status: 'outstanding',
+        for_corporation: true,
+        availability: 'corporation',
+        date_issued: '2024-07-01T12:00:00Z',
+        date_expired: '2024-07-15T12:00:00Z',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      contractClient.getCorporationContracts(123456789),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((contract) => {
+      expect(contract).toHaveProperty('contract_id');
+      expect(typeof contract.contract_id).toBe('number');
+      expect(contract).toHaveProperty('issuer_id');
+      expect(typeof contract.issuer_id).toBe('number');
+      expect(contract).toHaveProperty('start_location_id');
+      expect(typeof contract.start_location_id).toBe('number');
+      expect(contract).toHaveProperty('type');
+      expect(typeof contract.type).toBe('string');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/contracts',
+    );
+  });
+
+  it('should return valid structure for getCorporationContractBids', async () => {
+    const mockResponse = [
+      {
+        bid_id: 1,
+        bidder_id: 98000002,
+        amount: 1000000,
+        date_bid: '2024-07-01T12:00:00Z',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      contractClient.getCorporationContractBids(123456789, 1),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((bid) => {
+      expect(bid).toHaveProperty('bid_id');
+      expect(typeof bid.bid_id).toBe('number');
+      expect(bid).toHaveProperty('amount');
+      expect(typeof bid.amount).toBe('number');
+      expect(bid).toHaveProperty('date_bid');
+      expect(typeof bid.date_bid).toBe('string');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/contracts/1/bids',
+    );
+  });
+
+  it('should return valid structure for getCorporationContractItems', async () => {
+    const mockResponse = [
+      {
+        record_id: 1,
+        item_id: 1,
+        type_id: 2,
+        quantity: 3,
+        is_singleton: false,
+        is_included: true,
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      contractClient.getCorporationContractItems(123456789, 1),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    (result as any[]).forEach((item) => {
+      expect(item).toHaveProperty('item_id');
+      expect(typeof item.item_id).toBe('number');
+      expect(item).toHaveProperty('type_id');
+      expect(typeof item.type_id).toBe('number');
+      expect(item).toHaveProperty('quantity');
+      expect(typeof item.quantity).toBe('number');
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/corporations/123456789/contracts/1/items',
+    );
+  });
+
+  describeClientErrors('ContractsClient', (apiClient) =>
+    new ContractsClient(apiClient).getCharacterContracts(123456789),
+  );
+});

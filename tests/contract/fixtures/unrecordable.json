@@ -1,0 +1,10 @@
+{
+  "cosmetics.getSkinr": "Route exists from compatibility date 2026-08-18; the client sends 2026-05-19 (COMPATIBILITY_DATE), so ESI answers 404 for cosmetics/skinr/{skinr_id}. A SKINR ID would come from paragon-hub/skinr, which is 404 for the same reason. Recordable once the date is bumped — esi-23g.54.",
+  "dogma.getDynamicItemInfo": "Needs the item ID of a mutated (abyssal) item; no public endpoint lists one reliably, so no stable seed exists.",
+  "meta.getName": "Route exists from compatibility date 2026-08-18; the client sends 2026-05-19 (COMPATIBILITY_DATE), so ESI answers 404 for meta/name. Recordable once the date is bumped — esi-23g.54.",
+  "militaryCampaign.getMilitaryCampaign": "Needs a campaign ID from military-campaigns, which is 404 until the compatibility date reaches 2026-08-18. Recordable once the date is bumped — esi-23g.54.",
+  "militaryCampaign.getMilitaryCampaignObjective": "Needs campaign and objective IDs from military-campaigns, which is 404 until the compatibility date reaches 2026-08-18. Recordable once the date is bumped — esi-23g.54.",
+  "militaryCampaign.getMilitaryCampaignObjectives": "Needs a campaign ID from military-campaigns, which is 404 until the compatibility date reaches 2026-08-18. Recordable once the date is bumped — esi-23g.54.",
+  "militaryCampaign.getMilitaryCampaigns": "Route exists from compatibility date 2026-08-18; the client sends 2026-05-19 (COMPATIBILITY_DATE), so ESI answers 404 for military-campaigns. Recordable once the date is bumped — esi-23g.54.",
+  "paragonHub.getPublicListings": "Route exists from compatibility date 2026-08-18; the client sends 2026-05-19 (COMPATIBILITY_DATE), so ESI answers 404 for paragon-hub/skinr. Recordable once the date is bumped — esi-23g.54."
+}

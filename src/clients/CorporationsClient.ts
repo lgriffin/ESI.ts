@@ -1,168 +1,620 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCorporationInfoApi } from '../api/corporations/getCorporationInfo';
-import { GetCorporationAllianceHistoryApi } from '../api/corporations/getCorporationAllianceHistory';
-import { GetCorporationBlueprintsApi } from '../api/corporations/getCorporationBlueprints';
-import { GetCorporationAlscLogsApi } from '../api/corporations/getCorporationAlscLogs';
-import { GetCorporationDivisionsApi } from '../api/corporations/getCorporationDivisions';
-import { GetCorporationFacilitiesApi } from '../api/corporations/getCorporationFacilities';
-import { GetCorporationIconApi } from '../api/corporations/getCorporationIcon';
-import { GetCorporationMedalsApi } from '../api/corporations/getCorporationMedals';
-import { GetCorporationIssuedMedalsApi } from '../api/corporations/getCorporationIssuedMedals';
-import { GetCorporationMembersApi } from '../api/corporations/getCorporationMembers';
-import { GetCorporationMemberLimitApi } from '../api/corporations/getCorporationMemberLimit';
-import { GetCorporationMembersTitlesApi } from '../api/corporations/getCorporationMembersTitles';
-import { GetCorporationMemberTrackingApi } from '../api/corporations/getCorporationMemberTracking';
-import { GetCorporationMemberRolesApi } from '../api/corporations/getCorporationMemberRoles';
-import { GetCorporationMemberRolesHistoryApi } from '../api/corporations/getCorporationMemberRolesHistory';
-import { GetCorporationShareholdersApi } from '../api/corporations/getCorporationShareholders';
-import { GetCorporationStandingsApi } from '../api/corporations/getCorporationStandings';
-import { GetCorporationStarbasesApi } from '../api/corporations/getCorporationStarbases';
-import { GetCorporationStarbaseDetailApi } from '../api/corporations/getCorporationStarbaseDetail';
-import { GetCorporationStructuresApi } from '../api/corporations/getCorporationStructures';
-import { GetCorporationTitlesApi } from '../api/corporations/getCorporationTitles';
-import { GetNpcCorporationsApi } from '../api/corporations/getNpcCorporations';
-import { GetCorporationProjectsApi } from '../api/corporations/getCorporationProjects';
+import { BaseEsiClient } from './BaseEsiClient';
+import { corporationEndpoints } from '../core/endpoints/corporationEndpoints';
+import {
+  Blueprint,
+  CorporationInfo,
+  CorporationAllianceHistory,
+  CorporationDivisions,
+  CorporationFacility,
+  CorporationIssuedMedal,
+  CorporationMedal,
+  CorporationMemberRole,
+  CorporationMemberTitle,
+  CorporationMemberTracking,
+  CorporationRoleHistory,
+  CorporationShareholder,
+  CorporationStarbase,
+  CorporationStarbaseDetail,
+  CorporationStructure,
+  CorporationTitle,
+  ContainerLog,
+  Standing,
+} from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class CorporationsClient {
-    private getCorporationInfoApi: GetCorporationInfoApi;
-    private getCorporationAllianceHistoryApi: GetCorporationAllianceHistoryApi;
-    private getCorporationBlueprintsApi: GetCorporationBlueprintsApi;
-    private getCorporationAlscLogsApi: GetCorporationAlscLogsApi;
-    private getCorporationDivisionsApi: GetCorporationDivisionsApi;
-    private getCorporationFacilitiesApi: GetCorporationFacilitiesApi;
-    private getCorporationIconApi: GetCorporationIconApi;
-    private getCorporationMedalsApi: GetCorporationMedalsApi;
-    private getCorporationIssuedMedalsApi: GetCorporationIssuedMedalsApi;
-    private getCorporationMembersApi: GetCorporationMembersApi;
-    private getCorporationMemberLimitApi: GetCorporationMemberLimitApi;
-    private getCorporationMemberTitlesApi: GetCorporationMembersTitlesApi;
-    private getCorporationMemberTrackingApi: GetCorporationMemberTrackingApi;
-    private getCorporationRolesApi: GetCorporationMemberRolesApi;
-    private getCorporationRolesHistoryApi: GetCorporationMemberRolesHistoryApi;
-    private getCorporationShareholdersApi: GetCorporationShareholdersApi;
-    private getCorporationStandingsApi: GetCorporationStandingsApi;
-    private getCorporationStarbasesApi: GetCorporationStarbasesApi;
-    private getCorporationStarbaseDetailApi: GetCorporationStarbaseDetailApi;
-    private getCorporationStructuresApi: GetCorporationStructuresApi;
-    private getCorporationTitlesApi: GetCorporationTitlesApi;
-    private getNpcCorporationsApi: GetNpcCorporationsApi;
-    private getCorporationProjectsApi: GetCorporationProjectsApi;
+export class CorporationsClient extends BaseEsiClient<
+  typeof corporationEndpoints
+> {
+  constructor(client: ApiClient) {
+    super(client, corporationEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCorporationInfoApi = new GetCorporationInfoApi(client);
-        this.getCorporationAllianceHistoryApi = new GetCorporationAllianceHistoryApi(client);
-        this.getCorporationBlueprintsApi = new GetCorporationBlueprintsApi(client);
-        this.getCorporationAlscLogsApi = new GetCorporationAlscLogsApi(client);
-        this.getCorporationDivisionsApi = new GetCorporationDivisionsApi(client);
-        this.getCorporationFacilitiesApi = new GetCorporationFacilitiesApi(client);
-        this.getCorporationIconApi = new GetCorporationIconApi(client);
-        this.getCorporationMedalsApi = new GetCorporationMedalsApi(client);
-        this.getCorporationIssuedMedalsApi = new GetCorporationIssuedMedalsApi(client);
-        this.getCorporationMembersApi = new GetCorporationMembersApi(client);
-        this.getCorporationMemberLimitApi = new GetCorporationMemberLimitApi(client);
-        this.getCorporationMemberTitlesApi = new GetCorporationMembersTitlesApi(client);
-        this.getCorporationMemberTrackingApi = new GetCorporationMemberTrackingApi(client);
-        this.getCorporationRolesApi = new GetCorporationMemberRolesApi(client);
-        this.getCorporationRolesHistoryApi = new GetCorporationMemberRolesHistoryApi(client);
-        this.getCorporationShareholdersApi = new GetCorporationShareholdersApi(client);
-        this.getCorporationStandingsApi = new GetCorporationStandingsApi(client);
-        this.getCorporationStarbasesApi = new GetCorporationStarbasesApi(client);
-        this.getCorporationStarbaseDetailApi = new GetCorporationStarbaseDetailApi(client);
-        this.getCorporationStructuresApi = new GetCorporationStructuresApi(client);
-        this.getCorporationTitlesApi = new GetCorporationTitlesApi(client);
-        this.getNpcCorporationsApi = new GetNpcCorporationsApi(client);
-        this.getCorporationProjectsApi = new GetCorporationProjectsApi(client);
-    }
+  /**
+   * Retrieve public information about a corporation.
+   *
+   * @param corporationId - The ID of the corporation to look up
+   * @returns Public corporation information including name, ticker, member count, and CEO
+   */
+  getCorporationInfo(corporationId: number): Promise<CorporationInfo> {
+    return this.api.getCorporationInfo(corporationId);
+  }
 
-    async getCorporationInfo(corporationId: number): Promise<any> {
-        return await this.getCorporationInfoApi.getCorporationInfo(corporationId);
-    }
+  /**
+   * Retrieve the alliance membership history of a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose alliance history to retrieve
+   * @returns A chronological list of alliances the corporation has been a member of
+   */
+  getCorporationAllianceHistory(
+    corporationId: number,
+  ): Promise<CorporationAllianceHistory[]> {
+    return this.api.getCorporationAllianceHistory(corporationId);
+  }
 
-    async getCorporationAllianceHistory(corporationId: number): Promise<any> {
-        return await this.getCorporationAllianceHistoryApi.getCorporationAllianceHistory(corporationId);
-    }
+  /**
+   * Retrieve blueprints owned by a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose blueprints to retrieve
+   * @returns A list of blueprints with material/time efficiency and run information
+   * @requires Authentication
+   */
+  getCorporationBlueprints(corporationId: number): Promise<Blueprint[]> {
+    return this.api.getCorporationBlueprints(corporationId);
+  }
 
-    async getCorporationBlueprints(corporationId: number): Promise<any> {
-        return await this.getCorporationBlueprintsApi.getCorporationBlueprints(corporationId);
-    }
+  /**
+   * Retrieve audit log secure container (ALSC) logs for a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose container logs to retrieve
+   * @returns A list of container access logs with action, character, and timestamp details
+   * @requires Authentication
+   */
+  getCorporationAlscLogs(corporationId: number): Promise<ContainerLog[]> {
+    return this.api.getCorporationAlscLogs(corporationId);
+  }
 
-    async getCorporationAlscLogs(corporationId: number): Promise<any> {
-        return await this.getCorporationAlscLogsApi.getCorporationAlscLogs(corporationId);
-    }
+  /**
+   * Retrieve the hangar and wallet division names for a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose divisions to retrieve
+   * @returns Hangar and wallet division configurations with custom names
+   * @requires Authentication
+   */
+  getCorporationDivisions(
+    corporationId: number,
+  ): Promise<CorporationDivisions> {
+    return this.api.getCorporationDivisions(corporationId);
+  }
 
-    async getCorporationDivisions(corporationId: number): Promise<any> {
-        return await this.getCorporationDivisionsApi.getCorporationDivisions(corporationId);
-    }
+  /**
+   * Retrieve the industrial facilities owned by a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose facilities to retrieve
+   * @returns A list of corporation-owned facilities with type and solar system information
+   * @requires Authentication
+   */
+  getCorporationFacilities(
+    corporationId: number,
+  ): Promise<CorporationFacility[]> {
+    return this.api.getCorporationFacilities(corporationId);
+  }
 
-    async getCorporationFacilities(corporationId: number): Promise<any> {
-        return await this.getCorporationFacilitiesApi.getCorporationFacilities(corporationId);
-    }
+  /**
+   * Retrieve icon URLs for a corporation at various resolutions.
+   *
+   * @param corporationId - The ID of the corporation whose icons to retrieve
+   * @returns Icon URLs at 64x64, 128x128, and 256x256 resolutions
+   */
+  getCorporationIcon(
+    corporationId: number,
+  ): Promise<{ px64x64?: string; px128x128?: string; px256x256?: string }> {
+    return this.api.getCorporationIcon(corporationId);
+  }
 
-    async getCorporationIcon(corporationId: number): Promise<any> {
-        return await this.getCorporationIconApi.getCorporationIcon(corporationId);
-    }
+  /**
+   * Retrieve medals created by a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose medals to retrieve
+   * @returns A list of medals defined by the corporation
+   * @requires Authentication
+   */
+  getCorporationMedals(corporationId: number): Promise<CorporationMedal[]> {
+    return this.api.getCorporationMedals(corporationId);
+  }
 
-    async getCorporationMedals(corporationId: number): Promise<any> {
-        return await this.getCorporationMedalsApi.getCorporationMedals(corporationId);
-    }
+  /**
+   * Retrieve medals that have been issued to members by a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose issued medals to retrieve
+   * @returns A list of medals issued to corporation members with recipient and issuer details
+   * @requires Authentication
+   */
+  getCorporationIssuedMedals(
+    corporationId: number,
+  ): Promise<CorporationIssuedMedal[]> {
+    return this.api.getCorporationIssuedMedals(corporationId);
+  }
 
-    async getCorporationIssuedMedals(corporationId: number): Promise<any> {
-        return await this.getCorporationIssuedMedalsApi.getCorporationIssuedMedals(corporationId);
-    }
+  /**
+   * Retrieve the character IDs of all members in a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose members to retrieve
+   * @returns An array of character IDs for all corporation members
+   * @requires Authentication
+   */
+  getCorporationMembers(corporationId: number): Promise<number[]> {
+    return this.api.getCorporationMembers(corporationId);
+  }
 
-    async getCorporationMembers(corporationId: number): Promise<any> {
-        return await this.getCorporationMembersApi.getCorporationMembers(corporationId);
-    }
+  /**
+   * Retrieve the maximum number of members a corporation can have based on its current skills.
+   *
+   * @param corporationId - The ID of the corporation whose member limit to retrieve
+   * @returns The maximum member count for the corporation
+   * @requires Authentication
+   */
+  getCorporationMemberLimit(corporationId: number): Promise<number> {
+    return this.api.getCorporationMemberLimit(corporationId);
+  }
 
-    async getCorporationMemberLimit(corporationId: number): Promise<any> {
-        return await this.getCorporationMemberLimitApi.getCorporationMemberLimit(corporationId);
-    }
+  /**
+   * Retrieve the titles assigned to each member of a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose member titles to retrieve
+   * @returns A list of members and their assigned title IDs
+   * @requires Authentication
+   */
+  getCorporationMemberTitles(
+    corporationId: number,
+  ): Promise<CorporationMemberTitle[]> {
+    return this.api.getCorporationMembersTitles(corporationId);
+  }
 
-    async getCorporationMemberTitles(corporationId: number): Promise<any> {
-        return await this.getCorporationMemberTitlesApi.getCorporationMembersTitles(corporationId);
-    }
+  /**
+   * Retrieve tracking information for corporation members including last login and location.
+   *
+   * @param corporationId - The ID of the corporation whose member tracking data to retrieve
+   * @returns A list of members with login times, ship types, and location details
+   * @requires Authentication
+   */
+  getCorporationMemberTracking(
+    corporationId: number,
+  ): Promise<CorporationMemberTracking[]> {
+    return this.api.getCorporationMemberTracking(corporationId);
+  }
 
-    async getCorporationMemberTracking(corporationId: number): Promise<any> {
-        return await this.getCorporationMemberTrackingApi.getCorporationMemberTracking(corporationId);
-    }
+  /**
+   * Retrieve the roles assigned to each member of a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose member roles to retrieve
+   * @returns A list of members and their assigned roles across all role categories
+   * @requires Authentication
+   */
+  getCorporationRoles(corporationId: number): Promise<CorporationMemberRole[]> {
+    return this.api.getCorporationMemberRoles(corporationId);
+  }
 
-    async getCorporationRoles(corporationId: number): Promise<any> {
-        return await this.getCorporationRolesApi.getCorporationMemberRoles(corporationId);
-    }
+  /**
+   * Retrieve the history of role changes for members of a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose role change history to retrieve
+   * @returns A chronological list of role changes with before/after states and issuer details
+   * @requires Authentication
+   */
+  getCorporationRolesHistory(
+    corporationId: number,
+  ): Promise<CorporationRoleHistory[]> {
+    return this.api.getCorporationMemberRolesHistory(corporationId);
+  }
 
-    async getCorporationRolesHistory(corporationId: number): Promise<any> {
-        return await this.getCorporationRolesHistoryApi.getCorporationMemberRolesHistory(corporationId);
-    }
+  /**
+   * Retrieve the shareholders of a corporation, including characters and corporations holding shares.
+   *
+   * @param corporationId - The ID of the corporation whose shareholders to retrieve
+   * @returns A list of shareholders with share counts and holder types
+   * @requires Authentication
+   */
+  getCorporationShareholders(
+    corporationId: number,
+  ): Promise<CorporationShareholder[]> {
+    return this.api.getCorporationShareholders(corporationId);
+  }
 
-    async getCorporationShareholders(corporationId: number): Promise<any> {
-        return await this.getCorporationShareholdersApi.getCorporationShareholders(corporationId);
-    }
+  /**
+   * Retrieve a corporation's standings with NPC factions, corporations, and agents.
+   *
+   * @param corporationId - The ID of the corporation whose standings to retrieve
+   * @returns A list of standings with from_type, from_id, and standing value
+   * @requires Authentication
+   */
+  getCorporationStandings(corporationId: number): Promise<Standing[]> {
+    return this.api.getCorporationStandings(corporationId);
+  }
 
-    async getCorporationStandings(corporationId: number): Promise<any> {
-        return await this.getCorporationStandingsApi.getCorporationStandings(corporationId);
-    }
+  /**
+   * Retrieve the list of starbases (POSes) owned by a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose starbases to retrieve
+   * @returns A list of starbases with type, system, and state information
+   * @requires Authentication
+   */
+  getCorporationStarbases(
+    corporationId: number,
+  ): Promise<CorporationStarbase[]> {
+    return this.api.getCorporationStarbases(corporationId);
+  }
 
-    async getCorporationStarbases(corporationId: number): Promise<any> {
-        return await this.getCorporationStarbasesApi.getCorporationStarbases(corporationId);
-    }
+  /**
+   * Retrieve detailed configuration and fuel information for a specific starbase (POS).
+   *
+   * @param corporationId - The ID of the corporation that owns the starbase
+   * @param starbaseId - The ID of the starbase to retrieve details for
+   * @returns Detailed starbase information including fuel levels and access settings
+   * @requires Authentication
+   */
+  getCorporationStarbaseDetail(
+    corporationId: number,
+    starbaseId: number,
+  ): Promise<CorporationStarbaseDetail> {
+    return this.api.getCorporationStarbaseDetail(corporationId, starbaseId);
+  }
 
-    async getCorporationStarbaseDetail(corporationId: number, starbaseId: number): Promise<any> {
-        return await this.getCorporationStarbaseDetailApi.getCorporationStarbaseDetail(corporationId, starbaseId);
-    }
+  /**
+   * Retrieve citadel and other upwell structures owned by a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose structures to retrieve
+   * @returns A list of structures with type, location, state, and service information
+   * @requires Authentication
+   */
+  getCorporationStructures(
+    corporationId: number,
+  ): Promise<CorporationStructure[]> {
+    return this.api.getCorporationStructures(corporationId);
+  }
 
-    async getCorporationStructures(corporationId: number): Promise<any> {
-        return await this.getCorporationStructuresApi.getCorporationStructures(corporationId);
-    }
+  /**
+   * Retrieve the titles defined by a corporation and their associated roles.
+   *
+   * @param corporationId - The ID of the corporation whose titles to retrieve
+   * @returns A list of corporation titles with names and granted roles
+   * @requires Authentication
+   */
+  getCorporationTitles(corporationId: number): Promise<CorporationTitle[]> {
+    return this.api.getCorporationTitles(corporationId);
+  }
 
-    async getCorporationTitles(corporationId: number): Promise<any> {
-        return await this.getCorporationTitlesApi.getCorporationTitles(corporationId);
-    }
+  /**
+   * Retrieve a list of all NPC corporation IDs in EVE Online.
+   *
+   * @returns An array of NPC corporation IDs
+   */
+  getNpcCorporations(): Promise<number[]> {
+    return this.api.getNpcCorporations();
+  }
 
-    async getNpcCorporations(): Promise<any> {
-        return await this.getNpcCorporationsApi.getNpcCorporations();
-    }
+  fetchAllCorporationAllianceHistory(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationAllianceHistory[]> {
+    return this.fetchAllEndpoint<CorporationAllianceHistory>(
+      'getCorporationAllianceHistory',
+      [corporationId],
+      concurrency,
+    );
+  }
 
-    async getCorporationProjects(corporationId: number): Promise<any> {
-        return await this.getCorporationProjectsApi.getCorporationProjects(corporationId);
-    }
+  fetchAllCorporationBlueprints(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<Blueprint[]> {
+    return this.fetchAllEndpoint<Blueprint>(
+      'getCorporationBlueprints',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationAlscLogs(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<ContainerLog[]> {
+    return this.fetchAllEndpoint<ContainerLog>(
+      'getCorporationAlscLogs',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationFacilities(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationFacility[]> {
+    return this.fetchAllEndpoint<CorporationFacility>(
+      'getCorporationFacilities',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMedals(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMedal[]> {
+    return this.fetchAllEndpoint<CorporationMedal>(
+      'getCorporationMedals',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationIssuedMedals(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationIssuedMedal[]> {
+    return this.fetchAllEndpoint<CorporationIssuedMedal>(
+      'getCorporationIssuedMedals',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMembers(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<number[]> {
+    return this.fetchAllEndpoint<number>(
+      'getCorporationMembers',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMemberTitles(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMemberTitle[]> {
+    return this.fetchAllEndpoint<CorporationMemberTitle>(
+      'getCorporationMembersTitles',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationMemberTracking(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMemberTracking[]> {
+    return this.fetchAllEndpoint<CorporationMemberTracking>(
+      'getCorporationMemberTracking',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationRoles(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationMemberRole[]> {
+    return this.fetchAllEndpoint<CorporationMemberRole>(
+      'getCorporationMemberRoles',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationRolesHistory(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationRoleHistory[]> {
+    return this.fetchAllEndpoint<CorporationRoleHistory>(
+      'getCorporationMemberRolesHistory',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationShareholders(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationShareholder[]> {
+    return this.fetchAllEndpoint<CorporationShareholder>(
+      'getCorporationShareholders',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationStandings(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<Standing[]> {
+    return this.fetchAllEndpoint<Standing>(
+      'getCorporationStandings',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationStarbases(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationStarbase[]> {
+    return this.fetchAllEndpoint<CorporationStarbase>(
+      'getCorporationStarbases',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationStructures(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationStructure[]> {
+    return this.fetchAllEndpoint<CorporationStructure>(
+      'getCorporationStructures',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationTitles(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CorporationTitle[]> {
+    return this.fetchAllEndpoint<CorporationTitle>(
+      'getCorporationTitles',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  fetchAllNpcCorporations(concurrency?: number): Promise<number[]> {
+    return this.fetchAllEndpoint<number>('getNpcCorporations', [], concurrency);
+  }
+
+  streamCorporationAllianceHistory(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationAllianceHistory>, void, undefined> {
+    return this.streamEndpoint<CorporationAllianceHistory>(
+      'getCorporationAllianceHistory',
+      corporationId,
+    );
+  }
+
+  streamCorporationBlueprints(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<Blueprint>, void, undefined> {
+    return this.streamEndpoint<Blueprint>(
+      'getCorporationBlueprints',
+      corporationId,
+    );
+  }
+
+  streamCorporationAlscLogs(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<ContainerLog>, void, undefined> {
+    return this.streamEndpoint<ContainerLog>(
+      'getCorporationAlscLogs',
+      corporationId,
+    );
+  }
+
+  streamCorporationFacilities(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationFacility>, void, undefined> {
+    return this.streamEndpoint<CorporationFacility>(
+      'getCorporationFacilities',
+      corporationId,
+    );
+  }
+
+  streamCorporationMedals(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMedal>, void, undefined> {
+    return this.streamEndpoint<CorporationMedal>(
+      'getCorporationMedals',
+      corporationId,
+    );
+  }
+
+  streamCorporationIssuedMedals(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationIssuedMedal>, void, undefined> {
+    return this.streamEndpoint<CorporationIssuedMedal>(
+      'getCorporationIssuedMedals',
+      corporationId,
+    );
+  }
+
+  streamCorporationMembers(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getCorporationMembers', corporationId);
+  }
+
+  streamCorporationMemberTitles(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMemberTitle>, void, undefined> {
+    return this.streamEndpoint<CorporationMemberTitle>(
+      'getCorporationMembersTitles',
+      corporationId,
+    );
+  }
+
+  streamCorporationMemberTracking(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMemberTracking>, void, undefined> {
+    return this.streamEndpoint<CorporationMemberTracking>(
+      'getCorporationMemberTracking',
+      corporationId,
+    );
+  }
+
+  streamCorporationRoles(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationMemberRole>, void, undefined> {
+    return this.streamEndpoint<CorporationMemberRole>(
+      'getCorporationMemberRoles',
+      corporationId,
+    );
+  }
+
+  streamCorporationRolesHistory(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationRoleHistory>, void, undefined> {
+    return this.streamEndpoint<CorporationRoleHistory>(
+      'getCorporationMemberRolesHistory',
+      corporationId,
+    );
+  }
+
+  streamCorporationShareholders(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationShareholder>, void, undefined> {
+    return this.streamEndpoint<CorporationShareholder>(
+      'getCorporationShareholders',
+      corporationId,
+    );
+  }
+
+  streamCorporationStandings(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<Standing>, void, undefined> {
+    return this.streamEndpoint<Standing>(
+      'getCorporationStandings',
+      corporationId,
+    );
+  }
+
+  streamCorporationStarbases(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationStarbase>, void, undefined> {
+    return this.streamEndpoint<CorporationStarbase>(
+      'getCorporationStarbases',
+      corporationId,
+    );
+  }
+
+  streamCorporationStructures(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationStructure>, void, undefined> {
+    return this.streamEndpoint<CorporationStructure>(
+      'getCorporationStructures',
+      corporationId,
+    );
+  }
+
+  streamCorporationTitles(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CorporationTitle>, void, undefined> {
+    return this.streamEndpoint<CorporationTitle>(
+      'getCorporationTitles',
+      corporationId,
+    );
+  }
+
+  streamNpcCorporations(): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getNpcCorporations');
+  }
 }

@@ -1,0 +1,139 @@
+name: Nightly No-Retry Test Run
+
+# Runs the full unit + BDD suite (jest.unit.config.cjs, the same suite as
+# `npm test`) once a night with Jest retries disabled, to surface flaky tests
+# that a retry would otherwise hide.
+#
+# Nothing in the repository configures Jest retries today (no jest.retryTimes
+# in src/, tests/ or any jest config), so there is no switch to turn off.
+# Instead this run proves it: Jest records how many times each test was
+# invoked, and the job fails if any test needed more than one attempt. If
+# someone later adds jest.retryTimes, a test that only passes on retry turns
+# this run red and names the test, even while the PR suites stay green.
+#
+# Test order is randomised with a fresh seed each night, so a test that only
+# passes because of the tests that ran before it in the same file fails here.
+# The seed is printed in the job log and the step summary; run
+# `npx jest --config jest.unit.config.cjs --randomize --seed=<seed>` locally,
+# or dispatch this workflow with that seed, to replay the same order.
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Jest --randomize seed to replay (leave empty for a new one)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-no-retry
+  cancel-in-progress: false
+
+jobs:
+  no-retry:
+    name: Unit + BDD, no retries
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Choose test order seed
+        id: seed
+        env:
+          SEED_INPUT: ${{ inputs.seed }}
+        run: |
+          if [ -n "$SEED_INPUT" ]; then
+            if ! [[ "$SEED_INPUT" =~ ^-?[0-9]{1,10}$ ]] || [ "$SEED_INPUT" -lt -2147483648 ] || [ "$SEED_INPUT" -gt 2147483647 ]; then
+              echo "::error::seed must be an integer between -2147483648 and 2147483647"
+              exit 1
+            fi
+            SEED="$SEED_INPUT"
+          else
+            SEED=$(shuf -i 1-2147483647 -n 1)
+          fi
+          echo "seed=$SEED" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Jest seed::$SEED (replay: npx jest --config jest.unit.config.cjs --randomize --seed=$SEED)"
+
+      - name: Run unit and BDD tests
+        id: jest
+        env:
+          SEED: ${{ steps.seed.outputs.seed }}
+        run: |
+          mkdir -p reports/no-retry
+          echo "$SEED" > reports/no-retry/seed.txt
+          echo "Jest --randomize seed: $SEED"
+          npx jest --config jest.unit.config.cjs --ci \
+            --randomize --seed="$SEED" \
+            --json --outputFile=reports/no-retry/jest-results.json
+
+      - name: Fail if any test needed a retry
+        if: always() && steps.jest.outcome != 'skipped'
+        run: |
+          REPORT=reports/no-retry/jest-results.json
+          if ! jq -e . "$REPORT" > /dev/null 2>&1; then
+            echo "::error::$REPORT is missing or not valid JSON; Jest did not produce a report"
+            exit 1
+          fi
+          RETRIED=$(jq -r '
+            .testResults[] as $file
+            | $file.assertionResults[]
+            | select((.invocations // 1) > 1)
+            | "\($file.name): \(.fullName) (\(.invocations) attempts, final: \(.status))"
+          ' "$REPORT")
+          if [ -n "$RETRIED" ]; then
+            echo "::error::Tests were retried. Retries hide flakiness; remove jest.retryTimes and fix these tests:"
+            echo "$RETRIED"
+            exit 1
+          fi
+          echo "No test was retried."
+
+      - name: Upload Jest report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: no-retry-report
+          path: reports/no-retry/
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        env:
+          JEST_OUTCOME: ${{ steps.jest.outcome }}
+          SEED: ${{ steps.seed.outputs.seed }}
+        run: |
+          REPORT=reports/no-retry/jest-results.json
+          {
+            echo "## Nightly No-Retry Test Run"
+            echo ""
+            echo "- **Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "- **Jest outcome:** $JEST_OUTCOME"
+            echo "- **Test order seed:** \`$SEED\` (replay: \`npx jest --config jest.unit.config.cjs --randomize --seed=$SEED\`)"
+            if jq -e . "$REPORT" > /dev/null 2>&1; then
+              echo "- **Tests:** $(jq '.numPassedTests' "$REPORT") passed, $(jq '.numFailedTests' "$REPORT") failed, $(jq '.numPendingTests' "$REPORT") skipped"
+              FAILED=$(jq -r '.testResults[] as $f | $f.assertionResults[] | select(.status == "failed") | "- `\($f.name | sub(".*/tests/"; "tests/"))`: \(.fullName)"' "$REPORT" | head -50)
+              if [ -n "$FAILED" ]; then
+                echo ""
+                echo "### Failed tests"
+                echo "$FAILED"
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -2,941 +2,982 @@
 
 [![npm version](https://badge.fury.io/js/%40lgriffin%2Fesi.ts.svg)](https://badge.fury.io/js/%40lgriffin%2Fesi.ts)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![TypeScript](https://img.shields.io/badge/TypeScript-4.5%2B-blue)](https://www.typescriptlang.org/)
-
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4%2B-blue)](https://www.typescriptlang.org/)
 [![CI/CD Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/ci.yml)
-[![Release Pipeline](https://github.com/lgriffin/ESI.ts/actions/workflows/release.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/release.yml)
-[![PR Validation](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/pr-validation.yml)
-[![Maintenance](https://github.com/lgriffin/ESI.ts/actions/workflows/maintenance.yml/badge.svg)](https://github.com/lgriffin/ESI.ts/actions/workflows/maintenance.yml)
+[![Coverage](https://img.shields.io/badge/coverage-95%25%2B-brightgreen)](https://github.com/lgriffin/ESI.ts)
+[![npm downloads](https://img.shields.io/npm/dm/%40lgriffin/esi.ts)](https://www.npmjs.com/package/@lgriffin/esi.ts)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lgriffin/ESI.ts/badge)](https://scorecard.dev/viewer/?uri=github.com/lgriffin/ESI.ts)
 
-A modern, type-safe TypeScript implementation for the [EVE Online ESI API](https://esi.evetech.net/). Built with clean architecture principles, comprehensive error handling, and extensive testing.
+A production-grade TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built on the **OpenAPI 3.1 spec**, with runtime validation, intelligent caching, and full endpoint coverage.
 
-## 🚀 Features
+**[Documentation Site](https://lgriffin.github.io/ESI.ts/)** — guides, API reference, interactive endpoint explorer, and runnable examples.
 
-- **Type-Safe**: Full TypeScript support with comprehensive type definitions
-- **Clean Architecture**: Separation of concerns with dependency injection
-- **Resilient**: Built-in error handling, retry logic, and circuit breakers
-- **High Performance**: Intelligent ETag caching for optimal bandwidth usage
-- **Testable**: Extensive test coverage with BDD scenarios
-- **Modern**: Uses latest TypeScript features and best practices
-- **Comprehensive**: Covers all ESI API endpoints with organized client structure
+**v9.5.2** — Supply chain security hardening: all GitHub Actions pinned by SHA, npm publish with SLSA provenance attestations, least-privilege workflow permissions, script injection prevention, and ETag cache cross-tenant isolation.
 
-## 📦 Installation
+**v9.5.0** — Adds 12 new ESI endpoints: CosmeticsClient (SKINR licenses, components, design lookup), ParagonHubClient (marketplace listings with cursor pagination), plus detail endpoints for Mercenary Dens, Tactical Operations, Skyhooks, and Sovereignty Hubs.
+
+**235 endpoint definitions — 206 from the public ESI OpenAPI spec, plus 29 for newer EVE features (Equinox sovereignty, orbital skyhooks, mercenary dens, access lists, freelance jobs, military campaigns, corporation projects, SKINR cosmetics, Paragon Hub marketplace). All exercisable endpoints validated against live Tranquility.**
+
+## Why ESI.ts vs. OpenAPI-Generated Clients?
+
+Tools like `openapi-typescript` or `openapi-generator` can produce a typed client from the ESI OpenAPI spec in minutes. They're a reasonable starting point — but they stop at type generation. ESI.ts is a purpose-built SDK that handles the problems you hit _after_ the types compile.
+
+### What generators give you
+
+- TypeScript interfaces from the OpenAPI spec
+- Basic request/response typing
+- A thin HTTP wrapper
+
+### What ESI.ts gives you on top of that
+
+| Capability                      | openapi-typescript                                                                                                  | ESI.ts                                                                                                                                                                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Runtime response validation** | None — types are erased at compile time. If CCP changes a field, you get silent data corruption.                    | Every GET response is validated at runtime via [Zod](https://zod.dev/) schemas — all 200 GET endpoints have schemas. Schema mismatches throw `EsiValidationError` immediately.                                                    |
+| **Intelligent caching**         | None — you build your own.                                                                                          | Three-tier: spec-aware TTL (zero HTTP calls within ESI's `x-cached-seconds` window), ETag conditional GETs, stale-on-error fallback on 5xx. Write operations auto-invalidate related GET caches.                                  |
+| **Rate limiting**               | None — you build your own.                                                                                          | 36 per-group token buckets extracted from the ESI spec at build time. Market requests can't starve wallet requests. Optional per-user bucketing for multi-character apps.                                                         |
+| **Pagination**                  | Manual — you write the page loop.                                                                                   | Automatic offset pagination, cursor-based pagination (Equinox-era endpoints), and streaming `AsyncGenerator` pagination for memory-efficient processing of large datasets.                                                        |
+| **Retry & resilience**          | None.                                                                                                               | Exponential backoff with jitter, circuit breaker (closed/open/half-open), automatic 401 token refresh with concurrent coalescing.                                                                                                 |
+| **Wire format correctness**     | Generates from spec, but ESI's spec has inconsistencies (query params documented as body, missing required fields). | Every endpoint tested against live ESI. Wire format bugs (query params vs. body, field naming) are caught and fixed — see the contacts and UI endpoint fixes in v6.1.0.                                                           |
+| **Batch operations**            | None.                                                                                                               | `batch()` with bounded concurrency for GET fan-out, `batchPost()` with auto-chunking for large POST payloads.                                                                                                                     |
+| **Domain knowledge**            | None — generic HTTP client.                                                                                         | 39 domain clients with typed methods, JSDoc documentation, and input validation (e.g., fleet wing/squad names are capped at 10 characters before hitting the API).                                                                |
+| **Streaming pagination**        | None.                                                                                                               | 21 domain clients with 73+ `stream*` methods via `AsyncGenerator` — process large datasets page-by-page without loading everything into memory.                                                                                   |
+| **Testing**                     | Whatever you write.                                                                                                 | 171 test suites, 4,957 tests across 9 tiers including property-based fuzzing (fast-check), mutation testing (Stryker), deep contract tests against live OpenAPI spec, and consumer type tests (tsd). 52 runnable example scripts. |
+
+### The real problem with generated clients
+
+The ESI OpenAPI spec is not a perfect source of truth. During live endpoint validation against the OpenAPI 3.1 spec, we discovered:
+
+- `addContacts`, `editContacts`, and 4 UI endpoints document parameters as request body when ESI actually expects query parameters
+- `deleteCharacterContacts` expects comma-separated contact IDs as a query param, not a JSON body
+- Fleet wing/squad names have a 10-character limit not documented in the spec
+- The `updateMailMetadata` endpoint uses the field name `read`, not `is_read`
+
+A generated client faithfully reproduces these spec bugs. ESI.ts fixes them.
+
+## Installation
 
 ```bash
 npm install @lgriffin/esi.ts
 ```
 
-## 🔧 Getting Started
+Requires Node.js 18 or later. TypeScript projects need TypeScript 5.4 or later, with ES module or CommonJS code under `node16`, `nodenext` or `bundler` module resolution; the consumer contract checks each of those against the published tarball.
 
-ESI.ts offers multiple ways to use the API depending on your needs:
+### Building from Source
 
-### 1. Full ESI Client (All APIs)
+```bash
+git clone https://github.com/lgriffin/ESI.ts.git
+cd ESI.ts
+npm install        # installs dependencies and compiles (via the prepare script)
+```
 
-The complete `EsiClient` gives you access to all ESI endpoints:
+If you've already installed and just need to recompile:
+
+```bash
+npm run build
+```
+
+Verify everything works:
+
+```bash
+npm run example:status   # quick smoke test — checks ESI is reachable
+npm test                 # run the full test suite (171 suites, 4,957 tests)
+```
+
+## Sub-path Exports
+
+ESI.ts provides sub-path exports for targeted imports, reducing bundle size when you only need specific parts of the library:
+
+```typescript
+// Zod schemas for runtime validation
+import { MarketOrderSchema } from '@lgriffin/esi.ts/schemas';
+
+// Error classes and type guards
+import { EsiError, isRetryable } from '@lgriffin/esi.ts/errors';
+
+// Test utilities
+import { TestDataFactory } from '@lgriffin/esi.ts/testing';
+```
+
+## Static Data Export (SDE) Module
+
+ESI.ts includes a standalone module for querying CCP's EVE Online Static Data Export — 102 YAML files loaded into in-memory Maps with 109 typed interfaces, Zod validation, and ~97 query methods. No database, no external services.
+
+Reading SDE files needs two optional peer dependencies, which `npm install @lgriffin/esi.ts` does not install:
+
+```bash
+npm install js-yaml    # SdeDataProvider.fromDirectory and fromZip (parses the YAML)
+npm install adm-zip    # SdeDataProvider.fromZip (reads the ZIP archive)
+```
+
+`@lgriffin/esi.ts/sde` loads without them, and `MemorySdeProvider` never needs them. A method that needs one that is missing throws an `SdeError` naming the package and the install command.
+
+```typescript
+import { SdeDataProvider } from '@lgriffin/esi.ts/sde';
+
+const sde = SdeDataProvider.fromDirectory('./sde-data');
+
+const tritanium = sde.getType(34);
+console.log(tritanium?.name); // "Tritanium"
+
+const jita = sde.getSolarSystem(30000142);
+const minerals = sde.getTypesByGroup(18);
+const caldari = sde.getFaction(500001);
+
+sde.close();
+```
+
+Download SDE data with: `npx ts-node scripts/sde-ingest.ts --output sde-data`
+
+| Document                                           | Description                                                                                   |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [SDE README](src/sde/README.md)                    | Module overview, quick start, full API reference (~97 methods), entity coverage table         |
+| [Architecture](src/sde/docs/ARCHITECTURE.md)       | C4 diagrams (context, container, component), data flow sequence, ER diagram, design decisions |
+| [Usage Guide](src/sde/docs/USAGE.md)               | Provider patterns, query examples, error handling                                             |
+| [Developer Guide](src/sde/docs/DEVELOPER_GUIDE.md) | Project structure, new entity checklist, field normalization, testing patterns                |
+| [API Contracts](src/sde/docs/API_CONTRACTS.md)     | Complete method reference for all IStaticDataProvider methods                                 |
+
+## Quick Start
 
 ```typescript
 import { EsiClient } from '@lgriffin/esi.ts';
 
-// Full client with all APIs available
-const client = new EsiClient({
-  clientId: 'your-app-name',
-  accessToken: 'your-access-token', // Optional - required for authenticated endpoints
-  timeout: 30000,                   // Optional - request timeout in ms
-  retryAttempts: 3                  // Optional - number of retry attempts
-});
+const client = new EsiClient();
+
+// Public data — no auth required
+const alliances = await client.alliance.getAlliances();
+const character = await client.characters.getCharacterPublicInfo(1689391488);
+const system = await client.universe.getSystemById(30000142);
+const prices = await client.market.getMarketPrices();
+
+// Authenticated data — token read from ESI_ACCESS_TOKEN env var
+const authedClient = new EsiClient();
+const assets = await authedClient.assets.getCharacterAssets(characterId);
+const wallet = await authedClient.wallet.getCharacterWallet(characterId);
+
+// Clean up when done
+await client.shutdown();
 ```
 
-### 2. Custom Lightweight Client (Selected APIs)
+## Guides
 
-Create a lightweight client with only the APIs you need:
+The README orients; the guides are canonical. Each one opens with the [engineering charter](guides/CHARTER.md) requirements it implements.
+
+| Guide                                              | Covers                                                                              |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [Architecture](guides/ARCHITECTURE.md)             | Layers, request path, caching, retry, rate limiting, circuit breaker, interceptors  |
+| [Design rules](guides/DESIGN-RULES.md)             | Naming and schema conventions, adding an endpoint, adding a client, generated files |
+| [Errors](guides/ERRORS.md)                         | Error classes, type guards, retryability, token refresh, safe mode                  |
+| [Logging](guides/LOGGING.md)                       | `ILogger`, per-client loggers, pino, `ESI_LOG_LEVEL`, silencing in tests            |
+| [Pagination](guides/PAGINATION.md)                 | Offset and cursor pagination, `stream*`, `fetchAll*`, batch helpers                 |
+| [Runtime validation](guides/RUNTIME-VALIDATION.md) | Zod response and request validation                                                 |
+| [Security](guides/SECURITY.md)                     | Runtime defences and supply-chain controls ([policy](SECURITY.md))                  |
+| [Testing](guides/TESTING.md)                       | Test tiers, coverage, EARS specification                                            |
+| [Mutation testing](guides/MUTATION-TESTING.md)     | Stryker configuration and scores                                                    |
+| [Quality gates](guides/QUALITY-GATES.md)           | What runs at commit, push, PR, nightly and release; every workflow and script       |
+| [Release](guides/RELEASE.md)                       | Cutting a release, changelog, provenance, signatures, supported versions            |
+| [Semantic versioning](guides/SEMVER.md)            | What is public, major/minor/patch decisions, breaking-change commits, merge buttons |
+| [OKF bundle](guides/OKF.md)                        | The generated Open Knowledge Format catalogue of ESI                                |
+| [Documentation](guides/DOCUMENTATION.md)           | Documentation surfaces and the TypeDoc reference                                    |
+| [Beads](guides/BEADS.md)                           | Issue tracking workflow                                                             |
+
+## Configuration
 
 ```typescript
-import { CustomEsiClient } from '@lgriffin/esi.ts';
-
-// Lightweight client with only specific APIs
-const customClient = new CustomEsiClient({
-  clientId: 'my-trading-bot',
-  clients: ['characters', 'market', 'universe'] // Only load what you need
+const client = new EsiClient({
+  clientId: 'my-app', // User-Agent identifier (default: 'esi-client')
+  accessToken: 'your-token', // EVE SSO token for authenticated endpoints
+  baseUrl: 'https://esi.evetech.net', // ESI base URL (default)
+  onTokenRefresh: async () => newToken, // Auto-refresh on 401 (optional)
+  language: 'en', // Accept-Language header: en, de, fr, ja, ru, zh, ko, es (default: none)
+  timeout: 30000, // Request timeout in ms (default: 30000)
+  retryConfig: {
+    maxRetries: 3, // Max retry attempts for transient errors (default: 3)
+    baseDelayMs: 1000, // Initial backoff delay (default: 1000)
+    maxDelayMs: 30000, // Maximum backoff delay (default: 30000)
+    retryMutations: false, // Retry POST/PUT/DELETE (default: false, GET only)
+  },
+  enableETagCache: true, // ETag caching (default: true)
+  etagCacheConfig: {
+    maxEntries: 1000, // Max cached responses (default: 1000)
+    defaultTtl: 300000, // Fallback TTL in ms (default: 5 min)
+    cleanupInterval: 60000, // Expired entry cleanup interval (default: 1 min)
+  },
+  validateResponse: true, // Runtime Zod validation of ESI responses (default: true)
+  validateRequest: false, // Opt-in request body Zod validation for POST/PUT/DELETE (default: false)
+  retryStrategy: customRetryStrategy, // Injectable IRetryStrategy (default: built-in exponential backoff)
+  enableCircuitBreaker: false, // Opt-in circuit breaker (default: false); circuitBreakerConfig is ignored unless true
+  circuitBreakerConfig: {
+    keyStrategy: 'resolved', // CB keying: 'resolved' (per-URL) or 'template' (per-route) (default: 'resolved')
+    cleanupIntervalMs: 3600000, // Stale circuit cleanup interval (default: disabled)
+  },
 });
-
-// Access your selected APIs
-const character = await customClient.characters?.getCharacterPublicInfo(123456);
-const prices = await customClient.market?.getMarketPrices();
 ```
 
-### 3. Builder Pattern for Custom Clients
+Retry is enabled by default (`maxRetries: 3`). Transient errors (502, 503, 504, timeout, rate limit) are retried with exponential backoff and jitter. The circuit breaker is respected — requests are not retried when the circuit is open. Set `maxRetries: 0` to disable retry.
 
-Use the builder pattern for more readable client construction:
+The access token can be updated at runtime:
+
+```typescript
+client.setAccessToken('new-token');
+```
+
+## Authentication
+
+Many ESI endpoints require an EVE SSO access token. There are three ways to provide one:
+
+### 1. Environment variable (recommended)
+
+Set `ESI_ACCESS_TOKEN` in your environment or a `.env` file. The client reads it automatically — no token in source code.
+
+```bash
+# Copy the example and fill in your token
+cp .env.example .env
+```
+
+```env
+ESI_ACCESS_TOKEN=your-eve-sso-access-token
+ESI_CLIENT_ID=my-app-name
+```
+
+If you use a `.env` loader like [dotenv](https://www.npmjs.com/package/dotenv), load it before creating the client:
+
+```typescript
+import 'dotenv/config';
+import { EsiClient } from '@lgriffin/esi.ts';
+
+const client = new EsiClient();
+// Token is picked up from process.env.ESI_ACCESS_TOKEN
+```
+
+### 2. Constructor parameter
+
+Pass the token directly (useful for apps that manage tokens themselves):
+
+```typescript
+const client = new EsiClient({ accessToken: token });
+```
+
+### 3. Runtime update
+
+Set or refresh the token after construction:
+
+```typescript
+client.setAccessToken(newToken);
+```
+
+### Getting an EVE SSO token
+
+1. Register an application at [EVE Developers](https://developers.eveonline.com/)
+2. Set a callback URL and select the ESI scopes your app needs
+3. Implement the [OAuth2 flow](https://docs.esi.evetech.net/docs/sso/) to obtain an access token
+4. Access tokens expire — use the refresh token to get new ones
+
+### Automatic Token Refresh
+
+EVE SSO access tokens expire after 20 minutes. Instead of manually tracking expiry, you can provide a refresh callback — the client will automatically call it on 401, update the token, and retry the request:
+
+```typescript
+const client = new EsiClient({
+  accessToken: initialToken,
+  onTokenRefresh: async () => {
+    const response = await fetch('https://login.eveonline.com/v2/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: myRefreshToken,
+        client_id: myClientId,
+      }),
+    });
+    const { access_token } = await response.json();
+    return access_token;
+  },
+});
+
+// Requests now auto-refresh on 401 — no manual token management needed
+const location = await client.location.getCharacterLocation(characterId);
+```
+
+The token provider can also be set or changed at runtime:
+
+```typescript
+client.setTokenProvider(myRefreshFunction);
+client.setTokenProvider(undefined); // disable auto-refresh
+```
+
+Key behaviors:
+
+- Only retries **once** per request — if the refreshed token also gets a 401, the error is thrown
+- **Concurrent coalescing** — if multiple requests hit 401 simultaneously, only one refresh call is made
+- If the refresh callback throws (e.g., refresh token revoked), a `TOKEN_REFRESH_FAILED` error is raised
+- Without a token provider, 401 errors throw immediately as before
+
+### Token Manager (multi-character, persistent)
+
+The refresh callback above is the low-level hook. For applications that hold tokens for one or many characters, `EsiTokenManager` does the whole lifecycle: the SSO code exchange, persistence through a pluggable storage adapter, proactive refresh ahead of expiry, coalescing of concurrent refreshes, persistence of the rotated refresh token, revocation tracking, and bulk refresh with a concurrency cap.
+
+```typescript
+import {
+  EsiTokenManager,
+  FileTokenStorage,
+  generateState,
+} from '@lgriffin/esi.ts';
+
+const tokens = new EsiTokenManager({
+  clientId: process.env.ESI_SSO_CLIENT_ID!,
+  clientSecret: process.env.ESI_SSO_CLIENT_SECRET, // omit for a public (PKCE) client
+  callbackUrl: 'https://my-app.example/callback',
+  storage: new FileTokenStorage('./tokens.json'), // or MemoryTokenStorage, or your own
+});
+
+// 1. Send the player to SSO
+const state = generateState();
+const loginUrl = tokens.getAuthorizationUrl({
+  scopes: ['esi-wallet.read_character_wallet.v1'],
+  state,
+});
+
+// 2. On the callback, exchange the code. The character id, name and scopes
+//    are decoded from the token; you never have to say who just logged in.
+const stored = await tokens.addCharacter(codeFromCallback);
+console.log(`Added ${stored.characterName} (${stored.characterId})`);
+
+// 3. Get a client bound to that character. Its token is refreshed before
+//    expiry, and again on a 401, through the manager.
+const client = await tokens.createClient(stored.characterId);
+const wallet = await client.wallet.getCharacterWallet(stored.characterId);
+
+// Or just the access token, for use elsewhere
+const accessToken = await tokens.getToken(stored.characterId);
+```
+
+Public clients (desktop and CLI tools that cannot keep a secret) use PKCE:
+
+```typescript
+import { generatePkcePair } from '@lgriffin/esi.ts';
+
+const pkce = generatePkcePair();
+const loginUrl = tokens.getAuthorizationUrl({
+  scopes,
+  state,
+  codeChallenge: pkce.codeChallenge,
+});
+// ...later, on the callback:
+await tokens.addCharacter(code, { codeVerifier: pkce.codeVerifier });
+```
+
+#### Bulk refresh
+
+Applications holding many characters (corporation tools, alliance services) refresh in bulk. Per-character failures never reject the call; each character gets its own result. The one exception is a storage adapter that cannot list tokens, which rejects with the storage error.
+
+```typescript
+const results = await tokens.refreshAll({
+  concurrency: 5, // simultaneous SSO requests (default 5)
+  expiringWithinMs: 5 * 60_000, // only tokens expiring in the next 5 minutes; omit for all
+});
+
+for (const r of results) {
+  switch (r.status) {
+    case 'refreshed':
+      break;
+    case 'skipped':
+      break; // not stale, or the run was aborted
+    case 'revoked':
+      console.log(`${r.characterId} must log in again`);
+      break;
+    case 'failed':
+      if (r.retryable) scheduleRetry(r.characterId);
+      break;
+  }
+}
+```
+
+#### Storage adapters
+
+`ITokenStorage` is four async methods keyed by character id: `get`, `set`, `delete`, `list`. Two adapters ship with the library:
+
+| Adapter              | Use for                                                                |
+| -------------------- | ---------------------------------------------------------------------- |
+| `MemoryTokenStorage` | Tests, CLIs that log in every run, a cache in front of a durable store |
+| `FileTokenStorage`   | Single-process apps; atomic temp-file-and-rename writes, `0600` mode   |
+
+Implement the interface over Redis, Postgres, or a keychain for anything else. One rule matters: `set` must be durable before it resolves, because the manager persists the rotated refresh token before returning the new access token, and SSO invalidates the previous one.
+
+Key behaviors:
+
+- **One token per character** — re-authorizing replaces the stored token rather than accumulating a second one; a warning is logged if the new consent drops scopes
+- **Proactive refresh** — `getToken` refreshes when the token is inside `refreshSkewMs` of expiry (default 60 s), so requests are never sent with a token about to fail
+- **Coalescing** — concurrent refreshes for the same character share one SSO call, which matters because SSO rotates the refresh token on every use
+- **Revocation tracking** — an `invalid_grant` from SSO marks the character revoked; later calls throw `TokenRevokedError` locally instead of hitting SSO again
+- **Hooks** — `onRefresh`, `onRefreshError`, and `onRevoked` for logging, metrics, or prompting a re-login
+- **No JWT signature verification** — tokens are trusted because they arrive directly from SSO over TLS; do not use `decodeAccessToken` to authenticate tokens presented by third parties
+- **Single process per store** — two processes sharing one `FileTokenStorage` would each rotate refresh tokens the other cannot see
+
+### Environment variables reference
+
+| Variable           | Description                                  | Default                   |
+| ------------------ | -------------------------------------------- | ------------------------- |
+| `ESI_ACCESS_TOKEN` | EVE SSO access token                         | none                      |
+| `ESI_CLIENT_ID`    | User-Agent identifier                        | `esi-client`              |
+| `ESI_BASE_URL`     | ESI API base URL                             | `https://esi.evetech.net` |
+| `ESI_LOG_LEVEL`    | Log level (`error`, `warn`, `info`, `debug`) | `warn`                    |
+
+## Available APIs
+
+All clients are accessed as properties on the `EsiClient` instance. Authenticated endpoints require an access token.
+
+| Client             | Property                     | Auth | Examples                                                                              |
+| ------------------ | ---------------------------- | ---- | ------------------------------------------------------------------------------------- |
+| Alliance           | `client.alliance`            | Some | `getAlliances()`, `getAllianceById(id)`                                               |
+| Assets             | `client.assets`              | Yes  | `getCharacterAssets(id)`                                                              |
+| Calendar           | `client.calendar`            | Yes  | `getCalendarEvents(id)`                                                               |
+| Characters         | `client.characters`          | Some | `getCharacterPublicInfo(id)`, `getCharacterPortrait(id)`                              |
+| Clones             | `client.clones`              | Yes  | `getCharacterClones(id)`                                                              |
+| Contacts           | `client.contacts`            | Yes  | `getCharacterContacts(id)`, `postCharacterContacts(id, standing, contactIds)`         |
+| Contracts          | `client.contracts`           | Yes  | `getCharacterContracts(id)`                                                           |
+| Corp Projects      | `client.corporationProjects` | Yes  | `getCorporationProjects(corpId)`, `getCorporationProject(corpId, projectId)`          |
+| Corporations       | `client.corporations`        | Some | `getCorporationInfo(id)`, `getCorporationMembers(id)`                                 |
+| Dogma              | `client.dogma`               | No   | `getDogmaAttributes()`, `getDynamicItemInfo(typeId, itemId)`                          |
+| Factions           | `client.factions`            | Some | `getFactionWarStats()`                                                                |
+| Fittings           | `client.fittings`            | Yes  | `getFittings(id)`, `createFitting(id, body)`                                          |
+| Fleets             | `client.fleets`              | Yes  | `getFleetInformation(id)`, `getFleetMembers(id)`                                      |
+| Incursions         | `client.incursions`          | No   | `getIncursions()`                                                                     |
+| Industry           | `client.industry`            | Some | `getCharacterIndustryJobs(id)`                                                        |
+| Insurance          | `client.insurance`           | No   | `getInsurancePrices()`                                                                |
+| Killmails          | `client.killmails`           | Some | `getKillmail(id, hash)`                                                               |
+| Location           | `client.location`            | Yes  | `getCharacterLocation(id)`                                                            |
+| Loyalty            | `client.loyalty`             | Yes  | `getCharacterLoyaltyPoints(id)`                                                       |
+| Mail               | `client.mail`                | Yes  | `getCharacterMail(id)`, `sendMail(id, body)`                                          |
+| Market             | `client.market`              | Some | `getMarketPrices()`, `getMarketOrders(regionId)`                                      |
+| Military Campaigns | `client.militaryCampaigns`   | Some | `getMilitaryCampaigns()`, `getMilitaryCampaignById(id)`                               |
+| PI                 | `client.pi`                  | Yes  | `getCharacterPlanets(id)`                                                             |
+| Route              | `client.route`               | No   | `getRoute(origin, destination)`                                                       |
+| Search             | `client.search`              | Some | `search(characterId, query)`                                                          |
+| Skills             | `client.skills`              | Yes  | `getCharacterSkills(id)`                                                              |
+| Sovereignty        | `client.sovereignty`         | No   | `getSovereigntySystems()`, `getSovereigntyMap()`                                      |
+| Skyhooks           | `client.skyhooks`            | Some | `getSovereigntyHubs(corpId)`, `getSkyhookDetail(corpId, id)`, `getRaidableSkyhooks()` |
+| Mercenary          | `client.mercenary`           | Yes  | `getMercenaryDens(charId)`, `getMercenaryDenDetail(charId, denId)`                    |
+| Cosmetics          | `client.cosmetics`           | Some | `getSkinr(id)`, `getCharacterSkinr(charId)`, `getCharacterSkinrComponents(charId)`    |
+| Paragon Hub        | `client.paragonHub`          | Some | `getPublicListings()`, `getCharacterListings(charId)`, `getAllianceListings(id)`      |
+| Access Lists       | `client.accessLists`         | Yes  | `getAccessList(id)`                                                                   |
+| Status             | `client.status`              | No   | `getStatus()`                                                                         |
+| UI                 | `client.ui`                  | Yes  | `setAutopilotWaypoint(destId, addToBeginning, clear)`, `openNewMailWindow(body)`      |
+| Universe           | `client.universe`            | Some | `getSystemById(id)`, `getTypeById(id)`                                                |
+| Wallet             | `client.wallet`              | Yes  | `getCharacterWallet(id)`                                                              |
+| Wars               | `client.wars`                | No   | `getWars()`, `getWarById(id)`                                                         |
+| Freelance Jobs     | `client.freelanceJobs`       | Some | `getFreelanceJobs()`, `getFreelanceJobById(id)`                                       |
+| Meta               | `client.meta`                | No   | `getOpenApiJson()`, `getOpenApiYaml()`                                                |
+
+## Runtime Response Validation
+
+ESI.ts validates API responses at runtime using [Zod](https://zod.dev/) schemas. All GET endpoints have schemas — these are the endpoints that return data your application consumes, where a silent shape change from CCP would cause bugs. POST/PUT/DELETE mutations typically return `204 No Content` (no body to validate) or simple confirmation values, so schemas are omitted where there is nothing meaningful to validate.
+
+Validation is **on by default**. Extra fields from ESI are preserved via `z.looseObject()` passthrough mode, so new fields added by CCP won't break your application — they flow through to your code untouched.
+
+```typescript
+import {
+  EsiClient,
+  EsiValidationError,
+  isValidationError,
+  schemas,
+} from '@lgriffin/esi.ts';
+
+const client = new EsiClient();
+
+// Validation happens automatically on every request
+const character = await client.characters.getCharacterPublicInfo(12345);
+
+// Disable validation globally if needed
+const rawClient = new EsiClient({ validateResponse: false });
+
+// Use schemas directly for your own validation
+const result = schemas.CharacterInfoSchema.safeParse(someData);
+if (result.success) {
+  console.log(result.data.name);
+}
+```
+
+### Request Body Validation
+
+For POST/PUT/DELETE endpoints, opt-in request body validation ensures outgoing payloads match the endpoint's `requestSchema` before the request is sent:
+
+```typescript
+// Opt-in request body validation for POST/PUT/DELETE
+const client = new EsiClient({ validateRequest: true });
+
+// Throws EsiValidationError if the request body doesn't match the endpoint's requestSchema
+await client.mail.sendMail(characterId, {
+  recipients: [{ recipient_id: 12345, recipient_type: 'character' }],
+  subject: 'Hello',
+  body: 'Message body',
+});
+```
+
+See [guides/RUNTIME-VALIDATION.md](guides/RUNTIME-VALIDATION.md) for the full guide on schemas, error handling, and extending schemas.
+
+## Caching
+
+ETag caching is on by default and works in three tiers: a GET inside the spec-defined TTL is answered from cache with no HTTP call, an older entry is revalidated with `If-None-Match`, and a 5xx with a cached copy serves the stale body instead of throwing. Authenticated cache entries are isolated per token.
+
+```typescript
+const client = new EsiClient({ etagCacheConfig: { maxEntries: 2000 } });
+client.getCacheStats();
+client.clearCache();
+```
+
+See [Caching in the architecture guide](guides/ARCHITECTURE.md#4-caching) for TTL precedence, invalidation, keys and configuration.
+
+## Batch Requests
+
+Fetch data for multiple IDs with bounded concurrency using `batch()`, or chunk large POST payloads with `batchPost()`:
+
+```typescript
+import { EsiClient } from '@lgriffin/esi.ts';
+
+const client = new EsiClient();
+
+// Fetch 500 type details with at most 10 concurrent requests (default 20)
+const result = await client.batch(
+  typeIds,
+  (id) => client.universe.getTypeById(id),
+  {
+    concurrency: 10,
+    onProgress: (done, total) => console.log(`${done}/${total}`),
+  },
+);
+
+// result.results: Map<number, T> — successful responses
+// result.errors: Map<number, Error> — failed requests
+console.log(`${result.results.size} succeeded, ${result.errors.size} failed`);
+```
+
+For POST endpoints that accept arrays (e.g., `postNamesAndCategories` with a 1000-ID limit), `batchPost` auto-chunks and concatenates:
+
+```typescript
+const allNames = await client.batchPost(
+  largeIdArray,
+  (chunk) => client.universe.postNamesAndCategories(chunk),
+  1000, // chunk size
+);
+```
+
+## Streaming Pagination
+
+Paginated endpoints can be consumed three ways: the plain method fetches every page and returns one array, `stream*` methods yield one validated page at a time, and `fetchAll*` methods fetch the remaining pages concurrently.
+
+```typescript
+for await (const page of client.market.streamMarketOrders(10000002)) {
+  console.log(
+    `Page ${page.page}/${page.totalPages}: ${page.data.length} orders`,
+  );
+  if (page.page >= 3) break; // stops fetching the remaining pages
+}
+```
+
+Try it: `npm run example:streaming`. See [guides/PAGINATION.md](guides/PAGINATION.md) for the full method list, concurrency defaults and failure behaviour.
+
+## Cursor-based Pagination
+
+Newer ESI routes such as Freelance Jobs page with opaque `before` / `after` cursor tokens instead of page numbers. `fetchAllCursorPages` follows them to the end of the dataset, and a saved `after` token can be polled later for changed records.
+
+See [guides/PAGINATION.md](guides/PAGINATION.md) for cursor semantics and examples.
+
+## Generated Types
+
+The library includes TypeScript interfaces generated directly from the ESI OpenAPI 3.1 spec, available as the `EsiSpec` namespace. These are guaranteed to match the live spec and complement the hand-written types:
+
+```typescript
+import { EsiSpec } from '@lgriffin/esi.ts';
+
+// Generated type — uses OpenAPI schema names (v7.0.0+)
+const order: EsiSpec.MarketsRegionIdOrdersGet = {
+  order_id: 123,
+  type_id: 34,
+  price: 5.5,
+  volume_remain: 1000,
+  volume_total: 5000,
+  is_buy_order: false,
+  duration: 90,
+  issued: '2026-09-01T12:00:00Z',
+  location_id: 60003760,
+  system_id: 30000142,
+  min_volume: 1,
+  range: 'region',
+};
+```
+
+To regenerate types from the latest ESI spec:
+
+```bash
+npm run generate:types    # fetches OpenAPI spec, generates 161 interfaces + cache TTL map + rate limit groups + scope map
+npm run validate:esi      # reports type drift between hand-written and generated types
+```
+
+## ESI Scopes
+
+The library includes a generated scope-to-endpoint mapping extracted from the ESI OpenAPI spec. Use it to check which OAuth scopes an endpoint requires before making a request:
+
+```typescript
+import { esiEndpointScopes, EsiScope } from '@lgriffin/esi.ts';
+
+// Look up scopes for a specific endpoint
+const walletScopes = esiEndpointScopes['GET:characters/{character_id}/wallet'];
+// → ['esi-wallet.read_character_wallet.v1']
+
+// Check if an endpoint requires auth
+const isPublic = !esiEndpointScopes['GET:universe/types/{type_id}'];
+// → true (public endpoint, no scopes needed)
+
+// Type-safe scope values
+const scope: EsiScope = 'esi-assets.read_assets.v1';
+```
+
+## Error Handling
+
+Failed calls throw `EsiError` (with `statusCode`, a sanitised `url` and `retryable`) or one of its subclasses, `TimeoutError` and `EsiValidationError`. An open circuit throws `CircuitOpenError`. Type guards such as `isRetryable`, `isTimeout`, `isValidationError` and `isCircuitOpen` narrow them, and `withSafeMode()` returns a result envelope instead of throwing.
+
+```typescript
+import { EsiError, isCircuitOpen } from '@lgriffin/esi.ts';
+
+try {
+  await client.alliance.getAllianceById(99999999);
+} catch (err) {
+  if (isCircuitOpen(err)) console.log(`Retry in ${err.retryAfterMs} ms`);
+  else if (err instanceof EsiError) console.log(err.statusCode, err.retryable);
+}
+```
+
+See [guides/ERRORS.md](guides/ERRORS.md) for the class hierarchy, retryability rules and safe mode.
+
+## Response Metadata
+
+Use `withMetadata()` to get response headers, cache status, rate limit info, and timing alongside the data:
+
+```typescript
+const metaClient = client.alliance.withMetadata();
+const result = await metaClient.getAllianceById(99000001);
+
+console.log(result.data.name); // "Goonswarm Federation"
+console.log(result.meta.fromCache); // true if served from cache
+console.log(result.meta.cacheHitType); // 'spec-ttl' | 'etag-304' | 'stale-on-error'
+console.log(result.meta.responseTimeMs); // milliseconds
+console.log(result.meta.rateLimit); // { remaining, limit, used, group }
+console.log(result.meta.requestId); // ESI request ID for debugging
+```
+
+The `meta` object includes:
+
+| Field            | Type                     | Description                                       |
+| ---------------- | ------------------------ | ------------------------------------------------- |
+| `headers`        | `Record<string, string>` | Raw response headers                              |
+| `fromCache`      | `boolean`                | Whether data was served from cache                |
+| `stale`          | `boolean`                | Whether cached data is stale (5xx fallback)       |
+| `cacheHitType`   | `string?`                | `'spec-ttl'`, `'etag-304'`, or `'stale-on-error'` |
+| `rateLimit`      | `RateLimitMeta?`         | Rate limit status from ESI headers                |
+| `responseTimeMs` | `number?`                | Request duration in milliseconds                  |
+| `requestId`      | `string?`                | ESI request ID                                    |
+| `warning`        | `object?`                | ESI deprecation warning                           |
+
+## Rate Limiting
+
+Rate limiting is always on and needs no configuration. Each ESI rate-limit group from the OpenAPI spec gets its own bucket, the limiter learns remaining tokens from ESI's response headers, and a 420 or 429 blocks only the affected group. Multi-character applications can give each token its own buckets:
+
+```typescript
+const client = new EsiClient({
+  rateLimiterConfig: {
+    userKeyExtractor: (headers) => headers['Authorization'] ?? 'anon',
+  },
+});
+```
+
+See [Rate limiting in the architecture guide](guides/ARCHITECTURE.md#6-rate-limiting) for the throttling rules, per-endpoint overrides and monitoring. Retry, deduplication, the opt-in [circuit breaker](guides/ARCHITECTURE.md#7-circuit-breaker) and [request/response interceptors](guides/ARCHITECTURE.md#8-interceptors) are documented alongside it.
+
+## Lightweight Clients
+
+All three client creation patterns (`EsiClient`, `CustomEsiClient`, `EsiApiFactory`) now get identical middleware defaults (cache, request deduplication, rate limiter) thanks to `configureApiClient()`. Previously `CustomEsiClient` and `EsiApiFactory` only configured the rate limiter.
+
+If you only need a subset of APIs, use `CustomEsiClient` or `EsiClientBuilder` to load only what you need:
 
 ```typescript
 import { EsiClientBuilder } from '@lgriffin/esi.ts';
 
-// Build a custom client step by step
 const client = new EsiClientBuilder()
-  .addClient('characters')
-  .addClient('corporations')
-  .addClients(['market', 'universe'])
-  .withClientId('my-corp-manager')
+  .addClients(['market', 'universe', 'characters'])
+  .withClientId('my-trading-bot')
   .withAccessToken('your-token')
   .build();
+
+const prices = await client.market?.getMarketPrices();
+const system = await client.universe?.getSystemById(30000142);
 ```
 
-### 4. Individual API Clients (Ultra Lightweight)
-
-Create standalone clients for single API groups:
+Or create standalone single-API clients:
 
 ```typescript
 import { EsiApiFactory } from '@lgriffin/esi.ts';
 
-// Just the Character API
-const characterClient = EsiApiFactory.createCharacterClient({
-  clientId: 'character-lookup-tool'
-});
-
-const character = await characterClient.getCharacterPublicInfo(123456);
-
-// Just the Market API
 const marketClient = EsiApiFactory.createMarketClient({
-  clientId: 'market-analyzer'
+  clientId: 'price-checker',
 });
-
 const prices = await marketClient.getMarketPrices();
 ```
 
-### 5. Direct API Class Instantiation
+## Endpoint Coverage
 
-For maximum control, instantiate API clients directly:
+All 235 endpoint definitions have been validated against live Tranquility using the **OpenAPI 3.1 spec** — 206 from the public ESI spec plus 29 for newer EVE features. Full output is captured in [`openapi.output.md`](openapi.output.md).
 
-```typescript
-import { CharacterClient, ApiClient, ApiClientBuilder } from '@lgriffin/esi.ts';
+| Category                    | Endpoints | Method                                             |
+| --------------------------- | --------- | -------------------------------------------------- |
+| Public GETs                 | 86        | 52 runnable example scripts with captured output   |
+| Authenticated GETs          | 114       | Example scripts + live testing with EVE SSO tokens |
+| Contacts (POST/PUT/DELETE)  | 3         | Live create/edit/delete lifecycle                  |
+| Fittings (POST/DELETE)      | 2         | Live create/delete lifecycle                       |
+| Mail (POST/PUT/DELETE)      | 5         | Live send/label/metadata/delete lifecycle          |
+| UI (POST)                   | 5         | Live testing with EVE client running               |
+| Calendar (PUT)              | 1         | Live RSVP to event                                 |
+| Fleet (GET/POST/PUT/DELETE) | 14        | Live fleet with fleet commander + squad members    |
+| Assets POST                 | 3         | Live asset location/name queries                   |
+| CSPA (POST)                 | 1         | Live charge cost calculation                       |
+| Dogma dynamic (GET)         | 1         | Live mutaplasmid (Abyssal) item query              |
+| Universe POST helpers       | 3         | Live name resolution and affiliation               |
+| Freelance Jobs (GET)        | 4         | Live queries (graceful 404 for no active jobs)     |
 
-// Create the underlying API client
-const apiClient = new ApiClientBuilder()
-  .withClientId('direct-api-client')
-  .withBaseUrl('https://esi.evetech.net')
-  .build();
+## Examples
 
-// Create the Character client directly
-const characterClient = new CharacterClient(apiClient);
-const character = await characterClient.getCharacterPublicInfo(123456);
+52 runnable examples are in the `examples/` directory.
+
+### Public Endpoints (no auth needed)
+
+```bash
+npm run example:status       # Server status — quickest smoke test
+npm run example:character    # Character public info, portrait, corporation
+npm run example:universe     # Solar system, constellation, region, station
+npm run example:market       # Average prices + Tritanium price history
+npm run example:alliance     # Alliance info + member corporations
+npm run example:route        # Jita-to-Amarr route with system names
+npm run example:wars         # Recent wars with aggressor/defender details
+npm run example:sovereignty  # Nullsec sovereignty map + active campaigns
+npm run example:industry     # Industry facilities, cost indices, insurance
+npm run example:incursions   # Active incursions + faction warfare stats
+npm run example:dogma        # Item type details + dogma attributes
+npm run example:contracts    # Public region contracts + auction bids/items
+npm run example:rate-limiting      # Rate limiter & pagination demonstration
+npm run example:cursor-pagination  # Freelance Jobs with cursor pagination
+npm run example:streaming          # Streaming pagination for large datasets
+npm run example:token-refresh      # Automatic token refresh on 401
+npm run example:universe-encyclopedia  # Ancestries, bloodlines, races, celestials
+npm run example:dogma-meta-sov         # Dogma effects, sovereignty, meta endpoint
+npm run example:faction-details        # Faction warfare leaderboards and stats
 ```
 
-## 📊 Client Architecture
+### Authenticated Endpoints (require ESI_ACCESS_TOKEN)
 
-### Available Client Types
-
-All approaches above give you access to these organized API clients:
-
-```typescript
-// Available clients:
-client.alliance      // Alliance information
-client.characters    // Character data
-client.corporations  // Corporation management
-client.market        // Market data and trading
-client.universe      // Universe information (systems, stations, items)
-client.fleets        // Fleet management
-client.industry      // Manufacturing and industry
-client.mail          // In-game mail
-client.contacts      // Contact management
-client.assets        // Asset management
-client.wallet        // Wallet operations
-client.killmails     // Killmail data
-client.location      // Character location
-client.skills        // Character skills (if available)
-client.factions      // Faction warfare
-client.wars          // War information
-client.sovereignty   // Sovereignty data
-client.incursions    // Incursion information
-client.opportunities // Opportunities system
-client.fittings      // Ship fittings
-client.clones        // Clone management
-client.loyalty       // Loyalty points
-client.bookmarks     // Bookmark management
-client.calendar      // Calendar events
-client.contracts     // Contract system
-client.insurance     // Insurance information
-client.route         // Route planning
-client.search        // Search functionality
-client.status        // Server status
-client.ui            // UI interactions
+```bash
+npm run example                    # Full character profile assembly
+npm run example:wallet       # Wallet balance, journal, transactions
+npm run example:skills       # Trained skills, queue, attributes
+npm run example:assets       # Asset inventory with bulk name lookup
+npm run example:killmails    # Recent killmails + full details
+npm run example:fleet        # Fleet info, members, wing/squad structure
+npm run example:mail         # Inbox headers, labels, mailing lists
+npm run example:location     # Current system, online status, ship
+npm run example:fittings     # Saved fittings + clone state + implants
+npm run example:contacts     # Contact list with standings + labels
+npm run example:character-details  # Blueprints, roles, standings, medals
+npm run example:corporation-details  # Corp members, divisions, structures
+npm run example:calendar-search      # Calendar events + character search
+npm run example:loyalty-pi           # Loyalty points + planetary interaction
+npm run example:industry-mining      # Industry jobs + mining ledger
+npm run example:market-orders        # Character/corp market orders
+npm run example:corp-contracts-wallet # Corp contracts, contacts, wallets
 ```
 
-## 🎯 Choosing the Right Approach
+### Write Operations (require specific scopes + caution)
 
-### When to Use Each Method
-
-| Approach | Best For | Memory Usage | Startup Time |
-|----------|----------|--------------|--------------|
-| **Full EsiClient** | Complete applications, multiple API usage | High | Slower |
-| **CustomEsiClient** | Focused applications, selected APIs | Medium | Medium |
-| **EsiApiFactory** | Single-purpose tools, microservices | Low | Fast |
-| **Direct Instantiation** | Libraries, embedded usage | Minimal | Fastest |
-
-### Practical Examples by Use Case
-
-#### Character Lookup Tool (Ultra Lightweight)
-
-```typescript
-import { EsiApiFactory } from '@lgriffin/esi.ts';
-
-const characterClient = EsiApiFactory.createCharacterClient({
-  clientId: 'character-lookup-v1'
-});
-
-// Just character operations
-const character = await characterClient.getCharacterPublicInfo(123456);
-const portrait = await characterClient.getCharacterPortrait(123456);
-console.log(`${character.body.name} - ${portrait.body.px128x128}`);
+```bash
+npm run example:write-ops          # Contacts, fittings, mail, UI lifecycle tests
+npm run example:universe-posts     # Name resolution + character affiliation (public)
+npm run example:freelance-jobs     # Freelance job queries
 ```
 
-#### Trading Bot (Selected APIs)
+### Parallel Requests
 
 ```typescript
-import { EsiClientBuilder } from '@lgriffin/esi.ts';
+const [character, portrait, corp] = await Promise.all([
+  client.characters.getCharacterPublicInfo(characterId),
+  client.characters.getCharacterPortrait(characterId),
+  client.corporations.getCorporationInfo(corporationId),
+]);
 
-const tradingBot = new EsiClientBuilder()
-  .addClients(['market', 'characters', 'universe', 'wallet'])
-  .withClientId('trading-bot-v2')
-  .withAccessToken(process.env.EVE_ACCESS_TOKEN)
-  .build();
-
-// Only the APIs you need are loaded
-const prices = await tradingBot.market?.getMarketPrices();
-const wallet = await tradingBot.wallet?.getCharacterWallet(characterId);
+console.log(`${character.name} [${corp.ticker}]`);
 ```
 
-#### Corporation Management Dashboard (Custom Client)
+### Market Analysis
 
 ```typescript
-import { CustomEsiClient } from '@lgriffin/esi.ts';
+const [orders, history] = await Promise.all([
+  client.market.getMarketOrders(regionId),
+  client.market.getMarketHistory(regionId, typeId),
+]);
 
-const corpManager = new CustomEsiClient({
-  clientId: 'corp-dashboard',
-  accessToken: directorToken,
-  clients: ['corporations', 'characters', 'assets', 'wallet', 'mail']
-});
+const buyOrders = orders.filter((o) => o.is_buy_order);
+const sellOrders = orders.filter((o) => !o.is_buy_order);
 
-// Efficient corp management with only needed APIs
-const corp = await corpManager.corporations?.getCorporationInfo(corpId);
-const members = await corpManager.corporations?.getCorporationMembers(corpId);
+console.log(`Best buy: ${Math.max(...buyOrders.map((o) => o.price))}`);
+console.log(`Best sell: ${Math.min(...sellOrders.map((o) => o.price))}`);
 ```
 
-## 📋 Common Usage Patterns
+## Resource Management
 
-### Public Data (No Authentication Required)
+Always call `shutdown()` when you're done to clean up cache timers:
 
-```typescript
-// Get alliance information
-const alliance = await client.alliance.getAllianceById(99005338);
-console.log(`Alliance: ${alliance.name} [${alliance.ticker}]`);
+```typescript runnable
+import { EsiClient } from '@lgriffin/esi.ts';
 
-// Get character public information
-const character = await client.characters.getCharacterPublicInfo(1689391488);
-console.log(`Character: ${character.name}`);
-
-// Get corporation information
-const corporation = await client.corporations.getCorporationInfo(98742334);
-console.log(`Corporation: ${corporation.name} [${corporation.ticker}]`);
-
-// Get market prices
-const prices = await client.market.getMarketPrices();
-console.log(`Found ${prices.length} market prices`);
-
-// Get solar system information
-const system = await client.universe.getSystemById(30000142);
-console.log(`System: ${system.name} (Security: ${system.security_status})`);
-```
-
-### Authenticated Data (Access Token Required)
-
-```typescript
-// Initialize with access token
-const authenticatedClient = new EsiClient({
-  clientId: 'your-app-name',
-  accessToken: 'your-character-access-token'
-});
-
-const characterId = 1689391488;
-
-// Get character's assets
-const assets = await authenticatedClient.assets.getCharacterAssets(characterId);
-console.log(`Character has ${assets.length} assets`);
-
-// Get character's wallet balance
-const wallet = await authenticatedClient.wallet.getCharacterWallet(characterId);
-console.log(`Wallet balance: ${wallet.toLocaleString()} ISK`);
-
-// Get character's mail
-const mail = await authenticatedClient.mail.getCharacterMail(characterId);
-console.log(`Character has ${mail.length} mail messages`);
-
-// Get character's market orders
-const orders = await authenticatedClient.market.getCharacterOrders(characterId);
-console.log(`Character has ${orders.length} active market orders`);
-```
-
-### Complex Workflows
-
-```typescript
-// Character Profile Assembly
-async function getCompleteCharacterProfile(characterId: number) {
-  const [character, portrait, corporation, location] = await Promise.all([
-    client.characters.getCharacterPublicInfo(characterId),
-    client.characters.getCharacterPortrait(characterId),
-    client.characters.getCharacterPublicInfo(characterId).then(char => 
-      client.corporations.getCorporationInfo(char.corporation_id)
-    ),
-    client.location.getCharacterLocation(characterId)
-  ]);
-
-  return {
-    character,
-    portrait,
-    corporation,
-    location
-  };
-}
-
-// Market Analysis
-async function analyzeMarketData(regionId: number, typeId: number) {
-  const [prices, orders, history] = await Promise.all([
-    client.market.getMarketPrices(),
-    client.market.getMarketOrders(regionId, { type_id: typeId }),
-    client.market.getMarketHistory(regionId, typeId)
-  ]);
-
-  const currentPrice = prices.find(p => p.type_id === typeId)?.average_price;
-  const buyOrders = orders.filter(o => o.is_buy_order);
-  const sellOrders = orders.filter(o => !o.is_buy_order);
-
-  return {
-    currentPrice,
-    bestBuyPrice: Math.max(...buyOrders.map(o => o.price)),
-    bestSellPrice: Math.min(...sellOrders.map(o => o.price)),
-    dailyVolume: history[0]?.volume || 0
-  };
-}
-```
-
-## 📊 Error Handling
-
-The library provides comprehensive error handling with specific error types:
-
-```typescript
-import { ApiError, ApiErrorType } from '@lgriffin/esi.ts';
-
+const client = new EsiClient();
 try {
-  const alliance = await client.alliance.getAllianceById(99999999); // Invalid ID
-} catch (error) {
-  if (error instanceof ApiError) {
-    switch (error.type) {
-      case ApiErrorType.NOT_FOUND:
-        console.log('Alliance not found');
-        break;
-      case ApiErrorType.RATE_LIMITED:
-        console.log('Rate limited - retry after:', error.retryAfter);
-        break;
-      case ApiErrorType.SERVER_ERROR:
-        console.log('ESI server error:', error.statusCode);
-        break;
-      case ApiErrorType.NETWORK_ERROR:
-        console.log('Network connectivity issue');
-        break;
-      case ApiErrorType.AUTHENTICATION_ERROR:
-        console.log('Invalid or expired access token');
-        break;
-      default:
-        console.log('Unexpected error:', error.message);
-    }
-  }
+  const status = await client.status.getStatus();
+  console.log(status.server_version);
+} finally {
+  await client.shutdown();
 }
 ```
 
-### Graceful Error Handling in Complex Workflows
-
-```typescript
-async function safeCharacterLookup(characterId: number) {
-  try {
-    // Use Promise.allSettled for partial success scenarios
-    const results = await Promise.allSettled([
-      client.characters.getCharacterPublicInfo(characterId),
-      client.characters.getCharacterPortrait(characterId),
-      client.location.getCharacterLocation(characterId)
-    ]);
-
-    const profile: any = {};
-
-    if (results[0].status === 'fulfilled') {
-      profile.character = results[0].value;
-    }
-    
-    if (results[1].status === 'fulfilled') {
-      profile.portrait = results[1].value;
-    }
-    
-    if (results[2].status === 'fulfilled') {
-      profile.location = results[2].value;
-    } else if (results[2].status === 'rejected') {
-      console.log('Location unavailable (character may be offline)');
-    }
-
-    return profile;
-  } catch (error) {
-    console.error('Failed to get character data:', error);
-    return null;
-  }
-}
-```
-
-## ⚡ Performance & Caching
-
-### Intelligent ETag Caching
-
-ESI.ts includes a sophisticated ETag caching system that automatically optimizes API calls by avoiding unnecessary data transfers. This feature is **enabled by default** and works transparently with all GET requests.
-
-#### How ETag Caching Works
-
-ETags (Entity Tags) are unique identifiers returned by ESI servers that represent the current version of a resource. When data hasn't changed, the server returns a `304 Not Modified` status instead of the full data, dramatically reducing bandwidth usage and improving response times.
-
-#### Basic Usage (Automatic)
-
-```typescript
-import { EsiClient } from '@lgriffin/esi.ts';
-
-// ETag caching is enabled by default
-const client = new EsiClient({
-  clientId: 'my-eve-app'
-});
-
-// First call - downloads and caches data
-const alliances1 = await client.alliance.getAlliances();
-
-// Second call - returns cached data if unchanged (304 response)
-const alliances2 = await client.alliance.getAlliances(); // ⚡ Lightning fast!
-```
-
-#### Custom Cache Configuration
-
-```typescript
-const client = new EsiClient({
-  clientId: 'my-eve-app',
-  enableETagCache: true, // Default: true
-  etagCacheConfig: {
-    maxEntries: 1000,      // Max cached responses (default: 1000)
-    defaultTtl: 300000,    // Cache TTL in ms (default: 5 minutes)
-    cleanupInterval: 60000, // Cleanup frequency (default: 1 minute)
-    persistToStorage: true, // Save to localStorage (default: false)
-    storageKey: 'my-esi-cache' // Custom storage key
-  }
-});
-```
-
-#### Cache Management
-
-```typescript
-// Get cache statistics
-const stats = client.getCacheStats();
-console.log(`Cache: ${stats.totalEntries}/${stats.maxEntries} entries`);
-console.log(`Hit rate optimization: ${stats.hitRate}%`);
-
-// Clear cache manually
-client.clearCache();
-
-// Update cache settings at runtime
-client.updateCacheConfig({
-  maxEntries: 2000,
-  defaultTtl: 600000 // 10 minutes
-});
-
-// Disable caching for specific use cases
-const client = new EsiClient({
-  enableETagCache: false // Disable caching entirely
-});
-```
-
-#### Performance Benefits
-
-- **🚀 Faster Response Times**: Cached responses return instantly
-- **📉 Reduced Bandwidth**: Avoid downloading unchanged data
-- **🔋 Server-Friendly**: Reduces load on ESI servers
-- **💰 Cost Effective**: Lower data usage for mobile/metered connections
-- **🎯 Smart Caching**: Only caches GET requests with ETags
-
-#### Cache Behavior
-
-| Scenario | Behavior | Performance Impact |
-|----------|----------|-------------------|
-| First API call | Downloads data, stores ETag | Normal speed |
-| Data unchanged | Returns cached data (304) | ⚡ **~95% faster** |
-| Data changed | Downloads new data, updates cache | Normal speed |
-| Cache expired | Downloads fresh data | Normal speed |
-| Cache full | Evicts oldest entries automatically | Minimal impact |
-
-#### Advanced ETag Features
-
-```typescript
-// Monitor cache performance
-client.on('cacheHit', (url, etag) => {
-  console.log(`Cache hit for ${url} with ETag ${etag}`);
-});
-
-client.on('cacheMiss', (url) => {
-  console.log(`Cache miss for ${url} - downloading fresh data`);
-});
-
-// Programmatic cache inspection
-const cache = client.getETagCache();
-if (cache) {
-  const entry = cache.get('https://esi.evetech.net/latest/alliances');
-  if (entry) {
-    console.log(`Cached data age: ${Date.now() - entry.timestamp}ms`);
-    console.log(`ETag: ${entry.etag}`);
-  }
-}
-```
-
-#### When ETag Caching Helps Most
-
-- **📊 Market Data**: Price lists that update periodically
-- **🏢 Corporation/Alliance Info**: Relatively static organizational data  
-- **🌌 Universe Data**: Star system, station, and type information
-- **👥 Character Lists**: Member rosters and public information
-- **📈 Statistics**: Aggregate data that updates on intervals
-
-#### Implementation Details
-
-- **Architecture**: Implemented at the core `ApiRequestHandler` level
-- **Scope**: Works with ALL GET requests automatically
-- **Compatibility**: Fully backward compatible - existing code works unchanged
-- **Thread Safety**: Uses atomic operations for cache management
-- **Memory Efficient**: Automatic cleanup and size management
-- **Storage Options**: In-memory (default) or persistent localStorage
-
-## 🔧 Advanced Configuration
-
-### Custom Timeout and Retry Logic
-
-```typescript
-const client = new EsiClient({
-  clientId: 'my-eve-app',
-  timeout: 60000,      // 60 second timeout
-  retryAttempts: 5,    // Retry up to 5 times
-  baseUrl: 'https://esi.evetech.net' // Custom ESI endpoint (optional)
-});
-```
-
-### Using Environment Variables
-
-```typescript
-// Set environment variables
-// ESI_CLIENT_ID=your-app-name
-// ESI_ACCESS_TOKEN=your-token
-// ESI_TIMEOUT=30000
-
-const client = new EsiClient({
-  clientId: process.env.ESI_CLIENT_ID,
-  accessToken: process.env.ESI_ACCESS_TOKEN,
-  timeout: parseInt(process.env.ESI_TIMEOUT || '30000')
-});
-```
-
-## 🚀 Real-World Examples
-
-### EVE Market Trading Bot (Lightweight Version)
-
-```typescript
-import { EsiClientBuilder } from '@lgriffin/esi.ts';
-
-class MarketBot {
-  private client: any; // CustomEsiClient
-
-  constructor(accessToken: string) {
-    // Only load the APIs we actually need
-    this.client = new EsiClientBuilder()
-      .addClients(['market', 'universe'])
-      .withClientId('market-bot-v1')
-      .withAccessToken(accessToken)
-      .build();
-  }
-
-  async findArbitrageOpportunities(regionId: number, typeId: number) {
-    try {
-      const [orders, history] = await Promise.all([
-        this.client.market.getMarketOrders(regionId, { type_id: typeId }),
-        this.client.market.getMarketHistory(regionId, typeId)
-      ]);
-
-      const buyOrders = orders.filter(o => o.is_buy_order).sort((a, b) => b.price - a.price);
-      const sellOrders = orders.filter(o => !o.is_buy_order).sort((a, b) => a.price - b.price);
-
-      if (buyOrders.length > 0 && sellOrders.length > 0) {
-        const spread = buyOrders[0].price - sellOrders[0].price;
-        const spreadPercent = (spread / sellOrders[0].price) * 100;
-
-        return {
-          profitable: spread > 0,
-          spread,
-          spreadPercent,
-          bestBuy: buyOrders[0],
-          bestSell: sellOrders[0],
-          dailyVolume: history[0]?.volume || 0
-        };
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Failed to analyze market:', error);
-      return null;
-    }
-  }
-}
-```
-
-### Corporation Management Dashboard (Custom Client)
-
-```typescript
-import { CustomEsiClient } from '@lgriffin/esi.ts';
-
-class CorporationManager {
-  private client: CustomEsiClient;
-
-  constructor(accessToken: string) {
-    // Only load corporation-related APIs
-    this.client = new CustomEsiClient({
-      clientId: 'corp-manager',
-      accessToken,
-      clients: ['corporations', 'characters', 'wallet']
-    });
-  }
-
-  async getCorporationOverview(corporationId: number) {
-    try {
-      const [corp, members, wallets] = await Promise.all([
-        this.client.corporations.getCorporationInfo(corporationId),
-        this.client.corporations.getCorporationMembers(corporationId),
-        this.client.wallet.getCorporationWallets(corporationId)
-      ]);
-
-      return {
-        corporation: corp,
-        memberCount: members.length,
-        totalBalance: wallets.reduce((sum, wallet) => sum + wallet.balance, 0)
-      };
-    } catch (error) {
-      if (error instanceof ApiError && error.type === ApiErrorType.AUTHENTICATION_ERROR) {
-        throw new Error('Insufficient permissions to access corporation data');
-      }
-      throw error;
-    }
-  }
-}
-```
-
-### Simple Character Lookup (Direct API)
-
-```typescript
-import { EsiApiFactory } from '@lgriffin/esi.ts';
-
-// Ultra-lightweight: just one API, one function
-async function lookupCharacter(characterId: number) {
-  const characterClient = EsiApiFactory.createCharacterClient({
-    clientId: 'simple-lookup'
-  });
-
-  const character = await characterClient.getCharacterPublicInfo(characterId);
-  return character.body.name;
-}
-
-// Usage
-const name = await lookupCharacter(1689391488);
-console.log(name); // "deiseman"
-```
-
-### Direct API Class Usage
-
-```typescript
-import { CharacterClient, ApiClientBuilder } from '@lgriffin/esi.ts';
-
-// Maximum control - build exactly what you need
-const apiClient = new ApiClientBuilder()
-  .setClientId('direct-usage')
-  .setLink('https://esi.evetech.net')
-  .build();
-
-const characterClient = new CharacterClient(apiClient);
-
-// Direct usage without any wrapper
-const character = await characterClient.getCharacterPublicInfo(123456);
-const portrait = await characterClient.getCharacterPortrait(123456);
-```
-
-### Microservice Example (Single Responsibility)
-
-```typescript
-import { EsiApiFactory } from '@lgriffin/esi.ts';
-
-// A microservice that only needs market data
-class PriceService {
-  private marketClient;
-
-  constructor() {
-    // Only load what this service needs
-    this.marketClient = EsiApiFactory.createMarketClient({
-      clientId: 'price-service-v1'
-    });
-  }
-
-  async getCurrentPrice(typeId: number): Promise<number> {
-    const prices = await this.marketClient.getMarketPrices();
-    const price = prices.body.find((p: any) => p.type_id === typeId);
-    return price?.average_price || 0;
-  }
-
-  async getBestPrices(regionId: number, typeId: number) {
-    const orders = await this.marketClient.getMarketOrders(regionId, { type_id: typeId });
-    
-    const buyOrders = orders.body.filter((o: any) => o.is_buy_order);
-    const sellOrders = orders.body.filter((o: any) => !o.is_buy_order);
-    
-    return {
-      bestBuy: Math.max(...buyOrders.map((o: any) => o.price)),
-      bestSell: Math.min(...sellOrders.map((o: any) => o.price))
-    };
-  }
-}
-```
-
-## 🧪 Testing
-
-### Running Tests
+## Testing
+
+ESI.ts has a comprehensive multi-tier testing strategy with 171 suites and 4,957 tests:
+
+| Tier                       | Tests            | Purpose                                                            |
+| -------------------------- | ---------------- | ------------------------------------------------------------------ |
+| **TDD unit tests**         | 130 files        | Every client method, endpoint path, query param, and body format   |
+| **BDD scenario tests**     | 41 feature files | Behavioral specifications in Gherkin (Given/When/Then)             |
+| **Mocked integration**     | Full suite       | Cross-layer request flow with jest-fetch-mock                      |
+| **Live smoke tests**       | 46 examples      | Every endpoint against live Tranquility                            |
+| **ESI spec contract**      | 15 tests         | Endpoint definitions validated against live OpenAPI spec           |
+| **Deep contract tests**    | 8 categories     | Path params, query params, body, auth, schemas, pagination vs spec |
+| **Property-based fuzzing** | 601 tests        | fast-check fuzzing of validation, URL construction, Zod schemas    |
+| **Mutation testing**       | Stryker          | Validates test suite kills code mutants                            |
+| **Type-level tests**       | tsd              | Consumer API type correctness via tsd                              |
+| **Gated auth tests**       | 33 tests         | Authenticated endpoints with real tokens                           |
+| **Construction parity**    | Per-surface      | Verifies all client surfaces get identical middleware defaults     |
+| **Spec-alignment**         | Type assertions  | Ensures hand-written types align with generated OpenAPI types      |
 
 ```bash
-# Run unit tests
-npm test
-
-# Run unit tests with coverage
-npm run coverage
-
-# Run BDD tests (behavioral scenarios)
-npm run bdd
-
-# Run specific BDD test suites
-npm run bdd:alliance
-npm run bdd:character
-npm run bdd:market
-
-# Run all tests
-npm run test:all
+npm test          # Unit + BDD tests (171 suites, 4,957 tests)
+npm run coverage  # Tests with coverage report (thresholds enforced)
+npm run bdd       # BDD scenario tests only
+npm run contract  # Contract tests (skipped without ESI_LIVE_TESTS=true)
+npm run fuzz      # Property-based fuzz tests (601 tests)
+npm run mutation  # Mutation testing (Stryker)
+npm run benchmark # Micro-benchmarks (mitata); npm run soak for the heap soak
+npm run test:types # tsd consumer type tests
 ```
 
-## 🚀 Working Examples
+Coverage: statements 98.37%, branches 95.14%, functions 96.09%, lines 98.17%. Thresholds enforced in CI: branches 80%, functions 75%, lines 90%, statements 90%.
 
-### Try the Examples
+See [guides/TESTING.md](guides/TESTING.md) for the full testing guide, and [guides/ARCHITECTURE.md](guides/ARCHITECTURE.md) for architecture diagrams.
 
-ESI.ts includes working examples that demonstrate real API usage:
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Code Quality Tools
+
+The project uses a comprehensive suite of static analysis and code quality tools:
+
+| Tool                                                                                 | Purpose                                                 | Command                        |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------ |
+| [ESLint](https://eslint.org/)                                                        | Linting with TypeScript, security, and code smell rules | `npm run lint`                 |
+| [Prettier](https://prettier.io/)                                                     | Code formatting                                         | `npm run format:check`         |
+| [knip](https://knip.dev/)                                                            | Dead code and unused export detection                   | `npm run knip`                 |
+| [eslint-plugin-security](https://github.com/eslint-community/eslint-plugin-security) | Security anti-pattern detection                         | Integrated into `npm run lint` |
+| [eslint-plugin-sonarjs](https://github.com/SonarSource/eslint-plugin-sonarjs)        | Cognitive complexity and code smell detection           | Integrated into `npm run lint` |
+| [husky](https://typicode.github.io/husky/)                                           | Git pre-commit hooks                                    | Automatic on commit            |
+| [lint-staged](https://github.com/lint-staged/lint-staged)                            | Run linters on staged files only                        | Automatic on commit            |
+| [Redocly CLI](https://redocly.com/docs/cli/)                                         | OpenAPI spec validation and linting                     | `npm run validate:spec`        |
+
+### Available Scripts
 
 ```bash
-# Run the complete character profile example
-npm run example
+# Development
+npm run build              # Compile TypeScript
+npm run lint               # Run ESLint
+npm run lint:fix           # Run ESLint with auto-fix
+npm run format             # Format code with Prettier
+npm run format:check       # Check formatting without modifying
 
-# Run flexible API usage examples (all 5 approaches)
-npm run examples:flexible
+# Testing
+npm test                   # Unit tests (171 suites, 4,957 tests)
+npm run test:all           # Unit + BDD + integration + fuzz + type tests
+npm run coverage           # Tests with coverage report (thresholds enforced)
+npm run bdd                # BDD scenario tests
+ESI_LIVE_TESTS=true npm run contract:live  # Deep contract tests against live ESI spec (fails without the variable)
+npm run fuzz               # Property-based fuzz tests (fast-check)
+npm run mutation           # Mutation testing (Stryker)
+npm run benchmark          # Micro-benchmarks (mitata)
+npm run test:types         # Consumer type tests (tsd)
+npm run mock:esi           # Start Prism mock ESI server on port 4010
+
+# Static Analysis
+npm run knip               # Detect dead code and unused exports
+npm run validate:esi       # Validate endpoints against live ESI OpenAPI spec
+npm run validate:spec      # Lint ESI OpenAPI spec with Redocly (structural + best practices)
+npm run validate:auth-scopes  # Auth/scope cross-validation
+npm run schema:drift       # Schema drift detection (hand-written vs OpenAPI spec)
+npm run validate           # Run all checks: lint, format, build, coverage, knip
+npm run generate:types     # Regenerate TypeScript interfaces from ESI OpenAPI spec
+npm run generate:endpoints # Regenerate endpoint definitions from ESI OpenAPI spec
+npm run generate:all       # Run all generators (types + endpoints + OKF)
+npm run generate:okf       # Generate OKF knowledge bundle from ESI OpenAPI spec
+
+# Documentation
+npm run docs               # Generate TypeDoc API documentation
+npm run docs:serve         # Serve docs locally on port 8080
 ```
 
-### Character Profile Example
+### ESI Endpoint Validation
 
-The main example (`npm run example`) demonstrates:
-- ✅ Complete character profile assembly
-- ✅ Parallel API calls for efficiency
-- ✅ Error handling and graceful degradation
-- ✅ Resource cleanup
-- ✅ Performance timing
+To verify that the codebase endpoint definitions match the live ESI OpenAPI spec:
 
-**Sample Output:**
-```
-🚀 ESI.ts Character Profile Example
-=====================================
-
-🔍 Gathering complete profile for character ID: 1689391488
-📋 Fetching basic character information...
-🚀 Fetching detailed profile data in parallel...
-
-============================================================
-🎯 CHARACTER PROFILE SUMMARY
-============================================================
-👤 Name: deiseman
-🆔 Character ID: 1689391488
-🎂 Birthday: 2/3/2008
-⚖️  Security Status: 0.16
-
-🏢 Corporation: Brittas Empire [BREMP]
-👥 Members: 360
-🤝 Alliance: Pandemic Horde [REKTD]
-📊 Founded: 2/4/2015
-
-🖼️  Portrait URLs:
-   📱 64x64: https://images.evetech.net/characters/1689391488/portrait?tenant=tranquility&size=64
-   🖥️  128x128: https://images.evetech.net/characters/1689391488/portrait?tenant=tranquility&size=128
-   🖼️  256x256: https://images.evetech.net/characters/1689391488/portrait?tenant=tranquility&size=256
-   📺 512x512: https://images.evetech.net/characters/1689391488/portrait?tenant=tranquility&size=512
-
-📍 Current Location: Unavailable (character may be offline)
-============================================================
-
-⏱️  Total execution time: 154ms
-✅ Character profile retrieved successfully!
+```bash
+npm run validate:esi
 ```
 
-### Flexible API Examples
+This fetches the ESI OpenAPI spec and reports:
 
-The flexible examples (`npm run examples:flexible`) demonstrate:
-- ✅ Full ESI Client (all APIs)
-- ✅ Custom lightweight client (selected APIs)
-- ✅ Builder pattern usage
-- ✅ Individual API clients
-- ✅ Direct API class instantiation
-- ✅ Performance comparisons
-- ✅ Microservice example
+- Endpoints in the codebase that are no longer in the ESI spec
+- Endpoints in the ESI spec that the codebase doesn't cover
+- HTTP method mismatches between codebase and spec
 
-**Sample Output:**
-```
-🚀 ESI.ts Flexible API Usage Examples
-=====================================
+### Pre-commit Hooks
 
-1️⃣  Full ESI Client (All APIs)
-✅ Character: deiseman (using full client)
+The project uses husky with lint-staged to run ESLint and Prettier on staged files before each commit. This is set up automatically when you run `npm install`.
 
-2️⃣  Custom Lightweight Client (Selected APIs)
-✅ Character: deiseman (using custom client)
-📊 Enabled clients: characters, corporations
+### CI/CD
 
-3️⃣  Builder Pattern
-✅ Character: deiseman (using builder pattern)
+Every push runs lint, format, build, typecheck and unit tests; pull requests to `master` run the full matrix behind a single Quality Gate check. Actions are SHA-pinned, packages publish with npm provenance, and release assets are cosign-signed.
 
-4️⃣  Individual API Client (Ultra Lightweight)
-✅ Character: deiseman (using standalone client)
+See [guides/QUALITY-GATES.md](guides/QUALITY-GATES.md) for the gate matrix and every workflow, and [guides/SECURITY.md](guides/SECURITY.md) for the supply-chain controls.
 
-5️⃣  Direct API Class Instantiation
-✅ Character: deiseman (using direct instantiation)
-
-🎯 Performance Comparison
-=========================
-⏱️  Startup time comparison:
-   Full Client: 1ms
-   Custom Client (1 API): 0ms
-   Individual Client: 0ms
-
-💰 Microservice Example: Price Service
-======================================
-💎 Tritanium average price: 3.78 ISK
-```
-
-### Example Files
-
-| File | Purpose | Command |
-|------|---------|---------|
-| `demo/character-profile-demo.ts` | Character profile assembly | `npm run example` |
-| `demo/universe-demo.ts` | Universe routes demonstration | `npm run universe-demo` |
-| `demo/flexible-examples.ts` | All flexible API patterns | `npm run examples:flexible` |
-
-### Learning Path
-
-1. **Start Here**: Run `npm run example` to see a complete real-world workflow
-2. **Explore Options**: Run `npm run examples:flexible` to see all the different ways to use the API
-3. **Choose Your Approach**: Pick the method that best fits your use case
-4. **Build Your App**: Use the examples as templates for your own application
-
-### Testing Your Applications
-
-```typescript
-import { EsiClient } from '@lgriffin/esi.ts';
-import { TestDataFactory } from '@lgriffin/esi.ts';
-
-describe('My EVE Application', () => {
-  let client: EsiClient;
-
-  beforeEach(() => {
-    client = new EsiClient({
-      clientId: 'test-client'
-    });
-  });
-
-  afterEach(async () => {
-    await client.shutdown();
-  });
-
-  it('should handle character lookup', async () => {
-    // Mock data for testing
-    jest.spyOn(client.characters, 'getCharacterPublicInfo')
-      .mockResolvedValue(TestDataFactory.createCharacterInfo({
-        character_id: 123456,
-        name: 'Test Character'
-      }));
-
-    const character = await client.characters.getCharacterPublicInfo(123456);
-    expect(character.name).toBe('Test Character');
-  });
-});
-```
-
-## 🛠️ Resource Management
-
-### Proper Cleanup
-
-```typescript
-// Always clean up resources when done
-async function myApplication() {
-  const client = new EsiClient({
-    clientId: 'my-app'
-  });
-
-  try {
-    // Your application logic here
-    const alliance = await client.alliance.getAllianceById(99005338);
-    console.log(alliance.name);
-  } finally {
-    // Important: Always shutdown the client
-    await client.shutdown();
-  }
-}
-
-// Or use a try-with-resources pattern
-class EsiClientManager {
-  private client: EsiClient;
-
-  constructor(config: any) {
-    this.client = new EsiClient(config);
-  }
-
-  async use<T>(callback: (client: EsiClient) => Promise<T>): Promise<T> {
-    try {
-      return await callback(this.client);
-    } finally {
-      await this.client.shutdown();
-    }
-  }
-}
-
-// Usage
-const manager = new EsiClientManager({ clientId: 'my-app' });
-const result = await manager.use(async (client) => {
-  return await client.alliance.getAllianceById(99005338);
-});
-```
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Write tests for your changes
-4. Ensure all tests pass: `npm test && npm run bdd`
+4. Run `npm run validate` to check everything passes
 5. Open a Pull Request
 
-## 📄 License
+Work is tracked with [beads](https://github.com/gastownhall/beads) (`bd`). Run
+`bd ready` to see available work — see [guides/BEADS.md](guides/BEADS.md) for the
+full workflow.
+
+## License
 
 GPL-3.0-or-later - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-**Happy coding, capsuleers! o7**
+**o7**

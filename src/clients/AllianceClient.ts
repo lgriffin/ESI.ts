@@ -1,58 +1,124 @@
 import { ApiClient } from '../core/ApiClient';
-import { AllianceByIdApi } from '../api/alliances/getAllianceById';
-import { AllianceContactsApi } from '../api/alliances/getAllianceContacts';
-import { AllianceContactLabelsApi } from '../api/alliances/getAllianceContactLabels';
-import { AllianceCorporationsApi } from '../api/alliances/getAllianceCorporations';
-import { AllianceIconsApi } from '../api/alliances/getAllianceIcons';
-import { AllAlliancesApi } from '../api/alliances/getAlliances';
-import { 
-    AllianceInfo, 
-    AllianceContact, 
-    AllianceContactLabel, 
-    AllianceIcon 
+import { BaseEsiClient } from './BaseEsiClient';
+import { createClient } from '../core/endpoints/createClient';
+import { allianceEndpoints } from '../core/endpoints/allianceEndpoints';
+import { contactEndpoints } from '../core/endpoints/contactEndpoints';
+import {
+  AllianceInfo,
+  AllianceContact,
+  AllianceContactLabel,
+  AllianceIcon,
 } from '../types/api-responses';
-import { IApiService } from '../core/IAPIBuilder';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
+import { logWarn } from '../core/logger/clientLog';
 
-export class AllianceClient implements IApiService {
-    readonly name = 'AllianceClient';
-    readonly version = '2.0.0';
-    private allianceApi: AllianceByIdApi;
-    private allianceContactsApi: AllianceContactsApi;
-    private allianceContactLabelsApi: AllianceContactLabelsApi;
-    private allianceCorporationsApi: AllianceCorporationsApi;
-    private allianceIconsApi: AllianceIconsApi;
-    private allAlliancesApi: AllAlliancesApi;
+export class AllianceClient extends BaseEsiClient<typeof allianceEndpoints> {
+  private contactApi: ReturnType<typeof createClient<typeof contactEndpoints>>;
 
-    constructor(client: ApiClient) {
-        this.allianceApi = new AllianceByIdApi(client);
-        this.allianceContactsApi = new AllianceContactsApi(client);
-        this.allianceContactLabelsApi = new AllianceContactLabelsApi(client);
-        this.allianceCorporationsApi = new AllianceCorporationsApi(client);
-        this.allianceIconsApi = new AllianceIconsApi(client);
-        this.allAlliancesApi = new AllAlliancesApi(client);
-    }
+  constructor(client: ApiClient) {
+    super(client, allianceEndpoints);
+    this.contactApi = createClient(client, contactEndpoints);
+  }
 
-    async getAllianceById(allianceId: number): Promise<AllianceInfo> {
-        return await this.allianceApi.getAllianceById(allianceId) as AllianceInfo;
-    }
+  /**
+   * Retrieve public information about an alliance.
+   *
+   * @param allianceId - The ID of the alliance to look up
+   * @returns Public alliance information including name, ticker, and founding date
+   */
+  getAllianceById(allianceId: number): Promise<AllianceInfo> {
+    return this.api.getAllianceById(allianceId);
+  }
 
-    async getContacts(allianceId: number): Promise<AllianceContact[]> {
-        return await this.allianceContactsApi.getAllianceContacts(allianceId) as AllianceContact[];
-    }
+  /**
+   * Retrieve contacts for an alliance.
+   *
+   * @deprecated Use ContactsClient.getAllianceContacts() instead
+   * @param allianceId - The ID of the alliance whose contacts to retrieve
+   * @returns A list of alliance contacts with standings and contact types
+   * @requires Authentication
+   */
+  getContacts(allianceId: number): Promise<AllianceContact[]> {
+    logWarn(
+      this._client,
+      'AllianceClient.getContacts() is deprecated. Use ContactsClient.getAllianceContacts() instead. Planned removal in next major version.',
+      { allianceId },
+    );
+    // Schema mismatch: ContactSchema uses a wider contact_type enum than AllianceContactSchema.
+    // Cast through unknown until schemas are unified.
+    return this.contactApi.getAllianceContacts(allianceId);
+  }
 
-    async getContactLabels(allianceId: number): Promise<AllianceContactLabel[]> {
-        return await this.allianceContactLabelsApi.getAllianceContactLabels(allianceId) as AllianceContactLabel[];
-    }
+  /**
+   * Retrieve custom contact labels for an alliance.
+   *
+   * @deprecated Use ContactsClient.getAllianceContactLabels() instead
+   * @param allianceId - The ID of the alliance whose contact labels to retrieve
+   * @returns A list of custom labels used to categorize alliance contacts
+   * @requires Authentication
+   */
+  getContactLabels(allianceId: number): Promise<AllianceContactLabel[]> {
+    logWarn(
+      this._client,
+      'AllianceClient.getContactLabels() is deprecated. Use ContactsClient.getAllianceContactLabels() instead. Planned removal in next major version.',
+      { allianceId },
+    );
+    // Schema mismatch: ContactLabelSchema vs AllianceContactLabelSchema are structurally
+    // identical but TypeScript treats them as distinct nominal types from different schemas.
+    return this.contactApi.getAllianceContactLabels(allianceId);
+  }
 
-    async getCorporations(allianceId: number): Promise<number[]> {
-        return await this.allianceCorporationsApi.getAllianceCorporations(allianceId) as number[];
-    }
+  /**
+   * Retrieve the list of corporation IDs that are members of an alliance.
+   *
+   * @param allianceId - The ID of the alliance whose member corporations to retrieve
+   * @returns An array of corporation IDs belonging to the alliance
+   */
+  getCorporations(allianceId: number): Promise<number[]> {
+    return this.api.getCorporations(allianceId);
+  }
 
-    async getIcons(allianceId: number): Promise<AllianceIcon> {
-        return await this.allianceIconsApi.getAllianceIcons(allianceId) as AllianceIcon;
-    }
+  /**
+   * Retrieve icon URLs for an alliance.
+   *
+   * @param allianceId - The ID of the alliance whose icons to retrieve
+   * @returns Icon URLs at various resolutions for the alliance
+   */
+  getIcons(allianceId: number): Promise<AllianceIcon> {
+    return this.api.getIcons(allianceId);
+  }
 
-    async getAlliances(): Promise<number[]> {
-        return await this.allAlliancesApi.getAllAlliances() as unknown as number[];
-    }
+  /**
+   * Retrieve a list of all active alliance IDs in EVE Online.
+   *
+   * @returns An array of all active alliance IDs
+   */
+  getAlliances(): Promise<number[]> {
+    return this.api.getAlliances();
+  }
+
+  fetchAllAlliances(concurrency?: number): Promise<number[]> {
+    return this.fetchAllEndpoint<number>('getAlliances', [], concurrency);
+  }
+
+  fetchAllCorporations(
+    allianceId: number,
+    concurrency?: number,
+  ): Promise<number[]> {
+    return this.fetchAllEndpoint<number>(
+      'getCorporations',
+      [allianceId],
+      concurrency,
+    );
+  }
+
+  streamAlliances(): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getAlliances');
+  }
+
+  streamCorporations(
+    allianceId: number,
+  ): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getCorporations', allianceId);
+  }
 }

@@ -1,24 +1,19 @@
-import { GetStatusApi } from '../api/status/getStatus';
 import { ApiClient } from '../core/ApiClient';
+import { BaseEsiClient } from './BaseEsiClient';
+import { statusEndpoints } from '../core/endpoints/statusEndpoints';
+import { ServerStatus } from '../types/api-responses';
 
-export class StatusClient {
-    private getStatusApi: GetStatusApi;
+export class StatusClient extends BaseEsiClient<typeof statusEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, statusEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getStatusApi = new GetStatusApi(client);
-    }
-
-    async getStatus(): Promise<any> {
-        return await this.getStatusApi.getStatus();
-    }
+  /**
+   * Retrieves the current Tranquility server status, including player count and server version.
+   *
+   * @returns The current server status information
+   */
+  getStatus(): Promise<ServerStatus> {
+    return this.api.getStatus() as Promise<ServerStatus>;
+  }
 }
-
-
-
-/* This is what we had in case we want to go more granular later again
-return {
-            players: response.players,
-            start_time: response.start_time,
-            server_version: response.server_version,
-        };
-*/

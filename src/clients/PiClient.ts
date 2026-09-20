@@ -1,35 +1,102 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetColoniesApi } from '../api/pi/getColonies';
-import { GetColonyLayoutApi } from '../api/pi/getColonyLayout';
-import { GetCorporationCustomsOfficesApi } from '../api/pi/getCorporationCustomsOffices';
-import { GetSchematicInformationApi } from '../api/pi/getSchematicInformation';
+import { BaseEsiClient } from './BaseEsiClient';
+import { piEndpoints } from '../core/endpoints/piEndpoints';
+import {
+  PlanetaryColony,
+  CustomsOffice,
+  ColonyLayout,
+  SchematicInfo,
+} from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class PIClient {
-    private getColoniesApi: GetColoniesApi;
-    private getColonyLayoutApi: GetColonyLayoutApi;
-    private getCorporationCustomsOfficesApi: GetCorporationCustomsOfficesApi;
-    private getSchematicInformationApi: GetSchematicInformationApi;
+export class PiClient extends BaseEsiClient<typeof piEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, piEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getColoniesApi = new GetColoniesApi(client);
-        this.getColonyLayoutApi = new GetColonyLayoutApi(client);
-        this.getCorporationCustomsOfficesApi = new GetCorporationCustomsOfficesApi(client);
-        this.getSchematicInformationApi = new GetSchematicInformationApi(client);
-    }
+  /**
+   * Retrieves the list of planetary interaction colonies owned by a character.
+   *
+   * @param characterId - The ID of the character whose colonies to fetch
+   * @returns A list of the character's planetary colonies
+   * @requires Authentication
+   */
+  getColonies(characterId: number): Promise<PlanetaryColony[]> {
+    return this.api.getColonies(characterId);
+  }
 
-    async getColonies(characterId: number): Promise<any> {
-        return await this.getColoniesApi.getColonies(characterId);
-    }
+  /**
+   * Retrieves the full layout of a planetary colony including pins, links, and routes.
+   *
+   * @param characterId - The ID of the character who owns the colony
+   * @param planetId - The ID of the planet to get the colony layout for
+   * @returns The colony layout with pins, links, and routes
+   * @requires Authentication
+   */
+  getColonyLayout(
+    characterId: number,
+    planetId: number,
+  ): Promise<ColonyLayout> {
+    return this.api.getColonyLayout(characterId, planetId);
+  }
 
-    async getColonyLayout(characterId: number, planetId: number): Promise<any> {
-        return await this.getColonyLayoutApi.getColonyLayout(characterId, planetId);
-    }
+  /**
+   * Retrieves the list of customs offices owned by a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose customs offices to fetch
+   * @returns A list of the corporation's customs offices with their settings
+   * @requires Authentication
+   */
+  getCorporationCustomsOffices(
+    corporationId: number,
+  ): Promise<CustomsOffice[]> {
+    return this.api.getCorporationCustomsOffices(corporationId);
+  }
 
-    async getCorporationCustomsOffices(corporationId: number): Promise<any> {
-        return await this.getCorporationCustomsOfficesApi.getCorporationCustomsOffices(corporationId);
-    }
+  /**
+   * Retrieves information about a planetary interaction schematic, including its inputs and outputs.
+   *
+   * @param schematicId - The ID of the schematic to look up
+   * @returns The schematic details including cycle time, inputs, and outputs
+   */
+  getSchematicInformation(schematicId: number): Promise<SchematicInfo> {
+    return this.api.getSchematicInformation(schematicId);
+  }
 
-    async getSchematicInformation(schematicId: number): Promise<any> {
-        return await this.getSchematicInformationApi.getSchematicInformation(schematicId);
-    }
+  fetchAllColonies(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<PlanetaryColony[]> {
+    return this.fetchAllEndpoint<PlanetaryColony>(
+      'getColonies',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationCustomsOffices(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<CustomsOffice[]> {
+    return this.fetchAllEndpoint<CustomsOffice>(
+      'getCorporationCustomsOffices',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  streamColonies(
+    characterId: number,
+  ): AsyncGenerator<PageResult<PlanetaryColony>, void, undefined> {
+    return this.streamEndpoint<PlanetaryColony>('getColonies', characterId);
+  }
+
+  streamCorporationCustomsOffices(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<CustomsOffice>, void, undefined> {
+    return this.streamEndpoint<CustomsOffice>(
+      'getCorporationCustomsOffices',
+      corporationId,
+    );
+  }
 }

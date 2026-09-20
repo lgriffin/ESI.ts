@@ -2,99 +2,171 @@ import { CalendarClient } from '../../../src/clients/CalendarClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
 const config = getConfig();
 
 const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
-    .build();
+  .setClientId(config.projectName)
+  .setLink(config.link)
+  .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+  .build();
 
 const calendarClient = new CalendarClient(client);
 
 describe('CalendarClient', () => {
-    beforeEach(() => {
-        fetchMock.resetMocks();
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
+
+  it('should return valid structure for getCalendarEvents', async () => {
+    const mockResponse: {
+      event_id: number;
+      event_date: string;
+      title: string;
+      importance: number;
+      event_response: string;
+    }[] = [
+      {
+        event_id: 1,
+        event_date: '2024-07-01T12:00:00Z',
+        title: 'Event Title',
+        importance: 1,
+        event_response: 'accepted',
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() =>
+      calendarClient.getCalendarEvents(123456789),
+    );
+
+    expect(Array.isArray(result)).toBe(true);
+    (
+      result as {
+        event_id: number;
+        event_date: string;
+        title: string;
+        importance: number;
+      }[]
+    ).forEach((event) => {
+      expect(event).toHaveProperty('event_id');
+      expect(typeof event.event_id).toBe('number');
+      expect(event).toHaveProperty('event_date');
+      expect(typeof event.event_date).toBe('string');
+      expect(event).toHaveProperty('title');
+      expect(typeof event.title).toBe('string');
+      expect(event).toHaveProperty('importance');
+      expect(typeof event.importance).toBe('number');
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/calendar/',
+    );
+  });
 
-    it('should return valid structure for getCalendarEvents', async () => {
-        const mockResponse: { event_id: number; event_date: string; title: string; importance: number }[] = [
-            {
-                event_id: 1,
-                event_date: '2024-07-01T12:00:00Z',
-                title: 'Event Title',
-                importance: 1
-            }
-        ];
+  it('should return valid structure for getCalendarEventById', async () => {
+    const mockResponse: {
+      event_id: number;
+      event_date: string;
+      date: string;
+      title: string;
+      description: string;
+      text: string;
+      owner_id: number;
+      owner_name: string;
+      owner_type: string;
+      duration: number;
+      importance: number;
+      response: string;
+    } = {
+      event_id: 1,
+      event_date: '2024-07-01T12:00:00Z',
+      date: '2024-07-01T12:00:00Z',
+      title: 'Event Title',
+      description: 'Event Description',
+      text: 'Event Description',
+      owner_id: 987654321,
+      owner_name: 'Test Corporation',
+      owner_type: 'corporation',
+      duration: 60,
+      importance: 1,
+      response: 'accepted',
+    };
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => calendarClient.getCalendarEvents(123456789));
+    const result = (await getBody(() =>
+      calendarClient.getCalendarEventById(123456789, 1),
+    )) as {
+      event_id: number;
+      event_date: string;
+      title: string;
+      description: string;
+    };
 
-        expect(Array.isArray(result)).toBe(true);
-        (result as { event_id: number; event_date: string; title: string; importance: number }[]).forEach(event => {
-            expect(event).toHaveProperty('event_id');
-            expect(typeof event.event_id).toBe('number');
-            expect(event).toHaveProperty('event_date');
-            expect(typeof event.event_date).toBe('string');
-            expect(event).toHaveProperty('title');
-            expect(typeof event.title).toBe('string');
-            expect(event).toHaveProperty('importance');
-            expect(typeof event.importance).toBe('number');
-        });
-    });
+    expect(result).toHaveProperty('event_id');
+    expect(typeof result.event_id).toBe('number');
+    expect(result).toHaveProperty('event_date');
+    expect(typeof result.event_date).toBe('string');
+    expect(result).toHaveProperty('title');
+    expect(typeof result.title).toBe('string');
+    expect(result).toHaveProperty('description');
+    expect(typeof result.description).toBe('string');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/calendar/1/',
+    );
+  });
 
-    it('should return valid structure for getCalendarEventById', async () => {
-        const mockResponse: { event_id: number; event_date: string; title: string; description: string } = {
-            event_id: 1,
-            event_date: '2024-07-01T12:00:00Z',
-            title: 'Event Title',
-            description: 'Event Description'
-        };
+  it('should handle respondToCalendarEvent correctly', async () => {
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    const response = await getBody(() =>
+      calendarClient.respondToCalendarEvent(123456789, 1, 'accepted'),
+    );
 
-        const result = await getBody(() => calendarClient.getCalendarEventById(123456789, 1)) as { event_id: number, event_date: string, title: string, description: string };
+    expect(response).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/calendar/1/',
+    );
+  });
 
-        expect(result).toHaveProperty('event_id');
-        expect(typeof result.event_id).toBe('number');
-        expect(result).toHaveProperty('event_date');
-        expect(typeof result.event_date).toBe('string');
-        expect(result).toHaveProperty('title');
-        expect(typeof result.title).toBe('string');
-        expect(result).toHaveProperty('description');
-        expect(typeof result.description).toBe('string');
-    });
+  it('should return valid structure for getEventAttendees', async () => {
+    const mockResponse: {
+      character_id: number;
+      event_response: string;
+      response: string;
+    }[] = [
+      {
+        character_id: 123,
+        event_response: 'accepted',
+        response: 'accepted',
+      },
+    ];
 
-    it('should handle respondToCalendarEvent correctly', async () => {
-        fetchMock.mockResponseOnce('', { status: 204 });
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const response = await getBody(() => calendarClient.respondToCalendarEvent(123456789, 1, 'accepted'));
+    const result = await getBody(() =>
+      calendarClient.getEventAttendees(123456789, 1),
+    );
 
-        expect(response).toEqual({ error: 'no content' });
-    });
+    expect(Array.isArray(result)).toBe(true);
+    (result as { character_id: number; response: string }[]).forEach(
+      (attendee) => {
+        expect(attendee).toHaveProperty('character_id');
+        expect(typeof attendee.character_id).toBe('number');
+        expect(attendee).toHaveProperty('response');
+        expect(typeof attendee.response).toBe('string');
+      },
+    );
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456789/calendar/1/attendees/',
+    );
+  });
 
-    it('should return valid structure for getEventAttendees', async () => {
-        const mockResponse: { character_id: number; response: string }[] = [
-            {
-                character_id: 123,
-                response: 'accepted'
-            }
-        ];
-
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
-
-        const result = await getBody(() => calendarClient.getEventAttendees(123456789, 1));
-
-        expect(Array.isArray(result)).toBe(true);
-        (result as { character_id: number; response: string }[]).forEach(attendee => {
-            expect(attendee).toHaveProperty('character_id');
-            expect(typeof attendee.character_id).toBe('number');
-            expect(attendee).toHaveProperty('response');
-            expect(typeof attendee.response).toBe('string');
-        });
-    });
+  describeClientErrors('CalendarClient', (apiClient) =>
+    new CalendarClient(apiClient).getCalendarEvents(123456789),
+  );
 });

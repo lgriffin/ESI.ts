@@ -1,63 +1,99 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCharacterLeaderboardsApi } from '../api/factions/getCharacterLeaderboards';
-import { GetCorporationLeaderboardsApi } from '../api/factions/getCorporationLeaderboards';
-import { GetFactionLeaderboardsApi } from '../api/factions/getFactionLeaderboards';
-import { getFactionWarfareStats } from '../api/factions/getFactionWarfareStats';
-import { GetCharacterFactionWarfareStatsApi } from '../api/factions/getCharacterFactionWarfareStats';
-import { GetCorporationFactionWarfareStatsApi } from '../api/factions/getCorporationFactionWarfareStats';
-import { FactionWarfareSystemsApi } from '../api/factions/getFactionWarfareSystems';
-import { FactionWarfareWarsApi } from '../api/factions/getFactionWarfareWars';
+import { BaseEsiClient } from './BaseEsiClient';
+import { factionEndpoints } from '../core/endpoints/factionEndpoints';
+import {
+  FactionWarfareStats,
+  FactionWarfareCharacterStats,
+  FactionWarfareCorporationStats,
+  FactionWarfareCharacterLeaderboard,
+  FactionWarfareCorporationLeaderboard,
+  FactionWarfareFactionLeaderboard,
+  FactionWarfareSystem,
+  FactionWarfareWar,
+} from '../types/api-responses';
 
-export class FactionClient {
-    private getCharacterLeaderboardsApi: GetCharacterLeaderboardsApi;
-    private getCorporationLeaderboardsApi: GetCorporationLeaderboardsApi;
-    private getFactionLeaderboardsApi: GetFactionLeaderboardsApi;
-    private getFactionWarfareStatsApi: getFactionWarfareStats;
-    private getCharacterFactionWarfareStatsApi: GetCharacterFactionWarfareStatsApi;
-    private getCorporationFactionWarfareStatsApi: GetCorporationFactionWarfareStatsApi;
-    private getFactionWarfareSystemsApi: FactionWarfareSystemsApi;
-    private getFactionWarfareWarsApi: FactionWarfareWarsApi;
+export class FactionClient extends BaseEsiClient<typeof factionEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, factionEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCharacterLeaderboardsApi = new GetCharacterLeaderboardsApi(client);
-        this.getCorporationLeaderboardsApi = new GetCorporationLeaderboardsApi(client);
-        this.getFactionLeaderboardsApi = new GetFactionLeaderboardsApi(client);
-        this.getFactionWarfareStatsApi = new getFactionWarfareStats(client);
-        this.getCharacterFactionWarfareStatsApi = new GetCharacterFactionWarfareStatsApi(client);
-        this.getCorporationFactionWarfareStatsApi = new GetCorporationFactionWarfareStatsApi(client);
-        this.getFactionWarfareSystemsApi = new FactionWarfareSystemsApi(client);
-        this.getFactionWarfareWarsApi = new FactionWarfareWarsApi(client);
-    }
+  /**
+   * Retrieves the top characters in faction warfare leaderboards.
+   *
+   * @returns Faction warfare character leaderboard rankings
+   */
+  getLeaderboardsCharacters(): Promise<FactionWarfareCharacterLeaderboard> {
+    return this.api.getCharacters();
+  }
 
-    async getLeaderboardsCharacters(): Promise<any> {
-        return await this.getCharacterLeaderboardsApi.getCharacters();
-    }
+  /**
+   * Retrieves the top corporations in faction warfare leaderboards.
+   *
+   * @returns Faction warfare corporation leaderboard rankings
+   */
+  getLeaderboardsCorporations(): Promise<FactionWarfareCorporationLeaderboard> {
+    return this.api.getCorporations();
+  }
 
-    async getLeaderboardsCorporations(): Promise<any> {
-        return await this.getCorporationLeaderboardsApi.getCorporations();
-    }
+  /**
+   * Retrieves the overall faction warfare leaderboards across all factions.
+   *
+   * @returns Overall faction warfare leaderboard rankings
+   */
+  getLeaderboardsOverall(): Promise<FactionWarfareFactionLeaderboard> {
+    return this.api.getOverall();
+  }
 
-    async getLeaderboardsOverall(): Promise<any> {
-        return await this.getFactionLeaderboardsApi.getOverall();
-    }
+  /**
+   * Retrieves faction warfare statistics for all factions, including kill and victory point totals.
+   *
+   * @returns An array of per-faction warfare statistics
+   */
+  getStats(): Promise<FactionWarfareStats[]> {
+    return this.api.getStats();
+  }
 
-    async getStats(): Promise<any> {
-        return await this.getFactionWarfareStatsApi.getStats();
-    }
+  /**
+   * Retrieves faction warfare statistics for a specific character, including enlistment info and kill counts.
+   *
+   * @param characterId - The ID of the character
+   * @returns Faction warfare statistics for the character
+   * @requires Authentication
+   */
+  getCharacterStats(
+    characterId: number,
+  ): Promise<FactionWarfareCharacterStats> {
+    return this.api.getCharacterStats(characterId);
+  }
 
-    async getCharacterStats(characterId: number): Promise<any> {
-        return await this.getCharacterFactionWarfareStatsApi.getCharacterStats(characterId);
-    }
+  /**
+   * Retrieves faction warfare statistics for a specific corporation, including kill counts and victory points.
+   *
+   * @param corporationId - The ID of the corporation
+   * @returns Faction warfare statistics for the corporation
+   * @requires Authentication
+   */
+  getCorporationStats(
+    corporationId: number,
+  ): Promise<FactionWarfareCorporationStats> {
+    return this.api.getCorporationStats(corporationId);
+  }
 
-    async getCorporationStats(corporationId: number): Promise<any> {
-        return await this.getCorporationFactionWarfareStatsApi.getCorporationStats(corporationId);
-    }
+  /**
+   * Retrieves the current ownership and contested status of all faction warfare systems.
+   *
+   * @returns An array of faction warfare system statuses
+   */
+  getSystems(): Promise<FactionWarfareSystem[]> {
+    return this.api.getSystems();
+  }
 
-    async getSystems(): Promise<any> {
-        return await this.getFactionWarfareSystemsApi.getSystems();
-    }
-
-    async getWars(): Promise<any> {
-        return await this.getFactionWarfareWarsApi.getWars();
-    }
+  /**
+   * Retrieves the list of active faction warfare wars, showing which factions are fighting each other.
+   *
+   * @returns An array of active faction warfare wars
+   */
+  getWars(): Promise<FactionWarfareWar[]> {
+    return this.api.getWars();
+  }
 }

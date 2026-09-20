@@ -1,0 +1,38 @@
+---
+# zizmor configuration, used by the `zizmor` job in ci.yml.
+#
+# Policy: every ignore carries a comment saying why the finding does not
+# apply and what would make the ignore removable. Prefer fixing the workflow
+# over ignoring the audit. Scope an ignore to a line (`file.yml:LINE`) rather
+# than a whole file where the finding is specific.
+#
+# Three ignores that used to live here were removed after checking them
+# against zizmor 1.25.2:
+# - cache-poisoning (release.yml): fixed by setting
+#   `package-manager-cache: false` on every setup-node step in release.yml.
+#   post-publish-canary.yml sets it too, for the same audit.
+# - dependabot-cooldown (dependabot.yml): fixed by configuring `cooldown`.
+# - use-trusted-publishing (release.yml): produced no finding, so it was
+#   suppressing nothing.
+rules:
+  dangerous-triggers:
+    ignore:
+      # nightly-mutation-retry.yml re-runs a nightly shard that a reclaimed
+      # runner killed. `workflow_run` is the only trigger that can do it: a job
+      # inside the run cannot re-run its own run, and the retry must wait for
+      # the run to finish.
+      #
+      # What makes the audit's concern not apply here:
+      # - The workflow checks out nothing and runs no code from the triggering
+      #   run. Its only action is `gh run rerun <id> --failed`.
+      # - The run id and URL it uses come from the event as a number and a
+      #   github.com URL, and both are passed through `env:` rather than
+      #   interpolated into a shell string.
+      # - It watches one workflow, nightly-mutation.yml, which triggers only on
+      #   `schedule` and `workflow_dispatch`. A fork cannot cause it to run, so
+      #   there is no untrusted run to be elevated from.
+      # - Its only extra permission is `actions: write`, on that one job.
+      #
+      # Removable when GitHub lets a job re-run its own run's failed siblings,
+      # or when the reclaims stop and the retry is deleted.
+      - nightly-mutation-retry.yml

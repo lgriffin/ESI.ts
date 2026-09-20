@@ -1,70 +1,187 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCharacterContractsApi } from '../api/contracts/getCharacterContracts';
-import { GetCharacterContractBidsApi } from '../api/contracts/getCharacterContractBids';
-import { GetCharacterContractItemsApi } from '../api/contracts/getCharacterContractItems';
-import { GetPublicContractsApi } from '../api/contracts/getPublicContracts';
-import { GetPublicContractBidsApi } from '../api/contracts/getPublicContractBids';
-import { GetPublicContractItemsApi } from '../api/contracts/getPublicContractItems';
-import { GetCorporationContractsApi } from '../api/contracts/getCorporationContracts';
-import { GetCorporationContractBidsApi } from '../api/contracts/getCorporationContractBids';
-import { GetCorporationContractItemsApi } from '../api/contracts/getCorporationContractItems';
+import { BaseEsiClient } from './BaseEsiClient';
+import { contractEndpoints } from '../core/endpoints/contractEndpoints';
+import {
+  Contract,
+  ContractBid,
+  ContractItem,
+  PublicContract,
+  PublicContractBid,
+  PublicContractItem,
+} from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class ContractsClient {
-    private getCharacterContractsApi: GetCharacterContractsApi;
-    private getCharacterContractBidsApi: GetCharacterContractBidsApi;
-    private getCharacterContractItemsApi: GetCharacterContractItemsApi;
-    private getPublicContractsApi: GetPublicContractsApi;
-    private getPublicContractBidsApi: GetPublicContractBidsApi;
-    private getPublicContractItemsApi: GetPublicContractItemsApi;
-    private getCorporationContractsApi: GetCorporationContractsApi;
-    private getCorporationContractBidsApi: GetCorporationContractBidsApi;
-    private getCorporationContractItemsApi: GetCorporationContractItemsApi;
+export class ContractsClient extends BaseEsiClient<typeof contractEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, contractEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCharacterContractsApi = new GetCharacterContractsApi(client);
-        this.getCharacterContractBidsApi = new GetCharacterContractBidsApi(client);
-        this.getCharacterContractItemsApi = new GetCharacterContractItemsApi(client);
-        this.getPublicContractsApi = new GetPublicContractsApi(client);
-        this.getPublicContractBidsApi = new GetPublicContractBidsApi(client);
-        this.getPublicContractItemsApi = new GetPublicContractItemsApi(client);
-        this.getCorporationContractsApi = new GetCorporationContractsApi(client);
-        this.getCorporationContractBidsApi = new GetCorporationContractBidsApi(client);
-        this.getCorporationContractItemsApi = new GetCorporationContractItemsApi(client);
-    }
+  /**
+   * Retrieve contracts issued by or assigned to a character.
+   *
+   * @param characterId - The ID of the character whose contracts to retrieve
+   * @returns A list of contracts with type, status, and pricing information
+   * @requires Authentication
+   */
+  getCharacterContracts(characterId: number): Promise<Contract[]> {
+    return this.api.getCharacterContracts(characterId);
+  }
 
-    async getCharacterContracts(characterId: number): Promise<any> {
-        return await this.getCharacterContractsApi.getCharacterContracts(characterId);
-    }
+  /**
+   * Retrieve bids placed on an auction contract owned by a character.
+   *
+   * @param characterId - The ID of the character who owns the contract
+   * @param contractId - The ID of the contract whose bids to retrieve
+   * @returns A list of bids with bidder, amount, and timestamp
+   * @requires Authentication
+   */
+  getCharacterContractBids(
+    characterId: number,
+    contractId: number,
+  ): Promise<ContractBid[]> {
+    return this.api.getCharacterContractBids(characterId, contractId);
+  }
 
-    async getCharacterContractBids(characterId: number, contractId: number): Promise<any> {
-        return await this.getCharacterContractBidsApi.getCharacterContractBids(characterId, contractId);
-    }
+  /**
+   * Retrieve the items included in a contract owned by a character.
+   *
+   * @param characterId - The ID of the character who owns the contract
+   * @param contractId - The ID of the contract whose items to retrieve
+   * @returns A list of items in the contract with type, quantity, and included/excluded status
+   * @requires Authentication
+   */
+  getCharacterContractItems(
+    characterId: number,
+    contractId: number,
+  ): Promise<ContractItem[]> {
+    return this.api.getCharacterContractItems(characterId, contractId);
+  }
 
-    async getCharacterContractItems(characterId: number, contractId: number): Promise<any> {
-        return await this.getCharacterContractItemsApi.getCharacterContractItems(characterId, contractId);
-    }
+  /**
+   * Retrieve publicly available contracts in a specific region.
+   *
+   * @param regionId - The ID of the region whose public contracts to retrieve
+   * @returns A list of public contracts in the region. ESI sends no status
+   *   or availability on these: every listed contract is public and outstanding.
+   */
+  getPublicContracts(regionId: number): Promise<PublicContract[]> {
+    return this.api.getPublicContracts(regionId);
+  }
 
-    async getPublicContracts(regionId: number): Promise<any> {
-        return await this.getPublicContractsApi.getPublicContracts(regionId);
-    }
+  /**
+   * Retrieve bids placed on a public auction contract.
+   *
+   * @param contractId - The ID of the public contract whose bids to retrieve
+   * @returns A list of bids with amount and timestamp. ESI does not name the
+   *   bidder on a public contract.
+   */
+  getPublicContractBids(contractId: number): Promise<PublicContractBid[]> {
+    return this.api.getPublicContractBids(contractId);
+  }
 
-    async getPublicContractBids(contractId: number): Promise<any> {
-        return await this.getPublicContractBidsApi.getPublicContractBids(contractId);
-    }
+  /**
+   * Retrieve the items included in a public contract.
+   *
+   * @param contractId - The ID of the public contract whose items to retrieve
+   * @returns A list of items in the contract with type, quantity, and included/excluded
+   *   status; blueprint lines also carry item ID, efficiencies and runs
+   */
+  getPublicContractItems(contractId: number): Promise<PublicContractItem[]> {
+    return this.api.getPublicContractItems(contractId);
+  }
 
-    async getPublicContractItems(contractId: number): Promise<any> {
-        return await this.getPublicContractItemsApi.getPublicContractItems(contractId);
-    }
+  /**
+   * Retrieve contracts issued by or assigned to a corporation.
+   *
+   * @param corporationId - The ID of the corporation whose contracts to retrieve
+   * @returns A list of contracts with type, status, and pricing information
+   * @requires Authentication
+   */
+  getCorporationContracts(corporationId: number): Promise<Contract[]> {
+    return this.api.getCorporationContracts(corporationId);
+  }
 
-    async getCorporationContracts(corporationId: number): Promise<any> {
-        return await this.getCorporationContractsApi.getCorporationContracts(corporationId);
-    }
+  /**
+   * Retrieve bids placed on an auction contract owned by a corporation.
+   *
+   * @param corporationId - The ID of the corporation that owns the contract
+   * @param contractId - The ID of the contract whose bids to retrieve
+   * @returns A list of bids with bidder, amount, and timestamp
+   * @requires Authentication
+   */
+  getCorporationContractBids(
+    corporationId: number,
+    contractId: number,
+  ): Promise<ContractBid[]> {
+    return this.api.getCorporationContractBids(corporationId, contractId);
+  }
 
-    async getCorporationContractBids(corporationId: number, contractId: number): Promise<any> {
-        return await this.getCorporationContractBidsApi.getCorporationContractBids(corporationId, contractId);
-    }
+  /**
+   * Retrieve the items included in a contract owned by a corporation.
+   *
+   * @param corporationId - The ID of the corporation that owns the contract
+   * @param contractId - The ID of the contract whose items to retrieve
+   * @returns A list of items in the contract with type, quantity, and included/excluded status
+   * @requires Authentication
+   */
+  getCorporationContractItems(
+    corporationId: number,
+    contractId: number,
+  ): Promise<ContractItem[]> {
+    return this.api.getCorporationContractItems(corporationId, contractId);
+  }
 
-    async getCorporationContractItems(corporationId: number, contractId: number): Promise<any> {
-        return await this.getCorporationContractItemsApi.getCorporationContractItems(corporationId, contractId);
-    }
+  fetchAllPublicContracts(
+    regionId: number,
+    concurrency?: number,
+  ): Promise<PublicContract[]> {
+    return this.fetchAllEndpoint<PublicContract>(
+      'getPublicContracts',
+      [regionId],
+      concurrency,
+    );
+  }
+
+  fetchAllCharacterContracts(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<Contract[]> {
+    return this.fetchAllEndpoint<Contract>(
+      'getCharacterContracts',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationContracts(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<Contract[]> {
+    return this.fetchAllEndpoint<Contract>(
+      'getCorporationContracts',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  streamPublicContracts(
+    regionId: number,
+  ): AsyncGenerator<PageResult<PublicContract>, void, undefined> {
+    return this.streamEndpoint<PublicContract>('getPublicContracts', regionId);
+  }
+
+  streamCharacterContracts(
+    characterId: number,
+  ): AsyncGenerator<PageResult<Contract>, void, undefined> {
+    return this.streamEndpoint<Contract>('getCharacterContracts', characterId);
+  }
+
+  streamCorporationContracts(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<Contract>, void, undefined> {
+    return this.streamEndpoint<Contract>(
+      'getCorporationContracts',
+      corporationId,
+    );
+  }
 }

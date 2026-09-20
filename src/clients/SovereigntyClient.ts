@@ -1,28 +1,30 @@
 import { ApiClient } from '../core/ApiClient';
-import { SovereigntyCampaignsApi } from '../api/sovereignty/getSovereigntyCampaigns';
-import { SovereigntyMapApi } from '../api/sovereignty/getSovereigntyMap';
-import { SovereigntyStructuresApi } from '../api/sovereignty/getSovereigntyStructures';
+import { BaseEsiClient } from './BaseEsiClient';
+import { sovereigntyEndpoints } from '../core/endpoints/sovereigntyEndpoints';
+import { SovereigntyCampaign, SovereigntySystem } from '../types/api-responses';
 
-export class SovereigntyClient {
-    private sovereigntyCampaignsApi: SovereigntyCampaignsApi;
-    private sovereigntyMapApi: SovereigntyMapApi;
-    private sovereigntyStructuresApi: SovereigntyStructuresApi;
+export class SovereigntyClient extends BaseEsiClient<
+  typeof sovereigntyEndpoints
+> {
+  constructor(client: ApiClient) {
+    super(client, sovereigntyEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.sovereigntyCampaignsApi = new SovereigntyCampaignsApi(client);
-        this.sovereigntyMapApi = new SovereigntyMapApi(client);
-        this.sovereigntyStructuresApi = new SovereigntyStructuresApi(client);
-    }
+  /**
+   * Retrieves all active sovereignty campaigns, including command node contests and station freeports.
+   *
+   * @returns A list of active sovereignty campaigns
+   */
+  getSovereigntyCampaigns(): Promise<SovereigntyCampaign[]> {
+    return this.api.getSovereigntyCampaigns() as Promise<SovereigntyCampaign[]>;
+  }
 
-    async getSovereigntyCampaigns(): Promise<any> {
-        return await this.sovereigntyCampaignsApi.getSovereigntyCampaigns();
-    }
-
-    async getSovereigntyMap(): Promise<any> {
-        return await this.sovereigntyMapApi.getSovereigntyMap();
-    }
-
-    async getSovereigntyStructures(): Promise<any> {
-        return await this.sovereigntyStructuresApi.getSovereigntyStructures();
-    }
+  /**
+   * Retrieves the combined sovereignty systems data including occupancy, structures, and separate ADM indices (military, industry, strategic).
+   *
+   * @returns A list of sovereignty systems with ownership, ADM indices, and anchored structures
+   */
+  getSovereigntySystems(): Promise<SovereigntySystem> {
+    return this.api.getSovereigntySystems() as Promise<SovereigntySystem>;
+  }
 }

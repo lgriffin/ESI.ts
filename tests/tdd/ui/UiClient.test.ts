@@ -1,81 +1,93 @@
-import { UIClient } from '../../../src/clients/UiClient';
+import { UiClient } from '../../../src/clients/UiClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
 const config = getConfig();
 const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
-    .build();
+  .setClientId(config.projectName)
+  .setLink(config.link)
+  .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+  .build();
 
-describe('UIClient', () => {
-    let uiClient: UIClient;
+describe('UiClient', () => {
+  let uiClient: UiClient;
 
-    beforeEach(() => {
-        fetchMock.resetMocks();
-        uiClient = new UIClient(client);
-    });
+  beforeEach(() => {
+    fetchMock.resetMocks();
+    uiClient = new UiClient(client);
+  });
 
-    it('should set autopilot waypoint', async () => {
-        fetchMock.mockResponseOnce('', { status: 204 });
-        const body = {
-            destination_id: 30002505,
-            clear_other_waypoints: true,
-            add_to_beginning: false
-        };
+  it('should set autopilot waypoint', async () => {
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
-        const result = await getBody(() => uiClient.setAutopilotWaypoint(body));
+    const result = await getBody(() =>
+      uiClient.setAutopilotWaypoint(30002505, false, true),
+    );
 
-        expect(result).toEqual({ error: 'no content' });
-    });
+    expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/autopilot/waypoint?destination_id=30002505&add_to_beginning=false&clear_other_waypoints=true',
+    );
+  });
 
-    it('should open contract window', async () => {
-        fetchMock.mockResponseOnce('', { status: 204 });
-        const body = {
-            contract_id: 123456789
-        };
+  it('should open contract window', async () => {
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
-        const result = await getBody(() => uiClient.openContractWindow(body));
+    const result = await getBody(() => uiClient.openContractWindow(123456789));
 
-        expect(result).toEqual({ error: 'no content' });
-    });
+    expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/openwindow/contract?contract_id=123456789',
+    );
+  });
 
-    it('should open information window', async () => {
-        fetchMock.mockResponseOnce('', { status: 204 });
-        const body = {
-            target_id: 123456789
-        };
+  it('should open information window', async () => {
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
-        const result = await getBody(() => uiClient.openInformationWindow(body));
+    const result = await getBody(() =>
+      uiClient.openInformationWindow(123456789),
+    );
 
-        expect(result).toEqual({ error: 'no content' });
-    });
+    expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/openwindow/information?target_id=123456789',
+    );
+  });
 
-    it('should open market details window', async () => {
-        fetchMock.mockResponseOnce('', { status: 204 });
-        const body = {
-            type_id: 123456
-        };
+  it('should open market details window', async () => {
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
-        const result = await getBody(() => uiClient.openMarketDetailsWindow(body));
+    const result = await getBody(() =>
+      uiClient.openMarketDetailsWindow(123456),
+    );
 
-        expect(result).toEqual({ error: 'no content' });
-    });
+    expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/openwindow/marketdetails?type_id=123456',
+    );
+  });
 
-    it('should open new mail window', async () => {
-        fetchMock.mockResponseOnce('', { status: 204 });
-        const body = {
-            to: [123456789],
-            subject: 'Test Subject',
-            body: 'Test Body'
-        };
+  it('should open new mail window', async () => {
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
+    const body = {
+      to: [123456789],
+      subject: 'Test Subject',
+      body: 'Test Body',
+    };
 
-        const result = await getBody(() => uiClient.openNewMailWindow(body));
+    const result = await getBody(() => uiClient.openNewMailWindow(body));
 
-        expect(result).toEqual({ error: 'no content' });
-    });
+    expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/ui/openwindow/newmail',
+    );
+  });
+
+  describeClientErrors('UiClient', (apiClient) =>
+    new UiClient(apiClient).openInformationWindow(123456789),
+  );
 });

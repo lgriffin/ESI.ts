@@ -1,271 +1,1186 @@
 name: CI/CD Pipeline
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [master, main, develop]
+
+permissions:
+  contents: read
 
 jobs:
-  # Job 1: Lint and Build
-  lint-and-build:
-    name: 🔍 Lint & Build
+  pr-info:
+    name: PR Information
     runs-on: ubuntu-latest
-    
+    # No job-level `if:` anywhere in this workflow: ci-success treats a skipped
+    # job as a failed one. This job used to skip drafts; it is a few seconds of
+    # echo, so it now always runs rather than needing a gate exception.
+
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: PR Details
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          PR_FILES: ${{ github.event.pull_request.changed_files }}
+          PR_ADDS: ${{ github.event.pull_request.additions }}
+          PR_DELS: ${{ github.event.pull_request.deletions }}
+        run: |
+          echo "## Pull Request Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Title:** $PR_TITLE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author:** @$PR_AUTHOR" >> $GITHUB_STEP_SUMMARY
+          echo "- **Base:** $PR_BASE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Head:** $PR_HEAD" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files Changed:** $PR_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- **Additions:** +$PR_ADDS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deletions:** -$PR_DELS" >> $GITHUB_STEP_SUMMARY
+
+  lint-and-build:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '20'
           cache: 'npm'
-          
-      - name: 📋 Install dependencies
+
+      - name: Install dependencies
         run: npm ci
-        
-      - name: 🔍 Run ESLint
+
+      - name: Run ESLint
         run: npm run lint
-        
-      - name: 🏗️ Build project
+
+      # The determinism baseline only shrinks against master's copy; without
+      # the ref the lint fails closed.
+      - name: Fetch the determinism baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Time and randomness only through the clock module
+        run: npm run lint:determinism
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Build project
         run: npm run build
-        
-      - name: 📤 Upload build artifacts
-        uses: actions/upload-artifact@v4
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: build-files
           path: dist/
           retention-days: 1
 
-  # Job 2: Unit Tests
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    # The generated-types and schema-drift checks compare the repository with
+    # the live ESI spec, so, like `npm audit`, they can go red on a pull
+    # request that changed nothing they read. Each one blocks only when the
+    # pull request touches its inputs. Otherwise a failure is drift that
+    # already exists on the base branch: it is downgraded to a warning, and
+    # nightly-spec-drift.yml files it as a `spec-drift` issue.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 2 # HEAD^1 is the base tip of the pull request merge commit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check which spec-derived inputs this pull request touches
+        id: spec-inputs
+        run: |
+          touches() {
+            if git diff --quiet HEAD^1 HEAD -- "$@"; then echo false; else echo true; fi
+          }
+          {
+            echo "types=$(touches scripts/generate-esi-types.ts src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts)"
+            echo "schemas=$(touches scripts/generate-schema-drift-report.ts scripts/schema-drift-core.ts scripts/schema-drift-baseline.json scripts/schema-drift-exceptions.json src/schemas/ src/core/endpoints/ package-lock.json)"
+          } | tee -a "$GITHUB_OUTPUT"
+
+      - name: Verify generated types are up to date
+        env:
+          TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.types }}
+        run: |
+          set -o pipefail
+          problem=""
+          if npm run generate:types 2>&1 | tee /tmp/gen-types.log; then
+            if ! git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts; then
+              problem="Generated types are stale — run 'npm run generate:types' and commit the result"
+            fi
+          elif grep -q "HTTP 503" /tmp/gen-types.log; then
+            echo "::warning::ESI API returned 503 — skipping generated types freshness check"
+          else
+            problem="Type generation failed — see the log above"
+          fi
+
+          if [ -z "$problem" ]; then exit 0; fi
+          if [ "$TOUCHES_INPUTS" = "true" ]; then
+            echo "::error::$problem"
+            exit 1
+          fi
+          echo "::warning::$problem. This pull request does not touch the generator or the generated files, so the drift is already on the base branch; nightly-spec-drift.yml files it as a spec-drift issue."
+          echo "Generated types differ from the live ESI spec (pre-existing drift, not blocking)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run dead code detection (knip)
+        run: npx knip --no-exit-code
+
+      # Every public export must be referenced by a test, or listed in
+      # scripts/export-coverage-baseline.json. The baseline only shrinks
+      # relative to the base tip, HEAD^1 (fetch-depth 2 above); without a base
+      # ref the check fails closed.
+      - name: Check every public export is referenced by a test
+        env:
+          EXPORT_COVERAGE_BASE_REF: HEAD^1
+        run: npm run test:export-coverage -- --ci
+
+      # Drift listed in scripts/schema-drift-baseline.json passes; the baseline
+      # may only shrink relative to the base tip, which fetch-depth 2 provides
+      # as HEAD^1 (a pull request checkout has no origin/master).
+      - name: Check schema drift
+        env:
+          TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.schemas }}
+          SCHEMA_DRIFT_BASE_REF: HEAD^1
+        run: |
+          set -o pipefail
+          problem=""
+          if npm run schema:drift:ci 2>&1 | tee /tmp/schema-drift.log; then
+            true
+          elif grep -q "HTTP 503" /tmp/schema-drift.log; then
+            echo "::warning::ESI API returned 503 — skipping schema drift check"
+          else
+            problem="Zod schemas diverge from the ESI spec beyond scripts/schema-drift-baseline.json, the baseline is stale or grew, or the check is broken — run 'npm run schema:drift' to review"
+          fi
+
+          if [ -z "$problem" ]; then exit 0; fi
+          if [ "$TOUCHES_INPUTS" = "true" ]; then
+            echo "::error::$problem"
+            exit 1
+          fi
+          echo "::warning::$problem. This pull request does not touch the schemas, endpoint definitions, drift script, its baseline or its exceptions, so the drift is already on the base branch; nightly-spec-drift.yml files it as a spec-drift issue."
+          echo "Zod schemas diverge from the live ESI spec (pre-existing drift, not blocking)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate auth/scope alignment
+        run: npm run validate:auth-scopes
+
   unit-tests:
-    name: 🧪 Unit Tests
+    name: Unit Tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: lint-and-build
-    
+
     strategy:
       matrix:
-        node-version: [18, 20, 21]
-        
+        node-version: [18, 20, 22]
+
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        
-      - name: 📦 Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          
-      - name: 📋 Install dependencies
+
+      - name: Install dependencies
         run: npm ci
-        
-      - name: 🧪 Run unit tests
+
+      - name: Run unit tests
         run: npm test
-        
-      - name: 📊 Upload coverage reports
-        if: matrix.node-version == '20'
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-unit
-          path: coverage/
-          retention-days: 7
 
-  # Job 3: BDD Tests
-  bdd-tests:
-    name: 🎭 BDD Scenarios
+  coverage:
+    name: Test Coverage
     runs-on: ubuntu-latest
     needs: lint-and-build
-    
-    strategy:
-      matrix:
-        test-suite: 
-          - alliance
-          - character
-          - corporation
-          - market
-          - universe
-          - integration
-          - performance
-          
+    permissions:
+      contents: read
+      pull-requests: write # post/update the coverage comment
+
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '20'
           cache: 'npm'
-          
-      - name: 📋 Install dependencies
-        run: npm ci
-        
-      - name: 🎭 Run BDD tests - ${{ matrix.test-suite }}
-        run: npm run bdd:${{ matrix.test-suite }}
-        
-      - name: 📊 Upload BDD results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: bdd-results-${{ matrix.test-suite }}
-          path: coverage/
-          retention-days: 7
 
-  # Job 4: Full Test Suite
-  full-test-suite:
-    name: 🚀 Complete Test Suite
-    runs-on: ubuntu-latest
-    needs: lint-and-build
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          
-      - name: 📋 Install dependencies
+      - name: Install dependencies
         run: npm ci
-        
-      - name: 🧪 Run all tests
-        run: npm run test:all
-        
-      - name: 📊 Generate coverage report
+
+      - name: Run tests with coverage
         run: npm run coverage
-        
-      - name: 📤 Upload full coverage
-        uses: actions/upload-artifact@v4
+
+      - name: Post coverage comment
+        if: github.event_name == 'pull_request'
+        uses: MishaKav/jest-coverage-comment@642ef024cc554a34b7082cea12c7bf63575ae151 # v1.0.36
         with:
-          name: coverage-full
+          coverage-summary-path: coverage/unit/coverage-summary.json
+          title: Test Coverage
+          badge-title: Coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: coverage-report
           path: coverage/
           retention-days: 30
 
-  # Job 5: Documentation Generation
-  documentation:
-    name: 📚 Generate Documentation
+  bdd-tests:
+    name: BDD Scenarios
     runs-on: ubuntu-latest
     needs: lint-and-build
-    if: github.ref == 'refs/heads/main'
-    
+
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '20'
           cache: 'npm'
-          
-      - name: 📋 Install dependencies
+
+      - name: Install dependencies
         run: npm ci
-        
-      - name: 📚 Generate documentation
+
+      # --json records every test Jest ran, so the report below can prove each
+      # scenario in the feature files executed, not only that those that ran
+      # passed. Jest does not create the output file's directory.
+      - name: Run all BDD tests
+        run: |
+          mkdir -p reports/bdd
+          npm run bdd -- --json --outputFile=reports/bdd/jest-results.json
+
+      # Runs after a failing suite too, so the summary names the Rules that
+      # broke. Fails when a scenario stated in a feature file did not execute.
+      - name: Report scenarios by Rule and check each one executed
+        if: ${{ !cancelled() }}
+        run: npm run bdd:report
+
+      - name: Upload the JUnit report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bdd-junit
+          path: reports/bdd/
+          if-no-files-found: error
+          retention-days: 30
+
+  spec-audit:
+    name: EARS Spec Audit
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The legacyStepFiles ratchet compares against master's copy of the
+      # exception list; without the ref the audit fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Audit EARS requirements and Gherkin structure
+        run: npm run spec:audit
+
+      - name: Rule titles agree with response schemas
+        run: npm run validate:spec-consistency
+
+      - name: Scenarios mock at the transport seam
+        run: npm run lint:bdd-seam
+
+      - name: No focused, skipped, assertion-free or silenced tests
+        run: npm run lint:suite-health
+
+  contract-tests:
+    name: Contract Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # contract:live, not contract: if ESI_LIVE_TESTS were dropped from env below,
+      # `contract` would skip every suite and pass. contract:live throws instead.
+      - name: Run contract tests
+        run: |
+          if npm run contract:live 2>&1 | tee /tmp/contract.log; then
+            true
+          elif grep -q "HTTP 503" /tmp/contract.log; then
+            echo "::warning::ESI API returned 503 — skipping contract tests"
+          else
+            cat /tmp/contract.log
+            exit 1
+          fi
+        env:
+          ESI_LIVE_TESTS: 'true'
+
+  # Recorded ESI payloads replayed through the full client pipeline at the
+  # transport seam, with no network (tests/contract/AGENTS.md). Separate from
+  # contract-tests, which talks to live ESI and soft-skips on a 503.
+  contract-replay:
+    name: Contract Replay (recorded payloads)
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # unrecordable.json and known-mismatches.json only shrink against
+      # master's copy; without the ref the coverage test fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Replay recorded payloads
+        run: npm run contract:replay
+
+  fuzz-tests:
+    name: Fuzz Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run fuzz tests
+        run: npm run fuzz
+
+  fault-catalogue:
+    name: Fault Catalogue
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # tests/faults/known-gaps.json only shrinks against master's copy;
+      # without the ref the catalogue self-test fails closed.
+      - name: Fetch the known-gaps baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      # Every transport fault once per representative endpoint, through the
+      # real pipeline, plus the catalogue self-test (tests/faults/AGENTS.md).
+      - name: Run the fault catalogue
+        run: npm run faults -- --ci
+
+  full-test-suite:
+    name: Complete Test Suite
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run all tests
+        run: npm run test:all
+
+  api-surface:
+    name: API Surface Check
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Check API report is up to date
+        run: |
+          npm run api-report
+          # Normalize CRLF→LF and sort to ignore line-ending and enum-ordering
+          # differences across Windows (dev) and Linux (CI) platforms
+          if ! diff <(git show HEAD:etc/esi.ts.api.md | tr -d '\r' | sort) <(tr -d '\r' < etc/esi.ts.api.md | sort) > /dev/null 2>&1; then
+            echo "API surface report is out of date. Run 'npm run api-report' locally and commit."
+            git diff etc/esi.ts.api.md
+            exit 1
+          fi
+
+  consumer-tarball:
+    name: Consumer Tarball
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    # Packs the dist/ that lint-and-build uploaded, once, so every
+    # consumer-contract cell installs the same tarball bytes. release.yml runs
+    # the same contract against the tarball it publishes.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          package-manager-cache: false
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: build-files
+          path: dist/
+
+      # npm 10, the version Node 20 bundles, runs `prepare` on `npm pack`
+      # even with --ignore-scripts (fixed in npm 11), and `prepare` rebuilds
+      # dist/. npm 11 packs the dist/ downloaded above, which is the point of
+      # this job: every cell installs those bytes.
+      - name: Pack
+        run: |
+          mkdir -p consumer-tarball
+          npx --yes npm@11.17.0 pack --ignore-scripts --pack-destination consumer-tarball
+          count=$(ls -1 consumer-tarball/*.tgz | wc -l)
+          if [ "$count" -ne 1 ]; then
+            echo "::error::Expected one tarball, found $count"
+            exit 1
+          fi
+
+      - name: Upload the tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: consumer-tarball
+          path: consumer-tarball/*.tgz
+          retention-days: 1
+          if-no-files-found: error
+
+  consumer-contract:
+    name: Consumer Contract (Node ${{ matrix.node-version }}, TypeScript ${{ matrix.typescript }})
+    runs-on: ubuntu-latest
+    needs: consumer-tarball
+    # Installs the packed tarball into tests/consumer/ copied to a temporary
+    # directory, then type-checks six cells (ES module and CommonJS consumers
+    # under node16, nodenext and bundler resolution, skipLibCheck off), loads
+    # and runs every sub-path on this Node, checks dual-build parity, and
+    # bundles ./errors with esbuild to prove it leaves the clients behind.
+    # See scripts/consumer-contract.ts.
+    #
+    # Each row pairs a Node line with a TypeScript version: `oldest` is the
+    # declared floor (OLDEST_TYPESCRIPT), `repo` the version this repository
+    # builds with, `latest` npm's latest tag. Node 18 has no require(esm), so
+    # it catches a `require` condition resolving to an ES module. The wider
+    # matrix (TypeScript next, current Node) runs nightly in
+    # consumer-matrix-nightly.yml.
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - node-version: 18
+            typescript: oldest
+          - node-version: 20
+            typescript: repo
+          - node-version: 22
+            typescript: latest
+          - node-version: 24
+            typescript: repo
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # --ignore-scripts skips `prepare` (a full build); the runner only needs
+      # ts-node, and the tarball below is what gets tested.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Download the tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: consumer-tarball
+          path: consumer-tarball/
+
+      - name: Run the consumer contract
+        env:
+          TYPESCRIPT: ${{ matrix.typescript }}
+        run: npm run test:consumer -- --tarball "$(ls consumer-tarball/*.tgz)" --typescript "$TYPESCRIPT"
+
+  doc-examples:
+    name: Documentation Examples
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    # Type-checks every ts block in README.md, guides/ and the SDE docs against
+    # the packed tarball (nodenext and bundler resolution), runs the blocks
+    # marked runnable against a stubbed fetch, and checks the negative fixtures
+    # are still rejected. See guides/DOCUMENTATION.md.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The known-broken baseline ratchet compares against master's copy;
+      # without the ref the check fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      # npm ci ran `prepare`, which builds dist/; pack that rather than
+      # building twice. A missing dist/ fails every import, not silently.
+      - name: Check the documentation examples
+        run: npm run test:docs-examples -- --skip-build
+
+  package-lint:
+    name: Package Lint
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    # Static checks on what npm publishes: publint and Are The Types Wrong on
+    # the `npm pack` tarball (node16 CJS/ESM and bundler resolution; known
+    # findings in scripts/package-lint-baseline.json, shrink-only), then the
+    # size-limit budget of every exports sub-path, ESM and CJS
+    # (.size-limit.cjs). It packs the dist/ that lint-and-build uploaded
+    # instead of building again. Re-running this job alone after that
+    # artifact's one-day retention needs lint-and-build re-run too.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The known-broken baseline ratchet compares against master's copy;
+      # without the ref the check fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      # npm ci ran `prepare`, which builds dist/; pack that rather than
+      # building twice. A missing dist/ fails every import, not silently.
+      - name: Check the documentation examples
+        run: npm run test:docs-examples -- --skip-build
+      # --ignore-scripts skips `prepare`, which would rebuild dist/.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: build-files
+          path: dist/
+
+      # The baseline ratchet compares against master's copy; without the ref
+      # the check fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: publint and attw on the packed tarball
+        run: npm run lint:package -- --skip-build
+
+      - name: Size budgets per exports sub-path
+        run: npm run size
+
+  api-semver:
+    name: API SemVer Gate
+    runs-on: ubuntu-latest
+    # api-surface proves the committed etc/esi.ts.api.md matches the code; this
+    # job asks whether the pull request's commits declare what that report
+    # change does. A line the report loses (a removal or a signature change)
+    # needs a `type!:` commit or a `BREAKING CHANGE:` footer, so release-please
+    # cannot cut a minor for a breaking change. Pure additions pass. A removal
+    # that breaks nobody can say so with an `API-Compatible: <why>` trailer.
+    #
+    # HEAD is GitHub's merge commit for the pull request, so the script
+    # compares the report at HEAD^1 (base tip) and HEAD, and reads the commits
+    # in HEAD^1..HEAD^2 — the ones this pull request adds. Merge commits land
+    # on master as they are, which is what release-please reads. A squash
+    # merge of several commits takes the pull request title instead, so a
+    # declared break also needs `type!:` in the title; the script reads the
+    # current title through the API so a re-run after editing it passes.
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # need both parents of the merge commit and the PR's commits
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --ignore-scripts skips `prepare` (a full build); the gate only needs ts-node.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Check breaking API changes are declared
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: npm run api-report:semver
+
+  documentation:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    # This job was conditional on github.ref being master/main, which is never
+    # true for a pull_request event, so it never ran. It now runs on every PR:
+    # release.yml's validate-release runs `npm run docs`, so a TypeDoc break
+    # should be caught here rather than at release time.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate documentation
         run: npm run docs
-        
-      - name: 📤 Upload documentation
-        uses: actions/upload-artifact@v4
+
+      - name: Upload documentation
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: documentation
-          path: docs/
+          path: docs-site/public/api/
           retention-days: 30
-          
-      - name: 🚀 Deploy to GitHub Pages
-        if: github.event_name == 'push'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
 
-  # Job 6: Security Audit
-  security-audit:
-    name: 🔒 Security Audit
+  lockfile:
+    name: Lockfile Consistency
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+
+      - name: Check lockfile is up to date
+        env:
+          PR_ACTOR: ${{ github.actor }}
+        run: |
+          if [ "$PR_ACTOR" = "dependabot[bot]" ]; then
+            echo "::notice::Skipping byte-for-byte lockfile check for Dependabot (npm version mismatch is expected)"
+            exit 0
+          fi
+          npm install --package-lock-only --ignore-scripts
+          if ! git diff --exit-code package-lock.json; then
+            echo "::error::package-lock.json is out of sync with package.json. Run 'npm install' and commit the updated lockfile."
+            exit 1
+          fi
+
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+
+    # `npm audit` reports the state of the world, not the state of the diff: an
+    # unchanged commit passes before an advisory is published and fails after,
+    # which turns every open PR red for something its author did not do. Those
+    # pre-existing advisories belong to nightly-audit.yml, which files an issue.
+    # This job asks the only question the merge path can answer deterministically
+    # — does *this PR* add an advisory the base branch did not already have?
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # need the base commit to audit it
+
+      - name: Check whether dependencies changed
+        id: deps
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git diff --quiet "$BASE_SHA" HEAD -- package.json package-lock.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No dependency changes — head advisories are identical to base by construction." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.deps.outputs.changed == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '20'
           cache: 'npm'
-          
-      - name: 📋 Install dependencies
+
+      # --ignore-scripts skips `prepare` (which runs a full tsup build). The only
+      # thing this job needs from node_modules is ts-node for the comparison.
+      - name: Install dependencies
+        if: steps.deps.outputs.changed == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Audit base and head
+        if: steps.deps.outputs.changed == 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # Audit both sides the same way — from the manifest and lockfile alone,
+          # in a bare directory. npm audit resolves from the lockfile, so neither
+          # side needs an install, and neither side can differ because of how its
+          # node_modules happened to be materialised. The two runs also hit the
+          # same advisory-DB snapshot, so any difference is a real difference
+          # between the trees, not a disclosure that landed between two runs.
+          audit_tree() {
+            local sha_or_worktree=$1 dir=$2 out=$3
+            mkdir -p "$dir"
+            if [ "$sha_or_worktree" = "worktree" ]; then
+              cp package.json package-lock.json "$dir/"
+            else
+              git show "$sha_or_worktree:package.json" > "$dir/package.json"
+              git show "$sha_or_worktree:package-lock.json" > "$dir/package-lock.json"
+            fi
+            # npm audit exits non-zero whenever it finds anything; the report is
+            # still on stdout, and audit-check.ts fails loudly on an unusable file.
+            (cd "$dir" && npm audit --json) > "$out" || true
+          }
+
+          audit_tree "$BASE_SHA" /tmp/base-tree /tmp/base-audit.json
+          audit_tree worktree /tmp/head-tree /tmp/head-audit.json
+
+      - name: Compare base against head
+        if: steps.deps.outputs.changed == 'true'
+        run: npm run audit:diff -- --base /tmp/base-audit.json --head /tmp/head-audit.json
+
+  benchmarks:
+    name: Benchmarks (base vs head)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # A benchmark can only say "slower than what": this job builds the pull
+    # request's base tip and head on the same runner and runs them in
+    # alternating processes, so runner-to-runner noise cancels. The
+    # comparison fails only on a statistically significant slowdown of at
+    # least 10% (see scripts/bench-compare-core.ts); a missing baseline fails.
+    #
+    # Most pull requests cannot change these numbers, and a benchmark that
+    # blocks unrelated work teaches people to bump thresholds. So the job runs
+    # the measurement only when the hot paths, the harness or the lockfile
+    # change; otherwise it reports success with a summary line, which keeps it
+    # inside ci-success without a job-level `if:`.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # HEAD^1 is the base tip; HEAD^1..HEAD^2 are this pull request's commits
+
+      - name: Check whether this pull request touches the hot paths
+        id: hot
+        run: |
+          if git diff --quiet HEAD^1 HEAD -- src/core/ src/schemas/ tests/benchmark/ scripts/bench-ab.ts scripts/bench-compare.ts scripts/bench-compare-core.ts package-lock.json; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Benchmarks not run: nothing under src/core/, src/schemas/, tests/benchmark/, the bench scripts or package-lock.json changed." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.hot.outputs.run == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --ignore-scripts skips `prepare` (a full build); the harness is bundled
+      # from src/ by esbuild.
+      - name: Install dependencies
+        if: steps.hot.outputs.run == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Check out the base tip
+        if: steps.hot.outputs.run == 'true'
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/base" HEAD^1
+          if git diff --quiet HEAD^1 HEAD -- package-lock.json; then
+            ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/base/node_modules"
+          else
+            (cd "$RUNNER_TEMP/base" && npm ci --ignore-scripts)
+          fi
+
+      - name: Run base and head in alternating processes
+        if: steps.hot.outputs.run == 'true'
+        run: npm run bench:ab -- --base "$RUNNER_TEMP/base" --head . --out reports/bench --rounds 10 --min-cpu-ms 200
+
+      # Exit 3 is a regression and nothing else. A pull request that is slower
+      # on purpose says so in a commit trailer, `Performance-Accepted: <why>`,
+      # which a reviewer then weighs; the nightly reference catches it again
+      # until a maintainer accepts it there. Exit 1 (no baseline, too few
+      # rounds, a dropped task) is never excused.
+      - name: Compare
+        if: steps.hot.outputs.run == 'true'
+        run: |
+          set +e
+          npm run bench:compare -- --dir reports/bench --title "Benchmarks, head against base"
+          status=$?
+          set -e
+          if [ "$status" -eq 3 ]; then
+            accepted=$(git log --format=%B HEAD^1..HEAD^2 | grep -m1 -i '^Performance-Accepted:' || true)
+            if [ -n "$accepted" ]; then
+              echo "::warning::Benchmark regression accepted by commit trailer. $accepted"
+              echo "Regression accepted by commit trailer: \`$accepted\`" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "::error::Statistically significant benchmark regression. If the slowdown is intended, add a 'Performance-Accepted: <reason>' trailer to a commit in this pull request."
+          fi
+          exit "$status"
+
+      - name: Upload benchmark results
+        if: always() && steps.hot.outputs.run == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: benchmark-results
+          path: reports/bench/
+          retention-days: 30
+
+  zizmor:
+    name: Workflow Security (zizmor)
+    runs-on: ubuntu-latest
+    # Runs on every PR, not only when .github/ changes: a path-filtered job
+    # cannot sit behind ci-success without being skipped, and the audit takes
+    # seconds. Ignores live in .zizmor.yml, each with a justification.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+
+      - name: Run zizmor
+        run: uvx zizmor@1.25.2 --config .zizmor.yml .github/
+
+  mutation-pr:
+    name: Mutation (changed files)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # Runway tier K (bead esi-23g.12). Mutates only the src/ files this pull
+    # request changes, reusing the nightly results for everything else, and
+    # fails if a touched directory drops below its floor in
+    # mutation-thresholds.json or if that file lowers a floor. No `needs`, so
+    # it starts with lint-and-build and fits the PR wall-clock budget.
+    #
+    # Like every job here it has no job-level `if:`. A pull request that
+    # changes nothing in the unit mutation scope still runs the job: the
+    # thresholds file is still checked, the known-weak fixture still runs, and
+    # the mutation step exits 0 with a "Skipped" line in the job summary.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 2 # HEAD^1 is the base tip of the pull request merge commit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22' # Stryker 10 requires Node >= 22
+          cache: 'npm'
+
+      - name: Install dependencies
         run: npm ci
-        
-      - name: 🔒 Run npm audit
-        run: npm audit --audit-level=high
-        continue-on-error: true
-        
-      - name: 🔍 Run security scan
-        uses: securecodewarrior/github-action-add-sarif@v1
+
+      # The nightly saves one incremental report per shard in
+      # mutation-unit-shards.json (esi-23g.55). A shard's report is a whole
+      # baseline for its own directories only, so this names the one shard
+      # that covers every file the run may mutate, or none when the change
+      # spans shards; none means a cold run, as a cache miss always did.
+      - name: Choose the nightly shard baseline
+        id: baseline-shard
+        env:
+          MUTATION_BASE_REF: HEAD^1
+        run: npm run mutation:pr:shard
+
+      # Restore only: a pull request never saves this cache. The path must be
+      # the one nightly-mutation.yml saved, because it is part of the cache
+      # version. A miss is not a pass: mutation:pr then mutates every file in
+      # the touched directories from scratch, which may not fit the deadline
+      # below — see the gate step for what that then means.
+      - name: Restore the nightly incremental mutation report
+        id: mutation-baseline
+        if: steps.baseline-shard.outputs.shard != ''
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: reports/mutation/shards/${{ steps.baseline-shard.outputs.shard }}/stryker-incremental.json
+          key: stryker-unit-shard-${{ steps.baseline-shard.outputs.shard }}-${{ github.event.pull_request.base.sha }}
+          restore-keys: |
+            stryker-unit-shard-${{ steps.baseline-shard.outputs.shard }}-${{ github.event.pull_request.base.sha }}-
+            stryker-unit-shard-${{ steps.baseline-shard.outputs.shard }}-
+
+      - name: Put the shard baseline where mutation:pr reads it
+        if: steps.mutation-baseline.outputs.cache-matched-key != ''
+        env:
+          SHARD: ${{ steps.baseline-shard.outputs.shard }}
+        run: cp "reports/mutation/shards/$SHARD/stryker-incremental.json" reports/mutation/stryker-incremental.json
+
+      # The tier's signal on itself: a deliberately weak test must leave
+      # surviving mutants that the ratchet fails.
+      - name: Known-weak fixture leaves surviving mutants
+        run: npm run mutation:fixture
+
+      # A run that measures a regression blocks. A run that measures nothing,
+      # because it had no baseline to build on and ran out of time, warns: an
+      # absence of measurement is not evidence of a regression, and failing the
+      # pull request for it teaches people to read a red mutation job as noise.
+      # A timeout *with* the baseline restored still blocks — that run should
+      # only have had the changed files to mutate. scripts/mutation-ratchet-core.ts
+      # holds the policy, tests/tdd/mutation-ratchet/mutation-pr.test.ts pins it.
+      #
+      # The tier keeps a hard signal either way: the known-weak fixture above
+      # must still leave surviving mutants, and it fails the job when it does not.
+      - name: Mutate changed src/ files and check directory ratchets
+        timeout-minutes: 10
+        env:
+          MUTATION_BASE_REF: HEAD^1
+          MUTATION_BASELINE_RESTORED: ${{ steps.mutation-baseline.outputs.cache-matched-key != '' }}
+          MUTATION_PR_TIMEOUT_SECONDS: '480'
+        run: npm run mutation:pr:gate -- --concurrency 4
+
+      - name: Upload mutation report
         if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          sarif-file: 'security-scan.sarif'
-        continue-on-error: true
+          name: mutation-pr-report
+          path: |
+            reports/mutation/mutation.html
+            reports/mutation/mutation.json
+          if-no-files-found: ignore
+          retention-days: 7
 
-  # Job 7: Performance Tests
-  performance-tests:
-    name: ⚡ Performance Tests
+  # ci-success is the single required status check for this workflow (R10).
+  #
+  # Semantics:
+  # - It `needs` every other job in this file, and the first step fails if a
+  #   job is added without being listed, so nothing can run outside the gate.
+  # - `if: always()` makes it report even when an upstream job fails, is
+  #   skipped or is cancelled. Without it, a failure upstream would skip this
+  #   job, and GitHub counts a skipped required check as passing.
+  # - Every needed job must finish with result `success`. `skipped`,
+  #   `cancelled` and `failure` all fail the gate. There is no allow-list.
+  # - No job here has a job-level `if:`. A job that sometimes has nothing to
+  #   do runs anyway and decides that in a step, with a notice or summary line
+  #   (see `lockfile` and `dependency-audit`), so the job still reports
+  #   `success` and the decision is visible in the log. Adding a job-level
+  #   `if:` will fail the gate whenever it evaluates false; that is intended.
+  ci-success:
+    name: ci-success
     runs-on: ubuntu-latest
-    needs: lint-and-build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          
-      - name: 📋 Install dependencies
-        run: npm ci
-        
-      - name: ⚡ Run performance tests
-        run: npm run bdd:performance
-        
-      - name: 📊 Upload performance results
-        uses: actions/upload-artifact@v4
-        with:
-          name: performance-results
-          path: coverage/
-          retention-days: 30
-
-  # Job 8: Quality Gate
-  quality-gate:
-    name: ✅ Quality Gate
-    runs-on: ubuntu-latest
-    needs: [unit-tests, bdd-tests, full-test-suite, security-audit]
+    needs:
+      [
+        pr-info,
+        lint-and-build,
+        static-analysis,
+        unit-tests,
+        coverage,
+        bdd-tests,
+        spec-audit,
+        contract-tests,
+        contract-replay,
+        fuzz-tests,
+        fault-catalogue,
+        full-test-suite,
+        api-surface,
+        consumer-tarball,
+        consumer-contract,
+        doc-examples,
+        package-lint,
+        api-semver,
+        documentation,
+        lockfile,
+        dependency-audit,
+        benchmarks,
+        zizmor,
+        mutation-pr,
+      ]
     if: always()
-    
+
     steps:
-      - name: 📥 Check job results
+      - name: Checkout workflow definition
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/workflows/ci.yml
+          sparse-checkout-cone-mode: false
+
+      - name: Verify the gate needs every job
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
-          echo "Unit Tests: ${{ needs.unit-tests.result }}"
-          echo "BDD Tests: ${{ needs.bdd-tests.result }}"
-          echo "Full Test Suite: ${{ needs.full-test-suite.result }}"
-          echo "Security Audit: ${{ needs.security-audit.result }}"
-          
-      - name: ✅ Quality Gate Passed
-        if: needs.unit-tests.result == 'success' && needs.bdd-tests.result == 'success' && needs.full-test-suite.result == 'success'
+          command -v yq >/dev/null || { echo "::error::yq is not installed on this runner"; exit 1; }
+          declared=$(yq -r '.jobs | keys | .[]' .github/workflows/ci.yml | grep -vx 'ci-success' | sort)
+          needed=$(jq -r 'keys[]' <<<"$NEEDS_JSON" | sort)
+          if [[ -z "$declared" ]]; then
+            echo "::error::Could not read job ids from ci.yml"
+            exit 1
+          fi
+          missing=$(comm -23 <(echo "$declared") <(echo "$needed"))
+          if [[ -n "$missing" ]]; then
+            echo "::error::ci-success does not need these jobs, so they cannot block a merge: $(paste -sd' ' <<<"$missing")"
+            exit 1
+          fi
+
+      - name: Check every needed job succeeded
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
-          echo "🎉 All quality checks passed!"
-          echo "✅ Unit tests: PASSED"
-          echo "✅ BDD tests: PASSED" 
-          echo "✅ Full test suite: PASSED"
-          
-      - name: ❌ Quality Gate Failed
-        if: needs.unit-tests.result != 'success' || needs.bdd-tests.result != 'success' || needs.full-test-suite.result != 'success'
-        run: |
-          echo "❌ Quality gate failed!"
-          exit 1
+          echo "## ci-success" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Job | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | ------ |" >> "$GITHUB_STEP_SUMMARY"
+          jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"' <<<"$NEEDS_JSON" >> "$GITHUB_STEP_SUMMARY"
+
+          not_green=$(jq -r 'to_entries[] | select(.value.result != "success") | "\(.key) (\(.value.result))"' <<<"$NEEDS_JSON")
+          if [[ -n "$not_green" ]]; then
+            echo "::error::ci-success failed. A skipped or cancelled job counts as failed. Not green: $(paste -sd' ' <<<"$not_green")"
+            exit 1
+          fi
+          echo "Every job in ci.yml succeeded."

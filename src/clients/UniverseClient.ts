@@ -1,226 +1,335 @@
 import { ApiClient } from '../core/ApiClient';
-import { UniverseAncestriesApi } from '../api/universe/getAncestries';
-import { UniverseAsteroidBeltApi } from '../api/universe/getAsteroidBeltInfo';
-import { UniverseBloodlinesApi } from '../api/universe/getBloodlines';
-import { UniverseConstellationByIdApi } from '../api/universe/getConstellationById';
-import { UniverseConstellationsApi } from '../api/universe/getConstellations';
-import { UniverseFactionsApi } from '../api/universe/getFactions';
-import { UniverseGraphicByIdApi } from '../api/universe/getGraphicById';
-import { UniverseGraphicsApi } from '../api/universe/getGraphics';
-import { UniverseCategoriesApi } from '../api/universe/getItemCategories';
-import { UniverseCategoryByIdApi } from '../api/universe/getItemCategoryById';
-import { UniverseItemGroupByIdApi } from '../api/universe/getItemGroupById';
-import { UniverseItemGroupsApi } from '../api/universe/getItemGroups';
-import { UniverseMoonByIdApi } from '../api/universe/getMoonById';
-import { UniversePlanetByIdApi } from '../api/universe/getPlanetById';
-import { UniverseRacesApi } from '../api/universe/getRaces';
-import { UniverseRegionByIdApi } from '../api/universe/getRegionById';
-import { UniverseStarByIdApi } from '../api/universe/getStarById';
-import { UniverseStargateByIdApi } from '../api/universe/getStargateById';
-import { UniverseStationByIdApi } from '../api/universe/getStationById';
-import { UniverseStructureByIdApi } from '../api/universe/getStructureById';
-import { UniverseStructuresApi } from '../api/universe/getStructures';
-import { UniverseSystemByIdApi } from '../api/universe/getSystemById';
-import { UniverseSystemJumpsApi } from '../api/universe/getSystemJumps';
-import { UniverseSystemKillsApi } from '../api/universe/getSystemKills';
-import { UniverseSystemsApi } from '../api/universe/getSystems';
-import { UniverseTypeByIdApi } from '../api/universe/getTypeById';
-import { UniverseTypesApi } from '../api/universe/getTypes';
-import { PostBulkNamesToIdsApi } from '../api/universe/postBulkNamesToIds';
-import { PostNamesAndCategoriesApi } from '../api/universe/postNamesAndCategories';
-import { UniverseSchematicByIdApi } from '../api/universe/getSchematicById';
-import { UniverseRegionsApi } from '../api/universe/getRegions';
+import { BaseEsiClient } from './BaseEsiClient';
+import { universeEndpoints } from '../core/endpoints/universeEndpoints';
+import {
+  Ancestry,
+  AsteroidBeltInfo,
+  Bloodline,
+  BulkIdResult,
+  ConstellationInfo,
+  Faction,
+  GraphicInfo,
+  ItemCategory,
+  ItemGroup,
+  MoonInfo,
+  NameAndCategory,
+  PlanetInfo,
+  Race,
+  RegionInfo,
+  SchematicInfo,
+  SolarSystemInfo,
+  StarInfo,
+  StargateInfo,
+  StationInfo,
+  StructureInfo,
+  SystemJump,
+  SystemKill,
+  TypeInfo,
+} from '../types/api-responses';
 
-export class UniverseClient {
-    private universeAncestriesApi: UniverseAncestriesApi;
-    private universeAsteroidBeltApi: UniverseAsteroidBeltApi;
-    private universeBloodlinesApi: UniverseBloodlinesApi;
-    private universeConstellationByIdApi: UniverseConstellationByIdApi;
-    private universeConstellationsApi: UniverseConstellationsApi;
-    private universeFactionsApi: UniverseFactionsApi;
-    private universeGraphicByIdApi: UniverseGraphicByIdApi;
-    private universeGraphicsApi: UniverseGraphicsApi;
-    private universeCategoriesApi: UniverseCategoriesApi;
-    private universeCategoryByIdApi: UniverseCategoryByIdApi;
-    private universeItemGroupByIdApi: UniverseItemGroupByIdApi;
-    private universeItemGroupsApi: UniverseItemGroupsApi;
-    private universeMoonByIdApi: UniverseMoonByIdApi;
-    private universePlanetByIdApi: UniversePlanetByIdApi;
-    private universeRacesApi: UniverseRacesApi;
-    private universeRegionByIdApi: UniverseRegionByIdApi;
-    private universeStarByIdApi: UniverseStarByIdApi;
-    private universeStargateByIdApi: UniverseStargateByIdApi;
-    private universeStationByIdApi: UniverseStationByIdApi;
-    private universeStructureByIdApi: UniverseStructureByIdApi;
-    private universeStructuresApi: UniverseStructuresApi;
-    private universeSystemByIdApi: UniverseSystemByIdApi;
-    private universeSystemJumpsApi: UniverseSystemJumpsApi;
-    private universeSystemKillsApi: UniverseSystemKillsApi;
-    private universeSystemsApi: UniverseSystemsApi;
-    private universeTypeByIdApi: UniverseTypeByIdApi;
-    private universeTypesApi: UniverseTypesApi;
-    private postBulkNamesToIdsApi: PostBulkNamesToIdsApi;
-    private postNamesAndCategoriesApi: PostNamesAndCategoriesApi;
-    private universeSchematicByIdApi: UniverseSchematicByIdApi;
-    private universeRegionsApi: UniverseRegionsApi;
+export class UniverseClient extends BaseEsiClient<typeof universeEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, universeEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.universeAncestriesApi = new UniverseAncestriesApi(client);
-        this.universeAsteroidBeltApi = new UniverseAsteroidBeltApi(client);
-        this.universeBloodlinesApi = new UniverseBloodlinesApi(client);
-        this.universeConstellationByIdApi = new UniverseConstellationByIdApi(client);
-        this.universeConstellationsApi = new UniverseConstellationsApi(client);
-        this.universeFactionsApi = new UniverseFactionsApi(client);
-        this.universeGraphicByIdApi = new UniverseGraphicByIdApi(client);
-        this.universeGraphicsApi = new UniverseGraphicsApi(client);
-        this.universeCategoriesApi = new UniverseCategoriesApi(client);
-        this.universeCategoryByIdApi = new UniverseCategoryByIdApi(client);
-        this.universeItemGroupByIdApi = new UniverseItemGroupByIdApi(client);
-        this.universeItemGroupsApi = new UniverseItemGroupsApi(client);
-        this.universeMoonByIdApi = new UniverseMoonByIdApi(client);
-        this.universePlanetByIdApi = new UniversePlanetByIdApi(client);
-        this.universeRacesApi = new UniverseRacesApi(client);
-        this.universeRegionByIdApi = new UniverseRegionByIdApi(client);
-        this.universeStarByIdApi = new UniverseStarByIdApi(client);
-        this.universeStargateByIdApi = new UniverseStargateByIdApi(client);
-        this.universeStationByIdApi = new UniverseStationByIdApi(client);
-        this.universeStructureByIdApi = new UniverseStructureByIdApi(client);
-        this.universeStructuresApi = new UniverseStructuresApi(client);
-        this.universeSystemByIdApi = new UniverseSystemByIdApi(client);
-        this.universeSystemJumpsApi = new UniverseSystemJumpsApi(client);
-        this.universeSystemKillsApi = new UniverseSystemKillsApi(client);
-        this.universeSystemsApi = new UniverseSystemsApi(client);
-        this.universeTypeByIdApi = new UniverseTypeByIdApi(client);
-        this.universeTypesApi = new UniverseTypesApi(client);
-        this.postBulkNamesToIdsApi = new PostBulkNamesToIdsApi(client);
-        this.postNamesAndCategoriesApi = new PostNamesAndCategoriesApi(client);
-        this.universeSchematicByIdApi = new UniverseSchematicByIdApi(client);
-        this.universeRegionsApi = new UniverseRegionsApi(client);
-    }
+  /**
+   * Retrieves all available character ancestries for character creation.
+   *
+   * @returns A list of character ancestries
+   */
+  getAncestries(): Promise<Ancestry[]> {
+    return this.api.getAncestries() as Promise<Ancestry[]>;
+  }
 
-   
-        async getAncestries(): Promise<any> {
-            return await this.universeAncestriesApi.getAncestries();
-        }
-    
-        async getAsteroidBeltInfo(asteroidBeltId: number): Promise<any> {
-            return await this.universeAsteroidBeltApi.getAsteroidBeltInfo(asteroidBeltId);
-        }
-    
-        async getBloodlines(): Promise<any> {
-            return await this.universeBloodlinesApi.getBloodlines();
-        }
-    
-        async getConstellationById(constellationId: number): Promise<any> {
-            return await this.universeConstellationByIdApi.getConstellationById(constellationId);
-        }
-    
-        async getConstellations(): Promise<any> {
-            return await this.universeConstellationsApi.getConstellations();
-        }
-    
-        async getFactions(): Promise<any> {
-            return await this.universeFactionsApi.getFactions();
-        }
-    
-        async getGraphicById(graphicId: number): Promise<any> {
-            return await this.universeGraphicByIdApi.getGraphicById(graphicId);
-        }
-    
-        async getGraphics(): Promise<any> {
-            return await this.universeGraphicsApi.getGraphics();
-        }
-    
-        async getItemCategories(): Promise<any> {
-            return await this.universeCategoriesApi.getCategories();
-        }
-    
-        async getItemCategoryById(categoryId: number): Promise<any> {
-            return await this.universeCategoryByIdApi.getCategoryById(categoryId);
-        }
-    
-        async getItemGroupById(groupId: number): Promise<any> {
-            return await this.universeItemGroupByIdApi.getItemGroupById(groupId);
-        }
-    
-        async getItemGroups(): Promise<any> {
-            return await this.universeItemGroupsApi.getItemGroups();
-        }
-    
-        async getMoonById(moonId: number): Promise<any> {
-            return await this.universeMoonByIdApi.getMoonById(moonId);
-        }
-    
-        async getPlanetById(planetId: number): Promise<any> {
-            return await this.universePlanetByIdApi.getPlanetById(planetId);
-        }
-    
-        async getRaces(): Promise<any> {
-            return await this.universeRacesApi.getRaces();
-        }
-    
-        async getRegionById(regionId: number): Promise<any> {
-            return await this.universeRegionByIdApi.getRegionById(regionId);
-        }
-     
-        async getStarById(starId: number): Promise<any> {
-            return await this.universeStarByIdApi.getStarById(starId);
-        }
-    
-        async getStargateById(stargateId: number): Promise<any> {
-            return await this.universeStargateByIdApi.getStargateById(stargateId);
-        }
-    
-        async getStationById(stationId: number): Promise<any> {
-            return await this.universeStationByIdApi.getStationById(stationId);
-        }
-    
-        async getStructureById(structureId: number): Promise<any> {
-            return await this.universeStructureByIdApi.getStructureById(structureId);
-        }
-    
-        async getStructures(): Promise<any> {
-            return await this.universeStructuresApi.getStructures();
-        }
-    
-        async getSystemById(systemId: number): Promise<any> {
-            return await this.universeSystemByIdApi.getSystemById(systemId);
-        }
-    
-        async getSystemJumps(): Promise<any> {
-            return await this.universeSystemJumpsApi.getSystemJumps();
-        }
-    
-        async getSystemKills(): Promise<any> {
-            return await this.universeSystemKillsApi.getSystemKills();
-        }
-    
-        async getSystems(): Promise<any> {
-            return await this.universeSystemsApi.getSystems();
-        }
-    
-        async getTypeById(typeId: number): Promise<any> {
-            return await this.universeTypeByIdApi.getTypeById(typeId);
-        }
-    
-        async getTypes(): Promise<any> {
-            return await this.universeTypesApi.getTypes();
-        }
-    
-        async postBulkNamesToIds(ids: number[]): Promise<any> {
-            return await this.postBulkNamesToIdsApi.postBulkNamesToIds(ids);
-        }
-    
-        async postNamesAndCategories(ids: number[]): Promise<any> {
-            return await this.postNamesAndCategoriesApi.postNamesAndCategories(ids);
-        }
-    
-        async getSchematicById(schematicId: number): Promise<any> {
-            return await this.universeSchematicByIdApi.getSchematicById(schematicId);
-        }
-    
-        async getRegions(): Promise<any> {
-            return await this.universeRegionsApi.getRegions();
-        }
-    }
-    
+  /**
+   * Retrieves information about an asteroid belt, including its position in space.
+   *
+   * @param asteroidBeltId - The ID of the asteroid belt
+   * @returns Details about the asteroid belt
+   */
+  getAsteroidBeltInfo(asteroidBeltId: number): Promise<AsteroidBeltInfo> {
+    return this.api.getAsteroidBeltInfo(
+      asteroidBeltId,
+    ) as Promise<AsteroidBeltInfo>;
+  }
+
+  /**
+   * Retrieves all available character bloodlines for character creation.
+   *
+   * @returns A list of character bloodlines
+   */
+  getBloodlines(): Promise<Bloodline[]> {
+    return this.api.getBloodlines() as Promise<Bloodline[]>;
+  }
+
+  /**
+   * Retrieves information about a constellation, including its systems and position.
+   *
+   * @param constellationId - The ID of the constellation
+   * @returns Detailed constellation information
+   */
+  getConstellationById(constellationId: number): Promise<ConstellationInfo> {
+    return this.api.getConstellationById(
+      constellationId,
+    ) as Promise<ConstellationInfo>;
+  }
+
+  /**
+   * Retrieves a list of all constellation IDs in the EVE universe.
+   *
+   * @returns A list of constellation IDs
+   */
+  getConstellations(): Promise<number[]> {
+    return this.api.getConstellations() as Promise<number[]>;
+  }
+
+  /**
+   * Retrieves all NPC factions in the EVE universe.
+   *
+   * @returns A list of NPC factions
+   */
+  getFactions(): Promise<Faction[]> {
+    return this.api.getFactions() as Promise<Faction[]>;
+  }
+
+  /**
+   * Retrieves information about a specific graphic asset used in the EVE client.
+   *
+   * @param graphicId - The ID of the graphic
+   * @returns Detailed graphic information
+   */
+  getGraphicById(graphicId: number): Promise<GraphicInfo> {
+    return this.api.getGraphicById(graphicId) as Promise<GraphicInfo>;
+  }
+
+  /**
+   * Retrieves a list of all graphic asset IDs.
+   *
+   * @returns A list of graphic IDs
+   */
+  getGraphics(): Promise<number[]> {
+    return this.api.getGraphics() as Promise<number[]>;
+  }
+
+  /**
+   * Retrieves a list of all item category IDs in the EVE universe.
+   *
+   * @returns A list of item category IDs
+   */
+  getItemCategories(): Promise<number[]> {
+    return this.api.getCategories() as Promise<number[]>;
+  }
+
+  /**
+   * Retrieves information about a specific item category, including its groups.
+   *
+   * @param categoryId - The ID of the item category
+   * @returns Detailed item category information
+   */
+  getItemCategoryById(categoryId: number): Promise<ItemCategory> {
+    return this.api.getCategoryById(categoryId) as Promise<ItemCategory>;
+  }
+
+  /**
+   * Retrieves information about a specific item group, including its types.
+   *
+   * @param groupId - The ID of the item group
+   * @returns Detailed item group information
+   */
+  getItemGroupById(groupId: number): Promise<ItemGroup> {
+    return this.api.getItemGroupById(groupId) as Promise<ItemGroup>;
+  }
+
+  /**
+   * Retrieves a list of all item group IDs in the EVE universe.
+   *
+   * @returns A list of item group IDs
+   */
+  getItemGroups(): Promise<number[]> {
+    return this.api.getItemGroups() as Promise<number[]>;
+  }
+
+  /**
+   * Retrieves information about a moon, including its name and position.
+   *
+   * @param moonId - The ID of the moon
+   * @returns Detailed moon information
+   */
+  getMoonById(moonId: number): Promise<MoonInfo> {
+    return this.api.getMoonById(moonId) as Promise<MoonInfo>;
+  }
+
+  /**
+   * Retrieves information about a planet, including its name, type, and position.
+   *
+   * @param planetId - The ID of the planet
+   * @returns Detailed planet information
+   */
+  getPlanetById(planetId: number): Promise<PlanetInfo> {
+    return this.api.getPlanetById(planetId) as Promise<PlanetInfo>;
+  }
+
+  /**
+   * Retrieves all playable races in the EVE universe.
+   *
+   * @returns A list of playable races
+   */
+  getRaces(): Promise<Race[]> {
+    return this.api.getRaces() as Promise<Race[]>;
+  }
+
+  /**
+   * Retrieves information about a region, including its constellations and name.
+   *
+   * @param regionId - The ID of the region
+   * @returns Detailed region information
+   */
+  getRegionById(regionId: number): Promise<RegionInfo> {
+    return this.api.getRegionById(regionId) as Promise<RegionInfo>;
+  }
+
+  /**
+   * Retrieves information about a star, including its spectral class and luminosity.
+   *
+   * @param starId - The ID of the star
+   * @returns Detailed star information
+   */
+  getStarById(starId: number): Promise<StarInfo> {
+    return this.api.getStarById(starId) as Promise<StarInfo>;
+  }
+
+  /**
+   * Retrieves information about a stargate, including its destination and position.
+   *
+   * @param stargateId - The ID of the stargate
+   * @returns Detailed stargate information
+   */
+  getStargateById(stargateId: number): Promise<StargateInfo> {
+    return this.api.getStargateById(stargateId) as Promise<StargateInfo>;
+  }
+
+  /**
+   * Retrieves public information about a station, including its services and location.
+   *
+   * @param stationId - The ID of the station
+   * @returns Detailed station information
+   */
+  getStationById(stationId: number): Promise<StationInfo> {
+    return this.api.getStationById(stationId) as Promise<StationInfo>;
+  }
+
+  /**
+   * Retrieves information about a player-owned structure by its ID.
+   *
+   * @param structureId - The ID of the structure
+   * @returns Detailed structure information
+   * @requires Authentication
+   */
+  getStructureById(structureId: number): Promise<StructureInfo> {
+    return this.api.getStructureById(structureId) as Promise<StructureInfo>;
+  }
+
+  /**
+   * Retrieves a list of all publicly visible player-owned structure IDs.
+   *
+   * @returns A list of structure IDs
+   */
+  getStructures(): Promise<number[]> {
+    return this.api.getStructures() as Promise<number[]>;
+  }
+
+  /**
+   * Retrieves information about a solar system, including its planets, stargates, and security status.
+   *
+   * @param systemId - The ID of the solar system
+   * @returns Detailed solar system information
+   */
+  getSystemById(systemId: number): Promise<SolarSystemInfo> {
+    return this.api.getSystemById(systemId) as Promise<SolarSystemInfo>;
+  }
+
+  /**
+   * Retrieves the number of ship jumps per solar system within the last hour.
+   *
+   * @returns A list of solar systems with their jump counts
+   */
+  getSystemJumps(): Promise<SystemJump[]> {
+    return this.api.getSystemJumps() as Promise<SystemJump[]>;
+  }
+
+  /**
+   * Retrieves the number of NPC and player ship kills per solar system within the last hour.
+   *
+   * @returns A list of solar systems with their kill counts
+   */
+  getSystemKills(): Promise<SystemKill[]> {
+    return this.api.getSystemKills() as Promise<SystemKill[]>;
+  }
+
+  /**
+   * Retrieves a list of all solar system IDs in the EVE universe.
+   *
+   * @returns A list of solar system IDs
+   */
+  getSystems(): Promise<number[]> {
+    return this.api.getSystems() as Promise<number[]>;
+  }
+
+  /**
+   * Retrieves information about a specific item type, including its description and attributes.
+   *
+   * @param typeId - The ID of the item type
+   * @returns Detailed item type information
+   */
+  getTypeById(typeId: number): Promise<TypeInfo> {
+    return this.api.getTypeById(typeId) as Promise<TypeInfo>;
+  }
+
+  /**
+   * Retrieves a list of all item type IDs in the EVE universe.
+   *
+   * @returns A list of item type IDs
+   */
+  getTypes(): Promise<number[]> {
+    return this.api.getTypes() as Promise<number[]>;
+  }
+
+  /**
+   * Resolves a list of names to their corresponding IDs via a bulk POST operation.
+   *
+   * @param names - An array of names to resolve to IDs
+   * @returns The resolved IDs grouped by entity category
+   */
+  postBulkNamesToIds(names: string[]): Promise<BulkIdResult> {
+    return this.api.postBulkNamesToIds(names) as Promise<BulkIdResult>;
+  }
+
+  /**
+   * Resolves a list of IDs to their names and categories via a bulk POST operation.
+   *
+   * @param ids - An array of entity IDs to resolve
+   * @returns A list of names with their corresponding categories
+   */
+  postNamesAndCategories(ids: number[]): Promise<NameAndCategory[]> {
+    return this.api.postNamesAndCategories(ids) as Promise<NameAndCategory[]>;
+  }
+
+  /**
+   * Retrieves information about a planetary interaction schematic.
+   *
+   * @param schematicId - The ID of the PI schematic
+   * @returns Detailed schematic information including inputs and outputs
+   */
+  getSchematicById(schematicId: number): Promise<SchematicInfo> {
+    return this.api.getSchematicById(schematicId) as Promise<SchematicInfo>;
+  }
+
+  /**
+   * Retrieves a list of all region IDs in the EVE universe.
+   *
+   * @returns A list of region IDs
+   */
+  getRegions(): Promise<number[]> {
+    return this.api.getRegions() as Promise<number[]>;
+  }
+}

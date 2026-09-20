@@ -1,28 +1,86 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCharacterRecentKillmailsApi } from '../api/killmails/getCharacterRecentKillmails';
-import { GetCorporationRecentKillmailsApi } from '../api/killmails/getCorporationRecentKillmails';
-import { GetKillmailApi } from '../api/killmails/getKillmail';
+import { BaseEsiClient } from './BaseEsiClient';
+import { killmailEndpoints } from '../core/endpoints/killmailEndpoints';
+import { KillmailSummary, Killmail } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class KillmailsClient {
-    private getCharacterRecentKillmailsApi: GetCharacterRecentKillmailsApi;
-    private getCorporationRecentKillmailsApi: GetCorporationRecentKillmailsApi;
-    private getKillmailApi: GetKillmailApi;
+export class KillmailsClient extends BaseEsiClient<typeof killmailEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, killmailEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCharacterRecentKillmailsApi = new GetCharacterRecentKillmailsApi(client);
-        this.getCorporationRecentKillmailsApi = new GetCorporationRecentKillmailsApi(client);
-        this.getKillmailApi = new GetKillmailApi(client);
-    }
+  /**
+   * Retrieves a list of recent killmail summaries for a character.
+   *
+   * @param characterId - The ID of the character to fetch killmails for
+   * @returns A list of recent killmail summaries including killmail IDs and hashes
+   * @requires Authentication
+   */
+  getCharacterRecentKillmails(characterId: number): Promise<KillmailSummary[]> {
+    return this.api.getCharacterRecentKillmails(characterId);
+  }
 
-    async getCharacterRecentKillmails(characterId: number): Promise<any> {
-        return await this.getCharacterRecentKillmailsApi.getCharacterRecentKillmails(characterId);
-    }
+  /**
+   * Retrieves a list of recent killmail summaries for a corporation.
+   *
+   * @param corporationId - The ID of the corporation to fetch killmails for
+   * @returns A list of recent killmail summaries including killmail IDs and hashes
+   * @requires Authentication
+   */
+  getCorporationRecentKillmails(
+    corporationId: number,
+  ): Promise<KillmailSummary[]> {
+    return this.api.getCorporationRecentKillmails(corporationId);
+  }
 
-    async getCorporationRecentKillmails(corporationId: number): Promise<any> {
-        return await this.getCorporationRecentKillmailsApi.getCorporationRecentKillmails(corporationId);
-    }
+  /**
+   * Retrieves the full details of a specific killmail by its ID and hash.
+   *
+   * @param killmailId - The ID of the killmail to retrieve
+   * @param killmailHash - The hash of the killmail for verification
+   * @returns The full killmail details including victim, attackers, and items
+   */
+  getKillmail(killmailId: number, killmailHash: string): Promise<Killmail> {
+    return this.api.getKillmail(killmailId, killmailHash);
+  }
 
-    async getKillmail(killmailId: number, killmailHash: string): Promise<any> {
-        return await this.getKillmailApi.getKillmail(killmailId, killmailHash);
-    }
+  fetchAllCharacterRecentKillmails(
+    characterId: number,
+    concurrency?: number,
+  ): Promise<KillmailSummary[]> {
+    return this.fetchAllEndpoint<KillmailSummary>(
+      'getCharacterRecentKillmails',
+      [characterId],
+      concurrency,
+    );
+  }
+
+  fetchAllCorporationRecentKillmails(
+    corporationId: number,
+    concurrency?: number,
+  ): Promise<KillmailSummary[]> {
+    return this.fetchAllEndpoint<KillmailSummary>(
+      'getCorporationRecentKillmails',
+      [corporationId],
+      concurrency,
+    );
+  }
+
+  streamCharacterRecentKillmails(
+    characterId: number,
+  ): AsyncGenerator<PageResult<KillmailSummary>, void, undefined> {
+    return this.streamEndpoint<KillmailSummary>(
+      'getCharacterRecentKillmails',
+      characterId,
+    );
+  }
+
+  streamCorporationRecentKillmails(
+    corporationId: number,
+  ): AsyncGenerator<PageResult<KillmailSummary>, void, undefined> {
+    return this.streamEndpoint<KillmailSummary>(
+      'getCorporationRecentKillmails',
+      corporationId,
+    );
+  }
 }

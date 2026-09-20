@@ -1,212 +1,321 @@
 import { ApiClient } from './ApiClient';
-import { buildError } from '../core/util/error';
-import { logInfo, logWarn, logError, logDebug } from '../core/logger/loggerUtil';
-import HeadersUtil from '../core/util/headersUtil';
-import { ETagCacheManager } from './cache/ETagCacheManager';
+import { buildDedupeKey } from './cache/cacheKey';
 
-const statusHandlers: Record<number, string> = {
-    201: 'Created',
-    204: 'No Content',
-    304: 'Not Modified',
-    400: 'Bad Request',
-    401: 'Unauthorized',
-    403: 'Forbidden',
-    404: 'Resource not found',
-    420: 'Error Limited',
-    422: 'Unprocessable Entity',
-    429: 'Too many requests',
-    500: 'Internal server error',
-    503: 'Service Unavailable',
-    504: 'Gateway Timeout',
-    520: 'Internal server error, did the request terminate too soon?',
-};
+import {
+  trySpecAwareCacheHit,
+  cacheResponse,
+  currentWriteGeneration,
+  hasCachedEntry,
+  invalidateAfterWrite,
+  handleEarlyStatus,
+  handleErrorResponse,
+  readEsiErrorReason,
+  wrapError,
+  handleCursorPagination,
+  handleOffsetPagination,
+  applyResponseInterceptors,
+  executeSingleFetch,
+  fetchOnePage,
+  parseJsonBody,
+  resolveCache,
+  resolveRateLimiter,
+  resolveCircuitBreaker,
+  resolveRetryStrategy,
+} from './requestPipeline';
+export type { EsiHandlerResponse } from './requestPipeline';
+import type { EsiHandlerResponse } from './requestPipeline';
 
-// Global ETag cache instance
-let etagCache: ETagCacheManager | null = null;
+// --- Main request orchestration ---
 
-export const initializeETagCache = (config?: any): ETagCacheManager => {
-    if (!etagCache) {
-        etagCache = new ETagCacheManager(config);
+const executeRequest = async (
+  client: ApiClient,
+  endpoint: string,
+  method: string,
+  body?: unknown,
+  requiresAuth: boolean = false,
+  useETag: boolean = true,
+  requestTimeout?: number,
+  templatePath?: string,
+): Promise<EsiHandlerResponse> => {
+  const startTime = Date.now();
+  const finish = (r: EsiHandlerResponse) => {
+    r.responseTimeMs = Date.now() - startTime;
+    const rawUrl = `${client.getLink()}/${endpoint}`;
+    return applyResponseInterceptors(
+      client,
+      r,
+      rawUrl,
+      endpoint,
+      method,
+      startTime,
+    );
+  };
+
+  try {
+    const writeGeneration = currentWriteGeneration(client, resolveCache);
+    const revalidating =
+      useETag &&
+      method === 'GET' &&
+      hasCachedEntry(
+        client,
+        `${client.getLink()}/${endpoint}`,
+        resolveCache,
+        requiresAuth,
+      );
+    const { response, parsed, url } = await executeSingleFetch(
+      client,
+      endpoint,
+      method,
+      body,
+      requiresAuth,
+      useETag,
+      resolveCache,
+      resolveRateLimiter,
+      resolveCircuitBreaker,
+      requestTimeout,
+      templatePath,
+    );
+
+    if (response.status === 201 || response.status === 204) {
+      invalidateAfterWrite(client, method, endpoint, resolveCache);
     }
-    return etagCache;
-};
 
-export const getETagCache = (): ETagCacheManager | null => {
-    return etagCache;
-};
-
-export const resetETagCache = (): void => {
-    if (etagCache) {
-        etagCache.shutdown();
+    if (response.status === 201) {
+      let data: unknown;
+      try {
+        data = (await response.json()) as unknown;
+      } catch {
+        data = undefined;
+      }
+      return finish({ headers: parsed.raw, body: data, status: 201 });
     }
-    etagCache = null;
-};
 
-// Helper function for backward compatibility - returns just the body
-export const handleRequestBody = async (
-    client: ApiClient,
-    endpoint: string,
-    method: string,
-    body?: any,
-    requiresAuth: boolean = false,
-    useETag: boolean = true
-): Promise<any> => {
-    const response = await handleRequest(client, endpoint, method, body, requiresAuth, useETag);
-    return response.body || response; // Handle both new and old response formats
-};
-
-const fetchPageData = async (
-    client: ApiClient,
-    baseEndpoint: string,
-    method: string,
-    page: number,
-    requiresAuth: boolean,
-    body?: any
-): Promise<any> => {
-    // Build the correct paginated endpoint for the specific page
-    const paginatedEndpoint = `${baseEndpoint}?page=${page}`;
-
-    // Log the correct endpoint with incremented page number
-    logInfo(`Fetching page ${page}: ${client.getLink()}/${paginatedEndpoint}`);
-
-    // Fetch the specific page data
-    const response = await fetch(`${client.getLink()}/${paginatedEndpoint}`, {
+    if (
+      response.status === 304 &&
+      revalidating &&
+      !hasCachedEntry(client, url, resolveCache, requiresAuth)
+    ) {
+      // The entry this request revalidated left the cache while it was in
+      // flight (a write to its path evicted it, or it expired), so the 304 has
+      // no body to stand for. The repeat finds no entry, sends no
+      // If-None-Match and gets the current representation.
+      return await executeRequest(
+        client,
+        endpoint,
         method,
-        headers: {
-            accept: 'gzip, deflate, br',
-            'User-Agent': 'esiJS/2.0.0',
-            ...(requiresAuth ? { Authorization: client.getAuthorizationHeader() } : {})
-        },
-        body: body ? JSON.stringify(body) : undefined
-    });
+        body,
+        requiresAuth,
+        useETag,
+        requestTimeout,
+        templatePath,
+      );
+    }
+
+    const earlyResult = handleEarlyStatus(
+      client,
+      response.status,
+      url,
+      parsed,
+      useETag,
+      resolveCache,
+      requiresAuth,
+    );
+    if (earlyResult) return finish(earlyResult);
 
     if (!response.ok) {
-        throw buildError(`Error: ${response.statusText}`, 'API_ERROR');
+      const staleOrThrow = handleErrorResponse(
+        client,
+        response,
+        url,
+        parsed,
+        useETag,
+        resolveCache,
+        requiresAuth,
+        await readEsiErrorReason(response),
+      );
+      return finish(staleOrThrow);
     }
 
-    const responseData = await response.json();
-    return responseData;  // Return only the data (body)
+    const data = await parseJsonBody(client, response, url);
+    // A multi-page response is cached by handleOffsetPagination once every
+    // page is in. Caching page 1 here would let a retried call revalidate
+    // against page 1 alone and resolve with it after a 304.
+    if (parsed.xPages <= 1 || parsed.hasCursorPagination) {
+      cacheResponse(
+        client,
+        url,
+        method,
+        endpoint,
+        parsed,
+        data,
+        useETag,
+        resolveCache,
+        templatePath,
+        requiresAuth,
+        writeGeneration,
+      );
+    }
+
+    const cursorResult = handleCursorPagination(parsed, data);
+    if (cursorResult) return finish(cursorResult);
+
+    const pageFetch = async (paginatedEndpoint: string): Promise<unknown[]> => {
+      const result = await fetchOnePage(
+        client,
+        paginatedEndpoint,
+        method,
+        body,
+        requiresAuth,
+        false,
+        resolveCache,
+        resolveRateLimiter,
+        resolveCircuitBreaker,
+        requestTimeout,
+        templatePath,
+      );
+      return Array.isArray(result.data)
+        ? (result.data as unknown[])
+        : [result.data];
+    };
+
+    const paginatedResult = await handleOffsetPagination(
+      client,
+      endpoint,
+      method,
+      requiresAuth,
+      parsed,
+      data,
+      body,
+      url,
+      useETag,
+      pageFetch,
+      resolveCache,
+      templatePath,
+      writeGeneration,
+    );
+    return finish(paginatedResult);
+  } catch (error: unknown) {
+    wrapError(error, client);
+  }
+};
+
+export const handleSinglePageRequest = async (
+  client: ApiClient,
+  endpoint: string,
+  method: string,
+  body?: unknown,
+  requiresAuth: boolean = false,
+  templatePath?: string,
+  requestTimeout?: number,
+): Promise<EsiHandlerResponse> => {
+  const doExecute = () =>
+    fetchOnePage(
+      client,
+      endpoint,
+      method,
+      body,
+      requiresAuth,
+      true,
+      resolveCache,
+      resolveRateLimiter,
+      resolveCircuitBreaker,
+      requestTimeout,
+      templatePath,
+    ).then(({ data, parsed }) => ({
+      headers: parsed.raw,
+      body: data,
+    }));
+
+  const retryStrategy = resolveRetryStrategy(client);
+
+  return retryStrategy.execute<EsiHandlerResponse>(doExecute, {
+    client,
+    endpoint,
+    method: 'GET',
+    requiresAuth,
+    refreshToken: client.hasTokenProvider()
+      ? () => client.refreshToken().then(() => {})
+      : undefined,
+  });
 };
 
 export const handleRequest = async (
-    client: ApiClient,
-    endpoint: string,
-    method: string,
-    body?: any,
-    requiresAuth: boolean = false,
-    useETag: boolean = true
-): Promise<any> => {
-    // Extract the base URL (without any pagination or extra query params)
-    const [baseEndpoint] = endpoint.split('?');  // Get only the part before `?`
+  client: ApiClient,
+  endpoint: string,
+  method: string,
+  body?: unknown,
+  requiresAuth: boolean = false,
+  useETag: boolean = true,
+  templatePath?: string,
+  requestTimeout?: number,
+): Promise<EsiHandlerResponse> => {
+  const rawUrl = `${client.getLink()}/${endpoint}`;
+  const startTime = Date.now();
+  const specCacheHit = (): Promise<EsiHandlerResponse> | null => {
+    const hit = trySpecAwareCacheHit(
+      client,
+      rawUrl,
+      method,
+      templatePath,
+      resolveCache,
+      requiresAuth,
+    );
+    return hit
+      ? applyResponseInterceptors(
+          client,
+          hit,
+          rawUrl,
+          endpoint,
+          method,
+          startTime,
+        )
+      : null;
+  };
+  const specHit = specCacheHit();
+  if (specHit) return specHit;
 
-    const url = `${client.getLink()}/${endpoint}`;
-    const headers: HeadersInit = {
-        accept: 'gzip, deflate, br',
-        'User-Agent': `esiJS/2.0.0`  // Use the version from package.json ideally
-    };
+  const doExecute = () =>
+    executeRequest(
+      client,
+      endpoint,
+      method,
+      body,
+      requiresAuth,
+      useETag,
+      requestTimeout,
+      templatePath,
+    );
 
-    if (requiresAuth) {
-        const authHeader = client.getAuthorizationHeader();
-        if (!authHeader) {
-            throw buildError('Authorization header is required but not provided', 'NO_AUTH_TOKEN');
-        }
-        headers['Authorization'] = authHeader;
-    }
+  const dedup = client.getDeduplicator();
+  const canDedup = dedup && method === 'GET' && !body;
 
-    // Add ETag support for GET requests
-    if (useETag && method === 'GET' && etagCache) {
-        const cachedETag = etagCache.getETag(url);
-        if (cachedETag) {
-            headers['If-None-Match'] = cachedETag;
-            logDebug(`Adding If-None-Match header: ${cachedETag}`);
-        }
-    }
+  let attempted = false;
+  const operation = () => {
+    // A retry waited out a backoff, during which a concurrent call may have
+    // cached a fresh copy. Serve it rather than spend another request.
+    const retryHit = attempted ? specCacheHit() : null;
+    attempted = true;
+    if (retryHit) return retryHit;
+    // Keyed by identity as well as endpoint: one client can hold more than one
+    // token over its life, and two concurrent authenticated GETs under
+    // different tokens must not be answered from one response.
+    return canDedup
+      ? dedup.dedupe<EsiHandlerResponse>(
+          buildDedupeKey(endpoint, client, requiresAuth),
+          doExecute,
+        )
+      : doExecute();
+  };
 
-    const options: RequestInit = {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined
-    };
+  const retryStrategy = resolveRetryStrategy(client);
 
-    logInfo(`Hitting endpoint: ${url}`);
-
-    try {
-        // Fetch the first page (page 1)
-        const response = await fetch(url, options);
-        const responseHeaders = HeadersUtil.extractHeaders(response.headers);
-
-        if (statusHandlers[response.status]) {
-            const errorMessage = statusHandlers[response.status];
-            if (response.status === 204) {
-                logInfo(`${errorMessage} for endpoint: ${url}`);
-                return { headers: responseHeaders, body: { error: 'no content' } };
-            } else if (response.status === 304) {
-                // Not Modified - return cached data
-                if (useETag && etagCache) {
-                    const cachedEntry = etagCache.get(url);
-                    if (cachedEntry) {
-                        logInfo(`Cache hit (304) for endpoint: ${url}`);
-                        return { 
-                            headers: { ...cachedEntry.headers, ...responseHeaders }, 
-                            body: cachedEntry.data,
-                            fromCache: true 
-                        };
-                    }
-                }
-                logWarn(`${errorMessage} for endpoint: ${url} - no cached data available`);
-                return { headers: responseHeaders, body: { error: errorMessage.toLowerCase() } };
-            } else {
-                logWarn(`${errorMessage} for endpoint: ${url}`);
-                return { headers: responseHeaders, body: { error: errorMessage.toLowerCase() } };
-            }
-        }
-
-        if (!response.ok) {
-            throw buildError(`Error: ${response.statusText}`, 'API_ERROR');
-        }
-
-        // Get the data and number of pages from the first response
-        const data = await response.json();
-        const totalPages = HeadersUtil.xPages;
-
-        // Cache the response if ETag is present and this is a GET request
-        if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
-            etagCache.set(url, HeadersUtil.etag, data, responseHeaders);
-            logDebug(`Cached response for ${url} with ETag ${HeadersUtil.etag}`);
-        }
-
-        // If there's only one page, return the data immediately
-        if (totalPages <= 1) {
-            return { headers: responseHeaders, body: data };
-        }
-
-        // Now fetch the additional pages (starting from page 2)
-        logInfo(`Found ${totalPages} pages, fetching additional pages...`);
-        const allData = [data];  // Store data from page 1
-
-        for (let page = 2; page <= totalPages; page++) {
-            logInfo(`Fetching page ${page}...`);
-            const paginatedData = await fetchPageData(client, baseEndpoint, method, page, requiresAuth, body);
-            allData.push(...paginatedData);  // Append the paginated data
-        }
-
-        // Merge all pages' data into one response
-        const finalData = allData.flat();
-        
-        // Cache the complete paginated response if ETag is present
-        if (useETag && method === 'GET' && etagCache && HeadersUtil.etag) {
-            etagCache.set(url, HeadersUtil.etag, finalData, responseHeaders);
-            logDebug(`Cached paginated response for ${url} with ETag ${HeadersUtil.etag}`);
-        }
-        
-        return { headers: responseHeaders, body: finalData };  // Flatten the array if needed
-    } catch (error) {
-        if (error instanceof Error) {
-            logError(`Unexpected error: ${error.message}`);
-            throw buildError(error.message, 'ESIJS_ERROR');
-        } else {
-            logError(`Unexpected error: ${error}`);
-            throw buildError(String(error), 'ESIJS_ERROR');
-        }
-    }
+  return retryStrategy.execute<EsiHandlerResponse>(operation, {
+    client,
+    endpoint,
+    method,
+    requiresAuth,
+    refreshToken: client.hasTokenProvider()
+      ? () => client.refreshToken().then(() => {})
+      : undefined,
+  });
 };

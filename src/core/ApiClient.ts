@@ -1,18 +1,234 @@
+import {
+  MiddlewareManager,
+  RequestInterceptor,
+  ResponseInterceptor,
+} from './middleware/Middleware';
+import { ICache } from './cache/ICache';
+import { IRateLimiter } from './rateLimiter/IRateLimiter';
+import { ICircuitBreaker } from './circuitBreaker/ICircuitBreaker';
+import { IDeduplicator } from './IDeduplicator';
+import { IRetryStrategy } from './IRetryStrategy';
+import { RetryConfig } from './util/retry';
+import type { ILogger } from './logger/ILogger';
+
+export type EsiDatasource = 'tranquility' | 'singularity';
+
+export type TokenProvider = () => Promise<string>;
+
+export type FetchLike = (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>;
+
 export class ApiClient {
-    constructor(
-        private clientId: string,
-        private link: string,
-        private accessToken?: string
-    ) {
-        // Remove trailing slash from the link if present
-        this.link = this.link.replace(/\/$/, '');
+  private datasource?: EsiDatasource;
+  private tokenProvider?: TokenProvider;
+  private refreshInFlight?: Promise<string>;
+  private middleware: MiddlewareManager = new MiddlewareManager();
+  private cache: ICache | null = null;
+  private rateLimiter: IRateLimiter | null = null;
+  private circuitBreaker: ICircuitBreaker | null = null;
+  private timeout: number = 30_000;
+  private deduplicator: IDeduplicator | null = null;
+  private retryConfig: RetryConfig | null = null;
+  private retryStrategy: IRetryStrategy | null = null;
+  private validateResponse: boolean = true;
+  private validateRequest: boolean = false;
+  private language?: string;
+  private compatibilityDate?: string;
+  private fetchFn: FetchLike | null = null;
+  private logger: ILogger | null = null;
+
+  constructor(
+    private clientId: string,
+    private link: string,
+    private accessToken?: string,
+  ) {
+    this.link = this.link.replace(/\/$/, '');
+  }
+
+  getTimeout(): number {
+    return this.timeout;
+  }
+
+  setTimeout(timeout: number): void {
+    this.timeout = timeout;
+  }
+
+  getCache(): ICache | null {
+    return this.cache;
+  }
+
+  setCache(cache: ICache | null): void {
+    this.cache = cache;
+  }
+
+  getRateLimiter(): IRateLimiter | null {
+    return this.rateLimiter;
+  }
+
+  setRateLimiter(limiter: IRateLimiter | null): void {
+    this.rateLimiter = limiter;
+  }
+
+  getCircuitBreaker(): ICircuitBreaker | null {
+    return this.circuitBreaker;
+  }
+
+  setCircuitBreaker(cb: ICircuitBreaker | null): void {
+    this.circuitBreaker = cb;
+  }
+
+  getDeduplicator(): IDeduplicator | null {
+    return this.deduplicator;
+  }
+
+  setDeduplicator(dedup: IDeduplicator | null): void {
+    this.deduplicator = dedup;
+  }
+
+  getRetryConfig(): RetryConfig | null {
+    return this.retryConfig;
+  }
+
+  setRetryConfig(config: RetryConfig | null): void {
+    this.retryConfig = config;
+  }
+
+  getRetryStrategy(): IRetryStrategy | null {
+    return this.retryStrategy;
+  }
+
+  setRetryStrategy(strategy: IRetryStrategy | null): void {
+    this.retryStrategy = strategy;
+  }
+
+  getValidateResponse(): boolean {
+    return this.validateResponse;
+  }
+
+  setValidateResponse(validate: boolean): void {
+    this.validateResponse = validate;
+  }
+
+  getValidateRequest(): boolean {
+    return this.validateRequest;
+  }
+
+  setValidateRequest(validate: boolean): void {
+    this.validateRequest = validate;
+  }
+
+  getFetch(): FetchLike {
+    return this.fetchFn ?? globalThis.fetch;
+  }
+
+  setFetch(fn: FetchLike): void {
+    this.fetchFn = fn;
+  }
+
+  getMiddleware(): MiddlewareManager {
+    return this.middleware;
+  }
+
+  addRequestInterceptor(fn: RequestInterceptor): () => void {
+    return this.middleware.addRequestInterceptor(fn);
+  }
+
+  addResponseInterceptor(fn: ResponseInterceptor): () => void {
+    return this.middleware.addResponseInterceptor(fn);
+  }
+
+  getAuthorizationHeader(): string | undefined {
+    return this.accessToken ? `Bearer ${this.accessToken}` : undefined;
+  }
+
+  getLink(): string {
+    return this.link;
+  }
+
+  getDatasource(): EsiDatasource | undefined {
+    return this.datasource;
+  }
+
+  setDatasource(datasource: EsiDatasource | undefined): void {
+    this.datasource = datasource;
+  }
+
+  getLanguage(): string | undefined {
+    return this.language;
+  }
+
+  setLanguage(language: string | undefined): void {
+    this.language = language;
+  }
+
+  getCompatibilityDate(): string | undefined {
+    return this.compatibilityDate;
+  }
+
+  setCompatibilityDate(date: string | undefined): void {
+    this.compatibilityDate = date;
+  }
+
+  setAccessToken(token: string): void {
+    this.accessToken = token;
+  }
+
+  setTokenProvider(provider: TokenProvider | undefined): void {
+    this.tokenProvider = provider;
+  }
+
+  getLogger(): ILogger | null {
+    return this.logger;
+  }
+
+  setLogger(logger: ILogger | null): void {
+    this.logger = logger;
+  }
+
+  hasTokenProvider(): boolean {
+    return this.tokenProvider !== undefined;
+  }
+
+  toJSON(): Record<string, unknown> {
+    return {
+      link: this.link,
+      datasource: this.datasource,
+      timeout: this.timeout,
+      hasCache: this.cache !== null,
+      hasRateLimiter: this.rateLimiter !== null,
+      hasCircuitBreaker: this.circuitBreaker !== null,
+      hasDeduplicator: this.deduplicator !== null,
+      hasTokenProvider: this.tokenProvider !== undefined,
+      validateResponse: this.validateResponse,
+      validateRequest: this.validateRequest,
+      language: this.language,
+      compatibilityDate: this.compatibilityDate,
+    };
+  }
+
+  async refreshToken(): Promise<string> {
+    if (!this.tokenProvider) {
+      throw new Error('No token provider configured');
     }
 
-    getAuthorizationHeader(): string | undefined {
-        return this.accessToken ? `Bearer ${this.accessToken}` : undefined;
+    if (this.refreshInFlight) {
+      return this.refreshInFlight;
     }
 
-    getLink(): string {
-        return this.link;
-    }
+    this.refreshInFlight = this.tokenProvider().then(
+      (token) => {
+        this.accessToken = token;
+        this.refreshInFlight = undefined;
+        return token;
+      },
+      (err) => {
+        this.refreshInFlight = undefined;
+        throw err;
+      },
+    );
+
+    return this.refreshInFlight;
+  }
 }

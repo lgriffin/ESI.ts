@@ -4,90 +4,114 @@ import { FittingsClient } from '../../../src/clients/FittingsClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
+import { describeClientErrors } from '../helpers/clientErrorTests';
 
 fetchMock.enableMocks();
 
 const config = getConfig();
 const client = new ApiClientBuilder()
-    .setClientId(config.projectName)
-    .setLink(config.link)
-    .setAccessToken(config.authToken || undefined)
-    .build();
+  .setClientId(config.projectName)
+  .setLink(config.link)
+  .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
+  .build();
 
 const fittingsClient = new FittingsClient(client);
 
 describe('FittingsClient', () => {
-    beforeEach(() => {
-        fetchMock.resetMocks();
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
+
+  it('should return valid structure for getFittings', async () => {
+    const mockResponse = [
+      {
+        fitting_id: 1,
+        name: 'Test Fitting',
+        description: 'Test Description',
+        ship_type_id: 123,
+        items: [
+          {
+            flag: 27,
+            quantity: 1,
+            type_id: 456,
+          },
+        ],
+      },
+    ];
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+    const result = await getBody(() => fittingsClient.getFittings(123456));
+
+    expect(Array.isArray(result)).toBe(true);
+    (
+      result as {
+        fitting_id: number;
+        name: string;
+        description: string;
+        ship_type_id: number;
+        items: Array<{ flag: string; quantity: number; type_id: number }>;
+      }[]
+    ).forEach((fitting) => {
+      expect(fitting).toHaveProperty('fitting_id');
+      expect(fitting).toHaveProperty('name');
+      expect(fitting).toHaveProperty('description');
+      expect(fitting).toHaveProperty('ship_type_id');
+      expect(Array.isArray(fitting.items)).toBe(true);
+      fitting.items.forEach((item) => {
+        expect(item).toHaveProperty('flag');
+        expect(item).toHaveProperty('quantity');
+        expect(item).toHaveProperty('type_id');
+      });
     });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/fittings',
+    );
+  });
 
-    it('should return valid structure for getFittings', async () => {
-        const mockResponse = [
-            {
-                fitting_id: 1,
-                name: 'Test Fitting',
-                description: 'Test Description',
-                ship_type_id: 123,
-                items: [
-                    {
-                        flag: 'HIGH_SLOT_1',
-                        quantity: 1,
-                        type_id: 456
-                    }
-                ]
-            }
-        ];
+  it('should create a fitting', async () => {
+    const mockResponse = {
+      fitting_id: 1,
+    };
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-        const result = await getBody(() => fittingsClient.getFittings(123456));
+    const fittingData = {
+      name: 'Test Fitting',
+      description: 'Test Description',
+      ship_type_id: 123,
+      items: [
+        {
+          flag: 27,
+          quantity: 1,
+          type_id: 456,
+        },
+      ],
+    };
 
-        expect(Array.isArray(result)).toBe(true);
-        (result as { fitting_id: number, name: string, description: string, ship_type_id: number, items: Array<{ flag: string, quantity: number, type_id: number }> }[]).forEach(fitting => {
-            expect(fitting).toHaveProperty('fitting_id');
-            expect(fitting).toHaveProperty('name');
-            expect(fitting).toHaveProperty('description');
-            expect(fitting).toHaveProperty('ship_type_id');
-            expect(Array.isArray(fitting.items)).toBe(true);
-            fitting.items.forEach(item => {
-                expect(item).toHaveProperty('flag');
-                expect(item).toHaveProperty('quantity');
-                expect(item).toHaveProperty('type_id');
-            });
-        });
-    });
+    const result = await getBody(() =>
+      fittingsClient.createFitting(123456, fittingData),
+    );
 
-    it('should create a fitting', async () => {
-        const mockResponse = {
-            fitting_id: 1
-        };
+    expect(result).toHaveProperty('fitting_id');
+    expect(typeof result.fitting_id).toBe('number');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/fittings',
+    );
+  });
 
-        fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+  it('should delete a fitting', async () => {
+    fetchMock.mockResponseOnce(new Response(null, { status: 204 }));
 
-        const fittingData = {
-            name: 'Test Fitting',
-            description: 'Test Description',
-            ship_type_id: 123,
-            items: [
-                {
-                    flag: 'HIGH_SLOT_1',
-                    quantity: 1,
-                    type_id: 456
-                }
-            ]
-        };
+    const result = await getBody(() => fittingsClient.deleteFitting(123456, 1));
 
-        const result = await getBody(() => fittingsClient.createFitting(123456, fittingData));
+    expect(result).toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://esi.evetech.net/latest/characters/123456/fittings/1',
+    );
+  });
 
-        expect(result).toHaveProperty('fitting_id');
-        expect(typeof result.fitting_id).toBe('number');
-    });
-
-    it('should delete a fitting', async () => {
-        fetchMock.mockResponseOnce('', { status: 204 });
-
-        const result = await getBody(() => fittingsClient.deleteFitting(123456, 1));
-
-        expect(result).toEqual({ error: 'no content' });
-    });
+  describeClientErrors('FittingsClient', (apiClient) =>
+    new FittingsClient(apiClient).getFittings(123456),
+  );
 });

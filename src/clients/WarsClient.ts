@@ -1,28 +1,65 @@
 import { ApiClient } from '../core/ApiClient';
-import { WarsApi } from '../api/wars/getWars';
-import { WarByIdApi } from '../api/wars/getWarById';
-import { WarKillmailsApi } from '../api/wars/getWarKillmails';
+import { BaseEsiClient } from './BaseEsiClient';
+import { warEndpoints } from '../core/endpoints/warEndpoints';
+import { War, KillmailSummary } from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class WarsClient {
-    private warsApi: WarsApi;
-    private warByIdApi: WarByIdApi;
-    private warKillmailsApi: WarKillmailsApi;
+export class WarsClient extends BaseEsiClient<typeof warEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, warEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.warsApi = new WarsApi(client);
-        this.warByIdApi = new WarByIdApi(client);
-        this.warKillmailsApi = new WarKillmailsApi(client);
-    }
+  /**
+   * Retrieves a list of all war IDs, ordered by war ID descending.
+   *
+   * @returns A list of war IDs
+   */
+  getWars(): Promise<number[]> {
+    return this.api.getWars();
+  }
 
-    async getWars(): Promise<any> {
-        return await this.warsApi.getWars();
-    }
+  /**
+   * Retrieves detailed information about a specific war, including aggressors, defenders, and status.
+   *
+   * @param warId - The ID of the war
+   * @returns Detailed war information
+   */
+  getWarById(warId: number): Promise<War> {
+    return this.api.getWarById(warId);
+  }
 
-    async getWarById(warId: number): Promise<any> {
-        return await this.warByIdApi.getWarById(warId);
-    }
+  /**
+   * Retrieves the killmail summaries associated with a specific war.
+   *
+   * @param warId - The ID of the war
+   * @returns A list of killmail summaries for the war
+   */
+  getWarKillmails(warId: number): Promise<KillmailSummary[]> {
+    return this.api.getWarKillmails(warId);
+  }
 
-    async getWarKillmails(warId: number): Promise<any> {
-        return await this.warKillmailsApi.getWarKillmails(warId);
-    }
+  fetchAllWars(concurrency?: number): Promise<number[]> {
+    return this.fetchAllEndpoint<number>('getWars', [], concurrency);
+  }
+
+  fetchAllWarKillmails(
+    warId: number,
+    concurrency?: number,
+  ): Promise<KillmailSummary[]> {
+    return this.fetchAllEndpoint<KillmailSummary>(
+      'getWarKillmails',
+      [warId],
+      concurrency,
+    );
+  }
+
+  streamWars(): AsyncGenerator<PageResult<number>, void, undefined> {
+    return this.streamEndpoint<number>('getWars');
+  }
+
+  streamWarKillmails(
+    warId: number,
+  ): AsyncGenerator<PageResult<KillmailSummary>, void, undefined> {
+    return this.streamEndpoint<KillmailSummary>('getWarKillmails', warId);
+  }
 }

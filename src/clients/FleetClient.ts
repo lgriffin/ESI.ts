@@ -1,105 +1,242 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetCharacterFleetInfoApi } from '../api/fleets/getCharacterFleetInfo';
-import { GetFleetInfoApi } from '../api/fleets/getFleetInfo';
-import { UpdateFleetApi } from '../api/fleets/updateFleet';
-import { GetFleetMembersApi } from '../api/fleets/getFleetMembers';
-import { PostFleetInvitationApi } from '../api/fleets/postFleetInvitation';
-import { DeleteFleetMemberApi } from '../api/fleets/deleteFleetMember';
-import { PutFleetMemberApi } from '../api/fleets/putFleetMember';
-import { DeleteFleetSquadApi } from '../api/fleets/deleteFleetSquad';
-import { PutFleetSquadApi } from '../api/fleets/putFleetSquad';
-import { GetFleetWingsApi } from '../api/fleets/getFleetWings';
-import { PostFleetWingApi } from '../api/fleets/postFleetWing';
-import { DeleteFleetWingApi } from '../api/fleets/deleteFleetWing';
-import { PutFleetWingApi } from '../api/fleets/putFleetWing';
-import { PostFleetSquadApi } from '../api/fleets/postFleetSquad';
+import { BaseEsiClient } from './BaseEsiClient';
+import { fleetEndpoints } from '../core/endpoints/fleetEndpoints';
+import {
+  CharacterFleetInfo,
+  FleetInfo,
+  FleetMember,
+  FleetWing,
+} from '../types/api-responses';
+import { PageResult } from '../core/pagination/AsyncPaginationIterator';
 
-export class FleetClient {
-    private getCharacterFleetInfoApi: GetCharacterFleetInfoApi;
-    private getFleetInformationApi: GetFleetInfoApi;
-    private updateFleetApi: UpdateFleetApi;
-    private getFleetMembersApi: GetFleetMembersApi;
-    private postFleetInvitationApi: PostFleetInvitationApi;
-    private deleteFleetMemberApi: DeleteFleetMemberApi;
-    private putFleetMemberApi: PutFleetMemberApi;
-    private deleteFleetSquadApi: DeleteFleetSquadApi;
-    private putFleetSquadApi: PutFleetSquadApi;
-    private getFleetWingsApi: GetFleetWingsApi;
-    private postFleetWingApi: PostFleetWingApi;
-    private deleteFleetWingApi: DeleteFleetWingApi;
-    private putFleetWingApi: PutFleetWingApi;
-    private postFleetSquadApi: PostFleetSquadApi;
+export class FleetClient extends BaseEsiClient<typeof fleetEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, fleetEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getCharacterFleetInfoApi = new GetCharacterFleetInfoApi(client);
-        this.getFleetInformationApi = new GetFleetInfoApi(client);
-        this.updateFleetApi = new UpdateFleetApi(client);
-        this.getFleetMembersApi = new GetFleetMembersApi(client);
-        this.postFleetInvitationApi = new PostFleetInvitationApi(client);
-        this.deleteFleetMemberApi = new DeleteFleetMemberApi(client);
-        this.putFleetMemberApi = new PutFleetMemberApi(client);
-        this.deleteFleetSquadApi = new DeleteFleetSquadApi(client);
-        this.putFleetSquadApi = new PutFleetSquadApi(client);
-        this.getFleetWingsApi = new GetFleetWingsApi(client);
-        this.postFleetWingApi = new PostFleetWingApi(client);
-        this.deleteFleetWingApi = new DeleteFleetWingApi(client);
-        this.putFleetWingApi = new PutFleetWingApi(client);
-        this.postFleetSquadApi = new PostFleetSquadApi(client);
-    }
+  /**
+   * Retrieves the fleet that a character is currently in, including their role and wing/squad assignment.
+   *
+   * @param characterId - The ID of the character
+   * @returns Fleet membership information for the character
+   * @requires Authentication
+   */
+  getCharacterFleetInfo(characterId: number): Promise<CharacterFleetInfo> {
+    return this.api.getCharacterFleetInfo(characterId);
+  }
 
-    async getCharacterFleetInfo(characterId: number): Promise<any> {
-        return await this.getCharacterFleetInfoApi.getCharacterFleetInfo(characterId);
-    }
+  /**
+   * Retrieves detailed information about a fleet, including its MOTD and free-move setting.
+   *
+   * @param fleetId - The ID of the fleet
+   * @returns Detailed fleet information
+   * @requires Authentication
+   */
+  getFleetInformation(fleetId: number): Promise<FleetInfo> {
+    return this.api.getFleetInfo(fleetId);
+  }
 
-    async getFleetInformation(fleetId: number): Promise<any> {
-        return await this.getFleetInformationApi.getFleetInfo(fleetId);
-    }
+  /**
+   * Updates fleet settings such as the MOTD and free-move toggle via PUT.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param body - The fleet settings to update
+   * @requires Authentication
+   */
+  updateFleet(fleetId: number, body: object): Promise<void> {
+    return this.api.updateFleet(fleetId, body) as Promise<void>;
+  }
 
-    async updateFleet(fleetId: number, body: object): Promise<any> {
-        return await this.updateFleetApi.updateFleet(fleetId, body);
-    }
+  /**
+   * Retrieves all current members of a fleet, including their ship types and roles.
+   *
+   * @param fleetId - The ID of the fleet
+   * @returns An array of fleet members
+   * @requires Authentication
+   */
+  getFleetMembers(fleetId: number): Promise<FleetMember[]> {
+    return this.api.getFleetMembers(fleetId);
+  }
 
-    async getFleetMembers(fleetId: number): Promise<any> {
-        return await this.getFleetMembersApi.getFleetMembers(fleetId);
-    }
+  /**
+   * Sends an invitation to a character to join a fleet via POST.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param body - The invitation details including the character to invite and their role
+   * @requires Authentication
+   */
+  createFleetInvitation(fleetId: number, body: object): Promise<void> {
+    return this.api.createFleetInvitation(fleetId, body) as Promise<void>;
+  }
 
-    async createFleetInvitation(fleetId: number, body: object): Promise<any> {
-        return await this.postFleetInvitationApi.createFleetInvitation(fleetId, body);
-    }
+  /**
+   * Kicks a member from a fleet.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param memberId - The character ID of the member to kick
+   * @requires Authentication
+   */
+  kickFleetMember(fleetId: number, memberId: number): Promise<void> {
+    return this.api.kickFleetMember(fleetId, memberId) as Promise<void>;
+  }
 
-    async kickFleetMember(fleetId: number, memberId: number): Promise<any> {
-        return await this.deleteFleetMemberApi.kickFleetMember(fleetId, memberId);
-    }
+  /**
+   * Moves a fleet member to a different wing, squad, or role via PUT.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param memberId - The character ID of the member to move
+   * @param body - The target role, wing, and/or squad assignment
+   * @requires Authentication
+   */
+  moveFleetMember(
+    fleetId: number,
+    memberId: number,
+    body: object,
+  ): Promise<void> {
+    return this.api.moveFleetMember(fleetId, memberId, body) as Promise<void>;
+  }
 
-    async moveFleetMember(fleetId: number, memberId: number, body: object): Promise<any> {
-        return await this.putFleetMemberApi.moveFleetMember(fleetId, memberId, body);
-    }
+  /**
+   * Deletes a squad from a fleet.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param squadId - The ID of the squad to delete
+   * @requires Authentication
+   */
+  deleteFleetSquad(fleetId: number, squadId: number): Promise<void> {
+    return this.api.deleteFleetSquad(fleetId, squadId) as Promise<void>;
+  }
 
-    async deleteFleetSquad(fleetId: number, squadId: number): Promise<any> {
-        return await this.deleteFleetSquadApi.deleteFleetSquad(fleetId, squadId);
+  /**
+   * Renames a squad within a fleet via PUT.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param squadId - The ID of the squad to rename
+   * @param name - The new name for the squad (max 10 characters)
+   * @requires Authentication
+   */
+  renameFleetSquad(
+    fleetId: number,
+    squadId: number,
+    name: string,
+  ): Promise<void> {
+    if (name.length > 10) {
+      return Promise.reject(
+        new Error(
+          `Fleet squad name "${name}" exceeds ESI maximum of 10 characters`,
+        ),
+      );
     }
+    return this.api.renameFleetSquad(fleetId, squadId, name) as Promise<void>;
+  }
 
-    async renameFleetSquad(fleetId: number, squadId: number, name: string): Promise<any> {
-        return await this.putFleetSquadApi.renameFleetSquad(fleetId, squadId, { name });
-    }
+  /**
+   * Retrieves all wings and their squads for a fleet.
+   *
+   * @param fleetId - The ID of the fleet
+   * @returns An array of fleet wings with their nested squads
+   * @requires Authentication
+   */
+  getFleetWings(fleetId: number): Promise<FleetWing[]> {
+    return this.api.getFleetWings(fleetId);
+  }
 
-    async getFleetWings(fleetId: number): Promise<any> {
-        return await this.getFleetWingsApi.getFleetWings(fleetId);
-    }
+  /**
+   * Creates a new wing in a fleet via POST.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param body - The wing creation details
+   * @returns The ID of the newly created wing
+   * @requires Authentication
+   */
+  createFleetWing(fleetId: number, body: object): Promise<{ wing_id: number }> {
+    return this.api.createFleetWing(fleetId, body) as Promise<{
+      wing_id: number;
+    }>;
+  }
 
-    async createFleetWing(fleetId: number, body: object): Promise<any> {
-        return await this.postFleetWingApi.createFleetWing(fleetId, body);
-    }
-    
-    async deleteFleetWing(fleetId: number, wingId: number): Promise<any> {
-        return await this.deleteFleetWingApi.deleteFleetWing(fleetId, wingId);
-    }
+  /**
+   * Deletes a wing from a fleet, along with all its squads.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param wingId - The ID of the wing to delete
+   * @requires Authentication
+   */
+  deleteFleetWing(fleetId: number, wingId: number): Promise<void> {
+    return this.api.deleteFleetWing(fleetId, wingId) as Promise<void>;
+  }
 
-    async renameFleetWing(fleetId: number, wingId: number, name: string): Promise<any> {
-        return await this.putFleetWingApi.renameFleetWing(fleetId, wingId, name);
+  /**
+   * Renames a wing within a fleet via PUT.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param wingId - The ID of the wing to rename
+   * @param name - The new name for the wing (max 10 characters)
+   * @requires Authentication
+   */
+  renameFleetWing(
+    fleetId: number,
+    wingId: number,
+    name: string,
+  ): Promise<void> {
+    if (name.length > 10) {
+      return Promise.reject(
+        new Error(
+          `Fleet wing name "${name}" exceeds ESI maximum of 10 characters`,
+        ),
+      );
     }
+    return this.api.renameFleetWing(fleetId, wingId, name) as Promise<void>;
+  }
 
-    async createFleetSquad(fleetId: number, wingId: number): Promise<any> {
-        return await this.postFleetSquadApi.createFleetSquad(fleetId, wingId);
-    }
+  /**
+   * Creates a new squad under a wing in a fleet via POST.
+   *
+   * @param fleetId - The ID of the fleet
+   * @param wingId - The ID of the wing to add the squad to
+   * @returns The ID of the newly created squad
+   * @requires Authentication
+   */
+  createFleetSquad(
+    fleetId: number,
+    wingId: number,
+  ): Promise<{ squad_id: number }> {
+    return this.api.createFleetSquad(fleetId, wingId) as Promise<{
+      squad_id: number;
+    }>;
+  }
+
+  fetchAllFleetMembers(
+    fleetId: number,
+    concurrency?: number,
+  ): Promise<FleetMember[]> {
+    return this.fetchAllEndpoint<FleetMember>(
+      'getFleetMembers',
+      [fleetId],
+      concurrency,
+    );
+  }
+
+  fetchAllFleetWings(
+    fleetId: number,
+    concurrency?: number,
+  ): Promise<FleetWing[]> {
+    return this.fetchAllEndpoint<FleetWing>(
+      'getFleetWings',
+      [fleetId],
+      concurrency,
+    );
+  }
+
+  streamFleetMembers(
+    fleetId: number,
+  ): AsyncGenerator<PageResult<FleetMember>, void, undefined> {
+    return this.streamEndpoint<FleetMember>('getFleetMembers', fleetId);
+  }
+
+  streamFleetWings(
+    fleetId: number,
+  ): AsyncGenerator<PageResult<FleetWing>, void, undefined> {
+    return this.streamEndpoint<FleetWing>('getFleetWings', fleetId);
+  }
 }

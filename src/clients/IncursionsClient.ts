@@ -1,14 +1,19 @@
 import { ApiClient } from '../core/ApiClient';
-import { IncursionsApi } from '../api/incursions/getIncursions';
+import { BaseEsiClient } from './BaseEsiClient';
+import { incursionEndpoints } from '../core/endpoints/incursionEndpoints';
+import { Incursion } from '../types/api-responses';
 
-export class IncursionsClient {
-    private incursionsApi: IncursionsApi;
+export class IncursionsClient extends BaseEsiClient<typeof incursionEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, incursionEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.incursionsApi = new IncursionsApi(client);
-    }
-
-    async getIncursions(): Promise<any> {
-        return await this.incursionsApi.getIncursions();
-    }
+  /**
+   * Retrieves all currently active incursions, including their staging systems and influence levels.
+   *
+   * @returns An array of active incursions
+   */
+  getIncursions(): Promise<Incursion[]> {
+    return this.api.getIncursions() as Promise<Incursion[]>;
+  }
 }

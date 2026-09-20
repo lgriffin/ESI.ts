@@ -1,42 +1,69 @@
 import { ApiClient } from '../core/ApiClient';
-import { PostAutopilotWaypointApi } from '../api/ui/postAutopilotWaypoint';
-import { PostOpenContractWindowApi } from '../api/ui/postOpenContractWindow';
-import { PostOpenInformationWindowApi } from '../api/ui/postOpenInformationWindow';
-import { PostOpenMarketDetailsWindowApi } from '../api/ui/postOpenMarketDetailsWindow';
-import { PostOpenNewMailWindowApi } from '../api/ui/postOpenNewMailWindow';
+import { BaseEsiClient } from './BaseEsiClient';
+import { uiEndpoints } from '../core/endpoints/uiEndpoints';
 
-export class UIClient {
-    private postAutopilotWaypointApi: PostAutopilotWaypointApi;
-    private postOpenContractWindowApi: PostOpenContractWindowApi;
-    private postOpenInformationWindowApi: PostOpenInformationWindowApi;
-    private postOpenMarketDetailsWindowApi: PostOpenMarketDetailsWindowApi;
-    private postOpenNewMailWindowApi: PostOpenNewMailWindowApi;
+export class UiClient extends BaseEsiClient<typeof uiEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, uiEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.postAutopilotWaypointApi = new PostAutopilotWaypointApi(client);
-        this.postOpenContractWindowApi = new PostOpenContractWindowApi(client);
-        this.postOpenInformationWindowApi = new PostOpenInformationWindowApi(client);
-        this.postOpenMarketDetailsWindowApi = new PostOpenMarketDetailsWindowApi(client);
-        this.postOpenNewMailWindowApi = new PostOpenNewMailWindowApi(client);
-    }
+  /**
+   * Sets a solar system as an autopilot waypoint in the EVE client.
+   *
+   * @param destinationId - The solar system, station, or structure ID to set as waypoint
+   * @param addToBeginning - Whether to add the waypoint to the beginning of the route
+   * @param clearOtherWaypoints - Whether to clear existing waypoints first
+   * @requires Authentication
+   */
+  setAutopilotWaypoint(
+    destinationId: number,
+    addToBeginning: boolean,
+    clearOtherWaypoints: boolean,
+  ): Promise<void> {
+    return this.api.setAutopilotWaypoint(
+      destinationId,
+      addToBeginning,
+      clearOtherWaypoints,
+    ) as Promise<void>;
+  }
 
-    async setAutopilotWaypoint(body: object): Promise<any> {
-        return await this.postAutopilotWaypointApi.setAutopilotWaypoint(body);
-    }
+  /**
+   * Opens the contract window for a specific contract in the EVE client.
+   *
+   * @param contractId - The contract ID to display
+   * @requires Authentication
+   */
+  openContractWindow(contractId: number): Promise<void> {
+    return this.api.openContractWindow(contractId) as Promise<void>;
+  }
 
-    async openContractWindow(body: object): Promise<any> {
-        return await this.postOpenContractWindowApi.openContractWindow(body);
-    }
+  /**
+   * Opens the information window for a specific entity in the EVE client.
+   *
+   * @param targetId - The character, corporation, alliance, or type ID to display
+   * @requires Authentication
+   */
+  openInformationWindow(targetId: number): Promise<void> {
+    return this.api.openInformationWindow(targetId) as Promise<void>;
+  }
 
-    async openInformationWindow(body: object): Promise<any> {
-        return await this.postOpenInformationWindowApi.openInformationWindow(body);
-    }
+  /**
+   * Opens the market details window for a specific type in the EVE client.
+   *
+   * @param typeId - The inventory type ID to display market details for
+   * @requires Authentication
+   */
+  openMarketDetailsWindow(typeId: number): Promise<void> {
+    return this.api.openMarketDetailsWindow(typeId) as Promise<void>;
+  }
 
-    async openMarketDetailsWindow(body: object): Promise<any> {
-        return await this.postOpenMarketDetailsWindowApi.openMarketDetailsWindow(body);
-    }
-
-    async openNewMailWindow(body: object): Promise<any> {
-        return await this.postOpenNewMailWindowApi.openNewMailWindow(body);
-    }
+  /**
+   * Opens the new mail composition window in the EVE client with pre-filled fields.
+   *
+   * @param body - The mail details including recipients (integer array), subject, and body text
+   * @requires Authentication
+   */
+  openNewMailWindow(body: object): Promise<void> {
+    return this.api.openNewMailWindow(body) as Promise<void>;
+  }
 }

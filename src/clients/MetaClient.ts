@@ -1,24 +1,103 @@
 import { ApiClient } from '../core/ApiClient';
-import { GetSwaggerJsonApi } from '../api/meta/getSwaggerJson';
-import { GetSwaggerYamlApi } from '../api/meta/getSwaggerYaml';
-import { IApiService } from '../core/IAPIBuilder';
+import { BaseEsiClient } from './BaseEsiClient';
+import { metaEndpoints } from '../core/endpoints/metaEndpoints';
+import { logInfo, logError } from '../core/logger/clientLog';
+import { USER_AGENT, COMPATIBILITY_DATE } from '../core/constants';
+import {
+  MetaChangelog,
+  MetaCompatibilityDates,
+  MetaName,
+  MetaStatus,
+} from '../types/api-responses';
 
-export class MetaClient implements IApiService {
-    readonly name = 'MetaClient';
-    readonly version = '2.0.0';
-    private getSwaggerJsonApi: GetSwaggerJsonApi;
-    private getSwaggerYamlApi: GetSwaggerYamlApi;
+export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
+  constructor(client: ApiClient) {
+    super(client, metaEndpoints);
+  }
 
-    constructor(client: ApiClient) {
-        this.getSwaggerJsonApi = new GetSwaggerJsonApi(client);
-        this.getSwaggerYamlApi = new GetSwaggerYamlApi(client);
+  /**
+   * Retrieves the ESI OpenAPI specification in JSON format.
+   *
+   * @returns The full ESI OpenAPI specification as a JSON object
+   */
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  getOpenApiJson(): Promise<Record<string, any>> {
+    return this.api.getOpenApiJson() as Promise<Record<string, any>>;
+  }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
+  /**
+   * Retrieves the ESI OpenAPI specification in YAML format.
+   *
+   * @returns The full ESI OpenAPI specification as a YAML string
+   */
+  async getOpenApiYaml(): Promise<string> {
+    const url = `${this._client.getLink()}/meta/openapi.yaml`;
+
+    logInfo(this._client, `Hitting endpoint: ${url}`, { method: 'GET' });
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          accept: 'text/yaml, application/x-yaml, text/plain',
+          'User-Agent': USER_AGENT,
+          'X-Compatibility-Date': COMPATIBILITY_DATE,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.text();
+    } catch (error) {
+      if (error instanceof Error) {
+        logError(this._client, `Error fetching YAML: ${error.message}`, {
+          url,
+        });
+        throw error;
+      } else {
+        logError(this._client, `Unexpected error: ${String(error)}`, { url });
+        throw new Error(String(error));
+      }
     }
+  }
 
-    async getSwaggerJson(): Promise<any> {
-        return await this.getSwaggerJsonApi.getSwaggerJson();
-    }
+  /**
+   * Retrieves the ESI changelog data.
+   *
+   * @returns The changelog keyed by compatibility date
+   */
+  getChangelog(): Promise<MetaChangelog> {
+    return this.api.getChangelog();
+  }
 
-    async getSwaggerYaml(): Promise<string> {
-        return await this.getSwaggerYamlApi.getSwaggerYaml();
-    }
+  /**
+   * Retrieves the list of ESI compatibility dates.
+   *
+   * @returns An object containing the list of compatibility dates
+   */
+  getCompatibilityDates(): Promise<MetaCompatibilityDates> {
+    return this.api.getCompatibilityDates();
+  }
+
+  /**
+   * Retrieves the ESI name.
+   *
+   * @returns An object containing the ESI name
+   */
+  getName(): Promise<MetaName> {
+    return this.api.getName();
+  }
+
+  /**
+   * Retrieves the health of each ESI route.
+   *
+   * @returns `{ routes }`, one entry per route with its method, path and
+   *   status ('OK', 'Degraded', 'Down', ...)
+   */
+  getStatus(): Promise<MetaStatus> {
+    return this.api.getStatus();
+  }
 }

@@ -1,0 +1,58 @@
+{
+  "endpoint": "industry.getIndustryFacilities",
+  "call": {
+    "client": "industry",
+    "method": "getIndustryFacilities",
+    "args": []
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 2321,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "industry/facilities",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"76c284b2b1096523c3509a8707ba06487b6711a39e665775882217be\"",
+        "expires": "Thu, 17 Sep 2026 14:51:34 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:51:34 GMT"
+      },
+      "body": [
+        {
+          "facility_id": 60006400,
+          "owner_id": 1000065,
+          "region_id": 10000043,
+          "solar_system_id": 30003488,
+          "type_id": 1928
+        },
+        {
+          "facility_id": 60014593,
+          "owner_id": 1000164,
+          "region_id": 10000052,
+          "solar_system_id": 30004099,
+          "type_id": 3865
+        },
+        {
+          "facility_id": 60006403,
+          "owner_id": 1000065,
+          "region_id": 10000043,
+          "solar_system_id": 30003490,
+          "type_id": 1928
+        }
+      ]
+    }
+  ]
+}

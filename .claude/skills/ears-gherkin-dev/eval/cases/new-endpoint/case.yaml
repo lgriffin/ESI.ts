@@ -1,0 +1,120 @@
+schema_version: '1.1'
+name: new-endpoint
+description: >
+  A newly wired ESI endpoint (MarketApi.getMarketTypes) has no EARS requirement.
+  The skill must add Rule(s) with one shall each, scenarios nested under them,
+  and step definitions that mock at the transport seam.
+tags: [new-endpoint, market]
+runs: 2
+expected_outcome: >
+  out/0023-market.feature keeps the existing Rules and adds Rule(s) for
+  getMarketTypes (type ID list, X-Pages pagination, error path);
+  out/market-types.steps.ts binds each new scenario and queues responses with
+  queueResponse.
+
+context:
+  add_dirs: [fixtures]
+
+execution:
+  prompt: |
+    We just wired the ESI endpoint GET /markets/{region_id}/types/ into the
+    Market client as `client.market.getMarketTypes(regionId)`. Nothing in the
+    BDD specification covers it yet.
+
+    Use the ears-gherkin-dev skill to specify it. The fixtures directory has
+    the endpoint definition excerpt, the OpenAPI excerpt, the current
+    0023-market.feature, and a note on the transport seam helpers.
+
+    This sandbox has no repository checkout, so you cannot run Jest or the
+    audit. Instead:
+    1. Write the complete updated feature file to out/0023-market.feature
+       (keep the existing content, add your Rule(s) and scenarios).
+    2. Write the step definitions for your new scenarios only (the test(...)
+       blocks to add to tests/bdd/step-definitions/core/market.steps.ts, with
+       the imports they need) to out/market-types.steps.ts.
+    3. In your final message, say which scenarios you expect to fail first
+       (RED) and why, and which command would confirm it.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Write]
+
+graders:
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: 'ears-gherkin-dev'
+    min: 1
+
+  - name: feature-has-rule
+    type: regex
+    target: { source: file, path: out/0023-market.feature }
+    pattern: '^\s*Rule:.*\bshall\b'
+    flags: m
+
+  - name: rule-single-shall
+    type: regex
+    target: { source: file, path: out/0023-market.feature }
+    pattern: '^\s*Rule:.*\bshall\b.*\bshall\b'
+    flags: mi
+    match: count:0
+
+  - name: no-feature-level-scenario
+    type: regex
+    target: { source: file, path: out/0023-market.feature }
+    pattern: '^Feature:(?:(?!^\s*Rule:)[\s\S])*^\s*Scenario'
+    flags: m
+    match: count:0
+
+  - name: new-rule-covers-types
+    type: regex
+    target: { source: file, path: out/0023-market.feature }
+    pattern: '^\s*Rule:.*\btype ids?\b'
+    flags: mi
+
+  - name: no-client-spy
+    type: regex
+    target: { source: file, path: out/market-types.steps.ts }
+    pattern: 'spyOn\(\s*(?:this\.)?client\b'
+    match: count:0
+
+  - name: transport-seam
+    type: regex
+    target: { source: file, path: out/market-types.steps.ts }
+    pattern: 'queueResponse\s*\('
+
+  - name: requirement-matches-contract
+    type: llm
+    focus: { source: file, path: out/0023-market.feature }
+    criteria: |
+      Judge only the Rules added for getMarketTypes. Pass when all hold:
+      - Each Rule title is one EARS requirement naming the Market client, with
+        the pattern that fits (When for the request, If ..., then for errors).
+      - Together they cover the contract in the OpenAPI excerpt: an array of
+        integer type IDs, results assembled across every page announced by
+        X-Pages, and an error status surfacing as a rejection (EsiError).
+      - No Rule claims behaviour its scenarios do not exercise, and no Rule
+        invents behaviour absent from the spec excerpt (for example sorting or
+        de-duplication).
+      - The prose under each Rule gives a reason, not a restatement.
+      Fail if any of these is missing.
+
+  - name: scenarios-exercise-seam
+    type: llm
+    focus: { source: file, path: out/market-types.steps.ts }
+    criteria: |
+      Pass when the step definitions would genuinely fail for a bug in the
+      Market client: responses are queued at the transport seam with
+      queueResponse (with an X-Pages header and one queued response per page
+      for the pagination case, and a non-2xx status for the error case), the
+      When step calls client.market.getMarketTypes, and the Then step asserts
+      on what the client returned or rejected with. Fail if any step stubs a
+      client method, asserts only on its own fixture, or builds URLs inline.
+
+  - name: red-first-reported
+    type: llm
+    criteria: |
+      Pass when the final message names which new scenarios are expected to
+      fail before implementation (RED) with a concrete reason, and gives the
+      Jest command (jest.unit.config.cjs with a testPathPatterns filter) plus
+      npm run spec:audit as the follow-up checks. Fail if it claims the tests
+      were run or skips the RED expectation.

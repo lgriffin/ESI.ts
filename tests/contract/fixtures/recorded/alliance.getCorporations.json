@@ -1,0 +1,36 @@
+{
+  "endpoint": "alliance.getCorporations",
+  "call": {
+    "client": "alliance",
+    "method": "getCorporations",
+    "args": [434243723]
+  },
+  "recordedAt": "2026-09-17",
+  "compatibilityDate": "2026-05-19",
+  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "specCacheSeconds": 3600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 5,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "alliances/434243723/corporations/",
+      "status": 200,
+      "headers": {
+        "cache-control": "public",
+        "content-type": "application/json; charset=UTF-8",
+        "etag": "\"56a32a744b8cf32537ac6ea7a44b00f535f6a3766148913423f8bdad\"",
+        "expires": "Thu, 17 Sep 2026 14:57:34 GMT",
+        "last-modified": "Thu, 17 Sep 2026 13:57:34 GMT"
+      },
+      "body": [98099645, 98356193, 98462566]
+    }
+  ]
+}
