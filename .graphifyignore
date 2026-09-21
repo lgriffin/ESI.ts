@@ -1,0 +1,25 @@
+# Generated and vendored content: keep it out of the knowledge graph.
+
+# Generated OKF bundle (one concept per endpoint and schema)
+okf/
+
+# Generated source
+src/types/generated/
+src/core/endpoints/esi-*.generated.ts
+
+# Build/test artifacts
+dist/
+coverage/
+reports/
+docs-site/public/
+node_modules/
+
+# API report (generated)
+etc/esi.ts.api.md
+
+# Beads tracking data
+.beads/
+
+# Minified bundles
+*.min.js
+*.min.mjs
