@@ -11,7 +11,9 @@
  *    unreadable head file: fail closed. The base predating the file is the
  *    only case with nothing to compare.
  * 3. Plans the run from `git diff <base>`: changed src/ files inside the unit
- *    config's `mutate` scope. None: prints why, exits 0.
+ *    config's `mutate` scope, plus changed tests/ files (which never mutate
+ *    anything directly but do tell the summary which directories' floors its
+ *    new tests will lift). None in src/: prints why, exits 0.
  * 4. Runs Stryker with --incremental and --mutate narrowed to those files, plus
  *    any file in the same directories that the restored nightly incremental
  *    report (reports/mutation/stryker-incremental.json) does not cover. With
@@ -155,19 +157,38 @@ function runStryker(mutate: string[], extra: string[]): void {
 function changedAndTracked(base: string): {
   changedFiles: string[];
   trackedFiles: string[];
+  /** Changed files under tests/; null when the diff could not be read. */
+  testFiles: string[] | null;
 } {
-  return {
-    changedFiles: git([
+  const changedFiles = git([
+    'diff',
+    '--name-only',
+    '--diff-filter=d',
+    base,
+    '--',
+    'src/',
+  ])
+    .split('\n')
+    .filter(Boolean);
+  let testFiles: string[] | null = null;
+  try {
+    testFiles = git([
       'diff',
       '--name-only',
       '--diff-filter=d',
       base,
       '--',
-      'src/',
+      'tests/',
     ])
       .split('\n')
-      .filter(Boolean),
+      .filter(Boolean);
+  } catch {
+    testFiles = null;
+  }
+  return {
+    changedFiles,
     trackedFiles: git(['ls-files', 'src/']).split('\n').filter(Boolean),
+    testFiles,
   };
 }
 
@@ -221,8 +242,10 @@ function main(): number {
   }
 
   const baseline = readBaseline();
+  const changed = changedAndTracked(base);
   const plan = planPrRun({
-    ...changedAndTracked(base),
+    changedFiles: changed.changedFiles,
+    trackedFiles: changed.trackedFiles,
     mutatePatterns: mutatePatterns(),
     baselineSources: baseline.sources,
     readSource: (f) => readFileSync(path.join(ROOT, f), 'utf8'),
@@ -261,6 +284,7 @@ function main(): number {
       undetected: undetectedMutants(report, plan.changed),
       failures,
       baseline: `${baseline.note} Wall time ${minutes} min.`,
+      testFiles: changed.testFiles,
     }),
   );
   return failures.length > 0 ? EXIT_RATCHET : 0;
