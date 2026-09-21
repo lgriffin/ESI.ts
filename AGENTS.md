@@ -61,6 +61,18 @@ Every change is classified by [`guides/SEMVER.md`](guides/SEMVER.md) before it i
 - **Pull request titles are conventional commits.** A squash merge of several commits uses the title as the commit release-please reads, so it carries `!` whenever any commit in the pull request is breaking. Prefer a merge commit when a pull request mixes `fix:`/`feat:` with other types.
 - **These rules live in CLAUDE.md and AGENTS.md both.** `tests/tdd/scripts/agent-docs.test.ts` fails if the two copies drift, so an agent cannot read a stale one and ship a break under `fix:`. Edit both, or neither.
 
+## Knowledge Graph
+
+For architecture questions (which modules import the logger, how a request flows to `fetch()`, which tests reach a given source file), use the graphify knowledge graph first when `graphify-out/` exists:
+
+```bash
+graphify query "<question>" --graph graphify-out/graph.json
+graphify path "<symbolA>" "<symbolB>" --graph graphify-out/graph.json --undirected
+graphify god-nodes --graph graphify-out/graph.json
+```
+
+The graph is built in a clean worktree; regenerate with `graphify extract <worktree> --code-only` and `graphify cluster-only <worktree> --no-label`. The commit the graph was built from is recorded in `graphify-out/GRAPH_REPORT.md` — check it is current before trusting the answer.
+
 ## Reviewer Checklist
 
 Every pull request, whether a human or an agent wrote it, is reviewed against

@@ -98,6 +98,9 @@ docs-site/public/api/
 # Generated OKF knowledge bundle
 okf/
 
+# Graphify knowledge graph (large; only GRAPH_REPORT.md and README are committed)
+graphify-out/
+
 # Local planning docs
 ideas.md
 
