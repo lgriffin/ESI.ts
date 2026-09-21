@@ -16,6 +16,7 @@ import {
   CANARY_CHECKS,
   CheckResult,
   ReleaseCanaryError,
+  assetIdentitySpec,
   canaryProblems,
   isVerified,
   renderCanaryReport,
@@ -46,6 +47,31 @@ describe('versionFrom', () => {
     'refuses %p rather than verifying some other release',
     (input) => {
       expect(() => versionFrom(input)).toThrow(ReleaseCanaryError);
+    },
+  );
+});
+
+describe('assetIdentitySpec', () => {
+  it('anchors the full workflow identity for the given tag', () => {
+    const { identity, issuer } = assetIdentitySpec('lgriffin/ESI.ts', '10.2.0');
+    expect(identity).toBe(
+      'https://github.com/lgriffin/ESI.ts/.github/workflows/release.yml@refs/tags/v10.2.0',
+    );
+    expect(issuer).toBe('https://token.actions.githubusercontent.com');
+  });
+
+  it('does not match a bundle minted for a different tag', () => {
+    const { identity } = assetIdentitySpec('lgriffin/ESI.ts', '10.2.0');
+    const wrong = assetIdentitySpec('lgriffin/ESI.ts', '10.1.0').identity;
+    expect(identity).not.toBe(wrong);
+  });
+
+  it.each(['lgriffin/ESI.ts/extra', 'lgriffin', 'ESI.ts', 'a b/c', ''])(
+    'refuses %p as a repository',
+    (repo) => {
+      expect(() => assetIdentitySpec(repo, '10.2.0')).toThrow(
+        ReleaseCanaryError,
+      );
     },
   );
 });

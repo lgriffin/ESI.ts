@@ -2,8 +2,9 @@
  * npm run release:canary -- --version 10.1.0
  *
  * Tier P. Installs a published version from the registry into an empty
- * directory and establishes that it works: see scripts/release-canary-core.ts
- * for what the four checks are and why each one is there.
+ * directory and establishes that it works, then verifies the GitHub release
+ * assets it came with: see scripts/release-canary-core.ts for the five checks
+ * and why each one is there.
  *
  * Nothing from this repository is on the consumer's disk, and nothing from the
  * shared npm cache either. The point is to test what the registry serves on
@@ -18,7 +19,7 @@
  *   --wait <sec>    how long to wait for the registry to serve the version
  */
 import { spawnSync } from 'child_process';
-import { mkdtempSync, writeFileSync, appendFileSync } from 'fs';
+import { mkdtempSync, writeFileSync, appendFileSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
 
@@ -30,6 +31,7 @@ import {
 import {
   CheckResult,
   ReleaseCanaryError,
+  assetIdentitySpec,
   canaryProblems,
   isVerified,
   renderCanaryReport,
@@ -114,6 +116,150 @@ function waitForRegistry(version: string, waitSeconds: number): CheckResult {
   }
 }
 
+/**
+ * The `assets` check (esi-23g.67): the GitHub release assets that
+ * `release.yml` signed and listed in `checksums.txt`.
+ *
+ * It does the four things a consumer would do with them, and the one thing
+ * only this canary can — run them end-to-end against a published release:
+ *
+ *   1. download them with `gh release download`;
+ *   2. `sha256sum --check --strict checksums.txt` — the bytes match what was
+ *      recorded; --strict so a file missing from the checksum file is a
+ *      failure rather than a silent pass;
+ *   3. `cosign verify-blob --bundle <asset>.sigstore.json` for the tarball
+ *      and the SBOM, anchored on the workflow identity for this tag — the
+ *      bytes are what `release.yml` signed, by the OIDC identity it was
+ *      allowed to mint;
+ *   4. the SBOM names this version — a SBOM for a different release proves
+ *      nothing about the bytes on this tag.
+ *
+ * It runs after the other four: if npm itself is serving a broken package,
+ * that is the finding, and a missing release page on top of it only muddies
+ * the issue that gets opened. And if the release is not there — the canary
+ * was dispatched manually, or the assets were never uploaded — the check
+ * reports that as its detail, which is the true state of the release.
+ */
+function verifyReleaseAssets(
+  version: string,
+  repository: string,
+  dir: string,
+): CheckResult {
+  const { identity, issuer } = assetIdentitySpec(repository, version);
+  const base = `lgriffin-esi.ts-${version}`;
+  const assets = [`${base}.tgz`, `${base}.cdx.json`];
+  const bundles = [`${base}.tgz.sigstore.json`, `${base}.cdx.json.sigstore.json`];
+
+  // 1. Download. `--clobber` so a rerun over the same directory is clean.
+  const download = run(
+    'gh',
+    [
+      'release',
+      'download',
+      `v${version}`,
+      '--repo',
+      repository,
+      '--pattern',
+      '*.tgz',
+      '--pattern',
+      '*.cdx.json',
+      '--pattern',
+      '*.sigstore.json',
+      '--pattern',
+      'checksums.txt',
+      '--clobber',
+      '-D',
+      dir,
+    ],
+    dir,
+  );
+  if (!download.ok) {
+    return {
+      check: 'assets',
+      ok: false,
+      detail: `cannot download the v${version} assets: ${firstLine(download.output, 'no output')}`,
+    };
+  }
+
+  // 2. Checksums, over every file in the release that checksums.txt lists.
+  const sums = run('sha256sum', ['--check', '--strict', 'checksums.txt'], dir);
+  if (!sums.ok) {
+    return {
+      check: 'assets',
+      ok: false,
+      detail: `checksums do not verify: ${firstLine(sums.output, 'no output')}`,
+    };
+  }
+
+  // 3. The cosign bundles for the tarball and the SBOM, anchored on the
+  // workflow identity for this tag. `cosign` exits non-zero and says why.
+  for (const asset of assets) {
+    const bundle = `${asset}.sigstore.json`;
+    if (!bundles.includes(bundle)) {
+      // Unreachable: bundles is derived from assets. Guard anyway, because a
+      // canary that verifies a bundle it was not told to verify is a canary
+      // that passes by accident.
+      return {
+        check: 'assets',
+        ok: false,
+        detail: `${bundle}: no bundle expected for this asset`,
+      };
+    }
+    const verify = run(
+      'cosign',
+      [
+        'verify-blob',
+        asset,
+        '--bundle',
+        bundle,
+        '--certificate-identity',
+        identity,
+        '--certificate-oidc-issuer',
+        issuer,
+      ],
+      dir,
+    );
+    if (!verify.ok) {
+      return {
+        check: 'assets',
+        ok: false,
+        detail: `cosign does not verify ${asset}: ${firstLine(verify.output, 'no output')}`,
+      };
+    }
+  }
+
+  // 4. The SBOM names the version the canary was given.
+  const sbom = `${base}.cdx.json`;
+  let doc: unknown;
+  try {
+    doc = JSON.parse(readFileSync(path.join(dir, sbom), 'utf8'));
+  } catch (err) {
+    return {
+      check: 'assets',
+      ok: false,
+      detail: `SBOM ${sbom} is not valid JSON: ${(err as Error).message}`,
+    };
+  }
+  const componentVersion = (doc as Record<string, unknown> | undefined)
+    ?.metadata as
+    | { component?: { version?: unknown } }
+    | undefined;
+  const versionField = componentVersion?.component?.version;
+  if (versionField !== version) {
+    return {
+      check: 'assets',
+      ok: false,
+      detail: `SBOM names ${JSON.stringify(versionField ?? 'no version')} for metadata.component.version, expected ${version}`,
+    };
+  }
+
+  return {
+    check: 'assets',
+    ok: true,
+    detail: `checksums verify; cosign verifies ${assets.join(' and ')} under ${identity}; SBOM names ${version}`,
+  };
+}
+
 function main(): void {
   const version = versionFrom(
     flag('version') ??
@@ -123,12 +269,23 @@ function main(): void {
   );
   const waitSeconds = Number(flag('wait') ?? 300);
   const skipLive = process.argv.includes('--skip-live');
+  // GITHUB_REPOSITORY is set by every GitHub Actions workflow; the canary
+  // reads it rather than hardcoding the owner, so a fork's release page is
+  // the one it verifies.
+  const repository = process.env.GITHUB_REPOSITORY ?? 'lgriffin/ESI.ts';
 
   console.log(`Canary: ${PACKAGE_NAME}@${version}`);
 
   const results: CheckResult[] = [];
   const registry = waitForRegistry(version, waitSeconds);
   results.push(registry);
+
+  // The assets check is independent of the npm side: it downloads from the
+  // GitHub release, not the registry. But a broken npm package and a broken
+  // release page on the same run would open one issue with two findings in
+  // it, so the assets check runs after the other four and reports its own
+  // detail if it fails.
+  const assetsDir = mkdtempSync(path.join(tmpdir(), 'esi-canary-assets-'));
 
   const consumer = mkdtempSync(path.join(tmpdir(), 'esi-canary-'));
   // Its own npm cache, so nothing already on this machine can satisfy the
@@ -147,7 +304,15 @@ function main(): void {
         detail: 'the registry did not serve the version',
       });
     }
+    // The assets check still runs: the release page is a different surface
+    // from the registry, and a release that is missing or broken is a
+    // finding in its own right.
+    results.push(verifyReleaseAssets(version, repository, assetsDir));
   } else {
+    // The assets check is independent of npm: it downloads from the GitHub
+    // release, not the registry. It runs here too — the happy path must not
+    // report a false "assets: did not report" failure.
+    results.push(verifyReleaseAssets(version, repository, assetsDir));
     writeFileSync(
       path.join(consumer, 'package.json'),
       `${JSON.stringify({ name: 'esi-canary', private: true, version: '0.0.0' }, null, 2)}\n`,
