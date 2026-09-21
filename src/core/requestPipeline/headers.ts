@@ -33,6 +33,9 @@ export function buildRequestHeaders(
     Accept: 'application/json',
     'Accept-Encoding': 'gzip, deflate, br',
     'User-Agent': USER_AGENT,
+    // The configured clientId is the User-Agent identifier (README.md); ESI
+    // reads the caller from X-User-Agent.
+    'X-User-Agent': client.getClientId(),
     'X-Compatibility-Date': client.getCompatibilityDate() ?? COMPATIBILITY_DATE,
   };
 

@@ -69,6 +69,40 @@ describe('requestPipeline/headers', () => {
       expect(headers['X-Compatibility-Date']).toBeDefined();
     });
 
+    it('should send the configured clientId as the X-User-Agent header', () => {
+      const headers = buildRequestHeaders(
+        client,
+        `${BASE_URL}/v1/status/`,
+        'GET',
+        false,
+        false,
+        undefined,
+        nullCache,
+      ) as Record<string, string>;
+
+      // README.md documents `clientId` as the User-Agent identifier, the one
+      // handle ESI sees for this caller, so it must reach ESI on every call.
+      expect(headers['X-User-Agent']).toBe('test');
+    });
+
+    it('should carry the default clientId in X-User-Agent when none is configured', () => {
+      // EsiClient resolves config.clientId || ESI_CLIENT_ID || 'esi-client'
+      // before the ApiClient is built; the pipeline must pass that value
+      // through untouched.
+      const defaultClient = new ApiClient('esi-client', BASE_URL);
+      const headers = buildRequestHeaders(
+        defaultClient,
+        `${BASE_URL}/v1/status/`,
+        'GET',
+        false,
+        false,
+        undefined,
+        nullCache,
+      ) as Record<string, string>;
+
+      expect(headers['X-User-Agent']).toBe('esi-client');
+    });
+
     it('should use custom compatibility date when set on client', () => {
       client.setCompatibilityDate('2025-01-15');
       const headers = buildRequestHeaders(
@@ -154,6 +188,22 @@ describe('requestPipeline/headers', () => {
       ) as Record<string, string>;
 
       expect(headers['Authorization']).toBe('Bearer my-token');
+    });
+
+    it('should keep X-User-Agent alongside the Authorization header', () => {
+      client.setAccessToken('my-token');
+      const headers = buildRequestHeaders(
+        client,
+        `${BASE_URL}/v1/characters/123/`,
+        'GET',
+        true,
+        false,
+        undefined,
+        nullCache,
+      ) as Record<string, string>;
+
+      expect(headers['Authorization']).toBe('Bearer my-token');
+      expect(headers['X-User-Agent']).toBe('test');
     });
 
     it('should include Content-Type when body is provided', () => {
