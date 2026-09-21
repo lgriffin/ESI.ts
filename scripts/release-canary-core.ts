@@ -1,5 +1,5 @@
 /**
- * Tier P: did the thing npm actually serves work?
+ * Tier P: did what got published actually work?
  *
  * Everything before publish checks what CI built. None of it checks what the
  * registry hands a consumer twenty minutes later, and those are not the same
@@ -9,12 +9,23 @@
  * installs it.
  *
  * So the canary installs the published version into an empty directory, with
- * no repository on disk to fall back to, and asks four questions of it:
+ * no repository on disk to fall back to, and asks five questions of it:
  *
  *   registry     the exact version is served, and its tarball resolves
  *   signatures   npm's registry signature and provenance attestation verify
  *   subpaths     every documented sub-path loads under both require and import
  *   live         one real call to public ESI returns data
+ *   assets       the GitHub release assets (tarball, SBOM, bundles) check
+ *                against checksums.txt, verify under cosign's keyless
+ *                identity, and the SBOM names this version
+ *
+ * The `assets` check exists for esi-23g.67: the tarball and SBOM were signed
+ * and listed in `checksums.txt` by `release.yml`, and the steps were
+ * documented in `guides/RELEASE.md`, but nothing ever ran those steps
+ * end-to-end against a published release — on 10.2.0 the checksum and the
+ * certificate identity were checked by hand, and `cosign verify-blob` was
+ * never run against a real bundle. A consumer who downloads the assets now
+ * hits whatever this check hit.
  *
  * A consumer who runs `npm install` and one query exercises all four. If any
  * fails, that consumer is broken right now, which is why a failure opens a
@@ -23,12 +34,13 @@
  * Pure functions with no I/O, so the unit suite can import them.
  */
 
-/** The four things the canary establishes, in the order it establishes them. */
+/** The five things the canary establishes, in the order it establishes them. */
 export const CANARY_CHECKS = [
   'registry',
   'signatures',
   'subpaths',
   'live',
+  'assets',
 ] as const;
 
 export type CanaryCheck = (typeof CANARY_CHECKS)[number];
@@ -63,6 +75,28 @@ export function versionFrom(ref: string): string {
     );
   }
   return match[1];
+}
+
+/**
+ * The identity `release.yml` is expected to verify under. Keyless cosign
+ * carries the workflow, not a key, in the certificate: `.github/workflows`
+ * plus the tag it ran on. So the canary can anchor `--certificate-identity`
+ * on a full match rather than a loose prefix — a bundle minted for a
+ * different tag or workflow does not match, and the check fails on it.
+ */
+export function assetIdentitySpec(
+  repository: string,
+  version: string,
+): { identity: string; issuer: string } {
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) {
+    throw new ReleaseCanaryError(
+      `Cannot read a repository as "owner/name" from "${repository}".`,
+    );
+  }
+  return {
+    identity: `https://github.com/${repository}/.github/workflows/release.yml@refs/tags/v${version}`,
+    issuer: 'https://token.actions.githubusercontent.com',
+  };
 }
 
 /**
@@ -119,7 +153,7 @@ export function renderCanaryReport(
     `## Post-publish canary: ${packageName}@${version}`,
     '',
     problems.length === 0
-      ? 'Verified. The published package installs, verifies, loads every documented sub-path and answers a live call.'
+      ? 'Verified. The published package installs, verifies, loads every documented sub-path, answers a live call, and its release assets check out end to end.'
       : `**Not verified.** ${problems.length} problem${problems.length === 1 ? '' : 's'} below. Consumers installing this version hit the same thing.`,
     '',
     '| Check | Result | Detail |',
