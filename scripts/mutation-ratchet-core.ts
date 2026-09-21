@@ -435,6 +435,12 @@ export interface PrPlan {
    * never computed from a subset of its files.
    */
   mutate: string[];
+  /**
+   * Files in the touched directories whose results come from the restored
+   * nightly report rather than this run: in scope, unmutated, and vouched by
+   * a baseline whose source still matches. Empty when nothing was restored.
+   */
+  nightly: string[];
 }
 
 function sameSource(a: string, b: string): boolean {
@@ -466,6 +472,7 @@ export function planPrRun({
       outOfScope,
       directories: [],
       mutate: [],
+      nightly: [],
     };
   }
 
@@ -482,6 +489,8 @@ export function planPrRun({
     return recorded === undefined || !sameSource(recorded, readSource(f));
   });
   const mutate = [...new Set([...changed, ...unvouched])].sort();
+  const fresh = new Set(mutate);
+  const nightly = siblings.filter((f) => !fresh.has(f));
 
   return {
     skip: false,
@@ -490,6 +499,7 @@ export function planPrRun({
     outOfScope,
     directories,
     mutate,
+    nightly,
   };
 }
 
@@ -614,6 +624,11 @@ export function renderPrSummary(args: {
   undetected: UndetectedMutant[];
   failures: string[];
   baseline: string;
+  /**
+   * Files this pull request changed under tests/; empty when the pull request
+   * does not touch the tests, and null when the summary cannot tell.
+   */
+  testFiles?: readonly string[] | null;
   maxMutants?: number;
 }): string {
   const { plan, scores, thresholds, files, undetected, failures } = args;
@@ -624,6 +639,27 @@ export function renderPrSummary(args: {
     `Baseline: ${args.baseline}`,
     '',
     renderTable(scores, thresholds, 'Mutation score'),
+  ];
+  for (const { directory, detected, valid, score } of scores) {
+    const reused = plan.nightly.filter((f) => directoryOf(f) === directory);
+    if (reused.length > 0) {
+      const total = reused.length + 1;
+      lines.push(
+        '',
+        `> \`${directory}\` is partly from the nightly (${reused.length} of ${total} file${total > 1 ? 's' : ''} ${reused.length > 1 ? 'were' : 'was'} reused from the restored report, not measured by this run${reused.length > 1 ? 's' : ''}): \`${reused.join('`, `')}\`. The per-file table below only lists the files this run measured.`,
+      );
+    }
+  }
+  const testFiles = args.testFiles;
+  if (testFiles !== undefined && testFiles !== null && testFiles.length > 0) {
+    for (const d of plan.directories) {
+      lines.push(
+        '',
+        `> \`${d}\`: the changed tests' effect on the unchanged files' mutants will show in the next nightly and its ratchet; here only the changed files are re-scored.`,
+      );
+    }
+  }
+  lines.push(
     '',
     '| Changed file | Score | Detected / valid | Survived | No coverage |',
     '| :-- | --: | --: | --: | --: |',
@@ -631,7 +667,7 @@ export function renderPrSummary(args: {
       (f) =>
         `| \`${f.file}\` | ${f.score === null ? 'n/a' : `${f.score}%`} | ${f.detected}/${f.valid} | ${f.survived} | ${f.noCoverage} |`,
     ),
-  ];
+  );
   if (plan.outOfScope.length > 0) {
     lines.push(
       '',

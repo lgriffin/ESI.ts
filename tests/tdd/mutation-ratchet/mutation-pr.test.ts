@@ -171,6 +171,47 @@ describe('pull request mutation plan', () => {
       'src/core/cache/cacheKey.ts',
     ]);
   });
+
+  it('lists the in-scope siblings a baseline vouches for as nightly, not in mutate', () => {
+    const baselineSources = new Map([
+      ['src/core/cache/ETagCacheManager.ts', 'old'],
+      ['src/core/cache/cacheKey.ts', 'same'],
+    ]);
+    const result = plan({
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+      baselineSources,
+      readSource: () => 'same',
+    });
+    expect(result.mutate).toEqual(['src/core/cache/ETagCacheManager.ts']);
+    expect(result.nightly).toEqual(['src/core/cache/cacheKey.ts']);
+  });
+
+  it('counts a sibling not vouched by the baseline as fresh, not nightly', () => {
+    const baselineSources = new Map([
+      ['src/core/cache/ETagCacheManager.ts', 'old'],
+    ]);
+    const result = plan({
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+      baselineSources,
+      readSource: () => 'fresh source',
+    });
+    expect(result.mutate).toEqual([
+      'src/core/cache/ETagCacheManager.ts',
+      'src/core/cache/cacheKey.ts',
+    ]);
+    expect(result.nightly).toEqual([]);
+  });
+
+  it('has no nightly part when nothing was restored', () => {
+    const result = plan({
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+    });
+    expect(result.mutate).toEqual([
+      'src/core/cache/ETagCacheManager.ts',
+      'src/core/cache/cacheKey.ts',
+    ]);
+    expect(result.nightly).toEqual([]);
+  });
 });
 
 describe('pull request ratchet gate', () => {
@@ -254,6 +295,118 @@ describe('pull request ratchet gate', () => {
       '| `src/core/cache/ETagCacheManager.ts:2` | Survived | ConditionalExpression | `false` |',
     );
     expect(text).toContain('**Ratchet failures**');
+  });
+
+  it('splits a directory score between fresh and nightly results, and names the test-only case', () => {
+    const touched: PrPlan = {
+      skip: false,
+      reason: '',
+      changed: ['src/core/cache/ETagCacheManager.ts'],
+      outOfScope: [],
+      directories: ['src/core/cache'],
+      mutate: ['src/core/cache/ETagCacheManager.ts'],
+      nightly: ['src/core/cache/cacheKey.ts'],
+    };
+    const run = report({
+      'src/core/cache/ETagCacheManager.ts': ['Killed'],
+      'src/core/cache/cacheKey.ts': ['Survived', 'Survived'],
+    });
+    const { scores, failures } = gatePrRun(run, touched, {
+      'src/core/cache': 40,
+    });
+    const text = renderPrSummary({
+      plan: touched,
+      scores,
+      thresholds: { 'src/core/cache': 40 },
+      files: scoreFiles(run, touched.changed),
+      undetected: undetectedMutants(run, touched.changed),
+      failures,
+      baseline:
+        'nightly incremental report restored (1 files); unchanged mutants reuse its results.',
+      testFiles: ['tests/tdd/cache/cacheKey.test.ts'],
+    });
+    expect(scores).toEqual([
+      { directory: 'src/core/cache', detected: 1, valid: 3, score: 33.3 },
+    ]);
+    // The directory score mixes the fresh file with the nightly's survivor, and
+    // the summary must say so: partly from the nightly, which files are reused.
+    expect(text).toContain(
+      '`src/core/cache` is partly from the nightly (1 of 2 files was reused from the restored report, not measured by this run)',
+    );
+    expect(text).toContain('`src/core/cache/cacheKey.ts`');
+    // The changed test targets the directory's source, so its effect on the
+    // unchanged file's mutants is deferred to the next nightly.
+    expect(text).toContain('will show in the next nightly');
+  });
+
+  it('defers the test-only improvement to the next nightly without blaming the directory', () => {
+    const touched: PrPlan = {
+      skip: false,
+      reason: '',
+      changed: ['src/core/cache/ETagCacheManager.ts'],
+      outOfScope: [],
+      directories: ['src/core/cache'],
+      mutate: ['src/core/cache/ETagCacheManager.ts'],
+      nightly: [],
+    };
+    const run = report({
+      'src/core/cache/ETagCacheManager.ts': ['Killed'],
+      'src/core/cache/cacheKey.ts': ['Killed'],
+    });
+    const { scores, failures } = gatePrRun(run, touched, {
+      'src/core/cache': 100,
+    });
+    const text = renderPrSummary({
+      plan: touched,
+      scores,
+      thresholds: { 'src/core/cache': 100 },
+      files: scoreFiles(run, touched.changed),
+      undetected: [],
+      failures,
+      baseline: 'test baseline',
+      testFiles: ['tests/bdd/steps/logger.feature'],
+    });
+    expect(failures).toEqual([]);
+    // No nightly part was reused, so no "partly from the nightly" claim.
+    expect(text).not.toContain('is partly from the nightly');
+    // The tests-only change's effect on the unchanged file's mutants is
+    // deferred to the next nightly, and named after the directory.
+    expect(text).toContain('`src/core/cache`: the changed tests');
+    expect(text).toContain('next nightly');
+  });
+
+  it('says nothing about nightly reuse when the plan has none', () => {
+    const touched: PrPlan = {
+      skip: false,
+      reason: '',
+      changed: ['src/core/cache/ETagCacheManager.ts'],
+      outOfScope: [],
+      directories: ['src/core/cache'],
+      mutate: [
+        'src/core/cache/ETagCacheManager.ts',
+        'src/core/cache/cacheKey.ts',
+      ],
+      nightly: [],
+    };
+    const run = report({
+      'src/core/cache/ETagCacheManager.ts': ['Killed'],
+      'src/core/cache/cacheKey.ts': ['Killed'],
+    });
+    const { scores, failures } = gatePrRun(run, touched, {
+      'src/core/cache': 100,
+    });
+    const text = renderPrSummary({
+      plan: touched,
+      scores,
+      thresholds: { 'src/core/cache': 100 },
+      files: scoreFiles(run, touched.changed),
+      undetected: [],
+      failures,
+      baseline:
+        'no nightly incremental report at `reports/mutation/stryker-incremental.json`.',
+    });
+    expect(text).not.toContain('is partly from the nightly');
+    expect(text).not.toContain('next nightly');
   });
 
   it('escapes a replacement that would otherwise break the summary table', () => {
