@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.2.2](https://github.com/lgriffin/ESI.ts/compare/v10.2.1...v10.2.2) (2026-09-23)
+
+
+### Fixed
+
+* **deps:** list zod only in dependencies so --omit=dev keeps it ([305adef](https://github.com/lgriffin/ESI.ts/commit/305adefeb9e6d4ffcb052ad52323f442ea72ed92))
+* **deps:** list zod only in dependencies so --omit=dev keeps it ([e9b80c1](https://github.com/lgriffin/ESI.ts/commit/e9b80c1342ce846fb1f351c171d4e2a8c7bd0155)), closes [#384](https://github.com/lgriffin/ESI.ts/issues/384)
+* **mutation-pr:** say when a directory score is partly the nightly's ([e9cfd58](https://github.com/lgriffin/ESI.ts/commit/e9cfd58bdd736c17fe9c7b0331ff9660e0dd61bc))
+* **mutation-pr:** say when a directory score is partly the nightly's ([9ade805](https://github.com/lgriffin/ESI.ts/commit/9ade805e31e11e5e8f0639f28192b315d18dbd3d))
+
+
+### Changed
+
+* **deps:** bump the minor-and-patch group across 1 directory with 6 updates ([fa55041](https://github.com/lgriffin/ESI.ts/commit/fa55041b278d3622d15c56d05df0ad14c19e6d05))
+* **deps:** bump the minor-and-patch group across 1 directory with 6 updates ([f65a8c1](https://github.com/lgriffin/ESI.ts/commit/f65a8c176049f645161b2d0a4161f6f33e2f3190))
+
+
+### Documentation
+
+* add Marp presentation on repo history and evolution ([1de7f6a](https://github.com/lgriffin/ESI.ts/commit/1de7f6a128b4f022a428accbcef7cdf8b2d21522))
+* add Marp presentation on repo history and evolution ([f4047f8](https://github.com/lgriffin/ESI.ts/commit/f4047f8e2ee14d15b4d515dc79cf190362cf9607))
+* commit knowledge graph report (graphify) ([e377009](https://github.com/lgriffin/ESI.ts/commit/e3770098add384079f81bb36797df78b39d723fa))
+* integrate graphify knowledge graph for architecture queries ([3d7879e](https://github.com/lgriffin/ESI.ts/commit/3d7879e430b3bce5ae3e0284149379c1d81a33e4))
+* integrate graphify knowledge graph for architecture queries ([3260793](https://github.com/lgriffin/ESI.ts/commit/3260793918178405444cb9e40d2d5ff880c55714))
+
+
+### Testing
+
+* **canary:** verify release assets — SBOM, cosign bundles, checksums ([3227b40](https://github.com/lgriffin/ESI.ts/commit/3227b40e771d946884daa48fec8fc43eca883124))
+* **canary:** verify release assets — SBOM, cosign bundles, checksums ([1180b1a](https://github.com/lgriffin/ESI.ts/commit/1180b1a559ebf82955b18ecf4cbddc69f68c66d2))
+* **contract:** re-record ESI payloads whose shape changed ([60662dc](https://github.com/lgriffin/ESI.ts/commit/60662dcf029d5e7bfc67e2666257e0a9bfb664a6))
+* **contract:** recorded ESI payloads changed shape ([60e72ac](https://github.com/lgriffin/ESI.ts/commit/60e72acf3a4c9c225b54e093ae51490cd2123f24))
+
 ## [10.2.1](https://github.com/lgriffin/ESI.ts/compare/v10.2.0...v10.2.1) (2026-09-19)
 
 
