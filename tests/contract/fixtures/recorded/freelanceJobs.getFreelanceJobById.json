@@ -3,9 +3,9 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["115ab093-5347-48ea-a850-757ed574d8ea"]
+    "args": ["c45a5895-725b-415b-b9ed-79c54dbb9ccf"]
   },
-  "recordedAt": "2026-09-20",
+  "recordedAt": "2026-09-25",
   "compatibilityDate": "2026-05-19",
   "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
   "specCacheSeconds": 60,
@@ -15,91 +15,88 @@
       "page": 1,
       "at": "$.details.description",
       "kind": "string",
-      "original": 993,
+      "original": 872,
       "kept": 400
-    },
-    {
-      "page": 1,
-      "at": "$.access_and_visibility.broadcast_locations",
-      "kind": "array",
-      "original": 13,
-      "kept": 3
     }
   ],
   "pages": [
     {
-      "url": "freelance-jobs/115ab093-5347-48ea-a850-757ed574d8ea",
+      "url": "freelance-jobs/c45a5895-725b-415b-b9ed-79c54dbb9ccf",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sun, 20 Sep 2026 11:46:31 GMT",
-        "last-modified": "Sun, 20 Sep 2026 11:44:34 GMT"
+        "expires": "Fri, 25 Sep 2026 12:08:15 GMT",
+        "last-modified": "Fri, 25 Sep 2026 12:04:45 GMT"
       },
       "body": {
-        "id": "115ab093-5347-48ea-a850-757ed574d8ea",
-        "name": "New Player Support Program by \"Tenebris Academy\"",
+        "id": "c45a5895-725b-415b-b9ed-79c54dbb9ccf",
+        "name": "Jetunba Do'Bara - Proteins Freezer Reserve",
         "state": "Active",
-        "last_modified": "2026-09-20T11:44:34.729Z",
+        "last_modified": "2026-09-25T12:04:45.698Z",
         "progress": {
-          "current": 15463,
-          "desired": 190000
+          "current": 0,
+          "desired": 150000
         },
         "reward": {
-          "initial": 760000000,
-          "remaining": 698148000
+          "initial": 190800000,
+          "remaining": 190800000
         },
         "details": {
-          "description": "<font size=\"14\" color=\"#bfffffff\"></font><font size=\"14\" color=\"#ffd98d00\"><a href=\"showinfo:2//98841752\">Tenebris Academy</a></font><font size=\"14\" color=\"#bfffffff\"> is recruiting! We are open to new and returning pilots looking to learn EVE, make ISK, and fly with an active community. The Academy is the training and staging corporation for Tenebris Initiative, guiding pilots toward our main Wor",
-          "career": "Enforcer",
-          "created": "2026-09-15T18:51:14.23Z",
-          "expires": "2026-10-15T18:45:00Z",
+          "description": "<font size=\"14\" color=\"#bfffffff\">Deliver 150,000 units of Proteins to </font><font size=\"14\" color=\"#ffffe400\"><loc><a href=\"http://www.evepandora.com/epics/jetunba-dobara-the-hearth-reborn-1\">Jetunba Do'Bara</a></loc></font><font size=\"14\" color=\"#bfffffff\"> at 1,272 ISK per unit. These supplies will fill the Hearth's freezer areas, establishing a substantial long-term food reserve for its liber",
+          "career": "Unspecified",
+          "created": "2026-09-25T12:04:45.092Z",
+          "expires": "2026-12-25T12:00:00Z",
           "creator": {
             "character": {
-              "id": 2119013113,
-              "name": "Hubert Ariot"
+              "id": 151515810,
+              "name": "DeT Resprox"
             },
             "corporation": {
-              "id": 98815087,
-              "name": "Tenebris Initiative"
+              "id": 705444291,
+              "name": "T.R.I.A.D"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "location": {
-              "matcher": {
-                "values": []
+            "corporation_item_delivery": {
+              "corporation_item_delivery": {
+                "item_type": {
+                  "values": [
+                    {
+                      "value_type": "item_type",
+                      "values": ["2395"]
+                    }
+                  ]
+                },
+                "corporation_office_location": {
+                  "values": [
+                    {
+                      "value_type": "structure",
+                      "values": ["1055410522949"]
+                    }
+                  ]
+                }
               }
             }
           },
-          "method": "KillNPC"
+          "method": "DeliverItem"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 4000,
+          "reward_per_contribution": 1272,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30100035,
-              "name": "Forte"
-            },
-            {
-              "id": 30100045,
-              "name": "Mettle"
-            },
-            {
-              "id": 30100046,
-              "name": "Venerate"
+              "id": 30002513,
+              "name": "Dammalin"
             }
-          ],
-          "restrictions": {
-            "maximum_age": 90
-          }
+          ]
         }
       }
     }
