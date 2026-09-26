@@ -63,6 +63,7 @@ export const postCharactersCharacterIdContactsMeta: OperationMeta = {
   scopes: ['esi-characters.write_contacts.v1'],
   pagination: 'none',
   deprecated: true,
+  headers: [],
 };
 
 /**
@@ -93,6 +94,7 @@ export const deleteCharactersCharacterIdContactsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [],
 };
 
 /**
@@ -117,6 +119,7 @@ export const getCorporationsCorporationIdProjectsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_projects.v1'],
   pagination: 'cursor',
   deprecated: false,
+  headers: [],
 };
 
 /**
@@ -141,6 +144,7 @@ export const getMarketsRegionIdOrdersMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: ['X-Compatibility-Date'],
 };
 
 /**
@@ -165,6 +169,7 @@ export const getStatusMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: ['X-Compatibility-Date'],
 };
 
 /**

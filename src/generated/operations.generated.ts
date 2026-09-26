@@ -7503,6 +7503,13 @@ export const getAlliancesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7526,6 +7533,13 @@ export const getAlliancesAllianceIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7550,6 +7564,13 @@ export const getAlliancesAllianceIdContactsMeta: OperationMeta = {
   scopes: ['esi-alliances.read_contacts.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7574,6 +7595,13 @@ export const getAlliancesAllianceIdContactsLabelsMeta: OperationMeta = {
   scopes: ['esi-alliances.read_contacts.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7598,6 +7626,13 @@ export const getAlliancesAllianceIdCorporationsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7622,6 +7657,13 @@ export const getAlliancesAllianceIdIconsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7646,6 +7688,13 @@ export const postCharactersAffiliationMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7670,6 +7719,13 @@ export const getCharactersCharacterIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7694,6 +7750,13 @@ export const getCharactersCharacterIdAgentsResearchMeta: OperationMeta = {
   scopes: ['esi-characters.read_agents_research.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7718,6 +7781,13 @@ export const getCharactersCharacterIdAssetsMeta: OperationMeta = {
   scopes: ['esi-assets.read_assets.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7742,6 +7812,13 @@ export const postCharactersCharacterIdAssetsLocationsMeta: OperationMeta = {
   scopes: ['esi-assets.read_assets.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7767,6 +7844,13 @@ export const postCharactersCharacterIdAssetsNamesMeta: OperationMeta = {
   scopes: ['esi-assets.read_assets.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7792,6 +7876,13 @@ export const getCharactersCharacterIdAttributesMeta: OperationMeta = {
   scopes: ['esi-skills.read_skills.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7816,6 +7907,13 @@ export const getCharactersCharacterIdBlueprintsMeta: OperationMeta = {
   scopes: ['esi-characters.read_blueprints.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7840,6 +7938,13 @@ export const getCharactersCharacterIdCalendarMeta: OperationMeta = {
   scopes: ['esi-calendar.read_calendar_events.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7867,6 +7972,13 @@ export const getCharactersCharacterIdCalendarEventIdMeta: OperationMeta = {
   scopes: ['esi-calendar.read_calendar_events.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7894,6 +8006,13 @@ export const putCharactersCharacterIdCalendarEventIdMeta: OperationMeta = {
   scopes: ['esi-calendar.respond_calendar_events.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7921,6 +8040,13 @@ export const getCharactersCharacterIdCalendarEventIdAttendeesMeta: OperationMeta
     scopes: ['esi-calendar.read_calendar_events.v1'],
     pagination: 'none',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -7948,6 +8074,13 @@ export const getCharactersCharacterIdClonesMeta: OperationMeta = {
   scopes: ['esi-clones.read_clones.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7972,6 +8105,13 @@ export const getCharactersCharacterIdContactsMeta: OperationMeta = {
   scopes: ['esi-characters.read_contacts.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -7996,6 +8136,13 @@ export const postCharactersCharacterIdContactsMeta: OperationMeta = {
   scopes: ['esi-characters.write_contacts.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8029,6 +8176,13 @@ export const putCharactersCharacterIdContactsMeta: OperationMeta = {
   scopes: ['esi-characters.write_contacts.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8059,6 +8213,13 @@ export const deleteCharactersCharacterIdContactsMeta: OperationMeta = {
   scopes: ['esi-characters.write_contacts.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8083,6 +8244,13 @@ export const getCharactersCharacterIdContactsLabelsMeta: OperationMeta = {
   scopes: ['esi-characters.read_contacts.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8107,6 +8275,13 @@ export const getCharactersCharacterIdContractsMeta: OperationMeta = {
   scopes: ['esi-contracts.read_character_contracts.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8132,6 +8307,13 @@ export const getCharactersCharacterIdContractsContractIdBidsMeta: OperationMeta 
     scopes: ['esi-contracts.read_character_contracts.v1'],
     pagination: 'none',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -8163,6 +8345,13 @@ export const getCharactersCharacterIdContractsContractIdItemsMeta: OperationMeta
     scopes: ['esi-contracts.read_character_contracts.v1'],
     pagination: 'none',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -8193,6 +8382,13 @@ export const getCharactersCharacterIdCorporationhistoryMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8217,6 +8413,13 @@ export const postCharactersCharacterIdCspaMeta: OperationMeta = {
   scopes: ['esi-characters.read_contacts.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8242,6 +8445,13 @@ export const getCharactersCharacterIdFatigueMeta: OperationMeta = {
   scopes: ['esi-characters.read_fatigue.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8266,6 +8476,13 @@ export const getCharactersCharacterIdFittingsMeta: OperationMeta = {
   scopes: ['esi-fittings.read_fittings.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8290,6 +8507,13 @@ export const postCharactersCharacterIdFittingsMeta: OperationMeta = {
   scopes: ['esi-fittings.write_fittings.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8315,6 +8539,13 @@ export const deleteCharactersCharacterIdFittingsFittingIdMeta: OperationMeta = {
   scopes: ['esi-fittings.write_fittings.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8345,6 +8576,13 @@ export const getCharactersCharacterIdFleetMeta: OperationMeta = {
   scopes: ['esi-fleets.read_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8369,6 +8607,13 @@ export const getCharactersFreelanceJobsListingMeta: OperationMeta = {
   scopes: ['esi-characters.read_freelance_jobs.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8393,6 +8638,13 @@ export const getCharactersFreelanceJobsParticipationMeta: OperationMeta = {
   scopes: ['esi-characters.read_freelance_jobs.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8420,6 +8672,13 @@ export const getCharactersCharacterIdFwStatsMeta: OperationMeta = {
   scopes: ['esi-characters.read_fw_stats.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8444,6 +8703,13 @@ export const getCharactersCharacterIdImplantsMeta: OperationMeta = {
   scopes: ['esi-clones.read_implants.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8468,6 +8734,13 @@ export const getCharactersCharacterIdIndustryJobsMeta: OperationMeta = {
   scopes: ['esi-industry.read_character_jobs.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8495,6 +8768,13 @@ export const getCharactersCharacterIdKillmailsRecentMeta: OperationMeta = {
   scopes: ['esi-killmails.read_killmails.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8519,6 +8799,13 @@ export const getCharactersCharacterIdLocationMeta: OperationMeta = {
   scopes: ['esi-location.read_location.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8543,6 +8830,13 @@ export const getCharactersCharacterIdLoyaltyPointsMeta: OperationMeta = {
   scopes: ['esi-characters.read_loyalty.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8567,6 +8861,13 @@ export const getCharactersCharacterIdMailMeta: OperationMeta = {
   scopes: ['esi-mail.read_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8594,6 +8895,13 @@ export const postCharactersCharacterIdMailMeta: OperationMeta = {
   scopes: ['esi-mail.send_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8619,6 +8927,13 @@ export const getCharactersCharacterIdMailLabelsMeta: OperationMeta = {
   scopes: ['esi-mail.read_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8643,6 +8958,13 @@ export const postCharactersCharacterIdMailLabelsMeta: OperationMeta = {
   scopes: ['esi-mail.organize_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8668,6 +8990,13 @@ export const deleteCharactersCharacterIdMailLabelsLabelIdMeta: OperationMeta = {
   scopes: ['esi-mail.organize_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8695,6 +9024,13 @@ export const getCharactersCharacterIdMailListsMeta: OperationMeta = {
   scopes: ['esi-mail.read_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8719,6 +9055,13 @@ export const getCharactersCharacterIdMailMailIdMeta: OperationMeta = {
   scopes: ['esi-mail.read_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8746,6 +9089,13 @@ export const putCharactersCharacterIdMailMailIdMeta: OperationMeta = {
   scopes: ['esi-mail.organize_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8772,6 +9122,13 @@ export const deleteCharactersCharacterIdMailMailIdMeta: OperationMeta = {
   scopes: ['esi-mail.organize_mail.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8796,6 +9153,13 @@ export const getCharactersCharacterIdMedalsMeta: OperationMeta = {
   scopes: ['esi-characters.read_medals.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8820,6 +9184,13 @@ export const getCharactersCharacterIdMiningMeta: OperationMeta = {
   scopes: ['esi-industry.read_character_mining.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8844,6 +9215,13 @@ export const getCharactersCharacterIdNotificationsMeta: OperationMeta = {
   scopes: ['esi-characters.read_notifications.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8869,6 +9247,13 @@ export const getCharactersCharacterIdNotificationsContactsMeta: OperationMeta =
     scopes: ['esi-characters.read_notifications.v1'],
     pagination: 'none',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -8893,6 +9278,13 @@ export const getCharactersCharacterIdOnlineMeta: OperationMeta = {
   scopes: ['esi-location.read_online.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8917,6 +9309,13 @@ export const getCharactersCharacterIdOrdersMeta: OperationMeta = {
   scopes: ['esi-markets.read_character_orders.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8941,6 +9340,13 @@ export const getCharactersCharacterIdOrdersHistoryMeta: OperationMeta = {
   scopes: ['esi-markets.read_character_orders.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8965,6 +9371,13 @@ export const getCharactersCharacterIdPlanetsMeta: OperationMeta = {
   scopes: ['esi-planets.manage_planets.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -8989,6 +9402,13 @@ export const getCharactersCharacterIdPlanetsPlanetIdMeta: OperationMeta = {
   scopes: ['esi-planets.manage_planets.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9016,6 +9436,13 @@ export const getCharactersCharacterIdPortraitMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9040,6 +9467,13 @@ export const getCharactersCharacterIdRolesMeta: OperationMeta = {
   scopes: ['esi-characters.read_corporation_roles.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9064,6 +9498,13 @@ export const getCharactersCharacterIdSearchMeta: OperationMeta = {
   scopes: ['esi-search.search_structures.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9095,6 +9536,13 @@ export const getCharactersCharacterIdShipMeta: OperationMeta = {
   scopes: ['esi-location.read_ship_type.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9119,6 +9567,13 @@ export const getCharactersCharacterIdSkillqueueMeta: OperationMeta = {
   scopes: ['esi-skills.read_skillqueue.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9143,6 +9598,13 @@ export const getCharactersCharacterIdSkillsMeta: OperationMeta = {
   scopes: ['esi-skills.read_skills.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9167,6 +9629,13 @@ export const getCharactersCharacterIdStandingsMeta: OperationMeta = {
   scopes: ['esi-characters.read_standings.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9191,6 +9660,13 @@ export const getCharactersCharacterIdTitlesMeta: OperationMeta = {
   scopes: ['esi-characters.read_titles.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9215,6 +9691,13 @@ export const getCharactersCharacterIdWalletMeta: OperationMeta = {
   scopes: ['esi-wallet.read_character_wallet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9239,6 +9722,13 @@ export const getCharactersCharacterIdWalletJournalMeta: OperationMeta = {
   scopes: ['esi-wallet.read_character_wallet.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9263,6 +9753,13 @@ export const getCharactersCharacterIdWalletTransactionsMeta: OperationMeta = {
   scopes: ['esi-wallet.read_character_wallet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9290,6 +9787,13 @@ export const getContractsPublicBidsContractIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9314,6 +9818,13 @@ export const getContractsPublicItemsContractIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9338,6 +9849,13 @@ export const getContractsPublicRegionIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9362,6 +9880,13 @@ export const getCorporationCorporationIdMiningExtractionsMeta: OperationMeta = {
   scopes: ['esi-industry.read_corporation_mining.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9388,6 +9913,13 @@ export const getCorporationCorporationIdMiningObserversMeta: OperationMeta = {
   scopes: ['esi-industry.read_corporation_mining.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9413,6 +9945,13 @@ export const getCorporationCorporationIdMiningObserversObserverIdMeta: Operation
     scopes: ['esi-industry.read_corporation_mining.v1'],
     pagination: 'page',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -9442,6 +9981,13 @@ export const getCorporationsNpccorpsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9465,6 +10011,13 @@ export const getCorporationsCorporationIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9489,6 +10042,13 @@ export const getCorporationsCorporationIdAlliancehistoryMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9513,6 +10073,13 @@ export const getCorporationsCorporationIdAssetsMeta: OperationMeta = {
   scopes: ['esi-assets.read_corporation_assets.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9537,6 +10104,13 @@ export const postCorporationsCorporationIdAssetsLocationsMeta: OperationMeta = {
   scopes: ['esi-assets.read_corporation_assets.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9562,6 +10136,13 @@ export const postCorporationsCorporationIdAssetsNamesMeta: OperationMeta = {
   scopes: ['esi-assets.read_corporation_assets.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9587,6 +10168,13 @@ export const getCorporationsCorporationIdBlueprintsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_blueprints.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9611,6 +10199,13 @@ export const getCorporationsCorporationIdContactsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_contacts.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9635,6 +10230,13 @@ export const getCorporationsCorporationIdContactsLabelsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_contacts.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9659,6 +10261,13 @@ export const getCorporationsCorporationIdContainersLogsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_container_logs.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9683,6 +10292,13 @@ export const getCorporationsCorporationIdContractsMeta: OperationMeta = {
   scopes: ['esi-contracts.read_corporation_contracts.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9708,6 +10324,13 @@ export const getCorporationsCorporationIdContractsContractIdBidsMeta: OperationM
     scopes: ['esi-contracts.read_corporation_contracts.v1'],
     pagination: 'page',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -9738,6 +10361,13 @@ export const getCorporationsCorporationIdContractsContractIdItemsMeta: Operation
     scopes: ['esi-contracts.read_corporation_contracts.v1'],
     pagination: 'none',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -9768,6 +10398,13 @@ export const getCorporationsCorporationIdCustomsOfficesMeta: OperationMeta = {
   scopes: ['esi-planets.read_customs_offices.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9792,6 +10429,13 @@ export const getCorporationsCorporationIdDivisionsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_divisions.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9816,6 +10460,13 @@ export const getCorporationsCorporationIdFacilitiesMeta: OperationMeta = {
   scopes: ['esi-corporations.read_facilities.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9840,6 +10491,13 @@ export const getCorporationsFreelanceJobsListingMeta: OperationMeta = {
   scopes: ['esi-corporations.read_freelance_jobs.v1'],
   pagination: 'cursor',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9871,6 +10529,13 @@ export const getCorporationsFreelanceJobsParticipantsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_freelance_jobs.v1'],
   pagination: 'cursor',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9902,6 +10567,13 @@ export const getCorporationsCorporationIdFwStatsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_fw_stats.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9926,6 +10598,13 @@ export const getCorporationsCorporationIdIconsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9950,6 +10629,13 @@ export const getCorporationsCorporationIdIndustryJobsMeta: OperationMeta = {
   scopes: ['esi-industry.read_corporation_jobs.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -9977,6 +10663,13 @@ export const getCorporationsCorporationIdKillmailsRecentMeta: OperationMeta = {
   scopes: ['esi-killmails.read_corporation_killmails.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10003,6 +10696,13 @@ export const getCorporationsCorporationIdMedalsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_medals.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10027,6 +10727,13 @@ export const getCorporationsCorporationIdMedalsIssuedMeta: OperationMeta = {
   scopes: ['esi-corporations.read_medals.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10051,6 +10758,13 @@ export const getCorporationsCorporationIdMembersMeta: OperationMeta = {
   scopes: ['esi-corporations.read_corporation_membership.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10075,6 +10789,13 @@ export const getCorporationsCorporationIdMembersLimitMeta: OperationMeta = {
   scopes: ['esi-corporations.track_members.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10099,6 +10820,13 @@ export const getCorporationsCorporationIdMembersTitlesMeta: OperationMeta = {
   scopes: ['esi-corporations.read_titles.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10123,6 +10851,13 @@ export const getCorporationsCorporationIdMembertrackingMeta: OperationMeta = {
   scopes: ['esi-corporations.track_members.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10147,6 +10882,13 @@ export const getCorporationsCorporationIdOrdersMeta: OperationMeta = {
   scopes: ['esi-markets.read_corporation_orders.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10171,6 +10913,13 @@ export const getCorporationsCorporationIdOrdersHistoryMeta: OperationMeta = {
   scopes: ['esi-markets.read_corporation_orders.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10195,6 +10944,13 @@ export const getCorporationsProjectsListingMeta: OperationMeta = {
   scopes: ['esi-corporations.read_projects.v1'],
   pagination: 'cursor',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10227,6 +10983,13 @@ export const getCorporationsProjectsDetailMeta: OperationMeta = {
   scopes: ['esi-corporations.read_projects.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10257,6 +11020,13 @@ export const getCorporationsProjectsContributionMeta: OperationMeta = {
   scopes: ['esi-corporations.read_projects.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10288,6 +11058,13 @@ export const getCorporationsProjectsContributorsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_projects.v1'],
   pagination: 'cursor',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10322,6 +11099,13 @@ export const getCorporationsCorporationIdRolesMeta: OperationMeta = {
   scopes: ['esi-corporations.read_corporation_membership.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10346,6 +11130,13 @@ export const getCorporationsCorporationIdRolesHistoryMeta: OperationMeta = {
   scopes: ['esi-corporations.read_corporation_membership.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10370,6 +11161,13 @@ export const getCorporationsCorporationIdShareholdersMeta: OperationMeta = {
   scopes: ['esi-wallet.read_corporation_wallets.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10394,6 +11192,13 @@ export const getCorporationsCorporationIdStandingsMeta: OperationMeta = {
   scopes: ['esi-corporations.read_standings.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10418,6 +11223,13 @@ export const getCorporationsCorporationIdStarbasesMeta: OperationMeta = {
   scopes: ['esi-corporations.read_starbases.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10443,6 +11255,13 @@ export const getCorporationsCorporationIdStarbasesStarbaseIdMeta: OperationMeta 
     scopes: ['esi-corporations.read_starbases.v1'],
     pagination: 'none',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -10473,6 +11292,13 @@ export const getCorporationsCorporationIdStructuresMeta: OperationMeta = {
   scopes: ['esi-corporations.read_structures.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10497,6 +11323,13 @@ export const getCorporationsCorporationIdTitlesMeta: OperationMeta = {
   scopes: ['esi-corporations.read_titles.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10521,6 +11354,13 @@ export const getCorporationsCorporationIdWalletsMeta: OperationMeta = {
   scopes: ['esi-wallet.read_corporation_wallets.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10546,6 +11386,13 @@ export const getCorporationsCorporationIdWalletsDivisionJournalMeta: OperationMe
     scopes: ['esi-wallet.read_corporation_wallets.v1'],
     pagination: 'page',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -10573,6 +11420,13 @@ export const getCorporationsCorporationIdWalletsDivisionTransactionsMeta: Operat
     scopes: ['esi-wallet.read_corporation_wallets.v1'],
     pagination: 'none',
     deprecated: false,
+    headers: [
+      'Accept-Language',
+      'If-None-Match',
+      'X-Compatibility-Date',
+      'X-Tenant',
+      'If-Modified-Since',
+    ],
   };
 
 /**
@@ -10603,6 +11457,13 @@ export const getDogmaAttributesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10626,6 +11487,13 @@ export const getDogmaAttributesAttributeIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10650,6 +11518,13 @@ export const getDogmaDynamicItemsTypeIdItemIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10674,6 +11549,13 @@ export const getDogmaEffectsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10697,6 +11579,13 @@ export const getDogmaEffectsEffectIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10721,6 +11610,13 @@ export const getFleetsFleetIdMeta: OperationMeta = {
   scopes: ['esi-fleets.read_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10745,6 +11641,13 @@ export const putFleetsFleetIdMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10771,6 +11674,13 @@ export const getFleetsFleetIdMembersMeta: OperationMeta = {
   scopes: ['esi-fleets.read_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10795,6 +11705,13 @@ export const postFleetsFleetIdMembersMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10821,6 +11738,13 @@ export const putFleetsFleetIdMembersMemberIdMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10847,6 +11771,13 @@ export const deleteFleetsFleetIdMembersMemberIdMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10871,6 +11802,13 @@ export const putFleetsFleetIdSquadsSquadIdMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10897,6 +11835,13 @@ export const deleteFleetsFleetIdSquadsSquadIdMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10921,6 +11866,13 @@ export const getFleetsFleetIdWingsMeta: OperationMeta = {
   scopes: ['esi-fleets.read_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10945,6 +11897,13 @@ export const postFleetsFleetIdWingsMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10969,6 +11928,13 @@ export const putFleetsFleetIdWingsWingIdMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -10995,6 +11961,13 @@ export const deleteFleetsFleetIdWingsWingIdMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11019,6 +11992,13 @@ export const postFleetsFleetIdWingsWingIdSquadsMeta: OperationMeta = {
   scopes: ['esi-fleets.write_fleet.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11043,6 +12023,13 @@ export const getFreelanceJobsListingMeta: OperationMeta = {
   scopes: [],
   pagination: 'cursor',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11072,6 +12059,13 @@ export const getFreelanceJobsDetailMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11096,6 +12090,13 @@ export const getFwLeaderboardsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11119,6 +12120,13 @@ export const getFwLeaderboardsCharactersMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11142,6 +12150,13 @@ export const getFwLeaderboardsCorporationsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11165,6 +12180,13 @@ export const getFwStatsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11183,6 +12205,13 @@ export const getFwSystemsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11206,6 +12235,13 @@ export const getFwWarsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11224,6 +12260,13 @@ export const getIncursionsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11247,6 +12290,13 @@ export const getIndustryFacilitiesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11270,6 +12320,13 @@ export const getIndustrySystemsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11293,6 +12350,13 @@ export const getInsurancePricesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11316,6 +12380,13 @@ export const getKillmailsKillmailIdKillmailHashMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11346,6 +12417,13 @@ export const getLoyaltyStoresCorporationIdOffersMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11370,6 +12448,13 @@ export const getMarketsGroupsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11393,6 +12478,13 @@ export const getMarketsGroupsMarketGroupIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11417,6 +12509,13 @@ export const getMarketsPricesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11440,6 +12539,13 @@ export const getMarketsStructuresStructureIdMeta: OperationMeta = {
   scopes: ['esi-markets.structure_markets.v1'],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11464,6 +12570,13 @@ export const getMarketsRegionIdHistoryMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11491,6 +12604,13 @@ export const getMarketsRegionIdOrdersMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11518,6 +12638,13 @@ export const getMarketsRegionIdTypesMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11542,6 +12669,13 @@ export const getMetaChangelogMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11565,6 +12699,13 @@ export const getMetaCompatibilityDatesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11588,6 +12729,13 @@ export const getMetaStatusMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11611,6 +12759,13 @@ export const postRouteMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11640,6 +12795,13 @@ export const getSovereigntyCampaignsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11663,6 +12825,13 @@ export const getSovereigntyMapMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11686,6 +12855,13 @@ export const getSovereigntyStructuresMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11709,6 +12885,13 @@ export const getStatusMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11727,6 +12910,13 @@ export const postUiAutopilotWaypointMeta: OperationMeta = {
   scopes: ['esi-ui.write_waypoint.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11755,6 +12945,13 @@ export const postUiOpenwindowContractMeta: OperationMeta = {
   scopes: ['esi-ui.open_window.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11779,6 +12976,13 @@ export const postUiOpenwindowInformationMeta: OperationMeta = {
   scopes: ['esi-ui.open_window.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11803,6 +13007,13 @@ export const postUiOpenwindowMarketdetailsMeta: OperationMeta = {
   scopes: ['esi-ui.open_window.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11827,6 +13038,13 @@ export const postUiOpenwindowNewmailMeta: OperationMeta = {
   scopes: ['esi-ui.open_window.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11852,6 +13070,13 @@ export const getUniverseAncestriesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11875,6 +13100,13 @@ export const getUniverseAsteroidBeltsAsteroidBeltIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11899,6 +13131,13 @@ export const getUniverseBloodlinesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11922,6 +13161,13 @@ export const getUniverseCategoriesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11945,6 +13191,13 @@ export const getUniverseCategoriesCategoryIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11969,6 +13222,13 @@ export const getUniverseConstellationsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -11992,6 +13252,13 @@ export const getUniverseConstellationsConstellationIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12016,6 +13283,13 @@ export const getUniverseFactionsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12039,6 +13313,13 @@ export const getUniverseGraphicsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12062,6 +13343,13 @@ export const getUniverseGraphicsGraphicIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12086,6 +13374,13 @@ export const getUniverseGroupsMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12109,6 +13404,13 @@ export const getUniverseGroupsGroupIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12133,6 +13435,13 @@ export const postUniverseIdsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12158,6 +13467,13 @@ export const getUniverseMoonsMoonIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12182,6 +13498,13 @@ export const postUniverseNamesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12207,6 +13530,13 @@ export const getUniversePlanetsPlanetIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12231,6 +13561,13 @@ export const getUniverseRacesMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12254,6 +13591,13 @@ export const getUniverseRegionsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12277,6 +13621,13 @@ export const getUniverseRegionsRegionIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12301,6 +13652,13 @@ export const getUniverseSchematicsSchematicIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12325,6 +13683,13 @@ export const getUniverseStargatesStargateIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12349,6 +13714,13 @@ export const getUniverseStarsStarIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12373,6 +13745,13 @@ export const getUniverseStationsStationIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12397,6 +13776,13 @@ export const getUniverseStructuresMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12421,6 +13807,13 @@ export const getUniverseStructuresStructureIdMeta: OperationMeta = {
   scopes: ['esi-universe.read_structures.v1'],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12445,6 +13838,13 @@ export const getUniverseSystemJumpsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12468,6 +13868,13 @@ export const getUniverseSystemKillsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12491,6 +13898,13 @@ export const getUniverseSystemsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12514,6 +13928,13 @@ export const getUniverseSystemsSystemIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12538,6 +13959,13 @@ export const getUniverseTypesMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12561,6 +13989,13 @@ export const getUniverseTypesTypeIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12585,6 +14020,13 @@ export const getWarsMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12609,6 +14051,13 @@ export const getWarsWarIdMeta: OperationMeta = {
   scopes: [],
   pagination: 'none',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**
@@ -12633,6 +14082,13 @@ export const getWarsWarIdKillmailsMeta: OperationMeta = {
   scopes: [],
   pagination: 'page',
   deprecated: false,
+  headers: [
+    'Accept-Language',
+    'If-None-Match',
+    'X-Compatibility-Date',
+    'X-Tenant',
+    'If-Modified-Since',
+  ],
 };
 
 /**

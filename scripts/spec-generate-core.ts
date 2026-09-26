@@ -37,6 +37,7 @@ export interface GeneratedOperation {
   readonly scopes: readonly string[];
   readonly pagination: Pagination;
   readonly deprecated: boolean;
+  readonly headers: readonly string[];
 }
 
 export interface GenerateResult {
@@ -215,22 +216,29 @@ export function generateOperations(
       seenIds.add(operationId);
       const fn = functionNameFor(operationId);
 
-      // Shared header parameters (compatibility date, tenant, language,
-      // conditional request headers) belong to the pipeline, not the caller.
-      const params: Schema[] = [
+      const allParams: Schema[] = [
         ...(item.parameters ?? []),
         ...(op.parameters ?? []),
-      ]
-        .map((p: Schema) =>
-          p.$ref ? sharedParams[refTarget(p.$ref, 'parameters')] : p,
-        )
-        .filter((p): p is Schema => {
-          if (!p) throw new SpecGenerateError(`${operationId}: missing $ref`);
-          if (p.in === 'cookie') {
-            throw new SpecGenerateError(`${operationId}: cookie parameter`);
-          }
-          return p.in !== 'header';
-        });
+      ].map((p: Schema) => {
+        const resolved = p.$ref
+          ? sharedParams[refTarget(p.$ref, 'parameters')]
+          : p;
+        if (!resolved) {
+          throw new SpecGenerateError(`${operationId}: missing $ref`);
+        }
+        if (resolved.in === 'cookie') {
+          throw new SpecGenerateError(`${operationId}: cookie parameter`);
+        }
+        return resolved;
+      });
+      // Header parameters (compatibility date, tenant, language, conditional
+      // request headers) are client configuration the pipeline supplies, not
+      // per-call arguments. The Meta names them so the transport can check it
+      // sends every one the operation accepts.
+      const headers = allParams
+        .filter((p) => p.in === 'header')
+        .map((p) => p.name as string);
+      const params = allParams.filter((p) => p.in !== 'header');
 
       const queryNames = new Set(
         params.filter((p) => p.in === 'query').map((p) => p.name as string),
@@ -343,6 +351,7 @@ export function generateOperations(
           `  scopes: ${JSON.stringify(scopes)},\n` +
           `  pagination: '${pagination}',\n` +
           `  deprecated: ${deprecated},\n` +
+          `  headers: ${JSON.stringify(headers)},\n` +
           `};\n\n` +
           jsdoc([
             op.summary ?? operationId,
@@ -363,6 +372,7 @@ export function generateOperations(
         scopes,
         pagination,
         deprecated,
+        headers,
       });
     }
   }

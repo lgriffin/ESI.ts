@@ -247,9 +247,14 @@ describe('generateOperations over the fixture', () => {
     ]);
   });
 
-  it('leaves shared header parameters to the pipeline', () => {
-    expect(out).not.toContain('X-Compatibility-Date');
+  it('leaves header parameters to the pipeline but names them in the Meta', () => {
+    expect(out).not.toMatch(/readonly 'X-Compatibility-Date'/);
     expect(out).not.toMatch(/CompatibilityDate/);
+    const status = generateOperations(fixture, options).operations.find(
+      (o) => o.operationId === 'GetStatus',
+    );
+    expect(status?.headers).toEqual(['X-Compatibility-Date']);
+    expect(out).toContain("headers: ['X-Compatibility-Date'],");
   });
 
   it('yields page-paginated items, not pages, and hides the page parameter', () => {
@@ -421,6 +426,14 @@ describe('checkCoverage', () => {
     m.set('getGone', { ...m.get('getStatus')!, operationId: 'GetGone' });
     expect(checkCoverage(fixture, m).problems).toEqual([
       'generated getGone is not in the spec',
+    ]);
+  });
+
+  it('names a Meta whose headers disagree with the spec', () => {
+    const m = metas();
+    m.set('getStatus', { ...m.get('getStatus')!, headers: [] });
+    expect(checkCoverage(fixture, m).problems).toEqual([
+      'GET /status: generated headers is [], spec says ["X-Compatibility-Date"]',
     ]);
   });
 

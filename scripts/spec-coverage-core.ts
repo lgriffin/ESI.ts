@@ -21,6 +21,7 @@ export interface MetaLike {
   readonly scopes: readonly string[];
   readonly pagination: Pagination;
   readonly deprecated: boolean;
+  readonly headers: readonly string[];
 }
 
 export interface CoverageReport {
@@ -90,6 +91,16 @@ export function checkCoverage(
         scopes,
         pagination: expectedPagination(params),
         deprecated: op.deprecated === true,
+        headers: params
+          .map((p: { $ref?: string; in?: string; name?: string }) =>
+            p.$ref
+              ? doc.components?.parameters?.[
+                  p.$ref.slice('#/components/parameters/'.length)
+                ]
+              : p,
+          )
+          .filter((p) => p?.in === 'header')
+          .map((p) => p?.name),
       };
       for (const key of Object.keys(want) as (keyof typeof want)[]) {
         const a = JSON.stringify(meta[key]);

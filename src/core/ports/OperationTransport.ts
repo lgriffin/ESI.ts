@@ -22,6 +22,12 @@ export interface OperationMeta {
   readonly pagination: OperationPagination;
   /** The spec marks the operation `deprecated: true`. */
   readonly deprecated: boolean;
+  /**
+   * Header parameters the spec accepts (`X-Compatibility-Date`, `X-Tenant`,
+   * `If-None-Match` and so on). They are client configuration, not call
+   * arguments: the transport supplies them.
+   */
+  readonly headers: readonly string[];
 }
 
 /** Every shape a spec query parameter takes: scalars and arrays of them. */
