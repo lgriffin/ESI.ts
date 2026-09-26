@@ -529,10 +529,12 @@ export const RECIPES: Recipe[] = [
     // (the nightly failure in #403).
     prepare: async (ids, get) => {
       const last = Number(need(ids, 'publicContractPages'));
+      // At most five lookups, so a large listing cannot spend the error budget.
+      const lowest = Math.max(1, last - 4);
       const auctionContractIds: number[] = [];
       for (
         let page = last;
-        page >= 1 && auctionContractIds.length < 12;
+        page >= lowest && auctionContractIds.length < 12;
         page--
       ) {
         const body = await get(
