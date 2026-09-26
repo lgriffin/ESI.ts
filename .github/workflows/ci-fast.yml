@@ -30,6 +30,9 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Imports point inward (layer rule)
+        run: npm run lint:layers
+
       - name: Scenarios mock at the transport seam
         run: npm run lint:bdd-seam
 
