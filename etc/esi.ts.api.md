@@ -4080,7 +4080,11 @@ export class CustomEsiClient {
     // (undocumented)
     get contracts(): ContractsClient | undefined;
     // (undocumented)
+    get corporationProjects(): CorporationProjectsClient | undefined;
+    // (undocumented)
     get corporations(): CorporationsClient | undefined;
+    // (undocumented)
+    get cosmetics(): CosmeticsClient | undefined;
     // (undocumented)
     get dogma(): DogmaClient | undefined;
     // (undocumented)
@@ -4119,6 +4123,10 @@ export class CustomEsiClient {
     get mercenary(): MercenaryClient | undefined;
     // (undocumented)
     get meta(): MetaClient | undefined;
+    // (undocumented)
+    get militaryCampaigns(): MilitaryCampaignsClient | undefined;
+    // (undocumented)
+    get paragonHub(): ParagonHubClient | undefined;
     // (undocumented)
     get pi(): PiClient | undefined;
     // (undocumented)
