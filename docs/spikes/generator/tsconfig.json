@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "commonjs",
+    "lib": ["es2022", "esnext.asynciterable"],
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "isolatedDeclarations": true,
+    "declaration": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "files": ["transport.ts", "operations.generated.ts", "usage.check.ts"]
+}
