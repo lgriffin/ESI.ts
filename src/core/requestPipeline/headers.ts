@@ -17,6 +17,9 @@ export const parseCacheControlTtl = (
   return match ? parseInt(match[1]!, 10) * 1000 : undefined;
 };
 
+/** Printable ASCII and tab: a header value fetch accepts on every runtime. */
+const HEADER_VALUE = /^[\t\x20-\x7e]+$/;
+
 /**
  * Build the request headers for an ESI API call.
  */
@@ -33,11 +36,18 @@ export function buildRequestHeaders(
     Accept: 'application/json',
     'Accept-Encoding': 'gzip, deflate, br',
     'User-Agent': USER_AGENT,
-    // The configured clientId is the User-Agent identifier (README.md); ESI
-    // reads the caller from X-User-Agent.
-    'X-User-Agent': client.getClientId(),
     'X-Compatibility-Date': client.getCompatibilityDate() ?? COMPATIBILITY_DATE,
   };
+
+  // The configured clientId is the User-Agent identifier (README.md); ESI
+  // reads the caller from X-User-Agent. clientId is free text (config or
+  // ESI_CLIENT_ID), and fetch rejects a header value holding a control
+  // character, so a value that is not a legal header value is left off
+  // rather than failing every request.
+  const clientId = client.getClientId();
+  if (HEADER_VALUE.test(clientId)) {
+    headers['X-User-Agent'] = clientId;
+  }
 
   const language = client.getLanguage();
   if (language) {

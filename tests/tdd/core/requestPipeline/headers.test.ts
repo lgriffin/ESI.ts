@@ -103,6 +103,50 @@ describe('requestPipeline/headers', () => {
       expect(headers['X-User-Agent']).toBe('esi-client');
     });
 
+    it.each([
+      ['a newline', 'my-app\nX-Injected: 1'],
+      ['a control character', 'my-app\u0000'],
+      ['non-ASCII text', 'my-app \u2603'],
+      ['an empty string', ''],
+    ])(
+      'should leave X-User-Agent off when the clientId holds %s',
+      (_label, clientId) => {
+        // fetch throws on an illegal header value, which would fail every
+        // request; the other headers must still be built.
+        const badClient = new ApiClient(clientId, BASE_URL);
+        const headers = buildRequestHeaders(
+          badClient,
+          `${BASE_URL}/v1/status/`,
+          'GET',
+          false,
+          false,
+          undefined,
+          nullCache,
+        ) as Record<string, string>;
+
+        expect(headers).not.toHaveProperty('X-User-Agent');
+        expect(headers['User-Agent']).toBeDefined();
+      },
+    );
+
+    it('should keep a clientId with spaces and a tab in X-User-Agent', () => {
+      const spacedClient = new ApiClient(
+        'my app\t(contact: me@example.com)',
+        BASE_URL,
+      );
+      const headers = buildRequestHeaders(
+        spacedClient,
+        `${BASE_URL}/v1/status/`,
+        'GET',
+        false,
+        false,
+        undefined,
+        nullCache,
+      ) as Record<string, string>;
+
+      expect(headers['X-User-Agent']).toBe('my app\t(contact: me@example.com)');
+    });
+
     it('should use custom compatibility date when set on client', () => {
       client.setCompatibilityDate('2025-01-15');
       const headers = buildRequestHeaders(
