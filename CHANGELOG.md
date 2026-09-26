@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.2.4](https://github.com/lgriffin/ESI.ts/compare/v10.2.3...v10.2.4) (2026-09-26)
+
+
+### Changed
+
+* **beads:** export issues.jsonl automatically after bd writes ([c171c72](https://github.com/lgriffin/ESI.ts/commit/c171c727cca6ce47d7e96ab73e083a83fe40a2a5))
+* **beads:** export issues.jsonl automatically after bd writes ([8784b95](https://github.com/lgriffin/ESI.ts/commit/8784b95653cfc8c18f86110347d2d8a2a922c42d)), closes [#245](https://github.com/lgriffin/ESI.ts/issues/245)
+* **deps:** bump size-limit, @size-limit/esbuild and @size-limit/file to 13.0.3 ([9995662](https://github.com/lgriffin/ESI.ts/commit/99956625c5e0847e3f43fb557c7cff4cfb016777))
+* **mutation:** exclude interface-only src/core/ports from unit mutation ([397c19b](https://github.com/lgriffin/ESI.ts/commit/397c19b4bb9dcffc81541d424fcd8748c5d1b724))
+* **spec:** fetch the vendored spec at COMPATIBILITY_DATE from CI ([273b4a5](https://github.com/lgriffin/ESI.ts/commit/273b4a5af51c325f023cbbebb3fc11ac8bb1641a))
+* **spec:** generate typed operations for every ESI route from the vendored spec ([a69013e](https://github.com/lgriffin/ESI.ts/commit/a69013e414a827c6642335252da0483678869fd6))
+* **spec:** generate typed operations for every ESI route from the vendored spec ([26ed8cf](https://github.com/lgriffin/ESI.ts/commit/26ed8cff74330e351d35d5b622bbcb8924e634e2))
+* **spec:** record each operation's header parameters in its Meta ([259e60c](https://github.com/lgriffin/ESI.ts/commit/259e60c6eb11b99878c712a618e0e50afcf82663))
+* **spec:** reject bad snapshot arguments and skip superseded refreshes ([ae7a58e](https://github.com/lgriffin/ESI.ts/commit/ae7a58e86c88e57b6892ebb81b4d70f2609a61fc))
+* **spec:** vendor the ESI spec at 2026-05-19 and regenerate operations ([bc011ff](https://github.com/lgriffin/ESI.ts/commit/bc011ff7becd00356314c32ebe1af01e4c3209c0))
+* **spec:** vendor the ESI spec at the date the client sends, fetched by CI ([73fd955](https://github.com/lgriffin/ESI.ts/commit/73fd9556624d35076849dedea0c8f35ad983c1bd))
+
+
+### Documentation
+
+* add the Phase 0 audit of code origin, operation coverage and gates ([6cf5a6e](https://github.com/lgriffin/ESI.ts/commit/6cf5a6e4f0ac00874257322d769ec8d08f6aecef))
+* add the Phase 0 generator spike over five spec operations ([29113be](https://github.com/lgriffin/ESI.ts/commit/29113beb9b14e745287eb01ebac2a0cef71ceca9))
+* **audit:** re-check route coverage against the spec at 2026-05-19 ([5dfc0a4](https://github.com/lgriffin/ESI.ts/commit/5dfc0a46863ff07828258c08f5f2e5baf3ede1ec))
+* make the spike's compiler check reproducible and complete the audit baseline ([e0b836d](https://github.com/lgriffin/ESI.ts/commit/e0b836d9f32f1ed81b7a09c5b27eab044c30271a))
+* Phase 0 audit and generator spike ([391fba1](https://github.com/lgriffin/ESI.ts/commit/391fba1772620ab7fd4b8200e28e0b0082003725))
+
+
+### Testing
+
+* **contract:** look back at most five contract pages for auctions ([8a3ace6](https://github.com/lgriffin/ESI.ts/commit/8a3ace6ecb35a5bad113d4d467651eaac693a77d))
+* **contract:** walk back through contract pages to find auctions ([01c7a6a](https://github.com/lgriffin/ESI.ts/commit/01c7a6ad0c92454b17170b53b8650be7ab706b19))
+* **contract:** walk back through contract pages to find auctions ([7c9713f](https://github.com/lgriffin/ESI.ts/commit/7c9713f88f1b46e232686560f8fbde875878b59d)), closes [#403](https://github.com/lgriffin/ESI.ts/issues/403)
+* **faults:** assert no repeat of page 1 revalidates it alone ([ad04003](https://github.com/lgriffin/ESI.ts/commit/ad0400397ef13e05aba508217e0d133a9d888452))
+* **faults:** pin the page-1 repeat when a later page keeps failing ([0578acf](https://github.com/lgriffin/ESI.ts/commit/0578acf2f84c23cee1edb3ffd125393c6949af0e))
+* **faults:** pin the page-1 repeat when a later page keeps failing ([076da67](https://github.com/lgriffin/ESI.ts/commit/076da6738ad3fdda6fd065a13798a65aecf0c8a2)), closes [#291](https://github.com/lgriffin/ESI.ts/issues/291)
+* **package-lint:** run the size-limit fixture only where size-limit 13 runs ([eb3fd74](https://github.com/lgriffin/ESI.ts/commit/eb3fd7442f48ba40a50eeb005bc23aaa85da918e))
+
 ## [10.2.3](https://github.com/lgriffin/ESI.ts/compare/v10.2.2...v10.2.3) (2026-09-26)
 
 
