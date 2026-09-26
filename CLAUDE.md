@@ -11,6 +11,7 @@ npm run clean          # Remove dist/, coverage/, docs-site/public/api/
 npm run lint           # ESLint (src/)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
 npm run lint:determinism  # Time/timers/Math.random in src/ only via the clock module (shrink-only baseline)
+npm run lint:layers    # Imports in src/ point inward: core, ports, generated (shrink-only baseline)
 npm run lint:suite-health  # tests/: no .only/.skip/.todo, no assertion-free tests or Then steps, no swallowed assertions or unrestored console mocks
 npm run lint:package   # publint + attw on the npm pack tarball (known findings: scripts/package-lint-baseline.json)
 npm run size           # size-limit budget per exports sub-path, ESM and CJS (.size-limit.cjs; build first)

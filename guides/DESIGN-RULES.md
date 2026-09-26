@@ -266,7 +266,7 @@ Needed only when ESI adds a tag that no existing client covers. Every step below
 
 5. **Registry.** In `src/core/ClientRegistry.ts` add the key to `ApiClientType`, the class to `ClientInstance`, an entry to `clientFactories`, and the class to the re-export list. `tests/tdd/core/ClientRegistry.test.ts` types its expectations as `Record<ApiClientType, …>`, so it stops compiling until you add the class there too.
 6. **`EsiClient` getter.** In `src/EsiClient.ts`, `get <key>(): <Domain>Client { return this.getClient('<key>'); }`. Clients are created lazily on first access.
-7. **`CustomEsiClient` getter.** In `src/EsiClientBuilder.ts`, the same getter returning `<Domain>Client | undefined`. Nothing enforces this yet, and several recent clients are missing (ARCH-08); do not add to that gap.
+7. **`CustomEsiClient` getter.** In `src/EsiClientBuilder.ts`, the same getter returning `<Domain>Client | undefined`. `tests/tdd/core/customClientGetters.test.ts` fails to compile when a registered client has no getter (ARCH-08).
 8. **`EsiApiFactory`.** `EsiApiFactory.createClient('<key>', config)` works from the registry with no change. Named factory methods (`createMarketClient` and so on) exist for a handful of common domains only; add one only if the domain is equally common.
 9. **Root export.** `export { <Domain>Client } from './clients/<Domain>Client';` in `src/index.ts`.
 10. **Specification and tests.** A new numbered feature file, step definitions, unit tests and a `tests/typetests/domain-responses.test-d.ts` assertion for at least one method, as in section 3.8.
@@ -303,3 +303,20 @@ The hand-written counterparts are not generated and are not exempt from review: 
 ## 6 · Pagination rules (DES-08)
 
 Pagination helpers take the caller's HTTP method and must not return a truncated result as if it were complete. New pagination code passes `def.method` through to the retry context, as `BaseEsiClient.streamEndpoint` and `fetchAllEndpoint` do, and throws rather than truncates, as `CursorPaginationHandler.fetchAll` does after three consecutive failed pages. The eager 1000-page cap is the one remaining exception. See [PAGINATION.md](PAGINATION.md).
+
+---
+
+## 7 · Layers
+
+Imports in `src/` point inward. `npm run lint:layers` enforces four rules with a local ESLint rule, `layers/inward-imports` in `eslint.layers.rules.cjs`, in CI and in `check:local`:
+
+| Directory                      | May not import                                                                                                                                  |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/core/ports/`              | Anything outside `src/core/ports/`, packages included. A port is an interface.                                                                  |
+| `src/generated/`               | Anything except `src/core/ports/`. Change the generator, not its output.                                                                        |
+| `src/core/` (the pipeline)     | The layers built on it: `clients/`, `EsiClient`, `EsiClientBuilder`, `index`, `generated/`, `auth/`, `sde/`, `testing/`, `client/`, `adapters/` |
+| `src/client/`, `src/adapters/` | The legacy domain clients and entry points: `clients/`, `EsiClient`, `EsiClientBuilder`, `index`                                                |
+
+The rule resolves each specifier against the importing file, so it judges an import by where it lands, at any depth: `.././clients` is `clients`. It reads static and type-only imports, re-exports, `import('...')` types and expressions, and `require()`. The lint runs with `--no-inline-config`, so an `eslint-disable` comment does not get round it. When core needs something from an outer layer, add a port in `src/core/ports/` and have the outer layer implement it.
+
+Two files break the core rule today and are listed in `BASELINE` in `eslint.layers.rules.cjs`: `src/core/ClientRegistry.ts`, which imports every domain client, and `src/core/configureApiClient.ts`, which imports the `EsiClientConfig` type. Both move in Phase 3 of the Road to Done plan. The baseline only shrinks: `tests/tdd/layers/layers-lint.test.ts` fails when a listed file no longer breaks the rule, so fixing a file means deleting its entry, and adding an entry is a reviewed change to the rules file.

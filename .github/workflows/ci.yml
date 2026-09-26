@@ -65,6 +65,9 @@ jobs:
       - name: Time and randomness only through the clock module
         run: npm run lint:determinism
 
+      - name: Imports point inward (layer rule)
+        run: npm run lint:layers
+
       - name: Check formatting
         run: npm run format:check
 

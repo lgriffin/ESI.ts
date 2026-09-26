@@ -149,8 +149,8 @@ Both helpers fetch every page, including page 1, through a single-page path that
 | ----------------------------------------- | ------------------- | -------------------------------------- |
 | Spec-aware cache hit (no network)         | Page 1              | No                                     |
 | Deduplication of identical in-flight GETs | Page 1              | No                                     |
-| `If-None-Match` sent                      | Page 1              | Every page, if the cache holds an ETag |
-| 304 served from cache                     | Yes                 | No: throws `EsiError` 304              |
+| `If-None-Match` sent                      | Page 1              | Never                                  |
+| 304 served from cache                     | Yes                 | Not applicable: no conditional request |
 | Cache write                               | Combined array      | Never                                  |
 | Stale cache served on 5xx                 | Yes                 | No                                     |
 | Remediation text on 401 / 403             | Yes                 | No                                     |
@@ -276,11 +276,10 @@ The per-page retry, backoff and circuit-breaker settings are the client's own; s
 
 ## Known gaps
 
-`DES-08` requires pagination helpers to propagate the caller's HTTP method into the retry context and to surface partial results as an error rather than truncate silently. The rows below are where the code still falls short. Each was confirmed against the source at the time of writing.
+`DES-08` requires pagination helpers to propagate the caller's HTTP method into the retry context and to surface partial results as an error rather than truncate silently. The row below is where the code still falls short. It was confirmed against the source at the time of writing.
 
-| #   | Gap                                                                                                             | Consumer impact                                                                                     |
-| --- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 1   | `stream*` and `fetchAll*` send `If-None-Match` when the cache holds an ETag for the URL but cannot serve a 304. | After an eager call to the same endpoint, a `stream*` or `fetchAll*` call can throw `EsiError` 304. |
-| 2   | The eager 1000-page cap and the stop at an empty page end pagination with a log line, not an error.             | A dataset beyond page 1000 is truncated silently.                                                   |
+| #   | Gap                                                                                                 | Consumer impact                                   |
+| --- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| 1   | The eager 1000-page cap and the stop at an empty page end pagination with a log line, not an error. | A dataset beyond page 1000 is truncated silently. |
 
 The two gaps [#269](https://github.com/lgriffin/ESI.ts/issues/269) tracked are closed: `stream*` and `fetchAll*` pass the endpoint's method to the retry strategy, so a mutation is not retried unless `retryMutations` is set, and the cursor `fetchAll` rejects instead of truncating. Both are rules in `tests/bdd/features/core/0051-resilience.feature`.
