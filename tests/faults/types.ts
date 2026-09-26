@@ -105,6 +105,11 @@ export interface Outcome {
   readonly settlement: Settlement;
   /** HTTP requests the call sends, retries and pages included. */
   readonly requests: number;
+  /**
+   * How many of those requests carry If-None-Match. Checked only when set,
+   * for a fault whose Rule says when the client may revalidate.
+   */
+  readonly conditionalRequests?: number;
   readonly cache: CacheState;
   /** Clock time from call to settlement (the clock is virtual). */
   readonly elapsedMs: { readonly min: number; readonly max: number };

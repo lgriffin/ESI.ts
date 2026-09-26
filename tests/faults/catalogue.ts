@@ -825,11 +825,18 @@ export const FAULTS: readonly Fault[] = [
     id: 'later-page-unavailable',
     title: 'Page 1 clean; page 2 answers 503 on every attempt',
     appliesTo: (t) => t.paginated,
-    rule: PAGINATION,
-    exchange: (ctx) => [
-      first(ctx),
-      { ...repeat(html(503), attempts(ctx.target)), match: 'page=2' },
-    ],
+    rule: {
+      feature: 'core/0051-resilience.feature',
+      rule: 'If a page after the first exhausts its retries and nothing is cached for the resource, then the EsiClient shall repeat page 1 without an If-None-Match header.',
+    },
+    // Each call attempt fetches page 1, then exhausts page 2's retries; the
+    // call-level retry starts again from page 1 until it too runs out, and the
+    // call rejects with page 2's 503 rather than resolving with page 1 alone.
+    exchange: (ctx) =>
+      Array.from({ length: attempts(ctx.target) }, () => [
+        first(ctx),
+        { ...repeat(html(503), attempts(ctx.target)), match: 'page=2' },
+      ]).flat(),
     expected: (ctx) => ({
       settlement: {
         rejects: {
@@ -838,13 +845,26 @@ export const FAULTS: readonly Fault[] = [
           message: /^Service Unavailable$/,
         },
       },
-      requests: 1 + attempts(ctx.target),
+      requests: attempts(ctx.target) * (1 + attempts(ctx.target)),
+      // No repeat of page 1 revalidates it alone.
+      conditionalRequests: 0,
       cache: 'empty',
       elapsedMs: INSTANT,
       logs: [
-        ...retryLogs(ctx.target, 503),
-        { level: 'error', message: /^Failed to fetch page 2: /, count: 1 },
-        { level: 'warn', message: /^Pagination failed for /, count: 1 },
+        {
+          ...retryLogs(ctx.target, 503)[0]!,
+          count: attempts(ctx.target) * attempts(ctx.target) - 1,
+        },
+        {
+          level: 'error',
+          message: /^Failed to fetch page 2: /,
+          count: attempts(ctx.target),
+        },
+        {
+          level: 'warn',
+          message: /^Pagination failed for /,
+          count: attempts(ctx.target),
+        },
       ],
     }),
   },
