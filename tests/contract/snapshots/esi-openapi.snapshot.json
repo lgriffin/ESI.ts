@@ -44,7 +44,7 @@
         "name": "X-Compatibility-Date",
         "required": true,
         "schema": {
-          "enum": ["2025-12-16"],
+          "enum": ["2026-05-19"],
           "format": "date",
           "type": "string"
         }
@@ -82,47 +82,6 @@
         "format": "int64",
         "type": "integer",
         "x-common-model": "true"
-      },
-      "AllianceDetail": {
-        "properties": {
-          "creator_corporation_id": {
-            "$ref": "#/components/schemas/CorporationID",
-            "description": "Alliance's creator corporation ID"
-          },
-          "creator_id": {
-            "$ref": "#/components/schemas/CharacterID",
-            "description": "Alliance's creator ID"
-          },
-          "date_founded": {
-            "description": "Alliance's founding date",
-            "format": "date-time",
-            "type": "string"
-          },
-          "executor_corporation_id": {
-            "$ref": "#/components/schemas/CorporationID",
-            "description": "Alliance's executor corporation ID"
-          },
-          "faction_id": {
-            "$ref": "#/components/schemas/FactionID",
-            "description": "Alliance's faction ID"
-          },
-          "name": {
-            "description": "Alliance's name",
-            "type": "string"
-          },
-          "ticker": {
-            "description": "Alliance's ticker",
-            "type": "string"
-          }
-        },
-        "required": [
-          "creator_corporation_id",
-          "creator_id",
-          "date_founded",
-          "name",
-          "ticker"
-        ],
-        "type": "object"
       },
       "AllianceID": {
         "examples": [99000001],
@@ -195,6 +154,47 @@
         },
         "type": "object"
       },
+      "AlliancesDetail": {
+        "properties": {
+          "creator_corporation_id": {
+            "$ref": "#/components/schemas/CorporationID",
+            "description": "Alliance's creator corporation ID"
+          },
+          "creator_id": {
+            "$ref": "#/components/schemas/CharacterID",
+            "description": "Alliance's creator ID"
+          },
+          "date_founded": {
+            "description": "Alliance's founding date",
+            "format": "date-time",
+            "type": "string"
+          },
+          "executor_corporation_id": {
+            "$ref": "#/components/schemas/CorporationID",
+            "description": "Alliance's executor corporation ID"
+          },
+          "faction_id": {
+            "$ref": "#/components/schemas/FactionID",
+            "description": "Alliance's faction ID"
+          },
+          "name": {
+            "description": "Alliance's name",
+            "type": "string"
+          },
+          "ticker": {
+            "description": "Alliance's ticker",
+            "type": "string"
+          }
+        },
+        "required": [
+          "creator_corporation_id",
+          "creator_id",
+          "date_founded",
+          "name",
+          "ticker"
+        ],
+        "type": "object"
+      },
       "AlliancesGet": {
         "items": {
           "format": "int64",
@@ -226,6 +226,153 @@
         "format": "int64",
         "type": "integer",
         "x-common-model": "true"
+      },
+      "CharactersAccessListsDetail": {
+        "properties": {
+          "description": {
+            "description": "The Access List's description",
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/components/schemas/AccessListID",
+            "description": "The Access List's ID"
+          },
+          "membership": {
+            "$ref": "#/components/schemas/CharactersAccessListsDetailMembership",
+            "description": "The Access List's membership"
+          },
+          "name": {
+            "description": "The Access List's name",
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "description", "membership"],
+        "type": "object"
+      },
+      "CharactersAccessListsDetailAllianceentry": {
+        "properties": {
+          "access": {
+            "description": "Alliance's access",
+            "enum": ["Unspecified", "Allowed", "Blocked", "Manager", "Admin"],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified access",
+              "Member is allowed",
+              "Member is blocked",
+              "Member is a manager (characters only)",
+              "Member is an admin (characters only)"
+            ]
+          },
+          "alliance_id": {
+            "$ref": "#/components/schemas/AllianceID",
+            "description": "Alliance's ID"
+          }
+        },
+        "required": ["alliance_id", "access"],
+        "type": "object"
+      },
+      "CharactersAccessListsDetailCharacterentry": {
+        "properties": {
+          "access": {
+            "description": "Character's access",
+            "enum": ["Unspecified", "Allowed", "Blocked", "Manager", "Admin"],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified access",
+              "Member is allowed",
+              "Member is blocked",
+              "Member is a manager (characters only)",
+              "Member is an admin (characters only)"
+            ]
+          },
+          "character_id": {
+            "$ref": "#/components/schemas/CharacterID",
+            "description": "Character's ID"
+          }
+        },
+        "required": ["character_id", "access"],
+        "type": "object"
+      },
+      "CharactersAccessListsDetailCorporationentry": {
+        "properties": {
+          "access": {
+            "description": "Corporation's access",
+            "enum": ["Unspecified", "Allowed", "Blocked", "Manager", "Admin"],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified access",
+              "Member is allowed",
+              "Member is blocked",
+              "Member is a manager (characters only)",
+              "Member is an admin (characters only)"
+            ]
+          },
+          "corporation_id": {
+            "$ref": "#/components/schemas/CorporationID",
+            "description": "Corporation's ID"
+          }
+        },
+        "required": ["corporation_id", "access"],
+        "type": "object"
+      },
+      "CharactersAccessListsDetailMembership": {
+        "properties": {
+          "alliances": {
+            "description": "Alliances in the Access List",
+            "items": {
+              "$ref": "#/components/schemas/CharactersAccessListsDetailAllianceentry"
+            },
+            "type": "array"
+          },
+          "allow_everyone": {
+            "description": "Whether everyone is allowed unless blocked",
+            "type": "boolean"
+          },
+          "characters": {
+            "description": "Characters in the Access List",
+            "items": {
+              "$ref": "#/components/schemas/CharactersAccessListsDetailCharacterentry"
+            },
+            "type": "array"
+          },
+          "corporations": {
+            "description": "Corporations in the Access List",
+            "items": {
+              "$ref": "#/components/schemas/CharactersAccessListsDetailCorporationentry"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "allow_everyone",
+          "alliances",
+          "corporations",
+          "characters"
+        ],
+        "type": "object"
+      },
+      "CharactersAccessListsListing": {
+        "properties": {
+          "access_lists": {
+            "description": "List of Access Lists",
+            "items": {
+              "$ref": "#/components/schemas/CharactersAccessListsListingAccesslist"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["access_lists"],
+        "type": "object"
+      },
+      "CharactersAccessListsListingAccesslist": {
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/AccessListID",
+            "description": "Access List's ID"
+          }
+        },
+        "required": ["id"],
+        "type": "object"
       },
       "CharactersAffiliationPost": {
         "items": {
@@ -1540,24 +1687,6 @@
         },
         "type": "array"
       },
-      "CharactersCharacterIdLocationGet": {
-        "properties": {
-          "solar_system_id": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "station_id": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "structure_id": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": ["solar_system_id"],
-        "type": "object"
-      },
       "CharactersCharacterIdLoyaltyPointsGet": {
         "items": {
           "properties": {
@@ -2214,31 +2343,6 @@
           "type": "object"
         },
         "type": "array"
-      },
-      "CharactersCharacterIdOnlineGet": {
-        "properties": {
-          "last_login": {
-            "description": "Timestamp of the last login",
-            "format": "date-time",
-            "type": "string"
-          },
-          "last_logout": {
-            "description": "Timestamp of the last logout",
-            "format": "date-time",
-            "type": "string"
-          },
-          "logins": {
-            "description": "Total number of times the character has logged in",
-            "format": "int64",
-            "type": "integer"
-          },
-          "online": {
-            "description": "If the character is online",
-            "type": "boolean"
-          }
-        },
-        "required": ["online"],
-        "type": "object"
       },
       "CharactersCharacterIdOrdersGet": {
         "items": {
@@ -3063,24 +3167,6 @@
         },
         "type": "object"
       },
-      "CharactersCharacterIdShipGet": {
-        "properties": {
-          "ship_item_id": {
-            "description": "Item id's are unique to a ship and persist until it is repackaged. This value can be used to track repeated uses of a ship, or detect when a pilot changes into a different instance of the same ship type.",
-            "format": "int64",
-            "type": "integer"
-          },
-          "ship_name": {
-            "type": "string"
-          },
-          "ship_type_id": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": ["ship_type_id", "ship_item_id", "ship_name"],
-        "type": "object"
-      },
       "CharactersCharacterIdStandingsGet": {
         "items": {
           "properties": {
@@ -3539,6 +3625,147 @@
         "required": ["state", "contributed", "last_modified"],
         "type": "object"
       },
+      "CharactersLocation": {
+        "properties": {
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "Solar system the character is in"
+          },
+          "station_id": {
+            "$ref": "#/components/schemas/StationID",
+            "description": "Station the character is docked in"
+          },
+          "structure_id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Structure the character is docked in"
+          }
+        },
+        "required": ["solar_system_id"],
+        "type": "object"
+      },
+      "CharactersMercenaryTacticalOperationsDetail": {
+        "properties": {
+          "dungeon_type_id": {
+            "$ref": "#/components/schemas/DungeonID",
+            "description": "Operation's dungeon type ID"
+          },
+          "expires": {
+            "description": "Moment the operation will expire",
+            "examples": ["2026-02-23T12:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "description": "Operation's ID"
+          },
+          "mercenary_den_id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "ID of Mercenary Den offering this operation"
+          },
+          "state": {
+            "description": "Operation's state",
+            "enum": [
+              "Unspecified",
+              "Available",
+              "Started",
+              "Completed",
+              "Expired",
+              "Removed"
+            ],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified state",
+              "Not started yet",
+              "Started",
+              "Completed",
+              "Expired",
+              "Removed (e.g. mercenary den removed)"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "mercenary_den_id",
+          "state",
+          "dungeon_type_id",
+          "expires"
+        ],
+        "type": "object"
+      },
+      "CharactersMercenaryTacticalOperationsListing": {
+        "properties": {
+          "operations": {
+            "description": "List of available operations",
+            "items": {
+              "$ref": "#/components/schemas/CharactersMercenaryTacticalOperationsListingOperation"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["operations"],
+        "type": "object"
+      },
+      "CharactersMercenaryTacticalOperationsListingOperation": {
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "description": "Operation's ID"
+          },
+          "mercenary_den_id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "ID of Mercenary Den offering this operation"
+          }
+        },
+        "required": ["id", "mercenary_den_id"],
+        "type": "object"
+      },
+      "CharactersOnline": {
+        "properties": {
+          "last_login": {
+            "description": "When the character last logged in",
+            "examples": ["2017-01-02T03:04:05Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "last_logout": {
+            "description": "When the character last logged out",
+            "examples": ["2017-01-02T04:05:06Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "logins": {
+            "description": "Total logins (all-time)",
+            "examples": [9001],
+            "format": "int64",
+            "type": "integer"
+          },
+          "online": {
+            "description": "Whether the character is online",
+            "type": "boolean"
+          }
+        },
+        "required": ["online"],
+        "type": "object"
+      },
+      "CharactersShip": {
+        "properties": {
+          "ship_item_id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Unique identifier for this ship"
+          },
+          "ship_name": {
+            "description": "Name of this ship",
+            "type": "string"
+          },
+          "ship_type_id": {
+            "$ref": "#/components/schemas/TypeID",
+            "description": "Type of the ship currently piloted"
+          }
+        },
+        "required": ["ship_type_id", "ship_item_id", "ship_name"],
+        "type": "object"
+      },
       "CharactersSkillqueueSkill": {
         "properties": {
           "finish_date": {
@@ -3636,6 +3863,200 @@
           "active_skill_level",
           "skillpoints_in_skill"
         ],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensDetail": {
+        "properties": {
+          "evolution": {
+            "$ref": "#/components/schemas/CharactersStructuresMercenaryDensDetailEvolution",
+            "description": "Mercenary Den's evolution"
+          },
+          "id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Mercenary Den's ID"
+          },
+          "infomorphs": {
+            "$ref": "#/components/schemas/CharactersStructuresMercenaryDensDetailInfomorphs",
+            "description": "Mercenary Den's infomorphs"
+          },
+          "reinforcement_timer": {
+            "$ref": "#/components/schemas/CharactersStructuresMercenaryDensDetailReinforcementtimer",
+            "description": "Mercenary Den's reinforcement timer (if the structure is reinforced)"
+          },
+          "skyhook": {
+            "$ref": "#/components/schemas/CharactersStructuresMercenaryDensDetailSkyhook",
+            "description": "Skyhook the Mercenary Den is attached to"
+          },
+          "state": {
+            "description": "Mercenary Den's state",
+            "enum": ["Unspecified", "Running", "Paused", "Disabled"],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified state",
+              "Running",
+              "Paused (e.g. the Mercenary Den is reinforced)",
+              "Disabled (e.g. the character no longer has the skills to operate the Mercenary Den)"
+            ]
+          },
+          "type_id": {
+            "$ref": "#/components/schemas/TypeID",
+            "description": "Mercenary Den's type ID"
+          }
+        },
+        "required": [
+          "id",
+          "skyhook",
+          "state",
+          "type_id",
+          "infomorphs",
+          "evolution"
+        ],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensDetailEvolution": {
+        "properties": {
+          "anarchy": {
+            "$ref": "#/components/schemas/CharactersStructuresMercenaryDensDetailEvolutionanarchy",
+            "description": "Mercenary Den's anarchy"
+          },
+          "development": {
+            "$ref": "#/components/schemas/CharactersStructuresMercenaryDensDetailEvolutiondevelopment",
+            "description": "Mercenary Den's development"
+          }
+        },
+        "required": ["development", "anarchy"],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensDetailEvolutionanarchy": {
+        "properties": {
+          "amount": {
+            "description": "Anarchy's cumulative amount (0-100)",
+            "examples": [0],
+            "format": "int64",
+            "type": "integer"
+          },
+          "level": {
+            "description": "Anarchy's level",
+            "enum": [
+              "Unspecified",
+              "Level0",
+              "Level1",
+              "Level2",
+              "Level3",
+              "Level4"
+            ],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified level",
+              "Level 0",
+              "Level 1",
+              "Level 2",
+              "Level 3",
+              "Level 4"
+            ]
+          }
+        },
+        "required": ["amount", "level"],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensDetailEvolutiondevelopment": {
+        "properties": {
+          "amount": {
+            "description": "Development's cumulative amount (0-100)",
+            "examples": [50],
+            "format": "int64",
+            "type": "integer"
+          },
+          "level": {
+            "description": "Development's level",
+            "enum": [
+              "Unspecified",
+              "Level0",
+              "Level1",
+              "Level2",
+              "Level3",
+              "Level4"
+            ],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified level",
+              "Level 0",
+              "Level 1",
+              "Level 2",
+              "Level 3",
+              "Level 4"
+            ]
+          }
+        },
+        "required": ["amount", "level"],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensDetailInfomorphs": {
+        "properties": {
+          "amount": {
+            "description": "Amount of infomorphs",
+            "examples": [100],
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": ["amount"],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensDetailReinforcementtimer": {
+        "properties": {
+          "end": {
+            "description": "The time when the reinforcement timer will end",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": ["end"],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensDetailSkyhook": {
+        "properties": {
+          "corporation_id": {
+            "$ref": "#/components/schemas/CorporationID",
+            "description": "Corporation that owns the Skyhook"
+          },
+          "id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Skyhook's ID"
+          },
+          "planet_id": {
+            "$ref": "#/components/schemas/PlanetID",
+            "description": "ID of the planet the Skyhook is anchored on"
+          }
+        },
+        "required": ["id", "planet_id", "corporation_id"],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensListing": {
+        "properties": {
+          "mercenary_dens": {
+            "description": "List of Mercenary Dens",
+            "items": {
+              "$ref": "#/components/schemas/CharactersStructuresMercenaryDensListingMercenaryden"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["mercenary_dens"],
+        "type": "object"
+      },
+      "CharactersStructuresMercenaryDensListingMercenaryden": {
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Mercenary Den's ID"
+          },
+          "planet_id": {
+            "$ref": "#/components/schemas/PlanetID",
+            "description": "ID of the planet the Skyhook (to which the Mercenary Den is attached) is anchored on"
+          }
+        },
+        "required": ["id", "planet_id"],
         "type": "object"
       },
       "CompatibilityDate": {
@@ -7494,6 +7915,7 @@
           },
           "member_count": {
             "description": "Corporation's member count",
+            "examples": [100],
             "format": "int64",
             "type": "integer"
           },
@@ -7503,11 +7925,13 @@
           },
           "shares": {
             "description": "Corporation's shares",
+            "examples": [1000],
             "format": "int64",
             "type": "integer"
           },
           "tax_rate": {
-            "description": "Corporation's tax rate",
+            "description": "Corporation's tax rate (between 0.000 and 1.000)",
+            "examples": [0.123],
             "format": "double",
             "type": "number"
           },
@@ -7525,12 +7949,12 @@
           }
         },
         "required": [
+          "name",
+          "ticker",
           "ceo_id",
           "creator_id",
           "member_count",
-          "name",
-          "tax_rate",
-          "ticker"
+          "tax_rate"
         ],
         "type": "object"
       },
@@ -9354,6 +9778,520 @@
         "required": ["projects"],
         "type": "object"
       },
+      "CorporationsStructuresSkyhooksDetail": {
+        "properties": {
+          "effective_workforce": {
+            "description": "Skyhook's effective workforce; this can differ from the Skyhook's normal workforce due to the influence of an attached Mercenary Den",
+            "examples": [1000],
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Skyhook's ID"
+          },
+          "is_active": {
+            "description": "Whether the Skyhook is active and producing workforce/power/reagents",
+            "type": "boolean"
+          },
+          "planet_id": {
+            "$ref": "#/components/schemas/PlanetID",
+            "description": "ID of the planet the Skyhook is anchored on"
+          },
+          "reagents": {
+            "description": "Skyhook's reagents",
+            "items": {
+              "$ref": "#/components/schemas/CorporationsStructuresSkyhooksDetailReagent"
+            },
+            "type": "array"
+          },
+          "reinforcement_timer": {
+            "$ref": "#/components/schemas/CorporationsStructuresSkyhooksDetailReinforcementtimer",
+            "description": "Skyhook's reinforcement timer (if the structure is reinforced)"
+          },
+          "state": {
+            "description": "Skyhook's state",
+            "enum": [
+              "Unspecified",
+              "ShieldVulnerable",
+              "ArmorReinforced",
+              "ArmorVulnerable",
+              "HullReinforced",
+              "HullVulnerable"
+            ],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified state",
+              "Skyhook is vulnerable to shield damage",
+              "Skyhook is reinforced against armor damage",
+              "Skyhook is vulnerable to armor damage",
+              "Skyhook is reinforced against hull damage",
+              "Skyhook is vulnerable to hull damage"
+            ]
+          },
+          "theft_vulnerability": {
+            "$ref": "#/components/schemas/CorporationsStructuresSkyhooksDetailTheftvulnerability",
+            "description": "Skyhook's theft vulnerability"
+          }
+        },
+        "required": ["id", "planet_id", "state", "is_active"],
+        "type": "object"
+      },
+      "CorporationsStructuresSkyhooksDetailReagent": {
+        "properties": {
+          "last_cycle": {
+            "description": "Moment the 'SecureStock'/'UnsecuredStock' value had its last cycle; use SDE to calculate the current values",
+            "examples": ["2026-02-23T12:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "secured_stock": {
+            "description": "Secured stock of the reagent at the time of 'last_cycle'",
+            "examples": [1000],
+            "format": "int64",
+            "type": "integer"
+          },
+          "type_id": {
+            "$ref": "#/components/schemas/TypeID",
+            "description": "Reagent's type ID"
+          },
+          "unsecured_stock": {
+            "description": "Unsecured stock of the reagent at the time of 'last_cycle'",
+            "examples": [300],
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "type_id",
+          "secured_stock",
+          "unsecured_stock",
+          "last_cycle"
+        ],
+        "type": "object"
+      },
+      "CorporationsStructuresSkyhooksDetailReinforcementtimer": {
+        "properties": {
+          "end": {
+            "description": "The time when the reinforcement timer will end",
+            "examples": ["2026-02-23T16:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": ["end"],
+        "type": "object"
+      },
+      "CorporationsStructuresSkyhooksDetailTheftvulnerability": {
+        "properties": {
+          "end": {
+            "description": "End time of the theft vulnerability window",
+            "examples": ["2026-02-23T16:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "start": {
+            "description": "Start time of the theft vulnerability window",
+            "examples": ["2026-02-23T12:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": ["start", "end"],
+        "type": "object"
+      },
+      "CorporationsStructuresSkyhooksListing": {
+        "properties": {
+          "skyhooks": {
+            "description": "List of Skyhooks",
+            "items": {
+              "$ref": "#/components/schemas/CorporationsStructuresSkyhooksListingSkyhook"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["skyhooks"],
+        "type": "object"
+      },
+      "CorporationsStructuresSkyhooksListingSkyhook": {
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Skyhook's ID"
+          },
+          "planet_id": {
+            "$ref": "#/components/schemas/PlanetID",
+            "description": "ID of the planet the Skyhook is anchored on"
+          }
+        },
+        "required": ["id", "planet_id"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetail": {
+        "properties": {
+          "fuel_access_list_id": {
+            "$ref": "#/components/schemas/AccessListID",
+            "description": "Access List with who can manage Sovereignty Hub's fuel"
+          },
+          "id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Sovereignty Hub's ID"
+          },
+          "reagent_bay": {
+            "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailReagentbay",
+            "description": "Sovereignty Hub's reagent bay"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailResources",
+            "description": "Sovereignty Hub's resources"
+          },
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "Sovereignty Hub's solar system ID"
+          },
+          "upgrades": {
+            "description": "Sovereignty Hub's installed upgrades",
+            "items": {
+              "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailUpgrade"
+            },
+            "type": "array"
+          },
+          "vulnerability_window": {
+            "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailVulnerabilitywindow",
+            "description": "Sovereignty Hub's vulnerability window; if omitted, this Sovereignty Hub is part of an active campaign"
+          },
+          "workforce_transport": {
+            "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailTransport",
+            "description": "Sovereignty Hub's workforce transport settings"
+          }
+        },
+        "required": [
+          "id",
+          "solar_system_id",
+          "upgrades",
+          "reagent_bay",
+          "resources",
+          "workforce_transport"
+        ],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailReagent": {
+        "properties": {
+          "amount": {
+            "description": "Amount of reagent in the bay at the time of 'last_updated'",
+            "examples": [1000],
+            "format": "int64",
+            "type": "integer"
+          },
+          "burning_per_hour": {
+            "description": "Amount of reagent burning per hour",
+            "examples": [10],
+            "format": "int64",
+            "type": "integer"
+          },
+          "type_id": {
+            "$ref": "#/components/schemas/TypeID",
+            "description": "Reagent's type ID"
+          }
+        },
+        "required": ["type_id", "amount", "burning_per_hour"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailReagentbay": {
+        "properties": {
+          "last_updated": {
+            "description": "Moment the 'amount' value was last updated; use 'burning_per_hour' to calculate the current value",
+            "examples": ["2026-02-23T12:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "reagents": {
+            "description": "Sovereignty Hub's reagents",
+            "items": {
+              "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailReagent"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["last_updated", "reagents"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailResourcepower": {
+        "properties": {
+          "allocated": {
+            "description": "Allocated power",
+            "examples": [100],
+            "format": "int64",
+            "type": "integer"
+          },
+          "available": {
+            "description": "Available power",
+            "examples": [1000],
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": ["available", "allocated"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailResources": {
+        "properties": {
+          "power": {
+            "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailResourcepower",
+            "description": "Sovereignty Hub's power"
+          },
+          "workforce": {
+            "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailResourceworkforce",
+            "description": "Sovereignty Hub's workforce"
+          }
+        },
+        "required": ["power", "workforce"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailResourceworkforce": {
+        "properties": {
+          "allocated": {
+            "description": "Allocated workforce",
+            "examples": [100],
+            "format": "int64",
+            "type": "integer"
+          },
+          "available": {
+            "description": "Available workforce",
+            "examples": [1000],
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": ["available", "allocated"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailTransport": {
+        "properties": {
+          "configuration": {
+            "description": "Configured workforce transport",
+            "oneOf": [
+              {
+                "properties": {
+                  "import": {
+                    "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailTransportconfigurationimport",
+                    "description": "Workforce is requested to be imported"
+                  }
+                },
+                "title": "import",
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "export": {
+                    "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailTransportconfigurationexport",
+                    "description": "Workforce is requested to be exported"
+                  }
+                },
+                "title": "export",
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "transit": {
+                    "description": "Workforce is requested to be brought to transit",
+                    "type": ["boolean", "null"]
+                  }
+                },
+                "title": "transit",
+                "type": "object"
+              }
+            ]
+          },
+          "state": {
+            "description": "Current state of the workforce transport",
+            "oneOf": [
+              {
+                "properties": {
+                  "import": {
+                    "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailTransportstateimport",
+                    "description": "Workforce is being imported"
+                  }
+                },
+                "title": "import",
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "export": {
+                    "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailTransportstateexport",
+                    "description": "Workforce is being exported"
+                  }
+                },
+                "title": "export",
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "transit": {
+                    "description": "Workforce is being brought to transit",
+                    "type": ["boolean", "null"]
+                  }
+                },
+                "title": "transit",
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": ["configuration", "state"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailTransportconfigurationexport": {
+        "properties": {
+          "amount": {
+            "description": "Amount to be exported",
+            "examples": [1000],
+            "format": "int64",
+            "type": "integer"
+          },
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "Destination's solar system ID"
+          }
+        },
+        "required": ["amount"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailTransportconfigurationimport": {
+        "properties": {
+          "sources": {
+            "description": "Sources",
+            "items": {
+              "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailTransportconfigurationsource"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["sources"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailTransportconfigurationsource": {
+        "properties": {
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "Source's solar system ID"
+          }
+        },
+        "required": ["solar_system_id"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailTransportstateexport": {
+        "properties": {
+          "amount": {
+            "description": "Amount exported",
+            "examples": [1000],
+            "format": "int64",
+            "type": "integer"
+          },
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "Destination's solar system ID"
+          }
+        },
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailTransportstateimport": {
+        "properties": {
+          "sources": {
+            "description": "Sources",
+            "items": {
+              "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetailTransportstateimportsource"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["sources"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailTransportstateimportsource": {
+        "properties": {
+          "amount": {
+            "description": "Amount imported",
+            "examples": [1000],
+            "format": "int64",
+            "type": "integer"
+          },
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "Source's solar system ID"
+          }
+        },
+        "required": ["solar_system_id", "amount"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailUpgrade": {
+        "properties": {
+          "power_state": {
+            "description": "Upgrade's power state",
+            "enum": ["Unspecified", "Online", "Offline", "Low", "Pending"],
+            "type": "string",
+            "x-enum-descriptions": [
+              "An unspecified power state",
+              "Online",
+              "Offline",
+              "Not enough fuel/power/workforce",
+              "Waiting for startup cost to be available"
+            ]
+          },
+          "type_id": {
+            "$ref": "#/components/schemas/TypeID",
+            "description": "Upgrade's type ID"
+          }
+        },
+        "required": ["type_id", "power_state"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsDetailVulnerabilitywindow": {
+        "properties": {
+          "end": {
+            "description": "End time of the vulnerability window; if in the past, the Sovereignty Hub is in overtime",
+            "examples": ["2026-02-23T16:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "start": {
+            "description": "Start time of the vulnerability window; if in the past, the Sovereignty Hub is vulnerable right now",
+            "examples": ["2026-02-23T12:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": ["start", "end"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsListing": {
+        "properties": {
+          "sovereignty_hubs": {
+            "description": "List of Sovereignty Hubs",
+            "items": {
+              "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsListingSovereigntyhub"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["sovereignty_hubs"],
+        "type": "object"
+      },
+      "CorporationsStructuresSovereigntyHubsListingSovereigntyhub": {
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "Sovereignty Hub's ID"
+          },
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "Sovereignty Hub's location"
+          }
+        },
+        "required": ["id", "solar_system_id"],
+        "type": "object"
+      },
       "Cursor": {
         "properties": {
           "after": {
@@ -9600,7 +10538,7 @@
       "Error": {
         "properties": {
           "details": {
-            "description": "List of individual error details.",
+            "description": "List of individual issues.",
             "items": {
               "$ref": "#/components/schemas/ErrorDetail"
             },
@@ -9609,6 +10547,11 @@
           "error": {
             "description": "Error message.",
             "type": "string"
+          },
+          "status": {
+            "description": "HTTP status code.",
+            "format": "int64",
+            "type": "integer"
           }
         },
         "required": ["error"],
@@ -11621,7 +12564,7 @@
           "routes": {
             "description": "List of all API routes and their health status",
             "items": {
-              "$ref": "#/components/schemas/MetaStatusRoutestatus"
+              "$ref": "#/components/schemas/MetaStatusRoute"
             },
             "type": "array"
           }
@@ -11629,7 +12572,7 @@
         "required": ["routes"],
         "type": "object"
       },
-      "MetaStatusRoutestatus": {
+      "MetaStatusRoute": {
         "properties": {
           "method": {
             "description": "Route's HTTP method",
@@ -11750,6 +12693,55 @@
         "type": "integer",
         "x-common-model": "true"
       },
+      "SkyhooksRaidable": {
+        "properties": {
+          "skyhooks": {
+            "description": "List of (upcoming) raidable Skyhooks",
+            "items": {
+              "$ref": "#/components/schemas/SkyhooksRaidableVulnerableskyhook"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["skyhooks"],
+        "type": "object"
+      },
+      "SkyhooksRaidableTheftvulnerability": {
+        "properties": {
+          "end": {
+            "description": "End time of the theft vulnerability window",
+            "examples": ["2026-02-23T16:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "start": {
+            "description": "Start time of the theft vulnerability window",
+            "examples": ["2026-02-23T12:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": ["start", "end"],
+        "type": "object"
+      },
+      "SkyhooksRaidableVulnerableskyhook": {
+        "properties": {
+          "planet_id": {
+            "$ref": "#/components/schemas/PlanetID",
+            "description": "ID of the planet the Skyhook is anchored on"
+          },
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "ID of the solar system the Skyhook is anchored on"
+          },
+          "theft_vulnerability": {
+            "$ref": "#/components/schemas/SkyhooksRaidableTheftvulnerability",
+            "description": "Skyhook's theft vulnerability"
+          }
+        },
+        "required": ["planet_id", "solar_system_id", "theft_vulnerability"],
+        "type": "object"
+      },
       "SolarSystemID": {
         "examples": [30000001],
         "format": "int64",
@@ -11841,79 +12833,180 @@
         },
         "type": "array"
       },
-      "SovereigntyMapGet": {
-        "items": {
-          "properties": {
-            "alliance_id": {
-              "format": "int64",
-              "type": "integer"
+      "SovereigntySystems": {
+        "properties": {
+          "solar_systems": {
+            "description": "List of solar systems and their sovereignty owners",
+            "items": {
+              "$ref": "#/components/schemas/SovereigntySystemsSolarsystem"
             },
-            "corporation_id": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "faction_id": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "system_id": {
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          "required": ["system_id"],
-          "type": "object"
+            "type": "array"
+          }
         },
-        "type": "array"
+        "required": ["solar_systems"],
+        "type": "object"
       },
-      "SovereigntyStructuresGet": {
-        "items": {
-          "properties": {
-            "alliance_id": {
-              "description": "The alliance that owns the structure.\n",
-              "format": "int64",
-              "type": "integer"
-            },
-            "solar_system_id": {
-              "description": "Solar system in which the structure is located.\n",
-              "format": "int64",
-              "type": "integer"
-            },
-            "structure_id": {
-              "description": "Unique item ID for this structure.",
-              "format": "int64",
-              "type": "integer"
-            },
-            "structure_type_id": {
-              "description": "A reference to the type of structure this is.\n",
-              "format": "int64",
-              "type": "integer"
-            },
-            "vulnerability_occupancy_level": {
-              "description": "The occupancy level for the next or current vulnerability window. This takes into account all development indexes and capital system bonuses. Also known as Activity Defense Multiplier from in the client. It increases the time that attackers must spend using their entosis links on the structure.\n",
-              "format": "double",
-              "type": "number"
-            },
-            "vulnerable_end_time": {
-              "description": "The time at which the next or current vulnerability window ends. At the end of a vulnerability window the next window is recalculated and locked in along with the vulnerabilityOccupancyLevel. If the structure is not in 100% entosis control of the defender, it will go in to 'overtime' and stay vulnerable for as long as that situation persists. Only once the defenders have 100% entosis control and has the vulnerableEndTime passed does the vulnerability interval expire and a new one is calculated.\n",
-              "format": "date-time",
-              "type": "string"
-            },
-            "vulnerable_start_time": {
-              "description": "The next time at which the structure will become vulnerable. Or the start time of the current window if current time is between this and vulnerableEndTime.\n",
-              "format": "date-time",
-              "type": "string"
-            }
+      "SovereigntySystemsAlliance": {
+        "properties": {
+          "alliance_id": {
+            "$ref": "#/components/schemas/AllianceID",
+            "description": "Alliance that claimed this solar system"
           },
-          "required": [
-            "alliance_id",
-            "solar_system_id",
-            "structure_id",
-            "structure_type_id"
-          ],
-          "type": "object"
+          "claimed_since": {
+            "description": "Time the claim was made",
+            "examples": ["2026-02-23T12:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "corporation_id": {
+            "$ref": "#/components/schemas/CorporationID",
+            "description": "Corporation that claimed this solar system"
+          },
+          "development": {
+            "$ref": "#/components/schemas/SovereigntySystemsDevelopment",
+            "description": "Solar system's development"
+          },
+          "is_capital_system": {
+            "description": "Whether the system is the capital system of the alliance",
+            "examples": [false],
+            "type": "boolean"
+          },
+          "sovereignty_hub": {
+            "$ref": "#/components/schemas/SovereigntySystemsSovereigntyhub",
+            "description": "Sovereignty Hub holding the claim"
+          }
         },
-        "type": "array"
+        "required": [
+          "alliance_id",
+          "corporation_id",
+          "claimed_since",
+          "sovereignty_hub",
+          "is_capital_system",
+          "development"
+        ],
+        "type": "object"
+      },
+      "SovereigntySystemsDevelopment": {
+        "properties": {
+          "activity_defense_multiplier": {
+            "description": "Current Activity Defense Multiplier",
+            "examples": [1.2],
+            "format": "double",
+            "type": "number"
+          },
+          "industrial_level": {
+            "description": "Industrial level (0-5) of this solar system",
+            "examples": [0],
+            "format": "int64",
+            "type": "integer"
+          },
+          "military_level": {
+            "description": "Military level (0-5) of this solar system",
+            "examples": [3],
+            "format": "int64",
+            "type": "integer"
+          },
+          "strategic_level": {
+            "description": "Strategic level (0-5) of this solar system",
+            "examples": [5],
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "activity_defense_multiplier",
+          "military_level",
+          "industrial_level",
+          "strategic_level"
+        ],
+        "type": "object"
+      },
+      "SovereigntySystemsFaction": {
+        "properties": {
+          "faction_id": {
+            "$ref": "#/components/schemas/FactionID",
+            "description": "Faction that claimed this solar system"
+          }
+        },
+        "required": ["faction_id"],
+        "type": "object"
+      },
+      "SovereigntySystemsSolarsystem": {
+        "properties": {
+          "claim": {
+            "description": "Claim on this solar system",
+            "oneOf": [
+              {
+                "properties": {
+                  "faction": {
+                    "$ref": "#/components/schemas/SovereigntySystemsFaction",
+                    "description": "Solar system is claimed by a faction"
+                  }
+                },
+                "title": "faction",
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "alliance": {
+                    "$ref": "#/components/schemas/SovereigntySystemsAlliance",
+                    "description": "Solar system is claimed by an alliance"
+                  }
+                },
+                "title": "alliance",
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "unclaimed": {
+                    "description": "Solar system is unclaimed",
+                    "type": "boolean"
+                  }
+                },
+                "title": "unclaimed",
+                "type": "object"
+              }
+            ]
+          },
+          "solar_system_id": {
+            "$ref": "#/components/schemas/SolarSystemID",
+            "description": "ID of the solar system"
+          }
+        },
+        "required": ["solar_system_id", "claim"],
+        "type": "object"
+      },
+      "SovereigntySystemsSovereigntyhub": {
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ItemID",
+            "description": "ID of the Sovereignty Hub"
+          },
+          "vulnerability_window": {
+            "$ref": "#/components/schemas/SovereigntySystemsVulnerabilitywindow",
+            "description": "Sovereignty Hub's vulnerability window; if omitted, this Sovereignty Hub is part of an active campaign"
+          }
+        },
+        "required": ["id"],
+        "type": "object"
+      },
+      "SovereigntySystemsVulnerabilitywindow": {
+        "properties": {
+          "end": {
+            "description": "End time of the vulnerability window; if in the past, the Sovereignty Hub is in overtime",
+            "examples": ["2026-02-23T16:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          },
+          "start": {
+            "description": "Start time of the vulnerability window; if in the past, the Sovereignty Hub is vulnerable right now",
+            "examples": ["2026-02-23T12:00:00Z"],
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": ["start", "end"],
+        "type": "object"
       },
       "StationID": {
         "examples": [60000001],
@@ -11921,27 +13014,31 @@
         "type": "integer",
         "x-common-model": "true"
       },
-      "StatusGet": {
+      "Status": {
         "properties": {
           "players": {
-            "description": "Current online player count",
+            "description": "Number of characters currently logged in",
+            "examples": [12345],
+            "format": "int64",
             "type": "integer"
           },
           "server_version": {
-            "description": "Running version as string",
+            "description": "Build number of the cluster",
+            "examples": ["1132976"],
             "type": "string"
           },
           "start_time": {
-            "description": "Server start timestamp",
+            "description": "Moment the cluster started accepting connections",
+            "examples": ["2017-01-02T12:34:56Z"],
             "format": "date-time",
             "type": "string"
           },
           "vip": {
-            "description": "If the server is in VIP mode",
+            "description": "Whether the cluster only accepts VIP logins",
             "type": "boolean"
           }
         },
-        "required": ["start_time", "players", "server_version"],
+        "required": ["server_version", "players", "vip", "start_time"],
         "type": "object"
       },
       "TypeID": {
@@ -13473,7 +14570,9 @@
               "esi-ui.write_waypoint.v1": "esi-ui.write_waypoint.v1",
               "esi-universe.read_structures.v1": "esi-universe.read_structures.v1",
               "esi-wallet.read_character_wallet.v1": "esi-wallet.read_character_wallet.v1",
-              "esi-wallet.read_corporation_wallets.v1": "esi-wallet.read_corporation_wallets.v1"
+              "esi-wallet.read_corporation_wallets.v1": "esi-wallet.read_corporation_wallets.v1",
+              "esi.activity.char:read": "esi.activity.char:read",
+              "esi.cosmetic.char:read": "esi.cosmetic.char:read"
             },
             "tokenUrl": "https://login.eveonline.com/v2/oauth/token"
           }
@@ -13492,8 +14591,8 @@
       "url": "https://developers.eveonline.com/license-agreement"
     },
     "termsOfService": "https://support.eveonline.com/hc/en-us/articles/8414770561948-EVE-Online-Terms-of-Service",
-    "title": "EVE Spring Inebriation (ESI) - tranquility",
-    "version": "2025-12-16"
+    "title": "EVE SKINR Ingenuity (ESI) - tranquility",
+    "version": "2026-05-19"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -13554,7 +14653,10 @@
         "summary": "List all alliances",
         "tags": ["Alliance"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/alliances/{alliance_id}": {
@@ -13593,7 +14695,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AllianceDetail"
+                  "$ref": "#/components/schemas/AlliancesDetail"
                 }
               }
             },
@@ -13624,8 +14726,11 @@
         "summary": "Get alliance's public information",
         "tags": ["Alliance"],
         "x-cache-age": 3600,
-        "x-cache-mode": "event-based",
-        "x-compatibility-date": "2020-01-01"
+        "x-cache-mode": "ttl-based",
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/alliances/{alliance_id}/contacts": {
@@ -13716,12 +14821,15 @@
         "summary": "Get alliance contacts",
         "tags": ["Contacts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "alliance-social",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/alliances/{alliance_id}/contacts/labels": {
@@ -13795,12 +14903,15 @@
         "summary": "Get alliance contact labels",
         "tags": ["Contacts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "alliance-social",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/alliances/{alliance_id}/corporations": {
@@ -13869,7 +14980,10 @@
         "summary": "List alliance's corporations",
         "tags": ["Alliance"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/alliances/{alliance_id}/icons": {
@@ -14015,7 +15129,10 @@
         "summary": "Character affiliation",
         "tags": ["Character"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}": {
@@ -14085,8 +15202,187 @@
         "summary": "Get character's public information",
         "tags": ["Character"],
         "x-cache-age": 86400,
+        "x-cache-mode": "ttl-based",
+        "x-client-cache-ttl": 86400,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 86400
+      }
+    },
+    "/characters/{character_id}/access-lists": {
+      "get": {
+        "description": "Lists all Access Lists the character is Manager or Admin of.",
+        "operationId": "GetCharactersAccessListsListing",
+        "parameters": [
+          {
+            "description": "The ID of the character",
+            "in": "path",
+            "name": "character_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharactersAccessListsListing"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-access.read_lists.v1"]
+          }
+        ],
+        "summary": "List Access Lists",
+        "tags": ["Access List"],
+        "x-cache-age": 300,
         "x-cache-mode": "event-based",
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 300,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "char-access",
+          "max-tokens": 600,
+          "window-size": "15m"
+        },
+        "x-server-cache-mode": "event-based"
+      }
+    },
+    "/characters/{character_id}/access-lists/{access_list_id}": {
+      "get": {
+        "description": "Get the details of an Access List.",
+        "operationId": "GetCharactersAccessListsDetail",
+        "parameters": [
+          {
+            "description": "The ID of the Access List",
+            "in": "path",
+            "name": "access_list_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AccessListID",
+              "description": "The ID of the Access List"
+            }
+          },
+          {
+            "description": "The ID of the character",
+            "in": "path",
+            "name": "character_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharactersAccessListsDetail"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-access.read_lists.v1"]
+          }
+        ],
+        "summary": "Get Access List details",
+        "tags": ["Access List"],
+        "x-cache-age": 300,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 300,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "char-access",
+          "max-tokens": 600,
+          "window-size": "15m"
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/agents_research": {
@@ -14160,12 +15456,15 @@
         "summary": "Get agents research",
         "tags": ["Character"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-industry",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/assets": {
@@ -14256,12 +15555,15 @@
         "summary": "Get character assets",
         "tags": ["Assets"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-asset",
           "max-tokens": 1800,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/assets/locations": {
@@ -14527,12 +15829,15 @@
         "summary": "Get character attributes",
         "tags": ["Skills"],
         "x-cache-age": 120,
+        "x-client-cache-ttl": 120,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-detail",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 120
       }
     },
     "/characters/{character_id}/blueprints": {
@@ -14623,12 +15928,15 @@
         "summary": "Get blueprints",
         "tags": ["Character"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-industry",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/calendar": {
@@ -14711,12 +16019,15 @@
         "summary": "List calendar event summaries",
         "tags": ["Calendar"],
         "x-cache-age": 5,
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 5
       }
     },
     "/characters/{character_id}/calendar/{event_id}": {
@@ -14800,12 +16111,15 @@
         "summary": "Get an event",
         "tags": ["Calendar"],
         "x-cache-age": 5,
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 5
       },
       "put": {
         "description": "Set your response status to an event",
@@ -14897,12 +16211,15 @@
         "summary": "Respond to an event",
         "tags": ["Calendar"],
         "x-cache-age": 5,
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 5
       }
     },
     "/characters/{character_id}/calendar/{event_id}/attendees": {
@@ -14986,12 +16303,15 @@
         "summary": "Get attendees",
         "tags": ["Calendar"],
         "x-cache-age": 600,
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 600
       }
     },
     "/characters/{character_id}/clones": {
@@ -15065,12 +16385,15 @@
         "summary": "Get clones",
         "tags": ["Clones"],
         "x-cache-age": 120,
+        "x-client-cache-ttl": 120,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-location",
           "max-tokens": 1200,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 120
       }
     },
     "/characters/{character_id}/contacts": {
@@ -15245,12 +16568,15 @@
         "summary": "Get contacts",
         "tags": ["Contacts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       },
       "post": {
         "description": "Bulk add contacts with same settings",
@@ -15567,12 +16893,15 @@
         "summary": "Get contact labels",
         "tags": ["Contacts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/characters/{character_id}/contracts": {
@@ -15663,12 +16992,15 @@
         "summary": "Get contracts",
         "tags": ["Contracts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-contract",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/characters/{character_id}/contracts/{contract_id}/bids": {
@@ -15752,12 +17084,15 @@
         "summary": "Get contract bids",
         "tags": ["Contracts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-contract",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/characters/{character_id}/contracts/{contract_id}/items": {
@@ -15841,12 +17176,15 @@
         "summary": "Get contract items",
         "tags": ["Contracts"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-contract",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/corporationhistory": {
@@ -15915,7 +17253,10 @@
         "summary": "Get corporation history",
         "tags": ["Character"],
         "x-cache-age": 86400,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 86400,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 86400
       }
     },
     "/characters/{character_id}/cspa": {
@@ -16085,12 +17426,15 @@
         "summary": "Get jump fatigue",
         "tags": ["Character"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-location",
           "max-tokens": 1200,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/characters/{character_id}/fittings": {
@@ -16164,12 +17508,15 @@
         "summary": "Get fittings",
         "tags": ["Fittings"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "fitting",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       },
       "post": {
         "description": "Save a new fitting for a character",
@@ -16495,12 +17842,15 @@
         "summary": "Get character fleet info",
         "tags": ["Fleets"],
         "x-cache-age": 60,
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "fleet",
           "max-tokens": 1800,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 60
       }
     },
     "/characters/{character_id}/freelance-jobs": {
@@ -16575,13 +17925,15 @@
         "summary": "List character freelance jobs",
         "tags": ["Freelance Jobs"],
         "x-cache-age": 60,
-        "x-cache-mode": "no-cache",
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2025-12-16",
         "x-rate-limit": {
           "group": "char-freelance-job",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/freelance-jobs/{job_id}/participation": {
@@ -16666,13 +18018,15 @@
         "summary": "Get character freelance job participation",
         "tags": ["Freelance Jobs"],
         "x-cache-age": 60,
-        "x-cache-mode": "no-cache",
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2025-12-16",
         "x-rate-limit": {
           "group": "char-freelance-job",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/fw/stats": {
@@ -16824,12 +18178,15 @@
         "summary": "Get active implants",
         "tags": ["Clones"],
         "x-cache-age": 120,
+        "x-client-cache-ttl": 120,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-detail",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 120
       }
     },
     "/characters/{character_id}/industry/jobs": {
@@ -16911,12 +18268,15 @@
         "summary": "List character industry jobs",
         "tags": ["Industry"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-industry",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/characters/{character_id}/killmails/recent": {
@@ -17007,17 +18367,20 @@
         "summary": "Get a character's recent kills and losses",
         "tags": ["Killmails"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-killmail",
           "max-tokens": 30,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/characters/{character_id}/location": {
       "get": {
-        "description": "Information about the characters current location. Returns the current solar system id, and also the current station or structure ID if applicable",
+        "description": "Get the current location of a character, including the station or structure it is docked in.",
         "operationId": "GetCharactersCharacterIdLocation",
         "parameters": [
           {
@@ -17026,7 +18389,8 @@
             "name": "character_id",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/CharacterID"
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
             }
           },
           {
@@ -17050,7 +18414,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CharactersCharacterIdLocationGet"
+                  "$ref": "#/components/schemas/CharactersLocation"
                 }
               }
             },
@@ -17086,12 +18450,15 @@
         "summary": "Get character location",
         "tags": ["Location"],
         "x-cache-age": 5,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-location",
           "max-tokens": 1200,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/loyalty/points": {
@@ -17165,12 +18532,15 @@
         "summary": "Get loyalty points",
         "tags": ["Loyalty"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-wallet",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/mail": {
@@ -17268,12 +18638,15 @@
         "summary": "Return mail headers",
         "tags": ["Mail"],
         "x-cache-age": 30,
+        "x-client-cache-ttl": 30,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 30
       },
       "post": {
         "description": "Create and send a new mail",
@@ -17474,12 +18847,15 @@
         "summary": "Get mail labels and unread counts",
         "tags": ["Mail"],
         "x-cache-age": 30,
+        "x-client-cache-ttl": 30,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 30
       },
       "post": {
         "description": "Create a mail label",
@@ -17753,12 +19129,15 @@
         "summary": "Return mailing list subscriptions",
         "tags": ["Mail"],
         "x-cache-age": 120,
+        "x-client-cache-ttl": 120,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 120
       }
     },
     "/characters/{character_id}/mail/{mail_id}": {
@@ -17921,12 +19300,15 @@
         "summary": "Return a mail",
         "tags": ["Mail"],
         "x-cache-age": 30,
+        "x-client-cache-ttl": 30,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 30
       },
       "put": {
         "description": "Update metadata about a mail",
@@ -18106,12 +19488,191 @@
         "summary": "Get medals",
         "tags": ["Character"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-detail",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
+      }
+    },
+    "/characters/{character_id}/mercenary-tactical-operations": {
+      "get": {
+        "description": "Listing of all Mercenary Tactical Operations for the character.",
+        "operationId": "GetCharactersMercenaryTacticalOperationsListing",
+        "parameters": [
+          {
+            "description": "The ID of the character",
+            "in": "path",
+            "name": "character_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharactersMercenaryTacticalOperationsListing"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-activities.read_character.v1"]
+          }
+        ],
+        "summary": "List Mercenary Tactical Operations",
+        "tags": ["Activities"],
+        "x-cache-age": 300,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 300,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "char-activity",
+          "max-tokens": 150,
+          "window-size": "15m"
+        },
+        "x-server-cache-mode": "event-based"
+      }
+    },
+    "/characters/{character_id}/mercenary-tactical-operations/{operation_id}": {
+      "get": {
+        "description": "Get the details of a Mercenary Tactical Operation.",
+        "operationId": "GetCharactersMercenaryTacticalOperationsDetail",
+        "parameters": [
+          {
+            "description": "The ID of the operation",
+            "in": "path",
+            "name": "operation_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID",
+              "description": "The ID of the operation"
+            }
+          },
+          {
+            "description": "The ID of the character",
+            "in": "path",
+            "name": "character_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharactersMercenaryTacticalOperationsDetail"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-activities.read_character.v1"]
+          }
+        ],
+        "summary": "Get Mercenary Tactical Operation details",
+        "tags": ["Activities"],
+        "x-cache-age": 300,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 300,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "char-activity",
+          "max-tokens": 150,
+          "window-size": "15m"
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/mining": {
@@ -18202,12 +19763,15 @@
         "summary": "Character mining ledger",
         "tags": ["Industry"],
         "x-cache-age": 600,
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-industry",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 600
       }
     },
     "/characters/{character_id}/notifications": {
@@ -18281,12 +19845,15 @@
         "summary": "Get character notifications",
         "tags": ["Character"],
         "x-cache-age": 600,
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-notification",
           "max-tokens": 15,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 600
       }
     },
     "/characters/{character_id}/notifications/contacts": {
@@ -18360,17 +19927,20 @@
         "summary": "Get new contact notifications",
         "tags": ["Character"],
         "x-cache-age": 600,
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 600
       }
     },
     "/characters/{character_id}/online": {
       "get": {
-        "description": "Checks if the character is currently online",
+        "description": "Get whether a character is online, and its login statistics.",
         "operationId": "GetCharactersCharacterIdOnline",
         "parameters": [
           {
@@ -18379,7 +19949,8 @@
             "name": "character_id",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/CharacterID"
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
             }
           },
           {
@@ -18403,7 +19974,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CharactersCharacterIdOnlineGet"
+                  "$ref": "#/components/schemas/CharactersOnline"
                 }
               }
             },
@@ -18439,12 +20010,15 @@
         "summary": "Get character online",
         "tags": ["Location"],
         "x-cache-age": 60,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-location",
           "max-tokens": 1200,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/orders": {
@@ -18518,7 +20092,10 @@
         "summary": "List open orders from a character",
         "tags": ["Market"],
         "x-cache-age": 1200,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 1200,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 1200
       }
     },
     "/characters/{character_id}/orders/history": {
@@ -18609,7 +20186,10 @@
         "summary": "List historical orders by a character",
         "tags": ["Market"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/planets": {
@@ -18683,12 +20263,15 @@
         "summary": "Get colonies",
         "tags": ["Planetary Interaction"],
         "x-cache-age": 600,
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-industry",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 600
       }
     },
     "/characters/{character_id}/planets/{planet_id}": {
@@ -18772,12 +20355,15 @@
         "summary": "Get colony layout",
         "tags": ["Planetary Interaction"],
         "x-cache-age": 600,
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-industry",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 600
       }
     },
     "/characters/{character_id}/portrait": {
@@ -18924,12 +20510,15 @@
         "summary": "Get character corporation roles",
         "tags": ["Character"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-detail",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/search": {
@@ -19053,12 +20642,15 @@
         "summary": "Search on a string",
         "tags": ["Search"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/ship": {
       "get": {
-        "description": "Get the current ship type, name and id",
+        "description": "Get the ship a character is currently in.",
         "operationId": "GetCharactersCharacterIdShip",
         "parameters": [
           {
@@ -19067,7 +20659,8 @@
             "name": "character_id",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/CharacterID"
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
             }
           },
           {
@@ -19091,7 +20684,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CharactersCharacterIdShipGet"
+                  "$ref": "#/components/schemas/CharactersShip"
                 }
               }
             },
@@ -19127,12 +20720,16 @@
         "summary": "Get current ship",
         "tags": ["Location"],
         "x-cache-age": 5,
+        "x-cache-mode": "ttl-based",
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-location",
           "max-tokens": 1200,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 5
       }
     },
     "/characters/{character_id}/skillqueue": {
@@ -19211,12 +20808,14 @@
         "tags": ["Skills"],
         "x-cache-age": 60,
         "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-detail",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/skills": {
@@ -19292,12 +20891,14 @@
         "tags": ["Skills"],
         "x-cache-age": 60,
         "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-detail",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/standings": {
@@ -19371,12 +20972,191 @@
         "summary": "Get standings",
         "tags": ["Character"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-social",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
+      }
+    },
+    "/characters/{character_id}/structures/mercenary-dens": {
+      "get": {
+        "description": "Listing of all Mercenary Dens.",
+        "operationId": "GetCharactersStructuresMercenaryDensListing",
+        "parameters": [
+          {
+            "description": "The ID of the character",
+            "in": "path",
+            "name": "character_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharactersStructuresMercenaryDensListing"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-structures.read_character.v1"]
+          }
+        ],
+        "summary": "List Mercenary Dens",
+        "tags": ["Structures"],
+        "x-cache-age": 3600,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "char-structure",
+          "max-tokens": 30,
+          "window-size": "15m"
+        },
+        "x-server-cache-mode": "event-based"
+      }
+    },
+    "/characters/{character_id}/structures/mercenary-dens/{mercenary_den_id}": {
+      "get": {
+        "description": "Get the details of a Mercenary Den.",
+        "operationId": "GetCharactersStructuresMercenaryDensDetail",
+        "parameters": [
+          {
+            "description": "The ID of the Mercenary Den",
+            "in": "path",
+            "name": "mercenary_den_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID",
+              "description": "The ID of the Mercenary Den"
+            }
+          },
+          {
+            "description": "The ID of the character",
+            "in": "path",
+            "name": "character_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CharacterID",
+              "description": "The ID of the character"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharactersStructuresMercenaryDensDetail"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-structures.read_character.v1"]
+          }
+        ],
+        "summary": "Get Mercenary Den details",
+        "tags": ["Structures"],
+        "x-cache-age": 3600,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "char-structure",
+          "max-tokens": 30,
+          "window-size": "15m"
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/characters/{character_id}/titles": {
@@ -19450,12 +21230,15 @@
         "summary": "Get character corporation titles",
         "tags": ["Character"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-detail",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/wallet": {
@@ -19529,12 +21312,15 @@
         "summary": "Get a character's wallet balance",
         "tags": ["Wallet"],
         "x-cache-age": 120,
+        "x-client-cache-ttl": 120,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-wallet",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 120
       }
     },
     "/characters/{character_id}/wallet/journal": {
@@ -19625,12 +21411,15 @@
         "summary": "Get character wallet journal",
         "tags": ["Wallet"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-wallet",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/characters/{character_id}/wallet/transactions": {
@@ -19713,12 +21502,15 @@
         "summary": "Get wallet transactions",
         "tags": ["Wallet"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "char-wallet",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/contracts/public/bids/{contract_id}": {
@@ -19814,7 +21606,10 @@
         "summary": "Get public contract bids",
         "tags": ["Contracts"],
         "x-cache-age": 300,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 300,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/contracts/public/items/{contract_id}": {
@@ -19910,7 +21705,10 @@
         "summary": "Get public contract items",
         "tags": ["Contracts"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/contracts/public/{region_id}": {
@@ -19997,7 +21795,10 @@
         "summary": "Get public contracts",
         "tags": ["Contracts"],
         "x-cache-age": 1800,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 1800,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 1800
       }
     },
     "/corporation/{corporation_id}/mining/extractions": {
@@ -20088,13 +21889,16 @@
         "summary": "Moon extraction timers",
         "tags": ["Industry"],
         "x-cache-age": 1800,
+        "x-client-cache-ttl": 1800,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-industry",
           "max-tokens": 600,
           "window-size": "15m"
         },
-        "x-required-roles": ["Station_Manager"]
+        "x-required-roles": ["Station_Manager"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 1800
       }
     },
     "/corporation/{corporation_id}/mining/observers": {
@@ -20185,13 +21989,16 @@
         "summary": "Corporation mining observers",
         "tags": ["Industry"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-industry",
           "max-tokens": 600,
           "window-size": "15m"
         },
-        "x-required-roles": ["Accountant"]
+        "x-required-roles": ["Accountant"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporation/{corporation_id}/mining/observers/{observer_id}": {
@@ -20292,13 +22099,16 @@
         "summary": "Observed corporation mining",
         "tags": ["Industry"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-industry",
           "max-tokens": 600,
           "window-size": "15m"
         },
-        "x-required-roles": ["Accountant"]
+        "x-required-roles": ["Accountant"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/npccorps": {
@@ -20427,8 +22237,11 @@
         "summary": "Get corporation's public information",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
-        "x-cache-mode": "event-based",
-        "x-compatibility-date": "2020-01-01"
+        "x-cache-mode": "ttl-based",
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/alliancehistory": {
@@ -20497,7 +22310,10 @@
         "summary": "Get alliance history",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/assets": {
@@ -20588,13 +22404,16 @@
         "summary": "Get corporation assets",
         "tags": ["Assets"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-asset",
           "max-tokens": 1800,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/assets/locations": {
@@ -20879,13 +22698,16 @@
         "summary": "Get corporation blueprints",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-industry",
           "max-tokens": 600,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/contacts": {
@@ -20976,12 +22798,15 @@
         "summary": "Get corporation contacts",
         "tags": ["Contacts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-social",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/corporations/{corporation_id}/contacts/labels": {
@@ -21055,12 +22880,15 @@
         "summary": "Get corporation contact labels",
         "tags": ["Contacts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-social",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/corporations/{corporation_id}/containers/logs": {
@@ -21151,13 +22979,16 @@
         "summary": "Get all corporation ALSC logs",
         "tags": ["Corporation"],
         "x-cache-age": 600,
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-structure",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 600
       }
     },
     "/corporations/{corporation_id}/contracts": {
@@ -21248,12 +23079,15 @@
         "summary": "Get corporation contracts",
         "tags": ["Contracts"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-contract",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/corporations/{corporation_id}/contracts/{contract_id}/bids": {
@@ -21354,12 +23188,15 @@
         "summary": "Get corporation contract bids",
         "tags": ["Contracts"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-contract",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/contracts/{contract_id}/items": {
@@ -21443,12 +23280,15 @@
         "summary": "Get corporation contract items",
         "tags": ["Contracts"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-contract",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/customs_offices": {
@@ -21539,13 +23379,16 @@
         "summary": "List corporation customs offices",
         "tags": ["Planetary Interaction"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-industry",
           "max-tokens": 600,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/divisions": {
@@ -21619,13 +23462,16 @@
         "summary": "Get corporation divisions",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-wallet",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/facilities": {
@@ -21699,13 +23545,16 @@
         "summary": "Get corporation facilities",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-structure",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Factory_Manager"]
+        "x-required-roles": ["Factory_Manager"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/freelance-jobs": {
@@ -21813,7 +23662,7 @@
         ],
         "summary": "List corporation freelance jobs",
         "tags": ["Freelance Jobs"],
-        "x-cache-age": 0,
+        "x-cache-mode": "event-based",
         "x-compatibility-date": "2025-12-16",
         "x-pagination": "cursor",
         "x-rate-limit": {
@@ -21821,7 +23670,8 @@
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Project_Manager"]
+        "x-required-roles": ["Project_Manager"],
+        "x-server-cache-mode": "event-based"
       }
     },
     "/corporations/{corporation_id}/freelance-jobs/{job_id}/participants": {
@@ -21939,7 +23789,7 @@
         ],
         "summary": "List participants of a freelance job",
         "tags": ["Freelance Jobs"],
-        "x-cache-age": 0,
+        "x-cache-mode": "event-based",
         "x-compatibility-date": "2025-12-16",
         "x-pagination": "cursor",
         "x-rate-limit": {
@@ -21947,7 +23797,8 @@
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Project_Manager"]
+        "x-required-roles": ["Project_Manager"],
+        "x-server-cache-mode": "event-based"
       }
     },
     "/corporations/{corporation_id}/fw/stats": {
@@ -22094,7 +23945,10 @@
         "summary": "Get corporation icon",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/industry/jobs": {
@@ -22194,13 +24048,16 @@
         "summary": "List corporation industry jobs",
         "tags": ["Industry"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-industry",
           "max-tokens": 600,
           "window-size": "15m"
         },
-        "x-required-roles": ["Factory_Manager"]
+        "x-required-roles": ["Factory_Manager"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/corporations/{corporation_id}/killmails/recent": {
@@ -22291,13 +24148,16 @@
         "summary": "Get a corporation's recent kills and losses",
         "tags": ["Killmails"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-killmail",
           "max-tokens": 30,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/corporations/{corporation_id}/medals": {
@@ -22388,12 +24248,15 @@
         "summary": "Get corporation medals",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-detail",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/medals/issued": {
@@ -22484,13 +24347,16 @@
         "summary": "Get corporation issued medals",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-detail",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/members": {
@@ -22564,12 +24430,15 @@
         "summary": "Get corporation members",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-member",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/members/limit": {
@@ -22643,13 +24512,16 @@
         "summary": "Get corporation member limit",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-member",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/members/titles": {
@@ -22723,13 +24595,16 @@
         "summary": "Get corporation's members' titles",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-member",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/membertracking": {
@@ -22803,13 +24678,16 @@
         "summary": "Track corporation members",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-member",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/orders": {
@@ -22900,8 +24778,11 @@
         "summary": "List open orders from a corporation",
         "tags": ["Market"],
         "x-cache-age": 1200,
+        "x-client-cache-ttl": 1200,
         "x-compatibility-date": "2020-01-01",
-        "x-required-roles": ["Accountant", "Trader"]
+        "x-required-roles": ["Accountant", "Trader"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 1200
       }
     },
     "/corporations/{corporation_id}/orders/history": {
@@ -22992,8 +24873,11 @@
         "summary": "List historical orders from a corporation",
         "tags": ["Market"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
-        "x-required-roles": ["Accountant", "Trader"]
+        "x-required-roles": ["Accountant", "Trader"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/projects": {
@@ -23114,14 +24998,15 @@
         ],
         "summary": "List corporation projects",
         "tags": ["Corporation Projects"],
-        "x-cache-age": 0,
+        "x-cache-mode": "event-based",
         "x-compatibility-date": "2025-08-26",
         "x-pagination": "cursor",
         "x-rate-limit": {
           "group": "corp-project",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/corporations/{corporation_id}/projects/{project_id}": {
@@ -23206,13 +25091,15 @@
         "summary": "Get project details",
         "tags": ["Corporation Projects"],
         "x-cache-age": 60,
-        "x-cache-mode": "no-cache",
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2025-08-26",
         "x-rate-limit": {
           "group": "corp-project",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/corporations/{corporation_id}/projects/{project_id}/contribution/{character_id}": {
@@ -23307,13 +25194,15 @@
         "summary": "Get your project contribution",
         "tags": ["Corporation Projects"],
         "x-cache-age": 60,
-        "x-cache-mode": "no-cache",
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2025-08-26",
         "x-rate-limit": {
           "group": "corp-project",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/corporations/{corporation_id}/projects/{project_id}/contributors": {
@@ -23431,7 +25320,7 @@
         ],
         "summary": "List project contributors",
         "tags": ["Corporation Projects"],
-        "x-cache-age": 0,
+        "x-cache-mode": "event-based",
         "x-compatibility-date": "2025-08-26",
         "x-pagination": "cursor",
         "x-rate-limit": {
@@ -23439,7 +25328,8 @@
           "max-tokens": 600,
           "window-size": "15m"
         },
-        "x-required-roles": ["Project_Manager"]
+        "x-required-roles": ["Project_Manager"],
+        "x-server-cache-mode": "event-based"
       }
     },
     "/corporations/{corporation_id}/roles": {
@@ -23513,12 +25403,15 @@
         "summary": "Get corporation member roles",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-member",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/roles/history": {
@@ -23609,13 +25502,16 @@
         "summary": "Get corporation member roles history",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-member",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/shareholders": {
@@ -23706,13 +25602,16 @@
         "summary": "Get corporation shareholders",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-detail",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/standings": {
@@ -23803,12 +25702,15 @@
         "summary": "Get corporation standings",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-member",
           "max-tokens": 300,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/starbases": {
@@ -23899,13 +25801,16 @@
         "summary": "Get corporation starbases (POSes)",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-structure",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/starbases/{starbase_id}": {
@@ -23999,13 +25904,16 @@
         "summary": "Get starbase (POS) detail",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-structure",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/structures": {
@@ -24099,13 +26007,371 @@
         "summary": "Get corporation structures",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-structure",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Station_Manager"]
+        "x-required-roles": ["Station_Manager"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
+      }
+    },
+    "/corporations/{corporation_id}/structures/skyhooks": {
+      "get": {
+        "description": "Listing of all Skyhooks.",
+        "operationId": "GetCorporationsStructuresSkyhooksListing",
+        "parameters": [
+          {
+            "description": "The ID of the corporation",
+            "in": "path",
+            "name": "corporation_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CorporationID",
+              "description": "The ID of the corporation"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorporationsStructuresSkyhooksListing"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-structures.read_corporation.v1"]
+          }
+        ],
+        "summary": "List Skyhooks",
+        "tags": ["Structures"],
+        "x-cache-age": 3600,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "corp-structure",
+          "max-tokens": 300,
+          "window-size": "15m"
+        },
+        "x-required-roles": ["Station_Manager"],
+        "x-server-cache-mode": "event-based"
+      }
+    },
+    "/corporations/{corporation_id}/structures/skyhooks/{skyhook_id}": {
+      "get": {
+        "description": "Get the details of a Skyhook.",
+        "operationId": "GetCorporationsStructuresSkyhooksDetail",
+        "parameters": [
+          {
+            "description": "The ID of the Skyhook",
+            "in": "path",
+            "name": "skyhook_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID",
+              "description": "The ID of the Skyhook"
+            }
+          },
+          {
+            "description": "The ID of the corporation",
+            "in": "path",
+            "name": "corporation_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CorporationID",
+              "description": "The ID of the corporation"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorporationsStructuresSkyhooksDetail"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-structures.read_corporation.v1"]
+          }
+        ],
+        "summary": "Get Skyhook details",
+        "tags": ["Structures"],
+        "x-cache-age": 3600,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "corp-structure",
+          "max-tokens": 300,
+          "window-size": "15m"
+        },
+        "x-required-roles": ["Station_Manager"],
+        "x-server-cache-mode": "event-based"
+      }
+    },
+    "/corporations/{corporation_id}/structures/sovereignty-hubs": {
+      "get": {
+        "description": "Listing of all Sovereignty Hubs.",
+        "operationId": "GetCorporationsStructuresSovereigntyHubsListing",
+        "parameters": [
+          {
+            "description": "The ID of the corporation",
+            "in": "path",
+            "name": "corporation_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CorporationID",
+              "description": "The ID of the corporation"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsListing"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-structures.read_corporation.v1"]
+          }
+        ],
+        "summary": "List Sovereignty Hubs",
+        "tags": ["Structures"],
+        "x-cache-age": 3600,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "corp-structure",
+          "max-tokens": 300,
+          "window-size": "15m"
+        },
+        "x-server-cache-mode": "event-based"
+      }
+    },
+    "/corporations/{corporation_id}/structures/sovereignty-hubs/{sovereignty_hub_id}": {
+      "get": {
+        "description": "Get the details of a Sovereignty Hub.",
+        "operationId": "GetCorporationsStructuresSovereigntyHubsDetail",
+        "parameters": [
+          {
+            "description": "The ID of the Sovereignty Hub",
+            "in": "path",
+            "name": "sovereignty_hub_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID",
+              "description": "The ID of the Sovereignty Hub"
+            }
+          },
+          {
+            "description": "The ID of the corporation",
+            "in": "path",
+            "name": "corporation_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CorporationID",
+              "description": "The ID of the corporation"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorporationsStructuresSovereigntyHubsDetail"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2": ["esi-structures.read_corporation.v1"]
+          }
+        ],
+        "summary": "Get Sovereignty Hub details",
+        "tags": ["Structures"],
+        "x-cache-age": 3600,
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "corp-structure",
+          "max-tokens": 300,
+          "window-size": "15m"
+        },
+        "x-required-roles": ["Station_Manager"],
+        "x-server-cache-mode": "event-based"
       }
     },
     "/corporations/{corporation_id}/titles": {
@@ -24179,13 +26445,16 @@
         "summary": "Get corporation titles",
         "tags": ["Corporation"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-detail",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Director"]
+        "x-required-roles": ["Director"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/wallets": {
@@ -24259,13 +26528,16 @@
         "summary": "Returns a corporation's wallet balance",
         "tags": ["Wallet"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-wallet",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Accountant", "Junior_Accountant"]
+        "x-required-roles": ["Accountant", "Junior_Accountant"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/corporations/{corporation_id}/wallets/{division}/journal": {
@@ -24366,13 +26638,16 @@
         "summary": "Get corporation wallet journal",
         "tags": ["Wallet"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-wallet",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Accountant", "Junior_Accountant"]
+        "x-required-roles": ["Accountant", "Junior_Accountant"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/corporations/{corporation_id}/wallets/{division}/transactions": {
@@ -24465,13 +26740,16 @@
         "summary": "Get corporation wallet transactions",
         "tags": ["Wallet"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "corp-wallet",
           "max-tokens": 300,
           "window-size": "15m"
         },
-        "x-required-roles": ["Accountant", "Junior_Accountant"]
+        "x-required-roles": ["Accountant", "Junior_Accountant"],
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/dogma/attributes": {
@@ -24879,12 +27157,15 @@
         "summary": "Get fleet information",
         "tags": ["Fleets"],
         "x-cache-age": 5,
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "fleet",
           "max-tokens": 1800,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 5
       },
       "put": {
         "description": "Update settings about a fleet",
@@ -25052,12 +27333,15 @@
         "summary": "Get fleet members",
         "tags": ["Fleets"],
         "x-cache-age": 5,
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "fleet",
           "max-tokens": 1800,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 5
       },
       "post": {
         "description": "Invite a character into the fleet. If a character has a CSPA charge set it is not possible to invite them to the fleet using ESI",
@@ -25613,12 +27897,15 @@
         "summary": "Get fleet wings",
         "tags": ["Fleets"],
         "x-cache-age": 5,
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "fleet",
           "max-tokens": 1800,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 5
       },
       "post": {
         "description": "Create a new wing in a fleet",
@@ -26066,14 +28353,15 @@
         },
         "summary": "List freelance jobs",
         "tags": ["Freelance Jobs"],
-        "x-cache-age": 0,
+        "x-cache-mode": "event-based",
         "x-compatibility-date": "2025-12-16",
         "x-pagination": "cursor",
         "x-rate-limit": {
           "group": "freelance-job",
-          "max-tokens": 900,
+          "max-tokens": 12000,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/freelance-jobs/{job_id}": {
@@ -26143,13 +28431,15 @@
         "summary": "Get freelance job details",
         "tags": ["Freelance Jobs"],
         "x-cache-age": 60,
-        "x-cache-mode": "no-cache",
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 60,
         "x-compatibility-date": "2025-12-16",
         "x-rate-limit": {
           "group": "freelance-job",
-          "max-tokens": 900,
+          "max-tokens": 12000,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/fw/leaderboards": {
@@ -26465,12 +28755,15 @@
         "summary": "Ownership of faction warfare systems",
         "tags": ["Faction Warfare"],
         "x-cache-age": 1800,
+        "x-client-cache-ttl": 1800,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "factional-warfare",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 1800
       }
     },
     "/fw/wars": {
@@ -26594,12 +28887,15 @@
         "summary": "List incursions",
         "tags": ["Incursions"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "incursion",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/industry/facilities": {
@@ -26659,12 +28955,15 @@
         "summary": "List industry facilities",
         "tags": ["Industry"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "industry",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/industry/systems": {
@@ -26724,12 +29023,15 @@
         "summary": "List solar system cost indices",
         "tags": ["Industry"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "industry",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/insurance/prices": {
@@ -26792,12 +29094,15 @@
         "summary": "List insurance levels",
         "tags": ["Insurance"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "insurance",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/killmails/{killmail_id}/{killmail_hash}": {
@@ -26876,12 +29181,15 @@
         "summary": "Get a single killmail",
         "tags": ["Killmails"],
         "x-cache-age": 2592000,
+        "x-client-cache-ttl": 2592000,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "killmail",
           "max-tokens": 3600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 2592000
       }
     },
     "/loyalty/stores/{corporation_id}/offers": {
@@ -27140,7 +29448,10 @@
         "summary": "List market prices",
         "tags": ["Market"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/markets/structures/{structure_id}": {
@@ -27232,7 +29543,10 @@
         "summary": "List orders in a structure",
         "tags": ["Market"],
         "x-cache-age": 300,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 300,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/markets/{region_id}/history": {
@@ -27418,12 +29732,15 @@
         "summary": "List orders in a region",
         "tags": ["Market"],
         "x-cache-age": 300,
+        "x-client-cache-ttl": 300,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "market-order",
           "max-tokens": 12000,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/markets/{region_id}/types": {
@@ -27510,7 +29827,10 @@
         "summary": "List type IDs relevant to a market",
         "tags": ["Market"],
         "x-cache-age": 600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 600
       }
     },
     "/meta/changelog": {
@@ -27570,13 +29890,15 @@
         "summary": "Get changelog",
         "tags": ["Meta"],
         "x-cache-age": 600,
-        "x-cache-mode": "not-cached",
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2025-09-26",
         "x-rate-limit": {
           "group": "meta",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/meta/compatibility-dates": {
@@ -27636,13 +29958,15 @@
         "summary": "Get compatibility dates",
         "tags": ["Meta"],
         "x-cache-age": 600,
-        "x-cache-mode": "not-cached",
+        "x-cache-mode": "event-based",
+        "x-client-cache-ttl": 600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "meta",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/meta/status": {
@@ -27701,13 +30025,14 @@
         },
         "summary": "Get health status",
         "tags": ["Meta"],
-        "x-cache-age": 0,
+        "x-cache-mode": "event-based",
         "x-compatibility-date": "2025-11-06",
         "x-rate-limit": {
           "group": "meta",
           "max-tokens": 150,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "event-based"
       }
     },
     "/route/{origin_system_id}/{destination_system_id}": {
@@ -27796,13 +30121,83 @@
         },
         "summary": "Get route between two systems",
         "tags": ["Routes"],
-        "x-cache-age": 0,
+        "x-cache-mode": "not-cached",
         "x-compatibility-date": "2025-09-30",
         "x-rate-limit": {
           "group": "routes",
           "max-tokens": 3600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "not-cached"
+      }
+    },
+    "/skyhooks/raidable": {
+      "get": {
+        "description": "Listing of all Skyhooks that currently or will shortly be raidable.",
+        "operationId": "GetSkyhooksRaidable",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          },
+          {
+            "$ref": "#/components/parameters/CompatibilityDate"
+          },
+          {
+            "$ref": "#/components/parameters/Tenant"
+          },
+          {
+            "$ref": "#/components/parameters/IfModifiedSince"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkyhooksRaidable"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Last-Modified": {
+                "$ref": "#/components/headers/LastModified"
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "List (upcoming) raidable Skyhooks",
+        "tags": ["Activities"],
+        "x-cache-age": 300,
+        "x-cache-mode": "ttl-based",
+        "x-client-cache-ttl": 300,
+        "x-compatibility-date": "2026-05-19",
+        "x-rate-limit": {
+          "group": "activity",
+          "max-tokens": 30,
+          "window-size": "15m"
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 60
       }
     },
     "/sovereignty/campaigns": {
@@ -27862,18 +30257,21 @@
         "summary": "List sovereignty campaigns",
         "tags": ["Sovereignty"],
         "x-cache-age": 5,
+        "x-client-cache-ttl": 5,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "sovereignty",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 5
       }
     },
-    "/sovereignty/map": {
+    "/sovereignty/systems": {
       "get": {
-        "description": "Shows sovereignty information for solar systems",
-        "operationId": "GetSovereigntyMap",
+        "description": "Listing of sovereignty details for all K-space systems in New Eden.",
+        "operationId": "GetSovereigntySystems",
         "parameters": [
           {
             "$ref": "#/components/parameters/AcceptLanguage"
@@ -27896,7 +30294,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SovereigntyMapGet"
+                  "$ref": "#/components/schemas/SovereigntySystems"
                 }
               }
             },
@@ -27924,85 +30322,24 @@
             "description": "Error"
           }
         },
-        "summary": "List sovereignty of systems",
+        "summary": "List sovereignty details for K-space systems",
         "tags": ["Sovereignty"],
-        "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01",
+        "x-cache-age": 300,
+        "x-cache-mode": "ttl-based",
+        "x-client-cache-ttl": 300,
+        "x-compatibility-date": "2026-05-19",
         "x-rate-limit": {
           "group": "sovereignty",
           "max-tokens": 600,
           "window-size": "15m"
-        }
-      }
-    },
-    "/sovereignty/structures": {
-      "get": {
-        "description": "Shows sovereignty data for structures.",
-        "operationId": "GetSovereigntyStructures",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/AcceptLanguage"
-          },
-          {
-            "$ref": "#/components/parameters/IfNoneMatch"
-          },
-          {
-            "$ref": "#/components/parameters/CompatibilityDate"
-          },
-          {
-            "$ref": "#/components/parameters/Tenant"
-          },
-          {
-            "$ref": "#/components/parameters/IfModifiedSince"
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SovereigntyStructuresGet"
-                }
-              }
-            },
-            "description": "OK",
-            "headers": {
-              "Cache-Control": {
-                "$ref": "#/components/headers/CacheControl"
-              },
-              "ETag": {
-                "$ref": "#/components/headers/ETag"
-              },
-              "Last-Modified": {
-                "$ref": "#/components/headers/LastModified"
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Error"
-          }
         },
-        "summary": "List sovereignty structures",
-        "tags": ["Sovereignty"],
-        "x-cache-age": 120,
-        "x-compatibility-date": "2020-01-01",
-        "x-rate-limit": {
-          "group": "sovereignty",
-          "max-tokens": 600,
-          "window-size": "15m"
-        }
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 300
       }
     },
     "/status": {
       "get": {
-        "description": "EVE Server status",
+        "description": "Current status of the EVE Online cluster",
         "operationId": "GetStatus",
         "parameters": [
           {
@@ -28026,7 +30363,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatusGet"
+                  "$ref": "#/components/schemas/Status"
                 }
               }
             },
@@ -28054,15 +30391,19 @@
             "description": "Error"
           }
         },
-        "summary": "Retrieve the uptime and player counts",
+        "summary": "Get the server's status",
         "tags": ["Status"],
         "x-cache-age": 30,
+        "x-cache-mode": "ttl-based",
+        "x-client-cache-ttl": 30,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "status",
           "max-tokens": 600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 30
       }
     },
     "/ui/autopilot/waypoint": {
@@ -29818,7 +32159,10 @@
         "summary": "Get schematic information",
         "tags": ["Planetary Interaction"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/universe/stargates/{stargate_id}": {
@@ -30091,7 +32435,10 @@
         "summary": "List all public structures",
         "tags": ["Universe"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/universe/structures/{structure_id}": {
@@ -30166,7 +32513,10 @@
         "summary": "Get structure information",
         "tags": ["Universe"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/universe/system_jumps": {
@@ -30226,7 +32576,10 @@
         "summary": "Get system jumps",
         "tags": ["Universe"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/universe/system_kills": {
@@ -30286,7 +32639,10 @@
         "summary": "Get system kills",
         "tags": ["Universe"],
         "x-cache-age": 3600,
-        "x-compatibility-date": "2020-01-01"
+        "x-client-cache-ttl": 3600,
+        "x-compatibility-date": "2020-01-01",
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/universe/systems": {
@@ -30633,12 +32989,15 @@
         "summary": "List wars",
         "tags": ["Wars"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "killmail",
           "max-tokens": 3600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/wars/{war_id}": {
@@ -30708,12 +33067,15 @@
         "summary": "Get war information",
         "tags": ["Wars"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "killmail",
           "max-tokens": 3600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     },
     "/wars/{war_id}/killmails": {
@@ -30800,12 +33162,15 @@
         "summary": "List kills for a war",
         "tags": ["Wars"],
         "x-cache-age": 3600,
+        "x-client-cache-ttl": 3600,
         "x-compatibility-date": "2020-01-01",
         "x-rate-limit": {
           "group": "killmail",
           "max-tokens": 3600,
           "window-size": "15m"
-        }
+        },
+        "x-server-cache-mode": "ttl-based",
+        "x-server-cache-ttl": 3600
       }
     }
   },
@@ -30815,6 +33180,12 @@
     }
   ],
   "tags": [
+    {
+      "name": "Access List"
+    },
+    {
+      "name": "Activities"
+    },
     {
       "name": "Alliance"
     },
@@ -30901,6 +33272,9 @@
     },
     {
       "name": "Status"
+    },
+    {
+      "name": "Structures"
     },
     {
       "name": "Universe"
