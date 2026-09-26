@@ -808,7 +808,12 @@ jobs:
             echo "::notice::Skipping byte-for-byte lockfile check for Dependabot (npm version mismatch is expected)"
             exit 0
           fi
-          npm install --package-lock-only --ignore-scripts
+          # npm 11 writes a `libc` field on platform-specific optional
+          # packages and npm 10 (bundled with Node 20) strips it, so checking
+          # with npm 10 fails on every lockfile Dependabot (npm 11) wrote.
+          # Pin the npm this check uses; `npm install` with npm 11 locally
+          # produces the same bytes.
+          npx --yes npm@11.17.0 install --package-lock-only --ignore-scripts
           if ! git diff --exit-code package-lock.json; then
             echo "::error::package-lock.json is out of sync with package.json. Run 'npm install' and commit the updated lockfile."
             exit 1
