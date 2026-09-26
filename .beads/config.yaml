@@ -45,11 +45,12 @@
 #   git-repo: ""       # Separate git repo for backups (default: project repo)
 
 # Optional JSONL auto-export for viewers, interchange, and issue-level migration.
-# Disabled by default; enable only when an integration needs fresh .beads/issues.jsonl.
+# Enabled here so .beads/issues.jsonl is rewritten after every bd write and
+# stays a readable, diffable record in git alongside Dolt sync.
 # Use relative paths under .beads/ for JSONL import/export filenames.
-# export:
-#   auto: false
-#   path: issues.jsonl
+export:
+  auto: true
+  path: issues.jsonl
 #   interval: 60s
 #   git-add: false
 # import:
