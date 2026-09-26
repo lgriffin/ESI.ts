@@ -848,4 +848,60 @@ defineFeature(feature, (test) => {
       assetsClient.shutdown();
     });
   });
+
+  test('Streaming market types after an ordinary market types call', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const theForge = 10000002;
+    const typeIds = [34, 35, 36];
+    const streamed: number[] = [];
+    let streamClient: EsiClient;
+
+    const queueMarketTypes = () =>
+      fetchMock.mockResponseOnce(JSON.stringify(typeIds), {
+        headers: {
+          ETag: '"market-types-v1"',
+          'X-Pages': '1',
+          'Content-Type': 'application/json',
+        },
+      });
+
+    given('a client with an empty cache', () => {
+      streamClient = new EsiClient({
+        clientId: 'bdd-stream-etag',
+        baseUrl: 'https://esi.evetech.net',
+        retryConfig: FAST_RETRY,
+        rateLimiterConfig: { minDelayMs: 0 },
+        logLevel: 'error',
+      });
+    });
+
+    and('the client has fetched the market types for The Forge', async () => {
+      queueMarketTypes();
+      await streamClient.market.getMarketTypes(theForge);
+      expect(requestHeader(0, 'If-None-Match')).toBeUndefined();
+    });
+
+    when('the client streams the market types for The Forge', async () => {
+      queueMarketTypes();
+      for await (const page of streamClient.market.streamMarketTypes(
+        theForge,
+      )) {
+        streamed.push(...page.data);
+      }
+    });
+
+    then('the stream yields every market type', () => {
+      expect(streamed).toEqual(typeIds);
+    });
+
+    and('the streamed request carried no If-None-Match header', () => {
+      expect(fetchMock.mock.calls).toHaveLength(2);
+      expect(requestHeader(1, 'If-None-Match')).toBeUndefined();
+      streamClient.shutdown();
+    });
+  });
 });
