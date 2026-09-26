@@ -212,6 +212,8 @@ export class ApiClient {
     // (undocumented)
     getCircuitBreaker(): ICircuitBreaker | null;
     // (undocumented)
+    getClientId(): string;
+    // (undocumented)
     getCompatibilityDate(): string | undefined;
     // Warning: (ae-forgotten-export) The symbol "EsiDatasource_2" needs to be exported by the entry point index.d.ts
     //

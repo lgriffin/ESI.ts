@@ -3,9 +3,9 @@
   "call": {
     "client": "contracts",
     "method": "getPublicContractItems",
-    "args": [235263259]
+    "args": [235462154]
   },
-  "recordedAt": "2026-09-19",
+  "recordedAt": "2026-09-25",
   "compatibilityDate": "2026-05-19",
   "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
   "specCacheSeconds": 3600,
@@ -13,27 +13,23 @@
   "truncated": [],
   "pages": [
     {
-      "url": "contracts/public/items/235263259",
+      "url": "contracts/public/items/235462154",
       "status": 200,
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"236ed38ddae0adc97b11036bb06cc77ee598fea245929dee095106d7\"",
-        "expires": "Sat, 19 Sep 2026 12:09:06 GMT",
-        "last-modified": "Sat, 19 Sep 2026 11:09:06 GMT",
+        "etag": "\"e35d7771a43e5ec47eb0e9a4390fc787dd3057692d56de02671095e5\"",
+        "expires": "Fri, 25 Sep 2026 12:14:54 GMT",
+        "last-modified": "Fri, 25 Sep 2026 11:14:54 GMT",
         "x-pages": "1"
       },
       "body": [
         {
-          "is_blueprint_copy": true,
           "is_included": true,
-          "item_id": 1042049387083,
-          "material_efficiency": 10,
+          "item_id": 1053131225891,
           "quantity": 1,
-          "record_id": 5293713647,
-          "runs": 8,
-          "time_efficiency": 20,
-          "type_id": 2808
+          "record_id": 5299485208,
+          "type_id": 47740
         }
       ]
     }

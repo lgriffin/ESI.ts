@@ -147,6 +147,10 @@ export class ApiClient {
     return this.link;
   }
 
+  getClientId(): string {
+    return this.clientId;
+  }
+
   getDatasource(): EsiDatasource | undefined {
     return this.datasource;
   }
