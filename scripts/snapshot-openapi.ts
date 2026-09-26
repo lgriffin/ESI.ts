@@ -1,8 +1,28 @@
+/**
+ * Vendors the ESI OpenAPI document that the generated operations
+ * (npm run spec:generate) and the contract tests read.
+ *
+ * Defaults to COMPATIBILITY_DATE, the date the client sends on every request,
+ * so the vendored document describes the API the client actually asks for.
+ * The fetch needs esi.evetech.net; .github/workflows/spec-refresh.yml runs it
+ * where that host is reachable.
+ *
+ * Usage: npm run contract:snapshot [-- --compatibility-date=YYYY-MM-DD]
+ */
 import * as fs from 'fs';
 import * as path from 'path';
 
-const ESI_OPENAPI_URL =
-  'https://esi.evetech.net/meta/openapi.json?compatibility_date=2025-12-16';
+import { COMPATIBILITY_DATE } from '../src/core/constants';
+
+function compatibilityDate(): string {
+  for (const arg of process.argv.slice(2)) {
+    const match = /^--compatibility-date=(\d{4}-\d{2}-\d{2})$/.exec(arg);
+    if (match) return match[1]!;
+  }
+  return COMPATIBILITY_DATE;
+}
+
+const ESI_OPENAPI_URL = `https://esi.evetech.net/meta/openapi.json?compatibility_date=${compatibilityDate()}`;
 const SNAPSHOT_PATH = path.resolve(
   __dirname,
   '../tests/contract/snapshots/esi-openapi.snapshot.json',
@@ -27,7 +47,7 @@ async function main(): Promise<void> {
   );
 
   fs.mkdirSync(path.dirname(SNAPSHOT_PATH), { recursive: true });
-  fs.writeFileSync(SNAPSHOT_PATH, JSON.stringify(spec, null, 2));
+  fs.writeFileSync(SNAPSHOT_PATH, `${JSON.stringify(spec, null, 2)}\n`);
 
   console.log(`Snapshot saved to ${SNAPSHOT_PATH}`);
   console.log(`  Paths: ${paths.length}`);
