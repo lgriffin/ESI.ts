@@ -10,8 +10,10 @@
  * set below what its entry and shared chunk weigh. If a tool upgrade or a
  * wiring change stops a check from firing, these tests fail.
  *
- * attw 0.18 and size-limit 12 need Node 20 or later, so the suites that run
- * them are skipped on Node 18; the unit-tests job runs them on 20 and 22.
+ * Each suite runs where its tool does. attw 0.18 needs Node 20 or later, so
+ * its suite is skipped on Node 18. size-limit 13 needs Node 22.18 or later
+ * (its `engines`), so its suite is skipped on Node 18 and 20; the unit-tests
+ * job runs it on 22, and the Package Lint job runs `npm run size` on 22.
  */
 import { spawnSync } from 'child_process';
 import {
@@ -53,8 +55,14 @@ const { sizeLimitChecks } = require(SIZE_HELPER) as {
   ) => Array<{ name: string; path: string; limit: string; ignore: string[] }>;
 };
 
-const nodeMajor = Number(process.versions.node.split('.')[0]);
+const [nodeMajor = 0, nodeMinor = 0] = process.versions.node
+  .split('.')
+  .map(Number);
 const describeWithTools = nodeMajor >= 20 ? describe : describe.skip;
+const describeWithSizeLimit =
+  nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 18)
+    ? describe
+    : describe.skip;
 
 function writeTree(root: string, files: Record<string, string>): void {
   for (const [name, content] of Object.entries(files)) {
@@ -409,7 +417,7 @@ describe('size budgets: configuration', () => {
   });
 });
 
-describeWithTools('size budgets: size-limit on a built fixture', () => {
+describeWithSizeLimit('size budgets: size-limit on a built fixture', () => {
   let work: string;
 
   // Deterministic filler, well above the 1 kB budget below once minified.
