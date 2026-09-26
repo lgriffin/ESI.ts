@@ -218,10 +218,10 @@ describe('CursorPaginationHandler branch coverage', () => {
       undefined,
     );
 
-    const resp = cursorResponse([], null, null);
-    fetchMock.mockResponseOnce(resp.body, {
-      status: resp.status,
-      headers: resp.headers,
+    // The pipeline needs a rate limiter; a caller-supplied pageFetch does not.
+    const pageFetch = jest.fn().mockResolvedValue({
+      data: [],
+      cursors: { before: null, after: null },
     });
 
     const result = await CursorPaginationHandler.fetchAll(
@@ -231,9 +231,13 @@ describe('CursorPaginationHandler branch coverage', () => {
       false,
       [{ id: 1 }],
       { before: null, after: 'c1' },
+      undefined,
+      {},
+      pageFetch,
     );
 
     expect(result).toEqual([{ id: 1 }]);
+    expect(pageFetch).toHaveBeenCalledTimes(1);
   });
 });
 

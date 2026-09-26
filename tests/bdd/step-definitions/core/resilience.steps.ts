@@ -13,6 +13,7 @@ import { configureApiClient } from '../../../../src/core/configureApiClient';
 import { RateLimiter } from '../../../../src/core/rateLimiter/RateLimiter';
 import { EsiError, TimeoutError } from '../../../../src/core/util/error';
 import { StatusClient } from '../../../../src/clients/StatusClient';
+import { CursorPaginationHandler } from '../../../../src/core/pagination/CursorPaginationHandler';
 import { EsiClient, EsiClientConfig } from '../../../../src/EsiClient';
 import {
   SEAM_RETRY,
@@ -1678,6 +1679,111 @@ defineFeature(feature, (test) => {
         expectResolvedWith(outcome, RESOLVED_NAMES);
       }
       expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('Streaming name resolution answered with 503 is not retried', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client with retries enabled', () => {
+      client = createSeamClient();
+    });
+
+    and('ESI answers the name resolution request with HTTP 503', () => {
+      queueError(503, 'unavailable', { match: NAMES_PATH });
+    });
+
+    when('the client streams name resolution for one identifier', async () => {
+      const drain = async () => {
+        const pages = client.universe.streamEndpoint('postNamesAndCategories', [
+          RESOLVED_NAMES[0]!.id,
+        ]);
+        for await (const page of pages) void page;
+      };
+      outcome = await settle(drain());
+    });
+
+    then(
+      /^the client rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(outcome, Number(status));
+      },
+    );
+
+    and(/^the client sent (\d+) POST requests?$/, (count: string) => {
+      expect(sentRequests().map((r) => r.method)).toEqual(
+        Array(Number(count)).fill('POST'),
+      );
+    });
+  });
+
+  test('Corporation projects whose next page fails three times are not returned in part', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    const corporationId = 98000001;
+    const projectsPath = `corporations/${corporationId}/projects`;
+    let api: ApiClient;
+    let outcome: Outcome;
+
+    given('a cursor pagination client without retries', () => {
+      api = new ApiClient(
+        'bdd-resilience',
+        'https://esi.evetech.net',
+        'bdd-access-token',
+      );
+      configureApiClient(api, { retryConfig: NO_RETRIES, logLevel: 'error' });
+      const limiter = new RateLimiter({ minDelayMs: 0 });
+      limiter.setTestMode(true);
+      api.setRateLimiter(limiter);
+    });
+
+    and(
+      /^ESI answers every corporation projects page after the first with HTTP (\d+)$/,
+      (status: string) => {
+        queueError(Number(status), 'unavailable', {
+          match: projectsPath,
+          times: 3,
+        });
+      },
+    );
+
+    when(
+      /^the handler fetches every corporation project after a first page of (\d+) projects?$/,
+      async (count: string) => {
+        const firstPage = Array.from({ length: Number(count) }, (_, i) => ({
+          id: `project-${i}`,
+        }));
+        outcome = await settle(
+          CursorPaginationHandler.fetchAll(
+            api,
+            projectsPath,
+            'GET',
+            true,
+            firstPage,
+            { before: null, after: 'cursor-1' },
+          ),
+        );
+      },
+    );
+
+    then(
+      /^the handler rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(outcome, Number(status));
+      },
+    );
+
+    and(/^the handler sent (\d+) requests$/, (count: string) => {
+      expect(sentRequests()).toHaveLength(Number(count));
     });
   });
 });

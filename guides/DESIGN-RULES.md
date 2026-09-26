@@ -302,4 +302,4 @@ The hand-written counterparts are not generated and are not exempt from review: 
 
 ## 6 · Pagination rules (DES-08)
 
-Pagination helpers take the caller's HTTP method and must not return a truncated result as if it were complete. Two places do not meet this yet, tracked as gap register row 8: the single-page offset path assumes GET when building its retry context, and `CursorPaginationHandler.fetchAll` returns the pages it has after three consecutive failures. New pagination code passes `def.method` through, as `BaseEsiClient.streamEndpoint` and `fetchAllEndpoint` already do, and throws rather than truncates. See [PAGINATION.md](PAGINATION.md).
+Pagination helpers take the caller's HTTP method and must not return a truncated result as if it were complete. New pagination code passes `def.method` through to the retry context, as `BaseEsiClient.streamEndpoint` and `fetchAllEndpoint` do, and throws rather than truncates, as `CursorPaginationHandler.fetchAll` does after three consecutive failed pages. The eager 1000-page cap is the one remaining exception. See [PAGINATION.md](PAGINATION.md).
