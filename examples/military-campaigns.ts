@@ -14,6 +14,8 @@
  *  - esi.activity.char:read
  *
  * Usage: npm run example:military-campaigns
+ *
+ * @nightly mixed
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
@@ -56,9 +58,7 @@ async function main() {
 
       for (const campaign of campaigns.slice(0, 5)) {
         console.log(`    ${campaign.campaign_id} (${campaign.state})`);
-        console.log(
-          `      Progress: ${(campaign.progress * 100).toFixed(1)}%`,
-        );
+        console.log(`      Progress: ${(campaign.progress * 100).toFixed(1)}%`);
         console.log(`      Started: ${campaign.start_time}`);
         if (campaign.finish_time) {
           console.log(`      Finished: ${campaign.finish_time}`);
@@ -85,7 +85,9 @@ async function main() {
         }
 
         // --- Public: Get Objectives ---
-        console.log(`\n  Objectives for campaign: ${firstCampaign.campaign_id}`);
+        console.log(
+          `\n  Objectives for campaign: ${firstCampaign.campaign_id}`,
+        );
         const objectives = await tryOrSkip('Objectives', () =>
           client.militaryCampaigns.getMilitaryCampaignObjectives(
             firstCampaign.campaign_id,
@@ -96,15 +98,30 @@ async function main() {
           console.log(`    Objectives found: ${objectives.length}`);
           for (const obj of objectives.slice(0, 5)) {
             console.log(`    ${obj.objective_id} (${obj.state})`);
-            console.log(
-              `      Progress: ${(obj.progress * 100).toFixed(1)}%`,
-            );
+            console.log(`      Progress: ${(obj.progress * 100).toFixed(1)}%`);
             console.log(
               `      Participants: ${obj.participants.total} total, ${obj.participants.committed} committed, ${obj.participants.contributors} contributors`,
             );
           }
           if (objectives.length > 5) {
             console.log(`    ... and ${objectives.length - 5} more`);
+          }
+
+          // --- Public: Get One Objective ---
+          const firstObjective = objectives[0];
+          if (firstObjective) {
+            const objective = await tryOrSkip('Objective detail', () =>
+              client.militaryCampaigns.getMilitaryCampaignObjective(
+                firstCampaign.campaign_id,
+                firstObjective.objective_id,
+              ),
+            );
+            if (objective) {
+              console.log(
+                `\n  Objective ${objective.objective_id}: ${objective.state}, ` +
+                  `${(objective.progress * 100).toFixed(1)}% complete`,
+              );
+            }
           }
         }
       }

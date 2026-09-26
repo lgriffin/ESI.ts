@@ -1,0 +1,3 @@
+{
+  "getDynamicItemInfo": "Needs the item id of a mutated (abyssal) module, which only an authenticated asset or contract read reveals, so no public example can find one."
+}

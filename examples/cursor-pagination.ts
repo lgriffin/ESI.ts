@@ -14,6 +14,8 @@
  *     requests.
  *
  * See: https://developers.eveonline.com/blog/changing-pagination-turning-a-new-page
+ *
+ * @nightly mixed
  */
 
 import { EsiClient, FreelanceJobsListing, fetchAllCursorPages } from '../src';

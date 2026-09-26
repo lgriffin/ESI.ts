@@ -337,6 +337,27 @@ There is no auto-merge workflow for Dependabot pull requests; each one is merged
 
 ---
 
+## Nightly examples
+
+`nightly-examples.yml` checks that the examples still do what they say against live ESI. It runs at 04:15 UTC, on demand, and on any pull request that touches `examples/`, `scripts/examples-*` or `tsconfig.examples.json`.
+
+Each example declares a tier in its header comment with `@nightly <tier>`:
+
+| Tier     | Meaning                                                        | Nightly           |
+| -------- | -------------------------------------------------------------- | ----------------- |
+| `public` | Needs no token                                                 | Run               |
+| `mixed`  | Public calls, plus authenticated ones it skips without a token | Run               |
+| `auth`   | Needs an access token                                          | Type-checked only |
+| `sde`    | Reads the Static Data Export                                   | Type-checked only |
+
+The job type-checks every example (`npm run typecheck:examples`, also a step in `ci.yml` and `ci-fast.yml`), then `npm run examples:nightly` runs each `public` and `mixed` example from source with no token. An example fails when it exits non-zero, times out after 180 seconds, or exits 0 after writing to `console.error` (the `scripts/examples-strict.cjs` preload turns that into exit 86). A failure is retried once.
+
+On the schedule and on a manual run, each failing example gets an issue titled `Nightly example failing: examples/<file>`, or a comment on the open one; a later passing run closes it. A type-check failure keeps one issue, `Nightly examples do not type-check`. A pull request run opens no issues; the job result is the signal.
+
+`tests/tdd/scripts/examples-nightly.test.ts` keeps the run complete: every example needs a tier and an npm script, and every public endpoint must be called by a `public` or `mixed` example. A new public endpoint therefore fails `npm test` until an example calls it, or it is listed with a reason in `scripts/examples-coverage-exceptions.json`.
+
+---
+
 ## Nightly spec drift
 
 `nightly-spec-drift.yml` is how the project learns that CCP changed ESI without anyone noticing. It runs three checks against the live spec, combines the results, and keeps one labelled issue current.

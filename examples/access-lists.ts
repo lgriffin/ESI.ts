@@ -8,6 +8,8 @@
  *
  * Environment:
  *   ESI_ACCESS_TOKEN — a valid SSO token with the access-lists scope
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
@@ -21,7 +23,10 @@ async function main() {
   try {
     console.log(`Access List #${ACCESS_LIST_ID}\n`);
 
-    const list = await client.accessLists.getAccessList(CHARACTER_ID, ACCESS_LIST_ID);
+    const list = await client.accessLists.getAccessList(
+      CHARACTER_ID,
+      ACCESS_LIST_ID,
+    );
 
     console.log(`Name:    ${list.name}`);
     console.log(`ID:      ${list.access_list_id}`);

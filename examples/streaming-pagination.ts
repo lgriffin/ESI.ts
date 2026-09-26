@@ -8,6 +8,8 @@
  * paginated datasets in ESI, often 300+ pages.
  *
  * Usage: npm run example:streaming
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

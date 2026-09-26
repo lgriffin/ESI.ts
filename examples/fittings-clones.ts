@@ -13,6 +13,8 @@
  *   - esi-clones.read_implants.v1     (active implants)
  *
  * Usage: npm run example:fittings
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

@@ -7,6 +7,8 @@
  * REQUIRES AUTHENTICATION for character/corporation stats.
  *
  * Usage: npm run example:faction-details
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

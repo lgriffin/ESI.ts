@@ -9,6 +9,8 @@
  * if CCP has not yet deployed skyhook content to the current server version.
  *
  * Usage: npm run example:skyhooks
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { isNotFound } from '../src/core/util/error';
@@ -98,12 +100,13 @@ async function main() {
     }
 
     // Fetch detail for the first skyhook
-    if (skyhooks.length > 0) {
+    const firstSkyhooks = skyhooks[0];
+    if (firstSkyhooks) {
       console.log('\nSkyhook Detail');
       console.log('-'.repeat(60));
       const detail = await client.skyhooks.getSkyhookDetail(
         corporationId,
-        skyhooks[0].structure_id,
+        firstSkyhooks.structure_id,
       );
       console.log(
         `  Skyhook ${detail.id} — Planet ${detail.planet_id} — State: ${detail.state}`,
@@ -126,12 +129,13 @@ async function main() {
     }
 
     // Fetch detail for the first sovereignty hub
-    if (hubs.length > 0) {
+    const firstHubs = hubs[0];
+    if (firstHubs) {
       console.log('\nSovereignty Hub Detail');
       console.log('-'.repeat(60));
       const hubDetail = await client.skyhooks.getSovereigntyHubDetail(
         corporationId,
-        hubs[0].structure_id,
+        firstHubs.structure_id,
       );
       console.log(
         `  Hub ${hubDetail.id} — System ${hubDetail.solar_system_id}`,

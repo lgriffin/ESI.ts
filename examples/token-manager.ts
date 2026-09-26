@@ -15,6 +15,8 @@
  * Later runs reuse the stored token and refresh it as needed.
  *
  * Usage: npm run example:token-manager
+ *
+ * @nightly auth
  */
 import * as http from 'http';
 import {

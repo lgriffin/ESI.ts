@@ -13,6 +13,8 @@
  *   - esi-mail.organize_mail.v1    (delete mail, manage labels — shown but not executed)
  *
  * Usage: npm run example:mail
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

@@ -8,6 +8,8 @@
  * This example uses the campaigns endpoint which remains active.
  *
  * Usage: npm run example:sovereignty
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 
@@ -51,6 +53,12 @@ async function main() {
           ` | Defender: ${c.defender_id}`,
       );
     }
+
+    const raidable = await client.skyhooks.getRaidableSkyhooks();
+    const open = raidable.filter((s) => s.is_raidable);
+    console.log(
+      `\nSkyhooks: ${raidable.length} listed, ${open.length} raidable now`,
+    );
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

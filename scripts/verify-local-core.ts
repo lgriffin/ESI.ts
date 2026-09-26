@@ -42,6 +42,11 @@ export interface Tier {
 export const TIERS: Tier[] = [
   { script: 'typecheck', covers: 'types compile', stage: 'quick' },
   {
+    script: 'typecheck:examples',
+    covers: 'the examples compile',
+    stage: 'quick',
+  },
+  {
     script: 'spec:generate:check',
     covers: 'generated operations match the vendored spec',
     stage: 'quick',

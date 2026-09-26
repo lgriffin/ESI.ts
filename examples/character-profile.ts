@@ -12,6 +12,8 @@
  *
  * @author lgriffin
  * @license GPL-3.0-or-later
+ *
+ * @nightly mixed
  */
 
 import { EsiClient } from '../src/EsiClient';

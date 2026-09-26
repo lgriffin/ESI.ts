@@ -6,6 +6,8 @@
  * and corporation targeted listings require the esi.cosmetic.char:read scope.
  *
  * Usage: npm run example:paragon-hub
+ *
+ * @nightly mixed
  */
 import { EsiClient } from '../src/EsiClient';
 
@@ -56,9 +58,8 @@ async function main() {
       console.log(`\nYour Paragon Hub Listings (Character ${characterId})`);
       console.log('-'.repeat(60));
 
-      const charPage = await client.paragonHub.getCharacterListings(
-        characterId,
-      );
+      const charPage =
+        await client.paragonHub.getCharacterListings(characterId);
 
       const byState = new Map<string, number>();
       for (const listing of charPage.listings) {

@@ -4,6 +4,8 @@
  * Fetches recent wars and shows details for the most recent one.
  *
  * Usage: npm run example:wars
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 
@@ -37,6 +39,23 @@ async function main() {
       );
       console.log(
         `  Ships killed: ${war.aggressor?.ships_killed ?? 0} (aggressor) / ${war.defender?.ships_killed ?? 0} (defender)`,
+      );
+    }
+
+    // A killmail from a long-finished war: its id and hash come from the war,
+    // and the killmail itself is public once you have both.
+    const WAR_WITH_KILLS = 700000;
+    const warKills = await client.wars.getWarKillmails(WAR_WITH_KILLS);
+    const firstKill = warKills[0];
+    console.log(`\nWar ${WAR_WITH_KILLS}: ${warKills.length} killmails`);
+    if (firstKill) {
+      const killmail = await client.killmails.getKillmail(
+        firstKill.killmail_id,
+        firstKill.killmail_hash,
+      );
+      console.log(
+        `  Killmail ${killmail.killmail_id} at ${killmail.killmail_time}: ` +
+          `ship type ${killmail.victim.ship_type_id} lost in system ${killmail.solar_system_id}`,
       );
     }
   } catch (err) {

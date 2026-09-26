@@ -9,6 +9,8 @@
  *   - 1 dogma dynamic item GET
  *
  * REQUIRES AUTHENTICATION and being in-game in a fleet as fleet commander.
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

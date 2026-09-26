@@ -1,0 +1,147 @@
+name: Nightly Examples
+
+# Runs every example tagged `@nightly public` or `@nightly mixed` against live
+# ESI, from source and with no access token (scripts/examples-core.ts says
+# what the tags mean). Every example is also type-checked, including the
+# authenticated and SDE ones that are not run.
+#
+# Each failing example gets its own issue, titled
+# "Nightly example failing: examples/<file>", or a comment on it when it is
+# already open. A later run in which that example passes closes the issue.
+# A type-check failure opens one issue, "Nightly examples do not type-check".
+#
+# On a pull request that touches the examples or this tooling, the same run
+# happens but no issue is opened: the job result is the signal.
+
+on:
+  schedule:
+    - cron: '15 4 * * *'
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'examples/**'
+      - 'scripts/examples-*'
+      - 'tsconfig.examples.json'
+      - '.github/workflows/nightly-examples.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-examples-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TYPECHECK_ISSUE_TITLE: Nightly examples do not type-check
+
+jobs:
+  examples:
+    name: Run the public examples against live ESI
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      issues: write # open, comment on and close the per-example issues
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check every example
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck:examples
+
+      - name: Run the nightly examples
+        id: run
+        continue-on-error: true
+        run: npm run examples:nightly -- --json examples-results.json
+
+      - name: Upload the results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: examples-results
+          path: examples-results.json
+          if-no-files-found: ignore
+
+      - name: Open, update or close the per-example issues
+        if: github.event_name != 'pull_request' && hashFiles('examples-results.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          open_issue() {
+            gh issue list --state open --search "in:title \"$1\"" --json number,title \
+              --jq ".[] | select(.title == \"$1\") | .number" | head -n 1
+          }
+          jq -c '.[]' examples-results.json | while read -r result; do
+            FILE=$(jq -r '.file' <<<"$result")
+            TITLE="Nightly example failing: examples/$FILE"
+            NUMBER=$(open_issue "$TITLE")
+            if jq -e '.timedOut or .exitCode != 0' <<<"$result" >/dev/null; then
+              REASON=$(jq -r 'if .timedOut then "timed out" elif .exitCode == 86 then "exited 0 but logged an error" else "exited with code \(.exitCode)" end' <<<"$result")
+              OUTPUT=$(jq -r '.output' <<<"$result")
+              BODY=$(printf '%s\n' \
+                "\`examples/$FILE\` failed the nightly run on $(date -u +%Y-%m-%d): $REASON, after one retry." \
+                "" \
+                "- Run: $RUN_URL" \
+                "- Reproduce: \`npm run examples:nightly -- --only $FILE\`" \
+                "" \
+                "Last lines of output:" \
+                "" \
+                '```' \
+                "$OUTPUT" \
+                '```')
+              if [ -n "$NUMBER" ]; then
+                gh issue comment "$NUMBER" --body "$BODY"
+              else
+                gh issue create --title "$TITLE" --body "$BODY"
+              fi
+            elif [ -n "$NUMBER" ]; then
+              gh issue close "$NUMBER" --comment "\`examples/$FILE\` passed the nightly run: $RUN_URL"
+            fi
+          done
+
+      - name: Open, update or close the type-check issue
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          NUMBER=$(gh issue list --state open --search "in:title \"$TYPECHECK_ISSUE_TITLE\"" \
+            --json number,title --jq ".[] | select(.title == \"$TYPECHECK_ISSUE_TITLE\") | .number" | head -n 1)
+          if [ "$TYPECHECK" != "success" ]; then
+            BODY="\`npm run typecheck:examples\` failed on $(date -u +%Y-%m-%d). The errors are in the run log: $RUN_URL"
+            if [ -n "$NUMBER" ]; then
+              gh issue comment "$NUMBER" --body "$BODY"
+            else
+              gh issue create --title "$TYPECHECK_ISSUE_TITLE" --body "$BODY"
+            fi
+          elif [ -n "$NUMBER" ]; then
+            gh issue close "$NUMBER" --comment "The examples type-check again: $RUN_URL"
+          fi
+
+      - name: Fail the run
+        if: steps.typecheck.outcome != 'success' || steps.run.outcome != 'success'
+        env:
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          RUN: ${{ steps.run.outcome }}
+        run: |
+          echo "::error::Examples type-check: $TYPECHECK; nightly run: $RUN. See the job summary."
+          exit 1

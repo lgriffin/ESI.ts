@@ -9,6 +9,8 @@
  * NO AUTHENTICATION REQUIRED — all three endpoints are public.
  *
  * Usage: npm run example:universe-posts
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

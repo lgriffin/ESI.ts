@@ -5,6 +5,8 @@
  * This is the simplest possible example — no parameters, no auth.
  *
  * Usage: npm run example:status
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

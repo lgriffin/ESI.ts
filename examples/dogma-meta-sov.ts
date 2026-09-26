@@ -5,6 +5,8 @@
  * sovereignty system ownership, and war killmails.
  *
  * Usage: npm run example:dogma-meta-sov
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

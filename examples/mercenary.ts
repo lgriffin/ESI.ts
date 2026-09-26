@@ -8,6 +8,8 @@
  * has not yet deployed mercenary content to the current server version.
  *
  * Usage: npm run example:mercenary
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { isNotFound } from '../src/core/util/error';
@@ -18,7 +20,9 @@ async function main() {
   // Character ID to query mercenary data for
   const characterId = parseInt(process.env.CHARACTER_ID || '0', 10);
   if (!characterId) {
-    console.error('Set CHARACTER_ID environment variable to your character ID.');
+    console.error(
+      'Set CHARACTER_ID environment variable to your character ID.',
+    );
     process.exit(1);
   }
 
@@ -100,12 +104,13 @@ async function main() {
     }
 
     // Fetch detail for the first den
-    if (dens.length > 0) {
+    const firstDens = dens[0];
+    if (firstDens) {
       console.log('\nMercenary Den Detail');
       console.log('-'.repeat(60));
       const denDetail = await client.mercenary.getMercenaryDenDetail(
         characterId,
-        dens[0].den_id,
+        firstDens.den_id,
       );
       console.log(`  Den ${denDetail.id} — State: ${denDetail.state}`);
       console.log(
@@ -119,17 +124,16 @@ async function main() {
     }
 
     // Fetch detail for the first operation
-    if (operations.length > 0) {
+    const firstOperations = operations[0];
+    if (firstOperations) {
       console.log('\nMTO Detail');
       console.log('-'.repeat(60));
       const opDetail =
         await client.mercenary.getMercenaryTacticalOperationDetail(
           characterId,
-          String(operations[0].operation_id),
+          String(firstOperations.operation_id),
         );
-      console.log(
-        `  Operation ${opDetail.id} — State: ${opDetail.state}`,
-      );
+      console.log(`  Operation ${opDetail.id} — State: ${opDetail.state}`);
       console.log(`  Dungeon Type: ${opDetail.dungeon_type_id}`);
       console.log(`  Expires: ${opDetail.expires}`);
     }

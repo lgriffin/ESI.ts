@@ -11,6 +11,8 @@
  *   - esi-fleets.write_fleet.v1  (create wings/squads, invite members — shown but not executed)
  *
  * Usage: npm run example:fleet
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

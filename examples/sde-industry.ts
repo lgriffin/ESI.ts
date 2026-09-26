@@ -6,11 +6,15 @@
  *
  * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
  * Usage: npx ts-node examples/sde-industry.ts
+ *
+ * @nightly sde
  */
 import { SdeDataProvider } from '../src/sde';
 
 function main() {
-  const sde = SdeDataProvider.fromDirectory(process.env.SDE_DATA_PATH || './sde-data');
+  const sde = SdeDataProvider.fromDirectory(
+    process.env.SDE_DATA_PATH || './sde-data',
+  );
 
   try {
     // Rifter Blueprint
@@ -35,7 +39,9 @@ function main() {
         console.log('  Materials:');
         for (const mat of mfg.materials) {
           const matType = sde.getType(mat.typeId);
-          console.log(`    ${matType?.name ?? `type ${mat.typeId}`}: ${mat.quantity}`);
+          console.log(
+            `    ${matType?.name ?? `type ${mat.typeId}`}: ${mat.quantity}`,
+          );
         }
       }
 
@@ -43,7 +49,9 @@ function main() {
         console.log('  Products:');
         for (const prod of mfg.products) {
           const prodType = sde.getType(prod.typeId);
-          console.log(`    ${prodType?.name ?? `type ${prod.typeId}`}: x${prod.quantity}`);
+          console.log(
+            `    ${prodType?.name ?? `type ${prod.typeId}`}: x${prod.quantity}`,
+          );
         }
       }
     }
@@ -51,7 +59,9 @@ function main() {
     const research = bp.activities.research_material;
     if (research) {
       console.log(`\n--- Material Research ---`);
-      console.log(`  Time: ${research.time}s (${(research.time / 60).toFixed(1)} min)`);
+      console.log(
+        `  Time: ${research.time}s (${(research.time / 60).toFixed(1)} min)`,
+      );
     }
 
     const invention = bp.activities.invention;
