@@ -16,6 +16,8 @@
  */
 
 import { ApiClient } from '../ApiClient';
+import { buildError, EsiError } from '../util/error';
+import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
 import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { fetchOnePage } from '../requestPipeline/fetchExecution';
 import {
@@ -110,7 +112,8 @@ export class CursorPaginationHandler {
   /**
    * Auto-fetch all pages by following `after` tokens until an empty
    * response is received.  Combines the caller-supplied first page
-   * data with all subsequent pages.
+   * data with all subsequent pages. After three consecutive failed
+   * pages it throws rather than return a partial dataset (DES-08).
    */
   static async fetchAll(
     client: ApiClient,
@@ -182,7 +185,7 @@ export class CursorPaginationHandler {
             `${consecutiveFailures} consecutive failures. Stopping cursor pagination.`,
             { consecutiveFailures },
           );
-          break;
+          throw incomplete(endpoint, error);
         }
       }
     }
@@ -266,4 +269,22 @@ export class CursorPaginationHandler {
     }
     return endpoint;
   }
+}
+
+/**
+ * The error a cursor walk that stops part way rejects with: the last
+ * page's own error when it is an ESI or circuit error, otherwise
+ * PAGINATION_INCOMPLETE. Mirrors the offset path in
+ * requestPipeline/paginationOrchestration.ts.
+ */
+function incomplete(endpoint: string, error: unknown): unknown {
+  if (error instanceof EsiError || error instanceof CircuitOpenError) {
+    return error;
+  }
+  const msg = error instanceof Error ? error.message : String(error);
+  return buildError(
+    `Pagination incomplete for ${endpoint}: ${msg}`,
+    'PAGINATION_INCOMPLETE',
+    endpoint,
+  );
 }

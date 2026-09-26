@@ -157,7 +157,7 @@ Both helpers fetch every page, including page 1, through a single-page path that
 | Request interceptors                      | Every page          | Every page                             |
 | Response interceptors                     | Once, on the result | No                                     |
 | Retry, 401 token refresh, circuit breaker | Every page          | Every page                             |
-| HTTP method in the retry context          | Real method         | Always `GET`                           |
+| HTTP method in the retry context          | Real method         | Real method                            |
 | `withMetadata()` / `withSafeMode()`       | Available           | Not available                          |
 
 ---
@@ -199,7 +199,7 @@ Try it: `npm run example:cursor-pagination`.
 
 ### `CursorPaginationHandler`
 
-`src/core/pagination/CursorPaginationHandler.ts` contains a header-token `fetchAll` that stops after three consecutive page failures and returns the items it has. It is not exported from the package and no client method calls it, so no consumer reaches this behaviour today. Only its `CursorTokens` type is public. It is listed under [known gaps](#known-gaps) because it contradicts `DES-08` and would become reachable if a `cursorPagination: true` endpoint were wired to it.
+`src/core/pagination/CursorPaginationHandler.ts` contains a header-token `fetchAll` that, after three consecutive page failures, rejects with the last page's error (an `EsiError` or `CircuitOpenError` as thrown, anything else as `PAGINATION_INCOMPLETE`) rather than return the items it has. It is not exported from the package and no client method calls it, so no consumer reaches it today. Only its `CursorTokens` type is public.
 
 ---
 
@@ -276,13 +276,11 @@ The per-page retry, backoff and circuit-breaker settings are the client's own; s
 
 ## Known gaps
 
-`DES-08` requires pagination helpers to propagate the caller's HTTP method into the retry context and to surface partial results as an error rather than truncate silently. The code meets neither in full. Each row below was confirmed against the source at the time of writing.
+`DES-08` requires pagination helpers to propagate the caller's HTTP method into the retry context and to surface partial results as an error rather than truncate silently. The rows below are where the code still falls short. Each was confirmed against the source at the time of writing.
 
-| #   | Gap                                                                                                             | Consumer impact                                                                                                                    |
-| --- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `handleSinglePageRequest` passes `method: 'GET'` to the retry strategy whatever the endpoint's method.          | `streamEndpoint` or `fetchAllEndpoint` on a non-GET endpoint would retry a mutation. Every shipped wrapper targets a GET endpoint. |
-| 2   | `CursorPaginationHandler.fetchAll` returns partial data after three consecutive failures.                       | None today: the class is internal and unused.                                                                                      |
-| 3   | `stream*` and `fetchAll*` send `If-None-Match` when the cache holds an ETag for the URL but cannot serve a 304. | After an eager call to the same endpoint, a `stream*` or `fetchAll*` call can throw `EsiError` 304.                                |
-| 4   | The eager 1000-page cap and the stop at an empty page end pagination with a log line, not an error.             | A dataset beyond page 1000 is truncated silently.                                                                                  |
+| #   | Gap                                                                                                             | Consumer impact                                                                                     |
+| --- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 1   | `stream*` and `fetchAll*` send `If-None-Match` when the cache holds an ETag for the URL but cannot serve a 304. | After an eager call to the same endpoint, a `stream*` or `fetchAll*` call can throw `EsiError` 304. |
+| 2   | The eager 1000-page cap and the stop at an empty page end pagination with a log line, not an error.             | A dataset beyond page 1000 is truncated silently.                                                   |
 
-Rows 1 and 2 are tracked as bead `esi-dwi` · [#269](https://github.com/lgriffin/ESI.ts/issues/269). The fix follows `TEST-01`: EARS rules under `tests/bdd/features/core` that fail first, then the change. See [TESTING.md](TESTING.md).
+The two gaps [#269](https://github.com/lgriffin/ESI.ts/issues/269) tracked are closed: `stream*` and `fetchAll*` pass the endpoint's method to the retry strategy, so a mutation is not retried unless `retryMutations` is set, and the cursor `fetchAll` rejects instead of truncating. Both are rules in `tests/bdd/features/core/0051-resilience.feature`.
