@@ -104,15 +104,23 @@ export function summarize(results: readonly ExampleResult[]): string {
 export interface EndpointRef {
   /** The endpoint's key in its `*Endpoints.ts` map. */
   name: string;
+  /** The `EsiClient` getter an example reaches it through, such as `market`. */
+  client: string;
   path: string;
   method: string;
   requiresAuth: boolean;
 }
 
+/** The key `callers` uses for an endpoint: its client, a dot, its name. */
+export function endpointId(endpoint: Pick<EndpointRef, 'client' | 'name'>) {
+  return `${endpoint.client}.${endpoint.name}`;
+}
+
 /**
  * Public endpoints that no nightly example calls. An endpoint counts as called
- * when an example mentions `.name` or `'name'` for the endpoint key or any
- * client method that calls it. `callers` maps endpoint key to client methods.
+ * when an example calls `.<client>.<name>` for the endpoint key or any client
+ * method that calls it, so two clients with the same key (`factions.getWars`,
+ * `wars.getWars`) are counted apart. `callers` maps `endpointId` to methods.
  */
 export function uncoveredPublicEndpoints(
   endpoints: readonly EndpointRef[],
@@ -122,9 +130,9 @@ export function uncoveredPublicEndpoints(
   const text = nightlySources.join('\n');
   return endpoints.filter((endpoint) => {
     if (endpoint.requiresAuth) return false;
-    const names = [endpoint.name, ...(callers.get(endpoint.name) ?? [])];
+    const names = [endpoint.name, ...(callers.get(endpointId(endpoint)) ?? [])];
     return !names.some((name) =>
-      new RegExp(`\\.${name}\\b|'${name}'`).test(text),
+      new RegExp(`\\.${endpoint.client}\\s*\\.\\s*${name}\\b`).test(text),
     );
   });
 }
@@ -132,10 +140,12 @@ export function uncoveredPublicEndpoints(
 /**
  * Client methods and the endpoint keys each one calls, read from a client's
  * source: `this.api.<key>` or `streamEndpoint('<key>'`/`fetchAllEndpoint('<key>'`
- * inside a method body. Returns endpoint key to method names.
+ * inside a method body. `client` is the `EsiClient` getter that returns this
+ * client. Returns `endpointId` to method names.
  */
 export function callersFromClientSource(
   source: string,
+  client: string,
   into: Map<string, Set<string>> = new Map(),
 ): Map<string, Set<string>> {
   const methodStart = /^ {2}(?:async\s+)?(?:\*\s*)?(\w+)\s*(?:<[^>]*>)?\(/gm;
@@ -148,7 +158,7 @@ export function callersFromClientSource(
     for (const call of body.matchAll(
       /\bapi\.(\w+)|(?:streamEndpoint|fetchAllEndpoint)(?:<[^>]*>)?\(\s*'(\w+)'/g,
     )) {
-      const key = (call[1] ?? call[2])!;
+      const key = endpointId({ client, name: (call[1] ?? call[2])! });
       if (!into.has(key)) into.set(key, new Set());
       into.get(key)!.add(method);
     }

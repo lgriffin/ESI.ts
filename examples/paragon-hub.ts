@@ -41,6 +41,16 @@ async function main() {
       console.log('  No public listings found.');
     }
 
+    // --- The design behind a listing (public, cosmetics client) ---
+    const firstListing = publicPage.listings[0];
+    if (firstListing) {
+      const design = await client.cosmetics.getSkinr(firstListing.skinr_id);
+      console.log(
+        `\n  SKINR ${firstListing.skinr_id}: "${design.name}" for ship type ` +
+          `${design.ship_type_id}, tier ${design.tier.level}`,
+      );
+    }
+
     // --- Cursor pagination ---
     if (publicPage.cursor?.after) {
       console.log('\nFetching next page...');

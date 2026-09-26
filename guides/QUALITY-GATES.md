@@ -350,9 +350,9 @@ Each example declares a tier in its header comment with `@nightly <tier>`:
 | `auth`   | Needs an access token                                          | Type-checked only |
 | `sde`    | Reads the Static Data Export                                   | Type-checked only |
 
-The job type-checks every example (`npm run typecheck:examples`, also a step in `ci.yml` and `ci-fast.yml`), then `npm run examples:nightly` runs each `public` and `mixed` example from source with no token. An example fails when it exits non-zero, times out after 180 seconds, or exits 0 after writing to `console.error` (the `scripts/examples-strict.cjs` preload turns that into exit 86). A failure is retried once.
+The job type-checks every example (`npm run typecheck:examples`, also a step in `ci.yml` and `ci-fast.yml`), then `npm run examples:nightly` runs each `public` and `mixed` example from source with no token. An example fails when it exits non-zero, times out after 120 seconds, or exits 0 after writing to `console.error` (the `scripts/examples-strict.cjs` preload turns that into exit 86). A failure is retried once. The run step stops at 90 minutes; the results file is rewritten after every example, so the issue steps still act on the examples that finished.
 
-On the schedule and on a manual run, each failing example gets an issue titled `Nightly example failing: examples/<file>`, or a comment on the open one; a later passing run closes it. A type-check failure keeps one issue, `Nightly examples do not type-check`. A pull request run opens no issues; the job result is the signal.
+Scheduled and manual runs share one concurrency group and queue, so their issue updates land in order. On those runs, each failing example gets an issue titled `Nightly example failing: examples/<file>`, or a comment on the open one; a later passing run closes it. A type-check failure keeps one issue, `Nightly examples do not type-check`. A pull request run opens no issues; the job result is the signal.
 
 `tests/tdd/scripts/examples-nightly.test.ts` keeps the run complete: every example needs a tier and an npm script, and every public endpoint must be called by a `public` or `mixed` example. A new public endpoint therefore fails `npm test` until an example calls it, or it is listed with a reason in `scripts/examples-coverage-exceptions.json`.
 

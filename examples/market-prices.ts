@@ -83,8 +83,8 @@ async function main() {
     // Everything traded in a small region, and its live orders (all pages)
     const PURE_BLIND_REGION_ID = 10000023;
     const [tradedTypes, orders] = await Promise.all([
-      client.market.getMarketTypes(PURE_BLIND_REGION_ID),
-      client.market.getMarketOrders(PURE_BLIND_REGION_ID),
+      client.market.fetchAllMarketTypes(PURE_BLIND_REGION_ID),
+      client.market.fetchAllMarketOrders(PURE_BLIND_REGION_ID),
     ]);
     const buys = orders.filter((o) => o.is_buy_order).length;
     console.log(

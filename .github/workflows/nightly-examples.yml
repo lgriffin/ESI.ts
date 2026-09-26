@@ -28,9 +28,12 @@ on:
 permissions:
   contents: read
 
+# Scheduled and manual runs share one group and queue rather than cancel, so
+# the issue updates land in the order the runs started. Pull request runs
+# open no issues and cancel their own superseded runs.
 concurrency:
-  group: nightly-examples-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: nightly-examples-${{ github.event_name == 'pull_request' && github.ref || 'issues' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   TYPECHECK_ISSUE_TITLE: Nightly examples do not type-check
@@ -39,7 +42,7 @@ jobs:
   examples:
     name: Run the public examples against live ESI
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     permissions:
       contents: read
       issues: write # open, comment on and close the per-example issues
@@ -64,9 +67,13 @@ jobs:
         continue-on-error: true
         run: npm run typecheck:examples
 
+      # Each attempt times out after 2 minutes and a failure is retried once.
+      # The step stops at 90 minutes so the issue steps below still run on
+      # the examples that finished (the results file is written after each).
       - name: Run the nightly examples
         id: run
         continue-on-error: true
+        timeout-minutes: 90
         run: npm run examples:nightly -- --json examples-results.json
 
       - name: Upload the results

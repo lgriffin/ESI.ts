@@ -35,15 +35,44 @@ const exampleFiles = fs
 const sourceOf = (file: string) =>
   fs.readFileSync(path.join(EXAMPLES, file), 'utf8');
 
+/**
+ * How each client is reached: the endpoint map a client class passes to
+ * `super(client, <map>)`, and the `EsiClient` getter that returns that class.
+ */
+function clientWiring() {
+  const getters = new Map<string, string>();
+  const esiClient = fs.readFileSync(
+    path.join(ROOT, 'src/EsiClient.ts'),
+    'utf8',
+  );
+  for (const [, getter, cls] of esiClient.matchAll(
+    /^ {2}get (\w+)\(\): (\w+) \{/gm,
+  )) {
+    getters.set(cls!, getter!);
+  }
+  const dir = path.join(ROOT, 'src/clients');
+  const byMap = new Map<string, { getter: string; source: string }>();
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.ts'))) {
+    const source = fs.readFileSync(path.join(dir, file), 'utf8');
+    const cls = /export class (\w+)/.exec(source)?.[1];
+    const map = /super\(\s*\w+,\s*(\w+)/.exec(source)?.[1];
+    const getter = cls && getters.get(cls);
+    if (map && getter) byMap.set(map, { getter, source });
+  }
+  return byMap;
+}
+
 function allEndpoints(): EndpointRef[] {
+  const wiring = clientWiring();
   const dir = path.join(ROOT, 'src/core/endpoints');
   const refs: EndpointRef[] = [];
   for (const file of fs
     .readdirSync(dir)
     .filter((f) => /Endpoints\.ts$/.test(f))) {
     const mod = require(path.join(dir, file)) as Record<string, unknown>;
-    for (const map of Object.values(mod)) {
+    for (const [mapName, map] of Object.entries(mod)) {
       if (!map || typeof map !== 'object') continue;
+      const client = wiring.get(mapName)?.getter;
       for (const [name, def] of Object.entries(map)) {
         if (!def || typeof def !== 'object' || !('path' in def)) continue;
         const d = def as {
@@ -53,6 +82,7 @@ function allEndpoints(): EndpointRef[] {
         };
         refs.push({
           name,
+          client: client ?? `<no client for ${mapName}>`,
           path: d.path,
           method: d.method,
           requiresAuth: Boolean(d.requiresAuth),
@@ -64,13 +94,9 @@ function allEndpoints(): EndpointRef[] {
 }
 
 function allCallers(): Map<string, Set<string>> {
-  const dir = path.join(ROOT, 'src/clients');
   const callers = new Map<string, Set<string>>();
-  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.ts'))) {
-    callersFromClientSource(
-      fs.readFileSync(path.join(dir, file), 'utf8'),
-      callers,
-    );
+  for (const { getter, source } of clientWiring().values()) {
+    callersFromClientSource(source, getter, callers);
   }
   return callers;
 }
@@ -136,33 +162,35 @@ describe('tierOf', () => {
 
 describe('uncoveredPublicEndpoints', () => {
   const endpoints: EndpointRef[] = [
-    { name: 'getStatus', path: 'status', method: 'GET', requiresAuth: false },
+    {
+      name: 'getStatus',
+      client: 'status',
+      path: 'status',
+      method: 'GET',
+      requiresAuth: false,
+    },
     {
       name: 'getPrices',
+      client: 'market',
       path: 'markets/prices',
       method: 'GET',
       requiresAuth: false,
     },
     {
       name: 'getWallet',
+      client: 'wallet',
       path: 'characters/{id}/wallet',
       method: 'GET',
       requiresAuth: true,
     },
   ];
-  const callers = new Map([['getPrices', new Set(['getMarketPrices'])]]);
+  const callers = new Map([['market.getPrices', new Set(['getMarketPrices'])]]);
 
-  it('counts an endpoint called by its key, a client method, or a stream helper name', () => {
+  it('counts an endpoint called by its key or by a client method that calls it', () => {
     expect(
       uncoveredPublicEndpoints(endpoints, callers, [
         'client.status.getStatus()',
-        'client.market.getMarketPrices()',
-      ]),
-    ).toEqual([]);
-    expect(
-      uncoveredPublicEndpoints(endpoints, callers, [
-        "client.status.streamEndpoint('getStatus')",
-        'client.market.getMarketPrices()',
+        'client.market\n    .getMarketPrices()',
       ]),
     ).toEqual([]);
   });
@@ -183,10 +211,27 @@ describe('uncoveredPublicEndpoints', () => {
       ]).map((e) => e.name),
     ).toEqual(['getStatus']);
   });
+
+  it('does not count a call through another client with the same key', () => {
+    const wars: EndpointRef[] = [
+      { ...endpoints[0]!, name: 'getWars', client: 'wars', path: 'wars' },
+      {
+        ...endpoints[0]!,
+        name: 'getWars',
+        client: 'factions',
+        path: 'fw/wars',
+      },
+    ];
+    expect(
+      uncoveredPublicEndpoints(wars, new Map(), ['client.wars.getWars()']).map(
+        (e) => e.path,
+      ),
+    ).toEqual(['fw/wars']);
+  });
 });
 
 describe('callersFromClientSource', () => {
-  it('maps endpoint keys to the methods that call them, generators included', () => {
+  it('maps endpoint ids to the methods that call them, generators included', () => {
     const source = [
       'export class MarketClient {',
       '  getMarketOrders(regionId: number) {',
@@ -200,12 +245,12 @@ describe('callersFromClientSource', () => {
       '  }',
       '}',
     ].join('\n');
-    const callers = callersFromClientSource(source);
-    expect([...callers.get('getMarketOrders')!].sort()).toEqual([
+    const callers = callersFromClientSource(source, 'market');
+    expect([...callers.get('market.getMarketOrders')!].sort()).toEqual([
       'getMarketOrders',
       'streamMarketOrders',
     ]);
-    expect([...callers.get('getMarketTypes')!]).toEqual([
+    expect([...callers.get('market.getMarketTypes')!]).toEqual([
       'fetchAllMarketTypes',
     ]);
   });

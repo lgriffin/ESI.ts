@@ -11,7 +11,8 @@
  *   npm run examples:nightly -- --json out.json  # also write the results
  *
  * Writes a markdown summary to $GITHUB_STEP_SUMMARY when set. Exits 1 when an
- * example failed.
+ * example failed. The --json file is rewritten after every example, so a run
+ * the workflow stops part-way still reports the examples that finished.
  */
 import { spawn } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -29,7 +30,7 @@ import {
 const ROOT = path.resolve(__dirname, '..');
 const EXAMPLES = path.join(ROOT, 'examples');
 const STRICT = path.join(__dirname, 'examples-strict.cjs');
-const TIMEOUT_MS = 180_000;
+const TIMEOUT_MS = 120_000;
 
 /** Credentials an example could pick up; the nightly run is anonymous. */
 const STRIPPED_ENV = [
@@ -112,10 +113,12 @@ async function main(): Promise<void> {
     console.error('No nightly examples matched.');
     process.exit(1);
   }
+  const jsonPath = argValue('--json');
   const results: ExampleResult[] = [];
   for (const file of files) {
     const result = await run(file);
     results.push(result);
+    if (jsonPath) fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2));
     const verdict = verdictOf(result);
     const detail = verdict === 'failed' ? ` (${failureReason(result)})` : '';
     console.log(`${verdict.padEnd(6)} ${file}${detail}`);
@@ -125,8 +128,6 @@ async function main(): Promise<void> {
   const summary = summarize(results);
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (summaryPath) fs.appendFileSync(summaryPath, summary);
-  const jsonPath = argValue('--json');
-  if (jsonPath) fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2));
 
   const failed = results.filter((r) => verdictOf(r) === 'failed');
   console.log(
