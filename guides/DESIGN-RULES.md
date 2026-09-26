@@ -287,11 +287,14 @@ Generated output is committed so a diff shows exactly what CCP changed. It is ne
 | `src/core/endpoints/esi-rate-limit-groups.generated.ts` | `npm run generate:types`     | Rate-limit extensions               | Not diffed in CI                                 |
 | `src/core/endpoints/esi-scopes.generated.ts`            | `npm run generate:types`     | Operation `security` blocks         | Not diffed in CI; read by `validate:auth-scopes` |
 | `etc/endpoint-scaffold.generated.reference.ts`          | `npm run generate:endpoints` | Operations                          | None; reference only                             |
+| `src/generated/operations.generated.ts`                 | `npm run spec:generate`      | Vendored contract snapshot          | CI `spec:generate:check` and `spec:coverage`     |
 | `tests/contract/snapshots/esi-openapi.snapshot.json`    | `npm run contract:snapshot`  | Whole document                      | Contract tests fall back to it                   |
 | `okf/`                                                  | `npm run generate:okf`       | Operations and schemas              | None                                             |
 | `etc/esi.ts.api.md`                                     | `npm run api-report`         | `dist/index.d.ts` via api-extractor | CI API Surface Check                             |
 
 `npm run generate:all` runs types, OKF, the contract snapshot, schema drift and `validate:esi` in sequence. `generate:types` defaults to the compatibility date in `scripts/generate-esi-types.ts` and accepts `--latest` or `--compatibility-date=YYYY-MM-DD`. The OKF bundle is described in [OKF.md](OKF.md).
+
+`src/generated/operations.generated.ts` holds one typed function and one `*Meta` constant per spec operation, all calling the `OperationTransport` port in `src/core/ports/`. Unlike the rows above it reads the vendored snapshot, never the live spec, so CI can check it offline. It is not exported yet: Phase 2 of the Road to Done plan wires it to the request pipeline.
 
 The hand-written counterparts are not generated and are not exempt from review: endpoint maps, Zod schemas, clients and the exception files under `scripts/` are product decisions, and the drift reports exist to keep them honest.
 

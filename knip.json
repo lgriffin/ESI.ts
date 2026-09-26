@@ -9,7 +9,10 @@
     "publint",
     "esbuild"
   ],
-  "ignore": ["src/types/generated/spec-alignment.check.ts"],
+  "ignore": [
+    "src/types/generated/spec-alignment.check.ts",
+    "src/generated/operations.generated.ts"
+  ],
   "ignoreExportsUsedInFile": true,
   "ignoreMembers": ["HttpMethod"],
   "exclude": ["unresolved"],

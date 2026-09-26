@@ -41,6 +41,16 @@ export interface Tier {
  */
 export const TIERS: Tier[] = [
   { script: 'typecheck', covers: 'types compile', stage: 'quick' },
+  {
+    script: 'spec:generate:check',
+    covers: 'generated operations match the vendored spec',
+    stage: 'quick',
+  },
+  {
+    script: 'spec:coverage',
+    covers: 'every spec operation is generated',
+    stage: 'quick',
+  },
   { script: 'lint', covers: 'src lint', stage: 'quick' },
   {
     script: 'lint:suite-health',

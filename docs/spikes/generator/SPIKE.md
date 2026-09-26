@@ -1,5 +1,8 @@
 # Generator spike: in-repo emitter
 
+> Promoted in Phase 1: the emitter now lives in `scripts/spec-generate-core.ts`
+> and covers every operation. This folder is kept as the Phase 0 record.
+
 Phase 0 question from the Road to Done plan: write our own operation emitter, or
 template over `@hey-api/openapi-ts`? This spike builds the first option for five
 operations and checks the output against the compiler flags the plan wants.
