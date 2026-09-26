@@ -524,16 +524,28 @@ export const RECIPES: Recipe[] = [
     endpoint: 'contract.getPublicContractBids',
     client: 'contracts',
     method: 'getPublicContractBids',
-    // ESI lists auctions after item exchanges, so look on the last page.
+    // Auctions are few and ESI tends to list them late, so walk back from
+    // the last page until enough turn up. The last page alone can hold none
+    // (the nightly failure in #403).
     prepare: async (ids, get) => {
-      const last = need(ids, 'publicContractPages');
-      const body = await get(
-        `contracts/public/${S.theForgeRegionId}?page=${last}`,
-      );
+      const last = Number(need(ids, 'publicContractPages'));
+      const auctionContractIds: number[] = [];
+      for (
+        let page = last;
+        page >= 1 && auctionContractIds.length < 12;
+        page--
+      ) {
+        const body = await get(
+          `contracts/public/${S.theForgeRegionId}?page=${page}`,
+        );
+        auctionContractIds.push(
+          ...all(body, (c) =>
+            c.type === 'auction' ? (c.contract_id as number) : undefined,
+          ),
+        );
+      }
       return defined({
-        auctionContractIds: all(body, (c) =>
-          c.type === 'auction' ? (c.contract_id as number) : undefined,
-        ).slice(0, 12),
+        auctionContractIds: auctionContractIds.slice(0, 12),
       });
     },
     preferNonEmpty: true,
