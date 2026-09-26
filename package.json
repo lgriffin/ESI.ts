@@ -145,6 +145,7 @@
     "lint:fix": "eslint src --fix",
     "lint:bdd-seam": "eslint --config eslint.bdd-seam.config.mjs tests/bdd",
     "lint:determinism": "ts-node scripts/determinism-lint.ts",
+    "lint:layers": "eslint --config eslint.layers.config.mjs --no-inline-config src",
     "lint:suite-health": "eslint --config eslint.suite-health.config.mjs tests",
     "lint:workflows": "ts-node scripts/workflow-lint.ts",
     "lint:package": "ts-node scripts/package-lint.ts",

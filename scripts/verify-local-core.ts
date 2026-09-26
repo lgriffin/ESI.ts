@@ -63,6 +63,11 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'lint:layers',
+    covers: 'imports in src point inward',
+    stage: 'quick',
+  },
+  {
     script: 'lint:bdd-seam',
     covers: 'BDD mocks only at the transport seam',
     stage: 'quick',
