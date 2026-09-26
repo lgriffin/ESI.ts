@@ -43,36 +43,29 @@ Counted by matching `METHOD path` between the spec and every
 
 | Source                                                             | Operations |
 | ------------------------------------------------------------------ | ---------: |
-| Vendored spec `tests/contract/snapshots/esi-openapi.snapshot.json` |        208 |
-| of which require auth                                              |        127 |
+| Vendored spec `tests/contract/snapshots/esi-openapi.snapshot.json` |        218 |
+| of which require auth                                              |        137 |
 | of which take a page or cursor parameter                           |         45 |
 | Endpoint definitions in `src/core/endpoints`                       |        234 |
 
-Findings:
+Findings, re-checked on 2026-09-26 after Phase 1 re-vendored the spec at
+2026-05-19 (the date the client sends) through
+`.github/workflows/spec-refresh.yml`:
 
-1. **The vendored spec is older than the date the client sends.**
-   `scripts/snapshot-openapi.ts` fetches `compatibility_date=2025-12-16`, while
-   `COMPATIBILITY_DATE` in `src/core/constants.ts` and the generated files are
-   at 2026-05-19. The plan's "types built from the date the SDK sends" gate is
-   not met for the contract snapshot. Re-snapshotting at the constant is the
-   first Phase 1 task.
-2. **Two spec operations have no definition:** `GET /sovereignty/map` and
-   `GET /sovereignty/structures`. Neither appears in the 2026-05-19 generated
-   metadata, so ESI probably removed them after 2025-12-16 (inferred, not
-   checked against the live spec).
-3. **28 definitions are not in the vendored spec.** 12 are explained by the
-   newer date: they appear in the 2026-05-19 generated metadata (access lists,
-   mercenary dens and tactical operations, skyhooks, sovereignty hubs,
-   `/sovereignty/systems`). The other 16 appear in neither: SKINR cosmetics
-   (3), Paragon Hub (5), military campaigns (6), `/meta/openapi.json` and
-   `/meta/name`. The meta routes are expected outside the spec. The SKINR,
-   Paragon Hub and military-campaign routes need checking against the spec at
-   2026-05-19 or later before the coverage gate can count them.
+1. **Resolved: the vendored spec now matches the date the client sends.** It
+   was pinned to 2025-12-16 (208 operations); `scripts/snapshot-openapi.ts`
+   now defaults to `COMPATIBILITY_DATE`. `npm run spec:coverage` checks the
+   generated operations against it in CI.
+2. **Every spec operation has a definition.** `GET /sovereignty/map` and
+   `GET /sovereignty/structures`, missing before, are covered at 2026-05-19.
+3. **16 definitions are not in the spec at 2026-05-19, all intentional.**
+   SKINR cosmetics (3), Paragon Hub (5) and military campaigns (6) are beta
+   routes ESI enabled after that compatibility date
+   ([SKINR on ESI](https://developers.eveonline.com/blog/skinr-on-esi-color-outside-the-lines));
+   the client supports them on purpose. `/meta/openapi.json` and `/meta/name`
+   are meta routes outside the spec. Phase 2 has to keep these reachable even
+   though the generator, which reads the vendored spec, does not emit them.
 4. No operation in the vendored spec is marked `deprecated`.
-
-The audit sandbox could not reach `esi.evetech.net`, so findings 2 and 3 are
-inferred from the generated metadata. A `spec:coverage` script (Phase 1) should
-replace this section with a CI-checked count.
 
 ## Mutation baseline
 
@@ -106,8 +99,8 @@ The plan's target is 90 on the hand-written core and 80 repo-wide. Only
 
 | Gate           | State   | Evidence and gap                                                                                                                                                   |
 | -------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Route coverage | Not met | No generator for operations and no `spec:coverage` job; coverage is by hand (above)                                                                                |
-| Spec drift     | Partial | `nightly-spec-drift.yml` and `schema:drift` exist; the vendored snapshot is pinned to 2025-12-16, not the sent date                                                |
+| Route coverage | Partial | `spec:coverage` checks every spec operation has a generated function; mapping them onto client scopes is Phase 2                                                   |
+| Spec drift     | Partial | `nightly-spec-drift.yml` and `schema:drift` exist; the vendored snapshot is at the sent date and `spec-refresh.yml` re-vendors it                                  |
 | Public API     | Met     | `etc/esi.ts.api.md` committed, API Surface Check and API SemVer Gate in CI                                                                                         |
 | Type safety    | Partial | `strict` and `noUncheckedIndexedAccess` on; `exactOptionalPropertyTypes` and `isolatedDeclarations` off; tsd type tests exist                                      |
 | Tests          | Partial | Unit, BDD, contract replay, fuzz, faults and consumer tiers all run; mutation floors below the plan's 90/80                                                        |

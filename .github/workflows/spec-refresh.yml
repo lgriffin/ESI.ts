@@ -1,0 +1,111 @@
+name: Spec Refresh
+
+# Re-vendors the ESI OpenAPI document at COMPATIBILITY_DATE (src/core/constants.ts)
+# and regenerates src/generated/operations.generated.ts from it, then commits
+# both. Road to Done Phase 1: the generator only reads the vendored copy, and
+# this is the one place that fetches it, on a runner that can reach
+# esi.evetech.net.
+#
+# - Push to a `spec-refresh/**` branch: commits the refreshed files back to
+#   that branch. Open the pull request from it as usual.
+# - Manual dispatch on master: pushes the refresh to a new
+#   `spec-refresh/<date>-<run id>` branch for a maintainer to open a pull
+#   request from.
+#
+# Pushes made with GITHUB_TOKEN do not start workflows, so the commit this
+# job adds does not re-run it. Push to the branch again (or open the pull
+# request) to run CI on the refreshed files.
+
+on:
+  push:
+    branches:
+      - 'spec-refresh/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run in progress: only the
+# latest revision is worth refreshing, and the commit step below also skips
+# a run whose branch has moved on since it started.
+concurrency:
+  group: spec-refresh-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    name: Refresh the vendored ESI spec
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # push the refreshed spec and generated operations
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Fetch the spec at the compatibility date
+        run: npm run contract:snapshot
+
+      - name: Format and regenerate
+        run: |
+          npx prettier --write tests/contract/snapshots/esi-openapi.snapshot.json
+          npm run spec:generate
+          npm run spec:coverage
+
+      - name: Commit the refresh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet; then
+            echo "The vendored spec is already current." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git diff --stat >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            target="$GITHUB_REF_NAME"
+          else
+            target="spec-refresh/$(date -u +%Y-%m-%d)-${GITHUB_RUN_ID}"
+          fi
+          case "$target" in
+            spec-refresh/*) ;;
+            *) echo "::error::Refusing to push to ${target}"; exit 1 ;;
+          esac
+
+          # The token reaches git through environment configuration only, so
+          # it is never written to disk or placed on a command line.
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
+          GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          export GIT_CONFIG_VALUE_0
+
+          # Push only onto the revision this run refreshed. If the branch has
+          # moved since, a newer run owns the refresh; pushing would fail as a
+          # non-fast-forward, and rebasing would commit files generated from a
+          # tree this run never saw.
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            tip=$(git ls-remote origin "refs/heads/${target}" | cut -f1)
+            if [ "$tip" != "$GITHUB_SHA" ]; then
+              echo "\`${target}\` moved to ${tip} after this run started; leaving the refresh to the newer run." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          fi
+
+          date=$(node -p "require('./tests/contract/snapshots/esi-openapi.snapshot.json').info.version")
+          git add tests/contract/snapshots/esi-openapi.snapshot.json src/generated/operations.generated.ts
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "chore(spec): vendor the ESI spec at ${date} and regenerate operations"
+          git push -q origin "HEAD:refs/heads/${target}"
+          echo "Pushed the refresh to \`${target}\`." >> "$GITHUB_STEP_SUMMARY"
