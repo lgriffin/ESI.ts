@@ -31,6 +31,8 @@ const projectRoot = path.resolve(__dirname);
 /** Shared by every shard, so their union is what the unsharded glob covered. */
 const COMMON_EXCLUSIONS = [
   '!src/core/endpoints/**',
+  // Ports are interfaces only: no runtime code, so no mutants to score.
+  '!src/core/ports/**',
   '!src/core/logger/ILogger.ts',
   '!src/core/cache/ICache.ts',
   '!src/core/rateLimiter/IRateLimiter.ts',
