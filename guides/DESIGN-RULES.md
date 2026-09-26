@@ -266,7 +266,7 @@ Needed only when ESI adds a tag that no existing client covers. Every step below
 
 5. **Registry.** In `src/core/ClientRegistry.ts` add the key to `ApiClientType`, the class to `ClientInstance`, an entry to `clientFactories`, and the class to the re-export list. `tests/tdd/core/ClientRegistry.test.ts` types its expectations as `Record<ApiClientType, …>`, so it stops compiling until you add the class there too.
 6. **`EsiClient` getter.** In `src/EsiClient.ts`, `get <key>(): <Domain>Client { return this.getClient('<key>'); }`. Clients are created lazily on first access.
-7. **`CustomEsiClient` getter.** In `src/EsiClientBuilder.ts`, the same getter returning `<Domain>Client | undefined`. Nothing enforces this yet, and several recent clients are missing (ARCH-08); do not add to that gap.
+7. **`CustomEsiClient` getter.** In `src/EsiClientBuilder.ts`, the same getter returning `<Domain>Client | undefined`. `tests/tdd/core/customClientGetters.test.ts` fails to compile when a registered client has no getter (ARCH-08).
 8. **`EsiApiFactory`.** `EsiApiFactory.createClient('<key>', config)` works from the registry with no change. Named factory methods (`createMarketClient` and so on) exist for a handful of common domains only; add one only if the domain is equally common.
 9. **Root export.** `export { <Domain>Client } from './clients/<Domain>Client';` in `src/index.ts`.
 10. **Specification and tests.** A new numbered feature file, step definitions, unit tests and a `tests/typetests/domain-responses.test-d.ts` assertion for at least one method, as in section 3.8.
