@@ -822,7 +822,7 @@ Three construction surfaces, all wired by `configureApiClient()`, so middleware 
 | **EsiClientBuilder** | Selective             | A `CustomEsiClient` with only the clients you add, and fluent configuration  |
 | **EsiApiFactory**    | Single-domain scripts | One domain client on its own `ApiClient`                                     |
 
-`ClientRegistry` maps each client name to its class. `ARCH-08` requires every surface to expose the same set; `CustomEsiClient` currently lacks getters for corporation projects, cosmetics, Paragon Hub and military campaigns (bead `esi-eqq`).
+`ClientRegistry` maps each client name to its class. `ARCH-08` requires every surface to expose the same set; `CustomEsiClient` has a getter for every registered client, checked at compile time by `tests/tdd/core/customClientGetters.test.ts`; `EsiApiFactory` covers only 10 clients.
 
 Timers are owned by the client: call `shutdown()` to stop the cache sweep and circuit-breaker cleanup and clear the deduplicator.
 
