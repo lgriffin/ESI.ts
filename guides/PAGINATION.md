@@ -149,8 +149,8 @@ Both helpers fetch every page, including page 1, through a single-page path that
 | ----------------------------------------- | ------------------- | -------------------------------------- |
 | Spec-aware cache hit (no network)         | Page 1              | No                                     |
 | Deduplication of identical in-flight GETs | Page 1              | No                                     |
-| `If-None-Match` sent                      | Page 1              | Every page, if the cache holds an ETag |
-| 304 served from cache                     | Yes                 | No: throws `EsiError` 304              |
+| `If-None-Match` sent                      | Page 1              | Never                                  |
+| 304 served from cache                     | Yes                 | Not applicable: no conditional request |
 | Cache write                               | Combined array      | Never                                  |
 | Stale cache served on 5xx                 | Yes                 | No                                     |
 | Remediation text on 401 / 403             | Yes                 | No                                     |
@@ -278,11 +278,10 @@ The per-page retry, backoff and circuit-breaker settings are the client's own; s
 
 `DES-08` requires pagination helpers to propagate the caller's HTTP method into the retry context and to surface partial results as an error rather than truncate silently. The code meets neither in full. Each row below was confirmed against the source at the time of writing.
 
-| #   | Gap                                                                                                             | Consumer impact                                                                                                                    |
-| --- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `handleSinglePageRequest` passes `method: 'GET'` to the retry strategy whatever the endpoint's method.          | `streamEndpoint` or `fetchAllEndpoint` on a non-GET endpoint would retry a mutation. Every shipped wrapper targets a GET endpoint. |
-| 2   | `CursorPaginationHandler.fetchAll` returns partial data after three consecutive failures.                       | None today: the class is internal and unused.                                                                                      |
-| 3   | `stream*` and `fetchAll*` send `If-None-Match` when the cache holds an ETag for the URL but cannot serve a 304. | After an eager call to the same endpoint, a `stream*` or `fetchAll*` call can throw `EsiError` 304.                                |
-| 4   | The eager 1000-page cap and the stop at an empty page end pagination with a log line, not an error.             | A dataset beyond page 1000 is truncated silently.                                                                                  |
+| #   | Gap                                                                                                    | Consumer impact                                                                                                                    |
+| --- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `handleSinglePageRequest` passes `method: 'GET'` to the retry strategy whatever the endpoint's method. | `streamEndpoint` or `fetchAllEndpoint` on a non-GET endpoint would retry a mutation. Every shipped wrapper targets a GET endpoint. |
+| 2   | `CursorPaginationHandler.fetchAll` returns partial data after three consecutive failures.              | None today: the class is internal and unused.                                                                                      |
+| 3   | The eager 1000-page cap and the stop at an empty page end pagination with a log line, not an error.    | A dataset beyond page 1000 is truncated silently.                                                                                  |
 
 Rows 1 and 2 are tracked as bead `esi-dwi` · [#269](https://github.com/lgriffin/ESI.ts/issues/269). The fix follows `TEST-01`: EARS rules under `tests/bdd/features/core` that fail first, then the change. See [TESTING.md](TESTING.md).

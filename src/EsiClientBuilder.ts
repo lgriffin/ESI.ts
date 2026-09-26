@@ -39,6 +39,10 @@ import {
   SkyhooksClient,
   MercenaryClient,
   AccessListsClient,
+  CorporationProjectsClient,
+  CosmeticsClient,
+  ParagonHubClient,
+  MilitaryCampaignsClient,
 } from './core/ClientRegistry';
 import { EsiClientConfig } from './EsiClient';
 import { configureApiClient } from './core/configureApiClient';
@@ -212,6 +216,18 @@ export class CustomEsiClient {
   }
   get accessLists(): AccessListsClient | undefined {
     return this.getClient('accessLists') as AccessListsClient;
+  }
+  get corporationProjects(): CorporationProjectsClient | undefined {
+    return this.getClient('corporationProjects') as CorporationProjectsClient;
+  }
+  get cosmetics(): CosmeticsClient | undefined {
+    return this.getClient('cosmetics') as CosmeticsClient;
+  }
+  get paragonHub(): ParagonHubClient | undefined {
+    return this.getClient('paragonHub') as ParagonHubClient;
+  }
+  get militaryCampaigns(): MilitaryCampaignsClient | undefined {
+    return this.getClient('militaryCampaigns') as MilitaryCampaignsClient;
   }
 
   shutdown(): void {

@@ -81,6 +81,19 @@ Feature: ETag Caching
       Then both calls resolve with the assets from both pages
       And the client sent 2 requests
 
+  Rule: When a stream or fetch-all helper requests a page, the EsiClient shall send the request without an If-None-Match header.
+    The stream* and fetchAll* helpers read every page afresh and keep no
+    cache of their own, so a 304 would leave them with no body to return.
+    An ordinary call to the same URL stores an ETag, and sending it from a
+    streamed page turned the next 304 into an EsiError.
+
+    Scenario: Streaming market types after an ordinary market types call
+      Given a client with an empty cache
+      And the client has fetched the market types for The Forge
+      When the client streams the market types for The Forge
+      Then the stream yields every market type
+      And the streamed request carried no If-None-Match header
+
   # ── Serving from cache when ESI fails ───────────────────────────────
 
   Rule: If a GET request is answered with a 5xx status while the ETag cache holds an unexpired entry for it, then the EsiClient shall resolve with the cached body and flag the response as stale.
