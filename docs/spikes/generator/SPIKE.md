@@ -13,7 +13,9 @@ operations and checks the output against the compiler flags the plan wants.
 | `operations.generated.ts` | Output for the five operations below                                          |
 | `usage.check.ts`          | Consumer-side compile check, including one `@ts-expect-error` case            |
 
-Regenerate with `npx ts-node --transpile-only docs/spikes/generator/emit.ts`.
+Regenerate with `npx ts-node --transpile-only -P tsconfig.json docs/spikes/generator/emit.ts`,
+then type-check the output and the usage check with `npx tsc -p docs/spikes/generator`.
+That config (`docs/spikes/generator/tsconfig.json`) turns on the four flags below.
 
 | Operation                               | Why it was picked                               |
 | --------------------------------------- | ----------------------------------------------- |

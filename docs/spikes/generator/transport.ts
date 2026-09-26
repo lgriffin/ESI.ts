@@ -13,9 +13,13 @@ export interface OperationMeta {
   readonly paginated: boolean;
 }
 
+/** Every shape a spec query parameter takes: scalars and arrays of them. */
+export type QueryValue =
+  string | number | boolean | readonly (string | number | boolean)[];
+
 export interface OperationRequest {
   readonly path: Readonly<Record<string, string | number>>;
-  readonly query: Readonly<Record<string, string | number | undefined>>;
+  readonly query: Readonly<Record<string, QueryValue | undefined>>;
   readonly body?: unknown;
 }
 

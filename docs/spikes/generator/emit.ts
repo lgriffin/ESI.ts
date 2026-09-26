@@ -1,7 +1,8 @@
 /**
  * Generator spike (Phase 0 of the Road to Done plan): an in-repo emitter that
  * turns selected spec operations into typed functions over one Transport.
- * Run: npx ts-node --transpile-only docs/spikes/generator/emit.ts
+ * Run: npx ts-node --transpile-only -P tsconfig.json docs/spikes/generator/emit.ts
+ * Check: npx tsc -p docs/spikes/generator
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -94,8 +95,13 @@ for (const [method, p] of PICK) {
   const scopes: string[] = (op.security ?? []).flatMap((s: Schema) =>
     Object.values(s).flat(),
   );
-  const respSchema =
-    op.responses?.['200']?.content?.['application/json']?.schema;
+  // The success body can sit under any 2xx (POST contacts answers 201).
+  const success = Object.keys(op.responses ?? {}).find((code) =>
+    /^2\d\d$/.test(code),
+  );
+  const respSchema = success
+    ? op.responses[success]?.content?.['application/json']?.schema
+    : undefined;
   const bodySchema = op.requestBody?.content?.['application/json']?.schema;
   const fn = camel(op.operationId);
   const resp = respSchema

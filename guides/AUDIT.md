@@ -77,19 +77,26 @@ replace this section with a CI-checked count.
 ## Mutation baseline
 
 Per-directory floors enforced by the nightly ratchet (`scripts/mutation-ratchet.ts`).
-Stryker's global `break` is `null`; the gate is per directory.
+Stryker's global `break` is `null`; the gate is per directory. A dash means the
+file sets no floor for that directory.
 
 | Directory                  | Unit (`mutation-thresholds.json`) | BDD-only (`mutation-bdd-thresholds.json`) |
 | -------------------------- | --------------------------------: | ----------------------------------------: |
+| `src`                      |                                 — |                                      15.5 |
+| `src/auth`                 |                                 — |                                      23.4 |
+| `src/clients`              |                                 — |                                      12.1 |
 | `src/core`                 |                              81.8 |                                      28.8 |
 | `src/core/cache`           |                              65.3 |                                      22.3 |
 | `src/core/circuitBreaker`  |                              77.7 |                                      37.3 |
+| `src/core/endpoints`       |                                 — |                                      24.5 |
 | `src/core/logger`          |                              55.5 |                                      21.7 |
 | `src/core/middleware`      |                             100.0 |                                      26.0 |
 | `src/core/pagination`      |                              73.9 |                                      12.6 |
 | `src/core/rateLimiter`     |                              77.9 |                                      11.7 |
 | `src/core/requestPipeline` |                              75.2 |                                      38.5 |
 | `src/core/util`            |                              95.4 |                                      42.8 |
+| `src/schemas`              |                                 — |                                       0.0 |
+| `src/sde`                  |                                 — |                                      10.6 |
 
 The plan's target is 90 on the hand-written core and 80 repo-wide. Only
 `src/core/middleware` and `src/core/util` meet 90 today; `src/core/logger`
