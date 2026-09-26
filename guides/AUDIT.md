@@ -118,6 +118,6 @@ The plan's target is 90 on the hand-written core and 80 repo-wide. Only
 | Send `X-Tenant`                                       | Missing: no request sets it                                                                      |
 | Descriptive `User-Agent`, refuse to build without one | Partial: `X-User-Agent` carries `clientId`, which defaults to `esi-client` and is never required |
 | ETag, `If-None-Match`, 304 as a hit                   | Done (spec-aware TTL cache)                                                                      |
-| `X-Pages` pagination                                  | Done (offset and cursor handlers); open defects esi-l38.1, esi-l38.3                             |
+| `X-Pages` pagination                                  | Done (offset and cursor handlers); open defect esi-l38.1                                         |
 | Error-limit tracking                                  | Done (`src/core/rateLimiter/RateLimiter.ts`)                                                     |
 | Surface `Warning` headers                             | Done as warn logs; not yet a typed event                                                         |
