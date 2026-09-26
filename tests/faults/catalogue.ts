@@ -846,6 +846,8 @@ export const FAULTS: readonly Fault[] = [
         },
       },
       requests: attempts(ctx.target) * (1 + attempts(ctx.target)),
+      // No repeat of page 1 revalidates it alone.
+      conditionalRequests: 0,
       cache: 'empty',
       elapsedMs: INSTANT,
       logs: [

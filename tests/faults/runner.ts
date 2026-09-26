@@ -112,6 +112,8 @@ function captureLogger(into: LogEntry[]): ILogger {
 export interface Observation {
   settled: Settled;
   requests: number;
+  /** Requests of the call that carried If-None-Match. */
+  conditionalRequests: number;
   elapsedMs: number;
   logs: LogEntry[];
   /** Mismatches found while probing the cache after the call. */
@@ -171,7 +173,11 @@ export async function observe(
     const start = Date.now();
     const settled = await drive(target.call(client));
     const elapsedMs = Date.now() - start;
-    const requests = sentRequests().length - before;
+    const sent = sentRequests().slice(before);
+    const requests = sent.length;
+    const conditionalRequests = sent.filter(
+      (r) => r.headers['if-none-match'] !== undefined,
+    ).length;
     const callLogs = [...logs];
 
     const expected = fault.expected(ctx);
@@ -180,7 +186,14 @@ export async function observe(
         ? []
         : await probeCache(target, client, expected, settled, good.result);
 
-    return { settled, requests, elapsedMs, logs: callLogs, cacheProblems };
+    return {
+      settled,
+      requests,
+      conditionalRequests,
+      elapsedMs,
+      logs: callLogs,
+      cacheProblems,
+    };
   } finally {
     client.shutdown();
     setLogger(previousGlobal);
@@ -354,6 +367,15 @@ export function compare(expected: Outcome, seen: Observation): string[] {
   if (seen.requests !== expected.requests) {
     problems.push(
       `requests (retry count): expected ${expected.requests}, the client sent ${seen.requests}`,
+    );
+  }
+
+  if (
+    expected.conditionalRequests !== undefined &&
+    seen.conditionalRequests !== expected.conditionalRequests
+  ) {
+    problems.push(
+      `conditional requests: expected ${expected.conditionalRequests} with If-None-Match, the client sent ${seen.conditionalRequests}`,
     );
   }
 
