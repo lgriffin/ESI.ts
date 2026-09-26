@@ -208,6 +208,8 @@ export const handleSinglePageRequest = async (
   templatePath?: string,
   requestTimeout?: number,
 ): Promise<EsiHandlerResponse> => {
+  // No If-None-Match: this path keeps no cache of its own, so a 304 would
+  // leave it with no body to return (#292).
   const doExecute = () =>
     fetchOnePage(
       client,
@@ -215,7 +217,7 @@ export const handleSinglePageRequest = async (
       method,
       body,
       requiresAuth,
-      true,
+      false,
       resolveCache,
       resolveRateLimiter,
       resolveCircuitBreaker,
