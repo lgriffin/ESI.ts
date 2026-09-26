@@ -556,7 +556,7 @@ To raise a budget, run `npm run build && npm run size`, set the new measurement 
 
 ### Negative fixtures
 
-`tests/tdd/package-lint/package-lint.test.ts`, part of `npm test`, runs the real tools against packages it writes to a temporary directory. A package whose `./sub` entry names a missing `types` file must produce `publint:FILE_DOES_NOT_EXIST` and an attw problem under all three resolutions, while a clean control produces none. A size-limit fixture whose CJS budget is below its entry plus chunk must exit 1, while its ESM check passes. The ratchet rules and the budget-to-exports matching have unit tests in the same file. attw 0.18 and size-limit 12 need Node 20, so the suites that run the tools skip on Node 18.
+`tests/tdd/package-lint/package-lint.test.ts`, part of `npm test`, runs the real tools against packages it writes to a temporary directory. A package whose `./sub` entry names a missing `types` file must produce `publint:FILE_DOES_NOT_EXIST` and an attw problem under all three resolutions, while a clean control produces none. A size-limit fixture whose CJS budget is below its entry plus chunk must exit 1, while its ESM check passes. The ratchet rules and the budget-to-exports matching have unit tests in the same file. Each suite runs where its tool does: attw 0.18 needs Node 20, so the publint and attw suite skips on Node 18; size-limit 13 needs Node 22.18, so the size-limit suite skips on Node 18 and 20 and runs in the Node 22 unit-tests job.
 
 ---
 
