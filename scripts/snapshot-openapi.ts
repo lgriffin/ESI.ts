@@ -14,21 +14,36 @@ import * as path from 'path';
 
 import { COMPATIBILITY_DATE } from '../src/core/constants';
 
-function compatibilityDate(): string {
-  for (const arg of process.argv.slice(2)) {
-    const match = /^--compatibility-date=(\d{4}-\d{2}-\d{2})$/.exec(arg);
-    if (match) return match[1]!;
+/**
+ * No arguments, or exactly one `--compatibility-date=YYYY-MM-DD`. Anything
+ * else throws before any fetch, so a mistyped option cannot quietly vendor
+ * the default date instead of the one asked for.
+ */
+export function parseCompatibilityDate(
+  args: readonly string[],
+  fallback: string = COMPATIBILITY_DATE,
+): string {
+  if (args.length === 0) return fallback;
+  const [arg] = args;
+  const match =
+    args.length === 1
+      ? /^--compatibility-date=(\d{4}-\d{2}-\d{2})$/.exec(arg!)
+      : null;
+  if (!match) {
+    throw new Error(
+      `Expected no arguments or one --compatibility-date=YYYY-MM-DD, got: ${args.join(' ')}`,
+    );
   }
-  return COMPATIBILITY_DATE;
+  return match[1]!;
 }
 
-const ESI_OPENAPI_URL = `https://esi.evetech.net/meta/openapi.json?compatibility_date=${compatibilityDate()}`;
 const SNAPSHOT_PATH = path.resolve(
   __dirname,
   '../tests/contract/snapshots/esi-openapi.snapshot.json',
 );
 
 async function main(): Promise<void> {
+  const ESI_OPENAPI_URL = `https://esi.evetech.net/meta/openapi.json?compatibility_date=${parseCompatibilityDate(process.argv.slice(2))}`;
   console.log(`Fetching ESI OpenAPI spec from ${ESI_OPENAPI_URL}...`);
   const response = await fetch(ESI_OPENAPI_URL);
   if (!response.ok) {
@@ -57,7 +72,9 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

@@ -58,12 +58,13 @@ Findings, re-checked on 2026-09-26 after Phase 1 re-vendored the spec at
    generated operations against it in CI.
 2. **Every spec operation has a definition.** `GET /sovereignty/map` and
    `GET /sovereignty/structures`, missing before, are covered at 2026-05-19.
-3. **16 definitions are not in the spec at 2026-05-19** (checked against the
-   document itself, no longer inferred): SKINR cosmetics (3), Paragon Hub (5),
-   military campaigns (6), `/meta/openapi.json` and `/meta/name`. The meta
-   routes are expected outside the spec. The other 14 either come from a
-   later compatibility date or are not ESI routes at all, and need a decision
-   before Phase 2 builds scopes from the spec.
+3. **16 definitions are not in the spec at 2026-05-19, all intentional.**
+   SKINR cosmetics (3), Paragon Hub (5) and military campaigns (6) are beta
+   routes ESI enabled after that compatibility date
+   ([SKINR on ESI](https://developers.eveonline.com/blog/skinr-on-esi-color-outside-the-lines));
+   the client supports them on purpose. `/meta/openapi.json` and `/meta/name`
+   are meta routes outside the spec. Phase 2 has to keep these reachable even
+   though the generator, which reads the vendored spec, does not emit them.
 4. No operation in the vendored spec is marked `deprecated`.
 
 ## Mutation baseline

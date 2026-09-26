@@ -25,9 +25,12 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same branch cancels the run in progress: only the
+# latest revision is worth refreshing, and the commit step below also skips
+# a run whose branch has moved on since it started.
 concurrency:
   group: spec-refresh-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   refresh:
@@ -87,6 +90,18 @@ jobs:
           export GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
           GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           export GIT_CONFIG_VALUE_0
+
+          # Push only onto the revision this run refreshed. If the branch has
+          # moved since, a newer run owns the refresh; pushing would fail as a
+          # non-fast-forward, and rebasing would commit files generated from a
+          # tree this run never saw.
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            tip=$(git ls-remote origin "refs/heads/${target}" | cut -f1)
+            if [ "$tip" != "$GITHUB_SHA" ]; then
+              echo "\`${target}\` moved to ${tip} after this run started; leaving the refresh to the newer run." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          fi
 
           date=$(node -p "require('./tests/contract/snapshots/esi-openapi.snapshot.json').info.version")
           git add tests/contract/snapshots/esi-openapi.snapshot.json src/generated/operations.generated.ts
