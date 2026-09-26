@@ -308,7 +308,7 @@ Pagination helpers take the caller's HTTP method and must not return a truncated
 
 ## 7 · Layers
 
-Imports in `src/` point inward. `npm run lint:layers` enforces four rules with ESLint's `no-restricted-imports` (`eslint.layers.rules.cjs`), in CI and in `check:local`:
+Imports in `src/` point inward. `npm run lint:layers` enforces four rules with a local ESLint rule, `layers/inward-imports` in `eslint.layers.rules.cjs`, in CI and in `check:local`:
 
 | Directory                      | May not import                                                                                                                                  |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -317,6 +317,6 @@ Imports in `src/` point inward. `npm run lint:layers` enforces four rules with E
 | `src/core/` (the pipeline)     | The layers built on it: `clients/`, `EsiClient`, `EsiClientBuilder`, `index`, `generated/`, `auth/`, `sde/`, `testing/`, `client/`, `adapters/` |
 | `src/client/`, `src/adapters/` | The legacy domain clients and entry points: `clients/`, `EsiClient`, `EsiClientBuilder`, `index`                                                |
 
-Type-only imports and re-exports count. The lint runs with `--no-inline-config`, so an `eslint-disable` comment does not get round it. When core needs something from an outer layer, add a port in `src/core/ports/` and have the outer layer implement it.
+The rule resolves each specifier against the importing file, so it judges an import by where it lands, at any depth: `.././clients` is `clients`. It reads static and type-only imports, re-exports, `import('...')` types and expressions, and `require()`. The lint runs with `--no-inline-config`, so an `eslint-disable` comment does not get round it. When core needs something from an outer layer, add a port in `src/core/ports/` and have the outer layer implement it.
 
 Two files break the core rule today and are listed in `BASELINE` in `eslint.layers.rules.cjs`: `src/core/ClientRegistry.ts`, which imports every domain client, and `src/core/configureApiClient.ts`, which imports the `EsiClientConfig` type. Both move in Phase 3 of the Road to Done plan. The baseline only shrinks: `tests/tdd/layers/layers-lint.test.ts` fails when a listed file no longer breaks the rule, so fixing a file means deleting its entry, and adding an entry is a reviewed change to the rules file.

@@ -13,6 +13,7 @@ function linter(baseline?: Record<string, string>): ESLint {
   });
 }
 
+const RULE = 'layers/inward-imports';
 const eslint = linter();
 
 async function violations(filePath: string, specifier: string) {
@@ -21,7 +22,7 @@ async function violations(filePath: string, specifier: string) {
     { filePath },
   );
   return result.messages
-    .filter((m) => m.ruleId === 'no-restricted-imports')
+    .filter((m) => m.ruleId === RULE)
     .map((m) => /\[layers:([a-z]+)\]/.exec(m.message)?.[1]);
 }
 
@@ -46,6 +47,33 @@ describe('layer lint rule', () => {
     ['src/client/Esi.ts', '../clients/MarketClient', 'legacy'],
     ['src/client/presets/public.ts', '../../EsiClient', 'legacy'],
     ['src/adapters/PipelineTransport.ts', '../index', 'legacy'],
+    // Judged by where the specifier lands, not how it is spelled.
+    ['src/core/ApiClient.ts', '.././clients/MarketClient', 'core'],
+    ['src/core/ApiClient.ts', '../clients/../EsiClient', 'core'],
+    ['src/core/ApiClient.ts', '../EsiClient.js', 'core'],
+    ['src/core/ports/Clock.ts', './../ApiClient', 'ports'],
+    ['src/core/ports/nested/Port.ts', '../../ApiClient', 'ports'],
+    [
+      'src/generated/operations.generated.ts',
+      '../core/ports/../../clients/MarketClient',
+      'generated',
+    ],
+    [
+      'src/generated/nested/ops.generated.ts',
+      '../../core/ApiClient',
+      'generated',
+    ],
+    // No depth limit.
+    [
+      'src/core/a/b/c/d/e/f/g/h.ts',
+      '../../../../../../../../clients/X',
+      'core',
+    ],
+    [
+      'src/client/a/b/c/d/e/f/g/h.ts',
+      '../../../../../../../../index',
+      'legacy',
+    ],
   ])('%s may not import %s', async (file, specifier, layer) => {
     expect(await violations(file, specifier)).toEqual([layer]);
   });
@@ -67,20 +95,30 @@ describe('layer lint rule', () => {
     ['src/client/Esi.ts', '../generated/operations.generated'],
     ['src/adapters/PipelineTransport.ts', '../core/ApiClient'],
     ['src/clients/MarketClient.ts', '../core/ApiClient'],
+    ['src/core/ports/nested/Port.ts', '../OperationTransport'],
+    [
+      'src/generated/nested/ops.generated.ts',
+      '../../core/ports/OperationTransport',
+    ],
+    ['src/core/ApiClient.ts', '../clientsLike/helper'],
     ['src/EsiClient.ts', './clients/MarketClient'],
   ])('%s may import %s', async (file, specifier) => {
     expect(await violations(file, specifier)).toEqual([]);
   });
 
-  it('catches re-exports and type-only imports', async () => {
-    const [result] = await eslint.lintText(
-      "import type { A } from '../EsiClient';\nexport * from '../clients/MarketClient';\nexport type { A };\n",
-      { filePath: 'src/core/ApiClient.ts' },
-    );
-    expect(result.messages.map((m) => m.ruleId)).toEqual([
-      'no-restricted-imports',
-      'no-restricted-imports',
-    ]);
+  it.each([
+    ["import type { A } from '../EsiClient';\nexport type { A };"],
+    ["export * from '../EsiClient';"],
+    ["export { A } from '../EsiClient';"],
+    ["export let a: import('../EsiClient').EsiClient;"],
+    ["export const a = import('../EsiClient');"],
+    ["export const a = require('../EsiClient');"],
+    ["import a = require('../EsiClient');\nexport { a };"],
+  ])('reads the specifier of %s', async (code) => {
+    const [result] = await eslint.lintText(`${code}\n`, {
+      filePath: 'src/core/ApiClient.ts',
+    });
+    expect(result.messages.map((m) => m.ruleId)).toEqual([RULE]);
   });
 
   // The baseline only shrinks: an entry whose file no longer breaks the rule
@@ -89,9 +127,9 @@ describe('layer lint rule', () => {
     'baseline entry %s still breaks the rule',
     async (file) => {
       const [result] = await linter({}).lintFiles([file]);
-      expect(
-        result.messages.filter((m) => m.ruleId === 'no-restricted-imports'),
-      ).not.toHaveLength(0);
+      expect(result.messages.filter((m) => m.ruleId === RULE)).not.toHaveLength(
+        0,
+      );
     },
   );
 });
