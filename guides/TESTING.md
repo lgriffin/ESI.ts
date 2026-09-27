@@ -450,6 +450,8 @@ A Rule is protection only when all three hold (`tests/bdd/README.md`, "When a Ru
 
 `npm run validate:spec-consistency` (`scripts/rule-schema-check.ts`) adds a fourth, narrower check in the `spec-audit` job: a Rule that names a response field the schema marks optional must say so.
 
+`npm run charter:audit` (`scripts/charter-audit.ts`) holds `guides/CHARTER.md` to the same form (`PROC-06`): every `####` requirement block has one `shall`, names its system, follows one of the five EARS patterns with the header's pattern matching its leading keyword, and contains no vague language; a block whose status is Enforced must name, in backticks, a script (`npm run x`), a job or workflow under `.github/workflows/`, or a file in the repository that exists (branch protection is the one mechanism accepted by name, since it lives in GitHub's settings). It runs in the same `spec-audit` job, in `check:all` and in `check:local`, and its checks in `scripts/charter-audit-core.ts` are unit-tested against fixtures in `tests/tdd/scripts/charter-audit.test.ts`.
+
 #### The standalone EARS check
 
 `npm run ears` runs the first two gates on their own, outside `npm test`, and answers per requirement rather than per scenario. It runs the spec audit, runs the BDD scenarios with Jest's JSON output, joins the run to the feature files, and gives every `Rule:` one verdict:
