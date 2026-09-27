@@ -1,5 +1,5 @@
 import { ApiClientType, CustomEsiClient } from '../../../src/EsiClientBuilder';
-import { createClientInstance } from '../../../src/core/ClientRegistry';
+import { createClientInstance } from '../../../src/clients/ClientRegistry';
 
 // Fails to compile when a registered client type has no getter (#267).
 type MissingGetters = Exclude<ApiClientType, keyof CustomEsiClient>;

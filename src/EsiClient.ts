@@ -3,7 +3,8 @@ import {
   RequestInterceptor,
   ResponseInterceptor,
 } from './core/middleware/Middleware';
-import { createClientInstance, ApiClientType } from './core/ClientRegistry';
+import { createClientInstance, ApiClientType } from './clients/ClientRegistry';
+import type { EsiClientConfig, EsiDatasource } from './core/EsiClientConfig';
 import { AllianceClient } from './clients/AllianceClient';
 import { AssetsClient } from './clients/AssetsClient';
 import { CalendarClient } from './clients/CalendarClient';
@@ -64,47 +65,7 @@ import { configureApiClient } from './core/configureApiClient';
 import { getLogger } from './core/logger/loggerUtil';
 import type { ILogger } from './core/logger/ILogger';
 
-export type EsiDatasource = 'tranquility' | 'singularity';
-
-export interface EsiClientConfig {
-  clientId?: string | undefined;
-  baseUrl?: string | undefined;
-  accessToken?: string | undefined;
-  datasource?: EsiDatasource | undefined;
-  onTokenRefresh?: TokenProvider | undefined;
-  timeout?: number | undefined;
-  retryAttempts?: number | undefined;
-  retryConfig?: RetryConfig | undefined;
-  retryStrategy?: IRetryStrategy | undefined;
-  enableETagCache?: boolean | undefined;
-  etagCacheConfig?: ETagCacheConfig | undefined;
-  enableCircuitBreaker?: boolean | undefined;
-  circuitBreakerConfig?: CircuitBreakerConfig | undefined;
-  unsafeAllowCustomHost?: boolean | undefined;
-  enableRequestDeduplication?: boolean | undefined;
-  language?: string | undefined;
-  compatibilityDate?: string | undefined;
-  /**
-   * The ESI tenant every request names in `X-Tenant` (`tranquility`,
-   * `singularity`). Unset, no header is sent and ESI serves Tranquility.
-   */
-  tenant?: string | undefined;
-  /**
-   * Who is calling, for CCP to contact: an application name, version and
-   * contact address. Sent as `X-User-Agent` (in place of `clientId`) and at the
-   * start of `User-Agent`, before the library's own identifier.
-   */
-  userAgent?: string | undefined;
-  rateLimiterConfig?: RateLimiterConfig | undefined;
-  requestInterceptors?: RequestInterceptor[] | undefined;
-  responseInterceptors?: ResponseInterceptor[] | undefined;
-  validateResponse?: boolean | undefined;
-  validateRequest?: boolean | undefined;
-  /** Custom logger for this client. Falls back to the global logger, then pino. */
-  logger?: import('./core/logger/ILogger').ILogger | undefined;
-  /** Log level for the default pino logger (`error|warn|info|debug|trace`). Overrides `ESI_LOG_LEVEL`. */
-  logLevel?: import('./core/logger/DefaultLogger').LogLevel | undefined;
-}
+export type { EsiClientConfig, EsiDatasource } from './core/EsiClientConfig';
 
 export class EsiClient {
   private apiClient: ApiClient;
