@@ -4,6 +4,7 @@ import {
   RateLimitGroupSpec,
 } from '../endpoints/esi-rate-limit-groups.generated';
 import { camelToSnake } from '../util/stringUtil';
+import type { ApiClient } from '../ApiClient';
 import { logWarn } from '../logger/clientLog';
 import { sleep } from '../util/sleep';
 import { EsiError } from '../util/error';
@@ -101,6 +102,16 @@ export class RateLimiter implements IRateLimiter {
 
   private lastCleanup: number = 0;
   private static readonly CLEANUP_INTERVAL_MS = 60_000;
+
+  private client: ApiClient | null = null;
+
+  /**
+   * Attach the client whose logger this limiter's warnings go to. Without
+   * one they go to the global logger (`setLogger`), then the pino default.
+   */
+  setClient(client: ApiClient | null): void {
+    this.client = client;
+  }
 
   constructor(config?: RateLimiterConfig) {
     this.minDelayMs = config?.minDelayMs ?? 50;
@@ -337,7 +348,7 @@ export class RateLimiter implements IRateLimiter {
       const waitedUntil = bucket.blockedUntil;
       const waitTime = waitedUntil - now;
       logWarn(
-        null,
+        this.client,
         `[ESI Rate Limit] Group '${bucket.group}' blocked for ${Math.ceil(waitTime / 1000)}s (420/429 received)`,
         { group: bucket.group, waitMs: waitTime },
       );
@@ -353,7 +364,7 @@ export class RateLimiter implements IRateLimiter {
     if (stillBlockedBucket && stillBlockedBucket.blockedUntil > Date.now()) {
       const waitTime = stillBlockedBucket.blockedUntil - Date.now();
       logWarn(
-        null,
+        this.client,
         `[ESI Rate Limit] Group '${stillBlockedBucket.group}' still blocked after retry budget exhausted; aborting request instead of sending while blocked`,
         { group: stillBlockedBucket.group },
       );
@@ -369,7 +380,7 @@ export class RateLimiter implements IRateLimiter {
       const delay = Math.min(resetMs, 5000);
       if (delay > 0) {
         logWarn(
-          null,
+          this.client,
           `[ESI Rate Limit] Legacy error limit low (${errorLimit.remain}), waiting ${delay}ms`,
           { errorLimitRemain: errorLimit.remain },
         );
@@ -378,7 +389,7 @@ export class RateLimiter implements IRateLimiter {
     } else if (errorLimit.remain <= 0 && errorLimit.reset > 0) {
       const waitTime = errorLimit.reset * 1000;
       logWarn(
-        null,
+        this.client,
         `[ESI Rate Limit] Legacy error limit exhausted, waiting ${Math.ceil(waitTime / 1000)}s`,
         { errorLimitReset: errorLimit.reset },
       );
@@ -391,7 +402,7 @@ export class RateLimiter implements IRateLimiter {
 
       if (bucket.remaining <= 0) {
         logWarn(
-          null,
+          this.client,
           `[ESI Rate Limit] Group '${bucket.group}' token bucket empty, waiting 1s`,
           { group: bucket.group },
         );

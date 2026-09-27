@@ -56,7 +56,13 @@ export class ApiClientBuilder {
 
   build(): ApiClient {
     const client = new ApiClient(this.clientId, this.link, this.accessToken);
-    client.setRateLimiter(this.rateLimiter ?? new RateLimiter());
+    if (this.rateLimiter) {
+      client.setRateLimiter(this.rateLimiter);
+    } else {
+      const rateLimiter = new RateLimiter();
+      rateLimiter.setClient(client);
+      client.setRateLimiter(rateLimiter);
+    }
     if (this.cache) client.setCache(this.cache);
     if (this.circuitBreaker) client.setCircuitBreaker(this.circuitBreaker);
     if (this._timeout !== undefined) client.setTimeout(this._timeout);

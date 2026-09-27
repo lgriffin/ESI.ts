@@ -55,14 +55,13 @@ import { RetryConfig } from './core/util/retry';
 import { IRetryStrategy } from './core/IRetryStrategy';
 import { EsiDiagnostics } from './core/EsiDiagnostics';
 import {
-  batchFetch,
-  batchPost,
+  batchFetchFor,
+  batchPostFor,
   BatchOptions,
   BatchResult,
 } from './core/BatchRequestHandler';
 import { configureApiClient } from './core/configureApiClient';
-import { getLogger } from './core/logger/loggerUtil';
-import type { ILogger } from './core/logger/ILogger';
+import { logInfo } from './core/logger/clientLog';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
@@ -148,8 +147,7 @@ export class EsiClient {
     this.deduplicator = result.deduplicator;
     this.etagCacheEnabled = config?.enableETagCache !== false;
 
-    const clientLogger: ILogger = this.apiClient.getLogger() ?? getLogger();
-    clientLogger.info('EsiClient initialized successfully', {
+    logInfo(this.apiClient, 'EsiClient initialized successfully', {
       baseUrl,
       clientId: config?.clientId,
     });
@@ -291,12 +289,13 @@ export class EsiClient {
 
   setAccessToken(token: string): void {
     this.apiClient.setAccessToken(token);
-    (this.apiClient.getLogger() ?? getLogger()).info('Access token updated');
+    logInfo(this.apiClient, 'Access token updated');
   }
 
   setTokenProvider(provider: TokenProvider | undefined): void {
     this.apiClient.setTokenProvider(provider);
-    (this.apiClient.getLogger() ?? getLogger()).info(
+    logInfo(
+      this.apiClient,
       provider ? 'Token provider configured' : 'Token provider removed',
     );
   }
@@ -337,7 +336,7 @@ export class EsiClient {
     fetcher: (key: K) => Promise<T>,
     options?: BatchOptions,
   ): Promise<BatchResult<K, T>> {
-    return batchFetch(keys, fetcher, options);
+    return batchFetchFor(this.apiClient, keys, fetcher, options);
   }
 
   async batchPost<T>(
@@ -345,7 +344,7 @@ export class EsiClient {
     poster: (chunk: number[]) => Promise<T[]>,
     chunkSize?: number,
   ): Promise<T[]> {
-    return batchPost(ids, poster, chunkSize);
+    return batchPostFor(this.apiClient, ids, poster, chunkSize);
   }
 
   shutdown(): void {
@@ -361,9 +360,7 @@ export class EsiClient {
       this.deduplicator.clear();
     }
     this.clients.clear();
-    (this.apiClient.getLogger() ?? getLogger()).info(
-      'EsiClient shutdown completed',
-    );
+    logInfo(this.apiClient, 'EsiClient shutdown completed');
   }
 }
 

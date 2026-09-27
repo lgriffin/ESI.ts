@@ -1,4 +1,5 @@
 import { EsiError } from './util/error';
+import type { ApiClient } from './ApiClient';
 import { logDebug, logInfo } from './logger/clientLog';
 
 export interface BatchOptions {
@@ -16,6 +17,20 @@ export async function batchFetch<K, T>(
   fetcher: (key: K) => Promise<T>,
   options: BatchOptions = {},
 ): Promise<BatchResult<K, T>> {
+  return batchFetchFor(null, keys, fetcher, options);
+}
+
+/**
+ * `batchFetch` logging to a client's logger. Not exported from the package:
+ * `EsiClient.batch` calls it with its own client, the standalone
+ * `batchFetch` with none (the global logger).
+ */
+export async function batchFetchFor<K, T>(
+  client: ApiClient | null,
+  keys: K[],
+  fetcher: (key: K) => Promise<T>,
+  options: BatchOptions = {},
+): Promise<BatchResult<K, T>> {
   const concurrency = options.concurrency ?? 20;
   const results = new Map<K, T>();
   const errors = new Map<K, EsiError | Error>();
@@ -24,7 +39,7 @@ export async function batchFetch<K, T>(
   let index = 0;
 
   logInfo(
-    null,
+    client,
     `Batch fetch: ${keys.length} items, concurrency=${concurrency}`,
     {
       total: keys.length,
@@ -58,7 +73,7 @@ export async function batchFetch<K, T>(
             }
             if (completed === keys.length) {
               logDebug(
-                null,
+                client,
                 `Batch complete: ${results.size} succeeded, ${errors.size} failed`,
                 { succeeded: results.size, failed: errors.size },
               );
@@ -84,13 +99,25 @@ export async function batchPost<T>(
   poster: (chunk: number[]) => Promise<T[]>,
   chunkSize: number = 1000,
 ): Promise<T[]> {
+  return batchPostFor(null, ids, poster, chunkSize);
+}
+
+/**
+ * `batchPost` logging to a client's logger; see `batchFetchFor`.
+ */
+export async function batchPostFor<T>(
+  client: ApiClient | null,
+  ids: number[],
+  poster: (chunk: number[]) => Promise<T[]>,
+  chunkSize: number = 1000,
+): Promise<T[]> {
   const chunks: number[][] = [];
   for (let i = 0; i < ids.length; i += chunkSize) {
     chunks.push(ids.slice(i, i + chunkSize));
   }
 
   logInfo(
-    null,
+    client,
     `Batch POST: ${ids.length} IDs in ${chunks.length} chunks of ${chunkSize}`,
     { total: ids.length, chunks: chunks.length, chunkSize },
   );

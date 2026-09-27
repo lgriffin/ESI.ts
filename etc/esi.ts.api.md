@@ -5590,7 +5590,7 @@ export interface ETagCacheConfig {
 
 // @public (undocumented)
 export class ETagCacheManager implements ICache {
-    constructor(config?: ETagCacheConfig);
+    constructor(config?: ETagCacheConfig, client?: ApiClient | null);
     cleanup(): number;
     clear(): void;
     delete(url: string): boolean;
@@ -8450,6 +8450,7 @@ export class RateLimiter implements IRateLimiter {
     isBlocked(group?: string): boolean;
     // (undocumented)
     reset(): void;
+    setClient(client: ApiClient | null): void;
     // (undocumented)
     setTestMode(enabled: boolean): void;
     // (undocumented)
