@@ -248,7 +248,38 @@ export class CustomEsiClient {
   }
 }
 
+/**
+ * One legacy domain client on its own `ApiClient`.
+ *
+ * The nine named `create*Client` methods are deprecated since 11.0.0 in
+ * favour of `createEsi` and `esi.as(identity)` from `@lgriffin/esi.ts/client`,
+ * and are removed no earlier than 12.0.0. {@link EsiApiFactory.createClient}
+ * is not deprecated.
+ *
+ * @example
+ * ```ts
+ * import { createEsi } from '@lgriffin/esi.ts/client';
+ *
+ * const esi = createEsi({ userAgent: 'price-checker/1.0 (ops@example.com)' });
+ * const prices = await esi.public.markets.prices.get();
+ * const wallet = await esi
+ *   .as(tokens.identity(characterId))
+ *   .character(characterId)
+ *   .wallet.get();
+ * ```
+ */
 export class EsiApiFactory {
+  /**
+   * A standalone `AllianceClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For an alliance's public record:
+   * `esi.public.alliance(allianceId).get()`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createAllianceClient(config?: EsiClientConfig): AllianceClient {
     return createClientInstance(
       'alliance',
@@ -256,6 +287,17 @@ export class EsiApiFactory {
     ) as AllianceClient;
   }
 
+  /**
+   * A standalone `CharacterClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For a character's public record:
+   * `esi.public.character(characterId).get()`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createCharacterClient(config?: EsiClientConfig): CharacterClient {
     return createClientInstance(
       'characters',
@@ -263,6 +305,17 @@ export class EsiApiFactory {
     ) as CharacterClient;
   }
 
+  /**
+   * A standalone `CorporationsClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For a corporation's public record:
+   * `esi.public.corporation(corporationId).get()`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createCorporationClient(config?: EsiClientConfig): CorporationsClient {
     return createClientInstance(
       'corporations',
@@ -270,6 +323,17 @@ export class EsiApiFactory {
     ) as CorporationsClient;
   }
 
+  /**
+   * A standalone `MarketClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For a region's sell orders, every page followed:
+   * `esi.public.market(regionId).orders.get({ order_type: 'sell' })`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createMarketClient(config?: EsiClientConfig): MarketClient {
     return createClientInstance(
       'market',
@@ -277,6 +341,17 @@ export class EsiApiFactory {
     ) as MarketClient;
   }
 
+  /**
+   * A standalone `UniverseClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For a type:
+   * `esi.public.universe.types(typeId).get()`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createUniverseClient(config?: EsiClientConfig): UniverseClient {
     return createClientInstance(
       'universe',
@@ -284,6 +359,17 @@ export class EsiApiFactory {
     ) as UniverseClient;
   }
 
+  /**
+   * A standalone `FleetClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For a fleet, as its member:
+   * `esi.as(identity).fleet(fleetId).get()`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createFleetClient(config?: EsiClientConfig): FleetClient {
     return createClientInstance(
       'fleets',
@@ -291,6 +377,17 @@ export class EsiApiFactory {
     ) as FleetClient;
   }
 
+  /**
+   * A standalone `AssetsClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For a character's assets:
+   * `esi.as(identity).character(characterId).assets.get()`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createAssetsClient(config?: EsiClientConfig): AssetsClient {
     return createClientInstance(
       'assets',
@@ -298,6 +395,17 @@ export class EsiApiFactory {
     ) as AssetsClient;
   }
 
+  /**
+   * A standalone `WalletClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For a character's wallet balance:
+   * `esi.as(identity).character(characterId).wallet.get()`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createWalletClient(config?: EsiClientConfig): WalletClient {
     return createClientInstance(
       'wallet',
@@ -305,6 +413,17 @@ export class EsiApiFactory {
     ) as WalletClient;
   }
 
+  /**
+   * A standalone `MailClient` on its own `ApiClient`.
+   *
+   * @deprecated Since 11.0.0; removal is 12.0.0 at the earliest. Use the
+   * shared runtime from `@lgriffin/esi.ts/client`: `createEsi({ userAgent })`
+   * once, then `esi.public` for public operations and `esi.as(identity)` for
+   * authenticated ones. For a character's mail headers:
+   * `esi.as(identity).character(characterId).mail.get()`.
+   * To stay on the legacy client meanwhile, `EsiApiFactory.createClient(type)`
+   * is not deprecated. See guides/MULTI-CHARACTER.md.
+   */
   static createMailClient(config?: EsiClientConfig): MailClient {
     return createClientInstance(
       'mail',
@@ -312,6 +431,10 @@ export class EsiApiFactory {
     ) as MailClient;
   }
 
+  /**
+   * Any of the registered domain clients, by name, on its own `ApiClient`.
+   * Not deprecated; use it to stay on the legacy domain clients.
+   */
   static createClient(
     clientType: ApiClientType,
     config?: EsiClientConfig,

@@ -35,18 +35,24 @@ The returned `CustomEsiClient` has the same property accessors as `EsiClient`, b
 
 ## EsiApiFactory
 
-Create standalone single-API clients with static factory methods:
+Create a standalone single-API client with `EsiApiFactory.createClient(type)`:
 
 ```typescript
-import { EsiApiFactory } from '@lgriffin/esi.ts';
+import { EsiApiFactory, type MarketClient } from '@lgriffin/esi.ts';
 
-const marketClient = EsiApiFactory.createMarketClient({
+const marketClient = EsiApiFactory.createClient('market', {
   clientId: 'price-checker',
-});
+}) as MarketClient;
 const prices = await marketClient.getMarketPrices();
 ```
 
+::: warning Deprecated in 11.0.0
+The nine named factory methods below still work, and are `@deprecated`: removal is 12.0.0 at the earliest. New code should use `createEsi()` from `@lgriffin/esi.ts/client`, where `esi.public.markets.prices.get()` replaces `createMarketClient().getMarketPrices()` and `esi.as(identity)` reaches the authenticated operations. `createClient(type)` is not deprecated.
+:::
+
 ### Available Factory Methods
+
+Every method but `createClient` is deprecated since 11.0.0.
 
 | Method                              | Returns              |
 | ----------------------------------- | -------------------- |

@@ -1014,15 +1014,15 @@ Three construction surfaces, all wired by `configureApiClient()`, so middleware 
 | -------------------- | --------------------- | ---------------------------------------------------------------------------- |
 | **EsiClient**        | Most consumers        | Every domain client as a lazy getter (`client.market`, `client.alliance`, …) |
 | **EsiClientBuilder** | Selective             | A `CustomEsiClient` with only the clients you add, and fluent configuration  |
-| **EsiApiFactory**    | Single-domain scripts | One domain client on its own `ApiClient`                                     |
+| **EsiApiFactory**    | Single-domain scripts | One domain client on its own `ApiClient`; the named methods are deprecated   |
 
-`ClientRegistry` maps each of the 39 `ApiClientType` names to its class. `ARCH-08` requires every surface to expose the same set. `CustomEsiClient` has a getter for every registered client, checked at compile time by `tests/tdd/core/customClientGetters.test.ts`. `EsiApiFactory` reaches all 39 through `createClient(type)` and has named methods for 9 (`createAllianceClient`, `createCharacterClient`, `createCorporationClient`, `createMarketClient`, `createUniverseClient`, `createFleetClient`, `createAssetsClient`, `createWalletClient`, `createMailClient`); nothing checks its client set.
+`ClientRegistry` maps each of the 39 `ApiClientType` names to its class. `ARCH-08` requires every surface to expose the same set. `CustomEsiClient` has a getter for every registered client, checked at compile time by `tests/tdd/core/customClientGetters.test.ts`. `EsiApiFactory` reaches all 39 through `createClient(type)` and has named methods for 9 (`createAllianceClient`, `createCharacterClient`, `createCorporationClient`, `createMarketClient`, `createUniverseClient`, `createFleetClient`, `createAssetsClient`, `createWalletClient`, `createMailClient`), deprecated since 11.0.0 in favour of `createEsi` and `esi.as(identity)`; nothing checks its client set.
 
 All three surfaces call `setCompatibilityDate()` from the config before `configureApiClient()`. `constructionParity.test.ts` checks that a `compatibilityDate` reaches the `ApiClient` from each of them.
 
 **`ApiClientBuilder`** (`src/core/ApiClientBuilder.ts`, exported from the root) is a fourth, lower-level way in. It builds a bare `ApiClient` with a rate limiter (the default `RateLimiter` unless one is given) and whatever cache, circuit breaker, timeout and fetch it is handed. It does not call `configureApiClient()`, so there is no deduplicator, no default cache, and no retry configuration: `resolveRetryStrategy` then builds a `RetryStrategy` with its own defaults, which retry nothing. Use it to hand-assemble a client for a test or an unusual host, not as a construction surface.
 
-**`EsiTokenManager.createClient(characterId)`** returns an `EsiClient` bound to one character's token and refresh provider. ROADMAP Phase 7 deprecates it and `EsiApiFactory`'s named methods in favour of `createEsi` and `esi.as(tokens.identity(characterId))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); removal is 12.0.0 at the earliest.
+**`EsiTokenManager.createClient(characterId)`** returns an `EsiClient` bound to one character's token and refresh provider. 11.0.0 deprecates it and `EsiApiFactory`'s named methods (JSDoc `@deprecated`, no runtime warning) in favour of `createEsi` and `esi.as(tokens.identity(characterId))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); removal is 12.0.0 at the earliest.
 
 Timers are owned by the client: call `shutdown()` to stop the cache sweep and circuit-breaker cleanup and clear the deduplicator.
 

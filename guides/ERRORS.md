@@ -190,7 +190,7 @@ Before 11.0.0, `.retryable` was `true` for every status-`0` error, including `Es
 
 ## The 401 refresh path
 
-Configure a token provider with `onTokenRefresh` on `EsiClient`, `ApiClient.setTokenProvider()`, or `EsiTokenManager.createClient()`, which wires `tokenProviderFor(characterId)` for you.
+Configure a token provider with `onTokenRefresh` on `EsiClient`, `ApiClient.setTokenProvider()`, or `EsiTokenManager.createClient()` (deprecated in 11.0.0), which wires `tokenProviderFor(characterId)` for you. On the 11.0 client, `esi.as(tokens.identity(characterId))` refreshes through the manager with no provider to configure.
 
 1. A request to an endpoint whose definition has `requiresAuth: true` returns `401`.
 2. `RetryStrategy` sees an `EsiError` with status `401`, a provider, and no refresh yet in this call. It calls the provider.

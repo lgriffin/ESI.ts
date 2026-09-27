@@ -220,8 +220,8 @@ Every public error the pipeline can throw **shall** be an instance of a class ex
 
 Every construction surface (`EsiClient`, `CustomEsiClient`, `EsiApiFactory`, and `createEsi` for the generated operations) **shall** expose the same set of operations and configure the pipeline through `configureApiClient`.
 
-- **Why:** `CustomEsiClient` now has a getter for every registered client ([#267](https://github.com/lgriffin/ESI.ts/issues/267)). `EsiApiFactory` reaches all 39 through the generic `createClient(type)`, but has named `create*Client` methods for only 9.
-- **Verified by:** `tests/tdd/core/customClientGetters.test.ts` for `CustomEsiClient` (a missing getter fails to compile). `constructionParity.test.ts` checks that the three legacy surfaces configure middleware the same way, not that they expose the same clients. `createEsi` (`src/client/runtime.ts`) calls `configureApiClient` and exposes every generated operation through `ScopeTree`, which `spec:coverage` keeps complete. To add: a client-set check for `EsiApiFactory`, or deprecate its named methods in favour of `createEsi` (Phase 7).
+- **Why:** `CustomEsiClient` now has a getter for every registered client ([#267](https://github.com/lgriffin/ESI.ts/issues/267)). `EsiApiFactory` reaches all 39 through the generic `createClient(type)`, but has named `create*Client` methods for only 9, deprecated since 11.0.0 in favour of `createEsi`.
+- **Verified by:** `tests/tdd/core/customClientGetters.test.ts` for `CustomEsiClient` (a missing getter fails to compile). `constructionParity.test.ts` checks that the three legacy surfaces configure middleware the same way, not that they expose the same clients. `createEsi` (`src/client/runtime.ts`) calls `configureApiClient` and exposes every generated operation through `ScopeTree`, which `spec:coverage` keeps complete. To add: a client-set check for `EsiApiFactory`. Its named methods are `@deprecated` in favour of `createEsi` (Phase 7) and go no earlier than 12.0.0.
 
 #### ARCH-09 · Ubiquitous · Enforced
 

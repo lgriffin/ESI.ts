@@ -36,8 +36,8 @@ const client = new EsiClientBuilder()
   .build();
 
 // Single client — standalone
-import { EsiApiFactory } from '@lgriffin/esi.ts';
-const market = EsiApiFactory.createMarketClient();
+import { EsiApiFactory, type MarketClient } from '@lgriffin/esi.ts';
+const market = EsiApiFactory.createClient('market') as MarketClient;
 ```
 
 ## Endpoint Coverage

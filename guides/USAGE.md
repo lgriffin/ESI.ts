@@ -19,11 +19,11 @@ The README gives the one-minute tour. Deeper topics have their own guides:
 
 Three surfaces build a client. All three pass their configuration through `configureApiClient()`, so each gets the same middleware defaults: cache, request deduplication, rate limiter, retry, tenant and user agent.
 
-| Surface                               | Use it when                                            | Domain clients                                                    |
-| ------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- |
-| `new EsiClient(config?)`              | You want everything; each domain is built on first use | All 39, as lazy getters                                           |
-| `new EsiClientBuilder()…build()`      | You want a named subset (`CustomEsiClient`)            | The ones you add; the rest are `undefined`                        |
-| `EsiApiFactory.createMarketClient(…)` | You want one domain client on its own                  | Nine named factories, plus `createClient(type)` for any of the 39 |
+| Surface                               | Use it when                                            | Domain clients                                                 |
+| ------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
+| `new EsiClient(config?)`              | You want everything; each domain is built on first use | All 39, as lazy getters                                        |
+| `new EsiClientBuilder()…build()`      | You want a named subset (`CustomEsiClient`)            | The ones you add; the rest are `undefined`                     |
+| `EsiApiFactory.createClient(type, …)` | You want one domain client on its own                  | Any of the 39; the nine named factories are deprecated (below) |
 
 `ApiClientBuilder` is also exported. It is the low-level builder the domain clients share, and it does not call `configureApiClient`. Prefer the three surfaces above.
 
@@ -41,13 +41,15 @@ const system = await trader.universe?.getSystemById(30000142);
 ```
 
 ```typescript
-import { EsiApiFactory } from '@lgriffin/esi.ts';
+import { EsiApiFactory, type MarketClient } from '@lgriffin/esi.ts';
 
-const marketClient = EsiApiFactory.createMarketClient({
+const marketClient = EsiApiFactory.createClient('market', {
   clientId: 'price-checker',
-});
+}) as MarketClient;
 const prices = await marketClient.getMarketPrices();
 ```
+
+**Deprecated in 11.0.0:** `EsiApiFactory`'s nine named methods (`createMarketClient`, `createWalletClient` and the rest) and `EsiTokenManager.createClient`. They still work; removal is 12.0.0 at the earliest. Use `createEsi()` from `@lgriffin/esi.ts/client` and `esi.public` or `esi.as(identity)` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)), or `EsiApiFactory.createClient(type)` to stay on the legacy clients.
 
 Call `shutdown()` when you are done with a client. It stops the cache sweep timer and the circuit-breaker cleanup timer, so a script can exit. It is synchronous.
 
@@ -353,7 +355,7 @@ npm run example:sde-basic
 
 - **Node 22 becomes the floor.** 10.x stays the line for Node 18 and 20.
 - **A new client beside the old one (on master).** `createEsi()` from `@lgriffin/esi.ts/client` builds one shared runtime, holding the rate limiter, error budget, cache and transport. `esi.public` is a typed view in which an authenticated call does not compile. `esi.as(identity)` is an immutable per-character view over the same runtime. The runtime requires a user agent. [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide; `createMockTransport()` in `./testing` answers its requests in your own tests ([TESTING.md](TESTING.md#testing-your-application)).
-- **Nothing on this page is removed in 11.0.** `EsiApiFactory`'s named methods and `EsiTokenManager.createClient` gain `@deprecated` pointers to the builder. Removal waits for 12.0.0 at the earliest, per [SEMVER.md](SEMVER.md).
+- **Nothing on this page is removed in 11.0.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` are `@deprecated`, pointing at `createEsi()` and `esi.as(identity)`; `EsiApiFactory.createClient(type)` is not deprecated. Removal waits for 12.0.0 at the earliest, per [SEMVER.md](SEMVER.md).
 - **Already on master and in the 11.0.0 release notes:**
   - The default compatibility date is 2026-08-18.
   - Several schemas now match what ESI sends: raidable skyhooks, military campaigns, and `meta.getChangelog`, which returns `{ changelog }`.
