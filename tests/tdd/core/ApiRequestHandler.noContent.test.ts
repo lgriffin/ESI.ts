@@ -9,9 +9,7 @@ fetchMock.enableMocks();
 const BASE_URL = 'https://esi.evetech.net';
 
 // Endpoints that opt in with emptyWhenNoContent read a 200 with
-// Content-Length 0 as no content (#433). Kept apart from
-// ApiRequestHandler.test.ts so the PR mutation run can reuse that file's
-// nightly results.
+// Content-Length 0 as no content (#433).
 describe('ApiRequestHandler no-content answers', () => {
   let client: ApiClient;
   let rateLimiter: RateLimiter;
