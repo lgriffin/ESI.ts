@@ -129,6 +129,7 @@ The README orients and the guides are canonical. Each guide opens with the chart
 | ---------------------------------------------- | ------------------------------------------------------------------------------- |
 | [Engineering charter](guides/CHARTER.md)       | The requirements the project holds itself to, with status and gap register      |
 | [Roadmap to 11.0.0](guides/ROADMAP.md)         | Phases, definitions of done, the SDE programme, the release gate                |
+| [Lean decisions](guides/LEAN-DECISIONS.md)     | Why it is run this way: every decision since v7, with value stream maps         |
 | [Architecture](guides/ARCHITECTURE.md)         | Layers, ports, the request path, caching, retry, rate limiting, circuit breaker |
 | [Design rules](guides/DESIGN-RULES.md)         | Naming, schemas, adding an endpoint or a client, generated files                |
 | [Testing](guides/TESTING.md)                   | Every test tier, what it proves, how to run it                                  |

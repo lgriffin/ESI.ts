@@ -1,0 +1,301 @@
+number,title,author,branch,created,merged,closed,state
+50,chore(deps): bump @commitlint/cli from 19.8.1 to 21.0.2,dependabot[bot],dependabot/npm_and_yarn/master/commitlint/cli-21.0.2,2026-06-22T14:14:36Z,2026-06-22T15:21:32Z,2026-06-22T15:21:32Z,closed
+51,chore(deps): bump lint-staged from 16.4.0 to 17.0.8,dependabot[bot],dependabot/npm_and_yarn/master/lint-staged-17.0.8,2026-06-22T14:14:41Z,2026-06-22T15:19:53Z,2026-06-22T15:19:53Z,closed
+52,test: raise coverage from 75% to 91%+,lgriffin,feature/coverage-improvements,2026-06-22T15:03:46Z,2026-06-22T15:06:15Z,2026-06-22T15:06:15Z,closed
+59,fix: correct POST body format for /universe/ids and /universe/names,lgriffin,fix/universe-post-body-format,2026-06-22T15:18:29Z,2026-06-22T15:19:32Z,2026-06-22T15:19:32Z,closed
+60,refactor: remove unused getHeaders test helper,lgriffin,worktree-agent-a73a63d6afaf43f8c,2026-06-22T15:27:46Z,2026-06-22T15:50:16Z,2026-06-22T15:50:16Z,closed
+61,fix: remove sunset sovereignty endpoints,lgriffin,fix/remove-sunset-sovereignty-endpoints,2026-06-22T15:34:22Z,2026-06-22T15:56:26Z,2026-06-22T15:56:26Z,closed
+62,fix: treat 420/429 as circuit breaker failures,lgriffin,fix/circuit-breaker-rate-limit,2026-06-22T15:34:26Z,2026-06-22T15:55:46Z,2026-06-22T15:55:46Z,closed
+63,fix: use require.resolve instead of process.cwd() in configManager,lgriffin,fix/configmanager-dirname-fallback,2026-06-22T15:34:30Z,2026-06-22T15:55:10Z,2026-06-22T15:55:10Z,closed
+64,fix: correct POST body format for asset and contact endpoints,lgriffin,fix/asset-contact-post-body-format,2026-06-22T15:34:34Z,2026-06-22T15:53:30Z,2026-06-22T15:53:30Z,closed
+65,test: add ClientRegistry coverage for all 35 client types,lgriffin,test/client-registry-coverage,2026-06-22T15:34:37Z,2026-06-22T15:52:22Z,2026-06-22T15:52:22Z,closed
+66,chore(ci): bump softprops/action-gh-release from 1 to 3,dependabot[bot],dependabot/github_actions/softprops/action-gh-release-3,2026-06-22T16:15:51Z,2026-06-26T13:04:06Z,2026-06-26T13:04:07Z,closed
+67,chore(deps): bump @typescript-eslint/eslint-plugin from 7.18.0 to 8.62.0,dependabot[bot],dependabot/npm_and_yarn/master/typescript-eslint/eslint-plugin-8.61.1,2026-06-22T16:16:26Z,,2026-06-26T13:14:36Z,closed
+68,chore(deps): bump @types/node from 18.19.130 to 26.0.0,dependabot[bot],dependabot/npm_and_yarn/master/types/node-26.0.0,2026-06-22T16:16:35Z,2026-06-26T13:04:20Z,2026-06-26T13:04:20Z,closed
+69,chore(deps): bump @typescript-eslint/parser from 7.18.0 to 8.62.0,dependabot[bot],dependabot/npm_and_yarn/master/typescript-eslint/parser-8.61.1,2026-06-22T16:16:45Z,,2026-06-26T13:14:38Z,closed
+70,chore(deps): bump eslint from 8.57.1 to 10.5.0,dependabot[bot],dependabot/npm_and_yarn/master/eslint-10.5.0,2026-06-22T16:16:54Z,,2026-06-26T13:14:40Z,closed
+71,chore(deps): bump jest and @types/jest,dependabot[bot],dependabot/npm_and_yarn/master/multi-cbfe5253e3,2026-06-22T16:17:16Z,,2026-06-26T13:14:42Z,closed
+72,chore(deps): upgrade @typescript-eslint/* to v8 and group dependabot deps,lgriffin,fix/eslint-upgrade-and-dependabot-grouping,2026-06-26T13:14:26Z,2026-06-26T13:17:51Z,2026-06-26T13:17:51Z,closed
+73,chore(deps): bump the minor-and-patch group across 1 directory with 4 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-445e07ea07,2026-06-26T13:19:11Z,2026-06-26T14:31:48Z,2026-06-26T14:31:48Z,closed
+74,chore(deps): bump eslint from 8.57.1 to 10.5.0 in the eslint group across 1 directory,dependabot[bot],dependabot/npm_and_yarn/master/eslint-6d76de260b,2026-06-26T13:19:22Z,,2026-06-26T14:32:07Z,closed
+75,chore(deps): bump the testing group across 1 directory with 2 updates,dependabot[bot],dependabot/npm_and_yarn/master/testing-cbfe5253e3,2026-06-26T13:19:41Z,,2026-06-26T14:32:15Z,closed
+76,chore(deps): bump @commitlint/config-conventional from 19.8.1 to 21.1.0,dependabot[bot],dependabot/npm_and_yarn/master/commitlint/config-conventional-21.1.0,2026-06-26T13:19:47Z,,2026-06-26T14:32:22Z,closed
+77,fix: restore @emnapi lockfile entries for Linux CI,lgriffin,fix/restore-emnapi-lockfile-entries,2026-06-29T12:27:53Z,2026-06-29T12:28:49Z,2026-06-29T12:28:49Z,closed
+78,"feat: spec-driven type generation, spec-aware caching, and batch requests",lgriffin,feat/spec-driven-types-and-caching,2026-06-29T12:54:46Z,2026-06-29T13:45:17Z,2026-06-29T13:45:17Z,closed
+80,"feat: retry with backoff, typed TimeoutError, enhanced response metadata",lgriffin,feat/retry-timeout-metadata,2026-06-29T14:35:10Z,2026-06-29T14:41:21Z,2026-06-29T14:41:21Z,closed
+81,feat: per-group spec-driven rate limiting,lgriffin,feat/per-group-rate-limiting,2026-06-29T15:36:36Z,2026-06-29T15:43:40Z,2026-06-29T15:43:40Z,closed
+82,chore(deps): bump the minor-and-patch group with 2 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-04a7c25510,2026-06-29T16:15:29Z,,2026-06-30T15:56:54Z,closed
+83,chore(deps): bump eslint from 8.57.1 to 10.6.0 in the eslint group across 1 directory,dependabot[bot],dependabot/npm_and_yarn/master/eslint-5dfef5780d,2026-06-29T16:15:40Z,,2026-06-30T15:59:06Z,closed
+84,chore(deps): bump the testing group across 1 directory with 2 updates,dependabot[bot],dependabot/npm_and_yarn/master/testing-cbfe5253e3,2026-06-29T16:15:59Z,2026-06-30T17:38:39Z,2026-06-30T17:38:39Z,closed
+85,feat: accept-language config and ESI scope metadata,lgriffin,feat/language-and-scopes,2026-06-30T13:04:27Z,2026-06-30T13:08:14Z,2026-06-30T13:08:14Z,closed
+86,feat: streaming pagination via async generators,lgriffin,feat/streaming-pagination,2026-06-30T13:48:27Z,2026-06-30T13:53:16Z,2026-06-30T13:53:16Z,closed
+87,docs: comprehensive examples guide with live console output,lgriffin,docs/example-guides,2026-06-30T14:20:50Z,2026-06-30T14:32:45Z,2026-06-30T14:32:45Z,closed
+88,feat: overhaul BDD tests with jest-cucumber and Gherkin,lgriffin,feat/bdd-gherkin-overhaul,2026-06-30T14:54:28Z,2026-06-30T15:54:26Z,2026-06-30T15:54:26Z,closed
+89,chore(deps): bump the minor-and-patch group across 1 directory with 6 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-ae936cf033,2026-06-30T15:57:09Z,2026-06-30T20:05:08Z,2026-06-30T20:05:08Z,closed
+90,test: comprehensive test coverage expansion (+279 tests),lgriffin,test/comprehensive-test-coverage,2026-07-01T14:27:37Z,2026-07-01T15:08:14Z,2026-07-01T15:08:14Z,closed
+91,docs: update guides with testing stats and add security guide,lgriffin,docs/update-guides-testing-security,2026-07-01T15:14:49Z,2026-07-01T15:16:22Z,2026-07-01T15:16:22Z,closed
+92,docs: update guides and apply EARS patterns to BDD tests,lgriffin,docs/update-guides-testing-security,2026-07-01T19:54:45Z,2026-07-01T19:57:01Z,2026-07-01T19:57:01Z,closed
+93,feat!: add Zod runtime response validation (v6.0.0),lgriffin,feature/zod-adoption-phase0,2026-07-03T14:32:20Z,2026-07-03T14:48:02Z,2026-07-03T14:48:02Z,closed
+94,fix: align Zod schemas and examples with live ESI responses,lgriffin,fix/schemas-and-examples-for-live-esi,2026-07-06T13:06:05Z,2026-07-06T13:09:00Z,2026-07-06T13:09:00Z,closed
+95,feat: add 10 example files covering 78 GET endpoints with schema fixes,lgriffin,feature/endpoint-coverage-examples,2026-07-06T15:22:14Z,2026-07-06T15:27:28Z,2026-07-06T15:27:28Z,closed
+97,chore(deps): bump the minor-and-patch group with 3 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-28a6640a28,2026-07-06T16:15:48Z,,2026-07-07T13:48:34Z,closed
+98,chore(deps): bump eslint from 8.57.1 to 10.6.0 in the eslint group,dependabot[bot],dependabot/npm_and_yarn/master/eslint-5dfef5780d,2026-07-06T16:15:59Z,,2026-07-07T13:48:36Z,closed
+99,fix: correct contacts endpoint wire format for ESI compatibility,lgriffin,fix/contacts-endpoint-definitions,2026-07-07T10:32:14Z,,2026-07-07T14:00:04Z,closed
+100,feat: endpoint coverage examples and wire format fixes (v6.1.0),lgriffin,feature/endpoint-coverage-examples,2026-07-07T13:48:55Z,2026-07-07T14:02:17Z,2026-07-07T14:02:17Z,closed
+101,feat: complete Zod schema coverage for all GET endpoints,lgriffin,feature/zod-get-coverage,2026-07-07T14:32:35Z,2026-07-07T14:35:23Z,2026-07-07T14:35:23Z,closed
+102,feat!: Swagger 2.0 → OpenAPI 3.1 migration (v7.0.0),lgriffin,feature/zod-get-coverage,2026-07-08T13:36:17Z,2026-07-08T13:40:07Z,2026-07-08T13:40:07Z,closed
+103,feat: Redocly CLI for ESI OpenAPI spec validation (v7.1.0),lgriffin,feature/redocly-spec-validation,2026-07-08T14:02:34Z,2026-07-08T14:12:05Z,2026-07-08T14:12:05Z,closed
+104,feat: add contract testing and property-based fuzz testing,lgriffin,feature/contract-fuzz-testing,2026-07-08T14:45:23Z,2026-07-08T14:55:29Z,2026-07-08T14:55:29Z,closed
+105,feat: add developer experience and safety tooling,lgriffin,feature/dx-safety-tooling,2026-07-08T21:20:28Z,2026-07-08T21:45:10Z,2026-07-08T21:45:10Z,closed
+106,chore(ci): bump googleapis/release-please-action from 4 to 5,dependabot[bot],dependabot/github_actions/googleapis/release-please-action-5,2026-07-13T16:15:31Z,2026-07-14T13:28:08Z,2026-07-14T13:28:08Z,closed
+107,chore(deps): bump the minor-and-patch group with 10 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-7c13bd6194,2026-07-13T16:17:35Z,2026-07-14T13:28:22Z,2026-07-14T13:28:22Z,closed
+108,chore(deps): bump eslint from 8.57.1 to 10.7.0 in the eslint group,dependabot[bot],dependabot/npm_and_yarn/master/eslint-0b04b4102b,2026-07-13T16:17:48Z,,2026-07-14T13:28:11Z,closed
+109,chore(deps): bump jest-fetch-mock from 3.0.3 to 4.2.0 in the testing group,dependabot[bot],dependabot/npm_and_yarn/master/testing-22f973419f,2026-07-13T16:17:57Z,,2026-07-14T13:28:13Z,closed
+110,chore(deps): bump typescript from 6.0.3 to 7.0.2,dependabot[bot],dependabot/npm_and_yarn/master/typescript-7.0.2,2026-07-13T16:18:15Z,,2026-07-14T13:28:14Z,closed
+111,test: close comprehensive testing gaps (+1233 tests),lgriffin,test/comprehensive-gap-closure,2026-07-14T13:59:36Z,2026-07-14T14:51:47Z,2026-07-14T14:51:47Z,closed
+112,fix(ci): make schema drift detection a blocking CI check,lgriffin,feature/ci-schema-drift,2026-07-14T14:05:38Z,2026-07-14T14:52:07Z,2026-07-14T14:52:07Z,closed
+113,feat: compile-time spec-to-Zod type alignment checks,lgriffin,feature/type-spec-alignment,2026-07-14T14:21:40Z,2026-07-14T14:54:39Z,2026-07-14T14:54:39Z,closed
+114,test: expand type-level tests with tsd,lgriffin,feature/expand-type-tests,2026-07-14T14:24:46Z,2026-07-14T14:52:57Z,2026-07-14T14:52:57Z,closed
+115,feat: branded ID types for type-safe entity references,lgriffin,feature/branded-id-types,2026-07-14T14:26:33Z,2026-07-14T14:52:46Z,2026-07-14T14:52:46Z,closed
+116,feat: EsiResult discriminated union and safeMode,lgriffin,feature/result-type-responses,2026-07-14T14:29:47Z,2026-07-14T14:52:33Z,2026-07-14T14:52:33Z,closed
+117,fix: resolve CI jobs failing with continue-on-error,lgriffin,fix/ci-continue-on-error,2026-07-14T14:59:43Z,2026-07-14T15:50:22Z,2026-07-14T15:50:22Z,closed
+118,"chore: modernize deps, ESLint 10 flat config, tech debt sweep",lgriffin,chore/modernize-deps-eslint10,2026-07-17T11:10:57Z,2026-07-17T11:19:44Z,2026-07-17T11:19:44Z,closed
+119,"chore: prettier formatting, security fixes, CI hardening",lgriffin,chore/prettier-format-all,2026-07-20T09:15:03Z,2026-07-20T11:22:43Z,2026-07-20T11:22:43Z,closed
+121,chore: fix knip false positives,lgriffin,chore/fix-knip-false-positives,2026-07-20T12:37:15Z,2026-07-20T13:21:08Z,2026-07-20T13:21:08Z,closed
+122,chore(ci): bump actions/setup-node from 6 to 7,dependabot[bot],dependabot/github_actions/actions/setup-node-7,2026-07-20T16:18:01Z,2026-07-27T09:13:47Z,2026-07-27T09:13:47Z,closed
+123,chore(deps): bump the minor-and-patch group with 2 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-16b25b0b24,2026-07-20T16:18:43Z,2026-07-27T09:13:50Z,2026-07-27T09:13:50Z,closed
+124,fix(ci): resolve Schemathesis API fuzz gaps against Prism mock,lgriffin,fix/schemathesis-fuzz-gaps,2026-07-21T13:26:31Z,2026-07-21T15:55:17Z,2026-07-21T15:55:17Z,closed
+126,fix(ci): make mutation testing non-blocking and increase timeout,lgriffin,fix/mutation-testing-timeout,2026-07-27T09:15:26Z,2026-07-27T10:19:37Z,2026-07-27T10:19:37Z,closed
+127,"refactor: architectural improvements across build, core, codegen, and testing",lgriffin,arch-improvements,2026-07-27T11:43:06Z,2026-07-27T13:16:51Z,2026-07-27T13:16:51Z,closed
+128,"fix(security): harden auth, caching, serialization, and error sanitization",lgriffin,security/hardening,2026-07-27T13:34:20Z,2026-07-27T14:04:58Z,2026-07-27T14:04:58Z,closed
+129,chore(deps): bump the minor-and-patch group with 8 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-b907518b27,2026-07-27T16:17:10Z,,2026-08-03T16:20:42Z,closed
+130,chore(deps): bump pino from 9.14.0 to 10.3.1,dependabot[bot],dependabot/npm_and_yarn/master/pino-10.3.1,2026-07-27T16:17:24Z,,2026-08-04T14:38:54Z,closed
+131,chore(ci): bump github/codeql-action from 4 to 4.37.4,dependabot[bot],dependabot/github_actions/github/codeql-action-4.37.4,2026-08-03T16:20:51Z,,2026-08-04T14:38:53Z,closed
+132,chore(deps): bump the minor-and-patch group across 1 directory with 9 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-3a86d623ed,2026-08-03T16:21:24Z,,2026-08-04T14:38:54Z,closed
+133,"fix: correct market schemas, auth flags, and request pipeline resilience",lgriffin,fix/p0-p1-correctness,2026-08-04T13:49:24Z,2026-08-04T14:37:20Z,2026-08-04T14:37:20Z,closed
+134,chore(deps): bump @stoplight/prism-cli from 5.14.2 to 5.16.0 in the minor-and-patch group across 1 directory,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-19802dd15d,2026-08-04T14:39:43Z,,2026-08-05T20:25:58Z,closed
+135,feat: add OKF v0.2 knowledge bundle generator,lgriffin,feat/okf-knowledge-bundle,2026-08-05T10:23:29Z,2026-08-05T10:26:42Z,2026-08-05T10:26:43Z,closed
+136,"refactor: phase 0 cleanup — dead code, duplicate schemas, docs drift",lgriffin,phase0-cleanup,2026-08-05T11:10:46Z,2026-08-05T12:58:34Z,2026-08-05T12:58:34Z,closed
+137,fix: align cache entry TTL with spec TTL to preserve ETags,lgriffin,fix/ttl-etag-reconciliation,2026-08-05T13:19:13Z,2026-08-05T13:23:57Z,2026-08-05T13:23:57Z,closed
+138,feat: add typed createClient() return-type inference,lgriffin,typed-create-client,2026-08-05T13:19:24Z,2026-08-05T13:32:40Z,2026-08-05T13:32:40Z,closed
+139,feat: add auth/scope cross-validation CI check,lgriffin,feat/auth-scopes-ci-check,2026-08-05T13:59:33Z,2026-08-05T14:34:01Z,2026-08-05T14:34:01Z,closed
+140,feat: expand spec-alignment coverage across all domains,lgriffin,feat/expand-spec-alignment,2026-08-05T13:59:44Z,2026-08-05T15:41:45Z,2026-08-05T15:41:45Z,closed
+141,feat: add injectable IRetryStrategy interface,lgriffin,feat/injectable-retry-strategy,2026-08-05T15:50:54Z,2026-08-05T15:53:18Z,2026-08-05T15:53:18Z,closed
+142,feat: unify client construction via configureApiClient,lgriffin,feat/unify-client-construction,2026-08-05T16:04:01Z,2026-08-05T18:52:08Z,2026-08-05T18:52:08Z,closed
+143,refactor: decompose ApiRequestHandler into requestPipeline modules,lgriffin,feat/shrink-request-handler,2026-08-05T19:07:02Z,2026-08-05T19:23:06Z,2026-08-05T19:23:06Z,closed
+144,"fix: circuit breaker keying, half-open probe races, and scheduled cleanup",lgriffin,feat/cb-keying-halfopen,2026-08-05T19:07:46Z,2026-08-05T19:35:53Z,2026-08-05T19:35:53Z,closed
+145,refactor: remove generatedSchemas from public API surface,lgriffin,feat/collapse-generated-schemas,2026-08-05T19:43:52Z,2026-08-05T19:52:23Z,2026-08-05T19:52:23Z,closed
+146,feat: add opt-in request-body Zod validation for mutation endpoints,lgriffin,feat/request-body-validation,2026-08-05T19:48:44Z,2026-08-05T19:53:10Z,2026-08-05T19:53:10Z,closed
+147,feat: add streaming parity with 57 stream methods across 16 domain clients,lgriffin,feat/streaming-parity,2026-08-05T19:52:02Z,2026-08-05T19:53:22Z,2026-08-05T19:53:22Z,closed
+148,docs: comprehensive architecture guide update with C4 diagrams,lgriffin,docs/architecture-update,2026-08-05T20:01:33Z,2026-08-05T20:24:02Z,2026-08-05T20:24:02Z,closed
+149,chore: prep v8.0.0 release with README updates,lgriffin,chore/v8-release-prep,2026-08-05T20:06:06Z,2026-08-05T20:24:23Z,2026-08-05T20:24:23Z,closed
+150,test: push all coverage metrics above 90%,lgriffin,test/coverage-above-90,2026-08-05T21:31:58Z,2026-08-05T21:36:48Z,2026-08-05T21:36:48Z,closed
+151,test: improve mutation testing score and coverage thresholds,lgriffin,test/coverage-above-90,2026-08-06T15:02:55Z,2026-08-06T15:22:14Z,2026-08-06T15:22:14Z,closed
+152,chore(ci): bump MishaKav/jest-coverage-comment from 1.0.34 to 1.0.36,dependabot[bot],dependabot/github_actions/MishaKav/jest-coverage-comment-1.0.36,2026-08-10T16:15:08Z,2026-08-12T08:31:39Z,2026-08-12T08:31:39Z,closed
+153,chore(deps): bump the minor-and-patch group with 2 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-67597a4977,2026-08-10T16:15:37Z,2026-08-12T08:31:54Z,2026-08-12T08:31:55Z,closed
+154,"feat!: v9.0.0 — pipeline fixes, packaging modernization, and OpenAPI improvements",lgriffin,release/codebase-improvements,2026-08-12T10:05:22Z,2026-08-12T10:44:05Z,2026-08-12T10:44:05Z,closed
+156,feat: add --compatibility-date and --latest flags to ESI scripts,lgriffin,feat/compatibility-date-cli,2026-08-14T12:28:00Z,2026-08-14T12:29:47Z,2026-08-14T12:29:47Z,closed
+160,feat: nightly ESI spec drift detection with auto-issue filing,lgriffin,feat/nightly-spec-drift,2026-08-14T12:36:34Z,2026-08-14T12:46:48Z,2026-08-14T12:46:48Z,closed
+161,feat: add Military Campaigns ESI endpoints,lgriffin,feat/military-campaigns,2026-08-14T12:43:19Z,2026-08-14T13:40:38Z,2026-08-14T13:40:38Z,closed
+162,feat: add Corporation Projects ESI endpoints,lgriffin,feat/corporation-projects,2026-08-14T12:44:37Z,2026-08-14T13:36:14Z,2026-08-14T13:36:14Z,closed
+163,"fix: align Access List, Meta, and Industry endpoints with ESI spec",lgriffin,fix/access-meta-industry-alignment,2026-08-14T12:46:26Z,2026-08-14T12:53:20Z,2026-08-14T12:53:20Z,closed
+164,fix: realign Structures/Activities endpoints with ESI spec,lgriffin,fix/structures-endpoint-realignment,2026-08-14T12:46:38Z,2026-08-14T12:52:42Z,2026-08-14T12:52:43Z,closed
+165,"chore: bump version to 9.0.0, update docs and expand test pyramid",lgriffin,chore/version-bump-docs-tests,2026-08-14T13:54:49Z,2026-08-14T14:02:25Z,2026-08-14T14:02:25Z,closed
+166,chore: release v9.1.0,lgriffin,chore/version-bump-docs-tests,2026-08-14T14:09:06Z,2026-08-14T14:31:40Z,2026-08-14T14:31:40Z,closed
+167,feat: SDE Phase 1 — StaticDataProvider foundation,lgriffin,feat/sde-phase1-foundation,2026-08-14T15:08:22Z,2026-08-19T13:21:50Z,2026-08-19T13:21:50Z,closed
+168,ci: move mutation testing to nightly schedule,lgriffin,ci/mutation-testing-nightly,2026-08-14T15:36:55Z,2026-08-14T15:37:43Z,2026-08-14T15:37:43Z,closed
+169,fix: ensure spec-drift label exists before creating issues,lgriffin,fix/nightly-spec-drift-label,2026-08-17T11:07:15Z,2026-08-17T11:28:52Z,2026-08-17T11:28:52Z,closed
+170,chore(deps): bump the minor-and-patch group with 7 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-0e9a36d8a5,2026-08-17T18:30:48Z,2026-08-18T12:47:31Z,2026-08-18T12:47:31Z,closed
+171,chore(deps): bump @stryker-mutator/typescript-checker from 9.6.1 to 10.0.0,dependabot[bot],dependabot/npm_and_yarn/master/stryker-mutator/typescript-checker-10.0.0,2026-08-17T18:30:59Z,,2026-08-18T13:03:15Z,closed
+172,chore(deps): bump @stryker-mutator/jest-runner from 9.6.1 to 10.0.0,dependabot[bot],dependabot/npm_and_yarn/master/stryker-mutator/jest-runner-10.0.0,2026-08-17T18:31:05Z,,2026-08-18T13:03:17Z,closed
+173,chore(deps): bump @stryker-mutator/core from 9.6.1 to 10.0.0,dependabot[bot],dependabot/npm_and_yarn/master/stryker-mutator/core-10.0.0,2026-08-17T18:31:17Z,,2026-08-18T13:03:20Z,closed
+174,fix: use idempotent label create in nightly spec-drift workflow,lgriffin,fix/nightly-spec-drift-label,2026-08-18T12:50:09Z,2026-08-18T13:03:28Z,2026-08-18T13:03:28Z,closed
+175,chore(deps): bump @stryker-mutator packages from 9.6.1 to 10.0.0,lgriffin,chore/bump-stryker-v10,2026-08-18T12:50:37Z,2026-08-18T13:03:43Z,2026-08-18T13:03:43Z,closed
+176,"feat: add nightly security audit, OSSF Scorecard, and package type checks",lgriffin,chore/add-security-and-type-checks,2026-08-18T13:10:53Z,2026-08-18T13:22:00Z,2026-08-18T13:22:00Z,closed
+177,fix(deps): override esbuild and uuid to resolve security vulnerabilities,lgriffin,fix/dependabot-security-alerts,2026-08-18T13:12:59Z,2026-08-18T13:20:13Z,2026-08-18T13:20:13Z,closed
+188,feat: configurable compatibility date and resilient enum validation,lgriffin,feat/configurable-compat-date-and-enum-safety,2026-08-18T13:55:51Z,2026-08-18T15:26:26Z,2026-08-18T15:26:26Z,closed
+190,"feat: add 12 missing ESI endpoints (SKINR, Paragon Hub, structure details)",lgriffin,feat/spec-drift-189-skinr-paragon-hub-details,2026-08-20T09:27:38Z,2026-08-20T10:11:25Z,2026-08-20T10:11:25Z,closed
+191,fix: isolate ETag cache by access token to prevent cross-tenant leakage,lgriffin,fix/etag-cache-tenant-isolation,2026-08-20T13:40:54Z,2026-08-20T14:12:35Z,2026-08-20T14:12:35Z,closed
+192,fix(ci): harden workflows against script injection and restrict token permissions,lgriffin,fix/workflow-security-hardening,2026-08-20T13:45:32Z,2026-08-20T14:22:53Z,2026-08-20T14:22:53Z,closed
+193,fix(ci): pin GitHub Actions by SHA and add npm provenance,lgriffin,fix/pin-dependencies-and-provenance,2026-08-20T14:30:12Z,2026-08-20T14:48:11Z,2026-08-20T14:48:11Z,closed
+195,feat(sde): export MemorySdeProvider from separate subpath,lgriffin,fix/sde-memory-subpath-export,2026-08-20T15:34:47Z,2026-08-20T15:39:13Z,2026-08-20T15:39:13Z,closed
+196,chore: integrate beads (bd) issue tracker,lgriffin,chore/integrate-beads,2026-08-24T09:13:56Z,2026-08-24T09:33:40Z,2026-08-24T09:33:40Z,closed
+197,fix(ci): scope workflow token permissions to least privilege,lgriffin,fix/scorecard-token-permissions,2026-08-24T09:28:52Z,2026-08-24T09:34:32Z,2026-08-24T09:34:32Z,closed
+198,chore(beads): sync issue statuses (Token-Permissions + Branch-Protection done),lgriffin,chore/beads-status-sync,2026-08-24T09:41:04Z,2026-08-24T09:57:33Z,2026-08-24T09:57:33Z,closed
+199,feat(ci): sign GitHub release artifacts with cosign + checksums,lgriffin,feat/scorecard-signed-releases,2026-08-24T09:59:11Z,2026-08-24T10:40:16Z,2026-08-24T10:40:16Z,closed
+200,chore(deps): bump the minor-and-patch group with 3 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-205f35e644,2026-08-24T16:18:34Z,2026-08-29T13:36:17Z,2026-08-29T13:36:17Z,closed
+201,chore(ci): bump github/codeql-action/init from 4.37.7 to 4.37.8,dependabot[bot],dependabot/github_actions/github/codeql-action/init-4.37.8,2026-08-24T16:18:40Z,,2026-08-29T13:41:06Z,closed
+202,chore(deps): bump better-sqlite3 from 11.10.0 to 13.0.3,dependabot[bot],dependabot/npm_and_yarn/master/better-sqlite3-13.0.3,2026-08-24T16:18:53Z,,2026-08-29T13:41:12Z,closed
+203,chore(ci): bump actions/download-artifact from 7.0.0 to 8.0.1,dependabot[bot],dependabot/github_actions/actions/download-artifact-8.0.1,2026-08-24T16:18:57Z,2026-08-29T13:54:30Z,2026-08-29T13:54:30Z,closed
+204,chore(ci): bump github/codeql-action/analyze from 4.37.7 to 4.37.8,dependabot[bot],dependabot/github_actions/github/codeql-action/analyze-4.37.8,2026-08-24T16:20:02Z,,2026-08-29T13:41:08Z,closed
+205,chore(ci): bump ossf/scorecard-action from 2.4.0 to 2.4.4,dependabot[bot],dependabot/github_actions/ossf/scorecard-action-2.4.4,2026-08-24T16:20:06Z,2026-08-29T13:55:30Z,2026-08-29T13:55:30Z,closed
+206,chore(ci): bump github/codeql-action/autobuild from 4.37.7 to 4.37.8,dependabot[bot],dependabot/github_actions/github/codeql-action/autobuild-4.37.8,2026-08-24T16:21:28Z,,2026-08-29T13:41:10Z,closed
+207,chore(ci): bump codeql-action to v4.37.8 and group dependabot updates,lgriffin,fix/dependabot-ci-failures,2026-08-29T13:41:00Z,2026-08-29T13:45:16Z,2026-08-29T13:45:16Z,closed
+208,chore(ci): bump github/codeql-action/autobuild from 4.37.8 to 4.37.9,dependabot[bot],dependabot/github_actions/github/codeql-action/autobuild-4.37.9,2026-08-29T13:47:03Z,,2026-08-29T14:08:29Z,closed
+209,chore(deps): bump the minor-and-patch group with 5 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-8ef672adc3,2026-08-29T13:47:09Z,,2026-08-29T14:08:31Z,closed
+210,chore(ci): bump github/codeql-action/init from 4.37.8 to 4.37.9,dependabot[bot],dependabot/github_actions/github/codeql-action/init-4.37.9,2026-08-29T13:48:09Z,,2026-08-29T14:08:32Z,closed
+211,chore(ci): bump github/codeql-action/analyze from 4.37.8 to 4.37.9,dependabot[bot],dependabot/github_actions/github/codeql-action/analyze-4.37.9,2026-08-29T13:49:20Z,,2026-08-29T14:08:34Z,closed
+212,feat(docs): VitePress documentation site + dependency consolidation,lgriffin,fix/dependabot-ci-failures,2026-08-29T14:08:49Z,2026-08-29T14:29:11Z,2026-08-29T14:29:11Z,closed
+216,"feat(ci): harden CI with lockfile check, zizmor, and improved quality gate",lgriffin,feat/ci-hardening,2026-08-29T14:42:20Z,2026-08-29T14:57:43Z,2026-08-29T14:57:43Z,closed
+221,fix(ci): remediate all zizmor workflow security findings,lgriffin,fix/zizmor-findings,2026-08-29T15:02:48Z,2026-08-29T15:21:16Z,2026-08-29T15:21:16Z,closed
+222,test: improve branch and function coverage to mid-90s,lgriffin,test/coverage-improvements,2026-08-29T15:16:56Z,2026-08-29T17:08:07Z,2026-08-29T17:08:07Z,closed
+223,chore(deps): bump knip from 6.32.2 to 6.32.3 in the minor-and-patch group,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-c3f02e1f4f,2026-08-29T15:22:36Z,2026-08-31T14:22:29Z,2026-08-31T14:22:29Z,closed
+224,chore(ci): bump github/codeql-action/upload-sarif from 3.37.7 to 4.37.9,dependabot[bot],dependabot/github_actions/github/codeql-action/upload-sarif-4.37.9,2026-08-29T15:25:53Z,2026-08-31T15:08:53Z,2026-08-31T15:08:53Z,closed
+225,chore(ci): bump astral-sh/setup-uv from 8.2.0 to 10.0.1,dependabot[bot],dependabot/github_actions/astral-sh/setup-uv-10.0.1,2026-08-29T15:27:23Z,2026-08-31T15:08:53Z,2026-08-31T15:08:53Z,closed
+226,feat: add FetchLike interface and createNoopLogger for test doubles,lgriffin,feat/test-doubles-noop-logger,2026-08-31T14:34:28Z,2026-08-31T15:08:51Z,2026-08-31T15:08:51Z,closed
+227,refactor(test): number BDD feature files and add shared helpers,lgriffin,feat/bdd-reorg,2026-08-31T14:43:03Z,2026-08-31T15:09:37Z,2026-08-31T15:09:37Z,closed
+228,fix(ci): stabilize schemathesis API fuzz test,lgriffin,fix/schemathesis-flaky,2026-08-31T15:12:49Z,2026-08-31T15:13:58Z,2026-08-31T15:13:58Z,closed
+229,feat: add fetchAll pagination API and per-endpoint rate limits,lgriffin,feat/fetch-all-pages,2026-08-31T15:26:18Z,2026-08-31T15:32:20Z,2026-08-31T15:32:20Z,closed
+230,feat: add typed response header fields to EsiResponseMeta,lgriffin,feat/typed-response-headers,2026-08-31T15:39:13Z,2026-08-31T15:48:55Z,2026-08-31T15:48:55Z,closed
+231,chore(deps): bump the minor-and-patch group with 2 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-180d22c9a9,2026-08-31T16:15:42Z,,2026-09-07T16:14:21Z,closed
+232,feat: better auth error messages,lgriffin,dx/1-auth-error-ux,2026-09-02T07:49:22Z,2026-09-09T20:35:33Z,2026-09-09T20:35:34Z,closed
+233,feat: npm run help command reference,lgriffin,dx/2-npm-help,2026-09-02T08:15:10Z,2026-09-09T20:35:03Z,2026-09-09T20:35:03Z,closed
+234,"ci: run Schemathesis nightly, off the PR path",lgriffin,fix/ci-quality-gate-and-nightly-schemathesis,2026-09-02T15:10:48Z,2026-09-09T19:09:19Z,2026-09-09T19:09:19Z,closed
+236,chore(deps): bump the minor-and-patch group across 1 directory with 8 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-d6afdf645a,2026-09-07T16:14:44Z,,2026-09-09T20:13:09Z,closed
+237,"fix: unblock PR CI — audit overrides, stale generated types, zod deprecation",lgriffin,fix/ci-audit-and-stale-types,2026-09-09T20:07:47Z,2026-09-09T20:12:19Z,2026-09-09T20:12:19Z,closed
+238,"chore(deps): bump zod, eslint, jest, knip, lint-staged, @redocly/cli, @types/node",lgriffin,deps/minor-and-patch-refresh,2026-09-09T20:13:00Z,2026-09-09T20:34:33Z,2026-09-09T20:34:33Z,closed
+248,"ci: move npm audit off the PR merge path, add acceptance allowlist",lgriffin,fix/audit-gate-placement,2026-09-09T21:00:11Z,2026-09-09T21:04:00Z,2026-09-09T21:04:00Z,closed
+249,chore: release 9.6.2 and realign drifted version sources,lgriffin,chore/version-sync-9.6.2,2026-09-09T21:09:03Z,2026-09-09T21:12:18Z,2026-09-09T21:12:18Z,closed
+250,chore: release 9.7.0,lgriffin,chore/release-9.7.0,2026-09-09T21:16:27Z,2026-09-09T21:17:27Z,2026-09-09T21:17:27Z,closed
+251,feat(bdd): adopt EARS requirements with a CI-gated spec audit,lgriffin,feat/ears-gherkin-bdd,2026-09-10T12:07:48Z,2026-09-10T12:29:44Z,2026-09-10T12:29:44Z,closed
+252,fix(ci): bump nightly workflows to Node 22,lgriffin,fix/nightly-node22,2026-09-13T19:23:49Z,2026-09-13T19:28:21Z,2026-09-13T19:28:21Z,closed
+253,"fix(ci): dependabot lockfile gate, nightly drift checks, release provenance",lgriffin,fix/ci-issues-241-242-244,2026-09-13T19:37:21Z,2026-09-13T20:03:21Z,2026-09-13T20:03:21Z,closed
+254,fix(ci): pin Docker image + OpenSSF scorecard improvements,lgriffin,feat/openssf-scorecard-improvements,2026-09-13T19:53:02Z,2026-09-13T20:02:04Z,2026-09-13T20:02:04Z,closed
+255,feat(auth): add EsiTokenManager with pluggable storage and bulk refresh,lgriffin,feat/token-manager,2026-09-14T15:58:26Z,2026-09-16T07:32:07Z,2026-09-16T07:32:07Z,closed
+259,chore(deps): bump the minor-and-patch group with 7 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-4f9ae13b64,2026-09-14T16:21:30Z,2026-09-15T14:23:39Z,2026-09-15T14:23:39Z,closed
+260,chore(deps): bump @cucumber/gherkin from 28.0.0 to 42.0.1,dependabot[bot],dependabot/npm_and_yarn/master/cucumber/gherkin-42.0.1,2026-09-14T16:21:48Z,2026-09-15T14:24:00Z,2026-09-15T14:24:01Z,closed
+261,chore(deps): bump @cucumber/messages from 24.1.0 to 34.2.1,dependabot[bot],dependabot/npm_and_yarn/master/cucumber/messages-34.2.1,2026-09-14T16:21:57Z,2026-09-15T14:53:45Z,2026-09-15T14:53:45Z,closed
+288,"feat(logging): per-client structured logging, engineering charter, release 9.9.0",lgriffin,feat/per-client-logging-charter,2026-09-15T14:16:24Z,2026-09-15T14:22:32Z,2026-09-15T14:22:32Z,closed
+289,fix(spec-audit): close five holes that let a non-compliant spec pass,lgriffin,feat/spec-audit-phase0,2026-09-16T07:44:09Z,2026-09-16T14:06:33Z,2026-09-16T14:06:33Z,closed
+301,docs(guides): write the charter guides and retire docs/,lgriffin,docs/guides-consolidation,2026-09-16T15:18:53Z,2026-09-16T15:23:00Z,2026-09-16T15:23:00Z,closed
+302,"feat: ramp-up phases 1, 3, 4 and 5 — load-bearing spec, CI gate, agent governance",lgriffin,feat/ramp-up-phases,2026-09-16T16:08:50Z,2026-09-16T18:40:03Z,2026-09-16T18:40:04Z,closed
+303,chore(ci): bump github/codeql-action/analyze from 4.37.9 to 4.38.0,dependabot[bot],dependabot/github_actions/github/codeql-action/analyze-4.38.0,2026-09-16T16:16:32Z,,2026-09-16T20:35:49Z,closed
+304,chore(ci): bump astral-sh/setup-uv from 10.0.1 to 10.1.0,dependabot[bot],dependabot/github_actions/astral-sh/setup-uv-10.1.0,2026-09-16T16:16:49Z,,2026-09-16T18:42:11Z,closed
+305,chore(ci): bump github/codeql-action/autobuild from 4.37.9 to 4.38.0,dependabot[bot],dependabot/github_actions/github/codeql-action/autobuild-4.38.0,2026-09-16T16:17:57Z,,2026-09-16T20:35:47Z,closed
+306,chore(ci): bump github/codeql-action/upload-sarif from 4.37.9 to 4.38.0,dependabot[bot],dependabot/github_actions/github/codeql-action/upload-sarif-4.38.0,2026-09-16T16:19:03Z,,2026-09-16T20:35:45Z,closed
+307,chore(ci): bump github/codeql-action/init from 4.37.9 to 4.38.0,dependabot[bot],dependabot/github_actions/github/codeql-action/init-4.38.0,2026-09-16T16:20:08Z,,2026-09-16T20:35:43Z,closed
+308,chore(deps): bump the minor-and-patch group across 1 directory with 2 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-5467ece10e,2026-09-16T18:41:33Z,,2026-09-16T20:35:41Z,closed
+309,"test(bdd): ramp-up phase 2 — one step per file on a Jest step library, with a dry run",lgriffin,feat/phase-2-step-hygiene,2026-09-16T19:19:55Z,2026-09-16T19:32:42Z,2026-09-16T19:32:42Z,closed
+310,fix: ramp-up phase 6 — library safety gates and a validation cache fix,lgriffin,feat/phase-6-library-safety,2026-09-16T19:19:57Z,2026-09-16T19:31:37Z,2026-09-16T19:31:37Z,closed
+311,docs(semver): add a semantic versioning guide and enforce it in CLAUDE.md,lgriffin,docs/semver-guide,2026-09-16T19:26:43Z,2026-09-16T19:34:34Z,2026-09-16T19:34:34Z,closed
+312,fix(build): share one copy of each class across sub-path entries,lgriffin,fix/errors-subpath-identity,2026-09-16T19:48:35Z,2026-09-16T20:04:18Z,2026-09-16T20:04:18Z,closed
+313,fix(cache): keep entries an hour past their freshness TTL for stale-on-error,lgriffin,fix/stale-on-error-spec-ttl,2026-09-16T19:52:09Z,2026-09-16T20:04:56Z,2026-09-16T20:04:56Z,closed
+314,"test(bdd): convert wars, killmails, wallet, mail and universe to one step per file",lgriffin,test/bdd-steps-batch-1,2026-09-16T19:56:35Z,2026-09-16T20:05:37Z,2026-09-16T20:05:37Z,closed
+315,test: make client suites order-independent and randomise the nightly no-retry run,lgriffin,test/randomize-safe-client-suites,2026-09-16T19:58:04Z,2026-09-16T20:08:40Z,2026-09-16T20:08:40Z,closed
+316,fix(sde): load js-yaml and adm-zip lazily as optional peer dependencies,lgriffin,fix/sde-optional-peers,2026-09-16T20:05:25Z,2026-09-16T20:23:44Z,2026-09-16T20:23:44Z,closed
+317,fix!: align response schemas and test builders with ESI (v10),lgriffin,fix/v10-schema-alignment,2026-09-16T20:32:29Z,2026-09-16T20:54:33Z,2026-09-16T20:54:33Z,closed
+318,"chore(deps): bundle Dependabot updates (zod, js-yaml, codeql-action)",lgriffin,chore/deps-bundle,2026-09-16T20:35:39Z,2026-09-16T20:50:17Z,2026-09-16T20:50:18Z,closed
+319,fix(sde): read nested _sde.yaml metadata from ZIP archives,lgriffin,fix/sde-zip-nested-metadata,2026-09-16T20:36:04Z,2026-09-16T20:50:53Z,2026-09-16T20:50:53Z,closed
+320,"test(bdd): convert access-lists, alliance, clones, cosmetics, dogma, insurance, meta and route to one step per file",lgriffin,test/bdd-steps-batch-2,2026-09-16T20:45:22Z,2026-09-16T21:01:28Z,2026-09-16T21:01:28Z,closed
+321,"fix(scripts): make schema:drift compare what it reports, with a ratcheted baseline",lgriffin,fix/schema-drift-path-matching,2026-09-16T20:46:17Z,2026-09-16T20:58:57Z,2026-09-16T20:58:57Z,closed
+322,"fix(ci): unblock the v10.0.0 release: drift baseline, version marker, dispatchable publish, cosign bundles",lgriffin,chore/release-prep-v10,2026-09-16T21:09:20Z,2026-09-17T07:14:33Z,2026-09-17T07:14:33Z,closed
+323,"chore(lint): ratchet wall-clock, timer and Math.random use in src/",lgriffin,chore/determinism-time-lint,2026-09-16T23:54:15Z,2026-09-17T07:15:20Z,2026-09-17T07:15:20Z,closed
+324,"chore(lint): lint tests/ for focused, skipped, assertion-free and silenced tests",lgriffin,test/suite-health-lints,2026-09-16T23:54:37Z,2026-09-17T19:31:22Z,2026-09-17T19:31:22Z,closed
+325,test(export-coverage): fail when a public export has no test referencing it,lgriffin,test/export-coverage,2026-09-16T23:56:19Z,2026-09-17T07:19:52Z,2026-09-17T07:19:52Z,closed
+326,test(docs): type-check documentation examples against the packed package,lgriffin,test/documentation-examples,2026-09-17T00:02:22Z,2026-09-17T19:34:18Z,2026-09-17T19:34:18Z,closed
+327,"fix!: align remaining response schemas and test builders with ESI (v10, part 2)",lgriffin,fix/v10-schema-alignment-2,2026-09-17T00:05:55Z,2026-09-17T07:20:54Z,2026-09-17T07:20:55Z,closed
+328,test(types): mutate the built declarations nightly and ratchet the tsd kill score,lgriffin,test/type-mutation,2026-09-17T00:25:06Z,2026-09-17T19:32:26Z,2026-09-17T19:32:26Z,closed
+329,chore(master): release 10.0.0,github-actions[bot],release-please--branches--master--components--esi.ts,2026-09-17T07:17:47Z,2026-09-17T07:48:37Z,2026-09-17T07:48:38Z,closed
+330,fix(release): tag releases vX.Y.Z and start the changelog at 9.9.0,lgriffin,chore/release-please-tag-and-range,2026-09-17T07:19:01Z,2026-09-17T07:20:20Z,2026-09-17T07:20:20Z,closed
+331,chore(ci): lint the packed tarball and budget each exports sub-path's size,lgriffin,chore/packaging-lint-size-budgets,2026-09-17T07:44:31Z,2026-09-17T20:15:59Z,2026-09-17T20:15:59Z,closed
+332,test: reference the exports v10 added and drop ContractBid from the export baseline,lgriffin,fix/export-coverage-v10,2026-09-17T13:59:17Z,2026-09-17T19:30:49Z,2026-09-17T19:30:49Z,closed
+333,"test(bdd): prove every scenario executes, name JUnit cases by Rule, and link @bug to a tracker",lgriffin,test/rule-coverage-junit,2026-09-17T14:18:52Z,2026-09-17T19:34:48Z,2026-09-17T19:34:48Z,closed
+334,test(contract): record public ESI payloads and replay them through the client pipeline,lgriffin,test/recorded-contract-fixtures,2026-09-17T14:24:53Z,2026-09-17T19:35:14Z,2026-09-17T19:35:14Z,closed
+335,test: assert rejections with .rejects and lint out conditional expects,lgriffin,test/expect-rejects,2026-09-17T14:26:00Z,2026-09-17T19:46:28Z,2026-09-17T19:46:28Z,closed
+336,fix(package): ship ES module declarations for the import condition,lgriffin,fix/esm-type-declarations,2026-09-17T14:34:25Z,2026-09-17T19:55:20Z,2026-09-17T19:55:20Z,closed
+337,"[CI validation only, do not merge] fix(package): ship ES module declarations for the import condition",lgriffin,fix/esm-type-declarations,2026-09-17T14:34:31Z,,2026-09-17T14:41:46Z,closed
+338,test(types): pin the ./errors surface so type mutants on it are killed,lgriffin,test/tsd-error-surface,2026-09-17T14:37:06Z,2026-09-17T19:46:39Z,2026-09-17T19:46:39Z,closed
+339,fix: add the composition and concurrency test tier and fix the five pipeline races it found,lgriffin,test/composition-concurrency,2026-09-17T14:38:46Z,2026-09-17T19:35:47Z,2026-09-17T19:35:47Z,closed
+340,"fix: five defects found by new model-based property tests (circuit breaker, pagination cache, backoff)",lgriffin,test/model-based-properties,2026-09-17T14:46:11Z,2026-09-17T20:05:41Z,2026-09-17T20:05:41Z,closed
+341,"[CI validation only, do not merge] consumer matrix (stacked on #336)",lgriffin,test/consumer-matrix,2026-09-17T14:50:37Z,,2026-09-17T19:05:00Z,closed
+342,test(consumer): widen the consumer contract to a Node x TypeScript x resolution matrix,lgriffin,test/consumer-matrix,2026-09-17T14:51:15Z,2026-09-17T19:54:39Z,2026-09-17T19:54:39Z,closed
+343,test(faults): fault injection and fuzzing tier (transport fault catalogue),lgriffin,test/transport-fault-catalogue,2026-09-17T18:53:07Z,2026-09-17T20:09:24Z,2026-09-17T20:09:25Z,closed
+344,"ci(mutation): mutate the files a pull request changes, gated per directory",lgriffin,ci/incremental-mutation-pr,2026-09-17T18:56:17Z,2026-09-17T19:52:12Z,2026-09-17T19:52:12Z,closed
+345,"test(benchmark): statistical benchmark comparison, heap soak and a smoke-only latency spec",lgriffin,test/benchmarks-baseline-soak,2026-09-17T19:00:36Z,2026-09-17T20:02:41Z,2026-09-17T20:02:41Z,closed
+346,chore(master): release 10.1.0,github-actions[bot],release-please--branches--master--components--esi.ts,2026-09-17T19:31:12Z,2026-09-18T15:28:45Z,2026-09-18T15:28:45Z,closed
+347,test(contract): assert replay failures through named helpers the lint knows,lgriffin,fix/suite-health-new-tier-tests,2026-09-17T19:57:05Z,2026-09-17T19:58:40Z,2026-09-17T19:58:40Z,closed
+348,test(faults): drop the x-pages gap the pagination fix closed,lgriffin,fix/faults-known-gap-stale,2026-09-17T20:23:03Z,2026-09-18T08:25:40Z,2026-09-18T08:25:40Z,closed
+350,test(contract): recorded ESI payloads changed shape,github-actions[bot],automation/recorded-payload-shapes,2026-09-18T08:25:53Z,2026-09-18T08:43:56Z,2026-09-18T08:43:56Z,closed
+351,"ci(mutation): shard the BDD-only mutation run so it finishes, and gate on it",lgriffin,ci/bdd-mutation-shards,2026-09-18T08:39:31Z,2026-09-18T08:49:35Z,2026-09-18T08:49:35Z,closed
+352,chore(scripts): run every offline CI tier locally with one command,lgriffin,chore/local-verify,2026-09-18T09:02:14Z,2026-09-18T09:28:02Z,2026-09-18T09:28:02Z,closed
+353,fix(type-mutation): resolve entry points whose types sit under a condition,lgriffin,fix/type-mutation-entry-points,2026-09-18T09:46:31Z,2026-09-18T10:07:00Z,2026-09-18T10:07:00Z,closed
+354,ci(mutation): split src/core across three BDD mutation shards,lgriffin,ci/split-core-pipeline-shard,2026-09-18T10:08:44Z,2026-09-18T11:04:58Z,2026-09-18T11:04:58Z,closed
+355,fix(dedupe): key in-flight requests by identity as well as endpoint,lgriffin,fix/dedupe-auth-identity,2026-09-18T10:29:16Z,2026-09-18T11:06:47Z,2026-09-18T11:06:47Z,closed
+356,chore(scripts): check that every npm script points at a file that exists,lgriffin,chore/script-existence-check,2026-09-18T10:37:04Z,2026-09-18T11:04:13Z,2026-09-18T11:04:13Z,closed
+357,"docs(agents): pin the semver rules against drift, and fix a retired config reference",lgriffin,docs/agent-doc-drift-check,2026-09-18T10:42:28Z,2026-09-18T11:03:36Z,2026-09-18T11:03:36Z,closed
+358,fix(generate): generate from the compatibility date the client actually sends,lgriffin,fix/compatibility-date-single-source,2026-09-18T11:04:24Z,2026-09-18T11:07:41Z,2026-09-18T11:07:41Z,closed
+359,"ci(mutation): warn when a pull request run measures nothing, block when it measures worse",lgriffin,ci/mutation-pr-cold-run-warning,2026-09-18T11:18:28Z,2026-09-18T12:24:07Z,2026-09-18T12:24:07Z,closed
+360,feat(dedupe): detach in-flight reads of a path a write has just changed,lgriffin,fix/dedupe-detach-on-write,2026-09-18T11:34:30Z,2026-09-18T12:59:40Z,2026-09-18T12:59:40Z,closed
+361,test(contract): recorded ESI payloads changed shape,github-actions[bot],automation/recorded-payload-shapes,2026-09-18T11:41:49Z,2026-09-18T13:50:52Z,2026-09-18T13:50:52Z,closed
+362,ci(mutation): shard the nightly unit run so it finishes and scores again,lgriffin,ci/shard-nightly-unit-mutation,2026-09-18T12:48:12Z,2026-09-18T12:52:28Z,2026-09-18T12:52:28Z,closed
+363,docs(contract): name the real reason those endpoints cannot be recorded,lgriffin,docs/unrecordable-reasons-name-the-date,2026-09-18T12:59:43Z,2026-09-18T13:51:17Z,2026-09-18T13:51:17Z,closed
+364,"feat(release): verify what npm serves, not only what CI built",lgriffin,feat/tier-p-release-canary,2026-09-18T14:11:55Z,2026-09-18T14:49:04Z,2026-09-18T14:49:04Z,closed
+365,fix(release): publish the tarball that was tested and signed,lgriffin,fix/publish-the-tested-tarball,2026-09-18T14:21:42Z,2026-09-18T14:41:30Z,2026-09-18T14:41:30Z,closed
+366,"ci(mutation): make a reclaimed runner cost one shard, not the matrix",lgriffin,ci/split-core-rest-and-retry-reclaims,2026-09-18T15:02:19Z,2026-09-18T15:06:11Z,2026-09-18T15:06:11Z,closed
+367,"ci(verify): run zizmor locally, and see the CI steps that are not npm scripts",lgriffin,ci/zizmor-in-check-local,2026-09-18T15:18:39Z,2026-09-18T15:28:03Z,2026-09-18T15:28:03Z,closed
+368,chore(master): release 10.1.1,github-actions[bot],release-please--branches--master--components--esi.ts,2026-09-18T15:29:10Z,2026-09-18T21:50:47Z,2026-09-18T21:50:47Z,closed
+369,"docs(mutation): record the first complete sharded run, and fix what it exposed",lgriffin,docs/record-first-sharded-mutation-scores,2026-09-18T15:32:10Z,2026-09-18T15:33:15Z,2026-09-18T15:33:15Z,closed
+370,test(contract): recorded ESI payloads changed shape,github-actions[bot],automation/recorded-payload-shapes,2026-09-19T11:24:41Z,2026-09-19T15:41:11Z,2026-09-19T15:41:11Z,closed
+371,"ci(mutation): hold the floors the nightlies earned, and warm the PR gate",lgriffin,ci/mutation-floors-from-nightlies,2026-09-19T14:54:24Z,2026-09-19T15:40:31Z,2026-09-19T15:40:31Z,closed
+372,feat(release): attach a signed CycloneDX SBOM to each release,lgriffin,feat/release-sbom,2026-09-19T15:23:30Z,2026-09-19T15:40:00Z,2026-09-19T15:40:00Z,closed
+373,chore(master): release 10.2.0,github-actions[bot],release-please--branches--master--components--esi.ts,2026-09-19T15:40:24Z,2026-09-19T15:43:51Z,2026-09-19T15:43:51Z,closed
+374,test(logger): kill every logger and util mutant,lgriffin,test/logger-mutants,2026-09-19T15:56:47Z,2026-09-19T18:10:43Z,2026-09-19T18:10:43Z,closed
+375,test(pagination): kill every pagination mutant,lgriffin,test/pagination-mutants,2026-09-19T16:16:38Z,2026-09-19T18:10:01Z,2026-09-19T18:10:01Z,closed
+376,chore(master): release 10.2.1,github-actions[bot],release-please--branches--master--components--esi.ts,2026-09-19T18:11:07Z,2026-09-19T19:15:22Z,2026-09-19T19:15:22Z,closed
+386,test(contract): recorded ESI payloads changed shape,github-actions[bot],automation/recorded-payload-shapes,2026-09-20T11:45:58Z,2026-09-20T21:26:13Z,2026-09-20T21:26:13Z,closed
+387,docs: add Marp presentation on repo history and evolution,lgriffin,feat/marp-evolution-deck,2026-09-20T16:21:18Z,2026-09-20T16:41:01Z,2026-09-20T16:41:01Z,closed
+388,chore(master): release 10.2.2,github-actions[bot],release-please--branches--master--components--esi.ts,2026-09-20T16:41:30Z,2026-09-24T17:20:56Z,2026-09-24T17:20:56Z,closed
+389,docs: integrate graphify knowledge graph for architecture queries,lgriffin,feat/graphify-master,2026-09-21T08:15:29Z,2026-09-21T08:20:15Z,2026-09-21T08:20:15Z,closed
+390,fix(deps): list zod only in dependencies so --omit=dev keeps it,lgriffin,fix/384-zod-duplicate-devdep,2026-09-21T09:30:27Z,2026-09-22T06:58:44Z,2026-09-22T06:58:44Z,closed
+391,fix(mutation-pr): say when a directory score is partly the nightly's,lgriffin,fix/381-pr-mutation-summary,2026-09-21T10:01:39Z,2026-09-21T11:12:05Z,2026-09-21T11:12:05Z,closed
+392,test(contract): recorded ESI payloads changed shape,github-actions[bot],automation/recorded-payload-shapes,2026-09-21T13:14:33Z,2026-09-25T15:59:17Z,2026-09-25T15:59:17Z,closed
+393,"test(canary): verify release assets — SBOM, cosign bundles, checksums",lgriffin,fix/canary-assets-verify,2026-09-21T13:29:00Z,2026-09-21T13:31:25Z,2026-09-21T13:31:25Z,closed
+394,fix(transport): send the configured clientId as X-User-Agent,lgriffin,fix/300-unused-client-id,2026-09-21T14:41:50Z,2026-09-26T11:38:45Z,2026-09-26T11:38:45Z,closed
+395,chore(deps): bump the minor-and-patch group across 1 directory with 6 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-927b2857f5,2026-09-21T16:16:52Z,2026-09-23T19:58:16Z,2026-09-23T19:58:16Z,closed
+396,"chore(deps): bump size-limit, @size-limit/esbuild and @size-limit/file to 13.0.3",dependabot[bot],dependabot/npm_and_yarn/master/size-limit-13.0.3,2026-09-21T16:17:07Z,2026-09-26T15:11:04Z,2026-09-26T15:11:04Z,closed
+397,chore(deps): bump @size-limit/file from 12.1.0 to 13.0.3,dependabot[bot],dependabot/npm_and_yarn/master/size-limit/file-13.0.3,2026-09-21T16:17:19Z,,2026-09-26T09:42:18Z,closed
+398,chore(deps): bump @size-limit/esbuild from 12.1.0 to 13.0.3,dependabot[bot],dependabot/npm_and_yarn/master/size-limit/esbuild-13.0.3,2026-09-21T16:17:27Z,,2026-09-26T09:42:19Z,closed
+400,chore(master): release 10.2.3,github-actions[bot],release-please--branches--master--components--esi.ts,2026-09-25T15:59:43Z,2026-09-26T11:39:31Z,2026-09-26T11:39:31Z,closed
+401,"ci: check the lockfile with npm 11, the version that writes it",lgriffin,fix/lockfile-check-npm11,2026-09-26T09:47:37Z,2026-09-26T11:40:57Z,2026-09-26T11:40:57Z,closed
+402,test(contract): recorded ESI payloads changed shape,github-actions[bot],automation/recorded-payload-shapes,2026-09-26T11:44:06Z,,2026-09-27T11:49:19Z,closed
+404,docs: Phase 0 audit and generator spike,lgriffin,docs/phase-0-audit,2026-09-26T11:47:27Z,2026-09-26T15:36:31Z,2026-09-26T15:36:31Z,closed
+405,chore(master): release 11.0.0,github-actions[bot],release-please--branches--master--components--esi.ts,2026-09-26T15:11:25Z,,,open
+406,chore(ci): bump github/codeql-action/autobuild from 4.38.0 to 4.38.1,dependabot[bot],dependabot/github_actions/github/codeql-action/autobuild-4.38.1,2026-09-26T15:12:52Z,,2026-09-27T09:01:07Z,closed
+407,chore(ci): bump github/codeql-action/upload-sarif from 4.38.0 to 4.38.1,dependabot[bot],dependabot/github_actions/github/codeql-action/upload-sarif-4.38.1,2026-09-26T15:13:56Z,,2026-09-27T09:01:09Z,closed
+408,chore(deps): Bump the minor-and-patch group across 1 directory with 14 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-and-patch-a0f75d15c3,2026-09-26T15:13:57Z,,2026-09-27T10:34:30Z,closed
+409,chore(ci): bump github/codeql-action/init from 4.38.0 to 4.38.1,dependabot[bot],dependabot/github_actions/github/codeql-action/init-4.38.1,2026-09-26T15:14:56Z,,2026-09-27T09:01:11Z,closed
+410,chore(ci): bump github/codeql-action/analyze from 4.38.0 to 4.38.1,dependabot[bot],dependabot/github_actions/github/codeql-action/analyze-4.38.1,2026-09-26T15:16:02Z,,2026-09-27T09:01:12Z,closed
+411,chore(spec): generate typed operations for every ESI route from the vendored spec,lgriffin,feat/phase-1-operation-generator,2026-09-26T15:50:09Z,2026-09-26T16:06:25Z,2026-09-26T16:06:25Z,closed
+412,"chore(spec): vendor the ESI spec at the date the client sends, fetched by CI",lgriffin,spec-refresh/compat-date,2026-09-26T16:04:13Z,2026-09-26T17:01:32Z,2026-09-26T17:01:32Z,closed
+413,test(faults): pin the page-1 repeat when a later page keeps failing,lgriffin,fix/291-later-page-fault,2026-09-26T17:05:45Z,2026-09-26T18:20:53Z,2026-09-26T18:20:53Z,closed
+414,chore(beads): export issues.jsonl automatically after bd writes,lgriffin,chore/245-beads-export,2026-09-26T17:06:13Z,2026-09-26T18:21:21Z,2026-09-26T18:21:21Z,closed
+415,test(contract): walk back through contract pages to find auctions,lgriffin,fix/403-auction-bids,2026-09-26T17:07:33Z,2026-09-26T18:31:09Z,2026-09-26T18:31:09Z,closed
+416,feat(client): add the four missing CustomEsiClient getters,lgriffin,feat/267-custom-client-getters,2026-09-26T18:38:25Z,2026-09-26T19:40:25Z,2026-09-26T19:40:25Z,closed
+417,fix(core): send streamed and fetch-all pages without If-None-Match,lgriffin,fix/292-stream-304,2026-09-26T18:42:50Z,2026-09-26T19:40:48Z,2026-09-26T19:40:48Z,closed
+418,build: enforce the layer rule with ESLint,lgriffin,build/layer-rule,2026-09-26T18:48:36Z,2026-09-26T19:41:16Z,2026-09-26T19:41:16Z,closed
+419,fix(core): pagination retries use the caller's method; cursor fetchAll rejects instead of truncating,lgriffin,fix/269-pagination-method,2026-09-26T18:55:05Z,2026-09-27T06:49:14Z,2026-09-27T06:49:14Z,closed
+420,test(examples): run the public examples nightly against live ESI,lgriffin,build/nightly-examples,2026-09-26T19:59:37Z,2026-09-27T06:50:18Z,2026-09-27T06:50:18Z,closed
+421,"refactor(core): add the TokenProvider, CacheStore, Logger, Clock and HttpTransport ports",lgriffin,feat/phase-2-ports,2026-09-27T03:36:30Z,2026-09-27T06:52:00Z,2026-09-27T06:52:00Z,closed
+422,feat(client): per-client tenant (X-Tenant) and user agent options,lgriffin,feat/phase-2-tenant-user-agent,2026-09-27T03:44:49Z,2026-09-27T06:48:17Z,2026-09-27T06:48:17Z,closed
+423,fix(schemas)!: match getRaidableSkyhooks to the response ESI sends,lgriffin,fix/raidable-skyhooks-schema,2026-09-27T03:56:46Z,2026-09-27T06:45:57Z,2026-09-27T06:45:57Z,closed
+424,fix(core)!: send compatibility date 2026-08-18 by default,lgriffin,fix/compatibility-date-2026-08-18,2026-09-27T04:28:27Z,2026-09-27T06:46:44Z,2026-09-27T06:46:44Z,closed
+425,"ci: one Dependabot PR per ecosystem, no patch bumps, feature-only releases",lgriffin,ci/dependabot-release-cadence,2026-09-27T06:57:16Z,2026-09-27T10:34:26Z,2026-09-27T10:34:26Z,closed
+426,fix(examples): type-check against the 2026-08-18 shapes and fit the size budget,lgriffin,fix/master-examples-green,2026-09-27T07:01:26Z,2026-09-27T08:58:50Z,2026-09-27T08:58:50Z,closed
+427,test: add standalone EARS requirement check (npm run ears),lgriffin,test/standalone-ears-check,2026-09-27T07:03:58Z,2026-09-27T08:58:04Z,2026-09-27T08:58:04Z,closed
+428,fix(schemas)!: return meta.getChangelog as ESI sends it,lgriffin,fix/meta-changelog-wrapper,2026-09-27T07:04:48Z,2026-09-27T10:35:07Z,2026-09-27T10:35:07Z,closed
+429,docs(charter): publish revision 2 for the 11.0 plan,lgriffin,docs/charter-revision-2,2026-09-27T07:08:24Z,2026-09-27T08:58:48Z,2026-09-27T08:58:48Z,closed
+430,fix(security): reject `.` and `..` as path parameters,lgriffin,fix/reject-dot-path-params,2026-09-27T07:09:32Z,2026-09-27T08:59:14Z,2026-09-27T08:59:14Z,closed
+431,refactor(meta): route getOpenApiYaml through the request pipeline,lgriffin,refactor/phase-2-meta-pipeline,2026-09-27T09:02:40Z,2026-09-27T10:35:34Z,2026-09-27T10:35:34Z,closed
+434,fix(contracts): resolve public items and bids with [] when ESI sends no content,lgriffin,fix/empty-json-body,2026-09-27T09:14:12Z,2026-09-27T13:50:29Z,2026-09-27T13:50:29Z,closed
+436,chore(deps): Bump the minor group with 6 updates,dependabot[bot],dependabot/npm_and_yarn/master/minor-4cf6c51e92,2026-09-27T10:36:17Z,,,open
+437,chore(deps): Bump the major group with 3 updates,dependabot[bot],dependabot/npm_and_yarn/master/major-9efbcf6dbe,2026-09-27T10:37:12Z,,,open
+438,chore(ci): Bump astral-sh/setup-uv from 10.0.1 to 10.1.0 in the github-actions group across 1 directory,dependabot[bot],dependabot/github_actions/github-actions-03db81fe05,2026-09-27T10:37:37Z,,,open
+439,refactor(meta): route getOpenApiYaml through the request pipeline,lgriffin,refactor/phase-2-meta-pipeline,2026-09-27T10:38:46Z,2026-09-27T11:43:24Z,2026-09-27T11:43:25Z,closed
+440,ci: give the PR mutation step 20 minutes,lgriffin,ci/mutation-pr-budget,2026-09-27T10:59:18Z,2026-09-27T11:44:34Z,2026-09-27T11:44:34Z,closed
+441,fix(contract): stop flagging optional fields as payload drift,lgriffin,fix/payload-drift-optional-fields,2026-09-27T11:49:11Z,2026-09-27T12:03:41Z,2026-09-27T12:03:42Z,closed
+442,refactor(adapters): back the generated operations with the request pipeline,lgriffin,feat/phase-2-pipeline-transport,2026-09-27T11:51:14Z,2026-09-27T12:05:46Z,2026-09-27T12:05:46Z,closed
+443,test(contract): recorded ESI payloads changed shape,github-actions[bot],automation/recorded-payload-shapes,2026-09-27T12:23:05Z,,,open
+445,feat(generator): scope tree generated from path prefixes,lgriffin,feat/phase-2-scope-factories,2026-09-27T13:50:47Z,2026-09-27T13:56:55Z,2026-09-27T13:56:55Z,closed
+446,docs(roadmap): publish the Road to 11.0.0 plan with the SDE programme,lgriffin,claude/esi-11-plan-ihuap2,2026-09-27T15:58:49Z,2026-09-27T16:01:44Z,2026-09-27T16:01:44Z,closed
+462,chore(lint): enforce SDE isolation in both directions,lgriffin,chore/sde-isolation-lint,2026-09-27T16:13:44Z,2026-09-27T16:24:34Z,2026-09-27T16:24:34Z,closed
+463,docs(sde): add the SDE guide with C4 architecture,lgriffin,docs/sde-guide,2026-09-27T16:31:12Z,2026-09-27T16:42:08Z,2026-09-27T16:42:08Z,closed

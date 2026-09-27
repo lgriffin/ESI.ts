@@ -1,0 +1,31 @@
+pr,item,stream,ask,opened,ready,merged,merged_by,first_pass_green,ask_to_open_min,open_to_ready_min,ready_to_merge_min,lead_time_min,notes
+394,clientId as X-User-Agent (pre-existing),Get PRs green,2026-09-26T09:39,2026-09-21T14:41,2026-09-26T10:00,2026-09-26T11:38,Leigh,N,0,21,98,119,inherited red PR
+401,Lockfile check on npm 11,Get PRs green,2026-09-26T09:39,2026-09-26T09:47,2026-09-26T10:00,2026-09-26T11:40,Leigh,Y,8,13,100,121,
+396,size-limit 13 bumps combined,Get PRs green,2026-09-26T09:39,2026-09-21T16:17,2026-09-26T12:11,2026-09-26T15:11,Leigh,N,0,152,180,332,"decision card 09:51, answered 12:02"
+404,Phase 0 audit + generator spike,Road to Done,2026-09-26T11:45,2026-09-26T11:47,2026-09-26T15:29,2026-09-26T15:36,Leigh,N,2,222,7,231,draft; 4 Qodo findings
+411,Phase 1 generated operations,Road to Done,2026-09-26T15:37,2026-09-26T15:50,2026-09-26T16:05,2026-09-26T16:06,Leigh,N,13,15,1,29,mutation check fix
+412,Vendor spec at 2026-05-19 via Actions,Road to Done,2026-09-26T15:38,2026-09-26T16:04,2026-09-26T16:18,2026-09-26T17:01,Leigh,Y,26,14,43,83,network-policy workaround
+413,#291 later-page fault,Pre-Phase 2 fixes,2026-09-26T17:01,2026-09-26T17:05,2026-09-26T17:50,2026-09-26T18:20,Leigh,Y,4,45,30,79,usage-limit stall 17:15-17:50
+414,#245 Beads export,Pre-Phase 2 fixes,2026-09-26T17:01,2026-09-26T17:06,2026-09-26T17:50,2026-09-26T18:21,Leigh,Y,5,44,31,80,
+415,#403 nightly auctions,Pre-Phase 2 fixes,2026-09-26T17:01,2026-09-26T17:07,2026-09-26T17:50,2026-09-26T18:31,Claude,Y,6,43,41,90,merge-when-green delegated for this PR
+416,Missing CustomEsiClient getters,Phase 2,2026-09-26T18:31,2026-09-26T18:38,2026-09-26T18:58,2026-09-26T19:40,Leigh,Y,7,20,42,69,
+417,Stream/fetchAll without If-None-Match,Phase 2,2026-09-26T18:31,2026-09-26T18:42,2026-09-26T19:04,2026-09-26T19:40,Leigh,Y,11,22,36,69,
+418,Layer rule in ESLint,Phase 2,2026-09-26T18:31,2026-09-26T18:48,2026-09-26T19:04,2026-09-26T19:41,Leigh,Y,17,16,37,70,
+419,Pagination retry method,Phase 2,2026-09-26T18:31,2026-09-26T18:55,2026-09-26T19:59,2026-09-27T06:49,Leigh,N,24,64,650,738,merge conflict with #417; overnight wait
+420,Nightly public examples,Phase 2,2026-09-26T19:45,2026-09-26T19:59,2026-09-27T06:50,2026-09-27T06:50,Leigh,N,14,651,0,665,"decision card 22:56, answered 03:48; merged before its fix, master red"
+421,Ports,Phase 2,2026-09-27T03:31,2026-09-27T03:36,2026-09-27T04:28,2026-09-27T06:52,Leigh,N,5,52,144,201,overnight wait
+422,Tenant + user agent,Phase 2,2026-09-27T03:31,2026-09-27T03:44,2026-09-27T04:28,2026-09-27T06:48,Leigh,N,13,44,140,197,overnight wait
+423,getRaidableSkyhooks schema (breaking),Phase 2,2026-09-27T03:48,2026-09-27T03:56,2026-09-27T04:28,2026-09-27T06:45,Leigh,N,8,32,137,177,overnight wait
+424,Compatibility date 2026-08-18 (breaking),Phase 2,2026-09-27T03:48,2026-09-27T04:28,2026-09-27T04:50,2026-09-27T06:46,Leigh,N,40,22,116,178,spec re-recorded via Actions
+425,Dependabot grouping + release cadence,Dependabot,2026-09-27T06:54,2026-09-27T06:57,2026-09-27T09:10,2026-09-27T10:34,Leigh,N,3,133,84,220,red master from #420
+426,Get master green (examples),Phase 2,2026-09-27T07:01,2026-09-27T07:01,2026-09-27T07:14,2026-09-27T08:58,Leigh,Y,0,13,104,117,rework caused by #420 merge order
+427,Standalone EARS check,EARS,2026-09-27T06:57,2026-09-27T07:03,2026-09-27T08:50,2026-09-27T08:58,Leigh,N,6,107,8,121,
+428,getChangelog matches ESI (breaking),Phase 2,2026-09-27T06:53,2026-09-27T07:04,2026-09-27T07:14,2026-09-27T10:35,Leigh,Y,11,10,201,222,decision card answered in 1 min
+429,Charter revision 2,P1 + charter,2026-09-27T06:57,2026-09-27T07:08,2026-09-27T08:51,2026-09-27T08:58,Leigh,N,11,103,7,121,
+430,Reject . and .. path params,P1 + charter,2026-09-27T06:57,2026-09-27T07:09,2026-09-27T08:58,2026-09-27T08:59,Leigh,N,12,109,1,122,merged with mutation check red (time budget)
+439,getOpenApiYaml via pipeline (reopened #431),Phase 2,2026-09-27T07:14,2026-09-27T09:02,2026-09-27T10:53,2026-09-27T11:43,Claude,N,108,111,50,269,#431 merged into a landed branch; redone
+440,Mutation budget 8->20 min,P1 + charter,2026-09-27T10:58,2026-09-27T10:59,2026-09-27T11:08,2026-09-27T11:44,Leigh,Y,1,9,36,46,
+434,Empty body on expired public contract,P1 + charter,2026-09-27T09:07,2026-09-27T09:14,2026-09-27T13:50,2026-09-27T13:50,Claude,N,7,276,0,283,mutation budget 8->15->20->30; usage-limit stall
+441,Payload drift: optional fields,Sort out 402,2026-09-27T11:45,2026-09-27T11:49,2026-09-27T12:03,2026-09-27T12:03,Claude,Y,4,14,0,18,
+442,PipelineTransport,Phase 2,2026-09-27T11:48,2026-09-27T11:51,2026-09-27T12:05,2026-09-27T12:05,Claude,Y,3,14,0,17,Qodo finding fixed in-flight
+445,Generated scope tree,Phase 2,2026-09-27T12:08,2026-09-27T13:50,2026-09-27T13:56,2026-09-27T13:56,Claude,Y,102,6,0,108,usage-limit stall 12:17-13:50
