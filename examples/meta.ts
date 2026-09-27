@@ -25,14 +25,13 @@ async function main() {
       `Compatibility dates: ${dates.length}, newest ${[...dates].sort().at(-1) ?? 'none'}`,
     );
 
-    const changelog = await client.meta.getChangelog();
+    const { changelog } = await client.meta.getChangelog();
     const [latestDate] = Object.keys(changelog).sort().reverse();
     const latest = latestDate ? (changelog[latestDate] ?? []) : [];
     console.log(`\nChangelog for ${latestDate ?? 'no date'}:`);
     for (const entry of latest.slice(0, 5)) {
-      const breaking = entry.is_breaking ? ' (breaking)' : '';
       console.log(
-        `  ${entry.method} ${entry.path}${breaking}: ${entry.description}`,
+        `  ${entry.method} ${entry.path} (${entry.type}): ${entry.description}`,
       );
     }
 

@@ -67,7 +67,7 @@ export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
   /**
    * Retrieves the ESI changelog data.
    *
-   * @returns The changelog keyed by compatibility date
+   * @returns `{ changelog }`: the change entries keyed by compatibility date
    */
   getChangelog(): Promise<MetaChangelog> {
     return this.api.getChangelog();
