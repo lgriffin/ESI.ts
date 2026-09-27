@@ -61,7 +61,7 @@ const SDE = 'src/sde';
  * The package's own name: `@lgriffin/esi.ts/sde` and `@lgriffin/esi.ts/sde/memory`
  * are the SDE reached through the package's exports, and count as the SDE.
  */
-const SELF = require('./package.json').name;
+const SELF = require('../../package.json').name;
 
 /** Whether a bare specifier is one of this package's own SDE sub-paths. */
 const selfSde = (specifier) =>

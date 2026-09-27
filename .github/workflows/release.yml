@@ -32,10 +32,35 @@ jobs:
             exit 1
           fi
 
+      # Full history and tags: the shrink-only ratchets below compare this
+      # release with the previous one.
       - name: 📥 Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 0
+          fetch-tags: true
+
+      # The baseline for the shrink-only ratchets in spec:audit,
+      # contract:replay and the fault catalogue: the nearest vX.Y.Z tag before
+      # this commit. Comparing the tag with itself would accept an exception
+      # added since the last release. No baseline, no release (fail closed):
+      # the scripts would otherwise fall back to origin/master.
+      - name: 🏷️ Resolve the previous release tag
+        id: baseline
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if ! prev=$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' HEAD^ 2>/dev/null); then
+            echo "::error::No earlier vX.Y.Z tag in this commit's history, so the shrink-only ratchets have no baseline"
+            exit 1
+          fi
+          if [ "$prev" = "$REF_NAME" ] || ! git rev-parse --verify --quiet "${prev}^{commit}" > /dev/null; then
+            echo "::error::Could not resolve a previous release tag distinct from $REF_NAME (got '$prev')"
+            exit 1
+          fi
+          echo "Ratchet baseline: $prev"
+          echo "ref=$prev" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -90,16 +115,64 @@ jobs:
           SCHEMA_DRIFT_BASE_REF: HEAD
         run: npm run schema:drift:ci
 
+      # Every file generate:types writes: the types, and the TTL, rate-limit
+      # group and scope tables (ARCH-01).
       - name: 🔍 Verify generated types are fresh
         run: |
           npm run generate:types
-          git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts || {
+          git diff --exit-code src/types/generated/ 'src/core/endpoints/esi-*.generated.ts' || {
             echo "Generated types are stale — run 'npm run generate:types' and commit the result"
             exit 1
           }
 
+      - name: 🔍 Verify generated operations are fresh
+        run: npm run spec:generate:check
+
+      # DES-04, both directions.
+      - name: 🔐 Validate auth/scope alignment
+        run: npm run validate:auth-scopes
+
+      # ARCH-02: endpoint methods agree with the spec at COMPATIBILITY_DATE.
+      - name: 🔍 Validate endpoint definitions against the ESI spec
+        run: npm run validate:esi
+
+      # The shrink-only ratchets in spec:audit, contract:replay and the fault
+      # catalogue compare with the previous release tag (steps.baseline).
+      - name: 📋 Audit EARS requirements and Gherkin structure
+        env:
+          SPEC_AUDIT_BASE_REF: ${{ steps.baseline.outputs.ref }}
+        run: npm run spec:audit
+
+      - name: 📋 Rule titles agree with response schemas
+        run: npm run validate:spec-consistency
+
       - name: 🧪 Run full test suite
         run: npm run test:all
+
+      - name: 🧪 Replay recorded payloads
+        env:
+          CONTRACT_BASE_REF: ${{ steps.baseline.outputs.ref }}
+        run: npm run contract:replay
+
+      - name: 🧪 Run the fault catalogue
+        env:
+          FAULTS_BASE_REF: ${{ steps.baseline.outputs.ref }}
+        run: npm run faults -- --ci
+
+      # Same 503 allowance as the pull request job (TEST-08): Tranquility
+      # downtime should not block a release that already passed replay.
+      - name: 🧪 Run live contract tests
+        env:
+          ESI_LIVE_TESTS: 'true'
+        run: |
+          set -o pipefail
+          if npm run contract:live 2>&1 | tee /tmp/contract.log; then
+            true
+          elif grep -q "HTTP 503" /tmp/contract.log; then
+            echo "::warning::ESI API returned 503 — skipping contract tests"
+          else
+            exit 1
+          fi
 
       - name: 📚 Generate documentation
         run: npm run docs

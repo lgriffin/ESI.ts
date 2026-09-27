@@ -1,7 +1,7 @@
 /**
  * npm run lint:determinism [-- --update]
  *
- * Lints src/ with eslint.determinism.rules.cjs (wall-clock reads, real timers
+ * Lints src/ with config/eslint/determinism.rules.cjs (wall-clock reads, real timers
  * and Math.random() outside the clock module), counts the sites per file and
  * construct, and checks them against scripts/determinism-baseline.json, which
  * only shrinks. See scripts/determinism-lint-core.ts for the ratchet rules.

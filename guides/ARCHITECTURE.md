@@ -461,7 +461,7 @@ const status = await esi.public.status.get(); // typed from the spec, unvalidate
 
 ### The layer rule
 
-`npm run lint:layers` runs the local ESLint rule `layers/inward-imports` from `eslint.layers.rules.cjs` with `--no-inline-config`, so an `eslint-disable` comment cannot get round it. It runs in `ci-fast.yml` on every push, in `ci.yml` `lint-and-build`, and in `check:local`. The rule resolves each specifier against the importing file and reads static imports, re-exports, `import x = require()`, `import('...')` types and expressions, and `require()`.
+`npm run lint:layers` runs the local ESLint rule `layers/inward-imports` from `config/eslint/layers.rules.cjs` with `--no-inline-config`, so an `eslint-disable` comment cannot get round it. It runs in `ci-fast.yml` on every push, in `ci.yml` `lint-and-build`, and in `check:local`. The rule resolves each specifier against the importing file and reads static imports, re-exports, `import x = require()`, `import('...')` types and expressions, and `require()`.
 
 | Importer                       | May not import                                                                                                                  |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -472,7 +472,7 @@ const status = await esi.public.status.get(); // typed from the spec, unvalidate
 | `src/sde/`                     | Anything in `src/` outside `src/sde/` except the ports; any package but `node:*`, `zod`, `js-yaml`, `adm-zip`, `better-sqlite3` |
 | Anything else in `src/`        | `src/sde/`, or the package's own `./sde` sub-paths (`ARCH-10`, [#462](https://github.com/lgriffin/ESI.ts/issues/462))           |
 
-`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and nothing legacy. No file breaks the core rule: `BASELINE` in `eslint.layers.rules.cjs` is empty since Phase 3 moved `ClientRegistry` to `src/clients/` and `EsiClientConfig` to `src/core/`, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
+`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and nothing legacy. No file breaks the core rule: `BASELINE` in `config/eslint/layers.rules.cjs` is empty since Phase 3 moved `ClientRegistry` to `src/clients/` and `EsiClientConfig` to `src/core/`, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
 
 ```mermaid
 flowchart BT
@@ -1220,12 +1220,12 @@ flowchart TB
     style specgen fill:#e3f2fd,stroke:#1565c0
 ```
 
-| Check                         | Mechanism                                                                                                                     | What it catches                                                                                     |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Generated freshness           | `git diff --exit-code` on `src/types/generated/` and the cache-TTL file after `generate:types`, in `ci.yml` and `release.yml` | Stale generated files after an ESI spec change. The rate-limit-group and scope files are not diffed |
-| Generated operations          | `spec:generate:check` and `spec:coverage` in `ci.yml` `lint-and-build`                                                        | An edited or stale `operations.generated.ts`, or an operation missing from it                       |
-| Auth / scope cross-validation | `scripts/validate-auth-scopes.ts`                                                                                             | `requiresAuth` disagreeing with the scope map (`DES-04`)                                            |
-| Spec-alignment assertions     | `AssertTrue<HasAllSpecKeys<SpecType, ZodType>>` at compile time                                                               | A hand-written schema missing a field the spec defines                                              |
-| Schema drift                  | `npm run schema:drift`                                                                                                        | Hand-written schemas diverging from the spec's field names and types                                |
+| Check                         | Mechanism                                                                                                                                                             | What it catches                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Generated freshness           | `git diff --exit-code` on `src/types/generated/` and every `src/core/endpoints/esi-*.generated.ts` after `generate:types`, in `ci.yml`, `release.yml` and the nightly | Stale generated types, TTLs, rate-limit groups or scopes after an ESI spec change |
+| Generated operations          | `spec:generate:check` and `spec:coverage` in `ci.yml` `lint-and-build`; `spec:generate:check` in `release.yml`                                                        | An edited or stale `operations.generated.ts`, or an operation missing from it     |
+| Auth / scope cross-validation | `scripts/validate-auth-scopes.ts`                                                                                                                                     | `requiresAuth` disagreeing with the scope map in either direction (`DES-04`)      |
+| Spec-alignment assertions     | `AssertTrue<HasAllSpecKeys<SpecType, ZodType>>` at compile time                                                                                                       | A hand-written schema missing a field the spec defines                            |
+| Schema drift                  | `npm run schema:drift`                                                                                                                                                | Hand-written schemas diverging from the spec's field names and types              |
 
 Generated files are never edited by hand (`DES-03`). Where each check runs in CI is in [QUALITY-GATES.md](QUALITY-GATES.md); supply-chain controls such as SHA-pinned actions and npm provenance are in [SECURITY.md](SECURITY.md); the test tiers are in [TESTING.md](TESTING.md).

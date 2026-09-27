@@ -71,7 +71,7 @@ Every call site in the library logs through the per-client helpers in `src/core/
 
 Two kinds of caller have no client to name and use the global logger by design: the standalone `batchFetch` and `batchPost` exports, and `EsiTokenManager` (see [Token manager](#token-manager)).
 
-The mechanism is a lint rule, not a convention. `npm run lint` forbids any import of the global `loggerUtil` module inside `src/core/requestPipeline/` and `src/clients/`, by any relative path (`eslint.logger-imports.rules.cjs`, a `no-restricted-imports` block). `npm run lint:layers` carries the same block and runs with `--no-inline-config`, so an `eslint-disable` comment cannot get round it. `tests/tdd/layers/logger-imports-lint.test.ts` proves the rule fires and that both configs load it.
+The mechanism is a lint rule, not a convention. `npm run lint` forbids any import of the global `loggerUtil` module inside `src/core/requestPipeline/` and `src/clients/`, by any relative path (`config/eslint/logger-imports.rules.cjs`, a `no-restricted-imports` block). `npm run lint:layers` carries the same block and runs with `--no-inline-config`, so an `eslint-disable` comment cannot get round it. `tests/tdd/layers/logger-imports-lint.test.ts` proves the rule fires and that both configs load it.
 
 ```ts runnable
 import { EsiClient, createDefaultLogger, setLogger } from '@lgriffin/esi.ts';

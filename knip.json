@@ -16,5 +16,5 @@
   "ignoreExportsUsedInFile": true,
   "ignoreMembers": ["HttpMethod"],
   "exclude": ["unresolved"],
-  "eslint": { "entry": ["eslint.suite-health.rules.cjs"] }
+  "eslint": { "entry": ["config/eslint/suite-health.rules.cjs"] }
 }
