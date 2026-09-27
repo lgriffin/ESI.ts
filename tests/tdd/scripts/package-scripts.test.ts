@@ -62,11 +62,15 @@ describe('targetsIn', () => {
 
   it('finds a runner config, spelled either way', () => {
     expect(
-      targetsIn('a', 'jest --config jest.unit.config.cjs').map((t) => t.path),
-    ).toEqual(['jest.unit.config.cjs']);
+      targetsIn('a', 'jest --config config/jest/unit.config.cjs').map(
+        (t) => t.path,
+      ),
+    ).toEqual(['config/jest/unit.config.cjs']);
     expect(
-      targetsIn('a', 'jest --config=jest.unit.config.cjs').map((t) => t.path),
-    ).toEqual(['jest.unit.config.cjs']);
+      targetsIn('a', 'jest --config=config/jest/unit.config.cjs').map(
+        (t) => t.path,
+      ),
+    ).toEqual(['config/jest/unit.config.cjs']);
   });
 
   it('finds every target in a chained command', () => {

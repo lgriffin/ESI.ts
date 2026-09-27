@@ -1,9 +1,9 @@
-import { ApiClientBuilder } from '../../core/ApiClientBuilder';
-import { RateLimiter } from '../../core/rateLimiter/RateLimiter';
-import { getConfig } from '../../config/configManager';
+import { ApiClientBuilder } from '../../src/core/ApiClientBuilder';
+import { RateLimiter } from '../../src/core/rateLimiter/RateLimiter';
+import { getConfig } from '../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
-import { getBody } from '../../../src/core/util/testHelpers';
-import '../../../types/global.d.ts';
+import { getBody } from '../../src/core/util/testHelpers';
+import '../../types/global.d.ts';
 
 fetchMock.enableMocks();
 

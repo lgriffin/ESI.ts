@@ -83,7 +83,7 @@ export default {
   incrementalFile: `${reportDir}/stryker-incremental.json`,
   testRunner: 'jest',
   jest: {
-    configFile: 'jest.unit.config.cjs',
+    configFile: 'config/jest/unit.config.cjs',
     enableFindRelatedTests: true,
     config: {
       roots: ['<rootDir>/src', path.join(projectRoot, 'tests')],

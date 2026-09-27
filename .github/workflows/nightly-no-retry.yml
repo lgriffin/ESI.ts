@@ -1,6 +1,6 @@
 name: Nightly No-Retry Test Run
 
-# Runs the full unit + BDD suite (jest.unit.config.cjs, the same suite as
+# Runs the full unit + BDD suite (config/jest/unit.config.cjs, the same suite as
 # `npm test`) once a night with Jest retries disabled, to surface flaky tests
 # that a retry would otherwise hide.
 #
@@ -14,7 +14,7 @@ name: Nightly No-Retry Test Run
 # Test order is randomised with a fresh seed each night, so a test that only
 # passes because of the tests that ran before it in the same file fails here.
 # The seed is printed in the job log and the step summary; run
-# `npx jest --config jest.unit.config.cjs --randomize --seed=<seed>` locally,
+# `npx jest --config config/jest/unit.config.cjs --randomize --seed=<seed>` locally,
 # or dispatch this workflow with that seed, to replay the same order.
 
 on:
@@ -71,7 +71,7 @@ jobs:
             SEED=$(shuf -i 1-2147483647 -n 1)
           fi
           echo "seed=$SEED" >> "$GITHUB_OUTPUT"
-          echo "::notice title=Jest seed::$SEED (replay: npx jest --config jest.unit.config.cjs --randomize --seed=$SEED)"
+          echo "::notice title=Jest seed::$SEED (replay: npx jest --config config/jest/unit.config.cjs --randomize --seed=$SEED)"
 
       - name: Run unit and BDD tests
         id: jest
@@ -81,7 +81,7 @@ jobs:
           mkdir -p reports/no-retry
           echo "$SEED" > reports/no-retry/seed.txt
           echo "Jest --randomize seed: $SEED"
-          npx jest --config jest.unit.config.cjs --ci \
+          npx jest --config config/jest/unit.config.cjs --ci \
             --randomize --seed="$SEED" \
             --json --outputFile=reports/no-retry/jest-results.json
 
@@ -126,7 +126,7 @@ jobs:
             echo ""
             echo "- **Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "- **Jest outcome:** $JEST_OUTCOME"
-            echo "- **Test order seed:** \`$SEED\` (replay: \`npx jest --config jest.unit.config.cjs --randomize --seed=$SEED\`)"
+            echo "- **Test order seed:** \`$SEED\` (replay: \`npx jest --config config/jest/unit.config.cjs --randomize --seed=$SEED\`)"
             if jq -e . "$REPORT" > /dev/null 2>&1; then
               echo "- **Tests:** $(jq '.numPassedTests' "$REPORT") passed, $(jq '.numFailedTests' "$REPORT") failed, $(jq '.numPendingTests' "$REPORT") skipped"
               FAILED=$(jq -r '.testResults[] as $f | $f.assertionResults[] | select(.status == "failed") | "- `\($f.name | sub(".*/tests/"; "tests/"))`: \(.fullName)"' "$REPORT" | head -50)

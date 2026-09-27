@@ -1,9 +1,10 @@
 module.exports = {
+  rootDir: '../..',
   preset: 'ts-jest',
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/src/config/jest/jest.setup.ts'],
-  globalSetup: '<rootDir>/src/config/jest/globalSetup.ts',
-  globalTeardown: '<rootDir>/src/config/jest/globalTeardown.ts',
+  setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'],
+  globalSetup: '<rootDir>/tests/setup/globalSetup.ts',
+  globalTeardown: '<rootDir>/tests/setup/globalTeardown.ts',
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transform: {

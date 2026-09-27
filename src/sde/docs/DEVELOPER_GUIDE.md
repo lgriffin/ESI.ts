@@ -326,7 +326,7 @@ All BDD tests use `MemorySdeProvider` with `SdeTestDataFactory` data.
 Test against real CCP SDE data (gitignored, must be downloaded locally):
 
 ```bash
-npx jest --config jest.integration.config.cjs -- tests/integration/sde/
+npx jest --config config/jest/integration.config.cjs -- tests/integration/sde/
 ```
 
 Tests are wrapped in `(canRun ? describe : describe.skip)` and skip automatically when `sde-data/` is absent.
@@ -340,7 +340,7 @@ After downloading SDE data, run the integration test suite:
 npx ts-node scripts/sde-ingest.ts --output sde-data
 
 # Run integration tests (63 tests, ~60s)
-npx jest --config jest.integration.config.cjs -- tests/integration/sde/
+npx jest --config config/jest/integration.config.cjs -- tests/integration/sde/
 
 # Full validation (lint + format + build + coverage + all tests)
 npm run validate

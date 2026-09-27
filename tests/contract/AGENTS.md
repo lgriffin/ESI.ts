@@ -87,5 +87,5 @@ paginated endpoints keep 2 pages. Every cut is listed in the fixture's
 - Mocks above the transport seam (`spyOn` on a client, `handleRequest` or
   `createClient`).
 - Tests that need the network in `replay/`. The live tier is
-  `jest.contract.live.config.cjs`; `jest.contract.config.cjs` ignores
+  `config/jest/contract.live.config.cjs`; `config/jest/contract.config.cjs` ignores
   `replay/`.

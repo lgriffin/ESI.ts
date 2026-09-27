@@ -11,7 +11,7 @@ name: Nightly Interleaving Run
 # dispatch this workflow with the seed from the job log or step summary, or
 # run locally:
 #   ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=<seed> ESI_INTERLEAVE_RUNS=<runs> \
-#     npx jest --config jest.unit.config.cjs --testPathPatterns=composition
+#     npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition
 
 on:
   schedule:
@@ -79,7 +79,7 @@ jobs:
           fi
           echo "seed=$SEED" >> "$GITHUB_OUTPUT"
           echo "runs=$RUNS" >> "$GITHUB_OUTPUT"
-          echo "::notice title=Interleaving seed::$SEED (replay: ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=$SEED ESI_INTERLEAVE_RUNS=$RUNS npx jest --config jest.unit.config.cjs --testPathPatterns=composition)"
+          echo "::notice title=Interleaving seed::$SEED (replay: ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=$SEED ESI_INTERLEAVE_RUNS=$RUNS npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition)"
 
       - name: Run the composition tier in random mode
         id: jest
@@ -87,7 +87,7 @@ jobs:
           ESI_INTERLEAVE_MODE: random
           ESI_INTERLEAVE_SEED: ${{ steps.seed.outputs.seed }}
           ESI_INTERLEAVE_RUNS: ${{ steps.seed.outputs.runs }}
-        run: npx jest --config jest.unit.config.cjs --ci --testPathPatterns=composition
+        run: npx jest --config config/jest/unit.config.cjs --ci --testPathPatterns=composition
 
       - name: Summary
         if: always()
@@ -101,6 +101,6 @@ jobs:
             echo ""
             echo "- **Outcome:** $JEST_OUTCOME"
             echo "- **Seed:** \`$SEED\`, $RUNS schedules per scenario"
-            echo "- **Replay:** \`ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=$SEED ESI_INTERLEAVE_RUNS=$RUNS npx jest --config jest.unit.config.cjs --testPathPatterns=composition\`"
+            echo "- **Replay:** \`ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=$SEED ESI_INTERLEAVE_RUNS=$RUNS npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition\`"
             echo "- A failing schedule prints its own \`ESI_INTERLEAVE_REPLAY=...\` command in the job log."
           } >> "$GITHUB_STEP_SUMMARY"

@@ -397,7 +397,7 @@ Feature files in `tests/bdd/features/sde/`:
 ### Integration Tests (63 tests, ~60s)
 
 ```bash
-npx jest --config jest.integration.config.cjs -- tests/integration/sde/
+npx jest --config config/jest/integration.config.cjs -- tests/integration/sde/
 ```
 
 Requires `sde-data/` to be populated. Tests against real CCP data:

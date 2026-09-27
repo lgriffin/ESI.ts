@@ -16,24 +16,24 @@ Three positions explain every choice below.
 
 Measured on 2026-09-27 on `master` at `3d57e80` (v10.2.3; 11.0.0 in progress), on a 4-core machine. The command in the first column reproduces each row.
 
-| Command                                       | Config                            | Suites | Tests | Result                                                                                         |
-| --------------------------------------------- | --------------------------------- | -----: | ----: | ---------------------------------------------------------------------------------------------- |
-| `npm test`                                    | `jest.unit.config.cjs`            |    244 | 7,198 | All pass, about 145 s                                                                          |
-| of which unit, `tests/tdd` (not composition)  | same                              |    182 | 6,648 |                                                                                                |
-| of which specification, `tests/bdd`           | same                              |     55 |   508 | 38 legacy `*.steps.ts` files and 17 `*.spec.ts` entries                                        |
-| of which composition, `tests/tdd/composition` | same                              |      7 |    42 |                                                                                                |
-| `npm run fuzz`                                | `jest.fuzz.config.cjs`            |     12 |   957 | All pass                                                                                       |
-| `npm run faults`                              | `jest.faults.config.cjs`          |      2 |   148 | All pass                                                                                       |
-| `npm run contract:replay`                     | `jest.contract.replay.config.cjs` |      5 |   121 | All pass, over 86 recorded fixtures                                                            |
-| `npm run test:integration`                    | `jest.integration.config.cjs`     |      6 |   177 | 20 mocked pass; 157 live tests skip without `ESI_LIVE_TESTS`, `ESI_GATED_TESTS` or `sde-data/` |
-| **Offline total**                             |                                   |    269 | 8,601 | 8,444 run, 0 failures                                                                          |
+| Command                                       | Config                                   | Suites | Tests | Result                                                                                         |
+| --------------------------------------------- | ---------------------------------------- | -----: | ----: | ---------------------------------------------------------------------------------------------- |
+| `npm test`                                    | `config/jest/unit.config.cjs`            |    244 | 7,198 | All pass, about 145 s                                                                          |
+| of which unit, `tests/tdd` (not composition)  | same                                     |    182 | 6,648 |                                                                                                |
+| of which specification, `tests/bdd`           | same                                     |     55 |   508 | 38 legacy `*.steps.ts` files and 17 `*.spec.ts` entries                                        |
+| of which composition, `tests/tdd/composition` | same                                     |      7 |    42 |                                                                                                |
+| `npm run fuzz`                                | `config/jest/fuzz.config.cjs`            |     12 |   957 | All pass                                                                                       |
+| `npm run faults`                              | `config/jest/faults.config.cjs`          |      2 |   148 | All pass                                                                                       |
+| `npm run contract:replay`                     | `config/jest/contract.replay.config.cjs` |      5 |   121 | All pass, over 86 recorded fixtures                                                            |
+| `npm run test:integration`                    | `config/jest/integration.config.cjs`     |      6 |   177 | 20 mocked pass; 157 live tests skip without `ESI_LIVE_TESTS`, `ESI_GATED_TESTS` or `sde-data/` |
+| **Offline total**                             |                                          |    269 | 8,601 | 8,444 run, 0 failures                                                                          |
 
-| Coverage (`npm run coverage`) | Measured | Floor (`jest.unit.config.cjs`) |
-| ----------------------------- | -------: | -----------------------------: |
-| Statements                    |   97.18% |                            90% |
-| Branches                      |   95.53% |                            80% |
-| Functions                     |   91.25% |                            75% |
-| Lines                         |   97.32% |                            90% |
+| Coverage (`npm run coverage`) | Measured | Floor (`config/jest/unit.config.cjs`) |
+| ----------------------------- | -------: | ------------------------------------: |
+| Statements                    |   97.18% |                                   90% |
+| Branches                      |   95.53% |                                   80% |
+| Functions                     |   91.25% |                                   75% |
+| Lines                         |   97.32% |                                   90% |
 
 Coverage is collected from `src/**/*.ts`, excluding `.d.ts`, `src/types/`, `*.generated.ts` and `src/clients/generated/`. The floors sit well below the measured values on purpose (`TEST-04`): they catch an untested module without turning one bad week into a broken gate. Mutation, not coverage, is what says the tests assert anything.
 
@@ -44,7 +44,7 @@ Coverage is collected from `src/**/*.ts`, excluding `.d.ts`, `src/types/`, `*.ge
 | Scenarios                                    | 496 (491 `Scenario`, 5 `Scenario Outline`)                    |
 | Audit result                                 | 54 of 54 pass                                                 |
 
-Other counts, each reproducible with `ls` or `find`: 7 tsd files in `tests/typetests/`, 9 Jest configs (`ls jest.*.config.cjs`), and 24 workflows in `.github/workflows/` (25 files including its `README.md`).
+Other counts, each reproducible with `ls` or `find`: 7 tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 24 workflows in `.github/workflows/` (25 files including its `README.md`).
 
 ## The tiers
 
@@ -53,15 +53,15 @@ This is the canonical tier table. Every other file names tiers by these names; n
 | Tier                        | Location                                                                            | Files                        | Config · command                                                                                | Where CI runs it                                                                                     | Signal that it can fail                                                                              |
 | --------------------------- | ----------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Static analysis             | `eslint.*.config.mjs`, `scripts/*-lint.ts`                                          | 4 lints and export coverage  | `lint:suite-health`, `lint:bdd-seam`, `lint:determinism`, `lint:layers`, `test:export-coverage` | Push (`ci-fast`: seam, suite health, layers); PR (`lint-and-build`, `spec-audit`, `static-analysis`) | One negative fixture per rule, linted at its real path by a suite in `tests/tdd/`                    |
-| Unit                        | `tests/tdd/`                                                                        | 182 suites                   | `jest.unit.config.cjs` · `npm test`                                                             | Push, Node 20 (`ci-fast`); PR, Node 18/20/22 (`unit-tests`), `coverage`, `full-test-suite`           | Stryker mutation, per-directory floors                                                               |
-| Composition and concurrency | `tests/tdd/composition/`                                                            | 7 suites                     | `jest.unit.config.cjs` · `npm test`                                                             | Push; PR; `nightly-interleave.yml` (four calls, seeded random schedules)                             | Pinned schedule counts; `interleave.test.ts` finds and replays a planted race                        |
-| Specification (EARS/BDD)    | `tests/bdd/`                                                                        | 54 features, 55 suites       | `jest.unit.config.cjs` · `npm run bdd`                                                          | Push (inside `npm test`); PR (`bdd-tests`, `spec-audit`); `ears.yml`, advisory                       | `bdd:report` fails on a scenario that did not execute; BDD-only mutation floors                      |
+| Unit                        | `tests/tdd/`                                                                        | 182 suites                   | `config/jest/unit.config.cjs` · `npm test`                                                      | Push, Node 20 (`ci-fast`); PR, Node 18/20/22 (`unit-tests`), `coverage`, `full-test-suite`           | Stryker mutation, per-directory floors                                                               |
+| Composition and concurrency | `tests/tdd/composition/`                                                            | 7 suites                     | `config/jest/unit.config.cjs` · `npm test`                                                      | Push; PR; `nightly-interleave.yml` (four calls, seeded random schedules)                             | Pinned schedule counts; `interleave.test.ts` finds and replays a planted race                        |
+| Specification (EARS/BDD)    | `tests/bdd/`                                                                        | 54 features, 55 suites       | `config/jest/unit.config.cjs` · `npm run bdd`                                                   | Push (inside `npm test`); PR (`bdd-tests`, `spec-audit`); `ears.yml`, advisory                       | `bdd:report` fails on a scenario that did not execute; BDD-only mutation floors                      |
 | Type tests                  | `tests/typetests/`                                                                  | 7                            | tsd · `npm run test:types`                                                                      | PR (`full-test-suite`, through `test:all`)                                                           | Type mutation, nightly, per-entry-point floors                                                       |
-| Properties and fuzz         | `tests/fuzz/`                                                                       | 12 suites                    | `jest.fuzz.config.cjs` · `npm run fuzz`                                                         | PR (`fuzz-tests`, 100 runs per property); `nightly-properties.yml` (10,000)                          | Each model-based property must fail against registered known-bad implementations                     |
-| Fault injection             | `tests/faults/`                                                                     | 2 suites, plus 1 nightly     | `jest.faults.config.cjs` · `npm run faults`; `npm run faults:nightly`                           | PR (`fault-catalogue`); `nightly-faults.yml`                                                         | `fixtures/weak-fault.ts` must be rejected on every count                                             |
-| Recorded replay             | `tests/contract/replay/`                                                            | 5 suites, 86 fixtures        | `jest.contract.replay.config.cjs` · `npm run contract:replay`                                   | PR (`contract-replay`); `nightly-recorded-payloads.yml` re-records                                   | A recording edited to violate its schema must be rejected                                            |
-| Live contract               | `tests/contract/`                                                                   | 2 suites                     | `jest.contract.live.config.cjs` · `npm run contract:live`                                       | PR (`contract-tests`, soft-skips on HTTP 503); weekly in `maintenance.yml`                           | An unknown spec mismatch hard-fails; known ones sit in named exception sets                          |
-| Integration, mocked         | `tests/integration/full-stack.test.ts`                                              | 1                            | `jest.integration.config.cjs` · `npm run test:integration`                                      | PR (`full-test-suite`, through `test:all`)                                                           | None of its own; it overlaps the unit and specification tiers, which are mutation-scored             |
+| Properties and fuzz         | `tests/fuzz/`                                                                       | 12 suites                    | `config/jest/fuzz.config.cjs` · `npm run fuzz`                                                  | PR (`fuzz-tests`, 100 runs per property); `nightly-properties.yml` (10,000)                          | Each model-based property must fail against registered known-bad implementations                     |
+| Fault injection             | `tests/faults/`                                                                     | 2 suites, plus 1 nightly     | `config/jest/faults.config.cjs` · `npm run faults`; `npm run faults:nightly`                    | PR (`fault-catalogue`); `nightly-faults.yml`                                                         | `fixtures/weak-fault.ts` must be rejected on every count                                             |
+| Recorded replay             | `tests/contract/replay/`                                                            | 5 suites, 86 fixtures        | `config/jest/contract.replay.config.cjs` · `npm run contract:replay`                            | PR (`contract-replay`); `nightly-recorded-payloads.yml` re-records                                   | A recording edited to violate its schema must be rejected                                            |
+| Live contract               | `tests/contract/`                                                                   | 2 suites                     | `config/jest/contract.live.config.cjs` · `npm run contract:live`                                | PR (`contract-tests`, soft-skips on HTTP 503); weekly in `maintenance.yml`                           | An unknown spec mismatch hard-fails; known ones sit in named exception sets                          |
+| Integration, mocked         | `tests/integration/full-stack.test.ts`                                              | 1                            | `config/jest/integration.config.cjs` · `npm run test:integration`                               | PR (`full-test-suite`, through `test:all`)                                                           | None of its own; it overlaps the unit and specification tiers, which are mutation-scored             |
 | Integration, live           | `tests/integration/`: `live-esi`, `client-integration`, `esi-spec-contract`, `sde/` | 4                            | `ESI_LIVE_TESTS=true npm run test:integration`; `npm run test:integration:live`                 | Not run by any workflow                                                                              | A live response of the wrong shape fails; `test:integration:live` fails when its variable is missing |
 | Integration, gated auth     | `tests/integration/gated-auth.test.ts`                                              | 1                            | `npm run test:integration:gated` (reads `.env`)                                                 | Not run by any workflow                                                                              | Fails when `ESI_GATED_TESTS=true` and no token is set                                                |
 | Consumer contract           | `tests/consumer/`                                                                   | 1 package                    | `npm run test:consumer`                                                                         | PR (`consumer-contract`, four rows); `consumer-matrix-nightly.yml`; `release.yml`                    | Five broken packages must fail the matrix; a clean control must pass                                 |
@@ -127,10 +127,10 @@ flowchart LR
 
     subgraph pr ["Pull request, gate: ci-success"]
         direction TB
-        unit["Unit + BDD + composition<br/>jest.unit.config.cjs"]
-        props["Properties and fuzz<br/>jest.fuzz.config.cjs"]
-        faults["Fault catalogue<br/>jest.faults.config.cjs"]
-        replay["Recorded replay<br/>jest.contract.replay.config.cjs"]
+        unit["Unit + BDD + composition<br/>config/jest/unit.config.cjs"]
+        props["Properties and fuzz<br/>config/jest/fuzz.config.cjs"]
+        faults["Fault catalogue<br/>config/jest/faults.config.cjs"]
+        replay["Recorded replay<br/>config/jest/contract.replay.config.cjs"]
         live["Live contract<br/>soft-skips on 503"]
         types["tsd · api-extractor · publint · attw · size-limit"]
         consumer["Consumer matrix<br/>ESM/CJS x node16/nodenext/bundler"]
@@ -262,7 +262,7 @@ Each of the tier directories `tests/fuzz`, `tests/faults`, `tests/contract`, `te
 ## Running tests
 
 ```bash
-npm test                     # unit + BDD + composition (jest.unit.config.cjs)
+npm test                     # unit + BDD + composition (config/jest/unit.config.cjs)
 npm run test:watch           # the same, in watch mode
 npm run coverage             # the same, with coverage and the floors
 npm run bdd                  # the BDD suites only
@@ -331,7 +331,7 @@ The consumer contract installs and runs the tarball; these check it statically. 
 ## Unit
 
 **Location:** `tests/tdd/`
-**Config:** `jest.unit.config.cjs`
+**Config:** `config/jest/unit.config.cjs`
 **Run:** `npm test`
 
 182 suites and 6,648 tests (`npm test`, 2026-09-27). One directory per domain client, one per core area (`core/`, `schemas/`, `auth/`, `sde/`, `ports/`, `adapters/`, `config/`), and one per gate self-test. The groups that matter most:
@@ -410,8 +410,8 @@ describe('MarketClient', () => {
 ## Composition and concurrency
 
 **Location:** `tests/tdd/composition/` (agent notes in its `AGENTS.md`)
-**Config:** `jest.unit.config.cjs`, so it runs in `npm test` and Stryker covers it
-**Run:** `npx jest --config jest.unit.config.cjs --testPathPatterns=composition`
+**Config:** `config/jest/unit.config.cjs`, so it runs in `npm test` and Stryker covers it
+**Run:** `npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition`
 **Nightly:** `nightly-interleave.yml`
 
 Owns one failure class: request pipeline stages that are each correct alone but wrong together when calls overlap. Each scenario drives a real `EsiClient` with every stage on (rate limiter out of test mode, circuit breaker, deduplication, retry, ETag cache, Zod validation) and mocks only HTTP, at the BDD transport seam. The interleaving scheduler (`support/interleave.ts`) holds each request at the seam and chooses step by step which call starts, which response arrives and when fake time advances, then checks named invariants over the sequence of requests (method, path, If-None-Match) and outcomes.
@@ -430,7 +430,7 @@ On every PR each scenario runs every schedule of two and three calls; the schedu
 ## Specification (EARS/BDD)
 
 **Location:** `tests/bdd/`
-**Config:** `jest.unit.config.cjs` (its `testMatch` includes `tests/bdd/step-definitions/**/*.steps.ts` and `tests/bdd/specs/**/*.spec.ts`)
+**Config:** `config/jest/unit.config.cjs` (its `testMatch` includes `tests/bdd/step-definitions/**/*.steps.ts` and `tests/bdd/specs/**/*.spec.ts`)
 **Run:** `npm run bdd`, or `npm test`, which includes it
 
 54 feature files state 405 requirements, one per `Rule:`, verified by 496 scenarios (`npm run spec:audit:verbose`). Every scenario mocks at the transport seam (`TEST-03`), so the rate limiter, retry, deduplication, ETag cache, JSON parsing and Zod validation all execute. Coverage by area:
@@ -549,7 +549,7 @@ Compile-time assertions on the consumer-facing type surface (`TEST-06`): endpoin
 ## Properties and fuzz
 
 **Location:** `tests/fuzz/` (read `tests/fuzz/AGENTS.md` first)
-**Config:** `jest.fuzz.config.cjs`
+**Config:** `config/jest/fuzz.config.cjs`
 **Run:** `npm run fuzz` (12 suites, 957 tests, 2026-09-27); `npm run fuzz:properties` for the model-based ones
 **CI:** `fuzz-tests` in `ci.yml`; `nightly-properties.yml` at 10,000 runs per property
 
@@ -577,12 +577,12 @@ The older fuzz files are plain fast-check tests:
 | `response-validation-fault-injection.test.ts` | A body that violates an endpoint's `responseSchema`, served through the BDD transport seam, rejects with an `EsiValidationError` (`direction: 'response'`, status `0`, the request URL) whose Zod issues match the schema's own verdict, after exactly one request; safe mode returns it as `{ ok: false }`; `validateResponse: false` returns the body unchanged |
 | `run-settings.test.ts`                        | `FC_NUM_RUNS`, `FC_SEED` and `FC_PATH` fail closed: a malformed value stops the run instead of falling back to the defaults                                                                                                                                                                                                                                       |
 
-A failing property prints the shrunk counter-example, the violated invariant, the seed, the path and the exact replay command (`FC_SEED=... FC_PATH=... npx jest --config jest.fuzz.config.cjs --testPathPatterns ...`). A counter-example is committed as a named example test in the same file before the fix; a generator or invariant is never weakened to make one go away.
+A failing property prints the shrunk counter-example, the violated invariant, the seed, the path and the exact replay command (`FC_SEED=... FC_PATH=... npx jest --config config/jest/fuzz.config.cjs --testPathPatterns ...`). A counter-example is committed as a named example test in the same file before the fix; a generator or invariant is never weakened to make one go away.
 
 ## Fault injection
 
 **Location:** `tests/faults/` (read `tests/faults/AGENTS.md` first)
-**Config:** `jest.faults.config.cjs`, `jest.faults.nightly.config.cjs`
+**Config:** `config/jest/faults.config.cjs`, `config/jest/faults.nightly.config.cjs`
 **Run:** `npm run faults` (2 suites, 148 tests, 2026-09-27), `npm run faults:nightly`
 **CI:** `fault-catalogue` in `ci.yml`; `nightly-faults.yml`
 
@@ -601,7 +601,7 @@ Decisions the tier pins, so a change to them is deliberate: Content-Type is not 
 ## Recorded replay
 
 **Location:** `tests/contract/replay/`, fixtures in `tests/contract/fixtures/recorded/`, agent notes in [`tests/contract/AGENTS.md`](../tests/contract/AGENTS.md)
-**Config:** `jest.contract.replay.config.cjs`
+**Config:** `config/jest/contract.replay.config.cjs`
 **Run:** `npm run contract:replay` (5 suites, 121 tests, 2026-09-27; no network). One endpoint: `npm run contract:replay -- -t "market.getMarketOrders"`.
 **Record:** `ESI_LIVE_TESTS=true npm run contract:record [-- --only=<endpoint key>]` (refuses to run without `ESI_LIVE_TESTS=true`)
 **CI:** `contract-replay` in `ci.yml`; `nightly-recorded-payloads.yml` re-records
@@ -622,7 +622,7 @@ Each replay goes through the BDD transport seam, so the whole pipeline runs, and
 ## Live contract
 
 **Location:** `tests/contract/esi-contract.test.ts`, `tests/contract/esi-snapshot.test.ts`, helpers in `tests/contract/helpers.ts`
-**Config:** `jest.contract.live.config.cjs` (extends `jest.contract.config.cjs` with a global setup that fails unless `ESI_LIVE_TESTS=true`)
+**Config:** `config/jest/contract.live.config.cjs` (extends `config/jest/contract.config.cjs` with a global setup that fails unless `ESI_LIVE_TESTS=true`)
 **Run:** `ESI_LIVE_TESTS=true npm run contract:live`
 **CI:** `contract-tests` in `ci.yml`, soft-skipping on HTTP 503 (`TEST-08`); weekly in `maintenance.yml`
 
@@ -663,7 +663,7 @@ Schemathesis is the API fuzz tier. It fuzzes a mock generated from the spec, so 
 
 ## Integration
 
-Integration tests live in `tests/integration/` and run with `jest.integration.config.cjs`, outside `npm test`. `npm run test:integration` runs all six files: the mocked suite passes and the live ones skip unless their environment is present (6 suites, 177 tests: 20 pass, 157 skip, 2026-09-27).
+Integration tests live in `tests/integration/` and run with `config/jest/integration.config.cjs`, outside `npm test`. `npm run test:integration` runs all six files: the mocked suite passes and the live ones skip unless their environment is present (6 suites, 177 tests: 20 pass, 157 skip, 2026-09-27).
 
 | File                         | Tests | Needs                              | What it covers                                                                                                                                                                                                                                         |
 | ---------------------------- | ----: | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -682,10 +682,10 @@ ESI_GATED_TESTS=true ESI_ACCESS_TOKEN=<token> npm run test:integration:gated
 npx cross-env ESI_LIVE_TESTS=true npm run test:integration   # Windows (PowerShell)
 
 # One suite
-npx jest --config jest.integration.config.cjs --testPathPatterns=full-stack
-npx jest --config jest.integration.config.cjs --testPathPatterns=live-esi
-npx jest --config jest.integration.config.cjs --testPathPatterns=client-integration
-npx jest --config jest.integration.config.cjs --testPathPatterns=esi-spec-contract
+npx jest --config config/jest/integration.config.cjs --testPathPatterns=full-stack
+npx jest --config config/jest/integration.config.cjs --testPathPatterns=live-esi
+npx jest --config config/jest/integration.config.cjs --testPathPatterns=client-integration
+npx jest --config config/jest/integration.config.cjs --testPathPatterns=esi-spec-contract
 ```
 
 `npm run token:create` writes a PKCE token to `.env`, which `test:integration:gated` reads. Live tests have 30-second timeouts and fail when ESI is down.
@@ -799,21 +799,21 @@ About eight thousand candidates exist, so at most 500 run. Entry points take tur
 
 ### Jest configurations
 
-Nine Jest configs (`ls jest.*.config.cjs`):
+Nine Jest configs (`ls config/jest/*.config.cjs`):
 
-| Config                             | `testMatch`                                                | Timeout | Notes                                                                   |
-| ---------------------------------- | ---------------------------------------------------------- | ------: | ----------------------------------------------------------------------- |
-| `jest.unit.config.cjs`             | `tests/tdd/**/*.test.ts`, BDD `*.steps.ts` and `*.spec.ts` | default | `npm test`; coverage floors; setup enables `jest-fetch-mock`            |
-| `jest.fuzz.config.cjs`             | `tests/fuzz/**/*.test.ts`                                  |    30 s |                                                                         |
-| `jest.faults.config.cjs`           | `tests/faults/**/*.test.ts` except `*.nightly.test.ts`     |    30 s |                                                                         |
-| `jest.faults.nightly.config.cjs`   | `tests/faults/**/*.nightly.test.ts`                        |   600 s |                                                                         |
-| `jest.contract.replay.config.cjs`  | `tests/contract/replay/**/*.test.ts`                       |    30 s | No network                                                              |
-| `jest.contract.config.cjs`         | `tests/contract/**/*.test.ts` except `replay/`             |    60 s | Suites skip without `ESI_LIVE_TESTS`                                    |
-| `jest.contract.live.config.cjs`    | as `jest.contract.config.cjs`                              |    60 s | Global setup fails unless `ESI_LIVE_TESTS=true`; what CI runs           |
-| `jest.integration.config.cjs`      | `tests/integration/**/*.test.ts`                           |    30 s | Mocked suite runs; live and gated suites skip without their environment |
-| `jest.integration.live.config.cjs` | `tests/integration/live-esi.test.ts`                       |    30 s | Global setup fails unless `ESI_LIVE_TESTS=true`                         |
+| Config                                    | `testMatch`                                                | Timeout | Notes                                                                   |
+| ----------------------------------------- | ---------------------------------------------------------- | ------: | ----------------------------------------------------------------------- |
+| `config/jest/unit.config.cjs`             | `tests/tdd/**/*.test.ts`, BDD `*.steps.ts` and `*.spec.ts` | default | `npm test`; coverage floors; setup enables `jest-fetch-mock`            |
+| `config/jest/fuzz.config.cjs`             | `tests/fuzz/**/*.test.ts`                                  |    30 s |                                                                         |
+| `config/jest/faults.config.cjs`           | `tests/faults/**/*.test.ts` except `*.nightly.test.ts`     |    30 s |                                                                         |
+| `config/jest/faults.nightly.config.cjs`   | `tests/faults/**/*.nightly.test.ts`                        |   600 s |                                                                         |
+| `config/jest/contract.replay.config.cjs`  | `tests/contract/replay/**/*.test.ts`                       |    30 s | No network                                                              |
+| `config/jest/contract.config.cjs`         | `tests/contract/**/*.test.ts` except `replay/`             |    60 s | Suites skip without `ESI_LIVE_TESTS`                                    |
+| `config/jest/contract.live.config.cjs`    | as `config/jest/contract.config.cjs`                       |    60 s | Global setup fails unless `ESI_LIVE_TESTS=true`; what CI runs           |
+| `config/jest/integration.config.cjs`      | `tests/integration/**/*.test.ts`                           |    30 s | Mocked suite runs; live and gated suites skip without their environment |
+| `config/jest/integration.live.config.cjs` | `tests/integration/live-esi.test.ts`                       |    30 s | Global setup fails unless `ESI_LIVE_TESTS=true`                         |
 
-`jest.unit.config.cjs` loads `src/config/jest/jest.setup.ts` (enables `jest-fetch-mock`, builds a shared `ApiClient` with the rate limiter in test mode, resets both before each test) and the global setup and teardown beside it.
+`config/jest/unit.config.cjs` loads `tests/setup/jest.setup.ts` (enables `jest-fetch-mock`, builds a shared `ApiClient` with the rate limiter in test mode, resets both before each test) and the global setup and teardown beside it.
 
 ### Mocking
 
@@ -1047,27 +1047,27 @@ Nothing runs the live smoke, client integration, spec contract, gated auth or re
 
 ```bash
 # One test file
-npx jest --config jest.unit.config.cjs tests/tdd/alliances/AllianceClient.test.ts
+npx jest --config config/jest/unit.config.cjs tests/tdd/alliances/AllianceClient.test.ts
 
 # Tests matching a name
-npx jest --config jest.unit.config.cjs --testNamePattern="should return valid alliance"
+npx jest --config config/jest/unit.config.cjs --testNamePattern="should return valid alliance"
 
 # One path pattern (Jest 30 spells it --testPathPatterns)
-npx jest --config jest.unit.config.cjs --testPathPatterns=composition
+npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition
 
 # Replay a nightly no-retry order
-npx jest --config jest.unit.config.cjs --randomize --seed=<seed>
+npx jest --config config/jest/unit.config.cjs --randomize --seed=<seed>
 
 # Node inspector
-node --inspect-brk node_modules/.bin/jest --config jest.unit.config.cjs --runInBand
+node --inspect-brk node_modules/.bin/jest --config config/jest/unit.config.cjs --runInBand
 ```
 
 ## File reference
 
 | Path                                                                                                                         | Purpose                                                           |
 | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `jest.*.config.cjs`                                                                                                          | The nine Jest configs ([table](#jest-configurations))             |
-| `src/config/jest/jest.setup.ts`                                                                                              | Enables `jest-fetch-mock`, shared `ApiClient`, rate-limiter reset |
+| `config/jest/*.config.cjs`                                                                                                   | The nine Jest configs ([table](#jest-configurations))             |
+| `tests/setup/jest.setup.ts`                                                                                                  | Enables `jest-fetch-mock`, shared `ApiClient`, rate-limiter reset |
 | `tests/tdd/helpers/clientErrorTests.ts`                                                                                      | `describeClientErrors`, the five HTTP error cases                 |
 | `tests/bdd/support/transport.ts`                                                                                             | The transport seam: `queueResponse`, `queueError`, `sentRequests` |
 | `tests/bdd/support/binder.ts`                                                                                                | Binds a feature to the step library under Jest                    |

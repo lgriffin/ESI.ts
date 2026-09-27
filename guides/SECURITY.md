@@ -72,7 +72,7 @@ Controls tested outside that file:
 | Per-token cache keys | `tests/tdd/core/cacheKey.test.ts`, `tests/tdd/core/requestPipeline/cachePolicy.test.ts` |
 
 ```bash
-npx jest --config jest.unit.config.cjs tests/tdd/core/security.test.ts
+npx jest --config config/jest/unit.config.cjs tests/tdd/core/security.test.ts
 npm test   # includes the security suite
 ```
 
@@ -84,16 +84,16 @@ Which workflow runs at which stage, and whether it blocks, is set out in [QUALIT
 
 ### Workflows
 
-| Control                   | Mechanism                                                                                                                                                                                                                              |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Actions pinned by SHA     | Every `uses:` references a full 40-character commit SHA with the version as a trailing comment. A retagged upstream action cannot change what runs.                                                                                    |
-| Least-privilege tokens    | Every workflow declares top-level `permissions:` as `contents: read` (CodeQL declares `{}`; Scorecard `read-all`, as its action requires). Jobs escalate individually, for example `id-token: write` only on publish and signing jobs. |
-| No credential persistence | Every checkout step sets `persist-credentials: false`.                                                                                                                                                                                 |
-| No expression injection   | `run:` blocks read event data through `env:` bindings rather than interpolating `${{ }}` into shell.                                                                                                                                   |
-| zizmor                    | `zizmor.yml` audits `.github/` on any push or PR that touches workflows or `.zizmor.yml`. Accepted findings are listed with reasons in `.zizmor.yml`.                                                                                  |
-| CodeQL                    | `codeql.yml` on push and PR to `master`, and weekly.                                                                                                                                                                                   |
-| OpenSSF Scorecard         | `scorecard.yml` weekly; results are published and uploaded as SARIF to code scanning.                                                                                                                                                  |
-| Dependabot                | `.github/dependabot.yml` opens weekly PRs for npm dependencies and for GitHub Actions, which keeps pinned SHAs current.                                                                                                                |
+| Control                   | Mechanism                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Actions pinned by SHA     | Every `uses:` references a full 40-character commit SHA with the version as a trailing comment. A retagged upstream action cannot change what runs.                                                                                                                                                                                                                                  |
+| Least-privilege tokens    | Every workflow declares top-level `permissions:` as `contents: read` (CodeQL declares `{}`; Scorecard `read-all`, as its action requires). Jobs escalate individually, for example `id-token: write` only on publish and signing jobs. `tests/tdd/workflows/workflow-permissions.test.ts` fails on a missing or writable top level and on any job-level write scope not in its list. |
+| No credential persistence | Every checkout step sets `persist-credentials: false`.                                                                                                                                                                                                                                                                                                                               |
+| No expression injection   | `run:` blocks read event data through `env:` bindings rather than interpolating `${{ }}` into shell.                                                                                                                                                                                                                                                                                 |
+| zizmor                    | `zizmor.yml` audits `.github/` on any push or PR that touches workflows or `.zizmor.yml`. Accepted findings are listed with reasons in `.zizmor.yml`.                                                                                                                                                                                                                                |
+| CodeQL                    | `codeql.yml` on push and PR to `master`, and weekly.                                                                                                                                                                                                                                                                                                                                 |
+| OpenSSF Scorecard         | `scorecard.yml` weekly; results are published and uploaded as SARIF to code scanning.                                                                                                                                                                                                                                                                                                |
+| Dependabot                | `.github/dependabot.yml` opens weekly PRs for npm dependencies and for GitHub Actions, which keeps pinned SHAs current.                                                                                                                                                                                                                                                              |
 
 ### Dependency advisories
 
@@ -108,7 +108,7 @@ Every exception needs a GHSA id, package, severity, reason and `expires` date. A
 ### Published artefacts
 
 - **npm provenance.** Both publish jobs in `release.yml` (npmjs.org and GitHub Packages) run `npm publish --provenance` with `id-token: write`, so a consumer can verify the tarball was built by this repository's workflow.
-- **Signed release assets.** `create-assets` builds the tarball, its SBOM and the documentation archive and writes `checksums.txt` with SHA-256. A separate `sign-and-publish-assets` job, the only one allowed to mint an OIDC token for signing, signs each asset with keyless `cosign sign-blob` and uploads a Sigstore bundle (`.sigstore.json`) beside it.
+- **Signed release assets.** `create-assets` builds the tarball, its SBOM and the documentation archive and writes `checksums.txt` with SHA-256. A separate `sign-and-publish-assets` job, the only one allowed to mint an OIDC token for signing, signs each asset with keyless `cosign sign-blob` and uploads a Sigstore bundle (`.sigstore.json`) beside it. The same job attests SLSA build provenance for the three assets with `actions/attest-build-provenance`, checks it with `gh attestation verify`, and attaches the bundle as `lgriffin-esi.ts-X.Y.Z.intoto.jsonl`.
 - **SBOM (SEC-06).** Provenance says who built the package; an SBOM says what is inside it. Each release attaches `lgriffin-esi.ts-X.Y.Z.cdx.json`, a CycloneDX bill of materials for the tarball's runtime dependency tree, generated by `npm sbom` (no extra tooling) and checked by `scripts/release-sbom.ts` before it is signed. What it covers and how to verify it is in [RELEASE.md](RELEASE.md#verifying-a-release).
 
 How a release is cut and how to verify its assets is covered in [RELEASE.md](RELEASE.md).
@@ -125,10 +125,45 @@ How a release is cut and how to verify its assets is covered in [RELEASE.md](REL
 
 ---
 
-## 5. Planned controls
+## 5. Settings only the maintainer can change
 
-Registered as a gap in the charter and tracked as bead `esi-wze` ([#270](https://github.com/lgriffin/ESI.ts/issues/270)). The SBOM half of that bead (SEC-06) now ships with each release; see [Published artefacts](#published-artefacts).
+Everything above lives in the repository and is checked by CI. What follows lives in GitHub and npm settings: nothing in a pull request can change it and nothing in the repository can see it, so each item says how to verify it once done. These are the OpenSSF Scorecard checks the repository cannot move on its own ([#239](https://github.com/lgriffin/ESI.ts/issues/239)), and the remaining half of SEC-07 ([#270](https://github.com/lgriffin/ESI.ts/issues/270), bead `esi-wze`).
 
-### CODEOWNERS and admin enforcement (SEC-07)
+The repository side is done: every workflow declares read-only top-level permissions and `tests/tdd/workflows/workflow-permissions.test.ts` lists each job-level write scope (Token-Permissions); each release attaches cosign bundles, the CycloneDX SBOM and a `.intoto.jsonl` provenance file (Signed-Releases); `.github/CODEOWNERS` assigns every path to `@lgriffin`.
 
-Scorecard's code-review check looks for both. The planned change adds `.github/CODEOWNERS` assigning every path to the maintainer, and updates the `master` branch protection ruleset recorded in bead `esi-8we` so that it applies to administrators as well.
+### Branch protection on `master` that includes administrators (SEC-07, Branch-Protection)
+
+In **Settings → Rules → Rulesets** (or the classic **Settings → Branches** rule, recorded in bead `esi-8we`), for `master`:
+
+1. Leave the bypass list empty, or in the classic rule tick **Do not allow bypassing the above settings** ("Include administrators"). This is the SEC-07 item.
+2. **Require a pull request before merging**, with at least one approval, **Require review from Code Owners**, **Dismiss stale approvals** and **Require approval of the most recent push**.
+3. **Require status checks to pass**, with `ci-success` as the only required check and **Require branches to be up to date** on ([QUALITY-GATES.md](QUALITY-GATES.md#what-actually-blocks-a-merge)).
+4. Keep force-pushes and deletion blocked.
+
+With one maintainer and administrators included, a pull request the maintainer authored cannot be merged until someone else approves it, because GitHub does not let authors approve their own. Scorecard's higher Branch-Protection tiers need that, and its Code-Review check ([#243](https://github.com/lgriffin/ESI.ts/issues/243)) counts only merges that someone other than the author approved. Deciding that a second reviewer is required is the maintainer's call; the lower tiers (no force-push, no deletion, required checks, administrators included) are available without one.
+
+Verify, and record the answer in the CHARTER's SEC-07 row when it shows administrators included:
+
+```bash
+gh api repos/lgriffin/ESI.ts/branches/master/protection \
+  --jq '{admins: .enforce_admins.enabled, approvals: .required_pull_request_reviews.required_approving_review_count, codeowners: .required_pull_request_reviews.require_code_owner_reviews, checks: .required_status_checks.contexts}'
+# or, for rulesets: the rules GitHub applies to master, whichever ruleset they come from
+gh api repos/lgriffin/ESI.ts/rules/branches/master \
+  --jq 'map({type, ruleset: .ruleset_id, parameters})'
+# and, per ruleset id listed above, whether anyone can bypass it
+gh api repos/lgriffin/ESI.ts/rulesets/<id> --jq '{name, enforcement, bypass: .bypass_actors}'
+```
+
+Scorecard reads classic branch protection only through a token with administration read access. If the Branch-Protection check reports that it could not read the settings, add a fine-grained token with **Administration: read** on this repository as a secret and pass it to the scorecard step as `repo_token`; that edit to `scorecard.yml` is for the pull request that adds the secret, because an empty `repo_token` would break the run.
+
+### OpenSSF Best Practices badge (CII-Best-Practices)
+
+Register the project at [bestpractices.dev](https://www.bestpractices.dev/) and answer the passing-level criteria ([#246](https://github.com/lgriffin/ESI.ts/issues/246)). Most answers point at files that already exist: `SECURITY.md` for the reporting process, this guide, `guides/QUALITY-GATES.md` for the tests and CI, `guides/RELEASE.md` for signing. Registration gives a project number; a pull request then adds the badge to the README.
+
+### npm trusted publishing (ROADMAP Phase 6 item 3)
+
+`publish-npm` still authenticates with the `NPM_TOKEN` secret. Configure a trusted publisher for `@lgriffin/esi.ts` on npmjs.com (repository `lgriffin/ESI.ts`, workflow `release.yml`) first; the workflow change that drops `NODE_AUTH_TOKEN` follows, and the secret is deleted after the first release published through it.
+
+### Signed releases need releases
+
+Scorecard's Signed-Releases check reads the assets of the last five GitHub releases. v10.2.0 carries cosign bundles; v10.2.2 and v10.2.3 carry no assets at all (checked 2026-09-27), so the check stays low until the releases in that window went through `sign-and-publish-assets`. Re-running `release.yml` on an old tag would also try to publish to npm again, so the fix is forward: make sure each new release's run finishes. After the next release, confirm its assets include the `.sigstore.json` bundles and the `.intoto.jsonl` file (`gh release view vX.Y.Z --json assets --jq '.assets[].name'`).

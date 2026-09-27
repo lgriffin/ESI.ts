@@ -47,7 +47,7 @@ export function targetsIn(script: string, command: string): ScriptTarget[] {
   const found: ScriptTarget[] = [];
   const seen = new Set<string>();
   for (const raw of command.split(/\s+/)) {
-    // `--config=jest.unit.config.cjs` as well as `--config jest.unit.config.cjs`
+    // `--config=config/jest/unit.config.cjs` as well as `--config config/jest/unit.config.cjs`
     const token = raw.includes('=') ? raw.slice(raw.indexOf('=') + 1) : raw;
     const path = token.replace(/^['"]|['"]$/g, '');
     if (!looksLikeAPath(path) || seen.has(path)) continue;
