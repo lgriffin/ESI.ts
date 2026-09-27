@@ -95,6 +95,7 @@
     "build": "tsup && tsc --emitDeclarationOnly && node scripts/esm-declarations.cjs",
     "typecheck": "tsc --noEmit",
     "typecheck:examples": "tsc -p tsconfig.examples.json",
+    "typecheck:isolated": "ts-node scripts/isolated-declarations.ts",
     "examples:nightly": "ts-node scripts/examples-nightly.ts",
     "help": "ts-node scripts/npm-help.ts",
     "start": "ts-node examples/character-profile.ts",
