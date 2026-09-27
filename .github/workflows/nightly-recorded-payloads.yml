@@ -62,6 +62,30 @@ jobs:
             exit 2
           fi
 
+      # Before the next step reverts unchanged fixtures, check whether an open
+      # drift pull request still matches what ESI sends tonight. Only a clean
+      # recording counts: a failed endpoint keeps its committed fixture.
+      - name: Compare shapes with an open drift pull request
+        id: pr-shape
+        if: steps.record.outputs.exit == '0'
+        run: |
+          if ! git fetch --no-tags --depth=1 origin \
+            +refs/heads/automation/recorded-payload-shapes:refs/remotes/origin/automation/recorded-payload-shapes 2>/dev/null; then
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          set +e
+          npm run contract:shape-diff -- --ref=origin/automation/recorded-payload-shapes
+          code=$?
+          set -e
+          # 1: tonight's recording has a different shape from the one the pull
+          # request proposes, so what it describes is no longer current.
+          if [ "$code" -eq 1 ]; then
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Compare shapes with the committed fixtures
         id: shape
         run: |
@@ -134,11 +158,16 @@ jobs:
           body-path: pr-body.md
           labels: payload-drift
 
-      # A drift pull request from an earlier night is stale once the fixtures
-      # match again (master re-recorded them, or ESI went back), and it only
-      # collects merge conflicts, so close it.
+      # A drift pull request from an earlier night is stale once a clean
+      # recording matches master again and differs from what the pull request
+      # proposes (ESI went back, or master re-recorded). It would only collect
+      # merge conflicts, so close it. When tonight cannot tell (an optional
+      # field is simply absent), the pull request stays open.
       - name: Close a stale drift pull request
-        if: steps.shape.outputs.changed == 'false'
+        if: >-
+          steps.record.outputs.exit == '0' &&
+          steps.shape.outputs.changed == 'false' &&
+          steps.pr-shape.outputs.stale == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -147,7 +176,7 @@ jobs:
             --json number --jq '.[0].number // empty')
           if [ -n "$PR_NUMBER" ]; then
             gh pr close "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --delete-branch \
-              --comment "Tonight's re-recording matches the committed fixtures by shape, so this drift no longer applies. Closing automatically."
+              --comment "Tonight's re-recording matches master by shape and no longer matches this pull request, so this drift no longer applies. Closing automatically."
           fi
 
       - name: Summary
