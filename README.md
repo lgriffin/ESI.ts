@@ -115,15 +115,15 @@ sdeData.close();
 
 The README orients and the guides are canonical. Each guide opens with the charter requirements it implements.
 
-| Using ESI.ts                                       |                                                                                                   |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| [Using the client](guides/USAGE.md)                | Construction, configuration, every domain client, metadata, batching, examples, what 11.0 changes |
-| [Authentication](guides/AUTHENTICATION.md)         | Tokens, refresh on 401, SSO with PKCE, the multi-character token manager                          |
-| [Pagination](guides/PAGINATION.md)                 | Offset and cursor paging, `stream*`, `fetchAll*`, failure behaviour                               |
-| [Errors](guides/ERRORS.md)                         | Error classes, type guards, retryability, safe mode                                               |
-| [Runtime validation](guides/RUNTIME-VALIDATION.md) | Zod response and request validation                                                               |
-| [Logging](guides/LOGGING.md)                       | `ILogger`, per-client loggers, pino, `ESI_LOG_LEVEL`                                              |
-| [Static data (SDE)](src/sde/README.md)             | The offline Static Data Export module and its full API                                            |
+| Using ESI.ts                                       |                                                                                                      |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [Using the client](guides/USAGE.md)                | Construction, configuration, every domain client, metadata, batching, examples, what 11.0 changes    |
+| [Authentication](guides/AUTHENTICATION.md)         | Tokens, refresh on 401, SSO with PKCE, the multi-character token manager                             |
+| [Pagination](guides/PAGINATION.md)                 | Offset and cursor paging, `stream*`, `fetchAll*`, failure behaviour                                  |
+| [Errors](guides/ERRORS.md)                         | Error classes, type guards, retryability, safe mode                                                  |
+| [Runtime validation](guides/RUNTIME-VALIDATION.md) | Zod response and request validation                                                                  |
+| [Logging](guides/LOGGING.md)                       | `ILogger`, per-client loggers, pino, `ESI_LOG_LEVEL`                                                 |
+| [Static data (SDE)](guides/SDE.md)                 | The offline Static Data Export module: its role, isolation, API ([module README](src/sde/README.md)) |
 
 | How it is built                                |                                                                                 |
 | ---------------------------------------------- | ------------------------------------------------------------------------------- |

@@ -17,6 +17,7 @@ Topics with their own guide are summarised here and linked:
 | Zod schemas and validation options                   | [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md) |
 | Runtime defences and supply chain                    | [SECURITY.md](SECURITY.md)                     |
 | Test tiers                                           | [TESTING.md](TESTING.md)                       |
+| The SDE module and how it complements the client     | [SDE.md](SDE.md)                               |
 | CI workflows and gates                               | [QUALITY-GATES.md](QUALITY-GATES.md)           |
 | Releases                                             | [RELEASE.md](RELEASE.md)                       |
 | The 11.0 plan, phase by phase                        | [ROADMAP.md](ROADMAP.md)                       |
