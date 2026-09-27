@@ -3,7 +3,7 @@ import { RateLimiter } from '../../src/core/rateLimiter/RateLimiter';
 import { getConfig } from '../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';
 import { getBody } from '../../src/core/util/testHelpers';
-import '../../types/global.d.ts';
+import '../types/global.d.ts';
 
 fetchMock.enableMocks();
 
