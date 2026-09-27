@@ -52,6 +52,7 @@ describe('ApiRequestHandler no-content answers', () => {
       true,
       undefined,
       undefined,
+      undefined,
       true,
     );
 
@@ -74,6 +75,7 @@ describe('ApiRequestHandler no-content answers', () => {
       undefined,
       false,
       true,
+      undefined,
       undefined,
       undefined,
       true,
@@ -109,6 +111,7 @@ describe('ApiRequestHandler no-content answers', () => {
       true,
       undefined,
       undefined,
+      undefined,
       true,
     );
 
@@ -127,6 +130,7 @@ describe('ApiRequestHandler no-content answers', () => {
         undefined,
         false,
         true,
+        undefined,
         undefined,
         undefined,
         true,

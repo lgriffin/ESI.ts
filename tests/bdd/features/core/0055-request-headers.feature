@@ -26,6 +26,12 @@ Feature: Per-client tenant and user agent
       When the client requests their wallet balance
       Then the request shall carry the header "X-Tenant" with the value "singularity"
 
+    Scenario: The tenant also goes on a YAML specification request
+      Given a client configured for the "singularity" tenant
+      And the ESI API is available for YAML
+      When the client requests the OpenAPI YAML specification
+      Then the request shall carry the header "X-Tenant" with the value "singularity"
+
   Rule: If no tenant is configured, then the client shall send no X-Tenant header.
     ESI's own default applies, so an existing client keeps talking to
     Tranquility without sending anything new.

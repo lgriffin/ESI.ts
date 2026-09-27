@@ -25,6 +25,7 @@ import {
 } from './requestPipeline';
 export type { EsiHandlerResponse } from './requestPipeline';
 import type { EsiHandlerResponse } from './requestPipeline';
+import type { TextResponse } from './endpoints/EndpointDefinition';
 
 // --- Main request orchestration ---
 
@@ -37,6 +38,7 @@ const executeRequest = async (
   useETag: boolean = true,
   requestTimeout?: number,
   templatePath?: string,
+  textResponse?: TextResponse,
   emptyWhenNoContent?: boolean,
 ): Promise<EsiHandlerResponse> => {
   const startTime = Date.now();
@@ -76,6 +78,7 @@ const executeRequest = async (
       resolveCircuitBreaker,
       requestTimeout,
       templatePath,
+      textResponse?.accept,
     );
 
     if (response.status === 201 || response.status === 204) {
@@ -122,6 +125,7 @@ const executeRequest = async (
         useETag,
         requestTimeout,
         templatePath,
+        textResponse,
         emptyWhenNoContent,
       );
     }
@@ -151,7 +155,9 @@ const executeRequest = async (
       return finish(staleOrThrow);
     }
 
-    const data = await parseJsonBody(client, response, url);
+    const data = textResponse
+      ? await response.text()
+      : await parseJsonBody(client, response, url);
     // A multi-page response is cached by handleOffsetPagination once every
     // page is in. Caching page 1 here would let a retried call revalidate
     // against page 1 alone and resolve with it after a 304.
@@ -265,6 +271,7 @@ export const handleRequest = async (
   useETag: boolean = true,
   templatePath?: string,
   requestTimeout?: number,
+  textResponse?: TextResponse,
   emptyWhenNoContent: boolean = false,
 ): Promise<EsiHandlerResponse> => {
   const rawUrl = `${client.getLink()}/${endpoint}`;
@@ -302,6 +309,7 @@ export const handleRequest = async (
       useETag,
       requestTimeout,
       templatePath,
+      textResponse,
       emptyWhenNoContent,
     );
 

@@ -232,6 +232,7 @@ export function createClient<T extends EndpointMap>(
           true,
           def.path,
           undefined,
+          def.textResponse,
           def.emptyWhenNoContent,
         );
         let responseBody = response.body;

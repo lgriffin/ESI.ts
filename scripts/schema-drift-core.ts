@@ -389,7 +389,7 @@ export interface EndpointSchemaMapping {
 
 /**
  * Build mappings from loaded `*Endpoints.ts` modules: every exported endpoint
- * map, every definition with a `responseSchema`.
+ * map, every definition with a `responseSchema` and a JSON body.
  *
  * Reading the definitions as values pairs each path with its own schema. The
  * previous regex pass paired the n-th `path:` with the n-th `responseSchema:`
@@ -411,13 +411,17 @@ export function mappingsFromEndpointModules(
           path: unknown;
           method: unknown;
           responseSchema: unknown;
+          textResponse: unknown;
         }>;
+        // A text endpoint (meta/openapi.yaml) returns a document, not a JSON
+        // body, so the spec has no response schema to compare it with.
         if (
           typeof d !== 'object' ||
           d === null ||
           typeof d.path !== 'string' ||
           typeof d.method !== 'string' ||
-          !isZodLike(d.responseSchema)
+          !isZodLike(d.responseSchema) ||
+          d.textResponse !== undefined
         ) {
           continue;
         }
