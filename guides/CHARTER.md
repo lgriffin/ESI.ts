@@ -746,7 +746,7 @@ While an agent operates under the default conservative profile, the agent **shal
 `master` **shall** accept changes only through a pull request that is up to date with the base and passes the `ci-success` and Lint, Build & Test checks.
 
 - **Why:** Recorded in bead `esi-8we`. Force-push is disabled.
-- **Verified by:** GitHub branch protection.
+- **Verified by:** GitHub `branch protection` on `master`, a repository setting.
 
 #### PROC-04 · Ubiquitous · Partial
 

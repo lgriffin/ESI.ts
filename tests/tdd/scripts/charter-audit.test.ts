@@ -19,6 +19,7 @@ import {
   checkVerifiedBy,
   formatFindings,
   parseCharter,
+  workflowJobs,
 } from '../../../scripts/charter-audit-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
@@ -30,8 +31,10 @@ function block(
     id: 'ARCH-01',
     pattern: 'Ubiquitous',
     status: 'Practised',
+    fields: ['ARCH-01', 'Ubiquitous', 'Practised'],
     line: 1,
     verifiedBy: '',
+    rest: '',
     ...overrides,
   };
 }
@@ -74,6 +77,20 @@ Prose between the parts, with no requirement.
 #### DES-01 · Event-driven · Practised
 
 - **Why:** A block with no requirement paragraph.
+
+   #### DES-02 · Ubiquitous · Practised · obsolete
+
+The client **shall** send one request per call.
+
+Later prose says the client **shall** log it too.
+
+\`\`\`markdown
+#### DES-99 · Ubiquitous · Gap
+
+An example block inside a fence, which is not a requirement.
+\`\`\`
+
+- **Why:** The fence shows the form.
 `;
 
 describe('the charter audit', () => {
@@ -90,11 +107,10 @@ describe('the charter audit', () => {
     const jobs = new Set<string>();
     for (const file of readdirSync(dir).filter((f) => f.endsWith('.yml'))) {
       workflows.add(file);
-      const text = readFileSync(path.join(dir, file), 'utf-8');
-      for (const m of text.matchAll(/^  ([A-Za-z0-9_-]+):\s*$/gm))
-        jobs.add(m[1]!);
-      for (const m of text.matchAll(/^    name:\s*(['"]?)(.+?)\1\s*$/gm))
-        jobs.add(m[2]!);
+      for (const job of workflowJobs(
+        readFileSync(path.join(dir, file), 'utf-8'),
+      ))
+        jobs.add(job);
     }
     const files = execFileSync('git', ['ls-files'], {
       cwd: ROOT,
@@ -127,7 +143,29 @@ describe('the charter audit', () => {
         ['ARCH-01', 'Ubiquitous', 'Enforced', 4],
         ['ARCH-02', 'Unwanted', 'Gap', 11],
         ['DES-01', 'Event-driven', 'Practised', 25],
+        ['DES-02', 'Ubiquitous', 'Practised', 29],
       ]);
+    });
+
+    it('keeps every header field and the prose after the first paragraph', () => {
+      expect(blocks[3]?.fields).toEqual([
+        'DES-02',
+        'Ubiquitous',
+        'Practised',
+        'obsolete',
+      ]);
+      expect(blocks[3]?.text).toBe(
+        'The client **shall** send one request per call.',
+      );
+      expect(blocks[3]?.rest).toBe(
+        'Later prose says the client **shall** log it too.',
+      );
+      expect(blocks[0]?.rest).toBe('');
+    });
+
+    it('ignores a #### heading inside a fenced code block', () => {
+      expect(blocks.some((b) => b.id === 'DES-99')).toBe(false);
+      expect(blocks[3]?.verifiedBy).toBe('');
     });
 
     it('takes the first paragraph as the requirement, joined across lines', () => {
@@ -248,6 +286,39 @@ describe('the charter audit', () => {
       ).toEqual(["id 'ARCH-01' is used twice"]);
     });
 
+    it('requires exactly three header fields', () => {
+      const text = 'The client **shall** retry.';
+      expect(
+        messages([
+          block({
+            fields: ['ARCH-01', 'Ubiquitous', 'Practised', 'obsolete'],
+            text,
+          }),
+        ]),
+      ).toEqual(['header has 4 field(s); the form is `ID · pattern · status`']);
+      expect(
+        messages([
+          block({ fields: ['ARCH-01', 'Ubiquitous'], status: '', text }),
+        ]),
+      ).toEqual([
+        'header has 2 field(s); the form is `ID · pattern · status`',
+        "status '' is not one of Enforced, Practised, Partial, Gap",
+      ]);
+    });
+
+    it('rejects a second shall in the prose after the requirement', () => {
+      expect(
+        messages([
+          block({
+            text: 'The client **shall** retry.',
+            rest: 'The client **shall** also log, and the logger **shall** flush.',
+          }),
+        ]),
+      ).toEqual([
+        "has 2 'shall' after its first paragraph; a block states one requirement, then its rationale",
+      ]);
+    });
+
     it('reports a block with no requirement paragraph once and stops there', () => {
       expect(messages([block({ status: 'Enforced', text: '' })])).toEqual([
         'has no requirement paragraph under the header',
@@ -300,11 +371,20 @@ describe('the charter audit', () => {
         '`security.test.ts` host allowlist',
       ],
       [
-        'branch protection, which no file can hold',
-        'GitHub branch protection.',
+        'branch protection, which no file can hold, named in backticks',
+        'GitHub `branch protection` on `master`.',
       ],
     ])('%s', (_kind, verifiedBy) => {
       expect(checkVerifiedBy(verifiedBy, MECHANISMS)).toBeNull();
+    });
+
+    it('does not accept branch protection mentioned in passing', () => {
+      expect(
+        checkVerifiedBy(
+          'Review, since branch protection cannot check this.',
+          MECHANISMS,
+        ),
+      ).toBe('names no script, job or file (nothing in backticks)');
     });
 
     it('does not accept a file that is not tracked or a script that is not defined', () => {
@@ -314,6 +394,33 @@ describe('the charter audit', () => {
       expect(checkVerifiedBy('`npm run other`', MECHANISMS)).toMatch(
         /names nothing that exists/,
       );
+    });
+  });
+
+  describe('workflowJobs', () => {
+    it('collects job ids and names under jobs:, not trigger or permission keys', () => {
+      const yaml = [
+        'name: CI',
+        'on:',
+        '  push:',
+        '  pull_request:',
+        'permissions:',
+        '  contents: read',
+        'jobs:',
+        '  lint:',
+        '    name: Lint',
+        '    runs-on: ubuntu-latest',
+        '  api-surface:',
+        "    name: 'API Surface Check'",
+        'env:',
+        '  CI: true',
+      ].join('\n');
+      expect(workflowJobs(yaml)).toEqual([
+        'lint',
+        'Lint',
+        'api-surface',
+        'API Surface Check',
+      ]);
     });
   });
 });

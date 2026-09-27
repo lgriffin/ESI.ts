@@ -20,6 +20,7 @@ import {
   auditCharter,
   formatFindings,
   parseCharter,
+  workflowJobs,
 } from './charter-audit-core';
 
 const ROOT = path.resolve(__dirname, '..');
@@ -33,11 +34,8 @@ function workflowMechanisms(): Pick<Mechanisms, 'jobs' | 'workflows'> {
   const jobs = new Set<string>();
   for (const file of readdirSync(dir).filter((f) => /\.ya?ml$/.test(f))) {
     workflows.add(file);
-    const text = readFileSync(path.join(dir, file), 'utf-8');
-    for (const m of text.matchAll(/^  ([A-Za-z0-9_-]+):\s*$/gm))
-      jobs.add(m[1]!);
-    for (const m of text.matchAll(/^    name:\s*(['"]?)(.+?)\1\s*$/gm))
-      jobs.add(m[2]!);
+    for (const job of workflowJobs(readFileSync(path.join(dir, file), 'utf-8')))
+      jobs.add(job);
   }
   return { jobs, workflows };
 }

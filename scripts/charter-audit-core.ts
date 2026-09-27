@@ -43,8 +43,9 @@ export type CharterStatus = (typeof STATUSES)[number];
 
 /**
  * Mechanisms that live in GitHub's settings rather than in a file, so no
- * path, script or job can name them. Listed here so an Enforced row may
- * cite them; anything else must exist in the repository.
+ * path, script or job can name them. An Enforced row cites one in backticks
+ * (\`branch protection\`), like any other mechanism; a passing mention in
+ * prose does not count. Anything else must exist in the repository.
  */
 export const EXTERNAL_MECHANISMS = ['branch protection'] as const;
 
@@ -52,10 +53,14 @@ export interface CharterBlock {
   id: string;
   pattern: string;
   status: string;
+  /** Every `·`-separated field of the header; a well-formed header has three. */
+  fields: string[];
   /** 1-based line of the `####` header. */
   line: number;
   /** The requirement: the first paragraph under the header. */
   text: string;
+  /** Prose after the first paragraph and before the bullets, joined. */
+  rest: string;
   /** The `Verified by` bullet without its label, or '' when absent. */
   verifiedBy: string;
 }
@@ -78,57 +83,122 @@ export interface Mechanisms {
   files: readonly string[];
 }
 
-const HEADER = /^####\s+(.+?)\s*$/;
+// A Markdown heading may be indented by up to three spaces.
+const HEADER = /^ {0,3}####\s+(.+?)\s*$/;
+const ANY_HEADING = /^ {0,3}#{1,6}\s/;
+const RULE = /^ {0,3}(-{3,}|\*{3,}|_{3,})\s*$/;
+const FENCE = /^ {0,3}(```|~~~)/;
+const BULLET = /^\s*[-*]\s/;
 
-/** Parse every `####` requirement block of the charter, in file order. */
+/**
+ * Parse every `####` requirement block of the charter, in file order. Lines
+ * inside a fenced code block are prose examples, never headers or block
+ * boundaries.
+ */
 export function parseCharter(markdown: string): CharterBlock[] {
   const lines = markdown.split(/\r?\n/);
   const blocks: CharterBlock[] = [];
+  let fenced = false;
 
   for (let i = 0; i < lines.length; i += 1) {
-    const header = HEADER.exec(lines[i] ?? '');
+    const line = lines[i] ?? '';
+    if (FENCE.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    const header = HEADER.exec(line);
     if (!header) continue;
-    const parts = header[1]!.split('·').map((p) => p.trim());
-    const [id = '', pattern = '', status = ''] = parts;
+    const fields = header[1]!.split('·').map((p) => p.trim());
+    const [id = '', pattern = '', status = ''] = fields;
 
-    // The block runs to the next heading of any level or a rule.
+    // The block runs to the next heading of any level or a rule, fences
+    // aside.
     let end = i + 1;
-    while (
-      end < lines.length &&
-      !/^#{1,6}\s/.test(lines[end] ?? '') &&
-      !/^---\s*$/.test(lines[end] ?? '')
-    ) {
+    let innerFence = false;
+    while (end < lines.length) {
+      const l = lines[end] ?? '';
+      if (FENCE.test(l)) innerFence = !innerFence;
+      else if (!innerFence && (ANY_HEADING.test(l) || RULE.test(l))) break;
       end += 1;
     }
     const body = lines.slice(i + 1, end);
 
-    const text = firstParagraph(body);
+    const { text, rest } = paragraphs(body);
     const verified = body.find((l) => /^\s*-\s+\*\*Verified by:\*\*/.test(l));
     const verifiedBy = verified
       ? verified.replace(/^\s*-\s+\*\*Verified by:\*\*\s*/, '').trim()
       : '';
 
-    blocks.push({ id, pattern, status, line: i + 1, text, verifiedBy });
+    blocks.push({
+      id,
+      pattern,
+      status,
+      fields,
+      line: i + 1,
+      text,
+      rest,
+      verifiedBy,
+    });
     i = end - 1;
   }
   return blocks;
 }
 
-function firstParagraph(body: readonly string[]): string {
-  const paragraph: string[] = [];
-  let started = false;
+/**
+ * The first paragraph (the requirement) and the prose after it up to the
+ * first bullet (which the audit holds free of further obligations). Fenced
+ * code inside the block is an example and is left out of both.
+ */
+function paragraphs(body: readonly string[]): { text: string; rest: string } {
+  const first: string[] = [];
+  const rest: string[] = [];
+  let state: 'before' | 'first' | 'rest' | 'done' = 'before';
+  let fenced = false;
   for (const line of body) {
-    const blank = line.trim().length === 0;
-    if (!started) {
-      if (blank) continue;
-      if (/^\s*[-*]\s/.test(line)) break;
-      started = true;
-    } else if (blank || /^\s*[-*]\s/.test(line)) {
-      break;
+    if (FENCE.test(line)) {
+      fenced = !fenced;
+      continue;
     }
-    paragraph.push(line.trim());
+    if (fenced) continue;
+    const blank = line.trim().length === 0;
+    if (state === 'before') {
+      if (blank) continue;
+      if (BULLET.test(line)) break;
+      state = 'first';
+      first.push(line.trim());
+    } else if (state === 'first') {
+      if (BULLET.test(line)) break;
+      if (blank) state = 'rest';
+      else first.push(line.trim());
+    } else if (state === 'rest') {
+      if (BULLET.test(line)) break;
+      if (!blank) rest.push(line.trim());
+    }
   }
-  return paragraph.join(' ');
+  return { text: first.join(' '), rest: rest.join(' ') };
+}
+
+/**
+ * The jobs a workflow file defines: the keys directly under `jobs:` and each
+ * job's `name`. Trigger keys under `on:` and other top-level maps are not
+ * jobs and are not collected.
+ */
+export function workflowJobs(yaml: string): string[] {
+  const jobs: string[] = [];
+  let inJobs = false;
+  for (const line of yaml.split(/\r?\n/)) {
+    if (/^\S/.test(line)) {
+      inJobs = /^jobs:\s*(#.*)?$/.test(line);
+      continue;
+    }
+    if (!inJobs) continue;
+    const id = /^  ([A-Za-z0-9_-]+):\s*(#.*)?$/.exec(line);
+    if (id) jobs.push(id[1]!);
+    const name = /^    name:\s*(['"]?)(.+?)\1\s*(#.*)?$/.exec(line);
+    if (name) jobs.push(name[2]!);
+  }
+  return jobs;
 }
 
 /** The EARS pattern the text's leading keyword announces. */
@@ -167,8 +237,6 @@ export function checkVerifiedBy(
   mechanisms: Mechanisms,
 ): string | null {
   if (verifiedBy.trim().length === 0) return 'has no "Verified by" line';
-  const lower = verifiedBy.toLowerCase();
-  if (EXTERNAL_MECHANISMS.some((m) => lower.includes(m))) return null;
 
   const fileSet = new Set(mechanisms.files);
   const byBase = new Map<string, number>();
@@ -185,6 +253,10 @@ export function checkVerifiedBy(
 
   const tokens = backticked(verifiedBy);
   for (const token of tokens) {
+    if (
+      (EXTERNAL_MECHANISMS as readonly string[]).includes(token.toLowerCase())
+    )
+      return null;
     const script = /^npm run ([\w:.-]+)/.exec(token);
     if (script && mechanisms.scripts.has(script[1]!)) return null;
     if (mechanisms.scripts.has(token)) return null;
@@ -216,6 +288,12 @@ export function auditCharter(
     findings.push({ id: b.id || '(no id)', line: b.line, message });
 
   for (const b of blocks) {
+    if (b.fields.length !== 3) {
+      add(
+        b,
+        `header has ${b.fields.length} field(s); the form is \`ID · pattern · status\``,
+      );
+    }
     if (!/^[A-Z]+-\d{2}$/.test(b.id)) {
       add(b, `id '${b.id}' is not PREFIX-NN`);
     } else if (seen.has(b.id)) {
@@ -250,6 +328,14 @@ export function auditCharter(
     }
     for (const problem of checkEarsPatternStructure(text)) add(b, problem);
     for (const problem of checkMissingSystemName(text)) add(b, problem);
+
+    const later = countShall(plain(b.rest));
+    if (later > 0) {
+      add(
+        b,
+        `has ${later} 'shall' after its first paragraph; a block states one requirement, then its rationale`,
+      );
+    }
 
     const lead = leadingPattern(text);
     if (
