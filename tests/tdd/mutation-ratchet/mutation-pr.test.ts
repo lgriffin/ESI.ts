@@ -13,6 +13,7 @@ import {
   PrPlan,
   applyRatchet,
   classifyPrMutationRun,
+  coverageFromReport,
   fixtureSignalProblems,
   gatePrRun,
   globToRegExp,
@@ -24,6 +25,7 @@ import {
   resolveBaseRef,
   scoreByDirectory,
   scoreFiles,
+  sourceDirectoryForTest,
   thresholdDecreases,
   undetectedMutants,
 } from '../../../scripts/mutation/mutation-ratchet-core';
@@ -91,6 +93,79 @@ function plan(overrides: Partial<Parameters<typeof planPrRun>[0]> = {}) {
     ...overrides,
   });
 }
+
+describe('coverage from the incremental report', () => {
+  it('maps each source file to the test files whose tests cover its mutants', () => {
+    const coverage = coverageFromReport(
+      {
+        files: {
+          'src/core/cache/cacheKey.ts': {
+            mutants: [{ coveredBy: ['1', '2'] }, { coveredBy: ['2'] }],
+          },
+          'src/core/cache/ETagCacheManager.ts': {
+            mutants: [{ coveredBy: ['1'] }, { coveredBy: [] }, {}],
+          },
+          'src/core/util/sleep.ts': { mutants: [{ coveredBy: ['gone'] }] },
+        },
+        testFiles: {
+          'tests/tdd/core/cache/cacheKey.test.ts': {
+            tests: [{ id: '1' }, { id: '2' }],
+          },
+          'tests/tdd/core/cache/ETagCacheManager.test.ts': { tests: [] },
+        },
+      },
+      (f) => f,
+    );
+    expect(coverage).not.toBeNull();
+    expect(coverage!.get('src/core/cache/cacheKey.ts')).toEqual(
+      new Set(['tests/tdd/core/cache/cacheKey.test.ts']),
+    );
+    expect(coverage!.get('src/core/cache/ETagCacheManager.ts')).toEqual(
+      new Set(['tests/tdd/core/cache/cacheKey.test.ts']),
+    );
+    // An unknown test id maps to no file.
+    expect(coverage!.get('src/core/util/sleep.ts')).toEqual(new Set());
+  });
+
+  it('maps the report paths to the repository', () => {
+    const coverage = coverageFromReport(
+      {
+        files: {
+          '/runner/work/src/core/cache/cacheKey.ts': {
+            mutants: [{ coveredBy: ['1'] }],
+          },
+        },
+        testFiles: {
+          '/runner/work/tests/tdd/a.test.ts': { tests: [{ id: '1' }] },
+        },
+      },
+      (f) => f.replace('/runner/work/', ''),
+    );
+    expect(coverage!.get('src/core/cache/cacheKey.ts')).toEqual(
+      new Set(['tests/tdd/a.test.ts']),
+    );
+  });
+
+  it('is null when the report carries no test files', () => {
+    expect(
+      coverageFromReport({ files: { 'src/a.ts': { mutants: [] } } }),
+    ).toBeNull();
+  });
+
+  it.each([
+    ['tests/tdd/core/cache/cacheKey.test.ts', 'src/core/cache'],
+    ['tests/tdd/core/RetryBackoff.test.ts', 'src/core'],
+    ['tests/tdd/auth/EsiTokenManager.test.ts', 'src/auth'],
+    ['tests\\tdd\\clients\\MarketClient.test.ts', 'src/clients'],
+    ['tests/bdd/steps/then/a.ts', null],
+    ['tests/tdd/a.test.ts', null],
+  ])(
+    'reads the directory a unit test sits over from its path: %s',
+    (test, expected) => {
+      expect(sourceDirectoryForTest(test)).toBe(expected);
+    },
+  );
+});
 
 describe('mutation scope globs', () => {
   it.each([
@@ -170,6 +245,202 @@ describe('pull request mutation plan', () => {
       'src/core/cache/ETagCacheManager.ts',
       'src/core/cache/cacheKey.ts',
     ]);
+  });
+
+  it('mutates a vouched sibling again when a changed test covered it (#380)', () => {
+    const baselineSources = new Map([
+      ['src/core/cache/ETagCacheManager.ts', 'old'],
+      ['src/core/cache/cacheKey.ts', 'same'],
+      ['src/core/cache/CacheHeaders.ts', 'same'],
+    ]);
+    const baselineCoverage = new Map([
+      ['src/core/cache/ETagCacheManager.ts', new Set<string>()],
+      [
+        'src/core/cache/cacheKey.ts',
+        new Set(['tests/tdd/core/cache/cacheKey.test.ts']),
+      ],
+      [
+        'src/core/cache/CacheHeaders.ts',
+        new Set(['tests/tdd/core/cache/CacheHeaders.test.ts']),
+      ],
+    ]);
+    const base = {
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+      trackedFiles: [
+        'src/core/cache/ETagCacheManager.ts',
+        'src/core/cache/CacheHeaders.ts',
+        'src/core/cache/cacheKey.ts',
+      ],
+      baselineSources,
+      baselineCoverage,
+      readSource: () => 'same',
+    };
+    // Only the sibling whose mutants the changed test reached last night can
+    // lose a kill; the other keeps the nightly's verdict.
+    const changed = plan({
+      ...base,
+      changedTestFiles: ['tests/tdd/core/cache/cacheKey.test.ts'],
+    });
+    expect(changed.retested).toEqual(['src/core/cache/cacheKey.ts']);
+    expect(changed.mutate).toEqual([
+      'src/core/cache/ETagCacheManager.ts',
+      'src/core/cache/cacheKey.ts',
+    ]);
+    expect(changed.nightly).toEqual(['src/core/cache/CacheHeaders.ts']);
+    expect(changed.force).toBe(true);
+
+    // A test the report never saw (a new file) can only add kills, which the
+    // next nightly records: nothing is retested, nothing is reused wrongly.
+    const added = plan({
+      ...base,
+      changedTestFiles: ['tests/tdd/core/cache/ETagCacheManager.test.ts'],
+    });
+    expect(added.retested).toEqual([]);
+    expect(added.mutate).toEqual(['src/core/cache/ETagCacheManager.ts']);
+    expect(added.force).toBe(true);
+
+    // A deleted test is in the diff and counts the same as a changed one.
+    const deleted = plan({
+      ...base,
+      changedTestFiles: ['tests/tdd/core/cache/CacheHeaders.test.ts'],
+    });
+    expect(deleted.retested).toEqual(['src/core/cache/CacheHeaders.ts']);
+
+    const untouched = plan({ ...base, changedTestFiles: [] });
+    expect(untouched.retested).toEqual([]);
+    expect(untouched.nightly).toEqual([
+      'src/core/cache/CacheHeaders.ts',
+      'src/core/cache/cacheKey.ts',
+    ]);
+    expect(untouched.force).toBe(false);
+  });
+
+  it('retests every vouched sibling when it cannot tell which tests covered what', () => {
+    const baselineSources = new Map([
+      ['src/core/cache/ETagCacheManager.ts', 'old'],
+      ['src/core/cache/cacheKey.ts', 'same'],
+    ]);
+    // The report carries no per-test coverage.
+    const noCoverage = plan({
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+      baselineSources,
+      readSource: () => 'same',
+      changedTestFiles: ['tests/tdd/core/RetryStrategy.test.ts'],
+    });
+    expect(noCoverage.retested).toEqual(['src/core/cache/cacheKey.ts']);
+    expect(noCoverage.nightly).toEqual([]);
+    expect(noCoverage.force).toBe(true);
+
+    // The tests diff could not be read: tests may have changed.
+    const unknown = plan({
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+      baselineSources,
+      baselineCoverage: new Map([
+        ['src/core/cache/cacheKey.ts', new Set<string>()],
+      ]),
+      readSource: () => 'same',
+      changedTestFiles: null,
+    });
+    expect(unknown.retested).toEqual(['src/core/cache/cacheKey.ts']);
+    expect(unknown.force).toBe(true);
+
+    // The report knows coverage but not this file: nothing vouches for it.
+    const unlisted = plan({
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+      baselineSources,
+      baselineCoverage: new Map(),
+      readSource: () => 'same',
+      changedTestFiles: ['tests/tdd/core/RetryStrategy.test.ts'],
+    });
+    expect(unlisted.retested).toEqual(['src/core/cache/cacheKey.ts']);
+  });
+
+  it('mutates the directories a test-only pull request reaches, by coverage and by layout', () => {
+    const baselineSources = new Map([
+      ['src/core/cache/ETagCacheManager.ts', 'same'],
+      ['src/core/cache/cacheKey.ts', 'same'],
+      ['src/core/util/sleep.ts', 'same'],
+    ]);
+    const baselineCoverage = new Map([
+      ['src/core/cache/ETagCacheManager.ts', new Set<string>()],
+      ['src/core/cache/cacheKey.ts', new Set<string>()],
+      [
+        'src/core/util/sleep.ts',
+        new Set(['tests/bdd/step-definitions/core/resilience.steps.ts']),
+      ],
+    ]);
+    const result = plan({
+      changedFiles: ['tests/bdd/step-definitions/core/resilience.steps.ts'],
+      baselineSources,
+      baselineCoverage,
+      readSource: () => 'same',
+      changedTestFiles: [
+        'tests/bdd/step-definitions/core/resilience.steps.ts',
+        'tests/tdd/core/cache/cacheKey.test.ts',
+      ],
+    });
+    expect(result.skip).toBe(false);
+    expect(result.changed).toEqual([]);
+    expect(result.directories).toEqual(['src/core/cache', 'src/core/util']);
+    // Only the file the changed step file covered is mutated again; the
+    // cache files reached by layout alone keep the nightly's verdicts.
+    expect(result.mutate).toEqual(['src/core/util/sleep.ts']);
+    expect(result.retested).toEqual(result.mutate);
+    expect(result.nightly).toEqual([
+      'src/core/cache/ETagCacheManager.ts',
+      'src/core/cache/cacheKey.ts',
+    ]);
+    expect(result.force).toBe(true);
+  });
+
+  it('skips a test-only pull request whose tests covered nothing, saying it cannot lower a score', () => {
+    const result = plan({
+      changedFiles: ['tests/tdd/core/cache/cacheKey.test.ts'],
+      changedTestFiles: ['tests/tdd/core/cache/cacheKey.test.ts'],
+      baselineSources: new Map([
+        ['src/core/cache/ETagCacheManager.ts', 'same'],
+        ['src/core/cache/cacheKey.ts', 'same'],
+      ]),
+      baselineCoverage: new Map([
+        ['src/core/cache/ETagCacheManager.ts', new Set<string>()],
+        ['src/core/cache/cacheKey.ts', new Set<string>()],
+      ]),
+      readSource: () => 'same',
+    });
+    expect(result.skip).toBe(true);
+    expect(result.reason).toMatch(/cannot lower a score/);
+    expect(result.directories).toEqual(['src/core/cache']);
+    expect(result.mutate).toEqual([]);
+  });
+
+  it('skips a test-only pull request it cannot tie to a directory, saying so', () => {
+    const result = plan({
+      changedFiles: ['tests/bdd/features/core/0001.feature'],
+      changedTestFiles: ['tests/bdd/features/core/0001.feature'],
+      baselineCoverage: new Map(),
+    });
+    expect(result.skip).toBe(true);
+    expect(result.reason).toMatch(/changes only tests/);
+    // A layout match needs an in-scope directory that exists.
+    expect(
+      plan({
+        changedFiles: [],
+        changedTestFiles: ['tests/tdd/sde/ingestion/transforms.test.ts'],
+      }).skip,
+    ).toBe(true);
+  });
+
+  it('with no baseline, a changed test adds nothing to retest but still forces', () => {
+    const result = plan({
+      changedFiles: ['src/core/cache/ETagCacheManager.ts'],
+      changedTestFiles: ['tests/tdd/core/cache/cacheKey.test.ts'],
+    });
+    expect(result.retested).toEqual([]);
+    expect(result.mutate).toEqual([
+      'src/core/cache/ETagCacheManager.ts',
+      'src/core/cache/cacheKey.ts',
+    ]);
+    expect(result.force).toBe(true);
   });
 
   it('lists the in-scope siblings a baseline vouches for as nightly, not in mutate', () => {
@@ -306,6 +577,8 @@ describe('pull request ratchet gate', () => {
       directories: ['src/core/cache'],
       mutate: ['src/core/cache/ETagCacheManager.ts'],
       nightly: ['src/core/cache/cacheKey.ts'],
+      retested: [],
+      force: true,
     };
     const run = report({
       'src/core/cache/ETagCacheManager.ts': ['Killed'],
@@ -334,9 +607,7 @@ describe('pull request ratchet gate', () => {
       '`src/core/cache` is partly from the nightly (1 of 2 files was reused from the restored report, not measured by this run)',
     );
     expect(text).toContain('`src/core/cache/cacheKey.ts`');
-    // The changed test targets the directory's source, so its effect on the
-    // unchanged file's mutants is deferred to the next nightly.
-    expect(text).toContain('will show in the next nightly');
+    expect(text).toContain('--force');
   });
 
   it('defers the test-only improvement to the next nightly without blaming the directory', () => {
@@ -348,6 +619,8 @@ describe('pull request ratchet gate', () => {
       directories: ['src/core/cache'],
       mutate: ['src/core/cache/ETagCacheManager.ts'],
       nightly: [],
+      retested: [],
+      force: true,
     };
     const run = report({
       'src/core/cache/ETagCacheManager.ts': ['Killed'],
@@ -369,10 +642,12 @@ describe('pull request ratchet gate', () => {
     expect(failures).toEqual([]);
     // No nightly part was reused, so no "partly from the nightly" claim.
     expect(text).not.toContain('is partly from the nightly');
-    // The tests-only change's effect on the unchanged file's mutants is
-    // deferred to the next nightly, and named after the directory.
-    expect(text).toContain('`src/core/cache`: the changed tests');
-    expect(text).toContain('next nightly');
+    // Nothing was reused and nothing retested, so no per-directory note; the
+    // run still says it forced every mutant because a test changed.
+    expect(text).not.toContain('`src/core/cache`: the changed tests');
+    expect(text).toContain(
+      'Tests changed, so every mutant of the mutated files ran in this job (`--force`)',
+    );
   });
 
   it('says nothing about nightly reuse when the plan has none', () => {
@@ -387,6 +662,8 @@ describe('pull request ratchet gate', () => {
         'src/core/cache/cacheKey.ts',
       ],
       nightly: [],
+      retested: [],
+      force: false,
     };
     const run = report({
       'src/core/cache/ETagCacheManager.ts': ['Killed'],
@@ -406,7 +683,45 @@ describe('pull request ratchet gate', () => {
         'no nightly incremental report at `reports/mutation/stryker-incremental.json`.',
     });
     expect(text).not.toContain('is partly from the nightly');
-    expect(text).not.toContain('next nightly');
+    expect(text).not.toContain('--force');
+  });
+
+  it('names the files mutated again because the pull request changes tests', () => {
+    const touched: PrPlan = {
+      skip: false,
+      reason: '',
+      changed: ['src/core/cache/ETagCacheManager.ts'],
+      outOfScope: [],
+      directories: ['src/core/cache'],
+      mutate: [
+        'src/core/cache/ETagCacheManager.ts',
+        'src/core/cache/cacheKey.ts',
+      ],
+      nightly: [],
+      retested: ['src/core/cache/cacheKey.ts'],
+      force: true,
+    };
+    const run = report({
+      'src/core/cache/ETagCacheManager.ts': ['Killed'],
+      'src/core/cache/cacheKey.ts': ['Killed'],
+    });
+    const { scores, failures } = gatePrRun(run, touched, {
+      'src/core/cache': 100,
+    });
+    const text = renderPrSummary({
+      plan: touched,
+      scores,
+      thresholds: { 'src/core/cache': 100 },
+      files: scoreFiles(run, touched.changed),
+      undetected: [],
+      failures,
+      baseline: 'test baseline',
+      testFiles: ['tests/tdd/cache/cacheKey.test.ts'],
+    });
+    expect(text).toContain(
+      '`src/core/cache`: 1 unchanged file(s) mutated again because this pull request changes a test that covered them',
+    );
+    expect(text).toContain('`src/core/cache/cacheKey.ts`');
   });
 
   it('escapes a replacement that would otherwise break the summary table', () => {

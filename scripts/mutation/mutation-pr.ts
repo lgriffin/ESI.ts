@@ -11,13 +11,21 @@
  *    unreadable head file: fail closed. The base predating the file is the
  *    only case with nothing to compare.
  * 3. Plans the run from `git diff <base>`: changed src/ files inside the unit
- *    config's `mutate` scope, plus changed tests/ files (which never mutate
- *    anything directly but do tell the summary which directories' floors its
- *    new tests will lift). None in src/: prints why, exits 0.
+ *    config's `mutate` scope, plus changed tests/ files, which mutate nothing
+ *    directly but decide which unchanged files run again (step 4). None in
+ *    src/: prints why, exits 0.
  * 4. Runs Stryker with --incremental and --mutate narrowed to those files, plus
  *    any file in the same directories that the restored nightly incremental
- *    report (reports/mutation/stryker-incremental.json) does not cover. With
- *    no restored report that is every file in those directories.
+ *    report (reports/mutation/stryker-incremental.json) does not cover.
+ *    When the pull request changes or deletes a test, every reused file
+ *    whose mutants that test covered in the report runs again with --force,
+ *    since a score can only fall through a test that killed one of its
+ *    mutants last night (#380); a test the report never saw can only raise
+ *    a score, which the next nightly records. A test-only pull request
+ *    mutates the directories its tests reach: those the report's per-test
+ *    coverage ties them to, and for a test under tests/tdd/ the directory
+ *    its path mirrors. With no restored report that is every file in those
+ *    directories; with no per-test coverage, every reused file of them.
  * 5. Scores each touched directory (fresh results for changed code, nightly
  *    results for the rest) against config/mutation/unit-thresholds.json and fails if one
  *    is below its floor or has none. Per-file scores and undetected mutants
@@ -38,9 +46,12 @@ import { appendFileSync, existsSync, readFileSync } from 'fs';
 import * as path from 'path';
 import { baselineShardFor, parseShards } from './mutation-merge-core';
 import {
+  BaselineCoverage,
   Git,
+  IncrementalReport,
   MutationCheckError,
   MutationReport,
+  coverageFromReport,
   gatePrRun,
   planPrRun,
   readThresholdPair,
@@ -101,25 +112,29 @@ function mutatePatterns(): string[] {
 
 function readBaseline(): {
   sources: Map<string, string> | null;
+  coverage: BaselineCoverage | null;
   note: string;
 } {
   const file = path.join(ROOT, INCREMENTAL);
   if (!existsSync(file)) {
     return {
       sources: null,
+      coverage: null,
       note: `no nightly incremental report at \`${INCREMENTAL}\`; every file in the touched directories is mutated from scratch.`,
     };
   }
   try {
-    const report = JSON.parse(readFileSync(file, 'utf8')) as {
-      files: Record<string, { source?: string }>;
-    };
+    const report = JSON.parse(readFileSync(file, 'utf8')) as IncrementalReport;
     const sources = new Map(
       Object.entries(report.files).map(([f, { source }]) => [f, source ?? '']),
     );
+    const coverage = coverageFromReport(report, (f) =>
+      path.isAbsolute(f) ? path.relative(ROOT, f) : f,
+    );
     return {
       sources,
-      note: `nightly incremental report restored (${sources.size} files); unchanged mutants reuse its results.`,
+      coverage,
+      note: `nightly incremental report restored (${sources.size} files${coverage === null ? ', no per-test coverage' : ''}); unchanged mutants reuse its results unless a test this pull request changes covered them.`,
     };
   } catch (err) {
     throw new Broken(
@@ -128,7 +143,7 @@ function readBaseline(): {
   }
 }
 
-function runStryker(mutate: string[], extra: string[]): void {
+function runStryker(mutate: string[], extra: string[], force: boolean): void {
   const bin = path.join(
     ROOT,
     'node_modules/@stryker-mutator/core/bin/stryker.js',
@@ -138,6 +153,7 @@ function runStryker(mutate: string[], extra: string[]): void {
     'run',
     CONFIG,
     '--incremental',
+    ...(force ? ['--force'] : []),
     '--mutate',
     mutate.join(','),
     ...extra,
@@ -157,7 +173,10 @@ function runStryker(mutate: string[], extra: string[]): void {
 function changedAndTracked(base: string): {
   changedFiles: string[];
   trackedFiles: string[];
-  /** Changed files under tests/; null when the diff could not be read. */
+  /**
+   * Files added, modified or deleted under tests/ (a deleted test can no
+   * longer kill anything); null when the diff could not be read.
+   */
   testFiles: string[] | null;
 } {
   const changedFiles = git([
@@ -172,14 +191,7 @@ function changedAndTracked(base: string): {
     .filter(Boolean);
   let testFiles: string[] | null = null;
   try {
-    testFiles = git([
-      'diff',
-      '--name-only',
-      '--diff-filter=d',
-      base,
-      '--',
-      'tests/',
-    ])
+    testFiles = git(['diff', '--name-only', base, '--', 'tests/'])
       .split('\n')
       .filter(Boolean);
   } catch {
@@ -196,11 +208,14 @@ function changedAndTracked(base: string): {
 function chooseBaselineShard(): number {
   const base = resolveBaseRef(git, process.env.MUTATION_BASE_REF);
   // No baseline yet, so the plan lists every file the run may mutate.
+  const tree = changedAndTracked(base);
   const plan = planPrRun({
-    ...changedAndTracked(base),
+    changedFiles: tree.changedFiles,
+    trackedFiles: tree.trackedFiles,
     mutatePatterns: mutatePatterns(),
     baselineSources: null,
     readSource: (f) => readFileSync(path.join(ROOT, f), 'utf8'),
+    changedTestFiles: tree.testFiles,
   });
   const shards = parseShards(
     readFileSync(path.join(ROOT, SHARDS), 'utf8'),
@@ -249,6 +264,8 @@ function main(): number {
     mutatePatterns: mutatePatterns(),
     baselineSources: baseline.sources,
     readSource: (f) => readFileSync(path.join(ROOT, f), 'utf8'),
+    changedTestFiles: changed.testFiles,
+    baselineCoverage: baseline.coverage,
   });
 
   if (plan.skip) {
@@ -263,9 +280,9 @@ function main(): number {
   }
 
   console.log(
-    `Base ${base}. Changed in scope: ${plan.changed.join(', ')}.\nMutating ${plan.mutate.length} file(s) for directories ${plan.directories.join(', ')}.`,
+    `Base ${base}. Changed in scope: ${plan.changed.join(', ')}.\nMutating ${plan.mutate.length} file(s) for directories ${plan.directories.join(', ')}${plan.retested.length > 0 ? `, ${plan.retested.length} of them again because a changed test covered them` : ''}${plan.force ? ' (--force: tests changed)' : ''}.`,
   );
-  runStryker(plan.mutate, process.argv.slice(2));
+  runStryker(plan.mutate, process.argv.slice(2), plan.force);
 
   const reportPath = path.join(ROOT, REPORT);
   if (!existsSync(reportPath)) {
@@ -273,6 +290,9 @@ function main(): number {
   }
   const report = JSON.parse(readFileSync(reportPath, 'utf8')) as MutationReport;
   const { scores, failures } = gatePrRun(report, plan, head);
+  // A test-only pull request changes no source, so its per-file table and
+  // survivor list cover everything it mutated instead.
+  const scored = plan.changed.length > 0 ? plan.changed : plan.mutate;
   const minutes = ((Date.now() - started) / 60000).toFixed(1);
 
   summary(
@@ -280,8 +300,8 @@ function main(): number {
       plan,
       scores,
       thresholds: head,
-      files: scoreFiles(report, plan.changed),
-      undetected: undetectedMutants(report, plan.changed),
+      files: scoreFiles(report, scored),
+      undetected: undetectedMutants(report, scored),
       failures,
       baseline: `${baseline.note} Wall time ${minutes} min.`,
       testFiles: changed.testFiles,
