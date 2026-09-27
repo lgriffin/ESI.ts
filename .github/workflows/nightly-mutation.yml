@@ -394,6 +394,11 @@ jobs:
       - bdd-mutation-ratchet
       - type-mutation-testing
     if: ${{ !cancelled() && github.ref == 'refs/heads/master' }}
+    # One report at a time, so two overlapping runs cannot both find no issue
+    # and both create one. A running report is never cancelled.
+    concurrency:
+      group: nightly-mutation-report
+      cancel-in-progress: false
     permissions:
       issues: write # create, comment on and close the nightly mutation issue
 
@@ -435,8 +440,9 @@ jobs:
           EOF
 
           open_issue() {
-            gh issue list --label "$LABEL" --state open --json number,title \
-              | jq -r --arg t "$TITLE" 'map(select(.title == $t)) | .[0].number // empty'
+            # Every page of the label's open issues, so the match is exhaustive.
+            gh api --paginate "repos/${GH_REPO}/issues?state=open&labels=${LABEL}&per_page=100" \
+              | jq -rs --arg t "$TITLE" 'add // [] | map(select(.title == $t and (.pull_request | not))) | .[0].number // empty'
           }
 
           if [ -z "$ROWS" ]; then
