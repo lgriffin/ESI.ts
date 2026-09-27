@@ -11,9 +11,12 @@
  *   - unverified: nothing failed, but at least one scenario did not run, so
  *                 the Rule is documentation rather than protection.
  *
- * It also classifies each requirement by its EARS pattern and gives advisory
- * feedback on the specification's shape. The feedback never changes the exit
- * code; the verdicts and the spec audit do.
+ * It also classifies each requirement by its EARS pattern, lists the
+ * exclusion register (every unwanted-behaviour Rule whose response is
+ * negated, `shall not`: what the client deliberately does not do, CHARTER
+ * TEST-11) and gives advisory feedback on the specification's shape. The
+ * register and the feedback never change the exit code; the verdicts and the
+ * spec audit do.
  *
  * Pure: it reads nothing from disk, so the unit suite can drive it with
  * hand-built ledgers. `scripts/ears.ts` is the command around it.
@@ -50,8 +53,15 @@ export interface Requirement {
   feature: string;
   text: string;
   pattern: EarsPattern;
+  /**
+   * An unwanted-behaviour Rule whose response is negated (`shall not`): the
+   * client deliberately does not do this. Listed in the exclusion register.
+   */
+  exclusion: boolean;
   verdict: Verdict;
   scenarios: number;
+  /** The scenarios under the Rule that the run saw, in file order. */
+  scenarioNames: string[];
   passed: number;
   failed: number;
   notExecuted: number;
@@ -91,6 +101,23 @@ export function classifyEars(text: string): EarsPattern {
   const preamble = shall === -1 ? lower : lower.slice(0, shall);
   const extra = /,\s*(?:if|while|when|where)\b/.test(preamble);
   return extra ? 'complex' : lead[1];
+}
+
+/**
+ * Whether a requirement is an exclusion: an unwanted-behaviour Rule whose
+ * response is negated (`If <condition>, then the <system> shall not
+ * <response>.`). A `shall not` after a comma in the response, or in a
+ * ubiquitous or event-driven Rule, is a prohibition inside a positive
+ * requirement, not a stated exclusion, so only the `If … then` form counts.
+ */
+export function isExclusion(text: string): boolean {
+  if (classifyEars(text) !== 'unwanted-behaviour') return false;
+  const lower = text.trim().toLowerCase();
+  // The standalone word, as the spec audit finds it: "authenticated" holds a
+  // "then" that is not the delimiter.
+  const then = /\bthen\b/.exec(lower)?.index ?? -1;
+  const response = then === -1 ? lower : lower.slice(then);
+  return /\bshall\s+not\b/.test(response.split(',')[0] ?? response);
 }
 
 function stem(file: string): string {
@@ -168,8 +195,10 @@ export function buildReport(
         feature: outline.feature,
         text: rule.title,
         pattern,
+        exclusion: isExclusion(rule.title),
         verdict,
         scenarios: rule.scenarios,
+        scenarioNames: own.map((c) => c.scenario),
         passed,
         failed: failed.length,
         notExecuted: notRun.length + short,
@@ -247,6 +276,7 @@ export function toConsole(report: EarsReport): string {
   const failing = reqs.filter((r) => r.verdict === 'failing');
   const unverified = reqs.filter((r) => r.verdict === 'unverified');
   const features = new Set(reqs.map((r) => r.file)).size;
+  const exclusions = count(reqs, (r) => r.exclusion);
 
   const lines = [
     '',
@@ -257,6 +287,7 @@ export function toConsole(report: EarsReport): string {
     `  verified:                ${verified}`,
     `  failing:                 ${failing.length}`,
     `  not run:                 ${unverified.length}`,
+    `Exclusions (shall not):    ${exclusions}`,
     '',
   ];
 
@@ -311,6 +342,32 @@ export function toMarkdown(report: EarsReport, generatedAt: string): string {
     for (const r of broken) {
       lines.push(
         `| \`${r.id}\` | ${MARK[r.verdict]} | ${cell(r.text)} | ${cell(r.evidence)} |`,
+      );
+    }
+    lines.push('');
+  }
+
+  lines.push(
+    '## Exclusion register',
+    '',
+    'What the client deliberately does not do: every unwanted-behaviour requirement whose response is negated (`If …, then the <system> shall not …`), with the scenarios that prove the absence. An exclusion that lives only in prose is not listed here and protects nothing (CHARTER TEST-11).',
+    '',
+  );
+  const exclusions = reqs.filter((r) => r.exclusion);
+  if (exclusions.length === 0) {
+    lines.push('No requirement in this run states an exclusion.', '');
+  } else {
+    lines.push(
+      '| Id | Result | Exclusion | Scenarios |',
+      '| -- | ------ | --------- | --------- |',
+    );
+    for (const r of exclusions) {
+      const names =
+        r.scenarioNames.length > 0
+          ? r.scenarioNames.map((n) => cell(n)).join('; ')
+          : 'none seen in the run';
+      lines.push(
+        `| \`${r.id}\` | ${MARK[r.verdict]} | ${cell(r.text)} | ${names} |`,
       );
     }
     lines.push('');

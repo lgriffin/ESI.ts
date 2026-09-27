@@ -460,11 +460,13 @@ A Rule is protection only when all three hold (`tests/bdd/README.md`, "When a Ru
 
 It exits 1 when the audit fails or any requirement is not PASS, and writes `reports/ears/`:
 
-- `ears-report.md`: the totals, the requirements not verified and why, advisory feedback on the specification (the EARS pattern mix, how many requirements rest on a single scenario, and which features state no `If …, then … shall` unwanted-behaviour requirement), then every requirement by feature;
+- `ears-report.md`: the totals, the requirements not verified and why, the exclusion register, advisory feedback on the specification (the EARS pattern mix, how many requirements rest on a single scenario, and which features state no `If …, then … shall` unwanted-behaviour requirement), then every requirement by feature;
 - `ears-report.json`: the same data for tooling;
 - `junit.xml`: the scenario-level JUnit report `bdd:report` writes.
 
 Each requirement has an id, `<feature file stem>#R<n>` (for example `0023-market#R4`), counting Rules from 1 in file order, so a verdict can be quoted and found.
+
+**The exclusion register.** What the client deliberately does not do is a requirement too (CHARTER `TEST-11`): an exclusion is written as an unwanted-behaviour Rule whose response is negated, `If <condition>, then the <system> shall not <response>.`, with a scenario that proves the absence. The report's "Exclusion register" section lists every such Rule with its id, verdict and the scenarios under it, and the console totals count them (`Exclusions (shall not)`); `ears-report.json` carries `exclusion: true` on each. The register is a listing, not a gate: it cannot know what the client should ignore, so its completeness is a review question. An exclusion stated only in prose (a guide, a code comment) does not appear and protects nothing. `tests/bdd/GUIDE.md` has a worked example of writing one.
 
 ```bash
 npm run ears                          # everything

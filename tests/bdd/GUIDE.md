@@ -155,6 +155,40 @@ condition from the caller's point of view, so it takes `If`.
 Only `If` uses `then`, and `then` must come **before** `shall`. The other three
 prefixes take a comma before the system name. The audit enforces both.
 
+### Exclusions: what the client does not do
+
+An `If` Rule can also state a deliberate absence. When the client ignores an
+ESI behaviour on purpose (a status it does not count, a header it does not
+send, a field it does not validate), write that as an unwanted-behaviour Rule
+whose response is negated, and give it a scenario that proves the absence.
+Left in prose, the exclusion reads as an omission the next contributor "fixes";
+as a Rule it is executed on every run and listed in the exclusion register of
+`npm run ears` (`reports/ears/ears-report.md`, CHARTER `TEST-11`).
+
+```gherkin
+Rule: If an endpoint answers with a 4xx status other than 420 or 429, then the circuit breaker shall not count the response towards opening the circuit.
+  A 404 or a 403 describes the request, not the health of the endpoint.
+  Counting them would let one caller's unknown identifiers shut an endpoint
+  for every other call sharing the client. Status 420 and 429, 5xx, and
+  transport failures all count.
+
+  Scenario: Repeated 404s leave the circuit closed
+    Given a client whose circuit breaker opens after 2 failures, with no retries
+    And ESI answers the server status request with HTTP 404 3 times
+    When the client requests the server status 3 times
+    Then the first 3 calls reject with an EsiError carrying status 404
+    And the circuit for the server status endpoint is closed
+    And the client sent 3 requests
+```
+
+Three things make this an exclusion rather than a prohibition tucked into a
+positive requirement: it is the `If … then` form, `shall not` is the response
+itself (not a clause after a comma), and the scenario drives the condition far
+enough that the behaviour would have shown (three 404s past a threshold of
+two), then asserts it did not. The rationale says why the absence is right,
+which is what a reader needs before "fixing" it. `shall not` inside a `When`
+Rule, or after a comma in the response, is not listed in the register.
+
 ## The one rule that matters
 
 **Write the requirement from the assertions, not from the old title or from
