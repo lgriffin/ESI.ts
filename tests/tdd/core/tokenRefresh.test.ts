@@ -17,6 +17,7 @@ describe('Token Refresh', () => {
 
   afterEach(() => {
     rateLimiter.setTestMode(false);
+    jest.useRealTimers();
   });
 
   describe('ApiClient.refreshToken', () => {
@@ -51,11 +52,16 @@ describe('Token Refresh', () => {
         return `token-${callCount}`;
       });
 
-      const [token1, token2, token3] = await Promise.all([
+      // The refresh stays pending until the fake clock reaches 50ms, so the
+      // three calls overlap whatever the machine speed.
+      jest.useFakeTimers();
+      const all = Promise.all([
         client.refreshToken(),
         client.refreshToken(),
         client.refreshToken(),
       ]);
+      await jest.advanceTimersByTimeAsync(50);
+      const [token1, token2, token3] = await all;
 
       expect(callCount).toBe(1);
       expect(token1).toBe('token-1');

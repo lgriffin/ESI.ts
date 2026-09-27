@@ -4,7 +4,23 @@ import {
   CircuitBreakerConfig,
 } from '../../../src/core/circuitBreaker/CircuitBreaker';
 
+/**
+ * Every test runs on Jest's fake clock: the breaker reads Date.now() and
+ * schedules its cleanup with setInterval, and a test on the real clock passes
+ * or fails a boundary mutant (>= against >) depending on whether a
+ * millisecond ticks between two calls. Time moves only when a test advances it.
+ */
+const START = 1_000_000;
+
 describe('CircuitBreaker', () => {
+  beforeEach(() => {
+    jest.useFakeTimers({ now: START });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('state transitions', () => {
     it('should start in closed state', () => {
       const cb = new CircuitBreaker();
@@ -42,10 +58,32 @@ describe('CircuitBreaker', () => {
       cb.recordFailure('v1/status/', 500);
 
       expect(cb.getState('v1/status/')).toBe('open');
+      expect(cb.getStats().openCircuits).toBe(1);
 
-      // Simulate time passing by manipulating the record
-      const stats = cb.getStats();
-      expect(stats.openCircuits).toBe(1);
+      // One millisecond short of the reset timeout: still open.
+      jest.advanceTimersByTime(49);
+      expect(cb.getState('v1/status/')).toBe('open');
+      expect(() => cb.checkCircuit('v1/status/')).toThrow(CircuitOpenError);
+
+      // At exactly resetTimeoutMs the circuit reports half-open.
+      jest.advanceTimersByTime(1);
+      expect(cb.getState('v1/status/')).toBe('half-open');
+      expect(cb.getStats().openCircuits).toBe(0);
+      expect(() => cb.checkCircuit('v1/status/')).not.toThrow();
+    });
+
+    it('reports the time left until the probe in CircuitOpenError', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 1,
+        resetTimeoutMs: 1000,
+      });
+
+      cb.recordFailure('v1/status/', 500);
+      jest.advanceTimersByTime(400);
+
+      expect(() => cb.checkCircuit('v1/status/')).toThrow(
+        expect.objectContaining({ retryAfterMs: 600 }),
+      );
     });
 
     it('should close after successful probe in half-open state', () => {
@@ -87,6 +125,27 @@ describe('CircuitBreaker', () => {
       // so it reports 'half-open'. Verify the failure count increased instead.
       const stats = cb.getStats();
       expect(stats.circuits['v1/status/'].failures).toBe(3);
+    });
+
+    it('re-opens for a full reset timeout, timed from the failed probe', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 2,
+        resetTimeoutMs: 100,
+      });
+
+      cb.recordFailure('v1/status/', 500);
+      cb.recordFailure('v1/status/', 500);
+      jest.advanceTimersByTime(100);
+      cb.checkCircuit('v1/status/'); // the probe
+
+      jest.advanceTimersByTime(30);
+      cb.recordFailure('v1/status/', 500);
+
+      expect(cb.getState('v1/status/')).toBe('open');
+      jest.advanceTimersByTime(99);
+      expect(cb.getState('v1/status/')).toBe('open');
+      jest.advanceTimersByTime(1);
+      expect(cb.getState('v1/status/')).toBe('half-open');
     });
   });
 
@@ -199,7 +258,9 @@ describe('CircuitBreaker', () => {
         const coe = err as CircuitOpenError;
         expect(coe.endpoint).toBe('v1/status/');
         expect(coe.failures).toBe(2);
-        expect(coe.retryAfterMs).toBeGreaterThan(0);
+        // No time has passed since the second failure: the whole default
+        // reset timeout (30s) remains.
+        expect(coe.retryAfterMs).toBe(30_000);
       }
     });
   });
@@ -238,7 +299,7 @@ describe('CircuitBreaker', () => {
   });
 
   describe('cleanup', () => {
-    it('should remove stale closed circuits with no active failures', async () => {
+    it('should remove stale closed circuits with no active failures', () => {
       const cb = new CircuitBreaker({
         failureThreshold: 3,
         staleThresholdMs: 1,
@@ -247,10 +308,28 @@ describe('CircuitBreaker', () => {
       cb.recordFailure('v1/status/', 500);
       cb.recordSuccess('v1/status/');
 
-      await new Promise((resolve) => setTimeout(resolve, 5));
+      jest.advanceTimersByTime(5);
 
       const cleaned = cb.cleanup();
       expect(cleaned).toBe(1);
+      expect(cb.getStats().totalCircuits).toBe(0);
+    });
+
+    it('keeps a circuit until strictly more than staleThresholdMs has passed', () => {
+      const cb = new CircuitBreaker({
+        failureThreshold: 3,
+        staleThresholdMs: 100,
+      });
+
+      cb.recordFailure('v1/status/', 500);
+      cb.recordSuccess('v1/status/');
+
+      jest.advanceTimersByTime(100);
+      expect(cb.cleanup()).toBe(0);
+      expect(cb.getStats().totalCircuits).toBe(1);
+
+      jest.advanceTimersByTime(1);
+      expect(cb.cleanup()).toBe(1);
       expect(cb.getStats().totalCircuits).toBe(0);
     });
 
@@ -277,7 +356,7 @@ describe('CircuitBreaker', () => {
       expect(cleaned).toBe(0);
     });
 
-    it('should return count of cleaned circuits', async () => {
+    it('should return count of cleaned circuits', () => {
       const cb = new CircuitBreaker({
         failureThreshold: 5,
         staleThresholdMs: 1,
@@ -290,7 +369,7 @@ describe('CircuitBreaker', () => {
       cb.recordFailure('v1/c/', 500);
       cb.recordSuccess('v1/c/');
 
-      await new Promise((resolve) => setTimeout(resolve, 5));
+      jest.advanceTimersByTime(5);
 
       const cleaned = cb.cleanup();
       expect(cleaned).toBe(3);
@@ -409,7 +488,7 @@ describe('CircuitBreaker', () => {
   });
 
   describe('scheduled cleanup', () => {
-    it('should automatically clean stale circuits on timer', async () => {
+    it('should automatically clean stale circuits on timer', () => {
       const cb = new CircuitBreaker({
         failureThreshold: 5,
         staleThresholdMs: 1,
@@ -421,12 +500,40 @@ describe('CircuitBreaker', () => {
 
       expect(cb.getStats().totalCircuits).toBe(1);
 
-      // Wait for the cleanup timer to fire
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      // The timer has not fired yet one millisecond before the interval.
+      jest.advanceTimersByTime(9);
+      expect(cb.getStats().totalCircuits).toBe(1);
 
+      // It fires at exactly cleanupIntervalMs.
+      jest.advanceTimersByTime(1);
       expect(cb.getStats().totalCircuits).toBe(0);
 
       cb.destroy();
+    });
+
+    it('schedules one repeating cleanup at cleanupIntervalMs', () => {
+      const setIntervalSpy = jest.spyOn(global, 'setInterval');
+      const cb = new CircuitBreaker({
+        failureThreshold: 5,
+        staleThresholdMs: 1,
+        cleanupIntervalMs: 10,
+      });
+
+      expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 10);
+      expect(jest.getTimerCount()).toBe(1);
+      setIntervalSpy.mockRestore();
+
+      // The interval repeats: a circuit that goes stale after the first tick
+      // is removed on a later one.
+      jest.advanceTimersByTime(10);
+      cb.recordFailure('v1/a/', 500);
+      cb.recordSuccess('v1/a/');
+      jest.advanceTimersByTime(10);
+      expect(cb.getStats().totalCircuits).toBe(0);
+
+      cb.destroy();
+      expect(jest.getTimerCount()).toBe(0);
     });
 
     it('should not start cleanup timer when cleanupIntervalMs is 0', () => {
@@ -467,7 +574,7 @@ describe('CircuitBreaker', () => {
       expect(() => cb.destroy()).not.toThrow();
     });
 
-    it('should stop scheduled cleanup after destroy', async () => {
+    it('should stop scheduled cleanup after destroy', () => {
       const cb = new CircuitBreaker({
         failureThreshold: 5,
         staleThresholdMs: 1,
@@ -480,7 +587,8 @@ describe('CircuitBreaker', () => {
       cb.recordFailure('v1/a/', 500);
       cb.recordSuccess('v1/a/');
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(jest.getTimerCount()).toBe(0);
+      jest.advanceTimersByTime(50);
 
       // Timer was cleared, so automatic cleanup should not have run
       expect(cb.getStats().totalCircuits).toBe(1);

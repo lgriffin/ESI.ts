@@ -7,6 +7,10 @@ describe('RequestDeduplicator', () => {
     dedup = new RequestDeduplicator();
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('dedupe', () => {
     it('should execute the function and return its result', async () => {
       const result = await dedup.dedupe('key1', async () => 'hello');
@@ -14,6 +18,9 @@ describe('RequestDeduplicator', () => {
     });
 
     it('should coalesce concurrent identical requests', async () => {
+      // The request stays in flight until the fake clock reaches 50ms, so all
+      // three callers arrive while it is pending, whatever the machine speed.
+      jest.useFakeTimers();
       let callCount = 0;
       const execute = () =>
         new Promise<string>((resolve) => {
@@ -21,11 +28,13 @@ describe('RequestDeduplicator', () => {
           setTimeout(() => resolve('result'), 50);
         });
 
-      const [r1, r2, r3] = await Promise.all([
+      const all = Promise.all([
         dedup.dedupe('same-key', execute),
         dedup.dedupe('same-key', execute),
         dedup.dedupe('same-key', execute),
       ]);
+      await jest.advanceTimersByTimeAsync(50);
+      const [r1, r2, r3] = await all;
 
       expect(callCount).toBe(1);
       expect(r1).toBe('result');

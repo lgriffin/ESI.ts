@@ -7,6 +7,7 @@ import {
   CircuitBreaker,
   CircuitOpenError,
 } from '../../../src/core/circuitBreaker/CircuitBreaker';
+import * as sleepModule from '../../../src/core/util/sleep';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -50,11 +51,24 @@ describe('retryDelay utility', () => {
   });
 });
 
+/**
+ * The back-off waits go through sleep(). Waiting them out for real made each
+ * test take as long as its delays and let a mutant that stretched a delay be
+ * "killed" by a timeout on a slow runner and survive on a fast one. Here
+ * sleep() is recorded and resolved at once, Math.random is pinned so the
+ * jitter factor is exactly 1 (0.75 + 0.5 * 0.5), and every test asserts the
+ * delays it asked for. One test keeps the real sleep on Jest's fake clock to
+ * show the retry is sent at the scheduled delay and not before.
+ */
 describe('Retry with exponential backoff', () => {
   let client: ApiClient;
   let rateLimiter: RateLimiter;
+  let sleepSpy: jest.SpyInstance;
+  let randomSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+    randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
     fetchMock.resetMocks();
     rateLimiter = new RateLimiter();
     rateLimiter.setTestMode(true);
@@ -69,6 +83,9 @@ describe('Retry with exponential backoff', () => {
 
   afterEach(() => {
     rateLimiter.setTestMode(false);
+    sleepSpy.mockRestore();
+    randomSpy.mockRestore();
+    jest.useRealTimers();
   });
 
   it('retries on 502 and succeeds', async () => {
@@ -83,6 +100,31 @@ describe('Retry with exponential backoff', () => {
     const result = await handleRequest(client, 'v1/status/', 'GET');
     expect(result.body).toEqual({ players: 100 });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(sleepSpy.mock.calls).toEqual([[10]]);
+  });
+
+  it('sends the retry at exactly the back-off delay, not before', async () => {
+    sleepSpy.mockRestore();
+    jest.useFakeTimers({ now: 1_000_000 });
+    client.setRetryConfig({ maxRetries: 3, baseDelayMs: 40, maxDelayMs: 100 });
+
+    fetchMock.mockResponseOnce('', {
+      status: 502,
+      headers: standardHeaders(),
+    });
+    fetchMock.mockResponseOnce(JSON.stringify({ players: 100 }), {
+      headers: standardHeaders(),
+    });
+
+    const pending = handleRequest(client, 'v1/status/', 'GET');
+
+    await jest.advanceTimersByTimeAsync(39);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await jest.advanceTimersByTimeAsync(1);
+    const result = await pending;
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.body).toEqual({ players: 100 });
   });
 
   it('retries on 503 and succeeds', async () => {
@@ -96,6 +138,7 @@ describe('Retry with exponential backoff', () => {
 
     const result = await handleRequest(client, 'v1/status/', 'GET');
     expect(result.body).toEqual({ players: 100 });
+    expect(sleepSpy.mock.calls).toEqual([[10]]);
   });
 
   it('retries on 504 and succeeds', async () => {
@@ -109,6 +152,7 @@ describe('Retry with exponential backoff', () => {
 
     const result = await handleRequest(client, 'v1/status/', 'GET');
     expect(result.body).toEqual({ players: 100 });
+    expect(sleepSpy.mock.calls).toEqual([[10]]);
   });
 
   it('exhausts retries and throws', async () => {
@@ -127,6 +171,23 @@ describe('Retry with exponential backoff', () => {
       expect((e as EsiError).statusCode).toBe(502);
     }
     expect(fetchMock).toHaveBeenCalledTimes(4);
+    // Three back-offs, doubling from baseDelayMs; none after the last attempt.
+    expect(sleepSpy.mock.calls).toEqual([[10], [20], [40]]);
+  });
+
+  it('caps each back-off at maxDelayMs', async () => {
+    client.setRetryConfig({ maxRetries: 3, baseDelayMs: 10, maxDelayMs: 25 });
+    for (let i = 0; i < 4; i++) {
+      fetchMock.mockResponseOnce('', {
+        status: 502,
+        headers: standardHeaders(),
+      });
+    }
+
+    await expect(handleRequest(client, 'v1/status/', 'GET')).rejects.toThrow(
+      EsiError,
+    );
+    expect(sleepSpy.mock.calls).toEqual([[10], [20], [25]]);
   });
 
   it('does NOT retry 400', async () => {
@@ -143,6 +204,7 @@ describe('Retry with exponential backoff', () => {
       expect((e as EsiError).statusCode).toBe(400);
     }
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(sleepSpy).not.toHaveBeenCalled();
   });
 
   it('does NOT retry 403', async () => {
@@ -214,6 +276,7 @@ describe('Retry with exponential backoff', () => {
     );
     expect(result.body).toEqual([{ id: 1, name: 'Test' }]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(sleepSpy.mock.calls).toEqual([[10]]);
   });
 
   it('does NOT retry when circuit breaker is open', async () => {

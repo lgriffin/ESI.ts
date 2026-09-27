@@ -2,10 +2,19 @@ import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import { esiRateLimitGroups } from '../../../src/core/endpoints/esi-rate-limit-groups.generated';
 import * as sleepModule from '../../../src/core/util/sleep';
 
+/**
+ * The limiter reads Date.now() for blocks and the minimum delay, and waits
+ * through sleep() (a setTimeout). Every test runs on Jest's fake clock, frozen
+ * at START until a test moves it, so the delay each path asks for can be
+ * asserted exactly instead of bounded against however long a real wait took.
+ */
+const START = 1_000_000;
+
 describe('RateLimiter', () => {
   let limiter: RateLimiter;
 
   beforeEach(() => {
+    jest.useFakeTimers({ now: START });
     limiter = new RateLimiter();
     limiter.reset();
     limiter.setTestMode(false);
@@ -13,6 +22,7 @@ describe('RateLimiter', () => {
 
   afterEach(() => {
     limiter.setTestMode(true);
+    jest.useRealTimers();
   });
 
   describe('constructor', () => {
@@ -97,7 +107,6 @@ describe('RateLimiter', () => {
     });
 
     it('should set blockedUntil on 429 with Retry-After', () => {
-      const before = Date.now();
       limiter.updateFromResponse(
         {
           'retry-after': '10',
@@ -107,8 +116,20 @@ describe('RateLimiter', () => {
 
       const status = limiter.getStatus();
       expect(status.retryAfter).toBe(10);
-      expect(status.blockedUntil).toBeGreaterThanOrEqual(before + 10000);
+      expect(status.blockedUntil).toBe(START + 10000);
       expect(limiter.isBlocked()).toBe(true);
+    });
+
+    it('stays blocked until exactly blockedUntil', () => {
+      limiter.updateFromResponse({ 'retry-after': '10' }, 429);
+
+      jest.setSystemTime(START + 9999);
+      expect(limiter.isBlocked()).toBe(true);
+      expect(limiter.getStatus().retryAfter).toBe(1);
+
+      jest.setSystemTime(START + 10000);
+      expect(limiter.isBlocked()).toBe(false);
+      expect(limiter.getStatus().retryAfter).toBeNull();
     });
 
     it('should set blockedUntil on 420 with Retry-After', () => {
@@ -125,11 +146,11 @@ describe('RateLimiter', () => {
     });
 
     it('should default to 60s block on 420/429 without Retry-After', () => {
-      const before = Date.now();
       limiter.updateFromResponse({}, 429);
 
       const status = limiter.getStatus();
-      expect(status.blockedUntil).toBeGreaterThanOrEqual(before + 59000);
+      expect(status.blockedUntil).toBe(START + 60_000);
+      expect(status.retryAfter).toBe(60);
       expect(limiter.isBlocked()).toBe(true);
     });
 
@@ -181,13 +202,45 @@ describe('RateLimiter', () => {
     });
 
     it('should enforce minimum delay between requests', async () => {
-      // With test mode off and no rate limit data, minimum delay applies
-      const start = Date.now();
+      // With test mode off and no rate limit data, minimum delay applies.
+      // The first request has nothing to wait for.
       await limiter.checkRateLimit();
-      await limiter.checkRateLimit();
-      const elapsed = Date.now() - start;
-      // Should take at least minDelayMs (50ms)
-      expect(elapsed).toBeGreaterThanOrEqual(40); // allow small timing variance
+
+      let released = false;
+      const second = limiter.checkRateLimit().then(() => {
+        released = true;
+      });
+
+      // The second waits the full minDelayMs (50ms): not released at 49ms...
+      await jest.advanceTimersByTimeAsync(49);
+      expect(released).toBe(false);
+
+      // ...released at 50ms.
+      await jest.advanceTimersByTimeAsync(1);
+      await second;
+      expect(released).toBe(true);
+    });
+
+    it('waits only the part of the minimum delay that has not passed', async () => {
+      const sleepSpy = jest.spyOn(sleepModule, 'sleep');
+      try {
+        await limiter.checkRateLimit();
+        expect(sleepSpy).not.toHaveBeenCalled();
+
+        jest.setSystemTime(START + 20);
+        const second = limiter.checkRateLimit();
+        await jest.advanceTimersByTimeAsync(30);
+        await second;
+        expect(sleepSpy).toHaveBeenCalledTimes(1);
+        expect(sleepSpy).toHaveBeenCalledWith(30);
+
+        // A request 50ms or more after the last one does not wait at all.
+        jest.setSystemTime(Date.now() + 50);
+        await limiter.checkRateLimit();
+        expect(sleepSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        sleepSpy.mockRestore();
+      }
     });
   });
 
@@ -264,10 +317,9 @@ describe('RateLimiter', () => {
 
       await limiter.checkRateLimit();
 
-      expect(sleepSpy).toHaveBeenCalled();
-      const sleepArg = sleepSpy.mock.calls[0][0] as number;
-      expect(sleepArg).toBeGreaterThan(0);
-      expect(sleepArg).toBeLessThanOrEqual(10000);
+      // The clock has not moved, so the wait is the whole Retry-After.
+      expect(sleepSpy).toHaveBeenCalledTimes(1);
+      expect(sleepSpy).toHaveBeenCalledWith(10000);
 
       expect(limiter.isBlocked()).toBe(false);
       expect(limiter.getStatus().retryAfter).toBeNull();
@@ -284,9 +336,24 @@ describe('RateLimiter', () => {
 
       await limiter.checkRateLimit();
 
-      expect(sleepSpy).toHaveBeenCalled();
-      const sleepArg = sleepSpy.mock.calls[0][0] as number;
-      expect(sleepArg).toBeLessThanOrEqual(5000);
+      // min(reset 10s, 5s cap)
+      expect(sleepSpy).toHaveBeenCalledTimes(1);
+      expect(sleepSpy).toHaveBeenCalledWith(5000);
+    });
+
+    it('waits the reset time when it is below the 5s cap and the limit is low', async () => {
+      limiter.updateFromResponse(
+        {
+          'x-esi-error-limit-remain': '10',
+          'x-esi-error-limit-reset': '3',
+        },
+        404,
+      );
+
+      await limiter.checkRateLimit();
+
+      expect(sleepSpy).toHaveBeenCalledTimes(1);
+      expect(sleepSpy).toHaveBeenCalledWith(3000);
     });
 
     it('should wait full reset time when legacy error limit is exhausted', async () => {
@@ -328,10 +395,9 @@ describe('RateLimiter', () => {
 
       await limiter.checkRateLimit();
 
-      expect(sleepSpy).toHaveBeenCalled();
-      const sleepArg = sleepSpy.mock.calls[0][0] as number;
-      expect(sleepArg).toBeGreaterThan(0);
-      expect(sleepArg).toBeLessThanOrEqual(1000);
+      // ratio 0.1 against the 0.2 threshold: (1 - 0.1 / 0.2) * 1000
+      expect(sleepSpy).toHaveBeenCalledTimes(1);
+      expect(sleepSpy).toHaveBeenCalledWith(500);
     });
   });
 
@@ -527,10 +593,8 @@ describe('RateLimiter', () => {
         'GET',
       );
 
-      expect(sleepSpy).toHaveBeenCalled();
-      const sleepArg = sleepSpy.mock.calls[0][0] as number;
-      expect(sleepArg).toBeGreaterThan(0);
-      expect(sleepArg).toBeLessThanOrEqual(5000);
+      expect(sleepSpy).toHaveBeenCalledTimes(1);
+      expect(sleepSpy).toHaveBeenCalledWith(5000);
     });
   });
 
@@ -775,15 +839,14 @@ describe('RateLimiter', () => {
         'GET',
       );
 
-      expect(sleepSpy).toHaveBeenCalled();
-      const sleepArg = sleepSpy.mock.calls[0][0] as number;
-      expect(sleepArg).toBeGreaterThan(0);
+      // ratio 1/15 against the 0.2 threshold: ceil((1 - (1/15) / 0.2) * 1000)
+      expect(sleepSpy).toHaveBeenCalledTimes(1);
+      expect(sleepSpy).toHaveBeenCalledWith(667);
     });
   });
 
   describe('checkRateLimit blocked retry budget exhaustion', () => {
     let sleepSpy: jest.SpyInstance;
-    let dateNowSpy: jest.SpyInstance;
 
     beforeEach(() => {
       sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
@@ -791,24 +854,23 @@ describe('RateLimiter', () => {
 
     afterEach(() => {
       sleepSpy.mockRestore();
-      if (dateNowSpy) dateNowSpy.mockRestore();
     });
 
     it('should throw EsiError when block is re-extended past retry budget', async () => {
-      const baseTime = Date.now();
-      let currentTime = baseTime;
-      dateNowSpy = jest
-        .spyOn(Date, 'now')
-        .mockImplementation(() => currentTime);
-
       limiter.updateFromResponse({ 'retry-after': '5' }, 429);
 
       sleepSpy.mockImplementation(async () => {
-        currentTime += 100;
+        jest.setSystemTime(Date.now() + 100);
         limiter.updateFromResponse({ 'retry-after': '5' }, 429);
       });
 
       await expect(limiter.checkRateLimit()).rejects.toThrow(/still blocked/);
+      // Ten waits (the retry budget), each for the whole 5s block that the
+      // concurrent response has just re-extended.
+      expect(sleepSpy).toHaveBeenCalledTimes(10);
+      expect(sleepSpy.mock.calls.map(([ms]) => ms)).toEqual(
+        Array(10).fill(5000),
+      );
     });
   });
 
@@ -865,21 +927,28 @@ describe('RateLimiter', () => {
 
       const lastCleanup = () =>
         (userLimiter as unknown as { lastCleanup: number }).lastCleanup;
-      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+      jest.setSystemTime(1_000_000);
 
       await userLimiter.checkRateLimit(undefined, undefined, {
         authorization: 'Bearer user-a',
       });
       expect(lastCleanup()).toBe(1_000_000);
 
-      nowSpy.mockReturnValue(1_000_001);
+      // One millisecond short of the 60s cleanup interval.
+      jest.setSystemTime(1_000_000 + 59_999);
       await userLimiter.checkRateLimit(undefined, undefined, {
         authorization: 'Bearer user-a',
       });
       // The interval has not elapsed, so cleanup did not run again.
       expect(lastCleanup()).toBe(1_000_000);
 
-      nowSpy.mockRestore();
+      // At exactly the interval it runs.
+      jest.setSystemTime(1_000_000 + 60_000);
+      await userLimiter.checkRateLimit(undefined, undefined, {
+        authorization: 'Bearer user-a',
+      });
+      expect(lastCleanup()).toBe(1_060_000);
+
       userLimiter.setTestMode(true);
     });
   });
@@ -975,7 +1044,13 @@ describe('RateLimiter', () => {
         'markets/{region_id}/history',
         'GET',
       );
-      await overrideLimiter.checkRateLimit('markets/{region_id}/orders', 'GET');
+      // The second request waits out the 50ms minimum delay.
+      const second = overrideLimiter.checkRateLimit(
+        'markets/{region_id}/orders',
+        'GET',
+      );
+      await jest.advanceTimersByTimeAsync(50);
+      await second;
 
       const historyStatus = overrideLimiter.getGroupStatus(
         'endpoint:GET:markets/{region_id}/history',

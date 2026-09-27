@@ -3,6 +3,7 @@ import { handleRequest } from '../../../src/core/ApiRequestHandler';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import fetchMock from 'jest-fetch-mock';
+import { useFakeDate } from '../helpers/fakeDate';
 
 fetchMock.enableMocks();
 
@@ -238,6 +239,21 @@ describe('Spec-Aware Caching', () => {
   });
 
   describe('TTL / ETag reconciliation', () => {
+    // Only Date is faked: the cache and the spec-TTL check read Date.now(),
+    // while the request pipeline keeps its real (immediately cleared) fetch
+    // timeout. Tests move the clock with setSystemTime instead of sleeping,
+    // so each check lands exactly where it says rather than wherever a real
+    // sleep happened to wake up.
+    const START = 1_000_000;
+
+    beforeEach(() => {
+      useFakeDate(START);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('should preserve ETag after default TTL expires when spec TTL is longer', async () => {
       // Use a short defaultTtl (100ms) to simulate the bug scenario:
       // spec TTL (3600s for alliances/) >> defaultTtl (100ms)
@@ -268,8 +284,8 @@ describe('Spec-Aware Caching', () => {
       );
       expect(fetchMock).toHaveBeenCalledTimes(1);
 
-      // Wait for the default TTL to expire (100ms) but stay within spec TTL (3600s)
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Move past the default TTL (100ms) but stay within spec TTL (3600s)
+      jest.setSystemTime(START + 101);
 
       // Second request — spec-aware cache hit should still work because the
       // entry TTL was set to spec TTL (3600s), not defaultTtl (100ms).
@@ -287,6 +303,45 @@ describe('Spec-Aware Caching', () => {
       expect(second.cacheHitType).toBe('spec-ttl');
       // No additional fetch should have been made
       expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      // Still a spec-TTL hit one millisecond before the spec TTL (3600s)...
+      jest.setSystemTime(START + 3_600_000 - 1);
+      const third = await handleRequest(
+        client,
+        'v1/alliances/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'alliances/',
+      );
+      expect(third.cacheHitType).toBe('spec-ttl');
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      // ...and at exactly the spec TTL the request goes to the network,
+      // revalidating with the ETag the entry kept.
+      jest.setSystemTime(START + 3_600_000);
+      fetchMock.mockResponseOnce(JSON.stringify(mockData), {
+        headers: {
+          ETag: '"etag-reconcile-1"',
+          'Content-Type': 'application/json',
+        },
+      });
+      await handleRequest(
+        client,
+        'v1/alliances/',
+        'GET',
+        undefined,
+        false,
+        true,
+        'alliances/',
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const revalidation = fetchMock.mock.calls[1]![1]!.headers as Record<
+        string,
+        string
+      >;
+      expect(revalidation['If-None-Match']).toBe('"etag-reconcile-1"');
     });
 
     it('should use spec TTL even when Cache-Control header provides a shorter TTL', async () => {
@@ -311,8 +366,8 @@ describe('Spec-Aware Caching', () => {
         'alliances/',
       );
 
-      // Wait beyond the Cache-Control max-age (1s) but within spec TTL (3600s)
-      await new Promise((resolve) => setTimeout(resolve, 1100));
+      // Move beyond the Cache-Control max-age (1s) but within spec TTL (3600s)
+      jest.setSystemTime(START + 1001);
 
       // Spec-aware cache hit should still work — entry TTL = spec TTL
       const second = await handleRequest(
@@ -358,8 +413,8 @@ describe('Spec-Aware Caching', () => {
         'fake/unknown/',
       );
 
-      // Wait beyond the defaultTtl (100ms) but within Cache-Control (2s)
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Move beyond the defaultTtl (100ms) but within Cache-Control (2s)
+      jest.setSystemTime(START + 101);
 
       // With no spec TTL, the entry TTL should be from Cache-Control (2000ms),
       // so it should still be present and the ETag should be retrievable.
@@ -419,11 +474,11 @@ describe('Spec-Aware Caching', () => {
         'fake/noheaders/',
       );
 
-      // Wait beyond the defaultTtl (100ms)
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // One millisecond beyond the defaultTtl (100ms)
+      jest.setSystemTime(START + 101);
 
       // With no spec TTL and no Cache-Control, the entry uses defaultTtl (100ms).
-      // After 150ms it should be expired and evicted — ETag lost, full GET.
+      // Past it the entry is expired and evicted — ETag lost, full GET.
       fetchMock.mockResponseOnce(JSON.stringify(mockData), {
         headers: {
           ETag: '"etag-reconcile-4b"',

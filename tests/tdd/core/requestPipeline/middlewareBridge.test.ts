@@ -4,6 +4,7 @@ import {
 } from '../../../../src/core/requestPipeline/middlewareBridge';
 import { ApiClient } from '../../../../src/core/ApiClient';
 import type { EsiHandlerResponse } from '../../../../src/core/requestPipeline/cachePolicy';
+import { useFakeDate } from '../../helpers/fakeDate';
 
 const BASE_URL = 'https://esi.evetech.net';
 
@@ -110,6 +111,30 @@ describe('requestPipeline/middlewareBridge', () => {
         'GET',
         Date.now(),
       );
+    });
+
+    it('reports the time since startTime as durationMs', async () => {
+      useFakeDate(1_000_000);
+      try {
+        let durationMs = -1;
+        client.addResponseInterceptor((ctx) => {
+          durationMs = ctx.durationMs;
+          return ctx;
+        });
+
+        await applyResponseInterceptors(
+          client,
+          { headers: {}, body: null, status: 200 },
+          `${BASE_URL}/v1/status/`,
+          'v1/status/',
+          'GET',
+          1_000_000 - 37,
+        );
+
+        expect(durationMs).toBe(37);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('should apply response interceptors and return modified result', async () => {
