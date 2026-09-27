@@ -27,30 +27,22 @@ updates:
       semver-major-days: 14
       semver-minor-days: 7
       semver-patch-days: 3
+    # Patch-level version bumps are not proposed: they arrive with the next
+    # minor. Everything else lands as at most two PRs a week, one for minors
+    # and one for majors.
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-patch
     groups:
-      minor-and-patch:
+      # Catch-all groups also keep lockstep families together (size-limit
+      # pins its plugins as exact peers; eslint and jest move as sets).
+      minor:
+        applies-to: version-updates
         update-types:
           - minor
-          - patch
-      eslint:
-        patterns:
-          - 'eslint'
-          - 'eslint-*'
-          - '@typescript-eslint/*'
-        update-types:
-          - major
-      # size-limit pins its plugins as exact peers, so a major bump of one
-      # package without the others fails npm ci with ERESOLVE.
-      size-limit:
-        patterns:
-          - 'size-limit'
-          - '@size-limit/*'
-      testing:
-        patterns:
-          - 'jest'
-          - 'jest-*'
-          - '@types/jest'
-          - 'ts-jest'
+      major:
+        applies-to: version-updates
         update-types:
           - major
   - package-ecosystem: github-actions
@@ -67,7 +59,15 @@ updates:
     # update, including digest bumps of the SHA-pinned actions.
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-patch
+    # One PR per week for every action. The old codeql group matched only
+    # 'github/codeql-action', not its sub-actions (init, analyze, ...), which
+    # is why each of those arrived as its own PR.
     groups:
-      codeql:
+      github-actions:
+        applies-to: version-updates
         patterns:
-          - 'github/codeql-action'
+          - '*'
