@@ -63,6 +63,35 @@ const wallet = await esi
 
 [Many characters](guides/MULTI-CHARACTER.md) has the identities (`EsiTokenManager`, a raw token, a `TokenProvider`), what the views share, and the move from `tokens.createClient`.
 
+### Testing your application without ESI
+
+`createMockTransport()` from `@lgriffin/esi.ts/testing` answers requests from a table of routes and records what your code sent. Everything between your call and the transport is the real pipeline, so this runs as written:
+
+```typescript runnable
+import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
+import { createMockTransport } from '@lgriffin/esi.ts/testing';
+
+const transport = createMockTransport().respond({
+  method: 'GET',
+  path: '/characters/{character_id}/wallet',
+  body: 1234567.89,
+});
+const esi = createEsi({
+  userAgent: 'my-app/1.0 (you@example.com)',
+  transport,
+});
+try {
+  const view = esi.as(identityFromToken('an-access-token'));
+  const wallet = await view.character(2114794365).wallet.get();
+  console.log(wallet); // 1234567.89
+  console.log(transport.sent[0]?.headers['authorization']); // Bearer an-access-token
+} finally {
+  esi.shutdown();
+}
+```
+
+A request no route answers is rejected with an `EsiConfigurationError` naming the request, without a retry, and appears in `transport.unrouted`. [Testing](guides/TESTING.md#testing-your-application) has the route options and the record.
+
 ## What you get
 
 | Capability              | What ESI.ts does                                                                                                                                                                                                                       |
@@ -114,7 +143,7 @@ Every tier has to prove it can fail: a negative fixture, a killed mutant or a ca
 | `@lgriffin/esi.ts`            | `EsiClient`, `EsiClientBuilder`, `EsiApiFactory`, domain clients, auth, errors, generated types and scopes   |
 | `@lgriffin/esi.ts/schemas`    | The Zod response schemas                                                                                     |
 | `@lgriffin/esi.ts/errors`     | Error classes and type guards, including the auth errors                                                     |
-| `@lgriffin/esi.ts/testing`    | `TestDataFactory` for your own tests                                                                         |
+| `@lgriffin/esi.ts/testing`    | `createMockTransport` and `TestDataFactory` for your own tests                                               |
 | `@lgriffin/esi.ts/client`     | `createEsi`: one shared runtime, `esi.public` (authenticated calls do not compile) and `esi.as(identity)`    |
 | `@lgriffin/esi.ts/sde`        | `SdeDataProvider` (YAML and ZIP, through the optional peers `js-yaml` and `adm-zip`) and `MemorySdeProvider` |
 | `@lgriffin/esi.ts/sde/memory` | `MemorySdeProvider` alone, with no file-system or parser code, for browsers and bundles                      |

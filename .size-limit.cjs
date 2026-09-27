@@ -11,7 +11,8 @@
  * campaign and meta name schemas, and `.` once #419, #422 and #424 had
  * grown it past its budget. `./client` was measured when ROADMAP Phase 2
  * PR 11 added it: the generated operations and the pipeline make it the
- * largest sub-path after the root.
+ * largest sub-path after the root. `./testing` was re-measured when PR 12
+ * added `createMockTransport`.
  *
  * Raising a budget: run `npm run build && npm run size`, set the new
  * measurement plus 5%, update the comment, and say in the pull request body
@@ -39,8 +40,8 @@ const budgets = {
     require: '9.8 kB', // measured 9246 B
   },
   './testing': {
-    import: '16.4 kB', // measured 15540 B
-    require: '23 kB', // measured 21854 B
+    import: '19.5 kB', // measured 18540 B
+    require: '26.5 kB', // measured 25150 B
   },
   './client': {
     import: '166.4 kB', // measured 158410 B
