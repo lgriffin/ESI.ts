@@ -11,6 +11,7 @@ import {
   buildReport,
   classifyEars,
   failureReason,
+  isExclusion,
   reportFails,
   toConsole,
   toMarkdown,
@@ -21,6 +22,8 @@ const OTHER = 'tests/bdd/features/core/0002-beta.feature';
 
 const WHEN = 'When a request succeeds, the client shall return the body';
 const IF = 'If the server returns 503, then the client shall retry the request';
+const NOT =
+  'If the server returns 404, then the circuit breaker shall not count the response';
 
 function scenario(
   rule: string,
@@ -76,6 +79,23 @@ describe('EARS requirement report', () => {
       expect(
         classifyEars('The client shall retry when asked, and only then'),
       ).toBe('ubiquitous');
+    });
+  });
+
+  describe('isExclusion', () => {
+    it.each([
+      [NOT, true],
+      ['If a header is absent, then the client shall  not send it', true],
+      [IF, false],
+      ['The client shall not log tokens', false],
+      ['When asked, the client shall not retry', false],
+      [
+        'If the body is empty, then the client shall retry, and shall not log',
+        false,
+      ],
+      ['If nothing is cached, then the client shall notify the caller', false],
+    ])('isExclusion("%s") is %s', (text, expected) => {
+      expect(isExclusion(text)).toBe(expected);
     });
   });
 
@@ -237,6 +257,36 @@ describe('EARS requirement report', () => {
     });
   });
 
+  describe('exclusion register', () => {
+    it('marks a negated unwanted-behaviour Rule as an exclusion and keeps its scenario names', () => {
+      const report = buildReport(
+        [
+          outline([
+            [IF, 1],
+            [NOT, 2],
+          ]),
+        ],
+        [
+          scenario(IF, 'retries', 'passed'),
+          scenario(NOT, 'a 404', 'passed'),
+          scenario(NOT, 'a 403', 'failed'),
+        ],
+        'passed',
+      );
+
+      expect(report.requirements.map((r) => r.exclusion)).toEqual([
+        false,
+        true,
+      ]);
+      expect(report.requirements[1]).toMatchObject({
+        id: '0001-alpha#R2',
+        verdict: 'failing',
+        scenarioNames: ['a 404', 'a 403'],
+      });
+      expect(report.requirements[0]?.scenarioNames).toEqual(['retries']);
+    });
+  });
+
   describe('feedback', () => {
     it('lists features that state no unwanted behaviour', () => {
       const report = buildReport(
@@ -294,6 +344,46 @@ describe('EARS requirement report', () => {
       expect(md).toContain(
         `| \`0001-alpha#R1\` | PASS | event-driven | 1/1 | ${WHEN} |`,
       );
+    });
+
+    it('lists the exclusion register with each exclusion, its verdict and its scenarios', () => {
+      const withExclusion = buildReport(
+        [
+          outline([
+            [WHEN, 1],
+            [NOT, 2],
+          ]),
+        ],
+        [
+          scenario(WHEN, 'a', 'passed'),
+          scenario(NOT, 'a 404 | plain', 'passed'),
+          scenario(NOT, 'a 403', 'passed'),
+        ],
+        'passed',
+      );
+      const md = toMarkdown(withExclusion, '2026-09-27T00:00:00.000Z');
+      const [before, register] = md.split('## Exclusion register');
+      const [table, after] = register!.split(
+        '## Feedback on the specification',
+      );
+
+      expect(before).toContain('**Result: PASS.**');
+      expect(table).toContain(
+        `| \`0001-alpha#R2\` | PASS | ${NOT} | a 404 \\| plain; a 403 |`,
+      );
+      expect(table).not.toContain(WHEN);
+      expect(after).toContain('## Every requirement');
+      expect(toConsole(withExclusion)).toContain(
+        'Exclusions (shall not):    1',
+      );
+    });
+
+    it('says when no requirement states an exclusion', () => {
+      const md = toMarkdown(report, '2026-09-27T00:00:00.000Z');
+
+      expect(md).toContain('## Exclusion register');
+      expect(md).toContain('No requirement in this run states an exclusion.');
+      expect(toConsole(report)).toContain('Exclusions (shall not):    0');
     });
 
     it('says PASS when every requirement is verified', () => {
