@@ -138,8 +138,8 @@ jobs:
           {
             echo "types=$(touches scripts/generate-esi-types.ts src/types/generated/ 'src/core/endpoints/esi-*.generated.ts')"
             echo "schemas=$(touches scripts/generate-schema-drift-report.ts scripts/schema-drift-core.ts scripts/schema-drift-baseline.json scripts/schema-drift-exceptions.json src/schemas/ src/core/endpoints/ package-lock.json)"
-            echo "endpoints=$(touches scripts/validate-esi-endpoints.ts src/core/endpoints/)"
-            echo "speclint=$(touches redocly.yaml package-lock.json)"
+            echo "endpoints=$(touches scripts/validate-esi-endpoints.ts src/core/endpoints/ src/core/constants.ts package.json)"
+            echo "speclint=$(touches redocly.yaml package.json package-lock.json)"
           } | tee -a "$GITHUB_OUTPUT"
 
       # Every file generate:types writes: the types, and the TTL, rate-limit
@@ -210,7 +210,7 @@ jobs:
         run: npm run validate:auth-scopes
 
       # ARCH-02: every endpoint definition's method agrees with the spec at the
-      # pinned compatibility date.
+      # compatibility date the client sends (COMPATIBILITY_DATE).
       - name: Validate endpoint definitions against the ESI spec
         env:
           TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.endpoints }}
@@ -233,7 +233,7 @@ jobs:
           echo "::warning::$problem. This pull request does not touch the endpoint definitions or the script, so the disagreement is already on the base branch."
           echo "Endpoint definitions disagree with the live ESI spec (pre-existing, not blocking)." >> "$GITHUB_STEP_SUMMARY"
 
-      # Redocly lint of the ESI document at the pinned compatibility date
+      # Redocly lint of the ESI document at COMPATIBILITY_DATE
       # (redocly.yaml). It reads nothing in src/, so it blocks only when the
       # pull request changes its configuration or the Redocly version.
       - name: Lint the ESI spec (Redocly)
@@ -247,7 +247,7 @@ jobs:
             echo "::error::$problem"
             exit 1
           fi
-          echo "::warning::$problem. This pull request does not touch redocly.yaml or the lockfile, so the failure comes from ESI or the network."
+          echo "::warning::$problem. This pull request does not touch redocly.yaml, package.json or the lockfile, so the failure comes from ESI or the network."
           echo "Redocly lint of the ESI spec failed (not caused by this pull request, not blocking)." >> "$GITHUB_STEP_SUMMARY"
 
   unit-tests:

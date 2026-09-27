@@ -248,8 +248,8 @@ Like `npm audit`, the generated-types, schema-drift, endpoint and spec-lint chec
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Generated types freshness             | `scripts/generate-esi-types.ts`, `src/types/generated/`, `src/core/endpoints/esi-*.generated.ts`                                                                                                                    |
 | Schema drift                          | `scripts/generate-schema-drift-report.ts`, `scripts/schema-drift-core.ts`, `scripts/schema-drift-baseline.json`, `scripts/schema-drift-exceptions.json`, `src/schemas/`, `src/core/endpoints/`, `package-lock.json` |
-| Endpoint definitions (`validate:esi`) | `scripts/validate-esi-endpoints.ts`, `src/core/endpoints/`                                                                                                                                                          |
-| Spec lint (`validate:spec`)           | `redocly.yaml`, `package-lock.json` (the Redocly version)                                                                                                                                                           |
+| Endpoint definitions (`validate:esi`) | `scripts/validate-esi-endpoints.ts`, `src/core/endpoints/`, `src/core/constants.ts` (the compatibility date), `package.json`                                                                                        |
+| Spec lint (`validate:spec`)           | `redocly.yaml`, `package.json`, `package-lock.json` (the Redocly version)                                                                                                                                           |
 
 Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` blocks on generated types, schema drift and `validate:esi` unconditionally. Schema drift that is already tracked turns neither red: it is listed in a ratcheted baseline, described under [Schema drift](#schema-drift).
 
@@ -354,7 +354,7 @@ Much of this overlaps the nightlies, which file issues rather than artifacts. It
 | `sign-and-publish-assets` | release published | Keyless cosign signatures, uploads assets to the release; the only job that can mint an OIDC token for signing                                                                                               |
 | `notify-success`          | after publish     | Log line when the npm publish succeeded                                                                                                                                                                      |
 
-Every publishing job `needs` `validate-release` (`REL-02`). Its steps: the tag equals the `package.json` version and `validate:versions` passes; lint, format check, knip (non-blocking), `audit:check`, `CHANGELOG.md` has `## [<version>]`; build; `schema:drift:ci`; generated-types freshness over every `esi-*.generated.ts`; `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`; `test:all`, `contract:replay`, `faults -- --ci` and `contract:live` (503 soft-skips); `docs`. The release gate runs every validator the charter lists for it; the ratchets in `spec:audit`, `contract:replay` and the fault catalogue take the tag as their base, as schema drift does. It does not run the API surface check or the SemVer gate, which need a base branch. The procedure, versioning and support window are in [RELEASE.md](RELEASE.md).
+Every publishing job `needs` `validate-release` (`REL-02`). Its steps: the tag equals the `package.json` version and `validate:versions` passes; lint, format check, knip (non-blocking), `audit:check`, `CHANGELOG.md` has `## [<version>]`; build; `schema:drift:ci`; generated-types freshness over every `esi-*.generated.ts`; `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`; `test:all`, `contract:replay`, `faults -- --ci` and `contract:live` (503 soft-skips); `docs`. The release gate runs every validator the charter lists for it; the ratchets in `spec:audit`, `contract:replay` and the fault catalogue compare with the previous `vX.Y.Z` tag (`git describe --tags --abbrev=0 HEAD^` on a full-history checkout), and the job fails if none resolves; schema drift still takes the tag itself as its base. It does not run the API surface check or the SemVer gate, which need a base branch. The procedure, versioning and support window are in [RELEASE.md](RELEASE.md).
 
 Secrets: `NPM_TOKEN` for npmjs.org; `GITHUB_TOKEN` (automatic) for GitHub Packages, gh-pages, release uploads and issue filing.
 
@@ -474,7 +474,7 @@ CCP versions breaking changes to ESI with compatibility dates. A new endpoint on
 
 `COMPATIBILITY_DATE` in `src/core/constants.ts` is the one the client sends on every request, and `generate-esi-types.ts` now defaults to it rather than keeping its own copy. Each file it writes records the date in its header, and `tests/tdd/scripts/generated-spec-date.test.ts` fails when a header stops matching the constant. That pairing is what was missing: the two dates had drifted to 2026-05-19 and 2025-12-16, so twelve routes ESI added in between had no cache TTL and were revalidated on every call, and no committed file said which spec the artefacts came from (esi-23g.31).
 
-The other spec-reading tools still pin `2025-12-16` independently — `generate-schema-drift-report.ts`, `generate-okf.ts`, `generate-endpoint-scaffold.ts`, `snapshot-openapi.ts`, `validate-esi-endpoints.ts`, `create-token.ts`, `run-schemathesis.sh`, `tests/contract/helpers.ts` and `redocly.yaml`. Moving those moves their baselines too (`schema-drift-baseline.json` most of all), so each is its own change; `esi-v2s.25` tracks the drift report's.
+The other spec-reading tools still pin `2025-12-16` independently — `generate-schema-drift-report.ts`, `generate-okf.ts`, `generate-endpoint-scaffold.ts`, `create-token.ts`, `run-schemathesis.sh` and `tests/contract/helpers.ts`. `validate-esi-endpoints.ts` and `snapshot-openapi.ts` import the constant, and `redocly.yaml` names the same date, which `generated-spec-date.test.ts` checks. Moving the others moves their baselines too (`schema-drift-baseline.json` most of all), so each is its own change; `esi-v2s.25` tracks the drift report's.
 
 ### Responding to drift
 
@@ -758,18 +758,18 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 
 ### Spec alignment and generation
 
-| Script                 | Runs                                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------- |
-| `generate:types`       | Types, cache TTLs, rate-limit groups and scopes from the live spec                    |
-| `generate:okf`         | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                 |
-| `generate:endpoints`   | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                 |
-| `generate:all`         | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi` |
-| `schema:drift`         | Zod schema versus spec report; exits 2 only when the check compared nothing           |
-| `schema:drift:ci`      | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline   |
-| `validate:esi`         | Endpoint definitions versus spec; fails on method mismatches                          |
-| `validate:auth-scopes` | `requiresAuth` versus the generated scope map (`DES-04`); fails in both directions    |
-| `validate:spec`        | Redocly lint of the ESI spec (`redocly.yaml`)                                         |
-| `validate:versions`    | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts`            |
+| Script                 | Runs                                                                                     |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| `generate:types`       | Types, cache TTLs, rate-limit groups and scopes from the live spec                       |
+| `generate:okf`         | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                    |
+| `generate:endpoints`   | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                    |
+| `generate:all`         | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi`    |
+| `schema:drift`         | Zod schema versus spec report; exits 2 only when the check compared nothing              |
+| `schema:drift:ci`      | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline      |
+| `validate:esi`         | Endpoint definitions versus the spec at `COMPATIBILITY_DATE`; fails on method mismatches |
+| `validate:auth-scopes` | `requiresAuth` versus the generated scope map (`DES-04`); fails in both directions       |
+| `validate:spec`        | Redocly lint of the ESI spec (`redocly.yaml`)                                            |
+| `validate:versions`    | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts`               |
 
 ### Security
 

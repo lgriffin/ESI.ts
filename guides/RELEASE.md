@@ -151,7 +151,7 @@ The current changelog does not yet meet this rule; see [Known state](#known-stat
 | Live contract tests         | `npm run contract:live`; a 503 from ESI is a warning, as on pull requests                                                   |   ●    |
 | API reference builds        | `npm run docs`                                                                                                              |   ●    |
 
-The shrink-only ratchets in `spec:audit`, `contract:replay` and the fault catalogue compare against the tag itself (`SPEC_AUDIT_BASE_REF`, `CONTRACT_BASE_REF`, `FAULTS_BASE_REF` set to `HEAD`), as schema drift does, so a master that has since shrunk a list cannot block releasing an earlier commit. Not in the release gate, although they gate pull requests: the API surface diff and the SemVer gate, which need a base branch, and the consumer contract, which `release.yml` runs as its own job on the packed tarball.
+The shrink-only ratchets in `spec:audit`, `contract:replay` and the fault catalogue compare with the previous release tag (`SPEC_AUDIT_BASE_REF`, `CONTRACT_BASE_REF` and `FAULTS_BASE_REF` set to `git describe --tags --abbrev=0 HEAD^`, on a checkout with full history and tags), so an exception added since the last release fails the release, and a master that has since shrunk a list cannot block releasing an earlier commit. With no earlier tag the job fails rather than falling back to `origin/master`. Schema drift still uses the tag itself as its base. Not in the release gate, although they gate pull requests: the API surface diff and the SemVer gate, which need a base branch, and the consumer contract, which `release.yml` runs as its own job on the packed tarball.
 
 Run the same checks locally before tagging:
 
