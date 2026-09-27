@@ -637,17 +637,17 @@ Every resilience feature is behind an interface and scoped to one `ApiClient` in
 
 Per-client settings are plain values with a setter each. `configureApiClient` or the construction surface sets them from `EsiClientConfig`:
 
-| Setting                                | Setter                                           | Set by                                                   | Effect                                                              |
-| -------------------------------------- | ------------------------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------- |
-| `tenant`                               | `setTenant()`                                    | `configureApiClient`                                     | `X-Tenant`; refused when not a legal header value                   |
-| `userAgent`                            | `setUserAgent()`                                 | `configureApiClient`                                     | Prefixes `User-Agent`, sets `X-User-Agent`; validated in the setter |
-| `compatibilityDate`                    | `setCompatibilityDate()`                         | `EsiClient`, `CustomEsiClient` (not `EsiApiFactory`, §9) | `X-Compatibility-Date`                                              |
-| `language`                             | `setLanguage()`                                  | each surface                                             | `Accept-Language`                                                   |
-| `datasource`                           | `setDatasource()`                                | each surface                                             | `datasource` query parameter                                        |
-| `onTokenRefresh`                       | `setTokenProvider()`                             | each surface                                             | 401 refresh (§5)                                                    |
-| `accessToken`                          | `setAccessToken()`                               | the `ApiClient` constructor                              | `Authorization` on `requiresAuth` endpoints                         |
-| `validateResponse` / `validateRequest` | `setValidateResponse()` / `setValidateRequest()` | `configureApiClient`                                     | Zod validation ([§10](#10-response-and-request-validation))         |
-| `timeout`                              | `setTimeout()`                                   | `configureApiClient`                                     | Per-request `AbortController` timeout, default 30 s                 |
+| Setting                                | Setter                                           | Set by                      | Effect                                                              |
+| -------------------------------------- | ------------------------------------------------ | --------------------------- | ------------------------------------------------------------------- |
+| `tenant`                               | `setTenant()`                                    | `configureApiClient`        | `X-Tenant`; refused when not a legal header value                   |
+| `userAgent`                            | `setUserAgent()`                                 | `configureApiClient`        | Prefixes `User-Agent`, sets `X-User-Agent`; validated in the setter |
+| `compatibilityDate`                    | `setCompatibilityDate()`                         | All three surfaces          | `X-Compatibility-Date`                                              |
+| `language`                             | `setLanguage()`                                  | each surface                | `Accept-Language`                                                   |
+| `datasource`                           | `setDatasource()`                                | each surface                | `datasource` query parameter                                        |
+| `onTokenRefresh`                       | `setTokenProvider()`                             | each surface                | 401 refresh (§5)                                                    |
+| `accessToken`                          | `setAccessToken()`                               | the `ApiClient` constructor | `Authorization` on `requiresAuth` endpoints                         |
+| `validateResponse` / `validateRequest` | `setValidateResponse()` / `setValidateRequest()` | `configureApiClient`        | Zod validation ([§10](#10-response-and-request-validation))         |
+| `timeout`                              | `setTimeout()`                                   | `configureApiClient`        | Per-request `AbortController` timeout, default 30 s                 |
 
 **Time is not injectable yet.** `src/core/clock.ts` exports `systemClock`, the `Clock` port's real implementation, and `npm run lint:determinism` blocks new direct reads of `Date.now()`, timers and `Math.random()` in `src/`. The existing sites in the rate limiter, cache, circuit breaker and request handler are listed in `scripts/determinism-baseline.json` and still read the wall clock directly; no pipeline class takes a `Clock`. `EsiTokenManager` takes a `now` function for tests.
 
@@ -1018,7 +1018,7 @@ Three construction surfaces, all wired by `configureApiClient()`, so middleware 
 
 `ClientRegistry` maps each of the 39 `ApiClientType` names to its class. `ARCH-08` requires every surface to expose the same set. `CustomEsiClient` has a getter for every registered client, checked at compile time by `tests/tdd/core/customClientGetters.test.ts`. `EsiApiFactory` reaches all 39 through `createClient(type)` and has named methods for 9 (`createAllianceClient`, `createCharacterClient`, `createCorporationClient`, `createMarketClient`, `createUniverseClient`, `createFleetClient`, `createAssetsClient`, `createWalletClient`, `createMailClient`); nothing checks its client set.
 
-**Known gap: `compatibilityDate` on `EsiApiFactory`.** `EsiClient` and `CustomEsiClient` call `setCompatibilityDate()` from the config before `configureApiClient()`. `EsiApiFactory.buildApiClient` sets language, token provider and datasource but not the compatibility date, so a factory-built client always sends the library's `COMPATIBILITY_DATE`. `constructionParity.test.ts` compares middleware, not these identity settings. This is an `ARCH-08` parity gap.
+All three surfaces call `setCompatibilityDate()` from the config before `configureApiClient()`. `constructionParity.test.ts` checks that a `compatibilityDate` reaches the `ApiClient` from each of them.
 
 **`ApiClientBuilder`** (`src/core/ApiClientBuilder.ts`, exported from the root) is a fourth, lower-level way in. It builds a bare `ApiClient` with a rate limiter (the default `RateLimiter` unless one is given) and whatever cache, circuit breaker, timeout and fetch it is handed. It does not call `configureApiClient()`, so there is no deduplicator, no default cache, and no retry configuration: `resolveRetryStrategy` then builds a `RetryStrategy` with its own defaults, which retry nothing. Use it to hand-assemble a client for a test or an unusual host, not as a construction surface.
 

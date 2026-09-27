@@ -27,8 +27,6 @@ Three surfaces build a client. All three pass their configuration through `confi
 
 `ApiClientBuilder` is also exported. It is the low-level builder the domain clients share, and it does not call `configureApiClient`. Prefer the three surfaces above.
 
-Known gap (ARCH-08, Partial): `EsiApiFactory` does not apply `compatibilityDate`. A client from the factory always sends the library default. `EsiClient` and `CustomEsiClient` honour the option.
-
 ```typescript
 import { EsiClientBuilder } from '@lgriffin/esi.ts';
 

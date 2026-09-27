@@ -263,7 +263,7 @@
     "clean": "rm -rf dist coverage docs-site/public/api",
     "clean:docs": "rm -rf docs-site/public/api",
     "prepare": "husky && npm run build",
-    "health-check": "ts-node -e \"import('./src/EsiClient').then(({EsiClient}) => new EsiClient().healthCheck().then(console.log))\"",
+    "health-check": "ts-node -e \"import('./src/EsiClient').then(({EsiClient}) => { const c = new EsiClient(); return c.status.getStatus().then(console.log).finally(() => c.shutdown()); })\"",
     "mutation": "stryker run",
     "mutation:report": "stryker run --reporters html,clear-text",
     "mutation:bdd": "stryker run stryker.bdd.config.mjs",
