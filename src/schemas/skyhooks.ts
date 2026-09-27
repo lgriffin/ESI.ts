@@ -21,13 +21,19 @@ export const OrbitalSkyhookSchema = z.looseObject({
   reagent_silo_level: z.number().optional(),
 });
 
+/** One skyhook in `GET /skyhooks/raidable`, and its theft window. */
 export const RaidableSkyhookSchema = z.looseObject({
-  structure_id: z.number(),
-  system_id: z.number(),
-  corporation_id: z.number(),
-  alliance_id: z.number().optional(),
-  raidable_at: z.string().optional(),
-  is_raidable: z.boolean(),
+  planet_id: z.number(),
+  solar_system_id: z.number(),
+  theft_vulnerability: z.looseObject({
+    start: z.string(),
+    end: z.string(),
+  }),
+});
+
+/** `GET /skyhooks/raidable`: ESI wraps the list in `skyhooks`. */
+export const RaidableSkyhooksResponseSchema = z.looseObject({
+  skyhooks: z.array(RaidableSkyhookSchema),
 });
 
 export const SkyhookDetailReagentSchema = z.looseObject({

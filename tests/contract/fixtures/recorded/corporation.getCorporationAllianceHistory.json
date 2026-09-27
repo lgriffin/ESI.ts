@@ -5,9 +5,9 @@
     "method": "getCorporationAllianceHistory",
     "args": [98356193]
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [],
@@ -19,8 +19,8 @@
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
         "etag": "\"459baca02811efd336492d3e3ee2972e4df242d079c68aaf11aefd21\"",
-        "expires": "Thu, 17 Sep 2026 15:13:01 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:13:01 GMT"
+        "expires": "Sun, 27 Sep 2026 04:59:57 GMT",
+        "last-modified": "Sun, 27 Sep 2026 03:59:57 GMT"
       },
       "body": [
         {

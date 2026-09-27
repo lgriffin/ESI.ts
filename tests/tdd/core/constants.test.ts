@@ -21,4 +21,11 @@ describe('constants', () => {
   it('should have a valid compatibility date', () => {
     expect(COMPATIBILITY_DATE).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
+
+  it('should default to a date that serves the beta routes the clients call', () => {
+    // Military campaigns, Paragon Hub, SKINR and meta/name exist only from
+    // 2026-08-18. An earlier default made ESI answer 404 for all of them
+    // (esi-23g.54). ISO dates compare correctly as strings.
+    expect(COMPATIBILITY_DATE >= '2026-08-18').toBe(true);
+  });
 });

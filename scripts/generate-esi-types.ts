@@ -630,25 +630,59 @@ function writeScopesFile(
 
 // --- Main ---
 
-async function main(): Promise<void> {
-  const requested = parseCompatibilityDate();
-  const compatibilityDate = await resolveCompatibilityDate(requested);
+/**
+ * `--spec-file=<path>` reads the spec from disk instead of fetching it. The
+ * spec-refresh workflow passes the snapshot it just vendored, so the
+ * operations, types, cache TTLs, rate limit groups and scopes it commits all
+ * come from one document rather than two fetches that could differ.
+ */
+function parseSpecFile(): string | undefined {
+  for (const arg of process.argv.slice(2)) {
+    const match = arg.match(/^--spec-file=(.+)$/);
+    if (match) return match[1]!;
+  }
+  return undefined;
+}
+
+async function loadSpec(): Promise<{
+  spec: OpenApiSpec;
+  compatibilityDate: string;
+}> {
+  const specFile = parseSpecFile();
+  if (specFile) {
+    console.log(`Reading ESI OpenAPI spec from ${specFile}...`);
+    const spec = JSON.parse(
+      fs.readFileSync(path.resolve(specFile), 'utf-8'),
+    ) as OpenApiSpec;
+    // The spec's version is the compatibility date it was served for.
+    return { spec, compatibilityDate: spec.info.version };
+  }
+
+  const compatibilityDate = await resolveCompatibilityDate(
+    parseCompatibilityDate(),
+  );
   const specUrl = buildSpecUrl(compatibilityDate);
-
-  console.log(`Compatibility date: ${compatibilityDate}`);
   console.log(`Fetching ESI OpenAPI spec from ${specUrl}...`);
+  const response = await fetch(specUrl);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  return {
+    spec: (await response.json()) as OpenApiSpec,
+    compatibilityDate,
+  };
+}
 
+async function main(): Promise<void> {
   let spec: OpenApiSpec;
+  let compatibilityDate: string;
   try {
-    const response = await fetch(specUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    spec = (await response.json()) as OpenApiSpec;
+    ({ spec, compatibilityDate } = await loadSpec());
   } catch (err) {
-    console.error(`Failed to fetch ESI OpenAPI spec: ${err}`);
+    console.error(`Failed to load ESI OpenAPI spec: ${err}`);
     process.exit(1);
   }
+  console.log(`Compatibility date: ${compatibilityDate}`);
 
   const specHash = crypto
     .createHash('sha256')

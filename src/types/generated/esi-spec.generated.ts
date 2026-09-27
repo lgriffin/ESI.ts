@@ -1,8 +1,8 @@
 /* eslint-disable */
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Compatibility date: 2026-05-19
-// Spec hash: 858bd24cd22f
-// Total interfaces: 171
+// Compatibility date: 2026-08-18
+// Spec hash: 34f6278baa75
+// Total interfaces: 186
 
 // --- Access List ---
 
@@ -260,17 +260,19 @@ export interface CharactersCharacterIdTitlesGet {
 }
 
 export interface CharactersDetail {
+  achievement_score: number;
   alliance_id?: number;
   birthday: string;
   bloodline_id: number;
+  character_title_id?: string;
   corporation_id: number;
+  corporation_title?: string;
   description?: string;
   faction_id?: number;
   gender: 'male' | 'female';
   name: string;
   race_id: number;
   security_status?: number;
-  title?: string;
 }
 
 // --- Clones ---
@@ -643,19 +645,30 @@ export interface CorporationsCorporationIdTitlesGet {
 
 export interface CorporationsDetail {
   alliance_id?: number;
-  ceo_id: number;
-  creator_id: number;
+  ceo_id?: number;
+  creator_id?: number;
   date_founded?: string;
-  description?: string;
-  faction_id?: number;
-  home_station_id?: number;
+  description: string;
+  enlisted_faction_id?: number;
+  friendly_fire: 'legal' | 'illegal';
+  home_station_id: number;
   member_count: number;
   name: string;
-  shares?: number;
-  tax_rate: number;
+  palette?: {
+    main_color: string;
+    secondary_color?: string;
+    tertiary_color?: string;
+  };
+  shares: number;
+  state: 'active' | 'closed';
+  tax_rates: {
+    isk: number;
+    loyalty_point: number;
+  };
   ticker: string;
+  type: 'player_owned' | 'npc_owned';
   url?: string;
-  war_eligible?: boolean;
+  war_eligible: boolean;
 }
 
 // --- Corporation Projects ---
@@ -729,6 +742,42 @@ export interface CorporationsProjectsListing {
     };
     state: 'Unspecified' | 'Active' | 'Closed' | 'Completed' | 'Expired' | 'Deleted';
   })[];
+}
+
+// --- Cosmetics ---
+
+export interface CharactersCosmeticsSkinr {
+  licenses: ({
+    activated: boolean;
+    skinr_id: string;
+    unactivated: number;
+  })[];
+}
+
+export interface CharactersCosmeticsSkinrComponents {
+  licenses: ({
+    component_id: number;
+    runs: unknown;
+    type: 'nanocoating' | 'pattern';
+  })[];
+}
+
+export interface CosmeticsSkinr {
+  creator_id: number;
+  id: string;
+  layout: {
+    pattern_blend_mode: 'normal' | 'subtract' | 'exclusion' | 'nested' | 'nested_inverted';
+    slots: ({
+      configuration: unknown;
+      id: number;
+    })[];
+  };
+  line?: string;
+  name: string;
+  ship_type_id: number;
+  tier: {
+    level: number;
+  };
 }
 
 // --- Dogma ---
@@ -1537,11 +1586,188 @@ export interface MetaCompatibilityDates {
   compatibility_dates: string[];
 }
 
+export interface MetaName {
+  current: string;
+  history: ({
+    date: string;
+    name: string;
+  })[];
+}
+
 export interface MetaStatus {
   routes: ({
     method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     path: string;
     status: 'Unknown' | 'OK' | 'Degraded' | 'Down' | 'Recovering';
+  })[];
+}
+
+// --- Military Campaigns ---
+
+export interface CharactersMilitaryCampaignsObjectivesListing {
+  cursor?: {
+    after?: string;
+    before?: string;
+  };
+  objectives: ({
+    campaign_id: string;
+    contributed: number;
+    id: string;
+    is_committed: boolean;
+    last_modified: string;
+  })[];
+}
+
+export interface CharactersMilitaryCampaignsObjectivesParticipation {
+  campaign_id: string;
+  contributed: number;
+  id: string;
+  is_committed: boolean;
+  last_modified: string;
+}
+
+export interface MilitaryCampaignsDetail {
+  finished?: string;
+  id: string;
+  progress: number;
+  started?: string;
+  state: 'Unspecified' | 'Active' | 'Completed' | 'Expired';
+}
+
+export interface MilitaryCampaignsListing {
+  campaigns: ({
+    finished?: string;
+    id: string;
+    progress: number;
+    started?: string;
+    state: 'Unspecified' | 'Active' | 'Completed' | 'Expired';
+  })[];
+}
+
+export interface MilitaryCampaignsObjectivesDetail {
+  finished?: string;
+  id: string;
+  last_modified: string;
+  participants: {
+    committed: number;
+    contributors: number;
+    total: number;
+  };
+  progress: number;
+  started?: string;
+  state: 'Unspecified' | 'Active' | 'Completed' | 'Expired';
+}
+
+export interface MilitaryCampaignsObjectivesListing {
+  cursor?: {
+    after?: string;
+    before?: string;
+  };
+  objectives: ({
+    finished?: string;
+    id: string;
+    last_modified: string;
+    participants: {
+      committed: number;
+      contributors: number;
+      total: number;
+    };
+    progress: number;
+    started?: string;
+    state: 'Unspecified' | 'Active' | 'Completed' | 'Expired';
+  })[];
+}
+
+// --- Paragon Hub ---
+
+export interface CharactersParagonHubSkinr {
+  cursor?: {
+    after?: string;
+    before?: string;
+  };
+  listings: ({
+    created: string;
+    expires: string;
+    id: string;
+    last_modified: string;
+    price: unknown;
+    quantity: number;
+    seller_id: number;
+    skinr_id: string;
+    state: 'listed' | 'sold_out' | 'expired' | 'removed';
+    target: unknown;
+  })[];
+}
+
+export interface ParagonHubSkinr {
+  cursor?: {
+    after?: string;
+    before?: string;
+  };
+  listings: ({
+    created: string;
+    expires: string;
+    id: string;
+    last_modified: string;
+    price: unknown;
+    quantity: number;
+    seller_id: number;
+    skinr_id: string;
+    state: 'listed' | 'sold_out' | 'expired' | 'removed';
+  })[];
+}
+
+export interface ParagonHubSkinrAlliances {
+  cursor?: {
+    after?: string;
+    before?: string;
+  };
+  listings: ({
+    created: string;
+    expires: string;
+    id: string;
+    last_modified: string;
+    price: unknown;
+    quantity: number;
+    seller_id: number;
+    skinr_id: string;
+    state: 'listed' | 'sold_out' | 'expired' | 'removed';
+  })[];
+}
+
+export interface ParagonHubSkinrCharacters {
+  cursor?: {
+    after?: string;
+    before?: string;
+  };
+  listings: ({
+    created: string;
+    expires: string;
+    id: string;
+    last_modified: string;
+    price: unknown;
+    quantity: number;
+    seller_id: number;
+    skinr_id: string;
+    state: 'listed' | 'sold_out' | 'expired' | 'removed';
+  })[];
+}
+
+export interface ParagonHubSkinrCorporations {
+  cursor?: {
+    after?: string;
+    before?: string;
+  };
+  listings: ({
+    created: string;
+    expires: string;
+    id: string;
+    last_modified: string;
+    price: unknown;
+    quantity: number;
+    seller_id: number;
+    skinr_id: string;
+    state: 'listed' | 'sold_out' | 'expired' | 'removed';
   })[];
 }
 
@@ -2215,7 +2441,6 @@ export interface EsiOperationTypes {
   'GetAlliancesAllianceIdIcons': AlliancesAllianceIdIconsGet;
   'GetCharactersAccessListsDetail': CharactersAccessListsDetail;
   'GetCharactersAccessListsListing': CharactersAccessListsListing;
-  'GetCharactersCharacterId': CharactersDetail;
   'GetCharactersCharacterIdAgentsResearch': CharactersCharacterIdAgentsResearchGet[];
   'GetCharactersCharacterIdAssets': CharactersCharacterIdAssetsGet[];
   'GetCharactersCharacterIdAttributes': CharactersCharacterIdAttributesGet;
@@ -2261,10 +2486,16 @@ export interface EsiOperationTypes {
   'GetCharactersCharacterIdTitles': CharactersCharacterIdTitlesGet[];
   'GetCharactersCharacterIdWalletJournal': CharactersCharacterIdWalletJournalGet[];
   'GetCharactersCharacterIdWalletTransactions': CharactersCharacterIdWalletTransactionsGet[];
+  'GetCharactersCosmeticsSkinr': CharactersCosmeticsSkinr;
+  'GetCharactersCosmeticsSkinrComponents': CharactersCosmeticsSkinrComponents;
+  'GetCharactersDetail': CharactersDetail;
   'GetCharactersFreelanceJobsListing': CharactersFreelanceJobsListing;
   'GetCharactersFreelanceJobsParticipation': CharactersFreelanceJobsParticipation;
   'GetCharactersMercenaryTacticalOperationsDetail': CharactersMercenaryTacticalOperationsDetail;
   'GetCharactersMercenaryTacticalOperationsListing': CharactersMercenaryTacticalOperationsListing;
+  'GetCharactersMilitaryCampaignsObjectivesListing': CharactersMilitaryCampaignsObjectivesListing;
+  'GetCharactersMilitaryCampaignsObjectivesParticipation': CharactersMilitaryCampaignsObjectivesParticipation;
+  'GetCharactersParagonHubSkinr': CharactersParagonHubSkinr;
   'GetCharactersStructuresMercenaryDensDetail': CharactersStructuresMercenaryDensDetail;
   'GetCharactersStructuresMercenaryDensListing': CharactersStructuresMercenaryDensListing;
   'GetContractsPublicBidsContractId': ContractsPublicBidsContractIdGet[];
@@ -2317,6 +2548,7 @@ export interface EsiOperationTypes {
   'GetCorporationsStructuresSkyhooksListing': CorporationsStructuresSkyhooksListing;
   'GetCorporationsStructuresSovereigntyHubsDetail': CorporationsStructuresSovereigntyHubsDetail;
   'GetCorporationsStructuresSovereigntyHubsListing': CorporationsStructuresSovereigntyHubsListing;
+  'GetCosmeticsSkinr': CosmeticsSkinr;
   'GetDogmaAttributesAttributeId': DogmaAttributesAttributeIdGet;
   'GetDogmaDynamicItemsTypeIdItemId': DogmaDynamicItemsTypeIdItemIdGet;
   'GetDogmaEffectsEffectId': DogmaEffectsEffectIdGet;
@@ -2344,7 +2576,16 @@ export interface EsiOperationTypes {
   'GetMarketsStructuresStructureId': MarketsStructuresStructureIdGet[];
   'GetMetaChangelog': MetaChangelog;
   'GetMetaCompatibilityDates': MetaCompatibilityDates;
+  'GetMetaName': MetaName;
   'GetMetaStatus': MetaStatus;
+  'GetMilitaryCampaignsDetail': MilitaryCampaignsDetail;
+  'GetMilitaryCampaignsListing': MilitaryCampaignsListing;
+  'GetMilitaryCampaignsObjectivesDetail': MilitaryCampaignsObjectivesDetail;
+  'GetMilitaryCampaignsObjectivesListing': MilitaryCampaignsObjectivesListing;
+  'GetParagonHubSkinr': ParagonHubSkinr;
+  'GetParagonHubSkinrAlliances': ParagonHubSkinrAlliances;
+  'GetParagonHubSkinrCharacters': ParagonHubSkinrCharacters;
+  'GetParagonHubSkinrCorporations': ParagonHubSkinrCorporations;
   'GetSkyhooksRaidable': SkyhooksRaidable;
   'GetSovereigntyCampaigns': SovereigntyCampaignsGet[];
   'GetSovereigntySystems': SovereigntySystems;

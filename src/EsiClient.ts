@@ -84,6 +84,17 @@ export interface EsiClientConfig {
   enableRequestDeduplication?: boolean;
   language?: string;
   compatibilityDate?: string;
+  /**
+   * The ESI tenant every request names in `X-Tenant` (`tranquility`,
+   * `singularity`). Unset, no header is sent and ESI serves Tranquility.
+   */
+  tenant?: string;
+  /**
+   * Who is calling, for CCP to contact: an application name, version and
+   * contact address. Sent as `X-User-Agent` (in place of `clientId`) and at the
+   * start of `User-Agent`, before the library's own identifier.
+   */
+  userAgent?: string;
   rateLimiterConfig?: RateLimiterConfig;
   requestInterceptors?: RequestInterceptor[];
   responseInterceptors?: ResponseInterceptor[];

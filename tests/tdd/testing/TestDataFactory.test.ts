@@ -582,16 +582,16 @@ describe('TestDataFactory', () => {
 
     it('should create a raidable skyhook with defaults', () => {
       const skyhook = TestDataFactory.createRaidableSkyhook();
-      expect(skyhook.structure_id).toBe(200000001);
-      expect(skyhook.is_raidable).toBe(true);
-      expect(skyhook.raidable_at).toBe('2026-05-20T12:00:00Z');
+      expect(skyhook.planet_id).toBe(40229601);
+      expect(skyhook.solar_system_id).toBe(30003618);
+      expect(skyhook.theft_vulnerability.end).toBe('2026-09-17T14:14:02Z');
     });
 
     it('should create a raidable skyhook with overrides', () => {
       const skyhook = TestDataFactory.createRaidableSkyhook({
-        is_raidable: false,
+        planet_id: 40202075,
       });
-      expect(skyhook.is_raidable).toBe(false);
+      expect(skyhook.planet_id).toBe(40202075);
     });
 
     it('should create a mercenary den with defaults', () => {

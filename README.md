@@ -189,6 +189,8 @@ const client = new EsiClient({
   baseUrl: 'https://esi.evetech.net', // ESI base URL (default)
   onTokenRefresh: async () => newToken, // Auto-refresh on 401 (optional)
   language: 'en', // Accept-Language header: en, de, fr, ja, ru, zh, ko, es (default: none)
+  userAgent: 'my-app/1.0 (you@example.com)', // Sent as X-User-Agent and ahead of the library's User-Agent (default: none; clientId is sent as X-User-Agent)
+  tenant: 'singularity', // X-Tenant header: tranquility or singularity (default: none, so ESI serves tranquility)
   timeout: 30000, // Request timeout in ms (default: 30000)
   retryConfig: {
     maxRetries: 3, // Max retry attempts for transient errors (default: 3)

@@ -5,9 +5,9 @@
     "method": "getStatus",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 30,
   "upstreamPages": 1,
   "truncated": [],
@@ -18,15 +18,15 @@
       "headers": {
         "cache-control": "public, max-age=30, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"788fc569d42fad1227e62937edd419a8e266a03d884e9d49a2fe509624674c59\"",
-        "expires": "Thu, 17 Sep 2026 14:13:28 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:12:31 GMT"
+        "etag": "W/\"148caca5c1670cceaea8135b2a6d67f997100f1f7890d7baad047f1f50b95985\"",
+        "expires": "Sun, 27 Sep 2026 04:26:06 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:25:32 GMT"
       },
       "body": {
-        "server_version": "3503375",
-        "players": 26269,
+        "server_version": "3542233",
+        "players": 21621,
         "vip": false,
-        "start_time": "2026-09-17T11:03:16Z"
+        "start_time": "2026-09-26T11:03:07Z"
       }
     }
   ]

@@ -1,0 +1,109 @@
+{
+  "endpoint": "cosmetics.getSkinr",
+  "call": {
+    "client": "cosmetics",
+    "method": "getSkinr",
+    "args": ["5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd"]
+  },
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specCacheSeconds": 31536000,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.layout.slots",
+      "kind": "array",
+      "original": 6,
+      "kept": 4
+    }
+  ],
+  "pages": [
+    {
+      "url": "cosmetics/skinr/5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable, must-revalidate, stale-if-error=900",
+        "content-type": "application/json",
+        "etag": "W/\"b863a4e02c71c9c127228fc0a7eed6758e65814440bc7397b92a7e2024dcc46e\"",
+        "expires": "Mon, 27 Sep 2027 04:26:02 GMT",
+        "last-modified": "Wed, 23 Sep 2026 09:45:52 GMT"
+      },
+      "body": {
+        "id": "5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
+        "name": "Sun God Ra Avatar",
+        "line": "Uglyyoda Designs",
+        "creator_id": 2119597578,
+        "ship_type_id": 11567,
+        "tier": {
+          "level": 15
+        },
+        "layout": {
+          "slots": [
+            {
+              "id": 1,
+              "configuration": {
+                "nanocoating": {
+                  "id": 1917
+                }
+              }
+            },
+            {
+              "id": 2,
+              "configuration": {
+                "nanocoating": {
+                  "id": 1873
+                }
+              }
+            },
+            {
+              "id": 3,
+              "configuration": {
+                "nanocoating": {
+                  "id": 1917
+                }
+              }
+            },
+            {
+              "id": 5,
+              "configuration": {
+                "pattern": {
+                  "id": 1700,
+                  "configuration": {
+                    "projection": {
+                      "slot1": true,
+                      "slot2": true,
+                      "slot3": true,
+                      "slot4": true
+                    },
+                    "transform": {
+                      "position": {
+                        "x": -8717.140625,
+                        "y": 1200.8851318359375,
+                        "z": -13588.4052734375
+                      },
+                      "rotation": {
+                        "x": 0.00528407096862793,
+                        "y": 0.14416170120239258,
+                        "z": 0.04638645425438881,
+                        "w": -0.9884424209594727
+                      },
+                      "scaling": {
+                        "x": 2493.9217981663805,
+                        "y": 2493.9217981663805,
+                        "z": 2493.9217981663805
+                      }
+                    },
+                    "mirrored": true
+                  }
+                }
+              }
+            }
+          ],
+          "pattern_blend_mode": "normal"
+        }
+      }
+    }
+  ]
+}

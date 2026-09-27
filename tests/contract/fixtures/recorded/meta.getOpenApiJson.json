@@ -5,9 +5,9 @@
     "method": "getOpenApiJson",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -29,7 +29,7 @@
       "page": 1,
       "at": "$.components.schemas",
       "kind": "map",
-      "original": 313,
+      "original": 349,
       "kept": 4
     },
     {
@@ -50,7 +50,7 @@
       "page": 1,
       "at": "$.paths",
       "kind": "map",
-      "original": 203,
+      "original": 218,
       "kept": 4
     },
     {
@@ -85,7 +85,7 @@
       "page": 1,
       "at": "$.tags",
       "kind": "array",
-      "original": 36,
+      "original": 39,
       "kept": 3
     }
   ],
@@ -143,7 +143,7 @@
               "name": "X-Compatibility-Date",
               "required": true,
               "schema": {
-                "enum": ["2026-05-19"],
+                "enum": ["2026-08-18"],
                 "format": "date",
                 "type": "string"
               }
@@ -264,7 +264,7 @@
           },
           "termsOfService": "https://support.eveonline.com/hc/en-us/articles/8414770561948-EVE-Online-Terms-of-Service",
           "title": "EVE SKINR Ingenuity (ESI) - tranquility",
-          "version": "2026-05-19"
+          "version": "2026-08-18"
         },
         "openapi": "3.1.0",
         "paths": {

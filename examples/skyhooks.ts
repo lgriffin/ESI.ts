@@ -87,16 +87,27 @@ async function main() {
 
     console.log('\nRaidable Skyhooks');
     console.log('-'.repeat(60));
-    const nowRaidable = raidable.filter((r) => r.is_raidable);
-    const upcoming = raidable.filter((r) => !r.is_raidable && r.raidable_at);
+    // A skyhook is open to theft between its window's start and end.
+    const now = Date.now();
+    const windows = raidable.skyhooks.map((r) => ({
+      ...r,
+      start: Date.parse(r.theft_vulnerability.start),
+      end: Date.parse(r.theft_vulnerability.end),
+    }));
+    const nowRaidable = windows.filter((r) => r.start <= now && now < r.end);
+    const upcoming = windows.filter((r) => r.start > now);
     console.log(`  Currently raidable: ${nowRaidable.length}`);
     console.log(`  Becoming raidable:  ${upcoming.length}`);
 
     for (const r of nowRaidable.slice(0, 5)) {
-      console.log(`  System ${r.system_id} — RAIDABLE NOW`);
+      console.log(
+        `  Planet ${r.planet_id} (system ${r.solar_system_id}) — RAIDABLE until ${r.theft_vulnerability.end}`,
+      );
     }
     for (const r of upcoming.slice(0, 3)) {
-      console.log(`  System ${r.system_id} — Raidable at ${r.raidable_at}`);
+      console.log(
+        `  Planet ${r.planet_id} (system ${r.solar_system_id}) — raidable from ${r.theft_vulnerability.start}`,
+      );
     }
 
     // Fetch detail for the first skyhook
