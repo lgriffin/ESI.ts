@@ -1,7 +1,6 @@
 import { ESLint } from 'eslint';
 import tseslint from 'typescript-eslint';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const layers = require('../../../config/eslint/layers.rules.cjs');
 
 function linter(baseline?: Record<string, string>): ESLint {

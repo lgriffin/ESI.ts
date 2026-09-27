@@ -3,7 +3,6 @@ import { join } from 'node:path';
 import { ESLint } from 'eslint';
 import tseslint from 'typescript-eslint';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const loggerImports = require('../../../config/eslint/logger-imports.rules.cjs');
 
 const eslint = new ESLint({

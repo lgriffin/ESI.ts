@@ -71,7 +71,8 @@ describe('EsiDiagnostics', () => {
       const dedup = new RequestDeduplicator();
       const diag = new EsiDiagnostics(apiClient, false, dedup);
 
-      dedup.dedupe('key1', () => new Promise(() => {}));
+      // Never settles: the request must stay in flight for the count.
+      void dedup.dedupe('key1', () => new Promise(() => {}));
       const stats = diag.getDeduplicatorStats();
       expect(stats).toEqual({ pendingRequests: 1 });
 

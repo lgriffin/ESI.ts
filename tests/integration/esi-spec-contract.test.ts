@@ -578,7 +578,8 @@ describeIfLive('ESI Spec Contract', () => {
               }
             }
             if (scopes.length > 0) {
-              specScopes.set(key, scopes.sort());
+              scopes.sort();
+              specScopes.set(key, scopes);
             }
           }
         }

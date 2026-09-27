@@ -23,7 +23,6 @@ function libraryOf(
 ): StepLibrary {
   let library: StepLibrary | undefined;
   jest.isolateModules(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const api =
       require('../../bdd/support/steps') as typeof import('../../bdd/support/steps');
     register(api);

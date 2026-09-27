@@ -85,12 +85,13 @@ describe('Security: Token Handling', () => {
 
 describe('Security: HTTPS Enforcement', () => {
   it('should reject http:// base URL', () => {
-    expect(() => {
-      new EsiClient({
-        clientId: 'security-http',
-        baseUrl: 'http://esi.evetech.net',
-      });
-    }).toThrow(/HTTPS/);
+    expect(
+      () =>
+        new EsiClient({
+          clientId: 'security-http',
+          baseUrl: 'http://esi.evetech.net',
+        }),
+    ).toThrow(/HTTPS/);
   });
 
   it('should reject http:// via validateBaseUrl directly', () => {
@@ -100,12 +101,13 @@ describe('Security: HTTPS Enforcement', () => {
 
 describe('Security: Host Allowlist', () => {
   it('should reject unknown hosts without unsafeAllowCustomHost', () => {
-    expect(() => {
-      new EsiClient({
-        clientId: 'security-host',
-        baseUrl: 'https://evil.example.com',
-      });
-    }).toThrow(/not in the allowlist/);
+    expect(
+      () =>
+        new EsiClient({
+          clientId: 'security-host',
+          baseUrl: 'https://evil.example.com',
+        }),
+    ).toThrow(/not in the allowlist/);
   });
 
   it('should reject unknown hosts via validateBaseUrl directly', () => {

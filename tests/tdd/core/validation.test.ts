@@ -22,6 +22,10 @@ describe('validatePathParam', () => {
     );
   });
 
+  it('should reject values whose string form is empty', () => {
+    expect(() => validatePathParam('id', [])).toThrow('must not be empty');
+  });
+
   it('should reject values with path traversal characters', () => {
     expect(() => validatePathParam('id', '../etc/passwd')).toThrow(
       'invalid characters',

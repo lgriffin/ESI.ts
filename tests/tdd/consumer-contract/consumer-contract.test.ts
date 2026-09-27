@@ -31,7 +31,6 @@ import {
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const TSC = path.join(REPO_ROOT, 'node_modules', 'typescript', 'bin', 'tsc');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const esbuild = require('esbuild') as EsbuildLike;
 
 const NAME = 'fixture-dual';
@@ -221,7 +220,6 @@ describe('consumer matrix: the cells', () => {
   });
 
   it('documents exactly the sub-paths package.json exports', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const manifest = require(path.join(REPO_ROOT, 'package.json')) as {
       exports: unknown;
     };

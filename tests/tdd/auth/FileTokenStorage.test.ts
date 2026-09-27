@@ -55,9 +55,9 @@ describe('FileTokenStorage', () => {
     await first.set(2, makeStoredToken({ characterId: 2, refreshToken: 'r2' }));
     const second = new FileTokenStorage(file);
     expect((await second.get(2))!.refreshToken).toBe('r2');
-    expect((await second.list()).map((t) => t.characterId).sort()).toEqual([
-      1, 2,
-    ]);
+    expect(
+      (await second.list()).map((t) => t.characterId).sort((a, b) => a - b),
+    ).toEqual([1, 2]);
   });
 
   it('deletes and persists the deletion', async () => {

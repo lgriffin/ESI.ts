@@ -18,7 +18,7 @@ import * as yaml from 'js-yaml';
 const ROOT = path.resolve(__dirname, '../../..');
 const WORKFLOWS = path.join(ROOT, '.github/workflows');
 
-type Permissions = string | Record<string, string> | undefined;
+type Permissions = string | Record<string, string>;
 
 interface Workflow {
   permissions?: Permissions;
@@ -77,7 +77,7 @@ const WRITE_SCOPES: Record<string, string[]> = {
   'spec-refresh.yml#refresh': ['contents'],
 };
 
-function writeScopes(permissions: Permissions): string[] {
+function writeScopes(permissions: Permissions | undefined): string[] {
   if (permissions === undefined) return [];
   if (typeof permissions === 'string') {
     return permissions === 'write-all' ? ['write-all'] : [];

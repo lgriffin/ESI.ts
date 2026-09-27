@@ -120,7 +120,7 @@ describe('truncateBody', () => {
 
   it('never keeps more than ARRAY_MAX elements', () => {
     const rows = Array.from({ length: 50 }, (_, i) => ({ [`k${i}`]: i }));
-    expect((truncateBody(rows, 1).body as unknown[]).length).toBe(ARRAY_MAX);
+    expect(truncateBody(rows, 1).body as unknown[]).toHaveLength(ARRAY_MAX);
   });
 
   it('cuts maps and long strings', () => {

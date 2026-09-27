@@ -28,7 +28,6 @@ export function publicGetEndpoints(): PublicEndpoint[] {
     .sort();
   for (const file of files) {
     const stem = file.replace(/Endpoints\.ts$/, '');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require(path.join(ENDPOINTS_DIR, file)) as Record<
       string,
       Record<string, EndpointDefinition>
