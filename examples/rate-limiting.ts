@@ -5,6 +5,8 @@
  * and error handling for non-existent resources.
  *
  * Usage: npm run example:rate-limiting
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

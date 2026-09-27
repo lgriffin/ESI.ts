@@ -5,6 +5,8 @@
  * All public endpoints — no auth required.
  *
  * Usage: npm run example:character
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

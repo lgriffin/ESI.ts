@@ -4,9 +4,12 @@
  * Demonstrates faction warfare leaderboards (overall, characters,
  * corporations), faction wars, and per-character/corporation FW stats.
  *
- * REQUIRES AUTHENTICATION for character/corporation stats.
+ * The leaderboards and wars are public. The character and corporation stats
+ * need an access token (ESI_ACCESS_TOKEN) and are skipped without one.
  *
  * Usage: npm run example:faction-details
+ *
+ * @nightly mixed
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
@@ -48,6 +51,13 @@ async function main() {
     console.log(`  Active wars: ${wars.length}`);
     for (const war of wars) {
       console.log(`    Faction ${war.against_id} vs ${war.faction_id}`);
+    }
+
+    if (!process.env.ESI_ACCESS_TOKEN) {
+      console.log(
+        '\nCharacter and corporation FW stats need ESI_ACCESS_TOKEN — skipped',
+      );
+      return;
     }
 
     // --- Character FW stats (auth) ---

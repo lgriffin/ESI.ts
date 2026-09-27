@@ -6,6 +6,8 @@
  *
  * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
  * Usage: npx ts-node examples/sde-basic-lookup.ts
+ *
+ * @nightly sde
  */
 import { SdeDataProvider } from '../src/sde';
 
@@ -15,7 +17,9 @@ function main() {
 
   try {
     const version = sde.getVersion();
-    console.log(`SDE Version: ${version.version} (built ${version.buildDate})\n`);
+    console.log(
+      `SDE Version: ${version.version} (built ${version.buildDate})\n`,
+    );
 
     // Look up Tritanium
     const tritanium = sde.getType(34);
@@ -31,7 +35,9 @@ function main() {
         console.log(`  Category: ${category?.name}`);
 
         const siblings = sde.getTypesByGroup(group.groupId);
-        console.log(`  Types in ${group.name}: ${siblings.map((t) => t.name).join(', ')}`);
+        console.log(
+          `  Types in ${group.name}: ${siblings.map((t) => t.name).join(', ')}`,
+        );
       }
     }
 
@@ -45,11 +51,15 @@ function main() {
       console.log(`\nJita: security ${jita.securityStatus.toFixed(2)}`);
       const constellation = sde.getConstellation(jita.constellationId);
       const region = sde.getRegion(jita.regionId);
-      console.log(`  Location: ${region?.name} > ${constellation?.name} > ${jita.name}`);
+      console.log(
+        `  Location: ${region?.name} > ${constellation?.name} > ${jita.name}`,
+      );
 
       const star = sde.getStarBySystem(jita.systemId);
       if (star) {
-        console.log(`  Star: type ${star.typeId}, spectral class ${star.statistics.spectralClass}`);
+        console.log(
+          `  Star: type ${star.typeId}, spectral class ${star.statistics.spectralClass}`,
+        );
       }
 
       const gates = sde.getStargatesBySystem(jita.systemId);

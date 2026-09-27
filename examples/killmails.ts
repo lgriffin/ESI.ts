@@ -10,6 +10,8 @@
  *   - None for getKillmail() — killmail details are public once you have the hash
  *
  * Usage: npm run example:killmails
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

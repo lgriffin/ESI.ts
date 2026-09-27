@@ -5,6 +5,8 @@
  * Demonstrates navigating the universe data hierarchy.
  *
  * Usage: npm run example:universe
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 
@@ -56,6 +58,9 @@ async function main() {
     console.log(`  Station ID:       ${station.station_id}`);
     console.log(`  Owner (Corp ID):  ${station.owner}`);
     console.log(`  Type ID:          ${station.type_id}`);
+
+    const structureIds = await client.universe.getStructures();
+    console.log(`\nPublic Upwell structures: ${structureIds.length}`);
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

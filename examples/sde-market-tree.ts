@@ -6,6 +6,8 @@
  *
  * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
  * Usage: npx ts-node examples/sde-market-tree.ts
+ *
+ * @nightly sde
  */
 import { SdeDataProvider } from '../src/sde';
 import type { MarketGroup } from '../src/sde/types';
@@ -31,11 +33,15 @@ function printTree(
 }
 
 function main() {
-  const sde = SdeDataProvider.fromDirectory(process.env.SDE_DATA_PATH || './sde-data');
+  const sde = SdeDataProvider.fromDirectory(
+    process.env.SDE_DATA_PATH || './sde-data',
+  );
 
   try {
     const roots = sde.getRootMarketGroups();
-    console.log(`=== Market Group Tree (${roots.length} root categories) ===\n`);
+    console.log(
+      `=== Market Group Tree (${roots.length} root categories) ===\n`,
+    );
 
     for (const root of roots) {
       printTree(sde, root);

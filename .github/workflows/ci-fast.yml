@@ -48,5 +48,8 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Type check the examples
+        run: npm run typecheck:examples
+
       - name: Run unit tests
         run: npm test

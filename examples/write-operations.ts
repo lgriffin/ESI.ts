@@ -15,6 +15,8 @@
  *  - esi-mail.read_mail.v1
  *
  * Usage: npm run example:write-ops
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

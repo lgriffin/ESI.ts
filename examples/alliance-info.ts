@@ -4,6 +4,8 @@
  * Looks up an alliance, its member corporations, and icons.
  *
  * Usage: npm run example:alliance
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

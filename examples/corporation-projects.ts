@@ -10,6 +10,8 @@
  * REQUIRES AUTHENTICATION with corporation project scopes.
  *
  * Usage: npm run example:corporation-projects
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

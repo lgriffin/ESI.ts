@@ -8,6 +8,8 @@
  * preferences, avoid lists, and custom connections (e.g. jump bridges).
  *
  * Usage: npm run example:route
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

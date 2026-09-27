@@ -12,6 +12,8 @@
  *   - esi-characters.read_attributes.v1  (neural remap attributes — optional, used in the attributes section)
  *
  * Usage: npm run example:skills
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

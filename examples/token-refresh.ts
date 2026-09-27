@@ -14,6 +14,8 @@
  * fleet trackers, industry monitors) don't need to manually track expiry.
  *
  * Usage: npm run example:token-refresh
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';
