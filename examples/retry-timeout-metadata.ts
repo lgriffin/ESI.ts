@@ -7,6 +7,8 @@
  * No authentication required — uses public ESI endpoints.
  *
  * Usage: npm run example:retry-timeout-metadata
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 import {

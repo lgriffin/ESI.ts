@@ -6,6 +6,8 @@
  * item groups, graphics, systems, jumps, kills, and celestial lookups.
  *
  * Usage: npm run example:universe-encyclopedia
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

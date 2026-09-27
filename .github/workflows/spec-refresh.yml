@@ -1,8 +1,9 @@
 name: Spec Refresh
 
-# Re-vendors the ESI OpenAPI document at COMPATIBILITY_DATE (src/core/constants.ts)
-# and regenerates src/generated/operations.generated.ts from it, then commits
-# both. Road to Done Phase 1: the generator only reads the vendored copy, and
+# Re-vendors the ESI OpenAPI document at COMPATIBILITY_DATE (src/core/constants.ts),
+# regenerates src/generated/operations.generated.ts and the generated types,
+# cache TTLs, rate limit groups and scopes from it, re-records the public
+# payload fixtures, and commits the lot. Road to Done Phase 1: the generator only reads the vendored copy, and
 # this is the one place that fetches it, on a runner that can reach
 # esi.evetech.net.
 #
@@ -36,7 +37,7 @@ jobs:
   refresh:
     name: Refresh the vendored ESI spec
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       contents: write # push the refreshed spec and generated operations
 
@@ -63,6 +64,37 @@ jobs:
           npx prettier --write tests/contract/snapshots/esi-openapi.snapshot.json
           npm run spec:generate
           npm run spec:coverage
+
+      # The generated types, cache TTLs, rate limit groups and scopes record
+      # the date they came from, and generated-spec-date.test.ts fails when it
+      # stops matching COMPATIBILITY_DATE. Regenerating them here keeps a date
+      # bump to one edit: change the constant, push to spec-refresh/**. They
+      # are generated from the snapshot fetched above, not a second fetch, so
+      # everything this job commits comes from one document.
+      - name: Regenerate types, cache TTLs, rate limit groups and scopes
+        run: |
+          npm run generate:types -- --spec-file=tests/contract/snapshots/esi-openapi.snapshot.json
+          npx prettier --write src/types/generated/ 'src/core/endpoints/esi-*.generated.ts'
+
+      # Fixtures recorded under another date fail coverage.test.ts. Exit 1
+      # means some endpoints could not be recorded; their committed fixtures
+      # are kept, and the replay in CI says whether that matters. Exit 2 means
+      # the recorder could not run at all.
+      - name: Re-record the public payload fixtures
+        env:
+          ESI_LIVE_TESTS: 'true'
+        run: |
+          set +e
+          npm run contract:record -- --report=record-report.json
+          code=$?
+          set -e
+          if [ "$code" -eq 2 ]; then
+            echo "::error::The recorder could not proceed; see the log above."
+            exit 2
+          fi
+          [ -f record-report.json ] && cat record-report.json >> "$GITHUB_STEP_SUMMARY" || true
+          rm -f record-report.json
+          npx prettier --write 'tests/contract/fixtures/**/*.json' > /dev/null
 
       - name: Commit the refresh
         env:
@@ -104,8 +136,9 @@ jobs:
           fi
 
           date=$(node -p "require('./tests/contract/snapshots/esi-openapi.snapshot.json').info.version")
-          git add tests/contract/snapshots/esi-openapi.snapshot.json src/generated/operations.generated.ts
+          git add tests/contract/snapshots/esi-openapi.snapshot.json src/generated/operations.generated.ts \
+            src/types/generated/ src/core/endpoints/esi-*.generated.ts tests/contract/fixtures/
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -q -m "chore(spec): vendor the ESI spec at ${date} and regenerate operations"
+            commit -q -m "chore(spec): vendor the ESI spec at ${date} and regenerate from it"
           git push -q origin "HEAD:refs/heads/${target}"
           echo "Pushed the refresh to \`${target}\`." >> "$GITHUB_STEP_SUMMARY"

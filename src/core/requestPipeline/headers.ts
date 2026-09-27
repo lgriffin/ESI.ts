@@ -32,21 +32,31 @@ export function buildRequestHeaders(
   body: unknown,
   resolveCache: (client: ApiClient) => ICache | null,
 ): HeadersInit {
+  // A configured userAgent names the application first; the library's own
+  // identifier follows, as CCP asks. It was validated when configured.
+  const userAgent = client.getUserAgent();
   const headers: HeadersInit = {
     Accept: 'application/json',
     'Accept-Encoding': 'gzip, deflate, br',
-    'User-Agent': USER_AGENT,
+    'User-Agent': userAgent ? `${userAgent} ${USER_AGENT}` : USER_AGENT,
     'X-Compatibility-Date': client.getCompatibilityDate() ?? COMPATIBILITY_DATE,
   };
 
-  // The configured clientId is the User-Agent identifier (README.md); ESI
-  // reads the caller from X-User-Agent. clientId is free text (config or
-  // ESI_CLIENT_ID), and fetch rejects a header value holding a control
-  // character, so a value that is not a legal header value is left off
-  // rather than failing every request.
+  // ESI reads the caller from X-User-Agent: the configured userAgent, else the
+  // clientId (README.md). clientId is free text (config or ESI_CLIENT_ID), and
+  // fetch rejects a header value holding a control character, so a clientId
+  // that is not a legal header value is left off rather than failing every
+  // request.
   const clientId = client.getClientId();
-  if (HEADER_VALUE.test(clientId)) {
+  if (userAgent) {
+    headers['X-User-Agent'] = userAgent;
+  } else if (HEADER_VALUE.test(clientId)) {
     headers['X-User-Agent'] = clientId;
+  }
+
+  const tenant = client.getTenant();
+  if (tenant) {
+    headers['X-Tenant'] = tenant;
   }
 
   const language = client.getLanguage();

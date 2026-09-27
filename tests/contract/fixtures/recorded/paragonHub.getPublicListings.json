@@ -1,0 +1,81 @@
+{
+  "endpoint": "paragonHub.getPublicListings",
+  "call": {
+    "client": "paragonHub",
+    "method": "getPublicListings",
+    "args": []
+  },
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.listings",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "paragon-hub/skinr",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=0, immutable, must-revalidate",
+        "content-type": "application/json",
+        "expires": "Sun, 27 Sep 2026 04:26:02 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:03:06 GMT"
+      },
+      "body": {
+        "cursor": {
+          "before": "1.MTc5MDQ3OTAzMjM0OS0w",
+          "after": "1.MTc5MDQ4MTc4NjAyOS0w"
+        },
+        "listings": [
+          {
+            "id": "574dfcae-2e19-4f60-93c9-2fa844e83963",
+            "state": "listed",
+            "last_modified": "2026-09-27T03:17:12Z",
+            "seller_id": 2119597578,
+            "skinr_id": "5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
+            "created": "2026-09-27T03:17:12Z",
+            "expires": "2026-10-04T03:17:12Z",
+            "quantity": 1,
+            "price": {
+              "isk": 2000000000
+            }
+          },
+          {
+            "id": "a53f83ef-ee15-4770-9be0-67b37ad0df2a",
+            "state": "listed",
+            "last_modified": "2026-09-27T03:17:39Z",
+            "seller_id": 2119597578,
+            "skinr_id": "86b24cb2b22f54fdf5a644a31691b899da38b7b822ac8445e61294d2ca7d862b",
+            "created": "2026-09-27T03:17:39Z",
+            "expires": "2026-10-04T03:17:39Z",
+            "quantity": 1,
+            "price": {
+              "isk": 1200000000
+            }
+          },
+          {
+            "id": "b9e09d79-e24c-4a52-8516-042d7cac2256",
+            "state": "removed",
+            "last_modified": "2026-09-27T03:33:45Z",
+            "seller_id": 94447432,
+            "skinr_id": "09c20eaee750d701c084a8d62c0b4d956764c06c824a4d9da3f75b2ab17f62f4",
+            "created": "2026-09-14T04:29:28Z",
+            "expires": "2026-12-13T04:29:28Z",
+            "quantity": 1,
+            "price": {
+              "plex": 94
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

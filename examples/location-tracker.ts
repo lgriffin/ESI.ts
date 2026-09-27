@@ -13,6 +13,8 @@
  *   - esi-location.read_ship_type.v1     (current ship type and name)
  *
  * Usage: npm run example:location
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

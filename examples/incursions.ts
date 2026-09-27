@@ -4,6 +4,8 @@
  * Shows active Sansha incursions and faction warfare statistics.
  *
  * Usage: npm run example:incursions
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

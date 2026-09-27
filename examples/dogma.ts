@@ -4,6 +4,8 @@
  * Explores EVE's game mechanics data: item types, dogma attributes, and effects.
  *
  * Usage: npm run example:dogma
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 

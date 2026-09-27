@@ -11,6 +11,8 @@
  *   - esi-wallet.read_corporation_wallets.v1  (corporation wallet divisions)
  *
  * Usage: npm run example:wallet
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

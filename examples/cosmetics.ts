@@ -6,6 +6,8 @@
  * require an ESI token with the esi.cosmetic.char:read scope.
  *
  * Usage: npm run example:cosmetics
+ *
+ * @nightly mixed
  */
 import { EsiClient } from '../src/EsiClient';
 import { isNotFound } from '../src/core/util/error';

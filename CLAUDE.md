@@ -7,6 +7,7 @@ TypeScript wrapper for the EVE Online ESI (EVE Swagger Interface) API. Published
 ```bash
 npm run build          # Dual CJS/ESM bundle (tsup) + declarations (tsc)
 npm run typecheck      # Type-check without emitting (tsc --noEmit)
+npm run typecheck:examples  # Type-check examples/ against src (tsconfig.examples.json)
 npm run clean          # Remove dist/, coverage/, docs-site/public/api/
 npm run lint           # ESLint (src/)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
@@ -40,6 +41,7 @@ npm run test:export-coverage  # Public exports no test references (--ci gates ag
 npm run test:type-mutation  # Mutate built dist/*.d.ts, run tsd per mutant; -- --ratchet gates (nightly)
 npm run test:consumer  # Pack, install into a clean consumer, type-check + run CJS/ESM/sub-paths (not in npm test)
 npm run test:docs-examples  # Type-check every ts block in README/guides/SDE docs against the packed package (not in npm test)
+npm run examples:nightly    # Run the @nightly public/mixed examples against live ESI (--only <file>, --json <path>)
 npm run test:all       # All test suites
 npm run mutation       # Mutation testing (Stryker)
 npm run mutation:bdd   # BDD-only mutation run, sharded by BDD_MUTATION_SHARD (mutation-bdd-shards.json)
@@ -113,6 +115,7 @@ Key middleware in the pipeline:
 - **ci-fast.yml** — runs on all pushes: lint, format, build, typecheck, unit tests (Node 20)
 - **ci.yml** — runs on PRs to master: full matrix (Node 18/20/22), BDD, contract, fuzz, coverage with PR comment, quality gate
 - **nightly-mutation.yml** — runs nightly: unit mutation testing (Stryker) with a 4-hour timeout, the BDD-only run as one job per shard, and type mutation
+- **nightly-examples.yml** — runs nightly and on PRs touching examples: type-checks every example, runs the public ones against live ESI, opens/closes one issue per failing example
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
 
 ## Semantic Versioning (enforced)

@@ -5,6 +5,8 @@
  * and insurance prices for ships.
  *
  * Usage: npm run example:industry
+ *
+ * @nightly public
  */
 import { EsiClient } from '../src/EsiClient';
 
@@ -62,6 +64,12 @@ async function main() {
         }
       }
     }
+
+    // Planetary interaction: one schematic, recorded by the contract tests
+    const schematic = await client.pi.getSchematicInformation(65);
+    console.log(
+      `\nPI schematic 65: ${schematic.schematic_name}, cycle ${schematic.cycle_time}s`,
+    );
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
     process.exit(1);

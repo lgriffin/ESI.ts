@@ -11,6 +11,8 @@
  *   - esi-characters.write_contacts.v1 (add/edit/delete contacts — shown but not executed)
  *
  * Usage: npm run example:contacts
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

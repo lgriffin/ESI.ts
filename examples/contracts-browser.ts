@@ -9,6 +9,8 @@
  *   - esi-contracts.read_character_contracts.v1  (character contracts)
  *
  * Usage: npm run example:contracts
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

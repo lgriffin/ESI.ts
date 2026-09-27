@@ -1,0 +1,77 @@
+{
+  "endpoint": "militaryCampaign.getMilitaryCampaignObjectives",
+  "call": {
+    "client": "militaryCampaigns",
+    "method": "getMilitaryCampaignObjectives",
+    "args": ["7519d7db-1e95-4d0e-bbbe-c47cd47de3c0"]
+  },
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specCacheSeconds": 60,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.objectives",
+      "kind": "array",
+      "original": 10,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "military-campaigns/7519d7db-1e95-4d0e-bbbe-c47cd47de3c0/objectives",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "application/json",
+        "expires": "Sun, 27 Sep 2026 04:26:01 GMT"
+      },
+      "body": {
+        "cursor": {
+          "before": "1.GNkKWOE-u0ho",
+          "after": "1.GNkSyLGtc3S3AQ=="
+        },
+        "objectives": [
+          {
+            "id": "a67789c2-80d7-468a-8c0b-2da97e72b74e",
+            "state": "Active",
+            "progress": 1158,
+            "participants": {
+              "total": 833,
+              "committed": 718,
+              "contributors": 283
+            },
+            "last_modified": "2026-09-27T01:48:23.708Z",
+            "started": "2026-07-31T23:00:48.052Z"
+          },
+          {
+            "id": "62f1574f-17df-4f96-ab37-7483cb3afcd0",
+            "state": "Active",
+            "progress": 22216,
+            "participants": {
+              "total": 4512,
+              "committed": 4215,
+              "contributors": 3734
+            },
+            "last_modified": "2026-09-27T02:55:41.039Z",
+            "started": "2026-06-16T23:00:23.069Z"
+          },
+          {
+            "id": "43c786c9-7f00-4ff1-bf01-97350124a3d7",
+            "state": "Active",
+            "progress": 12699,
+            "participants": {
+              "total": 613,
+              "committed": 539,
+              "contributors": 349
+            },
+            "last_modified": "2026-09-27T03:33:56.68Z",
+            "started": "2026-09-23T11:00:30.102Z"
+          }
+        ]
+      }
+    }
+  ]
+}

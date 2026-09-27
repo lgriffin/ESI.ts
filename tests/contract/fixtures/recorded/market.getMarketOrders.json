@@ -5,11 +5,11 @@
     "method": "getMarketOrders",
     "args": [10000002]
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 300,
-  "upstreamPages": 411,
+  "upstreamPages": 405,
   "truncated": [
     {
       "page": 1,
@@ -33,9 +33,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"fe8c9af147b14cef5bdfd2baaf4a4382016a7ffce35cdd345ae40ef0\"",
-        "expires": "Thu, 17 Sep 2026 14:15:16 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:10:16 GMT",
+        "etag": "\"595aa6681b4c809914df2239cb1116892f53ef72f47ffd2013b59d49\"",
+        "expires": "Sun, 27 Sep 2026 04:30:14 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:25:14 GMT",
         "x-pages": "2"
       },
       "body": [
@@ -56,20 +56,6 @@
         {
           "duration": 90,
           "is_buy_order": false,
-          "issued": "2026-09-16T15:52:57Z",
-          "location_id": 60014659,
-          "min_volume": 1,
-          "order_id": 7423918081,
-          "price": 26000000,
-          "range": "region",
-          "system_id": 30000141,
-          "type_id": 24625,
-          "volume_remain": 12,
-          "volume_total": 12
-        },
-        {
-          "duration": 90,
-          "is_buy_order": false,
           "issued": "2026-08-16T14:07:04Z",
           "location_id": 60003760,
           "min_volume": 1,
@@ -80,6 +66,20 @@
           "type_id": 25614,
           "volume_remain": 1000,
           "volume_total": 1000
+        },
+        {
+          "duration": 90,
+          "is_buy_order": false,
+          "issued": "2026-09-06T06:49:53Z",
+          "location_id": 60003760,
+          "min_volume": 1,
+          "order_id": 7416578063,
+          "price": 933800,
+          "range": "region",
+          "system_id": 30000142,
+          "type_id": 27253,
+          "volume_remain": 10,
+          "volume_total": 10
         }
       ]
     },
@@ -89,53 +89,53 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"a9f4b6a3a8eff8f9aadc7d12ef0542dde5767d661d44ae6af228a05e\"",
-        "expires": "Thu, 17 Sep 2026 14:15:16 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:10:16 GMT",
+        "etag": "\"48f8b659d12d5e7c82663500b55e52223d369747a139eadaf0e928c5\"",
+        "expires": "Sun, 27 Sep 2026 04:30:14 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:25:14 GMT",
         "x-pages": "2"
       },
       "body": [
         {
-          "duration": 30,
+          "duration": 90,
           "is_buy_order": false,
-          "issued": "2026-09-10T18:07:41Z",
+          "issued": "2026-09-14T23:29:03Z",
           "location_id": 60003760,
           "min_volume": 1,
-          "order_id": 7419728136,
-          "price": 12.8,
+          "order_id": 7422873430,
+          "price": 748900,
           "range": "region",
           "system_id": 30000142,
-          "type_id": 62516,
-          "volume_remain": 26487301,
-          "volume_total": 26487301
+          "type_id": 18758,
+          "volume_remain": 33,
+          "volume_total": 50
         },
         {
           "duration": 90,
           "is_buy_order": false,
-          "issued": "2026-08-12T21:50:00Z",
+          "issued": "2026-09-27T03:55:13Z",
           "location_id": 60003760,
           "min_volume": 1,
-          "order_id": 7399277270,
-          "price": 24770000,
+          "order_id": 7431262040,
+          "price": 45000000,
           "range": "region",
           "system_id": 30000142,
-          "type_id": 13248,
-          "volume_remain": 2,
+          "type_id": 89156,
+          "volume_remain": 3,
           "volume_total": 3
         },
         {
           "duration": 90,
           "is_buy_order": false,
-          "issued": "2026-09-12T08:12:24Z",
+          "issued": "2026-08-09T02:48:29Z",
           "location_id": 60003760,
           "min_volume": 1,
-          "order_id": 7420776719,
-          "price": 78.93,
+          "order_id": 7390367578,
+          "price": 220600000,
           "range": "region",
           "system_id": 30000142,
-          "type_id": 24488,
-          "volume_remain": 78056,
-          "volume_total": 200000
+          "type_id": 37304,
+          "volume_remain": 4,
+          "volume_total": 4
         }
       ]
     }

@@ -5,12 +5,20 @@
     "method": "getSovereigntyCampaigns",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 5,
   "upstreamPages": 1,
-  "truncated": [],
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "array",
+      "original": 8,
+      "kept": 3
+    }
+  ],
   "pages": [
     {
       "url": "sovereignty/campaigns",
@@ -18,11 +26,45 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"ed2e5773d709f4a0654d954884b08db4e152aeb8a70cb70b54e01bc4\"",
-        "expires": "Thu, 17 Sep 2026 14:13:21 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:13:16 GMT"
+        "etag": "\"b3cf019c2adbc92d2c3a9a083eb797b6e6bf3acb64ef9f4a8e79c99c\"",
+        "expires": "Sun, 27 Sep 2026 04:26:02 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:25:57 GMT"
       },
-      "body": []
+      "body": [
+        {
+          "attackers_score": 0.61,
+          "campaign_id": 112206,
+          "constellation_id": 20000227,
+          "defender_id": 99015215,
+          "defender_score": 0.39,
+          "event_type": "ihub_defense",
+          "solar_system_id": 30001546,
+          "start_time": "2026-09-27T03:25:02Z",
+          "structure_id": 1055504687928
+        },
+        {
+          "attackers_score": 0.4,
+          "campaign_id": 112207,
+          "constellation_id": 20000258,
+          "defender_id": 99015056,
+          "defender_score": 0.6,
+          "event_type": "ihub_defense",
+          "solar_system_id": 30001746,
+          "start_time": "2026-09-27T19:10:04Z",
+          "structure_id": 1055739372167
+        },
+        {
+          "attackers_score": 0.4,
+          "campaign_id": 112208,
+          "constellation_id": 20000258,
+          "defender_id": 99015056,
+          "defender_score": 0.6,
+          "event_type": "ihub_defense",
+          "solar_system_id": 30001748,
+          "start_time": "2026-09-27T21:31:35Z",
+          "structure_id": 1055736759643
+        }
+      ]
     }
   ]
 }

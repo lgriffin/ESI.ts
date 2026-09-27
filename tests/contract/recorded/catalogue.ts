@@ -707,7 +707,7 @@ export const RECIPES: Recipe[] = [
     args: none,
     derive: (body) =>
       defined({
-        campaignId: first(body, (c) => (c.campaign_id ?? c.id) as string),
+        campaignId: first((body as Row)?.campaigns, (c) => c.id as string),
       }),
   },
   {
@@ -723,7 +723,7 @@ export const RECIPES: Recipe[] = [
     args: (ids) => [need(ids, 'campaignId')],
     derive: (body) =>
       defined({
-        objectiveId: first(body, (o) => (o.objective_id ?? o.id) as string),
+        objectiveId: first((body as Row)?.objectives, (o) => o.id as string),
       }),
   },
   {

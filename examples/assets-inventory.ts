@@ -10,6 +10,8 @@
  *   - esi-assets.read_assets.v1  (character asset list, locations, and names)
  *
  * Usage: npm run example:assets
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

@@ -26,6 +26,11 @@ export function configureApiClient(
 ): ConfigureApiClientResult {
   let deduplicator: RequestDeduplicator | null = null;
 
+  // Per-client identity headers. The setters refuse a value that is not a
+  // valid header, so a bad one fails here rather than on every request.
+  if (config?.tenant !== undefined) client.setTenant(config.tenant);
+  if (config?.userAgent !== undefined) client.setUserAgent(config.userAgent);
+
   // Rate limiter (always)
   client.setRateLimiter(new RateLimiter(config?.rateLimiterConfig));
 

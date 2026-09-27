@@ -13,7 +13,14 @@ export const CharacterInfoSchema = z.looseObject({
   race_id: z.number(),
   gender: esiEnum(['male', 'female']),
   security_status: z.number().optional(),
+  /** Before 2026-08-18; replaced by `corporation_title`. */
   title: z.string().optional(),
+  /** From 2026-08-18. */
+  corporation_title: z.string().optional(),
+  /** From 2026-08-18. */
+  character_title_id: z.string().optional(),
+  /** From 2026-08-18. */
+  achievement_score: z.number().optional(),
   birthday: z.string(),
 });
 

@@ -6,6 +6,8 @@
  * and corporation targeted listings require the esi.cosmetic.char:read scope.
  *
  * Usage: npm run example:paragon-hub
+ *
+ * @nightly mixed
  */
 import { EsiClient } from '../src/EsiClient';
 
@@ -39,6 +41,16 @@ async function main() {
       console.log('  No public listings found.');
     }
 
+    // --- The design behind a listing (public, cosmetics client) ---
+    const firstListing = publicPage.listings[0];
+    if (firstListing) {
+      const design = await client.cosmetics.getSkinr(firstListing.skinr_id);
+      console.log(
+        `\n  SKINR ${firstListing.skinr_id}: "${design.name}" for ship type ` +
+          `${design.ship_type_id}, tier ${design.tier.level}`,
+      );
+    }
+
     // --- Cursor pagination ---
     if (publicPage.cursor?.after) {
       console.log('\nFetching next page...');
@@ -56,9 +68,8 @@ async function main() {
       console.log(`\nYour Paragon Hub Listings (Character ${characterId})`);
       console.log('-'.repeat(60));
 
-      const charPage = await client.paragonHub.getCharacterListings(
-        characterId,
-      );
+      const charPage =
+        await client.paragonHub.getCharacterListings(characterId);
 
       const byState = new Map<string, number>();
       for (const listing of charPage.listings) {

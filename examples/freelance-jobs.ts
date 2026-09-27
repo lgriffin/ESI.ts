@@ -12,6 +12,8 @@
  *  - esi-corporations.read_freelance_jobs.v1
  *
  * Usage: npm run example:freelance-jobs
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

@@ -9,6 +9,8 @@
  * if CCP has not yet deployed skyhook content to the current server version.
  *
  * Usage: npm run example:skyhooks
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { isNotFound } from '../src/core/util/error';
@@ -85,25 +87,37 @@ async function main() {
 
     console.log('\nRaidable Skyhooks');
     console.log('-'.repeat(60));
-    const nowRaidable = raidable.filter((r) => r.is_raidable);
-    const upcoming = raidable.filter((r) => !r.is_raidable && r.raidable_at);
+    // A skyhook is open to theft between its window's start and end.
+    const now = Date.now();
+    const windows = raidable.skyhooks.map((r) => ({
+      ...r,
+      start: Date.parse(r.theft_vulnerability.start),
+      end: Date.parse(r.theft_vulnerability.end),
+    }));
+    const nowRaidable = windows.filter((r) => r.start <= now && now < r.end);
+    const upcoming = windows.filter((r) => r.start > now);
     console.log(`  Currently raidable: ${nowRaidable.length}`);
     console.log(`  Becoming raidable:  ${upcoming.length}`);
 
     for (const r of nowRaidable.slice(0, 5)) {
-      console.log(`  System ${r.system_id} — RAIDABLE NOW`);
+      console.log(
+        `  Planet ${r.planet_id} (system ${r.solar_system_id}) — RAIDABLE until ${r.theft_vulnerability.end}`,
+      );
     }
     for (const r of upcoming.slice(0, 3)) {
-      console.log(`  System ${r.system_id} — Raidable at ${r.raidable_at}`);
+      console.log(
+        `  Planet ${r.planet_id} (system ${r.solar_system_id}) — raidable from ${r.theft_vulnerability.start}`,
+      );
     }
 
     // Fetch detail for the first skyhook
-    if (skyhooks.length > 0) {
+    const firstSkyhooks = skyhooks[0];
+    if (firstSkyhooks) {
       console.log('\nSkyhook Detail');
       console.log('-'.repeat(60));
       const detail = await client.skyhooks.getSkyhookDetail(
         corporationId,
-        skyhooks[0].structure_id,
+        firstSkyhooks.structure_id,
       );
       console.log(
         `  Skyhook ${detail.id} — Planet ${detail.planet_id} — State: ${detail.state}`,
@@ -126,12 +140,13 @@ async function main() {
     }
 
     // Fetch detail for the first sovereignty hub
-    if (hubs.length > 0) {
+    const firstHubs = hubs[0];
+    if (firstHubs) {
       console.log('\nSovereignty Hub Detail');
       console.log('-'.repeat(60));
       const hubDetail = await client.skyhooks.getSovereigntyHubDetail(
         corporationId,
-        hubs[0].structure_id,
+        firstHubs.structure_id,
       );
       console.log(
         `  Hub ${hubDetail.id} — System ${hubDetail.solar_system_id}`,

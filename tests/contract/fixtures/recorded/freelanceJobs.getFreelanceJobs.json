@@ -5,9 +5,9 @@
     "method": "getFreelanceJobs",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -26,54 +26,54 @@
       "headers": {
         "cache-control": "public, max-age=0, must-revalidate",
         "content-type": "application/json",
-        "expires": "Thu, 17 Sep 2026 14:13:20 GMT"
+        "expires": "Sun, 27 Sep 2026 04:26:00 GMT"
       },
       "body": {
         "cursor": {
-          "before": "1.GNYgzCpN5Bg=",
-          "after": "1.GNYhMOx0CCQ="
+          "before": "1.GNkS6qT2pLw=",
+          "after": "1.GNkS8XtMhkg="
         },
         "freelance_jobs": [
           {
-            "id": "68fd5fe6-4752-4e7c-89de-067fd3e54ecc",
-            "name": "ALL TYPES OF VELDSPAR",
+            "id": "05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
+            "name": "Gallente Federation Day Contest 2026",
             "state": "Active",
-            "last_modified": "2026-09-17T14:06:03.181Z",
+            "last_modified": "2026-09-27T04:25:25.855Z",
             "progress": {
-              "current": 2732877,
-              "desired": 13000000
+              "current": 14306,
+              "desired": 50000
             },
             "reward": {
-              "initial": 104000000,
-              "remaining": 82136984
+              "initial": 500000000,
+              "remaining": 356940000
+            }
+          },
+          {
+            "id": "d949b957-bd25-497c-9441-4c536e13f244",
+            "name": "New Player Support Program by \"Tenebris Academy\"",
+            "state": "Active",
+            "last_modified": "2026-09-27T04:25:33.521Z",
+            "progress": {
+              "current": 116702,
+              "desired": 175000
+            },
+            "reward": {
+              "initial": 700000000,
+              "remaining": 233192000
             }
           },
           {
             "id": "115ab093-5347-48ea-a850-757ed574d8ea",
             "name": "New Player Support Program by \"Tenebris Academy\"",
             "state": "Active",
-            "last_modified": "2026-09-17T14:09:11.595Z",
+            "last_modified": "2026-09-27T04:25:34.082Z",
             "progress": {
-              "current": 2970,
+              "current": 49063,
               "desired": 190000
             },
             "reward": {
               "initial": 760000000,
-              "remaining": 748120000
-            }
-          },
-          {
-            "id": "ba5847a4-1c09-43cd-b03d-18b2e22e1f70",
-            "name": "E-V军等",
-            "state": "Active",
-            "last_modified": "2026-09-17T14:11:10.585Z",
-            "progress": {
-              "current": 1528,
-              "desired": 10000
-            },
-            "reward": {
-              "initial": 2000000000,
-              "remaining": 1694400000
+              "remaining": 563748000
             }
           }
         ]

@@ -6,6 +6,8 @@
  *
  * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
  * Usage: npx ts-node examples/sde-fitting.ts
+ *
+ * @nightly sde
  */
 import { SdeDataProvider } from '../src/sde';
 
@@ -27,7 +29,9 @@ const FITTING_ATTRIBUTES: Record<string, string> = {
 };
 
 function main() {
-  const sde = SdeDataProvider.fromDirectory(process.env.SDE_DATA_PATH || './sde-data');
+  const sde = SdeDataProvider.fromDirectory(
+    process.env.SDE_DATA_PATH || './sde-data',
+  );
 
   try {
     const RIFTER_TYPE_ID = 587;

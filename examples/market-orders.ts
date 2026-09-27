@@ -7,6 +7,8 @@
  * REQUIRES AUTHENTICATION — set ESI_ACCESS_TOKEN in your environment.
  *
  * Usage: npm run example:market-orders
+ *
+ * @nightly auth
  */
 import { EsiClient } from '../src/EsiClient';
 import { EsiError } from '../src/core/util/error';

@@ -85,7 +85,8 @@ export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
   /**
    * Retrieves the ESI name.
    *
-   * @returns An object containing the ESI name
+   * @returns `{ current, history }`: the name ESI has now and the dated names
+   *   it had before
    */
   getName(): Promise<MetaName> {
     return this.api.getName();
