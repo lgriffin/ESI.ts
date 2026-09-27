@@ -34,11 +34,7 @@ function parseArgs(args: string[]): CliOptions {
   return opts;
 }
 
-function log(
-  message: string,
-  verbose: boolean = false,
-  opts?: CliOptions,
-): void {
+function log(message: string, verbose: boolean = false, opts?: CliOptions): void {
   if (verbose && opts && !opts.verbose) return;
   console.log(message);
 }
@@ -49,9 +45,7 @@ async function main(): Promise<void> {
 
   log('Checking latest SDE build...');
   const latestBuild = await downloader.getLatestBuild();
-  log(
-    `Latest SDE build: ${latestBuild.buildNumber} (${latestBuild.releaseDate})`,
-  );
+  log(`Latest SDE build: ${latestBuild.buildNumber} (${latestBuild.releaseDate})`);
 
   if (opts.check) {
     return;
@@ -60,11 +54,7 @@ async function main(): Promise<void> {
   const outDir = path.resolve(opts.output);
   const zipPath = outDir + '.zip';
 
-  if (
-    !opts.force &&
-    fs.existsSync(outDir) &&
-    fs.readdirSync(outDir).length > 0
-  ) {
+  if (!opts.force && fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
     log(`SDE data already exists at ${outDir}. Use --force to re-download.`);
     return;
   }
@@ -75,9 +65,7 @@ async function main(): Promise<void> {
     onProgress: (downloaded, total) => {
       if (total > 0) {
         const pct = Math.round((downloaded / total) * 100);
-        process.stdout.write(
-          `\r  Progress: ${pct}% (${(downloaded / 1024 / 1024).toFixed(1)} MB)`,
-        );
+        process.stdout.write(`\r  Progress: ${pct}% (${(downloaded / 1024 / 1024).toFixed(1)} MB)`);
       }
     },
   });
@@ -98,7 +86,7 @@ async function main(): Promise<void> {
   }
 
   log(`SDE data ready at ${outDir}`);
-  log("Usage: SdeDataProvider.fromDirectory('" + outDir + "')");
+  log('Usage: SdeDataProvider.fromDirectory(\'' + outDir + '\')');
 }
 
 main().catch((err) => {

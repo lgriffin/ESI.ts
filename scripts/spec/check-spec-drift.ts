@@ -73,12 +73,8 @@ function parseEndpointFiles(): {
   name: string;
   file: string;
 }[] {
-  const entries: {
-    path: string;
-    method: string;
-    name: string;
-    file: string;
-  }[] = [];
+  const entries: { path: string; method: string; name: string; file: string }[] =
+    [];
   const files = fs
     .readdirSync(ENDPOINTS_DIR)
     .filter((f) => f.endsWith('Endpoints.ts'));

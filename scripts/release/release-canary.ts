@@ -148,10 +148,7 @@ function verifyReleaseAssets(
   const { identity, issuer } = assetIdentitySpec(repository, version);
   const base = `lgriffin-esi.ts-${version}`;
   const assets = [`${base}.tgz`, `${base}.cdx.json`];
-  const bundles = [
-    `${base}.tgz.sigstore.json`,
-    `${base}.cdx.json.sigstore.json`,
-  ];
+  const bundles = [`${base}.tgz.sigstore.json`, `${base}.cdx.json.sigstore.json`];
 
   // 1. Download. `--clobber` so a rerun over the same directory is clean.
   const download = run(
@@ -244,7 +241,9 @@ function verifyReleaseAssets(
     };
   }
   const componentVersion = (doc as Record<string, unknown> | undefined)
-    ?.metadata as { component?: { version?: unknown } } | undefined;
+    ?.metadata as
+    | { component?: { version?: unknown } }
+    | undefined;
   const versionField = componentVersion?.component?.version;
   if (versionField !== version) {
     return {

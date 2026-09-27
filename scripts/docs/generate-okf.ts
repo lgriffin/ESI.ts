@@ -150,14 +150,10 @@ function parseWindowSize(windowSize: string): number {
   if (!match || !match[1] || !match[2]) return 900_000;
   const value = parseInt(match[1], 10);
   switch (match[2]) {
-    case 's':
-      return value * 1000;
-    case 'm':
-      return value * 60 * 1000;
-    case 'h':
-      return value * 60 * 60 * 1000;
-    default:
-      return 900_000;
+    case 's': return value * 1000;
+    case 'm': return value * 60 * 1000;
+    case 'h': return value * 60 * 60 * 1000;
+    default: return 900_000;
   }
 }
 
@@ -186,9 +182,7 @@ function schemaTypeLabel(schema: OpenApiSchema, spec: OpenApiSpec): string {
     return 'unknown';
   }
   if (schema.enum) {
-    const vals = schema.enum.map((v) =>
-      typeof v === 'string' ? `'${v}'` : String(v),
-    );
+    const vals = schema.enum.map((v) => (typeof v === 'string' ? `'${v}'` : String(v)));
     return `enum(${vals.join(', ')})`;
   }
   if (schema.type === 'array' && schema.items) {
@@ -261,8 +255,7 @@ function extractEndpoints(spec: OpenApiSpec): EndpointConcept[] {
       const op = methods[method] as OpenApiOperation | undefined;
       if (!op) continue;
 
-      const operationId =
-        op.operationId ?? `${method}_${routePath.replace(/\//g, '_')}`;
+      const operationId = op.operationId ?? `${method}_${routePath.replace(/\//g, '_')}`;
       const tag = op.tags?.[0] ?? 'Uncategorized';
       const cleanPath = routePath.replace(/^\//, '').replace(/\/$/, '');
 
@@ -279,8 +272,7 @@ function extractEndpoints(spec: OpenApiSpec): EndpointConcept[] {
       }
 
       // Cache TTL
-      const cacheTtl =
-        typeof op['x-cache-age'] === 'number' ? op['x-cache-age'] : null;
+      const cacheTtl = typeof op['x-cache-age'] === 'number' ? op['x-cache-age'] : null;
 
       // Rate limit
       let rateLimit: EndpointConcept['rateLimit'] = null;
@@ -379,10 +371,7 @@ function extractSchemas(
   spec: OpenApiSpec,
   endpoints: EndpointConcept[],
 ): SchemaConcept[] {
-  const schemaRefs = new Map<
-    string,
-    { name: string; endpoints: EndpointRef[] }
-  >();
+  const schemaRefs = new Map<string, { name: string; endpoints: EndpointRef[] }>();
 
   for (const ep of endpoints) {
     if (ep.responseSchemaName) {
@@ -427,18 +416,13 @@ function extractSchemas(
       });
     }
 
-    const tag =
-      endpoints.find((e) => e.responseSchemaName === refName)?.tag ??
-      'Uncategorized';
+    const tag = endpoints.find((e) => e.responseSchemaName === refName)?.tag ?? 'Uncategorized';
 
     schemas.push({
       refName,
       slug: kebab(refName),
       title: titleCase(refName),
-      description:
-        schema.description ??
-        schema.title ??
-        `${titleCase(refName)} response object`,
+      description: schema.description ?? schema.title ?? `${titleCase(refName)} response object`,
       tag,
       fields,
       usedByEndpoints: info.endpoints,
@@ -474,17 +458,13 @@ function generateBundleIndex(
   ];
 
   for (const tag of tags.sort()) {
-    lines.push(
-      `* [${titleCase(tag)}](domains/${kebab(tag)}/index.md) - ${titleCase(tag)} API endpoints`,
-    );
+    lines.push(`* [${titleCase(tag)}](domains/${kebab(tag)}/index.md) - ${titleCase(tag)} API endpoints`);
   }
 
   lines.push('');
   lines.push('## Response Schemas');
   lines.push('');
-  lines.push(
-    '* [All Schemas](schemas/index.md) - Response data models used by ESI endpoints',
-  );
+  lines.push('* [All Schemas](schemas/index.md) - Response data models used by ESI endpoints');
   lines.push('');
 
   return lines.join('\n');
@@ -524,9 +504,7 @@ function generateDomainIndex(
   const sorted = endpoints.sort((a, b) => a.slug.localeCompare(b.slug));
   for (const ep of sorted) {
     const authBadge = ep.requiresAuth ? ' (auth)' : '';
-    lines.push(
-      `* [${ep.title}](${ep.slug}.md) - \`${ep.method} /${ep.path}\`${authBadge}`,
-    );
+    lines.push(`* [${ep.title}](${ep.slug}.md) - \`${ep.method} /${ep.path}\`${authBadge}`);
   }
 
   lines.push('');
@@ -534,7 +512,12 @@ function generateDomainIndex(
 }
 
 function generateDomainsIndex(tags: string[]): string {
-  const lines = ['# API Domains', '', 'ESI endpoints organized by domain.', ''];
+  const lines = [
+    '# API Domains',
+    '',
+    'ESI endpoints organized by domain.',
+    '',
+  ];
 
   for (const tag of tags.sort()) {
     lines.push(`* [${titleCase(tag)}](${kebab(tag)}/index.md)`);
@@ -581,9 +564,7 @@ function generateEndpointConcept(
   ];
 
   if (ep.cacheTtl !== null) {
-    lines.push(
-      `| Cache TTL | ${ep.cacheTtl}s (${formatDuration(ep.cacheTtl)}) |`,
-    );
+    lines.push(`| Cache TTL | ${ep.cacheTtl}s (${formatDuration(ep.cacheTtl)}) |`);
   }
 
   if (ep.rateLimit) {
@@ -612,9 +593,7 @@ function generateEndpointConcept(
     lines.push('| Name | In | Type | Required | Description |');
     lines.push('|------|-----|------|----------|-------------|');
     for (const p of ep.parameters) {
-      lines.push(
-        `| ${p.name} | ${p.in} | ${p.type} | ${p.required ? 'yes' : 'no'} | ${p.description} |`,
-      );
+      lines.push(`| ${p.name} | ${p.in} | ${p.type} | ${p.required ? 'yes' : 'no'} | ${p.description} |`);
     }
   }
 
@@ -696,9 +675,7 @@ function generateSchemasIndex(schemas: SchemaConcept[]): string {
     byTag.set(s.tag, group);
   }
 
-  for (const [tag, group] of Array.from(byTag.entries()).sort((a, b) =>
-    a[0].localeCompare(b[0]),
-  )) {
+  for (const [tag, group] of Array.from(byTag.entries()).sort((a, b) => a[0].localeCompare(b[0]))) {
     lines.push(`## ${titleCase(tag)}`, '');
     for (const s of group.sort((a, b) => a.slug.localeCompare(b.slug))) {
       lines.push(`* [${s.title}](${s.slug}.md) - ${s.description}`);
@@ -780,7 +757,10 @@ async function main(): Promise<void> {
   for (const [tag, eps] of byTag) {
     const tagDir = path.join(OKF_OUTPUT, 'domains', kebab(tag));
 
-    writeFile(path.join(tagDir, 'index.md'), generateDomainIndex(tag, eps));
+    writeFile(
+      path.join(tagDir, 'index.md'),
+      generateDomainIndex(tag, eps),
+    );
 
     for (const ep of eps) {
       writeFile(
