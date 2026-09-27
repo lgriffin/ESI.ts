@@ -30,7 +30,7 @@ release.yml
 ```
 
 1. **Commits land on `master`** through a pull request. Each commit message follows the conventional-commit format (REL-01). The `commit-msg` Husky hook runs `commitlint` against `@commitlint/config-conventional`.
-2. **release-please runs on every push to `master`.** It reads the commits since the last release, works out the next version, and opens or updates a release pull request. That pull request edits `package.json`, `.release-please-manifest.json`, `CHANGELOG.md` and the extra file `src/core/constants.ts`.
+2. **release-please runs on every push to `master`.** It reads the commits since the last release, works out the next version, and opens or updates a release pull request, but only once a `feat:`, a breaking change (`type!:` or `BREAKING CHANGE:`) or a `Release-As:` footer has landed since the last tag. Fixes, chores and dependency bumps on their own open no release pull request; they wait and ship in the next minor or major (see [Release cadence](#release-cadence)). That pull request edits `package.json`, `.release-please-manifest.json`, `CHANGELOG.md` and the extra file `src/core/constants.ts`.
 3. **Merging the release pull request** makes release-please create the `vX.Y.Z` tag and the GitHub release.
 4. **`release.yml` runs twice**, once for the tag push (`v*.*.*`) and once for the `release: published` event. Both runs validate, build the documentation and build the assets. Only the `release` run, or a manual `workflow_dispatch` run on the tag, publishes packages and signs assets; those jobs are guarded by the event name.
 
@@ -49,23 +49,37 @@ release.yml
 
 The workflow holds top-level `contents: read`. Only `publish-npm`, `publish-github` and `sign-and-publish-assets` receive `id-token: write`, and signing sits in its own job so that no build step shares a job with the ability to mint an OIDC token.
 
-`release.yml` also has a `workflow_dispatch` trigger, for releases release-please creates with `GITHUB_TOKEN` (see [Known state](#known-state)). Dispatch it on the tag, `gh workflow run release.yml --ref vX.Y.Z`; `validate-release` fails on any other ref, and on a tag that does not match `package.json`. `release-please.yml` has no manual trigger.
+`release.yml` also has a `workflow_dispatch` trigger, for releases release-please creates with `GITHUB_TOKEN` (see [Known state](#known-state)). Dispatch it on the tag, `gh workflow run release.yml --ref vX.Y.Z`; `validate-release` fails on any other ref, and on a tag that does not match `package.json`. `release-please.yml` has a manual trigger with a `force-release` box, for shipping a patch on purpose (below).
 
 ---
+
+## Release cadence
+
+Releases are cut for new features and breaking changes only. A gate step in `release-please.yml` scans the commits since the last `vX.Y.Z` tag and skips release-please's pull-request step unless one of them is a `feat:`, carries `!` or a `BREAKING CHANGE:` footer, or has a `Release-As:` footer. The release step always runs, so merging an existing release pull request still tags and publishes.
+
+Once a release pull request is open, later fixes keep updating it, and they appear under **Fixed** in the changelog of that minor. To ship a fix on its own (a security or regression fix that cannot wait), run the workflow by hand with `force-release`:
+
+```bash
+gh workflow run release-please.yml -f force-release=true
+```
+
+That opens a patch release pull request; merge it as usual. A `Release-As: X.Y.Z` footer on a commit does the same without the manual run.
 
 ## Version bumps
 
 release-please uses the `node` release type with `bump-minor-pre-major: false`, so semantic-versioning rules apply as written. Deciding which bump a change needs, and how to mark it, is in [SEMVER.md](SEMVER.md).
 
-| Commit                                                       | Bump  | Changelog section |
-| ------------------------------------------------------------ | ----- | ----------------- |
-| `type!:` or a `BREAKING CHANGE:` footer, any type            | major | as for the type   |
-| `feat:`                                                      | minor | Added             |
-| `fix:`                                                       | patch | Fixed             |
-| `perf:`, `refactor:`, `chore:`                               | patch | Changed           |
-| `docs:`                                                      | patch | Documentation     |
-| `test:`                                                      | patch | Testing           |
-| `build:`, `ci:`, `style:`, `revert:` (allowed by commitlint) | none  | not listed        |
+| Commit                                                       | Bump   | Changelog section |
+| ------------------------------------------------------------ | ------ | ----------------- |
+| `type!:` or a `BREAKING CHANGE:` footer, any type            | major  | as for the type   |
+| `feat:`                                                      | minor  | Added             |
+| `fix:`                                                       | patch¹ | Fixed             |
+| `perf:`, `refactor:`, `chore:`                               | patch¹ | Changed           |
+| `docs:`                                                      | patch¹ | Documentation     |
+| `test:`                                                      | patch¹ | Testing           |
+| `build:`, `ci:`, `style:`, `revert:` (allowed by commitlint) | none   | not listed        |
+
+¹ Patch-level commits do not open a release on their own; they ride the next minor or major unless forced (see [Release cadence](#release-cadence)).
 
 The section mapping lives in `changelog-sections` in `release-please-config.json`. A type missing from that list is accepted by commitlint but does not appear in the changelog.
 
