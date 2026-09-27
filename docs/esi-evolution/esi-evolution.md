@@ -16,19 +16,19 @@ size: 16:9
 
 ## Repository at a Glance
 
-| Metric                     | Value                                |
-| -------------------------- | ------------------------------------ |
-| First commit               | 2024-06-19 ("Initial Structure")     |
-| Commits on main            | **58**                               |
-| Authors                    | 1 (Leigh Griffin)                    |
-| Merged PRs                 | **243** (of 285 total)               |
-| Open PRs / closed unmerged | 1 / 41                               |
-| Open issues                | 50                                   |
-| Local branches             | **189** (94 remote)                  |
-| Tags                       | **20** (v4 → v10.2.1)                |
-| Stars / forks              | 13 / 3                               |
-| Language                   | TypeScript (CommonJS → dual ESM/CJS) |
-| License                    | GPL-3.0-or-later                     |
+| Metric | Value |
+|---|---|
+| First commit | 2024-06-19 ("Initial Structure") |
+| Commits on main | **58** |
+| Authors | 1 (Leigh Griffin) |
+| Merged PRs | **243** (of 285 total) |
+| Open PRs / closed unmerged | 1 / 41 |
+| Open issues | 50 |
+| Local branches | **189** (94 remote) |
+| Tags | **20** (v4 → v10.2.1) |
+| Stars / forks | 13 / 3 |
+| Language | TypeScript (CommonJS → dual ESM/CJS) |
+| License | GPL-3.0-or-later |
 
 ---
 
@@ -66,7 +66,7 @@ size: 16:9
 
 - **Pagination** added (Sep 2024) + **npm rename** to `@lgriffin/esi.ts`
 - **Docs integrated** into the build (Oct 2024, PR #1)
-- **Sep 2025:** the "Major Refactor" (PR #2, _director_ branch):
+- **Sep 2025:** the "Major Refactor" (PR #2, *director* branch):
   - **ETag / 304 caching** for bandwidth savings
   - CI/CD modernization, version-bump automation
 - Oct 2025: universe route — last commit of the era
@@ -77,13 +77,13 @@ size: 16:9
 
 A change of scale: PRs per month explode.
 
-| Month   | PRs    |
-| ------- | ------ |
-| 2026-03 | 5      |
-| 2026-04 | 14     |
-| 2026-05 | 5      |
-| 2026-06 | 46     |
-| 2026-07 | 38     |
+| Month | PRs |
+|---|---|
+| 2026-03 | 5 |
+| 2026-04 | 14 |
+| 2026-05 | 5 |
+| 2026-06 | 46 |
+| 2026-07 | 38 |
 | 2026-08 | **78** |
 | 2026-09 | **95** |
 
@@ -137,8 +137,8 @@ domains), **builder pattern**, and per-domain standalone clients.
   **type-level mutation tests** so the public error contract can't silently change
 - HTTP status → message mapping table (201/204/304/400/401/403/404/420/422/429/5xx)
 - **Retry logic** with injectable strategy, **circuit breaker**, and
-  per-group rate limiting — 5 defects in this layer were _found by model-based
-  property tests_ and fixed (PR #340)
+  per-group rate limiting — 5 defects in this layer were *found by model-based
+  property tests* and fixed (PR #340)
 - In-flight request dedupe, later extended to key by **identity + endpoint**
   and detach reads when a write changes a path (PRs #355, #360)
 
