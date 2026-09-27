@@ -13,9 +13,9 @@ nothing else. Bundle size is owned by the size-limit budgets, not here.
 | `harness.ts`                            | One process: runs every task with mitata, writes one JSON result                               |
 | `summary.ts`                            | Per-process mean, p50, p75, p99 and RME from mitata's samples                                  |
 | `soak.ts`                               | Heap soak driver: 100 000 requests through a real `EsiClient`, plus the leaky fixture          |
-| `../../scripts/bench-ab.ts`             | Bundles the harness for a base and a head tree, runs them in alternating processes             |
+| `../../scripts/bench/bench-ab.ts`       | Bundles the harness for a base and a head tree, runs them in alternating processes             |
 | `../../scripts/bench-compare(-core).ts` | The statistical decision (below)                                                               |
-| `../../scripts/bench-trend.ts`          | One JSON record per nightly run for the `bench-data` branch                                    |
+| `../../scripts/bench/bench-trend.ts`    | One JSON record per nightly run for the `bench-data` branch                                    |
 | `../../scripts/soak(-core).ts`          | Soak CLI and its verdict: heap slope, cache bound, timers, listeners                           |
 | `../tdd/benchmark/`                     | Unit tests: statistics on synthetic distributions, soak verdicts, the leak fixture, task smoke |
 

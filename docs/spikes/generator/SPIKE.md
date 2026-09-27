@@ -1,6 +1,6 @@
 # Generator spike: in-repo emitter
 
-> Promoted in Phase 1: the emitter now lives in `scripts/spec-generate-core.ts`
+> Promoted in Phase 1: the emitter now lives in `scripts/spec/spec-generate-core.ts`
 > and covers every operation. This folder is kept as the Phase 0 record.
 
 Phase 0 question from the Road to Done plan: write our own operation emitter, or
@@ -65,7 +65,7 @@ That config (`docs/spikes/generator/tsconfig.json`) turns on the four flags belo
 ## Recommendation
 
 Use the in-repo emitter. It adds no dependency, it slots next to
-`scripts/generate-esi-types.ts` (which already parses this spec), and every
+`scripts/spec/generate-esi-types.ts` (which already parses this spec), and every
 decision the plan cares about is a few lines we control: scope tree, branded
 IDs, pagination shape and `*Meta` for coverage.
 

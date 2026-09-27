@@ -34,9 +34,9 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 - **2026-09-27, nothing built at import (Phase 4 item 3).** ARCH-06 moves from Gap to Enforced: the default logger builds its pino instance on first use, `package.json` declares `"sideEffects": false`, and `tests/tdd/core/importSideEffects.test.ts` holds both ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
 - **2026-09-27, nightlies file issues (Phase 5 item 3).** `nightly-mutation.yml` and `nightly-schemathesis.yml` now open or comment on one fixed-title issue on failure and close it on the next green night, the pattern `nightly-spec-drift.yml` uses; gap register row 16 is Done ([#277](https://github.com/lgriffin/ESI.ts/issues/277)). GATE-05 stays Partial: the no-retry, interleaving and consumer-matrix nightlies still only fail the run.
-- **2026-09-27, the version selector, the documents and the offline endpoint check.** REL-03 moves to Enforced: `validate:versions` also reads the docs-site version selector, which now carries the `x-release-please-version` marker and sits in release-please's `extra-files`, and runs in `static-analysis` as well as at release. GATE-06 moves to Enforced: `package-scripts.test.ts` also fails when a document names an `npm run` that `package.json` does not define. `validate:esi` fails on a definition the spec does not list unless `scripts/esi-endpoint-exceptions.json` gives a reason, and `validate:esi:vendored` runs it offline against the vendored snapshot in `check:local` and after `spec-refresh.yml` regenerates.
+- **2026-09-27, the version selector, the documents and the offline endpoint check.** REL-03 moves to Enforced: `validate:versions` also reads the docs-site version selector, which now carries the `x-release-please-version` marker and sits in release-please's `extra-files`, and runs in `static-analysis` as well as at release. GATE-06 moves to Enforced: `package-scripts.test.ts` also fails when a document names an `npm run` that `package.json` does not define. `validate:esi` fails on a definition the spec does not list unless `scripts/spec/esi-endpoint-exceptions.json` gives a reason, and `validate:esi:vendored` runs it offline against the vendored snapshot in `check:local` and after `spec-refresh.yml` regenerates.
 
-- **2026-09-27, CI matches the gate matrix (Phase 5 item 1, [#297](https://github.com/lgriffin/ESI.ts/issues/297)).** `validate-release` now runs `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests (503 soft-skips), with the shrink-only ratchets compared against the previous release tag (the job fails when none resolves). `validate:esi` and `validate:spec` run in `static-analysis` on every pull request, blocking when the pull request touches their inputs; `validate:versions` already ran in the release gate. The generated-freshness diff covers every `src/core/endpoints/esi-*.generated.ts`, so the rate-limit-group and scope files are diffed in CI, at release and nightly (ARCH-01). `validate:auth-scopes` fails both directions of DES-04 and on a stale exception; the fourteen stale entries in `scripts/auth-scope-exceptions.json` are removed. The pull-request contract step gains `pipefail`, without which its `if` read `tee`'s status and a failing live suite passed. The documentation job and `example:sde-cross-ref` were already fixed on master. Gap register row 25 is done.
+- **2026-09-27, CI matches the gate matrix (Phase 5 item 1, [#297](https://github.com/lgriffin/ESI.ts/issues/297)).** `validate-release` now runs `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests (503 soft-skips), with the shrink-only ratchets compared against the previous release tag (the job fails when none resolves). `validate:esi` and `validate:spec` run in `static-analysis` on every pull request, blocking when the pull request touches their inputs; `validate:versions` already ran in the release gate. The generated-freshness diff covers every `src/core/endpoints/esi-*.generated.ts`, so the rate-limit-group and scope files are diffed in CI, at release and nightly (ARCH-01). `validate:auth-scopes` fails both directions of DES-04 and on a stale exception; the fourteen stale entries in `scripts/spec/auth-scope-exceptions.json` are removed. The pull-request contract step gains `pipefail`, without which its `if` read `tee`'s status and a failing live suite passed. The documentation job and `example:sde-cross-ref` were already fixed on master. Gap register row 25 is done.
 - **2026-09-27, Scorecard's repository-side checks (Phase 6, code side; [#239](https://github.com/lgriffin/ESI.ts/issues/239), [#270](https://github.com/lgriffin/ESI.ts/issues/270)).** Every workflow already declared read-only top-level permissions; `tests/tdd/workflows/workflow-permissions.test.ts` now holds that, and lists every job-level write scope so a new one is a reviewed edit (SEC-03). `sign-and-publish-assets` attests SLSA build provenance for the tarball, SBOM and docs archive, verifies it with `gh attestation verify`, and attaches it as `lgriffin-esi.ts-X.Y.Z.intoto.jsonl` beside the cosign bundles, the file Scorecard's Signed-Releases check scores highest (SEC-04). The SBOM (SEC-06) and `.github/CODEOWNERS` had landed earlier. Signed-Releases reads the last five releases, and v10.2.2 and v10.2.3 have no assets attached, so the score rises only as signed releases ship. SEC-07 stays Partial: branch protection that includes administrators, required approvals and the Best Practices badge ([#243](https://github.com/lgriffin/ESI.ts/issues/243), [#246](https://github.com/lgriffin/ESI.ts/issues/246)) are settings only the maintainer can change, listed in `guides/SECURITY.md` §5.
 - **2026-09-27, knip blocks the release ([#271](https://github.com/lgriffin/ESI.ts/issues/271)).** GATE-04 moves from Gap to Enforced: the baseline is clean and `release.yml` runs `npx knip` without `--no-exit-code`. `knip.jsonc` (renamed from `knip.json` to carry comments) makes tests, scripts and examples entry points, which cleared the findings that were only used there, and keeps four reasoned exceptions. The deprecated `src/core/logger/logger.ts`, reachable from no entry point, the unused re-exports in the internal `requestPipeline` barrel, and the unused `jest-junit`, `@types/adm-zip` and `@types/js-yaml` devDependencies are removed; the public API is unchanged. `ci.yml` stays non-blocking; `validate` and `check:all` now block. Gap register row 10's knip item is done.
 
@@ -103,19 +103,19 @@ Seven positions that explain most of the individual choices below. A proposal th
 
 Five layers, one request path, and side modules that deliberately share nothing with the HTTP pipeline. Phase 2 of the 11.0 plan adds ports and generated operations beneath them; the layer rule is enforced by `npm run lint:layers`.
 
-| Layer                | Where                                                                     | Role                                                                                                                                                                                                                                                                                  |
-| -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Construction         | `src/EsiClient.ts`, `src/EsiClientBuilder.ts`                             | `EsiClient` (lazy getters for every domain), `EsiClientBuilder` → `CustomEsiClient` (subset), `EsiApiFactory` (one client). All three feed `configureApiClient`, the single place config becomes middleware.                                                                          |
-| Domain clients       | `src/clients` (39 + `BaseEsiClient`)                                      | One class per ESI domain. Adds ergonomics only: named methods, `stream*` and `fetchAll*` wrappers, `withSafeMode()` envelopes. No HTTP knowledge.                                                                                                                                     |
-| Endpoint definitions | `src/core/endpoints` (39 files, 235 endpoints)                            | Declarative maps (`as const satisfies EndpointMap`) wiring path, method, `requiresAuth`, pagination kind, `responseSchema`, `requestSchema`, deprecation. `createClient()` turns a map into typed methods; return types are inferred from the schema.                                 |
-| Request pipeline     | `src/core`, `src/core/requestPipeline/*`                                  | Pure functions receiving their dependencies as parameters (`dependencies.ts` is the only resolver). Cache policy, headers, fetch execution, status handling, pagination orchestration, middleware bridge.                                                                             |
-| Transport            | `FetchLike`, `globalThis.fetch`                                           | Injectable via `setFetch()`. Timeout by `AbortController`. The Node floor (18 today, 22 from 11.0.0) exists because this layer relies on the global fetch.                                                                                                                            |
-| Ports                | `src/core/ports`                                                          | Type-only interfaces (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`) that import nothing. Exported from `./client`.                                                                                                             |
-| Generated operations | `src/generated/operations.generated.ts`                                   | One function per spec operation, importing only ports. Checked by `spec:generate:check` and `spec:coverage` in CI; called through `src/client`.                                                                                                                                       |
-| Client               | `src/client` (`./client`)                                                 | `createEsi`: one runtime over `configureApiClient`, `esi.public` (a `PublicScopeTree`) and `esi.as(identity)` (a `ScopeTree` sharing the runtime's budgets and cache). Imports core, adapters and generated code, never the legacy tree; `lint:layers` enforces it (Enforced).        |
-| Clock                | `src/core/clock.ts`                                                       | `systemClock` is where wall-clock time, timers and `Math.random` belong. `npm run lint:determinism` blocks new direct reads; the existing sites (rate limiter, cache, circuit breaker, request handler and others) sit in `scripts/determinism-baseline.json`, which may only shrink. |
-| Auth                 | `src/auth`                                                                | EVE SSO (PKCE), token manager and storage, with its own error subtree. Reached from the root and `./errors`; there is no `./auth` sub-path.                                                                                                                                           |
-| Side modules         | `./schemas`, `./errors`, `./testing`, `./client`, `./sde`, `./sde/memory` | The SDE module shares no code with the pipeline, and `lint:layers` holds that in both directions (ARCH-10). It is an offline lookup layer for enriching ESI responses, with its own error hierarchy and its own docs.                                                                 |
+| Layer                | Where                                                                     | Role                                                                                                                                                                                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Construction         | `src/EsiClient.ts`, `src/EsiClientBuilder.ts`                             | `EsiClient` (lazy getters for every domain), `EsiClientBuilder` → `CustomEsiClient` (subset), `EsiApiFactory` (one client). All three feed `configureApiClient`, the single place config becomes middleware.                                                                                  |
+| Domain clients       | `src/clients` (39 + `BaseEsiClient`)                                      | One class per ESI domain. Adds ergonomics only: named methods, `stream*` and `fetchAll*` wrappers, `withSafeMode()` envelopes. No HTTP knowledge.                                                                                                                                             |
+| Endpoint definitions | `src/core/endpoints` (39 files, 235 endpoints)                            | Declarative maps (`as const satisfies EndpointMap`) wiring path, method, `requiresAuth`, pagination kind, `responseSchema`, `requestSchema`, deprecation. `createClient()` turns a map into typed methods; return types are inferred from the schema.                                         |
+| Request pipeline     | `src/core`, `src/core/requestPipeline/*`                                  | Pure functions receiving their dependencies as parameters (`dependencies.ts` is the only resolver). Cache policy, headers, fetch execution, status handling, pagination orchestration, middleware bridge.                                                                                     |
+| Transport            | `FetchLike`, `globalThis.fetch`                                           | Injectable via `setFetch()`. Timeout by `AbortController`. The Node floor (18 today, 22 from 11.0.0) exists because this layer relies on the global fetch.                                                                                                                                    |
+| Ports                | `src/core/ports`                                                          | Type-only interfaces (`CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`) that import nothing. Exported from `./client`.                                                                                                                     |
+| Generated operations | `src/generated/operations.generated.ts`                                   | One function per spec operation, importing only ports. Checked by `spec:generate:check` and `spec:coverage` in CI; called through `src/client`.                                                                                                                                               |
+| Client               | `src/client` (`./client`)                                                 | `createEsi`: one runtime over `configureApiClient`, `esi.public` (a `PublicScopeTree`) and `esi.as(identity)` (a `ScopeTree` sharing the runtime's budgets and cache). Imports core, adapters and generated code, never the legacy tree; `lint:layers` enforces it (Enforced).                |
+| Clock                | `src/core/clock.ts`                                                       | `systemClock` is where wall-clock time, timers and `Math.random` belong. `npm run lint:determinism` blocks new direct reads; the existing sites (rate limiter, cache, circuit breaker, request handler and others) sit in `scripts/quality/determinism-baseline.json`, which may only shrink. |
+| Auth                 | `src/auth`                                                                | EVE SSO (PKCE), token manager and storage, with its own error subtree. Reached from the root and `./errors`; there is no `./auth` sub-path.                                                                                                                                                   |
+| Side modules         | `./schemas`, `./errors`, `./testing`, `./client`, `./sde`, `./sde/memory` | The SDE module shares no code with the pipeline, and `lint:layers` holds that in both directions (ARCH-10). It is an offline lookup layer for enriching ESI responses, with its own error hierarchy and its own docs.                                                                         |
 
 `lint:layers` (`config/eslint/layers.rules.cjs`) holds the direction: ports import nothing, generated code imports only ports, `src/core` imports no domain client, entry point, generated operation, auth, SDE or testing module, and `src/sde` imports nothing from `src/` but the ports while nothing outside it imports the SDE. The baseline of exempt files is empty, and `tests/tdd/layers/layers-lint.test.ts` keeps it so.
 
@@ -180,7 +180,7 @@ The library **shall** derive response types, cache TTLs, rate-limit groups and e
 Every endpoint exposed by a domain client **shall** be declared in exactly one `*Endpoints.ts` definition map that names its path, method, authentication requirement and response schema.
 
 - **Why:** The definition is the contract. `createClient`, the contract tests, the scope validator and the OKF bundle all read from it.
-- **Verified by:** `npm run validate:esi` and `npm run validate:auth-scopes` in the CI static-analysis job and the release gate (a definition the spec does not list fails unless `scripts/esi-endpoint-exceptions.json` gives a reason; `validate:esi:vendored` runs the same check offline in `check:local`), `tests/contract/`.
+- **Verified by:** `npm run validate:esi` and `npm run validate:auth-scopes` in the CI static-analysis job and the release gate (a definition the spec does not list fails unless `scripts/spec/esi-endpoint-exceptions.json` gives a reason; `validate:esi:vendored` runs the same check offline in `check:local`), `tests/contract/`.
 
 #### ARCH-03 · Ubiquitous · Practised
 
@@ -281,7 +281,7 @@ Files ending in `.generated.ts`, the `okf/` bundle and `etc/esi.ts.api.md` **sha
 An endpoint definition **shall** declare `requiresAuth: true` if and only if the generated scope map lists at least one scope for it.
 
 - **Why:** The bearer token is attached only when `requiresAuth` is set. A mismatch either leaks a token or breaks a call.
-- **Verified by:** `npm run validate:auth-scopes` in the CI static-analysis job and the release gate; both directions exit 1, and so does an entry in `scripts/auth-scope-exceptions.json` that no longer excuses a mismatch.
+- **Verified by:** `npm run validate:auth-scopes` in the CI static-analysis job and the release gate; both directions exit 1, and so does an entry in `scripts/spec/auth-scope-exceptions.json` that no longer excuses a mismatch.
 
 #### DES-05 · Event-driven · Practised
 
@@ -346,14 +346,14 @@ Other nightlies: interleave, no-retry, recorded payloads, consumer matrix, examp
 When observable client behaviour changes, the change **shall** be preceded by an EARS requirement in a `Rule:` block and a scenario that fails before the implementation exists.
 
 - **Why:** The most common defect in the suite has been scenarios that cannot fail. Red before green is the only defence. The form of the requirement is machine-checked; that the scenario failed first is a step in a workflow, and no check can establish it after the fact, so the status is Practised (moved from Enforced on 2026-09-27 for that reason, not because the code regressed).
-- **Verified by:** The `ears-gherkin-dev` workflow for the RED step. The form is enforced: `npm run spec:audit` on PR; the ratchet file `scripts/spec-audit-exceptions.json` has an empty `unconverted` list and a `legacyStepFiles` list, and both may only shrink.
+- **Verified by:** The `ears-gherkin-dev` workflow for the RED step. The form is enforced: `npm run spec:audit` on PR; the ratchet file `scripts/spec/spec-audit-exceptions.json` has an empty `unconverted` list and a `legacyStepFiles` list, and both may only shrink.
 
 #### TEST-02 · Ubiquitous · Enforced
 
 Each `Rule:` block **shall** state exactly one requirement with one _shall_, name the system, use one of the five EARS patterns, and contain no vague language.
 
 - **Why:** A requirement you cannot falsify is not a requirement.
-- **Verified by:** `scripts/spec-audit.ts`: eleven finding types, inline GitHub annotations, PR gate.
+- **Verified by:** `scripts/spec/spec-audit.ts`: eleven finding types, inline GitHub annotations, PR gate.
 
 #### TEST-03 · Ubiquitous · Enforced
 
@@ -410,14 +410,14 @@ Test source under `tests/` **shall** be linted with the same ESLint configuratio
 Every public method of a domain client and of `IStaticDataProvider` **shall** be named by at least one `Rule:` block or bound step, with the list of methods without one only ever shrinking.
 
 - **Why:** The audit proves every Rule has a scenario, but nothing proves every behaviour has a Rule. Two hundred and thirty-five wired endpoints and ninety-nine provider methods can each lose their specification without a check noticing. A shrink-only baseline turns "specified" into a number that cannot go down.
-- **Verified by:** To add. Track S Run 4 writes `scripts/sde-spec-coverage.ts` for the provider (moves this row to Partial); ROADMAP Phase 5 item 8 extends it to `src/clients/**` with `scripts/client-spec-coverage-baseline.json` (moves it to Enforced), both in `check:all` and `ci.yml`'s `spec-audit` job.
+- **Verified by:** To add. Track S Run 4 writes `scripts/sde/sde-spec-coverage.ts` for the provider (moves this row to Partial); ROADMAP Phase 5 item 8 extends it to `src/clients/**` with `scripts/spec/client-spec-coverage-baseline.json` (moves it to Enforced), both in `check:all` and `ci.yml`'s `spec-audit` job.
 
 #### TEST-11 · Optional · Partial
 
 Where the client deliberately does not act on an ESI behaviour (a status, a header, a field, an endpoint feature), the exclusion **shall** be stated as an unwanted-behaviour Rule (`If <condition>, then the <system> shall not <response>.`) with a scenario that proves the absence.
 
 - **Why:** The specification governs what the client does; what it ignores is a decision too, and an unstated exclusion reads as an omission the next contributor "fixes". One such Rule exists today (the circuit breaker not counting 4xx other than 420 and 429, `0051-resilience.feature`); the other exclusions live in prose (`SECURITY.md`, `SDE.md`, `ARCHITECTURE.md`) where nothing executes them.
-- **Verified by:** The form: `npm run spec:audit` accepts the unwanted pattern with a negated response. The register: `npm run ears` lists every `shall not` Rule with its verdict and scenarios in the "Exclusion register" section of `reports/ears/ears-report.md` and the job summary (`scripts/ears-core.ts`, `isExclusion`; `tests/tdd/spec-audit/ears-report.test.ts`); TESTING.md documents it and `tests/bdd/GUIDE.md` shows how to write one. The completeness is a review question (AGENTS.md checklist), not a check: no script can know what the client should ignore, so the row stays Partial until each phase has written its area's exclusions as Rules.
+- **Verified by:** The form: `npm run spec:audit` accepts the unwanted pattern with a negated response. The register: `npm run ears` lists every `shall not` Rule with its verdict and scenarios in the "Exclusion register" section of `reports/ears/ears-report.md` and the job summary (`scripts/quality/ears-core.ts`, `isExclusion`; `tests/tdd/spec-audit/ears-report.test.ts`); TESTING.md documents it and `tests/bdd/GUIDE.md` shows how to write one. The completeness is a review question (AGENTS.md checklist), not a check: no script can know what the client should ignore, so the row stays Partial until each phase has written its area's exclusions as Rules.
 
 ---
 
@@ -531,7 +531,7 @@ The library **shall** never write an access token to a log line, an error messag
 Every GitHub Action **shall** be pinned to a full commit SHA with a version comment, inside a workflow that declares top-level read-only permissions with per-job escalation.
 
 - **Why:** Tag pinning is mutable. Scorecard scores both dimensions and zizmor enforces them.
-- **Verified by:** the zizmor job in `ci.yml` (config `.zizmor.yml`); `npm run lint:workflows` (`scripts/workflow-lint.ts`); `tests/tdd/workflows/workflow-permissions.test.ts`, which fails a workflow without read-only top-level permissions and any job-level write scope not on its list; weekly Scorecard; Dependabot keeps the SHAs current.
+- **Verified by:** the zizmor job in `ci.yml` (config `.zizmor.yml`); `npm run lint:workflows` (`scripts/quality/workflow-lint.ts`); `tests/tdd/workflows/workflow-permissions.test.ts`, which fails a workflow without read-only top-level permissions and any job-level write scope not on its list; weekly Scorecard; Dependabot keeps the SHAs current.
 
 #### SEC-04 · Ubiquitous · Enforced
 
@@ -545,7 +545,7 @@ Published packages **shall** carry npm provenance, with release assets carrying 
 If a dependency advisory is accepted rather than fixed, then the acceptance **shall** carry a reason and an expiry date, after which the release fails.
 
 - **Why:** Allowlists rot. An expiry forces the conversation again.
-- **Verified by:** `scripts/audit-check.ts` with `scripts/audit-exceptions.json`.
+- **Verified by:** `scripts/quality/audit-check.ts` with `scripts/quality/audit-exceptions.json`.
 
 #### SEC-06 · Ubiquitous · Enforced
 
@@ -566,7 +566,7 @@ The repository **shall** carry a `CODEOWNERS` file and branch protection on `mas
 Local credentials **shall** be minted by the PKCE script into a git-ignored `.env`, never appearing in a committed file, fixture or example.
 
 - **Why:** The example file is the only one that belongs in git.
-- **Verified by:** `.gitignore`; `scripts/create-token.ts`; consider a secret-scanning pre-commit hook.
+- **Verified by:** `.gitignore`; `scripts/auth/create-token.ts`; consider a secret-scanning pre-commit hook.
 
 ---
 
@@ -617,7 +617,7 @@ guides/                         canonical, and the only source the site builds f
 ├── DOCUMENTATION.md            rewritten: surfaces, site build, TypeDoc, metrics generation
 ├── BEADS.md                    keep; AGENTS.md and CLAUDE.md shrink to pointers
 └── rfcs/                       future design papers (the jitaspace mapping and streaming-websocket strategy were retired as dated)
-docs-site/                      VitePress; guide/ populated by scripts/sync-docs.ts from guides/; public/api = TypeDoc
+docs-site/                      VitePress; guide/ populated by scripts/docs/sync-docs.ts from guides/; public/api = TypeDoc
 docs/                           hand-written guides retired (okf-guide → guides/OKF.md, nightly-spec-drift → QUALITY-GATES); now holds only spikes and generated artefacts
 TESTING.md (root)               deleted after merge
 etc/doc-metrics.json            NEW: generated counts: clients, endpoints, rules, scenarios, coverage
@@ -664,14 +664,14 @@ Generated API reference output **shall** be written to a git-ignored directory o
 The published documentation site **shall** be built from `guides/` by a script in the repository and deployed by the release workflow alongside the API reference.
 
 - **Why:** A site nobody can reach is a maintenance cost with no reader. A site built from the canonical files cannot drift.
-- **Verified by:** To add: `scripts/sync-docs.ts`, `docs-site` build in `release.yml`, gh-pages with `/api/` for TypeDoc.
+- **Verified by:** To add: `scripts/docs/sync-docs.ts`, `docs-site` build in `release.yml`, gh-pages with `/api/` for TypeDoc.
 
 #### DOC-04 · Ubiquitous · Gap
 
 Counts quoted in documentation (clients, endpoints, requirements, scenarios, test files, coverage) **shall** be generated into `etc/doc-metrics.json` and inserted by a script, never typed by hand.
 
 - **Why:** At the time of the survey the docs carried 33, 35, 36, 37 and 39 as the number of clients. Only one is right.
-- **Verified by:** To add: `scripts/doc-metrics.ts`; `validate:versions` extended to fail on a stale version banner or count.
+- **Verified by:** To add: `scripts/docs/doc-metrics.ts`; `validate:versions` extended to fail on a stale version banner or count.
 
 #### DOC-05 · Ubiquitous · Partial
 
@@ -712,7 +712,7 @@ A release **shall** publish only after lint, format, audit allowlist, changelog 
 The version string **shall** be identical in `package.json`, `src/core/constants.ts` and the docs-site version selector.
 
 - **Why:** The site selector had lagged the package by a major (v9.6.1 against 10.2.3) because nothing checked it and release-please did not bump it. The README carries a live npm badge, not a banner.
-- **Verified by:** `scripts/validate-versions.ts` (`npm run validate:versions`) in `ci.yml` `static-analysis` and `release.yml` `validate-release`; release-please bumps all three through `extra-files` and the `x-release-please-version` marker.
+- **Verified by:** `scripts/package/validate-versions.ts` (`npm run validate:versions`) in `ci.yml` `static-analysis` and `release.yml` `validate-release`; release-please bumps all three through `extra-files` and the `x-release-please-version` marker.
 
 #### REL-04 · Unwanted · Gap
 
@@ -781,7 +781,7 @@ Agent instruction files (`AGENTS.md`, `CLAUDE.md`) **shall** contain pointers to
 Every requirement block in this charter **shall** satisfy the rules `spec:audit` applies to a `Rule:` block (one _shall_, a named system, one of the five patterns, no vague language) and, when its status is Enforced, name the script or job that proves it.
 
 - **Why:** The charter claims to be auditable the way the specification is. Before the audit it was EARS by convention only: a row could say Enforced with a "Verified by" that named nothing, and nobody was told.
-- **Verified by:** `npm run charter:audit` (`scripts/charter-audit.ts`; the checks in `scripts/charter-audit-core.ts`, tested by `tests/tdd/scripts/charter-audit.test.ts`) parses every `####` block with the spec-audit rules and fails an Enforced row that names no script, job or file that exists. Runs in `check:all`, `scripts/verify-local-core.ts` and `ci.yml`'s `spec-audit` job.
+- **Verified by:** `npm run charter:audit` (`scripts/quality/charter-audit.ts`; the checks in `scripts/quality/charter-audit-core.ts`, tested by `tests/tdd/scripts/charter-audit.test.ts`) parses every `####` block with the spec-audit rules and fails an Enforced row that names no script, job or file that exists. Runs in `check:all`, `scripts/quality/verify-local-core.ts` and `ci.yml`'s `spec-audit` job.
 
 ---
 
@@ -836,8 +836,8 @@ The order matters: nothing in the documentation work is safe until step 2 is don
 3. **Commit this charter** as `guides/CHARTER.md` and file one bead per row of the gap register, tagged with the requirement ID. ✅ Revision 1.
 4. **Merge the duplicates** in the roadmap order: TESTING first (it has the tier conflict), then SECURITY, then ARCHITECTURE. Delete the root copies as each merge lands. ◐ SECURITY and ARCHITECTURE merged; TESTING and the root copy remain ([#273](https://github.com/lgriffin/ESI.ts/issues/273)).
 5. **Write the new guides**: DESIGN-RULES, QUALITY-GATES, ERRORS, LOGGING, PAGINATION, RELEASE. Each opens with `Implements: ARCH-03, DES-01 …`. ✅ All six exist with `Implements:` lines.
-6. **Generate the numbers.** `scripts/doc-metrics.ts` writes `etc/doc-metrics.json`; a small template step stamps the README and site. Extend `validate:versions` to fail on stale banners. Open ([#272](https://github.com/lgriffin/ESI.ts/issues/272)).
-7. **Publish the site.** `scripts/sync-docs.ts` copies `guides/` into `docs-site/guide/`; release workflow builds VitePress and deploys it with the API reference under `/api/`. Shrink the README to an orientation page. Open ([#264](https://github.com/lgriffin/ESI.ts/issues/264)); lands with the 11.0 docs rewrite.
+6. **Generate the numbers.** `scripts/docs/doc-metrics.ts` writes `etc/doc-metrics.json`; a small template step stamps the README and site. Extend `validate:versions` to fail on stale banners. Open ([#272](https://github.com/lgriffin/ESI.ts/issues/272)).
+7. **Publish the site.** `scripts/docs/sync-docs.ts` copies `guides/` into `docs-site/guide/`; release workflow builds VitePress and deploys it with the API reference under `/api/`. Shrink the README to an orientation page. Open ([#264](https://github.com/lgriffin/ESI.ts/issues/264)); lands with the 11.0 docs rewrite.
 8. **Close the security gaps**: CODEOWNERS, SBOM asset, admins in branch protection. Re-run Scorecard and record the new score in the charter's next revision. ◐ SBOM and CODEOWNERS done; admins-included and the new score still to record ([#239](https://github.com/lgriffin/ESI.ts/issues/239)).
 
 > **Revision rule.** This charter is revised by pull request like any other file. A requirement's status may only move toward Enforced by citing the script or job that proves it. Moving it the other way needs a bead explaining why.

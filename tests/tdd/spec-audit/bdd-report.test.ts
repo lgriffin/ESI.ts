@@ -22,8 +22,8 @@ import {
   readFeatures,
   toJUnit,
   toSummary,
-} from '../../../scripts/bdd-report-core';
-import { featureBindings } from '../../../scripts/spec-audit-steps';
+} from '../../../scripts/quality/bdd-report-core';
+import { featureBindings } from '../../../scripts/spec/spec-audit-steps';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const ROOT = path.join(__dirname, 'report-fixtures');
@@ -188,7 +188,7 @@ describe('bdd-report', () => {
           [
             '-r',
             'ts-node/register',
-            'scripts/bdd-report.ts',
+            'scripts/quality/bdd-report.ts',
             `--root=${ROOT}`,
             `--results=results-${fixture}.json`,
             `--junit=${path.join(dir, 'junit.xml')}`,

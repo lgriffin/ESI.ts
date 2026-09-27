@@ -4,7 +4,7 @@ import {
   detectedByEveryRun,
   directoryOf,
   scoreByDirectory,
-} from '../../../scripts/mutation-ratchet-core';
+} from '../../../scripts/mutation/mutation-ratchet-core';
 
 function report(files: Record<string, string[]>): MutationReport {
   return {

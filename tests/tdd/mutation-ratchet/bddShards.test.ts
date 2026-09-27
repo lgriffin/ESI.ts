@@ -1,6 +1,6 @@
 /**
  * Self-tests for the BDD mutation shards (config/mutation/bdd-shards.json,
- * scripts/mutation-merge-core.ts).
+ * scripts/mutation/mutation-merge-core.ts).
  *
  * Splitting the BDD mutation run across jobs buys a run that finishes and
  * costs the guarantee the unsharded run gave for free: that the report the
@@ -25,8 +25,8 @@ import {
   mergeShardReports,
   parseShards,
   shardsClaiming,
-} from '../../../scripts/mutation-merge-core';
-import type { MutationReport } from '../../../scripts/mutation-ratchet-core';
+} from '../../../scripts/mutation/mutation-merge-core';
+import type { MutationReport } from '../../../scripts/mutation/mutation-ratchet-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const SHARDS_FILE = 'config/mutation/bdd-shards.json';
@@ -77,7 +77,7 @@ describe('the shards partition src/', () => {
   });
 
   it('claims a file in no shard for nobody', () => {
-    expect(shardsClaiming('scripts/spec-audit.ts', shards)).toEqual([]);
+    expect(shardsClaiming('scripts/spec/spec-audit.ts', shards)).toEqual([]);
   });
 
   it('reports both owners when two shards overlap', () => {

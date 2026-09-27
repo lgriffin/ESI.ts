@@ -1,5 +1,5 @@
 /**
- * Self-tests for the export-coverage check (scripts/export-coverage.ts).
+ * Self-tests for the export-coverage check (scripts/package/export-coverage.ts).
  *
  * The check claims that an export is referenced by a test only when a test
  * file holds an identifier the TypeScript checker resolves to it. The fixture
@@ -23,7 +23,7 @@ import {
   parseBaseline,
   ratchetProblems,
   serializeBaseline,
-} from '../../../scripts/export-coverage-core';
+} from '../../../scripts/package/export-coverage-core';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const FIXTURE = path.join(__dirname, 'fixtures', 'project');
@@ -51,7 +51,7 @@ function runCli(
   try {
     const stdout = execFileSync(
       process.execPath,
-      ['-r', 'ts-node/register', 'scripts/export-coverage.ts', ...args],
+      ['-r', 'ts-node/register', 'scripts/package/export-coverage.ts', ...args],
       {
         cwd: REPO_ROOT,
         encoding: 'utf-8',
@@ -262,9 +262,9 @@ describe('export coverage', () => {
       const dir = mkdtempSync(path.join(tmpdir(), 'export-coverage-'));
       try {
         cpSync(FIXTURE, dir, { recursive: true });
-        mkdirSync(path.join(dir, 'scripts'));
+        mkdirSync(path.join(dir, 'scripts', 'package'), { recursive: true });
         writeFileSync(
-          path.join(dir, 'scripts', 'export-coverage-baseline.json'),
+          path.join(dir, 'scripts', 'package', 'export-coverage-baseline.json'),
           serializeBaseline(report),
         );
 

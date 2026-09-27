@@ -339,7 +339,7 @@ Most of the existing suite predates this rule and is still being converted, so
 ```bash
 npm run spec:audit                                    # all files
 npm run spec:audit:verbose                            # plus counts
-npx ts-node scripts/spec-audit.ts <path/to.feature>   # one file
+npx ts-node scripts/spec/spec-audit.ts <path/to.feature>   # one file
 ```
 
 In CI the findings also appear as inline annotations on the offending lines.
@@ -376,7 +376,7 @@ Rejected terms fall into six categories — vague adverbs (`efficiently`,
 `when applicable`), continuation terms (`etc.`, `such as`, `and/or`), and
 indefinite temporal terms (`timely`, `promptly`, `in real time`).
 
-`scripts/spec-audit.ts` holds the authoritative list.
+`scripts/spec/spec-audit.ts` holds the authoritative list.
 
 These are not style nits. "Handles errors gracefully" cannot fail a review,
 because no reader can say it was not met. Ask what the test asserts:
@@ -391,7 +391,7 @@ Rule: If ESI answers with HTTP 420, then the rate limiter shall stop issuing req
 
 ### The ratchet
 
-`scripts/spec-audit-exceptions.json` lists files exempt from the audit. It is
+`scripts/spec/spec-audit-exceptions.json` lists files exempt from the audit. It is
 currently **empty** and should stay that way.
 
 It ratchets: a listed file that starts passing **fails** the run until its entry

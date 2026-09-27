@@ -1,5 +1,5 @@
 /**
- * Self-tests for the charter audit (scripts/charter-audit-core.ts, PROC-06).
+ * Self-tests for the charter audit (scripts/quality/charter-audit-core.ts, PROC-06).
  *
  * The audit holds `guides/CHARTER.md` to the rules the spec audit applies to
  * a `Rule:` block, and fails an Enforced row that names no mechanism. The
@@ -20,7 +20,7 @@ import {
   formatFindings,
   parseCharter,
   workflowJobs,
-} from '../../../scripts/charter-audit-core';
+} from '../../../scripts/quality/charter-audit-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
 
@@ -43,7 +43,7 @@ const MECHANISMS: Mechanisms = {
   scripts: new Set(['lint', 'spec:audit']),
   jobs: new Set(['api-surface', 'API Surface Check']),
   workflows: new Set(['ci.yml']),
-  files: ['scripts/spec-audit.ts', 'tests/tdd/core/security.test.ts'],
+  files: ['scripts/spec/spec-audit.ts', 'tests/tdd/core/security.test.ts'],
 };
 
 function messages(blocks: CharterBlock[], m: Mechanisms = MECHANISMS) {
@@ -364,7 +364,7 @@ describe('the charter audit', () => {
       ['a job id', 'the `api-surface` job in CI'],
       ['a quoted job display name', 'the "API Surface Check" job'],
       ['a workflow file', '`ci.yml`'],
-      ['a tracked file', '`scripts/spec-audit.ts`'],
+      ['a tracked file', '`scripts/spec/spec-audit.ts`'],
       ['a directory of tracked files', '`tests/tdd/core/`'],
       [
         'a bare file name found in the tree',

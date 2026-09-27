@@ -6,7 +6,7 @@
  * Task names are the keys the comparison matches base and candidate runs by.
  * Renaming one starts a new series with no baseline; keep them stable.
  *
- * Everything imports from `../../src` by relative path. `scripts/bench-ab.ts`
+ * Everything imports from `../../src` by relative path. `scripts/bench/bench-ab.ts`
  * copies this directory into the base tree and bundles it there, so the same
  * harness measures both sides of a pull request.
  */

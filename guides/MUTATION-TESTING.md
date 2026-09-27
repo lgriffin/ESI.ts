@@ -12,7 +12,7 @@ Three runs, each held by a one-way ratchet:
 | -------- | ---------------------------------------- | --------------------------------------------------- | ------------------------------------------------------ |
 | Unit     | `config/mutation/stryker.config.mjs`     | `src/core/**`, minus endpoints and interfaces       | `config/mutation/unit-thresholds.json`, 9 directories  |
 | BDD-only | `config/mutation/stryker.bdd.config.mjs` | all of `src/`, with the BDD suite as the only tests | `config/mutation/bdd-thresholds.json`, 15 directories  |
-| Type     | `scripts/type-mutation.ts`               | the built `dist/**/*.d.ts`                          | `config/mutation/type-thresholds.json`, 6 entry points |
+| Type     | `scripts/mutation/type-mutation.ts`      | the built `dist/**/*.d.ts`                          | `config/mutation/type-thresholds.json`, 6 entry points |
 
 Type mutation is described in [TESTING.md](TESTING.md#type-mutation); the rest of this guide covers the two Stryker runs.
 
@@ -42,7 +42,7 @@ The pull request job owns "this change weakened the tests of the code it touched
 
 ## Pull requests
 
-`npm run mutation:pr` (`scripts/mutation-pr.ts`) does, in order:
+`npm run mutation:pr` (`scripts/mutation/mutation-pr.ts`) does, in order:
 
 1. **Base.** `MUTATION_BASE_REF` (CI sets `HEAD^1`, the base tip of the pull request merge commit, with `fetch-depth: 2`), otherwise the merge base with `origin/master` or `master`. If none resolves, it fails closed (exit 2).
 2. **Ratchet direction.** `config/mutation/unit-thresholds.json` is compared with the base copy. Raising or adding a floor passes; lowering or removing one fails (exit 1). A missing or unparsable head file, or an unparsable base copy, fails closed. The only case with nothing to compare is a base commit that predates the file.
@@ -70,7 +70,7 @@ To reuse a nightly baseline locally, download the `mutation-report` artifact fro
 
 A cold run mutates every file in the touched directories, not just the changed ones. #355 hit an eight-minute wall at 48% of 589 mutants, having killed every one it reached. Nothing was wrong with the change, and failing the pull request for it teaches people to read a red mutation job as noise. A timeout _with_ the baseline restored still blocks: that run should only have had the changed files to mutate, so it is broken rather than slow.
 
-The tier keeps a hard signal either way. `npm run mutation:fixture` runs first in the same job and fails when the known-weak fixture stops leaving survivors, so the gate can still fail even on a run that measures nothing. The policy is `classifyPrMutationRun` in `scripts/mutation-ratchet-core.ts`, pinned by `tests/tdd/mutation-ratchet/mutation-pr.test.ts`; `esi-23g.52` covers why a baseline can be missing in the first place.
+The tier keeps a hard signal either way. `npm run mutation:fixture` runs first in the same job and fails when the known-weak fixture stops leaving survivors, so the gate can still fail even on a run that measures nothing. The policy is `classifyPrMutationRun` in `scripts/mutation/mutation-ratchet-core.ts`, pinned by `tests/tdd/mutation-ratchet/mutation-pr.test.ts`; `esi-23g.52` covers why a baseline can be missing in the first place.
 
 ### When a runner is reclaimed
 
@@ -101,7 +101,7 @@ They sum to 2,385, which is what the unsharded run instruments; the arithmetic i
 
 `UNIT_MUTATION_SHARD=<name> npm run mutation` runs one, writing to `reports/mutation/shards/<name>/`. `npm run mutation:unit:merge` puts them back together for the ratchet and refuses a run with a shard missing, empty or overlapping another. `tests/tdd/mutation-ratchet/unitShards.test.ts` asserts the shards partition `src/core`, so a regrouping cannot drop a directory: orphaning `src/core/endpoints` fails 46 of its cases.
 
-Each shard saves its own incremental file under `stryker-unit-shard-<name>-…`. A shard's file is a whole baseline for its own directories and knows nothing about the others, so the pull request job restores one only when it covers every file the run may mutate: `npm run mutation:pr:shard` plans the run before any baseline exists, names the one shard that claims all of those files (`baselineShardFor` in `scripts/mutation-merge-core.ts`), and `mutation-pr.yml` restores that shard's cache and copies it to `reports/mutation/stryker-incremental.json`. The common pull request touches one directory and gets a warm run whose timeout fails the job. A change that spans shards (say `src/core/RetryStrategy.ts` and `src/core/cache/`) restores nothing and runs cold, which warns rather than blocks on a timeout: restoring one shard there would claim a baseline the run only half has (`esi-23g.55`).
+Each shard saves its own incremental file under `stryker-unit-shard-<name>-…`. A shard's file is a whole baseline for its own directories and knows nothing about the others, so the pull request job restores one only when it covers every file the run may mutate: `npm run mutation:pr:shard` plans the run before any baseline exists, names the one shard that claims all of those files (`baselineShardFor` in `scripts/mutation/mutation-merge-core.ts`), and `mutation-pr.yml` restores that shard's cache and copies it to `reports/mutation/stryker-incremental.json`. The common pull request touches one directory and gets a warm run whose timeout fails the job. A change that spans shards (say `src/core/RetryStrategy.ts` and `src/core/cache/`) restores nothing and runs cold, which warns rather than blocks on a timeout: restoring one shard there would claim a baseline the run only half has (`esi-23g.55`).
 
 ### The incremental baseline
 
@@ -113,9 +113,17 @@ Caches written on `master` are readable by pull requests into `master`. Pull req
 
 Stryker reuses a result only when the mutant's code is unchanged and, for a killed mutant, its killing test is unchanged, or, for a survivor, no test was added. The older the baseline, the more mutants re-run: a one-day-old baseline on an active branch reused 51 of 169 mutants in `ETagCacheManager.ts`.
 
+That rule has a blind spot in the local loop. Stryker treats a test as new only by its name, so strengthening an existing test (same name, a sharper assertion) does not invalidate a survivor it now kills: the next `--incremental` run still reports the mutant as Survived. In #375, `AsyncPaginationIterator.ts:17` (`body !== undefined` becoming `true`) stayed Survived after `toEqual([])` became `toHaveLength(0)`, although applying the mutant by hand showed the edited test killed it. It fails safe (the score reads low, never high), but it sends people after mutants that are already dead. Before you chase a survivor you believe a strengthened test kills, re-run that file with `--force`, which runs every mutant in the `--mutate` files and ignores the incremental results for them ([#380](https://github.com/lgriffin/ESI.ts/issues/380)):
+
+```bash
+npm run mutation -- --incremental --force --mutate src/core/pagination/AsyncPaginationIterator.ts
+```
+
+The nightly always runs with `--force`, so it clears such stale survivors every night. A pull request that only strengthens tests can still see its directory score read low until then, the same fail-safe way.
+
 ### Ratchet: `config/mutation/unit-thresholds.json`
 
-One floor per score directory: `src/core` for files directly in core, `src/core/<sub>` below it (the same `directoryOf` as the BDD ratchet in `scripts/mutation-ratchet-core.ts`). Values are Stryker's mutation score (detected / (detected + undetected)), rounded down to one decimal.
+One floor per score directory: `src/core` for files directly in core, `src/core/<sub>` below it (the same `directoryOf` as the BDD ratchet in `scripts/mutation/mutation-ratchet-core.ts`). Values are Stryker's mutation score (detected / (detected + undetected)), rounded down to one decimal.
 
 - A pull request that raises a directory's score leaves its floor alone; a follow-up raises it once two nightlies have measured the new tests (`npm run mutation:ratchet -- --update --also <earlier report>`, see "Re-seeding"). The pull request gate cannot prove the raise itself: it re-mutates only the changed `src/` files and keeps the nightly's results for the rest, so a directory improved by new tests alone is still scored on the survivors those tests kill. Re-mutating the whole directory instead does not fit the pull request budget for code that everything imports: on #374, `src/core/logger`'s mutants are each covered by thousands of tests and the run timed out. State the new score in the follow-up's body in one line; ratchet bumps without a reason are how ratchet fatigue starts.
 - A floor never goes down. If a change truly has to lower one (for example, deleting dead code that only had killed mutants), that is a reviewed exception in its own pull request, and it fails `mutation-pr` there on purpose.
@@ -171,7 +179,7 @@ One job mutating all of `src/` against the BDD suite alone does not finish: 4,49
 A split run only means the same thing as the single run it replaces if nothing falls between the shards, so two checks hold it together:
 
 - `tests/tdd/mutation-ratchet/bddShards.test.ts` asserts the shards partition `src/`: every TypeScript file belongs to exactly one. A file claimed by none is never mutated and its directory's score quietly improves; a file claimed by two is counted twice. The exclusions in `config/mutation/stryker.bdd.config.mjs` are shared by every shard, so the union of the shards mutates exactly what the unsharded glob did.
-- `npm run mutation:bdd:merge` (`scripts/mutation-merge-core.ts`) refuses to merge a run with a shard missing, a shard that mutated nothing, or two shards reporting one file. Without that, a shard whose job died would leave its directories scored on whatever else ran, which reads as a pass.
+- `npm run mutation:bdd:merge` (`scripts/mutation/mutation-merge-core.ts`) refuses to merge a run with a shard missing, a shard that mutated nothing, or two shards reporting one file. Without that, a shard whose job died would leave its directories scored on whatever else ran, which reads as a pass.
 
 Seed the floors from a completed run: dispatch the workflow with `seed_bdd_thresholds`, which prints and uploads `config/mutation/bdd-thresholds.json` raised to that run's scores. Nothing commits it; `--update` never lowers a floor.
 
@@ -256,7 +264,8 @@ When a mutant survives, it means changing that line doesn't break any test. To k
 1. Open the HTML report (or the `mutation-pr` job summary) and find the survived mutant
 2. Read what the mutation does (e.g., `a > b` changed to `a >= b`)
 3. Write a test case where the original behavior and mutated behavior produce different results
-4. Raise the directory's floor in `config/mutation/unit-thresholds.json` to the new score, with a one-line reason in the pull request
+4. Re-run the file with `--force` to confirm the mutant is killed (an `--incremental` run can keep reporting it as Survived when you strengthened an existing test rather than adding one; see "The incremental baseline")
+5. Raise the directory's floor in `config/mutation/unit-thresholds.json` to the new score, with a one-line reason in the pull request
 
 The weakest directories at seeding were `src/core/cache` (`ETagCacheManager.ts`), `src/core/logger` and `src/core/requestPipeline` (`statusHandling.ts`, `cachePolicy.ts`).
 

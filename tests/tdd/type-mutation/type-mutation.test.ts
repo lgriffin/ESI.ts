@@ -14,11 +14,11 @@ import {
   renderSurvivors,
   sampleMutants,
   scoreByEntryPoint,
-} from '../../../scripts/type-mutation-core';
+} from '../../../scripts/mutation/type-mutation-core';
 import {
   rewriteImports,
   runTypeMutation,
-} from '../../../scripts/type-mutation-run';
+} from '../../../scripts/mutation/type-mutation-run';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const FIXTURE = path.join(__dirname, 'fixtures', 'pkg');

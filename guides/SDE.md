@@ -310,7 +310,7 @@ The peers are loaded on first use, not at import, so `import { SdeDataProvider }
 
 ```bash
 npm install js-yaml adm-zip
-npx ts-node scripts/sde-ingest.ts --output sde-data
+npx ts-node scripts/sde/sde-ingest.ts --output sde-data
 ```
 
 The script resolves the current build, downloads the ZIP from CCP, extracts the YAML files to `./sde-data/` and deletes the ZIP. `sde-data/` is gitignored. `fromZip()` skips the extraction step and reads the archive directly.

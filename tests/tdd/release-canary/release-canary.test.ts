@@ -1,5 +1,5 @@
 /**
- * Self-tests for the post-publish canary (scripts/release-canary-core.ts).
+ * Self-tests for the post-publish canary (scripts/release/release-canary-core.ts).
  *
  * The canary's green tick is what a maintainer reads before telling people a
  * release is good, so the ways it could be wrongly green matter more than the
@@ -21,7 +21,7 @@ import {
   isVerified,
   renderCanaryReport,
   versionFrom,
-} from '../../../scripts/release-canary-core';
+} from '../../../scripts/release/release-canary-core';
 
 function ok(check: CheckResult['check']): CheckResult {
   return { check, ok: true, detail: 'fine' };

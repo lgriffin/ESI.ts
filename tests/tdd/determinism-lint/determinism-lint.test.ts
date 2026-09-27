@@ -26,7 +26,7 @@ import {
   parseBaseline,
   ratchetProblems,
   serializeBaseline,
-} from '../../../scripts/determinism-lint-core';
+} from '../../../scripts/quality/determinism-lint-core';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const FIXTURES = path.join(__dirname, 'fixtures');
@@ -323,7 +323,7 @@ describe('determinism baseline ratchet', () => {
   it('the committed baseline parses and names only files that exist', () => {
     const committed = parseBaseline(
       readFileSync(
-        path.join(REPO_ROOT, 'scripts/determinism-baseline.json'),
+        path.join(REPO_ROOT, 'scripts/quality/determinism-baseline.json'),
         'utf-8',
       ),
     );

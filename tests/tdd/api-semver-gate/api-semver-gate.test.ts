@@ -1,5 +1,5 @@
 /**
- * Self-tests for the API SemVer gate (scripts/api-semver-gate-core.ts).
+ * Self-tests for the API SemVer gate (scripts/package/api-semver-gate-core.ts).
  *
  * The fixtures are small api-extractor reports: a base, an additive change,
  * a removal, a signature change, and the base re-ordered. Each verdict the
@@ -25,7 +25,7 @@ import {
   readCommitMessages,
   readReportAt,
   reportLines,
-} from '../../../scripts/api-semver-gate-core';
+} from '../../../scripts/package/api-semver-gate-core';
 
 const fixture = (name: string): string =>
   readFileSync(path.join(__dirname, 'fixtures', `${name}.api.md`), 'utf8')

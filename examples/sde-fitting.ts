@@ -4,7 +4,7 @@
  * Looks up a ship type and its dogma attributes to display fitting-relevant
  * stats like powergrid, CPU, slot layout, and capacitor.
  *
- * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
+ * Setup: npx ts-node scripts/sde/sde-ingest.ts --output sde-data
  * Usage: npx ts-node examples/sde-fitting.ts
  *
  * @nightly sde

@@ -4,7 +4,7 @@
  * Walks the market group hierarchy recursively to display the full
  * market category tree, optionally listing types in each leaf group.
  *
- * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
+ * Setup: npx ts-node scripts/sde/sde-ingest.ts --output sde-data
  * Usage: npx ts-node examples/sde-market-tree.ts
  *
  * @nightly sde

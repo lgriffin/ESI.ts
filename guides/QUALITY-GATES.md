@@ -68,7 +68,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 3. Soft-skips with a warning annotation when ESI returns HTTP 503 (Tranquility downtime).
 4. From `maintenance.yml`, which runs weekly and only uploads artifacts.
 5. Runs and reports a status, but is outside `ci-success`, so a red result does not stop a merge. See [What actually blocks a merge](#what-actually-blocks-a-merge).
-6. Threshold `high`, after removing advisories accepted in `scripts/audit-exceptions.json`.
+6. Threshold `high`, after removing advisories accepted in `scripts/quality/audit-exceptions.json`.
 7. Blocks only when the pull request touches the check's inputs; otherwise a failure is pre-existing drift, reported as a warning and left to the nightly `spec-drift` issue. See [`static-analysis`](#ciyml--cicd-pipeline).
 8. The measurement runs only when the pull request touches `src/core/`, `src/schemas/`, `tests/benchmark/`, the bench scripts or `package-lock.json`; otherwise the job reports success with a summary line, so it stays inside `ci-success` without a job-level `if:`. A regression can be accepted with a reviewed `Performance-Accepted:` commit trailer; a comparison that could not be made (no baseline, too few rounds, a dropped task) cannot.
 9. Advisory: `ears.yml` runs on pull requests that touch `src/`, `tests/bdd/` or the EARS scripts, outside `ci-success`. `bdd-tests` and `spec-audit` gate the same ground.
@@ -244,12 +244,12 @@ The generated-types, schema-drift, `validate:esi`, `validate:spec` and contract 
 
 Like `npm audit`, the generated-types, schema-drift, endpoint and spec-lint checks report the state of the world: CCP changing ESI turns them red on every open pull request. `static-analysis` therefore first compares the merge commit with its base tip (`HEAD^1`) and blocks on each check only when the pull request touches that check's inputs:
 
-| Check                                 | Inputs                                                                                                                                                                                                              |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Generated types freshness             | `scripts/generate-esi-types.ts`, `src/types/generated/`, `src/core/endpoints/esi-*.generated.ts`                                                                                                                    |
-| Schema drift                          | `scripts/generate-schema-drift-report.ts`, `scripts/schema-drift-core.ts`, `scripts/schema-drift-baseline.json`, `scripts/schema-drift-exceptions.json`, `src/schemas/`, `src/core/endpoints/`, `package-lock.json` |
-| Endpoint definitions (`validate:esi`) | `scripts/validate-esi-endpoints.ts`, `src/core/endpoints/`, `src/core/constants.ts` (the compatibility date), `package.json`                                                                                        |
-| Spec lint (`validate:spec`)           | `redocly.yaml`, `package.json`, `package-lock.json` (the Redocly version)                                                                                                                                           |
+| Check                                 | Inputs                                                                                                                                                                                                                                  |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Generated types freshness             | `scripts/spec/generate-esi-types.ts`, `src/types/generated/`, `src/core/endpoints/esi-*.generated.ts`                                                                                                                                   |
+| Schema drift                          | `scripts/spec/generate-schema-drift-report.ts`, `scripts/spec/schema-drift-core.ts`, `scripts/spec/schema-drift-baseline.json`, `scripts/spec/schema-drift-exceptions.json`, `src/schemas/`, `src/core/endpoints/`, `package-lock.json` |
+| Endpoint definitions (`validate:esi`) | `scripts/spec/validate-esi-endpoints.ts`, `src/core/endpoints/`, `src/core/constants.ts` (the compatibility date), `package.json`                                                                                                       |
+| Spec lint (`validate:spec`)           | `redocly.yaml`, `package.json`, `package-lock.json` (the Redocly version)                                                                                                                                                               |
 
 Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` blocks on generated types, schema drift and `validate:esi` unconditionally. Schema drift that is already tracked turns neither red: it is listed in a ratcheted baseline, described under [Schema drift](#schema-drift).
 
@@ -267,7 +267,7 @@ The `zizmor` job in `ci.yml` runs `zizmor` (pinned version, via `uvx`) over `.gi
 
 ### `skill-eval.yml` — Skill Eval
 
-Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. `live` then runs the native `claude plugin eval` suite through the same script, which enforces the manifest's per-case score, LLM-grader `min_mean`, deterministic pass rate and `max_cost_usd` budget. `live` fails rather than skips when the `ANTHROPIC_API_KEY` secret is absent — including on fork PRs, where a maintainer re-runs it via `workflow_dispatch`. Not a required check yet.
+Gates changes to agent skills (`R14`). `deterministic` unit-tests the judges, fails if a skill's `SKILL.md` changed without a `skill.version` bump in its `eval/eval.yaml`, and runs `scripts/quality/skill-eval.ts` offline against each case's recorded outputs: one `shall` per Rule, scenarios under Rules, no `spyOn(client…)`, transport-seam mocking, step bindings, and the spec audit. `live` then runs the native `claude plugin eval` suite through the same script, which enforces the manifest's per-case score, LLM-grader `min_mean`, deterministic pass rate and `max_cost_usd` budget. `live` fails rather than skips when the `ANTHROPIC_API_KEY` secret is absent — including on fork PRs, where a maintainer re-runs it via `workflow_dispatch`. Not a required check yet.
 
 ### `ears.yml` — EARS Requirements
 
@@ -275,7 +275,7 @@ Runs `npm run ears` on its own: the spec audit, then every BDD scenario, rolled 
 
 ### `nightly-schemathesis.yml` — Nightly Schemathesis API Fuzz
 
-Daily at 01:00 UTC on Node 22 with a 40-minute timeout. Pulls a digest-pinned Schemathesis image and runs `scripts/run-schemathesis.sh`, which downloads the ESI spec, strips security requirements, serves it with a Prism mock on port 4010, and fuzzes it. Schemathesis exits non-zero for both schema violations and network errors, so the script parses the JUnit report and fails only when it records real failures. The report is uploaded as `schemathesis-report`. A `report` job then keeps one open issue titled "api-fuzz: nightly Schemathesis run failed" and labelled `api-fuzz` while the fuzz fails: it creates it, or comments on it with the run link, and closes it on the next green night. It creates the label if it is missing.
+Daily at 01:00 UTC on Node 22 with a 40-minute timeout. Pulls a digest-pinned Schemathesis image and runs `scripts/spec/run-schemathesis.sh`, which downloads the ESI spec, strips security requirements, serves it with a Prism mock on port 4010, and fuzzes it. Schemathesis exits non-zero for both schema violations and network errors, so the script parses the JUnit report and fails only when it records real failures. The report is uploaded as `schemathesis-report`. A `report` job then keeps one open issue titled "api-fuzz: nightly Schemathesis run failed" and labelled `api-fuzz` while the fuzz fails: it creates it, or comments on it with the run link, and closes it on the next green night. It creates the label if it is missing.
 
 ### `nightly-no-retry.yml` — Nightly No-Retry Test Run
 
@@ -299,7 +299,7 @@ A matrix of jobs, `bdd-mutation-testing` (300-minute timeout each), runs `npm ru
 
 `bdd-mutation-ratchet` then downloads every shard's report, rebuilds one report with `npm run mutation:bdd:merge` and scores it with `npm run mutation:bdd:ratchet` per directory (`src/<area>`, and `src/core/<sub>` inside core), writing the table to the step summary. The merge fails on a shard that is missing, mutated nothing, or overlaps another, because each of those would score a directory on a partial run. Every scored directory must have an entry in `config/mutation/bdd-thresholds.json`, so a new directory fails the ratchet until it has a floor — a ratchet with nothing in it gates nothing. The floors were first seeded on 19 September 2026. Dispatching the workflow with `seed_bdd_thresholds` prints and uploads the file raised to that run's scores; `-- --update` never lowers a floor and nothing is committed automatically. The merged report is uploaded as `bdd-mutation-report`.
 
-A third job, `type-mutation-testing` (45-minute timeout), is the type-level equivalent. After `npm run build` it runs `npm run test:type-mutation -- --ratchet` (`scripts/type-mutation.ts`): each mutant is one edit to a copy of `dist/**/*.d.ts` (return type to `unknown`, `readonly` dropped, optional to required and back, a union member dropped, a literal widened, an overload removed, a generic constraint to `unknown`), found with the TypeScript compiler API in the declarations the `exports` entries reach, and the tsd suite runs against it with its `src` imports pointed at the copy. A mutant is killed when a type test fails, invalid (excluded from the score, like Stryker's compile errors) when the mutated declarations no longer compile, and survives when tsd passes. At most 500 mutants run, shared between entry points and ranked by a seeded hash of each mutant's id (seed 1, printed), so the sample is reproducible and each added mutant displaces at most one sampled mutant rather than reshuffling it. The run fails if an entry point scores below its floor in `config/mutation/type-thresholds.json`, if a floor names an entry point that scored nothing, or if the file lowers or drops a floor relative to `origin/master` (fetched explicitly; no base ref fails closed). The score table and every surviving mutant (file, symbol, operator, before and after) go to the step summary and to the `type-mutation-report` artifact.
+A third job, `type-mutation-testing` (45-minute timeout), is the type-level equivalent. After `npm run build` it runs `npm run test:type-mutation -- --ratchet` (`scripts/mutation/type-mutation.ts`): each mutant is one edit to a copy of `dist/**/*.d.ts` (return type to `unknown`, `readonly` dropped, optional to required and back, a union member dropped, a literal widened, an overload removed, a generic constraint to `unknown`), found with the TypeScript compiler API in the declarations the `exports` entries reach, and the tsd suite runs against it with its `src` imports pointed at the copy. A mutant is killed when a type test fails, invalid (excluded from the score, like Stryker's compile errors) when the mutated declarations no longer compile, and survives when tsd passes. At most 500 mutants run, shared between entry points and ranked by a seeded hash of each mutant's id (seed 1, printed), so the sample is reproducible and each added mutant displaces at most one sampled mutant rather than reshuffling it. The run fails if an entry point scores below its floor in `config/mutation/type-thresholds.json`, if a floor names an entry point that scored nothing, or if the file lowers or drops a floor relative to `origin/master` (fetched explicitly; no base ref fails closed). The score table and every surviving mutant (file, symbol, operator, before and after) go to the step summary and to the `type-mutation-report` artifact.
 
 A last `report` job needs all seven jobs and keeps one open issue titled "mutation: nightly run failed" and labelled `mutation` (created if missing): when any job did not succeed it creates the issue, or comments on the open one, with a table of those jobs and their results and the run link; when every job succeeded it closes the issue. A first attempt with a failed job files nothing, because `nightly-mutation-retry.yml` re-runs the failed jobs once and this job with them, and the issue reflects that retried attempt; a first attempt whose only non-successes are cancelled or skipped jobs is filed at once, since the retry does not pick it up.
 
@@ -314,7 +314,7 @@ Daily at 04:30 UTC on Node 20. Three parts:
 
 ### `nightly-audit.yml` — Nightly Security Audit
 
-Daily at 05:00 UTC. Runs `npm audit --json`, filters out accepted advisories with `scripts/audit-check.ts --filter` (which also hard-fails on an expired acceptance), and counts what remains by severity. If anything remains it ensures the `security-audit` label exists, then creates an issue with a severity table, a per-package table and resolution steps, or comments the same tables on the open one. If nothing remains it closes any open `security-audit` issue with a comment. See [Dependency audit](#dependency-audit).
+Daily at 05:00 UTC. Runs `npm audit --json`, filters out accepted advisories with `scripts/quality/audit-check.ts --filter` (which also hard-fails on an expired acceptance), and counts what remains by severity. If anything remains it ensures the `security-audit` label exists, then creates an issue with a severity table, a per-package table and resolution steps, or comments the same tables on the open one. If nothing remains it closes any open `security-audit` issue with a comment. See [Dependency audit](#dependency-audit).
 
 ### `nightly-spec-drift.yml` — Nightly ESI Spec Drift
 
@@ -376,7 +376,7 @@ There is no auto-merge workflow for Dependabot pull requests; each one is merged
 
 ## Nightly examples
 
-`nightly-examples.yml` checks that the examples still do what they say against live ESI. It runs at 04:15 UTC, on demand, and on any pull request that touches `examples/`, `scripts/examples-*` or `tsconfig.examples.json`.
+`nightly-examples.yml` checks that the examples still do what they say against live ESI. It runs at 04:15 UTC, on demand, and on any pull request that touches `examples/`, `scripts/docs/examples-*` or `tsconfig.examples.json`.
 
 Each example declares a tier in its header comment with `@nightly <tier>`:
 
@@ -387,11 +387,11 @@ Each example declares a tier in its header comment with `@nightly <tier>`:
 | `auth`   | Needs an access token                                          | Type-checked only |
 | `sde`    | Reads the Static Data Export                                   | Type-checked only |
 
-The job type-checks every example (`npm run typecheck:examples`, also a step in `ci.yml` and `ci-fast.yml`), then `npm run examples:nightly` runs each `public` and `mixed` example from source with no token. An example fails when it exits non-zero, times out after 120 seconds, or exits 0 after writing to `console.error` (the `scripts/examples-strict.cjs` preload turns that into exit 86). A failure is retried once. The run step stops at 90 minutes; the results file is rewritten after every example, so the issue steps still act on the examples that finished.
+The job type-checks every example (`npm run typecheck:examples`, also a step in `ci.yml` and `ci-fast.yml`), then `npm run examples:nightly` runs each `public` and `mixed` example from source with no token. An example fails when it exits non-zero, times out after 120 seconds, or exits 0 after writing to `console.error` (the `scripts/docs/examples-strict.cjs` preload turns that into exit 86). A failure is retried once. The run step stops at 90 minutes; the results file is rewritten after every example, so the issue steps still act on the examples that finished.
 
 Scheduled and manual runs share one concurrency group and queue, so their issue updates land in order. On those runs, each failing example gets an issue titled `Nightly example failing: examples/<file>`, or a comment on the open one; a later passing run closes it. A type-check failure keeps one issue, `Nightly examples do not type-check`. A pull request run opens no issues; the job result is the signal.
 
-`tests/tdd/scripts/examples-nightly.test.ts` keeps the run complete: every example needs a tier and an npm script, and every public endpoint must be called by a `public` or `mixed` example. A new public endpoint therefore fails `npm test` until an example calls it, or it is listed with a reason in `scripts/examples-coverage-exceptions.json`.
+`tests/tdd/scripts/examples-nightly.test.ts` keeps the run complete: every example needs a tier and an npm script, and every public endpoint must be called by a `public` or `mixed` example. A new public endpoint therefore fails `npm test` until an example calls it, or it is listed with a reason in `scripts/docs/examples-coverage-exceptions.json`.
 
 ---
 
@@ -403,9 +403,9 @@ Scheduled and manual runs share one concurrency group and queue, so their issue 
 
 | Step                      | Command                                                                                                         | Drift when                                                                                                          |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Missing endpoints         | `npx ts-node scripts/check-spec-drift.ts --latest`                                                              | Exit code `1`: the spec has an endpoint no `*Endpoints.ts` file declares. Exit `2` or unparsable JSON fails the run |
+| Missing endpoints         | `npx ts-node scripts/spec/check-spec-drift.ts --latest`                                                         | Exit code `1`: the spec has an endpoint no `*Endpoints.ts` file declares. Exit `2` or unparsable JSON fails the run |
 | Generated types freshness | `npm run generate:types`, then `git diff` on `src/types/generated/` and `src/core/endpoints/esi-*.generated.ts` | The regenerated files differ from `master`, or generation failed for a reason other than 503                        |
-| Schema drift              | `npm run schema:drift:ci`                                                                                       | Drift not in `scripts/schema-drift-baseline.json`, a baseline entry that no longer occurs, or a broken check        |
+| Schema drift              | `npm run schema:drift:ci`                                                                                       | Drift not in `scripts/spec/schema-drift-baseline.json`, a baseline entry that no longer occurs, or a broken check   |
 
 A 503 from ESI on the second or third step is logged as a warning and treated as no drift. The schema step runs with `pipefail`; before it did, it read the exit status of `tee` and never registered drift.
 
@@ -433,13 +433,13 @@ The run's step summary also carries the compatibility date, the three flags and 
 
 ```bash
 # Against the newest compatibility date
-npx ts-node scripts/check-spec-drift.ts --latest
+npx ts-node scripts/spec/check-spec-drift.ts --latest
 
 # Against a specific date
-npx ts-node scripts/check-spec-drift.ts --compatibility-date=2026-08-04
+npx ts-node scripts/spec/check-spec-drift.ts --compatibility-date=2026-08-04
 
 # No flag: the script's own baseline date, 2025-12-16
-npx ts-node scripts/check-spec-drift.ts
+npx ts-node scripts/spec/check-spec-drift.ts
 ```
 
 The report goes to stdout:
@@ -491,19 +491,19 @@ The other spec-reading tools still pin `2025-12-16` independently — `generate-
 
 Related scripts:
 
-| Script                                    | Purpose                                                     |
-| ----------------------------------------- | ----------------------------------------------------------- |
-| `scripts/check-spec-drift.ts`             | JSON missing/extra endpoint report (nightly)                |
-| `scripts/validate-esi-endpoints.ts`       | Human-readable endpoint validation (`npm run validate:esi`) |
-| `scripts/generate-esi-types.ts`           | Regenerate types, TTLs, rate limits and scopes              |
-| `scripts/generate-schema-drift-report.ts` | Zod schema versus spec field comparison                     |
-| `scripts/snapshot-openapi.ts`             | Snapshot the spec for contract tests                        |
+| Script                                         | Purpose                                                     |
+| ---------------------------------------------- | ----------------------------------------------------------- |
+| `scripts/spec/check-spec-drift.ts`             | JSON missing/extra endpoint report (nightly)                |
+| `scripts/spec/validate-esi-endpoints.ts`       | Human-readable endpoint validation (`npm run validate:esi`) |
+| `scripts/spec/generate-esi-types.ts`           | Regenerate types, TTLs, rate limits and scopes              |
+| `scripts/spec/generate-schema-drift-report.ts` | Zod schema versus spec field comparison                     |
+| `scripts/spec/snapshot-openapi.ts`             | Snapshot the spec for contract tests                        |
 
 ---
 
 ## Schema drift
 
-`npm run schema:drift` compares the Zod `responseSchema` of every endpoint definition with the response body the ESI spec defines for that operation, pinned to `compatibility_date=2025-12-16`. The comparison lives in `scripts/schema-drift-core.ts`, with unit tests in `tests/tdd/schema-drift/`; the CLI is `scripts/generate-schema-drift-report.ts`.
+`npm run schema:drift` compares the Zod `responseSchema` of every endpoint definition with the response body the ESI spec defines for that operation, pinned to `compatibility_date=2025-12-16`. The comparison lives in `scripts/spec/schema-drift-core.ts`, with unit tests in `tests/tdd/schema-drift/`; the CLI is `scripts/spec/generate-schema-drift-report.ts`.
 
 ### How an endpoint finds its spec operation
 
@@ -536,7 +536,7 @@ The script exits `2`, in report mode as well as under `--ci`, when no schema was
 
 ### The known-drift baseline
 
-`scripts/schema-drift-baseline.json` lists drift that is tracked but not yet fixed. Keys are `<endpoint> <field> <kind>` under `findings` and `<endpoint>` under `unmatched`; each value is the bead that tracks the fix, and an entry without a bead id is rejected. The seed from `master` holds 203 findings on 52 endpoints (`esi-v2s.10`, `.12`, `.14` and `.21`) and 28 endpoints newer than the pinned compatibility date (`esi-v2s.25`).
+`scripts/spec/schema-drift-baseline.json` lists drift that is tracked but not yet fixed. Keys are `<endpoint> <field> <kind>` under `findings` and `<endpoint>` under `unmatched`; each value is the bead that tracks the fix, and an entry without a bead id is rejected. The seed from `master` holds 203 findings on 52 endpoints (`esi-v2s.10`, `.12`, `.14` and `.21`) and 28 endpoints newer than the pinned compatibility date (`esi-v2s.25`).
 
 `--ci` exits `1` when:
 
@@ -555,19 +555,19 @@ The base ref is `SCHEMA_DRIFT_BASE_REF`, else `origin/master`, else `master`. Wh
 
 A pull request that fixes drift therefore removes its entries in the same change, and one that changes a schema so a finding changes kind fixes it rather than re-baselining it. `npm run schema:drift -- --update-baseline` rewrites the file from the current findings and keeps existing bead ids; new entries need `--bead=esi-<id>` and still fail the ratchet on a pull request, so baselining drift that CCP introduced needs a maintainer's decision, as with any ratchet exception.
 
-`scripts/schema-drift-exceptions.json` is separate and not ratcheted: schema name to field paths, relative to that schema, accepted as permanent deviations. An entry that suppresses nothing prints a warning.
+`scripts/spec/schema-drift-exceptions.json` is separate and not ratcheted: schema name to field paths, relative to that schema, accepted as permanent deviations. An entry that suppresses nothing prints a warning.
 
 ---
 
 ## Export coverage
 
-Line and branch coverage only see code that something runs, so an exported helper that no test calls, or an exported type no test names, never shows up in them. `npm run test:export-coverage` asks the question of the public surface instead: for each `package.json` `exports` entry, which exported names does no test reference? The analysis is in `scripts/export-coverage-core.ts`, the CLI in `scripts/export-coverage.ts`, and its self-tests and fixture project in `tests/tdd/export-coverage/`. `ci.yml` runs it with `--ci` in `static-analysis`.
+Line and branch coverage only see code that something runs, so an exported helper that no test calls, or an exported type no test names, never shows up in them. `npm run test:export-coverage` asks the question of the public surface instead: for each `package.json` `exports` entry, which exported names does no test reference? The analysis is in `scripts/package/export-coverage-core.ts`, the CLI in `scripts/package/export-coverage.ts`, and its self-tests and fixture project in `tests/tdd/export-coverage/`. `ci.yml` runs it with `--ci` in `static-analysis`.
 
 - **The surface** is what the TypeScript checker reports as the exports of each entry's source (`./dist/<name>.d.ts`, and the `import` condition's `./dist/<name>.d.mts`, map to `src/<name>.ts`), following named, type-only, `export *` and `export * as` re-exports. The entry list must match `tsup.config.ts`, or the check exits `2`.
 - **A reference** is an identifier in a `.ts`, `.mts` or `.cts` file under `tests/` that the checker resolves to the same declaration, whether imported from the entry, from the source module directly, or by package name (the consumer contract tests). Files under `fixtures`, `step-fixtures`, `snapshots` and `__snapshots__` directories do not count. Neither does a name in a comment or string, or an import that is never used. Type tests in `tests/typetests` count.
 - **Classes** count as referenced when the class is; members are not checked individually.
 
-Report mode prints the unreferenced names by entry point and exits `0`. `--ci` exits `1` when an unreferenced export is not in `scripts/export-coverage-baseline.json`, when a baseline entry is now referenced or no longer exported, or when the baseline has an entry the base ref's copy lacks. The base ref is `EXPORT_COVERAGE_BASE_REF` (`HEAD^1` in `static-analysis`), else `origin/master`, else `master`; when none resolves the check fails closed, and when the ref has no baseline file yet additions are allowed, as for [schema drift](#the-known-drift-baseline). `--write-baseline` rewrites the file from today's result, and the ratchet still rejects anything it adds.
+Report mode prints the unreferenced names by entry point and exits `0`. `--ci` exits `1` when an unreferenced export is not in `scripts/package/export-coverage-baseline.json`, when a baseline entry is now referenced or no longer exported, or when the baseline has an entry the base ref's copy lacks. The base ref is `EXPORT_COVERAGE_BASE_REF` (`HEAD^1` in `static-analysis`), else `origin/master`, else `master`; when none resolves the check fails closed, and when the ref has no baseline file yet additions are allowed, as for [schema drift](#the-known-drift-baseline). `--write-baseline` rewrites the file from today's result, and the ratchet still rejects anything it adds.
 
 The seed baseline has 424 entries: `.` 197 of 366 exports, `./schemas` 46 of 201, `./errors` 1 of 24, `./testing` 0 of 1, `./sde` 90 of 123 and `./sde/memory` 90 of 122. Most are response and SDE row types; the runtime functions among them are tracked in `esi-23g.19`.
 
@@ -595,7 +595,7 @@ The `package-lint` job in `ci.yml` checks what `npm publish` would ship, statica
 
 ### `npm run lint:package`: publint and Are The Types Wrong
 
-`scripts/package-lint.ts` builds (unless `--skip-build`), runs `npm pack`, and hands the tarball to both tools; `--tarball <path>` lints one that is already packed. The logic lives in `scripts/package-lint-core.ts`.
+`scripts/package/package-lint.ts` builds (unless `--skip-build`), runs `npm pack`, and hands the tarball to both tools; `--tarball <path>` lints one that is already packed. The logic lives in `scripts/package/package-lint-core.ts`.
 
 | Tool                            | Blocks on                                               | Does not block                 |
 | ------------------------------- | ------------------------------------------------------- | ------------------------------ |
@@ -604,11 +604,11 @@ The `package-lint` job in `ci.yml` checks what `npm publish` would ship, statica
 
 `node10` is out of the profile on purpose. It ignores `exports`, so no sub-path other than `.` resolves under it; `engines.node` is `>=18`, where every runtime reads `exports`; and TypeScript deprecated `moduleResolution: node10`, while this repository builds with TypeScript 6. The root entry still resolves under `node10` through `main` and `types`, but the check makes no promise about it. The advisory `package-checks.yml` this job replaces ignored `no-resolution` for that reason and `false-cjs` across the board; the first is now out of profile and the second is fixed (`esi-23g.29`, below).
 
-Known findings are in `scripts/package-lint-baseline.json`, keyed `<tool>:<code> <where>` (for example `attw:FalseCJS ./errors node16-esm`) with the tracking bead as the value. It is a ratchet like the others: a blocking finding outside the baseline fails, an entry that no longer occurs fails, and an entry the base ref's copy lacks fails. The base ref is `PACKAGE_LINT_BASE_REF`, else `origin/master`, else `master`; the job fetches master first, and with no ref the check fails closed. The baseline is empty. Its last seven entries were one defect, `esi-23g.29`: every `import` condition resolved to a `.d.ts` in a `type: commonjs` package, so TypeScript read the ES module entry points as CommonJS ("Masquerading as CJS"). The build now writes `.d.mts` declarations for the `import` condition (`scripts/esm-declarations.cjs`).
+Known findings are in `scripts/package/package-lint-baseline.json`, keyed `<tool>:<code> <where>` (for example `attw:FalseCJS ./errors node16-esm`) with the tracking bead as the value. It is a ratchet like the others: a blocking finding outside the baseline fails, an entry that no longer occurs fails, and an entry the base ref's copy lacks fails. The base ref is `PACKAGE_LINT_BASE_REF`, else `origin/master`, else `master`; the job fetches master first, and with no ref the check fails closed. The baseline is empty. Its last seven entries were one defect, `esi-23g.29`: every `import` condition resolved to a `.d.ts` in a `type: commonjs` package, so TypeScript read the ES module entry points as CommonJS ("Masquerading as CJS"). The build now writes `.d.mts` declarations for the `import` condition (`scripts/package/esm-declarations.cjs`).
 
 ### `npm run size`: a budget per sub-path
 
-`.size-limit.cjs` holds a budget for the ESM build and one for the CJS build of each `exports` sub-path (`.`, `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory`). `scripts/size-limit-checks.cjs` derives the checks from the `exports` map, so a new sub-path without a budget, or a budget for a removed one, fails before anything is measured.
+`.size-limit.cjs` holds a budget for the ESM build and one for the CJS build of each `exports` sub-path (`.`, `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory`). `scripts/package/size-limit-checks.cjs` derives the checks from the `exports` map, so a new sub-path without a budget, or a budget for a removed one, fails before anything is measured.
 Each check bundles the entry with esbuild the way a consumer loading that sub-path would: the entry plus every shared `chunk-*` file it imports (tsup builds with `splitting: true`), minified and uncompressed, for `platform: node`. `dependencies` and `peerDependencies` (`pino`, `zod`, `better-sqlite3`, `js-yaml`, `adm-zip`) and Node built-ins stay external, so the number is this package's own code, and a helper that starts inlining a dependency shows up. Budgets are the size measured at 9.9.0 plus 5%; each line's comment records the measurement.
 To raise a budget, run `npm run build && npm run size`, set the new measurement plus 5%, update the comment, and justify the growth in the pull request body. `.size-limit.cjs` and the package-lint baseline have explicit `CODEOWNERS` entries.
 
@@ -620,7 +620,7 @@ To raise a budget, run `npm run build && npm run size`, set the new measurement 
 
 ## Dependency audit
 
-`npm audit` reports the state of the world, not the state of a diff. An unchanged commit passes before an advisory is published and fails after it. Used as a plain merge gate, it turns every open pull request red for something its author did not do. The audit is therefore split three ways, all driven by `scripts/audit-check.ts`:
+`npm audit` reports the state of the world, not the state of a diff. An unchanged commit passes before an advisory is published and fails after it. Used as a plain merge gate, it turns every open pull request red for something its author did not do. The audit is therefore split three ways, all driven by `scripts/quality/audit-check.ts`:
 
 | Where                              | Question                                                | Mode       | Blocking       |
 | ---------------------------------- | ------------------------------------------------------- | ---------- | -------------- |
@@ -634,7 +634,7 @@ Advisories are keyed by GHSA id (taken from the advisory URL), falling back to `
 
 ### Accepting a known risk
 
-When an advisory has no acceptable fix, record it in `scripts/audit-exceptions.json`:
+When an advisory has no acceptable fix, record it in `scripts/quality/audit-exceptions.json`:
 
 ```json
 {
@@ -670,25 +670,25 @@ In `--filter` mode a package entry is dropped only if _every_ advisory on it is 
 npm run audit:check                        # unaccepted advisories at or above high
 npm run audit:check -- --level=moderate    # lower the threshold
 npm run audit:diff -- --base base.json --head head.json
-npx ts-node scripts/audit-check.ts --filter --in audit-raw.json --out audit-report.json
+npx ts-node scripts/quality/audit-check.ts --filter --in audit-raw.json --out audit-report.json
 ```
 
 ### Other exception files
 
 The same "explicit, reasoned exception" pattern appears in nine more places:
 
-| File                                   | Consumed by                    | Rule                                                                                                                                                                   |
-| -------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config/mutation/bdd-thresholds.json`  | `npm run mutation:bdd:ratchet` | Per-directory BDD mutation floors; every scored directory needs one; `--update` only raises them                                                                       |
-| `config/mutation/unit-thresholds.json` | `npm run mutation:pr`          | Per-directory unit mutation floors; every mutated directory needs one; they may only rise                                                                              |
-| `config/mutation/type-thresholds.json` | `npm run test:type-mutation`   | In `scripts/`. Per-entry-point type mutation floors; only rise against `origin/master`                                                                                 |
-| `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | Two ratchets: `unconverted` (empty; the audit fails if a listed file passes) and `legacyStepFiles` (38; gains no entry)                                                |
-| `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                                                                                       |
-| `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)                                                                              |
-| `scripts/determinism-baseline.json`    | `npm run lint:determinism`     | Clock, timer and `Math.random()` sites per file and construct; shrink-only, stale counts fail                                                                          |
-| `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map; empty; stale entries fail                                                 |
-| `scripts/esi-endpoint-exceptions.json` | `npm run validate:esi`         | `METHOD path` key with a `reason`, for definitions the spec does not list (today the two `/meta/openapi.*` documents); any other definition absent from the spec fails |
-| `scripts/package-lint-baseline.json`   | `npm run lint:package`         | Known publint/attw finding → bead id; shrink-only, stale entries fail                                                                                                  |
+| File                                         | Consumed by                    | Rule                                                                                                                                                                   |
+| -------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config/mutation/bdd-thresholds.json`        | `npm run mutation:bdd:ratchet` | Per-directory BDD mutation floors; every scored directory needs one; `--update` only raises them                                                                       |
+| `config/mutation/unit-thresholds.json`       | `npm run mutation:pr`          | Per-directory unit mutation floors; every mutated directory needs one; they may only rise                                                                              |
+| `config/mutation/type-thresholds.json`       | `npm run test:type-mutation`   | In `scripts/`. Per-entry-point type mutation floors; only rise against `origin/master`                                                                                 |
+| `scripts/spec/spec-audit-exceptions.json`    | `npm run spec:audit`           | Two ratchets: `unconverted` (empty; the audit fails if a listed file passes) and `legacyStepFiles` (38; gains no entry)                                                |
+| `scripts/spec/schema-drift-exceptions.json`  | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                                                                                       |
+| `scripts/spec/schema-drift-baseline.json`    | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)                                                                              |
+| `scripts/quality/determinism-baseline.json`  | `npm run lint:determinism`     | Clock, timer and `Math.random()` sites per file and construct; shrink-only, stale counts fail                                                                          |
+| `scripts/spec/auth-scope-exceptions.json`    | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map; empty; stale entries fail                                                 |
+| `scripts/spec/esi-endpoint-exceptions.json`  | `npm run validate:esi`         | `METHOD path` key with a `reason`, for definitions the spec does not list (today the two `/meta/openapi.*` documents); any other definition absent from the spec fails |
+| `scripts/package/package-lint-baseline.json` | `npm run lint:package`         | Known publint/attw finding → bead id; shrink-only, stale entries fail                                                                                                  |
 
 ---
 
@@ -747,7 +747,7 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 | `fuzz:api`                                                     | Schemathesis against a Prism mock (Docker)                                                                                                                                                                                                   |
 | `mock:esi`                                                     | Prism mock of ESI on port 4010                                                                                                                                                                                                               |
 | `test:consumer`                                                | Consumer contract: pack, install into a clean consumer, type-check and run it (not part of `npm test`; see [TESTING.md](TESTING.md#consumer-contract))                                                                                       |
-| `test:export-coverage`                                         | Public exports no test references, by entry point; `--ci` gates against `scripts/export-coverage-baseline.json`                                                                                                                              |
+| `test:export-coverage`                                         | Public exports no test references, by entry point; `--ci` gates against `scripts/package/export-coverage-baseline.json`                                                                                                                      |
 | `test:docs-examples`                                           | Documentation examples checked against the packed tarball (not part of `npm test`; see [DOCUMENTATION.md](DOCUMENTATION.md#documentation-examples-are-checked))                                                                              |
 | `test:types`                                                   | tsd type tests                                                                                                                                                                                                                               |
 | `test:type-mutation`                                           | Mutates the built `dist/**/*.d.ts` and runs tsd against each mutant; `-- --ratchet` gates per-entry-point scores (`config/mutation/type-thresholds.json`)                                                                                    |
@@ -763,19 +763,19 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 
 ### Spec alignment and generation
 
-| Script                  | Runs                                                                                                                                                                                     |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `generate:types`        | Types, cache TTLs, rate-limit groups and scopes from the live spec                                                                                                                       |
-| `generate:okf`          | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                                                                                                                    |
-| `generate:endpoints`    | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                                                                                                                    |
-| `generate:all`          | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi`                                                                                                    |
-| `schema:drift`          | Zod schema versus spec report; exits 2 only when the check compared nothing                                                                                                              |
-| `schema:drift:ci`       | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline                                                                                                      |
-| `validate:esi`          | Endpoint definitions versus the spec at `COMPATIBILITY_DATE`; fails on a method mismatch or a definition the spec lacks (`scripts/esi-endpoint-exceptions.json` lists the reasoned ones) |
-| `validate:esi:vendored` | The same against `tests/contract/snapshots/esi-openapi.snapshot.json`, offline; in `check:local` and after `spec-refresh.yml` regenerates                                                |
-| `validate:auth-scopes`  | `requiresAuth` versus the generated scope map (`DES-04`); fails in both directions                                                                                                       |
-| `validate:spec`         | Redocly lint of the ESI spec (`redocly.yaml`)                                                                                                                                            |
-| `validate:versions`     | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts` and the docs-site version selector                                                                            |
+| Script                  | Runs                                                                                                                                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generate:types`        | Types, cache TTLs, rate-limit groups and scopes from the live spec                                                                                                                            |
+| `generate:okf`          | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                                                                                                                         |
+| `generate:endpoints`    | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                                                                                                                         |
+| `generate:all`          | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi`                                                                                                         |
+| `schema:drift`          | Zod schema versus spec report; exits 2 only when the check compared nothing                                                                                                                   |
+| `schema:drift:ci`       | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline                                                                                                           |
+| `validate:esi`          | Endpoint definitions versus the spec at `COMPATIBILITY_DATE`; fails on a method mismatch or a definition the spec lacks (`scripts/spec/esi-endpoint-exceptions.json` lists the reasoned ones) |
+| `validate:esi:vendored` | The same against `tests/contract/snapshots/esi-openapi.snapshot.json`, offline; in `check:local` and after `spec-refresh.yml` regenerates                                                     |
+| `validate:auth-scopes`  | `requiresAuth` versus the generated scope map (`DES-04`); fails in both directions                                                                                                            |
+| `validate:spec`         | Redocly lint of the ESI spec (`redocly.yaml`)                                                                                                                                                 |
+| `validate:versions`     | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts` and the docs-site version selector                                                                                 |
 
 ### Security
 
@@ -817,7 +817,7 @@ npm run check:local:fast   # quick only: no build
 npm run check:local:all    # adds the slow tiers (type mutation)
 ```
 
-What it runs, and what it deliberately does not, is `scripts/verify-local-core.ts`. The list is held to CI by `tests/tdd/verify-local/verify-local.test.ts`, which reads `ci.yml` two ways and fails unless each thing it finds is in the tier list, reachable from a composite, or excluded with a written reason — so a tier added to CI cannot silently go unrun locally. It reads every `npm run`, and every tool a step invokes directly through `npx`, `uvx`, `pipx` or `bunx`. The second was added after `zizmor` spent a day as a CI-only gate precisely because nothing looked for it: it is not an npm script, so the first pass never saw it. `format:check` is one of the excluded ones: on a Windows checkout CRLF endings fail it across the whole repository, so run it on a specific path instead.
+What it runs, and what it deliberately does not, is `scripts/quality/verify-local-core.ts`. The list is held to CI by `tests/tdd/verify-local/verify-local.test.ts`, which reads `ci.yml` two ways and fails unless each thing it finds is in the tier list, reachable from a composite, or excluded with a written reason — so a tier added to CI cannot silently go unrun locally. It reads every `npm run`, and every tool a step invokes directly through `npx`, `uvx`, `pipx` or `bunx`. The second was added after `zizmor` spent a day as a CI-only gate precisely because nothing looked for it: it is not an npm script, so the first pass never saw it. `format:check` is one of the excluded ones: on a Windows checkout CRLF endings fail it across the whole repository, so run it on a specific path instead.
 
 Two older aggregate scripts cover the static side:
 
@@ -828,7 +828,7 @@ npm run check:all    # validate + validate:esi + validate:spec + validate:versio
 
 Neither reproduces `ci-success` completely, and neither includes the tiers added around the unit suite. `check:all` needs network access for the spec checks.
 
-`check:local` covers typecheck, the examples type-check, generated-operation freshness and coverage, every lint (`lint`, `lint:suite-health`, `lint:determinism`, `lint:layers`, `lint:bdd-seam`, `lint:workflows`), `spec:audit`, `charter:audit`, `validate:spec-consistency`, `validate:auth-scopes`, `validate:esi:vendored` (the endpoint check against the vendored snapshot), `validate:versions`, `test`, `test:integration`, `faults`, `contract:replay`, `fuzz` and `test:export-coverage`; then, after a build, `test:types`, `test:docs-examples`, `lint:package`, `size` and `test:consumer`; `--all` adds `test:type-mutation`. What it leaves out, each with the reason `NOT_RUN_LOCALLY` records in `scripts/verify-local-core.ts`:
+`check:local` covers typecheck, the examples type-check, generated-operation freshness and coverage, every lint (`lint`, `lint:suite-health`, `lint:determinism`, `lint:layers`, `lint:bdd-seam`, `lint:workflows`), `spec:audit`, `charter:audit`, `validate:spec-consistency`, `validate:auth-scopes`, `validate:esi:vendored` (the endpoint check against the vendored snapshot), `validate:versions`, `test`, `test:integration`, `faults`, `contract:replay`, `fuzz` and `test:export-coverage`; then, after a build, `test:types`, `test:docs-examples`, `lint:package`, `size` and `test:consumer`; `--all` adds `test:type-mutation`. What it leaves out, each with the reason `NOT_RUN_LOCALLY` records in `scripts/quality/verify-local-core.ts`:
 
 ```bash
 npm run format:check                              # CRLF on a Windows checkout fails ~994 files; run it on a path

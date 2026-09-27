@@ -12,7 +12,7 @@
     // Named only in the Stryker configs' JSDoc `@type` imports; it arrives
     // with @stryker-mutator/core.
     "@stryker-mutator/api",
-    // scripts/package-lint-core.ts runs its CLI by path
+    // scripts/package/package-lint-core.ts runs its CLI by path
     // (node_modules/@arethetypeswrong/cli/...), which knip cannot follow.
     "@arethetypeswrong/cli",
   ],

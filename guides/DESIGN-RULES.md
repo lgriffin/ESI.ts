@@ -138,9 +138,9 @@ The unit of work is one ESI operation wired end to end. Behaviour comes first: f
 npm run generate:endpoints
 ```
 
-`scripts/generate-endpoint-scaffold.ts` downloads the OpenAPI document and writes `etc/endpoint-scaffold.generated.reference.ts`: one scaffold map per ESI tag with `path`, `method`, `requiresAuth` (from the operation's `security` block) and `pathParams` filled in, and a `// responseSchema: TODO` placeholder. It is a reference to diff against, not a file to import; it never overwrites `src/core/endpoints/`.
+`scripts/spec/generate-endpoint-scaffold.ts` downloads the OpenAPI document and writes `etc/endpoint-scaffold.generated.reference.ts`: one scaffold map per ESI tag with `path`, `method`, `requiresAuth` (from the operation's `security` block) and `pathParams` filled in, and a `// responseSchema: TODO` placeholder. It is a reference to diff against, not a file to import; it never overwrites `src/core/endpoints/`.
 
-The scaffold is pinned to the compatibility date in the script (`ESI_OPENAPI_URL`). An operation newer than that date does not appear; read it from the live spec, or run the nightly drift check (`scripts/check-spec-drift.ts`, described in [QUALITY-GATES.md](QUALITY-GATES.md)) which lists what is missing against the latest date.
+The scaffold is pinned to the compatibility date in the script (`ESI_OPENAPI_URL`). An operation newer than that date does not appear; read it from the live spec, or run the nightly drift check (`scripts/spec/check-spec-drift.ts`, described in [QUALITY-GATES.md](QUALITY-GATES.md)) which lists what is missing against the latest date.
 
 ### 3.2 Write or reuse the schema
 
@@ -162,14 +162,14 @@ Copy the scaffold entry into the domain's `*Endpoints.ts` map, then:
 npm run validate:auth-scopes
 ```
 
-`scripts/validate-auth-scopes.ts` normalises each definition to `METHOD:snake_case_path` and compares it with `src/core/endpoints/esi-scopes.generated.ts`:
+`scripts/spec/validate-auth-scopes.ts` normalises each definition to `METHOD:snake_case_path` and compares it with `src/core/endpoints/esi-scopes.generated.ts`:
 
 | Definition            | Scope map entry | Result                                                       |
 | --------------------- | --------------- | ------------------------------------------------------------ |
 | `requiresAuth: false` | present         | **Error**, exit 1. The token is never sent and ESI refuses.  |
 | `requiresAuth: true`  | absent          | **Error**, exit 1. The token is sent but no scope is listed. |
 
-A genuine mismatch in the generated map (a path ESI spells differently, or a scope newer than the generated file) is recorded in `scripts/auth-scope-exceptions.json` with a `reason`. An entry that no longer excuses a mismatch also fails the run, so remove it once the generated map catches up. The file is empty today. Never flip `requiresAuth` to make the script pass; the bearer header is attached only when that flag is set.
+A genuine mismatch in the generated map (a path ESI spells differently, or a scope newer than the generated file) is recorded in `scripts/spec/auth-scope-exceptions.json` with a `reason`. An entry that no longer excuses a mismatch also fails the run, so remove it once the generated map catches up. The file is empty today. Never flip `requiresAuth` to make the script pass; the bearer header is attached only when that flag is set.
 
 ### 3.5 Check the schema against the spec
 
@@ -177,7 +177,7 @@ A genuine mismatch in the generated map (a path ESI spells differently, or a sco
 npm run schema:drift
 ```
 
-Reports fields missing on either side, required/optional disagreements and type mismatches, at any depth, between the endpoint's schema and the OpenAPI response. CI runs the `--ci` variant, which fails on drift not listed in the shrink-only `scripts/schema-drift-baseline.json`, so a new endpoint must add none. A permanent accepted deviation goes in `scripts/schema-drift-exceptions.json` keyed by schema name. See [QUALITY-GATES.md](QUALITY-GATES.md#schema-drift).
+Reports fields missing on either side, required/optional disagreements and type mismatches, at any depth, between the endpoint's schema and the OpenAPI response. CI runs the `--ci` variant, which fails on drift not listed in the shrink-only `scripts/spec/schema-drift-baseline.json`, so a new endpoint must add none. A permanent accepted deviation goes in `scripts/spec/schema-drift-exceptions.json` keyed by schema name. See [QUALITY-GATES.md](QUALITY-GATES.md#schema-drift).
 
 ### 3.6 Deprecation (DES-05)
 
@@ -292,9 +292,9 @@ Generated output is committed so a diff shows exactly what CCP changed. It is ne
 | `okf/`                                                  | `npm run generate:okf`       | Operations and schemas              | None                                           |
 | `etc/esi.ts.api.md`                                     | `npm run api-report`         | `dist/index.d.ts` via api-extractor | CI API Surface Check                           |
 
-`npm run generate:all` runs types, OKF, the contract snapshot, schema drift and `validate:esi` in sequence. `generate:types` defaults to the compatibility date in `scripts/generate-esi-types.ts` and accepts `--latest` or `--compatibility-date=YYYY-MM-DD`. The OKF bundle is described in [OKF.md](OKF.md).
+`npm run generate:all` runs types, OKF, the contract snapshot, schema drift and `validate:esi` in sequence. `generate:types` defaults to the compatibility date in `scripts/spec/generate-esi-types.ts` and accepts `--latest` or `--compatibility-date=YYYY-MM-DD`. The OKF bundle is described in [OKF.md](OKF.md).
 
-`src/generated/operations.generated.ts` holds one typed function and one `*Meta` constant per spec operation, all calling the `OperationTransport` port in `src/core/ports/`. Unlike the rows above it reads the vendored snapshot, never the live spec, so CI can check it offline. It is generated by `scripts/spec-generate.ts`, with the `ScopeTree`, `PublicScopeTree` and `createScopeTree` section written by `scripts/spec-scope-tree.ts`, and `spec-refresh.yml` is the one workflow that re-vendors the snapshot and regenerates it. `src/adapters/PipelineTransport` already backs it with the request pipeline, so an operation shares the `ApiClient`'s rate limiter, cache and retry with the hand-written clients. It is not exported from any package entry yet: ROADMAP Phase 2 PR 11 exposes it through the builder. See [ARCHITECTURE.md](ARCHITECTURE.md#1a-ports-adapters-and-the-layer-rule).
+`src/generated/operations.generated.ts` holds one typed function and one `*Meta` constant per spec operation, all calling the `OperationTransport` port in `src/core/ports/`. Unlike the rows above it reads the vendored snapshot, never the live spec, so CI can check it offline. It is generated by `scripts/spec/spec-generate.ts`, with the `ScopeTree`, `PublicScopeTree` and `createScopeTree` section written by `scripts/spec/spec-scope-tree.ts`, and `spec-refresh.yml` is the one workflow that re-vendors the snapshot and regenerates it. `src/adapters/PipelineTransport` already backs it with the request pipeline, so an operation shares the `ApiClient`'s rate limiter, cache and retry with the hand-written clients. It is not exported from any package entry yet: ROADMAP Phase 2 PR 11 exposes it through the builder. See [ARCHITECTURE.md](ARCHITECTURE.md#1a-ports-adapters-and-the-layer-rule).
 
 The hand-written counterparts are not generated and are not exempt from review: endpoint maps, Zod schemas, clients and the exception files under `scripts/` are product decisions, and the drift reports exist to keep them honest.
 

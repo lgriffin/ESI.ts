@@ -57,7 +57,7 @@ interface ParsedInterface {
   file: string;
 }
 
-// --- Helpers (adapted from scripts/validate-esi-endpoints.ts) ---
+// --- Helpers (adapted from scripts/spec/validate-esi-endpoints.ts) ---
 
 function normalizePath(p: string): string {
   return p
