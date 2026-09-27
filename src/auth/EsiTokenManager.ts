@@ -18,37 +18,37 @@ export interface EsiTokenManagerConfig {
   /** The application's SSO client id. */
   clientId: string;
   /** The application's SSO client secret. Omit for a public (PKCE) client. */
-  clientSecret?: string;
+  clientSecret?: string | undefined;
   /** Redirect URI registered for the application. */
-  callbackUrl?: string;
+  callbackUrl?: string | undefined;
   /** Where tokens are persisted. Defaults to {@link MemoryTokenStorage}. */
-  storage?: ITokenStorage;
+  storage?: ITokenStorage | undefined;
   /** Pre-built SSO client. When given, `clientId`, `clientSecret`, `callbackUrl` and `fetch` are ignored for SSO calls. */
-  ssoClient?: EveSsoClient;
+  ssoClient?: EveSsoClient | undefined;
   /** Custom fetch for SSO calls. Defaults to `globalThis.fetch`. */
-  fetch?: FetchLike;
+  fetch?: FetchLike | undefined;
   /**
    * How long before expiry a token counts as stale, in milliseconds.
    * Defaults to 60 000 (one minute).
    */
-  refreshSkewMs?: number;
+  refreshSkewMs?: number | undefined;
   /**
    * When true (the default), {@link EsiTokenManager.getToken} refreshes a
    * stale token before returning it. When false it returns the stored token
    * as-is and refresh only happens through {@link EsiTokenManager.refresh},
    * {@link EsiTokenManager.refreshAll}, or the 401 path of a created client.
    */
-  autoRefresh?: boolean;
+  autoRefresh?: boolean | undefined;
   /** Called after a token is refreshed and persisted. */
-  onRefresh?: (token: StoredToken) => void;
+  onRefresh?: ((token: StoredToken) => void) | undefined;
   /** Called when a refresh fails for a reason other than revocation. */
-  onRefreshError?: (characterId: number, error: Error) => void;
+  onRefreshError?: ((characterId: number, error: Error) => void) | undefined;
   /** Called when SSO reports a character's refresh token as invalid. */
-  onRevoked?: (characterId: number) => void;
+  onRevoked?: ((characterId: number) => void) | undefined;
   /** Logger for refresh activity. Defaults to the library logger. */
-  logger?: ILogger;
+  logger?: ILogger | undefined;
   /** Clock override for tests. */
-  now?: () => number;
+  now?: (() => number) | undefined;
 }
 
 export interface AddCharacterOptions extends ExchangeCodeOptions {
@@ -56,29 +56,29 @@ export interface AddCharacterOptions extends ExchangeCodeOptions {
    * When the character already has a stored token, revoke its refresh token
    * at SSO before replacing it. Defaults to false.
    */
-  revokeReplaced?: boolean;
+  revokeReplaced?: boolean | undefined;
 }
 
 export interface RemoveCharacterOptions {
   /** Revoke the refresh token at SSO before deleting it. Defaults to false. */
-  revoke?: boolean;
+  revoke?: boolean | undefined;
 }
 
 export interface RefreshAllOptions {
   /** Maximum simultaneous SSO requests. Defaults to 5. */
-  concurrency?: number;
+  concurrency?: number | undefined;
   /**
    * Only refresh tokens that expire within this many milliseconds (after
    * applying the refresh skew). Omit to refresh every token.
    */
-  expiringWithinMs?: number;
+  expiringWithinMs?: number | undefined;
   /** Abort the run; remaining tokens are reported as skipped. */
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
   /**
    * Progress callback, invoked after each token settles. A callback that
    * throws does not stop the run; the exception is discarded.
    */
-  onProgress?: (completed: number, total: number) => void;
+  onProgress?: ((completed: number, total: number) => void) | undefined;
 }
 
 export type RefreshStatus = 'refreshed' | 'skipped' | 'failed' | 'revoked';
@@ -87,13 +87,13 @@ export interface RefreshResult {
   characterId: number;
   status: RefreshStatus;
   /** New expiry in epoch milliseconds, when refreshed. */
-  expiresAt?: number;
+  expiresAt?: number | undefined;
   /** The error, when failed or revoked. */
-  error?: Error;
+  error?: Error | undefined;
   /** True when the failure was an SSO 429 or 5xx and can be retried later. */
-  retryable?: boolean;
+  retryable?: boolean | undefined;
   /** Why the token was skipped. */
-  reason?: 'not-stale' | 'aborted';
+  reason?: 'not-stale' | 'aborted' | undefined;
 }
 
 /** Lightweight view of a stored character, without the secrets. */
@@ -198,7 +198,7 @@ export class EsiTokenManager {
   async importToken(token: {
     accessToken: string;
     refreshToken: string;
-    expiresIn?: number;
+    expiresIn?: number | undefined;
   }): Promise<StoredToken> {
     return this.storeResponse({
       accessToken: token.accessToken,
@@ -485,7 +485,7 @@ export class EsiTokenManager {
 
   private async storeResponse(
     response: SsoTokenResponse,
-    options: { revokeReplaced?: boolean } = {},
+    options: { revokeReplaced?: boolean | undefined } = {},
   ): Promise<StoredToken> {
     const token = this.buildStoredToken(response);
     const existing = await this.storage.get(token.characterId);

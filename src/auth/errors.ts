@@ -16,7 +16,7 @@ export class AuthError extends Error {
 export class SsoError extends AuthError {
   public readonly statusCode: number;
   public readonly errorCode: string;
-  public readonly errorDescription?: string;
+  public readonly errorDescription?: string | undefined;
 
   constructor(
     statusCode: number,
@@ -43,7 +43,7 @@ export class SsoError extends AuthError {
  * must log in again; retrying cannot help.
  */
 export class TokenRevokedError extends AuthError {
-  public readonly characterId?: number;
+  public readonly characterId?: number | undefined;
 
   constructor(message: string, characterId?: number) {
     super(message);

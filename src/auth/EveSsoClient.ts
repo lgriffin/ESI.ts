@@ -11,13 +11,13 @@ export interface EveSsoClientConfig {
    * The application's client secret. Omit for a public (PKCE) client; token
    * requests then identify the application by `client_id` in the form body.
    */
-  clientSecret?: string;
+  clientSecret?: string | undefined;
   /** Redirect URI registered for the application. Used by {@link EveSsoClient.getAuthorizationUrl}. */
-  callbackUrl?: string;
+  callbackUrl?: string | undefined;
   /** Override the SSO host, for tests or a proxy. Defaults to https://login.eveonline.com. */
-  ssoBaseUrl?: string;
+  ssoBaseUrl?: string | undefined;
   /** Custom fetch implementation. Defaults to `globalThis.fetch` resolved at call time. */
-  fetch?: FetchLike;
+  fetch?: FetchLike | undefined;
 }
 
 /** A successful response from the SSO token endpoint. */
@@ -35,24 +35,24 @@ export interface AuthorizationUrlOptions {
   /** Opaque value echoed back on the callback; use {@link generateState}. */
   state: string;
   /** PKCE challenge for public clients; see {@link generatePkcePair}. */
-  codeChallenge?: string;
+  codeChallenge?: string | undefined;
   /** Overrides `callbackUrl` from the config. */
-  redirectUri?: string;
+  redirectUri?: string | undefined;
 }
 
 export interface ExchangeCodeOptions {
   /** PKCE verifier that produced the challenge sent in the authorization URL. */
-  codeVerifier?: string;
+  codeVerifier?: string | undefined;
   /**
    * The redirect URI that was sent in the authorization request. Defaults to
    * the configured `callbackUrl`; when neither is set the field is omitted.
    */
-  redirectUri?: string;
+  redirectUri?: string | undefined;
 }
 
 export interface RefreshOptions {
   /** Request a subset of the originally granted scopes. */
-  scopes?: readonly string[];
+  scopes?: readonly string[] | undefined;
 }
 
 interface SsoTokenJson {
@@ -85,10 +85,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  */
 export class EveSsoClient {
   private readonly clientId: string;
-  private readonly clientSecret?: string;
-  private readonly callbackUrl?: string;
+  private readonly clientSecret?: string | undefined;
+  private readonly callbackUrl?: string | undefined;
   private readonly baseUrl: string;
-  private readonly fetchFn?: FetchLike;
+  private readonly fetchFn?: FetchLike | undefined;
 
   constructor(config: EveSsoClientConfig) {
     if (!config.clientId) {

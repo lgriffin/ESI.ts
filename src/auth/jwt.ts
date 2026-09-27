@@ -5,17 +5,17 @@ export interface EveJwtClaims {
   /** `CHARACTER:EVE:<characterId>` */
   sub: string;
   /** Character name. */
-  name?: string;
+  name?: string | undefined;
   /** Granted scopes: a single string, or an array when more than one. */
-  scp?: string | string[];
+  scp?: string | string[] | undefined;
   /** Expiry as epoch seconds. */
-  exp?: number;
+  exp?: number | undefined;
   /** Issued-at as epoch seconds. */
-  iat?: number;
+  iat?: number | undefined;
   /** Owner hash; changes on character transfer. */
-  owner?: string;
-  iss?: string;
-  aud?: string | string[];
+  owner?: string | undefined;
+  iss?: string | undefined;
+  aud?: string | string[] | undefined;
   [claim: string]: unknown;
 }
 
@@ -25,8 +25,8 @@ export interface DecodedAccessToken {
   characterName: string;
   scopes: string[];
   /** Epoch milliseconds, or undefined when the token carries no `exp`. */
-  expiresAt?: number;
-  ownerHash?: string;
+  expiresAt?: number | undefined;
+  ownerHash?: string | undefined;
   claims: EveJwtClaims;
 }
 

@@ -18,7 +18,7 @@ export class SdeDatabaseError extends SdeError {
 export class SdeValidationError extends SdeError {
   public readonly validationError: unknown;
   public readonly entityType: string;
-  public readonly entityId?: number;
+  public readonly entityId?: number | undefined;
 
   constructor(entityType: string, validationError: unknown, entityId?: number) {
     const idSuffix = entityId !== undefined ? ` (id: ${entityId})` : '';
