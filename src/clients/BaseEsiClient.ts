@@ -13,6 +13,14 @@ import {
   PageResult,
 } from '../core/pagination/AsyncPaginationIterator';
 
+// A text endpoint (meta/openapi.yaml) is one document, not a page of JSON,
+// so the page helpers refuse it rather than fail parsing it as JSON.
+function notPageable(endpointName: string): TypeError {
+  return new TypeError(
+    `${endpointName} returns a text document and cannot be paged; call it directly.`,
+  );
+}
+
 type ClientMethods<T extends EndpointMap> = ReturnType<typeof createClient<T>>;
 
 export abstract class BaseEsiClient<T extends EndpointMap> {
@@ -33,6 +41,7 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     ...args: unknown[]
   ): AsyncGenerator<PageResult<R>, void, undefined> {
     const def = this._endpoints[endpointName]!;
+    if (def.textResponse) throw notPageable(endpointName);
     const { path, body } = buildEndpointPath(
       def,
       args,
@@ -55,6 +64,7 @@ export abstract class BaseEsiClient<T extends EndpointMap> {
     concurrency?: number,
   ): Promise<R[]> {
     const def = this._endpoints[endpointName]!;
+    if (def.textResponse) return Promise.reject(notPageable(endpointName));
     const { path, body } = buildEndpointPath(
       def,
       args,
