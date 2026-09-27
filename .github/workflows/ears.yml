@@ -21,6 +21,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'config/jest/unit.config.cjs'
+      - 'tests/setup/**'
       - 'tsconfig.json'
       - 'tsconfig.test.json'
       - '.github/workflows/ears.yml'
