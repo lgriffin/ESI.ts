@@ -5,9 +5,9 @@
     "method": "getIndustrySystems",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -47,9 +47,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"de0bc58ce9e08a1b79c2a057e3bedf8a457f25737b87c698f4f33c16\"",
-        "expires": "Thu, 17 Sep 2026 14:20:29 GMT",
-        "last-modified": "Thu, 17 Sep 2026 13:20:29 GMT"
+        "etag": "\"090142db15de1cf596523ba5f343c295375e04e3cdfa5426be888d32\"",
+        "expires": "Sun, 27 Sep 2026 04:33:04 GMT",
+        "last-modified": "Sun, 27 Sep 2026 03:33:04 GMT"
       },
       "body": [
         {
@@ -73,15 +73,15 @@
           "cost_indices": [
             {
               "activity": "manufacturing",
-              "cost_index": 0.0352
+              "cost_index": 0.038
             },
             {
               "activity": "researching_time_efficiency",
-              "cost_index": 0.0177
+              "cost_index": 0.0188
             },
             {
               "activity": "researching_material_efficiency",
-              "cost_index": 0.0139
+              "cost_index": 0.0074
             }
           ],
           "solar_system_id": 30021392
@@ -90,7 +90,7 @@
           "cost_indices": [
             {
               "activity": "manufacturing",
-              "cost_index": 0.0227
+              "cost_index": 0.0249
             },
             {
               "activity": "researching_time_efficiency",

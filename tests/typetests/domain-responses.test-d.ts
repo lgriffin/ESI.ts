@@ -105,20 +105,23 @@ expectType<number>(campaign.solar_system_id);
 // --- Military Campaigns ---
 
 declare const milCampaign: MilitaryCampaign;
-expectType<string>(milCampaign.campaign_id);
-expectType<string>(milCampaign.state);
+expectType<string>(milCampaign.id);
+expectAssignable<string>(milCampaign.state);
 expectType<number>(milCampaign.progress);
-expectType<string>(milCampaign.start_time);
+expectType<string | undefined>(milCampaign.started);
+expectType<string | undefined>(milCampaign.finished);
 
 declare const milObjective: MilitaryCampaignObjective;
-expectType<string>(milObjective.objective_id);
-expectType<string>(milObjective.campaign_id);
+expectType<string>(milObjective.id);
+expectType<string>(milObjective.last_modified);
 expectType<number>(milObjective.progress);
+expectType<number>(milObjective.participants.contributors);
 
 declare const charObjective: CharacterMilitaryCampaignObjective;
-expectType<string>(charObjective.objective_id);
-expectType<boolean>(charObjective.committed);
-expectType<number>(charObjective.contribution);
+expectType<string>(charObjective.id);
+expectType<string>(charObjective.campaign_id);
+expectType<boolean>(charObjective.is_committed);
+expectType<number>(charObjective.contributed);
 
 // --- Corporation Projects ---
 

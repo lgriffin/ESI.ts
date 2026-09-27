@@ -17,18 +17,29 @@ const dateArb = fc
   })
   .map((ts) => new Date(ts).toISOString());
 
-const militaryCampaignArb = fc.record({
-  campaign_id: uuidArb,
-  state: fc.constantFrom('active', 'completed', 'pending'),
-  progress: fc.double({ min: 0, max: 1, noNaN: true }),
-  start_time: dateArb,
-});
+const campaignStateArb = fc.constantFrom(
+  'Unspecified',
+  'Active',
+  'Completed',
+  'Expired',
+);
+
+const militaryCampaignArb = fc.record(
+  {
+    id: uuidArb,
+    state: campaignStateArb,
+    progress: fc.nat({ max: 1000 }),
+    started: dateArb,
+    finished: dateArb,
+  },
+  { requiredKeys: ['id', 'state', 'progress'] },
+);
 
 const objectiveArb = fc.record({
-  objective_id: uuidArb,
-  campaign_id: uuidArb,
-  state: fc.constantFrom('in_progress', 'completed', 'pending'),
-  progress: fc.double({ min: 0, max: 1, noNaN: true }),
+  id: uuidArb,
+  state: campaignStateArb,
+  progress: fc.nat({ max: 1000 }),
+  last_modified: dateArb,
   participants: fc.record({
     total: fc.nat({ max: 10000 }),
     committed: fc.nat({ max: 10000 }),
@@ -37,10 +48,11 @@ const objectiveArb = fc.record({
 });
 
 const charObjectiveArb = fc.record({
-  objective_id: uuidArb,
+  id: uuidArb,
   campaign_id: uuidArb,
-  committed: fc.boolean(),
-  contribution: fc.nat({ max: 100000 }),
+  is_committed: fc.boolean(),
+  contributed: fc.nat({ max: 100000 }),
+  last_modified: dateArb,
 });
 
 const progressArb = fc.record({
@@ -111,16 +123,16 @@ describe('Military Campaign schema property tests', () => {
     );
   });
 
-  it('should reject campaign_id when not a string', () => {
+  it('should reject id when not a string', () => {
     fc.assert(
       fc.property(
         fc.oneof(fc.integer(), fc.boolean(), fc.constant(null)),
         (badId) => {
           const result = MilitaryCampaignSchema.safeParse({
-            campaign_id: badId,
-            state: 'active',
-            progress: 0.5,
-            start_time: '2026-01-01T00:00:00Z',
+            id: badId,
+            state: 'Active',
+            progress: 5,
+            started: '2026-01-01T00:00:00Z',
           });
           expect(result.success).toBe(false);
         },

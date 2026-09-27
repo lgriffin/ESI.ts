@@ -5,9 +5,9 @@
     "method": "getSystemJumps",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 5067,
+      "original": 4867,
       "kept": 3
     }
   ],
@@ -26,22 +26,22 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"7cb957d8453e2528cb162b17189d05251a6d67d2d1a2fef4f15770d9\"",
-        "expires": "Thu, 17 Sep 2026 14:50:02 GMT",
-        "last-modified": "Thu, 17 Sep 2026 13:50:02 GMT"
+        "etag": "\"93116d4f2a57b407cf957aef8b4303ba0e4a9a9dc39b68111a285c39\"",
+        "expires": "Sun, 27 Sep 2026 04:51:35 GMT",
+        "last-modified": "Sun, 27 Sep 2026 03:51:35 GMT"
       },
       "body": [
         {
-          "ship_jumps": 27,
-          "system_id": 30004559
+          "ship_jumps": 7,
+          "system_id": 30002925
         },
         {
-          "ship_jumps": 26,
-          "system_id": 30003019
+          "ship_jumps": 7,
+          "system_id": 30004644
         },
         {
-          "ship_jumps": 13,
-          "system_id": 30003556
+          "ship_jumps": 17,
+          "system_id": 30001414
         }
       ]
     }
