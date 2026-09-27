@@ -800,12 +800,20 @@ ESI assigns most endpoints to a named rate-limit group with its own token bucket
 **Endpoints without a group** share one fallback bucket that is only ever blocked by a 420/429.
 
 ```typescript
+import { createHash } from 'node:crypto';
+
 const client = new EsiClient({
   rateLimiterConfig: {
     minDelayMs: 50, // default
     decelerationThreshold: 0.2, // default
     // Multi-character apps: one set of group buckets and one error limit per key
-    userKeyExtractor: (headers) => headers['Authorization'] ?? 'anon',
+    // The key is held in memory as a bucket name, so hash the token, never return it
+    userKeyExtractor: (headers) => {
+      const auth = headers['Authorization'];
+      return auth
+        ? createHash('sha256').update(auth).digest('hex').slice(0, 16)
+        : 'anon';
+    },
     // Tighter local budget for one endpoint (key uses snake_case params, no trailing slash)
     endpointOverrides: {
       'GET:markets/{region_id}/orders': {
@@ -817,7 +825,7 @@ const client = new EsiClient({
 });
 ```
 
-`userKeyExtractor` receives the outgoing request headers, after request interceptors have run. Idle user bucket sets are dropped after 15 minutes.
+`userKeyExtractor` receives the outgoing request headers, after request interceptors have run. Its return value is stored unhashed as a map key, so it must not be the raw `Authorization` header. Idle user bucket sets are dropped after 15 minutes.
 
 **Monitoring.** Per-response rate-limit state is available on `withMetadata()` results as `meta.rateLimit`. The `IRateLimiter` instance exposes `getStatus()` (worst bucket across all groups), `getGroupStatus(group)`, `getAllGroupStatuses()` and `isBlocked(group?)`; the last three read the shared buckets, not per-user ones. `EsiClient` does not expose the limiter directly; hold a reference by constructing an `ApiClient` yourself or by passing your own `IRateLimiter` to `ApiClient.setRateLimiter()`.
 

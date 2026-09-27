@@ -243,15 +243,23 @@ console.log(meta.requestId); // ESI request id, for CCP support
 These are on by default and need no configuration. [ARCHITECTURE.md](ARCHITECTURE.md) is the canonical description, and this is the summary a consumer needs:
 
 - **Cache.** A GET inside the TTL generated from the spec is answered with no HTTP call. An older entry is revalidated with `If-None-Match`. A 5xx with a cached copy serves the stale body and marks `meta.stale`. A successful write invalidates the cached reads under the same path. Cache keys hash the `Authorization` header, so two tokens never share an entry. `client.getCacheStats()` and `client.clearCache()` inspect and reset it.
-- **Rate limiting.** There is one token bucket per ESI rate-limit group: 46 groups, generated from the spec. The limiter adopts the `x-ratelimit-*` headers, honours `Retry-After`, and blocks only the affected group on a 420 or 429. Multi-character applications can bucket per token with `rateLimiterConfig.userKeyExtractor`.
+- **Rate limiting.** There is one token bucket per ESI rate-limit group: 46 groups, generated from the spec. The limiter adopts the `x-ratelimit-*` headers, honours `Retry-After`, and blocks only the affected group on a 420 or 429. Multi-character applications can bucket per token with `rateLimiterConfig.userKeyExtractor`. Its return value is held in memory as a bucket key, so derive it from a digest or a character id, never the raw `Authorization` header.
 - **Retry.** Exponential backoff with jitter on 0, 420, 429, 502, 503 and 504, up to three retries. A 401 triggers one token refresh when a provider exists. Mutations are not retried unless `retryMutations` is set.
 - **Deduplication.** Identical in-flight GETs from the same identity share one request.
 - **Circuit breaker.** Off by default. When enabled it opens after five consecutive failures, rejects with `CircuitOpenError` for 30 seconds, then lets one probe through.
 
 ```typescript
+import { createHash } from 'node:crypto';
+
 const multiCharacter = new EsiClient({
   rateLimiterConfig: {
-    userKeyExtractor: (headers) => headers['Authorization'] ?? 'anon',
+    // The key is kept in memory as a bucket name, so never return the token itself
+    userKeyExtractor: (headers) => {
+      const auth = headers['Authorization'];
+      return auth
+        ? createHash('sha256').update(auth).digest('hex').slice(0, 16)
+        : 'anon';
+    },
   },
 });
 ```
