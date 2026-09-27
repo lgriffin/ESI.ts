@@ -5,7 +5,6 @@ import { RateLimiter } from './rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './RequestDeduplicator';
 import { createDefaultLogger } from './logger/DefaultLogger';
 import type { EsiClientConfig } from '../EsiClient';
-import { validateHeaderOption } from './util/validation';
 
 export interface ConfigureApiClientResult {
   deduplicator: RequestDeduplicator | null;
@@ -27,13 +26,10 @@ export function configureApiClient(
 ): ConfigureApiClientResult {
   let deduplicator: RequestDeduplicator | null = null;
 
-  // Per-client identity headers, refused here rather than on every request.
-  if (config?.tenant !== undefined) {
-    client.setTenant(validateHeaderOption('tenant', config.tenant));
-  }
-  if (config?.userAgent !== undefined) {
-    client.setUserAgent(validateHeaderOption('userAgent', config.userAgent));
-  }
+  // Per-client identity headers. The setters refuse a value that is not a
+  // valid header, so a bad one fails here rather than on every request.
+  if (config?.tenant !== undefined) client.setTenant(config.tenant);
+  if (config?.userAgent !== undefined) client.setUserAgent(config.userAgent);
 
   // Rate limiter (always)
   client.setRateLimiter(new RateLimiter(config?.rateLimiterConfig));
