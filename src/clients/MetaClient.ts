@@ -1,8 +1,6 @@
 import { ApiClient } from '../core/ApiClient';
 import { BaseEsiClient } from './BaseEsiClient';
 import { metaEndpoints } from '../core/endpoints/metaEndpoints';
-import { logInfo, logError } from '../core/logger/clientLog';
-import { USER_AGENT, COMPATIBILITY_DATE } from '../core/constants';
 import {
   MetaChangelog,
   MetaCompatibilityDates,
@@ -31,37 +29,8 @@ export class MetaClient extends BaseEsiClient<typeof metaEndpoints> {
    *
    * @returns The full ESI OpenAPI specification as a YAML string
    */
-  async getOpenApiYaml(): Promise<string> {
-    const url = `${this._client.getLink()}/meta/openapi.yaml`;
-
-    logInfo(this._client, `Hitting endpoint: ${url}`, { method: 'GET' });
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          accept: 'text/yaml, application/x-yaml, text/plain',
-          'User-Agent': USER_AGENT,
-          'X-Compatibility-Date': COMPATIBILITY_DATE,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.text();
-    } catch (error) {
-      if (error instanceof Error) {
-        logError(this._client, `Error fetching YAML: ${error.message}`, {
-          url,
-        });
-        throw error;
-      } else {
-        logError(this._client, `Unexpected error: ${String(error)}`, { url });
-        throw new Error(String(error));
-      }
-    }
+  getOpenApiYaml(): Promise<string> {
+    return this.api.getOpenApiYaml();
   }
 
   /**

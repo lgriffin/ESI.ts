@@ -37,6 +37,16 @@ Feature: Meta API Management
       When the client requests the OpenAPI YAML specification
       Then the client shall return a valid OpenAPI YAML document
 
+  Rule: If a YAML specification request is answered with a retryable server error, then the Meta client shall retry it and return the document from the attempt that succeeds.
+    The YAML download goes through the same request pipeline as every JSON
+    call, so a brief 503 during a build does not fail the spec download when
+    the next attempt would succeed.
+
+    Scenario: A 503 followed by the document returns the document
+      Given the YAML specification endpoint fails once with 503 and then recovers
+      When the client requests the OpenAPI YAML specification
+      Then the client shall return the YAML document from the second request
+
   Rule: When both specification formats are fetched together, the Meta client shall report the same openapi version, title, and path entries in each format.
     The two encodings describe one document, so a caller can pick either
     without changing what they learn. This scenario pins that equivalence at

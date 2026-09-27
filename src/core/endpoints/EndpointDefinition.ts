@@ -32,6 +32,17 @@ export interface EndpointDefinition {
   responseSchema?: z.ZodType;
   /** Zod schema for runtime request body validation (opt-in via validateRequest) */
   requestSchema?: z.ZodType;
+  /**
+   * Return the body as text rather than parsed JSON, requested with this
+   * Accept header. For the few ESI routes that are not JSON, such as
+   * `meta/openapi.yaml`.
+   */
+  textResponse?: TextResponse;
+}
+
+/** A response read as text, and the Accept header that asks for it. */
+export interface TextResponse {
+  accept: string;
 }
 
 export type EndpointMap = Record<string, EndpointDefinition>;

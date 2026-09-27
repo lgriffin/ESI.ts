@@ -248,7 +248,10 @@ async function recordOne(
       };
     }
 
-    const firstBody = (await first.json()) as unknown;
+    // A text endpoint (meta/openapi.yaml) is stored as its string body.
+    const firstBody = endpoint.definition.textResponse
+      ? await first.text()
+      : ((await first.json()) as unknown);
     const upstreamPages = Number(first.headers.get('x-pages') ?? '1') || 1;
     const raw: Array<{ url: string; response: Response; body: unknown }> = [
       { url: relative, response: first, body: firstBody },

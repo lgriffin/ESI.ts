@@ -31,12 +31,13 @@ export function buildRequestHeaders(
   useETag: boolean,
   body: unknown,
   resolveCache: (client: ApiClient) => ICache | null,
+  accept: string = 'application/json',
 ): HeadersInit {
   // A configured userAgent names the application first; the library's own
   // identifier follows, as CCP asks. It was validated when configured.
   const userAgent = client.getUserAgent();
   const headers: HeadersInit = {
-    Accept: 'application/json',
+    Accept: accept,
     'Accept-Encoding': 'gzip, deflate, br',
     'User-Agent': userAgent ? `${userAgent} ${USER_AGENT}` : USER_AGENT,
     'X-Compatibility-Date': client.getCompatibilityDate() ?? COMPATIBILITY_DATE,
