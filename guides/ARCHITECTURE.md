@@ -461,7 +461,7 @@ const status = await esi.public.status.get(); // typed from the spec, unvalidate
 
 ### The layer rule
 
-`npm run lint:layers` runs the local ESLint rule `layers/inward-imports` from `eslint.layers.rules.cjs` with `--no-inline-config`, so an `eslint-disable` comment cannot get round it. It runs in `ci-fast.yml` on every push, in `ci.yml` `lint-and-build`, and in `check:local`. The rule resolves each specifier against the importing file and reads static imports, re-exports, `import x = require()`, `import('...')` types and expressions, and `require()`.
+`npm run lint:layers` runs the local ESLint rule `layers/inward-imports` from `config/eslint/layers.rules.cjs` with `--no-inline-config`, so an `eslint-disable` comment cannot get round it. It runs in `ci-fast.yml` on every push, in `ci.yml` `lint-and-build`, and in `check:local`. The rule resolves each specifier against the importing file and reads static imports, re-exports, `import x = require()`, `import('...')` types and expressions, and `require()`.
 
 | Importer                       | May not import                                                                                                                  |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -472,7 +472,7 @@ const status = await esi.public.status.get(); // typed from the spec, unvalidate
 | `src/sde/`                     | Anything in `src/` outside `src/sde/` except the ports; any package but `node:*`, `zod`, `js-yaml`, `adm-zip`, `better-sqlite3` |
 | Anything else in `src/`        | `src/sde/`, or the package's own `./sde` sub-paths (`ARCH-10`, [#462](https://github.com/lgriffin/ESI.ts/issues/462))           |
 
-`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and nothing legacy. No file breaks the core rule: `BASELINE` in `eslint.layers.rules.cjs` is empty since Phase 3 moved `ClientRegistry` to `src/clients/` and `EsiClientConfig` to `src/core/`, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
+`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and nothing legacy. No file breaks the core rule: `BASELINE` in `config/eslint/layers.rules.cjs` is empty since Phase 3 moved `ClientRegistry` to `src/clients/` and `EsiClientConfig` to `src/core/`, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
 
 ```mermaid
 flowchart BT

@@ -1,7 +1,7 @@
 /**
  * The ratchet behind npm run lint:determinism.
  *
- * eslint.determinism.rules.cjs restricts wall-clock reads, real timers and
+ * config/eslint/determinism.rules.cjs restricts wall-clock reads, real timers and
  * Math.random() in src/ outside the clock module. The sites that exist today
  * are counted per file and construct in scripts/determinism-baseline.json.
  * Counts, not line numbers, so an unrelated edit to a file does not churn the
@@ -16,7 +16,7 @@
 import { ESLint } from 'eslint';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const determinism = require('../eslint.determinism.rules.cjs') as {
+const determinism = require('../config/eslint/determinism.rules.cjs') as {
   CLOCK_MODULES: string[];
   CONSTRUCTS: string[];
   constructOf: (message: { message?: string }) => string | null;

@@ -2,7 +2,7 @@ import tseslint from 'typescript-eslint';
 import security from 'eslint-plugin-security';
 import sonarjs from 'eslint-plugin-sonarjs';
 import prettierConfig from 'eslint-config-prettier';
-import loggerImports from './eslint.logger-imports.rules.cjs';
+import loggerImports from './config/eslint/logger-imports.rules.cjs';
 
 export default tseslint.config(
   {

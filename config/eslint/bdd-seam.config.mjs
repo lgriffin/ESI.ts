@@ -1,7 +1,7 @@
 // Lints tests/bdd for R3 only: npm run lint:bdd-seam. The full rule set does
 // not apply to tests yet; this config carries the one rule that must.
 import tseslint from 'typescript-eslint';
-import seamRules from './eslint.bdd-seam.rules.cjs';
+import seamRules from './bdd-seam.rules.cjs';
 
 export default [
   {
