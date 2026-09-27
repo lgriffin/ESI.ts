@@ -233,8 +233,12 @@ export function createClient<T extends EndpointMap>(
           def.path,
           undefined,
           def.textResponse,
+          def.emptyWhenNoContent,
         );
         let responseBody = response.body;
+        if (responseBody === undefined && def.emptyWhenNoContent) {
+          responseBody = [];
+        }
         if (def.responseSchema && apiClient.getValidateResponse()) {
           const result = def.responseSchema.safeParse(responseBody);
           if (!result.success) {

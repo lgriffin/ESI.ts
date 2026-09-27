@@ -1,5 +1,6 @@
 import { ApiClient } from './ApiClient';
 import { buildDedupeKey } from './cache/cacheKey';
+import { logInfo } from './logger/clientLog';
 
 import {
   trySpecAwareCacheHit,
@@ -38,6 +39,7 @@ const executeRequest = async (
   requestTimeout?: number,
   templatePath?: string,
   textResponse?: TextResponse,
+  emptyWhenNoContent?: boolean,
 ): Promise<EsiHandlerResponse> => {
   const startTime = Date.now();
   const finish = (r: EsiHandlerResponse) => {
@@ -93,6 +95,18 @@ const executeRequest = async (
       return finish({ headers: parsed.raw, body: data, status: 201 });
     }
 
+    // ESI answers an expired public contract with a 200 and Content-Length 0
+    // where its spec says 204. Only endpoints that opt in read that as no
+    // content; elsewhere an empty body is a JSON_PARSE_ERROR.
+    if (
+      emptyWhenNoContent &&
+      response.status === 200 &&
+      response.headers.get('content-length') === '0'
+    ) {
+      logInfo(client, `No Content for endpoint: ${url}`, { status: 200 });
+      return finish({ headers: parsed.raw, body: undefined, status: 200 });
+    }
+
     if (
       response.status === 304 &&
       revalidating &&
@@ -112,6 +126,7 @@ const executeRequest = async (
         requestTimeout,
         templatePath,
         textResponse,
+        emptyWhenNoContent,
       );
     }
 
@@ -257,6 +272,7 @@ export const handleRequest = async (
   templatePath?: string,
   requestTimeout?: number,
   textResponse?: TextResponse,
+  emptyWhenNoContent: boolean = false,
 ): Promise<EsiHandlerResponse> => {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const startTime = Date.now();
@@ -294,6 +310,7 @@ export const handleRequest = async (
       requestTimeout,
       templatePath,
       textResponse,
+      emptyWhenNoContent,
     );
 
   const dedup = client.getDeduplicator();

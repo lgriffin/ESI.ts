@@ -38,6 +38,13 @@ export interface EndpointDefinition {
    * `meta/openapi.yaml`.
    */
   textResponse?: TextResponse;
+  /**
+   * Resolve with `[]` when ESI answers with no content: a 204, or a 200 with
+   * `Content-Length: 0`. Only for routes where ESI documents no content as an
+   * ordinary answer (a public contract that expired or was accepted). Other
+   * endpoints reject an empty 200 body with JSON_PARSE_ERROR.
+   */
+  emptyWhenNoContent?: boolean;
 }
 
 /** A response read as text, and the Accept header that asks for it. */

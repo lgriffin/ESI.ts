@@ -343,6 +343,103 @@ defineFeature(feature, (test) => {
     });
   });
 
+  test('Items read on a contract that expired after the listing', ({
+    given,
+    when,
+    then,
+  }) => {
+    const contractId = 235528244;
+    let result: any;
+
+    given(
+      'a public contract that ESI answers with an empty 200 response',
+      () => {
+        queueResponse({
+          match: exactPath(`/contracts/public/items/${contractId}`),
+          headers: { 'content-length': '0' },
+          body: '',
+        });
+      },
+    );
+
+    when(
+      'the client requests the items of the expired public contract',
+      async () => {
+        result = await client.contracts.getPublicContractItems(contractId);
+      },
+    );
+
+    then('the client shall return no public item lines', () => {
+      expect(lastRequest().url.pathname).toBe(
+        `/contracts/public/items/${contractId}`,
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  test('Items read answered with 204 No Content', ({ given, when, then }) => {
+    const contractId = 200000003;
+    let result: any;
+
+    given('a public contract that ESI answers with 204 No Content', () => {
+      queueResponse({
+        match: exactPath(`/contracts/public/items/${contractId}`),
+        status: 204,
+      });
+    });
+
+    when(
+      'the client requests the items of the public contract answered with no content',
+      async () => {
+        result = await client.contracts.getPublicContractItems(contractId);
+      },
+    );
+
+    then(
+      'the client shall return no item lines for the contract answered with no content',
+      () => {
+        expect(lastRequest().url.pathname).toBe(
+          `/contracts/public/items/${contractId}`,
+        );
+        expect(result).toEqual([]);
+      },
+    );
+  });
+
+  test('Bids read on an auction accepted after the listing', ({
+    given,
+    when,
+    then,
+  }) => {
+    const contractId = 200000004;
+    let result: any;
+
+    given(
+      'a public auction that ESI answers with an empty 200 response',
+      () => {
+        queueResponse({
+          match: exactPath(`/contracts/public/bids/${contractId}`),
+          headers: { 'content-length': '0' },
+          body: '',
+        });
+      },
+    );
+
+    when(
+      'the client requests the bids of the accepted public auction',
+      async () => {
+        result = await client.contracts.getPublicContractBids(contractId);
+      },
+    );
+
+    then('the client shall return no public bids', () => {
+      expect(lastRequest().url.pathname).toBe(
+        `/contracts/public/bids/${contractId}`,
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
   test('Item lines on an item exchange contract', ({ given, when, then }) => {
     const characterId = 1689391488;
     const contractId = 100000002;

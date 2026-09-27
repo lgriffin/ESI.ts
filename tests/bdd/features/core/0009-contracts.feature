@@ -101,6 +101,29 @@ Feature: Contract Management
       When the client requests public contract items
       Then the client shall return the public item lines
 
+  Rule: If ESI answers a public contract items or bids request with no content, then the Contracts client shall resolve with an empty array.
+    A public contract can expire or be accepted between the region listing
+    and the detail read. ESI documents a 204 for that case on both routes
+    ("Contract expired or recently accepted by player"), and in practice
+    sends a 200 with Content-Length 0. Either way the contract has nothing
+    left to show, so the caller gets an empty list rather than a parse or
+    validation error. Other endpoints keep rejecting an empty 200 body.
+
+    Scenario: Items read on a contract that expired after the listing
+      Given a public contract that ESI answers with an empty 200 response
+      When the client requests the items of the expired public contract
+      Then the client shall return no public item lines
+
+    Scenario: Items read answered with 204 No Content
+      Given a public contract that ESI answers with 204 No Content
+      When the client requests the items of the public contract answered with no content
+      Then the client shall return no item lines for the contract answered with no content
+
+    Scenario: Bids read on an auction accepted after the listing
+      Given a public auction that ESI answers with an empty 200 response
+      When the client requests the bids of the accepted public auction
+      Then the client shall return no public bids
+
   Rule: When a contract is located in the character list and its bids and items are then requested, the Contracts client shall resolve every call in the sequence.
     This is the ordinary inspection path: find the contract, then open it. The
     contract ID feeding the two detail calls comes from the list response, so

@@ -65,6 +65,8 @@ export const contractEndpoints = {
     requiresAuth: false,
     pathParams: ['contractId'],
     responseSchema: z.array(PublicContractBidSchema),
+    // ESI answers an expired or accepted contract with no content.
+    emptyWhenNoContent: true,
   },
   getPublicContractItems: {
     path: 'contracts/public/items/{contractId}',
@@ -72,5 +74,7 @@ export const contractEndpoints = {
     requiresAuth: false,
     pathParams: ['contractId'],
     responseSchema: z.array(PublicContractItemSchema),
+    // ESI answers an expired or accepted contract with no content.
+    emptyWhenNoContent: true,
   },
 } as const satisfies EndpointMap;
