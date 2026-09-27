@@ -102,7 +102,7 @@ The plan's target is 90 on the hand-written core and 80 repo-wide. Only
 | Route coverage | Partial | `spec:coverage` checks every spec operation has a generated function; mapping them onto client scopes is Phase 2                                                   |
 | Spec drift     | Partial | `nightly-spec-drift.yml` and `schema:drift` exist; the vendored snapshot is at the sent date and `spec-refresh.yml` re-vendors it                                  |
 | Public API     | Met     | `etc/esi.ts.api.md` committed, API Surface Check and API SemVer Gate in CI                                                                                         |
-| Type safety    | Partial | `strict` and `noUncheckedIndexedAccess` on; `exactOptionalPropertyTypes` and `isolatedDeclarations` off; tsd type tests exist                                      |
+| Type safety    | Partial | `strict` and `noUncheckedIndexedAccess` on; `exactOptionalPropertyTypes` on (11.0); `isolatedDeclarations` off by decision (ROADMAP Phase 3); tsd type tests exist |
 | Tests          | Partial | Unit, BDD, contract replay, fuzz, faults and consumer tiers all run; mutation floors below the plan's 90/80                                                        |
 | Security       | Partial | Provenance on publish, CodeQL, Scorecard, zizmor, SHA-pinned actions; publishing still uses `NPM_TOKEN`, not trusted publishing; `pino` and `zod` are runtime deps |
 | Package health | Partial | publint, attw, size budgets and the consumer matrix run; `engines.node` is `>=18`; no `sideEffects` field; no Bun, Deno or browser matrix                          |
