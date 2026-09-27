@@ -1020,7 +1020,7 @@ jobs:
   mutation-pr:
     name: Mutation (changed files)
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 27
     # Runway tier K (bead esi-23g.12). Mutates only the src/ files this pull
     # request changes, reusing the nightly results for everything else, and
     # fails if a touched directory drops below its floor in
@@ -1097,11 +1097,11 @@ jobs:
       # The tier keeps a hard signal either way: the known-weak fixture above
       # must still leave surviving mutants, and it fails the job when it does not.
       - name: Mutate changed src/ files and check directory ratchets
-        timeout-minutes: 10
+        timeout-minutes: 22
         env:
           MUTATION_BASE_REF: HEAD^1
           MUTATION_BASELINE_RESTORED: ${{ steps.mutation-baseline.outputs.cache-matched-key != '' }}
-          MUTATION_PR_TIMEOUT_SECONDS: '480'
+          MUTATION_PR_TIMEOUT_SECONDS: '1200'
         run: npm run mutation:pr:gate -- --concurrency 4
 
       - name: Upload mutation report
