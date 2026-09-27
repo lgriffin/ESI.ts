@@ -22,7 +22,7 @@ async function main() {
     const { compatibility_dates: dates } =
       await client.meta.getCompatibilityDates();
     console.log(
-      `Compatibility dates: ${dates.length}, newest ${dates.at(-1) ?? 'none'}`,
+      `Compatibility dates: ${dates.length}, newest ${[...dates].sort().at(-1) ?? 'none'}`,
     );
 
     const { changelog } = await client.meta.getChangelog();
