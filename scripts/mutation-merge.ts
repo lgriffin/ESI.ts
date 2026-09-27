@@ -6,7 +6,7 @@
  * single report the ratchet reads.
  *
  * Defaults are the BDD run: reads reports/mutation-bdd/shards/<shard>/mutation.json,
- * one per shard in mutation-bdd-shards.json, and writes
+ * one per shard in config/mutation/bdd-shards.json, and writes
  * reports/mutation-bdd/mutation.json. The unit run passes its own three paths.
  * A missing shard, an empty shard or two shards claiming one file is a hard
  * failure either way: see scripts/mutation-merge-core.ts for why each one has
@@ -24,7 +24,7 @@ import {
 import type { MutationReport } from './mutation-ratchet-core';
 
 const ROOT = path.resolve(__dirname, '..');
-const DEFAULT_SHARDS_FILE = 'mutation-bdd-shards.json';
+const DEFAULT_SHARDS_FILE = 'config/mutation/bdd-shards.json';
 
 function flag(name: string, fallback: string): string {
   const index = process.argv.indexOf(`--${name}`);

@@ -2,7 +2,7 @@
  * Merging the BDD mutation shards back into one report.
  *
  * nightly-mutation.yml runs one Stryker job per shard in
- * mutation-bdd-shards.json, because one job over all of src/ does not finish.
+ * config/mutation/bdd-shards.json, because one job over all of src/ does not finish.
  * The ratchet still has to see the whole picture: a per-directory floor is
  * only honest if the directory's every mutant is in the report it scores.
  * These functions put the shards back together and refuse to do it quietly
@@ -15,12 +15,12 @@ import type { MutationReport } from './mutation-ratchet-core';
 
 /** One shard's report, named so failures can say which job produced it. */
 export interface ShardReport {
-  /** The shard name from mutation-bdd-shards.json. */
+  /** The shard name from config/mutation/bdd-shards.json. */
   name: string;
   report: MutationReport;
 }
 
-/** A shard definition as mutation-bdd-shards.json carries it. */
+/** A shard definition as config/mutation/bdd-shards.json carries it. */
 export interface ShardDefinition {
   name: string;
   include: string[];
@@ -118,7 +118,7 @@ export interface MergeResult {
  * - two shards report the same file, which means the shard list overlaps and
  *   a file's mutants would be counted twice.
  *
- * @param shards - every shard that had to run, in mutation-bdd-shards.json order
+ * @param shards - every shard that had to run, in config/mutation/bdd-shards.json order
  * @param reports - what each job produced
  */
 export function mergeShardReports(
@@ -143,7 +143,7 @@ export function mergeShardReports(
   if (unknown.length > 0) {
     throw new MutationMergeError(
       `Report for unknown ${unknown.length === 1 ? 'shard' : 'shards'} ${unknown.join(', ')}: ` +
-        'mutation-bdd-shards.json does not define it, so nothing says what it covers.',
+        'config/mutation/bdd-shards.json does not define it, so nothing says what it covers.',
     );
   }
 
