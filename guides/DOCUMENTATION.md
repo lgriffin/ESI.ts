@@ -1,8 +1,8 @@
 # ESI.ts Documentation Guide
 
-**Implements:** `DOC-02` · `DOC-05` · `DOC-06` — see [CHARTER.md](CHARTER.md) Part 7. `DOC-01`, `DOC-03` and `DOC-04` are Gap today and land with the 11.0 docs rewrite (ROADMAP Phase 7).
+**Implements:** `DOC-02` · `DOC-03` · `DOC-05` · `DOC-06` — see [CHARTER.md](CHARTER.md) Part 7. `DOC-01` and `DOC-04` are Gap today and land with the 11.0 docs rewrite (ROADMAP Phase 7).
 
-Where the documentation lives, how the API reference is built and published, how examples in the guides are kept compiling, and what a pull request that adds a public export owes the documentation. The code is the fact: where a page and the code disagree, fix the page.
+Where the documentation lives, how the site and the API reference are built and published, how examples in the guides are kept compiling, and what a pull request that adds a public export owes the documentation. The code is the fact: where a page and the code disagree, fix the page.
 
 ## Where documentation lives
 
@@ -13,6 +13,7 @@ Where the documentation lives, how the API reference is built and published, how
 | The 11.0 plan                       | [ROADMAP.md](ROADMAP.md)                 | Phase schedule, definitions of done, the release gate                                           |
 | One topic per guide                 | `guides/*.md`                            | The topic in its title; each opens with an `Implements:` line naming the requirements it serves |
 | API reference                       | TypeDoc from the TSDoc in `src/`         | Signatures, parameters, JSDoc                                                                   |
+| Documentation site                  | `docs-site/` (VitePress)                 | Nothing: its guide and example pages are generated from the files above                         |
 | Runnable programs                   | `examples/*.ts`                          | Whole programs; type-checked by `npm run typecheck:examples` in `ci-fast.yml`                   |
 | Static Data Export                  | `src/sde/README.md`, `src/sde/docs/*.md` | The `./sde` and `./sde/memory` sub-paths (moving to `guides/sde/` in Track S)                   |
 | Test specification                  | `tests/bdd/features/**/*.feature`        | Behaviour, as EARS requirements with Gherkin scenarios                                          |
@@ -20,7 +21,35 @@ Where the documentation lives, how the API reference is built and published, how
 | Agent instructions                  | `CLAUDE.md`, `AGENTS.md`                 | How an agent works in the repository; the SemVer section is mirrored and checked                |
 | Changelog                           | `CHANGELOG.md`                           | Written by release-please from conventional commits                                             |
 
-`docs-site/` holds VitePress sources (`guide/`, `reference/`, `examples/`) that duplicate parts of the README and are not built or deployed by any workflow. The site build (`scripts/docs/sync-docs.ts` copying `guides/` into `docs-site/guide/`, a VitePress build in `release.yml`, TypeDoc under `/api/`) is ROADMAP Phase 7 and [#264](https://github.com/lgriffin/ESI.ts/issues/264) (`DOC-03`). Until then, edit the guide, not the `docs-site/` copy.
+## The documentation site
+
+https://lgriffin.github.io/ESI.ts/ is built from the repository, so it cannot say anything the guides and examples do not (`DOC-03`). Only `docs-site/index.md` (the home page), `docs-site/.vitepress/config.ts` and the theme are written by hand; everything else is generated at build time and git-ignored.
+
+| Route        | Built from                          | How                                                                                                                                                                                                                                                                                                                                                 |
+| ------------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/guide/`    | `README.md` and every `guides/*.md` | `scripts/docs/sync-docs.ts` copies each file. A link to another guide becomes a link to its page, a link to any other repository file becomes a GitHub URL, and an image is copied beside the page. The sidebar sections are `GUIDE_SECTIONS` in `scripts/docs/sync-docs-core.ts`; a guide not listed there is still published, in the last section |
+| `/examples/` | every `examples/*.ts`               | One page per example from its header comment (title, description, `Setup:`, `@nightly` tier) and its source, imports rewritten to the package sub-paths a consumer uses (`IMPORT_MAP` in `scripts/docs/examples-showcase-core.ts`), plus an index grouped by category                                                                               |
+| `/api/`      | the TSDoc in `src/`                 | TypeDoc (next section), copied as static files                                                                                                                                                                                                                                                                                                      |
+
+The version in the navigation bar is read from `package.json` when the site builds. Edit the guide or the example, never a generated page; each generated page's "Edit this page" link opens its source. A new example needs a title line and an `@nightly` tag, which it already needs for the nightly run, and an import of a `../src` path `IMPORT_MAP` does not know fails the build until it is mapped.
+
+```bash
+npm ci --prefix docs-site   # once: the site's own dependencies (VitePress)
+npm run docs:site           # TypeDoc, docs:sync, then vitepress build into docs-site/.vitepress/dist/
+npm run docs:site:preview   # serve the built site at http://localhost:4173/ESI.ts/
+npm run docs:site:dev       # docs:sync, then VitePress with hot reload (run npm run docs first for /api/)
+npm run docs:sync           # regenerate the guide and example pages only
+```
+
+Where it is built:
+
+| Where                                      | What happens                                                                                                                                               |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml` `documentation` job               | Runs `npm run docs:site` and `validate:versions -- --site` on every pull request, and uploads the built site as the `documentation` artifact for 30 days   |
+| `release.yml` `deploy-docs`                | Calls `docs-site.yml` after `validate-release` passes on the release's tag                                                                                 |
+| `docs-site.yml` (also `workflow_dispatch`) | Builds the site, checks its version, and publishes `docs-site/.vitepress/dist` to the `gh-pages` branch. Dispatch it on master to publish between releases |
+
+VitePress fails the build on a link to a page that does not exist. Links that become GitHub URLs are checked by `tests/tdd/scripts/sync-docs.test.ts`, which fails when a guide links to a repository file that is not there. GitHub Pages must serve the `gh-pages` branch (repository Settings, Pages, "Deploy from a branch"); that setting is the maintainer's.
 
 ## API reference (TypeDoc)
 
@@ -35,12 +64,12 @@ npm run clean:docs   # Delete docs-site/public/api/
 
 Where it is built:
 
-| Where                            | What happens                                                                                                 |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `ci.yml` `documentation` job     | Runs `npm run docs` on every pull request and uploads the output as the `documentation` artifact for 30 days |
-| `release.yml` `validate-release` | Runs `npm run docs`, so a TypeDoc failure blocks the release                                                 |
-| `release.yml` `deploy-docs`      | Publishes `docs-site/public/api/` to GitHub Pages                                                            |
-| `release.yml` `create-assets`    | Attaches `docs.tar.gz` to the GitHub release, listed in `checksums.txt` with the tarball and SBOM            |
+| Where                            | What happens                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `ci.yml` `documentation` job     | Runs it as part of `npm run docs:site` on every pull request                                      |
+| `release.yml` `validate-release` | Runs `npm run docs`, so a TypeDoc failure blocks the release                                      |
+| `docs-site.yml`                  | Publishes it under `/api/` with the site                                                          |
+| `release.yml` `create-assets`    | Attaches `docs.tar.gz` to the GitHub release, listed in `checksums.txt` with the tarball and SBOM |
 
 What TypeDoc shows is what the TSDoc says. The public classes it documents are the construction surfaces (`EsiClient`, `EsiClientBuilder`, `CustomEsiClient`, `EsiApiFactory`), the 39 domain clients, the auth classes (`EveSsoClient`, `EsiTokenManager`, the token stores), the middleware and its interfaces (`ICache`, `IRateLimiter`, `ICircuitBreaker`, `IRetryStrategy`, `IDeduplicator`, `ILogger`), the error classes, and the response types: 36 domain type files in `src/types/` plus `common.ts`, `branded.ts` and `api-responses.ts`. Because `entryPoints` is all of `src/`, TypeDoc also renders modules the package does not export, including `src/core/ports/`, `src/adapters/` and `src/generated/operations.generated.ts`. The `exports` map in `package.json` and `etc/esi.ts.api.md` decide what is public, not the reference.
 
@@ -103,9 +132,8 @@ The baseline only shrinks. The run fails when a `no-check` names a bead but is n
 
 ## What changes in 11.0
 
-ROADMAP Phase 7 rewrites the documentation against the new client. Nothing in this list exists yet:
+ROADMAP Phase 7 rewrites the documentation against the new client. The site build (`DOC-03`) has landed; nothing else in this list exists yet:
 
-- `scripts/docs/sync-docs.ts` copies `guides/` into `docs-site/guide/`; `release.yml` builds VitePress and deploys it with the TypeDoc output under `/api/` (`DOC-03`, [#264](https://github.com/lgriffin/ESI.ts/issues/264)).
 - `scripts/docs/doc-metrics.ts` writes `etc/doc-metrics.json`, and `validate:versions` fails on a stale README or site version banner (`DOC-04`, [#272](https://github.com/lgriffin/ESI.ts/issues/272)).
 - Root `TESTING.md` and `guides/MUTATION-TESTING.md` fold into `guides/TESTING.md` (`DOC-01`, [#273](https://github.com/lgriffin/ESI.ts/issues/273)).
 - The README becomes an orientation page written against `createEsi` and `esi.as(identity)`, every snippet checked by `test:docs-examples`. `guides/MULTI-CHARACTER.md` arrived with ROADMAP Phase 2 PR 11.
