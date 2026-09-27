@@ -26,7 +26,7 @@ jobs:
     # Runway tier K (bead esi-23g.12). Mutates only the src/ files this pull
     # request changes, reusing the nightly results for everything else, and
     # fails if a touched directory drops below its floor in
-    # mutation-thresholds.json or if that file lowers a floor.
+    # config/mutation/unit-thresholds.json or if that file lowers a floor.
     #
     # A pull request that changes nothing in the unit mutation scope still
     # runs the job: the thresholds file is still checked, the known-weak
@@ -50,7 +50,7 @@ jobs:
         run: npm ci
 
       # The nightly saves one incremental report per shard in
-      # mutation-unit-shards.json (esi-23g.55). A shard's report is a whole
+      # config/mutation/unit-shards.json (esi-23g.55). A shard's report is a whole
       # baseline for its own directories only, so this names the one shard
       # that covers every file the run may mutate, or none when the change
       # spans shards; none means a cold run, as a cache miss always did.

@@ -1,5 +1,5 @@
 /**
- * Self-tests for the unit-suite mutation shards (mutation-unit-shards.json).
+ * Self-tests for the unit-suite mutation shards (config/mutation/unit-shards.json).
  *
  * Same contract as the BDD shards, over a smaller tree: the shards must
  * partition `src/core`, because a file claimed by no shard is never mutated
@@ -25,7 +25,7 @@ import {
 } from '../../../scripts/mutation-merge-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
-const SHARDS_FILE = 'mutation-unit-shards.json';
+const SHARDS_FILE = 'config/mutation/unit-shards.json';
 
 const shards = parseShards(
   readFileSync(path.join(ROOT, SHARDS_FILE), 'utf8'),
@@ -63,7 +63,7 @@ describe('the unit shards partition src/core', () => {
   });
 
   it('still claims the directories the mutate globs exclude', () => {
-    // src/core/endpoints contributes no mutants, because stryker.config.mjs
+    // src/core/endpoints contributes no mutants, because config/mutation/stryker.config.mjs
     // excludes it. It is claimed anyway: a partition with a hole in it is not
     // a partition, and the hole is where a future directory goes unnoticed.
     expect(
@@ -74,7 +74,10 @@ describe('the unit shards partition src/core', () => {
 
 describe('the unit shard list agrees with the scored directories', () => {
   const thresholds = JSON.parse(
-    readFileSync(path.join(ROOT, 'mutation-thresholds.json'), 'utf8'),
+    readFileSync(
+      path.join(ROOT, 'config/mutation/unit-thresholds.json'),
+      'utf8',
+    ),
   ) as Record<string, number>;
 
   it.each(Object.keys(thresholds))('%s is covered by a shard', (directory) => {

@@ -1,5 +1,5 @@
 /**
- * Self-tests for the BDD mutation shards (mutation-bdd-shards.json,
+ * Self-tests for the BDD mutation shards (config/mutation/bdd-shards.json,
  * scripts/mutation-merge-core.ts).
  *
  * Splitting the BDD mutation run across jobs buys a run that finishes and
@@ -29,7 +29,7 @@ import {
 import type { MutationReport } from '../../../scripts/mutation-ratchet-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
-const SHARDS_FILE = 'mutation-bdd-shards.json';
+const SHARDS_FILE = 'config/mutation/bdd-shards.json';
 
 const shards = parseShards(
   readFileSync(path.join(ROOT, SHARDS_FILE), 'utf8'),
