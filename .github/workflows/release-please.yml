@@ -19,11 +19,15 @@ jobs:
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
+    env:
+      # Secrets cannot appear in an if:, so the mint step reads this instead.
+      HAS_APP_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY != '' }}
     permissions:
       contents: write # create release commits/tags
       pull-requests: write # open/update the release PR
 
     outputs:
+      app_token: ${{ steps.app-token.outcome == 'success' }}
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
@@ -75,10 +79,10 @@ jobs:
       # tag it creates never starts release.yml (#383). A GitHub App token
       # has neither problem. The app is configured by the RELEASE_APP_CLIENT_ID
       # variable and the RELEASE_APP_PRIVATE_KEY secret (guides/RELEASE.md);
-      # without them this falls back to GITHUB_TOKEN and the dispatch below.
+      # without both it falls back to GITHUB_TOKEN and the dispatch below.
       - name: Mint release token
         id: app-token
-        if: vars.RELEASE_APP_CLIENT_ID != ''
+        if: vars.RELEASE_APP_CLIENT_ID != '' && env.HAS_APP_KEY == 'true'
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
@@ -95,39 +99,30 @@ jobs:
           manifest-file: .release-please-manifest.json
           skip-github-pull-request: ${{ steps.gate.outputs.skip-pr }}
 
-  # Fallback for when no release app is configured: the tag and release came
+  # Fallback for when no release app token was used: the tag and release came
   # from GITHUB_TOKEN, so nothing else started. workflow_dispatch is exempt
-  # from that rule, so start the publish here, wait for it, then start the
-  # canary (#383).
+  # from that rule, so start the publish here (#383); release.yml then
+  # dispatches the canary once npm has the version. A re-run of this job does
+  # not dispatch a second publish for the same tag.
   dispatch-release:
     name: Dispatch release pipeline
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true' && vars.RELEASE_APP_CLIENT_ID == ''
+    if: needs.release-please.outputs.release_created == 'true' && needs.release-please.outputs.app_token != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 90
     permissions:
-      actions: write # workflow_dispatch release.yml and the canary
+      actions: write # workflow_dispatch release.yml
 
     steps:
-      - name: Publish, then verify what npm serves
+      - name: Dispatch release.yml on the new tag
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
-          VERSION: ${{ needs.release-please.outputs.version }}
         run: |
-          started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          gh workflow run release.yml --repo "$REPO" --ref "$TAG"
-          run_id=""
-          for _ in $(seq 1 30); do
-            run_id=$(gh run list --repo "$REPO" --workflow release.yml --event workflow_dispatch \
-              --branch "$TAG" --created ">=$started" --json databaseId --jq '.[0].databaseId // empty')
-            [ -n "$run_id" ] && break
-            sleep 10
-          done
-          if [ -z "$run_id" ]; then
-            echo "::error::release.yml was dispatched on $TAG but its run did not appear"
-            exit 1
+          existing=$(gh run list --repo "$REPO" --workflow release.yml --event workflow_dispatch \
+            --branch "$TAG" --json databaseId --jq length)
+          if [ "$existing" -gt 0 ]; then
+            echo "release.yml has already been dispatched on $TAG; not dispatching again"
+            exit 0
           fi
-          gh run watch "$run_id" --repo "$REPO" --exit-status
-          gh workflow run post-publish-canary.yml --repo "$REPO" --ref "$TAG" -f version="$VERSION"
+          gh workflow run release.yml --repo "$REPO" --ref "$TAG"

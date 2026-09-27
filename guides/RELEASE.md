@@ -32,20 +32,21 @@ release.yml
 1. **Commits land on `master`** through a pull request. Each commit message follows the conventional-commit format (REL-01). The `commit-msg` Husky hook runs `commitlint` against `@commitlint/config-conventional`.
 2. **release-please runs on every push to `master`.** It reads the commits since the last release, works out the next version, and opens or updates a release pull request, but only once a `feat:`, a breaking change (`type!:` or `BREAKING CHANGE:`) or a `Release-As:` footer has landed since the last tag. Fixes, chores and dependency bumps on their own open no release pull request; they wait and ship in the next minor or major (see [Release cadence](#release-cadence)). That pull request edits `package.json`, `.release-please-manifest.json`, `CHANGELOG.md` and the extra file `src/core/constants.ts`.
 3. **Merging the release pull request** makes release-please create the `vX.Y.Z` tag and the GitHub release.
-4. **`release.yml` runs twice**, once for the tag push (`v*.*.*`) and once for the `release: published` event. Both runs validate, build the documentation and build the assets. Only the `release` run, or a manual `workflow_dispatch` run on the tag, publishes packages and signs assets; those jobs are guarded by the event name.
+4. **`release.yml` runs twice**, once for the tag push (`v*.*.*`) and once for the `release: published` event. Both runs validate and build the assets. Only the `release` run, or a `workflow_dispatch` run on the tag, publishes packages, deploys the documentation, signs assets and then dispatches `post-publish-canary.yml`; those jobs are guarded by the event name.
 
 ### Jobs in `release.yml`
 
-| Job                       | Needs                                   | Runs on                   | Does                                                                                                                                                                           |
-| ------------------------- | --------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `validate-release`        | —                                       | tag push and release      | The publish gate, below                                                                                                                                                        |
-| `publish-npm`             | `validate-release`, `consumer-contract` | release only              | `npm ci`, `npm run build`, `npm publish --provenance` to `registry.npmjs.org`                                                                                                  |
-| `publish-github`          | `validate-release`, `consumer-contract` | release only              | Same build, `npm publish --provenance` to `npm.pkg.github.com`                                                                                                                 |
-| `deploy-docs`             | `validate-release`                      | tag push and release      | `npm run docs`, then deploys `docs-site/public/api` (TypeDoc) to GitHub Pages                                                                                                  |
-| `create-assets`           | `validate-release`                      | tag push and release      | `npm pack` (fails unless exactly one tarball), the CycloneDX SBOM (`npm run release:sbom`), `docs.tar.gz` of the API reference, `checksums.txt` (SHA-256); uploads as artifact |
-| `consumer-contract`       | `create-assets`                         | tag push and release      | The consumer contract (`npm run test:consumer -- --tarball`) against the tarball `create-assets` packed: Node 18, 20, 22 and 24, oldest, repository and latest TypeScript      |
-| `sign-and-publish-assets` | `create-assets`, `consumer-contract`    | release only              | Keyless `cosign sign-blob` on the tarball, SBOM and docs archive, then `gh release upload` of all assets plus `README.md` and `LICENSE`                                        |
-| `notify-success`          | all of the above                        | when `publish-npm` passed | Log line only                                                                                                                                                                  |
+| Job                       | Needs                                    | Runs on                   | Does                                                                                                                                                                           |
+| ------------------------- | ---------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `validate-release`        | —                                        | tag push and release      | The publish gate, below                                                                                                                                                        |
+| `publish-npm`             | `validate-release`, `consumer-contract`  | release only              | `npm ci`, `npm run build`, `npm publish --provenance` to `registry.npmjs.org`                                                                                                  |
+| `publish-github`          | `validate-release`, `consumer-contract`  | release only              | Same build, `npm publish --provenance` to `npm.pkg.github.com`                                                                                                                 |
+| `deploy-docs`             | `validate-release`                       | release only              | `npm run docs`, then deploys `docs-site/public/api` (TypeDoc) to GitHub Pages                                                                                                  |
+| `create-assets`           | `validate-release`                       | tag push and release      | `npm pack` (fails unless exactly one tarball), the CycloneDX SBOM (`npm run release:sbom`), `docs.tar.gz` of the API reference, `checksums.txt` (SHA-256); uploads as artifact |
+| `consumer-contract`       | `create-assets`                          | tag push and release      | The consumer contract (`npm run test:consumer -- --tarball`) against the tarball `create-assets` packed: Node 18, 20, 22 and 24, oldest, repository and latest TypeScript      |
+| `sign-and-publish-assets` | `create-assets`, `consumer-contract`     | release only              | Keyless `cosign sign-blob` on the tarball, SBOM and docs archive, then `gh release upload` of all assets plus `README.md` and `LICENSE`                                        |
+| `dispatch-canary`         | `publish-npm`, `sign-and-publish-assets` | when `publish-npm` passed | Dispatches `post-publish-canary.yml` on the tag (`actions: write`)                                                                                                             |
+| `notify-success`          | all of the above                         | when `publish-npm` passed | Log line only                                                                                                                                                                  |
 
 The workflow holds top-level `contents: read`. Only `publish-npm`, `publish-github` and `sign-and-publish-assets` receive `id-token: write`, and signing sits in its own job so that no build step shares a job with the ability to mint an OIDC token.
 
@@ -62,7 +63,7 @@ Events raised with the workflow's `GITHUB_TOKEN` start no other workflow. A rele
 
 The app is installed on this repository only, with repository permissions Contents, Pull requests and Issues set to read and write, no webhook, and nothing else. The token step asks for those three permissions only.
 
-Without the variable, release-please falls back to `GITHUB_TOKEN`. Its release PR's CI then has to be approved in the Actions UI, and the `dispatch-release` job starts `release.yml` on the new tag (`workflow_dispatch` is exempt from the rule), waits for it, then starts the canary.
+Without both, release-please falls back to `GITHUB_TOKEN`. Its release PR's CI then has to be approved in the Actions UI, and the `dispatch-release` job starts `release.yml` on the new tag (`workflow_dispatch` is exempt from the rule), unless a dispatched run for that tag already exists. Either way `release.yml` dispatches the canary itself once `publish-npm` has succeeded.
 
 ---
 
@@ -176,7 +177,7 @@ The published file list is the `files` field in `package.json`. `publishConfig.a
 
 Everything above the publish step checks what CI built. `post-publish-canary.yml` checks what the registry serves, which is not the same artefact: `publish-npm` rebuilds rather than uploading the tarball the consumer matrix tested (`esi-23g.42`), and a broken `exports` map is invisible until somebody installs it.
 
-It runs on the `release: published` event, installs the version into an empty directory with nothing from this repository on disk, and establishes four things:
+`release.yml` dispatches it once `publish-npm` has succeeded and the assets job has finished. It installs the version into an empty directory with nothing from this repository on disk, and establishes four things:
 
 | Check        | What it proves                                                                        |
 | :----------- | :------------------------------------------------------------------------------------ |
