@@ -37,7 +37,7 @@ const executeRequest = async (
   useETag: boolean = true,
   requestTimeout?: number,
   templatePath?: string,
-  emptyWhenNoContent: boolean = false,
+  emptyWhenNoContent?: boolean,
 ): Promise<EsiHandlerResponse> => {
   const startTime = Date.now();
   const finish = (r: EsiHandlerResponse) => {

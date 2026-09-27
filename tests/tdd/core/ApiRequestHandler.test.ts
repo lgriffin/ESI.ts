@@ -8,6 +8,7 @@ import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import { CircuitBreaker } from '../../../src/core/circuitBreaker/CircuitBreaker';
 import { EsiError } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
+import { logCalls, spyLogger } from '../helpers/spyLogger';
 
 fetchMock.enableMocks();
 
@@ -157,6 +158,63 @@ describe('ApiRequestHandler', () => {
       );
 
       expect(result.status).toBe(200);
+      expect(result.body).toBeUndefined();
+    });
+
+    it('should log the no-content answer with its status when the endpoint opts in', async () => {
+      const logger = spyLogger();
+      client.setLogger(logger);
+      fetchMock.mockResponseOnce('', {
+        status: 200,
+        headers: { 'content-length': '0' },
+      });
+
+      await handleRequest(
+        client,
+        'v1/contracts/public/items/4/',
+        'GET',
+        undefined,
+        false,
+        true,
+        undefined,
+        undefined,
+        true,
+      );
+
+      expect(
+        logCalls(logger).filter(([, message]) =>
+          message.startsWith('No Content'),
+        ),
+      ).toEqual([
+        [
+          'info',
+          expect.stringContaining('v1/contracts/public/items/4/'),
+          { status: 200 },
+        ],
+      ]);
+    });
+
+    it('should keep the 204 status of a no-content answer when the endpoint opts in', async () => {
+      fetchMock.mockResolvedValueOnce(
+        new Response(null, {
+          status: 204,
+          headers: { 'content-length': '0' },
+        }),
+      );
+
+      const result = await handleRequest(
+        client,
+        'v1/contracts/public/items/5/',
+        'GET',
+        undefined,
+        false,
+        true,
+        undefined,
+        undefined,
+        true,
+      );
+
+      expect(result.status).toBe(204);
       expect(result.body).toBeUndefined();
     });
 
