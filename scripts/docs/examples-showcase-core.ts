@@ -315,7 +315,10 @@ export function renderExamplePage(doc: ExampleDoc): string {
   return lines.join('\n');
 }
 
-const cell = (text: string) => text.replace(/\|/g, '\\|');
+// Backslashes first, so a summary ending in `\` cannot escape the pipe that
+// closes its cell.
+const cell = (text: string) =>
+  text.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
 
 /** docs-site/examples/index.md: every example, grouped by category. */
 export function renderExamplesIndex(docs: readonly ExampleDoc[]): string {

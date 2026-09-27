@@ -330,9 +330,9 @@ describe('parseExample', () => {
 
   it('runs it with the shortest npm script that names the file', () => {
     expect(doc.command).toBe('npm run example:market');
-    expect(scriptFor('none.ts', { a: 'ts-node examples/other.ts' })).toBe(
-      undefined,
-    );
+    expect(
+      scriptFor('none.ts', { a: 'ts-node examples/other.ts' }),
+    ).toBeUndefined();
   });
 
   it('lists client calls once each and ignores non-client calls', () => {
@@ -422,6 +422,13 @@ describe('rendering the showcase', () => {
     expect(index).toContain(
       '| [Market Prices](./market-prices.md) | Fetches average prices. | No token needed |',
     );
+  });
+
+  it('escapes backslashes and pipes in index table cells', () => {
+    const index = renderExamplesIndex([
+      { ...doc, summary: 'Splits a | b on C:\\path\\' },
+    ]);
+    expect(index).toContain('| Splits a \\| b on C:\\\\path\\\\ |');
   });
 
   it('builds the examples sidebar from the categories in use', () => {
