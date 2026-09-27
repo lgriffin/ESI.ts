@@ -90,7 +90,7 @@ try {
 }
 ```
 
-A request no route answers fails with status 501, naming the request, and appears in `transport.unrouted`. [Testing](guides/TESTING.md#testing-your-application) has the route options and the record.
+A request no route answers is rejected with an `EsiConfigurationError` naming the request, without a retry, and appears in `transport.unrouted`. [Testing](guides/TESTING.md#testing-your-application) has the route options and the record.
 
 ## What you get
 

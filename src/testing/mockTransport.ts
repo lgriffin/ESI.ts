@@ -10,6 +10,7 @@
  * Specification: tests/bdd/features/core/0057-mock-transport.feature.
  */
 import type { HttpTransport } from '../core/ports/HttpTransport';
+import { EsiConfigurationError } from '../core/util/error';
 
 /** What the mock transport answers a request with. */
 export interface MockRoute {
@@ -25,7 +26,7 @@ export interface MockRoute {
    * against the whole URL, query string included.
    */
   readonly path: string | RegExp;
-  /** The HTTP status. Default 200. */
+  /** The HTTP status, 200 to 599. Default 200. */
   readonly status?: number;
   /** Response headers, such as `x-pages` or `etag`. */
   readonly headers?: Readonly<Record<string, string>>;
@@ -67,7 +68,14 @@ export interface MockTransport extends HttpTransport {
   readonly sent: readonly SentRequest[];
   /** The `METHOD url` of every request no route answered, in order. */
   readonly unrouted: readonly string[];
-  /** Forget every route and every recorded request. */
+  /**
+   * Forget every route and every recorded request. The transport keeps
+   * nothing else, but a runtime built over it does: once a route has answered
+   * with an `etag` header, the runtime's response cache can answer the same
+   * request again without reaching the transport. A test that repeats a
+   * request across `reset()` uses a runtime per test, or builds it with
+   * `enableETagCache: false`.
+   */
   reset(): void;
 }
 
@@ -79,7 +87,7 @@ interface ActiveRoute {
 }
 
 /** Statuses whose responses carry no body; the Response constructor rejects even ''. */
-const NULL_BODY_STATUSES = new Set([101, 204, 205, 304]);
+const NULL_BODY_STATUSES = new Set([204, 205, 304]);
 
 /** A path template as the ESI spec writes it, `{name}` standing for one segment. */
 function templateMatcher(template: string): (url: URL) => boolean {
@@ -112,6 +120,17 @@ function activate(route: MockRoute): ActiveRoute {
   ) {
     throw new Error(
       `createMockTransport: times must be a positive integer, got ${String(route.times)}`,
+    );
+  }
+  // What the Response constructor accepts: a 1xx cannot be built.
+  if (
+    route.status !== undefined &&
+    (!Number.isInteger(route.status) ||
+      route.status < 200 ||
+      route.status > 599)
+  ) {
+    throw new Error(
+      `createMockTransport: status must be an integer from 200 to 599, got ${String(route.status)}`,
     );
   }
   return {
@@ -199,9 +218,9 @@ function describeRoute(route: MockRoute): string {
  * `createEsi({ transport })`; add routes with `respond()`; read what the
  * application sent from `sent`.
  *
- * A request no route answers is answered with status 501 and an error body
- * naming the request, which the pipeline raises as an `EsiError` without
- * retrying, and is listed under `unrouted`.
+ * A request no route answers rejects with an `EsiConfigurationError` carrying
+ * the code `CONFIGURATION_ERROR` and naming the request, which the pipeline
+ * raises unchanged and without retrying, and is listed under `unrouted`.
  */
 export function createMockTransport(
   routes: readonly MockRoute[] = [],
@@ -242,15 +261,9 @@ export function createMockTransport(
         active.length === 0
           ? 'no routes'
           : `routes: ${active.map((candidate) => describeRoute(candidate.route)).join(', ')}`;
-      return new Response(
-        JSON.stringify({
-          error: `createMockTransport has no route for ${description} (${table})`,
-        }),
-        {
-          status: 501,
-          statusText: 'No route in the mock transport',
-          headers: { 'content-type': 'application/json' },
-        },
+      throw new EsiConfigurationError(
+        'CONFIGURATION_ERROR',
+        `createMockTransport has no route for ${description} (${table})`,
       );
     }
 

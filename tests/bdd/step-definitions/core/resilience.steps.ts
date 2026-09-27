@@ -1963,6 +1963,49 @@ defineFeature(feature, (test) => {
     );
   });
 
+  test('A configuration error thrown by the transport reaches the caller as itself', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+    const thrown = new EsiConfigurationError(
+      'CONFIGURATION_ERROR',
+      'the transport has no answer for the server status',
+    );
+
+    given('a client configured for the status endpoint', () => {
+      client = createSeamClient({ retryConfig: NO_RETRIES });
+    });
+
+    and(
+      'the transport rejects the server status request with a configuration error',
+      () => {
+        queueResponse({
+          match: STATUS_PATH,
+          fault: { kind: 'thrown', error: thrown },
+        });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(client.status.getStatus());
+    });
+
+    then('the client rejects with that same configuration error', () => {
+      expect(outcome.status).toBe('rejected');
+      const reason = (outcome as PromiseRejectedResult).reason as unknown;
+      expect(reason).toBe(thrown);
+      expect(reason).not.toBeInstanceOf(EsiNetworkError);
+    });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
   test('Online status requested without an access token is refused as a configuration fault', ({
     given,
     and,

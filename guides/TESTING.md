@@ -975,12 +975,14 @@ A route is one `respond()` call:
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `method`  | The HTTP method, compared without regard to case. Omitted, any method.                                                                                                                                      |
 | `path`    | The ESI path template as the spec writes it (`{character_id}` stands for one segment, a trailing slash is ignored, the query string is not compared), or a regular expression tested against the whole URL. |
-| `status`  | Default 200.                                                                                                                                                                                                |
+| `status`  | 200 to 599. Default 200.                                                                                                                                                                                    |
 | `headers` | Response headers, such as `x-pages` for a paginated route or `etag`.                                                                                                                                        |
 | `body`    | An object, array, number or boolean is JSON-encoded as `application/json`; a string is sent verbatim; omitted, no body.                                                                                     |
 | `times`   | How many matching requests the route answers before it is retired. Omitted, every one.                                                                                                                      |
 
-Routes are tried in the order added and the first match answers. A request no route answers is answered with status 501 and an error body naming the request and the route table; the pipeline raises it as an `EsiError` without retrying (a rejected promise would be wrapped as a network failure and retried with the application's backoff), and the transport lists it under `unrouted`. `sent` holds every request in order, header names in lower case, the body as a string or `undefined`.
+Routes are tried in the order added and the first match answers. A request no route answers is rejected with an `EsiConfigurationError` (code `CONFIGURATION_ERROR`) naming the request and the route table. The pipeline passes an `EsiError` a transport throws through unchanged, so the call fails at once under that name, without a retry and without falling back to a stale cache entry as an HTTP 5xx would; the transport lists the request under `unrouted`. `sent` holds every request in order, header names in lower case, the body as a string or `undefined`.
+
+`reset()` empties the route table and the record, not the runtime built over the transport: once a route answered with an `etag` header, the runtime's response cache serves that request again without reaching the transport. A test file that repeats a request across a reset builds a runtime per test, or passes `enableETagCache: false` to `createEsi`.
 
 `TestDataFactory`, from the same entry, builds response bodies the schemas accept ([Test helpers](#test-helpers)).
 

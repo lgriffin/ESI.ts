@@ -5,9 +5,16 @@
  * way `fetch` can be called.
  */
 import { createEsi, identityFromToken } from '../../../src/client';
+import { EsiConfigurationError } from '../../../src/errors';
 import { createMockTransport, type MockRoute } from '../../../src/testing';
 
 const WALLET = '/characters/{character_id}/wallet';
+
+/** The rejection every unrouted request produces. */
+const UNROUTED = expect.objectContaining({
+  name: 'EsiConfigurationError',
+  code: 'CONFIGURATION_ERROR',
+}) as unknown;
 
 async function json(response: Response): Promise<unknown> {
   return JSON.parse(await response.text());
@@ -40,14 +47,12 @@ describe('createMockTransport', () => {
         path: WALLET,
         body: 1,
       });
-      const nested = await transport(
-        'https://esi.evetech.net/characters/9/wallet/journal',
-      );
-      const deeper = await transport(
-        'https://esi.evetech.net/characters/9/9/wallet',
-      );
-      expect(nested.status).toBe(501);
-      expect(deeper.status).toBe(501);
+      await expect(
+        transport('https://esi.evetech.net/characters/9/wallet/journal'),
+      ).rejects.toEqual(UNROUTED);
+      await expect(
+        transport('https://esi.evetech.net/characters/9/9/wallet'),
+      ).rejects.toEqual(UNROUTED);
     });
 
     it('ignores a trailing slash on the template and on the request', async () => {
@@ -82,11 +87,10 @@ describe('createMockTransport', () => {
       const hit = await transport(
         'https://esi.evetech.net/markets/10000002/orders?type_id=34',
       );
-      const miss = await transport(
-        'https://esi.evetech.net/markets/10000002/orders?type_id=35',
-      );
       expect(hit.status).toBe(200);
-      expect(miss.status).toBe(501);
+      await expect(
+        transport('https://esi.evetech.net/markets/10000002/orders?type_id=35'),
+      ).rejects.toEqual(UNROUTED);
     });
 
     it('does not let a global regular expression skip alternate matches', async () => {
@@ -109,13 +113,14 @@ describe('createMockTransport', () => {
       const post = await transport('https://esi.evetech.net/universe/names', {
         method: 'POST',
       });
-      const get = await transport('https://esi.evetech.net/universe/names');
       const del = await transport('https://esi.evetech.net/status', {
         method: 'DELETE',
       });
       expect(post.status).toBe(200);
-      expect(get.status).toBe(501);
       expect(del.status).toBe(200);
+      await expect(
+        transport('https://esi.evetech.net/universe/names'),
+      ).rejects.toEqual(UNROUTED);
     });
 
     it('retires a route after its times and lists the request as unrouted', async () => {
@@ -128,8 +133,9 @@ describe('createMockTransport', () => {
       expect(transport.routes).toHaveLength(1);
       await transport('https://esi.evetech.net/status');
       expect(transport.routes).toHaveLength(0);
-      const third = await transport('https://esi.evetech.net/status');
-      expect(third.status).toBe(501);
+      await expect(transport('https://esi.evetech.net/status')).rejects.toEqual(
+        UNROUTED,
+      );
       expect(transport.unrouted).toEqual([
         'GET https://esi.evetech.net/status',
       ]);
@@ -201,29 +207,48 @@ describe('createMockTransport', () => {
       );
     });
 
-    it('names the request and the route table in the 501 body', async () => {
+    it('rejects an unrouted request with a configuration error naming the request and the route table', async () => {
       const transport = createMockTransport().respond({
         method: 'GET',
         path: WALLET,
         body: 1,
       });
-      const response = await transport('https://esi.evetech.net/status');
-      expect(response.status).toBe(501);
-      expect(response.statusText).toBe('No route in the mock transport');
-      expect(await json(response)).toEqual({
-        error:
-          'createMockTransport has no route for GET https://esi.evetech.net/status (routes: GET /characters/{character_id}/wallet)',
-      });
+      const error = await transport('https://esi.evetech.net/status').catch(
+        (e: unknown) => e,
+      );
+      expect(error).toBeInstanceOf(EsiConfigurationError);
+      expect((error as EsiConfigurationError).code).toBe('CONFIGURATION_ERROR');
+      expect((error as EsiConfigurationError).retryable).toBe(false);
+      expect((error as EsiConfigurationError).message).toBe(
+        '[CONFIGURATION_ERROR] createMockTransport has no route for GET https://esi.evetech.net/status (routes: GET /characters/{character_id}/wallet)',
+      );
     });
 
     it('says when the table is empty', async () => {
-      const response = await createMockTransport()(
-        'https://esi.evetech.net/status',
+      await expect(
+        createMockTransport()('https://esi.evetech.net/status'),
+      ).rejects.toThrow(
+        'createMockTransport has no route for GET https://esi.evetech.net/status (no routes)',
       );
-      expect(await json(response)).toEqual({
-        error:
-          'createMockTransport has no route for GET https://esi.evetech.net/status (no routes)',
-      });
+    });
+
+    it.each([101, 199, 600, 200.5, Number.NaN])(
+      'refuses a route whose status %p cannot be built into a Response',
+      (status) => {
+        expect(() =>
+          createMockTransport().respond({ path: '/status', status }),
+        ).toThrow('status must be an integer from 200 to 599');
+      },
+    );
+
+    it('accepts the ends of the status range', async () => {
+      const transport = createMockTransport()
+        .respond({ path: '/low', status: 200 })
+        .respond({ path: '/high', status: 599 });
+      expect((await transport('https://esi.evetech.net/low')).status).toBe(200);
+      expect((await transport('https://esi.evetech.net/high')).status).toBe(
+        599,
+      );
     });
   });
 
@@ -287,7 +312,7 @@ describe('createMockTransport', () => {
     it('records an unrouted request too, in order with the rest', async () => {
       const transport = createMockTransport().respond({ path: '/x', body: {} });
       await transport('https://esi.evetech.net/x');
-      await transport('https://esi.evetech.net/y');
+      await transport('https://esi.evetech.net/y').catch(() => undefined);
       expect(transport.sent.map((request) => request.url)).toEqual([
         'https://esi.evetech.net/x',
         'https://esi.evetech.net/y',
@@ -351,15 +376,101 @@ describe('createMockTransport', () => {
         logLevel: 'error',
       });
       try {
-        await expect(esi.public.status.get()).rejects.toMatchObject({
-          statusCode: 501,
-          message: expect.stringContaining(
-            'no route for GET https://esi.evetech.net/status',
-          ),
-        });
+        const error = await esi.public.status.get().catch((e: unknown) => e);
+        expect(error).toBeInstanceOf(EsiConfigurationError);
+        expect((error as EsiConfigurationError).message).toContain(
+          'no route for GET https://esi.evetech.net/status',
+        );
         expect(transport.sent).toHaveLength(1);
+        expect(transport.unrouted).toEqual([
+          'GET https://esi.evetech.net/status',
+        ]);
       } finally {
         esi.shutdown();
+      }
+    });
+
+    it('does not serve a stale cached body in place of an unrouted request', async () => {
+      // A 5xx from the transport is answered from the cache entry the first
+      // call left behind once it is stale; a configuration error is not.
+      const STATUS_SPEC_TTL_MS = 30_000;
+      const start = Date.now();
+      const now = jest.spyOn(Date, 'now').mockReturnValue(start);
+      const runtimeOver = (transport: ReturnType<typeof createMockTransport>) =>
+        createEsi({
+          userAgent: 'mock-test/1.0 (dev@example.com)',
+          transport,
+          logLevel: 'error',
+        });
+      const answered = {
+        path: '/status',
+        body: { players: 1 },
+        headers: { etag: '"one"' },
+        times: 1,
+      };
+      const unrouted = createMockTransport().respond(answered);
+      const failing = createMockTransport()
+        .respond(answered)
+        .respond({ path: '/status', status: 503, body: { error: 'down' } });
+      const esiUnrouted = runtimeOver(unrouted);
+      const esiFailing = runtimeOver(failing);
+      try {
+        expect((await esiUnrouted.public.status.get()).players).toBe(1);
+        expect((await esiFailing.public.status.get()).players).toBe(1);
+        now.mockReturnValue(start + STATUS_SPEC_TTL_MS + 1);
+
+        // The 503 route proves the entry is stale and would be served.
+        expect((await esiFailing.public.status.get()).players).toBe(1);
+        expect(failing.sent).toHaveLength(2);
+
+        await expect(esiUnrouted.public.status.get()).rejects.toBeInstanceOf(
+          EsiConfigurationError,
+        );
+        expect(unrouted.sent).toHaveLength(2);
+      } finally {
+        now.mockRestore();
+        esiUnrouted.shutdown();
+        esiFailing.shutdown();
+      }
+    });
+
+    it('keeps answering from the runtime cache after reset, unless the cache is off', async () => {
+      const cached = createMockTransport().respond({
+        path: '/status',
+        body: { players: 1 },
+        headers: { etag: '"one"' },
+      });
+      const withCache = createEsi({
+        userAgent: 'mock-test/1.0 (dev@example.com)',
+        transport: cached,
+        logLevel: 'error',
+      });
+      const uncached = createMockTransport().respond({
+        path: '/status',
+        body: { players: 1 },
+        headers: { etag: '"one"' },
+      });
+      const withoutCache = createEsi({
+        userAgent: 'mock-test/1.0 (dev@example.com)',
+        transport: uncached,
+        logLevel: 'error',
+        enableETagCache: false,
+      });
+      try {
+        await withCache.public.status.get();
+        cached.reset();
+        expect((await withCache.public.status.get()).players).toBe(1);
+        expect(cached.sent).toEqual([]);
+
+        await withoutCache.public.status.get();
+        uncached.reset();
+        await expect(withoutCache.public.status.get()).rejects.toBeInstanceOf(
+          EsiConfigurationError,
+        );
+        expect(uncached.sent).toHaveLength(1);
+      } finally {
+        withCache.shutdown();
+        withoutCache.shutdown();
       }
     });
   });

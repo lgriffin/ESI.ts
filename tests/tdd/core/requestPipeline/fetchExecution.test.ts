@@ -4,7 +4,11 @@ import { RateLimiter } from '../../../../src/core/rateLimiter/RateLimiter';
 import { ICache } from '../../../../src/core/cache/ICache';
 import { IRateLimiter } from '../../../../src/core/rateLimiter/IRateLimiter';
 import { ICircuitBreaker } from '../../../../src/core/circuitBreaker/ICircuitBreaker';
-import { EsiError, TimeoutError } from '../../../../src/core/util/error';
+import {
+  EsiConfigurationError,
+  EsiError,
+  TimeoutError,
+} from '../../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
@@ -51,6 +55,20 @@ describe('requestPipeline/fetchExecution branch coverage', () => {
       expect((error as EsiError).statusCode).toBe(0);
       expect((error as EsiError).message).toContain('fetch failed');
       expect((error as EsiError).cause).toBe(networkErr);
+    });
+
+    it('rethrows an EsiError the transport rejected with, unchanged', async () => {
+      // A transport that speaks the SDK's errors (a test double refusing an
+      // unrouted request) is not wrapped as a network failure.
+      const thrown = new EsiConfigurationError(
+        'CONFIGURATION_ERROR',
+        'no route',
+      );
+      fetchMock.mockRejectOnce(thrown);
+
+      const error = await run().catch((e: unknown) => e);
+
+      expect(error).toBe(thrown);
     });
 
     it('treats an AbortError that is not an Error instance as a timeout', async () => {

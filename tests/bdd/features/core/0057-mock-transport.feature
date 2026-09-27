@@ -48,20 +48,20 @@ Feature: A mock transport for an application's own tests
       When the character's view follows every page of the character's assets
       Then the view shall receive two assets
 
-  Rule: If a request matches no route, then the mock transport shall answer it with status 501 and an error body naming the request's method and URL.
+  Rule: If a request matches no route, then the mock transport shall reject it with an EsiConfigurationError carrying the code CONFIGURATION_ERROR and naming the request's method and URL.
     A silent default, an empty 200 or an invented body, would let a test pass
-    without exercising anything. A rejected promise would be wrapped by the
-    pipeline as a network failure and retried with the application's backoff,
-    so an unrouted request would fail slowly and under the wrong name. A 501 is
-    not retried, reaches the application as an `EsiError` whose message names
-    the request, and the transport lists it under `unrouted` for a test that
-    checks the whole exchange.
+    without exercising anything. An HTTP error would be treated as one ESI
+    sent: a 5xx can be served from a stale cache entry and counts against the
+    circuit. A configuration error is the SDK's own word for a setup fault:
+    the pipeline raises it unchanged, without retrying, its message names the
+    request, and the transport lists the request under `unrouted` for a test
+    that checks the whole exchange.
 
     Scenario: An unrouted wallet request fails naming the request it could not answer
       Given a runtime over a mock transport
       And a view for a character holding an access token
       When the character's view requests the wallet balance
-      Then the call shall be rejected with status 501
+      Then the call shall be rejected with a configuration error
       And the rejection shall name the unanswered request "GET https://esi.evetech.net/characters/2114794365/wallet"
       And the mock transport shall list the request "GET https://esi.evetech.net/characters/2114794365/wallet" as unrouted
 
@@ -100,11 +100,15 @@ Feature: A mock transport for an application's own tests
       And views for two characters of one corporation
       When each character's view requests its own wallet balance
       Then the first view shall receive the wallet balance
-      And the second call shall be rejected with status 501
+      And the second call shall be rejected with a configuration error
 
   Rule: When it is reset, the mock transport shall forget its routes and its recorded requests.
     One transport can serve a whole test file: `reset()` between tests leaves
-    nothing of the previous exchange behind, without rebuilding the runtime.
+    nothing of the previous exchange behind in the transport. The runtime's
+    own response cache is not the transport's to clear: once a route answered
+    with an ETag, the runtime can serve that request again without reaching
+    the transport, so a test that repeats a request across a reset builds a
+    runtime per test or disables the cache.
 
     Scenario: A reset transport has no routes and no record
       Given a runtime over a mock transport
