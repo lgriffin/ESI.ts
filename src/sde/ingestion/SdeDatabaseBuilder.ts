@@ -3,6 +3,8 @@ import type { SdeFileSpec } from './constants';
 import { SDE_FILE_REGISTRY } from './constants';
 import { transformRecord } from './transforms';
 import { SdeError, SdeDatabaseError } from '../errors';
+import type { Clock } from '../../core/ports/Clock';
+import { systemClock } from '../clock';
 
 export interface SdeBuildOptions {
   outputPath: string;
@@ -29,7 +31,22 @@ type BetterSqlite3Constructor = new (
   options?: { readonly?: boolean },
 ) => DatabaseLike;
 
+/** Options for {@link SdeDatabaseBuilder}. */
+export interface SdeDatabaseBuilderOptions {
+  /**
+   * Where the `importedAt` row of `sde_metadata` reads the time from.
+   * Defaults to the wall clock; a test passes a fixed one.
+   */
+  clock?: Clock;
+}
+
 export class SdeDatabaseBuilder {
+  private readonly clock: Clock;
+
+  constructor(options: SdeDatabaseBuilderOptions = {}) {
+    this.clock = options.clock ?? systemClock;
+  }
+
   private loadBetterSqlite3(): BetterSqlite3Constructor {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -210,6 +227,6 @@ export class SdeDatabaseBuilder {
     );
     stmt.run('version', options.sdeVersion);
     stmt.run('buildDate', options.buildDate);
-    stmt.run('importedAt', new Date().toISOString());
+    stmt.run('importedAt', new Date(this.clock.now()).toISOString());
   }
 }

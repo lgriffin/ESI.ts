@@ -209,6 +209,22 @@ describe('SdeDataProvider', () => {
       expect(version.importedAt).toBeDefined();
     });
 
+    it('stamps importedAt from the injected clock', () => {
+      const dir = createTempDir();
+      writeYaml(dir, '_sde.yaml', {
+        buildNumber: '42',
+        releaseDate: '2026-01-01',
+      });
+      const fixed = {
+        now: () => Date.UTC(2026, 0, 2, 3, 4, 5, 678),
+        sleep: () => Promise.resolve(),
+      };
+      const stamped = SdeDataProvider.fromDirectory(dir, { clock: fixed });
+      expect(stamped.getVersion().importedAt).toBe('2026-01-02T03:04:05.678Z');
+      stamped.close();
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
     it('should handle _sde.yaml without nested sde block', () => {
       const dir = createTempDir();
       writeYaml(dir, '_sde.yaml', {

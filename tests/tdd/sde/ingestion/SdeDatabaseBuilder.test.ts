@@ -78,6 +78,26 @@ function createParsedFile(
     db.close();
   });
 
+  it('stamps importedAt from the injected clock', () => {
+    const fixed = {
+      now: () => Date.UTC(2026, 0, 2, 3, 4, 5, 678),
+      sleep: () => Promise.resolve(),
+    };
+    new SdeDatabaseBuilder({ clock: fixed }).build({
+      outputPath: dbPath,
+      parsedFiles: [],
+      sdeVersion: '12345',
+      buildDate: '2026-01-15',
+    });
+
+    const db = new Database(dbPath, { readonly: true });
+    const importedAt = db
+      .prepare('SELECT value FROM sde_metadata WHERE key = ?')
+      .get('importedAt') as { value: string };
+    expect(importedAt.value).toBe('2026-01-02T03:04:05.678Z');
+    db.close();
+  });
+
   it('should create tables and insert data for known entity types', () => {
     const parsedFiles = [
       createParsedFile('categories.yaml', {

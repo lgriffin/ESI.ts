@@ -14,8 +14,12 @@
  * id has a negative fixture in tests/tdd/determinism-lint/fixtures/violations/.
  */
 
-/** Where injected time lives. Allow-listed; nothing else in src/ is. */
-const CLOCK_MODULES = ['src/core/clock.ts'];
+/**
+ * Where injected time lives. Allow-listed; nothing else in src/ is. The SDE
+ * has its own copy because it may import nothing of the core but the ports
+ * (npm run lint:layers, CHARTER ARCH-10).
+ */
+const CLOCK_MODULES = ['src/core/clock.ts', 'src/sde/clock.ts'];
 
 const FILES = ['src/**/*.ts'];
 
