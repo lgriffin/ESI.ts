@@ -424,7 +424,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && github.event.action == 'published')
     permissions:
       contents: write # upload assets to the GitHub Release
-      id-token: write # keyless cosign signing (OIDC → Fulcio)
+      id-token: write # keyless cosign signing and the provenance attestation (OIDC → Fulcio)
+      attestations: write # record the build provenance attestation on the repository
 
     steps:
       - name: 📥 Checkout code # for README.md / LICENSE
@@ -453,6 +454,39 @@ jobs:
               "$artifact"
           done
 
+      # SLSA build provenance for the three signed assets: one in-toto
+      # statement naming each by SHA-256, signed through Sigstore and recorded
+      # on the repository, so `gh attestation verify` works on any of them.
+      # The bundle is also attached to the release as a `.intoto.jsonl` file,
+      # the name OpenSSF Scorecard's Signed-Releases check looks for.
+      - name: 🧾 Attest build provenance
+        id: provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            ${{ needs.create-assets.outputs.tarball }}
+            ${{ needs.create-assets.outputs.sbom }}
+            docs.tar.gz
+
+      # Check the attestation before it goes on the release: a bundle that
+      # does not verify against this repository and this workflow would be a
+      # provenance file that proves nothing.
+      - name: 🧾 Verify and name the provenance bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          TARBALL: ${{ needs.create-assets.outputs.tarball }}
+          SBOM: ${{ needs.create-assets.outputs.sbom }}
+          REPO: ${{ github.repository }}
+        run: |
+          for artifact in "$TARBALL" "$SBOM" docs.tar.gz; do
+            gh attestation verify "$artifact" \
+              --bundle "$BUNDLE" \
+              --repo "$REPO" \
+              --signer-workflow "$REPO/.github/workflows/release.yml"
+          done
+          cp "$BUNDLE" "${TARBALL%.tgz}.intoto.jsonl"
+
       - name: 📎 Upload release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -466,6 +500,7 @@ jobs:
             "${SBOM}.sigstore.json" \
             docs.tar.gz \
             docs.tar.gz.sigstore.json \
+            "${TARBALL%.tgz}.intoto.jsonl" \
             checksums.txt \
             README.md \
             LICENSE
