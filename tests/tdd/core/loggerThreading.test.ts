@@ -12,6 +12,7 @@ import {
 } from '../../../src/core/BatchRequestHandler';
 import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import { configureApiClient } from '../../../src/core/configureApiClient';
+import * as DefaultLogger from '../../../src/core/logger/DefaultLogger';
 import { getLogger, setLogger } from '../../../src/core/logger/loggerUtil';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import * as sleepModule from '../../../src/core/util/sleep';
@@ -142,6 +143,24 @@ describe('log call sites use the per-client logger', () => {
       await batchPost([1], async (ids) => ids);
 
       expect(global.info).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("logLevel: 'silent'", () => {
+    it('is accepted and builds the per-client pino logger at that level', () => {
+      const build = jest.spyOn(DefaultLogger, 'createDefaultLogger');
+      try {
+        const client = new ApiClient('t', 'https://esi.evetech.net/latest');
+        configureApiClient(client, {
+          logLevel: 'silent',
+          enableETagCache: false,
+        });
+
+        expect(build).toHaveBeenCalledWith('silent');
+        expect(client.getLogger()).toBe(build.mock.results[0]?.value);
+      } finally {
+        build.mockRestore();
+      }
     });
   });
 });

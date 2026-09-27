@@ -101,8 +101,13 @@ export interface EsiClientConfig {
   validateRequest?: boolean | undefined;
   /** Custom logger for this client. Falls back to the global logger, then pino. */
   logger?: import('./core/logger/ILogger').ILogger | undefined;
-  /** Log level for the default pino logger (`error|warn|info|debug|trace`). Overrides `ESI_LOG_LEVEL`. */
-  logLevel?: import('./core/logger/DefaultLogger').LogLevel | undefined;
+  /**
+   * Log level for the default pino logger
+   * (`fatal|error|warn|info|debug|trace`, or `silent` to turn it off).
+   * Overrides `ESI_LOG_LEVEL`.
+   */
+  logLevel?:
+    import('./core/logger/DefaultLogger').LogLevel | 'silent' | undefined;
 }
 
 export class EsiClient {

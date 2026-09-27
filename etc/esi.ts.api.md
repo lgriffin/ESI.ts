@@ -4731,7 +4731,7 @@ export interface EsiClientConfig {
     // (undocumented)
     language?: string | undefined;
     logger?: ILogger | undefined;
-    logLevel?: LogLevel | undefined;
+    logLevel?: LogLevel | 'silent' | undefined;
     // (undocumented)
     onTokenRefresh?: TokenProvider | undefined;
     // (undocumented)
