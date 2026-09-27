@@ -15,9 +15,10 @@ name: Post-publish Canary
 # issue rather than a nightly note. A published version cannot be replaced;
 # guides/RELEASE.md holds the deprecate-and-fix-forward playbook.
 
+# release.yml dispatches this once publish-npm has succeeded. It has no
+# release trigger: on release: published it would start before the package
+# and the release assets exist.
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       version:
@@ -66,12 +67,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Publishing and the registry serving it are not the same instant, and
-      # the release event fires on the first.
+      # Publishing and the registry serving it are not the same instant.
+      # GH_TOKEN lets the script's gh release download read the assets.
       - name: Install from the registry and verify
         id: canary
         env:
           CANARY_VERSION: ${{ inputs.version || github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
         run: npm run release:canary -- --wait 600
 
   report:
