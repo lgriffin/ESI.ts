@@ -378,14 +378,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - node-version: 18
+          # The engines floor itself, pinned: a bare 22 installs the newest
+          # 22.x and would never exercise the oldest Node 11.x supports.
+          - node-version: '22.12'
             typescript: oldest
-          - node-version: 20
-            typescript: repo
           - node-version: 22
             typescript: latest
           - node-version: 24
             typescript: repo
+          - node-version: 24
+            typescript: latest
 
     steps:
       - name: 📥 Checkout code

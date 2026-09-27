@@ -262,7 +262,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [22, 24]
 
     steps:
       - name: Checkout code
@@ -647,23 +647,25 @@ jobs:
     #
     # Each row pairs a Node line with a TypeScript version: `oldest` is the
     # declared floor (OLDEST_TYPESCRIPT), `repo` the version this repository
-    # builds with, `latest` npm's latest tag. Node 18 has no require(esm), so
-    # it catches a `require` condition resolving to an ES module. The wider
-    # matrix (TypeScript next, current Node) runs nightly in
-    # consumer-matrix-nightly.yml.
+    # builds with, `latest` npm's latest tag. Node 22.12 is the floor
+    # (`engines`, the first 22.x that loads an ES module through require()
+    # without a flag), 24 the current LTS. The wider matrix (TypeScript next,
+    # current Node) runs nightly in consumer-matrix-nightly.yml.
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - node-version: 18
+          # The engines floor itself, pinned: a bare 22 installs the newest
+          # 22.x and would never exercise the oldest Node 11.x supports.
+          - node-version: '22.12'
             typescript: oldest
-          - node-version: 20
-            typescript: repo
           - node-version: 22
             typescript: latest
           - node-version: 24
             typescript: repo
+          - node-version: 24
+            typescript: latest
 
     steps:
       - name: Checkout code

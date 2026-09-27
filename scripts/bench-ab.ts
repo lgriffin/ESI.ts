@@ -69,7 +69,7 @@ function bundle(tree: string, fallbackModules: string): string | null {
       bundle: true,
       platform: 'node',
       format: 'cjs',
-      target: 'node18',
+      target: 'node22',
       external: EXTERNAL,
       nodePaths: [fallbackModules],
       logLevel: 'error',
