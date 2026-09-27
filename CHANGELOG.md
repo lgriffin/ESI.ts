@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * **transport:** leave X-User-Agent off when clientId is not a legal header value ([a744910](https://github.com/lgriffin/ESI.ts/commit/a744910fc635a3f861ea185623f839e2df26fa56))
-* **transport:** send the configured clientId as X-User-Agent ([8a073ec](https://github.com/lgriffin/ESI.ts/commit/8a073ec624f3812a6c0c96d60cec96b1a969cca9))
 
 
 ### Changed
@@ -22,40 +21,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Testing
 
 * **contract:** re-record ESI payloads whose shape changed ([cc1783f](https://github.com/lgriffin/ESI.ts/commit/cc1783fadba5adebe08b278646b2561b037f542a))
-* **contract:** recorded ESI payloads changed shape ([74b0ed7](https://github.com/lgriffin/ESI.ts/commit/74b0ed79ecc70628e74549b920bf9d948cdb1f61))
 
 ## [10.2.2](https://github.com/lgriffin/ESI.ts/compare/v10.2.1...v10.2.2) (2026-09-23)
 
 
 ### Fixed
 
-* **deps:** list zod only in dependencies so --omit=dev keeps it ([305adef](https://github.com/lgriffin/ESI.ts/commit/305adefeb9e6d4ffcb052ad52323f442ea72ed92))
 * **deps:** list zod only in dependencies so --omit=dev keeps it ([e9b80c1](https://github.com/lgriffin/ESI.ts/commit/e9b80c1342ce846fb1f351c171d4e2a8c7bd0155)), closes [#384](https://github.com/lgriffin/ESI.ts/issues/384)
-* **mutation-pr:** say when a directory score is partly the nightly's ([e9cfd58](https://github.com/lgriffin/ESI.ts/commit/e9cfd58bdd736c17fe9c7b0331ff9660e0dd61bc))
 * **mutation-pr:** say when a directory score is partly the nightly's ([9ade805](https://github.com/lgriffin/ESI.ts/commit/9ade805e31e11e5e8f0639f28192b315d18dbd3d))
 
 
 ### Changed
 
-* **deps:** bump the minor-and-patch group across 1 directory with 6 updates ([fa55041](https://github.com/lgriffin/ESI.ts/commit/fa55041b278d3622d15c56d05df0ad14c19e6d05))
 * **deps:** bump the minor-and-patch group across 1 directory with 6 updates ([f65a8c1](https://github.com/lgriffin/ESI.ts/commit/f65a8c176049f645161b2d0a4161f6f33e2f3190))
 
 
 ### Documentation
 
-* add Marp presentation on repo history and evolution ([1de7f6a](https://github.com/lgriffin/ESI.ts/commit/1de7f6a128b4f022a428accbcef7cdf8b2d21522))
 * add Marp presentation on repo history and evolution ([f4047f8](https://github.com/lgriffin/ESI.ts/commit/f4047f8e2ee14d15b4d515dc79cf190362cf9607))
 * commit knowledge graph report (graphify) ([e377009](https://github.com/lgriffin/ESI.ts/commit/e3770098add384079f81bb36797df78b39d723fa))
-* integrate graphify knowledge graph for architecture queries ([3d7879e](https://github.com/lgriffin/ESI.ts/commit/3d7879e430b3bce5ae3e0284149379c1d81a33e4))
 * integrate graphify knowledge graph for architecture queries ([3260793](https://github.com/lgriffin/ESI.ts/commit/3260793918178405444cb9e40d2d5ff880c55714))
 
 
 ### Testing
 
-* **canary:** verify release assets — SBOM, cosign bundles, checksums ([3227b40](https://github.com/lgriffin/ESI.ts/commit/3227b40e771d946884daa48fec8fc43eca883124))
 * **canary:** verify release assets — SBOM, cosign bundles, checksums ([1180b1a](https://github.com/lgriffin/ESI.ts/commit/1180b1a559ebf82955b18ecf4cbddc69f68c66d2))
 * **contract:** re-record ESI payloads whose shape changed ([60662dc](https://github.com/lgriffin/ESI.ts/commit/60662dcf029d5e7bfc67e2666257e0a9bfb664a6))
-* **contract:** recorded ESI payloads changed shape ([60e72ac](https://github.com/lgriffin/ESI.ts/commit/60e72acf3a4c9c225b54e093ae51490cd2123f24))
 
 ## [10.2.1](https://github.com/lgriffin/ESI.ts/compare/v10.2.0...v10.2.1) (2026-09-19)
 
@@ -68,9 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Testing
 
 * **logger:** drop logFatal and logTrace from the export-coverage baseline ([e7fd0e6](https://github.com/lgriffin/ESI.ts/commit/e7fd0e6e8d9c05e70084cd401e49190ff1042cfa))
-* **logger:** kill every logger and util mutant ([9598d31](https://github.com/lgriffin/ESI.ts/commit/9598d317eadc5e12b00787a652f77099471ee7b1))
 * **logger:** kill every logger and util mutant, and hold logger at 100 ([ad42937](https://github.com/lgriffin/ESI.ts/commit/ad4293716552da85ae3a44b93d764d35ac85da42))
-* **pagination:** kill every pagination mutant ([6bff401](https://github.com/lgriffin/ESI.ts/commit/6bff40181e3bcbb4dd1afd6d8ed87b261f565ef9))
 * **pagination:** kill every pagination mutant ([cd15995](https://github.com/lgriffin/ESI.ts/commit/cd1599586e077cec6f534fec6bf608be46996bd3))
 
 ## [10.2.0](https://github.com/lgriffin/ESI.ts/compare/v10.1.1...v10.2.0) (2026-09-19)
@@ -78,21 +67,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* **release:** attach a signed CycloneDX SBOM to each release ([bf6c045](https://github.com/lgriffin/ESI.ts/commit/bf6c0458b81fc9123ca29f712db8a89948e2b382))
 * **release:** attach a signed CycloneDX SBOM to each release ([1e29d7d](https://github.com/lgriffin/ESI.ts/commit/1e29d7de39237ecd250dcac3ef90da54a9c52df3))
 
 
 ### Testing
 
 * **contract:** re-record ESI payloads whose shape changed ([2ea4198](https://github.com/lgriffin/ESI.ts/commit/2ea4198d8832d12618e9f9a9da0720ffb9b07f55))
-* **contract:** recorded ESI payloads changed shape ([06fa27a](https://github.com/lgriffin/ESI.ts/commit/06fa27ab0516af9f9d450059cb0cb3fcd6463345))
 
 ## [10.1.1](https://github.com/lgriffin/ESI.ts/compare/v10.1.0...v10.1.1) (2026-09-18)
 
 
 ### Documentation
 
-* **mutation:** record the first complete sharded run, and fix what it exposed ([7acf195](https://github.com/lgriffin/ESI.ts/commit/7acf1950d5781dad571e2f79e52d03324683f7bd))
 * **mutation:** record the first complete sharded run, and fix what it exposed ([3209241](https://github.com/lgriffin/ESI.ts/commit/32092415c551cbc7cc75266fa7158ab884040aad))
 
 ## [10.1.0](https://github.com/lgriffin/ESI.ts/compare/v10.0.0...v10.1.0) (2026-09-18)
@@ -100,15 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* **dedupe:** detach in-flight reads of a path a write has just changed ([0339db7](https://github.com/lgriffin/ESI.ts/commit/0339db70d2cd34827c5575f1d731006fa1500ea0))
 * **dedupe:** detach in-flight reads of a path a write has just changed ([e3a3d91](https://github.com/lgriffin/ESI.ts/commit/e3a3d91d2ef74759245cd43affb2e109040bf221))
-* **release:** verify what npm serves, not only what CI built ([999125c](https://github.com/lgriffin/ESI.ts/commit/999125cd2c167410cdba7f35590afe6b5fa025d8))
 * **release:** verify what npm serves, not only what CI built ([281e008](https://github.com/lgriffin/ESI.ts/commit/281e008d9fd65e45619f73c6abeb7a48dbc70831))
 
 
 ### Fixed
 
-* add the composition and concurrency test tier and fix the five pipeline races it found ([c7a7642](https://github.com/lgriffin/ESI.ts/commit/c7a764213ebc34fc47bd8396863b4f8f7938f4a1))
 * **bdd:** escape backslashes in the job summary's table cells ([751d098](https://github.com/lgriffin/ESI.ts/commit/751d098f4d2fa81c86c80e7a8e8221991c81495d))
 * **benchmark:** keep the harness filter a substring and gate the soak heap trend on Node 20 ([d559157](https://github.com/lgriffin/ESI.ts/commit/d5591576dcdb2823a7df8e2692597b7fc92575fe))
 * **cache:** do not store a read that a write overtook while it was in flight ([e2f3141](https://github.com/lgriffin/ESI.ts/commit/e2f3141b2a4713bf4a46c2ea58ad42e02bc40814))
@@ -118,13 +101,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **circuit-breaker:** count the call that opens half-open as the first probe ([b418625](https://github.com/lgriffin/ESI.ts/commit/b418625bbf7ade64217fde9970bd76229dbb8ffd))
 * **circuit-breaker:** keep an open circuit open when an earlier call succeeds ([03b27a5](https://github.com/lgriffin/ESI.ts/commit/03b27a5e1e641ddcf015f5e08f1420966c60b4ce))
 * **ci:** read the attw report from a file so CI gets the whole JSON ([dac266d](https://github.com/lgriffin/ESI.ts/commit/dac266d5ec13b5bb2ba13a0a6f7a94b25da0ba0c))
-* **dedupe:** key in-flight requests by identity as well as endpoint ([5bab05c](https://github.com/lgriffin/ESI.ts/commit/5bab05c85cfb8067baecffd8e740f6c1c27b6629))
 * **dedupe:** key in-flight requests by identity as well as endpoint ([5d662d9](https://github.com/lgriffin/ESI.ts/commit/5d662d9699aab9f9bb34af93a8fb5809a02ccde6))
-* five defects found by new model-based property tests (circuit breaker, pagination cache, backoff) ([80fcafa](https://github.com/lgriffin/ESI.ts/commit/80fcafa5bb99aed93348c30722c090e526b85fb7))
-* **generate:** generate from the compatibility date the client actually sends ([ff781bd](https://github.com/lgriffin/ESI.ts/commit/ff781bd54777b2c3fda5189772e431e4d9de3657))
 * **generate:** generate from the compatibility date the client actually sends ([5ea4a2f](https://github.com/lgriffin/ESI.ts/commit/5ea4a2fe0891bcba5c3d08171bb3d858639ea3f4))
 * **mutation:** escape backslashes in the job summary table cells ([9ab23fa](https://github.com/lgriffin/ESI.ts/commit/9ab23fa685f68288b138dad749aed9bf871c215f))
-* **package:** ship ES module declarations for the import condition ([2090682](https://github.com/lgriffin/ESI.ts/commit/20906829b64a093e8d66e2b6890cf2bbadb012c7))
 * **package:** ship ES module declarations for the import condition ([d53fe91](https://github.com/lgriffin/ESI.ts/commit/d53fe914a156faad1835c1e748cd500254e57b69))
 * **pagination:** cache an authenticated paginated result under the token-scoped key ([23313ff](https://github.com/lgriffin/ESI.ts/commit/23313ff95cf45a043ce2c27ea61d483969701366))
 * **pagination:** never revalidate page 1 alone when a later page exhausts its retries ([8c48085](https://github.com/lgriffin/ESI.ts/commit/8c48085366af3eeb278be8bf033b45e53d353962))
@@ -133,11 +112,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **rate-limiter:** honour Retry-After given as an HTTP date ([1fb7cba](https://github.com/lgriffin/ESI.ts/commit/1fb7cba9a6b553f969fa2466f181018102d63bf3))
 * **rate-limit:** keep the error-limit back-off when a late response reports budget left ([1c7279b](https://github.com/lgriffin/ESI.ts/commit/1c7279b9223702e64943e71bef3278488b4762d6))
 * **release:** keep the canary off the shared npm cache ([8604246](https://github.com/lgriffin/ESI.ts/commit/86042464188ec6603f681d5564984275acd40866))
-* **release:** publish the tarball that was tested and signed ([8c7c25f](https://github.com/lgriffin/ESI.ts/commit/8c7c25f77413349eca764f542015e944a55f738f))
 * **release:** publish the tarball that was tested and signed ([c4ac638](https://github.com/lgriffin/ESI.ts/commit/c4ac6389a1844ddddc37fb7d380377e296e90ba1))
 * **retry:** return a zero backoff instead of NaN past attempt 1023 ([ae36c02](https://github.com/lgriffin/ESI.ts/commit/ae36c022ce2c05fc33474110a801bd9121cb2438))
 * **retry:** serve a retry from a fresh cache entry a concurrent call stored ([de5f7ee](https://github.com/lgriffin/ESI.ts/commit/de5f7eee75b89a45bbbe8e909462145ea805fba1))
-* **type-mutation:** resolve entry points whose types sit under a condition ([1dd356d](https://github.com/lgriffin/ESI.ts/commit/1dd356d7874ecad0ff5b81a2f56695f408b0ad93))
 * **type-mutation:** resolve entry points whose types sit under a condition ([330c69e](https://github.com/lgriffin/ESI.ts/commit/330c69e78b7854e6a7a9718fa2ce0fff4257c3ef))
 * **types:** escape backslashes before pipes in the type mutation survivor table ([8d7d4de](https://github.com/lgriffin/ESI.ts/commit/8d7d4de6278cd968070c0c58f3e5e781815ad512))
 
@@ -145,22 +122,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * **bdd:** share the feature outline and feature bindings ([f75f261](https://github.com/lgriffin/ESI.ts/commit/f75f261958addd53fb22571ac649de9153b8cdab))
-* **ci:** lint the packed tarball and budget each exports sub-path's size ([63c5f26](https://github.com/lgriffin/ESI.ts/commit/63c5f26d19236d6ab397e5e95b5d3ee3328aead9))
 * **ci:** run the properties nightly at 10000 runs and document the tier ([06c79d2](https://github.com/lgriffin/ESI.ts/commit/06c79d268c85cd654d8f8e48b6b93ceb4d2cfc5d))
 * **ci:** sample four overlapping calls nightly in seeded random order ([510b940](https://github.com/lgriffin/ESI.ts/commit/510b940f2cdf10abdbaaa38097f289143d7bf307))
-* **lint:** lint tests/ for focused, skipped, assertion-free and silenced tests ([9bdf6bf](https://github.com/lgriffin/ESI.ts/commit/9bdf6bf174fe0476a213389ca4103fe90b00898c))
-* **scripts:** check that every npm script points at a file that exists ([7b1fe81](https://github.com/lgriffin/ESI.ts/commit/7b1fe81b2cc52ac958a34490fdcd445eb57b2528))
 * **scripts:** check that every npm script points at a file that exists ([55b03c7](https://github.com/lgriffin/ESI.ts/commit/55b03c77f0b6d636b7ec6ce6837f2bf642cb48c9))
-* **scripts:** run every offline CI tier locally with one command ([14fc738](https://github.com/lgriffin/ESI.ts/commit/14fc738a13e5a8e6c782b032c708e46243b66087))
 * **scripts:** run every offline CI tier locally with one command ([31197ac](https://github.com/lgriffin/ESI.ts/commit/31197accc81750b20a7412421e7b9e3ada57f9c6))
 
 
 ### Documentation
 
-* **agents:** pin the semver rules against drift, and fix a retired config reference ([52ad44f](https://github.com/lgriffin/ESI.ts/commit/52ad44fa6e79018d21d0fafac6c98ab42117fe44))
 * **agents:** pin the semver rules against drift, and fix a retired config reference ([d2af258](https://github.com/lgriffin/ESI.ts/commit/d2af258aa7a2d82a12eb56a014432f1d14c1a558))
 * **bdd:** document the execution check, bug tags and when a Rule is protection ([fa0be02](https://github.com/lgriffin/ESI.ts/commit/fa0be0281996fd5e7fadeffcadbece5c81299b59))
-* **contract:** name the real reason those endpoints cannot be recorded ([1b864da](https://github.com/lgriffin/ESI.ts/commit/1b864da3c9688833cf90ac748acb775f135d39b5))
 * **contract:** name the real reason those endpoints cannot be recorded ([b8ea80d](https://github.com/lgriffin/ESI.ts/commit/b8ea80d3861813490fe012fcc1abda57bdce5485))
 * declare TypeScript 5.4 as the oldest supported version ([f9e5f66](https://github.com/lgriffin/ESI.ts/commit/f9e5f66c4a3065ac82d8f0dab809b44d931e2a0a))
 * describe the benchmark and heap soak tier ([f28cc2c](https://github.com/lgriffin/ESI.ts/commit/f28cc2c9d74115ebffce382a27ed362d96e5401a))
@@ -174,46 +145,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Testing
 
 * **bdd:** let the transport seam fail an exchange the way a network does ([8f0a7a9](https://github.com/lgriffin/ESI.ts/commit/8f0a7a9d9eb4dc9c7eeb9a2ffe1d958ca64d7f2f))
-* **bdd:** prove every scenario executes, name JUnit cases by Rule, and link [@bug](https://github.com/bug) to a tracker ([752de4c](https://github.com/lgriffin/ESI.ts/commit/752de4caa193c8fbb6d4f6d79de2a54fc071a46f))
 * **bdd:** report every scenario by Rule and fail when one did not run ([b04a2d7](https://github.com/lgriffin/ESI.ts/commit/b04a2d7818754cd3daa1b504ed17d2fe1af4bd23))
 * **bdd:** state what the performance scenarios verify, not a latency budget ([12b4461](https://github.com/lgriffin/ESI.ts/commit/12b44616b7b2f7e59cac06fc27e1d9eaed797815))
 * **benchmark:** decide regressions statistically, not by percentage ([a3da1f8](https://github.com/lgriffin/ESI.ts/commit/a3da1f875fd2853e4312b41b2a3aaa799f49db9b))
 * **benchmark:** measure the client hot paths with a mitata harness ([307b978](https://github.com/lgriffin/ESI.ts/commit/307b97850e4d5127b1572b6bed9313dcee17b698))
 * **benchmark:** soak the pipeline for 100 000 requests and watch the heap ([34ab5ec](https://github.com/lgriffin/ESI.ts/commit/34ab5eca8c4918ee9f1147e0ff41318078e81d43))
-* **benchmark:** statistical benchmark comparison, heap soak and a smoke-only latency spec ([1c62567](https://github.com/lgriffin/ESI.ts/commit/1c625674c1befaa90bf39438f931e16f15eb4119))
 * **composition:** add a deterministic interleaving scheduler at the transport seam ([9ebbedb](https://github.com/lgriffin/ESI.ts/commit/9ebbedbc0935e3351e3fad55f56984cf9ea0d457))
 * **composition:** escape backslashes in the printed reproduce command ([d96de7b](https://github.com/lgriffin/ESI.ts/commit/d96de7ba999268d0438661d67b407e8df945d86b))
 * **composition:** explore retry inside an opening circuit and stale-on-error during a refresh ([309658d](https://github.com/lgriffin/ESI.ts/commit/309658d9490261e7eef84b5a6de1da12e16e161a))
 * **composition:** explore three overlapping calls on PRs and four nightly ([4122f14](https://github.com/lgriffin/ESI.ts/commit/4122f14693ed1927f957836304999db42078393e))
 * **consumer:** check the tarball as a matrix of consumer cells ([81c0cd0](https://github.com/lgriffin/ESI.ts/commit/81c0cd0cd97f548b35266991aad7c1ec805a233d))
 * **consumer:** stop esbuild once the tree-shaking check has run ([9e9bea3](https://github.com/lgriffin/ESI.ts/commit/9e9bea30affcc0fdd73a015c9cb516f8b3d79144))
-* **consumer:** widen the consumer contract to a Node x TypeScript x resolution matrix ([14880dd](https://github.com/lgriffin/ESI.ts/commit/14880dd5e341ec66f0871d5fadd5092e1e681b52))
-* **contract:** assert replay failures through named helpers the lint knows ([48cd863](https://github.com/lgriffin/ESI.ts/commit/48cd863d5f74d0ea38c42f3bf2b60cdc236bcde9))
 * **contract:** assert replay failures through named helpers the lint knows ([53e4b03](https://github.com/lgriffin/ESI.ts/commit/53e4b032ba437a71841086ec68541ea9fa78f295))
 * **contract:** re-record ESI payloads whose shape changed ([bfe9af5](https://github.com/lgriffin/ESI.ts/commit/bfe9af5bb1ef26b639c5f836446633d7fb76a924))
 * **contract:** re-record ESI payloads whose shape changed ([1f1be53](https://github.com/lgriffin/ESI.ts/commit/1f1be53fdec4f2a42ba260d5113c3e85d4dc0a4c))
-* **contract:** record public ESI payloads and replay them through the client pipeline ([60d897e](https://github.com/lgriffin/ESI.ts/commit/60d897e45f845bb729cda580730412c5bb2d4ecb))
 * **contract:** record sanitised public ESI payloads as fixtures ([d08cae6](https://github.com/lgriffin/ESI.ts/commit/d08cae62d9dc09ca86f773602641f89363044c69))
-* **contract:** recorded ESI payloads changed shape ([184d67f](https://github.com/lgriffin/ESI.ts/commit/184d67f781e32c6be8763eb93ef8a4ffa293c509))
-* **contract:** recorded ESI payloads changed shape ([6d1bbe8](https://github.com/lgriffin/ESI.ts/commit/6d1bbe83f3ecd2239b3abffe5df472b2b02ccdfe))
 * **contract:** replay recorded ESI payloads through the client pipeline ([ee8f0df](https://github.com/lgriffin/ESI.ts/commit/ee8f0dff5dd527ad089d77c5246456f48fa08c9b))
-* **docs:** type-check documentation examples against the packed package ([7746ada](https://github.com/lgriffin/ESI.ts/commit/7746ada98d04b8af72a005cc3645efc205e83cc3))
 * **faults:** add a 400 served while the cache holds an entry ([d85b4fb](https://github.com/lgriffin/ESI.ts/commit/d85b4fba2c2e496337b46f3dce6ff1974870775e))
 * **faults:** add a status the client has no text for, without a reason phrase ([1fe646a](https://github.com/lgriffin/ESI.ts/commit/1fe646a526ece7434966e0211c4a933071aad0b5))
 * **faults:** add a transport fault catalogue run through the real pipeline ([1f5f055](https://github.com/lgriffin/ESI.ts/commit/1f5f055c2721cb7da9e67518d6237425b599e980))
 * **faults:** assert through the helpers the suite-health lint knows ([0064539](https://github.com/lgriffin/ESI.ts/commit/0064539656221bdd30e1b0559da5d9854ee88e5c))
-* **faults:** drop the x-pages gap the pagination fix closed ([6e367d6](https://github.com/lgriffin/ESI.ts/commit/6e367d6f1b6f6e864654384ba656cb00b709efa2))
 * **faults:** drop the x-pages gap the pagination fix closed ([2f89d91](https://github.com/lgriffin/ESI.ts/commit/2f89d919c531c2b06f1eb41539e4c5ed71f4297a))
-* **faults:** fault injection and fuzzing tier (transport fault catalogue) ([e3cee50](https://github.com/lgriffin/ESI.ts/commit/e3cee50f55a9f4c75b3d73569c55b1a608580acf))
 * **faults:** fuzz every endpoint's payloads from its Zod schema nightly ([49dc045](https://github.com/lgriffin/ESI.ts/commit/49dc045d33fb538483e046c1c525d1982c7a0512))
 * **fuzz:** model-based properties with a vacuity check for every property ([d2890ab](https://github.com/lgriffin/ESI.ts/commit/d2890ab5b6e1b9de690b6ba4ac7c08d8e33af253))
 * **fuzz:** require eager pagination repeat calls to come from the cache ([cc57bc8](https://github.com/lgriffin/ESI.ts/commit/cc57bc8507f76af3614ddfc8441b6172fcde73d1))
 * **fuzz:** respell all occurrences in cache-key lookalikes; ratchet export baseline ([1554338](https://github.com/lgriffin/ESI.ts/commit/155433898d56a6f52055f13f4847cf5ca025c56d))
 * **mutation:** gate changed files per directory and prove the gate can fail ([c9a1b44](https://github.com/lgriffin/ESI.ts/commit/c9a1b4436643d529d30049eceaad8fb088a9b029))
-* reference the exports v10 added and drop ContractBid from the export baseline ([dcb2081](https://github.com/lgriffin/ESI.ts/commit/dcb208160d195fef9cbfe226c61c9cc16a9c187d))
 * reference the exports v10 added and drop ContractBid from the export baseline ([2633694](https://github.com/lgriffin/ESI.ts/commit/26336943d3897e1a8af85b82d0f9cc5754f54b75))
 * **spec-audit:** require a tracker tag beside every [@bug](https://github.com/bug) ([04ad7a0](https://github.com/lgriffin/ESI.ts/commit/04ad7a00ed0e1b009c39db799740b2e32bbbcaa0))
-* **types:** mutate the built declarations nightly and ratchet the tsd kill score ([5d0a8a8](https://github.com/lgriffin/ESI.ts/commit/5d0a8a8c3ba32ac383e01de768040ac9d075bd64))
 
 ## [10.0.0](https://github.com/lgriffin/ESI.ts/compare/v9.9.0...v10.0.0) (2026-09-17)
 
@@ -392,10 +351,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* **auth:** add EsiTokenManager with pluggable storage and bulk refresh ([1b6ca0a](https://github.com/lgriffin/ESI.ts/commit/1b6ca0a1bb7c460e74b26ee753660f1ee20342b0))
 * **auth:** add EsiTokenManager with pluggable storage and bulk refresh ([91de317](https://github.com/lgriffin/ESI.ts/commit/91de317460b229547eb6fcbc78edd31582e6448d)), closes [#185](https://github.com/lgriffin/ESI.ts/issues/185) [#187](https://github.com/lgriffin/ESI.ts/issues/187)
-* **logging:** per-client structured logging, engineering charter, release 9.9.0 ([ca9773b](https://github.com/lgriffin/ESI.ts/commit/ca9773bc9106741f9400690e4a14dbc6d39168fa))
-* ramp-up phases 1, 3, 4 and 5 — load-bearing spec, CI gate, agent governance ([8453187](https://github.com/lgriffin/ESI.ts/commit/8453187e836dedcefc1d686a8371e19835c97bd2))
 * **skills:** gate ears-gherkin-dev changes with an eval suite ([18865c8](https://github.com/lgriffin/ESI.ts/commit/18865c8848cde16b7243f3f17b60b270a98f3cca))
 * **spec-consistency:** check Rule titles against response schemas ([eb4ed10](https://github.com/lgriffin/ESI.ts/commit/eb4ed105c28e33814cffb8bcdae9689cd6b74f6c))
 
@@ -404,14 +360,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * **auth:** address review findings on SSO exchange, refresh races and storage ([e8172f1](https://github.com/lgriffin/ESI.ts/commit/e8172f1efd781040bffc0a29ecca683fd61aeba6))
 * **build:** let release-please bump PACKAGE_VERSION ([8ef9c19](https://github.com/lgriffin/ESI.ts/commit/8ef9c1994671891a67be438c5efd0cc2b4f5ffba))
-* **build:** share one copy of each class across sub-path entries ([8110d73](https://github.com/lgriffin/ESI.ts/commit/8110d73cfd7016aebfe9bed5a85aed84fc12dec7))
 * **build:** share one copy of each class across sub-path entries ([2f0ec0a](https://github.com/lgriffin/ESI.ts/commit/2f0ec0aa73051615a2bad3ed3a42c0e952c98d97))
 * **cache:** evict a response body that fails schema validation ([22b0d0b](https://github.com/lgriffin/ESI.ts/commit/22b0d0b31276bf6526d52eb9ad3c7db43d3b8d7e))
 * **cache:** evict cached reads after writes answered with 201 or 204 ([7e41381](https://github.com/lgriffin/ESI.ts/commit/7e413819ceaa591d961c254124fb4b4f25d16288))
-* **cache:** keep entries an hour past their freshness TTL for stale-on-error ([e4f7e9a](https://github.com/lgriffin/ESI.ts/commit/e4f7e9a9dfe09afc7aead67d7810fd677de9bc47))
 * **cache:** keep entries an hour past their freshness TTL for stale-on-error ([fec657d](https://github.com/lgriffin/ESI.ts/commit/fec657d28b4806a1ba6bddd04a722065bd247523))
 * **ci:** publish releases created by release-please and sign with cosign bundles ([befc639](https://github.com/lgriffin/ESI.ts/commit/befc6392f347dbd2f9c76c1fd76af96ccfd76083))
-* **ci:** unblock the v10.0.0 release: drift baseline, version marker, dispatchable publish, cosign bundles ([5271515](https://github.com/lgriffin/ESI.ts/commit/527151572053fb07ff9690b603743e7a65806efd))
 * **contracts:** give public bids and items their spec shape; require acceptor ([3ab3198](https://github.com/lgriffin/ESI.ts/commit/3ab31987abbd64acb578af92fc1dcaaf13ea9d0b))
 * **corporation-projects:** match project schemas, types and methods to ESI ([afa7e8f](https://github.com/lgriffin/ESI.ts/commit/afa7e8ff37a24395beb591e7698da25a6cf1dee7))
 * **corporation:** match medals, role history, starbases, titles and tracking to ESI ([16ee3d7](https://github.com/lgriffin/ESI.ts/commit/16ee3d7c3f0c96022abe3e861358e13526a3f739))
@@ -423,8 +376,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **mail:** split mail headers from the full message and type its read flag ([600472b](https://github.com/lgriffin/ESI.ts/commit/600472baeebc741a172460ab6cc03721a9327c6d))
 * **meta:** give getStatus the per-route shape ESI sends ([7b72f40](https://github.com/lgriffin/ESI.ts/commit/7b72f40a44205d94a7b708e83f15795c5a00625c))
 * **mutation:** satisfy noUncheckedIndexedAccess in the ratchet script ([07ae337](https://github.com/lgriffin/ESI.ts/commit/07ae337107001ec3cdff319edc35a0bc190c65c6))
-* ramp-up phase 6 — library safety gates and a validation cache fix ([a2629ad](https://github.com/lgriffin/ESI.ts/commit/a2629ada8d7cb1b896211f6762f185ef46667359))
-* **release:** tag releases vX.Y.Z and start the changelog at 9.9.0 ([2067882](https://github.com/lgriffin/ESI.ts/commit/2067882e9920e60d3e3b5bda3d373187671baa30))
 * **release:** tag releases vX.Y.Z and start the changelog at 9.9.0 ([15e62d6](https://github.com/lgriffin/ESI.ts/commit/15e62d66a742325ef05b90aeb3c590fa1b2c661e))
 * **schemas:** require fleet boss, customs office access flags and system position ([00fff7c](https://github.com/lgriffin/ESI.ts/commit/00fff7c06d946043e833833894f9f885093393c5))
 * **schemas:** require vip, contract status and availability as ESI does ([24c8c35](https://github.com/lgriffin/ESI.ts/commit/24c8c35de56e92ceb821383808cc2359acfb6659))
@@ -432,12 +383,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **scripts:** drop drift baseline entries resolved by v10 part 2 ([1c54a30](https://github.com/lgriffin/ESI.ts/commit/1c54a3098d591c06479b3baee83c9efe23c3ea51))
 * **scripts:** drop the 83 drift baseline entries [#317](https://github.com/lgriffin/ESI.ts/issues/317) resolved ([2cb7d18](https://github.com/lgriffin/ESI.ts/commit/2cb7d18779d70ecddff6b814715a50a2af5f7953))
 * **scripts:** make schema:drift compare what it reports ([3dc4c53](https://github.com/lgriffin/ESI.ts/commit/3dc4c532d61fe100e842fda7d25f16093d19fe41))
-* **scripts:** make schema:drift compare what it reports, with a ratcheted baseline ([7f428f9](https://github.com/lgriffin/ESI.ts/commit/7f428f926ca5b4e6ce43ef2dd626578409c1552c))
-* **sde:** load js-yaml and adm-zip lazily as optional peer dependencies ([22afdce](https://github.com/lgriffin/ESI.ts/commit/22afdce1cabc9c6bbe860b14194222c3c9e39872))
 * **sde:** load js-yaml and adm-zip lazily as optional peer dependencies ([526587b](https://github.com/lgriffin/ESI.ts/commit/526587beb77612daaf77e7c2da581fa21cf7ce69))
-* **sde:** read nested _sde.yaml metadata from ZIP archives ([1f46860](https://github.com/lgriffin/ESI.ts/commit/1f46860834a6ab9f9e4320f9eee8259e1d2b8931))
 * **sde:** read nested _sde.yaml metadata from ZIP archives ([13d04cb](https://github.com/lgriffin/ESI.ts/commit/13d04cbc3ce74b431f94688ad293163a97f29489))
-* **spec-audit:** close five holes that let a non-compliant spec pass ([9106978](https://github.com/lgriffin/ESI.ts/commit/910697878270e34450af40431b90d9fa605b94b9))
 * **spec-audit:** close five holes that let a non-compliant spec pass ([df06b64](https://github.com/lgriffin/ESI.ts/commit/df06b64cd1a116c885627240931fb734954e7b2f))
 * **spec-audit:** load Cucumber through dynamic import so the audit runs on Node 18 ([4f0f819](https://github.com/lgriffin/ESI.ts/commit/4f0f819262aa7d7f0de70bbcdfbc4b143d3b2cde))
 * **spec-audit:** split the pure checks out so Jest can load them ([34100d7](https://github.com/lgriffin/ESI.ts/commit/34100d77101bc1d2d4c5998b1cf70b69dbeeef9d))
@@ -460,14 +407,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **ci:** require a breaking-change commit when the public API report loses a line ([6363b31](https://github.com/lgriffin/ESI.ts/commit/6363b3139c40a8881fbcf3cce0a919d3fef14130))
 * **ci:** run schema drift against its ratcheted baseline ([e113851](https://github.com/lgriffin/ESI.ts/commit/e1138514a174bf31f97e9303bb74c7e1e2cbcda2))
 * **deps:** add a Dependabot cooldown for npm and GitHub Actions updates ([f595daa](https://github.com/lgriffin/ESI.ts/commit/f595daa66c0a68fe83d220694cc6d88d71cc3a2e))
-* **deps:** bump @cucumber/gherkin from 28.0.0 to 42.0.1 ([899f128](https://github.com/lgriffin/ESI.ts/commit/899f128fbd230a81ea2613e558e16bb8ff05f28b))
-* **deps:** bump @cucumber/messages from 24.1.0 to 34.2.1 ([bc563d4](https://github.com/lgriffin/ESI.ts/commit/bc563d4d3afedaa5ab1d914fa2afccb0486636da))
 * **deps:** bump @cucumber/messages from 24.1.0 to 34.2.1 ([bf2414d](https://github.com/lgriffin/ESI.ts/commit/bf2414d8add5b0b872db7da21b0218a7f2cce742))
-* **deps:** bump the minor-and-patch group with 7 updates ([7039ca7](https://github.com/lgriffin/ESI.ts/commit/7039ca7a64dae5013eb426e63905dcd36af9bf8e))
 * **deps:** bump zod to 4.6.4 and js-yaml to 5.4.2 ([09dd9f0](https://github.com/lgriffin/ESI.ts/commit/09dd9f03888962f823f194bf7ae88ec1b6a276ca))
-* **deps:** bundle Dependabot updates (zod, js-yaml, codeql-action) ([ea7a211](https://github.com/lgriffin/ESI.ts/commit/ea7a2113e24f90ecc3a5591bff8a23eb8b2ee5f4))
 * **lint:** load the seam lint parser from the listed typescript-eslint package ([c87e31b](https://github.com/lgriffin/ESI.ts/commit/c87e31bd9183406838f7fbbfa7f2b984f4527d41))
-* **lint:** ratchet wall-clock, timer and Math.random use in src/ ([8a9fb4f](https://github.com/lgriffin/ESI.ts/commit/8a9fb4fb5018c5744e57ab82f1107bdb455cdd50))
 * **lint:** ratchet wall-clock, timer and Math.random use in src/ ([37ede1d](https://github.com/lgriffin/ESI.ts/commit/37ede1d541aa1ffad4998ef9c870ef15d75b210c))
 * **scripts:** move the schema drift comparison into a testable core ([ba293c1](https://github.com/lgriffin/ESI.ts/commit/ba293c1f47a209161402103f924b3dc154a4bada))
 * **scripts:** plain plurals in the schema drift ratchet messages ([99724b8](https://github.com/lgriffin/ESI.ts/commit/99724b8b578e30c858b4d3ac676d8abfa5c36477))
@@ -481,11 +423,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **bdd:** state which leg carries the 100ms latency in the fan-out Rule ([b7ac123](https://github.com/lgriffin/ESI.ts/commit/b7ac123faff9b1d36919affea8ee8d5c0ebc893a))
 * **guides:** describe ci-success, the live tier guard, cooldown and the no-retry nightly ([605333b](https://github.com/lgriffin/ESI.ts/commit/605333b8a745a02153fc1fa810edea35f34d2aaf))
 * **guides:** document the seam lint and the BDD-only mutation ratchet ([9d228ad](https://github.com/lgriffin/ESI.ts/commit/9d228ad549ef2c8b542eb9247bff3ebe9f8591fb))
-* **guides:** write the charter guides and retire docs/ ([8ffb88f](https://github.com/lgriffin/ESI.ts/commit/8ffb88f471e5259ad8f31fdee67ca1624194078e))
 * **guides:** write the charter guides and retire docs/ ([5b61eaa](https://github.com/lgriffin/ESI.ts/commit/5b61eaa41929efadf5a7233a922adc7202fd4dde))
 * **quality-gates:** document schema drift matching, guard and baseline ([ccb1ce1](https://github.com/lgriffin/ESI.ts/commit/ccb1ce10d45c29f4c820f7c8de6779c5afb5669d))
 * **sde:** document js-yaml and adm-zip as optional peer dependencies ([d8d8843](https://github.com/lgriffin/ESI.ts/commit/d8d884364f997d91c1bdc2d540a9170939af3832))
-* **semver:** add a semantic versioning guide and enforce it in CLAUDE.md ([48fedaa](https://github.com/lgriffin/ESI.ts/commit/48fedaa8fdac0ddba5326dc89b31e6b781cb68a2))
 * **semver:** add a semantic versioning guide and enforce it in CLAUDE.md ([87d391b](https://github.com/lgriffin/ESI.ts/commit/87d391b14633262c4b58e1eb3b24af1f22cbe10c))
 
 
@@ -495,12 +435,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **bdd:** add a runner-agnostic step library and a Jest binder ([d16b169](https://github.com/lgriffin/ESI.ts/commit/d16b1696078ad2658257777c854d8c09e2eb3b66))
 * **bdd:** add the HTTP transport seam and ban client-method mocks ([1112b81](https://github.com/lgriffin/ESI.ts/commit/1112b815b59eba99a846f21a3104cd7b1ace57e4))
 * **bdd:** assert only what the reconciled Rules promise ([3366028](https://github.com/lgriffin/ESI.ts/commit/336602818ec8544eb024f43bc93036e4b88149ac))
-* **bdd:** convert access-lists, alliance, clones, cosmetics, dogma, insurance, meta and route to one step per file ([8117957](https://github.com/lgriffin/ESI.ts/commit/81179572c97f7d61bbc37427de0634f576b949a6))
-* **bdd:** convert wars, killmails, wallet, mail and universe to one step per file ([997bc63](https://github.com/lgriffin/ESI.ts/commit/997bc63df4d71c7a6a52ee47551fc968ef250043))
 * **bdd:** move every domain step file onto the transport seam ([538fdee](https://github.com/lgriffin/ESI.ts/commit/538fdee76aaea55df56a7f939ef8e1a4c6a22545))
 * **bdd:** name the access-list 401 scenario for the token it uses ([41ef2cd](https://github.com/lgriffin/ESI.ts/commit/41ef2cd24f2159b1eb33b9c7aab1f7bbef990fe5))
 * **bdd:** name two converted steps for the domain they assert ([602c0f9](https://github.com/lgriffin/ESI.ts/commit/602c0f9a46211cd2f2158d63fb25bef8f59f9439))
-* **bdd:** ramp-up phase 2 — one step per file on a Jest step library, with a dry run ([a9a154d](https://github.com/lgriffin/ESI.ts/commit/a9a154d83f0ff55ae3d4dc8d760eff42695a4e13))
 * **bdd:** send 204, 205 and 304 through the seam with no body ([643ab69](https://github.com/lgriffin/ESI.ts/commit/643ab69c98850ff3c5bf0c5be3581cbf43ccd4ef))
 * **bdd:** split the access-lists steps into one file per step ([3eedda5](https://github.com/lgriffin/ESI.ts/commit/3eedda58fdf3962537e545ab800df83be479284a))
 * **bdd:** split the alliance steps into one file per step ([49c6068](https://github.com/lgriffin/ESI.ts/commit/49c6068ffb7f6121253998cb6c194f6643637e06))
@@ -524,10 +461,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **consumer:** install the packed tarball into a clean consumer and run it ([517ce18](https://github.com/lgriffin/ESI.ts/commit/517ce18d1e023ea72b028e73caa56d686cbc0fd9))
 * **consumer:** load SDE metadata nested under sde: in the optional-peers probe ([8375d14](https://github.com/lgriffin/ESI.ts/commit/8375d1440ab4870aba8ba51b65fd7ecc8cdd34d4))
 * **etag-cache:** specify stale-on-error over HTTP ([ded4537](https://github.com/lgriffin/ESI.ts/commit/ded45377795087318e438a1315d0a41e096089eb))
-* **export-coverage:** fail when a public export has no test referencing it ([c6920ce](https://github.com/lgriffin/ESI.ts/commit/c6920ceea24a2b9aa574a267bc61e620a103b8bd))
 * **export-coverage:** report public exports that no test references ([ff5bf1f](https://github.com/lgriffin/ESI.ts/commit/ff5bf1f2f43d7221874c2b546b8f543a6bb7b5b0))
 * **fuzz:** inject schema-violating ESI bodies through the transport seam ([e4cd35d](https://github.com/lgriffin/ESI.ts/commit/e4cd35dce60e643996a3368c1fda8b5b229ecfc9))
-* make client suites order-independent and randomise the nightly no-retry run ([02e9b77](https://github.com/lgriffin/ESI.ts/commit/02e9b770981f3caaa2a5b349406c8dbfeb263fa7))
 * make the live integration and contract tiers fail loudly without ESI_LIVE_TESTS ([79aee8b](https://github.com/lgriffin/ESI.ts/commit/79aee8b3b9a47917d16aa8a1a09a55f814532535))
 * **mutation:** add a BDD-only Stryker run with a per-directory ratchet ([c47dde1](https://github.com/lgriffin/ESI.ts/commit/c47dde17ecff0d196c4c03d88a92faf062c4b641))
 * **resilience:** specify retry classes, circuit states and dedupe over HTTP ([bf42a7a](https://github.com/lgriffin/ESI.ts/commit/bf42a7ac9bc0d6652dc2aa2b5d1d5c24e386f3a4))
