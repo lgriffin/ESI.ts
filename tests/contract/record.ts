@@ -248,10 +248,17 @@ async function recordOne(
       };
     }
 
-    // A text endpoint (meta/openapi.yaml) is stored as its string body.
-    const firstBody = endpoint.definition.textResponse
-      ? await first.text()
-      : ((await first.json()) as unknown);
+    // A text endpoint (meta/openapi.yaml) is stored as its string body. ESI
+    // can answer 200 with no body (an expired public contract's items), so
+    // an empty body moves on to the next ID like a 204 rather than aborting.
+    const firstText = await first.text();
+    if (firstText.trim() === '') {
+      lastReason = `HTTP 200 with an empty body for ${relative}`;
+      continue;
+    }
+    const firstBody: unknown = endpoint.definition.textResponse
+      ? firstText
+      : JSON.parse(firstText);
     const upstreamPages = Number(first.headers.get('x-pages') ?? '1') || 1;
     const raw: Array<{ url: string; response: Response; body: unknown }> = [
       { url: relative, response: first, body: firstBody },
