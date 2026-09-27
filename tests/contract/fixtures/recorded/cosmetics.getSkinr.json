@@ -1,0 +1,108 @@
+{
+  "endpoint": "cosmetics.getSkinr",
+  "call": {
+    "client": "cosmetics",
+    "method": "getSkinr",
+    "args": ["245b561c20476bb6a8a8bc5b3c2ca86afe1b91de02bf4d7f91620d7aebb49563"]
+  },
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specCacheSeconds": 31536000,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.layout.slots",
+      "kind": "array",
+      "original": 6,
+      "kept": 4
+    }
+  ],
+  "pages": [
+    {
+      "url": "cosmetics/skinr/245b561c20476bb6a8a8bc5b3c2ca86afe1b91de02bf4d7f91620d7aebb49563",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable, must-revalidate, stale-if-error=900",
+        "content-type": "application/json",
+        "etag": "W/\"cd0a4382e2fd0c49c92727a3b3f9903606f1ec24f11aa7b2c4edac84990d5c70\"",
+        "expires": "Mon, 27 Sep 2027 04:00:21 GMT",
+        "last-modified": "Wed, 23 Sep 2026 12:08:32 GMT"
+      },
+      "body": {
+        "id": "245b561c20476bb6a8a8bc5b3c2ca86afe1b91de02bf4d7f91620d7aebb49563",
+        "name": "Tor's Miasmos Hauler",
+        "creator_id": 2123610356,
+        "ship_type_id": 12743,
+        "tier": {
+          "level": 8
+        },
+        "layout": {
+          "slots": [
+            {
+              "id": 1,
+              "configuration": {
+                "nanocoating": {
+                  "id": 1787
+                }
+              }
+            },
+            {
+              "id": 2,
+              "configuration": {
+                "nanocoating": {
+                  "id": 205
+                }
+              }
+            },
+            {
+              "id": 3,
+              "configuration": {
+                "nanocoating": {
+                  "id": 1133
+                }
+              }
+            },
+            {
+              "id": 5,
+              "configuration": {
+                "pattern": {
+                  "id": 1923,
+                  "configuration": {
+                    "projection": {
+                      "slot1": true,
+                      "slot2": true,
+                      "slot3": true,
+                      "slot4": true
+                    },
+                    "transform": {
+                      "position": {
+                        "x": 0.1389770209789276,
+                        "y": 220.83375549316406,
+                        "z": 171.976806640625
+                      },
+                      "rotation": {
+                        "x": -0.23317213356494904,
+                        "y": -0.23373307287693024,
+                        "z": 0.6675485968589783,
+                        "w": -0.6673523783683777
+                      },
+                      "scaling": {
+                        "x": 47.5,
+                        "y": 47.5,
+                        "z": 47.5
+                      }
+                    },
+                    "mirrored": false
+                  }
+                }
+              }
+            }
+          ],
+          "pattern_blend_mode": "normal"
+        }
+      }
+    }
+  ]
+}

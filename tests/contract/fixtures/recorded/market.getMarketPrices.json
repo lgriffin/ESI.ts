@@ -5,9 +5,9 @@
     "method": "getMarketPrices",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 15801,
+      "original": 15787,
       "kept": 3
     }
   ],
@@ -26,24 +26,24 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"41285cf643939deae8af4869bab06de3d1d2417efe80491e6768c218\"",
-        "expires": "Thu, 17 Sep 2026 15:05:00 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:05:00 GMT"
+        "etag": "\"6a8776399194cd9f179c76cdaca96edea3552e9abc81149636959b2e\"",
+        "expires": "Sun, 27 Sep 2026 04:14:11 GMT",
+        "last-modified": "Sun, 27 Sep 2026 03:14:11 GMT"
       },
       "body": [
         {
-          "adjusted_price": 29.90038995596332,
-          "average_price": 27.84,
+          "adjusted_price": 30.049220623663558,
+          "average_price": 27.81,
           "type_id": 18
         },
         {
-          "adjusted_price": 950.9407861998985,
-          "average_price": 7207.51,
+          "adjusted_price": 845.9487977205554,
+          "average_price": 8636.56,
           "type_id": 19
         },
         {
-          "adjusted_price": 407.49754172595846,
-          "average_price": 522.65,
+          "adjusted_price": 415.14559601513207,
+          "average_price": 520.83,
           "type_id": 20
         }
       ]

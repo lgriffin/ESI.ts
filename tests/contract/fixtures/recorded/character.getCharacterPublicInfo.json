@@ -5,9 +5,9 @@
     "method": "getCharacterPublicInfo",
     "args": [92025524]
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 86400,
   "upstreamPages": 1,
   "truncated": [],
@@ -18,9 +18,9 @@
       "headers": {
         "cache-control": "public, max-age=86400, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"02bd4cc31b4f9ff93fc11f7771af046f5e77228b5766d13488f1dff074815ed1\"",
-        "expires": "Fri, 18 Sep 2026 14:13:02 GMT",
-        "last-modified": "Wed, 16 Sep 2026 18:09:22 GMT"
+        "etag": "W/\"510cc838fc941eef14017588ff17930fac4843b40732bda440e27d6ac96975ba\"",
+        "expires": "Mon, 28 Sep 2026 03:59:58 GMT",
+        "last-modified": "Sat, 26 Sep 2026 19:57:28 GMT"
       },
       "body": {
         "birthday": "2012-05-16T11:51:00Z",
@@ -29,6 +29,7 @@
         "gender": "male",
         "name": "FC Cart",
         "race_id": 8,
+        "achievement_score": 0,
         "alliance_id": 434243723,
         "description": "",
         "security_status": 0

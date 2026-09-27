@@ -5,9 +5,9 @@
     "method": "getSystems",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 1800,
   "upstreamPages": 1,
   "truncated": [
@@ -26,9 +26,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"c14ba2c41ca876384aa669ec353fc90f48e9233c876b7aa3b2f2e473\"",
-        "expires": "Thu, 17 Sep 2026 14:40:24 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:10:24 GMT"
+        "etag": "\"d5307890aa73bc59aec2334ba9db2dcff947b71a7a6639c0a74883ae\"",
+        "expires": "Sun, 27 Sep 2026 04:12:48 GMT",
+        "last-modified": "Sun, 27 Sep 2026 03:42:48 GMT"
       },
       "body": [
         {
@@ -44,7 +44,7 @@
           "occupier_faction_id": 500003,
           "owner_faction_id": 500002,
           "solar_system_id": 30002097,
-          "victory_points": 5059,
+          "victory_points": 73124,
           "victory_points_threshold": 75000
         },
         {

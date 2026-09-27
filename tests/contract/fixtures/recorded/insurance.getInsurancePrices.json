@@ -5,9 +5,9 @@
     "method": "getInsurancePrices",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -47,9 +47,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"f13809dd14733aae0f846744acac168aca97f9b529bd2ee9bbe66971\"",
-        "expires": "Thu, 17 Sep 2026 14:50:07 GMT",
-        "last-modified": "Thu, 17 Sep 2026 13:50:07 GMT"
+        "etag": "\"feb4faf493540a55f905a54fa3371ef5c434f95fe9a5df8871bf3e27\"",
+        "expires": "Sun, 27 Sep 2026 04:10:01 GMT",
+        "last-modified": "Sun, 27 Sep 2026 03:10:01 GMT"
       },
       "body": [
         {
@@ -75,19 +75,19 @@
         {
           "levels": [
             {
-              "cost": 107433.05,
+              "cost": 143201.6,
               "name": "Basic",
-              "payout": 1074330.5
+              "payout": 1432016
             },
             {
-              "cost": 214866.1,
+              "cost": 286403.2,
               "name": "Standard",
-              "payout": 1289196.5999999999
+              "payout": 1718419.2
             },
             {
-              "cost": 322299.14999999997,
+              "cost": 429604.8,
               "name": "Bronze",
-              "payout": 1504062.7
+              "payout": 2004822.4
             }
           ],
           "type_id": 34828
@@ -95,19 +95,19 @@
         {
           "levels": [
             {
-              "cost": 1742871.25,
+              "cost": 1737858.4500000002,
               "name": "Basic",
-              "payout": 17428712.5
+              "payout": 17378584.5
             },
             {
-              "cost": 3485742.5,
+              "cost": 3475716.9000000004,
               "name": "Standard",
-              "payout": 20914455
+              "payout": 20854301.4
             },
             {
-              "cost": 5228613.75,
+              "cost": 5213575.35,
               "name": "Bronze",
-              "payout": 24400197.5
+              "payout": 24330018.299999997
             }
           ],
           "type_id": 22544

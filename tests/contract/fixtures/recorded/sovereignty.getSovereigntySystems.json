@@ -5,9 +5,9 @@
     "method": "getSovereigntySystems",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 300,
   "upstreamPages": 1,
   "truncated": [
@@ -26,9 +26,9 @@
       "headers": {
         "cache-control": "public, max-age=300, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"79bd5d0e2c1732d2c6ad6933a72bc0a4bc5b30eb29e42e4e0d53fdd4161c1174\"",
-        "expires": "Thu, 17 Sep 2026 14:18:19 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:12:30 GMT"
+        "etag": "W/\"20bd4373a6f899d812372ae1eadaae2365d732edd1d22310305d032817dbea50\"",
+        "expires": "Sun, 27 Sep 2026 04:05:20 GMT",
+        "last-modified": "Sun, 27 Sep 2026 03:57:28 GMT"
       },
       "body": {
         "solar_systems": [
@@ -66,8 +66,8 @@
                 "sovereignty_hub": {
                   "id": 1034510825648,
                   "vulnerability_window": {
-                    "start": "2026-09-18T09:30:00Z",
-                    "end": "2026-09-18T12:30:00Z"
+                    "start": "2026-09-27T09:30:00Z",
+                    "end": "2026-09-27T12:30:00Z"
                   }
                 },
                 "is_capital_system": false,

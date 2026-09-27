@@ -5,9 +5,9 @@
     "method": "getMarketHistory",
     "args": [10000002, 34]
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 412,
+      "original": 421,
       "kept": 3
     }
   ],
@@ -26,9 +26,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "W/\"485361ad7ac19932541de4c0ff9f45a6dbea3b9369b2826cdf1ecf09\"",
-        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
-        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+        "etag": "W/\"691b8cce35e39323cf8052e4456a466e44d6470cde0e2b19e694f42b\"",
+        "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
+        "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
       },
       "body": [
         {

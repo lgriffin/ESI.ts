@@ -5,9 +5,9 @@
     "method": "getStructures",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 838,
+      "original": 808,
       "kept": 3
     }
   ],
@@ -26,9 +26,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"5f4830d0ec1e349eacc558fa6d45249df4dbc38ead58ae327d103811\"",
-        "expires": "Thu, 17 Sep 2026 14:43:56 GMT",
-        "last-modified": "Thu, 17 Sep 2026 13:43:56 GMT"
+        "etag": "\"ded5e293335982481de8de1837f8065a1cf762e649b763f5fb6ee34d\"",
+        "expires": "Sun, 27 Sep 2026 04:01:09 GMT",
+        "last-modified": "Sun, 27 Sep 2026 03:01:09 GMT"
       },
       "body": [1035768592387, 1054645155845, 1043878365194]
     }

@@ -5,9 +5,9 @@
     "method": "getFreelanceJobs",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -26,54 +26,50 @@
       "headers": {
         "cache-control": "public, max-age=0, must-revalidate",
         "content-type": "application/json",
-        "expires": "Thu, 17 Sep 2026 14:13:20 GMT"
+        "expires": "Sun, 27 Sep 2026 04:00:20 GMT"
       },
       "body": {
         "cursor": {
-          "before": "1.GNYgzCpN5Bg=",
-          "after": "1.GNYhMOx0CCQ="
+          "before": "1.GNkRRU8oGzQ=",
+          "after": "1.GNkRi4R_txA="
         },
         "freelance_jobs": [
           {
-            "id": "68fd5fe6-4752-4e7c-89de-067fd3e54ecc",
-            "name": "ALL TYPES OF VELDSPAR",
+            "id": "30740f7d-169d-4ddd-a516-7625c2ae8912",
+            "name": "SAT - Combat Air Patrol",
             "state": "Active",
-            "last_modified": "2026-09-17T14:06:03.181Z",
+            "last_modified": "2026-09-27T03:55:16.234Z",
             "progress": {
-              "current": 2732877,
-              "desired": 13000000
+              "current": 13135,
+              "desired": 50000
             },
             "reward": {
-              "initial": 104000000,
-              "remaining": 82136984
+              "initial": 50000000,
+              "remaining": 36865000
             }
           },
           {
-            "id": "115ab093-5347-48ea-a850-757ed574d8ea",
-            "name": "New Player Support Program by \"Tenebris Academy\"",
+            "id": "1af146ea-9b48-4418-82d6-d0641bc59b5b",
+            "name": "..::Mining-Race::.. ❤ FREE REWARDS ❤",
             "state": "Active",
-            "last_modified": "2026-09-17T14:09:11.595Z",
+            "last_modified": "2026-09-27T03:59:23.917Z",
             "progress": {
-              "current": 2970,
-              "desired": 190000
-            },
-            "reward": {
-              "initial": 760000000,
-              "remaining": 748120000
+              "current": 8326024,
+              "desired": 1000000000000000000
             }
           },
           {
-            "id": "ba5847a4-1c09-43cd-b03d-18b2e22e1f70",
-            "name": "E-V军等",
+            "id": "05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
+            "name": "Gallente Federation Day Contest 2026",
             "state": "Active",
-            "last_modified": "2026-09-17T14:11:10.585Z",
+            "last_modified": "2026-09-27T04:00:09.944Z",
             "progress": {
-              "current": 1528,
-              "desired": 10000
+              "current": 14304,
+              "desired": 50000
             },
             "reward": {
-              "initial": 2000000000,
-              "remaining": 1694400000
+              "initial": 500000000,
+              "remaining": 356960000
             }
           }
         ]

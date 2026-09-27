@@ -5,9 +5,9 @@
     "method": "getWarKillmails",
     "args": [700000]
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 3600,
   "upstreamPages": 1,
   "truncated": [
@@ -27,8 +27,8 @@
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
         "etag": "\"15beb255954194c24166c86a7c6aaaba7104e953b96e5d2d4c8c031b\"",
-        "expires": "Thu, 17 Sep 2026 14:13:55 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:08:55 GMT",
+        "expires": "Sun, 27 Sep 2026 04:05:16 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:00:16 GMT",
         "x-pages": "1"
       },
       "body": [

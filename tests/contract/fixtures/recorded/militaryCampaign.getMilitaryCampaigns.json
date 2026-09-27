@@ -1,0 +1,58 @@
+{
+  "endpoint": "militaryCampaign.getMilitaryCampaigns",
+  "call": {
+    "client": "militaryCampaigns",
+    "method": "getMilitaryCampaigns",
+    "args": []
+  },
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specCacheSeconds": 60,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.campaigns",
+      "kind": "array",
+      "original": 4,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "military-campaigns",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=60",
+        "content-type": "application/json",
+        "expires": "Sun, 27 Sep 2026 04:01:21 GMT"
+      },
+      "body": {
+        "campaigns": [
+          {
+            "id": "7519d7db-1e95-4d0e-bbbe-c47cd47de3c0",
+            "state": "Completed",
+            "progress": 30,
+            "started": "2026-06-09T11:00:09.069Z",
+            "finished": "2026-09-16T10:24:53.154Z"
+          },
+          {
+            "id": "6866051e-f720-4caf-b4f9-d66d97b16e52",
+            "state": "Completed",
+            "progress": 30,
+            "started": "2026-06-09T11:00:10.629Z",
+            "finished": "2026-09-20T20:50:24.173Z"
+          },
+          {
+            "id": "e7587202-8f4a-4314-b2cd-ec67e0e78e46",
+            "state": "Completed",
+            "progress": 30,
+            "started": "2026-06-09T11:00:24.571Z",
+            "finished": "2026-09-21T20:18:15.649Z"
+          }
+        ]
+      }
+    }
+  ]
+}
