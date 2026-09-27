@@ -18,6 +18,9 @@
     "rootDir": "./src",
     "outDir": "./dist"
   },
+  "ts-node": {
+    "compilerOptions": { "exactOptionalPropertyTypes": false }
+  },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
