@@ -8,6 +8,7 @@ export const metaPaths = {
   json: '/meta/openapi.json',
   yaml: '/meta/openapi.yaml',
   status: '/meta/status',
+  changelog: '/meta/changelog',
 };
 
 export const YAML_CONTENT_TYPE = { 'content-type': 'application/yaml' };
@@ -58,6 +59,21 @@ components: {}
         status: 'Degraded',
       },
     ],
+  }),
+
+  /** `GET /meta/changelog`: entries grouped by date, wrapped (MetaChangelog). */
+  changelog: () => ({
+    changelog: {
+      '2026-08-18': [
+        {
+          method: 'GET',
+          path: '/corporations/{corporation_id}',
+          compatibility_date: '2026-08-18',
+          type: 'breaking',
+          description: 'tax_rate is replaced by tax_rates',
+        },
+      ],
+    },
   }),
 
   alliancesYamlSpec: () => `openapi: 3.1.0
