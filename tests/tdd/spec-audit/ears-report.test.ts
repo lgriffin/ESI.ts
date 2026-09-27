@@ -86,6 +86,10 @@ describe('EARS requirement report', () => {
     it.each([
       [NOT, true],
       ['If a header is absent, then the client shall  not send it', true],
+      [
+        'If an authenticated request is answered with HTTP 403, then the client shall not retry it',
+        true,
+      ],
       [IF, false],
       ['The client shall not log tokens', false],
       ['When asked, the client shall not retry', false],

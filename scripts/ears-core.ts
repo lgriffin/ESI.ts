@@ -113,7 +113,9 @@ export function classifyEars(text: string): EarsPattern {
 export function isExclusion(text: string): boolean {
   if (classifyEars(text) !== 'unwanted-behaviour') return false;
   const lower = text.trim().toLowerCase();
-  const then = lower.indexOf('then');
+  // The standalone word, as the spec audit finds it: "authenticated" holds a
+  // "then" that is not the delimiter.
+  const then = /\bthen\b/.exec(lower)?.index ?? -1;
   const response = then === -1 ? lower : lower.slice(then);
   return /\bshall\s+not\b/.test(response.split(',')[0] ?? response);
 }
