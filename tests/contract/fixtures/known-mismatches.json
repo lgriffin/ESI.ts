@@ -1,3 +1,1 @@
-{
-  "meta.getChangelog": "Schema rejects ESI's body: MetaChangelogSchema is the per-date map, but ESI (MetaChangelog) wraps it as { changelog: { <date>: [...] } }, so every real call throws EsiValidationError. Fixing it changes the inferred MetaChangelog type (major per guides/SEMVER.md), so it needs approval."
-}
+{}

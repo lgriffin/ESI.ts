@@ -7583,23 +7583,25 @@ interface MetaChangelog_2 {
 // @public (undocumented)
 export type MetaChangelogEntry = z.infer<typeof MetaChangelogEntrySchema>;
 
-// @public (undocumented)
+// @public
 const MetaChangelogEntrySchema: z.ZodObject<{
     method: z.ZodString;
     path: z.ZodString;
     compatibility_date: z.ZodString;
-    is_breaking: z.ZodBoolean;
+    type: z.ZodType<(string & {}) | "breaking" | "changed" | "new" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "breaking" | "changed" | "new" | "removed", unknown>>;
     description: z.ZodString;
 }, z.core.$loose>;
 
-// @public (undocumented)
-const MetaChangelogSchema: z.ZodRecord<z.ZodString, z.ZodArray<z.ZodObject<{
-    method: z.ZodString;
-    path: z.ZodString;
-    compatibility_date: z.ZodString;
-    is_breaking: z.ZodBoolean;
-    description: z.ZodString;
-}, z.core.$loose>>>;
+// @public
+const MetaChangelogSchema: z.ZodObject<{
+    changelog: z.ZodRecord<z.ZodString, z.ZodArray<z.ZodObject<{
+        method: z.ZodString;
+        path: z.ZodString;
+        compatibility_date: z.ZodString;
+        type: z.ZodType<(string & {}) | "breaking" | "changed" | "new" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "breaking" | "changed" | "new" | "removed", unknown>>;
+        description: z.ZodString;
+    }, z.core.$loose>>>;
+}, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "metaEndpoints" needs to be exported by the entry point index.d.ts
 //
@@ -7953,7 +7955,7 @@ export type ParagonHubCharacterListing = z.infer<typeof ParagonHubCharacterListi
 // @public (undocumented)
 const ParagonHubCharacterListingSchema: z.ZodObject<{
     id: z.ZodString;
-    state: z.ZodType<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown>>;
+    state: z.ZodType<(string & {}) | "expired" | "removed" | "listed" | "sold_out", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "removed" | "listed" | "sold_out", unknown>>;
     last_modified: z.ZodString;
     seller_id: z.ZodNumber;
     skinr_id: z.ZodString;
@@ -7983,7 +7985,7 @@ const ParagonHubCharacterSkinrResponseSchema: z.ZodObject<{
     }, z.core.$loose>>;
     listings: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
-        state: z.ZodType<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown>>;
+        state: z.ZodType<(string & {}) | "expired" | "removed" | "listed" | "sold_out", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "removed" | "listed" | "sold_out", unknown>>;
         last_modified: z.ZodString;
         seller_id: z.ZodNumber;
         skinr_id: z.ZodString;
@@ -8119,7 +8121,7 @@ export type ParagonHubSkinrListing = z.infer<typeof ParagonHubSkinrListingSchema
 // @public (undocumented)
 const ParagonHubSkinrListingSchema: z.ZodObject<{
     id: z.ZodString;
-    state: z.ZodType<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown>>;
+    state: z.ZodType<(string & {}) | "expired" | "removed" | "listed" | "sold_out", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "removed" | "listed" | "sold_out", unknown>>;
     last_modified: z.ZodString;
     seller_id: z.ZodNumber;
     skinr_id: z.ZodString;
@@ -8149,7 +8151,7 @@ const ParagonHubSkinrResponseSchema: z.ZodObject<{
     }, z.core.$loose>>;
     listings: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
-        state: z.ZodType<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "listed" | "sold_out" | "removed", unknown>>;
+        state: z.ZodType<(string & {}) | "expired" | "removed" | "listed" | "sold_out", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "removed" | "listed" | "sold_out", unknown>>;
         last_modified: z.ZodString;
         seller_id: z.ZodNumber;
         skinr_id: z.ZodString;

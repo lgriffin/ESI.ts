@@ -2,6 +2,7 @@ import { MetaClient } from '../../../src/clients/MetaClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import { getBody } from '../../../src/core/util/testHelpers';
+import { EsiValidationError } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 import { MetaRouteStatusSchema } from '../../../src/schemas/meta';
 import type { MetaRouteStatus } from '../../../src/types/api-responses';
@@ -88,28 +89,36 @@ describe('MetaClient', () => {
 
   it('should return the ESI changelog', async () => {
     const mockResponse = {
-      '2025-12-16': [
-        {
-          method: 'GET',
-          path: '/characters/{character_id}/assets/',
-          compatibility_date: '2025-12-16',
-          is_breaking: true,
-          description: 'Asset location refactor',
-        },
-      ],
+      changelog: {
+        '2025-12-16': [
+          {
+            method: 'GET',
+            path: '/characters/{character_id}/assets/',
+            compatibility_date: '2025-12-16',
+            type: 'breaking',
+            description: 'Asset location refactor',
+          },
+        ],
+      },
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() => metaClient.getChangelog());
 
-    expect(result).toHaveProperty('2025-12-16');
-    expect(result['2025-12-16']).toHaveLength(1);
-    expect(result['2025-12-16'][0].method).toBe('GET');
-    expect(result['2025-12-16'][0].is_breaking).toBe(true);
+    expect(Object.keys(result.changelog)).toEqual(['2025-12-16']);
+    expect(result.changelog['2025-12-16']).toHaveLength(1);
+    expect(result.changelog['2025-12-16'][0].method).toBe('GET');
+    expect(result.changelog['2025-12-16'][0].type).toBe('breaking');
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/meta/changelog',
     );
+  });
+
+  it('should reject a changelog that is not wrapped in changelog', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify({ '2025-12-16': [] }));
+
+    await expect(metaClient.getChangelog()).rejects.toThrow(EsiValidationError);
   });
 
   it('should return the ESI compatibility dates', async () => {

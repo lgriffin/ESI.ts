@@ -60,6 +60,19 @@ Feature: Meta API Management
       When the client requests the route status
       Then the client shall return the status of each route
 
+  # ── Changelog ───────────────────────────────────────────────────────
+
+  Rule: When the changelog is requested, the Meta client shall return the per-date change entries under a changelog key, as ESI sends them.
+    ESI wraps the changelog as { changelog: { <date>: [...] } } (MetaChangelog),
+    each date holding the routes that changed on it. The client used to expect
+    the per-date map at the top level, so every real call failed validation.
+    Returning ESI's shape keeps this method in line with the other meta calls.
+
+    Scenario: One breaking change on one compatibility date
+      Given ESI publishes a changelog with one entry
+      When the client requests the changelog
+      Then the client shall return the entry under its compatibility date
+
   # ── Error propagation ───────────────────────────────────────────────
 
   Rule: If the ESI API answers every attempt at a specification request with an error status and no usable cached entry exists, then the Meta client shall raise an error whose message carries the ESI status text.

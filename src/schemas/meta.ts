@@ -1,18 +1,20 @@
 import { z } from 'zod';
 import { esiEnum } from './esiEnum';
 
+/** One route change in `GET /meta/changelog`. */
 export const MetaChangelogEntrySchema = z.looseObject({
   method: z.string(),
   path: z.string(),
   compatibility_date: z.string(),
-  is_breaking: z.boolean(),
+  /** 'breaking', 'changed', 'new' or 'removed'. */
+  type: esiEnum(['breaking', 'changed', 'new', 'removed']),
   description: z.string(),
 });
 
-export const MetaChangelogSchema = z.record(
-  z.string(),
-  z.array(MetaChangelogEntrySchema),
-);
+/** `GET /meta/changelog`: change entries keyed by compatibility date. */
+export const MetaChangelogSchema = z.looseObject({
+  changelog: z.record(z.string(), z.array(MetaChangelogEntrySchema)),
+});
 
 export const MetaCompatibilityDatesSchema = z.looseObject({
   compatibility_dates: z.array(z.string()),
