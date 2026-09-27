@@ -1424,7 +1424,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('A concurrent online request under a refreshed token for the same character is coalesced', ({
+  test('A concurrent online request under a refreshed token ESI has not yet accepted is not coalesced', ({
     given,
     and,
     when,
@@ -1459,6 +1459,71 @@ defineFeature(feature, (test) => {
         client.setAccessToken(
           makeJwt({ characterId: id, ownerHash: 'rotated' }),
         );
+        const second = client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
+        outcomes = await Promise.allSettled([first, second]);
+      },
+    );
+
+    then('both calls resolve with the online payload', () => {
+      expect(outcomes).toHaveLength(2);
+      for (const outcome of outcomes) {
+        expectResolvedWith(outcome, ONLINE_PAYLOAD);
+      }
+    });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A concurrent online request under two accepted tokens for one character is coalesced', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcomes: Outcome[];
+    let firstToken: string;
+    let secondToken: string;
+
+    given('a client with request deduplication and no ETag cache', () => {
+      client = createSeamClient({ enableETagCache: false });
+    });
+
+    and(
+      /^ESI has answered one character online request under each of two SSO tokens for character (\d+)$/,
+      async (characterId: string) => {
+        const id = Number(characterId);
+        firstToken = makeJwt({ characterId: id });
+        secondToken = makeJwt({ characterId: id, ownerHash: 'rotated' });
+        for (const token of [firstToken, secondToken]) {
+          queueResponse({ body: ONLINE_PAYLOAD, match: ONLINE_PATH });
+          client.setAccessToken(token);
+          await client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
+        }
+      },
+    );
+
+    and(
+      /^ESI answers the character online request after (\d+) milliseconds with a payload (\d+) times$/,
+      (delay: string, times: string) => {
+        queueResponse({
+          body: ONLINE_PAYLOAD,
+          delayMs: Number(delay),
+          match: ONLINE_PATH,
+          times: Number(times),
+        });
+      },
+    );
+
+    when(
+      'the client requests the character online status under the first of those tokens, switches to the second, and requests it again before the first resolves',
+      async () => {
+        client.setAccessToken(firstToken);
+        const first = client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        client.setAccessToken(secondToken);
         const second = client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
         outcomes = await Promise.allSettled([first, second]);
       },

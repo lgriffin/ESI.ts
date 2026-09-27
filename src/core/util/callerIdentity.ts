@@ -13,10 +13,11 @@ import { createHash } from 'crypto';
  * an entry with another token, and the token itself never appears in a key,
  * which reaches logs and statistics.
  *
- * The payload is decoded without verifying the signature. The token is what
- * the client is about to send; ESI decides whether it is genuine, and a
- * forged one earns a 401 rather than another character's cached data, since
- * the cache holds only what ESI answered to a token naming that character.
+ * The payload is decoded without verifying the signature, so the character
+ * a token names is a claim, not a fact, until ESI has answered a request
+ * under it. `src/core/cache/cacheKey.ts` keeps the two apart: a token's
+ * claimed identity decides which entry a conditional request revalidates,
+ * and only an accepted token is served an entry without ESI's answer.
  * `src/auth/jwt.ts` decodes the same claims for the token manager and throws
  * on malformed input; this reader must not, because a malformed token is a
  * valid (if doomed) identity to key by.
@@ -40,9 +41,17 @@ export function characterIdOfToken(token: string): number | null {
   return match ? Number(match[1]) : null;
 }
 
+/** The first 16 hex characters of a SHA-256 of the whole header. */
+export function hashedIdentity(authorizationHeader: string): string {
+  return createHash('sha256')
+    .update(authorizationHeader)
+    .digest('hex')
+    .slice(0, 16);
+}
+
 /**
- * The key fragment for an Authorization header: `character:<id>` for an SSO
- * token, else the first 16 hex characters of a SHA-256 of the whole header.
+ * The identity an Authorization header claims: `character:<id>` for an SSO
+ * token, else its hash.
  */
 export function callerIdentity(authorizationHeader: string): string {
   const token = authorizationHeader.startsWith('Bearer ')
@@ -50,8 +59,5 @@ export function callerIdentity(authorizationHeader: string): string {
     : authorizationHeader;
   const characterId = characterIdOfToken(token);
   if (characterId !== null) return `character:${characterId}`;
-  return createHash('sha256')
-    .update(authorizationHeader)
-    .digest('hex')
-    .slice(0, 16);
+  return hashedIdentity(authorizationHeader);
 }

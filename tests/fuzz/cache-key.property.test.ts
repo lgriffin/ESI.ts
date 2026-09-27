@@ -20,9 +20,12 @@
  *                   identity is the character an EVE SSO token names, so two
  *                   tokens for one character share a key and tokens for two
  *                   characters never do; a token naming no character is its
- *                   own identity. This holds for the deduplication key as well
- *                   as the cache key: both outlive a single request, so both
- *                   have to say whose data they stand for (esi-23g.36).
+ *                   own identity. The character counts only once ESI has
+ *                   accepted the token; until then the token is its own
+ *                   identity, whatever it claims. This holds for the
+ *                   deduplication key as well as the cache key: both outlive
+ *                   a single request, so both have to say whose data they
+ *                   stand for (esi-23g.36).
  *
  * Method and body are not part of the key by design: only GET responses are
  * cached (cacheResponse, trySpecAwareCacheHit), so a POST or a request with a
@@ -33,7 +36,12 @@ import { createHash } from 'crypto';
 import * as fc from 'fast-check';
 
 import { ApiClient } from '../../src/core/ApiClient';
-import { buildCacheKey, buildDedupeKey } from '../../src/core/cache/cacheKey';
+import {
+  buildCacheKey,
+  buildConditionalCacheKey,
+  buildDedupeKey,
+  markTokenAccepted,
+} from '../../src/core/cache/cacheKey';
 import { buildEndpointPath } from '../../src/core/endpoints/buildEndpointPath';
 import type { EndpointDefinition } from '../../src/core/endpoints/EndpointDefinition';
 import { describeProperty, invariant } from './support/property';
@@ -253,9 +261,10 @@ const identityProperty = identityPropertyOver((d) => d.buildCacheKey);
 const dedupeIdentityProperty = identityPropertyOver((d) => d.buildDedupeKey);
 
 /**
- * Two SSO tokens for one character share a key whatever else the tokens
- * carry, tokens for two characters never do, and neither shares a key with
- * an opaque token or the public key.
+ * Two accepted SSO tokens for one character share a key whatever else the
+ * tokens carry, tokens for two characters never do, a token ESI has not
+ * accepted shares with nothing, and none shares with an opaque token or the
+ * public key.
  */
 function characterPropertyOver(pick: (d: KeyDerivation) => KeyFn) {
   return (d: KeyDerivation) =>
@@ -272,27 +281,42 @@ function characterPropertyOver(pick: (d: KeyDerivation) => KeyFn) {
         fc.pre(characterA !== characterB);
         const keyOf = pick(d);
         const subject = `${BASE}/${d.buildEndpointPath(DEFINITION, args).path}`;
-        const key = (token: string) =>
-          keyOf(subject, new ApiClient('fuzz', BASE, token), true);
-        const first = key(ssoToken(characterA, jtiA));
-        const rotated = key(ssoToken(characterA, jtiB));
-        const other = key(ssoToken(characterB, jtiA));
+        const key = (token: string, accepted: boolean) => {
+          const client = new ApiClient('fuzz', BASE, token);
+          if (accepted) {
+            markTokenAccepted(
+              client,
+              client.getAuthorizationHeader() as string,
+            );
+          }
+          return keyOf(subject, client, true);
+        };
+        const first = key(ssoToken(characterA, jtiA), true);
+        const rotated = key(ssoToken(characterA, jtiB), true);
+        const other = key(ssoToken(characterB, jtiA), true);
+        const unaccepted = key(ssoToken(characterA, jtiB), false);
         invariant(
           first === rotated,
-          `two tokens for character ${characterA} have different keys: ${first} and ${rotated}`,
+          `two accepted tokens for character ${characterA} have different keys: ${first} and ${rotated}`,
         );
         invariant(
           first !== other,
           `characters ${characterA} and ${characterB} share the key ${first}`,
         );
-        const opaqueKey = key(opaque);
         invariant(
-          opaqueKey !== first && opaqueKey !== other,
+          unaccepted !== first && unaccepted !== other,
+          `a token ESI has not accepted shares the key ${unaccepted} of a character`,
+        );
+        const opaqueKey = key(opaque, true);
+        invariant(
+          opaqueKey !== first &&
+            opaqueKey !== other &&
+            opaqueKey !== unaccepted,
           `opaque token ${JSON.stringify(opaque)} shares the key of a character`,
         );
         const publicKey = keyOf(subject, new ApiClient('fuzz', BASE), true);
         invariant(
-          first !== publicKey,
+          first !== publicKey && unaccepted !== publicKey,
           `character ${characterA} shares the unauthenticated key ${publicKey}`,
         );
       },
@@ -404,7 +428,9 @@ describeProperty<KeyDerivation>({
 /**
  * The header hash alone was the key before PR 10b of the 11.0 plan: a token
  * refresh emptied the character's cache. `every SSO token is one identity`
- * is the opposite failure, where the character id is read but not used.
+ * is the opposite failure, where the character id is read but not used, and
+ * `the claim is trusted before ESI accepts it` is the security failure the
+ * acceptance gate exists for.
  */
 describeProperty<KeyDerivation>({
   name: 'authenticated cache keys follow the character, not the token',
@@ -432,6 +458,10 @@ describeProperty<KeyDerivation>({
           ? `character:0:${url}`
           : `${createHash('sha256').update(header).digest('hex').slice(0, 16)}:${url}`;
       },
+    }),
+    'the claim is trusted before ESI accepts it': () => ({
+      ...real(),
+      buildCacheKey: buildConditionalCacheKey,
     }),
   },
   property: characterProperty,

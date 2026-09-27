@@ -1,7 +1,17 @@
 import { createHash } from 'crypto';
 import { buildCacheKey } from '../../../src/core/cache/cacheKey';
 import { ApiClient } from '../../../src/core/ApiClient';
-import { buildDedupeKey } from '../../../src/core/cache/cacheKey';
+import {
+  buildConditionalCacheKey,
+  buildDedupeKey,
+  markTokenAccepted,
+} from '../../../src/core/cache/cacheKey';
+
+/** A client whose current token ESI has answered, so its claimed character is trusted. */
+function accepted(client: ApiClient): ApiClient {
+  markTokenAccepted(client, client.getAuthorizationHeader() as string);
+  return client;
+}
 
 /** An unsigned JWT naming a character, as EVE SSO issues; `jti` makes each one distinct. */
 function ssoToken(characterId: number, jti = 'a'): string {
@@ -138,44 +148,96 @@ describe('buildCacheKey', () => {
   });
 
   describe('with EVE SSO tokens', () => {
-    it('keys by the character the token names', () => {
-      const client = new ApiClient('test', BASE, ssoToken(95465499));
+    it('keys an accepted token by the character it names', () => {
+      const client = accepted(new ApiClient('test', BASE, ssoToken(95465499)));
       expect(buildCacheKey(url, client, true)).toBe(
         `character:95465499:${url}`,
       );
     });
 
-    it('keeps the key when the token is replaced by another for the same character', () => {
-      const client = new ApiClient('test', BASE, ssoToken(95465499, 'first'));
+    it('keys a token ESI has not accepted by its hash, whatever it claims', () => {
+      const client = new ApiClient('test', BASE, ssoToken(95465499));
+      const key = buildCacheKey(url, client, true);
+      expect(key).toMatch(/^[0-9a-f]{16}:/);
+      expect(key).not.toContain('character:');
+    });
+
+    it("sends the claimed character's ETag before ESI has accepted the token", () => {
+      const client = new ApiClient('test', BASE, ssoToken(95465499));
+      expect(buildConditionalCacheKey(url, client, true)).toBe(
+        `character:95465499:${url}`,
+      );
+    });
+
+    it('keeps the key when an accepted token is replaced by another accepted one for the same character', () => {
+      const client = accepted(
+        new ApiClient('test', BASE, ssoToken(95465499, 'first')),
+      );
       const before = buildCacheKey(url, client, true);
       client.setAccessToken(ssoToken(95465499, 'second'));
+      expect(buildCacheKey(url, client, true)).not.toBe(before);
+      accepted(client);
       expect(buildCacheKey(url, client, true)).toBe(before);
     });
 
+    it('records acceptance for the header the request carried, not the current one', () => {
+      const client = new ApiClient('test', BASE, ssoToken(95465499, 'first'));
+      const sent = client.getAuthorizationHeader() as string;
+      client.setAccessToken(ssoToken(95465499, 'second'));
+      markTokenAccepted(client, sent);
+      expect(buildCacheKey(url, client, true)).toMatch(/^[0-9a-f]{16}:/);
+      client.setAccessToken(ssoToken(95465499, 'first'));
+      expect(buildCacheKey(url, client, true)).toBe(
+        `character:95465499:${url}`,
+      );
+    });
+
     it('changes the key when the token is replaced by one for another character', () => {
-      const client = new ApiClient('test', BASE, ssoToken(1));
+      const client = accepted(new ApiClient('test', BASE, ssoToken(1)));
       const before = buildCacheKey(url, client, true);
       client.setAccessToken(ssoToken(2));
+      accepted(client);
       expect(buildCacheKey(url, client, true)).not.toBe(before);
     });
 
-    it('gives two clients holding tokens for one character the same key', () => {
-      const a = new ApiClient('test', BASE, ssoToken(95465499, 'a'));
-      const b = new ApiClient('test', BASE, ssoToken(95465499, 'b'));
+    it('gives two clients holding accepted tokens for one character the same key', () => {
+      const a = accepted(new ApiClient('test', BASE, ssoToken(95465499, 'a')));
+      const b = accepted(new ApiClient('test', BASE, ssoToken(95465499, 'b')));
       expect(buildCacheKey(url, a, true)).toBe(buildCacheKey(url, b, true));
     });
 
+    it('does not carry acceptance from one client to another', () => {
+      const a = accepted(new ApiClient('test', BASE, ssoToken(95465499, 'a')));
+      const b = new ApiClient('test', BASE, ssoToken(95465499, 'a'));
+      expect(buildCacheKey(url, b, true)).not.toBe(buildCacheKey(url, a, true));
+    });
+
     it('changes the key when an SSO token is replaced by an opaque one', () => {
-      const client = new ApiClient('test', BASE, ssoToken(95465499));
+      const client = accepted(new ApiClient('test', BASE, ssoToken(95465499)));
       const before = buildCacheKey(url, client, true);
       client.setAccessToken('opaque');
+      accepted(client);
       expect(buildCacheKey(url, client, true)).toMatch(/^[0-9a-f]{16}:/);
       expect(buildCacheKey(url, client, true)).not.toBe(before);
     });
 
     it('does not let a public endpoint key carry the character', () => {
-      const client = new ApiClient('test', BASE, ssoToken(95465499));
+      const client = accepted(new ApiClient('test', BASE, ssoToken(95465499)));
       expect(buildCacheKey(url, client, false)).toBe(url);
+      expect(buildConditionalCacheKey(url, client, false)).toBe(url);
+    });
+
+    it('marks acceptance once and forgets the oldest token past the limit', () => {
+      const client = new ApiClient('test', BASE, ssoToken(1, 'oldest'));
+      const oldest = client.getAuthorizationHeader() as string;
+      markTokenAccepted(client, oldest);
+      markTokenAccepted(client, oldest);
+      for (let i = 0; i < 64; i++) {
+        markTokenAccepted(client, `Bearer filler-${i}`);
+      }
+      expect(buildCacheKey(url, client, true)).toMatch(/^[0-9a-f]{16}:/);
+      client.setAccessToken('filler-63');
+      expect(buildCacheKey(url, client, true)).toMatch(/^[0-9a-f]{16}:/);
     });
   });
 
@@ -184,6 +246,10 @@ describe('buildCacheKey', () => {
 
     it('draws the same identity line as the cache key', () => {
       const client = new ApiClient('test', BASE, ssoToken(95465499));
+      expect(buildDedupeKey(endpoint, client, true)).toBe(
+        buildCacheKey(endpoint, client, true),
+      );
+      accepted(client);
       expect(buildDedupeKey(endpoint, client, true)).toBe(
         `character:95465499:${endpoint}`,
       );

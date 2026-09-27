@@ -1199,4 +1199,120 @@ defineFeature(feature, (test) => {
       identityClient.shutdown();
     });
   });
+
+  test("A replaced token that ESI rejects is served nothing from the character's entry", ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let identityClient: EsiClient;
+    let outcome: unknown;
+
+    given(
+      /^a client holding an SSO access token for character (\d+)$/,
+      (characterId: string) => {
+        identityClient = createIdentityClient(
+          makeJwt({ characterId: Number(characterId) }),
+        );
+      },
+    );
+
+    and('ESI answers the structure orders request with an ETag', () => {
+      queueStructureOrders();
+    });
+
+    and('the client has requested the structure orders', async () => {
+      await identityClient.market.getMarketOrdersInStructure(STRUCTURE_ID);
+      expect(identityClient.getCacheStats()!.totalEntries).toBe(1);
+    });
+
+    when(
+      /^the access token is replaced by a new SSO token for character (\d+)$/,
+      (characterId: string) => {
+        identityClient.setAccessToken(
+          makeJwt({ characterId: Number(characterId), ownerHash: 'forged' }),
+        );
+      },
+    );
+
+    and('ESI answers the next structure orders request with HTTP 401', () => {
+      queueErrorResponse(401);
+    });
+
+    and('the client requests the structure orders again', async () => {
+      outcome = await captureOutcome(() =>
+        identityClient.market.getMarketOrdersInStructure(STRUCTURE_ID),
+      );
+    });
+
+    then(
+      /^the client rejects with an EsiError carrying status (\d+)$/,
+      (status: string) => {
+        expectEsiError(outcome, Number(status));
+      },
+    );
+
+    and(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      identityClient.shutdown();
+    });
+  });
+
+  test('A replaced token is served from the spec TTL only after ESI has answered it', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let identityClient: EsiClient;
+
+    given(
+      /^a client holding an SSO access token for character (\d+)$/,
+      (characterId: string) => {
+        identityClient = createIdentityClient(
+          makeJwt({ characterId: Number(characterId) }),
+        );
+      },
+    );
+
+    and('ESI answers the structure orders request with an ETag', () => {
+      queueStructureOrders();
+    });
+
+    and('the client has requested the structure orders', async () => {
+      await identityClient.market.getMarketOrdersInStructure(STRUCTURE_ID);
+    });
+
+    when(
+      /^the access token is replaced by a new SSO token for character (\d+)$/,
+      (characterId: string) => {
+        identityClient.setAccessToken(
+          makeJwt({ characterId: Number(characterId), ownerHash: 'rotated' }),
+        );
+      },
+    );
+
+    and(
+      'ESI answers the revalidation of the structure orders with HTTP 304',
+      () => {
+        queueNotModified(STRUCTURE_ORDERS_ETAG);
+      },
+    );
+
+    and('the client requests the structure orders twice more', async () => {
+      const first =
+        await identityClient.market.getMarketOrdersInStructure(STRUCTURE_ID);
+      const second =
+        await identityClient.market.getMarketOrdersInStructure(STRUCTURE_ID);
+      expect(first).toEqual(STRUCTURE_ORDERS);
+      expect(second).toEqual(STRUCTURE_ORDERS);
+    });
+
+    then(/^the client sent (\d+) requests$/, (count: string) => {
+      expect(fetchMock.mock.calls).toHaveLength(Number(count));
+      expect(requestHeader(1, 'If-None-Match')).toBe(STRUCTURE_ORDERS_ETAG);
+      identityClient.shutdown();
+    });
+  });
 });

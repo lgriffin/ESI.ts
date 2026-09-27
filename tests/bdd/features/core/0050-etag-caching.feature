@@ -250,8 +250,9 @@ Feature: ETag Caching
     keys authenticated entries by that character id rather than by the token,
     so a refresh, whether the caller sets a new token or the 401 path obtains
     one, keeps every ETag the character has earned. The character id is read
-    from the token without verifying its signature: the token is what the
-    client will send, and ESI decides whether it is genuine.
+    from the token without verifying its signature, so the new token sends
+    the character's ETag as If-None-Match and ESI's 304 is what serves the
+    entry: a 304 is ESI accepting the token and the entry in one answer.
 
     Scenario: Structure orders revalidated by a 304 after the access token is replaced
       Given a client holding an SSO access token for character 90000001
@@ -305,3 +306,31 @@ Feature: ETag Caching
       And the client requests the structure orders again
       Then the second structure orders request carried no If-None-Match header
       And the cache holds 2 entries
+
+  Rule: If the current access token is one ESI has not yet answered, then the ETag cache shall serve no stored entry for it without a request.
+    The character a token names is read without verifying the token, so it is
+    a claim until ESI has answered a request under that token with 2xx or
+    304. A forged token naming a character, set on a client that holds that
+    character's entries, would otherwise be served them from the spec TTL or
+    on a server error before ESI ever saw it. Until ESI accepts a token the
+    client keys it by a hash of the token itself, and the character's entry
+    is reached only through a conditional request that ESI answers.
+
+    Scenario: A replaced token that ESI rejects is served nothing from the character's entry
+      Given a client holding an SSO access token for character 90000001
+      And ESI answers the structure orders request with an ETag
+      And the client has requested the structure orders
+      When the access token is replaced by a new SSO token for character 90000001
+      And ESI answers the next structure orders request with HTTP 401
+      And the client requests the structure orders again
+      Then the client rejects with an EsiError carrying status 401
+      And the client sent 2 requests
+
+    Scenario: A replaced token is served from the spec TTL only after ESI has answered it
+      Given a client holding an SSO access token for character 90000001
+      And ESI answers the structure orders request with an ETag
+      And the client has requested the structure orders
+      When the access token is replaced by a new SSO token for character 90000001
+      And ESI answers the revalidation of the structure orders with HTTP 304
+      And the client requests the structure orders twice more
+      Then the client sent 2 requests
