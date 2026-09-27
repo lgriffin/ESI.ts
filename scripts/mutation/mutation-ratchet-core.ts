@@ -1,9 +1,9 @@
 /**
  * Per-directory mutation-score ratchets for the Stryker runs:
  *
- * - the BDD-only run (config/mutation/bdd-thresholds.json, npm run mutation:bdd:ratchet);
+ * - the BDD-only run (mutation-bdd-thresholds.json, npm run mutation:bdd:ratchet);
  * - the unit-suite run, nightly over every file and on pull requests over the
- *   changed files (config/mutation/unit-thresholds.json, npm run mutation:ratchet and
+ *   changed files (mutation-thresholds.json, npm run mutation:ratchet and
  *   npm run mutation:pr).
  *
  * Pure functions with no I/O, so the unit suite can import them.
@@ -414,6 +414,79 @@ export interface PrPlanInput {
   baselineSources: ReadonlyMap<string, string> | null;
   /** Current source of a tracked file. */
   readSource: (file: string) => string;
+  /**
+   * Files the pull request adds, modifies or deletes under tests/,
+   * repo-relative; empty when it touches no test, null when the diff could
+   * not be read (treated as "tests may have changed").
+   */
+  changedTestFiles?: readonly string[] | null;
+  /**
+   * Per source file in the restored report, the test files with a test that
+   * covers one of its mutants. Decides which unchanged files a changed test
+   * sends back to Stryker, and ties a test-only pull request to the
+   * directories its tests reach; null or absent when the report carries no
+   * per-test coverage, in which case every vouched sibling is retested.
+   */
+  baselineCoverage?: BaselineCoverage | null;
+}
+
+/** Source file (repo-relative) to the test files the restored report saw cover it. */
+export type BaselineCoverage = ReadonlyMap<string, ReadonlySet<string>>;
+
+/**
+ * The minimum of Stryker's incremental report this module reads: per source
+ * file its mutants with the ids of the tests covering them, and the test
+ * files those ids belong to.
+ */
+export interface IncrementalReport {
+  files: Record<
+    string,
+    { source?: string; mutants: { coveredBy?: string[] }[] }
+  >;
+  testFiles?: Record<string, { tests: { id: string }[] }>;
+}
+
+/**
+ * Builds the per-file coverage a plan needs from a Stryker incremental
+ * report. `toRepoPath` maps the report's paths (absolute on some runners) to
+ * repo-relative ones. Returns null when the report has no `testFiles`: with
+ * `coverageAnalysis` other than `perTest` there is nothing to correlate.
+ */
+export function coverageFromReport(
+  report: IncrementalReport,
+  toRepoPath: (file: string) => string = (f) => f,
+): BaselineCoverage | null {
+  if (report.testFiles === undefined) return null;
+  const fileOfTest = new Map<string, string>();
+  for (const [testFile, { tests }] of Object.entries(report.testFiles)) {
+    const repoPath = normalise(toRepoPath(testFile));
+    for (const { id } of tests) fileOfTest.set(id, repoPath);
+  }
+  const coverage = new Map<string, Set<string>>();
+  for (const [file, { mutants }] of Object.entries(report.files)) {
+    const covering = new Set<string>();
+    for (const { coveredBy } of mutants) {
+      for (const id of coveredBy ?? []) {
+        const testFile = fileOfTest.get(id);
+        if (testFile !== undefined) covering.add(testFile);
+      }
+    }
+    coverage.set(normalise(toRepoPath(file)), covering);
+  }
+  return coverage;
+}
+
+/**
+ * The score directory a unit test file sits over by the repository's layout
+ * (`tests/tdd/<path>/<name>.test.ts` mirrors `src/<path>/`), or null for a
+ * test outside tests/tdd/, whose subject the path does not name.
+ */
+export function sourceDirectoryForTest(testFile: string): string | null {
+  const parts = normalise(testFile).split('/');
+  if (parts[0] !== 'tests' || parts[1] !== 'tdd' || parts.length < 4) {
+    return null;
+  }
+  return directoryOf(['src', ...parts.slice(2)].join('/'));
 }
 
 export interface PrPlan {
@@ -441,6 +514,21 @@ export interface PrPlan {
    * a baseline whose source still matches. Empty when nothing was restored.
    */
   nightly: string[];
+  /**
+   * Siblings the baseline vouches for by source but not by tests: this pull
+   * request changed or deleted a test that covered one of their mutants last
+   * night, so their nightly verdicts may no longer hold. They are in
+   * `mutate` and none of their results is reused (#380). When the report
+   * carries no per-test coverage, or the tests diff could not be read, that
+   * is every vouched sibling.
+   */
+  retested: string[];
+  /**
+   * True when the pull request changed a test file: the run passes `--force`
+   * so Stryker re-runs every mutant of the files in `mutate` instead of
+   * reusing a result recorded under the old tests.
+   */
+  force: boolean;
 }
 
 function sameSource(a: string, b: string): boolean {
@@ -453,18 +541,74 @@ export function planPrRun({
   mutatePatterns,
   baselineSources,
   readSource,
+  changedTestFiles = [],
+  baselineCoverage = null,
 }: PrPlanInput): PrPlan {
   const srcChanged = changedFiles
     .map(normalise)
     .filter((f) => f.startsWith('src/'));
   const changed = srcChanged.filter((f) => inMutationScope(f, mutatePatterns));
   const outOfScope = srcChanged.filter((f) => !changed.includes(f));
+  const tracked = trackedFiles
+    .map(normalise)
+    .filter((f) => inMutationScope(f, mutatePatterns));
+  const testsChanged =
+    changedTestFiles === null
+      ? null
+      : changedTestFiles.map(normalise).filter((f) => f.startsWith('tests/'));
+  // A test this pull request changed or deleted may no longer kill a mutant
+  // in a file the diff does not touch, and Stryker's incremental mode would
+  // reuse the old verdict as long as the test keeps its name (#380). A score
+  // can only fall through a test that killed one of the file's mutants last
+  // night, and the restored report's per-test coverage names every test
+  // that reached one, so the files it ties a changed test to are mutated
+  // again and the run passes --force. A test the report does not know (a
+  // new file, or coverage it newly gained) can only raise a score, and the
+  // next nightly records that; re-mutating whole directories for it does
+  // not fit the job's time budget. Without coverage, every vouched sibling
+  // is retested.
+  const force = testsChanged === null || testsChanged.length > 0;
+  const touchedByChangedTest = (file: string): boolean => {
+    if (testsChanged === null || baselineCoverage === null) return true;
+    const covering = baselineCoverage.get(file);
+    if (covering === undefined) return true;
+    return testsChanged.some((t) => covering.has(t));
+  };
 
-  if (changed.length === 0) {
-    const reason =
-      srcChanged.length === 0
-        ? 'This pull request changes no files under src/.'
-        : 'This pull request changes src/ files, but none inside the unit mutation scope (config/mutation/stryker.config.mjs `mutate`).';
+  const directories = new Set(changed.map(directoryOf));
+  if (
+    changed.length === 0 &&
+    testsChanged !== null &&
+    testsChanged.length > 0
+  ) {
+    // A test-only pull request: the directories its tests reach, by the
+    // report's coverage for a test it knows and by the tests/tdd/ layout
+    // for one it does not (a new test file, or a report without coverage).
+    const trackedDirectories = new Set(tracked.map(directoryOf));
+    for (const test of testsChanged) {
+      for (const [file, tests] of baselineCoverage ?? []) {
+        if (tests.has(test) && inMutationScope(file, mutatePatterns)) {
+          directories.add(directoryOf(file));
+        }
+      }
+      const byLayout = sourceDirectoryForTest(test);
+      if (byLayout !== null && trackedDirectories.has(byLayout)) {
+        directories.add(byLayout);
+      }
+    }
+  }
+
+  if (directories.size === 0) {
+    let reason: string;
+    if (srcChanged.length > 0) {
+      reason =
+        'This pull request changes src/ files, but none inside the unit mutation scope (stryker.config.mjs `mutate`).';
+    } else if (testsChanged !== null && testsChanged.length > 0) {
+      reason =
+        'This pull request changes only tests, and none of them can be tied to a directory in the unit mutation scope: the restored report shows no in-scope file they cover and they are not under tests/tdd/.';
+    } else {
+      reason = 'This pull request changes no files under src/.';
+    }
     return {
       skip: true,
       reason,
@@ -473,33 +617,56 @@ export function planPrRun({
       directories: [],
       mutate: [],
       nightly: [],
+      retested: [],
+      force: false,
     };
   }
 
-  const directories = [...new Set(changed.map(directoryOf))].sort();
-  const siblings = trackedFiles
-    .map(normalise)
-    .filter(
-      (f) =>
-        directories.includes(directoryOf(f)) &&
-        inMutationScope(f, mutatePatterns),
-    );
+  const siblings = tracked.filter((f) => directories.has(directoryOf(f)));
   const unvouched = siblings.filter((f) => {
     const recorded = baselineSources?.get(f);
     return recorded === undefined || !sameSource(recorded, readSource(f));
   });
-  const mutate = [...new Set([...changed, ...unvouched])].sort();
+  const retested =
+    force && baselineSources !== null
+      ? siblings.filter(
+          (f) =>
+            !changed.includes(f) &&
+            !unvouched.includes(f) &&
+            touchedByChangedTest(f),
+        )
+      : [];
+  const mutate = [...new Set([...changed, ...unvouched, ...retested])].sort();
   const fresh = new Set(mutate);
   const nightly = siblings.filter((f) => !fresh.has(f));
+
+  if (mutate.length === 0) {
+    // A test-only pull request whose tests covered nothing in the restored
+    // report: it can only raise a score, which the next nightly records.
+    return {
+      skip: true,
+      reason:
+        'This pull request changes only tests, and none of them covered a mutant in the restored report, so it cannot lower a score; a score it raises is recorded by the next nightly.',
+      changed,
+      outOfScope,
+      directories: [...directories].sort(),
+      mutate: [],
+      nightly,
+      retested: [],
+      force: false,
+    };
+  }
 
   return {
     skip: false,
     reason: '',
     changed: [...changed].sort(),
     outOfScope,
-    directories,
+    directories: [...directories].sort(),
     mutate,
     nightly,
+    retested: [...retested].sort(),
+    force,
   };
 }
 
@@ -653,9 +820,18 @@ export function renderPrSummary(args: {
   const testFiles = args.testFiles;
   if (testFiles !== undefined && testFiles !== null && testFiles.length > 0) {
     for (const d of plan.directories) {
+      const retested = plan.retested.filter((f) => directoryOf(f) === d);
+      if (retested.length > 0) {
+        lines.push(
+          '',
+          `> \`${d}\`: ${retested.length} unchanged file(s) mutated again because this pull request changes a test that covered them, so a weakened or deleted test counts here and not only in the next nightly: ${retested.map((f) => `\`${f}\``).join(', ')}.`,
+        );
+      }
+    }
+    if (plan.force) {
       lines.push(
         '',
-        `> \`${d}\`: the changed tests' effect on the unchanged files' mutants will show in the next nightly and its ratchet; here only the changed files are re-scored.`,
+        '> Tests changed, so every mutant of the mutated files ran in this job (`--force`); no result was reused for them.',
       );
     }
   }
@@ -752,7 +928,7 @@ export function fixtureSignalProblems(report: MutationReport): string[] {
 // The pull request gate's outcome
 // ---------------------------------------------------------------------------
 
-/** Exit codes scripts/mutation/mutation-pr.ts uses, plus the ones a kill produces. */
+/** Exit codes scripts/mutation-pr.ts uses, plus the ones a kill produces. */
 export const PR_EXIT = {
   pass: 0,
   /** A directory scored below its floor. */
