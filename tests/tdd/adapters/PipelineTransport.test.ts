@@ -90,6 +90,24 @@ describe('PipelineTransport', () => {
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
+    it('rejects a non-finite number in a query value before any request', async () => {
+      const transport = new PipelineTransport(newClient());
+
+      await expect(
+        transport.request(meta({ path: '/search' }), {
+          path: {},
+          query: { type_id: Number.NaN },
+        }),
+      ).rejects.toThrow("Query parameter 'type_id' must be a finite number");
+      await expect(
+        transport.request(meta({ path: '/search' }), {
+          path: {},
+          query: { type_ids: [34, Number.POSITIVE_INFINITY] },
+        }),
+      ).rejects.toThrow("Query parameter 'type_ids' must be a finite number");
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it('rejects a path template whose parameter was not supplied', async () => {
       const transport = new PipelineTransport(newClient());
 

@@ -24,9 +24,16 @@ interface BuiltRequest {
   readonly requiresAuth: boolean;
 }
 
-/** ESI takes an array query value as one comma-separated value, as the hand-written clients send it. */
-function queryString(value: QueryValue): string {
-  return Array.isArray(value) ? value.join(',') : String(value);
+/**
+ * Validates each value as it is (so a non-finite number is rejected, not sent
+ * as `NaN`), then joins an array with commas: ESI takes an array query value
+ * as one comma-separated value, as the hand-written clients send it.
+ */
+function queryString(name: string, value: QueryValue): string {
+  const values: readonly (string | number | boolean)[] = Array.isArray(value)
+    ? value
+    : [value as string | number | boolean];
+  return values.map((v) => validateQueryParam(name, v)).join(',');
 }
 
 function build(
@@ -38,12 +45,13 @@ function build(
   const path = template.replace(/\{(\w+)\}/g, (_, name: string) =>
     encodeURIComponent(validatePathParam(name, req.path[name])),
   );
-  // Encoded the way buildEndpointPath encodes it, so an operation and the
-  // hand-written method for the same route share cache and dedupe keys.
+  // Encoded the way buildEndpointPath encodes it. The path follows the spec,
+  // which has no trailing slash; the 54 hand-written routes that end in one
+  // therefore do not share cache keys with their generated operation.
   const query: string[] = [];
   for (const [name, value] of Object.entries(req.query)) {
     if (value === undefined) continue;
-    const encoded = validateQueryParam(name, queryString(value));
+    const encoded = validateQueryParam(name, queryString(name, value));
     query.push(`${name}=${encodeURIComponent(encoded)}`);
   }
   if (datasource) query.push(`datasource=${encodeURIComponent(datasource)}`);
