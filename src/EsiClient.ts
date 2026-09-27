@@ -67,43 +67,43 @@ import type { ILogger } from './core/logger/ILogger';
 export type EsiDatasource = 'tranquility' | 'singularity';
 
 export interface EsiClientConfig {
-  clientId?: string;
-  baseUrl?: string;
-  accessToken?: string;
-  datasource?: EsiDatasource;
-  onTokenRefresh?: TokenProvider;
-  timeout?: number;
-  retryAttempts?: number;
-  retryConfig?: RetryConfig;
-  retryStrategy?: IRetryStrategy;
-  enableETagCache?: boolean;
-  etagCacheConfig?: ETagCacheConfig;
-  enableCircuitBreaker?: boolean;
-  circuitBreakerConfig?: CircuitBreakerConfig;
-  unsafeAllowCustomHost?: boolean;
-  enableRequestDeduplication?: boolean;
-  language?: string;
-  compatibilityDate?: string;
+  clientId?: string | undefined;
+  baseUrl?: string | undefined;
+  accessToken?: string | undefined;
+  datasource?: EsiDatasource | undefined;
+  onTokenRefresh?: TokenProvider | undefined;
+  timeout?: number | undefined;
+  retryAttempts?: number | undefined;
+  retryConfig?: RetryConfig | undefined;
+  retryStrategy?: IRetryStrategy | undefined;
+  enableETagCache?: boolean | undefined;
+  etagCacheConfig?: ETagCacheConfig | undefined;
+  enableCircuitBreaker?: boolean | undefined;
+  circuitBreakerConfig?: CircuitBreakerConfig | undefined;
+  unsafeAllowCustomHost?: boolean | undefined;
+  enableRequestDeduplication?: boolean | undefined;
+  language?: string | undefined;
+  compatibilityDate?: string | undefined;
   /**
    * The ESI tenant every request names in `X-Tenant` (`tranquility`,
    * `singularity`). Unset, no header is sent and ESI serves Tranquility.
    */
-  tenant?: string;
+  tenant?: string | undefined;
   /**
    * Who is calling, for CCP to contact: an application name, version and
    * contact address. Sent as `X-User-Agent` (in place of `clientId`) and at the
    * start of `User-Agent`, before the library's own identifier.
    */
-  userAgent?: string;
-  rateLimiterConfig?: RateLimiterConfig;
-  requestInterceptors?: RequestInterceptor[];
-  responseInterceptors?: ResponseInterceptor[];
-  validateResponse?: boolean;
-  validateRequest?: boolean;
+  userAgent?: string | undefined;
+  rateLimiterConfig?: RateLimiterConfig | undefined;
+  requestInterceptors?: RequestInterceptor[] | undefined;
+  responseInterceptors?: ResponseInterceptor[] | undefined;
+  validateResponse?: boolean | undefined;
+  validateRequest?: boolean | undefined;
   /** Custom logger for this client. Falls back to the global logger, then pino. */
-  logger?: import('./core/logger/ILogger').ILogger;
+  logger?: import('./core/logger/ILogger').ILogger | undefined;
   /** Log level for the default pino logger (`error|warn|info|debug|trace`). Overrides `ESI_LOG_LEVEL`. */
-  logLevel?: import('./core/logger/DefaultLogger').LogLevel;
+  logLevel?: import('./core/logger/DefaultLogger').LogLevel | undefined;
 }
 
 export class EsiClient {

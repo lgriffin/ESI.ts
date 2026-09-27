@@ -47,7 +47,7 @@ export class CharacterSkillsClient extends BaseEsiClient<
   getCharacterSkills(characterId: number): Promise<{
     skills: CharacterSkill[];
     total_sp: number;
-    unallocated_sp?: number;
+    unallocated_sp?: number | undefined;
   }> {
     return this.api.getCharacterSkills(characterId);
   }

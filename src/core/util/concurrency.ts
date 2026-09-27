@@ -6,13 +6,13 @@ export interface ConcurrencyOptions {
    * is not a finite number falls back to the default; fractions are floored
    * and anything below one runs a single worker.
    */
-  concurrency?: number;
+  concurrency?: number | undefined;
   /**
    * Called after each item settles with the running completed count. An
    * exception thrown by the callback is discarded so it cannot stop the run
    * or leave later items without a result.
    */
-  onProgress?: (completed: number, total: number) => void;
+  onProgress?: ((completed: number, total: number) => void) | undefined;
 }
 
 function resolveLimit(requested: number | undefined): number {

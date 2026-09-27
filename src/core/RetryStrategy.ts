@@ -7,13 +7,13 @@ import { logInfo, logWarn, logError } from './logger/clientLog';
 import { IRetryStrategy } from './IRetryStrategy';
 
 export interface RetryContext {
-  client?: ApiClient;
+  client?: ApiClient | undefined;
   endpoint: string;
   method: string;
   requiresAuth: boolean;
-  refreshToken?: () => Promise<void>;
+  refreshToken?: (() => Promise<void>) | undefined;
   /** @deprecated Unused — after refresh the strategy re-enters the main operation loop. */
-  retryOperation?: () => Promise<unknown>;
+  retryOperation?: (() => Promise<unknown>) | undefined;
 }
 
 export class RetryStrategy implements IRetryStrategy {

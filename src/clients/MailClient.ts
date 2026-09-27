@@ -84,9 +84,10 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
    * @returns The character's mail labels and total unread mail count
    * @requires Authentication
    */
-  getMailLabels(
-    characterId: number,
-  ): Promise<{ total_unread_count?: number; labels?: MailLabel[] }> {
+  getMailLabels(characterId: number): Promise<{
+    total_unread_count?: number | undefined;
+    labels?: MailLabel[] | undefined;
+  }> {
     return this.api.getMailLabels(characterId);
   }
 

@@ -2,8 +2,8 @@ import { EsiError } from './util/error';
 import { logDebug, logInfo } from './logger/clientLog';
 
 export interface BatchOptions {
-  concurrency?: number;
-  onProgress?: (completed: number, total: number) => void;
+  concurrency?: number | undefined;
+  onProgress?: ((completed: number, total: number) => void) | undefined;
 }
 
 export interface BatchResult<K, T> {

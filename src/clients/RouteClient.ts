@@ -3,10 +3,10 @@ import { BaseEsiClient } from './BaseEsiClient';
 import { routeEndpoints } from '../core/endpoints/routeEndpoints';
 
 export interface RouteOptions {
-  preference?: 'Shorter' | 'Safer' | 'LessSecure';
-  avoid_systems?: number[];
-  connections?: { from: number; to: number }[];
-  security_penalty?: number;
+  preference?: 'Shorter' | 'Safer' | 'LessSecure' | undefined;
+  avoid_systems?: number[] | undefined;
+  connections?: { from: number; to: number }[] | undefined;
+  security_penalty?: number | undefined;
 }
 
 export class RouteClient extends BaseEsiClient<typeof routeEndpoints> {

@@ -65,6 +65,8 @@ The app is installed on this repository only, with repository permissions Conten
 
 Without both, release-please falls back to `GITHUB_TOKEN`. Its release PR's CI then has to be approved in the Actions UI, and the `dispatch-release` job starts `release.yml` on the new tag (`workflow_dispatch` is exempt from the rule), unless a dispatched run for that tag already exists. Either way `release.yml` dispatches the canary itself once `publish-npm` has succeeded.
 
+The same fallback applies when minting fails, for example because the app is not installed on the repository (the token API answers 404) or the key was deleted. The run carries a "Release app token" warning annotation saying so, and the release still goes out.
+
 ---
 
 ## Release cadence

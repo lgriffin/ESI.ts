@@ -299,8 +299,8 @@ export async function fetchAllCursorPages<TResponse, TItem = unknown>(
   fetcher: (before?: string, after?: string) => Promise<TResponse>,
   getItems: (response: TResponse) => TItem[],
   getCursor: (response: TResponse) => {
-    before?: string | null;
-    after?: string | null;
+    before?: string | null | undefined;
+    after?: string | null | undefined;
   },
 ): Promise<TItem[]> {
   const allData: TItem[] = [];

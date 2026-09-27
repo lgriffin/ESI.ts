@@ -46,10 +46,10 @@ export interface RateLimitEndpointOverride {
 }
 
 export interface RateLimiterConfig {
-  minDelayMs?: number;
-  decelerationThreshold?: number;
-  userKeyExtractor?: (headers: Record<string, string>) => string;
-  endpointOverrides?: Record<string, RateLimitEndpointOverride>;
+  minDelayMs?: number | undefined;
+  decelerationThreshold?: number | undefined;
+  userKeyExtractor?: ((headers: Record<string, string>) => string) | undefined;
+  endpointOverrides?: Record<string, RateLimitEndpointOverride> | undefined;
 }
 
 interface GroupBucket {
@@ -85,9 +85,8 @@ const DEFAULT_ERROR_LIMIT: ErrorLimitState = {
 export class RateLimiter implements IRateLimiter {
   private readonly minDelayMs: number;
   private readonly decelerationThreshold: number;
-  private readonly userKeyExtractor?: (
-    headers: Record<string, string>,
-  ) => string;
+  private readonly userKeyExtractor?:
+    ((headers: Record<string, string>) => string) | undefined;
   private readonly endpointOverrides: Record<string, RateLimitEndpointOverride>;
 
   private lastRequestTime: number = 0;
