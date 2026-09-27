@@ -2,11 +2,10 @@
  * Tier P: did what got published actually work?
  *
  * Everything before publish checks what CI built. None of it checks what the
- * registry hands a consumer twenty minutes later, and those are not the same
- * artefact: `publish-npm` rebuilds rather than uploading the tarball the
- * consumer matrix tested (esi-23g.42), the registry could serve a partial or
- * superseded version, and a broken `exports` map is invisible until somebody
- * installs it.
+ * registry hands a consumer twenty minutes later. `publish-npm` uploads the
+ * tarball the consumer matrix tested (esi-23g.42), but the registry could
+ * still serve a partial or superseded version, and a broken `exports` map is
+ * invisible until somebody installs it.
  *
  * So the canary installs the published version into an empty directory, with
  * no repository on disk to fall back to, and asks five questions of it:
