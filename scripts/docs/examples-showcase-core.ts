@@ -12,6 +12,8 @@
  *
  * Pure functions with no I/O, so the unit suite can import them.
  */
+import * as ts from 'typescript';
+
 import { ExampleTier, tierOf } from './examples-core';
 import { BRANCH, GITHUB, SidebarGroup } from './sync-docs-core';
 
@@ -135,14 +137,38 @@ export function rewriteImports(code: string, file: string): string {
 const CALL_PREFIX =
   /^(get|post|put|delete|stream|fetchAll|iterate|search|create|update|add|remove|list)/;
 
-/** The `<client>.<method>(` calls in `code` whose client is in `clients`. */
+/**
+ * The `<client>.<method>(` calls in `code` whose client is in `clients`, in
+ * source order. Walks the syntax tree, so a call written inside a string or
+ * a comment is not listed.
+ */
 export function callsIn(code: string, clients: ReadonlySet<string>): string[] {
+  const source = ts.createSourceFile(
+    'example.ts',
+    code,
+    ts.ScriptTarget.Latest,
+  );
   const calls: string[] = [];
-  for (const [, client, method] of code.matchAll(/\.(\w+)\.(\w+)\(/g)) {
-    if (!clients.has(client!) || !CALL_PREFIX.test(method!)) continue;
-    const call = `${client}.${method}`;
-    if (!calls.includes(call)) calls.push(call);
-  }
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      ts.isPropertyAccessExpression(node.expression.expression)
+    ) {
+      const client = node.expression.expression.name.text;
+      const method = node.expression.name.text;
+      const call = `${client}.${method}`;
+      if (
+        clients.has(client) &&
+        CALL_PREFIX.test(method) &&
+        !calls.includes(call)
+      ) {
+        calls.push(call);
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
   return calls;
 }
 

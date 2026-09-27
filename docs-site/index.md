@@ -80,12 +80,16 @@ try {
 For many characters over one runtime, `@lgriffin/esi.ts/client` gives a public view in which an authenticated call does not compile, and a view per identity:
 
 ```ts
-import { createEsi } from '@lgriffin/esi.ts/client';
+import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
 
 const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)' });
 const status = await esi.public.status.get();
+
+// An access token from your SSO flow. An EsiTokenManager's
+// tokens.identity(characterId) gives a refreshing identity instead.
+const characterId = 2114794365;
 const wallet = await esi
-  .as(tokens.identity(characterId))
+  .as(identityFromToken(process.env.ESI_ACCESS_TOKEN ?? ''))
   .character(characterId)
   .wallet.get();
 ```

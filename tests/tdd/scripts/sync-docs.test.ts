@@ -342,6 +342,17 @@ describe('parseExample', () => {
     ).toEqual([]);
   });
 
+  it('does not list a call written inside a string or a comment', () => {
+    const code = [
+      'const note = `use client.market.getMarketPrices() here`;',
+      '// client.status.getStatus()',
+      'await client.universe.getTypes();',
+    ].join('\n');
+    expect(callsIn(code, new Set(['market', 'status', 'universe']))).toEqual([
+      'universe.getTypes',
+    ]);
+  });
+
   it('shows the code with consumer imports and without the header', () => {
     expect(doc.code).toMatch(
       /^import \{ EsiClient \} from '@lgriffin\/esi.ts';/,
