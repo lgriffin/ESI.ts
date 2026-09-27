@@ -70,9 +70,64 @@ jobs:
             echo "skip-pr=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # Events raised with GITHUB_TOKEN start no other workflow, so a release
+      # PR opened with it waits for someone to approve its CI (#378) and the
+      # tag it creates never starts release.yml (#383). A GitHub App token
+      # has neither problem. The app is configured by the RELEASE_APP_CLIENT_ID
+      # variable and the RELEASE_APP_PRIVATE_KEY secret (guides/RELEASE.md);
+      # without them this falls back to GITHUB_TOKEN and the dispatch below.
+      - name: Mint release token
+        id: app-token
+        if: vars.RELEASE_APP_CLIENT_ID != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
         id: release
         with:
+          token: ${{ steps.app-token.outputs.token || github.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           skip-github-pull-request: ${{ steps.gate.outputs.skip-pr }}
+
+  # Fallback for when no release app is configured: the tag and release came
+  # from GITHUB_TOKEN, so nothing else started. workflow_dispatch is exempt
+  # from that rule, so start the publish here, wait for it, then start the
+  # canary (#383).
+  dispatch-release:
+    name: Dispatch release pipeline
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true' && vars.RELEASE_APP_CLIENT_ID == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      actions: write # workflow_dispatch release.yml and the canary
+
+    steps:
+      - name: Publish, then verify what npm serves
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          VERSION: ${{ needs.release-please.outputs.version }}
+        run: |
+          started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          gh workflow run release.yml --repo "$REPO" --ref "$TAG"
+          run_id=""
+          for _ in $(seq 1 30); do
+            run_id=$(gh run list --repo "$REPO" --workflow release.yml --event workflow_dispatch \
+              --branch "$TAG" --created ">=$started" --json databaseId --jq '.[0].databaseId // empty')
+            [ -n "$run_id" ] && break
+            sleep 10
+          done
+          if [ -z "$run_id" ]; then
+            echo "::error::release.yml was dispatched on $TAG but its run did not appear"
+            exit 1
+          fi
+          gh run watch "$run_id" --repo "$REPO" --exit-status
+          gh workflow run post-publish-canary.yml --repo "$REPO" --ref "$TAG" -f version="$VERSION"

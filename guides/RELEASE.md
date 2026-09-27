@@ -49,7 +49,20 @@ release.yml
 
 The workflow holds top-level `contents: read`. Only `publish-npm`, `publish-github` and `sign-and-publish-assets` receive `id-token: write`, and signing sits in its own job so that no build step shares a job with the ability to mint an OIDC token.
 
-`release.yml` also has a `workflow_dispatch` trigger, for releases release-please creates with `GITHUB_TOKEN` (see [Known state](#known-state)). Dispatch it on the tag, `gh workflow run release.yml --ref vX.Y.Z`; `validate-release` fails on any other ref, and on a tag that does not match `package.json`. `release-please.yml` has a manual trigger with a `force-release` box, for shipping a patch on purpose (below).
+`release.yml` also has a `workflow_dispatch` trigger. Dispatch it on the tag, `gh workflow run release.yml --ref vX.Y.Z`; `validate-release` fails on any other ref, and on a tag that does not match `package.json`. `release-please.yml` has a manual trigger with a `force-release` box, for shipping a patch on purpose (below).
+
+### The release app token
+
+Events raised with the workflow's `GITHUB_TOKEN` start no other workflow. A release PR opened with it waits for someone to approve its CI runs, and the tag and release it creates never start `release.yml` or `post-publish-canary.yml`. So `release-please.yml` runs release-please with a GitHub App installation token when the app is configured:
+
+| Name                      | Kind             | Value                                        |
+| ------------------------- | ---------------- | -------------------------------------------- |
+| `RELEASE_APP_CLIENT_ID`   | Actions variable | The app's Client ID                          |
+| `RELEASE_APP_PRIVATE_KEY` | Actions secret   | A private key generated for the app (`.pem`) |
+
+The app is installed on this repository only, with repository permissions Contents, Pull requests and Issues set to read and write, no webhook, and nothing else. The token step asks for those three permissions only.
+
+Without the variable, release-please falls back to `GITHUB_TOKEN`. Its release PR's CI then has to be approved in the Actions UI, and the `dispatch-release` job starts `release.yml` on the new tag (`workflow_dispatch` is exempt from the rule), waits for it, then starts the canary.
 
 ---
 
@@ -277,6 +290,6 @@ Recorded 2026-09-16. Each item contradicts a requirement above and belongs in a 
 
 - **npm and GitHub Packages publish a fresh build, not the tested tarball.** `consumer-contract` runs against the tarball `create-assets` packs, which is the one signed and attached to the release. `publish-npm` and `publish-github` wait for it but run `npm run build` and `npm publish` themselves, so the registries receive a rebuild of the same commit. Publishing `release-artifacts/<tarball>` with `npm publish <file> --provenance` would make all three the same bytes; that changes the credentialed jobs, so it is a separate change.
 - **release-please needed repository permission to open its pull request.** It computed the version but failed with "GitHub Actions is not permitted to create or approve pull requests" until that repository setting was enabled (2026-09-16). Releases 9.8.0 and 9.9.0 were hand-written `chore: release X.Y.Z` commits.
-- **Releases created with the workflow's `GITHUB_TOKEN` do not trigger other workflows.** When release-please creates the tag and release, `release.yml` does not start on its own. Publish by dispatching it on the tag: `gh workflow run release.yml --ref vX.Y.Z`. The first `validate-release` steps reject a run that is not on a `vX.Y.Z` tag or whose tag does not match `package.json` and `PACKAGE_VERSION`.
+- **Releases created with the workflow's `GITHUB_TOKEN` do not trigger other workflows.** 10.1.0 and 10.1.1 were tagged and released on GitHub but never published to npm, because nothing dispatched `release.yml`. `release-please.yml` now uses the [release app token](#the-release-app-token) when it is configured, and dispatches `release.yml` and the canary itself when it is not.
 - **v9.7.0 has no signed assets.** Its `sign-and-publish-assets` job failed because cosign 3 requires `--bundle` for `sign-blob`; the job now writes a Sigstore bundle per asset. npm and GitHub Packages publishing succeeded for that release.
 - **The changelog does not match the registry (REL-04).** npm has 8.0.0, 9.4.0 and 9.6.0 with no changelog entry; the changelog jumps from 7.4.0 to 9.0.0 and from 9.1.0 to 9.7.0. 9.8.0 and 9.9.0 have dated entries but no tag and no npm publish.
