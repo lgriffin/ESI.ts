@@ -109,10 +109,14 @@ ideas.md
 *.zip
 sde-data/
 
-# Docs site build output
+# Docs site build output, and the pages `npm run docs:sync` generates from
+# README.md, guides/ and examples/ (scripts/docs/sync-docs.ts)
 docs-site/node_modules/
 docs-site/.vitepress/dist/
 docs-site/.vitepress/cache/
+docs-site/.vitepress/sidebar.generated.json
+docs-site/guide/
+docs-site/examples/
 # Beads / Dolt files (added by bd init)
 # Note: .beads/.gitignore already scopes DB/runtime files within .beads/;
 # keep these top-level rules narrow to avoid ignoring unrelated *.db fixtures.

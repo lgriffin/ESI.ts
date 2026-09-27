@@ -25,7 +25,10 @@ const DESCS: Record<string, string> = {
   test: 'Run the unit + BDD suite (the default "test")',
   coverage: 'Run unit tests with the coverage report',
   docs: 'Build API docs (TypeDoc) into docs-site/public/api/',
-  clean: 'Remove dist/, coverage/, docs-site/public/api/',
+  'docs:site':
+    'Build the documentation site (TypeDoc + guides + examples) into docs-site/.vitepress/dist/',
+  'docs:sync': 'Generate the site pages from README.md, guides/ and examples/',
+  clean: 'Remove dist/, coverage/ and the generated docs (clean:docs)',
 
   'mock:esi': 'Start a Prism mock ESI server on port 4010',
   'test:integration': 'Mocked integration tests',

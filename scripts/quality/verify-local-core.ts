@@ -122,7 +122,7 @@ export const TIERS: Tier[] = [
   {
     script: 'validate:versions',
     covers:
-      'package.json, constants.ts and the docs-site selector carry one version',
+      'package.json and constants.ts carry one version; the docs-site selector reads it',
     stage: 'quick',
   },
   { script: 'test', covers: 'unit and BDD suites', stage: 'quick' },

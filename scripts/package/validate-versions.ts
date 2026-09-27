@@ -1,5 +1,7 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import * as path from 'path';
+
+const ROOT = path.join(__dirname, '../..');
 
 function getPackageJsonVersion(): string {
   const pkgPath = path.join(__dirname, '../..', 'package.json');
@@ -30,25 +32,47 @@ function getConstantsVersion(): string {
 }
 
 /**
- * The docs site's version selector (REL-03). The line carries the
- * `x-release-please-version` marker and the file is in release-please's
- * `extra-files`, so a release bumps it with the other two.
+ * The docs site's version selector (REL-03). `docs-site/.vitepress/config.ts`
+ * builds it from package.json at build time, so the source can only go
+ * stale by no longer reading package.json; this fails if it stops.
  */
-function getDocsSiteVersion(): string {
-  const configPath = path.join(
-    __dirname,
-    '../..',
+function checkDocsSiteSource(): string | null {
+  const configPath = path.join(ROOT, 'docs-site', '.vitepress', 'config.ts');
+  const content = readFileSync(configPath, 'utf-8');
+  const readsPackage = /new URL\(\s*['"]\.\.\/\.\.\/package\.json['"]/.test(
+    content,
+  );
+  const showsIt = /text:\s*`v\$\{pkg\.version\}`/.test(content);
+  return readsPackage && showsIt
+    ? null
+    : 'docs-site/.vitepress/config.ts: the version selector must be `v${pkg.version}`, with pkg read from ../../package.json';
+}
+
+/**
+ * With `--site`, the built site's version selector
+ * (docs-site/.vitepress/dist/index.html), so a deploy cannot publish a site
+ * built from another version. `npm run docs:site` builds it.
+ */
+function getBuiltSiteVersion(): string {
+  const indexPath = path.join(
+    ROOT,
     'docs-site',
     '.vitepress',
-    'config.ts',
+    'dist',
+    'index.html',
   );
-  const content = readFileSync(configPath, 'utf-8');
-  const match = content.match(
-    /text:\s*['"]v([^'"]+)['"],?\s*\/\/\s*x-release-please-version/,
+  if (!existsSync(indexPath)) {
+    console.error(
+      'No built site at docs-site/.vitepress/dist/index.html; run `npm run docs:site` first',
+    );
+    process.exit(1);
+  }
+  const match = /<span[^>]*>v(\d+\.\d+\.\d+[^<]*)<\/span>/.exec(
+    readFileSync(indexPath, 'utf-8'),
   );
   if (!match) {
     console.error(
-      "Could not find the version selector (a `text: 'vX.Y.Z'` line marked x-release-please-version) in docs-site/.vitepress/config.ts",
+      'Could not find the version selector in docs-site/.vitepress/dist/index.html',
     );
     process.exit(1);
   }
@@ -59,8 +83,16 @@ function main(): void {
   const packageVersion = getPackageJsonVersion();
   const versions: Record<string, string> = {
     'src/core/constants.ts': getConstantsVersion(),
-    'docs-site/.vitepress/config.ts': getDocsSiteVersion(),
   };
+  const site = process.argv.includes('--site');
+  if (site) {
+    versions['docs-site/.vitepress/dist/index.html'] = getBuiltSiteVersion();
+  }
+  const sourceProblem = checkDocsSiteSource();
+  if (sourceProblem) {
+    console.error(sourceProblem);
+    process.exit(1);
+  }
 
   const stale = Object.entries(versions).filter(
     ([, v]) => v !== packageVersion,
@@ -73,7 +105,7 @@ function main(): void {
     process.exit(1);
   }
   console.log(
-    `Version consistency check passed: ${packageVersion} in package.json, src/core/constants.ts and docs-site/.vitepress/config.ts`,
+    `Version consistency check passed: ${packageVersion} in package.json and src/core/constants.ts; the docs-site selector reads package.json${site ? ' and the built site shows it' : ''}`,
   );
 }
 
