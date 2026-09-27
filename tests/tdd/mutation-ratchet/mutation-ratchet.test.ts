@@ -24,6 +24,10 @@ describe('BDD mutation ratchet', () => {
     ['src/core/ApiClient.ts', 'src/core'],
     ['src/schemas/market.ts', 'src/schemas'],
     ['src/EsiClient.ts', 'src'],
+    // The SDE's subdirectories are scored on their own, like the core's.
+    ['src/sde/SdeDataProvider.ts', 'src/sde'],
+    ['src/sde/ingestion/SdeDatabaseBuilder.ts', 'src/sde/ingestion'],
+    ['src/auth/EveSsoClient.ts', 'src/auth'],
     [
       'D:\\repo\\src\\core\\rateLimiter\\RateLimiter.ts',
       'src/core/rateLimiter',

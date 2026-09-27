@@ -2,7 +2,8 @@
  * Self-tests for the unit-suite mutation shards (config/mutation/unit-shards.json).
  *
  * Same contract as the BDD shards, over a smaller tree: the shards must
- * partition `src/core`, because a file claimed by no shard is never mutated
+ * partition the directories the unit run mutates, `src/core` and `src/sde`
+ * (Track S Run 2), because a file claimed by no shard is never mutated
  * and its directory's score silently improves, while a file claimed by two is
  * counted twice. `scripts/mutation/mutation-merge-core.ts` holds the logic and
  * `bddShards.test.ts` covers its behaviour in detail; this file pins the unit
@@ -32,34 +33,48 @@ const shards = parseShards(
   SHARDS_FILE,
 );
 
-/** Every TypeScript file under src/core, repo-relative with forward slashes. */
-function coreFiles(dir = 'src/core'): string[] {
+/** The directories the unit run mutates (config/mutation/stryker.config.mjs, unsharded). */
+const MUTATED = ['src/core', 'src/sde'];
+
+/** Every TypeScript file under a directory, repo-relative with forward slashes. */
+function filesUnder(dir: string): string[] {
   const found: string[] = [];
   for (const entry of readdirSync(path.join(ROOT, dir), {
     withFileTypes: true,
   })) {
     const child = `${dir}/${entry.name}`;
-    if (entry.isDirectory()) found.push(...coreFiles(child));
+    if (entry.isDirectory()) found.push(...filesUnder(child));
     else if (entry.name.endsWith('.ts')) found.push(child);
   }
   return found;
 }
 
-describe('the unit shards partition src/core', () => {
-  const files = coreFiles();
+const mutatedFiles = MUTATED.flatMap(filesUnder);
 
-  it('finds the tree it is meant to check', () => {
+describe('the unit shards partition the directories the unit run mutates', () => {
+  it('finds the trees it is meant to check', () => {
     // A rename that emptied this walk would make every case below vacuous.
-    expect(files.length).toBeGreaterThan(40);
+    expect(filesUnder('src/core').length).toBeGreaterThan(40);
+    expect(filesUnder('src/sde').length).toBeGreaterThan(10);
   });
 
-  it.each(coreFiles())('%s belongs to exactly one shard', (file) => {
+  it.each(mutatedFiles)('%s belongs to exactly one shard', (file) => {
     expect(shardsClaiming(file, shards)).toHaveLength(1);
   });
 
-  it('claims nothing outside src/core', () => {
+  it('gives the SDE its own shard, ingestion included', () => {
+    expect(shardsClaiming('src/sde/SdeDataProvider.ts', shards)).toEqual([
+      'sde',
+    ]);
+    expect(
+      shardsClaiming('src/sde/ingestion/SdeDatabaseBuilder.ts', shards),
+    ).toEqual(['sde']);
+  });
+
+  it('claims nothing outside those directories', () => {
     expect(shardsClaiming('src/clients/MarketClient.ts', shards)).toEqual([]);
     expect(shardsClaiming('src/schemas/market.ts', shards)).toEqual([]);
+    expect(shardsClaiming('src/auth/EveSsoClient.ts', shards)).toEqual([]);
   });
 
   it('still claims the directories the mutate globs exclude', () => {

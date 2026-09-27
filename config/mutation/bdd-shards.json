@@ -1,7 +1,7 @@
 {
   "$comment": "How the BDD-only mutation run (config/mutation/stryker.bdd.config.mjs) is split across jobs. One unsharded run mutates every file in src/ against the BDD suite alone and does not finish: its first and only attempt was killed at 30 minutes (nightly-mutation.yml, 2026-09-17), so config/mutation/bdd-thresholds.json could not be seeded until the sharded run first completed (2026-09-19). Each shard here is a set of directories; nightly-mutation.yml runs one job per shard and merges the reports before the ratchet, so the gate still sees one score per directory.",
-  "$invariant": "The shards partition src/: every TypeScript file under it belongs to exactly one shard. tests/tdd/mutation-ratchet/bddShards.test.ts fails on a file claimed twice or not at all, so a shard boundary cannot quietly drop a directory from the run. The exclusions in config/mutation/stryker.bdd.config.mjs apply to every shard alike, so the union of the shards mutates exactly what the unsharded glob did.",
-  "$balance": "Balanced by mutant count, measured with `BDD_MUTATION_SHARD=<name> npx stryker run config/mutation/stryker.bdd.config.mjs --dryRunOnly`. src/core was one shard of 1,545 mutants until 2026-09-18, then three. core-rest was split the same day after a runner reclaimed it at 94% of its 724 mutants, 45 minutes in: src/core/util alone is 324 of them, so core-support (logger and util) and core-root (the remainder of src/core) come out at roughly half each. Shorter shards do not stop a reclaim — nothing inside the job can, the runner goes rather than the process — but they make one cheaper, and the merge refuses an incomplete set by design. nightly-mutation-retry.yml re-runs a reclaimed shard once. Per directory: requestPipeline 503, rateLimiter 401, util 324, pagination 231, circuitBreaker 193, cache 182, logger 63, middleware 35.",
+  "$invariant": "The shards partition src/: every TypeScript file under it belongs to exactly one shard. src/sde has its own shard (Track S Run 2) so its directories are scored, ratcheted and restored on their own. tests/tdd/mutation-ratchet/bddShards.test.ts fails on a file claimed twice or not at all, so a shard boundary cannot quietly drop a directory from the run. The exclusions in config/mutation/stryker.bdd.config.mjs apply to every shard alike, so the union of the shards mutates exactly what the unsharded glob did.",
+  "$balance": "Balanced by mutant count, measured with `BDD_MUTATION_SHARD=<name> npx stryker run config/mutation/stryker.bdd.config.mjs --dryRunOnly`. src/core was one shard of 1,545 mutants until 2026-09-18, then three. core-rest was split the same day after a runner reclaimed it at 94% of its 724 mutants, 45 minutes in: src/core/util alone is 324 of them, so core-support (logger and util) and core-root (the remainder of src/core) come out at roughly half each. Shorter shards do not stop a reclaim — nothing inside the job can, the runner goes rather than the process — but they make one cheaper, and the merge refuses an incomplete set by design. nightly-mutation-retry.yml re-runs a reclaimed shard once. Per directory: requestPipeline 503, rateLimiter 401, util 324, pagination 231, circuitBreaker 193, cache 182, logger 63, middleware 35. The sde shard (Track S Run 2) instruments 1,536 mutants, measured 2026-09-27 with `BDD_MUTATION_SHARD=sde npx stryker run config/mutation/stryker.bdd.config.mjs --dryRunOnly`; rest lost them.",
   "shards": [
     {
       "name": "core-endpoints",
@@ -47,9 +47,13 @@
       "include": ["src/schemas"]
     },
     {
+      "name": "sde",
+      "include": ["src/sde"]
+    },
+    {
       "name": "rest",
       "include": ["src"],
-      "exclude": ["src/core", "src/clients", "src/schemas"]
+      "exclude": ["src/core", "src/clients", "src/schemas", "src/sde"]
     }
   ]
 }
