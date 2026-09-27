@@ -38,6 +38,7 @@ export const DOCUMENTED_SUBPATHS = [
   './schemas',
   './errors',
   './testing',
+  './client',
   './sde',
   './sde/memory',
 ] as const;

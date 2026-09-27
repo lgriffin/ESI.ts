@@ -46,6 +46,23 @@ const wallet = await authed.wallet.getCharacterWallet(characterId);
 
 Next: [Using the client](guides/USAGE.md) for configuration and every domain client, and [Authentication](guides/AUTHENTICATION.md) for SSO, refresh and many characters.
 
+### Multiple characters
+
+An application that acts for many characters has one relationship with ESI, so `@lgriffin/esi.ts/client` builds one runtime and a view per identity. The views share the rate limiter, the error budget and the ETag cache; each identity's authenticated entries stay apart. `esi.public` is typed so that an authenticated call does not compile.
+
+```typescript
+import { createEsi } from '@lgriffin/esi.ts/client';
+
+const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)' });
+const status = await esi.public.status.get();
+const wallet = await esi
+  .as(tokens.identity(characterId))
+  .character(characterId)
+  .wallet.get();
+```
+
+[Many characters](guides/MULTI-CHARACTER.md) has the identities (`EsiTokenManager`, a raw token, a `TokenProvider`), what the views share, and the move from `tokens.createClient`.
+
 ## What you get
 
 | Capability              | What ESI.ts does                                                                                                                                                                                                                       |
@@ -98,6 +115,7 @@ Every tier has to prove it can fail: a negative fixture, a killed mutant or a ca
 | `@lgriffin/esi.ts/schemas`    | The Zod response schemas                                                                                     |
 | `@lgriffin/esi.ts/errors`     | Error classes and type guards, including the auth errors                                                     |
 | `@lgriffin/esi.ts/testing`    | `TestDataFactory` for your own tests                                                                         |
+| `@lgriffin/esi.ts/client`     | `createEsi`: one shared runtime, `esi.public` (authenticated calls do not compile) and `esi.as(identity)`    |
 | `@lgriffin/esi.ts/sde`        | `SdeDataProvider` (YAML and ZIP, through the optional peers `js-yaml` and `adm-zip`) and `MemorySdeProvider` |
 | `@lgriffin/esi.ts/sde/memory` | `MemorySdeProvider` alone, with no file-system or parser code, for browsers and bundles                      |
 
@@ -119,6 +137,7 @@ The README orients and the guides are canonical. Each guide opens with the chart
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [Using the client](guides/USAGE.md)                | Construction, configuration, every domain client, metadata, batching, examples, what 11.0 changes    |
 | [Authentication](guides/AUTHENTICATION.md)         | Tokens, refresh on 401, SSO with PKCE, the multi-character token manager                             |
+| [Many characters](guides/MULTI-CHARACTER.md)       | One runtime, `esi.public`, `esi.as(identity)`, what the views share, moving from `createClient`      |
 | [Pagination](guides/PAGINATION.md)                 | Offset and cursor paging, `stream*`, `fetchAll*`, failure behaviour                                  |
 | [Errors](guides/ERRORS.md)                         | Error classes, type guards, retryability, safe mode                                                  |
 | [Runtime validation](guides/RUNTIME-VALIDATION.md) | Zod response and request validation                                                                  |
@@ -145,7 +164,7 @@ The README orients and the guides are canonical. Each guide opens with the chart
 
 ## Examples
 
-`examples/` has 56 runnable scripts, each with an npm script. The public ones run against live ESI every night, and a failure opens an issue.
+`examples/` has 58 runnable scripts, each with an npm script. The public ones run against live ESI every night, and a failure opens an issue.
 
 ```bash
 npm run example:status      # quickest smoke test, no token

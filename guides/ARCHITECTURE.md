@@ -4,7 +4,7 @@
 
 How ESI.ts is layered, the route every request takes, and how each piece of middleware behaves. The charter states the requirements; this guide explains how the code meets them. Where the two disagree, the code is the fact and the difference is called out.
 
-This guide describes the code on `master` at 10.2.3 with ROADMAP Phase 2 PRs 4 to 10b merged. The seams those PRs added (ports, `PipelineTransport`, the generated operations and the scope tree) exist and are tested but are not exported from any package entry. [§1a](#1a-ports-adapters-and-the-layer-rule) describes them and says what 11.0.0 will still change: Phase 2 PRs 10b, 11 and 12, the Phase 3 layer baseline and the Phase 4 logger work, as planned in [ROADMAP.md](ROADMAP.md).
+This guide describes the code on `master` at 10.2.3 with ROADMAP Phase 2 PRs 4 to 11 merged. The seams those PRs added (ports, `PipelineTransport`, the generated operations and the scope tree) reach consumers through the `./client` entry: one shared runtime, a public view and a view per identity ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). [§1a](#1a-ports-adapters-and-the-layer-rule) describes them and says what 11.0.0 will still change: Phase 2 PR 12, the Phase 3 layer baseline and the Phase 4 logger work, as planned in [ROADMAP.md](ROADMAP.md).
 
 Topics with their own guide are summarised here and linked:
 
@@ -68,21 +68,21 @@ flowchart TB
 
 Five layers on one request path, auth beside them, the Phase 2 seams beneath them, and side modules that share nothing with the HTTP pipeline.
 
-| Container                | Where                                                                                                     | Purpose                                                                                                                                                                                                                                                                           |
-| ------------------------ | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Construction**         | `src/EsiClient.ts`, `src/EsiClientBuilder.ts`                                                             | `EsiClient`, `EsiClientBuilder` → `CustomEsiClient`, `EsiApiFactory`. All three call `configureApiClient()`. `ApiClientBuilder` (`src/core/ApiClientBuilder.ts`) builds a bare `ApiClient` and does not (§9)                                                                      |
-| **Domain clients**       | `src/clients/` (one class per ESI domain + `BaseEsiClient`)                                               | Named methods, `stream*` and `fetchAll*` wrappers, `withMetadata()` and `withSafeMode()` views. No HTTP knowledge                                                                                                                                                                 |
-| **Endpoint definitions** | `src/core/endpoints/*Endpoints.ts`                                                                        | Declarative maps of path, method, auth, pagination kind and schemas. `createClient()` turns a map into typed methods                                                                                                                                                              |
-| **Schemas**              | `src/schemas/`                                                                                            | Hand-written Zod schemas for runtime validation; return types are inferred from them                                                                                                                                                                                              |
-| **Request pipeline**     | `src/core/ApiRequestHandler.ts`, `src/core/requestPipeline/`                                              | Pure functions: cache policy, headers, fetch execution, status handling, pagination, middleware bridge, dependency resolution                                                                                                                                                     |
-| **Resilience**           | `src/core/` (`RetryStrategy`, `RateLimiter`, `CircuitBreaker`, `RequestDeduplicator`, `ETagCacheManager`) | Each behind an interface with a setter on `ApiClient`                                                                                                                                                                                                                             |
-| **Transport**            | `ApiClient.getFetch()`                                                                                    | `globalThis.fetch` unless replaced with `setFetch()`. Timeout by `AbortController`                                                                                                                                                                                                |
-| **Generated metadata**   | `src/types/generated/`, `src/core/endpoints/esi-*.generated.ts`                                           | Types, cache TTLs, rate-limit groups and scopes generated from the ESI OpenAPI spec by `generate:types`; CI verifies freshness                                                                                                                                                    |
-| **Generated operations** | `src/generated/operations.generated.ts`                                                                   | 233 typed operations (one `*Meta` and one function each), `ScopeTree`, `PublicScopeTree` and `createScopeTree(transport)`, generated from the vendored spec by `spec:generate`. Imports only the ports. Not exported yet (§1a)                                                    |
-| **Ports**                | `src/core/ports/`                                                                                         | Six type-only interfaces: `CacheStore`, `Clock`, `HttpTransport`, `Logger`, `OperationTransport`, `TokenProvider`. They import nothing. Not exported yet (§1a)                                                                                                                    |
-| **Adapters**             | `src/adapters/`                                                                                           | `PipelineTransport` implements `OperationTransport` over `handleRequest` and `fetchPages`, so a generated operation shares the `ApiClient`'s budgets and cache. Not exported yet (§1a)                                                                                            |
-| **Auth**                 | `src/auth/`                                                                                               | `EveSsoClient` (authorisation URL with PKCE, code exchange, refresh, revoke), `EsiTokenManager` (per-character tokens, refresh, `tokenProviderFor`, `createClient`), `MemoryTokenStorage` and `FileTokenStorage`, the `AuthError` subtree. Exported from the root and `./errors`  |
-| **Side modules**         | `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory`                                             | Subpath entry points. The SDE module is an offline lookup layer with its own error hierarchy and shares no code with the pipeline; `lint:layers` enforces that in both directions and a bundle test keeps `./sde/memory` free of file-system, YAML, ZIP and SQLite code (ARCH-10) |
+| Container                | Where                                                                                                     | Purpose                                                                                                                                                                                                                                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Construction**         | `src/EsiClient.ts`, `src/EsiClientBuilder.ts`                                                             | `EsiClient`, `EsiClientBuilder` → `CustomEsiClient`, `EsiApiFactory`. All three call `configureApiClient()`. `ApiClientBuilder` (`src/core/ApiClientBuilder.ts`) builds a bare `ApiClient` and does not (§9)                                                                                 |
+| **Domain clients**       | `src/clients/` (one class per ESI domain + `BaseEsiClient`)                                               | Named methods, `stream*` and `fetchAll*` wrappers, `withMetadata()` and `withSafeMode()` views. No HTTP knowledge                                                                                                                                                                            |
+| **Endpoint definitions** | `src/core/endpoints/*Endpoints.ts`                                                                        | Declarative maps of path, method, auth, pagination kind and schemas. `createClient()` turns a map into typed methods                                                                                                                                                                         |
+| **Schemas**              | `src/schemas/`                                                                                            | Hand-written Zod schemas for runtime validation; return types are inferred from them                                                                                                                                                                                                         |
+| **Request pipeline**     | `src/core/ApiRequestHandler.ts`, `src/core/requestPipeline/`                                              | Pure functions: cache policy, headers, fetch execution, status handling, pagination, middleware bridge, dependency resolution                                                                                                                                                                |
+| **Resilience**           | `src/core/` (`RetryStrategy`, `RateLimiter`, `CircuitBreaker`, `RequestDeduplicator`, `ETagCacheManager`) | Each behind an interface with a setter on `ApiClient`                                                                                                                                                                                                                                        |
+| **Transport**            | `ApiClient.getFetch()`                                                                                    | `globalThis.fetch` unless replaced with `setFetch()`. Timeout by `AbortController`                                                                                                                                                                                                           |
+| **Generated metadata**   | `src/types/generated/`, `src/core/endpoints/esi-*.generated.ts`                                           | Types, cache TTLs, rate-limit groups and scopes generated from the ESI OpenAPI spec by `generate:types`; CI verifies freshness                                                                                                                                                               |
+| **Generated operations** | `src/generated/operations.generated.ts`                                                                   | 233 typed operations (one `*Meta` and one function each), `ScopeTree`, `PublicScopeTree` and `createScopeTree(transport)`, generated from the vendored spec by `spec:generate`. Imports only the ports. `ScopeTree` and `PublicScopeTree` are exported from `./client` (§1a)                 |
+| **Ports**                | `src/core/ports/`                                                                                         | Seven type-only interfaces: `CacheStore`, `Clock`, `HttpTransport`, `Identity`, `Logger`, `OperationTransport`, `TokenProvider`. They import nothing. Exported from `./client` (§1a)                                                                                                         |
+| **Adapters**             | `src/adapters/`                                                                                           | `PipelineTransport` implements `OperationTransport` over `handleRequest` and `fetchPages`, so a generated operation shares the `ApiClient`'s budgets and cache. Internal; `./client` wraps it (§1a)                                                                                          |
+| **Auth**                 | `src/auth/`                                                                                               | `EveSsoClient` (authorisation URL with PKCE, code exchange, refresh, revoke), `EsiTokenManager` (per-character tokens, refresh, `identity`, `tokenProviderFor`, `createClient`), `MemoryTokenStorage` and `FileTokenStorage`, the `AuthError` subtree. Exported from the root and `./errors` |
+| **Side modules**         | `./schemas`, `./errors`, `./testing`, `./client`, `./sde`, `./sde/memory`                                 | Subpath entry points. The SDE module is an offline lookup layer with its own error hierarchy and shares no code with the pipeline; `lint:layers` enforces that in both directions and a bundle test keeps `./sde/memory` free of file-system, YAML, ZIP and SQLite code (ARCH-10)            |
 
 ```mermaid
 flowchart TB
@@ -310,7 +310,7 @@ graph TB
         GenTtls["esi-cache-ttls.generated.ts"]
         GenRateLimits["esi-rate-limit-groups.generated.ts"]
         GenScopes["esi-scopes.generated.ts"]
-        GenOps["operations.generated.ts<br/>(no client calls it yet; §1a)"]
+        GenOps["operations.generated.ts<br/>(called through ./client; §1a)"]
     end
 
     subgraph Interfaces["Interface Contracts"]
@@ -415,11 +415,11 @@ graph TB
 
 ## 1a. Ports, adapters and the layer rule
 
-Phase 2 of the 11.0 plan put seams under the pipeline so a new client can be built on it without touching the legacy surfaces. They are in the code today, covered by unit tests (`tests/tdd/adapters/`, `tests/tdd/spec-generate/`, `tests/tdd/layers/`), and exported from nothing. `EsiClient`, `CustomEsiClient` and `EsiApiFactory` do not use them.
+Phase 2 of the 11.0 plan put seams under the pipeline so a new client can be built on it without touching the legacy surfaces. They are in the code today, covered by unit tests (`tests/tdd/adapters/`, `tests/tdd/spec-generate/`, `tests/tdd/layers/`), and reach consumers through `src/client/`, the `./client` entry (PR 11, [MULTI-CHARACTER.md](MULTI-CHARACTER.md)): `createEsi(options)` builds one `ApiClient` through `configureApiClient` and hands out `esi.public`, a `PublicScopeTree` whose transport refuses a scoped operation with `NO_AUTH_TOKEN`, and `esi.as(identity)`, a `ScopeTree` over a second `ApiClient` that holds the identity's token and shares the runtime's cache, rate limiter, circuit breaker, deduplicator, retry settings and transport. The specification is `tests/bdd/features/core/0056-shared-runtime.feature`. `EsiClient`, `CustomEsiClient` and `EsiApiFactory` do not use the seams.
 
 ### The ports
 
-`src/core/ports/` holds six type-only declarations. A port imports nothing, packages included, so an adapter or a test double can implement one without pulling in the pipeline.
+`src/core/ports/` holds seven type-only declarations, all exported from `./client`. A port imports nothing, packages included, so an adapter or a test double can implement one without pulling in the pipeline.
 
 | Port                 | Shape                                                                                               | What implements it today                                                                                                     |
 | -------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -429,6 +429,7 @@ Phase 2 of the 11.0 plan put seams under the pipeline so a new client can be bui
 | `Logger`             | `fatal`, `error`, `warn`, `info`, `debug`, `trace` with optional fields                             | Structurally the same as `ILogger`, so the pino default and any `ILogger` fit                                                |
 | `OperationTransport` | `request<T>(meta, req)`, `paginate<T>(meta, req): AsyncIterable<T>`                                 | `PipelineTransport` in `src/adapters/`                                                                                       |
 | `TokenProvider`      | `() => Promise<string>`                                                                             | The `onTokenRefresh` option and `EsiTokenManager.tokenProviderFor(characterId)` have this shape                              |
+| `Identity`           | `characterId?`, `accessToken(): Promise<string>`, `refreshAccessToken?(): Promise<string>`          | `EsiTokenManager.identity(characterId)`, `identityFromToken` and `identityFromProvider` in `src/client/`                     |
 
 `OperationMeta` describes one spec operation: `operationId`, `method`, `path` template, `scopes` (empty for a public route), `pagination` (`'none' | 'page' | 'cursor'`), `deprecated`, and the header parameters the transport supplies. `OperationRequest` carries `path`, `query` and an optional `body`.
 
@@ -451,14 +452,11 @@ Two differences from a domain method follow from that route:
 - **No Zod validation.** Validation lives in `createClient`; `PipelineTransport` returns `response.body` typed from the spec, unvalidated.
 - **Separate cache keys for 54 routes.** Generated paths follow the spec and have no trailing slash. The 54 hand-written routes whose paths end in `/` therefore cache under a different key from their generated operation.
 
-<!-- doc-example: no-check the scope tree and PipelineTransport are not exported until ROADMAP Phase 2 PR 11 -->
-
 ```ts
-import { PipelineTransport } from '../adapters/PipelineTransport';
-import { createScopeTree } from '../generated/operations.generated';
+import { createEsi } from '@lgriffin/esi.ts/client';
 
-const tree = createScopeTree(new PipelineTransport(apiClient));
-const status = await tree.status.get(); // typed from the spec, unvalidated
+const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)' });
+const status = await esi.public.status.get(); // typed from the spec, unvalidated
 ```
 
 ### The layer rule
@@ -474,7 +472,7 @@ const status = await tree.status.get(); // typed from the spec, unvalidated
 | `src/sde/`                     | Anything in `src/` outside `src/sde/` except the ports; any package but `node:*`, `zod`, `js-yaml`, `adm-zip`, `better-sqlite3` |
 | Anything else in `src/`        | `src/sde/`, or the package's own `./sde` sub-paths (`ARCH-10`, [#462](https://github.com/lgriffin/ESI.ts/issues/462))           |
 
-`src/client/` does not exist yet; the rule is in place for the builder that PR 11 adds. Two files break the core rule and are listed in `BASELINE`: `src/core/ClientRegistry.ts` (imports every domain client) and `src/core/configureApiClient.ts` (imports the `EsiClientConfig` type). The baseline only shrinks: `tests/tdd/layers/layers-lint.test.ts` fails when a listed file stops violating the rule. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
+`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and nothing legacy. Two files break the core rule and are listed in `BASELINE`: `src/core/ClientRegistry.ts` (imports every domain client) and `src/core/configureApiClient.ts` (imports the `EsiClientConfig` type). The baseline only shrinks: `tests/tdd/layers/layers-lint.test.ts` fails when a listed file stops violating the rule. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
 
 ```mermaid
 flowchart BT
@@ -482,6 +480,7 @@ flowchart BT
     generated["src/generated"]
     core["src/core (pipeline)"]
     adapters["src/adapters"]
+    client["src/client (./client entry)"]
     legacy["clients/, EsiClient, EsiClientBuilder, index"]
     auth["src/auth"]
     sde["src/sde (side module)"]
@@ -490,9 +489,13 @@ flowchart BT
     core --> ports
     adapters --> core
     adapters --> ports
+    client --> adapters
+    client --> core
+    client --> generated
     legacy --> core
     legacy --> auth
     auth --> core
+    auth --> ports
     auth -. "EsiTokenManager.createClient" .-> legacy
     sde --> ports
 
@@ -506,13 +509,12 @@ Solid arrows are the directions the rule permits for the ruled trees (ports, gen
 
 Each item is one pull request in [ROADMAP.md](ROADMAP.md). None removes a legacy surface.
 
-| Work                                        | What changes in this architecture                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 2 PR 11 · builder and shared runtime  | A new entry exports the ports and builds one runtime holding the rate limiter, error budget, cache and transport. `esi.public` is a `PublicScopeTree`, so an authenticated call on it does not compile ([#183](https://github.com/lgriffin/ESI.ts/issues/183)). `esi.as(identity)` returns an immutable per-character view over the same runtime, taking an `EsiTokenManager` identity, a raw access token or a `TokenProvider`. The builder refuses to construct without a user agent. The new tree lives under `src/client/`, which the layer rule already covers. |
-| Phase 2 PR 12 · mock transport              | `createMockTransport` in `./testing` implements `HttpTransport` for consumers' tests.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Phase 3 · layer baseline to empty           | `ClientRegistry.ts` moves out of core and `EsiClientConfig` moves in; `BASELINE` becomes `{}`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Phase 4 · logging and import-time behaviour | URL sanitising moves to the logger boundary, the remaining call sites that bypass the per-client logger migrate to it (`ARCH-09`), no pino instance is built at import, and `package.json` declares `sideEffects: false` (`ARCH-06`).                                                                                                                                                                                                                                                                                                                                |
-| Phase 7 · Node 22                           | `engines.node` becomes `>=22.0.0` in the one `feat!:` commit of the release (`REL-05`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Work                                        | What changes in this architecture                                                                                                                                                                                                     |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 2 PR 12 · mock transport              | `createMockTransport` in `./testing` implements `HttpTransport` for consumers' tests.                                                                                                                                                 |
+| Phase 3 · layer baseline to empty           | `ClientRegistry.ts` moves out of core and `EsiClientConfig` moves in; `BASELINE` becomes `{}`.                                                                                                                                        |
+| Phase 4 · logging and import-time behaviour | URL sanitising moves to the logger boundary, the remaining call sites that bypass the per-client logger migrate to it (`ARCH-09`), no pino instance is built at import, and `package.json` declares `sideEffects: false` (`ARCH-06`). |
+| Phase 7 · Node 22                           | `engines.node` becomes `>=22.0.0` in the one `feat!:` commit of the release (`REL-05`).                                                                                                                                               |
 
 ---
 
@@ -650,7 +652,7 @@ Per-client settings are plain values with a setter each. `configureApiClient` or
 
 **Time is not injectable yet.** `src/core/clock.ts` exports `systemClock`, the `Clock` port's real implementation, and `npm run lint:determinism` blocks new direct reads of `Date.now()`, timers and `Math.random()` in `src/`. The existing sites in the rate limiter, cache, circuit breaker and request handler are listed in `scripts/determinism-baseline.json` and still read the wall clock directly; no pipeline class takes a `Clock`. `EsiTokenManager` takes a `now` function for tests.
 
-**The ports are not the interfaces above.** The `ApiClient` setters take the `I*` interfaces. The Phase 2 ports in [§1a](#1a-ports-adapters-and-the-layer-rule) are the seams the 11.0 builder will accept; the existing classes match `HttpTransport`, `Logger` and `TokenProvider` structurally but none declares `implements` for a port.
+**The ports are not the interfaces above.** The `ApiClient` setters take the `I*` interfaces. The Phase 2 ports in [§1a](#1a-ports-adapters-and-the-layer-rule) are the seams `./client` exports; the existing classes match `HttpTransport`, `Logger` and `TokenProvider` structurally but none declares `implements` for a port.
 
 ```mermaid
 flowchart LR
@@ -1021,7 +1023,7 @@ All three surfaces call `setCompatibilityDate()` from the config before `configu
 
 **`ApiClientBuilder`** (`src/core/ApiClientBuilder.ts`, exported from the root) is a fourth, lower-level way in. It builds a bare `ApiClient` with a rate limiter (the default `RateLimiter` unless one is given) and whatever cache, circuit breaker, timeout and fetch it is handed. It does not call `configureApiClient()`, so there is no deduplicator, no default cache, and no retry configuration: `resolveRetryStrategy` then builds a `RetryStrategy` with its own defaults, which retry nothing. Use it to hand-assemble a client for a test or an unusual host, not as a construction surface.
 
-**`EsiTokenManager.createClient(characterId)`** returns an `EsiClient` bound to one character's token and refresh provider. ROADMAP Phase 7 deprecates it and `EsiApiFactory`'s named methods in favour of the 11.0 builder and `as()` ([§1a](#1a-ports-adapters-and-the-layer-rule)); removal is 12.0.0 at the earliest.
+**`EsiTokenManager.createClient(characterId)`** returns an `EsiClient` bound to one character's token and refresh provider. ROADMAP Phase 7 deprecates it and `EsiApiFactory`'s named methods in favour of `createEsi` and `esi.as(tokens.identity(characterId))` ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); removal is 12.0.0 at the earliest.
 
 Timers are owned by the client: call `shutdown()` to stop the cache sweep and circuit-breaker cleanup and clear the deduplicator.
 
@@ -1186,9 +1188,9 @@ Five generated artefacts come from two generators (`ARCH-01`). `npm run generate
 
 `npm run spec:generate` (`scripts/spec-generate.ts`, with `scripts/spec-scope-tree.ts` for the tree) never touches the network. It reads the vendored snapshot `tests/contract/snapshots/esi-openapi.snapshot.json` and writes the fifth:
 
-| Artefact                                | Consumed by                                                                                                                      |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `src/generated/operations.generated.ts` | `PipelineTransport` tests today; the 11.0 builder's public and per-identity trees ([§1a](#1a-ports-adapters-and-the-layer-rule)) |
+| Artefact                                | Consumed by                                                                                                                         |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `src/generated/operations.generated.ts` | `src/client/` (`esi.public` and `esi.as(identity)`, [§1a](#1a-ports-adapters-and-the-layer-rule)) and the `PipelineTransport` tests |
 
 The snapshot changes in one place: `spec-refresh.yml`, run by a push to a `spec-refresh/**` branch or by manual dispatch, re-vendors the document at `COMPATIBILITY_DATE`, runs `spec:generate` and `spec:coverage`, runs `generate:types` against the new snapshot, re-records the public payload fixtures, and commits the result for review.
 

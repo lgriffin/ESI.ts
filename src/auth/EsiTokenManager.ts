@@ -1,6 +1,7 @@
 import { EsiClient, EsiClientConfig } from '../EsiClient';
 import type { FetchLike, TokenProvider } from '../core/ApiClient';
 import type { ILogger } from '../core/logger/ILogger';
+import type { Identity } from '../core/ports/Identity';
 import { getLogger } from '../core/logger/loggerUtil';
 import { runWithConcurrency } from '../core/util/concurrency';
 import {
@@ -334,6 +335,22 @@ export class EsiTokenManager {
       const refreshed = await this.refresh(characterId);
       return refreshed.accessToken;
     };
+  }
+
+  /**
+   * The character as an `Identity` for `esi.as()` on the shared
+   * runtime (`@lgriffin/esi.ts/client`). Before each request the view gets
+   * the stored token, refreshed first when it is stale; after a 401 it gets a
+   * token refreshed through SSO. Nothing is looked up until a request needs
+   * it, so an unknown character fails at the request, not here.
+   */
+  identity(characterId: number): Identity {
+    return Object.freeze({
+      characterId,
+      accessToken: () => this.getToken(characterId),
+      refreshAccessToken: async () =>
+        (await this.refresh(characterId)).accessToken,
+    });
   }
 
   /**

@@ -108,5 +108,5 @@ ROADMAP Phase 7 rewrites the documentation against the new client. Nothing in th
 - `scripts/sync-docs.ts` copies `guides/` into `docs-site/guide/`; `release.yml` builds VitePress and deploys it with the TypeDoc output under `/api/` (`DOC-03`, [#264](https://github.com/lgriffin/ESI.ts/issues/264)).
 - `scripts/doc-metrics.ts` writes `etc/doc-metrics.json`, and `validate:versions` fails on a stale README or site version banner (`DOC-04`, [#272](https://github.com/lgriffin/ESI.ts/issues/272)).
 - Root `TESTING.md` and `guides/MUTATION-TESTING.md` fold into `guides/TESTING.md` (`DOC-01`, [#273](https://github.com/lgriffin/ESI.ts/issues/273)).
-- The README becomes an orientation page written against the builder and `esi.as(identity)`, every snippet checked by `test:docs-examples`; `guides/MULTI-CHARACTER.md` arrives with ROADMAP Phase 2 PR 11.
+- The README becomes an orientation page written against `createEsi` and `esi.as(identity)`, every snippet checked by `test:docs-examples`. `guides/MULTI-CHARACTER.md` arrived with ROADMAP Phase 2 PR 11.
 - The Beads blocks in `AGENTS.md` and `CLAUDE.md` become pointers ([#276](https://github.com/lgriffin/ESI.ts/issues/276)).

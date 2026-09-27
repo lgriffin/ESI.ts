@@ -5,6 +5,7 @@
  * nothing leaks between scenarios. A Given step records what it set up, a
  * When step records what the client returned, and a Then step reads both.
  */
+import type { Esi, ScopeTree } from '../../../src/client';
 import { EsiClient } from '../../../src/EsiClient';
 import { createSeamClient } from './transport';
 
@@ -23,6 +24,12 @@ export class World {
   set client(client: EsiClient) {
     this.seamClient = client;
   }
+
+  /** The shared runtime under test (0056-shared-runtime.feature), once a Given built it. */
+  esi: Esi | undefined;
+
+  /** Views a Given step opened on the runtime, by the name the scenario uses. */
+  readonly views: Record<string, ScopeTree> = {};
 
   /** What the scenario's action returned. */
   result: any;

@@ -114,6 +114,7 @@ describe('export coverage', () => {
         ['./schemas', 'src/schemas/index.ts'],
         ['./errors', 'src/errors.ts'],
         ['./testing', 'src/testing/index.ts'],
+        ['./client', 'src/client/index.ts'],
         ['./sde', 'src/sde/index.ts'],
         ['./sde/memory', 'src/sde/memory.ts'],
       ]);

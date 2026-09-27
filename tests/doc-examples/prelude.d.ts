@@ -27,6 +27,7 @@ type SolarSystem = import('@lgriffin/esi.ts/sde').SolarSystem;
 
 // Clients and providers built in an earlier block.
 declare const client: import('@lgriffin/esi.ts').EsiClient;
+declare const esi: import('@lgriffin/esi.ts/client').Esi;
 declare const tokens: import('@lgriffin/esi.ts').EsiTokenManager;
 declare const sde: import('@lgriffin/esi.ts/sde').IStaticDataProvider;
 

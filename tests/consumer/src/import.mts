@@ -29,12 +29,19 @@ import {
   ServerStatusSchema,
 } from '@lgriffin/esi.ts/schemas';
 import { TestDataFactory } from '@lgriffin/esi.ts/testing';
+import {
+  createEsi,
+  identityFromToken,
+  type Esi,
+  type Identity,
+} from '@lgriffin/esi.ts/client';
 import { MemorySdeProvider, type EveType } from '@lgriffin/esi.ts/sde';
 import { MemorySdeProvider as MemoryOnlyProvider } from '@lgriffin/esi.ts/sde/memory';
 import * as rootModule from '@lgriffin/esi.ts';
 import * as errorsModule from '@lgriffin/esi.ts/errors';
 import * as schemasModule from '@lgriffin/esi.ts/schemas';
 import * as testingModule from '@lgriffin/esi.ts/testing';
+import * as clientModule from '@lgriffin/esi.ts/client';
 import * as sdeModule from '@lgriffin/esi.ts/sde';
 import * as sdeMemoryModule from '@lgriffin/esi.ts/sde/memory';
 
@@ -68,14 +75,16 @@ const esmTyped: [
   HasDefault<typeof errorsModule>,
   HasDefault<typeof schemasModule>,
   HasDefault<typeof testingModule>,
+  HasDefault<typeof clientModule>,
   HasDefault<typeof sdeModule>,
   HasDefault<typeof sdeMemoryModule>,
-] = [false, false, false, false, false, false];
+] = [false, false, false, false, false, false, false];
 for (const [index, namespace] of [
   rootModule,
   errorsModule,
   schemasModule,
   testingModule,
+  clientModule,
   sdeModule,
   sdeMemoryModule,
 ].entries()) {
@@ -126,6 +135,25 @@ try {
 } finally {
   client.shutdown();
 }
+
+// ./client: one runtime, a public view and a view for an identity, through
+// the generated operations and the same pipeline.
+const esi: Esi = createEsi({
+  userAgent: 'consumer-contract/1.0 (ci@example.com)',
+  logLevel: 'error',
+});
+stubFetch(STATUS);
+const publicPlayers: number = (await esi.public.status.get()).players;
+assert.equal(publicPlayers, STATUS.players);
+const identity: Identity = identityFromToken('consumer-token');
+stubFetch(42.5);
+const balance: number = await esi.as(identity).character(90000001).wallet.get();
+assert.equal(balance, 42.5);
+assert.throws(
+  () => createEsi({ userAgent: '' }),
+  /VALIDATION_ERROR/,
+  './client refuses an empty user agent',
+);
 
 // ./errors
 const validation = new EsiValidationError('https://esi.evetech.net/status', {});
