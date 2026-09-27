@@ -7735,10 +7735,10 @@ const MilitaryCampaignSchema: z.ZodObject<{
 export class MilitaryCampaignsClient extends BaseEsiClient<typeof militaryCampaignEndpoints> {
     constructor(client: ApiClient);
     getCharacterMilitaryCampaignObjective(characterId: number, objectiveId: string): Promise<CharacterMilitaryCampaignObjective>;
-    getCharacterMilitaryCampaignObjectives(characterId: number): Promise<CharacterMilitaryCampaignObjectivesResponse>;
+    getCharacterMilitaryCampaignObjectives(characterId: number, after?: string, before?: string, limit?: number): Promise<CharacterMilitaryCampaignObjectivesResponse>;
     getMilitaryCampaign(campaignId: string): Promise<MilitaryCampaign>;
     getMilitaryCampaignObjective(campaignId: string, objectiveId: string): Promise<MilitaryCampaignObjective>;
-    getMilitaryCampaignObjectives(campaignId: string): Promise<MilitaryCampaignObjectivesResponse>;
+    getMilitaryCampaignObjectives(campaignId: string, after?: string, before?: string, limit?: number): Promise<MilitaryCampaignObjectivesResponse>;
     getMilitaryCampaigns(): Promise<MilitaryCampaignsResponse>;
 }
 

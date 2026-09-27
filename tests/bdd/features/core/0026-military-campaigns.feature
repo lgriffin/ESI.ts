@@ -57,6 +57,22 @@ Feature: Military Campaigns
       When the client requests the campaign objectives
       Then the client shall return objectives with participant counts
 
+  Rule: When a page cursor or limit is supplied for an objectives listing, the MilitaryCampaigns client shall send each supplied value as a query parameter of the same name.
+    Both objective listings are cursor-paginated: ESI returns before and after
+    tokens in the body and serves the next page only when a token comes back
+    as a query parameter. Without forwarding them a caller could read only the
+    first page.
+
+    Scenario: Next page of a campaign's objectives is requested with the after cursor
+      Given a campaign whose objectives continue on a later page
+      When the client requests the objectives after that cursor with a limit of 50
+      Then the request shall carry the after cursor and the limit
+
+    Scenario: Earlier page of a character's objectives is requested with the before cursor
+      Given a character whose objectives continue on an earlier page
+      When the client requests the character objectives before that cursor
+      Then the request shall carry the before cursor
+
   # ── Character participation ─────────────────────────────────────────
 
   Rule: When the campaign objectives of a character are requested, the MilitaryCampaigns client shall return an objectives array holding each objective's id with that character's is_committed flag and contributed value.

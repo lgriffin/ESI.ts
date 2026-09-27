@@ -27,6 +27,7 @@ export const militaryCampaignEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['campaignId'],
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
     responseSchema: MilitaryCampaignObjectivesResponseSchema,
   },
   getMilitaryCampaignObjective: {
@@ -41,6 +42,7 @@ export const militaryCampaignEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
     responseSchema: CharacterMilitaryCampaignObjectivesResponseSchema,
   },
   getCharacterMilitaryCampaignObjective: {

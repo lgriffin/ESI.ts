@@ -40,13 +40,23 @@ export class MilitaryCampaignsClient extends BaseEsiClient<
    * Retrieves all objectives for a specific military campaign.
    *
    * @param campaignId - The UUID of the military campaign
-   * @returns `{ objectives, cursor }` for the first page of the campaign's
-   *   objectives
+   * @param after - `cursor.after` from a previous page, for the page after it
+   * @param before - `cursor.before` from a previous page, for the page before it
+   * @param limit - Maximum number of objectives on the page
+   * @returns `{ objectives, cursor }` for one page of the campaign's objectives
    */
   getMilitaryCampaignObjectives(
     campaignId: string,
+    after?: string,
+    before?: string,
+    limit?: number,
   ): Promise<MilitaryCampaignObjectivesResponse> {
-    return this.api.getMilitaryCampaignObjectives(campaignId);
+    return this.api.getMilitaryCampaignObjectives(
+      campaignId,
+      after,
+      before,
+      limit,
+    );
   }
 
   /**
@@ -67,14 +77,25 @@ export class MilitaryCampaignsClient extends BaseEsiClient<
    * Retrieves a character's participated objectives across military campaigns.
    *
    * @param characterId - The ID of the character
-   * @returns `{ objectives, cursor }` for the first page of the character's
-   *   campaign objective participations
+   * @param after - `cursor.after` from a previous page, for the page after it
+   * @param before - `cursor.before` from a previous page, for the page before it
+   * @param limit - Maximum number of objectives on the page
+   * @returns `{ objectives, cursor }` for one page of the character's campaign
+   *   objective participations
    * @requires Authentication with scope esi.activity.char:read
    */
   getCharacterMilitaryCampaignObjectives(
     characterId: number,
+    after?: string,
+    before?: string,
+    limit?: number,
   ): Promise<CharacterMilitaryCampaignObjectivesResponse> {
-    return this.api.getCharacterMilitaryCampaignObjectives(characterId);
+    return this.api.getCharacterMilitaryCampaignObjectives(
+      characterId,
+      after,
+      before,
+      limit,
+    );
   }
 
   /**

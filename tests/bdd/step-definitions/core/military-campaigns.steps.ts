@@ -298,4 +298,74 @@ defineFeature(feature, (test) => {
       expect(result).toEqual({ campaigns: [] });
     });
   });
+
+  test("Next page of a campaign's objectives is requested with the after cursor", ({
+    given,
+    when,
+    then,
+  }) => {
+    given('a campaign whose objectives continue on a later page', () => {
+      queueResponse({
+        match: esiPath(`military-campaigns/${ACTIVE_CAMPAIGN_ID}/objectives`),
+        body: { objectives: [], cursor: { before: 'page-2-before' } },
+      });
+    });
+
+    when(
+      'the client requests the objectives after that cursor with a limit of 50',
+      async () => {
+        await client.militaryCampaigns.getMilitaryCampaignObjectives(
+          ACTIVE_CAMPAIGN_ID,
+          'page-1-after',
+          undefined,
+          50,
+        );
+      },
+    );
+
+    then('the request shall carry the after cursor and the limit', () => {
+      const { url } = lastRequest();
+      expect(url.pathname).toBe(
+        `/military-campaigns/${ACTIVE_CAMPAIGN_ID}/objectives`,
+      );
+      expect(url.searchParams.get('after')).toBe('page-1-after');
+      expect(url.searchParams.get('limit')).toBe('50');
+      expect(url.searchParams.has('before')).toBe(false);
+    });
+  });
+
+  test("Earlier page of a character's objectives is requested with the before cursor", ({
+    given,
+    when,
+    then,
+  }) => {
+    const characterId = 1689391488;
+
+    given('a character whose objectives continue on an earlier page', () => {
+      queueResponse({
+        match: esiPath(
+          `characters/${characterId}/military-campaigns/objectives`,
+        ),
+        body: { objectives: [] },
+      });
+    });
+
+    when(
+      'the client requests the character objectives before that cursor',
+      async () => {
+        await client.militaryCampaigns.getCharacterMilitaryCampaignObjectives(
+          characterId,
+          undefined,
+          'page-3-before',
+        );
+      },
+    );
+
+    then('the request shall carry the before cursor', () => {
+      const { url } = lastRequest();
+      expect(url.searchParams.get('before')).toBe('page-3-before');
+      expect(url.searchParams.has('after')).toBe(false);
+      expect(url.searchParams.has('limit')).toBe(false);
+    });
+  });
 });
