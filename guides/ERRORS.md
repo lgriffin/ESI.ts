@@ -237,6 +237,8 @@ Some failures are raised as plain `Error` instances whose message starts with a 
 | `TOKEN_REFRESH_FAILED`  | retry strategy                    | `Token refresh failed: <message>`                                                                                                                                                                                  |
 | `ESIJS_ERROR`           | the pipeline's final catch        | the original message                                                                                                                                                                                               |
 
+A 200 with an empty body is a `JSON_PARSE_ERROR` on every endpoint except two. `getPublicContractItems` and `getPublicContractBids` resolve with `[]` when ESI sends no content: a 204, or a 200 with `Content-Length: 0`. ESI answers that way for a public contract that has expired or been accepted.
+
 Two further plain errors carry no code: `No token provider configured`, from calling `ApiClient.refreshToken()` directly without a provider, and `At least one client type must be specified`, from building an empty `EsiClientBuilder`.
 
 Faults raised inside a request (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`) pass through that final catch, which wraps every non-`EsiError` again. The message you receive is therefore `[ESIJS_ERROR] [NO_AUTH_TOKEN] Authorization header is required …`. Match the inner code anywhere in the message rather than at the start:

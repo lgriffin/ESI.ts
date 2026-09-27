@@ -126,6 +126,57 @@ describe('ApiRequestHandler', () => {
         handleRequest(client, 'v1/status/', 'GET'),
       ).rejects.toThrow();
     });
+
+    it('should reject a 200 with Content-Length 0 unless the endpoint opts in', async () => {
+      fetchMock.mockResponseOnce('', {
+        status: 200,
+        headers: { 'content-length': '0' },
+      });
+
+      await expect(
+        handleRequest(client, 'v1/contracts/public/items/1/', 'GET'),
+      ).rejects.toThrow('Invalid JSON response');
+    });
+
+    it('should resolve a 200 with Content-Length 0 as no content when the endpoint opts in', async () => {
+      fetchMock.mockResponseOnce('', {
+        status: 200,
+        headers: { 'content-length': '0' },
+      });
+
+      const result = await handleRequest(
+        client,
+        'v1/contracts/public/items/2/',
+        'GET',
+        undefined,
+        false,
+        true,
+        undefined,
+        undefined,
+        true,
+      );
+
+      expect(result.status).toBe(200);
+      expect(result.body).toBeUndefined();
+    });
+
+    it('should still reject an empty 200 without Content-Length 0 when the endpoint opts in', async () => {
+      fetchMock.mockResponseOnce('', { status: 200 });
+
+      await expect(
+        handleRequest(
+          client,
+          'v1/contracts/public/items/3/',
+          'GET',
+          undefined,
+          false,
+          true,
+          undefined,
+          undefined,
+          true,
+        ),
+      ).rejects.toThrow('Invalid JSON response');
+    });
   });
 
   describe('cache invalidation after a write', () => {

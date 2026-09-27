@@ -32,6 +32,13 @@ export interface EndpointDefinition {
   responseSchema?: z.ZodType;
   /** Zod schema for runtime request body validation (opt-in via validateRequest) */
   requestSchema?: z.ZodType;
+  /**
+   * Resolve with `[]` when ESI answers with no content: a 204, or a 200 with
+   * `Content-Length: 0`. Only for routes where ESI documents no content as an
+   * ordinary answer (a public contract that expired or was accepted). Other
+   * endpoints reject an empty 200 body with JSON_PARSE_ERROR.
+   */
+  emptyWhenNoContent?: boolean;
 }
 
 export type EndpointMap = Record<string, EndpointDefinition>;
