@@ -105,7 +105,7 @@ Five layers, one request path, and side modules that deliberately share nothing 
 | Auth                 | `src/auth`                                                                | EVE SSO (PKCE), token manager and storage, with its own error subtree. Reached from the root and `./errors`; there is no `./auth` sub-path.                                                                                                                                           |
 | Side modules         | `./schemas`, `./errors`, `./testing`, `./client`, `./sde`, `./sde/memory` | The SDE module shares no code with the pipeline, and `lint:layers` holds that in both directions (ARCH-10). It is an offline lookup layer for enriching ESI responses, with its own error hierarchy and its own docs.                                                                 |
 
-`lint:layers` (`eslint.layers.rules.cjs`) holds the direction: ports import nothing, generated code imports only ports, `src/core` imports no domain client, entry point, generated operation, auth, SDE or testing module, and `src/sde` imports nothing from `src/` but the ports while nothing outside it imports the SDE. Existing violations (`ClientRegistry.ts`, `configureApiClient.ts`) sit in a baseline that may only shrink.
+`lint:layers` (`eslint.layers.rules.cjs`) holds the direction: ports import nothing, generated code imports only ports, `src/core` imports no domain client, entry point, generated operation, auth, SDE or testing module, and `src/sde` imports nothing from `src/` but the ports while nothing outside it imports the SDE. The baseline of exempt files is empty, and `tests/tdd/layers/layers-lint.test.ts` keeps it so.
 
 ### The request path
 
