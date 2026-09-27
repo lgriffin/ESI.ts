@@ -239,8 +239,10 @@ export class ApiClient {
     getRetryConfig(): RetryConfig | null;
     // (undocumented)
     getRetryStrategy(): IRetryStrategy | null;
+    getTenant(): string | undefined;
     // (undocumented)
     getTimeout(): number;
+    getUserAgent(): string | undefined;
     // (undocumented)
     getValidateRequest(): boolean;
     // (undocumented)
@@ -274,9 +276,13 @@ export class ApiClient {
     // (undocumented)
     setRetryStrategy(strategy: IRetryStrategy | null): void;
     // (undocumented)
+    setTenant(tenant: string | undefined): void;
+    // (undocumented)
     setTimeout(timeout: number): void;
     // (undocumented)
     setTokenProvider(provider: TokenProvider | undefined): void;
+    // (undocumented)
+    setUserAgent(userAgent: string | undefined): void;
     // (undocumented)
     setValidateRequest(validate: boolean): void;
     // (undocumented)
@@ -4730,10 +4736,12 @@ export interface EsiClientConfig {
     retryConfig?: RetryConfig;
     // (undocumented)
     retryStrategy?: IRetryStrategy;
+    tenant?: string;
     // (undocumented)
     timeout?: number;
     // (undocumented)
     unsafeAllowCustomHost?: boolean;
+    userAgent?: string;
     // (undocumented)
     validateRequest?: boolean;
     // (undocumented)

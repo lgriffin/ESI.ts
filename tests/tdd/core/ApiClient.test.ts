@@ -176,3 +176,38 @@ describe('ApiClient', () => {
     });
   });
 });
+
+describe('ApiClient tenant and user agent setters', () => {
+  const make = () => new ApiClient('test-client', 'https://esi.evetech.net');
+
+  it.each(['setTenant', 'setUserAgent'] as const)(
+    '%s refuses a value with a line break, as the constructor config does',
+    (setter) => {
+      const client = make();
+      expect(() => client[setter]('ok\r\nX-Injected: 1')).toThrow(
+        /VALIDATION_ERROR/,
+      );
+    },
+  );
+
+  it.each(['setTenant', 'setUserAgent'] as const)(
+    '%s keeps the previous value when it refuses a new one',
+    (setter) => {
+      const client = make();
+      client[setter]('first');
+      expect(() => client[setter]('bad\u0000')).toThrow(/VALIDATION_ERROR/);
+      const getter = setter === 'setTenant' ? 'getTenant' : 'getUserAgent';
+      expect(client[getter]()).toBe('first');
+    },
+  );
+
+  it('clears both values when set to undefined', () => {
+    const client = make();
+    client.setTenant('tranquility');
+    client.setUserAgent('my-app/1.0');
+    client.setTenant(undefined);
+    client.setUserAgent(undefined);
+    expect(client.getTenant()).toBeUndefined();
+    expect(client.getUserAgent()).toBeUndefined();
+  });
+});
