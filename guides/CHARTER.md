@@ -26,6 +26,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 - **2026-09-27, EARS governance.** Six decisions from the review of the specification's reach, taken by the maintainer on the recommendations recorded in the roadmap: exclusions are stated as unwanted-behaviour Rules (TEST-11, new); the charter itself is audited like a feature file (PROC-06, new); every public client method traces to a Rule (TEST-10, new, shared with Track S Run 4); `npm run ears` already runs in CI (`ears.yml`, on every pull request that touches `src/`, `tests/bdd/` or the EARS scripts; `bdd-tests` and `spec-audit` gate the same ground inside `ci-success`), and making it a required check is a branch-protection setting for the maintainer that would first need the workflow's path filters removed, so a documentation-only pull request is not blocked by a check that never ran; TEST-01 moves to Practised because its RED step is a workflow, not a check; TEST-07 gains the 11.0.0 mutation floors. Statuses that moved down did so with the reason in the row.
 
+- **2026-09-27, the pull-request mutation gate.** The maintainer took `mutation-pr` out of `ci-success` and into its own workflow, `mutation-pr.yml`, so a pull request no longer waits up to 37 minutes for it: it still runs and reports on every pull request, the nightly still holds every floor, and ROADMAP.md's release gate carries the row that puts it back before 11.0.0 ships. GATE-01 needs 23 jobs; TEST-07 stays Enforced on the nightly.
+
 ### 11.0.0
 
 The next major is 11.0.0, built in the phases of the Road to Done plan (Phase 0 audit in [AUDIT.md](AUDIT.md); Phase 1 generator done; Phase 2 architecture lock in progress). The phase schedule, each phase's definition of done, the SDE programme and the release gate are in [ROADMAP.md](ROADMAP.md). Decided on 2026-09-26:
@@ -375,7 +377,7 @@ Mutation testing **shall** hold each directory at or above its floor in `mutatio
 
 - **Why:** Nightly-only mutation means a weak test lands before anyone sees the score. Per-directory floors replace the single score of 65, which let a strong directory hide a weak one. Incremental Stryker on changed files keeps the PR cost bounded.
 - **11.0.0 floors (decided 2026-09-27).** The ratchets only rise, and the release gate names where they must stand: every directory in `mutation-thresholds.json` at 60 or above, every directory in `mutation-bdd-thresholds.json` at 20 or above, and every SDE directory at 90 or with each survivor carrying an equivalence reason (Track S Run M). `src/schemas` is measured by the unit tier and `schema:drift` only: scenarios send valid ESI-shaped bodies through the transport seam, so a mutant that relaxes a field is invisible to them by design, and its BDD entry stays at 0 rather than pretending otherwise.
-- **Verified by:** `mutation-pr` job ("Mutation (changed files)") in `ci.yml`, required by `ci-success`; nightly ratchets in `nightly-mutation.yml`. Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)) and stale incremental results ([#380](https://github.com/lgriffin/ESI.ts/issues/380)).
+- **Verified by:** `mutation-pr` job ("Mutation (changed files)") in `mutation-pr.yml`, advisory on every pull request since 2026-09-27 and back inside `ci-success` at the release gate; nightly ratchets in `nightly-mutation.yml`. Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)) and stale incremental results ([#380](https://github.com/lgriffin/ESI.ts/issues/380)).
 
 #### TEST-08 · Optional · Enforced
 
@@ -442,7 +444,7 @@ What runs where. ● blocks; ◐ runs but does not block; · does not run.
 A pull request to `master` **shall** merge only when the aggregate `ci-success` job reports every blocking job green.
 
 - **Why:** One required check that fans in every PR job keeps branch protection simple and complete.
-- **Verified by:** `ci.yml` `ci-success` with `if: always()`, needing 24 jobs, plus a self-check that fails if a job is missing from its `needs`; branch protection requires it alongside Lint, Build & Test.
+- **Verified by:** `ci.yml` `ci-success` with `if: always()`, needing 23 jobs, plus a self-check that fails if a job is missing from its `needs`; branch protection requires it alongside Lint, Build & Test. The pull-request mutation job is in `mutation-pr.yml`, outside the gate until the release gate row in ROADMAP.md moves it back (decided 2026-09-27).
 
 #### GATE-02 · Ubiquitous · Enforced
 
