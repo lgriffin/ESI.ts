@@ -115,6 +115,6 @@ graders:
     criteria: |
       Pass when the final message names which new scenarios are expected to
       fail before implementation (RED) with a concrete reason, and gives the
-      Jest command (jest.unit.config.cjs with a testPathPatterns filter) plus
+      Jest command (config/jest/unit.config.cjs with a testPathPatterns filter) plus
       npm run spec:audit as the follow-up checks. Fail if it claims the tests
       were run or skips the RED expectation.

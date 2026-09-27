@@ -156,7 +156,7 @@ async function serve(def: EndpointDefinition, body: unknown) {
 }
 
 function reproduce(name: string): string {
-  return `Reproduce: FAULTS_SEED=${SEED} FAULTS_RUNS=${RUNS} npx jest --config jest.faults.nightly.config.cjs -t "${name}$"`;
+  return `Reproduce: FAULTS_SEED=${SEED} FAULTS_RUNS=${RUNS} npx jest --config config/jest/faults.nightly.config.cjs -t "${name}$"`;
 }
 
 describe(`Nightly payload fuzz (seed ${SEED}, ${RUNS} runs per endpoint)`, () => {

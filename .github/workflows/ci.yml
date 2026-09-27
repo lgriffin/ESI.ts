@@ -209,6 +209,11 @@ jobs:
       - name: Validate auth/scope alignment
         run: npm run validate:auth-scopes
 
+      # REL-03: package.json, constants.ts and the docs-site version selector
+      # agree. release-please bumps all three; this catches a hand edit.
+      - name: Validate the version string across package.json, constants and the docs site
+        run: npm run validate:versions
+
       # ARCH-02: every endpoint definition's method agrees with the spec at the
       # compatibility date the client sends (COMPATIBILITY_DATE).
       - name: Validate endpoint definitions against the ESI spec

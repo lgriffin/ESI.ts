@@ -31,7 +31,7 @@ import {
   useHttpTransport,
 } from '../bdd/support/transport';
 
-// jest.fuzz.config.cjs has no setup file; the seam drives the global mock.
+// config/jest/fuzz.config.cjs has no setup file; the seam drives the global mock.
 fetchMock.enableMocks();
 
 type Json = z.infer<ReturnType<typeof z.json>>;

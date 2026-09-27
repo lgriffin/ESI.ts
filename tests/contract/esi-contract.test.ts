@@ -7,7 +7,7 @@
  *
  * Gated behind ESI_LIVE_TESTS=true since it fetches from the live API.
  *
- * Run: ESI_LIVE_TESTS=true npx jest --config jest.contract.config.cjs
+ * Run: ESI_LIVE_TESTS=true npx jest --config config/jest/contract.config.cjs
  */
 
 import {

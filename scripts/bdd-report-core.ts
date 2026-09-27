@@ -154,7 +154,7 @@ export function buildLedger(
       notRun =
         'no spec entry or legacy step file binds this feature (npm run spec:audit reports it as feature-unbound)';
     } else if (ran.length === 0) {
-      notRun = `${testFiles.join(' and ')} did not run: it is missing from the Jest results. Check the file is matched by testMatch in jest.unit.config.cjs and that the report reads the results of the full npm run bdd`;
+      notRun = `${testFiles.join(' and ')} did not run: it is missing from the Jest results. Check the file is matched by testMatch in config/jest/unit.config.cjs and that the report reads the results of the full npm run bdd`;
     } else if (loaded.length === 0) {
       notRun = `${ran.map((r) => r.testFile).join(' and ')} failed to load: ${firstLine(ran[0]?.result.message ?? '') || 'no message'}`;
     }

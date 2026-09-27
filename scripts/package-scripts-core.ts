@@ -9,7 +9,9 @@
  *
  * This is the cheap check that closes that gap, run from
  * `tests/tdd/scripts/package-scripts.test.ts` so it happens in `npm test`
- * rather than needing its own CI job.
+ * rather than needing its own CI job. The second half of GATE-06 is the
+ * other direction: every `npm run <name>` a document tells the reader to
+ * type is a script `package.json` defines.
  *
  * Pure functions with no I/O, so the unit suite can import them.
  */
@@ -23,8 +25,8 @@ export interface ScriptTarget {
 }
 
 /**
- * Paths that must resolve to a file: anything under `scripts/`, `examples/` or
- * `tests/`, and the config files runners are pointed at.
+ * Paths that must resolve to a file: anything under `scripts/`, `examples/`,
+ * `tests/` or `config/`, and the config files runners are pointed at.
  *
  * Deliberately narrow. A token this misses is a target that goes unchecked,
  * which is the status quo; a token it wrongly matches fails the suite on a
@@ -32,7 +34,7 @@ export interface ScriptTarget {
  * shell syntax are left out for that reason.
  */
 const DIRECTORY_TARGET =
-  /^(?:scripts|examples|tests)\/[\w./-]+\.(?:ts|cjs|mjs|js|sh)$/;
+  /^(?:scripts|examples|tests|config)\/[\w./-]+\.(?:ts|cjs|mjs|js|sh)$/;
 const CONFIG_TARGET = /^[\w.-]+\.config\.(?:ts|cjs|mjs|js)$/;
 
 function looksLikeAPath(token: string): boolean {
@@ -47,7 +49,7 @@ export function targetsIn(script: string, command: string): ScriptTarget[] {
   const found: ScriptTarget[] = [];
   const seen = new Set<string>();
   for (const raw of command.split(/\s+/)) {
-    // `--config=jest.unit.config.cjs` as well as `--config jest.unit.config.cjs`
+    // `--config=config/jest/unit.config.cjs` as well as `--config config/jest/unit.config.cjs`
     const token = raw.includes('=') ? raw.slice(raw.indexOf('=') + 1) : raw;
     const path = token.replace(/^['"]|['"]$/g, '');
     if (!looksLikeAPath(path) || seen.has(path)) continue;
@@ -84,4 +86,30 @@ export function describeMissing(missing: ScriptTarget[]): string {
         `  npm run ${m.script} → ${m.path} does not exist; restore the file or drop the script`,
     )
     .join('\n');
+}
+
+/**
+ * Every script name a document tells the reader to run, as `npm run <name>`,
+ * in order of first appearance. A placeholder such as `npm run bdd:<domain>`
+ * or `npm run <script>` names no script and is left out.
+ */
+export function scriptsNamedIn(markdown: string): string[] {
+  const found: string[] = [];
+  const seen = new Set<string>();
+  for (const match of markdown.matchAll(/npm run ([A-Za-z0-9:_.-]*)(<?)/g)) {
+    const name = match[1] ?? '';
+    if (name.length === 0 || name.endsWith(':') || match[2] === '<') continue;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    found.push(name);
+  }
+  return found;
+}
+
+/** The names a document runs that `scripts` does not define. */
+export function undefinedScripts(
+  markdown: string,
+  scripts: Record<string, string>,
+): string[] {
+  return scriptsNamedIn(markdown).filter((name) => !(name in scripts));
 }

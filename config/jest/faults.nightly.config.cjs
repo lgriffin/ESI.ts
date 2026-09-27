@@ -3,7 +3,7 @@
  * endpoint definition (tests/faults/*.nightly.test.ts). FAULTS_SEED replays a
  * run; FAULTS_RUNS sets cases per endpoint. See tests/faults/AGENTS.md.
  */
-const base = require('./jest.faults.config.cjs');
+const base = require('./faults.config.cjs');
 
 module.exports = {
   ...base,

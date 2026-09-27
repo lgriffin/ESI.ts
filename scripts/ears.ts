@@ -129,7 +129,7 @@ function runScenarios(
   npx([
     'jest',
     '--config',
-    'jest.unit.config.cjs',
+    'config/jest/unit.config.cjs',
     '--verbose=false',
     '--json',
     `--outputFile=${resultsPath}`,
