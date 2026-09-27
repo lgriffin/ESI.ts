@@ -2,7 +2,7 @@ import { MetaClient } from '../../../src/clients/MetaClient';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import { getBody } from '../../../src/core/util/testHelpers';
-import { EsiValidationError } from '../../../src/core/util/error';
+import { EsiError, EsiValidationError } from '../../../src/core/util/error';
 import fetchMock from 'jest-fetch-mock';
 import { MetaRouteStatusSchema } from '../../../src/schemas/meta';
 import type { MetaRouteStatus } from '../../../src/types/api-responses';
@@ -65,26 +65,30 @@ describe('MetaClient', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/meta/openapi.yaml',
     );
+    const headers = fetchMock.mock.calls[0][1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(headers.Accept).toContain('yaml');
   });
 
-  it('should throw on non-ok YAML response', async () => {
+  it('should raise an EsiError carrying the status on a non-ok YAML response', async () => {
     fetchMock.mockResponseOnce('Not Found', {
       status: 404,
       statusText: 'Not Found',
     });
-    await expect(metaClient.getOpenApiYaml()).rejects.toThrow('HTTP 404');
+    const error = await metaClient.getOpenApiYaml().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(EsiError);
+    expect((error as EsiError).statusCode).toBe(404);
+    expect(fetchMock.mock.calls).toHaveLength(1);
   });
 
-  it('should rethrow Error instances from YAML fetch', async () => {
-    fetchMock.mockRejectOnce(new Error('Network failure'));
-    await expect(metaClient.getOpenApiYaml()).rejects.toThrow(
-      'Network failure',
-    );
-  });
-
-  it('should wrap non-Error exceptions from YAML fetch', async () => {
-    fetchMock.mockRejectOnce('string error' as unknown as Error);
-    await expect(metaClient.getOpenApiYaml()).rejects.toThrow('string error');
+  it('should raise a network EsiError when every YAML attempt fails to connect', async () => {
+    fetchMock.mockReject(new Error('Network failure'));
+    const error = await metaClient.getOpenApiYaml().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(EsiError);
+    expect((error as EsiError).statusCode).toBe(0);
+    expect((error as EsiError).message).toContain('Network failure');
   });
 
   it('should return the ESI changelog', async () => {

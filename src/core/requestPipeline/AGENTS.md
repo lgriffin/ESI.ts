@@ -37,7 +37,8 @@ Checked against `ApiRequestHandler.ts` and `fetchExecution.ts`:
 5. **Status handling.** 201 returns directly. `handleEarlyStatus` handles 204
    and 304. `handleErrorResponse` throws on 4xx/5xx, or serves stale cache on
    5xx.
-6. **`parseJsonBody`**, then **`cacheResponse`**.
+6. **`parseJsonBody`** (or `response.text()` for an endpoint with
+   `textResponse`, which also sets its Accept header), then **`cacheResponse`**.
 7. **Pagination.** Cursor pagination, or offset pagination across `X-Pages`.
 8. **`applyResponseInterceptors`.**
 

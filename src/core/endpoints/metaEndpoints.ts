@@ -14,6 +14,13 @@ export const metaEndpoints = {
     requiresAuth: false,
     responseSchema: z.record(z.string(), z.unknown()),
   },
+  getOpenApiYaml: {
+    path: 'meta/openapi.yaml',
+    method: 'GET',
+    requiresAuth: false,
+    responseSchema: z.string(),
+    textResponse: { accept: 'application/yaml, text/yaml, text/plain' },
+  },
   getChangelog: {
     path: 'meta/changelog',
     method: 'GET',

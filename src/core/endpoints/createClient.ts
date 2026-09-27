@@ -231,6 +231,8 @@ export function createClient<T extends EndpointMap>(
           def.requiresAuth,
           true,
           def.path,
+          undefined,
+          def.textResponse,
         );
         let responseBody = response.body;
         if (def.responseSchema && apiClient.getValidateResponse()) {

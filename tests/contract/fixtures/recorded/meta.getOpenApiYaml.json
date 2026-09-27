@@ -1,0 +1,33 @@
+{
+  "endpoint": "meta.getOpenApiYaml",
+  "call": {
+    "client": "meta",
+    "method": "getOpenApiYaml",
+    "args": []
+  },
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specCacheSeconds": null,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$",
+      "kind": "string",
+      "original": 836852,
+      "kept": 400
+    }
+  ],
+  "pages": [
+    {
+      "url": "meta/openapi.yaml",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=600",
+        "content-type": "application/openapi+yaml"
+      },
+      "body": "components:\n  headers:\n    CacheControl:\n      description: Directives for caching mechanisms. It controls how the response can be cached, by whom, and for how long.\n      schema:\n        type: string\n    ContentLanguage:\n      description: The language used in the response.\n      schema:\n        enum:\n          - en\n          - de\n          - fr\n          - ja\n          - ru\n          - zh\n      "
+    }
+  ]
+}
