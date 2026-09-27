@@ -1,4 +1,4 @@
-import { getBody } from '../src/core/util/testHelpers';
+import { getBody } from '../../src/core/util/testHelpers';
 
 declare global {
   // Extending the NodeJS Global interface

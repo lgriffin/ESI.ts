@@ -13,14 +13,16 @@
  * check that passes for the wrong reason — the exact failure this repository
  * keeps finding in its own tiers.
  */
-import { existsSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import * as path from 'path';
 
 import {
   allTargets,
   describeMissing,
   missingTargets,
+  scriptsNamedIn,
   targetsIn,
+  undefinedScripts,
 } from '../../../scripts/package-scripts-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
@@ -41,6 +43,58 @@ describe('every npm script points at a file that exists', () => {
   it('names no missing file', () => {
     const missing = missingTargets(scripts, onDisk);
     expect(describeMissing(missing)).toBe('');
+  });
+});
+
+/**
+ * The documents that tell a reader what to type. ROADMAP.md is left out on
+ * purpose: it names scripts that later plan items will add.
+ */
+function documents(): string[] {
+  const guides = readdirSync(path.join(ROOT, 'guides'))
+    .filter((f) => f.endsWith('.md') && f !== 'ROADMAP.md')
+    .map((f) => `guides/${f}`);
+  return [
+    'README.md',
+    'CLAUDE.md',
+    'AGENTS.md',
+    'tests/bdd/README.md',
+    'tests/bdd/GUIDE.md',
+    ...guides,
+  ];
+}
+
+describe('every npm script a document names is defined (GATE-06)', () => {
+  it('finds scripts named in the documents at all', () => {
+    const named = new Set(
+      documents().flatMap((doc) =>
+        scriptsNamedIn(readFileSync(path.join(ROOT, doc), 'utf-8')),
+      ),
+    );
+    expect(named.size).toBeGreaterThan(30);
+  });
+
+  it.each(documents())('%s names no undefined script', (doc) => {
+    const markdown = readFileSync(path.join(ROOT, doc), 'utf-8');
+    expect(undefinedScripts(markdown, scripts)).toEqual([]);
+  });
+});
+
+describe('scriptsNamedIn', () => {
+  it('finds each name once, in order, and skips placeholders', () => {
+    expect(
+      scriptsNamedIn(
+        'Run `npm run lint`, then `npm run bdd:<domain>` or `npm run <script>`; `npm run lint` again, then `npm run spec:audit -- --verbose`.',
+      ),
+    ).toEqual(['lint', 'spec:audit']);
+  });
+
+  it('reports the names package.json lacks', () => {
+    expect(
+      undefinedScripts('`npm run lint` and `npm run nope:missing`', {
+        lint: 'eslint src',
+      }),
+    ).toEqual(['nope:missing']);
   });
 });
 

@@ -29,17 +29,52 @@ function getConstantsVersion(): string {
   return match[1]!;
 }
 
-function main(): void {
-  const packageVersion = getPackageJsonVersion();
-  const constantsVersion = getConstantsVersion();
-
-  if (packageVersion !== constantsVersion) {
+/**
+ * The docs site's version selector (REL-03). The line carries the
+ * `x-release-please-version` marker and the file is in release-please's
+ * `extra-files`, so a release bumps it with the other two.
+ */
+function getDocsSiteVersion(): string {
+  const configPath = path.join(
+    __dirname,
+    '..',
+    'docs-site',
+    '.vitepress',
+    'config.ts',
+  );
+  const content = readFileSync(configPath, 'utf-8');
+  const match = content.match(
+    /text:\s*['"]v([^'"]+)['"],?\s*\/\/\s*x-release-please-version/,
+  );
+  if (!match) {
     console.error(
-      `Version mismatch! package.json: ${packageVersion}, constants.ts: ${constantsVersion}`,
+      "Could not find the version selector (a `text: 'vX.Y.Z'` line marked x-release-please-version) in docs-site/.vitepress/config.ts",
     );
     process.exit(1);
   }
-  console.log(`Version consistency check passed: ${packageVersion}`);
+  return match[1]!;
+}
+
+function main(): void {
+  const packageVersion = getPackageJsonVersion();
+  const versions: Record<string, string> = {
+    'src/core/constants.ts': getConstantsVersion(),
+    'docs-site/.vitepress/config.ts': getDocsSiteVersion(),
+  };
+
+  const stale = Object.entries(versions).filter(
+    ([, v]) => v !== packageVersion,
+  );
+  if (stale.length > 0) {
+    console.error(`Version mismatch! package.json: ${packageVersion}`);
+    for (const [file, version] of stale) {
+      console.error(`  ${file}: ${version}`);
+    }
+    process.exit(1);
+  }
+  console.log(
+    `Version consistency check passed: ${packageVersion} in package.json, src/core/constants.ts and docs-site/.vitepress/config.ts`,
+  );
 }
 
 main();
