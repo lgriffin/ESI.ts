@@ -146,6 +146,8 @@ Ordering between phases: 2 before 3 (the builder is what Phase 3 moves `ClientRe
 3. **Changelog** ([#275](https://github.com/lgriffin/ESI.ts/issues/275), [#377](https://github.com/lgriffin/ESI.ts/issues/377)). 9.2 to 9.6 backfilled; the duplicate-title entries that merge commits produce are fixed in `release-please-config.json` or by squash discipline, whichever the test in `tests/tdd/scripts/` can check.
 4. **Deprecations that 11.0.0 announces, not removes.** `EsiApiFactory`'s named methods and `EsiTokenManager.createClient` get `@deprecated` JSDoc pointing at the builder and `as()`. Removal is 12.0.0 at the earliest.
 
+**Landed:** item 4, the deprecations. `EsiApiFactory.createAllianceClient`, `createCharacterClient`, `createCorporationClient`, `createMarketClient`, `createUniverseClient`, `createFleetClient`, `createAssetsClient`, `createWalletClient` and `createMailClient`, and `EsiTokenManager.createClient`, carry `@deprecated` JSDoc naming `createEsi()` with `esi.public` or `esi.as(identity)` (for the token manager, `esi.as(tokens.identity(id))`) and removal in 12.0.0 at the earliest; no runtime warning, no behaviour change (`feat:`). `EsiApiFactory.createClient(type)` stays undeprecated as the legacy single-client path. USAGE.md, AUTHENTICATION.md, MULTI-CHARACTER.md, ERRORS.md, ARCHITECTURE.md, CHARTER ARCH-08 and the docs site say so.
+
 **Definition of done.** The release gate below is met in full; `chore(master): release 11.0.0` ([#405](https://github.com/lgriffin/ESI.ts/pull/405)) shows the Node floor under Breaking Changes with its migration line; the docs site deploys from the release workflow and its version banner matches `package.json`.
 
 ---
