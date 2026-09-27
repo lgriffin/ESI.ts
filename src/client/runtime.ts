@@ -130,12 +130,25 @@ class IdentityTransport implements OperationTransport {
     return this.inner.request<T>(meta, req);
   }
 
+  /**
+   * Each page is its own request, and a consumer may hold the iterator across
+   * a token rotation, so the identity is asked again before every page.
+   */
   async *paginate<T>(
     meta: OperationMeta,
     req: OperationRequest,
   ): AsyncIterable<T> {
-    await this.prepare(meta);
-    yield* this.inner.paginate<T>(meta, req);
+    const pages = this.inner.paginate<T>(meta, req)[Symbol.asyncIterator]();
+    try {
+      for (;;) {
+        await this.prepare(meta);
+        const next = await pages.next();
+        if (next.done) return;
+        yield next.value;
+      }
+    } finally {
+      await pages.return?.();
+    }
   }
 
   private async prepare(meta: OperationMeta): Promise<void> {

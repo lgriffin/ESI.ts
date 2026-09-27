@@ -15,6 +15,8 @@ export interface RawFetchResult {
   response: Response;
   parsed: ParsedHeaders;
   url: string;
+  /** The Authorization header the request carried, if any. */
+  authorization?: string;
 }
 
 export interface SingleFetchResult {
@@ -192,7 +194,12 @@ export async function executeSingleFetch(
       );
     }
 
-    return { response, parsed, url };
+    return {
+      response,
+      parsed,
+      url,
+      authorization: req.headers['Authorization'],
+    };
   } finally {
     if (cb && !cbRecorded) {
       cb.recordFailure(cbKey, 0);

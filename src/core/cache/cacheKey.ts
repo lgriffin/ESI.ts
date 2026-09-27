@@ -89,13 +89,17 @@ function scope(key: string, identity: string | null): string {
   return identity === null ? key : `${identity}:${key}`;
 }
 
-/** The identity that decides what the client serves without asking ESI. */
+/**
+ * The identity that decides what the client serves without asking ESI: the
+ * one in `authorizationHeader` when given, else the client's current token.
+ */
 function trustedIdentity(
   client: ApiClient,
   requiresAuth: boolean,
+  authorizationHeader?: string,
 ): string | null {
   if (!requiresAuth) return null;
-  const header = client.getAuthorizationHeader();
+  const header = authorizationHeader ?? client.getAuthorizationHeader();
   if (!header) return null;
   const identity = identityOf(client, header);
   return isAccepted(client, identity) ? identity.claimed : identity.hashed;
@@ -116,13 +120,19 @@ function claimedIdentity(
  * The ETag cache key for a request: its URL, scoped to the identity ESI has
  * accepted. Reads that serve an entry without a request, and writes of what
  * ESI answered, use this key.
+ *
+ * Once a request has been sent, `authorizationHeader` is the header it
+ * carried: a concurrent request may have replaced the client's token in the
+ * meantime, and what ESI answered belongs to the token that asked, not to
+ * the one the client holds when the answer arrives.
  */
 export function buildCacheKey(
   url: string,
   client: ApiClient,
   requiresAuth: boolean = false,
+  authorizationHeader?: string,
 ): string {
-  return scope(url, trustedIdentity(client, requiresAuth));
+  return scope(url, trustedIdentity(client, requiresAuth, authorizationHeader));
 }
 
 /**

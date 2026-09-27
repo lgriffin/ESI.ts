@@ -66,7 +66,7 @@ const executeRequest = async (
         resolveCache,
         requiresAuth,
       );
-    const { response, parsed, url } = await executeSingleFetch(
+    const { response, parsed, url, authorization } = await executeSingleFetch(
       client,
       endpoint,
       method,
@@ -110,7 +110,7 @@ const executeRequest = async (
     if (
       response.status === 304 &&
       revalidating &&
-      !hasCachedEntry(client, url, resolveCache, requiresAuth)
+      !hasCachedEntry(client, url, resolveCache, requiresAuth, authorization)
     ) {
       // The entry this request revalidated left the cache while it was in
       // flight (a write to its path evicted it, or it expired), so the 304 has
@@ -138,6 +138,7 @@ const executeRequest = async (
       useETag,
       resolveCache,
       requiresAuth,
+      authorization,
     );
     if (earlyResult) return finish(earlyResult);
 
@@ -151,6 +152,7 @@ const executeRequest = async (
         resolveCache,
         requiresAuth,
         await readEsiErrorReason(response),
+        authorization,
       );
       return finish(staleOrThrow);
     }
@@ -174,6 +176,7 @@ const executeRequest = async (
         templatePath,
         requiresAuth,
         writeGeneration,
+        authorization,
       );
     }
 
@@ -213,6 +216,7 @@ const executeRequest = async (
       resolveCache,
       templatePath,
       writeGeneration,
+      authorization,
     );
     return finish(paginatedResult);
   } catch (error: unknown) {

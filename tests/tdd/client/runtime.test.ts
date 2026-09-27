@@ -151,6 +151,73 @@ describe('createEsi', () => {
     expect(sent(1).headers.get('authorization')).toBe('Bearer t');
   });
 
+  it('asks the identity for its token before each page', async () => {
+    const esi = createEsi(OPTIONS);
+    let calls = 0;
+    const view = esi.as(
+      identityFromProvider(() => Promise.resolve(`t${++calls}`)),
+    );
+    fetchMock.mockResponses(
+      ['[{"item_id":1}]', { headers: { 'x-pages': '2' } }],
+      ['[{"item_id":2}]', { headers: { 'x-pages': '2' } }],
+    );
+
+    const ids: number[] = [];
+    for await (const asset of view.character(1).assets.get()) {
+      ids.push(asset.item_id);
+    }
+
+    expect(ids).toEqual([1, 2]);
+    expect(sent(0).headers.get('authorization')).toBe('Bearer t1');
+    expect(sent(1).headers.get('authorization')).toBe('Bearer t2');
+  });
+
+  it('caches a response under the token that asked, not the one the view holds when it lands', async () => {
+    // Two concurrent wallet requests under different (not yet accepted)
+    // tokens. The first answer arrives after the second request has replaced
+    // the token; it must be stored under the first token's key, so a third
+    // request under the still-unaccepted second token is not served without
+    // ESI ever having seen that token.
+    const esi = createEsi({ ...OPTIONS, enableRequestDeduplication: false });
+    // The second token arrives a little later, so the first request has
+    // already built its headers by the time the second replaces the token.
+    const tokens = [
+      ['t1', 0],
+      ['t2', 5],
+      ['t2', 0],
+    ] as const;
+    let call = 0;
+    const view = esi.as(
+      identityFromProvider(() => {
+        const [token, delay] = tokens[call++]!;
+        return new Promise((resolve) =>
+          setTimeout(() => resolve(token), delay),
+        );
+      }),
+    );
+    const answer = (delay: number) => () =>
+      new Promise<{ body: string; headers: Record<string, string> }>(
+        (resolve) =>
+          setTimeout(
+            () => resolve({ body: '1', headers: { etag: '"w"' } }),
+            delay,
+          ),
+      );
+    fetchMock.mockResponseOnce(answer(10)).mockResponseOnce(answer(60));
+
+    const wallet = view.character(1).wallet;
+    const first = wallet.get();
+    const second = wallet.get();
+    await first;
+    fetchMock.mockResponseOnce(answer(0));
+    await wallet.get();
+    await second;
+
+    expect(fetchMock.mock.calls).toHaveLength(3);
+    expect(sent(0).headers.get('authorization')).toBe('Bearer t1');
+    expect(sent(2).headers.get('authorization')).toBe('Bearer t2');
+  });
+
   it('refuses an authenticated paged operation on the public view before the wire', async () => {
     const esi = createEsi(OPTIONS);
     const forced = esi.public as unknown as ReturnType<typeof esi.as>;

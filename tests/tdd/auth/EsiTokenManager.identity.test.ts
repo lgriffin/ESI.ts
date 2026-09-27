@@ -92,6 +92,13 @@ describe('EsiTokenManager.identity', () => {
     await expect(identity.accessToken()).rejects.toThrow(/character 1/i);
   });
 
+  it('hands out one identity per character, so esi.as() keeps one view', () => {
+    expect(manager.identity(CHARACTER_ID)).toBe(manager.identity(CHARACTER_ID));
+    expect(manager.identity(CHARACTER_ID)).not.toBe(
+      manager.identity(CHARACTER_ID + 1),
+    );
+  });
+
   it('is frozen', () => {
     expect(Object.isFrozen(manager.identity(CHARACTER_ID))).toBe(true);
   });

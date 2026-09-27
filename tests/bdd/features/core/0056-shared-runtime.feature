@@ -106,6 +106,17 @@ Feature: One runtime, many identities
       When the character's view requests the wallet balance twice
       Then the two requests shall carry the provider's first and second tokens
 
+  Rule: When a view follows the pages of an authenticated operation, the runtime shall ask the identity for its token before each page.
+    Each page is its own request, and a consumer may hold the iterator across
+    a token rotation, so the token is not taken once for the whole collection.
+
+    Scenario: A provider's newer token is sent for the second page
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And a view for a character whose provider hands out a new token on each call
+      And ESI reports the character's assets on two pages
+      When the character's view follows every page of the character's assets
+      Then the two requests shall carry the provider's first and second tokens
+
   Rule: When ESI answers 401 to a view whose identity can refresh, the runtime shall retry the request once with the refreshed token.
     A managed character refreshes through SSO; a provider identity asks its
     provider again. Either way the caller sees the retried answer, not the 401.

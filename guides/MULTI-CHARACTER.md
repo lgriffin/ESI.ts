@@ -99,7 +99,7 @@ const view = esi.as(identityFromToken(token));
 
 It cannot refresh. When the token expires, calls fail with a 401 and the caller makes a new identity.
 
-**From a `TokenProvider`.** The same function the legacy `onTokenRefresh` option takes: it returns the current token, refreshing first when it knows the old one has expired. The view asks it before each request and again after a 401.
+**From a `TokenProvider`.** The same function the legacy `onTokenRefresh` option takes: it returns the current token, refreshing first when it knows the old one has expired. The view asks it before each request, before each page of a paginated operation, and again after a 401.
 
 ```ts
 import { identityFromProvider } from '@lgriffin/esi.ts/client';
