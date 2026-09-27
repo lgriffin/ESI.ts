@@ -92,6 +92,18 @@ describe('import-time side effects (ARCH-06)', () => {
     expect(pino).toHaveBeenCalledTimes(1);
   });
 
+  it('methods saved before first use build the logger once', () => {
+    process.env.ESI_LOG_LEVEL = 'silent';
+    const { pino, loaded: logger } = withPinoSpy(loadDefaultLogger);
+    const { warn, isLevelEnabled } = logger;
+
+    for (let i = 0; i < 3; i++) {
+      warn('not written: the level is silent');
+      expect(isLevelEnabled?.('warn')).toBe(false);
+    }
+    expect(pino).toHaveBeenCalledTimes(1);
+  });
+
   it('a level method is a first use too', () => {
     process.env.ESI_LOG_LEVEL = 'silent';
     const { pino, loaded: logger } = withPinoSpy(loadDefaultLogger);

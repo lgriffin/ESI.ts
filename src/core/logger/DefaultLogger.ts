@@ -98,8 +98,13 @@ const LEVELS: readonly LoggerLevel[] = [
  */
 export function createLazyDefaultLogger(): ILogger {
   const lazy = {} as DetachedLogger;
+  // Cached so a caller that saved a method before first use (`const warn =
+  // logger.warn`) reaches the same pino instance on every call.
+  let built: DetachedLogger | undefined;
   const materialise = (): DetachedLogger => {
+    if (built) return built;
     const real = buildDefaultLogger();
+    built = real;
     for (const level of LEVELS) lazy[level] = real[level];
     lazy.isLevelEnabled = real.isLevelEnabled ?? ((): boolean => true);
     return real;
