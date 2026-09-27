@@ -314,6 +314,6 @@ What is not redacted: nested objects inside the context, parameter names outside
 
 Stated against the charter, measured against the code at the time of writing.
 
-**ARCH-06 · Enforced: nothing built at import.** Closed by [#268](https://github.com/lgriffin/ESI.ts/issues/268): the default logger, and the deprecated default export of `src/core/logger/logger.ts`, build their pino instance on first use, and `package.json` declares `"sideEffects": false` (see [Import-time behaviour](#import-time-behaviour)).
+**ARCH-06 · Enforced: nothing built at import.** Closed by [#268](https://github.com/lgriffin/ESI.ts/issues/268): the default logger builds its pino instance on first use (the deprecated `src/core/logger/logger.ts` module, reachable from no entry point, was removed when knip began blocking the release gate), and `package.json` declares `"sideEffects": false` (see [Import-time behaviour](#import-time-behaviour)).
 
 **ARCH-09 · Enforced: per-client logging.** Closed by [#296](https://github.com/lgriffin/ESI.ts/issues/296) and [#265](https://github.com/lgriffin/ESI.ts/issues/265): every call site uses the per-client logger (see [Call sites](#call-sites)), and `npm run lint` holds `src/core/requestPipeline/` and `src/clients/` off the global `loggerUtil`.

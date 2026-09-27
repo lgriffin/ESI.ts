@@ -71,13 +71,6 @@ describe('import-time side effects (ARCH-06)', () => {
     expect(pino).not.toHaveBeenCalled();
   });
 
-  it('importing the deprecated logger module constructs no pino logger', () => {
-    const { pino } = withPinoSpy(() =>
-      requireSource('src/core/logger/logger.ts'),
-    );
-    expect(pino).not.toHaveBeenCalled();
-  });
-
   it('builds the default logger once, on first use, then delegates directly', () => {
     const { pino, loaded: logger } = withPinoSpy(loadDefaultLogger);
     const lazyWarn = logger.warn;

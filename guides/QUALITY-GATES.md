@@ -45,7 +45,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Consumer contract (packed tarball)         |   ·    |            ·             |  ● 18/20/22/24   |       ◐       |         ●          |
 | Documentation examples (packed tarball)    |   ·    |            ·             |        ●         |       ·       |         ·          |
 | Dependency audit (diff-aware / allowlist)  |   ·    |            ·             | ● new advisories | ◐ files issue |    ● ≥ high (6)    |
-| knip dead-code                             |   ·    |            ·             |        ◐         | ◐ weekly (4)  |         ◐          |
+| knip dead-code                             |   ·    |            ·             |        ◐         | ◐ weekly (4)  |         ●          |
 | CodeQL                                     |   ·    | ◐ protected branches (5) |      ◐ (5)       |   ◐ weekly    |         ·          |
 | zizmor (workflow security)                 |   ·    |            ·             |        ●         |       ·       |         ·          |
 | Benchmarks, head against base (8)          |   ·    |            ·             |        ●         | ◐ files issue |         ·          |
@@ -127,9 +127,9 @@ The rule is deliberately strict. A changed line is often a widening (an optional
 
 Locally, on a feature branch: `npm run api-report:semver -- --base $(git merge-base origin/master HEAD) --pr-head HEAD`.
 
-### GATE-04 · knip does not block anywhere yet
+### GATE-04 · knip blocks the release
 
-knip runs with `--no-exit-code` in `ci.yml` (`static-analysis`), `release.yml` (`validate-release`) and both local aggregate scripts, and without a flag but with `|| true` in `maintenance.yml`. It never fails a run. Configuration is `knip.json`. The charter's target is to drop `--no-exit-code` in `release.yml` once the baseline is clean.
+`release.yml` (`validate-release`) runs `npx knip`, so an unused file, export or dependency under `src/` stops the publish. `npm run validate` and `npm run check:all` block on it too. On pull requests it only reports: `ci.yml` (`static-analysis`) runs it with `--no-exit-code` to keep friction low, and `maintenance.yml` runs it weekly with `|| true`. Configuration is `knip.jsonc`: tests, scripts and examples are entry points, `project` is `src/`, and each exception carries its reason as a comment. Run `npm run knip` before tagging.
 
 ### GATE-05 · Nightlies file issues
 
@@ -347,18 +347,18 @@ Much of this overlaps the nightlies, which file issues rather than artifacts. It
 
 `release.yml` runs on the `v*.*.*` tag push and again when the GitHub release is published:
 
-| Job                       | Runs on           | What it does                                                                                                                                                                                                 |
-| ------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `validate-release`        | both triggers     | Tag and version checks, lint, format, knip (non-blocking), `audit:check`, changelog entry, build, schema drift, generated freshness, the spec validators, `spec:audit`, the test tiers, `docs`; listed below |
-| `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                                                                      |
-| `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                                                                |
-| `deploy-docs`             | both triggers     | TypeDoc to gh-pages from `docs-site/public/api`                                                                                                                                                              |
-| `create-assets`           | both triggers     | `npm pack`, CycloneDX SBOM, docs archive, `checksums.txt`; no OIDC permission                                                                                                                                |
-| `consumer-contract`       | both triggers     | `npm run test:consumer -- --tarball` on the tarball `create-assets` packed, same four rows as `ci.yml`; `publish-npm`, `publish-github` and `sign-and-publish-assets` need it                                |
-| `sign-and-publish-assets` | release published | Keyless cosign signatures and SLSA build provenance (`.intoto.jsonl`), uploads assets to the release; the only job that can mint an OIDC token for signing                                                   |
-| `notify-success`          | after publish     | Log line when the npm publish succeeded                                                                                                                                                                      |
+| Job                       | Runs on           | What it does                                                                                                                                                                                  |
+| ------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validate-release`        | both triggers     | Tag and version checks, lint, format, knip, `audit:check`, changelog entry, build, schema drift, generated freshness, the spec validators, `spec:audit`, the test tiers, `docs`; listed below |
+| `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                                                       |
+| `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                                                 |
+| `deploy-docs`             | both triggers     | TypeDoc to gh-pages from `docs-site/public/api`                                                                                                                                               |
+| `create-assets`           | both triggers     | `npm pack`, CycloneDX SBOM, docs archive, `checksums.txt`; no OIDC permission                                                                                                                 |
+| `consumer-contract`       | both triggers     | `npm run test:consumer -- --tarball` on the tarball `create-assets` packed, same four rows as `ci.yml`; `publish-npm`, `publish-github` and `sign-and-publish-assets` need it                 |
+| `sign-and-publish-assets` | release published | Keyless cosign signatures and SLSA build provenance (`.intoto.jsonl`), uploads assets to the release; the only job that can mint an OIDC token for signing                                    |
+| `notify-success`          | after publish     | Log line when the npm publish succeeded                                                                                                                                                       |
 
-Every publishing job `needs` `validate-release` (`REL-02`). Its steps: the tag equals the `package.json` version and `validate:versions` passes; lint, format check, knip (non-blocking), `audit:check`, `CHANGELOG.md` has `## [<version>]`; build; `schema:drift:ci`; generated-types freshness over every `esi-*.generated.ts`; `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`; `test:all`, `contract:replay`, `faults -- --ci` and `contract:live` (503 soft-skips); `docs`. The release gate runs every validator the charter lists for it; the ratchets in `spec:audit`, `contract:replay` and the fault catalogue compare with the previous `vX.Y.Z` tag (`git describe --tags --abbrev=0 HEAD^` on a full-history checkout), and the job fails if none resolves; schema drift still takes the tag itself as its base. It does not run the API surface check or the SemVer gate, which need a base branch. The procedure, versioning and support window are in [RELEASE.md](RELEASE.md).
+Every publishing job `needs` `validate-release` (`REL-02`). Its steps: the tag equals the `package.json` version and `validate:versions` passes; lint, format check, knip, `audit:check`, `CHANGELOG.md` has `## [<version>]`; build; `schema:drift:ci`; generated-types freshness over every `esi-*.generated.ts`; `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`; `test:all`, `contract:replay`, `faults -- --ci` and `contract:live` (503 soft-skips); `docs`. The release gate runs every validator the charter lists for it; the ratchets in `spec:audit`, `contract:replay` and the fault catalogue compare with the previous `vX.Y.Z` tag (`git describe --tags --abbrev=0 HEAD^` on a full-history checkout), and the job fails if none resolves; schema drift still takes the tag itself as its base. It does not run the API surface check or the SemVer gate, which need a base branch. The procedure, versioning and support window are in [RELEASE.md](RELEASE.md).
 
 Secrets: `NPM_TOKEN` for npmjs.org; `GITHUB_TOKEN` (automatic) for GitHub Packages, gh-pages, release uploads and issue filing.
 
@@ -710,7 +710,7 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 | `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)                    |
 | `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)                      |
 | `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                                |
-| `knip`                    | Dead code and unused exports (`knip.json`)                                                     |
+| `knip`                    | Dead code and unused exports (`knip.jsonc`)                                                    |
 | `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                        |
 | `api-report:check`        | api-extractor, check mode                                                                      |
 | `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)                     |
@@ -788,7 +788,7 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 
 | Script                                                 | Runs                                                                                                                     |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| `validate`                                             | `lint`, `format:check`, `build`, `coverage`, `knip --no-exit-code`                                                       |
+| `validate`                                             | `lint`, `format:check`, `build`, `coverage`, `knip`                                                                      |
 | `check:all`                                            | `validate`'s steps, then `validate:esi`, `validate:spec`, `validate:versions`, `spec:audit`, `validate:spec-consistency` |
 | `check:local` / `check:local:fast` / `check:local:all` | Every offline CI tier; see [Running the gates locally](#running-the-gates-locally)                                       |
 
@@ -822,7 +822,7 @@ What it runs, and what it deliberately does not, is `scripts/quality/verify-loca
 Two older aggregate scripts cover the static side:
 
 ```bash
-npm run validate     # lint, format:check, build, coverage, knip (non-blocking)
+npm run validate     # lint, format:check, build, coverage, knip
 npm run check:all    # validate + validate:esi + validate:spec + validate:versions + spec:audit + validate:spec-consistency
 ```
 
@@ -844,6 +844,6 @@ npm run mutation:pr                               # needs a base ref; the nightl
 npm run bench:ab                                  # needs a second tree and a quiet machine
 ```
 
-`bdd` and `coverage` are left out because `test` already runs the same suites, `docs` because it asserts nothing, and `knip` because CI runs it with `--no-exit-code`.
+`bdd` and `coverage` are left out because `test` already runs the same suites, `docs` because it asserts nothing, and `knip` because only the release gate blocks on it (`validate` and `check:all` run it).
 
 `validate:versions` runs in `static-analysis` and in `release.yml`: `release-please` keeps `src/core/constants.ts` and the docs-site version selector in step with `package.json` through its `extra-files` setting and the `x-release-please-version` marker, and the check is what catches a hand edit of any of the three.
