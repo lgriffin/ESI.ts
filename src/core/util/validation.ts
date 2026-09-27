@@ -19,6 +19,15 @@ export function validatePathParam(paramName: string, value: unknown): string {
     );
   }
 
+  // A lone `.` or `..` survives encodeURIComponent and is collapsed by URL
+  // resolution, so `characters/../assets/` would reach `/assets/`.
+  if (str === '.' || str === '..') {
+    throw buildError(
+      `Path parameter '${paramName}' must not be a dot segment`,
+      'VALIDATION_ERROR',
+    );
+  }
+
   if (typeof value === 'number' && !Number.isFinite(value)) {
     throw buildError(
       `Path parameter '${paramName}' must be a finite number`,
