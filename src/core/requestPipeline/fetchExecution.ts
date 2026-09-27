@@ -80,6 +80,7 @@ export async function executeSingleFetch(
   resolveCircuitBreaker: (client: ApiClient) => ICircuitBreaker | null,
   requestTimeout?: number,
   templatePath?: string,
+  accept?: string,
 ): Promise<RawFetchResult> {
   const rawUrl = `${client.getLink()}/${endpoint}`;
   const builtHeaders = buildRequestHeaders(
@@ -90,6 +91,7 @@ export async function executeSingleFetch(
     useETag,
     body,
     resolveCache,
+    accept,
   ) as Record<string, string>;
 
   const req = await applyRequestMiddleware(

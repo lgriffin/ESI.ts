@@ -31,6 +31,12 @@ const testEndpoints = {
     requiresAuth: true,
     pathParams: ['characterId'],
   },
+  getDocument: {
+    path: 'test/document.yaml',
+    method: 'GET',
+    requiresAuth: false,
+    textResponse: { accept: 'application/yaml' },
+  },
 } as const satisfies EndpointMap;
 
 class TestClient extends BaseEsiClient<typeof testEndpoints> {
@@ -73,6 +79,28 @@ class TestClient extends BaseEsiClient<typeof testEndpoints> {
     );
   }
 }
+
+describe('page helpers on a text endpoint', () => {
+  const client = new TestClient(
+    new ApiClient('test', 'https://esi.evetech.net'),
+  );
+
+  it('streamEndpoint refuses a text endpoint without requesting it', () => {
+    mockHandleRequest.mockClear();
+    expect(() => client.streamEndpoint('getDocument')).toThrow(
+      'getDocument returns a text document and cannot be paged',
+    );
+    expect(mockHandleRequest).not.toHaveBeenCalled();
+  });
+
+  it('fetchAllEndpoint rejects a text endpoint without requesting it', async () => {
+    mockHandleRequest.mockClear();
+    await expect(client.fetchAllEndpoint('getDocument', [])).rejects.toThrow(
+      'getDocument returns a text document and cannot be paged',
+    );
+    expect(mockHandleRequest).not.toHaveBeenCalled();
+  });
+});
 
 describe('streamEndpoint', () => {
   let apiClient: ApiClient;
