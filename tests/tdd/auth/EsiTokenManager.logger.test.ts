@@ -59,4 +59,27 @@ describe('EsiTokenManager logger', () => {
     expect(own.error).toHaveBeenCalledTimes(1);
     expect(global.error).not.toHaveBeenCalled();
   });
+
+  it('redacts a URL in an SSO error message before it reaches the logger', async () => {
+    const storage = new MemoryTokenStorage();
+    await storage.set(1, makeStoredToken({ characterId: 1 }));
+    const manager = new EsiTokenManager({
+      clientId: 'cid',
+      storage,
+      ssoClient: {
+        refresh: () =>
+          Promise.reject(
+            new Error('see https://login.example/?code=abc&state=1'),
+          ),
+      } as unknown as EveSsoClient,
+    });
+    const later = spyLogger();
+    setLogger(later);
+
+    await expect(manager.refresh(1)).rejects.toThrow();
+
+    expect(later.error.mock.calls[0]?.[0]).toBe(
+      'Token refresh failed for character 1: see https://login.example/?code=%5BREDACTED%5D&state=1',
+    );
+  });
 });

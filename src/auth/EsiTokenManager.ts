@@ -3,6 +3,7 @@ import type { FetchLike, TokenProvider } from '../core/ApiClient';
 import type { ILogger } from '../core/logger/ILogger';
 import type { Identity } from '../core/ports/Identity';
 import { getLogger } from '../core/logger/loggerUtil';
+import { redactingLogger } from '../core/logger/redactLog';
 import { runWithConcurrency } from '../core/util/concurrency';
 import {
   EveSsoClient,
@@ -145,10 +146,12 @@ export class EsiTokenManager {
 
   /**
    * Resolved at each log call rather than at construction, so a global
-   * `setLogger()` made after the manager was built still reaches it.
+   * `setLogger()` made after the manager was built still reaches it. Lines
+   * are redacted like the pipeline's, since an SSO error message can carry
+   * a URL.
    */
   private get logger(): ILogger {
-    return this.configuredLogger ?? getLogger();
+    return redactingLogger(this.configuredLogger ?? getLogger());
   }
 
   constructor(config: EsiTokenManagerConfig) {

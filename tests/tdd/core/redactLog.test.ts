@@ -53,6 +53,32 @@ describe('redactLogText', () => {
   );
 });
 
+describe('redactLogText edge cases', () => {
+  it.each([
+    [
+      'https://a.example/?page=1,https://b.example/?token=s3cret',
+      'https://a.example/?page=1,https://b.example/?token=%5BREDACTED%5D',
+    ],
+    [
+      '/a/?page=1;/b/?refresh_token=s3cret',
+      '/a/?page=1;/b/?refresh_token=%5BREDACTED%5D',
+    ],
+    [
+      '//cdn.example/x/?api_key=s3cret&v=2',
+      '//cdn.example/x/?api_key=%5BREDACTED%5D&v=2',
+    ],
+    ['http://[bad/?token=s3cret', 'http://[bad/?token=%5BREDACTED%5D'],
+    ['/x/?tok%65n=s3cret', '/x/?tok%65n=%5BREDACTED%5D'],
+  ])('redacts %s', (text, expected) => {
+    expect(redactLogText(text)).toBe(expected);
+    expect(redactLogText(text)).not.toContain('s3cret');
+  });
+
+  it('leaves a sensitive name with an empty value alone', () => {
+    expect(redactLogText('/x/?token=&page=1')).toBe('/x/?token=&page=1');
+  });
+});
+
 describe('redactLogContext', () => {
   it('redacts every top-level string value that carries a URL', () => {
     expect(

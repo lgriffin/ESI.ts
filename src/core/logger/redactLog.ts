@@ -1,83 +1,32 @@
-import { SENSITIVE_QUERY_PATTERN, sanitizeUrl } from '../util/error';
-import type { LogContext } from './ILogger';
-
-/** Base for resolving a relative path such as `/characters/1/?token=x`. */
-const RELATIVE_BASE = 'https://relative.invalid';
-
-/** Characters that wrap a URL in prose: quotes and brackets. */
-const WRAPPERS = new Set([
-  '"',
-  "'",
-  '`',
-  '<',
-  '>',
-  '(',
-  ')',
-  '[',
-  ']',
-  '{',
-  '}',
-]);
-
-const ABSOLUTE = /^[a-z][a-z\d+.-]*:\/\//i;
+import { SENSITIVE_QUERY_PATTERN, isSensitiveQueryParam } from '../util/error';
+import type { ILogger, LogContext, LoggerLevel } from './ILogger';
 
 /**
- * Redact the sensitive query parameters of one URL-like token through
- * `sanitizeUrl`. The token comes back unchanged when it carries none, so
- * text that merely contains a `?` keeps its exact wording.
+ * One `name=value` pair of a query: the separator before it, the name as
+ * written, and the value up to the next separator, whitespace, or character
+ * that ends a URL in prose (quotes, brackets, a comma or semicolon).
  */
-function redactToken(token: string): string {
-  const absolute = ABSOLUTE.test(token);
-  let href: string;
-  try {
-    href = absolute
-      ? new URL(token).toString()
-      : new URL(token, RELATIVE_BASE).toString();
-  } catch {
-    return token;
-  }
-  const safe = sanitizeUrl(href) ?? href;
-  if (safe === href) return token;
-  return absolute ? safe : safe.slice(RELATIVE_BASE.length);
-}
+const QUERY_PAIR = /([?&])([^=&#?\s]+)=([^&#\s,;"'`<>()[\]{}]*)/g;
 
-const isSchemeChar = (c: string): boolean => /^[a-z\d+.-]$/i.test(c);
+/** The value `sanitizeUrl` writes for a redacted parameter, URL-encoded. */
+const REDACTED = '%5BREDACTED%5D';
 
 /**
- * Where the URL starts inside a word such as `url='https://…'` or
- * `endpoint=/characters/1/?token=…`: the scheme of an absolute URL, else the
- * first `/` before the query, else the start of the word.
+ * Redact the sensitive query parameters of every URL in a piece of log text,
+ * matching the names `sanitizeUrl` redacts. It works on the text itself
+ * rather than parsing each URL, so URLs next to punctuation, relative and
+ * protocol-relative paths, and URLs `new URL` rejects are all covered, and
+ * everything else in the line keeps its exact wording.
  */
-function urlStart(word: string): number {
-  const schemeEnd = word.indexOf('://');
-  if (schemeEnd > 0) {
-    let start = schemeEnd;
-    while (start > 0 && isSchemeChar(word.charAt(start - 1))) start--;
-    return start;
-  }
-  const slash = word.indexOf('/');
-  return slash >= 0 && slash < word.indexOf('?') ? slash : 0;
-}
-
-/**
- * Redact one whitespace-delimited word, leaving any prefix (`url=`) and the
- * quotes or brackets around the URL in place.
- */
-function redactWord(word: string): string {
-  if (!word.includes('?')) return word;
-  let end = word.length;
-  while (end > 0 && WRAPPERS.has(word.charAt(end - 1))) end--;
-  let start = urlStart(word.slice(0, end));
-  while (start < end && WRAPPERS.has(word.charAt(start))) start++;
-  const url = word.slice(start, end);
-  if (!url.includes('?')) return word;
-  return word.slice(0, start) + redactToken(url) + word.slice(end);
-}
-
-/** Redact every URL embedded in a piece of log text. */
 export function redactLogText(text: string): string {
   if (!text.includes('?') || !SENSITIVE_QUERY_PATTERN.test(text)) return text;
-  return text.split(/(\s+)/).map(redactWord).join('');
+  return text.replace(
+    QUERY_PAIR,
+    (pair: string, separator: string, name: string, value: string) =>
+      value !== '' && isSensitiveQueryParam(name)
+        ? `${separator}${name}=${REDACTED}`
+        : pair,
+  );
 }
 
 /**
@@ -117,4 +66,28 @@ function redactValues(
     redacted[key] = mayCarrySecret(value) ? redactLogText(value) : value;
   }
   return redacted;
+}
+
+/**
+ * A view of a logger that skips disabled levels and redacts each line the
+ * way the pipeline's log helpers do, for code that holds a logger directly
+ * rather than logging through a client.
+ */
+export function redactingLogger(logger: ILogger): ILogger {
+  const at =
+    (level: LoggerLevel) =>
+    (message: string, context?: LogContext): void => {
+      if (logger.isLevelEnabled?.(level) === false) return;
+      const safe = redactLogContext(context);
+      if (safe === undefined) logger[level](redactLogText(message));
+      else logger[level](redactLogText(message), safe);
+    };
+  return {
+    fatal: at('fatal'),
+    error: at('error'),
+    warn: at('warn'),
+    info: at('info'),
+    debug: at('debug'),
+    trace: at('trace'),
+  };
 }
