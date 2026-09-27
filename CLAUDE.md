@@ -126,8 +126,8 @@ Key middleware in the pipeline:
 
 ### CI Workflows
 
-- **ci-fast.yml** — runs on every push (Node 20): `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, unit tests
-- **ci.yml** — runs on pull requests to master: unit tests on Node 18/20/22, consumer contract on Node 18 to 24, BDD, spec audit, contract, fuzz, coverage, API surface, doc examples and more. `ci-success` is the single required check and fails when any job fails or is skipped
+- **ci-fast.yml** — runs on every push (Node 22): `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, unit tests
+- **ci.yml** — runs on pull requests to master: unit tests on Node 22/24, consumer contract on Node 22 and 24, BDD, spec audit, contract, fuzz, coverage, API surface, doc examples and more. `ci-success` is the single required check and fails when any job fails or is skipped
 - **nightly-mutation.yml** — runs nightly: unit mutation testing (Stryker) with a 4-hour timeout, the BDD-only run as one job per shard, and type mutation
 - **nightly-examples.yml** — runs nightly and on PRs touching examples: type-checks every example, runs the public ones against live ESI, opens/closes one issue per failing example
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget

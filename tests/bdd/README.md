@@ -77,7 +77,8 @@ The binder provides both on Jest. Staying keeps three things a move would have
 cost:
 
 - **Node support.** `@cucumber/cucumber` 13 requires Node 22 or later. The
-  package supports Node 18 and CI runs the suite on 18, 20 and 22.
+  package supports Node 22 and CI runs the suite on 22 and 24, so this
+  constraint no longer applies from 11.0.0.
 - **Mutation testing.** The BDD-only Stryker run (`npm run mutation:bdd`) and its
   per-directory ratchet use the Jest runner's per-test coverage analysis.
 - **Coverage.** Scenarios count towards the Jest coverage thresholds, with no
@@ -353,9 +354,9 @@ directly.
 
 The audit itself runs as CommonJS under ts-node, so it loads the ESM-only
 Cucumber packages through a real dynamic `import()` rather than `require()`.
-That keeps it working on every Node the package supports (18 and above), not
-only on those with `require(esm)` (20.19+ / 22.12+). The unit matrix runs the
-fixture suite on Node 18, 20 and 22, so a regression there fails CI.
+That keeps it working on every Node the package supports (22 and above), not
+only on those with `require(esm)` (22.12+). The unit matrix runs the fixture
+suite on Node 22 and 24, so a regression there fails CI.
 
 `scripts/spec-audit-exceptions.json` lists feature files not yet converted to
 Rule form. It is a **ratchet in both directions**, and the run fails when:

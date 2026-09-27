@@ -33,7 +33,7 @@ System context showing ESI.ts in its operating environment.
 
 | Element                  | Description                                                                                                                                                                                                                                |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Consumer Application** | Node.js application that needs EVE Online data: Node 18 or newer today (`engines`), 22 or newer from 11.0.0 (`REL-05`)                                                                                                                     |
+| **Consumer Application** | Node.js application that needs EVE Online data: Node 22 or newer from 11.0.0 (`engines`, `REL-05`); 10.x supports Node 18 and 20                                                                                                           |
 | **ESI.ts**               | TypeScript SDK — auth, caching, rate limiting, circuit breaking, pagination, validation                                                                                                                                                    |
 | **EVE Online ESI API**   | CCP's REST API at `esi.evetech.net`, secured by EVE SSO (OAuth2)                                                                                                                                                                           |
 | **EVE SSO**              | OAuth2 authorisation server — issues and refreshes access tokens                                                                                                                                                                           |
@@ -513,7 +513,7 @@ Each item is one pull request in [ROADMAP.md](ROADMAP.md). None removes a legacy
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Phase 3 · layer baseline to empty           | Done: `ClientRegistry.ts` is in `src/clients/`, `EsiClientConfig` in `src/core/`; `BASELINE` is `{}`.                                                                                                                                 |
 | Phase 4 · logging and import-time behaviour | URL sanitising moves to the logger boundary, the remaining call sites that bypass the per-client logger migrate to it (`ARCH-09`), no pino instance is built at import, and `package.json` declares `sideEffects: false` (`ARCH-06`). |
-| Phase 7 · Node 22                           | `engines.node` becomes `>=22.0.0` in the one `feat!:` commit of the release (`REL-05`).                                                                                                                                               |
+| Phase 7 · Node 22                           | `engines.node` becomes `>=22.12.0` in the one `feat!:` commit of the release (`REL-05`).                                                                                                                                              |
 
 ---
 

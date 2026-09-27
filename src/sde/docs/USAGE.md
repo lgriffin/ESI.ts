@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22.12+
 - SDE data downloaded locally (YAML files from CCP's Static Data Export)
 - `js-yaml` for `SdeDataProvider.fromDirectory` and `fromZip`, plus `adm-zip` for `fromZip`: `npm install js-yaml adm-zip`
 

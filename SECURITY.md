@@ -4,11 +4,13 @@ This is the vulnerability disclosure policy for `@lgriffin/esi.ts`. The controls
 
 ## Supported versions
 
-| Version | Supported |
-| ------- | --------- |
-| 9.x     | Yes       |
-| 8.x     | No        |
-| 7.x     | No        |
+| Version | Supported | Node.js        |
+| ------- | --------- | -------------- |
+| 11.x    | Yes       | 22.12 or later |
+| 10.x    | Yes       | 18 or later    |
+| 9.x     | Yes       | 18 or later    |
+| 8.x     | No        |                |
+| 7.x     | No        |                |
 
 The support window is described in [guides/RELEASE.md](guides/RELEASE.md).
 

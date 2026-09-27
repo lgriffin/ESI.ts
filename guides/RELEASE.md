@@ -43,7 +43,7 @@ release.yml
 | `publish-github`          | `validate-release`, `consumer-contract`  | release only              | The same tarball, `npm publish <tarball> --provenance` to `npm.pkg.github.com`                                                                                                                                                                              |
 | `deploy-docs`             | `validate-release`                       | release only              | `npm run docs`, then deploys `docs-site/public/api` (TypeDoc) to GitHub Pages                                                                                                                                                                               |
 | `create-assets`           | `validate-release`                       | tag push and release      | `npm pack` (fails unless exactly one tarball), the CycloneDX SBOM (`npm run release:sbom`), `docs.tar.gz` of the API reference, `checksums.txt` (SHA-256); uploads as artifact                                                                              |
-| `consumer-contract`       | `create-assets`                          | tag push and release      | The consumer contract (`npm run test:consumer -- --tarball`) against the tarball `create-assets` packed: Node 18, 20, 22 and 24, oldest, repository and latest TypeScript                                                                                   |
+| `consumer-contract`       | `create-assets`                          | tag push and release      | The consumer contract (`npm run test:consumer -- --tarball`) against the tarball `create-assets` packed: Node 22 and 24, oldest, repository and latest TypeScript                                                                                           |
 | `sign-and-publish-assets` | `create-assets`, `consumer-contract`     | release only              | Keyless `cosign sign-blob` on the tarball, SBOM and docs archive; SLSA build provenance for the same three (`actions/attest-build-provenance`, checked with `gh attestation verify`); then `gh release upload` of all assets plus `README.md` and `LICENSE` |
 | `dispatch-canary`         | `publish-npm`, `sign-and-publish-assets` | when `publish-npm` passed | Dispatches `post-publish-canary.yml` on the tag (`actions: write`)                                                                                                                                                                                          |
 | `notify-success`          | all of the above                         | when `publish-npm` passed | Log line only                                                                                                                                                                                                                                               |
@@ -128,7 +128,7 @@ The current changelog does not yet meet this rule; see [Known state](#known-stat
 
 ## What gates a publish (REL-02)
 
-`validate-release` runs on Node 20 against the tagged commit. Every step blocks the publish except dead-code detection.
+`validate-release` runs on Node 22 against the tagged commit. Every step blocks the publish except dead-code detection.
 
 | Step                        | Command                                                                                                                     | Blocks |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------- | :----: |
@@ -302,7 +302,7 @@ What it describes: the runtime dependency tree of the tarball's own `package.jso
 
 The supported major versions are listed once, in the root [SECURITY.md](../SECURITY.md). Update that table in the same pull request as a major release.
 
-The package declares `"engines": { "node": ">=18.0.0" }` (REL-05) and supports TypeScript 5.4 or later for consumers (`OLDEST_TYPESCRIPT` in `scripts/consumer-contract-core.ts`; zod 4's declarations need `NoInfer`, added in 5.4). The consumer contract checks both floors on every pull request and release. Pull requests run unit tests on Node 18, 20 and 22. Release jobs and the rest of CI run on Node 20, which is also the version in `.nvmrc`. Node 18 is the floor because the transport uses the global `fetch`.
+The package declares `"engines": { "node": ">=22.12.0" }` (REL-05) and supports TypeScript 5.4 or later for consumers (`OLDEST_TYPESCRIPT` in `scripts/consumer-contract-core.ts`; zod 4's declarations need `NoInfer`, added in 5.4). The consumer contract checks both floors on every pull request and release: its oldest-TypeScript row runs on Node 22.12 exactly, since a bare `22` would install the newest 22.x. Pull requests run unit tests on Node 22 and 24. Release jobs and the rest of CI run on Node 22, which is also the version in `.nvmrc`. Node 22 is the floor from 11.0.0 because Node 18 and 20 are end of life, and 22.12 within it because it is the first 22.x to load an ES module through `require()` without a flag; 10.x is the line for Node 18 and 20.
 
 ---
 
