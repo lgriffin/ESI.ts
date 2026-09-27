@@ -428,14 +428,14 @@ A Rule is protection only when three things hold, each owned by one gate:
 2. **Its scenarios execute**: `npm run bdd:report`, above.
 3. **Its scenarios can fail**: `npm run mutation:bdd:ratchet` floors the
    BDD-only mutation score of each source directory in
-   `mutation-bdd-thresholds.json`.
+   `config/mutation/bdd-thresholds.json`.
 
 Rules whose domain mutation score is not ratcheted are documentation, not
 protection. A scenario that executes and passes can still pass whatever the
 client does. Floors are per directory (`src/clients`, `src/core/<sub>`,
 `src/sde`, ...), so a domain's Rules count once the directory holding its code
 has an entry, and every scored directory must have one or the ratchet fails.
-`mutation-bdd-thresholds.json` holds 15 floors today, from 0% (`src/schemas`)
+`config/mutation/bdd-thresholds.json` holds 15 floors today, from 0% (`src/schemas`)
 and 10.6% (`src/sde`) to 42.8% (`src/core/util`). A floor of 0 ratchets
 nothing yet: it records that the scenarios kill no mutant in that directory.
 
@@ -443,9 +443,9 @@ The floors were first seeded on 19 September 2026. Until then the file was
 empty, because the run that produces them never finished: one job mutating all
 of `src/` against the step definitions alone was killed at 30 minutes.
 `nightly-mutation.yml` now runs that job once per shard in
-`mutation-bdd-shards.json` and merges the reports. Raise the floors by
+`config/mutation/bdd-shards.json` and merges the reports. Raise the floors by
 dispatching it with `seed_bdd_thresholds`, which uploads
-`mutation-bdd-thresholds.json` raised to that run's scores for review; see
+`config/mutation/bdd-thresholds.json` raised to that run's scores for review; see
 [`guides/MUTATION-TESTING.md`](../../guides/MUTATION-TESTING.md#where-the-scores-stand).
 
 ## The consistency check

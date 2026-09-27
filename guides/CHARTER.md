@@ -329,12 +329,12 @@ This table is the canonical tier order. Both testing guides merge into one and c
 
 Other nightlies: interleave, no-retry, recorded payloads, consumer matrix, examples against live ESI, and a post-publish canary.
 
-| Coverage metric | Floor | Last measured (v9.8.0) |     | Mutation | Floor                                                           |
-| --------------- | ----- | ---------------------- | --- | -------- | --------------------------------------------------------------- |
-| Statements      | 90%   | 98.17%                 |     | Unit     | Per directory, `mutation-thresholds.json`, ratcheted            |
-| Branches        | 80%   | 95.14%                 |     | BDD      | Per directory, `mutation-bdd-thresholds.json`, ratcheted        |
-| Functions       | 75%   | 96.09%                 |     | PR       | Changed files, gated by the same thresholds                     |
-| Lines           | 90%   | 98.37%                 |     |          | The global `break` is off (`stryker.config.mjs`, `break: null`) |
+| Coverage metric | Floor | Last measured (v9.8.0) |     | Mutation | Floor                                                                           |
+| --------------- | ----- | ---------------------- | --- | -------- | ------------------------------------------------------------------------------- |
+| Statements      | 90%   | 98.17%                 |     | Unit     | Per directory, `config/mutation/unit-thresholds.json`, ratcheted                |
+| Branches        | 80%   | 95.14%                 |     | BDD      | Per directory, `config/mutation/bdd-thresholds.json`, ratcheted                 |
+| Functions       | 75%   | 96.09%                 |     | PR       | Changed files, gated by the same thresholds                                     |
+| Lines           | 90%   | 98.37%                 |     |          | The global `break` is off (`config/mutation/stryker.config.mjs`, `break: null`) |
 
 #### TEST-01 · Event-driven · Practised
 
@@ -380,10 +380,10 @@ The consumer-facing type surface **shall** be asserted by tsd tests covering end
 
 #### TEST-07 · Ubiquitous · Enforced
 
-Mutation testing **shall** hold each directory at or above its floor in `mutation-thresholds.json` (unit) and `mutation-bdd-thresholds.json` (BDD), with a PR touching mutated source running Stryker on the changed files.
+Mutation testing **shall** hold each directory at or above its floor in `config/mutation/unit-thresholds.json` (unit) and `config/mutation/bdd-thresholds.json` (BDD), with a PR touching mutated source running Stryker on the changed files.
 
 - **Why:** Nightly-only mutation means a weak test lands before anyone sees the score. Per-directory floors replace the single score of 65, which let a strong directory hide a weak one. Incremental Stryker on changed files keeps the PR cost bounded.
-- **11.0.0 floors (decided 2026-09-27).** The ratchets only rise, and the release gate names where they must stand: every directory in `mutation-thresholds.json` at 60 or above, every directory in `mutation-bdd-thresholds.json` at 20 or above, and every SDE directory at 90 or with each survivor carrying an equivalence reason (Track S Run M). `src/schemas` is measured by the unit tier and `schema:drift` only: scenarios send valid ESI-shaped bodies through the transport seam, so a mutant that relaxes a field is invisible to them by design, and its BDD entry stays at 0 rather than pretending otherwise.
+- **11.0.0 floors (decided 2026-09-27).** The ratchets only rise, and the release gate names where they must stand: every directory in `config/mutation/unit-thresholds.json` at 60 or above, every directory in `config/mutation/bdd-thresholds.json` at 20 or above, and every SDE directory at 90 or with each survivor carrying an equivalence reason (Track S Run M). `src/schemas` is measured by the unit tier and `schema:drift` only: scenarios send valid ESI-shaped bodies through the transport seam, so a mutant that relaxes a field is invisible to them by design, and its BDD entry stays at 0 rather than pretending otherwise.
 - **Verified by:** `mutation-pr` job ("Mutation (changed files)") in `mutation-pr.yml`, advisory on every pull request since 2026-09-27 and back inside `ci-success` at the release gate; nightly ratchets in `nightly-mutation.yml`. Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)) and stale incremental results ([#380](https://github.com/lgriffin/ESI.ts/issues/380)).
 
 #### TEST-08 · Optional · Enforced

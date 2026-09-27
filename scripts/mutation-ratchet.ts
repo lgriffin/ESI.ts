@@ -7,13 +7,13 @@
  * floor.
  *
  * - BDD suite: reports/mutation-bdd/mutation.json, merged from the shard
- *   reports by npm run mutation:bdd:merge, against mutation-bdd-thresholds.json.
+ *   reports by npm run mutation:bdd:merge, against config/mutation/bdd-thresholds.json.
  *   Every scored directory needs an entry: the file was empty for as long as
  *   the run never finished, and a ratchet with nothing in it gates nothing,
  *   which is the failure this tier exists to catch. Seed it from a completed
  *   run with --update.
  * - Unit suite: reports/mutation/mutation.json against
- *   mutation-thresholds.json. Every scored directory needs an entry.
+ *   config/mutation/unit-thresholds.json. Every scored directory needs an entry.
  *
  * --update raises entries to today's scores and never lowers one, so relaxing
  * a ratchet takes a reviewed edit to the thresholds file, which the pull
@@ -41,7 +41,7 @@ const ROOT = path.resolve(__dirname, '..');
 const SUITES = {
   bdd: {
     report: 'reports/mutation-bdd/mutation.json',
-    thresholds: 'mutation-bdd-thresholds.json',
+    thresholds: 'config/mutation/bdd-thresholds.json',
     heading: 'BDD-only mutation score',
     label: 'BDD mutation',
     column: 'BDD mutation score',
@@ -50,7 +50,7 @@ const SUITES = {
   },
   unit: {
     report: 'reports/mutation/mutation.json',
-    thresholds: 'mutation-thresholds.json',
+    thresholds: 'config/mutation/unit-thresholds.json',
     heading: 'Unit-suite mutation score',
     label: 'mutation',
     column: 'Mutation score',

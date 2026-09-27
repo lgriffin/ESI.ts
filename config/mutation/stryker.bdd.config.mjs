@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(__dirname);
+const projectRoot = path.resolve(__dirname, '../..');
 
 /**
  * BDD-only mutation run: npm run mutation:bdd.
@@ -13,11 +13,11 @@ const projectRoot = path.resolve(__dirname);
  * scenario notice? Only tests/bdd step definitions execute, so a mutant that
  * survives here is a behaviour no Rule protects. Scores are ratcheted per
  * source directory by scripts/mutation-ratchet.ts against
- * mutation-bdd-thresholds.json.
+ * config/mutation/bdd-thresholds.json.
  *
  * Sharding. Mutating all of src/ against the BDD suite in one job does not
  * finish on a hosted runner, so nightly-mutation.yml runs one job per shard in
- * mutation-bdd-shards.json and merges the reports (npm run mutation:bdd:merge)
+ * config/mutation/bdd-shards.json and merges the reports (npm run mutation:bdd:merge)
  * before the ratchet. Set BDD_MUTATION_SHARD to a shard name to mutate that
  * shard alone and write its report to reports/mutation-bdd/shards/<name>/.
  * Unset, the config mutates everything, which is what a local run wants.
@@ -43,7 +43,10 @@ const COMMON_EXCLUSIONS = [
 ];
 
 const { shards } = JSON.parse(
-  readFileSync(path.join(projectRoot, 'mutation-bdd-shards.json'), 'utf8'),
+  readFileSync(
+    path.join(projectRoot, 'config/mutation/bdd-shards.json'),
+    'utf8',
+  ),
 );
 
 const shardName = process.env.BDD_MUTATION_SHARD?.trim();
@@ -54,7 +57,7 @@ const shard = shardName
 if (shardName && !shard) {
   const names = shards.map((candidate) => candidate.name).join(', ');
   throw new Error(
-    `BDD_MUTATION_SHARD=${shardName} is not a shard in mutation-bdd-shards.json (have: ${names}).`,
+    `BDD_MUTATION_SHARD=${shardName} is not a shard in config/mutation/bdd-shards.json (have: ${names}).`,
   );
 }
 
@@ -101,7 +104,7 @@ export default {
   mutator: {
     excludedMutations: ['StringLiteral'],
   },
-  // No global break: the gate is per directory, in mutation-bdd-thresholds.json.
+  // No global break: the gate is per directory, in config/mutation/bdd-thresholds.json.
   thresholds: { high: 80, low: 60, break: null },
   concurrency: 6,
   timeoutMS: 30000,

@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(__dirname);
+const projectRoot = path.resolve(__dirname, '../..');
 
 /**
  * Unit-suite mutation run.
@@ -15,12 +15,12 @@ const projectRoot = path.resolve(__dirname);
  *   `mutate` to the changed files and reuses the nightly results for the rest.
  *
  * Scores are gated per directory by scripts/mutation-ratchet-core.ts against
- * mutation-thresholds.json, not by a global break threshold.
+ * config/mutation/unit-thresholds.json, not by a global break threshold.
  *
  * Sharding. One job over all of src/core stopped finishing inside its
  * 240-minute timeout as the unit suite grew, and a nightly that never
  * completes never saves the incremental baseline pull requests restore. Set
- * UNIT_MUTATION_SHARD to a name in mutation-unit-shards.json to mutate that
+ * UNIT_MUTATION_SHARD to a name in config/mutation/unit-shards.json to mutate that
  * shard alone, writing its report and its own incremental file under
  * reports/mutation/shards/<name>/. Unset, the config mutates everything, which
  * is what a local run wants.
@@ -44,7 +44,10 @@ const COMMON_EXCLUSIONS = [
 ];
 
 const { shards } = JSON.parse(
-  readFileSync(path.join(projectRoot, 'mutation-unit-shards.json'), 'utf8'),
+  readFileSync(
+    path.join(projectRoot, 'config/mutation/unit-shards.json'),
+    'utf8',
+  ),
 );
 
 const shardName = process.env.UNIT_MUTATION_SHARD?.trim();
@@ -55,7 +58,7 @@ const shard = shardName
 if (shardName && !shard) {
   const names = shards.map((candidate) => candidate.name).join(', ');
   throw new Error(
-    `UNIT_MUTATION_SHARD=${shardName} is not a shard in mutation-unit-shards.json (have: ${names}).`,
+    `UNIT_MUTATION_SHARD=${shardName} is not a shard in config/mutation/unit-shards.json (have: ${names}).`,
   );
 }
 
@@ -102,7 +105,7 @@ export default {
   mutator: {
     excludedMutations: ['StringLiteral'],
   },
-  // No global break: the gate is per directory, in mutation-thresholds.json.
+  // No global break: the gate is per directory, in config/mutation/unit-thresholds.json.
   thresholds: { high: 80, low: 60, break: null },
   concurrency: 6,
   timeoutMS: 30000,

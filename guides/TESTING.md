@@ -72,7 +72,7 @@ This is the canonical tier table. Every other file names tiers by these names; n
 
 The charter's Part 4 table groups the same ground as twelve rows. This table splits its contract row into recorded replay and live contract, and adds four the charter counts under gates: static analysis, composition, consumer contract and documentation examples.
 
-The shrink-only lists that hold today's known gaps live beside the tier that owns them: `tests/faults/known-gaps.json` (empty), `tests/contract/fixtures/known-mismatches.json` (empty) and `unrecordable.json` (one entry), `scripts/spec-audit-exceptions.json` (`unconverted` empty, `legacyStepFiles` 38), `scripts/*-baseline.json`, `mutation-thresholds.json`, `mutation-bdd-thresholds.json` and `scripts/type-mutation-thresholds.json`.
+The shrink-only lists that hold today's known gaps live beside the tier that owns them: `tests/faults/known-gaps.json` (empty), `tests/contract/fixtures/known-mismatches.json` (empty) and `unrecordable.json` (one entry), `scripts/spec-audit-exceptions.json` (`unconverted` empty, `legacyStepFiles` 38), `scripts/*-baseline.json`, `config/mutation/unit-thresholds.json`, `config/mutation/bdd-thresholds.json` and `config/mutation/type-thresholds.json`.
 
 ## The test system in C4
 
@@ -446,7 +446,7 @@ A Rule is protection only when all three hold (`tests/bdd/README.md`, "When a Ru
 
 - **Well-formed:** `npm run spec:audit` holds every Rule to one `shall`, one of the five EARS patterns, a named system, no vague language, at least one Scenario under it, no Scenario outside a Rule, and a tracker tag (`@esi-<bead>` or `@gh-<issue>`) beside every `@bug` (`TEST-02`).
 - **Executed:** `mkdir -p reports/bdd`, `npm run bdd -- --json --outputFile=reports/bdd/jest-results.json`, then `npm run bdd:report` joins the run to the feature files. It fails when any scenario did not execute (`feature-not-run`, `scenario-not-executed`), and writes `reports/bdd/junit.xml` with each test case named `Feature › Rule › Scenario`. The `bdd-tests` job in `ci.yml` runs both and uploads the `bdd-junit` artifact.
-- **Able to fail:** `npm run mutation:bdd:ratchet` floors the BDD-only mutation score per source directory in `mutation-bdd-thresholds.json`: 15 floors, from 0% (`src/schemas`) and 10.6% (`src/sde`) to 42.8% (`src/core/util`). Every scored directory has one, and a directory without one fails the ratchet. See [MUTATION-TESTING.md](MUTATION-TESTING.md#where-the-scores-stand).
+- **Able to fail:** `npm run mutation:bdd:ratchet` floors the BDD-only mutation score per source directory in `config/mutation/bdd-thresholds.json`: 15 floors, from 0% (`src/schemas`) and 10.6% (`src/sde`) to 42.8% (`src/core/util`). Every scored directory has one, and a directory without one fails the ratchet. See [MUTATION-TESTING.md](MUTATION-TESTING.md#where-the-scores-stand).
 
 `npm run validate:spec-consistency` (`scripts/rule-schema-check.ts`) adds a fourth, narrower check in the `spec-audit` job: a Rule that names a response field the schema marks optional must say so.
 
@@ -762,11 +762,11 @@ The Jest benchmark suites that used to live here asserted raw wall-clock upper b
 
 Coverage says a line ran. Mutation says a test would notice if the line were wrong. Three runs, each ratcheted (`TEST-07`):
 
-| Run      | Command                                                  | Scope                                             | Floors                                                  | Where                                               |
-| -------- | -------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------- |
-| Unit     | `npm run mutation:pr` (PR), `npm run mutation` (nightly) | `src/core/**`, minus endpoints and interfaces     | `mutation-thresholds.json`, 9 directories               | PR `mutation-pr` (changed files); nightly, 5 shards |
-| BDD-only | `npm run mutation:bdd`                                   | all of `src/`, step definitions as the only tests | `mutation-bdd-thresholds.json`, 15 directories          | Nightly, 9 shards                                   |
-| Type     | `npm run test:type-mutation -- --ratchet`                | the built `dist/**/*.d.ts`                        | `scripts/type-mutation-thresholds.json`, 6 entry points | Nightly                                             |
+| Run      | Command                                                  | Scope                                             | Floors                                                 | Where                                               |
+| -------- | -------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------- |
+| Unit     | `npm run mutation:pr` (PR), `npm run mutation` (nightly) | `src/core/**`, minus endpoints and interfaces     | `config/mutation/unit-thresholds.json`, 9 directories  | PR `mutation-pr` (changed files); nightly, 5 shards |
+| BDD-only | `npm run mutation:bdd`                                   | all of `src/`, step definitions as the only tests | `config/mutation/bdd-thresholds.json`, 15 directories  | Nightly, 9 shards                                   |
+| Type     | `npm run test:type-mutation -- --ratchet`                | the built `dist/**/*.d.ts`                        | `config/mutation/type-thresholds.json`, 6 entry points | Nightly                                             |
 
 Every pull request first runs `npm run mutation:fixture`, which must see the known-weak fixture in `tests/mutation-fixture/` leave survivors and lose at least one mutant, so the gate can still go red on a run that measures nothing. A floor may only rise; lowering one fails `mutation-pr` in the pull request that tries. How the pull request run picks its files and baseline, why the nightly is sharded, how the floors were seeded, and today's scores are in **[MUTATION-TESTING.md](MUTATION-TESTING.md)**, the canonical mutation guide.
 
@@ -789,7 +789,7 @@ The tsd suite is only as good as the promises it pins. Type mutation checks that
 | `remove-overload`      | One signature of an overload group is removed                                        |
 | `constraint-unknown`   | `T extends X` becomes `T extends unknown`                                            |
 
-A mutant is **killed** when tsd reports a failure in a type test, **invalid** when the mutated declarations themselves no longer compile (excluded from the score), and **survives** when tsd passes. A survivor is a missing tsd case. The score per entry point is killed / (killed + survived); the floors in `scripts/type-mutation-thresholds.json` run from 0 (`./testing`, `./sde`, `./sde/memory`) to 24 (`./errors`), which is the honest measure of how much of the type surface the tsd suite pins today.
+A mutant is **killed** when tsd reports a failure in a type test, **invalid** when the mutated declarations themselves no longer compile (excluded from the score), and **survives** when tsd passes. A survivor is a missing tsd case. The score per entry point is killed / (killed + survived); the floors in `config/mutation/type-thresholds.json` run from 0 (`./testing`, `./sde`, `./sde/memory`) to 24 (`./errors`), which is the honest measure of how much of the type surface the tsd suite pins today.
 
 About eight thousand candidates exist, so at most 500 run. Entry points take turns picking their next mutant in order of a seeded hash of the mutant's id (built from file, symbol, operator and the mutated text, not offsets), so the same seed and surface always give the same sample, and each mutant a change adds displaces at most one sampled mutant instead of reshuffling the rest. `--ratchet` refuses a non-default `--seed` or `--max`, because the floors were measured on the default sample. The report is `reports/type-mutation/type-mutation.{json,md}`.
 
@@ -1064,27 +1064,27 @@ node --inspect-brk node_modules/.bin/jest --config jest.unit.config.cjs --runInB
 
 ## File reference
 
-| Path                                                                         | Purpose                                                           |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `jest.*.config.cjs`                                                          | The nine Jest configs ([table](#jest-configurations))             |
-| `src/config/jest/jest.setup.ts`                                              | Enables `jest-fetch-mock`, shared `ApiClient`, rate-limiter reset |
-| `tests/tdd/helpers/clientErrorTests.ts`                                      | `describeClientErrors`, the five HTTP error cases                 |
-| `tests/bdd/support/transport.ts`                                             | The transport seam: `queueResponse`, `queueError`, `sentRequests` |
-| `tests/bdd/support/binder.ts`                                                | Binds a feature to the step library under Jest                    |
-| `scripts/spec-audit.ts`                                                      | The EARS and Gherkin audit                                        |
-| `scripts/spec-audit-exceptions.json`                                         | `unconverted` (empty) and `legacyStepFiles` (38), shrink-only     |
-| `scripts/bdd-report.ts`                                                      | The execution check and the JUnit report                          |
-| `scripts/ears.ts`                                                            | The standalone EARS check                                         |
-| `tests/fuzz/support/property.ts`                                             | `describeProperty`, run settings and known-bad registration       |
-| `tests/faults/catalogue.ts`                                                  | The named transport faults                                        |
-| `tests/contract/record.ts`                                                   | The payload recorder                                              |
-| `tests/contract/esi-contract.test.ts`                                        | Deep contract, with the known exception sets                      |
-| `tests/contract/snapshots/esi-openapi.snapshot.json`                         | The committed spec baseline                                       |
-| `scripts/run-schemathesis.sh`                                                | Prism and Schemathesis runner                                     |
-| `scripts/consumer-contract.ts`                                               | The consumer contract driver                                      |
-| `scripts/doc-examples.ts`                                                    | The documentation example checker                                 |
-| `scripts/bench-ab.ts`, `scripts/bench-compare-core.ts`                       | Alternating runs; Mann-Whitney U, Holm, the verdict               |
-| `scripts/soak-core.ts`                                                       | Heap trend, cache bound, timer and listener checks                |
-| `scripts/verify-local-core.ts`                                               | The `check:local` tier list and its written exclusions            |
-| `stryker.config.mjs`, `stryker.bdd.config.mjs`, `stryker.fixture.config.mjs` | Unit, BDD-only and fixture mutation configs                       |
-| `src/testing/TestDataFactory.ts`                                             | Mock data factory                                                 |
+| Path                                                                                                                         | Purpose                                                           |
+| ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `jest.*.config.cjs`                                                                                                          | The nine Jest configs ([table](#jest-configurations))             |
+| `src/config/jest/jest.setup.ts`                                                                                              | Enables `jest-fetch-mock`, shared `ApiClient`, rate-limiter reset |
+| `tests/tdd/helpers/clientErrorTests.ts`                                                                                      | `describeClientErrors`, the five HTTP error cases                 |
+| `tests/bdd/support/transport.ts`                                                                                             | The transport seam: `queueResponse`, `queueError`, `sentRequests` |
+| `tests/bdd/support/binder.ts`                                                                                                | Binds a feature to the step library under Jest                    |
+| `scripts/spec-audit.ts`                                                                                                      | The EARS and Gherkin audit                                        |
+| `scripts/spec-audit-exceptions.json`                                                                                         | `unconverted` (empty) and `legacyStepFiles` (38), shrink-only     |
+| `scripts/bdd-report.ts`                                                                                                      | The execution check and the JUnit report                          |
+| `scripts/ears.ts`                                                                                                            | The standalone EARS check                                         |
+| `tests/fuzz/support/property.ts`                                                                                             | `describeProperty`, run settings and known-bad registration       |
+| `tests/faults/catalogue.ts`                                                                                                  | The named transport faults                                        |
+| `tests/contract/record.ts`                                                                                                   | The payload recorder                                              |
+| `tests/contract/esi-contract.test.ts`                                                                                        | Deep contract, with the known exception sets                      |
+| `tests/contract/snapshots/esi-openapi.snapshot.json`                                                                         | The committed spec baseline                                       |
+| `scripts/run-schemathesis.sh`                                                                                                | Prism and Schemathesis runner                                     |
+| `scripts/consumer-contract.ts`                                                                                               | The consumer contract driver                                      |
+| `scripts/doc-examples.ts`                                                                                                    | The documentation example checker                                 |
+| `scripts/bench-ab.ts`, `scripts/bench-compare-core.ts`                                                                       | Alternating runs; Mann-Whitney U, Holm, the verdict               |
+| `scripts/soak-core.ts`                                                                                                       | Heap trend, cache bound, timer and listener checks                |
+| `scripts/verify-local-core.ts`                                                                                               | The `check:local` tier list and its written exclusions            |
+| `config/mutation/stryker.config.mjs`, `config/mutation/stryker.bdd.config.mjs`, `config/mutation/stryker.fixture.config.mjs` | Unit, BDD-only and fixture mutation configs                       |
+| `src/testing/TestDataFactory.ts`                                                                                             | Mock data factory                                                 |
