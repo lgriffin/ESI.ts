@@ -113,6 +113,18 @@ export const TIERS: Tier[] = [
     covers: 'endpoint auth matches the scope map',
     stage: 'quick',
   },
+  {
+    script: 'validate:esi:vendored',
+    covers:
+      'endpoint definitions match the vendored ESI spec (validate:esi offline)',
+    stage: 'quick',
+  },
+  {
+    script: 'validate:versions',
+    covers:
+      'package.json, constants.ts and the docs-site selector carry one version',
+    stage: 'quick',
+  },
   { script: 'test', covers: 'unit and BDD suites', stage: 'quick' },
   {
     script: 'test:integration',

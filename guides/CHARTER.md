@@ -34,6 +34,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 - **2026-09-27, nothing built at import (Phase 4 item 3).** ARCH-06 moves from Gap to Enforced: the default logger builds its pino instance on first use, `package.json` declares `"sideEffects": false`, and `tests/tdd/core/importSideEffects.test.ts` holds both ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
 - **2026-09-27, nightlies file issues (Phase 5 item 3).** `nightly-mutation.yml` and `nightly-schemathesis.yml` now open or comment on one fixed-title issue on failure and close it on the next green night, the pattern `nightly-spec-drift.yml` uses; gap register row 16 is Done ([#277](https://github.com/lgriffin/ESI.ts/issues/277)). GATE-05 stays Partial: the no-retry, interleaving and consumer-matrix nightlies still only fail the run.
+- **2026-09-27, the version selector, the documents and the offline endpoint check.** REL-03 moves to Enforced: `validate:versions` also reads the docs-site version selector, which now carries the `x-release-please-version` marker and sits in release-please's `extra-files`, and runs in `static-analysis` as well as at release. GATE-06 moves to Enforced: `package-scripts.test.ts` also fails when a document names an `npm run` that `package.json` does not define. `validate:esi` fails on a definition the spec does not list unless `scripts/esi-endpoint-exceptions.json` gives a reason, and `validate:esi:vendored` runs it offline against the vendored snapshot in `check:local` and after `spec-refresh.yml` regenerates.
+
 - **2026-09-27, CI matches the gate matrix (Phase 5 item 1, [#297](https://github.com/lgriffin/ESI.ts/issues/297)).** `validate-release` now runs `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests (503 soft-skips), with the shrink-only ratchets compared against the previous release tag (the job fails when none resolves). `validate:esi` and `validate:spec` run in `static-analysis` on every pull request, blocking when the pull request touches their inputs; `validate:versions` already ran in the release gate. The generated-freshness diff covers every `src/core/endpoints/esi-*.generated.ts`, so the rate-limit-group and scope files are diffed in CI, at release and nightly (ARCH-01). `validate:auth-scopes` fails both directions of DES-04 and on a stale exception; the fourteen stale entries in `scripts/auth-scope-exceptions.json` are removed. The pull-request contract step gains `pipefail`, without which its `if` read `tee`'s status and a failing live suite passed. The documentation job and `example:sde-cross-ref` were already fixed on master. Gap register row 25 is done.
 - **2026-09-27, Scorecard's repository-side checks (Phase 6, code side; [#239](https://github.com/lgriffin/ESI.ts/issues/239), [#270](https://github.com/lgriffin/ESI.ts/issues/270)).** Every workflow already declared read-only top-level permissions; `tests/tdd/workflows/workflow-permissions.test.ts` now holds that, and lists every job-level write scope so a new one is a reviewed edit (SEC-03). `sign-and-publish-assets` attests SLSA build provenance for the tarball, SBOM and docs archive, verifies it with `gh attestation verify`, and attaches it as `lgriffin-esi.ts-X.Y.Z.intoto.jsonl` beside the cosign bundles, the file Scorecard's Signed-Releases check scores highest (SEC-04). The SBOM (SEC-06) and `.github/CODEOWNERS` had landed earlier. Signed-Releases reads the last five releases, and v10.2.2 and v10.2.3 have no assets attached, so the score rises only as signed releases ship. SEC-07 stays Partial: branch protection that includes administrators, required approvals and the Best Practices badge ([#243](https://github.com/lgriffin/ESI.ts/issues/243), [#246](https://github.com/lgriffin/ESI.ts/issues/246)) are settings only the maintainer can change, listed in `guides/SECURITY.md` §5.
 
@@ -177,7 +179,7 @@ The library **shall** derive response types, cache TTLs, rate-limit groups and e
 Every endpoint exposed by a domain client **shall** be declared in exactly one `*Endpoints.ts` definition map that names its path, method, authentication requirement and response schema.
 
 - **Why:** The definition is the contract. `createClient`, the contract tests, the scope validator and the OKF bundle all read from it.
-- **Verified by:** `npm run validate:esi` and `npm run validate:auth-scopes` in the CI static-analysis job and the release gate, `tests/contract/`.
+- **Verified by:** `npm run validate:esi` and `npm run validate:auth-scopes` in the CI static-analysis job and the release gate (a definition the spec does not list fails unless `scripts/esi-endpoint-exceptions.json` gives a reason; `validate:esi:vendored` runs the same check offline in `check:local`), `tests/contract/`.
 
 #### ARCH-03 · Ubiquitous · Practised
 
@@ -487,12 +489,12 @@ Every nightly job that finds a problem **shall** file or update a labelled GitHu
 - **Why:** A red nightly nobody reads is the same as no nightly. Revision 1 marked this Enforced while two nightlies still filed nothing; revision 2 corrected it, and [#277](https://github.com/lgriffin/ESI.ts/issues/277) (bead `esi-mbr`) closed those two.
 - **Verified by:** Audit, spec drift, faults, properties, benchmarks, examples, mutation, Schemathesis and the post-publish canary file issues. `nightly-mutation.yml` and `nightly-schemathesis.yml` each end in a `report` job that opens or comments on one fixed-title issue (labels `mutation` and `api-fuzz`) and closes it on the next green run. Recorded-payload drift opens a pull request instead, and only a failed run files an issue. Still failing the run only: `nightly-no-retry.yml`, `nightly-interleave.yml` and `consumer-matrix-nightly.yml`, which is why this stays Partial.
 
-#### GATE-06 · Ubiquitous · Partial
+#### GATE-06 · Ubiquitous · Enforced
 
 `package.json` **shall** hold every npm script a document references, each resolving to an existing file.
 
-- **Why:** A script that points at a missing file (`sde:seed`, fixed in [#274](https://github.com/lgriffin/ESI.ts/issues/274)) fails only when someone runs it. The second half is enforced; nothing yet checks that scripts named in documents exist.
-- **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`, for script targets. To add: the same check over `README.md` and `guides/`.
+- **Why:** A script that points at a missing file (`sde:seed`, fixed in [#274](https://github.com/lgriffin/ESI.ts/issues/274)) fails only when someone runs it, and a document that tells the reader to run a script that does not exist fails only the reader.
+- **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`: every script target exists, and every `npm run <name>` in `README.md`, `CLAUDE.md`, `AGENTS.md`, `guides/` (ROADMAP.md aside, which names scripts later items add) and the BDD README and GUIDE is a defined script.
 
 ---
 
@@ -704,12 +706,12 @@ A release **shall** publish only after lint, format, audit allowlist, changelog 
 - **Why:** The tag is the last place to stop a bad build.
 - **Verified by:** `release.yml` `validate-release` job, which also runs `validate:versions`, `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests.
 
-#### REL-03 · Ubiquitous · Partial
+#### REL-03 · Ubiquitous · Enforced
 
-The version string **shall** be identical in `package.json`, `src/core/constants.ts`, the README banner and the docs-site version selector.
+The version string **shall** be identical in `package.json`, `src/core/constants.ts` and the docs-site version selector.
 
-- **Why:** The first two are checked. The README banner (v9.5.2) and the site selector (v9.6.1) have lagged the package by a major.
-- **Verified by:** `scripts/validate-versions.ts`, run by `validate-release`; extend to markdown and the VitePress config, or remove the banners.
+- **Why:** The site selector had lagged the package by a major (v9.6.1 against 10.2.3) because nothing checked it and release-please did not bump it. The README carries a live npm badge, not a banner.
+- **Verified by:** `scripts/validate-versions.ts` (`npm run validate:versions`) in `ci.yml` `static-analysis` and `release.yml` `validate-release`; release-please bumps all three through `extra-files` and the `x-release-please-version` marker.
 
 #### REL-04 · Unwanted · Gap
 

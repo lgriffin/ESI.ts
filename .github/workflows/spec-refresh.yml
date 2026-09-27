@@ -76,6 +76,14 @@ jobs:
           npm run generate:types -- --spec-file=tests/contract/snapshots/esi-openapi.snapshot.json
           npx prettier --write src/types/generated/ 'src/core/endpoints/esi-*.generated.ts'
 
+      # Reported, not blocking: a route ESI renamed, removed or re-methoded is
+      # for the maintainer to fix in the refresh pull request, where
+      # static-analysis blocks on validate:esi. Stopping here would leave the
+      # pull request without the regenerated files it needs.
+      - name: Check the endpoint definitions against the fetched spec
+        run: |
+          npm run validate:esi:vendored || echo "::warning::The endpoint definitions disagree with the fetched spec; see the log above. Fix them in the refresh pull request, where static-analysis blocks on the same check."
+
       # Fixtures recorded under another date fail coverage.test.ts. Exit 1
       # means some endpoints could not be recorded; their committed fixtures
       # are kept, and the replay in CI says whether that matters. Exit 2 means
