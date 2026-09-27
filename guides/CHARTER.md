@@ -409,7 +409,7 @@ Test source under `tests/` **shall** be linted with the same ESLint configuratio
 Every public method of a domain client and of `IStaticDataProvider` **shall** be named by at least one `Rule:` block or bound step, with the list of methods without one only ever shrinking.
 
 - **Why:** The audit proves every Rule has a scenario, but nothing proves every behaviour has a Rule. Two hundred and thirty-five wired endpoints and ninety-nine provider methods can each lose their specification without a check noticing. A shrink-only baseline turns "specified" into a number that cannot go down.
-- **Verified by:** To add. Track S Run 4 writes `scripts/sde-spec-coverage.ts` for the provider (moves this row to Partial); ROADMAP Phase 5 item 8 extends it to `src/clients/**` with `scripts/client-spec-coverage-baseline.json` (moves it to Enforced), both in `check:all` and `ci.yml`'s `spec-audit` job.
+- **Verified by:** To add. Track S Run 4 writes `scripts/sde/sde-spec-coverage.ts` for the provider (moves this row to Partial); ROADMAP Phase 5 item 8 extends it to `src/clients/**` with `scripts/spec/client-spec-coverage-baseline.json` (moves it to Enforced), both in `check:all` and `ci.yml`'s `spec-audit` job.
 
 #### TEST-11 · Optional · Partial
 
@@ -616,7 +616,7 @@ guides/                         canonical, and the only source the site builds f
 ├── DOCUMENTATION.md            rewritten: surfaces, site build, TypeDoc, metrics generation
 ├── BEADS.md                    keep; AGENTS.md and CLAUDE.md shrink to pointers
 └── rfcs/                       future design papers (the jitaspace mapping and streaming-websocket strategy were retired as dated)
-docs-site/                      VitePress; guide/ populated by scripts/sync-docs.ts from guides/; public/api = TypeDoc
+docs-site/                      VitePress; guide/ populated by scripts/docs/sync-docs.ts from guides/; public/api = TypeDoc
 docs/                           hand-written guides retired (okf-guide → guides/OKF.md, nightly-spec-drift → QUALITY-GATES); now holds only spikes and generated artefacts
 TESTING.md (root)               deleted after merge
 etc/doc-metrics.json            NEW: generated counts: clients, endpoints, rules, scenarios, coverage
@@ -663,14 +663,14 @@ Generated API reference output **shall** be written to a git-ignored directory o
 The published documentation site **shall** be built from `guides/` by a script in the repository and deployed by the release workflow alongside the API reference.
 
 - **Why:** A site nobody can reach is a maintenance cost with no reader. A site built from the canonical files cannot drift.
-- **Verified by:** To add: `scripts/sync-docs.ts`, `docs-site` build in `release.yml`, gh-pages with `/api/` for TypeDoc.
+- **Verified by:** To add: `scripts/docs/sync-docs.ts`, `docs-site` build in `release.yml`, gh-pages with `/api/` for TypeDoc.
 
 #### DOC-04 · Ubiquitous · Gap
 
 Counts quoted in documentation (clients, endpoints, requirements, scenarios, test files, coverage) **shall** be generated into `etc/doc-metrics.json` and inserted by a script, never typed by hand.
 
 - **Why:** At the time of the survey the docs carried 33, 35, 36, 37 and 39 as the number of clients. Only one is right.
-- **Verified by:** To add: `scripts/doc-metrics.ts`; `validate:versions` extended to fail on a stale version banner or count.
+- **Verified by:** To add: `scripts/docs/doc-metrics.ts`; `validate:versions` extended to fail on a stale version banner or count.
 
 #### DOC-05 · Ubiquitous · Partial
 
@@ -835,8 +835,8 @@ The order matters: nothing in the documentation work is safe until step 2 is don
 3. **Commit this charter** as `guides/CHARTER.md` and file one bead per row of the gap register, tagged with the requirement ID. ✅ Revision 1.
 4. **Merge the duplicates** in the roadmap order: TESTING first (it has the tier conflict), then SECURITY, then ARCHITECTURE. Delete the root copies as each merge lands. ◐ SECURITY and ARCHITECTURE merged; TESTING and the root copy remain ([#273](https://github.com/lgriffin/ESI.ts/issues/273)).
 5. **Write the new guides**: DESIGN-RULES, QUALITY-GATES, ERRORS, LOGGING, PAGINATION, RELEASE. Each opens with `Implements: ARCH-03, DES-01 …`. ✅ All six exist with `Implements:` lines.
-6. **Generate the numbers.** `scripts/doc-metrics.ts` writes `etc/doc-metrics.json`; a small template step stamps the README and site. Extend `validate:versions` to fail on stale banners. Open ([#272](https://github.com/lgriffin/ESI.ts/issues/272)).
-7. **Publish the site.** `scripts/sync-docs.ts` copies `guides/` into `docs-site/guide/`; release workflow builds VitePress and deploys it with the API reference under `/api/`. Shrink the README to an orientation page. Open ([#264](https://github.com/lgriffin/ESI.ts/issues/264)); lands with the 11.0 docs rewrite.
+6. **Generate the numbers.** `scripts/docs/doc-metrics.ts` writes `etc/doc-metrics.json`; a small template step stamps the README and site. Extend `validate:versions` to fail on stale banners. Open ([#272](https://github.com/lgriffin/ESI.ts/issues/272)).
+7. **Publish the site.** `scripts/docs/sync-docs.ts` copies `guides/` into `docs-site/guide/`; release workflow builds VitePress and deploys it with the API reference under `/api/`. Shrink the README to an orientation page. Open ([#264](https://github.com/lgriffin/ESI.ts/issues/264)); lands with the 11.0 docs rewrite.
 8. **Close the security gaps**: CODEOWNERS, SBOM asset, admins in branch protection. Re-run Scorecard and record the new score in the charter's next revision. ◐ SBOM and CODEOWNERS done; admins-included and the new score still to record ([#239](https://github.com/lgriffin/ESI.ts/issues/239)).
 
 > **Revision rule.** This charter is revised by pull request like any other file. A requirement's status may only move toward Enforced by citing the script or job that proves it. Moving it the other way needs a bead explaining why.
