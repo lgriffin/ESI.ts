@@ -166,10 +166,10 @@ Installed by husky through the `prepare` script (which also runs a build after `
 
 | Hook         | Runs                                 | Effect                                                                                                                              |
 | ------------ | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `pre-commit` | `npx lint-staged`                    | Staged `src/**/*.ts`: `eslint --fix` then `prettier --write`. Staged `tests/**/*.ts` and `*.{json,md,yml,yaml}`: `prettier --write` |
+| `pre-commit` | `npx lint-staged`                    | Staged `src/**/*.ts` and `tests/**/*.ts`: `eslint --fix` then `prettier --write`. Staged `*.{json,md,yml,yaml}`: `prettier --write` |
 | `commit-msg` | `npx --no -- commitlint --edit "$1"` | Rejects messages that do not follow `@commitlint/config-conventional`                                                               |
 
-Test files are formatted but not linted at commit. In CI they get two narrow lint configs, `lint:bdd-seam` and `lint:suite-health` ([Suite-health lint](#suite-health-lint)); the `src/` rule set does not apply to them yet (`TEST-09`). Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
+Test files are linted at commit and in CI with the `src/` rule set (`npm run lint` is `eslint src tests`), under the relaxations the `tests/**` block of `eslint.config.mjs` declares, each with its reason; `no-floating-promises`, `no-misused-promises` and `await-thenable` stay errors (`TEST-09`). Two narrower configs, `lint:bdd-seam` and `lint:suite-health` ([Suite-health lint](#suite-health-lint)), add test-only rules. Commit types map to changelog sections through `release-please-config.json`; see [RELEASE.md](RELEASE.md).
 
 ---
 
@@ -702,7 +702,7 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 | ------------------------- | ---------------------------------------------------------------------------------------------- |
 | `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                        |
 | `typecheck`               | `tsc --noEmit`                                                                                 |
-| `lint` / `lint:fix`       | ESLint over `src`                                                                              |
+| `lint` / `lint:fix`       | ESLint over `src` and `tests` (test relaxations declared in `eslint.config.mjs`)               |
 | `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`config/eslint/bdd-seam.rules.cjs`) |
 | `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline                   |
 | `lint:layers`             | Imports in `src` point inward (`config/eslint/layers.rules.cjs`); shrink-only baseline         |
