@@ -118,6 +118,7 @@ jobs:
         with:
           node-version: '22'
           # No npm cache: a cache restored into a release job could be poisoned.
+          package-manager-cache: false
 
       - name: Drop release-note lines a merge commit repeats
         if: steps.gate.outputs.skip-pr != 'true' && steps.release.outputs.release_created != 'true'
