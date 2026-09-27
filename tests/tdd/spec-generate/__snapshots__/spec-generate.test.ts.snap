@@ -185,5 +185,166 @@ export function getStatus(
     query: {},
   });
 }
+
+/**
+ * Every operation, arranged by path prefix: \`character(id).wallet.get()\`.
+ * Built by scripts/spec-scope-tree.ts; see its header for the naming rules.
+ */
+export interface ScopeTree {
+  readonly character: {
+    (characterId: CharacterID): {
+      readonly contacts: {
+        /**
+         * DeleteCharactersCharacterIdContacts
+         *
+         * \`DELETE /characters/{character_id}/contacts\`. Public. See \`deleteCharactersCharacterIdContacts\`.
+         */
+        delete(): ReturnType<typeof deleteCharactersCharacterIdContacts>;
+        /**
+         * PostCharactersCharacterIdContacts
+         *
+         * \`POST /characters/{character_id}/contacts\`. Requires \`esi-characters.write_contacts.v1\`. See \`postCharactersCharacterIdContacts\`.
+         * @deprecated ESI marks this operation deprecated.
+         */
+        post(
+          body: PostCharactersCharacterIdContactsBody,
+          params?: Omit<
+            PostCharactersCharacterIdContactsParams,
+            'character_id'
+          >,
+        ): ReturnType<typeof postCharactersCharacterIdContacts>;
+      };
+    };
+  };
+  readonly corporation: {
+    (corporationId: number): {
+      readonly projects: {
+        /**
+         * GetCorporationsCorporationIdProjects
+         *
+         * \`GET /corporations/{corporation_id}/projects\`. Requires \`esi-corporations.read_projects.v1\`. See \`getCorporationsCorporationIdProjects\`.
+         */
+        get(
+          params?: Omit<
+            GetCorporationsCorporationIdProjectsParams,
+            'corporation_id'
+          >,
+        ): ReturnType<typeof getCorporationsCorporationIdProjects>;
+      };
+    };
+  };
+  readonly market: {
+    (regionId: number): {
+      readonly orders: {
+        /**
+         * Orders in a region
+         *
+         * \`GET /markets/{region_id}/orders\`. Public. See \`getMarketsRegionIdOrders\`.
+         */
+        get(
+          params: Omit<GetMarketsRegionIdOrdersParams, 'region_id'>,
+        ): ReturnType<typeof getMarketsRegionIdOrders>;
+      };
+    };
+  };
+  readonly status: {
+    /**
+     * Server status
+     *
+     * \`GET /status\`. Public. See \`getStatus\`.
+     */
+    get(): ReturnType<typeof getStatus>;
+  };
+}
+
+/** The operations that need no SSO scope, arranged as in \`ScopeTree\`. */
+export interface PublicScopeTree {
+  readonly character: {
+    (characterId: CharacterID): {
+      readonly contacts: {
+        /**
+         * DeleteCharactersCharacterIdContacts
+         *
+         * \`DELETE /characters/{character_id}/contacts\`. Public. See \`deleteCharactersCharacterIdContacts\`.
+         */
+        delete(): ReturnType<typeof deleteCharactersCharacterIdContacts>;
+      };
+    };
+  };
+  readonly market: {
+    (regionId: number): {
+      readonly orders: {
+        /**
+         * Orders in a region
+         *
+         * \`GET /markets/{region_id}/orders\`. Public. See \`getMarketsRegionIdOrders\`.
+         */
+        get(
+          params: Omit<GetMarketsRegionIdOrdersParams, 'region_id'>,
+        ): ReturnType<typeof getMarketsRegionIdOrders>;
+      };
+    };
+  };
+  readonly status: {
+    /**
+     * Server status
+     *
+     * \`GET /status\`. Public. See \`getStatus\`.
+     */
+    get(): ReturnType<typeof getStatus>;
+  };
+}
+
+/** The scope tree over one transport. */
+export function createScopeTree(transport: OperationTransport): ScopeTree {
+  return {
+    character: (characterId: CharacterID) => ({
+      contacts: {
+        delete: () =>
+          deleteCharactersCharacterIdContacts(transport, {
+            character_id: characterId,
+          }),
+        post: (
+          body: PostCharactersCharacterIdContactsBody,
+          params?: Omit<
+            PostCharactersCharacterIdContactsParams,
+            'character_id'
+          >,
+        ) =>
+          postCharactersCharacterIdContacts(
+            transport,
+            { ...params, character_id: characterId },
+            body,
+          ),
+      },
+    }),
+    corporation: (corporationId: number) => ({
+      projects: {
+        get: (
+          params?: Omit<
+            GetCorporationsCorporationIdProjectsParams,
+            'corporation_id'
+          >,
+        ) =>
+          getCorporationsCorporationIdProjects(transport, {
+            ...params,
+            corporation_id: corporationId,
+          }),
+      },
+    }),
+    market: (regionId: number) => ({
+      orders: {
+        get: (params: Omit<GetMarketsRegionIdOrdersParams, 'region_id'>) =>
+          getMarketsRegionIdOrders(transport, {
+            ...params,
+            region_id: regionId,
+          }),
+      },
+    }),
+    status: {
+      get: () => getStatus(transport),
+    },
+  };
+}
 "
 `;
