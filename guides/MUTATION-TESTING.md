@@ -8,11 +8,11 @@ Mutation testing measures whether the tests detect bugs, not whether they execut
 
 Three runs, each held by a one-way ratchet:
 
-| Run      | Config                     | Scope                                               | Floors                                                  |
-| -------- | -------------------------- | --------------------------------------------------- | ------------------------------------------------------- |
-| Unit     | `stryker.config.mjs`       | `src/core/**`, minus endpoints and interfaces       | `mutation-thresholds.json`, 9 directories               |
-| BDD-only | `stryker.bdd.config.mjs`   | all of `src/`, with the BDD suite as the only tests | `mutation-bdd-thresholds.json`, 15 directories          |
-| Type     | `scripts/type-mutation.ts` | the built `dist/**/*.d.ts`                          | `scripts/type-mutation-thresholds.json`, 6 entry points |
+| Run      | Config                                   | Scope                                               | Floors                                                 |
+| -------- | ---------------------------------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| Unit     | `config/mutation/stryker.config.mjs`     | `src/core/**`, minus endpoints and interfaces       | `config/mutation/unit-thresholds.json`, 9 directories  |
+| BDD-only | `config/mutation/stryker.bdd.config.mjs` | all of `src/`, with the BDD suite as the only tests | `config/mutation/bdd-thresholds.json`, 15 directories  |
+| Type     | `scripts/type-mutation.ts`               | the built `dist/**/*.d.ts`                          | `config/mutation/type-thresholds.json`, 6 entry points |
 
 Type mutation is described in [TESTING.md](TESTING.md#type-mutation); the rest of this guide covers the two Stryker runs.
 
@@ -32,11 +32,11 @@ Reports are written to `reports/mutation/` (`mutation.html`, `mutation.json` and
 
 ## Where mutation testing runs
 
-| Where                            | What                                                                                            | Gate                                                                                                                                                                                                      |
-| -------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pull request (`mutation-pr.yml`) | Known-weak fixture, then the changed `src/` files in scope, incrementally                       | Advisory since 2026-09-27 (its own check, outside `ci-success`, until the release gate in ROADMAP.md puts it back): touched directories vs their floors, and the fixture. A cold run that times out warns |
-| Nightly (`nightly-mutation.yml`) | Every file in scope (`--incremental --force`), one job per shard in `mutation-unit-shards.json` | Fails the run: every directory vs its floor, scored on the merged report                                                                                                                                  |
-| Nightly, BDD-only matrix         | All of `src/`, BDD step definitions only, one job per shard in `mutation-bdd-shards.json`       | Fails the run: every scored directory vs its floor in `mutation-bdd-thresholds.json`                                                                                                                      |
+| Where                            | What                                                                                                   | Gate                                                                                                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pull request (`mutation-pr.yml`) | Known-weak fixture, then the changed `src/` files in scope, incrementally                              | Advisory since 2026-09-27 (its own check, outside `ci-success`, until the release gate in ROADMAP.md puts it back): touched directories vs their floors, and the fixture. A cold run that times out warns |
+| Nightly (`nightly-mutation.yml`) | Every file in scope (`--incremental --force`), one job per shard in `config/mutation/unit-shards.json` | Fails the run: every directory vs its floor, scored on the merged report                                                                                                                                  |
+| Nightly, BDD-only matrix         | All of `src/`, BDD step definitions only, one job per shard in `config/mutation/bdd-shards.json`       | Fails the run: every scored directory vs its floor in `config/mutation/bdd-thresholds.json`                                                                                                               |
 
 The pull request job owns "this change weakened the tests of the code it touched". The nightly owns everything a pull request cannot see: test-only changes, merges that interact, and directories no pull request touched.
 
@@ -45,9 +45,9 @@ The pull request job owns "this change weakened the tests of the code it touched
 `npm run mutation:pr` (`scripts/mutation-pr.ts`) does, in order:
 
 1. **Base.** `MUTATION_BASE_REF` (CI sets `HEAD^1`, the base tip of the pull request merge commit, with `fetch-depth: 2`), otherwise the merge base with `origin/master` or `master`. If none resolves, it fails closed (exit 2).
-2. **Ratchet direction.** `mutation-thresholds.json` is compared with the base copy. Raising or adding a floor passes; lowering or removing one fails (exit 1). A missing or unparsable head file, or an unparsable base copy, fails closed. The only case with nothing to compare is a base commit that predates the file.
-3. **Plan.** `git diff --name-only --diff-filter=d <base> -- src/`, intersected with the `mutate` patterns in `stryker.config.mjs`. If nothing is left, the job summary says "Skipped" with the reason (no `src/` change, or only files outside the scope) and the step exits 0. The job still ran the thresholds check and the fixture, so it reports `success` honestly rather than being `skipped`, which `ci-success` counted as a failure while the job was inside it and will again once the release gate moves it back.
-4. **Run.** `stryker run --incremental --mutate <files>`. The files are the changed ones plus any file in the same score directories that the restored nightly report cannot vouch for: absent from it, or with a source that has changed since. Stryker drops (rather than re-runs) stale mutants in files outside `--mutate`, so without this a directory score would silently shrink. With no restored report, every file in the touched directories is mutated from scratch: slower, never wrong.
+2. **Ratchet direction.** `config/mutation/unit-thresholds.json` is compared with the base copy. Raising or adding a floor passes; lowering or removing one fails (exit 1). A missing or unparsable head file, or an unparsable base copy, fails closed. The only case with nothing to compare is a base commit that predates the file.
+3. **Plan.** `git diff --name-only --diff-filter=d <base> -- src/`, intersected with the `mutate` patterns in `config/mutation/stryker.config.mjs`. If nothing is left, the job summary says "Skipped" with the reason (no `src/` change, or only files outside the scope) and the step exits 0. The job still ran the thresholds check and the fixture, so it reports `success` honestly rather than being `skipped`, which `ci-success` counted as a failure while the job was inside it and will again once the release gate moves it back.
+4. **Run.** `stryker run config/mutation/stryker.config.mjs --incremental --mutate <files>`. The files are the changed ones plus any file in the same score directories that the restored nightly report cannot vouch for: absent from it, or with a source that has changed since. Stryker drops (rather than re-runs) stale mutants in files outside `--mutate`, so without this a directory score would silently shrink. With no restored report, every file in the touched directories is mutated from scratch: slower, never wrong.
 5. **Gate.** Each touched directory is scored from the merged report (fresh results for changed code, nightly results for the rest) and fails if it is below its floor, or has no floor at all. The job summary lists the directory table, per-file scores for the changed files, and every surviving or uncovered mutant in them with its line, mutator and replacement. The HTML and JSON reports are uploaded as `mutation-pr-report`.
 
 Run it locally the same way; it diffs your working tree (committed or not) against the merge base with master:
@@ -74,7 +74,7 @@ The tier keeps a hard signal either way. `npm run mutation:fixture` runs first i
 
 ### When a runner is reclaimed
 
-GitHub-hosted runners intermittently drop a long job with `The runner has received a shutdown signal` and exit 143. On this repository: the unsharded BDD run at 30 minutes, the `core-pipeline` shard at 36, the `core-rest` shard at 45, while `core-rest` had itself finished at 59 minutes earlier the same day. (`core-pipeline` and `core-rest` are the names of BDD shards on 17 and 18 September 2026; they have since been split into the shards `mutation-bdd-shards.json` lists today.) It is random rather than a length limit, and nothing inside the job can defend against it: the runner goes, not the process.
+GitHub-hosted runners intermittently drop a long job with `The runner has received a shutdown signal` and exit 143. On this repository: the unsharded BDD run at 30 minutes, the `core-pipeline` shard at 36, the `core-rest` shard at 45, while `core-rest` had itself finished at 59 minutes earlier the same day. (`core-pipeline` and `core-rest` are the names of BDD shards on 17 and 18 September 2026; they have since been split into the shards `config/mutation/bdd-shards.json` lists today.) It is random rather than a length limit, and nothing inside the job can defend against it: the runner goes, not the process.
 
 Because the merge refuses an incomplete set, one reclaim costs every shard's score. Two things blunt that:
 
@@ -87,7 +87,7 @@ It has to be a separate workflow: a job inside a run cannot re-run its own run. 
 
 A single job over all of `src/core` took almost exactly two hours on 14, 15 and 16 September 2026 (119m40s, 120m08s, 119m26s) and then stopped finishing inside its 240-minute timeout. Nothing about the mutants changed: the unit suite grew from ~4,957 tests to 6,468, and with `coverageAnalysis: perTest` every added test slows every mutant. A nightly that never completes scores nothing and publishes no baseline, which is how the pull request gate came to mutate from scratch and time out as well (`esi-23g.52`).
 
-`mutation-unit-shards.json` splits `src/core` five ways, balanced by mutant count. Counts are a property of the source and the mutator config rather than of the test suite, so these are the same numbers the BDD shards use:
+`config/mutation/unit-shards.json` splits `src/core` five ways, balanced by mutant count. Counts are a property of the source and the mutator config rather than of the test suite, so these are the same numbers the BDD shards use:
 
 | Shard                   | Directories                                               | Mutants |
 | :---------------------- | :-------------------------------------------------------- | ------: |
@@ -121,7 +121,7 @@ npm run mutation -- --incremental --force --mutate src/core/pagination/AsyncPagi
 
 The nightly always runs with `--force`, so it clears such stale survivors every night. A pull request that only strengthens tests can still see its directory score read low until then, the same fail-safe way.
 
-### Ratchet: `mutation-thresholds.json`
+### Ratchet: `config/mutation/unit-thresholds.json`
 
 One floor per score directory: `src/core` for files directly in core, `src/core/<sub>` below it (the same `directoryOf` as the BDD ratchet in `scripts/mutation-ratchet-core.ts`). Values are Stryker's mutation score (detected / (detected + undetected)), rounded down to one decimal.
 
@@ -164,24 +164,24 @@ A snapshot, not a source of truth: the live numbers are whatever the last nightl
 
 Two caveats on comparing this table with an earlier one. A mutant that times out counts as detected, and how many time out depends on the machine, so a local run and a nightly disagree by a point or two on the same code (the seeding note above records `src/core/logger` at 55.5% nightly against 33.3% locally for exactly that reason), and two nightlies disagree too. And these are five separate shards merged, so each directory's score comes from the one shard that owns it rather than from a single process.
 
-The BDD-only floors in `mutation-bdd-thresholds.json` come from the same two nights by the same rule. 19 September was the first run in which every BDD shard finished; on 18 September the `core-rest` shard (since split into `core-support` and `core-root`) lost a runner and the merge refused the incomplete set, but the seven shards that did finish still count, so a mutant any of them left alive counts as undetected. Most directories were therefore measured once, and BDD-only scores are low by design: the scenarios exercise behaviour through the transport seam, not every branch. The 15 floors today run from 0% (`src/schemas`, where a schema declaration has little for a scenario to kill) and 10.6% (`src/sde`) to 42.8% (`src/core/util`); `cat mutation-bdd-thresholds.json` lists them.
+The BDD-only floors in `config/mutation/bdd-thresholds.json` come from the same two nights by the same rule. 19 September was the first run in which every BDD shard finished; on 18 September the `core-rest` shard (since split into `core-support` and `core-root`) lost a runner and the merge refused the incomplete set, but the seven shards that did finish still count, so a mutant any of them left alive counts as undetected. Most directories were therefore measured once, and BDD-only scores are low by design: the scenarios exercise behaviour through the transport seam, not every branch. The 15 floors today run from 0% (`src/schemas`, where a schema declaration has little for a scenario to kill) and 10.6% (`src/sde`) to 42.8% (`src/core/util`); `cat config/mutation/bdd-thresholds.json` lists them.
 
 ### The known-weak fixture
 
-`tests/mutation-fixture/weakClamp.ts` is a `clamp` function whose fixture test only checks an in-range value. `npm run mutation:fixture` mutates it with `stryker.fixture.config.mjs` and fails unless the report shows at least one killed mutant (the run can detect a fault), at least one survivor (a weak test is visible), and a ratchet failure for it against a 100% floor. `mutation-pr` runs it before the real run, so every pull request proves the pipeline can still go red. Do not strengthen that test. The last local run: 5 killed, 4 survived, 2 without coverage, score 45.4%, 15 seconds. Pointing the fixture's Jest `roots` at the original tree instead of the sandbox, the same mistake the module mapper used to make, turns that into 0 killed and 11 survived, and the check exits 1 with "no fixture mutant was killed".
+`tests/mutation-fixture/weakClamp.ts` is a `clamp` function whose fixture test only checks an in-range value. `npm run mutation:fixture` mutates it with `config/mutation/stryker.fixture.config.mjs` and fails unless the report shows at least one killed mutant (the run can detect a fault), at least one survivor (a weak test is visible), and a ratchet failure for it against a 100% floor. `mutation-pr` runs it before the real run, so every pull request proves the pipeline can still go red. Do not strengthen that test. The last local run: 5 killed, 4 survived, 2 without coverage, score 45.4%, 15 seconds. Pointing the fixture's Jest `roots` at the original tree instead of the sandbox, the same mistake the module mapper used to make, turns that into 0 killed and 11 survived, and the check exits 1 with "no fixture mutant was killed".
 
 `tests/tdd/mutation-ratchet/` holds the unit tests for the ratchet itself: a directory below its floor fails, a missing or unreadable thresholds file or base ref fails closed, a lowered or removed floor is rejected, a pull request with no in-scope `src/` change skips, and the plan widens to whole directories when the baseline cannot vouch for a file.
 
 ### Sharding the BDD-only run
 
-One job mutating all of `src/` against the BDD suite alone does not finish: 4,495 mutants, and the only attempt was killed at 30 minutes, which is why `mutation-bdd-thresholds.json` was empty for as long as it was. `nightly-mutation.yml` therefore runs one job per shard in `mutation-bdd-shards.json`; `BDD_MUTATION_SHARD=<name> npm run mutation:bdd` mutates that shard alone and writes `reports/mutation-bdd/shards/<name>/`.
+One job mutating all of `src/` against the BDD suite alone does not finish: 4,495 mutants, and the only attempt was killed at 30 minutes, which is why `config/mutation/bdd-thresholds.json` was empty for as long as it was. `nightly-mutation.yml` therefore runs one job per shard in `config/mutation/bdd-shards.json`; `BDD_MUTATION_SHARD=<name> npm run mutation:bdd` mutates that shard alone and writes `reports/mutation-bdd/shards/<name>/`.
 
 A split run only means the same thing as the single run it replaces if nothing falls between the shards, so two checks hold it together:
 
-- `tests/tdd/mutation-ratchet/bddShards.test.ts` asserts the shards partition `src/`: every TypeScript file belongs to exactly one. A file claimed by none is never mutated and its directory's score quietly improves; a file claimed by two is counted twice. The exclusions in `stryker.bdd.config.mjs` are shared by every shard, so the union of the shards mutates exactly what the unsharded glob did.
+- `tests/tdd/mutation-ratchet/bddShards.test.ts` asserts the shards partition `src/`: every TypeScript file belongs to exactly one. A file claimed by none is never mutated and its directory's score quietly improves; a file claimed by two is counted twice. The exclusions in `config/mutation/stryker.bdd.config.mjs` are shared by every shard, so the union of the shards mutates exactly what the unsharded glob did.
 - `npm run mutation:bdd:merge` (`scripts/mutation-merge-core.ts`) refuses to merge a run with a shard missing, a shard that mutated nothing, or two shards reporting one file. Without that, a shard whose job died would leave its directories scored on whatever else ran, which reads as a pass.
 
-Seed the floors from a completed run: dispatch the workflow with `seed_bdd_thresholds`, which prints and uploads `mutation-bdd-thresholds.json` raised to that run's scores. Nothing commits it; `--update` never lowers a floor.
+Seed the floors from a completed run: dispatch the workflow with `seed_bdd_thresholds`, which prints and uploads `config/mutation/bdd-thresholds.json` raised to that run's scores. Nothing commits it; `--update` never lowers a floor.
 
 ### Why the BDD-only run is not on pull requests
 
@@ -205,7 +205,7 @@ Running the step definitions as the dry run for a `src/core/requestPipeline` cha
 
 ## Configuration
 
-Config files: `stryker.config.mjs` (unit suite, nightly and pull requests), `stryker.bdd.config.mjs` (BDD-only), `stryker.fixture.config.mjs` (known-weak fixture).
+Config files: `config/mutation/stryker.config.mjs` (unit suite, nightly and pull requests), `config/mutation/stryker.bdd.config.mjs` (BDD-only), `config/mutation/stryker.fixture.config.mjs` (known-weak fixture).
 
 ### Scope
 
@@ -229,7 +229,7 @@ A pull request that changes only out-of-scope `src/` files skips the mutation st
 
 ### Thresholds
 
-The unit config has no global `break`; the per-directory floors in `mutation-thresholds.json` are the gate. `high: 80` and `low: 60` only colour the HTML report.
+The unit config has no global `break`; the per-directory floors in `config/mutation/unit-thresholds.json` are the gate. `high: 80` and `low: 60` only colour the HTML report.
 
 ### Sandbox and Module Resolution
 
@@ -255,7 +255,7 @@ The HTML report at `reports/mutation/mutation.html` shows:
 - **Individual mutants** with their status, the original code, and the mutation applied
 - **Covering tests** for each mutant (which tests would need to kill it)
 
-Current per-directory floors are in `mutation-thresholds.json`; `npm run mutation:ratchet` prints today's scores next to them.
+Current per-directory floors are in `config/mutation/unit-thresholds.json`; `npm run mutation:ratchet` prints today's scores next to them.
 
 ## Improving the Score
 
@@ -265,7 +265,7 @@ When a mutant survives, it means changing that line doesn't break any test. To k
 2. Read what the mutation does (e.g., `a > b` changed to `a >= b`)
 3. Write a test case where the original behavior and mutated behavior produce different results
 4. Re-run the file with `--force` to confirm the mutant is killed (an `--incremental` run can keep reporting it as Survived when you strengthened an existing test rather than adding one; see "The incremental baseline")
-5. Raise the directory's floor in `mutation-thresholds.json` to the new score, with a one-line reason in the pull request
+5. Raise the directory's floor in `config/mutation/unit-thresholds.json` to the new score, with a one-line reason in the pull request
 
 The weakest directories at seeding were `src/core/cache` (`ETagCacheManager.ts`), `src/core/logger` and `src/core/requestPipeline` (`statusHandling.ts`, `cachePolicy.ts`).
 

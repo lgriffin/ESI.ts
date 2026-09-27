@@ -445,10 +445,10 @@ describe('thresholds file ratchet direction', () => {
       thresholdDecreases(
         { 'src/core/cache': 53.3 },
         { 'src/core/cache': 50 },
-        'mutation-thresholds.json',
+        'config/mutation/unit-thresholds.json',
       ),
     ).toEqual([
-      'mutation-thresholds.json: "src/core/cache" was lowered from 53.3% to 50%; ratchets only move up',
+      'config/mutation/unit-thresholds.json: "src/core/cache" was lowered from 53.3% to 50%; ratchets only move up',
     ]);
   });
 
@@ -476,7 +476,7 @@ describe('thresholds file ratchet direction', () => {
 });
 
 describe('baselines fail closed', () => {
-  const file = 'mutation-thresholds.json';
+  const file = 'config/mutation/unit-thresholds.json';
 
   it('throws when the head thresholds file is missing', () => {
     expect(() =>

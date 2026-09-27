@@ -2,7 +2,7 @@
  * npm run mutation:fixture
  *
  * The mutation tier's signal on itself. Runs Stryker over the known-weak
- * fixture (stryker.fixture.config.mjs, tests/mutation-fixture/) and fails
+ * fixture (config/mutation/stryker.fixture.config.mjs, tests/mutation-fixture/) and fails
  * unless the report shows a killed mutant, a surviving mutant, and a ratchet
  * failure for the survivor. The pull request mutation job runs this first.
  *
@@ -27,7 +27,7 @@ function main(): number {
   );
   const run = spawnSync(
     process.execPath,
-    [bin, 'run', 'stryker.fixture.config.mjs'],
+    [bin, 'run', 'config/mutation/stryker.fixture.config.mjs'],
     { cwd: ROOT, stdio: 'inherit' },
   );
   if (run.status !== 0 || !existsSync(REPORT)) {

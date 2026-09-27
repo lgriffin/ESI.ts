@@ -1,9 +1,9 @@
 /**
  * Per-directory mutation-score ratchets for the Stryker runs:
  *
- * - the BDD-only run (mutation-bdd-thresholds.json, npm run mutation:bdd:ratchet);
+ * - the BDD-only run (config/mutation/bdd-thresholds.json, npm run mutation:bdd:ratchet);
  * - the unit-suite run, nightly over every file and on pull requests over the
- *   changed files (mutation-thresholds.json, npm run mutation:ratchet and
+ *   changed files (config/mutation/unit-thresholds.json, npm run mutation:ratchet and
  *   npm run mutation:pr).
  *
  * Pure functions with no I/O, so the unit suite can import them.
@@ -464,7 +464,7 @@ export function planPrRun({
     const reason =
       srcChanged.length === 0
         ? 'This pull request changes no files under src/.'
-        : 'This pull request changes src/ files, but none inside the unit mutation scope (stryker.config.mjs `mutate`).';
+        : 'This pull request changes src/ files, but none inside the unit mutation scope (config/mutation/stryker.config.mjs `mutate`).';
     return {
       skip: true,
       reason,

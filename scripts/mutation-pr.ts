@@ -6,7 +6,7 @@
  * 1. Resolves the base: MUTATION_BASE_REF (CI sets HEAD^1, the base tip of the
  *    pull request merge commit), else the merge base with origin/master or
  *    master. No base: fail closed.
- * 2. Ratchet direction: mutation-thresholds.json may add or raise floors but
+ * 2. Ratchet direction: config/mutation/unit-thresholds.json may add or raise floors but
  *    never lower or remove one relative to the base copy. Missing or
  *    unreadable head file: fail closed. The base predating the file is the
  *    only case with nothing to compare.
@@ -19,13 +19,13 @@
  *    report (reports/mutation/stryker-incremental.json) does not cover. With
  *    no restored report that is every file in those directories.
  * 5. Scores each touched directory (fresh results for changed code, nightly
- *    results for the rest) against mutation-thresholds.json and fails if one
+ *    results for the rest) against config/mutation/unit-thresholds.json and fails if one
  *    is below its floor or has none. Per-file scores and undetected mutants
  *    go to $GITHUB_STEP_SUMMARY.
  *
  * --baseline-shard (npm run mutation:pr:shard) runs step 3 alone, before any
  * baseline is restored, and names the one nightly shard in
- * mutation-unit-shards.json whose incremental report covers every file the
+ * config/mutation/unit-shards.json whose incremental report covers every file the
  * run may mutate (esi-23g.55). It prints the choice and writes `shard=<name>`
  * (empty for none) to $GITHUB_OUTPUT, for ci.yml to restore that shard's
  * cache. A change spanning shards gets none and runs cold.
@@ -52,11 +52,11 @@ import {
 } from './mutation-ratchet-core';
 
 const ROOT = path.resolve(__dirname, '..');
-const THRESHOLDS = 'mutation-thresholds.json';
-const CONFIG = 'stryker.config.mjs';
+const THRESHOLDS = 'config/mutation/unit-thresholds.json';
+const CONFIG = 'config/mutation/stryker.config.mjs';
 const INCREMENTAL = 'reports/mutation/stryker-incremental.json';
 const REPORT = 'reports/mutation/mutation.json';
-const SHARDS = 'mutation-unit-shards.json';
+const SHARDS = 'config/mutation/unit-shards.json';
 
 const EXIT_RATCHET = 1;
 const EXIT_BROKEN = 2;

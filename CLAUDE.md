@@ -48,9 +48,9 @@ npm run test:docs-examples  # Type-check every ts block in README/guides/SDE doc
 npm run examples:nightly    # Run the @nightly public/mixed examples against live ESI (--only <file>, --json <path>)
 npm run test:all       # All test suites
 npm run mutation       # Mutation testing (Stryker)
-npm run mutation:bdd   # BDD-only mutation run, sharded by BDD_MUTATION_SHARD (mutation-bdd-shards.json)
+npm run mutation:bdd   # BDD-only mutation run, sharded by BDD_MUTATION_SHARD (config/mutation/bdd-shards.json)
 npm run mutation:bdd:merge    # Rebuild one report from the shard reports; refuses an incomplete run
-npm run mutation:bdd:ratchet  # Gate per-directory scores against mutation-bdd-thresholds.json
+npm run mutation:bdd:ratchet  # Gate per-directory scores against config/mutation/bdd-thresholds.json
 ```
 
 Coverage thresholds: branches 80%, functions 75%, lines 90%, statements 90%.

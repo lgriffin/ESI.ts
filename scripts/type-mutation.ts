@@ -12,7 +12,7 @@
  * reports/type-mutation/ (JSON and Markdown) and $GITHUB_STEP_SUMMARY.
  *
  * --ratchet fails when an entry point scores below its floor in
- * scripts/type-mutation-thresholds.json, when a floor names an entry point
+ * config/mutation/type-thresholds.json, when a floor names an entry point
  * that scored nothing, or when the file lowers or drops a floor relative to
  * the base ref (TYPE_MUTATION_BASE_REF, origin/master, master; no ref fails
  * closed). --update raises floors to today's scores and never lowers one.
@@ -39,7 +39,7 @@ import {
 import { runTypeMutation } from './type-mutation-run';
 
 const ROOT = path.resolve(__dirname, '..');
-const THRESHOLDS = path.join(ROOT, 'scripts/type-mutation-thresholds.json');
+const THRESHOLDS = path.join(ROOT, 'config/mutation/type-thresholds.json');
 const REPORT_DIR = path.join(ROOT, 'reports/type-mutation');
 const TEST_DIR = 'tests/typetests';
 
