@@ -218,6 +218,34 @@ describe('createEsi', () => {
     expect(sent(2).headers.get('authorization')).toBe('Bearer t2');
   });
 
+  it('shutdown stops the cleanup timers, more than once, and leaves the views usable', async () => {
+    // A silent logger: the default pino logger keeps a flush timer of its
+    // own, which is not the runtime's to stop.
+    const noop = () => undefined;
+    const silent = {
+      fatal: noop,
+      error: noop,
+      warn: noop,
+      info: noop,
+      debug: noop,
+      trace: noop,
+    };
+    jest.useFakeTimers();
+    try {
+      const esi = createEsi({ ...OPTIONS, logger: silent });
+      expect(jest.getTimerCount()).toBeGreaterThan(0);
+      esi.shutdown();
+      expect(jest.getTimerCount()).toBe(0);
+      esi.shutdown();
+      expect(jest.getTimerCount()).toBe(0);
+
+      fetchMock.mockResponseOnce('{"players":1}');
+      await expect(esi.public.status.get()).resolves.toEqual({ players: 1 });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('refuses an authenticated paged operation on the public view before the wire', async () => {
     const esi = createEsi(OPTIONS);
     const forced = esi.public as unknown as ReturnType<typeof esi.as>;

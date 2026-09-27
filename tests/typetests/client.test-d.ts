@@ -25,6 +25,9 @@ void esi.public.character(1).portrait.get();
 expectError(esi.public.character(1).wallet);
 expectError(esi.public.corporation(1).wallets);
 
+// shutdown() is on the runtime, once, and returns nothing.
+expectType<void>(esi.shutdown());
+
 // as() returns the full tree, where the same operations exist.
 declare const identity: Identity;
 const view = esi.as(identity);

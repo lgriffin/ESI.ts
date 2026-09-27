@@ -180,3 +180,17 @@ Feature: One runtime, many identities
       And the public view requests the server status
       Then the public request shall be rejected with CircuitOpenError
       And the runtime shall have sent 2 requests
+
+  Rule: When the runtime is shut down, the runtime shall stop its cleanup timers and keep every view usable.
+    The shared cache and circuit breaker each run a cleanup timer. Shutdown
+    releases them, once or many times over, so an application that replaces
+    a runtime holds nothing of the old one; a view still answers afterwards,
+    as the legacy client does, because a request needs no timer.
+
+    Scenario: A character's view still answers after the runtime is shut down
+      Given a runtime for the application "fleet-tool/2.1 (ops@example.com)"
+      And a view for a character holding an access token
+      And ESI reports the character's wallet balance
+      When the runtime is shut down twice
+      And the character's view requests the wallet balance
+      Then the call shall resolve with the wallet balance after one request

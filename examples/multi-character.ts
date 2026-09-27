@@ -75,6 +75,7 @@ async function main() {
   // spec TTL (30 s) holds: no request goes out.
   await esi.public.status.get();
   console.log('\nDone.');
+  esi.shutdown();
 }
 
 main().catch((err) => {

@@ -120,6 +120,8 @@ The ETag cache is shared too, in two ways:
 
 The in-flight deduplicator draws the same line: identical public GETs from two views share one request; identical authenticated GETs share one only when they are for the same character.
 
+When an application is done with a runtime, `esi.shutdown()` stops the cache's and circuit breaker's cleanup timers and drops the in-flight table, once for the runtime rather than once per view. The timers never keep a process alive on their own, so a script that forgets it still exits; the call is for an application that replaces a runtime and wants nothing of the old one left running. Calling it twice is harmless, and a view still answers afterwards.
+
 ## Revoked tokens, scheduled refresh and concurrency
 
 With a token manager, a character whose refresh token SSO has revoked throws `TokenRevokedError` from `accessToken()`, so the call fails before any request. Catch it with `isTokenRevoked` from `@lgriffin/esi.ts/errors`, remove the character and send them through login again.
@@ -138,11 +140,11 @@ Concurrent requests through one view are safe. A refresh coalesces: two requests
 | `client.wallet.getCharacterWallet(id)`                        | `esi.as(tokens.identity(id)).character(id).wallet.get()`          |
 | `client.status.getStatus()`                                   | `esi.public.status.get()`                                         |
 | `client.market.streamRegionOrders(regionId)`                  | `for await (const o of esi.public.market(regionId).orders.get())` |
-| `client.shutdown()` per character                             | nothing per character                                             |
+| `client.shutdown()` per character                             | `esi.shutdown()`, once                                            |
 
 Two differences to know before switching:
 
 - **The operations are the generated ones.** They follow the ESI OpenAPI document exactly: resource-shaped names (`character(id).wallet.get()` rather than `wallet.getCharacterWallet(id)`), spec-typed responses, and every paginated operation returned as an `AsyncIterable` that follows the pages. They are not validated by the hand-written Zod schemas; `PipelineTransport` returns the body typed from the spec. Runtime validation for the generated operations is Phase 3 of [ROADMAP.md](ROADMAP.md).
-- **A view is not an `EsiClient`.** It has no `withMetadata()`, `withSafeMode()`, `getCacheStats()` or `shutdown()`. Diagnostics for the runtime are on the roadmap with the rest of Phase 4.
+- **A view is not an `EsiClient`.** It has no `withMetadata()`, `withSafeMode()` or `getCacheStats()`, and `shutdown()` is on the runtime, not the view. Diagnostics for the runtime are on the roadmap with the rest of Phase 4.
 
 `examples/multi-character.ts` shows several characters' wallets through one runtime, and `examples/public-vs-authenticated.ts` shows the type split with the `@ts-expect-error` line.

@@ -86,6 +86,12 @@ export interface Esi {
    * view back.
    */
   as(identity: Identity): ScopeTree;
+  /**
+   * Stops the shared cache's and circuit breaker's cleanup timers and drops
+   * the in-flight table. Safe to call more than once; the views still answer
+   * afterwards. One call per runtime, not per view.
+   */
+  shutdown(): void;
 }
 
 const CLIENT_ID = 'esi-runtime';
@@ -237,6 +243,11 @@ export function createEsi(options: EsiOptions): Esi {
       );
       views.set(identity, view);
       return view;
+    },
+    shutdown(): void {
+      runtime.getCache()?.shutdown();
+      runtime.getCircuitBreaker()?.shutdown();
+      runtime.getDeduplicator()?.clear();
     },
   });
 }
