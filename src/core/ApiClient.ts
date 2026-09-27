@@ -35,6 +35,8 @@ export class ApiClient {
   private validateResponse: boolean = true;
   private validateRequest: boolean = false;
   private language?: string;
+  private tenant?: string;
+  private userAgent?: string;
   private compatibilityDate?: string;
   private fetchFn: FetchLike | null = null;
   private logger: ILogger | null = null;
@@ -165,6 +167,24 @@ export class ApiClient {
 
   setLanguage(language: string | undefined): void {
     this.language = language;
+  }
+
+  /** The `X-Tenant` every request names, or undefined for ESI's default. */
+  getTenant(): string | undefined {
+    return this.tenant;
+  }
+
+  setTenant(tenant: string | undefined): void {
+    this.tenant = tenant;
+  }
+
+  /** The application's own user agent, sent ahead of the library's. */
+  getUserAgent(): string | undefined {
+    return this.userAgent;
+  }
+
+  setUserAgent(userAgent: string | undefined): void {
+    this.userAgent = userAgent;
   }
 
   getCompatibilityDate(): string | undefined {
