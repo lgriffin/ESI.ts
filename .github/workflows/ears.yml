@@ -1,0 +1,72 @@
+name: EARS Requirements
+
+# The standalone EARS check: `npm run ears` audits the specification, runs the
+# BDD scenarios and reports one verdict per requirement (Rule). It repeats what
+# ci.yml's `bdd` and `spec-audit` jobs gate, so it is not part of ci-success;
+# it exists to give a per-requirement answer that runs and reads on its own.
+# See guides/TESTING.md, "The standalone EARS check".
+
+on:
+  pull_request:
+    branches: [master, main, develop]
+    paths:
+      - 'src/**'
+      - 'tests/bdd/**'
+      - 'scripts/ears.ts'
+      - 'scripts/ears-core.ts'
+      - 'scripts/bdd-report-core.ts'
+      - 'scripts/spec-audit*.ts'
+      - 'scripts/spec-audit-exceptions.json'
+      - '.beads/issues.jsonl'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'jest.unit.config.cjs'
+      - 'tsconfig.json'
+      - 'tsconfig.test.json'
+      - '.github/workflows/ears.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ears-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ears:
+    name: EARS requirements
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The spec audit's legacyStepFiles ratchet compares against master's
+      # exception list; without the ref it fails closed.
+      - name: Fetch the ratchet baseline
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Verify every EARS requirement
+        run: npm run ears
+
+      - name: Upload the EARS report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ears-report
+          path: reports/ears/
+          if-no-files-found: error
+          retention-days: 30

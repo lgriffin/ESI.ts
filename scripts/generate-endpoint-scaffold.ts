@@ -2,7 +2,7 @@
  * ESI Endpoint Scaffold Generator
  *
  * Fetches the ESI OpenAPI spec and generates endpoint definition boilerplate
- * for all operations. Output is written to etc/endpoint-scaffold.generated.ts
+ * for all operations. Output is written to etc/endpoint-scaffold.generated.reference.ts
  * as a reference/diff tool — it does NOT overwrite the hand-written endpoint
  * files in src/core/endpoints/.
  *

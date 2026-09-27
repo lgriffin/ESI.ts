@@ -1,17 +1,35 @@
 # ESI.ts Engineering Charter
 
-**Package:** `@lgriffin/esi.ts` · **Charter revision:** 1 (2026-09-15) · **Status:** adopted
+**Package:** `@lgriffin/esi.ts` · **Charter revision:** 2 (2026-09-27) · **Status:** adopted
 
 The governing statement of how ESI.ts is designed, built, tested, secured, documented and released. Every guide in this folder derives from a numbered requirement here, and every requirement is written in the same EARS form the test suite already uses, so the charter can be audited the way the specification is.
 
-| Measured at v9.8.0                              |                        |
-| ----------------------------------------------- | ---------------------- |
-| Domain clients                                  | 39                     |
-| ESI endpoints wired                             | 235                    |
-| EARS requirements in the specification          | 327 (52 feature files) |
-| Gherkin scenarios                               | 401                    |
-| Test files across seven Jest/tsd configurations | 201                    |
-| Statement coverage                              | 98.2%                  |
+| Measured at v10.2.3                                            |                                            |
+| -------------------------------------------------------------- | ------------------------------------------ |
+| Domain clients                                                 | 39                                         |
+| ESI endpoints wired                                            | 235                                        |
+| Generated operations (`src/generated/operations.generated.ts`) | 233                                        |
+| EARS requirements in the specification                         | 402 (54 feature files)                     |
+| Gherkin scenarios                                              | 490                                        |
+| Test files across nine Jest configurations plus tsd            | 281                                        |
+| Statement coverage                                             | 98.2% (last measured at v9.8.0; floor 90%) |
+
+### What changed in revision 2
+
+- **Corrections from [#299](https://github.com/lgriffin/ESI.ts/issues/299).** Spec TTL source, the HTTPS rule in SEC-01, path-parameter handling, cursor pagination, the order of retry and deduplication, the 8 / 20 / 1000 defaults, rate-limiter token costs, circuit-breaker cleanup, per-call deprecation warnings, the auth error subtree, required check names and the scaffold path.
+- **Statuses moved** to match the code at v10.2.3: TEST-03 and TEST-07 to Enforced; TEST-09, SEC-07 and DOC-05 to Partial; GATE-05 back to Partial, tracked by [#277](https://github.com/lgriffin/ESI.ts/issues/277).
+- **Phase 0 to 2 of the 11.0 plan** are reflected in Part 2: ports, the generated operations, the clock module and the layer lint.
+- **11.0.0 decisions** recorded below. REL-05 now states the Node 22 floor, so it reads Gap until the 11.0.0 engines bump lands; the requirement changed, the code did not regress.
+- **Gap register** rows closed with evidence, the eleven findings filed after revision 1 (#290 to #300) added, and one new finding (a bare `..` path parameter) registered.
+
+### 11.0.0
+
+The next major is 11.0.0, built in the phases of the Road to Done plan (Phase 0 audit in [AUDIT.md](AUDIT.md); Phase 1 generator done; Phase 2 architecture lock in progress). Decided on 2026-09-26:
+
+- The target is 11.0.0, not 1.0.0: npm already carries 10.x.
+- Node 22 becomes the floor in 11.0.0, released as a breaking change (REL-05).
+- pino and zod stay runtime dependencies.
+- Jest, npm, release-please and Dependabot stay the toolchain.
 
 ---
 
@@ -65,42 +83,49 @@ Seven positions that explain most of the individual choices below. A proposal th
 
 ## Part 2 · Architecture
 
-Five layers, one request path, and four side modules that deliberately share nothing with the HTTP pipeline.
+Five layers, one request path, and side modules that deliberately share nothing with the HTTP pipeline. Phase 2 of the 11.0 plan adds ports and generated operations beneath them; the layer rule is enforced by `npm run lint:layers`.
 
-| Layer                | Where                                                         | Role                                                                                                                                                                                                                                                  |
-| -------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Construction         | `src/EsiClient.ts`, `src/EsiClientBuilder.ts`                 | `EsiClient` (lazy getters for every domain), `EsiClientBuilder` → `CustomEsiClient` (subset), `EsiApiFactory` (one client). All three feed `configureApiClient`, the single place config becomes middleware.                                          |
-| Domain clients       | `src/clients` (39 + `BaseEsiClient`)                          | One class per ESI domain. Adds ergonomics only: named methods, `stream*` and `fetchAll*` wrappers, `withSafeMode()` envelopes. No HTTP knowledge.                                                                                                     |
-| Endpoint definitions | `src/core/endpoints` (39 files, 235 endpoints)                | Declarative maps (`as const satisfies EndpointMap`) wiring path, method, `requiresAuth`, pagination kind, `responseSchema`, `requestSchema`, deprecation. `createClient()` turns a map into typed methods; return types are inferred from the schema. |
-| Request pipeline     | `src/core`, `src/core/requestPipeline/*`                      | Pure functions receiving their dependencies as parameters (`dependencies.ts` is the only resolver). Cache policy, headers, fetch execution, status handling, pagination orchestration, middleware bridge.                                             |
-| Transport            | `FetchLike`, `globalThis.fetch`                               | Injectable via `setFetch()`. Timeout by `AbortController`. Node 18 floor exists because this layer relies on the global fetch.                                                                                                                        |
-| Side modules         | `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory` | The SDE module shares no code with the pipeline. It is an offline lookup layer for enriching ESI responses, with its own error hierarchy and its own docs.                                                                                            |
+| Layer                | Where                                                         | Role                                                                                                                                                                                                                                                                                  |
+| -------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Construction         | `src/EsiClient.ts`, `src/EsiClientBuilder.ts`                 | `EsiClient` (lazy getters for every domain), `EsiClientBuilder` → `CustomEsiClient` (subset), `EsiApiFactory` (one client). All three feed `configureApiClient`, the single place config becomes middleware.                                                                          |
+| Domain clients       | `src/clients` (39 + `BaseEsiClient`)                          | One class per ESI domain. Adds ergonomics only: named methods, `stream*` and `fetchAll*` wrappers, `withSafeMode()` envelopes. No HTTP knowledge.                                                                                                                                     |
+| Endpoint definitions | `src/core/endpoints` (39 files, 235 endpoints)                | Declarative maps (`as const satisfies EndpointMap`) wiring path, method, `requiresAuth`, pagination kind, `responseSchema`, `requestSchema`, deprecation. `createClient()` turns a map into typed methods; return types are inferred from the schema.                                 |
+| Request pipeline     | `src/core`, `src/core/requestPipeline/*`                      | Pure functions receiving their dependencies as parameters (`dependencies.ts` is the only resolver). Cache policy, headers, fetch execution, status handling, pagination orchestration, middleware bridge.                                                                             |
+| Transport            | `FetchLike`, `globalThis.fetch`                               | Injectable via `setFetch()`. Timeout by `AbortController`. The Node floor (18 today, 22 from 11.0.0) exists because this layer relies on the global fetch.                                                                                                                            |
+| Ports                | `src/core/ports`                                              | Type-only interfaces (`CacheStore`, `Clock`, `HttpTransport`, `Logger`, `OperationTransport`, `TokenProvider`) that import nothing. Not exported from the package yet.                                                                                                                |
+| Generated operations | `src/generated/operations.generated.ts`                       | One function per spec operation, importing only ports. Checked by `spec:generate:check` and `spec:coverage` in CI; not yet called by any client.                                                                                                                                      |
+| Clock                | `src/core/clock.ts`                                           | `systemClock` is where wall-clock time, timers and `Math.random` belong. `npm run lint:determinism` blocks new direct reads; the existing sites (rate limiter, cache, circuit breaker, request handler and others) sit in `scripts/determinism-baseline.json`, which may only shrink. |
+| Auth                 | `src/auth`                                                    | EVE SSO (PKCE), token manager and storage, with its own error subtree. Reached from the root and `./errors`; there is no `./auth` sub-path.                                                                                                                                           |
+| Side modules         | `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory` | The SDE module shares no code with the pipeline. It is an offline lookup layer for enriching ESI responses, with its own error hierarchy and its own docs.                                                                                                                            |
+
+`lint:layers` (`eslint.layers.rules.cjs`) holds the direction: ports import nothing, generated code imports only ports, and `src/core` imports no domain client, entry point, generated operation, auth, SDE or testing module. Existing violations (`ClientRegistry.ts`, `configureApiClient.ts`) sit in a baseline that may only shrink.
 
 ### The request path
 
 Every domain method takes this route. Order is the information: a stage cannot see the effect of a later one.
 
 1. **Domain method → `createClient` closure.** Deprecation warning if declared. `buildEndpointPath` assembles path, query and body (from `hasBody` or `bodyBuilder`). Request body validated against `requestSchema` only when `validateRequest` is on.
-2. **Spec-aware cache check.** `trySpecAwareCacheHit` may answer from cache with no network call. TTL precedence: generated `esiCacheTtls` > `Cache-Control: max-age` > cache default (5 min).
-3. **Deduplication.** Identical in-flight GETs without a body coalesce onto one promise. On by default.
-4. **`RetryStrategy.execute`.** Exponential backoff with 0.75–1.25× jitter. Retries only status 0, 420, 429, 502, 503, 504. One 401 token refresh per call when a provider exists. Mutations never retried unless `retryMutations`. `CircuitOpenError` is rethrown immediately.
+2. **Spec-aware cache check.** `trySpecAwareCacheHit` may answer a GET from cache with no network call, but only when the endpoint has a generated TTL. The spec TTL comes from the operation's `x-cache-age` field, generated into `esi-cache-ttls.generated.ts`. `Cache-Control: max-age` never avoids a network call on its own.
+3. **`RetryStrategy.execute`.** Wraps deduplication and the fetch. Exponential backoff with 0.75–1.25× jitter. Retries only status 0, 420, 429, 502, 503, 504. One 401 token refresh per call when a provider exists. Mutations never retried unless `retryMutations`. `CircuitOpenError` is rethrown immediately. Each attempt re-checks the spec-TTL cache first.
+4. **Deduplication.** Inside each attempt, identical in-flight GETs without a body coalesce onto one promise, keyed by URL and caller identity. On by default.
 5. **`executeSingleFetch`.** Build headers (User-Agent, compatibility date, `If-None-Match`, bearer only if `requiresAuth`) → request interceptors → circuit breaker check → rate limiter check → timed fetch → parse headers → rate limiter learns from response → breaker records outcome.
-6. **Status handling.** 201 returns early. 204 yields `undefined`. 304 serves the cached body or throws if none. 5xx with a cached copy serves stale. 401/403 get remediation text appended.
-7. **Cache write and pagination.** Successful GETs are cached under a key that hashes the auth header. Non-GET success invalidates the path prefix. Offset pagination follows `x-pages`; cursor pagination follows `x-cursor-after`.
+6. **Status handling.** 201 returns the parsed body. 204 yields `undefined`. 304 serves the cached body; if the entry was evicted mid-flight the request is repeated without `If-None-Match`, and only then does it throw. 5xx with a cached copy serves stale. 401/403 get remediation text appended.
+7. **Cache write and pagination.** Successful GETs that carry an ETag are cached under a key that hashes the auth header. Stored TTL: spec TTL, else `max-age`, else the cache default (5 min), plus 1 h stale retention. Non-GET success invalidates the path prefix. Offset pagination follows `x-pages`. Cursor routes take `before`/`after` query parameters; `x-cursor-before`/`x-cursor-after` headers come back on the result as `cursors` and are never followed automatically, so callers page with `fetchAllCursorPages()`.
 8. **Response interceptors → Zod validation → envelope.** Body replaced by `safeParse().data` when `validateResponse` is on (default). Failure throws `EsiValidationError`. `withMetadata` and `withSafeMode` wrap the result last.
 
 ### Middleware inventory
 
-| Concern         | Interface                                    | Default            | Key defaults                                                                 |
-| --------------- | -------------------------------------------- | ------------------ | ---------------------------------------------------------------------------- |
-| Rate limiter    | `IRateLimiter`                               | on, mandatory      | Buckets from generated groups; 420/429 → 60 s block; token cost 2xx=2, 4xx=5 |
-| Circuit breaker | `ICircuitBreaker`                            | off, opt-in        | 5 failures, 30 s reset, 1 half-open probe, key by resolved path              |
-| Deduplicator    | `IDeduplicator`                              | on                 | GET without body only                                                        |
-| Retry           | `IRetryStrategy`                             | on                 | 3 retries, 1 s base, 30 s cap                                                |
-| ETag cache      | `ICache`                                     | on                 | 1000 entries, 5 min default TTL, 60 s sweep                                  |
-| Interceptors    | `RequestInterceptor` / `ResponseInterceptor` | none               | Sequential, unsubscribe closure returned                                     |
-| Transport       | `FetchLike`                                  | global fetch       | 30 s timeout                                                                 |
-| Logger          | `ILogger`                                    | pino, level `warn` | Per-client, falls back to global, then default                               |
+| Concern         | Interface                                    | Default            | Key defaults                                                                                                                                                                                                                    |
+| --------------- | -------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rate limiter    | `IRateLimiter`                               | on, mandatory      | Buckets from generated groups; adopts `x-ratelimit-*` from responses; honours `Retry-After`; 420/429 → 60 s block; tracks `x-esi-error-limit`. It does not charge token costs itself (`getTokenCost()` is a static helper only) |
+| Circuit breaker | `ICircuitBreaker`                            | off, opt-in        | 5 failures, 30 s reset, 1 half-open probe, key by resolved path; stale-record cleanup off unless `cleanupIntervalMs > 0`                                                                                                        |
+| Deduplicator    | `IDeduplicator`                              | on                 | GET without body only                                                                                                                                                                                                           |
+| Retry           | `IRetryStrategy`                             | on                 | 3 retries, 1 s base, 30 s cap (set by `configureApiClient`; a bare `RetryStrategy` defaults to 0 retries)                                                                                                                       |
+| Pagination      | —                                            | —                  | `fetchAll*` concurrency 8; `batch` concurrency 20; `batchPost` chunk size 1000                                                                                                                                                  |
+| ETag cache      | `ICache`                                     | on                 | 1000 entries, 5 min default TTL, 60 s sweep                                                                                                                                                                                     |
+| Interceptors    | `RequestInterceptor` / `ResponseInterceptor` | none               | Sequential, unsubscribe closure returned                                                                                                                                                                                        |
+| Transport       | `FetchLike`                                  | global fetch       | 30 s timeout                                                                                                                                                                                                                    |
+| Logger          | `ILogger`                                    | pino, level `warn` | Per-client, falls back to global, then default                                                                                                                                                                                  |
 
 ### Error taxonomy
 
@@ -110,10 +135,17 @@ Error
 │   ├── TimeoutError (+ timeoutMs)
 │   └── EsiValidationError (+ ZodError, direction: request | response)
 ├── CircuitOpenError (endpoint, failures, retryAfterMs)   not an EsiError
+├── AuthError
+│   ├── SsoError (+ statusCode)                           .retryable ⇐ 429 or ≥ 500
+│   ├── TokenRevokedError
+│   ├── TokenDecodeError                                  no type guard yet
+│   └── CharacterNotFoundError
 └── SdeError → SdeDatabaseError | SdeValidationError | SdeVersionMismatchError
 ```
 
-Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`, `TOKEN_REFRESH_FAILED`) are plain `Error`s with a bracketed type prefix. That is a known inconsistency, registered in Part 10.
+The auth subtree is exported from the root and from `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked` and `isCharacterNotFound`.
+
+Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`, `TOKEN_REFRESH_FAILED`, `VALIDATION_ERROR`) are plain `Error`s with a bracketed type prefix, built by `buildError` in `src/core/util/error.ts`. That is a known inconsistency, registered in Part 10.
 
 ### Requirements
 
@@ -122,7 +154,7 @@ Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON
 The library **shall** derive response types, cache TTLs, rate-limit groups and endpoint scopes from the live ESI OpenAPI specification and commit the generated output.
 
 - **Why:** CCP changes ESI on its own schedule. Generated metadata is the only way to keep 235 endpoints honest.
-- **Verified by:** `npm run generate:types` then `git diff --exit-code src/types/generated/` in the CI static-analysis job and the release gate.
+- **Verified by:** `npm run generate:types` then `git diff --exit-code` on `src/types/generated/` and `esi-cache-ttls.generated.ts` in CI and the release gate. The PR check fails only when a PR touches the generator inputs and warns otherwise; the rate-limit-group and scope files are not diffed yet. `spec:generate:check` does the same for the generated operations.
 
 #### ARCH-02 · Ubiquitous · Enforced
 
@@ -136,7 +168,7 @@ Every endpoint exposed by a domain client **shall** be declared in exactly one `
 Request-pipeline modules under `src/core/requestPipeline` **shall** receive cache, rate limiter and circuit breaker as function parameters rather than importing a concrete implementation.
 
 - **Why:** Keeps every stage unit-testable without an `ApiClient` and keeps `dependencies.ts` the one place resolution happens.
-- **Verified by:** Code review. Candidate for an ESLint `no-restricted-imports` rule scoped to that directory.
+- **Verified by:** Code review. `lint:layers` keeps `src/core` away from clients and entry points but does not check this rule; candidate for an extra rule in `eslint.layers.rules.cjs` scoped to that directory.
 
 #### ARCH-04 · Ubiquitous · Enforced
 
@@ -163,22 +195,22 @@ The package manifest **shall** declare `"sideEffects": false`, and no module in 
 
 Every public error the pipeline can throw **shall** be an instance of a class exported from `@lgriffin/esi.ts/errors` with a matching type guard.
 
-- **Why:** Consumers branch on errors. String-prefixed plain `Error`s and the missing `isCircuitOpen` export on the subpath break that.
+- **Why:** Consumers branch on errors. String-prefixed plain `Error`s, the missing `isCircuitOpen` export on the subpath and the missing `TokenDecodeError` guard break that.
 - **Verified by:** To add: a type test that the guard set on `.` equals the guard set on `./errors`.
 
 #### ARCH-08 · Ubiquitous · Partial
 
 Every construction surface (`EsiClient`, `CustomEsiClient`, `EsiApiFactory`) **shall** expose the same set of domain clients.
 
-- **Why:** `CustomEsiClient` now has a getter for every registered client ([#267](https://github.com/lgriffin/ESI.ts/issues/267)); `EsiApiFactory` still has `create*` methods for only 10 of them.
-- **Verified by:** `tests/tdd/core/customClientGetters.test.ts` for `CustomEsiClient` (a missing getter fails to compile). To add: the same check for `EsiApiFactory`.
+- **Why:** `CustomEsiClient` now has a getter for every registered client ([#267](https://github.com/lgriffin/ESI.ts/issues/267)). `EsiApiFactory` reaches all 39 through the generic `createClient(type)`, but has named `create*Client` methods for only 9.
+- **Verified by:** `tests/tdd/core/customClientGetters.test.ts` for `CustomEsiClient` (a missing getter fails to compile). `constructionParity.test.ts` checks that the three surfaces configure middleware the same way, not that they expose the same clients. To add: a client-set check for `EsiApiFactory`, or deprecate its named methods in favour of the Phase 2 builder.
 
 #### ARCH-09 · Ubiquitous · Partial
 
 All pipeline logging **shall** go through the per-client logger with structured context, and the global logger **shall** exist only as a fallback for callers with no client handle.
 
 - **Why:** Per-client logging makes log lines attributable when several clients share a process.
-- **Verified by:** `npm run typecheck`, then a grep gate on `from '../logger/loggerUtil'` inside `requestPipeline/`.
+- **Verified by:** `npm run typecheck`. `requestPipeline/` imports only `clientLog` today and only `resolveLogger.ts` uses the global fallback, but no gate holds it there yet ([#265](https://github.com/lgriffin/ESI.ts/issues/265)); several call sites outside the pipeline still bypass the per-client logger ([#296](https://github.com/lgriffin/ESI.ts/issues/296)).
 
 ---
 
@@ -202,7 +234,7 @@ Conventions that make a 39-client codebase read like one author wrote it. These 
 Every hand-written response schema **shall** use `z.looseObject` so that fields ESI adds later are preserved in the validated body.
 
 - **Why:** Validation replaces the body with `safeParse().data`. A strict object would silently strip new fields from consumers.
-- **Verified by:** `npm run schema:drift` against the spec; 255 uses of `looseObject` versus 2 of `z.object`, both internal.
+- **Verified by:** `npm run schema:drift` against the spec; 398 uses of `looseObject` versus 2 of `z.object`, both internal.
 
 #### DES-02 · Event-driven · Enforced
 
@@ -227,9 +259,9 @@ An endpoint definition **shall** declare `requiresAuth: true` if and only if the
 
 #### DES-05 · Event-driven · Practised
 
-When an endpoint is deprecated upstream, the definition **shall** carry `DeprecationInfo` with a replacement and sunset date, and the client **shall** warn once at call time.
+When an endpoint is deprecated upstream, the definition **shall** carry `DeprecationInfo` with a replacement and sunset date, and the client **shall** log a warning on every call to it.
 
-- **Why:** Deprecation is a first-class field, not a comment. Consumers get a log line before the endpoint vanishes.
+- **Why:** Deprecation is a first-class field, not a comment. Consumers get a log line before the endpoint vanishes. The warning is not memoised (`createClient.ts`), so a hot loop logs on each call; revision 1 said "once", which was never true.
 - **Verified by:** Nightly spec drift files an issue; code review adds the field.
 
 #### DES-06 · Ubiquitous · Practised
@@ -259,33 +291,36 @@ Pagination helpers **shall** propagate the caller's HTTP method into the retry c
 
 This table is the canonical tier order. Both testing guides merge into one and cite it.
 
-| Tier | Name                           | Where                            | Files                                   | Runner                    | Runs on                  |
-| ---- | ------------------------------ | -------------------------------- | --------------------------------------- | ------------------------- | ------------------------ |
-| 1    | Unit (TDD)                     | `tests/tdd`                      | 124                                     | jest.unit                 | push, PR (Node 18/20/22) |
-| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | 52 features · 327 rules · 401 scenarios | jest.unit + jest-cucumber | PR, plus `spec:audit`    |
-| 3    | Type tests                     | `tests/typetests`                | 7                                       | tsd                       | PR (full suite)          |
-| 4    | Property fuzz                  | `tests/fuzz`                     | 5                                       | jest.fuzz + fast-check    | PR                       |
-| 5    | Contract                       | `tests/contract`                 | 2 + snapshot                            | jest.contract             | PR, soft-skip on ESI 503 |
-| 6    | Integration, mocked full stack | `tests/integration`              | 6                                       | jest.integration          | PR (full suite)          |
-| 7    | Integration, live              | same, `ESI_LIVE_TESTS`           | ~50                                     | jest.integration          | manual                   |
-| 8    | Integration, gated auth        | same, `ESI_GATED_TESTS` + `.env` | 30+                                     | jest.integration          | manual                   |
-| 9    | Benchmark and heap soak        | `tests/benchmark`                | 18 tasks + soak                         | mitata + soak driver      | PR (hot paths), nightly  |
-| 10   | Mutation                       | `src/core/**`                    | —                                       | Stryker                   | nightly, 4 h budget      |
-| 11   | API fuzz                       | Prism mock + Schemathesis        | —                                       | Docker                    | nightly                  |
+| Tier | Name                           | Where                            | Files                                   | Runner                    | Runs on                                                        |
+| ---- | ------------------------------ | -------------------------------- | --------------------------------------- | ------------------------- | -------------------------------------------------------------- |
+| 1    | Unit (TDD)                     | `tests/tdd`                      | 192                                     | jest.unit                 | push (Node 20), PR (Node 18/20/22)                             |
+| 2    | Specification (EARS/BDD)       | `tests/bdd`                      | 54 features · 402 rules · 490 scenarios | jest.unit + jest-cucumber | push (`npm test`), PR (`bdd-tests`), plus `spec:audit`         |
+| 3    | Type tests                     | `tests/typetests`                | 7                                       | tsd                       | PR (full suite)                                                |
+| 4    | Property fuzz                  | `tests/fuzz`                     | 12                                      | jest.fuzz + fast-check    | PR, nightly properties                                         |
+| 5    | Contract                       | `tests/contract`                 | 6 (2 live + 4 replay) + snapshot        | jest.contract(.replay)    | PR (`contract-replay`), soft-skip on ESI 503                   |
+| 6    | Fault catalogue                | `tests/faults`                   | 3                                       | jest.faults               | PR (`fault-catalogue`), nightly                                |
+| 7    | Integration, mocked full stack | `tests/integration`              | 6                                       | jest.integration          | PR (full suite)                                                |
+| 8    | Integration, live              | same, `ESI_LIVE_TESTS`           | ~50                                     | jest.integration.live     | manual                                                         |
+| 9    | Integration, gated auth        | same, `ESI_GATED_TESTS` + `.env` | 30+                                     | jest.integration.live     | manual                                                         |
+| 10   | Benchmark and heap soak        | `tests/benchmark`                | 18 tasks + soak                         | mitata + soak driver      | PR (A/B on hot paths), nightly                                 |
+| 11   | Mutation                       | `src/**`                         | —                                       | Stryker                   | PR (changed files), nightly sharded unit + BDD + type mutation |
+| 12   | API fuzz                       | Prism mock + Schemathesis        | —                                       | Docker                    | nightly                                                        |
 
-| Coverage metric | Floor | Current |     | Mutation | Floor                           |
-| --------------- | ----- | ------- | --- | -------- | ------------------------------- |
-| Statements      | 90%   | 98.17%  |     | Break    | 65                              |
-| Branches        | 80%   | 95.14%  |     | Low      | 60                              |
-| Functions       | 75%   | 96.09%  |     | High     | 80                              |
-| Lines           | 90%   | 98.37%  |     |          | nightly only, does not gate PRs |
+Other nightlies: interleave, no-retry, recorded payloads, consumer matrix, examples against live ESI, and a post-publish canary.
+
+| Coverage metric | Floor | Last measured (v9.8.0) |     | Mutation | Floor                                                           |
+| --------------- | ----- | ---------------------- | --- | -------- | --------------------------------------------------------------- |
+| Statements      | 90%   | 98.17%                 |     | Unit     | Per directory, `mutation-thresholds.json`, ratcheted            |
+| Branches        | 80%   | 95.14%                 |     | BDD      | Per directory, `mutation-bdd-thresholds.json`, ratcheted        |
+| Functions       | 75%   | 96.09%                 |     | PR       | Changed files, gated by the same thresholds                     |
+| Lines           | 90%   | 98.37%                 |     |          | The global `break` is off (`stryker.config.mjs`, `break: null`) |
 
 #### TEST-01 · Event-driven · Enforced
 
 When observable client behaviour changes, the change **shall** be preceded by an EARS requirement in a `Rule:` block and a scenario that fails before the implementation exists.
 
 - **Why:** The most common defect in the suite has been scenarios that cannot fail. Red before green is the only defence.
-- **Verified by:** `ears-gherkin-dev` workflow; `npm run spec:audit` on PR; ratchet file `scripts/spec-audit-exceptions.json` is empty and may only shrink.
+- **Verified by:** `ears-gherkin-dev` workflow; `npm run spec:audit` on PR; ratchet file `scripts/spec-audit-exceptions.json` has an empty `unconverted` list and a `legacyStepFiles` list, and both may only shrink.
 
 #### TEST-02 · Ubiquitous · Enforced
 
@@ -294,12 +329,12 @@ Each `Rule:` block **shall** state exactly one requirement with one _shall_, nam
 - **Why:** A requirement you cannot falsify is not a requirement.
 - **Verified by:** `scripts/spec-audit.ts`: eleven finding types, inline GitHub annotations, PR gate.
 
-#### TEST-03 · Ubiquitous · Practised
+#### TEST-03 · Ubiquitous · Enforced
 
 Scenario steps **shall** mock at the transport seam with `jest-fetch-mock` and **shall not** spy on the client method under test.
 
 - **Why:** Spying on the method makes the pipeline invisible to the test. Reference implementations: `etag-caching.steps.ts`, `resilience.steps.ts`.
-- **Verified by:** Code review. Candidate for a lint rule banning `jest.spyOn(client.` in step files.
+- **Verified by:** `npm run lint:bdd-seam` (`eslint.bdd-seam.config.mjs`) on every push (`ci-fast.yml`) and PR (`ci.yml`).
 
 #### TEST-04 · Ubiquitous · Enforced
 
@@ -322,12 +357,12 @@ The consumer-facing type surface **shall** be asserted by tsd tests covering end
 - **Why:** Half the value of the library is at the type level. A refactor can break inference without failing a runtime test.
 - **Verified by:** `npm run test:types`.
 
-#### TEST-07 · Ubiquitous · Partial
+#### TEST-07 · Ubiquitous · Enforced
 
-Mutation testing of `src/core` **shall** hold a score at or above 65, and a PR touching `src/core` **shall** run Stryker on the changed files.
+Mutation testing **shall** hold each directory at or above its floor in `mutation-thresholds.json` (unit) and `mutation-bdd-thresholds.json` (BDD), and a PR touching mutated source **shall** run Stryker on the changed files.
 
-- **Why:** Nightly-only mutation means a weak test lands before anyone sees the score. Incremental Stryker on changed files keeps the PR cost bounded.
-- **Verified by:** Nightly Stryker today. To add: `stryker run --incremental` job on PR, scoped by changed files.
+- **Why:** Nightly-only mutation means a weak test lands before anyone sees the score. Per-directory floors replace the single score of 65, which let a strong directory hide a weak one. Incremental Stryker on changed files keeps the PR cost bounded.
+- **Verified by:** `mutation-pr` job ("Mutation (changed files)") in `ci.yml`, required by `ci-success`; nightly ratchets in `nightly-mutation.yml`. Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)) and stale incremental results ([#380](https://github.com/lgriffin/ESI.ts/issues/380)).
 
 #### TEST-08 · Optional · Enforced
 
@@ -336,12 +371,12 @@ Where a test needs live ESI or a real token, it **shall** be gated behind `ESI_L
 - **Why:** Tranquility downtime must not fail a PR that changed nothing about networking.
 - **Verified by:** Jest configs and the 503 skip in CI jobs.
 
-#### TEST-09 · Ubiquitous · Gap
+#### TEST-09 · Ubiquitous · Partial
 
 Test source under `tests/` **shall** be linted with the same ESLint configuration as `src/`, with test-specific relaxations declared explicitly.
 
-- **Why:** 201 test files currently get Prettier only. Floating promises in a step file produce a scenario that passes without asserting.
-- **Verified by:** To add: extend `npm run lint` to `tests/`; fix or annotate the initial findings.
+- **Why:** Floating promises in a step file produce a scenario that passes without asserting. Targeted rules now cover the worst failure modes, but the main configuration still skips `tests/`.
+- **Verified by:** `lint:suite-health` over `tests/` (no `.only`/`.skip`/`.todo`, no assertion-free tests or Then steps, no swallowed assertions) and `lint:bdd-seam` over `tests/bdd`, both on push and PR. To add: extend `npm run lint` (still `eslint src`) to `tests/`, including `no-floating-promises` ([#271](https://github.com/lgriffin/ESI.ts/issues/271)).
 
 ---
 
@@ -349,39 +384,45 @@ Test source under `tests/` **shall** be linted with the same ESLint configuratio
 
 What runs where. ● blocks; ◐ runs but does not block; · does not run.
 
-| Check                                            | Commit |       Push        |        PR        |    Nightly    | Release  |
-| ------------------------------------------------ | :----: | :---------------: | :--------------: | :-----------: | :------: |
-| lint-staged: ESLint fix + Prettier               |   ●    |         ·         |        ·         |       ·       |    ·     |
-| commitlint (conventional commits)                |   ●    |         ·         |        ·         |       ·       |    ·     |
-| ESLint, Prettier check, build, typecheck         |   ·    |         ●         |        ●         |       ·       |    ●     |
-| Unit tests                                       |   ·    |         ●         |    ● 18/20/22    |       ·       |    ●     |
-| Coverage thresholds + PR comment                 |   ·    |         ·         |        ●         |       ·       |    ·     |
-| BDD suite + EARS spec audit                      |   ·    |         ·         |        ●         |       ·       |    ●     |
-| Generated types fresh, schema drift, auth scopes |   ·    |         ·         |        ●         |       ◐       |    ●     |
-| Contract, fuzz, integration, type tests          |   ·    |         ·         |        ●         |       ·       |    ●     |
-| API surface diff (api-extractor)                 |   ·    |         ·         |        ●         |       ·       |    ·     |
-| Lockfile consistency, Are The Types Wrong        |   ·    |         ·         |        ●         |       ·       |    ·     |
-| Dependency audit (diff-aware / allowlist)        |   ·    |         ·         | ● new advisories | ◐ files issue | ● ≥ high |
-| knip dead-code                                   |   ·    |         ·         |        ◐         |       ·       |    ◐     |
-| CodeQL                                           |   ·    |         ●         |        ●         |   ● weekly    |    ·     |
-| zizmor (workflow security)                       |   ·    | ● on `.github/**` |        ●         |       ·       |    ·     |
-| Stryker mutation                                 |   ·    |         ·         |        ·         |       ◐       |    ·     |
-| Schemathesis API fuzz, spec drift issue          |   ·    |         ·         |        ·         |       ◐       |    ·     |
-| OpenSSF Scorecard                                |   ·    |         ·         |        ·         |   ◐ weekly    |    ·     |
+| Check                                                           | Commit | Push |             PR              |      Nightly      | Release  |
+| --------------------------------------------------------------- | :----: | :--: | :-------------------------: | :---------------: | :------: |
+| lint-staged: ESLint fix + Prettier                              |   ●    |  ·   |              ·              |         ·         |    ·     |
+| commitlint (conventional commits)                               |   ●    |  ·   |              ·              |         ·         |    ·     |
+| ESLint, Prettier check, build, typecheck, examples typecheck    |   ·    |  ●   |              ●              |         ·         |    ●     |
+| lint:layers, lint:bdd-seam, lint:suite-health                   |   ·    |  ●   |              ●              |         ·         |    ·     |
+| lint:determinism                                                |   ·    |  ·   |              ●              |         ·         |    ·     |
+| Unit tests + BDD (`npm test`)                                   |   ·    | ● 20 |         ● 18/20/22          |         ·         |    ●     |
+| Coverage thresholds + PR comment                                |   ·    |  ·   |              ●              |         ·         |    ·     |
+| EARS spec audit, BDD report                                     |   ·    |  ·   |              ●              |         ·         |    ·     |
+| Generated types and operations fresh, schema drift, auth scopes |   ·    |  ·   | ● if inputs touched, else ◐ |   ◐ files issue   |    ●     |
+| Contract replay, fault catalogue, fuzz, integration, type tests |   ·    |  ·   |              ●              |         ◐         |    ●     |
+| API surface diff (api-extractor) and api-semver                 |   ·    |  ·   |              ●              |         ·         |    ·     |
+| Export coverage, package lint (publint, attw), size-limit       |   ·    |  ·   |              ●              |         ·         |    ·     |
+| Consumer contract (Node 18/20/22/24), doc examples              |   ·    |  ·   |              ●              | ◐ consumer matrix |    ·     |
+| TypeDoc build                                                   |   ·    |  ·   |              ●              |         ·         |    ·     |
+| Benchmarks A/B                                                  |   ·    |  ·   |              ●              |         ◐         |    ·     |
+| Dependency audit (diff-aware / allowlist)                       |   ·    |  ·   |      ● new advisories       |   ◐ files issue   | ● ≥ high |
+| knip dead-code                                                  |   ·    |  ·   |              ◐              |         ·         |    ◐     |
+| CodeQL                                                          |   ·    |  ●   |              ●              |     ● weekly      |    ·     |
+| zizmor (workflow security), workflow lint                       |   ·    |  ·   |              ●              |         ·         |    ·     |
+| Stryker mutation                                                |   ·    |  ·   |       ● changed files       |     ◐ ratchet     |    ·     |
+| Schemathesis API fuzz                                           |   ·    |  ·   |              ·              |  ◐ artifact only  |    ·     |
+| Spec drift, faults, properties, examples, recorded payloads     |   ·    |  ·   |              ·              |   ◐ files issue   |    ·     |
+| OpenSSF Scorecard                                               |   ·    |  ·   |              ·              |     ◐ weekly      |    ·     |
 
 #### GATE-01 · Ubiquitous · Enforced
 
-A pull request to `master` **shall** merge only when the aggregate `quality-gate` job reports every blocking job green.
+A pull request to `master` **shall** merge only when the aggregate `ci-success` job reports every blocking job green.
 
-- **Why:** One required check that fans in eleven jobs keeps branch protection simple and complete.
-- **Verified by:** `ci.yml` quality-gate with `if: always()`; branch protection requires it.
+- **Why:** One required check that fans in every PR job keeps branch protection simple and complete.
+- **Verified by:** `ci.yml` `ci-success` with `if: always()`, needing 24 jobs, plus a self-check that fails if a job is missing from its `needs`; branch protection requires it alongside Lint, Build & Test.
 
 #### GATE-02 · Ubiquitous · Enforced
 
-Every push on every branch **shall** run lint, format check, build, typecheck and unit tests on Node 20.
+Every push on every branch **shall** run lint, format check, build, typecheck and the unit and BDD tests on Node 20.
 
 - **Why:** Fast feedback before a PR exists.
-- **Verified by:** `ci-fast.yml`.
+- **Verified by:** `ci-fast.yml` ("Lint, Build & Test"): lint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format, build, typecheck, `typecheck:examples` and `npm test`, whose Jest config includes the BDD specs.
 
 #### GATE-03 · Ubiquitous · Enforced
 
@@ -397,19 +438,19 @@ knip **shall** block the release gate on unused exports and dependencies, with a
 - **Why:** Non-blocking everywhere means the report is never read. Blocking only at release keeps PR friction low.
 - **Verified by:** To add: drop `--no-exit-code` in `release.yml` once the baseline is clean.
 
-#### GATE-05 · Ubiquitous · Enforced
+#### GATE-05 · Ubiquitous · Partial
 
 Every nightly job that finds a problem **shall** file or update a labelled GitHub issue rather than only failing the run.
 
-- **Why:** A red nightly nobody reads is the same as no nightly.
-- **Verified by:** `nightly-audit.yml`, `nightly-spec-drift.yml`. Mutation and Schemathesis upload artifacts only; extend them.
+- **Why:** A red nightly nobody reads is the same as no nightly. Revision 1 marked this Enforced while two nightlies still filed nothing; revision 2 corrects it, tracked by [#277](https://github.com/lgriffin/ESI.ts/issues/277) (bead `esi-mbr`).
+- **Verified by:** Audit, spec drift, faults, properties, benchmarks, examples and the post-publish canary file issues. Recorded-payload drift opens a pull request instead, and only a failed run files an issue. `nightly-mutation.yml` and `nightly-schemathesis.yml` upload artifacts only; extend them.
 
 #### GATE-06 · Ubiquitous · Partial
 
 Every npm script referenced in a document **shall** exist in `package.json`, and every script in `package.json` **shall** resolve to an existing file.
 
-- **Why:** `sde:seed` points at a script that does not exist. The docs currently reference zero missing scripts, which is worth keeping.
-- **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`.
+- **Why:** A script that points at a missing file (`sde:seed`, fixed in [#274](https://github.com/lgriffin/ESI.ts/issues/274)) fails only when someone runs it. The second half is enforced; nothing yet checks that scripts named in documents exist.
+- **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`, for script targets. To add: the same check over `README.md` and `guides/`.
 
 ---
 
@@ -419,8 +460,8 @@ Runtime defences live in the pipeline and are proven by `tests/tdd/core/security
 
 ### Defence chain on every request
 
-1. **HTTPS enforced, host allowlisted.** `http://` rejected at construction. Only `esi.evetech.net` unless `unsafeAllowCustomHost: true` is named explicitly.
-2. **Path parameters validated.** Rejects `../`, encoded slashes and dots, null bytes.
+1. **HTTPS enforced, host allowlisted.** `http://` rejected at construction, always. Only `esi.evetech.net` unless `unsafeAllowCustomHost: true` is named explicitly; the flag lifts the host check only.
+2. **Path parameters validated.** Rejects `/`, `\`, `?`, `#`, `@` and the other URL delimiters, empty values and non-finite numbers, so `../x` is refused. Everything else, including `%` and null bytes, is percent-encoded by `encodeURIComponent`, not rejected. A bare `..` currently passes and is collapsed by URL parsing (Part 10, row 29).
 3. **Query parameters bounded.** Length limits; NaN, Infinity and null rejected.
 4. **Token gated by declared scope.** Bearer header attached only when the definition says `requiresAuth`; missing token fails before the network.
 5. **Cache isolated per token.** Authenticated cache keys prefix a truncated SHA-256 of the auth header, so two characters never share a cached body.
@@ -428,10 +469,10 @@ Runtime defences live in the pipeline and are proven by `tests/tdd/core/security
 
 #### SEC-01 · Unwanted · Enforced
 
-If a consumer supplies a base URL that is not HTTPS or not on the allowlist, then the client **shall** refuse construction unless `unsafeAllowCustomHost` is set.
+If a consumer supplies a base URL that is not HTTPS, or whose host is not on the allowlist while `unsafeAllowCustomHost` is unset, then the client **shall** refuse construction.
 
-- **Why:** Server-side request forgery through a configurable base URL is the classic SDK hole.
-- **Verified by:** `security.test.ts` host allowlist and HTTPS groups.
+- **Why:** Server-side request forgery through a configurable base URL is the classic SDK hole. `unsafeAllowCustomHost` exists for proxies and mocks, and lifts only the host check; there is no way to turn HTTPS off.
+- **Verified by:** `security.test.ts` host allowlist and HTTPS groups; `src/core/util/validation.ts`.
 
 #### SEC-02 · Ubiquitous · Enforced
 
@@ -445,7 +486,7 @@ The library **shall** never write an access token to a log line, an error messag
 Every GitHub Action **shall** be pinned to a full commit SHA with a version comment, and every workflow **shall** declare top-level read-only permissions with per-job escalation.
 
 - **Why:** Tag pinning is mutable. Scorecard scores both dimensions and zizmor enforces them.
-- **Verified by:** `zizmor.yml`; weekly Scorecard; Dependabot keeps the SHAs current.
+- **Verified by:** the zizmor job in `ci.yml` (config `.zizmor.yml`); `npm run lint:workflows` (`scripts/workflow-lint.ts`); weekly Scorecard; Dependabot keeps the SHAs current.
 
 #### SEC-04 · Ubiquitous · Enforced
 
@@ -468,12 +509,12 @@ Each release **shall** publish a CycloneDX or SPDX SBOM as a signed release asse
 - **Why:** Provenance says who built it. An SBOM says what is inside. Scorecard and downstream policy tooling look for both.
 - **Verified by:** `release.yml` `create-assets` runs `npm run release:sbom`, which fails the release unless the CycloneDX SBOM names the package at the tagged version and lists every runtime dependency, and adds it to `checksums.txt`; `sign-and-publish-assets` signs it. `tests/tdd/release-sbom/` runs the generator against the repository.
 
-#### SEC-07 · Ubiquitous · Gap
+#### SEC-07 · Ubiquitous · Partial
 
 The repository **shall** carry a `CODEOWNERS` file, and branch protection on `master` **shall** apply to administrators.
 
 - **Why:** Both are Scorecard code-review inputs. A solo maintainer can still enforce "admins included" and own every path.
-- **Verified by:** To add: `.github/CODEOWNERS`; update the ruleset recorded in bead `esi-8we`.
+- **Verified by:** `.github/CODEOWNERS` exists. Admin enforcement lives in GitHub settings and cannot be seen from the repository; record it in the ruleset bead `esi-8we` and in `guides/SECURITY.md`, which still calls it planned ([#270](https://github.com/lgriffin/ESI.ts/issues/270)).
 
 #### SEC-08 · Ubiquitous · Enforced
 
@@ -489,6 +530,8 @@ Local credentials **shall** be minted by the PKCE script into a git-ignored `.en
 The repository has excellent individual documents and, until this charter, no documentation system: three publication surfaces, four copies of the testing story, five copies of the Beads quick reference, and a TypeDoc configuration that used to delete hand-written files.
 
 > **Resolved in revision 1:** TypeDoc now writes to `docs-site/public/api/` (git-ignored). `npm run clean` and `npm run docs` no longer touch `docs/`.
+>
+> **State at revision 2:** fourteen guides exist in `guides/`, plus `AUDIT.md` from Phase 0. The five original `docs/` files are gone, but `docs/` itself now holds `knowledge-graph/`, `spikes/generator/` and `esi-evolution/`. Root `TESTING.md` and `guides/MUTATION-TESTING.md` are still separate. The docs-site is still unbuilt and still says v9.6.1, and the README banner still says v9.5.2. The full README, docs and examples rewrite is scheduled last in the 11.0 plan, so it documents the finished API.
 
 ### Surfaces at the time of the survey
 
@@ -530,32 +573,32 @@ guides/                         canonical, and the only source the site builds f
 ├── BEADS.md                    keep; AGENTS.md and CLAUDE.md shrink to pointers
 └── rfcs/                       future design papers (the jitaspace mapping and streaming-websocket strategy were retired as dated)
 docs-site/                      VitePress; guide/ populated by scripts/sync-docs.ts from guides/; public/api = TypeDoc
-docs/                           retired: okf-guide moved to guides/OKF.md, nightly-spec-drift folded into QUALITY-GATES, the rest deleted
+docs/                           hand-written guides retired (okf-guide → guides/OKF.md, nightly-spec-drift → QUALITY-GATES); now holds only spikes and generated artefacts
 TESTING.md (root)               deleted after merge
 etc/doc-metrics.json            NEW: generated counts: clients, endpoints, rules, scenarios, coverage
 ```
 
 ### Guide roadmap
 
-| Target guide                                            | Action | Sources to fold in                                                                                                                 | Charter parts | Tracking                                                          |
-| ------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------- |
-| CHARTER.md                                              | new    | This document                                                                                                                      | all           | —                                                                 |
-| ARCHITECTURE.md                                         | merge  | README caching, rate limiting, streaming, error handling sections; docs-site interceptors, circuit-breaker pages; fix "37 clients" | 2             | `esi-07y` · [#286](https://github.com/lgriffin/ESI.ts/issues/286) |
-| DESIGN-RULES.md                                         | new    | CLAUDE.md key patterns; `generate:endpoints` scaffold usage; naming table above                                                    | 3             | `esi-lvi` · [#279](https://github.com/lgriffin/ESI.ts/issues/279) |
-| TESTING.md                                              | merge  | Root TESTING.md, MUTATION-TESTING.md, README testing section, ARCHITECTURE §8                                                      | 4             | `esi-b4a` · [#273](https://github.com/lgriffin/ESI.ts/issues/273) |
-| SPECIFICATION.md                                        | move   | tests/bdd/GUIDE.md + README.md; ears-gherkin-dev skill steps                                                                       | 4             | —                                                                 |
-| QUALITY-GATES.md                                        | new    | .github/workflows/README.md, docs/nightly-spec-drift.md, scripts table                                                             | 5             | `esi-30o` · [#280](https://github.com/lgriffin/ESI.ts/issues/280) |
-| SECURITY.md (guide)                                     | merge  | Remove policy duplication; add SBOM and CODEOWNERS plan                                                                            | 6             | `esi-p0s` · [#285](https://github.com/lgriffin/ESI.ts/issues/285) |
-| ERRORS.md                                               | new    | docs-site reference/errors.md; `src/core/util/error.ts`                                                                            | 2             | `esi-rt2` · [#281](https://github.com/lgriffin/ESI.ts/issues/281) |
-| LOGGING.md                                              | new    | Nothing exists; write from the per-client logging refactor                                                                         | 2, 3          | `esi-5zs` · [#282](https://github.com/lgriffin/ESI.ts/issues/282) |
-| PAGINATION.md                                           | new    | README streaming and cursor sections; docs-site pagination.md; 9.7.0 changelog for `fetchAll*`                                     | 2             | `esi-358` · [#283](https://github.com/lgriffin/ESI.ts/issues/283) |
-| RUNTIME-VALIDATION.md                                   | keep   | Delete README and docs-site copies, link instead                                                                                   | 3             | —                                                                 |
-| SDE.md + guides/sde/                                    | move   | src/sde/README.md, src/sde/docs/*, docs-site guide/sde.md                                                                          | 2             | —                                                                 |
-| OKF.md                                                  | move   | docs/okf-guide.md; link from README and DESIGN-RULES                                                                               | 3             | —                                                                 |
-| RELEASE.md                                              | new    | release-please config, CHANGELOG conventions, release.yml jobs, SECURITY.md support table                                          | 8             | `esi-38g` · [#284](https://github.com/lgriffin/ESI.ts/issues/284) |
-| DOCUMENTATION.md                                        | merge  | Rewrite around the target tree; document the site build and metrics                                                                | 7             | —                                                                 |
-| BEADS.md                                                | keep   | Collapse AGENTS.md's three blocks and CLAUDE.md's copy to pointers                                                                 | 9             | —                                                                 |
-| Root TESTING.md, docs/examples.md, docs-site duplicates | retire | Examples catalogue becomes docs-site/examples generated from `examples/*.ts` headers                                               | 7             | —                                                                 |
+| Target guide                                            | Action | Status (rev 2)                                                       | Sources to fold in                                                                                               | Charter parts | Tracking                                                          |
+| ------------------------------------------------------- | ------ | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------- |
+| CHARTER.md                                              | new    | Done                                                                 | This document                                                                                                    | all           | —                                                                 |
+| ARCHITECTURE.md                                         | merge  | Done                                                                 | README caching, rate limiting, streaming, error handling sections; docs-site interceptors, circuit-breaker pages | 2             | `esi-07y` · [#286](https://github.com/lgriffin/ESI.ts/issues/286) |
+| DESIGN-RULES.md                                         | new    | Done                                                                 | CLAUDE.md key patterns; `generate:endpoints` scaffold usage; naming table above                                  | 3             | `esi-lvi` · [#279](https://github.com/lgriffin/ESI.ts/issues/279) |
+| TESTING.md                                              | merge  | Open: root copy and MUTATION-TESTING remain; still says "37 clients" | Root TESTING.md, MUTATION-TESTING.md, README testing section, ARCHITECTURE §8                                    | 4             | `esi-b4a` · [#273](https://github.com/lgriffin/ESI.ts/issues/273) |
+| SPECIFICATION.md                                        | move   | Open                                                                 | tests/bdd/GUIDE.md + README.md; ears-gherkin-dev skill steps                                                     | 4             | —                                                                 |
+| QUALITY-GATES.md                                        | new    | Done                                                                 | .github/workflows/README.md, docs/nightly-spec-drift.md, scripts table                                           | 5             | `esi-30o` · [#280](https://github.com/lgriffin/ESI.ts/issues/280) |
+| SECURITY.md (guide)                                     | merge  | Done; CODEOWNERS text stale                                          | Remove policy duplication; add SBOM and CODEOWNERS plan                                                          | 6             | `esi-p0s` · [#285](https://github.com/lgriffin/ESI.ts/issues/285) |
+| ERRORS.md                                               | new    | Done                                                                 | docs-site reference/errors.md; `src/core/util/error.ts`                                                          | 2             | `esi-rt2` · [#281](https://github.com/lgriffin/ESI.ts/issues/281) |
+| LOGGING.md                                              | new    | Done                                                                 | Write from the per-client logging refactor                                                                       | 2, 3          | `esi-5zs` · [#282](https://github.com/lgriffin/ESI.ts/issues/282) |
+| PAGINATION.md                                           | new    | Done                                                                 | README streaming and cursor sections; docs-site pagination.md; 9.7.0 changelog for `fetchAll*`                   | 2             | `esi-358` · [#283](https://github.com/lgriffin/ESI.ts/issues/283) |
+| RUNTIME-VALIDATION.md                                   | keep   | Kept; no `Implements:` line yet                                      | Delete README and docs-site copies, link instead                                                                 | 3             | —                                                                 |
+| SDE.md + guides/sde/                                    | move   | Open: `src/sde/docs/` still in place                                 | src/sde/README.md, src/sde/docs/\*, docs-site guide/sde.md                                                       | 2             | —                                                                 |
+| OKF.md                                                  | move   | Done                                                                 | docs/okf-guide.md; link from README and DESIGN-RULES                                                             | 3             | —                                                                 |
+| RELEASE.md                                              | new    | Done                                                                 | release-please config, CHANGELOG conventions, release.yml jobs, SECURITY.md support table                        | 8             | `esi-38g` · [#284](https://github.com/lgriffin/ESI.ts/issues/284) |
+| DOCUMENTATION.md                                        | merge  | Open: still TypeDoc-centred                                          | Rewrite around the target tree; document the site build and metrics                                              | 7             | —                                                                 |
+| BEADS.md                                                | keep   | Open: AGENTS.md still has three Beads blocks                         | Collapse AGENTS.md's three blocks and CLAUDE.md's copy to pointers                                               | 9             | [#276](https://github.com/lgriffin/ESI.ts/issues/276)             |
+| Root TESTING.md, docs/examples.md, docs-site duplicates | retire | Open                                                                 | Examples catalogue becomes docs-site/examples generated from `examples/*.ts` headers                             | 7             | [#264](https://github.com/lgriffin/ESI.ts/issues/264)             |
 
 #### DOC-01 · Ubiquitous · Gap
 
@@ -585,11 +628,11 @@ Counts quoted in documentation (clients, endpoints, requirements, scenarios, tes
 - **Why:** At the time of the survey the docs carried 33, 35, 36, 37 and 39 as the number of clients. Only one is right.
 - **Verified by:** To add: `scripts/doc-metrics.ts`; `validate:versions` extended to fail on a stale version banner or count.
 
-#### DOC-05 · Ubiquitous · Gap
+#### DOC-05 · Ubiquitous · Partial
 
 Every guide **shall** open with the charter requirement identifiers it implements and **shall** be reachable from the README within one link.
 
-- **Why:** Traceability both ways: from a rule to how it is met, and from a reader's landing page to the depth.
+- **Why:** Traceability both ways: from a rule to how it is met, and from a reader's landing page to the depth. Ten of seventeen guides carry an `Implements:` line (TESTING, BEADS, DOCUMENTATION, RUNTIME-VALIDATION, AUDIT, MUTATION-TESTING and CHARTER do not), and every guide except `AUDIT.md` is linked from the README.
 - **Verified by:** To add: link-check script asserting each `guides/*.md` is linked from README and carries an `Implements:` line.
 
 #### DOC-06 · Event-driven · Gap
@@ -597,7 +640,7 @@ Every guide **shall** open with the charter requirement identifiers it implement
 When a public export is added, the pull request **shall** include its JSDoc, its guide section and, where user-facing, an example under `examples/`.
 
 - **Why:** `fetchAll*` (73 methods), `InMemoryFetch` and `createNoopLogger` exist only in the changelog.
-- **Verified by:** PR template checklist; API surface diff makes the addition visible to the reviewer.
+- **Verified by:** To add: a PR template checklist (the repository has none). Today the API surface diff makes the addition visible to the reviewer, and `test:export-coverage --ci` fails a PR that adds an export no test references.
 
 ---
 
@@ -623,7 +666,7 @@ A release **shall** publish only after lint, format, audit allowlist, changelog 
 
 The version string **shall** be identical in `package.json`, `src/core/constants.ts`, the README banner and the docs-site version selector.
 
-- **Why:** The first two are checked. The README and the site have lagged the package by several minors.
+- **Why:** The first two are checked. The README banner (v9.5.2) and the site selector (v9.6.1) have lagged the package by a major.
 - **Verified by:** `scripts/validate-versions.ts`; extend to markdown and the VitePress config, or remove the banners.
 
 #### REL-04 · Unwanted · Gap
@@ -633,19 +676,19 @@ If a version is bumped but not published, then the changelog **shall** record it
 - **Why:** The changelog jumps from 9.1.0 to 9.7.0. Consumers reading it cannot tell whether 9.2 to 9.6 exist.
 - **Verified by:** Release guide procedure; backfill the missing entries once.
 
-#### REL-05 · Ubiquitous · Enforced
+#### REL-05 · Ubiquitous · Gap
 
-The package **shall** support Node 18 or newer and **shall** be tested on the 18, 20 and 22 lines before merge.
+From 11.0.0 the package **shall** support Node 22 or newer and **shall** be tested on every supported Node line before merge.
 
-- **Why:** Global fetch arrived in 18. Dropping 18 is a major version and needs a changelog line, not a silent engines bump.
-- **Verified by:** `engines` field; `ci.yml` matrix.
+- **Why:** Node 18 and 20 have reached end of life (20 in April 2026). Raising the floor is a major version and needs a `feat!:` commit with a `BREAKING CHANGE:` footer, not a silent engines bump; decided for 11.0.0 on 2026-09-26.
+- **Verified by:** Today `engines` says `>=18.0.0`, unit tests run on 18/20/22 and the consumer contract on 18/20/22/24 (`ci.yml`). Moves to Enforced when the 11.0.0 engines bump and the matching CI matrix land.
 
 #### REL-06 · Unwanted · Partial
 
 If a change can make code that works against the previous release fail to compile, throw, or return a different result, then the commit that introduces it **shall** be marked breaking (`type!:` and a `BREAKING CHANGE:` footer with the migration), and anything it removes **shall** have been deprecated in an earlier minor release unless ESI has already removed it.
 
 - **Why:** `^9.x` in a consumer's manifest installs every minor and patch automatically. A break released as a minor breaks those installs silently.
-- **Verified by:** `guides/SEMVER.md` classification and the Reviewer Checklist; the `api-semver` job (#310) for the root entry point's type surface. Runtime behaviour, schema tightening, sub-path exports and required members on implemented interfaces are review-only.
+- **Verified by:** `guides/SEMVER.md` classification and the Reviewer Checklist; the `api-semver` job in `ci.yml` (`npm run api-report:semver`) for the root entry point's type surface. Runtime behaviour, schema tightening, sub-path exports and required members on implemented interfaces are review-only.
 
 ---
 
@@ -669,7 +712,7 @@ While an agent operates under the default conservative profile, it **shall not**
 
 #### PROC-03 · Ubiquitous · Enforced
 
-`master` **shall** accept changes only through a pull request that is up to date with the base and passes the Quality Gate and Lint/Build/Test checks.
+`master` **shall** accept changes only through a pull request that is up to date with the base and passes the `ci-success` and Lint, Build & Test checks.
 
 - **Why:** Recorded in bead `esi-8we`. Force-push is disabled.
 - **Verified by:** GitHub branch protection.
@@ -679,40 +722,53 @@ While an agent operates under the default conservative profile, it **shall not**
 A branch **shall** carry one concern, named by its conventional-commit type and scope.
 
 - **Why:** Reviewers cannot review two things at once.
-- **Verified by:** Code review; PR template.
+- **Verified by:** Code review. There is no PR template yet (see DOC-06).
 
 #### PROC-05 · Ubiquitous · Partial
 
 Agent instruction files (`AGENTS.md`, `CLAUDE.md`) **shall** contain pointers to guides, not copies of them.
 
-- **Why:** The Beads quick reference appears five times across three files. Pointers cannot drift.
+- **Why:** The Beads quick reference still appears three times in `AGENTS.md` and once in `CLAUDE.md`. Pointers cannot drift. The persona files are gone from the repository root.
 - **Verified by:** Roadmap item for BEADS.md; a line-count ceiling on the managed blocks.
 
 ---
 
 ## Part 10 · Gap register
 
-Everything found during the survey that contradicts a requirement above. Each row is tracked as a bead under epic `esi-l38` and mirrored as a GitHub issue under [#287](https://github.com/lgriffin/ESI.ts/issues/287). The guide roadmap in Part 7 is tracked the same way. Severity is about consumer impact, not effort.
+Everything found during the survey, and since, that contradicts a requirement above. Rows marked **Done** stay for traceability until the next revision. Each row is tracked as a bead under epic `esi-l38` and mirrored as a GitHub issue under [#287](https://github.com/lgriffin/ESI.ts/issues/287). The guide roadmap in Part 7 is tracked the same way. Severity is about consumer impact, not effort.
 
-| #   | Sev  | Finding                                                                                       | Requirement               | Fix                                                                                                                                                                               | Bead      | Issue                                                 |
-| --- | ---- | --------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------- |
-| 1   | HIGH | Branch failed `tsc --noEmit` from the logging refactor (two import paths, one stale call)     | ARCH-09, GATE-02          | **Done in revision 1**: paths fixed, `parseJsonBody` receives the client, pagination logging migrated, `logFatal`/`logTrace` exported, `toPinoLogger` keeps pino's `this` binding | `esi-d3o` | [#262](https://github.com/lgriffin/ESI.ts/issues/262) |
-| 2   | HIGH | `npm run docs` / `clean` deleted five committed files in `docs/`                              | DOC-02                    | **TypeDoc moved in revision 1**; remaining: move the markdown to `guides/`                                                                                                        | `esi-a2k` | [#263](https://github.com/lgriffin/ESI.ts/issues/263) |
-| 3   | HIGH | docs-site never built or deployed; duplicates README at two-version lag                       | DOC-03                    | Sync script + release deploy                                                                                                                                                      | `esi-06b` | [#264](https://github.com/lgriffin/ESI.ts/issues/264) |
-| 4   | MED  | `logFatal`/`logTrace` were not exported; global-logger fallback needs a lint gate             | ARCH-09                   | Exports done in revision 1; add the grep gate                                                                                                                                     | `esi-772` | [#265](https://github.com/lgriffin/ESI.ts/issues/265) |
-| 5   | MED  | `isCircuitOpen` missing from `./errors`; plumbing errors are string-typed                     | ARCH-07                   | Export guard; introduce `EsiConfigurationError` family                                                                                                                            | `esi-gyh` | [#266](https://github.com/lgriffin/ESI.ts/issues/266) |
-| 6   | MED  | `CustomEsiClient` missing four getters                                                        | ARCH-08                   | **Done**: getters added, compile-time check in `customClientGetters.test.ts`; `EsiApiFactory` still covers 10 clients                                                             | `esi-eqq` | [#267](https://github.com/lgriffin/ESI.ts/issues/267) |
-| 7   | MED  | No `sideEffects: false`; two pino instances built at import                                   | ARCH-06                   | Lazy logger; add flag; bundle-size check                                                                                                                                          | `esi-piw` | [#268](https://github.com/lgriffin/ESI.ts/issues/268) |
-| 8   | MED  | `handleSinglePageRequest` hardcodes GET; cursor `fetchAll` swallows failures                  | DES-08                    | **Done**: rules in `0051-resilience.feature`; the stream helpers pass the real method and the cursor `fetchAll` rejects                                                           | `esi-dwi` | [#269](https://github.com/lgriffin/ESI.ts/issues/269) |
-| 9   | MED  | No SBOM; no CODEOWNERS; admins exempt from protection                                         | SEC-06, SEC-07            | Add both files; update ruleset                                                                                                                                                    | `esi-wze` | [#270](https://github.com/lgriffin/ESI.ts/issues/270) |
-| 10  | MED  | Tests not linted; knip non-blocking; mutation never gates                                     | TEST-09, GATE-04, TEST-07 | Extend lint; block at release; incremental Stryker on PR                                                                                                                          | `esi-p56` | [#271](https://github.com/lgriffin/ESI.ts/issues/271) |
-| 11  | MED  | Client count quoted as 33, 35, 36, 37 and 39; BDD counted as 41 features; README banner 9.5.2 | DOC-04, REL-03            | Generated metrics; extend version check                                                                                                                                           | `esi-j03` | [#272](https://github.com/lgriffin/ESI.ts/issues/272) |
-| 12  | MED  | Two testing guides with different tier numbers; root `TESTING.md` unlinked                    | DOC-01                    | Merge; adopt the Part 4 table                                                                                                                                                     | `esi-b4a` | [#273](https://github.com/lgriffin/ESI.ts/issues/273) |
-| 13  | LOW  | `sde:seed` points at a missing script                                                         | GATE-06                   | Restore or remove                                                                                                                                                                 | `esi-x3z` | [#274](https://github.com/lgriffin/ESI.ts/issues/274) |
-| 14  | LOW  | Changelog skips 9.2 to 9.6                                                                    | REL-04                    | Backfill once                                                                                                                                                                     | `esi-5fu` | [#275](https://github.com/lgriffin/ESI.ts/issues/275) |
-| 15  | LOW  | Beads quick reference duplicated five times; persona files untracked in the repo root         | PROC-05, PROC-04          | Pointers; move persona files out or ignore them                                                                                                                                   | `esi-udr` | [#276](https://github.com/lgriffin/ESI.ts/issues/276) |
-| 16  | LOW  | Nightly mutation and Schemathesis upload artifacts but file no issue                          | GATE-05                   | Add issue step like the audit job                                                                                                                                                 | `esi-mbr` | [#277](https://github.com/lgriffin/ESI.ts/issues/277) |
-| 17  | LOW  | `CONTRIBUTING.md` says Node 18 while `.nvmrc` says 20; populated `.env` in working trees      | SEC-08, REL-05            | State "18 supported, 20 recommended"; housekeeping                                                                                                                                | `esi-wc6` | [#278](https://github.com/lgriffin/ESI.ts/issues/278) |
+| #   | Sev  | Finding                                                                                                                         | Requirement               | Fix                                                                                                                                                                               | Bead         | Issue                                                                                                        |
+| --- | ---- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------ |
+| 1   | HIGH | Branch failed `tsc --noEmit` from the logging refactor (two import paths, one stale call)                                       | ARCH-09, GATE-02          | **Done in revision 1**: paths fixed, `parseJsonBody` receives the client, pagination logging migrated, `logFatal`/`logTrace` exported, `toPinoLogger` keeps pino's `this` binding | `esi-d3o`    | [#262](https://github.com/lgriffin/ESI.ts/issues/262)                                                        |
+| 2   | HIGH | `npm run docs` / `clean` deleted five committed files in `docs/`                                                                | DOC-02                    | **Done**: TypeDoc moved in revision 1; the five markdown files moved, folded or retired                                                                                           | `esi-a2k`    | [#263](https://github.com/lgriffin/ESI.ts/issues/263)                                                        |
+| 3   | HIGH | docs-site never built or deployed; duplicates README at two-version lag                                                         | DOC-03                    | Sync script + release deploy; scheduled with the 11.0 docs rewrite                                                                                                                | `esi-06b`    | [#264](https://github.com/lgriffin/ESI.ts/issues/264)                                                        |
+| 4   | MED  | `logFatal`/`logTrace` were not exported; global-logger fallback needs a lint gate                                               | ARCH-09                   | Exports done in revision 1; add the lint gate (the pipeline is compliant today)                                                                                                   | `esi-772`    | [#265](https://github.com/lgriffin/ESI.ts/issues/265)                                                        |
+| 5   | MED  | `isCircuitOpen` missing from `./errors`; plumbing errors are string-typed                                                       | ARCH-07                   | Export guard; introduce `EsiConfigurationError` family                                                                                                                            | `esi-gyh`    | [#266](https://github.com/lgriffin/ESI.ts/issues/266)                                                        |
+| 6   | MED  | `CustomEsiClient` missing four getters                                                                                          | ARCH-08                   | **Done**: getters added, compile-time check in `customClientGetters.test.ts`; `EsiApiFactory` still covers 10 clients                                                             | `esi-eqq`    | [#267](https://github.com/lgriffin/ESI.ts/issues/267)                                                        |
+| 7   | MED  | No `sideEffects: false`; two pino instances built at import                                                                     | ARCH-06                   | Lazy logger; add flag; bundle-size check                                                                                                                                          | `esi-piw`    | [#268](https://github.com/lgriffin/ESI.ts/issues/268)                                                        |
+| 8   | MED  | `handleSinglePageRequest` hardcodes GET; cursor `fetchAll` swallows failures                                                    | DES-08                    | **Done**: rules in `0051-resilience.feature`; the stream helpers pass the real method and the cursor `fetchAll` rejects                                                           | `esi-dwi`    | [#269](https://github.com/lgriffin/ESI.ts/issues/269)                                                        |
+| 9   | MED  | No SBOM; no CODEOWNERS; admins exempt from protection                                                                           | SEC-06, SEC-07            | SBOM **done** (SEC-06); CODEOWNERS **done**; admins-included not verifiable from the repo                                                                                         | `esi-wze`    | [#270](https://github.com/lgriffin/ESI.ts/issues/270)                                                        |
+| 10  | MED  | Tests not linted; knip non-blocking; mutation never gates                                                                       | TEST-09, GATE-04, TEST-07 | Incremental Stryker on PR **done** (TEST-07); suite-health and seam lint added; extend `npm run lint`; block knip at release                                                      | `esi-p56`    | [#271](https://github.com/lgriffin/ESI.ts/issues/271)                                                        |
+| 11  | MED  | Client count quoted as 33, 35, 36, 37 and 39; BDD counted as 41 features; README banner 9.5.2                                   | DOC-04, REL-03            | Generated metrics; extend version check                                                                                                                                           | `esi-j03`    | [#272](https://github.com/lgriffin/ESI.ts/issues/272)                                                        |
+| 12  | MED  | Two testing guides with different tier numbers; root `TESTING.md` unlinked                                                      | DOC-01                    | Merge; adopt the Part 4 table                                                                                                                                                     | `esi-b4a`    | [#273](https://github.com/lgriffin/ESI.ts/issues/273)                                                        |
+| 13  | LOW  | `sde:seed` points at a missing script                                                                                           | GATE-06                   | **Done**: removed; script targets checked by `package-scripts.test.ts`                                                                                                            | `esi-x3z`    | [#274](https://github.com/lgriffin/ESI.ts/issues/274)                                                        |
+| 14  | LOW  | Changelog skips 9.2 to 9.6                                                                                                      | REL-04                    | Backfill once                                                                                                                                                                     | `esi-5fu`    | [#275](https://github.com/lgriffin/ESI.ts/issues/275)                                                        |
+| 15  | LOW  | Beads quick reference duplicated five times; persona files untracked in the repo root                                           | PROC-05, PROC-04          | Persona files **gone**; pointers still to do                                                                                                                                      | `esi-udr`    | [#276](https://github.com/lgriffin/ESI.ts/issues/276)                                                        |
+| 16  | LOW  | Nightly mutation and Schemathesis upload artifacts but file no issue                                                            | GATE-05                   | Add issue step like the audit job                                                                                                                                                 | `esi-mbr`    | [#277](https://github.com/lgriffin/ESI.ts/issues/277)                                                        |
+| 17  | LOW  | `CONTRIBUTING.md` says Node 18 while `.nvmrc` says 20; populated `.env` in working trees                                        | SEC-08, REL-05            | State the 11.0.0 floor (Node 22) in CONTRIBUTING; housekeeping                                                                                                                    | `esi-wc6`    | [#278](https://github.com/lgriffin/ESI.ts/issues/278)                                                        |
+| 18  | HIGH | Authenticated paginated results cached under an unhashed key; repeat calls returned page 1                                      | DES-08, SEC-02            | **Done**: the combined body is cached with `requiresAuth`, so it lands under the token-hashed key                                                                                 | `esi-l38.1`  | [#290](https://github.com/lgriffin/ESI.ts/issues/290)                                                        |
+| 19  | HIGH | Default all-pages call silently returned page 1 when a later page kept failing                                                  | DES-08                    | **Done**: surfaces `PAGINATION_INCOMPLETE` ([#413](https://github.com/lgriffin/ESI.ts/pull/413))                                                                                  | `esi-l38.2`  | [#291](https://github.com/lgriffin/ESI.ts/issues/291)                                                        |
+| 20  | MED  | `stream*`/`fetchAll*` threw `EsiError` 304 after a normal call to the same endpoint                                             | DES-08                    | **Done**: the cached body is served on a 304                                                                                                                                      | `esi-l38.3`  | [#292](https://github.com/lgriffin/ESI.ts/issues/292)                                                        |
+| 21  | MED  | Mutations returning 201/204 did not invalidate the cache path prefix                                                            | Part 2 step 7             | **Done**                                                                                                                                                                          | `esi-l38.4`  | [#293](https://github.com/lgriffin/ESI.ts/issues/293)                                                        |
+| 22  | HIGH | Release pipeline broken: release-please GraphQL failure, cosign `--bundle`, token trigger, version marker                       | REL-02, SEC-04            | **Done**: cosign 3 bundle, `x-release-please-version` marker; the remaining trigger problems are row 30                                                                           | `esi-l38.5`  | [#294](https://github.com/lgriffin/ESI.ts/issues/294)                                                        |
+| 23  | MED  | Validation errors retryable, network faults untyped, safe mode and token refresh collapse types                                 | ARCH-07                   | Typed error classes; Phase 3                                                                                                                                                      | `esi-l38.6`  | [#295](https://github.com/lgriffin/ESI.ts/issues/295)                                                        |
+| 24  | MED  | Log lines carry unsanitised URLs; several call sites bypass the per-client logger                                               | SEC-02, ARCH-09           | Sanitise at the logger; migrate call sites; Phase 4                                                                                                                               | `esi-l38.7`  | [#296](https://github.com/lgriffin/ESI.ts/issues/296)                                                        |
+| 25  | MED  | CI does not match the gate matrix: release gate, never-run validators, dead docs job, freshness diff                            | GATE-01..06, REL-02       | Align workflows with Part 5; Phase 5                                                                                                                                              | `esi-l38.8`  | [#297](https://github.com/lgriffin/ESI.ts/issues/297)                                                        |
+| 26  | MED  | Endpoints returning a body lack `responseSchema`                                                                                | DES-02                    | Add schemas; the generator (Phase 3) makes this structural                                                                                                                        | `esi-l38.9`  | [#298](https://github.com/lgriffin/ESI.ts/issues/298)                                                        |
+| 27  | LOW  | Charter revision 1 carried factual errors found while writing the guides                                                        | DOC-01                    | **Done in revision 2**                                                                                                                                                            | `esi-l38.10` | [#299](https://github.com/lgriffin/ESI.ts/issues/299)                                                        |
+| 28  | LOW  | Minor defects: `schema:drift` pairing, half-open extra probe, unused `clientId`, TEST-03 spy                                    | several                   | **Done**                                                                                                                                                                          | `esi-l38.11` | [#300](https://github.com/lgriffin/ESI.ts/issues/300)                                                        |
+| 29  | MED  | A path parameter of exactly `..` passes validation and URL parsing collapses the segment (`characters/../assets/` → `/assets/`) | Part 6 step 2, SEC-01     | Reject `.` and `..` as path parameters; add the case to `security.test.ts`                                                                                                        | —            | [#430](https://github.com/lgriffin/ESI.ts/pull/430)                                                          |
+| 30  | HIGH | Releases need a manual dispatch of `release.yml`, and CI on the release-please PR waits for manual approval                     | REL-02                    | A GitHub App token for release-please; waiting on the maintainer to create it                                                                                                     | —            | [#378](https://github.com/lgriffin/ESI.ts/issues/378), [#383](https://github.com/lgriffin/ESI.ts/issues/383) |
 
 ---
 
@@ -721,12 +777,12 @@ Everything found during the survey that contradicts a requirement above. Each ro
 The order matters: nothing in the documentation work is safe until step 2 is done, and nothing is trustworthy until step 1 is done.
 
 1. **Make the branch compile.** ✅ Revision 1.
-2. **Move TypeDoc output** to `docs-site/public/api` and update `clean`. ✅ Revision 1. The five `docs/` files are moved, folded or retired, and `docs/` no longer exists.
+2. **Move TypeDoc output** to `docs-site/public/api` and update `clean`. ✅ Revision 1. The five hand-written `docs/` files are moved, folded or retired; `docs/` now holds only spikes and generated artefacts.
 3. **Commit this charter** as `guides/CHARTER.md` and file one bead per row of the gap register, tagged with the requirement ID. ✅ Revision 1.
-4. **Merge the duplicates** in the roadmap order: TESTING first (it has the tier conflict), then SECURITY, then ARCHITECTURE. Delete the root copies as each merge lands.
-5. **Write the new guides**: DESIGN-RULES, QUALITY-GATES, ERRORS, LOGGING, PAGINATION, RELEASE. Each opens with `Implements: ARCH-03, DES-01 …`.
-6. **Generate the numbers.** `scripts/doc-metrics.ts` writes `etc/doc-metrics.json`; a small template step stamps the README and site. Extend `validate:versions` to fail on stale banners.
-7. **Publish the site.** `scripts/sync-docs.ts` copies `guides/` into `docs-site/guide/`; release workflow builds VitePress and deploys it with the API reference under `/api/`. Shrink the README to an orientation page.
-8. **Close the security gaps**: CODEOWNERS, SBOM asset, admins in branch protection. Re-run Scorecard and record the new score in the charter's next revision.
+4. **Merge the duplicates** in the roadmap order: TESTING first (it has the tier conflict), then SECURITY, then ARCHITECTURE. Delete the root copies as each merge lands. ◐ SECURITY and ARCHITECTURE merged; TESTING and the root copy remain ([#273](https://github.com/lgriffin/ESI.ts/issues/273)).
+5. **Write the new guides**: DESIGN-RULES, QUALITY-GATES, ERRORS, LOGGING, PAGINATION, RELEASE. Each opens with `Implements: ARCH-03, DES-01 …`. ✅ All six exist with `Implements:` lines.
+6. **Generate the numbers.** `scripts/doc-metrics.ts` writes `etc/doc-metrics.json`; a small template step stamps the README and site. Extend `validate:versions` to fail on stale banners. Open ([#272](https://github.com/lgriffin/ESI.ts/issues/272)).
+7. **Publish the site.** `scripts/sync-docs.ts` copies `guides/` into `docs-site/guide/`; release workflow builds VitePress and deploys it with the API reference under `/api/`. Shrink the README to an orientation page. Open ([#264](https://github.com/lgriffin/ESI.ts/issues/264)); lands with the 11.0 docs rewrite.
+8. **Close the security gaps**: CODEOWNERS, SBOM asset, admins in branch protection. Re-run Scorecard and record the new score in the charter's next revision. ◐ SBOM and CODEOWNERS done; admins-included and the new score still to record ([#239](https://github.com/lgriffin/ESI.ts/issues/239)).
 
 > **Revision rule.** This charter is revised by pull request like any other file. A requirement's status may only move toward Enforced by citing the script or job that proves it. Moving it the other way needs a bead explaining why.

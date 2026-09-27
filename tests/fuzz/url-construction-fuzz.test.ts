@@ -107,9 +107,12 @@ describe('URL Construction Fuzz Tests', () => {
       }
     });
 
-    it('should safely handle dot-dot without slashes via encodeURIComponent', () => {
-      const result = buildEndpointPath(singleParamDef, ['..']);
-      expect(result.path).toContain(encodeURIComponent('..'));
+    it('should reject dot segments, which encodeURIComponent leaves as they are', () => {
+      for (const input of ['.', '..']) {
+        expect(() => {
+          buildEndpointPath(singleParamDef, [input]);
+        }).toThrow(/dot segment/);
+      }
     });
 
     it('should reject inputs with slashes', () => {
@@ -148,7 +151,11 @@ describe('URL Construction Fuzz Tests', () => {
           fc
             .string()
             .filter(
-              (s) => s.length > 0 && !/[/\\?#@!$&'()*+,;=<>{}|^`]/.test(s),
+              (s) =>
+                s.length > 0 &&
+                !/[/\\?#@!$&'()*+,;=<>{}|^`]/.test(s) &&
+                s !== '.' &&
+                s !== '..',
             ),
           (input) => {
             const result = buildEndpointPath(singleParamDef, [input]);

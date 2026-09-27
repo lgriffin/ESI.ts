@@ -12,6 +12,7 @@ import {
 } from '../../src/core/util/validation';
 
 const UNSAFE_PATH_CHARS = /[/\\?#@!$&'()*+,;=<>{}|^`]/;
+const isDotSegment = (s: string): boolean => s === '.' || s === '..';
 
 describe('Parameter Validation Fuzz Tests', () => {
   describe('validatePathParam', () => {
@@ -54,7 +55,12 @@ describe('Parameter Validation Fuzz Tests', () => {
     it('should accept strings without unsafe characters', () => {
       fc.assert(
         fc.property(
-          fc.string().filter((s) => s.length > 0 && !UNSAFE_PATH_CHARS.test(s)),
+          fc
+            .string()
+            .filter(
+              (s) =>
+                s.length > 0 && !UNSAFE_PATH_CHARS.test(s) && !isDotSegment(s),
+            ),
           (input) => {
             if (typeof input === 'string') {
               const result = validatePathParam('test_id', input);
