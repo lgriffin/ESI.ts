@@ -150,32 +150,36 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Raidable listing includes entries both inside and outside their raid window', ({
+  test("Raidable listing gives each skyhook's planet and theft window", ({
     given,
     when,
     then,
   }) => {
     let result: any;
-    const expectedRaidable = [
-      {
-        structure_id: 1047000000001,
-        system_id: 30004759,
-        corporation_id: 98000002,
-        alliance_id: 99000006,
-        raidable_at: '2026-05-20T12:00:00Z',
-        is_raidable: true,
-      },
-      {
-        structure_id: 1047000000003,
-        system_id: 30001984,
-        corporation_id: 98000003,
-        raidable_at: '2026-05-21T08:00:00Z',
-        is_raidable: false,
-      },
-    ];
+    // The shape ESI returns (recorded 2026-09-17, trimmed to two entries).
+    const raidableResponse = {
+      skyhooks: [
+        {
+          planet_id: 40229601,
+          solar_system_id: 30003618,
+          theft_vulnerability: {
+            start: '2026-09-17T12:14:02Z',
+            end: '2026-09-17T14:14:02Z',
+          },
+        },
+        {
+          planet_id: 40202075,
+          solar_system_id: 30003185,
+          theft_vulnerability: {
+            start: '2026-09-17T12:16:31Z',
+            end: '2026-09-17T14:16:31Z',
+          },
+        },
+      ],
+    };
 
     given('raidable skyhooks exist across New Eden', () => {
-      queueResponse({ match: '/skyhooks/raidable', body: expectedRaidable });
+      queueResponse({ match: '/skyhooks/raidable', body: raidableResponse });
     });
 
     when('the client requests raidable skyhooks', async () => {
@@ -187,11 +191,32 @@ defineFeature(feature, (test) => {
       // Cluster-wide and public: no token is sent.
       expect(lastRequest().headers.authorization).toBeUndefined();
       expect(
-        result.map((s: any) => [s.structure_id, s.is_raidable, s.raidable_at]),
+        result.skyhooks.map((s: any) => [
+          s.planet_id,
+          s.solar_system_id,
+          s.theft_vulnerability.start,
+          s.theft_vulnerability.end,
+        ]),
       ).toEqual([
-        [1047000000001, true, '2026-05-20T12:00:00Z'],
-        [1047000000003, false, '2026-05-21T08:00:00Z'],
+        [40229601, 30003618, '2026-09-17T12:14:02Z', '2026-09-17T14:14:02Z'],
+        [40202075, 30003185, '2026-09-17T12:16:31Z', '2026-09-17T14:16:31Z'],
       ]);
+    });
+  });
+
+  test('No skyhook is open to raids', ({ given, when, then }) => {
+    let result: any;
+
+    given('no skyhook is open to raids', () => {
+      queueResponse({ match: '/skyhooks/raidable', body: { skyhooks: [] } });
+    });
+
+    when('the client requests raidable skyhooks', async () => {
+      result = await client.skyhooks.getRaidableSkyhooks();
+    });
+
+    then('the client shall return an empty raidable list', () => {
+      expect(result).toEqual({ skyhooks: [] });
     });
   });
 

@@ -3,7 +3,7 @@ import { EndpointMap } from './EndpointDefinition';
 import {
   SovereigntyHubSchema,
   OrbitalSkyhookSchema,
-  RaidableSkyhookSchema,
+  RaidableSkyhooksResponseSchema,
   SkyhookDetailSchema,
   SovereigntyHubDetailSchema,
 } from '../../schemas/skyhooks';
@@ -27,7 +27,7 @@ export const skyhookEndpoints = {
     path: 'skyhooks/raidable',
     method: 'GET',
     requiresAuth: false,
-    responseSchema: z.array(RaidableSkyhookSchema),
+    responseSchema: RaidableSkyhooksResponseSchema,
   },
   getSkyhookDetail: {
     path: 'corporations/{corporationId}/structures/skyhooks/{skyhookId}',
