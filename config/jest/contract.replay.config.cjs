@@ -5,9 +5,10 @@
 // client pipeline at the BDD transport seam, so it needs the unit tier's
 // jest-fetch-mock setup rather than the live contract config.
 module.exports = {
+  rootDir: '../..',
   preset: 'ts-jest',
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/src/config/jest/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transform: {

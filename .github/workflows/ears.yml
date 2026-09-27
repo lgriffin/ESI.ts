@@ -20,7 +20,7 @@ on:
       - '.beads/issues.jsonl'
       - 'package.json'
       - 'package-lock.json'
-      - 'jest.unit.config.cjs'
+      - 'config/jest/unit.config.cjs'
       - 'tsconfig.json'
       - 'tsconfig.test.json'
       - '.github/workflows/ears.yml'

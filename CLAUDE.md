@@ -26,7 +26,7 @@ npm run check:local    # Every CI tier that runs offline, in one go (--fast: no 
 ### Testing
 
 ```bash
-npm test               # Unit + BDD tests (jest.unit.config.cjs)
+npm test               # Unit + BDD tests (config/jest/unit.config.cjs)
 npm run coverage       # Unit tests with coverage
 npm run bdd            # All BDD scenario tests
 npm run bdd:<domain>   # Single BDD suite (e.g., bdd:market, bdd:character)

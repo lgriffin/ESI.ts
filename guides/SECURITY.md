@@ -72,7 +72,7 @@ Controls tested outside that file:
 | Per-token cache keys | `tests/tdd/core/cacheKey.test.ts`, `tests/tdd/core/requestPipeline/cachePolicy.test.ts` |
 
 ```bash
-npx jest --config jest.unit.config.cjs tests/tdd/core/security.test.ts
+npx jest --config config/jest/unit.config.cjs tests/tdd/core/security.test.ts
 npm test   # includes the security suite
 ```
 

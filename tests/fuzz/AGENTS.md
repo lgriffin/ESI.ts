@@ -40,7 +40,7 @@ A failure prints the shrunk counter-example, the violated invariant, the seed,
 the path and the exact command, for example:
 
 ```bash
-FC_SEED=641468347 FC_PATH=250:13:5:7 npx jest --config jest.fuzz.config.cjs --testPathPatterns circuit-breaker-model.property.test -t "circuit breaker matches the closed/open/half-open reference model holds"
+FC_SEED=641468347 FC_PATH=250:13:5:7 npx jest --config config/jest/fuzz.config.cjs --testPathPatterns circuit-breaker-model.property.test -t "circuit breaker matches the closed/open/half-open reference model holds"
 ```
 
 `FC_NUM_RUNS`, `FC_SEED` and `FC_PATH` are validated; a malformed value fails

@@ -134,7 +134,7 @@ describe('interleaving scheduler', () => {
     expect(message).toContain('invariant "both increments are kept" broke');
     expect(message).toContain('counter is 1, expected 2');
     expect(message).toContain(
-      `ESI_INTERLEAVE_REPLAY=${(failure as InterleavingFailure).choices.join(',')} npx jest --config jest.unit.config.cjs --testPathPatterns=composition`,
+      `ESI_INTERLEAVE_REPLAY=${(failure as InterleavingFailure).choices.join(',')} npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition`,
     );
   });
 

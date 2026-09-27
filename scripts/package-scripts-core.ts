@@ -23,8 +23,8 @@ export interface ScriptTarget {
 }
 
 /**
- * Paths that must resolve to a file: anything under `scripts/`, `examples/` or
- * `tests/`, and the config files runners are pointed at.
+ * Paths that must resolve to a file: anything under `scripts/`, `examples/`,
+ * `tests/` or `config/`, and the config files runners are pointed at.
  *
  * Deliberately narrow. A token this misses is a target that goes unchecked,
  * which is the status quo; a token it wrongly matches fails the suite on a
@@ -32,7 +32,7 @@ export interface ScriptTarget {
  * shell syntax are left out for that reason.
  */
 const DIRECTORY_TARGET =
-  /^(?:scripts|examples|tests)\/[\w./-]+\.(?:ts|cjs|mjs|js|sh)$/;
+  /^(?:scripts|examples|tests|config)\/[\w./-]+\.(?:ts|cjs|mjs|js|sh)$/;
 const CONFIG_TARGET = /^[\w.-]+\.config\.(?:ts|cjs|mjs|js)$/;
 
 function looksLikeAPath(token: string): boolean {
@@ -47,7 +47,7 @@ export function targetsIn(script: string, command: string): ScriptTarget[] {
   const found: ScriptTarget[] = [];
   const seen = new Set<string>();
   for (const raw of command.split(/\s+/)) {
-    // `--config=jest.unit.config.cjs` as well as `--config jest.unit.config.cjs`
+    // `--config=config/jest/unit.config.cjs` as well as `--config config/jest/unit.config.cjs`
     const token = raw.includes('=') ? raw.slice(raw.indexOf('=') + 1) : raw;
     const path = token.replace(/^['"]|['"]$/g, '');
     if (!looksLikeAPath(path) || seen.has(path)) continue;

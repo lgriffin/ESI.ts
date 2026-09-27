@@ -542,7 +542,7 @@ function reproduceCommand(
   const filter = (testName ?? scenario).replace(/[\\"$`]/g, '\\$&');
   // Random mode selects the nightly scenario variants, so a replay needs it.
   const modeVar = mode === 'random' ? 'ESI_INTERLEAVE_MODE=random ' : '';
-  return `${modeVar}ESI_INTERLEAVE_REPLAY=${choices.join(',')} npx jest --config jest.unit.config.cjs --testPathPatterns=composition -t "${filter}"`;
+  return `${modeVar}ESI_INTERLEAVE_REPLAY=${choices.join(',')} npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition -t "${filter}"`;
 }
 
 async function runOnce<W>(

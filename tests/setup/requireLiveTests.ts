@@ -1,7 +1,7 @@
 /**
  * Jest globalSetup for the live test tiers:
- *   - jest.integration.live.config.cjs (npm run test:integration:live)
- *   - jest.contract.live.config.cjs    (npm run contract:live)
+ *   - config/jest/integration.live.config.cjs (npm run test:integration:live)
+ *   - config/jest/contract.live.config.cjs    (npm run contract:live)
  *
  * The live suites guard themselves with `ESI_LIVE_TESTS === 'true' ? describe
  * : describe.skip`. That is right for the default tiers, where skipping is the

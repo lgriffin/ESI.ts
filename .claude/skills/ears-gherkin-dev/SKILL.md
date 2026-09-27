@@ -68,7 +68,7 @@ than restating the requirement.
 ### 4. Run and confirm RED
 
 ```bash
-npx jest --config jest.unit.config.cjs --testPathPatterns=<domain>
+npx jest --config config/jest/unit.config.cjs --testPathPatterns=<domain>
 ```
 
 The scenario must fail. If it passes before you change any source, the test is
@@ -90,7 +90,7 @@ client. ESLint bans `spyOn(client.*)` in `tests/bdd/**`. `etag-caching.steps.ts`
 mocking; `resilience.steps.ts` is the reference for driving real
 `CircuitBreaker` and `RetryStrategy` objects.
 
-`fetch` is already mocked globally by `src/config/jest/jest.setup.ts`, so a
+`fetch` is already mocked globally by `tests/setup/jest.setup.ts`, so a
 step only queues the response through the seam helpers. Removing
 a spy without queueing a response does not hit the network — it fails on
 parsing an empty body, so both edits must land together.
@@ -113,7 +113,7 @@ The minimum source change that satisfies the requirement.
 ### 7. Run and confirm GREEN
 
 ```bash
-npx jest --config jest.unit.config.cjs --testPathPatterns=<domain>
+npx jest --config config/jest/unit.config.cjs --testPathPatterns=<domain>
 ```
 
 ### 8. Audit
