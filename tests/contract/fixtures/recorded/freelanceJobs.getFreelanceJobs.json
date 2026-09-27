@@ -26,54 +26,54 @@
       "headers": {
         "cache-control": "public, max-age=0, must-revalidate",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:26:00 GMT"
+        "expires": "Sun, 27 Sep 2026 08:56:45 GMT"
       },
       "body": {
         "cursor": {
-          "before": "1.GNkS6qT2pLw=",
-          "after": "1.GNkS8XtMhkg="
+          "before": "1.GNkhiEXtAYA=",
+          "after": "1.GNkhuFZyo2g="
         },
         "freelance_jobs": [
+          {
+            "id": "76f484e3-5dfb-4c9f-974a-f63191f22acd",
+            "name": "Plagioclase 90%Jita - Renyn",
+            "state": "Active",
+            "last_modified": "2026-09-27T08:53:16.028Z",
+            "progress": {
+              "current": 0,
+              "desired": 7400000
+            },
+            "reward": {
+              "initial": 185000000,
+              "remaining": 185000000
+            }
+          },
           {
             "id": "05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
             "name": "Gallente Federation Day Contest 2026",
             "state": "Active",
-            "last_modified": "2026-09-27T04:25:25.855Z",
+            "last_modified": "2026-09-27T08:55:05Z",
             "progress": {
-              "current": 14306,
+              "current": 14338,
               "desired": 50000
             },
             "reward": {
               "initial": 500000000,
-              "remaining": 356940000
+              "remaining": 356620000
             }
           },
           {
-            "id": "d949b957-bd25-497c-9441-4c536e13f244",
-            "name": "New Player Support Program by \"Tenebris Academy\"",
+            "id": "44b07e42-1326-4946-80ac-a649c2649088",
+            "name": "Deliver Veldspar for ISK",
             "state": "Active",
-            "last_modified": "2026-09-27T04:25:33.521Z",
+            "last_modified": "2026-09-27T08:55:11.436Z",
             "progress": {
-              "current": 116702,
-              "desired": 175000
+              "current": 2097673,
+              "desired": 15000000
             },
             "reward": {
-              "initial": 700000000,
-              "remaining": 233192000
-            }
-          },
-          {
-            "id": "115ab093-5347-48ea-a850-757ed574d8ea",
-            "name": "New Player Support Program by \"Tenebris Academy\"",
-            "state": "Active",
-            "last_modified": "2026-09-27T04:25:34.082Z",
-            "progress": {
-              "current": 49063,
-              "desired": 190000
-            },
-            "reward": {
-              "initial": 760000000,
-              "remaining": 563748000
+              "initial": 90150000,
+              "remaining": 77542985.27
             }
           }
         ]

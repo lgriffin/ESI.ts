@@ -3,7 +3,7 @@
   "call": {
     "client": "contracts",
     "method": "getPublicContractBids",
-    "args": [236437896]
+    "args": [236445399]
   },
   "recordedAt": "2026-09-27",
   "compatibilityDate": "2026-08-18",
@@ -13,14 +13,14 @@
   "truncated": [],
   "pages": [
     {
-      "url": "contracts/public/bids/236437896",
+      "url": "contracts/public/bids/236445399",
       "status": 200,
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
         "etag": "\"ed2e5773d709f4a0654d954884b08db4e152aeb8a70cb70b54e01bc4\"",
-        "expires": "Sun, 27 Sep 2026 04:27:35 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:22:35 GMT",
+        "expires": "Sun, 27 Sep 2026 08:57:04 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:52:04 GMT",
         "x-pages": "1"
       },
       "body": []

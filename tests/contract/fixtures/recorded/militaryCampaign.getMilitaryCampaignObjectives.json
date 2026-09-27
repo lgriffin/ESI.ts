@@ -26,49 +26,49 @@
       "headers": {
         "cache-control": "public, max-age=0, must-revalidate",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:26:01 GMT"
+        "expires": "Sun, 27 Sep 2026 08:56:46 GMT"
       },
       "body": {
         "cursor": {
-          "before": "1.GNkKWOE-u0ho",
-          "after": "1.GNkSyLGtc3S3AQ=="
+          "before": "1.GNkdLV2tp8Aq",
+          "after": "1.GNkhljGesDC3AQ=="
         },
         "objectives": [
           {
-            "id": "a67789c2-80d7-468a-8c0b-2da97e72b74e",
+            "id": "0b3b34b8-84f3-4e23-800f-e5b2a3b61e49",
             "state": "Active",
-            "progress": 1158,
+            "progress": 14472,
             "participants": {
-              "total": 833,
-              "committed": 718,
-              "contributors": 283
+              "total": 1836,
+              "committed": 1567,
+              "contributors": 1245
             },
-            "last_modified": "2026-09-27T01:48:23.708Z",
-            "started": "2026-07-31T23:00:48.052Z"
+            "last_modified": "2026-09-27T07:33:27.538Z",
+            "started": "2026-06-22T16:00:34.24Z"
           },
           {
-            "id": "62f1574f-17df-4f96-ab37-7483cb3afcd0",
+            "id": "36fe563a-bc80-4c86-94a4-114358a8912b",
             "state": "Active",
-            "progress": 22216,
+            "progress": 6634,
             "participants": {
-              "total": 4512,
-              "committed": 4215,
-              "contributors": 3734
+              "total": 1177,
+              "committed": 1074,
+              "contributors": 854
             },
-            "last_modified": "2026-09-27T02:55:41.039Z",
-            "started": "2026-06-16T23:00:23.069Z"
+            "last_modified": "2026-09-27T07:33:37.362Z",
+            "started": "2026-08-20T16:00:03.061Z"
           },
           {
-            "id": "43c786c9-7f00-4ff1-bf01-97350124a3d7",
+            "id": "54f7fd2a-f662-48dd-8035-d1463a4ac751",
             "state": "Active",
-            "progress": 12699,
+            "progress": 1856,
             "participants": {
-              "total": 613,
-              "committed": 539,
-              "contributors": 349
+              "total": 470,
+              "committed": 438,
+              "contributors": 303
             },
-            "last_modified": "2026-09-27T03:33:56.68Z",
-            "started": "2026-09-23T11:00:30.102Z"
+            "last_modified": "2026-09-27T07:33:43.371Z",
+            "started": "2026-09-14T11:00:02.063Z"
           }
         ]
       }

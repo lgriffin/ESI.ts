@@ -3,7 +3,7 @@
   "call": {
     "client": "cosmetics",
     "method": "getSkinr",
-    "args": ["5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd"]
+    "args": ["a2d2a89317a9247c0711aab9b42f906587c55afe59a4cfead860ee367b523bfd"]
   },
   "recordedAt": "2026-09-27",
   "compatibilityDate": "2026-08-18",
@@ -15,29 +15,28 @@
       "page": 1,
       "at": "$.layout.slots",
       "kind": "array",
-      "original": 6,
+      "original": 8,
       "kept": 4
     }
   ],
   "pages": [
     {
-      "url": "cosmetics/skinr/5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
+      "url": "cosmetics/skinr/a2d2a89317a9247c0711aab9b42f906587c55afe59a4cfead860ee367b523bfd",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=31536000, immutable, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"b863a4e02c71c9c127228fc0a7eed6758e65814440bc7397b92a7e2024dcc46e\"",
-        "expires": "Mon, 27 Sep 2027 04:26:02 GMT",
-        "last-modified": "Wed, 23 Sep 2026 09:45:52 GMT"
+        "etag": "W/\"aeddc9922d0c1203c570bb836053605fb057c11f76d8628ee3025f9fc41932ef\"",
+        "expires": "Mon, 27 Sep 2027 08:56:47 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:32:03 GMT"
       },
       "body": {
-        "id": "5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
-        "name": "Sun God Ra Avatar",
-        "line": "Uglyyoda Designs",
-        "creator_id": 2119597578,
-        "ship_type_id": 11567,
+        "id": "a2d2a89317a9247c0711aab9b42f906587c55afe59a4cfead860ee367b523bfd",
+        "name": "Palo Santo",
+        "creator_id": 879268070,
+        "ship_type_id": 22544,
         "tier": {
-          "level": 15
+          "level": 10
         },
         "layout": {
           "slots": [
@@ -45,7 +44,7 @@
               "id": 1,
               "configuration": {
                 "nanocoating": {
-                  "id": 1917
+                  "id": 211
                 }
               }
             },
@@ -53,7 +52,7 @@
               "id": 2,
               "configuration": {
                 "nanocoating": {
-                  "id": 1873
+                  "id": 211
                 }
               }
             },
@@ -61,7 +60,7 @@
               "id": 3,
               "configuration": {
                 "nanocoating": {
-                  "id": 1917
+                  "id": 211
                 }
               }
             },
@@ -69,7 +68,7 @@
               "id": 5,
               "configuration": {
                 "pattern": {
-                  "id": 1700,
+                  "id": 190,
                   "configuration": {
                     "projection": {
                       "slot1": true,
@@ -79,20 +78,20 @@
                     },
                     "transform": {
                       "position": {
-                        "x": -8717.140625,
-                        "y": 1200.8851318359375,
-                        "z": -13588.4052734375
+                        "x": 54.717926025390625,
+                        "y": 127.75910949707031,
+                        "z": 333.013671875
                       },
                       "rotation": {
-                        "x": 0.00528407096862793,
-                        "y": 0.14416170120239258,
-                        "z": 0.04638645425438881,
-                        "w": -0.9884424209594727
+                        "x": -0.4702892601490021,
+                        "y": -0.4641108512878418,
+                        "z": 0.5280327796936035,
+                        "w": -0.5334709286689758
                       },
                       "scaling": {
-                        "x": 2493.9217981663805,
-                        "y": 2493.9217981663805,
-                        "z": 2493.9217981663805
+                        "x": 100.44006453525064,
+                        "y": 100.44006453525064,
+                        "z": 100.44006453525064
                       }
                     },
                     "mirrored": true
@@ -101,7 +100,7 @@
               }
             }
           ],
-          "pattern_blend_mode": "normal"
+          "pattern_blend_mode": "nested"
         }
       }
     }

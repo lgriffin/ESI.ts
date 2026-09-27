@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 2763,
+      "original": 3167,
       "kept": 3
     }
   ],
@@ -26,28 +26,28 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"215a88a4b6d15c9c58cb16965cc4e0354ff91006ee852df2d2f25de7\"",
-        "expires": "Sun, 27 Sep 2026 04:53:21 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:53:21 GMT"
+        "etag": "\"8e56e4484b1cb6b2e5748f6968e357d47fffeb25684baa2248f4448b\"",
+        "expires": "Sun, 27 Sep 2026 09:53:23 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:53:23 GMT"
       },
       "body": [
         {
-          "npc_kills": 62,
+          "npc_kills": 84,
           "pod_kills": 0,
           "ship_kills": 0,
-          "system_id": 30001279
+          "system_id": 30004952
         },
         {
-          "npc_kills": 76,
+          "npc_kills": 419,
           "pod_kills": 0,
-          "ship_kills": 0,
-          "system_id": 30003507
+          "ship_kills": 2,
+          "system_id": 30001380
         },
         {
-          "npc_kills": 441,
+          "npc_kills": 318,
           "pod_kills": 0,
           "ship_kills": 0,
-          "system_id": 30002658
+          "system_id": 30000885
         }
       ]
     }

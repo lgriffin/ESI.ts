@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$.skyhooks",
       "kind": "array",
-      "original": 66,
+      "original": 93,
       "kept": 3
     }
   ],
@@ -26,34 +26,34 @@
       "headers": {
         "cache-control": "public, max-age=300, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"a06390f361c075e611e6fc0f9718184b41dd187d0d2341633ba661b6654be357\"",
-        "expires": "Sun, 27 Sep 2026 04:31:00 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:25:04 GMT"
+        "etag": "W/\"8a59447e9b1b42222084fdf4c9ce56cdb261d1fd6a60cdc624bfed1e6a41001a\"",
+        "expires": "Sun, 27 Sep 2026 09:01:45 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:56:41 GMT"
       },
       "body": {
         "skyhooks": [
           {
-            "planet_id": 40310253,
-            "solar_system_id": 30004896,
+            "planet_id": 40057217,
+            "solar_system_id": 30000896,
             "theft_vulnerability": {
-              "start": "2026-09-27T02:27:06Z",
-              "end": "2026-09-27T04:27:06Z"
+              "start": "2026-09-27T07:03:53Z",
+              "end": "2026-09-27T09:03:53Z"
             }
           },
           {
-            "planet_id": 40137701,
-            "solar_system_id": 30002159,
+            "planet_id": 40187630,
+            "solar_system_id": 30002956,
             "theft_vulnerability": {
-              "start": "2026-09-27T02:29:54Z",
-              "end": "2026-09-27T04:29:54Z"
+              "start": "2026-09-27T07:08:38Z",
+              "end": "2026-09-27T09:08:38Z"
             }
           },
           {
-            "planet_id": 40137037,
-            "solar_system_id": 30002148,
+            "planet_id": 40234319,
+            "solar_system_id": 30003700,
             "theft_vulnerability": {
-              "start": "2026-09-27T02:30:55Z",
-              "end": "2026-09-27T04:30:55Z"
+              "start": "2026-09-27T07:23:48Z",
+              "end": "2026-09-27T09:23:48Z"
             }
           }
         ]

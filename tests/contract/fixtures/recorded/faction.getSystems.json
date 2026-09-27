@@ -26,9 +26,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"4b61af90c5edab342d6b28360a3962c14917ddcadec68753f530a3e0\"",
-        "expires": "Sun, 27 Sep 2026 04:42:48 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:12:48 GMT"
+        "etag": "\"6f7bfd1013552e742f11e97e182ba95776c478ca5df5cdd88f2ee1ea\"",
+        "expires": "Sun, 27 Sep 2026 09:12:52 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:42:52 GMT"
       },
       "body": [
         {
@@ -44,7 +44,7 @@
           "occupier_faction_id": 500003,
           "owner_faction_id": 500002,
           "solar_system_id": 30002097,
-          "victory_points": 73124,
+          "victory_points": 73565,
           "victory_points_threshold": 75000
         },
         {

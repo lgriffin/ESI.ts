@@ -16,7 +16,7 @@
       "at": "$.listings",
       "kind": "array",
       "original": 10,
-      "kept": 3
+      "kept": 4
     }
   ],
   "pages": [
@@ -26,52 +26,65 @@
       "headers": {
         "cache-control": "public, max-age=0, immutable, must-revalidate",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:26:02 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:03:06 GMT"
+        "expires": "Sun, 27 Sep 2026 08:56:47 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:56:43 GMT"
       },
       "body": {
         "cursor": {
-          "before": "1.MTc5MDQ3OTAzMjM0OS0w",
-          "after": "1.MTc5MDQ4MTc4NjAyOS0w"
+          "before": "1.MTc5MDQ5NzY5MDE3Ny0w",
+          "after": "1.MTc5MDQ5OTQwMzg4My0w"
         },
         "listings": [
           {
-            "id": "574dfcae-2e19-4f60-93c9-2fa844e83963",
+            "id": "f3e4c495-64d3-4e6e-9d7e-b335da9376cc",
             "state": "listed",
-            "last_modified": "2026-09-27T03:17:12Z",
-            "seller_id": 2119597578,
-            "skinr_id": "5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
-            "created": "2026-09-27T03:17:12Z",
-            "expires": "2026-10-04T03:17:12Z",
-            "quantity": 1,
+            "last_modified": "2026-09-27T08:28:10Z",
+            "seller_id": 879268070,
+            "skinr_id": "a2d2a89317a9247c0711aab9b42f906587c55afe59a4cfead860ee367b523bfd",
+            "created": "2026-09-27T08:28:09Z",
+            "expires": "2026-12-26T08:28:09Z",
+            "quantity": 3,
             "price": {
-              "isk": 2000000000
+              "isk": 1112000000
             }
           },
           {
-            "id": "a53f83ef-ee15-4770-9be0-67b37ad0df2a",
+            "id": "918484c3-3c92-43b1-b180-2d74c858def7",
             "state": "listed",
-            "last_modified": "2026-09-27T03:17:39Z",
-            "seller_id": 2119597578,
-            "skinr_id": "86b24cb2b22f54fdf5a644a31691b899da38b7b822ac8445e61294d2ca7d862b",
-            "created": "2026-09-27T03:17:39Z",
-            "expires": "2026-10-04T03:17:39Z",
-            "quantity": 1,
+            "last_modified": "2026-09-27T08:28:33Z",
+            "seller_id": 879268070,
+            "skinr_id": "2a77e55891a0d22395123ecb37978600598f1c57f48b721e845497a394488162",
+            "created": "2026-09-27T08:28:32Z",
+            "expires": "2026-12-26T08:28:32Z",
+            "quantity": 5,
             "price": {
-              "isk": 1200000000
+              "isk": 900000000
             }
           },
           {
-            "id": "b9e09d79-e24c-4a52-8516-042d7cac2256",
-            "state": "removed",
-            "last_modified": "2026-09-27T03:33:45Z",
-            "seller_id": 94447432,
-            "skinr_id": "09c20eaee750d701c084a8d62c0b4d956764c06c824a4d9da3f75b2ab17f62f4",
-            "created": "2026-09-14T04:29:28Z",
-            "expires": "2026-12-13T04:29:28Z",
+            "id": "1f270f2c-e6b1-4831-9a87-e795be57ee2a",
+            "state": "listed",
+            "last_modified": "2026-09-27T08:43:58Z",
+            "seller_id": 690920406,
+            "skinr_id": "9f4b7269a2ecb8a486fca6125b60d078993522ccdfcd91466a7b6be423a93237",
+            "created": "2026-09-27T08:43:57Z",
+            "expires": "2026-12-26T08:43:57Z",
             "quantity": 1,
             "price": {
-              "plex": 94
+              "isk": 1899000000
+            }
+          },
+          {
+            "id": "e905e885-5c90-4a96-bd40-e26dba947d16",
+            "state": "listed",
+            "last_modified": "2026-09-27T08:55:38Z",
+            "seller_id": 634413017,
+            "skinr_id": "4f02af954fbe6913a3ba5e2f2dd670479c4900d12b524b51f47e67e87a3f310d",
+            "created": "2026-09-27T08:55:38Z",
+            "expires": "2026-12-26T08:55:38Z",
+            "quantity": 1,
+            "price": {
+              "plex": 85
             }
           }
         ]

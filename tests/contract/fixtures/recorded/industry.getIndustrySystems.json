@@ -47,9 +47,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"090142db15de1cf596523ba5f343c295375e04e3cdfa5426be888d32\"",
-        "expires": "Sun, 27 Sep 2026 04:33:04 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:33:04 GMT"
+        "etag": "\"1da9b8d8b291bccf1afc30713a39f2e0886993a2ba0160ae94cc23f4\"",
+        "expires": "Sun, 27 Sep 2026 09:33:17 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:33:17 GMT"
       },
       "body": [
         {
@@ -73,7 +73,7 @@
           "cost_indices": [
             {
               "activity": "manufacturing",
-              "cost_index": 0.038
+              "cost_index": 0.0379
             },
             {
               "activity": "researching_time_efficiency",
@@ -90,7 +90,7 @@
           "cost_indices": [
             {
               "activity": "manufacturing",
-              "cost_index": 0.0249
+              "cost_index": 0.0248
             },
             {
               "activity": "researching_time_efficiency",

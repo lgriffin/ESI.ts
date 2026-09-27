@@ -3,7 +3,7 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["05a5c1e2-f7ff-48d9-8015-2b0140ad0179"]
+    "args": ["76f484e3-5dfb-4c9f-974a-f63191f22acd"]
   },
   "recordedAt": "2026-09-27",
   "compatibilityDate": "2026-08-18",
@@ -15,110 +15,101 @@
       "page": 1,
       "at": "$.details.description",
       "kind": "string",
-      "original": 526,
+      "original": 420,
       "kept": 400
     },
     {
       "page": 1,
-      "at": "$.configuration.parameters.fw_complex_type.matcher.values[].values",
+      "at": "$.access_and_visibility.broadcast_locations",
       "kind": "array",
-      "original": 4,
-      "kept": 3
-    },
-    {
-      "page": 1,
-      "at": "$.configuration.parameters.location.matcher.values[].values",
-      "kind": "array",
-      "original": 5,
+      "original": 7,
       "kept": 3
     }
   ],
   "pages": [
     {
-      "url": "freelance-jobs/05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
+      "url": "freelance-jobs/76f484e3-5dfb-4c9f-974a-f63191f22acd",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:27:01 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:25:25 GMT"
+        "expires": "Sun, 27 Sep 2026 08:57:45 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:53:16 GMT"
       },
       "body": {
-        "id": "05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
-        "name": "Gallente Federation Day Contest 2026",
+        "id": "76f484e3-5dfb-4c9f-974a-f63191f22acd",
+        "name": "Plagioclase 90%Jita - Renyn",
         "state": "Active",
-        "last_modified": "2026-09-27T04:25:25.855Z",
+        "last_modified": "2026-09-27T08:53:16.028Z",
         "progress": {
-          "current": 14306,
-          "desired": 50000
+          "current": 0,
+          "desired": 7400000
         },
         "reward": {
-          "initial": 500000000,
-          "remaining": 356940000
+          "initial": 185000000,
+          "remaining": 185000000
         },
         "details": {
-          "description": "<font size=\"14\" color=\"#bfffffff\">Objective:<br>Capture as many Plex as you can for the Federation<br>1st Place: 1 Billion ISK<br>2nd Place: 500 Million ISK<br>3rd &amp; 4th Place: 250 Million ISK<br>5th Place:<br>1x Vexor Navy Issue (VNI)<br>1x Exequror Navy Issue (ENI) Hull<br>6th–10th Place:<br>1x Federation Navy Comet Hull<br><br>Get out there and fight for the Federation!<br>Sponsored by The ",
-          "career": "Soldier of Fortune",
-          "created": "2026-06-19T18:55:23.655Z",
-          "expires": "2026-09-29T18:45:00Z",
+          "description": "TD Freelance Jobs provides a simple regional buyback service for individual players and corporations across High-Sec.<br><br>Looking for a reliable outlet for your mining production or regular corporate volumes? We’re open to recurring suppliers and long-term partnerships.<br><br>We’re also recruiting active players interested in mining, industry, logistics and growing with us.<br><br>Fly safe o7<",
+          "career": "Industrialist",
+          "created": "2026-09-27T01:46:16.812Z",
+          "expires": "2026-10-04T01:45:00Z",
           "creator": {
             "character": {
-              "id": 1291547703,
-              "name": "Makaze Koufu"
+              "id": 2123656257,
+              "name": "Tisto II"
             },
             "corporation": {
-              "id": 98755099,
-              "name": "The Wandering Inn"
+              "id": 98776045,
+              "name": "Tilean Silver Lion Company"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "empire_faction": {
-              "matcher": {
-                "values": [
-                  {
-                    "value_type": "faction",
-                    "values": ["500004"]
-                  }
-                ]
-              }
-            },
-            "fw_complex_type": {
-              "matcher": {
-                "values": [
-                  {
-                    "value_type": "archetype",
-                    "values": ["33", "35", "34"]
-                  }
-                ]
-              }
-            },
-            "location": {
-              "matcher": {
-                "values": [
-                  {
-                    "value_type": "region",
-                    "values": ["10000069", "10000064", "10000048"]
-                  }
-                ]
+            "corporation_item_delivery": {
+              "corporation_item_delivery": {
+                "item_type": {
+                  "values": [
+                    {
+                      "value_type": "item_group",
+                      "values": ["458"]
+                    }
+                  ]
+                },
+                "corporation_office_location": {
+                  "values": [
+                    {
+                      "value_type": "station",
+                      "values": ["60011914"]
+                    }
+                  ]
+                }
               }
             }
           },
-          "method": "CaptureFWComplex"
+          "method": "DeliverItem"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 10000,
+          "reward_per_contribution": 25,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30003788,
-              "name": "Intaki"
+              "id": 30004993,
+              "name": "Villore"
+            },
+            {
+              "id": 30004969,
+              "name": "Oursulaert"
+            },
+            {
+              "id": 30004970,
+              "name": "Renyn"
             }
           ]
         }

@@ -47,9 +47,9 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"13fd0df0a43e2959c63d46d1d6d8dc63eaf61f4a8665d97677c715aa\"",
-        "expires": "Sun, 27 Sep 2026 04:30:56 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:25:56 GMT"
+        "etag": "\"bcee39b98887f76f795a00d97f968cb9d5774d1215364e8a58cc6764\"",
+        "expires": "Sun, 27 Sep 2026 09:01:07 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:56:07 GMT"
       },
       "body": [
         {
@@ -57,7 +57,7 @@
           "faction_id": 500019,
           "has_boss": false,
           "infested_solar_systems": [30004416, 30004417, 30004410],
-          "influence": 0.31700000166893005,
+          "influence": 0.6209999918937683,
           "staging_solar_system_id": 30004417,
           "state": "established",
           "type": "Incursion"
@@ -77,7 +77,7 @@
           "faction_id": 500019,
           "has_boss": false,
           "infested_solar_systems": [30000076, 30000077, 30000078],
-          "influence": 0.9675,
+          "influence": 1,
           "staging_solar_system_id": 30000081,
           "state": "established",
           "type": "Incursion"

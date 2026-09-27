@@ -5,7 +5,7 @@
     "method": "getMilitaryCampaignObjective",
     "args": [
       "7519d7db-1e95-4d0e-bbbe-c47cd47de3c0",
-      "a67789c2-80d7-468a-8c0b-2da97e72b74e"
+      "0b3b34b8-84f3-4e23-800f-e5b2a3b61e49"
     ]
   },
   "recordedAt": "2026-09-27",
@@ -16,25 +16,25 @@
   "truncated": [],
   "pages": [
     {
-      "url": "military-campaigns/7519d7db-1e95-4d0e-bbbe-c47cd47de3c0/objectives/a67789c2-80d7-468a-8c0b-2da97e72b74e",
+      "url": "military-campaigns/7519d7db-1e95-4d0e-bbbe-c47cd47de3c0/objectives/0b3b34b8-84f3-4e23-800f-e5b2a3b61e49",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:27:02 GMT",
-        "last-modified": "Sun, 27 Sep 2026 01:48:23 GMT"
+        "expires": "Sun, 27 Sep 2026 08:57:46 GMT",
+        "last-modified": "Sun, 27 Sep 2026 07:33:27 GMT"
       },
       "body": {
-        "id": "a67789c2-80d7-468a-8c0b-2da97e72b74e",
+        "id": "0b3b34b8-84f3-4e23-800f-e5b2a3b61e49",
         "state": "Active",
-        "progress": 1158,
+        "progress": 14472,
         "participants": {
-          "total": 833,
-          "committed": 718,
-          "contributors": 283
+          "total": 1836,
+          "committed": 1567,
+          "contributors": 1245
         },
-        "last_modified": "2026-09-27T01:48:23.708Z",
-        "started": "2026-07-31T23:00:48.052Z"
+        "last_modified": "2026-09-27T07:33:27.538Z",
+        "started": "2026-06-22T16:00:34.24Z"
       }
     }
   ]

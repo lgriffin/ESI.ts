@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 8,
+      "original": 7,
       "kept": 3
     }
   ],
@@ -26,22 +26,11 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"b3cf019c2adbc92d2c3a9a083eb797b6e6bf3acb64ef9f4a8e79c99c\"",
-        "expires": "Sun, 27 Sep 2026 04:26:02 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:25:57 GMT"
+        "etag": "\"3ee171516da12624fdc1cb163599d8cebc0946113111afd3515081b4\"",
+        "expires": "Sun, 27 Sep 2026 08:56:44 GMT",
+        "last-modified": "Sun, 27 Sep 2026 08:56:39 GMT"
       },
       "body": [
-        {
-          "attackers_score": 0.61,
-          "campaign_id": 112206,
-          "constellation_id": 20000227,
-          "defender_id": 99015215,
-          "defender_score": 0.39,
-          "event_type": "ihub_defense",
-          "solar_system_id": 30001546,
-          "start_time": "2026-09-27T03:25:02Z",
-          "structure_id": 1055504687928
-        },
         {
           "attackers_score": 0.4,
           "campaign_id": 112207,
@@ -63,6 +52,17 @@
           "solar_system_id": 30001748,
           "start_time": "2026-09-27T21:31:35Z",
           "structure_id": 1055736759643
+        },
+        {
+          "attackers_score": 0.4,
+          "campaign_id": 112209,
+          "constellation_id": 20000618,
+          "defender_id": 99009287,
+          "defender_score": 0.6,
+          "event_type": "ihub_defense",
+          "solar_system_id": 30004228,
+          "start_time": "2026-09-28T09:46:24Z",
+          "structure_id": 1055170539463
         }
       ]
     }
