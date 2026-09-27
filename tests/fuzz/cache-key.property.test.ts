@@ -13,13 +13,19 @@
  *   Canonical order query parameters appear in the endpoint definition's
  *                   order whichever optional parameters are present, so a
  *                   call cannot produce two spellings of one request.
- *   Identity        for an authenticated endpoint, different access tokens
- *                   never share a key, and no authenticated key equals the
- *                   unauthenticated key of the same URL. For a public
- *                   endpoint the token does not change the key. This holds for
- *                   the deduplication key as well as the cache key: both
- *                   outlive a single request, so both have to say whose data
- *                   they stand for (esi-23g.36).
+ *   Identity        for an authenticated endpoint, tokens for different
+ *                   identities never share a key, and no authenticated key
+ *                   equals the unauthenticated key of the same URL. For a
+ *                   public endpoint the token does not change the key. An
+ *                   identity is the character an EVE SSO token names, so two
+ *                   tokens for one character share a key and tokens for two
+ *                   characters never do; a token naming no character is its
+ *                   own identity. The character counts only once ESI has
+ *                   accepted the token; until then the token is its own
+ *                   identity, whatever it claims. This holds for the
+ *                   deduplication key as well as the cache key: both outlive
+ *                   a single request, so both have to say whose data they
+ *                   stand for (esi-23g.36).
  *
  * Method and body are not part of the key by design: only GET responses are
  * cached (cacheResponse, trySpecAwareCacheHit), so a POST or a request with a
@@ -30,7 +36,12 @@ import { createHash } from 'crypto';
 import * as fc from 'fast-check';
 
 import { ApiClient } from '../../src/core/ApiClient';
-import { buildCacheKey, buildDedupeKey } from '../../src/core/cache/cacheKey';
+import {
+  buildCacheKey,
+  buildConditionalCacheKey,
+  buildDedupeKey,
+  markTokenAccepted,
+} from '../../src/core/cache/cacheKey';
 import { buildEndpointPath } from '../../src/core/endpoints/buildEndpointPath';
 import type { EndpointDefinition } from '../../src/core/endpoints/EndpointDefinition';
 import { describeProperty, invariant } from './support/property';
@@ -184,15 +195,36 @@ function keyProperty(d: KeyDerivation) {
   });
 }
 
+/** An unsigned JWT with the claim EVE SSO uses to name a character. */
+function ssoToken(characterId: number, jti: string): string {
+  const b64 = (v: string) => Buffer.from(v).toString('base64url');
+  return [
+    b64('{"alg":"RS256","typ":"JWT"}'),
+    b64(JSON.stringify({ sub: `CHARACTER:EVE:${characterId}`, jti })),
+    b64('signature'),
+  ].join('.');
+}
+
 /**
- * Different tokens never share a key, and an authenticated key is never the
- * public one. Shared by the cache key and the deduplication key, because the
- * reason is the same for both: a path does not say whose data it returns.
+ * Tokens that name no character. A random string with two dots is a
+ * three-segment token whose middle segment could, in principle, decode to a
+ * character claim; excluding the shape keeps the property exact rather than
+ * probable.
+ */
+const opaqueTokenArb = fc
+  .string({ minLength: 1, maxLength: 40 })
+  .filter((token) => token.split('.').length !== 3);
+
+/**
+ * Tokens for different identities never share a key, and an authenticated
+ * key is never the public one. Shared by the cache key and the deduplication
+ * key, because the reason is the same for both: a path does not say whose
+ * data it returns.
  */
 function identityPropertyOver(pick: (d: KeyDerivation) => KeyFn) {
   return (d: KeyDerivation) =>
     fc.property(
-      fc.uniqueArray(fc.string({ minLength: 1, maxLength: 40 }), {
+      fc.uniqueArray(opaqueTokenArb, {
         minLength: 2,
         maxLength: 8,
       }),
@@ -227,6 +259,72 @@ function identityPropertyOver(pick: (d: KeyDerivation) => KeyFn) {
 
 const identityProperty = identityPropertyOver((d) => d.buildCacheKey);
 const dedupeIdentityProperty = identityPropertyOver((d) => d.buildDedupeKey);
+
+/**
+ * Two accepted SSO tokens for one character share a key whatever else the
+ * tokens carry, tokens for two characters never do, a token ESI has not
+ * accepted shares with nothing, and none shares with an opaque token or the
+ * public key.
+ */
+function characterPropertyOver(pick: (d: KeyDerivation) => KeyFn) {
+  return (d: KeyDerivation) =>
+    fc.property(
+      fc.integer({ min: 1, max: 2_147_483_647 }),
+      fc.integer({ min: 1, max: 2_147_483_647 }),
+      fc.uniqueArray(fc.string({ minLength: 1, maxLength: 12 }), {
+        minLength: 2,
+        maxLength: 2,
+      }),
+      opaqueTokenArb,
+      argsArb,
+      (characterA, characterB, [jtiA, jtiB], opaque, args) => {
+        fc.pre(characterA !== characterB);
+        const keyOf = pick(d);
+        const subject = `${BASE}/${d.buildEndpointPath(DEFINITION, args).path}`;
+        const key = (token: string, accepted: boolean) => {
+          const client = new ApiClient('fuzz', BASE, token);
+          if (accepted) {
+            markTokenAccepted(
+              client,
+              client.getAuthorizationHeader() as string,
+            );
+          }
+          return keyOf(subject, client, true);
+        };
+        const first = key(ssoToken(characterA, jtiA), true);
+        const rotated = key(ssoToken(characterA, jtiB), true);
+        const other = key(ssoToken(characterB, jtiA), true);
+        const unaccepted = key(ssoToken(characterA, jtiB), false);
+        invariant(
+          first === rotated,
+          `two accepted tokens for character ${characterA} have different keys: ${first} and ${rotated}`,
+        );
+        invariant(
+          first !== other,
+          `characters ${characterA} and ${characterB} share the key ${first}`,
+        );
+        invariant(
+          unaccepted !== first && unaccepted !== other,
+          `a token ESI has not accepted shares the key ${unaccepted} of a character`,
+        );
+        const opaqueKey = key(opaque, true);
+        invariant(
+          opaqueKey !== first &&
+            opaqueKey !== other &&
+            opaqueKey !== unaccepted,
+          `opaque token ${JSON.stringify(opaque)} shares the key of a character`,
+        );
+        const publicKey = keyOf(subject, new ApiClient('fuzz', BASE), true);
+        invariant(
+          first !== publicKey && unaccepted !== publicKey,
+          `character ${characterA} shares the unauthenticated key ${publicKey}`,
+        );
+      },
+    );
+}
+
+const characterProperty = characterPropertyOver((d) => d.buildCacheKey);
+const dedupeCharacterProperty = characterPropertyOver((d) => d.buildDedupeKey);
 
 const real = (): KeyDerivation => ({
   buildEndpointPath,
@@ -325,4 +423,65 @@ describeProperty<KeyDerivation>({
     }),
   },
   property: dedupeIdentityProperty,
+});
+
+/**
+ * The header hash alone was the key before PR 10b of the 11.0 plan: a token
+ * refresh emptied the character's cache. `every SSO token is one identity`
+ * is the opposite failure, where the character id is read but not used, and
+ * `the claim is trusted before ESI accepts it` is the security failure the
+ * acceptance gate exists for.
+ */
+describeProperty<KeyDerivation>({
+  name: 'authenticated cache keys follow the character, not the token',
+  file: __filename,
+  subject: real,
+  mutants: {
+    'key hashes the header rather than reading the character': () => ({
+      ...real(),
+      buildCacheKey: (url, client, requiresAuth = false) => {
+        const header = requiresAuth
+          ? client.getAuthorizationHeader()
+          : undefined;
+        if (!header) return url;
+        return `${createHash('sha256').update(header).digest('hex').slice(0, 16)}:${url}`;
+      },
+    }),
+    'every SSO token is one identity': () => ({
+      ...real(),
+      buildCacheKey: (url, client, requiresAuth = false) => {
+        const header = requiresAuth
+          ? client.getAuthorizationHeader()
+          : undefined;
+        if (!header) return url;
+        return header.split('.').length === 3
+          ? `character:0:${url}`
+          : `${createHash('sha256').update(header).digest('hex').slice(0, 16)}:${url}`;
+      },
+    }),
+    'the claim is trusted before ESI accepts it': () => ({
+      ...real(),
+      buildCacheKey: buildConditionalCacheKey,
+    }),
+  },
+  property: characterProperty,
+});
+
+describeProperty<KeyDerivation>({
+  name: 'authenticated deduplication keys follow the character, not the token',
+  file: __filename,
+  subject: real,
+  mutants: {
+    'key hashes the header rather than reading the character': () => ({
+      ...real(),
+      buildDedupeKey: (endpoint, client, requiresAuth = false) => {
+        const header = requiresAuth
+          ? client.getAuthorizationHeader()
+          : undefined;
+        if (!header) return endpoint;
+        return `${createHash('sha256').update(header).digest('hex').slice(0, 16)}:${endpoint}`;
+      },
+    }),
+  },
+  property: dedupeCharacterProperty,
 });
