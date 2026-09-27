@@ -43,18 +43,56 @@ describe('./sde/memory bundle', () => {
   );
 
   // The same check on the shipped files, so a tsup configuration change
-  // (an entry, a chunk, a shim) cannot pull a peer in unnoticed.
+  // (an entry, a chunk, a shim) cannot pull a peer in unnoticed. tsup
+  // splits shared code into chunk files the entry imports, so the check
+  // covers every relative import the entry reaches, not the entry alone.
   const built = ['dist/sde/memory.mjs', 'dist/sde/memory.js']
     .map((file) => path.join(ROOT, file))
     .filter((file) => existsSync(file));
   (built.length > 0 ? it.each(built) : it.skip.each(built))(
-    'the built %s contains none of the forbidden strings',
+    'the built %s and the chunks it loads contain none of the forbidden strings',
     (file) => {
-      expect(found(readFileSync(file, 'utf8'))).toEqual([]);
+      const files = shippedClosure(file);
+      expect(files.length).toBeGreaterThanOrEqual(1);
+      for (const shipped of files) {
+        expect({
+          file: path.relative(ROOT, shipped),
+          found: found(readFileSync(shipped, 'utf8')),
+        }).toEqual({ file: path.relative(ROOT, shipped), found: [] });
+      }
     },
   );
 
   it('the check itself catches the strings it looks for', () => {
     expect(found("import yaml from 'js-yaml';")).toEqual(['js-yaml']);
   });
+
+  it('the shipped-file walk follows relative imports and requires', () => {
+    expect(
+      relativeImports(
+        "import { a } from './chunk-A.mjs';\nvar b = require(\"../chunk-B.js\");\nimport 'zod';",
+      ),
+    ).toEqual(['./chunk-A.mjs', '../chunk-B.js']);
+  });
+
+  /** The relative specifiers a built file imports or requires. */
+  function relativeImports(text: string): string[] {
+    const pattern = /(?:from|import|require\()\s*["'](\.\.?\/[^"']+)["']/g;
+    return [...text.matchAll(pattern)].map((m) => m[1] as string);
+  }
+
+  /** The built file plus every file it reaches through relative imports. */
+  function shippedClosure(entry: string): string[] {
+    const seen = new Set<string>();
+    const queue = [entry];
+    while (queue.length > 0) {
+      const file = queue.shift() as string;
+      if (seen.has(file) || !existsSync(file)) continue;
+      seen.add(file);
+      for (const specifier of relativeImports(readFileSync(file, 'utf8'))) {
+        queue.push(path.resolve(path.dirname(file), specifier));
+      }
+    }
+    return [...seen];
+  }
 });

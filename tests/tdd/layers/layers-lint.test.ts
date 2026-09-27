@@ -65,6 +65,15 @@ describe('layer lint rule', () => {
     ['src/auth/EveSsoClient.ts', '../sde', 'sideModule'],
     ['src/testing/index.ts', '../sde/SdeTestDataFactory', 'sideModule'],
     ['src/sdeLike/helper.ts', '../sde', 'sideModule'],
+    // ...not even through the package's own exports.
+    ['src/index.ts', '@lgriffin/esi.ts/sde', 'sideModule'],
+    [
+      'src/clients/UniverseClient.ts',
+      '@lgriffin/esi.ts/sde/memory',
+      'sideModule',
+    ],
+    ['src/adapters/StaticData.ts', '@lgriffin/esi.ts/sde/index', 'sideModule'],
+    ['src/sde/SdeDataProvider.ts', '@lgriffin/esi.ts/sde', 'sde'],
     // Judged by where the specifier lands, not how it is spelled.
     ['src/core/ApiClient.ts', '.././clients/MarketClient', 'core'],
     ['src/core/ApiClient.ts', '../clients/../EsiClient', 'core'],
@@ -133,6 +142,8 @@ describe('layer lint rule', () => {
     ['src/sde/optionalPeers.ts', 'node:module'],
     ['src/sde/ingestion/SdeExtractor.ts', 'node:stream/promises'],
     ['src/index.ts', './sdeLike/helper'],
+    ['src/index.ts', '@lgriffin/esi.ts-sde'],
+    ['src/clients/UniverseClient.ts', '@lgriffin/esi.ts/schemas'],
     ['src/clients/UniverseClient.ts', '../core/ApiClient'],
   ])('%s may import %s', async (file, specifier) => {
     expect(await violations(file, specifier)).toEqual([]);

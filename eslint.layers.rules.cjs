@@ -61,6 +61,16 @@ const PORTS = 'src/core/ports';
 const SDE = 'src/sde';
 
 /**
+ * The package's own name: `@lgriffin/esi.ts/sde` and `@lgriffin/esi.ts/sde/memory`
+ * are the SDE reached through the package's exports, and count as the SDE.
+ */
+const SELF = require('./package.json').name;
+
+/** Whether a bare specifier is one of this package's own SDE sub-paths. */
+const selfSde = (specifier) =>
+  specifier === `${SELF}/sde` || specifier.startsWith(`${SELF}/sde/`);
+
+/**
  * Packages src/sde may import: its runtime dependency and the optional peers
  * it loads lazily (see src/sde/optionalPeers.ts). Node built-ins are allowed
  * by their `node:` prefix.
@@ -126,7 +136,11 @@ function check(importer, specifier, baseline) {
       : specifier.startsWith('node:') || SDE_PACKAGES.includes(specifier);
     return allowed ? null : { messageId: 'sde', target: shown };
   }
-  if (!relative) return null;
+  if (!relative) {
+    return selfSde(specifier)
+      ? { messageId: 'sideModule', target: shown }
+      : null;
+  }
   const top = topOfSrc(target);
   if (within(importer, 'src/core') && !baseline.includes(importer)) {
     return ABOVE_CORE.includes(top) ? { messageId: 'core', target } : null;
