@@ -27,7 +27,7 @@ import {
   CharacterInfoSchema,
   ServerStatusSchema,
 } from '@lgriffin/esi.ts/schemas';
-import { TestDataFactory } from '@lgriffin/esi.ts/testing';
+import { createMockTransport, TestDataFactory } from '@lgriffin/esi.ts/testing';
 import {
   createEsi,
   identityFromToken,
@@ -123,6 +123,31 @@ async function main(): Promise<void> {
     /VALIDATION_ERROR/,
     './client refuses an empty user agent',
   );
+
+  // ./testing: a mock transport under a runtime, answering by path template
+  // and recording what the view sent.
+  const transport = createMockTransport().respond({
+    method: 'GET',
+    path: '/characters/{character_id}/wallet',
+    body: 7.5,
+  });
+  const mocked: Esi = createEsi({
+    userAgent: 'consumer-contract/1.0 (ci@example.com)',
+    logLevel: 'error',
+    transport,
+  });
+  const mockedBalance: number = await mocked
+    .as(identity)
+    .character(90000001)
+    .wallet.get();
+  assert.equal(mockedBalance, 7.5);
+  assert.equal(transport.sent.length, 1);
+  assert.equal(
+    transport.sent[0]?.headers['authorization'],
+    'Bearer consumer-token',
+  );
+  assert.deepEqual(transport.unrouted, []);
+  mocked.shutdown();
 
   // ./errors
   const validation = new EsiValidationError(

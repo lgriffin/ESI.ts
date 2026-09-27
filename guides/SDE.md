@@ -415,7 +415,7 @@ const sde = new MemorySdeProvider({
 console.log(sde.getTypesByGroup(18).map((t) => t.name)); // ["Tritanium", "Pyerite"]
 ```
 
-The ESI side is stubbed at the transport seam the same way it is in the library's own tests (`setFetch()` today; `createMockTransport` once Phase 2 PR 12 lands, see [TESTING.md](TESTING.md)). A test of a join therefore has two doubles that know nothing of each other, mirroring production, and no third thing to mock.
+The ESI side is stubbed at the transport seam the same way it is in the library's own tests (`createMockTransport()` from `./testing`, see [TESTING.md](TESTING.md#testing-your-application)). A test of a join therefore has two doubles that know nothing of each other, mirroring production, and no third thing to mock.
 
 The library's own SDE tests run at three tiers: unit tests against `MemorySdeProvider`, BDD scenarios under `tests/bdd/features/sde/`, and integration tests that load a real export from `sde-data/` when it is present. Track S adds the mutation, fuzz, type-test, benchmark and nightly-drift tiers the core already has; the plan and the current state of each are in [ROADMAP.md](ROADMAP.md#track-s--the-sde-programme).
 
