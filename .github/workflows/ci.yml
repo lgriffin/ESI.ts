@@ -88,6 +88,11 @@ jobs:
       - name: Generated operations cover the spec
         run: npm run spec:coverage
 
+      # DES-02: every endpoint definition whose operation returns a JSON body
+      # declares a responseSchema.
+      - name: Endpoint definitions declare response schemas
+        run: npm run spec:response-schemas
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:

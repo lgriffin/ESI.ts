@@ -56,6 +56,11 @@ export const TIERS: Tier[] = [
     covers: 'every spec operation is generated',
     stage: 'quick',
   },
+  {
+    script: 'spec:response-schemas',
+    covers: 'every JSON-returning endpoint declares a responseSchema',
+    stage: 'quick',
+  },
   { script: 'lint', covers: 'src lint', stage: 'quick' },
   {
     script: 'lint:suite-health',

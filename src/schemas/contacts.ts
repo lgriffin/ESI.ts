@@ -14,3 +14,6 @@ export const ContactLabelSchema = z.looseObject({
   label_id: z.number(),
   label_name: z.string(),
 });
+
+/** POST characters/{character_id}/contacts: the IDs of the contacts added. */
+export const AddedContactIdsSchema = z.array(z.number());
