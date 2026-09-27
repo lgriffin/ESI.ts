@@ -10,7 +10,13 @@ export interface CachedResponse {
   readonly headers: Readonly<Record<string, string>>;
   /** When the entry was written, in milliseconds since the epoch. */
   readonly timestamp: number;
-  /** How long the entry stays fresh, in milliseconds, when not the default. */
+  /**
+   * How long the store keeps the entry, in milliseconds, when not the store's
+   * default. This is retention, not freshness: the pipeline passes the
+   * response's freshness plus a stale-retention window, so the body stays
+   * available for `If-None-Match` revalidation and stale-on-error after it
+   * stops being fresh. A store drops the entry only once this has passed.
+   */
   readonly ttl?: number;
 }
 
@@ -22,6 +28,7 @@ export interface CacheStore {
     etag: string,
     data: unknown,
     headers: Record<string, string>,
+    /** Retention in milliseconds, as for `CachedResponse.ttl`. */
     ttlMs?: number,
   ): void;
   delete(key: string): boolean;
