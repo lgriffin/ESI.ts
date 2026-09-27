@@ -5,6 +5,7 @@ import { getConfig } from '../../../src/config/configManager';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import fetchMock from 'jest-fetch-mock';
 import { describeClientErrors } from '../helpers/clientErrorTests';
+import type { RaidableSkyhooksResponse } from '../../../src';
 
 fetchMock.enableMocks();
 
@@ -94,7 +95,7 @@ describe('SkyhooksClient', () => {
   });
 
   it('should get raidable skyhooks', async () => {
-    const mockResponse = {
+    const mockResponse: RaidableSkyhooksResponse = {
       skyhooks: [
         {
           planet_id: 40229601,
