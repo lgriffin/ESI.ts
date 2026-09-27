@@ -3,28 +3,31 @@ Feature: Military Campaigns
   campaigns, the detail of one campaign, the objectives inside it, and a
   character's own participation in those objectives. Campaigns and objectives
   are identified by UUID rather than a numeric ID, and both carry a state and a
-  fractional progress value that advance over the campaign's lifetime.
+  progress value that advance over the campaign's lifetime. ESI serves these
+  routes from compatibility date 2026-08-18 and wraps each list in an object:
+  `{ campaigns: [...] }` and `{ objectives: [...], cursor }`.
 
   The character-scoped objective view is the only authenticated surface here;
   campaign and objective data is public.
 
   # ── Campaign listing ────────────────────────────────────────────────
 
-  Rule: When the military campaign listing is requested, the MilitaryCampaigns client shall return each campaign with its campaign_id, state, and progress, and the finish_time of a completed campaign when present.
+  Rule: When the military campaign listing is requested, the MilitaryCampaigns client shall return a campaigns array holding each campaign's id, state, and progress, and the finished time of an ended campaign when present.
     The listing mixes running and finished campaigns. State and progress are
-    what separate them, and finish_time appears only once a campaign has
-    ended, so a caller reads its presence as the end of the campaign's
-    lifetime rather than inferring it from progress reaching 1.0.
+    what separate them, and finished appears only once a campaign has ended,
+    so a caller reads its presence as the end of the campaign's lifetime
+    rather than inferring it from progress. The array sits under a campaigns
+    key, which is the body ESI sends.
 
     Scenario: Active and completed campaigns return state and progress
       Given active and completed military campaigns exist
       When the client requests the campaigns listing
       Then the client shall return campaigns with state and progress
 
-  Rule: If no military campaigns exist, then the MilitaryCampaigns client shall return an empty array.
+  Rule: If no military campaigns exist, then the MilitaryCampaigns client shall return an empty campaigns array.
     Between campaign cycles the listing is legitimately empty. That is
     reported as an empty array rather than an error, so a caller polling for
-    the next campaign branches on length.
+    the next campaign branches on its length.
 
     Scenario: No campaigns in progress returns an empty array
       Given no military campaigns exist
@@ -33,7 +36,7 @@ Feature: Military Campaigns
 
   # ── Campaign and objective detail ───────────────────────────────────
 
-  Rule: When a campaign is requested by UUID, the MilitaryCampaigns client shall return that campaign's state, progress, and start_time.
+  Rule: When a campaign is requested by UUID, the MilitaryCampaigns client shall return that campaign's id, state, and progress, and its started time when present.
     The detail endpoint is how a caller refreshes one campaign it is already
     tracking without re-pulling the whole listing. The start time anchors the
     progress value to a real elapsed duration.
@@ -43,7 +46,7 @@ Feature: Military Campaigns
       When the client requests the campaign details
       Then the client shall return the full campaign information
 
-  Rule: When the objectives of a campaign are requested, the MilitaryCampaigns client shall return each objective with its objective_id, state, progress, and its total, committed, and contributor participant counts.
+  Rule: When the objectives of a campaign are requested, the MilitaryCampaigns client shall return an objectives array holding each objective's id, state, progress, and its total, committed, and contributor participant counts.
     Objectives are where a campaign's progress actually comes from. The three
     participant counts are distinct measures — signed up, committed, and
     actually contributing — so collapsing them into one number would hide
@@ -56,7 +59,7 @@ Feature: Military Campaigns
 
   # ── Character participation ─────────────────────────────────────────
 
-  Rule: When the campaign objectives of a character are requested, the MilitaryCampaigns client shall return each objective with that character's committed flag and contribution value.
+  Rule: When the campaign objectives of a character are requested, the MilitaryCampaigns client shall return an objectives array holding each objective's id with that character's is_committed flag and contributed value.
     This is the personal view of the same objectives: whether the character
     has committed to one, and how much they have contributed to it. Both are
     per-character values that the public objective payload cannot carry.

@@ -45,21 +45,23 @@ defineFeature(feature, (test) => {
     given('active and completed military campaigns exist', () => {
       queueResponse({
         match: esiPath('military-campaigns'),
-        body: [
-          {
-            campaign_id: ACTIVE_CAMPAIGN_ID,
-            state: 'active',
-            progress: 0.45,
-            start_time: '2026-07-01T00:00:00Z',
-          },
-          {
-            campaign_id: COMPLETED_CAMPAIGN_ID,
-            state: 'completed',
-            progress: 1.0,
-            start_time: '2026-06-01T00:00:00Z',
-            finish_time: '2026-06-30T23:59:59Z',
-          },
-        ],
+        body: {
+          campaigns: [
+            {
+              id: ACTIVE_CAMPAIGN_ID,
+              state: 'Active',
+              progress: 12,
+              started: '2026-07-01T00:00:00Z',
+            },
+            {
+              id: COMPLETED_CAMPAIGN_ID,
+              state: 'Completed',
+              progress: 30,
+              started: '2026-06-01T00:00:00Z',
+              finished: '2026-06-30T23:59:59Z',
+            },
+          ],
+        },
       });
     });
 
@@ -72,17 +74,17 @@ defineFeature(feature, (test) => {
       expect(request.method).toBe('GET');
       expect(request.url.pathname).toBe('/military-campaigns');
       expect(
-        result.map((c: any) => [
-          c.campaign_id,
+        result.campaigns.map((c: any) => [
+          c.id,
           c.state,
           c.progress,
-          c.finish_time,
+          c.finished,
         ]),
       ).toEqual([
-        [ACTIVE_CAMPAIGN_ID, 'active', 0.45, undefined],
-        [COMPLETED_CAMPAIGN_ID, 'completed', 1.0, '2026-06-30T23:59:59Z'],
+        [ACTIVE_CAMPAIGN_ID, 'Active', 12, undefined],
+        [COMPLETED_CAMPAIGN_ID, 'Completed', 30, '2026-06-30T23:59:59Z'],
       ]);
-      expect(result[0]).not.toHaveProperty('finish_time');
+      expect(result.campaigns[0]).not.toHaveProperty('finished');
     });
   });
 
@@ -97,10 +99,10 @@ defineFeature(feature, (test) => {
       queueResponse({
         match: esiPath(`military-campaigns/${ACTIVE_CAMPAIGN_ID}`),
         body: {
-          campaign_id: ACTIVE_CAMPAIGN_ID,
-          state: 'active',
-          progress: 0.45,
-          start_time: '2026-07-01T00:00:00Z',
+          id: ACTIVE_CAMPAIGN_ID,
+          state: 'Active',
+          progress: 12,
+          started: '2026-07-01T00:00:00Z',
         },
       });
     });
@@ -115,10 +117,10 @@ defineFeature(feature, (test) => {
         `/military-campaigns/${ACTIVE_CAMPAIGN_ID}`,
       );
       expect(result).toEqual({
-        campaign_id: ACTIVE_CAMPAIGN_ID,
-        state: 'active',
-        progress: 0.45,
-        start_time: '2026-07-01T00:00:00Z',
+        id: ACTIVE_CAMPAIGN_ID,
+        state: 'Active',
+        progress: 12,
+        started: '2026-07-01T00:00:00Z',
       });
     });
   });
@@ -133,22 +135,24 @@ defineFeature(feature, (test) => {
     given('a campaign with objectives', () => {
       queueResponse({
         match: esiPath(`military-campaigns/${ACTIVE_CAMPAIGN_ID}/objectives`),
-        body: [
-          {
-            objective_id: OBJECTIVE_A,
-            campaign_id: ACTIVE_CAMPAIGN_ID,
-            state: 'active',
-            progress: 0.3,
-            participants: { total: 150, committed: 80, contributors: 45 },
-          },
-          {
-            objective_id: OBJECTIVE_B,
-            campaign_id: ACTIVE_CAMPAIGN_ID,
-            state: 'completed',
-            progress: 1.0,
-            participants: { total: 200, committed: 120, contributors: 95 },
-          },
-        ],
+        body: {
+          objectives: [
+            {
+              id: OBJECTIVE_A,
+              state: 'Active',
+              progress: 3,
+              last_modified: '2026-07-02T10:00:00Z',
+              participants: { total: 150, committed: 80, contributors: 45 },
+            },
+            {
+              id: OBJECTIVE_B,
+              state: 'Completed',
+              progress: 10,
+              last_modified: '2026-07-03T10:00:00Z',
+              participants: { total: 200, committed: 120, contributors: 95 },
+            },
+          ],
+        },
       });
     });
 
@@ -164,8 +168,8 @@ defineFeature(feature, (test) => {
         `/military-campaigns/${ACTIVE_CAMPAIGN_ID}/objectives`,
       );
       expect(
-        result.map((o: any) => [
-          o.objective_id,
+        result.objectives.map((o: any) => [
+          o.id,
           o.state,
           o.progress,
           o.participants.total,
@@ -173,8 +177,8 @@ defineFeature(feature, (test) => {
           o.participants.contributors,
         ]),
       ).toEqual([
-        [OBJECTIVE_A, 'active', 0.3, 150, 80, 45],
-        [OBJECTIVE_B, 'completed', 1.0, 200, 120, 95],
+        [OBJECTIVE_A, 'Active', 3, 150, 80, 45],
+        [OBJECTIVE_B, 'Completed', 10, 200, 120, 95],
       ]);
     });
   });
@@ -192,20 +196,24 @@ defineFeature(feature, (test) => {
         match: esiPath(
           `characters/${characterId}/military-campaigns/objectives`,
         ),
-        body: [
-          {
-            objective_id: OBJECTIVE_A,
-            campaign_id: ACTIVE_CAMPAIGN_ID,
-            committed: true,
-            contribution: 42,
-          },
-          {
-            objective_id: OBJECTIVE_B,
-            campaign_id: ACTIVE_CAMPAIGN_ID,
-            committed: false,
-            contribution: 0,
-          },
-        ],
+        body: {
+          objectives: [
+            {
+              id: OBJECTIVE_A,
+              campaign_id: ACTIVE_CAMPAIGN_ID,
+              is_committed: true,
+              contributed: 42,
+              last_modified: '2026-07-02T10:00:00Z',
+            },
+            {
+              id: OBJECTIVE_B,
+              campaign_id: ACTIVE_CAMPAIGN_ID,
+              is_committed: false,
+              contributed: 0,
+              last_modified: '2026-07-03T10:00:00Z',
+            },
+          ],
+        },
       });
     });
 
@@ -223,7 +231,11 @@ defineFeature(feature, (test) => {
       );
       expect(request.headers.authorization).toBe('Bearer bdd-access-token');
       expect(
-        result.map((o: any) => [o.objective_id, o.committed, o.contribution]),
+        result.objectives.map((o: any) => [
+          o.id,
+          o.is_committed,
+          o.contributed,
+        ]),
       ).toEqual([
         [OBJECTIVE_A, true, 42],
         [OBJECTIVE_B, false, 0],
@@ -271,7 +283,10 @@ defineFeature(feature, (test) => {
     let result: any;
 
     given('no military campaigns exist', () => {
-      queueResponse({ match: esiPath('military-campaigns'), body: [] });
+      queueResponse({
+        match: esiPath('military-campaigns'),
+        body: { campaigns: [] },
+      });
     });
 
     when('the client requests the empty campaigns listing', async () => {
@@ -280,7 +295,7 @@ defineFeature(feature, (test) => {
 
     then('the client shall return an empty campaigns array', () => {
       expect(lastRequest().url.pathname).toBe('/military-campaigns');
-      expect(result).toEqual([]);
+      expect(result).toEqual({ campaigns: [] });
     });
   });
 });

@@ -131,14 +131,18 @@ describe('MetaClient', () => {
 
   it('should return the ESI name', async () => {
     const mockResponse = {
-      name: 'EVE Stable Infrastructure',
+      current: 'EVE SKINR Ingenuity (ESI)',
+      history: [
+        { date: '2026-08-18', name: 'EVE SKINR Ingenuity (ESI)' },
+        { date: '2026-08-04', name: 'EVE Soldier Inspiration (ESI)' },
+      ],
     };
 
     fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
     const result = await getBody(() => metaClient.getName());
 
-    expect(result).toHaveProperty('name', 'EVE Stable Infrastructure');
+    expect(result).toEqual(mockResponse);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/meta/name',
     );

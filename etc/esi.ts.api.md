@@ -740,6 +740,9 @@ const CharacterInfoSchema: z.ZodObject<{
     gender: z.ZodType<(string & {}) | "male" | "female", unknown, z.core.$ZodTypeInternals<(string & {}) | "male" | "female", unknown>>;
     security_status: z.ZodOptional<z.ZodNumber>;
     title: z.ZodOptional<z.ZodString>;
+    corporation_title: z.ZodOptional<z.ZodString>;
+    character_title_id: z.ZodOptional<z.ZodString>;
+    achievement_score: z.ZodOptional<z.ZodNumber>;
     birthday: z.ZodString;
 }, z.core.$loose>;
 
@@ -801,10 +804,29 @@ export type CharacterMilitaryCampaignObjective = z.infer<typeof CharacterMilitar
 
 // @public (undocumented)
 const CharacterMilitaryCampaignObjectiveSchema: z.ZodObject<{
-    objective_id: z.ZodString;
+    id: z.ZodString;
     campaign_id: z.ZodString;
-    committed: z.ZodBoolean;
-    contribution: z.ZodNumber;
+    is_committed: z.ZodBoolean;
+    contributed: z.ZodNumber;
+    last_modified: z.ZodString;
+}, z.core.$loose>;
+
+// @public (undocumented)
+export type CharacterMilitaryCampaignObjectivesResponse = z.infer<typeof CharacterMilitaryCampaignObjectivesResponseSchema>;
+
+// @public (undocumented)
+const CharacterMilitaryCampaignObjectivesResponseSchema: z.ZodObject<{
+    objectives: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        campaign_id: z.ZodString;
+        is_committed: z.ZodBoolean;
+        contributed: z.ZodNumber;
+        last_modified: z.ZodString;
+    }, z.core.$loose>>;
+    cursor: z.ZodOptional<z.ZodObject<{
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public
@@ -1685,7 +1707,29 @@ interface CharactersCharacterIdWalletTransactionsGet {
 }
 
 // @public (undocumented)
+interface CharactersCosmeticsSkinr {
+    // (undocumented)
+    licenses: ({
+        activated: boolean;
+        skinr_id: string;
+        unactivated: number;
+    })[];
+}
+
+// @public (undocumented)
+interface CharactersCosmeticsSkinrComponents {
+    // (undocumented)
+    licenses: ({
+        component_id: number;
+        runs: unknown;
+        type: 'nanocoating' | 'pattern';
+    })[];
+}
+
+// @public (undocumented)
 interface CharactersDetail {
+    // (undocumented)
+    achievement_score: number;
     // (undocumented)
     alliance_id?: number;
     // (undocumented)
@@ -1693,7 +1737,11 @@ interface CharactersDetail {
     // (undocumented)
     bloodline_id: number;
     // (undocumented)
+    character_title_id?: string;
+    // (undocumented)
     corporation_id: number;
+    // (undocumented)
+    corporation_title?: string;
     // (undocumented)
     description?: string;
     // (undocumented)
@@ -1706,8 +1754,6 @@ interface CharactersDetail {
     race_id: number;
     // (undocumented)
     security_status?: number;
-    // (undocumented)
-    title?: string;
 }
 
 // @public (undocumented)
@@ -1851,6 +1897,37 @@ interface CharactersMercenaryTacticalOperationsListing {
 }
 
 // @public (undocumented)
+interface CharactersMilitaryCampaignsObjectivesListing {
+    // (undocumented)
+    cursor?: {
+        after?: string;
+        before?: string;
+    };
+    // (undocumented)
+    objectives: ({
+        campaign_id: string;
+        contributed: number;
+        id: string;
+        is_committed: boolean;
+        last_modified: string;
+    })[];
+}
+
+// @public (undocumented)
+interface CharactersMilitaryCampaignsObjectivesParticipation {
+    // (undocumented)
+    campaign_id: string;
+    // (undocumented)
+    contributed: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    is_committed: boolean;
+    // (undocumented)
+    last_modified: string;
+}
+
+// @public (undocumented)
 interface CharactersOnline {
     // (undocumented)
     last_login?: string;
@@ -1860,6 +1937,28 @@ interface CharactersOnline {
     logins?: number;
     // (undocumented)
     online: boolean;
+}
+
+// @public (undocumented)
+interface CharactersParagonHubSkinr {
+    // (undocumented)
+    cursor?: {
+        after?: string;
+        before?: string;
+    };
+    // (undocumented)
+    listings: ({
+        created: string;
+        expires: string;
+        id: string;
+        last_modified: string;
+        price: unknown;
+        quantity: number;
+        seller_id: number;
+        skinr_id: string;
+        state: 'listed' | 'sold_out' | 'expired' | 'removed';
+        target: unknown;
+    })[];
 }
 
 // @public (undocumented)
@@ -2528,7 +2627,7 @@ export type CorporationIndustryJob = z.infer<typeof CorporationIndustryJobSchema
 
 // @public
 const CorporationIndustryJobSchema: z.ZodObject<{
-    status: z.ZodType<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown>>;
+    status: z.ZodType<(string & {}) | "active" | "cancelled" | "delivered" | "paused" | "ready" | "reverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "active" | "cancelled" | "delivered" | "paused" | "ready" | "reverted", unknown>>;
     runs: z.ZodNumber;
     start_date: z.ZodString;
     facility_id: z.ZodNumber;
@@ -2555,7 +2654,7 @@ const CorporationIndustryJobSchema: z.ZodObject<{
 // @public (undocumented)
 export type CorporationInfo = z.infer<typeof CorporationInfoSchema>;
 
-// @public (undocumented)
+// @public
 const CorporationInfoSchema: z.ZodObject<{
     corporation_id: z.ZodOptional<z.ZodNumber>;
     name: z.ZodString;
@@ -2563,15 +2662,28 @@ const CorporationInfoSchema: z.ZodObject<{
     description: z.ZodOptional<z.ZodString>;
     url: z.ZodOptional<z.ZodString>;
     alliance_id: z.ZodOptional<z.ZodNumber>;
-    ceo_id: z.ZodNumber;
-    creator_id: z.ZodNumber;
+    ceo_id: z.ZodOptional<z.ZodNumber>;
+    creator_id: z.ZodOptional<z.ZodNumber>;
     date_founded: z.ZodOptional<z.ZodString>;
     faction_id: z.ZodOptional<z.ZodNumber>;
+    enlisted_faction_id: z.ZodOptional<z.ZodNumber>;
     home_station_id: z.ZodOptional<z.ZodNumber>;
     member_count: z.ZodNumber;
     shares: z.ZodOptional<z.ZodNumber>;
-    tax_rate: z.ZodNumber;
+    tax_rate: z.ZodOptional<z.ZodNumber>;
+    tax_rates: z.ZodOptional<z.ZodObject<{
+        isk: z.ZodNumber;
+        loyalty_point: z.ZodNumber;
+    }, z.core.$loose>>;
     war_eligible: z.ZodOptional<z.ZodBoolean>;
+    friendly_fire: z.ZodOptional<z.ZodType<(string & {}) | "legal" | "illegal", unknown, z.core.$ZodTypeInternals<(string & {}) | "legal" | "illegal", unknown>>>;
+    state: z.ZodOptional<z.ZodType<(string & {}) | "closed" | "active", unknown, z.core.$ZodTypeInternals<(string & {}) | "closed" | "active", unknown>>>;
+    type: z.ZodOptional<z.ZodType<(string & {}) | "player_owned" | "npc_owned", unknown, z.core.$ZodTypeInternals<(string & {}) | "player_owned" | "npc_owned", unknown>>>;
+    palette: z.ZodOptional<z.ZodObject<{
+        main_color: z.ZodString;
+        secondary_color: z.ZodOptional<z.ZodString>;
+        tertiary_color: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -3643,31 +3755,46 @@ interface CorporationsDetail {
     // (undocumented)
     alliance_id?: number;
     // (undocumented)
-    ceo_id: number;
+    ceo_id?: number;
     // (undocumented)
-    creator_id: number;
+    creator_id?: number;
     // (undocumented)
     date_founded?: string;
     // (undocumented)
-    description?: string;
+    description: string;
     // (undocumented)
-    faction_id?: number;
+    enlisted_faction_id?: number;
     // (undocumented)
-    home_station_id?: number;
+    friendly_fire: 'legal' | 'illegal';
+    // (undocumented)
+    home_station_id: number;
     // (undocumented)
     member_count: number;
     // (undocumented)
     name: string;
     // (undocumented)
-    shares?: number;
+    palette?: {
+        main_color: string;
+        secondary_color?: string;
+        tertiary_color?: string;
+    };
     // (undocumented)
-    tax_rate: number;
+    shares: number;
+    // (undocumented)
+    state: 'active' | 'closed';
+    // (undocumented)
+    tax_rates: {
+        isk: number;
+        loyalty_point: number;
+    };
     // (undocumented)
     ticker: string;
     // (undocumented)
+    type: 'player_owned' | 'npc_owned';
+    // (undocumented)
     url?: string;
     // (undocumented)
-    war_eligible?: boolean;
+    war_eligible: boolean;
 }
 
 // @public (undocumented)
@@ -4018,6 +4145,32 @@ export class CosmeticsClient extends BaseEsiClient<typeof cosmeticsEndpoints> {
     getCharacterSkinrComponents(characterId: number): Promise<CharacterSkinrComponents>;
     // (undocumented)
     getSkinr(skinrId: string): Promise<Skinr>;
+}
+
+// @public (undocumented)
+interface CosmeticsSkinr {
+    // (undocumented)
+    creator_id: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    layout: {
+        pattern_blend_mode: 'normal' | 'subtract' | 'exclusion' | 'nested' | 'nested_inverted';
+        slots: ({
+            configuration: unknown;
+            id: number;
+        })[];
+    };
+    // (undocumented)
+    line?: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    ship_type_id: number;
+    // (undocumented)
+    tier: {
+        level: number;
+    };
 }
 
 // @public (undocumented)
@@ -4664,8 +4817,6 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetCharactersAccessListsListing': CharactersAccessListsListing;
     // (undocumented)
-    'GetCharactersCharacterId': CharactersDetail;
-    // (undocumented)
     'GetCharactersCharacterIdAgentsResearch': CharactersCharacterIdAgentsResearchGet[];
     // (undocumented)
     'GetCharactersCharacterIdAssets': CharactersCharacterIdAssetsGet[];
@@ -4756,6 +4907,12 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetCharactersCharacterIdWalletTransactions': CharactersCharacterIdWalletTransactionsGet[];
     // (undocumented)
+    'GetCharactersCosmeticsSkinr': CharactersCosmeticsSkinr;
+    // (undocumented)
+    'GetCharactersCosmeticsSkinrComponents': CharactersCosmeticsSkinrComponents;
+    // (undocumented)
+    'GetCharactersDetail': CharactersDetail;
+    // (undocumented)
     'GetCharactersFreelanceJobsListing': CharactersFreelanceJobsListing;
     // (undocumented)
     'GetCharactersFreelanceJobsParticipation': CharactersFreelanceJobsParticipation;
@@ -4763,6 +4920,12 @@ interface EsiOperationTypes {
     'GetCharactersMercenaryTacticalOperationsDetail': CharactersMercenaryTacticalOperationsDetail;
     // (undocumented)
     'GetCharactersMercenaryTacticalOperationsListing': CharactersMercenaryTacticalOperationsListing;
+    // (undocumented)
+    'GetCharactersMilitaryCampaignsObjectivesListing': CharactersMilitaryCampaignsObjectivesListing;
+    // (undocumented)
+    'GetCharactersMilitaryCampaignsObjectivesParticipation': CharactersMilitaryCampaignsObjectivesParticipation;
+    // (undocumented)
+    'GetCharactersParagonHubSkinr': CharactersParagonHubSkinr;
     // (undocumented)
     'GetCharactersStructuresMercenaryDensDetail': CharactersStructuresMercenaryDensDetail;
     // (undocumented)
@@ -4868,6 +5031,8 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetCorporationsStructuresSovereigntyHubsListing': CorporationsStructuresSovereigntyHubsListing;
     // (undocumented)
+    'GetCosmeticsSkinr': CosmeticsSkinr;
+    // (undocumented)
     'GetDogmaAttributesAttributeId': DogmaAttributesAttributeIdGet;
     // (undocumented)
     'GetDogmaDynamicItemsTypeIdItemId': DogmaDynamicItemsTypeIdItemIdGet;
@@ -4922,7 +5087,25 @@ interface EsiOperationTypes {
     // (undocumented)
     'GetMetaCompatibilityDates': MetaCompatibilityDates_2;
     // (undocumented)
+    'GetMetaName': MetaName_2;
+    // (undocumented)
     'GetMetaStatus': MetaStatus_2;
+    // (undocumented)
+    'GetMilitaryCampaignsDetail': MilitaryCampaignsDetail;
+    // (undocumented)
+    'GetMilitaryCampaignsListing': MilitaryCampaignsListing;
+    // (undocumented)
+    'GetMilitaryCampaignsObjectivesDetail': MilitaryCampaignsObjectivesDetail;
+    // (undocumented)
+    'GetMilitaryCampaignsObjectivesListing': MilitaryCampaignsObjectivesListing;
+    // (undocumented)
+    'GetParagonHubSkinr': ParagonHubSkinr;
+    // (undocumented)
+    'GetParagonHubSkinrAlliances': ParagonHubSkinrAlliances;
+    // (undocumented)
+    'GetParagonHubSkinrCharacters': ParagonHubSkinrCharacters;
+    // (undocumented)
+    'GetParagonHubSkinrCorporations': ParagonHubSkinrCorporations;
     // (undocumented)
     'GetSkyhooksRaidable': SkyhooksRaidable;
     // (undocumented)
@@ -5155,6 +5338,9 @@ declare namespace EsiSpec {
         CorporationsProjectsContributors,
         CorporationsProjectsDetail,
         CorporationsProjectsListing,
+        CharactersCosmeticsSkinr,
+        CharactersCosmeticsSkinrComponents,
+        CosmeticsSkinr,
         DogmaAttributesAttributeIdGet,
         DogmaDynamicItemsTypeIdItemIdGet,
         DogmaEffectsEffectIdGet,
@@ -5210,7 +5396,19 @@ declare namespace EsiSpec {
         MarketsStructuresStructureIdGet,
         MetaChangelog_2 as MetaChangelog,
         MetaCompatibilityDates_2 as MetaCompatibilityDates,
+        MetaName_2 as MetaName,
         MetaStatus_2 as MetaStatus,
+        CharactersMilitaryCampaignsObjectivesListing,
+        CharactersMilitaryCampaignsObjectivesParticipation,
+        MilitaryCampaignsDetail,
+        MilitaryCampaignsListing,
+        MilitaryCampaignsObjectivesDetail,
+        MilitaryCampaignsObjectivesListing,
+        CharactersParagonHubSkinr,
+        ParagonHubSkinr,
+        ParagonHubSkinrAlliances,
+        ParagonHubSkinrCharacters,
+        ParagonHubSkinrCorporations,
         CharactersCharacterIdPlanetsGet,
         CharactersCharacterIdPlanetsPlanetIdGet,
         CorporationsCorporationIdCustomsOfficesGet,
@@ -6509,7 +6707,7 @@ const IndustryJobSchema: z.ZodObject<{
     licensed_runs: z.ZodOptional<z.ZodNumber>;
     probability: z.ZodOptional<z.ZodNumber>;
     product_type_id: z.ZodOptional<z.ZodNumber>;
-    status: z.ZodType<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "cancelled" | "active" | "delivered" | "paused" | "ready" | "reverted", unknown>>;
+    status: z.ZodType<(string & {}) | "active" | "cancelled" | "delivered" | "paused" | "ready" | "reverted", unknown, z.core.$ZodTypeInternals<(string & {}) | "active" | "cancelled" | "delivered" | "paused" | "ready" | "reverted", unknown>>;
     duration: z.ZodNumber;
     start_date: z.ZodString;
     end_date: z.ZodString;
@@ -7360,7 +7558,7 @@ const MercenaryTacticalOperationSchema: z.ZodObject<{
     den_id: z.ZodNumber;
     system_id: z.ZodNumber;
     site_type: z.ZodString;
-    status: z.ZodType<(string & {}) | "expired" | "active" | "spawning" | "completed", unknown, z.core.$ZodTypeInternals<(string & {}) | "expired" | "active" | "spawning" | "completed", unknown>>;
+    status: z.ZodType<(string & {}) | "active" | "expired" | "spawning" | "completed", unknown, z.core.$ZodTypeInternals<(string & {}) | "active" | "expired" | "spawning" | "completed", unknown>>;
     started_at: z.ZodOptional<z.ZodString>;
     expires_at: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
@@ -7426,8 +7624,23 @@ const MetaCompatibilityDatesSchema: z.ZodObject<{
 export type MetaName = z.infer<typeof MetaNameSchema>;
 
 // @public (undocumented)
+interface MetaName_2 {
+    // (undocumented)
+    current: string;
+    // (undocumented)
+    history: ({
+        date: string;
+        name: string;
+    })[];
+}
+
+// @public
 const MetaNameSchema: z.ZodObject<{
-    name: z.ZodString;
+    current: z.ZodString;
+    history: z.ZodArray<z.ZodObject<{
+        date: z.ZodString;
+        name: z.ZodString;
+    }, z.core.$loose>>;
 }, z.core.$loose>;
 
 // @public (undocumented)
@@ -7470,10 +7683,12 @@ export type MilitaryCampaignObjective = z.infer<typeof MilitaryCampaignObjective
 
 // @public (undocumented)
 const MilitaryCampaignObjectiveSchema: z.ZodObject<{
-    objective_id: z.ZodString;
-    campaign_id: z.ZodString;
-    state: z.ZodString;
+    id: z.ZodString;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Completed" | "Expired", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Completed" | "Expired", unknown>>;
     progress: z.ZodNumber;
+    last_modified: z.ZodString;
+    started: z.ZodOptional<z.ZodString>;
+    finished: z.ZodOptional<z.ZodString>;
     participants: z.ZodObject<{
         total: z.ZodNumber;
         committed: z.ZodNumber;
@@ -7482,12 +7697,36 @@ const MilitaryCampaignObjectiveSchema: z.ZodObject<{
 }, z.core.$loose>;
 
 // @public (undocumented)
+export type MilitaryCampaignObjectivesResponse = z.infer<typeof MilitaryCampaignObjectivesResponseSchema>;
+
+// @public (undocumented)
+const MilitaryCampaignObjectivesResponseSchema: z.ZodObject<{
+    objectives: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Completed" | "Expired", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Completed" | "Expired", unknown>>;
+        progress: z.ZodNumber;
+        last_modified: z.ZodString;
+        started: z.ZodOptional<z.ZodString>;
+        finished: z.ZodOptional<z.ZodString>;
+        participants: z.ZodObject<{
+            total: z.ZodNumber;
+            committed: z.ZodNumber;
+            contributors: z.ZodNumber;
+        }, z.core.$loose>;
+    }, z.core.$loose>>;
+    cursor: z.ZodOptional<z.ZodObject<{
+        before: z.ZodOptional<z.ZodString>;
+        after: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
+
+// @public (undocumented)
 const MilitaryCampaignSchema: z.ZodObject<{
-    campaign_id: z.ZodString;
-    state: z.ZodString;
+    id: z.ZodString;
+    state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Completed" | "Expired", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Completed" | "Expired", unknown>>;
     progress: z.ZodNumber;
-    start_time: z.ZodString;
-    finish_time: z.ZodOptional<z.ZodString>;
+    started: z.ZodOptional<z.ZodString>;
+    finished: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
 
 // Warning: (ae-forgotten-export) The symbol "militaryCampaignEndpoints" needs to be exported by the entry point index.d.ts
@@ -7496,12 +7735,97 @@ const MilitaryCampaignSchema: z.ZodObject<{
 export class MilitaryCampaignsClient extends BaseEsiClient<typeof militaryCampaignEndpoints> {
     constructor(client: ApiClient);
     getCharacterMilitaryCampaignObjective(characterId: number, objectiveId: string): Promise<CharacterMilitaryCampaignObjective>;
-    getCharacterMilitaryCampaignObjectives(characterId: number): Promise<CharacterMilitaryCampaignObjective[]>;
+    getCharacterMilitaryCampaignObjectives(characterId: number): Promise<CharacterMilitaryCampaignObjectivesResponse>;
     getMilitaryCampaign(campaignId: string): Promise<MilitaryCampaign>;
     getMilitaryCampaignObjective(campaignId: string, objectiveId: string): Promise<MilitaryCampaignObjective>;
-    getMilitaryCampaignObjectives(campaignId: string): Promise<MilitaryCampaignObjective[]>;
-    getMilitaryCampaigns(): Promise<MilitaryCampaign[]>;
+    getMilitaryCampaignObjectives(campaignId: string): Promise<MilitaryCampaignObjectivesResponse>;
+    getMilitaryCampaigns(): Promise<MilitaryCampaignsResponse>;
 }
+
+// @public (undocumented)
+interface MilitaryCampaignsDetail {
+    // (undocumented)
+    finished?: string;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    progress: number;
+    // (undocumented)
+    started?: string;
+    // (undocumented)
+    state: 'Unspecified' | 'Active' | 'Completed' | 'Expired';
+}
+
+// @public (undocumented)
+interface MilitaryCampaignsListing {
+    // (undocumented)
+    campaigns: ({
+        finished?: string;
+        id: string;
+        progress: number;
+        started?: string;
+        state: 'Unspecified' | 'Active' | 'Completed' | 'Expired';
+    })[];
+}
+
+// @public (undocumented)
+interface MilitaryCampaignsObjectivesDetail {
+    // (undocumented)
+    finished?: string;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    last_modified: string;
+    // (undocumented)
+    participants: {
+        committed: number;
+        contributors: number;
+        total: number;
+    };
+    // (undocumented)
+    progress: number;
+    // (undocumented)
+    started?: string;
+    // (undocumented)
+    state: 'Unspecified' | 'Active' | 'Completed' | 'Expired';
+}
+
+// @public (undocumented)
+interface MilitaryCampaignsObjectivesListing {
+    // (undocumented)
+    cursor?: {
+        after?: string;
+        before?: string;
+    };
+    // (undocumented)
+    objectives: ({
+        finished?: string;
+        id: string;
+        last_modified: string;
+        participants: {
+            committed: number;
+            contributors: number;
+            total: number;
+        };
+        progress: number;
+        started?: string;
+        state: 'Unspecified' | 'Active' | 'Completed' | 'Expired';
+    })[];
+}
+
+// @public (undocumented)
+export type MilitaryCampaignsResponse = z.infer<typeof MilitaryCampaignsResponseSchema>;
+
+// @public (undocumented)
+const MilitaryCampaignsResponseSchema: z.ZodObject<{
+    campaigns: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        state: z.ZodType<(string & {}) | "Unspecified" | "Active" | "Completed" | "Expired", unknown, z.core.$ZodTypeInternals<(string & {}) | "Unspecified" | "Active" | "Completed" | "Expired", unknown>>;
+        progress: z.ZodNumber;
+        started: z.ZodOptional<z.ZodString>;
+        finished: z.ZodOptional<z.ZodString>;
+    }, z.core.$loose>>;
+}, z.core.$loose>;
 
 // @public (undocumented)
 export type MiningLedgerEntry = z.infer<typeof MiningLedgerEntrySchema>;
@@ -7696,6 +8020,90 @@ const ParagonHubCursorSchema: z.ZodObject<{
     after: z.ZodOptional<z.ZodString>;
     before: z.ZodOptional<z.ZodString>;
 }, z.core.$loose>;
+
+// @public (undocumented)
+interface ParagonHubSkinr {
+    // (undocumented)
+    cursor?: {
+        after?: string;
+        before?: string;
+    };
+    // (undocumented)
+    listings: ({
+        created: string;
+        expires: string;
+        id: string;
+        last_modified: string;
+        price: unknown;
+        quantity: number;
+        seller_id: number;
+        skinr_id: string;
+        state: 'listed' | 'sold_out' | 'expired' | 'removed';
+    })[];
+}
+
+// @public (undocumented)
+interface ParagonHubSkinrAlliances {
+    // (undocumented)
+    cursor?: {
+        after?: string;
+        before?: string;
+    };
+    // (undocumented)
+    listings: ({
+        created: string;
+        expires: string;
+        id: string;
+        last_modified: string;
+        price: unknown;
+        quantity: number;
+        seller_id: number;
+        skinr_id: string;
+        state: 'listed' | 'sold_out' | 'expired' | 'removed';
+    })[];
+}
+
+// @public (undocumented)
+interface ParagonHubSkinrCharacters {
+    // (undocumented)
+    cursor?: {
+        after?: string;
+        before?: string;
+    };
+    // (undocumented)
+    listings: ({
+        created: string;
+        expires: string;
+        id: string;
+        last_modified: string;
+        price: unknown;
+        quantity: number;
+        seller_id: number;
+        skinr_id: string;
+        state: 'listed' | 'sold_out' | 'expired' | 'removed';
+    })[];
+}
+
+// @public (undocumented)
+interface ParagonHubSkinrCorporations {
+    // (undocumented)
+    cursor?: {
+        after?: string;
+        before?: string;
+    };
+    // (undocumented)
+    listings: ({
+        created: string;
+        expires: string;
+        id: string;
+        last_modified: string;
+        price: unknown;
+        quantity: number;
+        seller_id: number;
+        skinr_id: string;
+        state: 'listed' | 'sold_out' | 'expired' | 'removed';
+    })[];
+}
 
 // @public (undocumented)
 export type ParagonHubSkinrListing = z.infer<typeof ParagonHubSkinrListingSchema>;
@@ -8317,8 +8725,11 @@ declare namespace schemas {
         ParagonHubSkinrResponseSchema,
         ParagonHubCharacterSkinrResponseSchema,
         MilitaryCampaignSchema,
+        MilitaryCampaignsResponseSchema,
         MilitaryCampaignObjectiveSchema,
+        MilitaryCampaignObjectivesResponseSchema,
         CharacterMilitaryCampaignObjectiveSchema,
+        CharacterMilitaryCampaignObjectivesResponseSchema,
         PlanetaryColonySchema,
         CustomsOfficeSchema,
         ColonyLayoutSchema,

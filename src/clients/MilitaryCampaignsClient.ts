@@ -3,8 +3,11 @@ import { BaseEsiClient } from './BaseEsiClient';
 import { militaryCampaignEndpoints } from '../core/endpoints/militaryCampaignEndpoints';
 import {
   MilitaryCampaign,
+  MilitaryCampaignsResponse,
   MilitaryCampaignObjective,
+  MilitaryCampaignObjectivesResponse,
   CharacterMilitaryCampaignObjective,
+  CharacterMilitaryCampaignObjectivesResponse,
 } from '../types/api-responses';
 
 export class MilitaryCampaignsClient extends BaseEsiClient<
@@ -17,9 +20,9 @@ export class MilitaryCampaignsClient extends BaseEsiClient<
   /**
    * Retrieves a list of all active, completed, and expired military campaigns.
    *
-   * @returns An array of military campaigns
+   * @returns `{ campaigns }`, one entry per campaign
    */
-  getMilitaryCampaigns(): Promise<MilitaryCampaign[]> {
+  getMilitaryCampaigns(): Promise<MilitaryCampaignsResponse> {
     return this.api.getMilitaryCampaigns();
   }
 
@@ -37,11 +40,12 @@ export class MilitaryCampaignsClient extends BaseEsiClient<
    * Retrieves all objectives for a specific military campaign.
    *
    * @param campaignId - The UUID of the military campaign
-   * @returns An array of objectives for the campaign
+   * @returns `{ objectives, cursor }` for the first page of the campaign's
+   *   objectives
    */
   getMilitaryCampaignObjectives(
     campaignId: string,
-  ): Promise<MilitaryCampaignObjective[]> {
+  ): Promise<MilitaryCampaignObjectivesResponse> {
     return this.api.getMilitaryCampaignObjectives(campaignId);
   }
 
@@ -63,12 +67,13 @@ export class MilitaryCampaignsClient extends BaseEsiClient<
    * Retrieves a character's participated objectives across military campaigns.
    *
    * @param characterId - The ID of the character
-   * @returns An array of the character's campaign objective participations
+   * @returns `{ objectives, cursor }` for the first page of the character's
+   *   campaign objective participations
    * @requires Authentication with scope esi.activity.char:read
    */
   getCharacterMilitaryCampaignObjectives(
     characterId: number,
-  ): Promise<CharacterMilitaryCampaignObjective[]> {
+  ): Promise<CharacterMilitaryCampaignObjectivesResponse> {
     return this.api.getCharacterMilitaryCampaignObjectives(characterId);
   }
 
