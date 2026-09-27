@@ -167,9 +167,9 @@ npm run validate:auth-scopes
 | Definition            | Scope map entry | Result                                                       |
 | --------------------- | --------------- | ------------------------------------------------------------ |
 | `requiresAuth: false` | present         | **Error**, exit 1. The token is never sent and ESI refuses.  |
-| `requiresAuth: true`  | absent          | Warning. The token is sent but the scope list is incomplete. |
+| `requiresAuth: true`  | absent          | **Error**, exit 1. The token is sent but no scope is listed. |
 
-A genuine mismatch in the generated map (a path ESI spells differently, or a scope newer than the generated file) is recorded in `scripts/auth-scope-exceptions.json` with a `reason`. Never flip `requiresAuth` to make the script pass; the bearer header is attached only when that flag is set.
+A genuine mismatch in the generated map (a path ESI spells differently, or a scope newer than the generated file) is recorded in `scripts/auth-scope-exceptions.json` with a `reason`. An entry that no longer excuses a mismatch also fails the run, so remove it once the generated map catches up. The file is empty today. Never flip `requiresAuth` to make the script pass; the bearer header is attached only when that flag is set.
 
 ### 3.5 Check the schema against the spec
 
@@ -280,17 +280,17 @@ The README's client table is still maintained by hand; update it until the count
 
 Generated output is committed so a diff shows exactly what CCP changed. It is never edited by hand: the next run overwrites the edit and hides the real change. Prettier ignores `*.generated.ts` and `etc/*.api.md`.
 
-| File or folder                                          | Regenerate with              | Source                              | Freshness check                                  |
-| ------------------------------------------------------- | ---------------------------- | ----------------------------------- | ------------------------------------------------ |
-| `src/types/generated/esi-spec.generated.ts`             | `npm run generate:types`     | OpenAPI schemas                     | CI and release `git diff --exit-code`            |
-| `src/core/endpoints/esi-cache-ttls.generated.ts`        | `npm run generate:types`     | `x-cached-seconds`                  | CI and release `git diff --exit-code`            |
-| `src/core/endpoints/esi-rate-limit-groups.generated.ts` | `npm run generate:types`     | Rate-limit extensions               | Not diffed in CI                                 |
-| `src/core/endpoints/esi-scopes.generated.ts`            | `npm run generate:types`     | Operation `security` blocks         | Not diffed in CI; read by `validate:auth-scopes` |
-| `etc/endpoint-scaffold.generated.reference.ts`          | `npm run generate:endpoints` | Operations                          | None; reference only                             |
-| `src/generated/operations.generated.ts`                 | `npm run spec:generate`      | Vendored contract snapshot          | CI `spec:generate:check` and `spec:coverage`     |
-| `tests/contract/snapshots/esi-openapi.snapshot.json`    | `npm run contract:snapshot`  | Whole document                      | Contract tests fall back to it                   |
-| `okf/`                                                  | `npm run generate:okf`       | Operations and schemas              | None                                             |
-| `etc/esi.ts.api.md`                                     | `npm run api-report`         | `dist/index.d.ts` via api-extractor | CI API Surface Check                             |
+| File or folder                                          | Regenerate with              | Source                              | Freshness check                                |
+| ------------------------------------------------------- | ---------------------------- | ----------------------------------- | ---------------------------------------------- |
+| `src/types/generated/esi-spec.generated.ts`             | `npm run generate:types`     | OpenAPI schemas                     | CI and release `git diff --exit-code`          |
+| `src/core/endpoints/esi-cache-ttls.generated.ts`        | `npm run generate:types`     | `x-cached-seconds`                  | CI and release `git diff --exit-code`          |
+| `src/core/endpoints/esi-rate-limit-groups.generated.ts` | `npm run generate:types`     | Rate-limit extensions               | CI and release `git diff --exit-code`          |
+| `src/core/endpoints/esi-scopes.generated.ts`            | `npm run generate:types`     | Operation `security` blocks         | CI and release; read by `validate:auth-scopes` |
+| `etc/endpoint-scaffold.generated.reference.ts`          | `npm run generate:endpoints` | Operations                          | None; reference only                           |
+| `src/generated/operations.generated.ts`                 | `npm run spec:generate`      | Vendored contract snapshot          | CI `spec:generate:check` and `spec:coverage`   |
+| `tests/contract/snapshots/esi-openapi.snapshot.json`    | `npm run contract:snapshot`  | Whole document                      | Contract tests fall back to it                 |
+| `okf/`                                                  | `npm run generate:okf`       | Operations and schemas              | None                                           |
+| `etc/esi.ts.api.md`                                     | `npm run api-report`         | `dist/index.d.ts` via api-extractor | CI API Surface Check                           |
 
 `npm run generate:all` runs types, OKF, the contract snapshot, schema drift and `validate:esi` in sequence. `generate:types` defaults to the compatibility date in `scripts/generate-esi-types.ts` and accepts `--latest` or `--compatibility-date=YYYY-MM-DD`. The OKF bundle is described in [OKF.md](OKF.md).
 
