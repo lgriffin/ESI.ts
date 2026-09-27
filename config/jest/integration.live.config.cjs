@@ -4,7 +4,7 @@
 // a globalSetup that throws unless ESI_LIVE_TESTS=true. Requesting this tier
 // without the variable fails loudly instead of skipping every suite (R12).
 // The default tier, `npm run test:integration`, is unchanged.
-const base = require('./jest.integration.config.cjs');
+const base = require('./integration.config.cjs');
 
 module.exports = {
   ...base,

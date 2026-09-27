@@ -319,7 +319,7 @@ README §7 and §8 have the rules, and `npm run bdd:steps` checks that every ste
 matches exactly one definition and that no definition is unused.
 
 **The gotcha:** `fetch` is _already_ mocked globally for every BDD file by
-`src/config/jest/jest.setup.ts`, which calls `fetchMock.enableMocks()` and
+`tests/setup/jest.setup.ts`, which calls `fetchMock.enableMocks()` and
 resets in a global `beforeEach`. So deleting a spy does **not** cause a real
 network call — it causes the client to parse an empty body and fail
 confusingly. Removing the spy and queueing the response must land in the same
@@ -429,7 +429,7 @@ mid-flight.
 4. **Confirm RED.**
 
    ```bash
-   npx jest --config jest.unit.config.cjs --testPathPatterns=character
+   npx jest --config config/jest/unit.config.cjs --testPathPatterns=character
    ```
 
    It must fail. A scenario that passes before you touch `src/` is testing

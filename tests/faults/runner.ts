@@ -426,7 +426,7 @@ export function failureMessage(
     `Fault "${fault.id}" on ${target.name} (${fault.title}) broke ${problems.length} invariant(s):`,
     ...problems.map((p) => `  - ${p}`),
     `Specified by: ${describeRule(fault)}`,
-    `Reproduce: npx jest --config jest.faults.config.cjs --testPathPatterns=transport-faults -t "${fault.id} ${target.name}"`,
+    `Reproduce: npx jest --config config/jest/faults.config.cjs --testPathPatterns=transport-faults -t "${fault.id} ${target.name}"`,
   ].join('\n');
 }
 

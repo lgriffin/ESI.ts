@@ -4,7 +4,7 @@
  * Compares the saved OpenAPI spec snapshot against the live spec to detect
  * upstream changes from CCP. Reports diffs as warnings without failing.
  *
- * Run: ESI_LIVE_TESTS=true npx jest --config jest.contract.config.cjs esi-snapshot
+ * Run: ESI_LIVE_TESTS=true npx jest --config config/jest/contract.config.cjs esi-snapshot
  * Snapshot: npm run contract:snapshot
  */
 

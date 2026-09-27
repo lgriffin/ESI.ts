@@ -10,7 +10,7 @@ import { knownGapFor } from './knownGaps';
 import { checkFault, failureMessage, useVirtualClock } from './runner';
 import { TARGETS } from './targets';
 
-// jest.faults.config.cjs has no setup file; the seam drives the global mock.
+// config/jest/faults.config.cjs has no setup file; the seam drives the global mock.
 fetchMock.enableMocks();
 
 const cases = FAULTS.flatMap((fault) =>

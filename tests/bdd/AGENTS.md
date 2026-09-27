@@ -35,7 +35,7 @@ edit anything here:
 ## Before you hand off
 
 ```bash
-npx jest --config jest.unit.config.cjs --testPathPatterns=<domain>  # RED first, then GREEN
+npx jest --config config/jest/unit.config.cjs --testPathPatterns=<domain>  # RED first, then GREEN
 npm run bdd:steps     # every step matches one definition; no unused definitions
 npm run spec:audit    # feature files, step-file layout, and the ratchets
 ```

@@ -6,7 +6,7 @@
  *
  * Gated behind ESI_LIVE_TESTS=true since it fetches from the live API.
  *
- * Run: ESI_LIVE_TESTS=true npx jest --config jest.integration.config.cjs tests/integration/esi-spec-contract.test.ts
+ * Run: ESI_LIVE_TESTS=true npx jest --config config/jest/integration.config.cjs tests/integration/esi-spec-contract.test.ts
  */
 
 import * as fs from 'fs';

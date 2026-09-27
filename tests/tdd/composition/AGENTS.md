@@ -72,9 +72,9 @@ yet (error-limit back-off, write invalidation).
 A failure prints the broken invariant, the event log and a command, e.g.
 
 ```bash
-ESI_INTERLEAVE_REPLAY=0,0,1,0 npx jest --config jest.unit.config.cjs --testPathPatterns=composition -t "2 calls a contact DELETE racing contact list reads with a cold cache"
+ESI_INTERLEAVE_REPLAY=0,0,1,0 npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition -t "2 calls a contact DELETE racing contact list reads with a cold cache"
 # a nightly failure also sets the mode that selects the four-call variants:
-ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=123 ESI_INTERLEAVE_RUNS=2000 npx jest --config jest.unit.config.cjs --testPathPatterns=composition
+ESI_INTERLEAVE_MODE=random ESI_INTERLEAVE_SEED=123 ESI_INTERLEAVE_RUNS=2000 npx jest --config config/jest/unit.config.cjs --testPathPatterns=composition
 ```
 
 ## What does not belong here

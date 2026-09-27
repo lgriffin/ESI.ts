@@ -128,7 +128,7 @@ function replayCommand(
   const escaped = testName
     .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     .replace(/"/g, '\\"');
-  return `${env.join(' ')} npx jest --config jest.fuzz.config.cjs --testPathPatterns ${base} -t "${escaped}"`;
+  return `${env.join(' ')} npx jest --config config/jest/fuzz.config.cjs --testPathPatterns ${base} -t "${escaped}"`;
 }
 
 function isAssertionFailure(error: unknown): boolean {

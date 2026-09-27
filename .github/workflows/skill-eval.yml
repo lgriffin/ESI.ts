@@ -50,7 +50,7 @@ jobs:
         run: npm ci
 
       - name: Unit-test the judges
-        run: npx jest --config jest.unit.config.cjs --testPathPatterns=skill-eval-judges
+        run: npx jest --config config/jest/unit.config.cjs --testPathPatterns=skill-eval-judges
 
       - name: Skill version bumped with SKILL.md
         if: github.event_name == 'pull_request'

@@ -4,7 +4,7 @@
  * Mocks only at the BDD transport seam (tests/bdd/support/transport.ts): the
  * real public client method runs, with its rate limiter, retry, ETag cache,
  * deduplication, circuit breaker, pagination and Zod validation. Runs inside
- * Jest (the seam is jest-fetch-mock), with jest.contract.replay.config.cjs.
+ * Jest (the seam is jest-fetch-mock), with config/jest/contract.replay.config.cjs.
  */
 import {
   createSeamClient,

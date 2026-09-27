@@ -364,7 +364,7 @@ Scenario steps **shall** mock at the transport seam with `jest-fetch-mock` rathe
 Unit coverage **shall** stay at or above 90% statements, 80% branches, 75% functions and 90% lines, measured on `src/**` excluding generated files.
 
 - **Why:** Floors far below the current numbers stop a bad week becoming a broken gate, while still catching an untested module.
-- **Verified by:** `jest.unit.config.cjs` thresholds; coverage job posts a PR comment.
+- **Verified by:** `config/jest/unit.config.cjs` thresholds; coverage job posts a PR comment.
 
 #### TEST-05 · Ubiquitous · Enforced
 
@@ -393,7 +393,7 @@ Mutation testing **shall** hold each directory at or above its floor in `mutatio
 Where a test needs live ESI or a real token, the test **shall** be gated behind `ESI_LIVE_TESTS` or `ESI_GATED_TESTS` and soft-skip when ESI returns 503.
 
 - **Why:** Tranquility downtime must not fail a PR that changed nothing about networking.
-- **Verified by:** `jest.integration.live.config.cjs` and `jest.contract.live.config.cjs` refuse to run without `ESI_LIVE_TESTS`; `tests/integration/gated-auth.test.ts` reads `ESI_GATED_TESTS`; the 503 soft-skip sits in the CI jobs that run those tiers.
+- **Verified by:** `config/jest/integration.live.config.cjs` and `config/jest/contract.live.config.cjs` refuse to run without `ESI_LIVE_TESTS`; `tests/integration/gated-auth.test.ts` reads `ESI_GATED_TESTS`; the 503 soft-skip sits in the CI jobs that run those tiers.
 
 #### TEST-09 · Ubiquitous · Partial
 

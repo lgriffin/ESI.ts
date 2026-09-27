@@ -1,7 +1,8 @@
 module.exports = {
+  rootDir: '../..',
   preset: 'ts-jest',
   testEnvironment: 'node',
-  // tests/contract/replay/ is the offline replay tier (jest.contract.replay.config.cjs).
+  // tests/contract/replay/ is the offline replay tier (config/jest/contract.replay.config.cjs).
   testPathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
