@@ -8,7 +8,8 @@
  * rounded up to 0.1 kB (1 kB = 1000 B). The comment on each line is the
  * measured size, in bytes, that its budget was set from. `./schemas` was
  * re-measured when the 2026-08-18 compatibility date added the military
- * campaign and meta name schemas.
+ * campaign and meta name schemas, and `.` once #419, #422 and #424 had
+ * grown it past its budget.
  *
  * Raising a budget: run `npm run build && npm run size`, set the new
  * measurement plus 5%, update the comment, and say in the pull request body
@@ -22,8 +23,8 @@ const { sizeLimitChecks } = require('./scripts/size-limit-checks.cjs');
 
 const budgets = {
   '.': {
-    import: '222.6 kB', // measured 211924 B
-    require: '242.9 kB', // measured 231262 B
+    import: '234 kB', // measured 222825 B
+    require: '255.1 kB', // measured 242948 B
   },
   './schemas': {
     import: '61 kB', // measured 58083 B
