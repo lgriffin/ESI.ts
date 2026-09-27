@@ -284,6 +284,38 @@ describe('Construction parity', () => {
     });
   });
 
+  describe('request headers', () => {
+    it('compatibilityDate should propagate for all three surfaces', () => {
+      const config: EsiClientConfig = { compatibilityDate: '2026-08-18' };
+      const esiClient = new EsiClient(config);
+      const customClient = new CustomEsiClient({
+        ...config,
+        clients: ['status'],
+      });
+      const factoryClient = EsiApiFactory.createClient('status', config);
+
+      const esiApiClient = getApiClientFromDomainClient(esiClient.status);
+      const customApiClient = getApiClientFromDomainClient(
+        customClient.getClient('status'),
+      );
+      const factoryApiClient = getApiClientFromDomainClient(factoryClient);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((esiApiClient as any).getCompatibilityDate()).toBe('2026-08-18');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((customApiClient as any).getCompatibilityDate()).toBe(
+        '2026-08-18',
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((factoryApiClient as any).getCompatibilityDate()).toBe(
+        '2026-08-18',
+      );
+
+      esiClient.shutdown();
+      customClient.shutdown();
+    });
+  });
+
   describe('full config equivalence', () => {
     it('all middleware should match between EsiClient, CustomEsiClient, and EsiApiFactory', () => {
       const strategy: IRetryStrategy = {

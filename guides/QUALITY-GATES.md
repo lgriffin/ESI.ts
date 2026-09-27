@@ -788,7 +788,7 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 | `docs:serve`                     | Serve the TypeDoc output on port 8080                                   |
 | `token:create` / `token:refresh` | PKCE token into `.env`, and refresh it (see [SECURITY.md](SECURITY.md)) |
 | `sde:ingest`                     | Build the SDE database from CCP's archive                               |
-| `health-check`                   | `EsiClient.healthCheck()` against live ESI                              |
+| `health-check`                   | `status.getStatus()` against live ESI                                   |
 | `start` / `example`              | `examples/character-profile.ts`                                         |
 | `example:<name>`                 | One runnable example from `examples/`; see `npm run help -- example`    |
 | `help`                           | Grouped script listing                                                  |

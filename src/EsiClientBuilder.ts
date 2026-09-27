@@ -335,6 +335,10 @@ export class EsiApiFactory {
       client.setLanguage(config.language);
     }
 
+    if (config?.compatibilityDate) {
+      client.setCompatibilityDate(config.compatibilityDate);
+    }
+
     if (config?.onTokenRefresh) {
       client.setTokenProvider(config.onTokenRefresh);
     }
