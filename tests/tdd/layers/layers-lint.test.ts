@@ -202,15 +202,9 @@ describe('layer lint rule', () => {
     expect(result.messages.map((m) => m.ruleId)).toEqual([RULE]);
   });
 
-  // The baseline only shrinks: an entry whose file no longer breaks the rule
-  // must be deleted, so the exemption cannot outlive the violation.
-  it.each(Object.keys(layers.BASELINE))(
-    'baseline entry %s still breaks the rule',
-    async (file) => {
-      const [result] = await linter({}).lintFiles([file]);
-      expect(result.messages.filter((m) => m.ruleId === RULE)).not.toHaveLength(
-        0,
-      );
-    },
-  );
+  // The baseline only ever shrank, and Phase 3 emptied it: no file in src is
+  // exempt from the rule, and adding an exemption fails here.
+  it('has an empty baseline: no file is exempt from the rule', () => {
+    expect(layers.BASELINE).toEqual({});
+  });
 });

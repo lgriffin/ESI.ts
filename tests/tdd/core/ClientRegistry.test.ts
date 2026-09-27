@@ -40,7 +40,7 @@ import {
   AccessListsClient,
   CorporationProjectsClient,
   MilitaryCampaignsClient,
-} from '../../../src/core/ClientRegistry';
+} from '../../../src/clients/ClientRegistry';
 import { ApiClientBuilder } from '../../../src/core/ApiClientBuilder';
 import { getConfig } from '../../../src/config/configManager';
 import fetchMock from 'jest-fetch-mock';

@@ -4,7 +4,7 @@ import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
 import { RateLimiter } from './rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './RequestDeduplicator';
 import { createDefaultLogger } from './logger/DefaultLogger';
-import type { EsiClientConfig } from '../EsiClient';
+import type { EsiClientConfig } from './EsiClientConfig';
 
 export interface ConfigureApiClientResult {
   deduplicator: RequestDeduplicator | null;

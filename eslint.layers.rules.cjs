@@ -22,21 +22,18 @@
  * re-exports, `import x = require()`, `import('...')` types and expressions,
  * and `require()` calls.
  *
- * Existing violations are listed in BASELINE and exempt from the core rule.
- * The list only shrinks: tests/tdd/layers/layers-lint.test.ts fails when an
- * entry no longer violates the rule, so fixing a file means deleting its
- * entry. Run with --no-inline-config (npm run lint:layers), so the baseline is
- * the only way round the rule.
+ * BASELINE once listed the files exempt from the core rule; it is empty and
+ * tests/tdd/layers/layers-lint.test.ts keeps it so. Run with
+ * --no-inline-config (npm run lint:layers), so nothing gets round the rule.
  */
 const path = require('node:path');
 
-/** Files that break the core rule today, with the reason and when it goes. */
-const BASELINE = {
-  // Maps every client type to its class. Moves out of core in Phase 3.
-  'src/core/ClientRegistry.ts': 'imports every domain client',
-  // Takes EsiClientConfig as a type. The type moves into core in Phase 3.
-  'src/core/configureApiClient.ts': 'imports the EsiClientConfig type',
-};
+/**
+ * Files that break the core rule, with the reason. Empty since Phase 3 of
+ * the Road to Done (ClientRegistry moved to src/clients, EsiClientConfig to
+ * src/core): tests/tdd/layers/layers-lint.test.ts fails if an entry is added.
+ */
+const BASELINE = {};
 
 /** Top-level entries of src/ that src/core may not import. */
 const ABOVE_CORE = [

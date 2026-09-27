@@ -43,7 +43,7 @@ import {
   CosmeticsClient,
   ParagonHubClient,
   MilitaryCampaignsClient,
-} from './core/ClientRegistry';
+} from './clients/ClientRegistry';
 import { EsiClientConfig } from './EsiClient';
 import { configureApiClient } from './core/configureApiClient';
 import { ETagCacheManager } from './core/cache/ETagCacheManager';

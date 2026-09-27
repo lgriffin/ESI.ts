@@ -4,7 +4,7 @@ import {
   EsiApiFactory,
   CustomEsiClient,
 } from '../../../src/EsiClientBuilder';
-import { ApiClientType } from '../../../src/core/ClientRegistry';
+import { ApiClientType } from '../../../src/clients/ClientRegistry';
 import {
   RequestInterceptor,
   ResponseInterceptor,
