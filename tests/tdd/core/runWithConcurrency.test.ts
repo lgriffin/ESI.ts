@@ -1,8 +1,25 @@
 import { runWithConcurrency } from '../../../src/core/util/concurrency';
 
+// Workers wait on Jest's fake timers: the peaks and orderings below come from
+// how many workers the pool starts, not from how a real scheduler happened to
+// interleave real sleeps, and the file no longer spends wall-clock time.
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Runs every pending fake timer (and the work each one releases), then settles. */
+async function drive<T>(pending: Promise<T>): Promise<T> {
+  await jest.runAllTimersAsync();
+  return pending;
+}
+
 describe('runWithConcurrency', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('returns an empty array for no items without invoking the worker', async () => {
     const worker = jest.fn();
     const results = await runWithConcurrency([], worker);
@@ -12,14 +29,19 @@ describe('runWithConcurrency', () => {
 
   it('returns fulfilled results in input order regardless of completion order', async () => {
     const delays = [30, 5, 15];
-    const results = await runWithConcurrency(
-      delays,
-      async (d) => {
-        await sleep(d);
-        return d * 2;
-      },
-      { concurrency: 3 },
+    const completed: number[] = [];
+    const results = await drive(
+      runWithConcurrency(
+        delays,
+        async (d) => {
+          await sleep(d);
+          completed.push(d);
+          return d * 2;
+        },
+        { concurrency: 3 },
+      ),
     );
+    expect(completed).toEqual([5, 15, 30]);
     expect(results).toEqual([
       { status: 'fulfilled', value: 60 },
       { status: 'fulfilled', value: 10 },
@@ -41,32 +63,35 @@ describe('runWithConcurrency', () => {
   it('never runs more than the configured number of workers at once', async () => {
     let inFlight = 0;
     let peak = 0;
-    await runWithConcurrency(
-      Array.from({ length: 12 }, (_, i) => i),
-      async () => {
-        inFlight++;
-        peak = Math.max(peak, inFlight);
-        await sleep(5);
-        inFlight--;
-      },
-      { concurrency: 4 },
+    await drive(
+      runWithConcurrency(
+        Array.from({ length: 12 }, (_, i) => i),
+        async () => {
+          inFlight++;
+          peak = Math.max(peak, inFlight);
+          await sleep(5);
+          inFlight--;
+        },
+        { concurrency: 4 },
+      ),
     );
-    expect(peak).toBeLessThanOrEqual(4);
-    expect(peak).toBeGreaterThan(1);
+    expect(peak).toBe(4);
   });
 
   it('treats a concurrency below one as one', async () => {
     let inFlight = 0;
     let peak = 0;
-    await runWithConcurrency(
-      [1, 2, 3],
-      async () => {
-        inFlight++;
-        peak = Math.max(peak, inFlight);
-        await sleep(2);
-        inFlight--;
-      },
-      { concurrency: 0 },
+    await drive(
+      runWithConcurrency(
+        [1, 2, 3],
+        async () => {
+          inFlight++;
+          peak = Math.max(peak, inFlight);
+          await sleep(2);
+          inFlight--;
+        },
+        { concurrency: 0 },
+      ),
     );
     expect(peak).toBe(1);
   });
@@ -74,14 +99,16 @@ describe('runWithConcurrency', () => {
   it('defaults to five workers', async () => {
     let inFlight = 0;
     let peak = 0;
-    await runWithConcurrency(
-      Array.from({ length: 20 }, (_, i) => i),
-      async () => {
-        inFlight++;
-        peak = Math.max(peak, inFlight);
-        await sleep(5);
-        inFlight--;
-      },
+    await drive(
+      runWithConcurrency(
+        Array.from({ length: 20 }, (_, i) => i),
+        async () => {
+          inFlight++;
+          peak = Math.max(peak, inFlight);
+          await sleep(5);
+          inFlight--;
+        },
+      ),
     );
     expect(peak).toBe(5);
   });
@@ -120,16 +147,18 @@ describe('runWithConcurrency', () => {
     async (_label, concurrency) => {
       let inFlight = 0;
       let peak = 0;
-      const results = await runWithConcurrency(
-        Array.from({ length: 12 }, (_, i) => i),
-        async (n) => {
-          inFlight++;
-          peak = Math.max(peak, inFlight);
-          await new Promise((r) => setTimeout(r, 2));
-          inFlight--;
-          return n;
-        },
-        { concurrency },
+      const results = await drive(
+        runWithConcurrency(
+          Array.from({ length: 12 }, (_, i) => i),
+          async (n) => {
+            inFlight++;
+            peak = Math.max(peak, inFlight);
+            await sleep(2);
+            inFlight--;
+            return n;
+          },
+          { concurrency },
+        ),
       );
       expect(results).toHaveLength(12);
       expect(results.every((r) => r.status === 'fulfilled')).toBe(true);
@@ -140,15 +169,17 @@ describe('runWithConcurrency', () => {
   it('floors a fractional concurrency', async () => {
     let inFlight = 0;
     let peak = 0;
-    await runWithConcurrency(
-      [1, 2, 3, 4, 5, 6],
-      async () => {
-        inFlight++;
-        peak = Math.max(peak, inFlight);
-        await new Promise((r) => setTimeout(r, 2));
-        inFlight--;
-      },
-      { concurrency: 2.9 },
+    await drive(
+      runWithConcurrency(
+        [1, 2, 3, 4, 5, 6],
+        async () => {
+          inFlight++;
+          peak = Math.max(peak, inFlight);
+          await sleep(2);
+          inFlight--;
+        },
+        { concurrency: 2.9 },
+      ),
     );
     expect(peak).toBe(2);
   });

@@ -44,23 +44,32 @@ describe('BatchRequestHandler', () => {
     });
 
     it('should respect concurrency limit', async () => {
-      const running: number[] = [];
-      let maxConcurrent = 0;
+      // Fake timers: the peak is set by how many fetches the batch starts,
+      // not by how real 10ms sleeps happened to interleave.
+      jest.useFakeTimers();
+      try {
+        const running: number[] = [];
+        let maxConcurrent = 0;
 
-      const result = await batchFetch(
-        [1, 2, 3, 4, 5],
-        async (key) => {
-          running.push(key);
-          maxConcurrent = Math.max(maxConcurrent, running.length);
-          await new Promise((r) => setTimeout(r, 10));
-          running.splice(running.indexOf(key), 1);
-          return key * 10;
-        },
-        { concurrency: 2 },
-      );
+        const pending = batchFetch(
+          [1, 2, 3, 4, 5],
+          async (key) => {
+            running.push(key);
+            maxConcurrent = Math.max(maxConcurrent, running.length);
+            await new Promise((r) => setTimeout(r, 10));
+            running.splice(running.indexOf(key), 1);
+            return key * 10;
+          },
+          { concurrency: 2 },
+        );
+        await jest.runAllTimersAsync();
+        const result = await pending;
 
-      expect(maxConcurrent).toBeLessThanOrEqual(2);
-      expect(result.results.size).toBe(5);
+        expect(maxConcurrent).toBe(2);
+        expect(result.results.size).toBe(5);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('should invoke onProgress with correct counts', async () => {
