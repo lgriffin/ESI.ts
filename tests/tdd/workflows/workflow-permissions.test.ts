@@ -137,6 +137,10 @@ describe('signed releases', () => {
     expect(runs).toMatch(
       /for artifact in "\$TARBALL" "\$SBOM" docs\.tar\.gz; do\s+cosign sign-blob/,
     );
+    // The uploaded `.sigstore.json` files exist only because of this flag.
+    expect(runs).toMatch(
+      /cosign sign-blob[^\n]*\\\s+--bundle "\$\{artifact\}\.sigstore\.json"/,
+    );
   });
 
   it('attests build provenance for the same three assets', () => {

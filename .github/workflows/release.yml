@@ -485,7 +485,7 @@ jobs:
               --repo "$REPO" \
               --signer-workflow "$REPO/.github/workflows/release.yml"
           done
-          cp "$BUNDLE" "${TARBALL%.tgz}.intoto.jsonl"
+          cp -f "$BUNDLE" "${TARBALL%.tgz}.intoto.jsonl"
 
       - name: 📎 Upload release assets
         env:

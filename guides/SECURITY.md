@@ -147,8 +147,11 @@ Verify, and record the answer in the CHARTER's SEC-07 row when it shows administ
 ```bash
 gh api repos/lgriffin/ESI.ts/branches/master/protection \
   --jq '{admins: .enforce_admins.enabled, approvals: .required_pull_request_reviews.required_approving_review_count, codeowners: .required_pull_request_reviews.require_code_owner_reviews, checks: .required_status_checks.contexts}'
-# or, for a ruleset:
-gh api repos/lgriffin/ESI.ts/rulesets --jq '.[] | {name, enforcement, bypass: .bypass_actors}'
+# or, for rulesets: the rules GitHub applies to master, whichever ruleset they come from
+gh api repos/lgriffin/ESI.ts/rules/branches/master \
+  --jq 'map({type, ruleset: .ruleset_id, parameters})'
+# and, per ruleset id listed above, whether anyone can bypass it
+gh api repos/lgriffin/ESI.ts/rulesets/<id> --jq '{name, enforcement, bypass: .bypass_actors}'
 ```
 
 Scorecard reads classic branch protection only through a token with administration read access. If the Branch-Protection check reports that it could not read the settings, add a fine-grained token with **Administration: read** on this repository as a secret and pass it to the scorecard step as `repo_token`; that edit to `scorecard.yml` is for the pull request that adds the secret, because an empty `repo_token` would break the run.
