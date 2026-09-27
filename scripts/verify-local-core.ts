@@ -203,6 +203,8 @@ export const NOT_RUN_LOCALLY: Record<string, string> = {
   'generate:types': 'downloads the live ESI OpenAPI document',
   'schema:drift': 'downloads the live ESI OpenAPI document',
   'schema:drift:ci': 'downloads the live ESI OpenAPI document',
+  'validate:esi': 'downloads the live ESI OpenAPI document',
+  'validate:spec': 'Redocly downloads and lints the live ESI OpenAPI document',
   'mutation:fixture':
     'Stryker over the known-weak fixture; minutes, and nightly owns it',
   'mutation:pr': 'needs a base ref to scope the changed files',

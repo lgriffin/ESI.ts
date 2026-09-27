@@ -21,19 +21,23 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Unit tests (includes BDD and composition)  |   ·    |            ●             |    ● 18/20/22    |       ·       |         ●          |
 | Coverage thresholds + PR comment           |   ·    |            ·             |        ●         |       ·       |         ·          |
 | BDD suite                                  |   ·    |          ● (2)           |        ●         |       ·       |         ●          |
-| EARS spec audit, Rule/schema consistency   |   ·    |            ·             |        ●         |       ·       |         ·          |
+| EARS spec audit, Rule/schema consistency   |   ·    |            ·             |        ●         |       ·       |         ●          |
 | EARS verdict per Rule (`ears.yml`)         |   ·    |            ·             |      ◐ (9)       |       ·       |         ·          |
 | Determinism lint (time in `src/`)          |   ·    |            ·             |        ●         |       ·       |         ·          |
 | Layer lint (`lint:layers`)                 |   ·    |            ●             |        ●         |       ·       |         ·          |
 | Test lints: transport seam, suite health   |   ·    |            ●             |        ●         |       ·       |         ·          |
 | Generated types fresh, schema drift        |   ·    |            ·             |     ● (3)(7)     | ◐ files issue |         ●          |
-| Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |         ·          |
+| Generated operations fresh                 |   ·    |            ·             |        ●         |       ·       |         ●          |
+| Endpoint definitions (`validate:esi`)      |   ·    |            ·             |     ● (3)(7)     |       ·       |         ●          |
+| ESI spec lint (`validate:spec`)            |   ·    |            ·             |      ● (7)       |       ·       |         ·          |
+| Version check (`validate:versions`)        |   ·    |            ·             |        ·         |       ·       |         ●          |
+| Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |         ●          |
 | Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |         ·          |
-| Live contract tests                        |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |         ·          |
-| Recorded payload replay                    |   ·    |            ·             |        ●         | ◐ opens a PR  |         ·          |
+| Live contract tests                        |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |       ● (3)        |
+| Recorded payload replay                    |   ·    |            ·             |        ●         | ◐ opens a PR  |         ●          |
 | Fuzz, integration (mocked), type tests     |   ·    |            ·             |        ●         |       ·       |         ●          |
 | Properties at 10,000 runs                  |   ·    |            ·             |        ·         | ◐ files issue |         ·          |
-| Fault catalogue (transport faults)         |   ·    |            ·             |        ●         | ◐ files issue |         ·          |
+| Fault catalogue (transport faults)         |   ·    |            ·             |        ●         | ◐ files issue |         ●          |
 | API surface diff (api-extractor)           |   ·    |            ·             |        ●         |       ·       |         ·          |
 | Breaking API change declared (SemVer gate) |   ·    |            ·             |        ●         |       ·       |         ·          |
 | Lockfile consistency                       |   ·    |            ·             |        ●         |       ·       |         ·          |
@@ -213,7 +217,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-----: |
 | `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                                                                                                                                                                                                                                                                                                                                       |   yes   |
 | `lint-and-build` (Lint & Build)          | ESLint, `lint:determinism` (fetches master for its baseline), `lint:layers`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, `spec:generate:check`, `spec:coverage`, `spec:response-schemas`; uploads `dist/`                                                                                                                                                                                                                                                                  |   yes   |
-| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`. The two live-spec checks block only when the pull request touches their inputs (below)                                                                                                                                                                                                                                                                 |   yes   |
+| `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and every `src/core/endpoints/esi-*.generated.ts` (TTLs, rate-limit groups, scopes); knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`; `validate:esi`; `validate:spec`. The four live-spec checks block only when the pull request touches their inputs (below)                                                                                                                                                                             |   yes   |
 | `unit-tests` (Unit Tests)                | `npm test` (unit, composition and BDD) on Node 18, 20 and 22                                                                                                                                                                                                                                                                                                                                                                                                                                                 |   yes   |
 | `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                                                                                                                                                                                                                                                                                                                                         |   yes   |
 | `bdd-tests` (BDD Scenarios)              | `npm run bdd -- --json`, then `npm run bdd:report`, which fails when a scenario did not execute; uploads the `bdd-junit` artifact                                                                                                                                                                                                                                                                                                                                                                            |   yes   |
@@ -236,16 +240,18 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `consumer-tarball` (Consumer Tarball)    | Packs the `dist/` uploaded by `lint-and-build` once, so every `consumer-contract` row installs the same bytes                                                                                                                                                                                                                                                                                                                                                                                                |   yes   |
 | `package-lint` (Package Lint)            | `npm run lint:package -- --skip-build` then `npm run size` (the job also repeats the `test:docs-examples` step of `doc-examples`), on the `dist/` uploaded by `lint-and-build`: publint and attw on the `npm pack` tarball, and a size ceiling per `exports` sub-path (see [Package lint and size budgets](#package-lint-and-size-budgets))                                                                                                                                                                  |   yes   |
 
-The generated-types, schema-drift and contract steps all call the live ESI spec. Each captures its log and, if the failure contains `HTTP 503`, downgrades it to a `::warning::` and passes (`TEST-08`).
+The generated-types, schema-drift, `validate:esi`, `validate:spec` and contract steps all call the live ESI spec. Each except `validate:spec` captures its log and, if the failure contains `HTTP 503`, downgrades it to a `::warning::` and passes (`TEST-08`).
 
-Like `npm audit`, the generated-types and schema-drift checks report the state of the world: CCP changing ESI turns them red on every open pull request. `static-analysis` therefore first compares the merge commit with its base tip (`HEAD^1`) and blocks on each check only when the pull request touches that check's inputs:
+Like `npm audit`, the generated-types, schema-drift, endpoint and spec-lint checks report the state of the world: CCP changing ESI turns them red on every open pull request. `static-analysis` therefore first compares the merge commit with its base tip (`HEAD^1`) and blocks on each check only when the pull request touches that check's inputs:
 
-| Check                     | Inputs                                                                                                                                                                                                              |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Generated types freshness | `scripts/generate-esi-types.ts`, `src/types/generated/`, `src/core/endpoints/esi-cache-ttls.generated.ts`                                                                                                           |
-| Schema drift              | `scripts/generate-schema-drift-report.ts`, `scripts/schema-drift-core.ts`, `scripts/schema-drift-baseline.json`, `scripts/schema-drift-exceptions.json`, `src/schemas/`, `src/core/endpoints/`, `package-lock.json` |
+| Check                                 | Inputs                                                                                                                                                                                                              |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Generated types freshness             | `scripts/generate-esi-types.ts`, `src/types/generated/`, `src/core/endpoints/esi-*.generated.ts`                                                                                                                    |
+| Schema drift                          | `scripts/generate-schema-drift-report.ts`, `scripts/schema-drift-core.ts`, `scripts/schema-drift-baseline.json`, `scripts/schema-drift-exceptions.json`, `src/schemas/`, `src/core/endpoints/`, `package-lock.json` |
+| Endpoint definitions (`validate:esi`) | `scripts/validate-esi-endpoints.ts`, `src/core/endpoints/`, `src/core/constants.ts` (the compatibility date), `package.json`                                                                                        |
+| Spec lint (`validate:spec`)           | `redocly.yaml`, `package.json`, `package-lock.json` (the Redocly version)                                                                                                                                           |
 
-Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` still blocks on both checks unconditionally. Schema drift that is already tracked turns neither red: it is listed in a ratcheted baseline, described under [Schema drift](#schema-drift).
+Otherwise the result would be the same on the base branch, so a failure is reported as a `::warning::` and a step-summary line, and the job passes; `nightly-spec-drift.yml` files that drift as an issue. Both steps now run with `pipefail`, so a generator or drift script that fails outright is reported rather than masked by `tee`. The contract tests are not diff-aware yet. `release.yml` blocks on generated types, schema drift and `validate:esi` unconditionally. Schema drift that is already tracked turns neither red: it is listed in a ratcheted baseline, described under [Schema drift](#schema-drift).
 
 The lockfile check skips Dependabot because Dependabot's npm version produces byte-level lockfile differences. When regenerating a lockfile locally, use the npm major that CI uses so the file round-trips.
 
@@ -339,18 +345,18 @@ Much of this overlaps the nightlies, which file issues rather than artifacts. It
 
 `release.yml` runs on the `v*.*.*` tag push and again when the GitHub release is published:
 
-| Job                       | Runs on           | What it does                                                                                                                                                                  |
-| ------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `validate-release`        | both triggers     | lint, format check, knip (non-blocking), `audit:check`, `CHANGELOG.md` has `## [<version>]`, build, `schema:drift:ci`, generated-types freshness, `test:all`, `docs`          |
-| `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                                       |
-| `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                                 |
-| `deploy-docs`             | both triggers     | TypeDoc to gh-pages from `docs-site/public/api`                                                                                                                               |
-| `create-assets`           | both triggers     | `npm pack`, docs archive, `checksums.txt`; no OIDC permission                                                                                                                 |
-| `consumer-contract`       | both triggers     | `npm run test:consumer -- --tarball` on the tarball `create-assets` packed, same four rows as `ci.yml`; `publish-npm`, `publish-github` and `sign-and-publish-assets` need it |
-| `sign-and-publish-assets` | release published | Keyless cosign signatures, uploads assets to the release; the only job that can mint an OIDC token for signing                                                                |
-| `notify-success`          | after publish     | Log line when the npm publish succeeded                                                                                                                                       |
+| Job                       | Runs on           | What it does                                                                                                                                                                                                 |
+| ------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `validate-release`        | both triggers     | Tag and version checks, lint, format, knip (non-blocking), `audit:check`, changelog entry, build, schema drift, generated freshness, the spec validators, `spec:audit`, the test tiers, `docs`; listed below |
+| `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                                                                      |
+| `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                                                                |
+| `deploy-docs`             | both triggers     | TypeDoc to gh-pages from `docs-site/public/api`                                                                                                                                                              |
+| `create-assets`           | both triggers     | `npm pack`, docs archive, `checksums.txt`; no OIDC permission                                                                                                                                                |
+| `consumer-contract`       | both triggers     | `npm run test:consumer -- --tarball` on the tarball `create-assets` packed, same four rows as `ci.yml`; `publish-npm`, `publish-github` and `sign-and-publish-assets` need it                                |
+| `sign-and-publish-assets` | release published | Keyless cosign signatures, uploads assets to the release; the only job that can mint an OIDC token for signing                                                                                               |
+| `notify-success`          | after publish     | Log line when the npm publish succeeded                                                                                                                                                                      |
 
-Every publishing job `needs` `validate-release` (`REL-02`). Unlike the PR path, the release gate does not run `spec:audit`, `validate:auth-scopes`, contract tests or the API surface check. The procedure, versioning and support window are in [RELEASE.md](RELEASE.md).
+Every publishing job `needs` `validate-release` (`REL-02`). Its steps: the tag equals the `package.json` version and `validate:versions` passes; lint, format check, knip (non-blocking), `audit:check`, `CHANGELOG.md` has `## [<version>]`; build; `schema:drift:ci`; generated-types freshness over every `esi-*.generated.ts`; `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`; `test:all`, `contract:replay`, `faults -- --ci` and `contract:live` (503 soft-skips); `docs`. The release gate runs every validator the charter lists for it; the ratchets in `spec:audit`, `contract:replay` and the fault catalogue compare with the previous `vX.Y.Z` tag (`git describe --tags --abbrev=0 HEAD^` on a full-history checkout), and the job fails if none resolves; schema drift still takes the tag itself as its base. It does not run the API surface check or the SemVer gate, which need a base branch. The procedure, versioning and support window are in [RELEASE.md](RELEASE.md).
 
 Secrets: `NPM_TOKEN` for npmjs.org; `GITHUB_TOKEN` (automatic) for GitHub Packages, gh-pages, release uploads and issue filing.
 
@@ -393,11 +399,11 @@ Scheduled and manual runs share one concurrency group and queue, so their issue 
 
 ### What it checks
 
-| Step                      | Command                                                                                                                  | Drift when                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| Missing endpoints         | `npx ts-node scripts/check-spec-drift.ts --latest`                                                                       | Exit code `1`: the spec has an endpoint no `*Endpoints.ts` file declares. Exit `2` or unparsable JSON fails the run |
-| Generated types freshness | `npm run generate:types`, then `git diff` on `src/types/generated/` and `src/core/endpoints/esi-cache-ttls.generated.ts` | The regenerated files differ from `master`, or generation failed for a reason other than 503                        |
-| Schema drift              | `npm run schema:drift:ci`                                                                                                | Drift not in `scripts/schema-drift-baseline.json`, a baseline entry that no longer occurs, or a broken check        |
+| Step                      | Command                                                                                                         | Drift when                                                                                                          |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Missing endpoints         | `npx ts-node scripts/check-spec-drift.ts --latest`                                                              | Exit code `1`: the spec has an endpoint no `*Endpoints.ts` file declares. Exit `2` or unparsable JSON fails the run |
+| Generated types freshness | `npm run generate:types`, then `git diff` on `src/types/generated/` and `src/core/endpoints/esi-*.generated.ts` | The regenerated files differ from `master`, or generation failed for a reason other than 503                        |
+| Schema drift              | `npm run schema:drift:ci`                                                                                       | Drift not in `scripts/schema-drift-baseline.json`, a baseline entry that no longer occurs, or a broken check        |
 
 A 503 from ESI on the second or third step is logged as a warning and treated as no drift. The schema step runs with `pipefail`; before it did, it read the exit status of `tee` and never registered drift.
 
@@ -470,7 +476,7 @@ CCP versions breaking changes to ESI with compatibility dates. A new endpoint on
 
 `COMPATIBILITY_DATE` in `src/core/constants.ts` is the one the client sends on every request, and `generate-esi-types.ts` now defaults to it rather than keeping its own copy. Each file it writes records the date in its header, and `tests/tdd/scripts/generated-spec-date.test.ts` fails when a header stops matching the constant. That pairing is what was missing: the two dates had drifted to 2026-05-19 and 2025-12-16, so twelve routes ESI added in between had no cache TTL and were revalidated on every call, and no committed file said which spec the artefacts came from (esi-23g.31).
 
-The other spec-reading tools still pin `2025-12-16` independently — `generate-schema-drift-report.ts`, `generate-okf.ts`, `generate-endpoint-scaffold.ts`, `snapshot-openapi.ts`, `validate-esi-endpoints.ts`, `create-token.ts`, `run-schemathesis.sh`, `tests/contract/helpers.ts` and `redocly.yaml`. Moving those moves their baselines too (`schema-drift-baseline.json` most of all), so each is its own change; `esi-v2s.25` tracks the drift report's.
+The other spec-reading tools still pin `2025-12-16` independently — `generate-schema-drift-report.ts`, `generate-okf.ts`, `generate-endpoint-scaffold.ts`, `create-token.ts`, `run-schemathesis.sh` and `tests/contract/helpers.ts`. `validate-esi-endpoints.ts` and `snapshot-openapi.ts` import the constant, and `redocly.yaml` names the same date, which `generated-spec-date.test.ts` checks. Moving the others moves their baselines too (`schema-drift-baseline.json` most of all), so each is its own change; `esi-v2s.25` tracks the drift report's.
 
 ### Responding to drift
 
@@ -565,7 +571,7 @@ The seed baseline has 424 entries: `.` 197 of 366 exports, `./schemas` 46 of 201
 
 ## Suite-health lint
 
-`npm run lint:suite-health` lints every `.ts`, `.mts` and `.cts` file under `tests/` except the `fixtures/` and `step-fixtures/` trees, which break rules on purpose. It is Testing Runway tier N: it catches the decay that turns a green suite into a decorative one. It is not the `src/` rule set; the config and rules are in `eslint.suite-health.rules.cjs`, loaded by `eslint.suite-health.config.mjs`.
+`npm run lint:suite-health` lints every `.ts`, `.mts` and `.cts` file under `tests/` except the `fixtures/` and `step-fixtures/` trees, which break rules on purpose. It is Testing Runway tier N: it catches the decay that turns a green suite into a decorative one. It is not the `src/` rule set; the config and rules are in `config/eslint/suite-health.rules.cjs`, loaded by `config/eslint/suite-health.config.mjs`.
 
 | Rule                                      | Rejects                                                                                                                                                                                                                                                                                                       |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -678,7 +684,7 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 | `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                                        |
 | `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)                               |
 | `scripts/determinism-baseline.json`    | `npm run lint:determinism`     | Clock, timer and `Math.random()` sites per file and construct; shrink-only, stale counts fail                           |
-| `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map                             |
+| `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map; empty; stale entries fail  |
 | `scripts/package-lint-baseline.json`   | `npm run lint:package`         | Known publint/attw finding → bead id; shrink-only, stale entries fail                                                   |
 
 ---
@@ -689,24 +695,24 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 
 ### Build and static checks
 
-| Script                    | Runs                                                                                    |
-| ------------------------- | --------------------------------------------------------------------------------------- |
-| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                 |
-| `typecheck`               | `tsc --noEmit`                                                                          |
-| `lint` / `lint:fix`       | ESLint over `src`                                                                       |
-| `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`eslint.bdd-seam.rules.cjs`) |
-| `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline            |
-| `lint:layers`             | Imports in `src` point inward (`eslint.layers.rules.cjs`); shrink-only baseline         |
-| `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`eslint.suite-health.rules.cjs`) |
-| `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)             |
-| `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)               |
-| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                         |
-| `knip`                    | Dead code and unused exports (`knip.json`)                                              |
-| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
-| `api-report:check`        | api-extractor, check mode                                                               |
-| `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)              |
-| `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`                                       |
-| `prepare`                 | Install husky hooks, then build                                                         |
+| Script                    | Runs                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------- |
+| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                        |
+| `typecheck`               | `tsc --noEmit`                                                                                 |
+| `lint` / `lint:fix`       | ESLint over `src`                                                                              |
+| `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`config/eslint/bdd-seam.rules.cjs`) |
+| `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline                   |
+| `lint:layers`             | Imports in `src` point inward (`config/eslint/layers.rules.cjs`); shrink-only baseline         |
+| `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`config/eslint/suite-health.rules.cjs`) |
+| `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)                    |
+| `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)                      |
+| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                                |
+| `knip`                    | Dead code and unused exports (`knip.json`)                                                     |
+| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                        |
+| `api-report:check`        | api-extractor, check mode                                                                      |
+| `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)                     |
+| `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`                                              |
+| `prepare`                 | Install husky hooks, then build                                                                |
 
 ### Tests
 
@@ -754,18 +760,18 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 
 ### Spec alignment and generation
 
-| Script                 | Runs                                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------- |
-| `generate:types`       | Types, cache TTLs, rate-limit groups and scopes from the live spec                    |
-| `generate:okf`         | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                 |
-| `generate:endpoints`   | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                 |
-| `generate:all`         | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi` |
-| `schema:drift`         | Zod schema versus spec report; exits 2 only when the check compared nothing           |
-| `schema:drift:ci`      | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline   |
-| `validate:esi`         | Endpoint definitions versus spec; fails on method mismatches                          |
-| `validate:auth-scopes` | `requiresAuth` versus the generated scope map (`DES-04`)                              |
-| `validate:spec`        | Redocly lint of the ESI spec (`.redocly.yaml`)                                        |
-| `validate:versions`    | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts`            |
+| Script                 | Runs                                                                                     |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| `generate:types`       | Types, cache TTLs, rate-limit groups and scopes from the live spec                       |
+| `generate:okf`         | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                    |
+| `generate:endpoints`   | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                    |
+| `generate:all`         | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi`    |
+| `schema:drift`         | Zod schema versus spec report; exits 2 only when the check compared nothing              |
+| `schema:drift:ci`      | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline      |
+| `validate:esi`         | Endpoint definitions versus the spec at `COMPATIBILITY_DATE`; fails on method mismatches |
+| `validate:auth-scopes` | `requiresAuth` versus the generated scope map (`DES-04`); fails in both directions       |
+| `validate:spec`        | Redocly lint of the ESI spec (`redocly.yaml`)                                            |
+| `validate:versions`    | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts`               |
 
 ### Security
 
@@ -823,8 +829,10 @@ Neither reproduces `ci-success` completely, and neither includes the tiers added
 ```bash
 npm run format:check                              # CRLF on a Windows checkout fails ~994 files; run it on a path
 ESI_LIVE_TESTS=true npm run contract:live        # calls the live ESI API
-npm run generate:types && git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts
+npm run generate:types && git diff --exit-code src/types/generated/ 'src/core/endpoints/esi-*.generated.ts'
 npm run schema:drift:ci                           # downloads the live ESI OpenAPI document
+npm run validate:esi                              # downloads the live ESI OpenAPI document
+npm run validate:spec                             # Redocly downloads and lints the live ESI OpenAPI document
 npm run api-report && git diff etc/esi.ts.api.md  # rewrites a committed file; commit any change
 npm run api-report:semver                         # needs the base branch
 npm run audit:diff                                # queries the advisory database
@@ -834,4 +842,4 @@ npm run bench:ab                                  # needs a second tree and a qu
 
 `bdd` and `coverage` are left out because `test` already runs the same suites, `docs` because it asserts nothing, and `knip` because CI runs it with `--no-exit-code`.
 
-Conversely, `validate:esi`, `validate:spec` and `validate:versions` run only locally: no workflow calls them. `release-please` keeps `src/core/constants.ts` in step with `package.json` through its `extra-files` setting, which is why the version check is not in CI.
+`validate:versions` runs in `release.yml` only: `release-please` keeps `src/core/constants.ts` in step with `package.json` through its `extra-files` setting, so a pull request has nothing to catch that the release gate does not.

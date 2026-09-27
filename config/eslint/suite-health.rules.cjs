@@ -360,7 +360,7 @@ const rules = {
 
 /**
  * The flat config npm run lint:suite-health uses. It lives here rather than in
- * eslint.suite-health.config.mjs so the rules' Jest suite can load the same
+ * config/eslint/suite-health.config.mjs so the rules' Jest suite can load the same
  * globs and options: Jest cannot import an ES module config.
  */
 const config = [

@@ -1,7 +1,7 @@
 /**
  * What `EsiClient`, `CustomEsiClient` and `EsiApiFactory` are built from.
  * Lives in core so `configureApiClient` can take it without importing an
- * entry point (the layer rule in eslint.layers.rules.cjs). Re-exported from
+ * entry point (the layer rule in config/eslint/layers.rules.cjs). Re-exported from
  * `EsiClient.ts` and the root entry under the same names.
  */
 import type { TokenProvider } from './ApiClient';

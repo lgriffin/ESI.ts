@@ -171,7 +171,7 @@ This is the one that decides whether the suite is worth running, and it is
 **enforced**: `npm run lint:bdd-seam` fails on any `spyOn` of an ESI client, a
 domain client, a client prototype or `ApiClient`, and on reassigning a client
 method, anywhere under `tests/bdd/`. The selectors live in
-`eslint.bdd-seam.rules.cjs`; `tests/tdd/bdd-seam/` proves each one fires.
+`config/eslint/bdd-seam.rules.cjs`; `tests/tdd/bdd-seam/` proves each one fires.
 
 ```ts
 // BAD — mocks the method the scenario exists to exercise. The Then step
