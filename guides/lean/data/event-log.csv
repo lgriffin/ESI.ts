@@ -1,0 +1,42 @@
+time_utc,actor,type,detail,duration_min
+2026-09-26T09:23,Leigh,ask,Move ESI work here and wire GitHub,
+2026-09-26T09:24,Claude,wait-human,GitHub account not linked; needs claude.ai link + App install,13
+2026-09-26T09:39,Leigh,ask,"Fix the 5 red PRs, then review the finalising plan",
+2026-09-26T09:45,Claude,wait-human,Finalising plan not in repo; asked for it (Obsidian vault),3
+2026-09-26T09:51,Claude,decision,Size-limit 13 card (#396),131
+2026-09-26T09:52,Claude,decision,"Four Road to Done decisions (version, deps, tooling, Node floor)",345
+2026-09-26T11:38,Leigh,merge-batch,"#394, #401, #400 merged",
+2026-09-26T15:36,Leigh,merge,#404 Phase 0 merged,
+2026-09-26T15:37,Leigh,decision-answer,'Go' on all four plan decisions,
+2026-09-26T15:38,Claude,wait-human,esi.evetech.net blocked by network policy; settings hunt,22
+2026-09-26T15:59,Claude,workaround,Spec fetched by a GitHub Actions workflow instead (spec-refresh.yml),
+2026-09-26T16:09,Leigh,ask,Triage 46 standalone issues into 11.0,
+2026-09-26T17:07,Claude,done,Triage complete: 35 issues labelled release::11.0 with phases,
+2026-09-26T17:15,System,stall,Usage limit reached (5-hour window),35
+2026-09-26T18:20,Leigh,merge-batch,"#413, #414 merged (and 'merge 415 when it returns')",
+2026-09-26T19:40,Leigh,merge-batch,"#416, #417, #418 merged; #419 left with a conflict",
+2026-09-26T19:45,Leigh,ask,Nightly builds of every public example,
+2026-09-26T20:04,System,stall,Usage limit reached (5-hour window),166
+2026-09-26T22:56,Claude,decision,"#420: two breaking fixes needed (compat date, skyhooks schema)",292
+2026-09-27T03:31,Leigh,ask,'Let's keep pushing',
+2026-09-27T03:48,Leigh,decision-answer,'Yeah' to both breaking fixes,
+2026-09-27T06:45,Leigh,merge-batch,"#423, #424, #422, #419, #420, #421 merged in 7 minutes",
+2026-09-27T06:52,Claude,decision,getChangelog shape card,1
+2026-09-27T06:54,Leigh,ask,Unify Dependabot; no patch bumps; feature-only releases,
+2026-09-27T06:57,Leigh,ask,"Multi-token (#183/#257), P1s + charter, standalone EARS check",
+2026-09-27T07:01,Claude,defect,Master red: #420 merged before its example fix; #426 opened,
+2026-09-27T07:22,System,stall,Usage limit reached (5-hour window),88
+2026-09-27T08:58,Leigh,merge-batch,"#427, #429, #426, #430 merged in 2 minutes",
+2026-09-27T09:07,Leigh,ask,File and fix the public contracts failure,
+2026-09-27T10:34,Leigh,merge-batch,"#425, #428, #431 merged; #431 landed on an already-merged branch",
+2026-09-27T10:38,Claude,rework,#431 reopened against master as #439,
+2026-09-27T10:58,Claude,decision,Raise PR mutation time budget (#434),43
+2026-09-27T11:42,Leigh,policy,'Please merge as needed' - merge authority moves to the threads,
+2026-09-27T11:43,Claude,wait-human,One thread's permission settings still block merging,21
+2026-09-27T11:45,Leigh,ask,Sort out drift PR #402 and find a better way,
+2026-09-27T12:03,Claude,merge,#441 merged 18 min after the ask,
+2026-09-27T12:05,Claude,merge,#442 merged at green,
+2026-09-27T12:17,System,stall,Usage limit reached (5-hour window),93
+2026-09-27T13:50,Claude,merge,#434 merged at green (35 checks),
+2026-09-27T13:56,Claude,merge,#445 merged 6 min after opening,
+2026-09-27T16:24,Leigh,ask,"Status, docs refresh and this Lean write-up",
