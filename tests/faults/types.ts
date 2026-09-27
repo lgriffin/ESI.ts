@@ -70,8 +70,8 @@ export type ExpectedError =
       readonly message: RegExp;
     }
   | {
-      /** A plain Error carrying a bracketed code, e.g. `[JSON_PARSE_ERROR]`. */
-      readonly class: 'CodedError';
+      /** An EsiFaultError carrying a code, e.g. `JSON_PARSE_ERROR`. */
+      readonly class: 'EsiFaultError';
       readonly code: string;
       readonly message: RegExp;
     };

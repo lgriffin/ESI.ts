@@ -2143,13 +2143,17 @@ export interface CircuitBreakerStats {
     totalCircuits: number;
 }
 
-// @public (undocumented)
-export class CircuitOpenError extends Error {
+// @public
+export class CircuitOpenError extends EsiError {
     constructor(endpoint: string, failures: number, retryAfterMs: number);
     // (undocumented)
     readonly endpoint: string;
     // (undocumented)
     readonly failures: number;
+    // (undocumented)
+    isTimeout(): boolean;
+    // (undocumented)
+    get retryable(): boolean;
     // (undocumented)
     readonly retryAfterMs: number;
 }
@@ -4754,6 +4758,11 @@ export interface EsiClientConfig {
     validateResponse?: boolean | undefined;
 }
 
+// @public
+export class EsiConfigurationError extends EsiFaultError {
+    constructor(code: 'VALIDATION_ERROR' | 'NO_AUTH_TOKEN' | 'CONFIGURATION_ERROR', message: string);
+}
+
 // @public (undocumented)
 export type EsiCursor = z.infer<typeof EsiCursorSchema>;
 
@@ -4814,6 +4823,31 @@ export class EsiError extends Error {
     readonly statusCode: number;
     // (undocumented)
     readonly url?: string | undefined;
+}
+
+// @public
+export type EsiFaultCode = 'VALIDATION_ERROR' | 'NO_AUTH_TOKEN' | 'CONFIGURATION_ERROR' | 'JSON_PARSE_ERROR' | 'PAGINATION_INCOMPLETE' | 'TOKEN_REFRESH_FAILED' | 'ESIJS_ERROR';
+
+// @public
+export class EsiFaultError extends EsiError {
+    constructor(code: EsiFaultCode, message: string, url?: string, cause?: unknown);
+    // (undocumented)
+    readonly cause: unknown;
+    // (undocumented)
+    readonly code: EsiFaultCode;
+    // (undocumented)
+    isTimeout(): boolean;
+    // (undocumented)
+    get retryable(): boolean;
+}
+
+// @public
+export class EsiNetworkError extends EsiError {
+    constructor(reason: string, url?: string, cause?: unknown);
+    // (undocumented)
+    readonly cause: unknown;
+    // (undocumented)
+    isTimeout(): boolean;
 }
 
 // @public (undocumented)
@@ -5192,6 +5226,16 @@ interface EsiOperationTypes {
     'PostUniverseNames': UniverseNamesPost[];
 }
 
+// @public
+export class EsiPaginationError extends EsiFaultError {
+    constructor(where: string, cause: unknown);
+}
+
+// @public
+export class EsiParseError extends EsiFaultError {
+    constructor(message: string, url?: string, cause?: unknown);
+}
+
 // @public (undocumented)
 export interface EsiResponse<T> {
     // (undocumented)
@@ -5517,11 +5561,19 @@ export interface EsiTokenManagerConfig {
     storage?: ITokenStorage | undefined;
 }
 
+// @public
+export class EsiTokenRefreshError extends EsiFaultError {
+    constructor(cause: unknown);
+}
+
 // @public (undocumented)
 export class EsiValidationError extends EsiError {
     constructor(url: string, zodError: unknown, requestId?: string, direction?: ValidationDirection);
     // (undocumented)
     readonly direction: ValidationDirection;
+    // (undocumented)
+    isTimeout(): boolean;
+    get retryable(): boolean;
     // (undocumented)
     readonly validationError: unknown;
 }
@@ -6856,13 +6908,28 @@ export function isCharacterNotFound(error: unknown): error is CharacterNotFoundE
 export function isCircuitOpen(error: unknown): error is CircuitOpenError;
 
 // @public (undocumented)
+export function isConfigurationError(error: unknown): error is EsiConfigurationError;
+
+// @public (undocumented)
 export function isEsiError(error: unknown): error is EsiError;
+
+// @public (undocumented)
+export function isFaultError(error: unknown): error is EsiFaultError;
 
 // @public (undocumented)
 export function isForbidden(error: unknown): error is EsiError;
 
 // @public (undocumented)
+export function isNetworkError(error: unknown): error is EsiNetworkError;
+
+// @public (undocumented)
 export function isNotFound(error: unknown): error is EsiError;
+
+// @public (undocumented)
+export function isPaginationError(error: unknown): error is EsiPaginationError;
+
+// @public (undocumented)
+export function isParseError(error: unknown): error is EsiParseError;
 
 // @public (undocumented)
 export function isRateLimited(error: unknown): error is EsiError;
@@ -6878,6 +6945,9 @@ export function isSsoError(error: unknown): error is SsoError;
 
 // @public (undocumented)
 export function isTimeout(error: unknown): error is TimeoutError;
+
+// @public (undocumented)
+export function isTokenRefreshError(error: unknown): error is EsiTokenRefreshError;
 
 // @public (undocumented)
 export function isTokenRevoked(error: unknown): error is TokenRevokedError;

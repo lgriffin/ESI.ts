@@ -10,7 +10,7 @@ import {
 import { buildEndpointPath } from './buildEndpointPath';
 import { parseWarning } from '../util/headersUtil';
 import { logWarn } from '../logger/clientLog';
-import { EsiError, EsiValidationError } from '../util/error';
+import { EsiValidationError, toEsiError } from '../util/error';
 import { evictRejectedResponse, resolveCache } from '../requestPipeline';
 import type { z } from 'zod';
 
@@ -264,14 +264,7 @@ export function createClient<T extends EndpointMap>(
         return responseBody;
       } catch (err) {
         if (safeMode) {
-          const error =
-            err instanceof EsiError
-              ? err
-              : new EsiError(
-                  0,
-                  err instanceof Error ? err.message : String(err),
-                );
-          return { ok: false, error };
+          return { ok: false, error: toEsiError(err) };
         }
         throw err;
       }

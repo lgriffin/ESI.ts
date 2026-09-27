@@ -12,7 +12,16 @@ import {
 import { ApiClient } from '../../../../src/core/ApiClient';
 import { configureApiClient } from '../../../../src/core/configureApiClient';
 import { RateLimiter } from '../../../../src/core/rateLimiter/RateLimiter';
-import { EsiError, TimeoutError } from '../../../../src/core/util/error';
+import {
+  EsiConfigurationError,
+  EsiError,
+  EsiNetworkError,
+  EsiParseError,
+  EsiTokenRefreshError,
+  TimeoutError,
+} from '../../../../src/core/util/error';
+import { TokenRevokedError } from '../../../../src/auth/errors';
+import type { EsiResult } from '../../../../src/types/common';
 import { StatusClient } from '../../../../src/clients/StatusClient';
 import { CursorPaginationHandler } from '../../../../src/core/pagination/CursorPaginationHandler';
 import { EsiClient, EsiClientConfig } from '../../../../src/EsiClient';
@@ -368,11 +377,13 @@ defineFeature(feature, (test) => {
 
   test('Rejecting refresh callback surfaces a token refresh failure', ({
     given,
+    and,
     when,
     then,
   }) => {
     let strategy: RetryStrategy;
     let caughtError: any;
+    const revoked = new TokenRevokedError('invalid_grant', 95465499);
 
     given('a client with a failing token provider', () => {
       strategy = new RetryStrategy();
@@ -386,9 +397,7 @@ defineFeature(feature, (test) => {
       const operation = jest
         .fn()
         .mockRejectedValue(new EsiError(401, 'Unauthorized', 'test/endpoint'));
-      const refreshToken = jest
-        .fn()
-        .mockRejectedValue(new Error('Token expired'));
+      const refreshToken = jest.fn().mockRejectedValue(revoked);
       const context: RetryContext = {
         endpoint: 'test/endpoint',
         method: 'GET',
@@ -404,9 +413,19 @@ defineFeature(feature, (test) => {
     });
 
     then('the client shall throw a token refresh failed error', () => {
-      expect(caughtError).toBeDefined();
+      expect(caughtError).toBeInstanceOf(EsiTokenRefreshError);
+      expect((caughtError as EsiTokenRefreshError).code).toBe(
+        'TOKEN_REFRESH_FAILED',
+      );
       expect(caughtError.message).toContain('Token refresh failed');
     });
+
+    and(
+      "the error's cause is the TokenRevokedError the token provider threw",
+      () => {
+        expect((caughtError as EsiTokenRefreshError).cause).toBe(revoked);
+      },
+    );
   });
 
   test('404 is rethrown after a single attempt despite maxRetries of three', ({
@@ -1902,6 +1921,194 @@ defineFeature(feature, (test) => {
 
     and(/^the handler sent (\d+) requests$/, (count: string) => {
       expect(sentRequests()).toHaveLength(Number(count));
+    });
+  });
+
+  // ── Typed errors: network, configuration, parse, safe mode ─────────
+
+  test('A refused connection on every attempt reaches the caller as an EsiNetworkError', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client configured for the status endpoint', () => {
+      client = createSeamClient({ retryConfig: NO_RETRIES });
+    });
+
+    and('ESI refuses the connection for the server status request', () => {
+      queueResponse({
+        match: STATUS_PATH,
+        fault: { kind: 'connection-error', code: 'ECONNREFUSED' },
+      });
+    });
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(client.status.getStatus());
+    });
+
+    then(
+      'the client rejects with an EsiNetworkError that is retryable and is not a TimeoutError',
+      () => {
+        expect(outcome.status).toBe('rejected');
+        const reason = (outcome as PromiseRejectedResult).reason as unknown;
+        expect(reason).toBeInstanceOf(EsiNetworkError);
+        expect(reason).not.toBeInstanceOf(TimeoutError);
+        expect((reason as EsiNetworkError).retryable).toBe(true);
+        expect((reason as EsiNetworkError).cause).toBeDefined();
+      },
+    );
+  });
+
+  test('Online status requested without an access token is refused as a configuration fault', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+    const savedToken = process.env.ESI_ACCESS_TOKEN;
+
+    afterEach(() => {
+      if (savedToken === undefined) delete process.env.ESI_ACCESS_TOKEN;
+      else process.env.ESI_ACCESS_TOKEN = savedToken;
+    });
+
+    given('a client configured with no access token', () => {
+      delete process.env.ESI_ACCESS_TOKEN;
+      client = createSeamClient({
+        accessToken: undefined,
+        retryConfig: NO_RETRIES,
+      });
+    });
+
+    when("the client requests a character's online status", async () => {
+      outcome = await settle(
+        client.location.getCharacterOnline(ONLINE_CHARACTER_ID),
+      );
+    });
+
+    then(
+      'the client rejects with an EsiConfigurationError carrying the code NO_AUTH_TOKEN',
+      () => {
+        expect(outcome.status).toBe('rejected');
+        const reason = (outcome as PromiseRejectedResult).reason as unknown;
+        expect(reason).toBeInstanceOf(EsiConfigurationError);
+        expect((reason as EsiConfigurationError).code).toBe('NO_AUTH_TOKEN');
+        expect((reason as EsiConfigurationError).message).toMatch(
+          /^\[NO_AUTH_TOKEN\] /,
+        );
+        expect((reason as EsiConfigurationError).message).not.toContain(
+          'ESIJS_ERROR',
+        );
+      },
+    );
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A server status answered with an HTML page is rejected as a parse error', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcome: Outcome;
+
+    given('a client configured for the status endpoint', () => {
+      client = createSeamClient();
+    });
+
+    and(
+      'ESI answers the server status request with HTTP 200 and an HTML page',
+      () => {
+        queueResponse({
+          match: STATUS_PATH,
+          headers: { 'content-type': 'text/html' },
+          body: HTML_ERROR_PAGE,
+        });
+      },
+    );
+
+    when('the client requests the server status', async () => {
+      outcome = await settle(client.status.getStatus());
+    });
+
+    then(
+      'the client rejects with an EsiParseError that is not retryable',
+      () => {
+        expect(outcome.status).toBe('rejected');
+        const reason = (outcome as PromiseRejectedResult).reason as unknown;
+        expect(reason).toBeInstanceOf(EsiParseError);
+        expect((reason as EsiParseError).code).toBe('JSON_PARSE_ERROR');
+        expect((reason as EsiParseError).retryable).toBe(false);
+      },
+    );
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A safe-mode call refused by an open circuit carries the CircuitOpenError', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    const results: EsiResult<unknown>[] = [];
+
+    given(
+      /^a client whose circuit breaker opens after (\d+) failures?, with no retries$/,
+      (threshold: string) => {
+        client = circuitClient(Number(threshold));
+      },
+    );
+
+    and(
+      /^ESI answers the server status request with HTTP (\d+) (\d+) times?$/,
+      (status: string, times: string) => {
+        queueError(Number(status), 'unavailable', {
+          match: STATUS_PATH,
+          times: Number(times),
+        });
+      },
+    );
+
+    when(
+      /^the client requests the server status (\d+) times in safe mode$/,
+      async (times: string) => {
+        const safe = client.status.withSafeMode();
+        for (let i = 0; i < Number(times); i++) {
+          results.push(await safe.getStatus());
+        }
+      },
+    );
+
+    then(
+      'the last result has failed with a CircuitOpenError that is not retryable',
+      () => {
+        const last = results[results.length - 1]!;
+        expect(last.ok).toBe(false);
+        if (last.ok) return;
+        expect(last.error).toBeInstanceOf(CircuitOpenError);
+        expect(last.error.retryable).toBe(false);
+        expect((last.error as CircuitOpenError).retryAfterMs).toBeGreaterThan(
+          0,
+        );
+      },
+    );
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
     });
   });
 });

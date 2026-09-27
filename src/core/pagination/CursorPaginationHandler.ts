@@ -16,8 +16,7 @@
  */
 
 import { ApiClient } from '../ApiClient';
-import { buildError, EsiError } from '../util/error';
-import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
+import { EsiError, EsiPaginationError } from '../util/error';
 import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { fetchOnePage } from '../requestPipeline/fetchExecution';
 import {
@@ -278,13 +277,8 @@ export class CursorPaginationHandler {
  * requestPipeline/paginationOrchestration.ts.
  */
 function incomplete(endpoint: string, error: unknown): unknown {
-  if (error instanceof EsiError || error instanceof CircuitOpenError) {
+  if (error instanceof EsiError) {
     return error;
   }
-  const msg = error instanceof Error ? error.message : String(error);
-  return buildError(
-    `Pagination incomplete for ${endpoint}: ${msg}`,
-    'PAGINATION_INCOMPLETE',
-    endpoint,
-  );
+  return new EsiPaginationError(endpoint, error);
 }

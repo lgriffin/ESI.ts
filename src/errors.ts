@@ -2,6 +2,12 @@ export {
   EsiError,
   TimeoutError,
   EsiValidationError,
+  EsiNetworkError,
+  EsiFaultError,
+  EsiConfigurationError,
+  EsiParseError,
+  EsiPaginationError,
+  EsiTokenRefreshError,
   isEsiError,
   isRateLimited,
   isNotFound,
@@ -11,11 +17,17 @@ export {
   isTimeout,
   isRetryable,
   isValidationError,
+  isCircuitOpen,
+  isNetworkError,
+  isFaultError,
+  isConfigurationError,
+  isParseError,
+  isPaginationError,
+  isTokenRefreshError,
   sanitizeUrl,
+  CircuitOpenError,
 } from './core/util/error';
-export type { ValidationDirection } from './core/util/error';
-
-export { CircuitOpenError } from './core/circuitBreaker/CircuitBreaker';
+export type { ValidationDirection, EsiFaultCode } from './core/util/error';
 
 export {
   AuthError,

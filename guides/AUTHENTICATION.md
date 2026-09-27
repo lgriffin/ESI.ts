@@ -66,7 +66,7 @@ Behaviour, each pinned by a scenario in `tests/bdd/features/core/`:
 
 - **One refresh per call.** If the refreshed token also gets a 401, that error is thrown.
 - **Coalesced.** Concurrent 401s share one call to your callback.
-- **Typed failure.** A callback that throws an ordinary error surfaces as an `EsiError` with code `TOKEN_REFRESH_FAILED`. A callback that throws an `EsiError` or a `CircuitOpenError` has that error propagate unchanged (`src/core/RetryStrategy.ts`).
+- **Typed failure.** A callback that throws anything other than an `EsiError` surfaces as an `EsiTokenRefreshError` (code `TOKEN_REFRESH_FAILED`) with what it threw, such as a `TokenRevokedError`, on `cause`. A callback that throws an `EsiError`, including `CircuitOpenError`, has that error propagate unchanged (`src/core/RetryStrategy.ts`).
 - **No provider, no refresh.** A 401 throws immediately.
 
 ## 3. Many characters: `EsiTokenManager`

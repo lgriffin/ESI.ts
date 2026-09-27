@@ -1,5 +1,5 @@
 import { ApiClient } from '../ApiClient';
-import { buildError } from '../util/error';
+import { EsiConfigurationError } from '../util/error';
 import { ICache } from '../cache/ICache';
 import { IRateLimiter } from '../rateLimiter/IRateLimiter';
 import { ICircuitBreaker } from '../circuitBreaker/ICircuitBreaker';
@@ -13,10 +13,10 @@ export function resolveCache(client: ApiClient): ICache | null {
 export function resolveRateLimiter(client: ApiClient): IRateLimiter {
   const limiter = client.getRateLimiter();
   if (!limiter) {
-    throw buildError(
+    throw new EsiConfigurationError(
+      'CONFIGURATION_ERROR',
       'No rate limiter configured on ApiClient. ' +
         'Set one via apiClient.setRateLimiter(new RateLimiter()).',
-      'CONFIGURATION_ERROR',
     );
   }
   return limiter;

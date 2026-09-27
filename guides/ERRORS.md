@@ -12,8 +12,14 @@ What the library throws, how to tell the cases apart, which ones are worth retry
 Error
 ├── EsiError                      statusCode · url (sanitised) · requestId · retryable
 │   ├── TimeoutError              + timeoutMs
-│   └── EsiValidationError        + validationError · direction
-├── CircuitOpenError              endpoint · failures · retryAfterMs        (not an EsiError)
+│   ├── EsiNetworkError           + cause
+│   ├── EsiValidationError        + validationError · direction
+│   ├── CircuitOpenError          + endpoint · failures · retryAfterMs
+│   └── EsiFaultError             + code · cause                            (raised by the library, not ESI)
+│       ├── EsiConfigurationError   VALIDATION_ERROR · NO_AUTH_TOKEN · CONFIGURATION_ERROR
+│       ├── EsiParseError           JSON_PARSE_ERROR
+│       ├── EsiPaginationError      PAGINATION_INCOMPLETE
+│       └── EsiTokenRefreshError    TOKEN_REFRESH_FAILED
 ├── AuthError                                                               (token manager, SSO)
 │   ├── SsoError                  statusCode · errorCode · errorDescription
 │   ├── TokenRevokedError         characterId?
@@ -23,28 +29,29 @@ Error
 │   ├── SdeDatabaseError          cause
 │   ├── SdeValidationError        validationError · entityType · entityId?
 │   └── SdeVersionMismatchError   expected · actual
-└── Error with a [CODE] prefix    plumbing and configuration faults, see below
 ```
+
+Every failure the request pipeline raises is an `EsiError`, so `isEsiError(err)` is true for all of them and safe mode keeps each one's class. The auth and SDE families are raised outside the pipeline and keep their own bases.
 
 Every field listed is `readonly`. Every class sets `name` to its own class name, so `err.name` survives serialisation even where `instanceof` does not.
 
 ### `EsiError`
 
-Raised for any HTTP-level failure, and the base of the two request-scoped subclasses. Source: `src/core/util/error.ts`.
+Raised for any HTTP-level failure, and the base of every other class the request pipeline raises. Source: `src/core/util/error.ts`.
 
 | Member             | Type                  | Meaning                                                                                                                           |
 | ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `statusCode`       | `number`              | HTTP status. `0` when no status exists (timeout, validation, safe-mode wrap).                                                     |
+| `statusCode`       | `number`              | HTTP status. `0` when no status exists (timeout, network, validation, circuit, fault).                                            |
 | `message`          | `string`              | Status text (`HTTP <status>` when neither the client nor the server names the status), with remediation appended for 401 and 403. |
-| `url`              | `string \| undefined` | Request URL passed through `sanitizeUrl`. Absent on rate-limiter and safe-mode errors.                                            |
+| `url`              | `string \| undefined` | Request URL passed through `sanitizeUrl`. Absent on rate-limiter, circuit and configuration errors.                               |
 | `requestId`        | `string \| undefined` | The `X-Esi-Request-Id` response header, when ESI sent one. Quote it when reporting to CCP.                                        |
-| `retryable`        | `boolean` (getter)    | `true` for status `0`, `420`, `429`, `502`, `503`, `504`.                                                                         |
+| `retryable`        | `boolean` (getter)    | `true` for `420`, `429`, `502`, `503`, `504`, timeouts and network failures. Subclasses that cannot succeed on retry override it. |
 | `isRateLimited()`  | method                | `statusCode` is `420` or `429`.                                                                                                   |
 | `isNotFound()`     | method                | `statusCode` is `404`.                                                                                                            |
 | `isUnauthorized()` | method                | `statusCode` is `401`.                                                                                                            |
 | `isForbidden()`    | method                | `statusCode` is `403`.                                                                                                            |
 | `isServerError()`  | method                | `statusCode` is `500` or above.                                                                                                   |
-| `isTimeout()`      | method                | `statusCode` is `0`. Also true for validation errors; prefer the `isTimeout` guard.                                               |
+| `isTimeout()`      | method                | `true` for a `TimeoutError`, `false` for every other subclass. Prefer the `isTimeout` guard.                                      |
 
 ### `TimeoutError extends EsiError`
 
@@ -54,15 +61,19 @@ Raised when the `AbortController` timer fires before the response has fully arri
 
 Raised when a body fails its Zod schema. See [RUNTIME-VALIDATION.md](RUNTIME-VALIDATION.md) for when validation runs.
 
-| Field             | Type                      | Meaning                                                                                  |
-| ----------------- | ------------------------- | ---------------------------------------------------------------------------------------- |
-| `validationError` | `unknown`                 | The `ZodError` from `safeParse`. Typed `unknown` so Zod is not in the public signature.  |
-| `direction`       | `'request' \| 'response'` | `request` for `requestSchema` failures (opt-in `validateRequest`), otherwise `response`. |
-| `statusCode`      | `0`                       | Always `0`, which makes `.retryable` report `true`. See the caution below.               |
+| Field             | Type                      | Meaning                                                                                         |
+| ----------------- | ------------------------- | ----------------------------------------------------------------------------------------------- |
+| `validationError` | `unknown`                 | The `ZodError` from `safeParse`. Typed `unknown` so Zod is not in the public signature.         |
+| `direction`       | `'request' \| 'response'` | `request` for `requestSchema` failures (opt-in `validateRequest`), otherwise `response`.        |
+| `statusCode`      | `0`                       | Always `0`. `.retryable` and `isTimeout()` are `false`: the same request returns the same body. |
 
-### `CircuitOpenError`
+### `EsiNetworkError extends EsiError`
 
-Raised by the circuit breaker before the request is sent, when the breaker for that endpoint is open or its half-open probe slot is taken. It extends `Error`, not `EsiError`, so `isEsiError` returns `false` for it.
+Raised when a request fails below HTTP for a reason other than the timeout: a refused connection, a failed DNS lookup, TLS, or a reset before the headers or part way through the body. `statusCode` is `0`, `.retryable` is `true`, the message reads `Network request failed: <reason>`, and the underlying error is on `cause`. `isTimeout()` is `false`; a timeout is a `TimeoutError`.
+
+### `CircuitOpenError extends EsiError`
+
+Raised by the circuit breaker before the request is sent, when the breaker for that endpoint is open or its half-open probe slot is taken. `statusCode` is `0` and `.retryable` is `false`: the client never retries it, and the caller should wait `retryAfterMs`. `url` is not set; `endpoint` names the breaker key.
 
 | Field          | Type     | Meaning                                                |
 | -------------- | -------- | ------------------------------------------------------ |
@@ -71,6 +82,17 @@ Raised by the circuit breaker before the request is sent, when the breaker for t
 | `retryAfterMs` | `number` | Time until the breaker will admit a half-open probe.   |
 
 The breaker is off unless `enableCircuitBreaker` is set. Its thresholds are covered in [ARCHITECTURE.md](ARCHITECTURE.md).
+
+### `EsiFaultError extends EsiError`
+
+The base of the failures the library raises itself rather than ESI. `statusCode` is `0`, `.retryable` and `isTimeout()` are `false`, `code` is one of the `EsiFaultCode` values below, and the message starts with `[<code>] `. `cause` holds the error that led to it, where there was one. An `EsiFaultError` with code `ESIJS_ERROR` wraps anything unexpected that reached the pipeline's final catch (a throwing interceptor, for example); the original is on `cause`.
+
+| Class                   | `code`                                                     | Raised when                                                                                                              |
+| ----------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `EsiConfigurationError` | `VALIDATION_ERROR`, `NO_AUTH_TOKEN`, `CONFIGURATION_ERROR` | The client's setup or a call's arguments are wrong. See [Configuration faults](#configuration-faults).                   |
+| `EsiParseError`         | `JSON_PARSE_ERROR`                                         | A response body is not the JSON it should be. `url` is the request URL; the parser's error is on `cause`.                |
+| `EsiPaginationError`    | `PAGINATION_INCOMPLETE`                                    | A page walk stopped on a failure that is not itself an `EsiError`. The page's error is on `cause`; the URL is sanitised. |
+| `EsiTokenRefreshError`  | `TOKEN_REFRESH_FAILED`                                     | The token provider threw during a 401 refresh. What it threw (a `TokenRevokedError`, an `SsoError`) is on `cause`.       |
 
 ### Auth family
 
@@ -116,7 +138,13 @@ Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guar
 | `isTimeout`            | `TimeoutError`            | `instanceof TimeoutError`            |     ●      |     ●      |    ·    |
 | `isRetryable`          | `EsiError`                | `.retryable` is `true`               |     ●      |     ●      |    ·    |
 | `isValidationError`    | `EsiValidationError`      | `instanceof EsiValidationError`      |     ●      |     ●      |    ·    |
-| `isCircuitOpen`        | `CircuitOpenError`        | `instanceof CircuitOpenError`        |     ●      |   **·**    |    ·    |
+| `isCircuitOpen`        | `CircuitOpenError`        | `instanceof CircuitOpenError`        |     ●      |     ●      |    ·    |
+| `isNetworkError`       | `EsiNetworkError`         | `instanceof EsiNetworkError`         |     ●      |     ●      |    ·    |
+| `isFaultError`         | `EsiFaultError`           | any library fault                    |     ●      |     ●      |    ·    |
+| `isConfigurationError` | `EsiConfigurationError`   | `instanceof EsiConfigurationError`   |     ●      |     ●      |    ·    |
+| `isParseError`         | `EsiParseError`           | `instanceof EsiParseError`           |     ●      |     ●      |    ·    |
+| `isPaginationError`    | `EsiPaginationError`      | `instanceof EsiPaginationError`      |     ●      |     ●      |    ·    |
+| `isTokenRefreshError`  | `EsiTokenRefreshError`    | `instanceof EsiTokenRefreshError`    |     ●      |     ●      |    ·    |
 | `isAuthError`          | `AuthError`               | any auth-family error                |     ●      |     ●      |    ·    |
 | `isSsoError`           | `SsoError`                | `instanceof SsoError`                |     ●      |     ●      |    ·    |
 | `isTokenRevoked`       | `TokenRevokedError`       | `instanceof TokenRevokedError`       |     ●      |     ●      |    ·    |
@@ -126,17 +154,10 @@ Every guard takes `unknown` and narrows. They are `instanceof` checks, so a guar
 | `isSdeValidationError` | `SdeValidationError`      | `instanceof SdeValidationError`      |     ·      |     ·      |    ●    |
 | `isSdeVersionMismatch` | `SdeVersionMismatchError` | `instanceof SdeVersionMismatchError` |     ·      |     ·      |    ●    |
 
-All the classes follow the same pattern as their guards, with one addition: `CircuitOpenError` itself is exported from `./errors`. `sanitizeUrl` and the `ValidationDirection` type are exported from both `.` and `./errors`.
-
-> **Known gap (ARCH-07).** `isCircuitOpen` is exported from the root but not from `@lgriffin/esi.ts/errors`. Until it is, import the guard from the root, or test `err instanceof CircuitOpenError` with the class from `./errors`. Tracked as bead `esi-gyh`.
+All the classes follow the same pattern as their guards. `sanitizeUrl` and the `ValidationDirection` and `EsiFaultCode` types are exported from both `.` and `./errors`. A test (`tests/tdd/core/errorsEntryParity.test.ts`) fails if the root exports an error class or guard that `./errors` does not.
 
 ```typescript
-import {
-  EsiError,
-  isNotFound,
-  CircuitOpenError,
-} from '@lgriffin/esi.ts/errors';
-import { isCircuitOpen } from '@lgriffin/esi.ts';
+import { EsiError, isNotFound, isCircuitOpen } from '@lgriffin/esi.ts/errors';
 ```
 
 ---
@@ -145,26 +166,25 @@ import { isCircuitOpen } from '@lgriffin/esi.ts';
 
 `.retryable` and `isRetryable` describe the status code only. Whether the library actually retries also depends on the HTTP method and the retry configuration.
 
-| Condition                         | `.retryable` | Retried by `RetryStrategy`                                 |
-| --------------------------------- | :----------: | ---------------------------------------------------------- |
-| `TimeoutError` (status `0`)       |     yes      | yes, for GET or when `retryMutations` is set               |
-| `420`, `429`                      |     yes      | yes, for GET or when `retryMutations` is set               |
-| `502`, `503`, `504`               |     yes      | yes, for GET or when `retryMutations` is set               |
-| `500` and other `5xx`             |      no      | no; a cached copy is served instead where one exists       |
-| `401` with a token provider       |      no      | refreshed once, then the request is replayed               |
-| `304` with no cached body         |      no      | no                                                         |
-| other `4xx`                       |      no      | no                                                         |
-| `CircuitOpenError`                |     n/a      | never; rethrown immediately so the breaker is not hammered |
-| `EsiValidationError`              |   **yes**    | no; validation runs after the retry loop has returned      |
-| network failure (DNS, reset, TLS) |     yes      | yes, for GET or when `retryMutations` is set               |
+| Condition                           | `.retryable` | Retried by `RetryStrategy`                                 |
+| ----------------------------------- | :----------: | ---------------------------------------------------------- |
+| `TimeoutError` (status `0`)         |     yes      | yes, for GET or when `retryMutations` is set               |
+| `420`, `429`                        |     yes      | yes, for GET or when `retryMutations` is set               |
+| `502`, `503`, `504`                 |     yes      | yes, for GET or when `retryMutations` is set               |
+| `500` and other `5xx`               |      no      | no; a cached copy is served instead where one exists       |
+| `401` with a token provider         |      no      | refreshed once, then the request is replayed               |
+| `304` with no cached body           |      no      | no                                                         |
+| other `4xx`                         |      no      | no                                                         |
+| `CircuitOpenError`                  |      no      | never; rethrown immediately so the breaker is not hammered |
+| `EsiValidationError`                |      no      | no; validation runs after the retry loop has returned      |
+| `EsiNetworkError` (DNS, reset, TLS) |     yes      | yes, for GET or when `retryMutations` is set               |
+| `EsiFaultError` and subclasses      |      no      | no                                                         |
 
 The defaults set by `EsiClient` are three retries, 1 s base delay and a 30 s cap, with exponential backoff and 0.75–1.25× jitter. `retryAttempts: n` changes only the count; `retryConfig` replaces the whole object; `retryStrategy` replaces the implementation. A `RetryStrategy` constructed by hand with no config performs zero retries.
 
 `POST`, `PUT` and `DELETE` are not retried unless `retryConfig.retryMutations` is `true`, because a retried mutation can apply twice.
 
-> **Caution.** `EsiValidationError` has `statusCode` `0`, so `isRetryable(err)` and `err.retryable` return `true` for it, and `err.isTimeout()` returns `true` as well. Retrying a validation failure returns the same body. Test `isValidationError` before `isRetryable` in your own handling, and use the `isTimeout` guard rather than the method.
-
-A network failure that is not a timeout, before the headers or part way through the body, arrives as an `EsiError` with `statusCode` `0` and the message `Network request failed: <reason>`; the underlying error is on `err.cause`. Like a timeout, it is retryable, so `err.isTimeout()` also returns `true` for it; use the `isTimeout` guard, which matches only `TimeoutError`, to tell the two apart.
+Before 11.0.0, `.retryable` was `true` for every status-`0` error, including `EsiValidationError` and anything safe mode converted, and `isTimeout()` was `true` for them too. Both now follow the class: only `TimeoutError` and `EsiNetworkError` among the status-`0` classes are retryable, and only `TimeoutError` reports `isTimeout()`.
 
 ---
 
@@ -180,12 +200,20 @@ Configure a token provider with `onTokenRefresh` on `EsiClient`, `ApiClient.setT
 
 If the provider throws, what you receive depends on what it threw:
 
-| Provider throws                                             | You receive                                                             |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `EsiError` or `CircuitOpenError`                            | that error, unchanged                                                   |
-| anything else, including `TokenRevokedError` and `SsoError` | plain `Error`: `[TOKEN_REFRESH_FAILED] Token refresh failed: <message>` |
+| Provider throws                                             | You receive                                                                                                |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| an `EsiError`, including `CircuitOpenError`                 | that error, unchanged                                                                                      |
+| anything else, including `TokenRevokedError` and `SsoError` | `EsiTokenRefreshError` (`[TOKEN_REFRESH_FAILED] Token refresh failed: <message>`), the original on `cause` |
 
-The second row means the auth-family class does not survive the retry strategy. Match on the message, or call `tokenManager.getToken(characterId)` yourself before the request to see the typed error.
+To act on a revoked token, test the cause:
+
+```typescript
+import { isTokenRefreshError, isTokenRevoked } from '@lgriffin/esi.ts/errors';
+
+function needsLogin(err: unknown): boolean {
+  return isTokenRefreshError(err) && isTokenRevoked(err.cause);
+}
+```
 
 Without a provider, or on an endpoint without `requiresAuth`, a `401` is thrown straight away.
 
@@ -222,36 +250,32 @@ The rate limiter can also raise an `EsiError(429, "Rate limit group '<group>' st
 
 ---
 
-## Plumbing and configuration faults
+## Configuration faults
 
-Some failures are raised as plain `Error` instances whose message starts with a bracketed code. They are not `EsiError`s, no guard matches them, and none is retried. This is the inconsistency registered against ARCH-07 in the charter gap register.
+`EsiConfigurationError` covers a client that is set up wrong or called with bad arguments. None is retried, and none reaches ESI.
 
-| Code                    | Raised by                         | Message begins                                                                                                                                                                                                     |
-| ----------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `VALIDATION_ERROR`      | client construction               | `Invalid base URL`, `Base URL must use HTTPS protocol`, `Base URL host '<h>' is not in the allowlist`                                                                                                              |
-| `VALIDATION_ERROR`      | path and query parameter building | `Path parameter '<p>' must not be empty` / `contains invalid characters` / `must be a finite number`; `Query parameter '<p>' must not be null or undefined` / `must be a finite number` / `exceeds maximum length` |
-| `NO_AUTH_TOKEN`         | header building                   | `Authorization header is required for this endpoint but no access token is configured`                                                                                                                             |
-| `CONFIGURATION_ERROR`   | dependency resolution             | `No rate limiter configured on ApiClient`                                                                                                                                                                          |
-| `JSON_PARSE_ERROR`      | body parsing                      | `Invalid JSON response: <parser message>`                                                                                                                                                                          |
-| `PAGINATION_INCOMPLETE` | offset pagination                 | `Pagination incomplete for <url>: <message>`                                                                                                                                                                       |
-| `TOKEN_REFRESH_FAILED`  | retry strategy                    | `Token refresh failed: <message>`                                                                                                                                                                                  |
-| `ESIJS_ERROR`           | the pipeline's final catch        | the original message                                                                                                                                                                                               |
+| Code                  | Raised by                         | Message begins                                                                                                                                                                                                     |
+| --------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `VALIDATION_ERROR`    | client construction               | `Invalid base URL`, `Base URL must use HTTPS protocol`, `Base URL host '<h>' is not in the allowlist`                                                                                                              |
+| `VALIDATION_ERROR`    | path and query parameter building | `Path parameter '<p>' must not be empty` / `contains invalid characters` / `must be a finite number`; `Query parameter '<p>' must not be null or undefined` / `must be a finite number` / `exceeds maximum length` |
+| `NO_AUTH_TOKEN`       | header building                   | `Authorization header is required for this endpoint but no access token is configured`                                                                                                                             |
+| `CONFIGURATION_ERROR` | dependency resolution             | `No rate limiter configured on ApiClient`                                                                                                                                                                          |
 
-A 200 with an empty body is a `JSON_PARSE_ERROR` on every endpoint except two. `getPublicContractItems` and `getPublicContractBids` resolve with `[]` when ESI sends no content: a 204, or a 200 with `Content-Length: 0`. ESI answers that way for a public contract that has expired or been accepted.
-
-Two further plain errors carry no code: `No token provider configured`, from calling `ApiClient.refreshToken()` directly without a provider, and `At least one client type must be specified`, from building an empty `EsiClientBuilder`.
-
-Faults raised inside a request (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`) pass through that final catch, which wraps every non-`EsiError` again. The message you receive is therefore `[ESIJS_ERROR] [NO_AUTH_TOKEN] Authorization header is required …`. Match the inner code anywhere in the message rather than at the start:
+Each message starts with its code once, `[NO_AUTH_TOKEN] Authorization header is required …`. Before 11.0.0 these were plain `Error`s, and a fault raised inside a request was wrapped a second time as `[ESIJS_ERROR] [NO_AUTH_TOKEN] …`; the pipeline now passes every `EsiError` through unchanged. Branch on the class or on `code`, not the message:
 
 ```typescript
-function faultCode(err: unknown): string | undefined {
-  if (!(err instanceof Error)) return undefined;
-  const codes = [...err.message.matchAll(/\[([A-Z_]+)\]/g)].map((m) => m[1]);
-  return codes.find((c) => c !== 'ESIJS_ERROR') ?? codes[0];
+import { isConfigurationError } from '@lgriffin/esi.ts/errors';
+
+function isMissingToken(err: unknown): boolean {
+  return isConfigurationError(err) && err.code === 'NO_AUTH_TOKEN';
 }
 ```
 
-A page failure during offset pagination that is itself an `EsiError` or `CircuitOpenError` is rethrown as that error; only other failures become `PAGINATION_INCOMPLETE`. Cursor and streaming failure semantics are covered in [PAGINATION.md](PAGINATION.md).
+A 200 with an empty body is an `EsiParseError` on every endpoint except two. `getPublicContractItems` and `getPublicContractBids` resolve with `[]` when ESI sends no content: a 204, or a 200 with `Content-Length: 0`. ESI answers that way for a public contract that has expired or been accepted.
+
+Two plain errors carry no code: `No token provider configured`, from calling `ApiClient.refreshToken()` directly without a provider, and `At least one client type must be specified`, from building an empty `EsiClientBuilder`. Both are raised outside a request.
+
+A page failure during offset pagination that is itself an `EsiError` is rethrown as that error; only other failures become an `EsiPaginationError`. Cursor and streaming failure semantics are covered in [PAGINATION.md](PAGINATION.md).
 
 ---
 
@@ -270,7 +294,7 @@ sanitizeUrl('https://esi.evetech.net/latest/x/?token=abc&page=2');
 - A string that `new URL()` cannot parse keeps everything before `?` and replaces the query with `?[params-redacted]`.
 - `undefined` and the empty string are returned unchanged.
 
-Plain `[CODE]` errors are not sanitised. `PAGINATION_INCOMPLETE` includes the request URL in its message. ESI.ts sends tokens in the `Authorization` header rather than the query string, so this matters only for URLs you construct yourself. The runtime controls behind this are listed in [SECURITY.md](SECURITY.md).
+Every class in the hierarchy is an `EsiError`, so every `url` field is sanitised; `EsiPaginationError` sanitises the URL in its message as well. ESI.ts sends tokens in the `Authorization` header rather than the query string, so this matters only for URLs you construct yourself. The runtime controls behind this are listed in [SECURITY.md](SECURITY.md).
 
 ---
 
@@ -304,16 +328,9 @@ if (result.ok) {
 }
 ```
 
-Every failure is delivered as an `EsiError`. Anything else is converted to `new EsiError(0, message)` first, which has consequences:
+Every failure is delivered as the `EsiError` the throwing API would have raised, with its class intact: a `CircuitOpenError` keeps `retryAfterMs`, an `EsiConfigurationError` keeps its `code`. Anything that is not an `EsiError` arrives as an `EsiFaultError` with code `ESIJS_ERROR` and the original on `cause`. `meta` is not populated on failure in the current implementation.
 
-- A `CircuitOpenError` arrives as a status-`0` `EsiError`. `isCircuitOpen` is `false` and `retryAfterMs` is lost.
-- Plain `[CODE]` faults arrive as status-`0` `EsiError`s with the prefixed message.
-- Because the status is `0`, every converted error reports `.retryable === true`.
-- `meta` is not populated on failure in the current implementation.
-
-Subclasses that already extend `EsiError` (`TimeoutError`, `EsiValidationError`) are passed through with their type intact.
-
-On a value already typed `EsiError`, prefer the instance methods (`result.error.isNotFound()`) to the guards. The guards narrow to `EsiError`, so TypeScript treats their `false` branch as `never`. If you need to distinguish breaker trips or configuration faults, use the throwing API.
+On a value already typed `EsiError`, prefer the instance methods (`result.error.isNotFound()`) or `instanceof` with the class. The guards take `unknown`, so they narrow here as well: `isCircuitOpen(result.error)` narrows to `CircuitOpenError`.
 
 ---
 
@@ -332,6 +349,8 @@ import {
   isUnauthorized,
   isForbidden,
   isRetryable,
+  isConfigurationError,
+  isTokenRefreshError,
   isEsiError,
 } from '@lgriffin/esi.ts';
 
@@ -353,12 +372,16 @@ try {
     // Expected for deleted or hidden entities.
   } else if (isUnauthorized(err) || isForbidden(err)) {
     // Token or scope problem; the message says which.
+  } else if (isTokenRefreshError(err)) {
+    // The provider could not refresh; err.cause says why (isTokenRevoked: log in again).
+  } else if (isConfigurationError(err)) {
+    // A bug in the calling code or its setup; err.code says which.
   } else if (isRetryable(err)) {
-    // 502/503/504 that outlasted the retry budget.
+    // 502/503/504 or a network failure that outlasted the retry budget.
   } else if (isEsiError(err)) {
-    // Any other HTTP failure; log err.statusCode, err.url, err.requestId.
+    // Any other failure; log err.statusCode, err.url, err.requestId.
   } else {
-    // Plain [CODE] fault or unexpected error; see faultCode() above.
+    // Not from the client.
     throw err;
   }
 }

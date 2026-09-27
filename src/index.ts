@@ -80,6 +80,12 @@ export {
   EsiError,
   TimeoutError,
   EsiValidationError,
+  EsiNetworkError,
+  EsiFaultError,
+  EsiConfigurationError,
+  EsiParseError,
+  EsiPaginationError,
+  EsiTokenRefreshError,
   isEsiError,
   isRateLimited,
   isNotFound,
@@ -90,9 +96,15 @@ export {
   isRetryable,
   isValidationError,
   isCircuitOpen,
+  isNetworkError,
+  isFaultError,
+  isConfigurationError,
+  isParseError,
+  isPaginationError,
+  isTokenRefreshError,
   sanitizeUrl,
 } from './core/util/error';
-export type { ValidationDirection } from './core/util/error';
+export type { ValidationDirection, EsiFaultCode } from './core/util/error';
 
 // Endpoint definition types
 export { DeprecationInfo } from './core/endpoints/EndpointDefinition';

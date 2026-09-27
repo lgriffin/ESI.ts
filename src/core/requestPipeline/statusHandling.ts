@@ -4,8 +4,7 @@ import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { ICache } from '../cache/ICache';
 import { buildCacheKey } from '../cache/cacheKey';
 import { ParsedHeaders } from '../util/headersUtil';
-import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
-import { buildError } from '../util/error';
+import { toEsiError } from '../util/error';
 import { tryStaleCacheResponse, EsiHandlerResponse } from './cachePolicy';
 
 export const STATUS_MESSAGES: Record<number, string> = {
@@ -189,16 +188,13 @@ export function handleErrorResponse(
 }
 
 /**
- * Wrap an unknown error into an EsiError or rethrow known errors.
+ * Rethrow an EsiError unchanged; wrap anything else as an ESIJS_ERROR fault.
  */
 export function wrapError(error: unknown, client?: ApiClient): never {
-  if (error instanceof EsiError || error instanceof CircuitOpenError) {
+  if (error instanceof EsiError) {
     throw error;
   }
-  if (error instanceof Error) {
-    logError(client, `Unexpected error: ${error.message}`);
-    throw buildError(error.message, 'ESIJS_ERROR');
-  }
-  logError(client, `Unexpected error: ${String(error)}`);
-  throw buildError(String(error), 'ESIJS_ERROR');
+  const message = error instanceof Error ? error.message : String(error);
+  logError(client, `Unexpected error: ${message}`);
+  throw toEsiError(error);
 }

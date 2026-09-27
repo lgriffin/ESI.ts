@@ -776,7 +776,7 @@ Set `enableETagCache: false` to disable all three tiers.
 | Defaults        | `configureApiClient` sets `maxRetries: 3`, `baseDelayMs: 1000`, `maxDelayMs: 30000`; `retryAttempts` overrides only the count    |
 | Token refresh   | One refresh per call on a 401 when the endpoint requires auth and a token provider is set; the attempt is then re-run            |
 | Cache re-check  | From the second attempt on, `handleRequest` checks the spec-TTL cache before sending; a copy stored during the backoff is served |
-| Refresh failure | Rethrown as-is if it is an `EsiError` or `CircuitOpenError`, otherwise a `TOKEN_REFRESH_FAILED` error                            |
+| Refresh failure | Rethrown as-is if it is an `EsiError`, otherwise an `EsiTokenRefreshError` with the original on `cause`                          |
 | Circuit open    | `CircuitOpenError` is rethrown immediately and never retried                                                                     |
 
 Concurrent refreshes on one `ApiClient` share one in-flight provider call. Supply a custom `IRetryStrategy` through `retryStrategy` in the config or `ApiClient.setRetryStrategy()`.
@@ -1151,10 +1151,13 @@ flowchart TB
 
 ```
 Error
-├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {0, 420, 429, 502, 503, 504}
+├── EsiError (statusCode, sanitised url, requestId)      .retryable ⇐ {420, 429, 502, 503, 504}, timeout, network
 │   ├── TimeoutError (+ timeoutMs)
-│   └── EsiValidationError (+ ZodError, direction: request | response)
-├── CircuitOpenError (endpoint, failures, retryAfterMs)   not an EsiError
+│   ├── EsiNetworkError (+ cause)
+│   ├── EsiValidationError (+ ZodError, direction: request | response)   not retryable
+│   ├── CircuitOpenError (endpoint, failures, retryAfterMs)              not retryable
+│   └── EsiFaultError (+ code, cause)                                    not retryable
+│       └── EsiConfigurationError | EsiParseError | EsiPaginationError | EsiTokenRefreshError
 ├── AuthError
 │   ├── SsoError (+ statusCode)                           .retryable ⇐ 429 or ≥ 500
 │   ├── TokenRevokedError
@@ -1165,7 +1168,7 @@ Error
 
 The auth subtree lives in `src/auth/errors.ts` and is exported from the root and `./errors`, with guards `isAuthError`, `isSsoError`, `isTokenRevoked` and `isCharacterNotFound`.
 
-Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `TOKEN_REFRESH_FAILED`, …) are still plain `Error`s with a type prefix; `ARCH-07` records that as a gap, and ROADMAP Phase 3 gives them a typed `EsiConfigurationError` family, a typed network fault, and a non-retryable `EsiValidationError`, each extending the existing classes so `instanceof EsiError` keeps working. Guards, safe mode and the full retryability rules are in [ERRORS.md](ERRORS.md).
+Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON_PARSE_ERROR`, `PAGINATION_INCOMPLETE`, `TOKEN_REFRESH_FAILED`, `VALIDATION_ERROR`) are `EsiFaultError` subclasses carrying that `code`, so every failure the pipeline raises is an `EsiError` and safe mode keeps its class. Guards, safe mode and the full retryability rules are in [ERRORS.md](ERRORS.md).
 
 ---
 

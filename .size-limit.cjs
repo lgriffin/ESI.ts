@@ -33,7 +33,9 @@ const budgets = {
     require: '75.4 kB', // measured 71736 B
   },
   './errors': {
-    import: '4.1 kB', // measured 3900 B
+    // Raised for the typed error family (EsiNetworkError, CircuitOpenError,
+    // the EsiFaultError classes and their guards).
+    import: '5.2 kB', // measured 4940 B
     require: '9.8 kB', // measured 9246 B
   },
   './testing': {

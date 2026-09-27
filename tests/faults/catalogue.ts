@@ -76,14 +76,13 @@ const html = (status: number): HttpResponse => ({
   body: HTML_OUTAGE,
 });
 
-/** Parse errors reach the caller double-wrapped and log twice. */
+/** Parse errors reach the caller as an EsiParseError and log once. */
 const jsonParseRejection = (): Outcome => ({
   settlement: {
     rejects: {
-      class: 'CodedError',
+      class: 'EsiFaultError',
       code: 'JSON_PARSE_ERROR',
-      message:
-        /^\[ESIJS_ERROR\] \[JSON_PARSE_ERROR\] Invalid JSON response: \S/,
+      message: /^\[JSON_PARSE_ERROR\] Invalid JSON response: \S/,
     },
   },
   requests: 1,
@@ -91,11 +90,6 @@ const jsonParseRejection = (): Outcome => ({
   elapsedMs: INSTANT,
   logs: [
     { level: 'error', message: /^Failed to parse JSON response: /, count: 1 },
-    {
-      level: 'error',
-      message: /^Unexpected error: \[JSON_PARSE_ERROR\]/,
-      count: 1,
-    },
   ],
 });
 
@@ -158,7 +152,7 @@ export const FAULTS: readonly Fault[] = [
   {
     id: 'truncated-json-body',
     title: '200 whose JSON body stops half way, framing intact',
-    rule: { guide: 'ERRORS.md', section: 'Plumbing and configuration faults' },
+    rule: { guide: 'ERRORS.md', section: '`EsiFaultError extends EsiError`' },
     exchange: (ctx) => {
       const text = JSON.stringify(first(ctx).body);
       return [
@@ -170,7 +164,7 @@ export const FAULTS: readonly Fault[] = [
   {
     id: 'html-body-on-200',
     title: '200 carrying a text/html maintenance page',
-    rule: { guide: 'ERRORS.md', section: 'Plumbing and configuration faults' },
+    rule: { guide: 'ERRORS.md', section: '`EsiFaultError extends EsiError`' },
     exchange: () => [
       {
         status: 200,
@@ -183,7 +177,7 @@ export const FAULTS: readonly Fault[] = [
   {
     id: 'empty-body-on-200',
     title: '200 with Content-Type application/json and no body',
-    rule: { guide: 'ERRORS.md', section: 'Plumbing and configuration faults' },
+    rule: { guide: 'ERRORS.md', section: '`EsiFaultError extends EsiError`' },
     exchange: () => [
       {
         status: 200,

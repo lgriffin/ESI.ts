@@ -16,7 +16,7 @@ const ERROR_CLASSES = [
   'EsiError',
   'TimeoutError',
   'EsiValidationError',
-  'CodedError',
+  'EsiFaultError',
 ];
 const CACHE_STATES = ['empty', 'holds-result'];
 /** The widest elapsed-time window a fault may assert. */
@@ -80,7 +80,7 @@ export function outcomeProblems(
       problems.push(
         `names no error class (one of ${ERROR_CLASSES.join(', ')})`,
       );
-    } else if (e.class === 'CodedError') {
+    } else if (e.class === 'EsiFaultError') {
       if (typeof e.code !== 'string' || !/^[A-Z_]+$/.test(e.code)) {
         problems.push('names no bracketed error code');
       }

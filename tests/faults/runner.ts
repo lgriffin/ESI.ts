@@ -12,6 +12,7 @@ import { isDeepStrictEqual, inspect } from 'util';
 import { EsiClient } from '../../src/EsiClient';
 import {
   EsiError,
+  EsiFaultError,
   EsiValidationError,
   TimeoutError,
 } from '../../src/core/util/error';
@@ -276,10 +277,8 @@ function describeSettled(s: Settled): string {
 function errorClass(err: unknown): string {
   if (err instanceof EsiValidationError) return 'EsiValidationError';
   if (err instanceof TimeoutError) return 'TimeoutError';
+  if (err instanceof EsiFaultError) return 'EsiFaultError';
   if (err instanceof EsiError) return 'EsiError';
-  if (err instanceof Error && /\[[A-Z_]+\]/.test(err.message)) {
-    return 'CodedError';
-  }
   return err instanceof Error ? err.constructor.name : typeof err;
 }
 
@@ -289,11 +288,8 @@ function describeError(err: unknown): string {
   return `${errorClass(err)}${status} "${message}"`;
 }
 
-/** The innermost bracketed code, ignoring the pipeline's ESIJS_ERROR wrapper. */
 function faultCode(err: unknown): string | undefined {
-  if (!(err instanceof Error)) return undefined;
-  const codes = [...err.message.matchAll(/\[([A-Z_]+)\]/g)].map((m) => m[1]);
-  return codes.find((c) => c !== 'ESIJS_ERROR') ?? codes[0];
+  return err instanceof EsiFaultError ? err.code : undefined;
 }
 
 function errorProblems(expected: ExpectedError, err: unknown): string[] {
@@ -305,7 +301,7 @@ function errorProblems(expected: ExpectedError, err: unknown): string[] {
     );
     return problems;
   }
-  if (expected.class === 'CodedError') {
+  if (expected.class === 'EsiFaultError') {
     if (faultCode(err) !== expected.code) {
       problems.push(
         `error code: expected [${expected.code}], got ${describeError(err)}`,

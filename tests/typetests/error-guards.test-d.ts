@@ -71,3 +71,49 @@ if (isCircuitOpen(err)) {
   expectType<number>(err.failures);
   expectType<number>(err.retryAfterMs);
 }
+
+// --- ./errors carries every error export the root carries, with one type ---
+
+import * as errorsEntry from '../../src/errors';
+import * as rootEntry from '../../src';
+import {
+  EsiNetworkError,
+  EsiFaultError,
+  EsiConfigurationError,
+  EsiFaultCode,
+  isNetworkError,
+  isFaultError,
+  isConfigurationError,
+  isParseError,
+  isPaginationError,
+  isTokenRefreshError,
+  EsiParseError,
+  EsiPaginationError,
+  EsiTokenRefreshError,
+} from '../../src/errors';
+
+expectAssignable<Pick<typeof rootEntry, keyof typeof errorsEntry>>(errorsEntry);
+expectType<typeof rootEntry.isCircuitOpen>(errorsEntry.isCircuitOpen);
+
+if (isNetworkError(err)) {
+  expectType<EsiNetworkError>(err);
+  expectAssignable<EsiError>(err);
+}
+if (isFaultError(err)) {
+  expectType<EsiFaultError>(err);
+  expectType<EsiFaultCode>(err.code);
+}
+if (isConfigurationError(err)) {
+  expectType<EsiConfigurationError>(err);
+}
+if (isParseError(err)) {
+  expectType<EsiParseError>(err);
+}
+if (isPaginationError(err)) {
+  expectType<EsiPaginationError>(err);
+}
+if (isTokenRefreshError(err)) {
+  expectType<EsiTokenRefreshError>(err);
+  expectType<unknown>(err.cause);
+}
+expectAssignable<EsiError>(new CircuitOpenError('/x', 1, 1000));
