@@ -56,11 +56,14 @@ export interface HttpResponse {
  *   undici's `TypeError('terminated')`, socket error as `cause`.
  * - `body-stall`: status and headers arrive, then the first `bytes` characters
  *   of the body, then nothing more until the request is aborted.
+ * - `thrown`: `fetch` rejects with exactly `error`, whatever it is. For a
+ *   transport that raises the SDK's own errors, such as a test double.
  */
 export type TransportFault =
   | { kind: 'connection-error'; code: string }
   | { kind: 'body-error'; code: string; bytes: number }
-  | { kind: 'body-stall'; bytes: number };
+  | { kind: 'body-stall'; bytes: number }
+  | { kind: 'thrown'; error: unknown };
 
 export interface RecordedRequest {
   method: string;
@@ -184,6 +187,9 @@ function faultyReply(
 ): Response {
   if (fault.kind === 'connection-error') {
     throw undiciError('fetch failed', fault.code);
+  }
+  if (fault.kind === 'thrown') {
+    throw fault.error;
   }
   const encoded = encode(entry);
   const prefix = new TextEncoder().encode(encoded.body.slice(0, fault.bytes));

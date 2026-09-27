@@ -926,6 +926,66 @@ Zod validation is tested at four levels, each owning a different question:
 | Pipeline    | `tests/fuzz/response-validation-fault-injection.test.ts`, the fault catalogue, recorded replay | What does a consumer receive when ESI sends a body the schema rejects, or a real body it must accept? |
 | Requirement | `tests/bdd/features/core/0053-runtime-validation.feature`, `npm run validate:spec-consistency` | What does the specification promise, and does every Rule agree with the schema about optional fields? |
 
+## Testing your application
+
+An application's own tests run without ESI by handing the runtime a mock transport. `createMockTransport()` from `@lgriffin/esi.ts/testing` is an `HttpTransport`: it answers requests from a table of routes and records every request it saw. Everything between the application's call and the transport is the SDK's real pipeline (URL building, headers, retries, the cache, pagination, response validation), so a test written against it can fail for a bug in the SDK as well as in the application. The specification is [`0057-mock-transport.feature`](../tests/bdd/features/core/0057-mock-transport.feature).
+
+```typescript
+import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
+import { createMockTransport } from '@lgriffin/esi.ts/testing';
+
+const transport = createMockTransport()
+  .respond({
+    method: 'GET',
+    path: '/status',
+    body: {
+      players: 12,
+      server_version: '1',
+      start_time: '2026-09-16T11:00:00Z',
+      vip: false,
+    },
+  })
+  .respond({
+    method: 'GET',
+    path: '/characters/{character_id}/wallet',
+    body: 1234567.89,
+    times: 1,
+  })
+  .respond({
+    method: 'POST',
+    path: /\/universe\/names/,
+    status: 200,
+    body: [],
+  });
+
+const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)', transport });
+const wallet = await esi
+  .as(identityFromToken(token))
+  .character(characterId)
+  .wallet.get();
+
+transport.sent[0]?.headers['authorization']; // "Bearer <token>"
+transport.unrouted; // [] when every request had a route
+transport.reset(); // forget the routes and the record, keep the runtime
+```
+
+A route is one `respond()` call:
+
+| Field     | Meaning                                                                                                                                                                                                     |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `method`  | The HTTP method, compared without regard to case. Omitted, any method.                                                                                                                                      |
+| `path`    | The ESI path template as the spec writes it (`{character_id}` stands for one segment, a trailing slash is ignored, the query string is not compared), or a regular expression tested against the whole URL. |
+| `status`  | 200 to 599. Default 200.                                                                                                                                                                                    |
+| `headers` | Response headers, such as `x-pages` for a paginated route or `etag`.                                                                                                                                        |
+| `body`    | An object, array, number or boolean is JSON-encoded as `application/json`; a string is sent verbatim; omitted, no body.                                                                                     |
+| `times`   | How many matching requests the route answers before it is retired. Omitted, every one.                                                                                                                      |
+
+Routes are tried in the order added and the first match answers. A request no route answers is rejected with an `EsiConfigurationError` (code `CONFIGURATION_ERROR`) naming the request and the route table. The pipeline passes an `EsiError` a transport throws through unchanged, so the call fails at once under that name, without a retry and without falling back to a stale cache entry as an HTTP 5xx would; the transport lists the request under `unrouted`. `sent` holds every request in order, header names in lower case, the body as a string or `undefined`.
+
+`reset()` empties the route table and the record, not the runtime built over the transport: once a route answered with an `etag` header, the runtime's response cache serves that request again without reaching the transport. A test file that repeats a request across a reset builds a runtime per test, or passes `enableETagCache: false` to `createEsi`.
+
+`TestDataFactory`, from the same entry, builds response bodies the schemas accept ([Test helpers](#test-helpers)).
+
 ## Adding tests
 
 1. **A behaviour change** starts with an EARS Rule and a scenario that fails before the implementation exists (`TEST-01`). Add the Rule to the right feature under `tests/bdd/features/`, bind a new feature with a spec entry under `tests/bdd/specs/`, and add one file per new step under `tests/bdd/steps/<keyword>/`. Queue HTTP at the transport seam. Confirm red, implement, confirm green, run `npm run spec:audit`. Never add a legacy step file.

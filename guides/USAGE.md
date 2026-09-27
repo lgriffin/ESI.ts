@@ -352,7 +352,7 @@ npm run example:sde-basic
 11.0.0 is in progress. [ROADMAP.md](ROADMAP.md) has the order of work and the release gate. For a consumer:
 
 - **Node 22 becomes the floor.** 10.x stays the line for Node 18 and 20.
-- **A new client beside the old one (on master).** `createEsi()` from `@lgriffin/esi.ts/client` builds one shared runtime, holding the rate limiter, error budget, cache and transport. `esi.public` is a typed view in which an authenticated call does not compile. `esi.as(identity)` is an immutable per-character view over the same runtime. The runtime requires a user agent. [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide; a mock transport in `./testing` for your own tests follows (Phase 2 PR 12).
+- **A new client beside the old one (on master).** `createEsi()` from `@lgriffin/esi.ts/client` builds one shared runtime, holding the rate limiter, error budget, cache and transport. `esi.public` is a typed view in which an authenticated call does not compile. `esi.as(identity)` is an immutable per-character view over the same runtime. The runtime requires a user agent. [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide; `createMockTransport()` in `./testing` answers its requests in your own tests ([TESTING.md](TESTING.md#testing-your-application)).
 - **Nothing on this page is removed in 11.0.** `EsiApiFactory`'s named methods and `EsiTokenManager.createClient` gain `@deprecated` pointers to the builder. Removal waits for 12.0.0 at the earliest, per [SEMVER.md](SEMVER.md).
 - **Already on master and in the 11.0.0 release notes:**
   - The default compatibility date is 2026-08-18.

@@ -130,6 +130,10 @@ With a token manager, a character whose refresh token SSO has revoked throws `To
 
 Concurrent requests through one view are safe. A refresh coalesces: two requests that hit 401 at the same time cause one SSO call, and both retry with its result. Concurrent requests through views for different characters are independent, apart from the shared budgets above.
 
+## Testing a view
+
+A test hands the runtime a mock transport instead of the network: `createMockTransport()` from `@lgriffin/esi.ts/testing` answers requests from a table of routes and records what each view sent, so a test can assert which token went out and which requests were made. The README's [quick start](../README.md#testing-your-application-without-esi) runs one; [TESTING.md](TESTING.md#testing-your-application) has the route options.
+
 ## Moving from `EsiTokenManager.createClient`
 
 `tokens.createClient(id)` builds a complete `EsiClient` per character, each with its own rate limiter, error budget and cache. It still works and nothing about it changes in 11.0. To move an application to one runtime:
