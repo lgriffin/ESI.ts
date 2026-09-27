@@ -2,7 +2,6 @@ import { camelToSnake } from '../../../src/core/util/stringUtil';
 import { sleep } from '../../../src/core/util/sleep';
 import { retryDelay } from '../../../src/core/util/retry';
 import {
-  buildError,
   EsiValidationError,
   isValidationError,
 } from '../../../src/core/util/error';
@@ -119,34 +118,6 @@ describe('retryDelay', () => {
       expect(delay).toBeLessThanOrEqual(1250);
     }
     randomSpy.mockRestore();
-  });
-});
-
-describe('buildError', () => {
-  it('creates error with [TYPE] format', () => {
-    const err = buildError('something failed', 'NETWORK');
-    expect(err.message).toBe('[NETWORK] something failed');
-  });
-
-  it('defaults type to ERROR', () => {
-    const err = buildError('oops');
-    expect(err.message).toBe('[ERROR] oops');
-  });
-
-  it('attaches url when provided', () => {
-    const err = buildError('fail', 'HTTP', 'https://esi.evetech.net/v1/status');
-    expect((err as Error & { url: string }).url).toBe(
-      'https://esi.evetech.net/v1/status',
-    );
-  });
-
-  it('does not attach url when not provided', () => {
-    const err = buildError('fail');
-    expect((err as unknown as Record<string, unknown>).url).toBeUndefined();
-  });
-
-  it('returns an Error instance', () => {
-    expect(buildError('test')).toBeInstanceOf(Error);
   });
 });
 

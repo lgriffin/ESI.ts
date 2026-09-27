@@ -1,11 +1,15 @@
 import { ApiClient } from '../ApiClient';
-import { EsiError, TimeoutError } from '../util/error';
+import {
+  EsiError,
+  EsiNetworkError,
+  EsiParseError,
+  TimeoutError,
+} from '../util/error';
 import { logInfo, logWarn, logError } from '../logger/clientLog';
 import { parseHeaders, ParsedHeaders } from '../util/headersUtil';
 import { ICache } from '../cache/ICache';
 import { IRateLimiter } from '../rateLimiter/IRateLimiter';
 import { ICircuitBreaker } from '../circuitBreaker/ICircuitBreaker';
-import { buildError } from '../util/error';
 import { buildRequestHeaders } from './headers';
 import { applyRequestMiddleware } from './middlewareBridge';
 import { readEsiErrorReason, statusMessage } from './statusHandling';
@@ -39,12 +43,9 @@ function isAbortError(err: unknown): boolean {
  * Status 0 makes it an EsiError like every other request failure, and
  * retryable for GET; the original error is kept as `cause`.
  */
-function networkError(err: unknown, url: string): EsiError {
+function networkError(err: unknown, url: string): EsiNetworkError {
   const reason = err instanceof Error ? err.message : String(err);
-  return Object.assign(
-    new EsiError(0, `Network request failed: ${reason}`, url),
-    { cause: err },
-  );
+  return new EsiNetworkError(reason, url, err);
 }
 
 /**
@@ -206,7 +207,7 @@ export async function parseJsonBody(
     const msg =
       jsonError instanceof Error ? jsonError.message : String(jsonError);
     logError(client, `Failed to parse JSON response: ${msg}`, { url: _url });
-    throw buildError(`Invalid JSON response: ${msg}`, 'JSON_PARSE_ERROR');
+    throw new EsiParseError(`Invalid JSON response: ${msg}`, _url, jsonError);
   }
 }
 

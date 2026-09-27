@@ -260,17 +260,17 @@ The per-page retry, backoff and circuit-breaker settings are the client's own; s
 
 ## Failure semantics
 
-| Mode                  | A page fails after its retries with… | Caller sees                                                                |
-| --------------------- | ------------------------------------ | -------------------------------------------------------------------------- |
-| Eager                 | `EsiError` or `CircuitOpenError`     | That error, rethrown unchanged, then subject to the call-level retry       |
-| Eager                 | Any other error, e.g. invalid JSON   | Plain `Error` whose message starts `[ESIJS_ERROR] [PAGINATION_INCOMPLETE]` |
-| `stream*`             | Any error                            | Thrown from the `for await` at that page                                   |
-| `fetchAll*`           | Any error                            | Promise rejects with that error                                            |
-| `fetchAllCursorPages` | Any error                            | Promise rejects with that error                                            |
-| `batch`               | Any error                            | Resolves; the key is in `errors`                                           |
-| `batchPost`           | Any error                            | Promise rejects with that error                                            |
+| Mode                  | A page fails after its retries with… | Caller sees                                                                 |
+| --------------------- | ------------------------------------ | --------------------------------------------------------------------------- |
+| Eager                 | Any `EsiError`, e.g. invalid JSON    | That error, rethrown unchanged, then subject to the call-level retry        |
+| Eager                 | Any other error                      | `EsiPaginationError` (`PAGINATION_INCOMPLETE`), the page's error on `cause` |
+| `stream*`             | Any error                            | Thrown from the `for await` at that page                                    |
+| `fetchAll*`           | Any error                            | Promise rejects with that error                                             |
+| `fetchAllCursorPages` | Any error                            | Promise rejects with that error                                             |
+| `batch`               | Any error                            | Resolves; the key is in `errors`                                            |
+| `batchPost`           | Any error                            | Promise rejects with that error                                             |
 
-`PAGINATION_INCOMPLETE` is a plain `Error` with a bracketed prefix, not an `EsiError` subclass. That is the inconsistency tracked under `ARCH-07`.
+`EsiPaginationError` extends `EsiError` and is not retryable. Since invalid JSON is an `EsiParseError`, a page failure only becomes an `EsiPaginationError` when something outside the pipeline's own errors threw, such as a response interceptor.
 
 ---
 

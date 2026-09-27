@@ -82,7 +82,7 @@ Ordering between phases: 2 before 3 (the builder is what Phase 3 moves `ClientRe
 - The CHARTER's Part 2 layer table gains a row for the new tree with status Enforced by `lint:layers`; ARCH-08 (construction parity) names the builder.
 - No entry is added to `BASELINE` in `eslint.layers.rules.cjs`.
 
-## Phase 3 · Types and errors · Open
+## Phase 3 · Types and errors · In progress
 
 **Scope.** Everything a consumer sees in a type or a `catch` block. Three threads, all additive in a minor and completed in the major only where a removal is unavoidable and deprecated first.
 
@@ -90,6 +90,8 @@ Ordering between phases: 2 before 3 (the builder is what Phase 3 moves `ClientRe
 2. **Error fidelity** ([#295](https://github.com/lgriffin/ESI.ts/issues/295), [#266](https://github.com/lgriffin/ESI.ts/issues/266); ARCH-07). `EsiValidationError` is never retryable; network faults get a typed class instead of `EsiError` with status 0; safe mode and token refresh stop collapsing distinct failures into one type; `isCircuitOpen` is exported from `./errors`; string-typed plumbing errors become an `EsiConfigurationError` family. New classes extend the existing ones so `instanceof EsiError` keeps working: additive, `feat:`. Any change to what an existing class carries or when it is thrown is classified per SEMVER.md and, if breaking, held for the same `feat!:` commit as the Node floor.
 3. **`responseSchema` structural** ([#298](https://github.com/lgriffin/ESI.ts/issues/298); DES-02). Every endpoint definition that returns a body declares a schema. The generator (`scripts/spec-generate-core.ts`) or a test derived from it fails when a definition lacks one, so the rule is a check, not a review comment. Where a schema is added for a route that had none, response validation begins for that route: an additive tightening, documented in the changelog under Changed with the route names.
 4. **Compiler flags.** `exactOptionalPropertyTypes` and `isolatedDeclarations` are on for `src/` (the generated code already compiles under them; AUDIT.md records both off). Consumers are unaffected by the flags themselves; any type that changes shape as a result is classified.
+
+**Landed:** thread 2, error fidelity: `EsiNetworkError`, `CircuitOpenError` and the `EsiFaultError` family (`EsiConfigurationError`, `EsiParseError`, `EsiPaginationError`, `EsiTokenRefreshError`) extend `EsiError`; `EsiValidationError` and faults are not retryable; every guard is on `./errors` (breaking, in the 11.0.0 release pull request).
 
 **Definition of done.** `BASELINE` is `{}`; the four ERRORS.md sections for the new classes exist with a scenario each in `tests/bdd/features/core/0051-resilience.feature` or the errors feature; `npm run ears` gives every new requirement a verdict; the `responseSchema` check runs in `ci.yml` `lint-and-build`; `tsconfig.json` carries both flags; `etc/esi.ts.api.md` regenerated and the `api-semver` job green with no undeclared loss; [#295](https://github.com/lgriffin/ESI.ts/issues/295), [#266](https://github.com/lgriffin/ESI.ts/issues/266), [#298](https://github.com/lgriffin/ESI.ts/issues/298) closed.
 

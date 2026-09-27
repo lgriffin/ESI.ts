@@ -92,17 +92,19 @@ Feature: Resilience and Error Recovery
       When the client makes an authenticated request
       Then the client shall return the response after token refresh
 
-  Rule: If the refreshToken callback rejects, then the retry strategy shall throw an error whose message reports the token refresh failure.
+  Rule: If the refreshToken callback rejects, then the retry strategy shall throw an EsiTokenRefreshError whose cause is the rejection.
     A refresh failure is a credential problem, not a transport problem, and the
     caller needs to be able to tell the two apart to decide whether to
-    re-authenticate the user. The original 401 is replaced by a message naming
-    the refresh as the cause.
+    re-authenticate the user. The original 401 is replaced by an error naming
+    the refresh, and what the callback threw, such as a TokenRevokedError, stays
+    reachable on cause instead of being flattened into the message.
 
     Scenario: Rejecting refresh callback surfaces a token refresh failure
       Given a client with a failing token provider
       And the endpoint returns 401
       When the client makes an authenticated request
       Then the client shall throw a token refresh failed error
+      And the error's cause is the TokenRevokedError the token provider threw
 
   # ── Typed errors reaching the caller ────────────────────────────────
 
@@ -153,6 +155,54 @@ Feature: Resilience and Error Recovery
       And the endpoint sends its headers and then stops sending the body
       When the client makes a request
       Then the client shall throw a timeout error
+
+  Rule: If every attempt at a request fails before a response arrives for a reason other than the timeout, then the EsiClient shall reject the call with an EsiNetworkError.
+    A refused connection, a failed DNS lookup or a reset carries no HTTP
+    status. EsiNetworkError extends EsiError with status code 0 and is
+    retryable, like a timeout, but it is a class of its own so a caller can
+    tell a network fault from a slow server. The socket error is on cause.
+
+    Scenario: A refused connection on every attempt reaches the caller as an EsiNetworkError
+      Given a client configured for the status endpoint
+      And ESI refuses the connection for the server status request
+      When the client requests the server status
+      Then the client rejects with an EsiNetworkError that is retryable and is not a TimeoutError
+
+  Rule: If an authenticated endpoint is called while no access token is configured, then the EsiClient shall reject the call with an EsiConfigurationError carrying the code NO_AUTH_TOKEN without issuing an HTTP request.
+    A missing token is a setup fault the caller fixes in code. It arrives as an
+    EsiError subclass with a code, so instanceof and safe mode both keep it,
+    and its message carries the code once rather than behind a second
+    ESIJS_ERROR prefix.
+
+    Scenario: Online status requested without an access token is refused as a configuration fault
+      Given a client configured with no access token
+      When the client requests a character's online status
+      Then the client rejects with an EsiConfigurationError carrying the code NO_AUTH_TOKEN
+      And the client sent 0 requests
+
+  Rule: If ESI answers a request with a body that is not valid JSON, then the EsiClient shall reject the call with an EsiParseError that is not retryable.
+    A 200 whose body does not parse is a broken response, not a transient
+    fault, so it is not repeated. EsiParseError carries the code
+    JSON_PARSE_ERROR and the parser's error on cause.
+
+    Scenario: A server status answered with an HTML page is rejected as a parse error
+      Given a client configured for the status endpoint
+      And ESI answers the server status request with HTTP 200 and an HTML page
+      When the client requests the server status
+      Then the client rejects with an EsiParseError that is not retryable
+      And the client sent 1 request
+
+  Rule: While the circuit for an endpoint is open, the EsiClient shall resolve a safe-mode call to that endpoint with a failed result whose error is the CircuitOpenError.
+    Safe mode delivers every failure as a value typed EsiError. CircuitOpenError
+    extends EsiError, so the breaker's own error, with retryAfterMs, reaches the
+    caller instead of a status-0 copy that reports itself as retryable.
+
+    Scenario: A safe-mode call refused by an open circuit carries the CircuitOpenError
+      Given a client whose circuit breaker opens after 1 failure, with no retries
+      And ESI answers the server status request with HTTP 503 1 time
+      When the client requests the server status 2 times in safe mode
+      Then the last result has failed with a CircuitOpenError that is not retryable
+      And the client sent 1 request
 
   # ── Retry classes ───────────────────────────────────────────────────
 

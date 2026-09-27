@@ -1,5 +1,5 @@
 import { ApiClient } from '../ApiClient';
-import { buildError } from '../util/error';
+import { EsiConfigurationError } from '../util/error';
 import { logDebug } from '../logger/clientLog';
 import { ICache } from '../cache/ICache';
 import { buildCacheKey } from '../cache/cacheKey';
@@ -68,12 +68,12 @@ export function buildRequestHeaders(
   if (requiresAuth) {
     const authHeader = client.getAuthorizationHeader();
     if (!authHeader) {
-      throw buildError(
+      throw new EsiConfigurationError(
+        'NO_AUTH_TOKEN',
         [
           'Authorization header is required for this endpoint but no access token is configured',
           'Fix: set ESI_ACCESS_TOKEN in your environment (see .env.example), or call client.setAccessToken(token), or pass accessToken to the EsiClient constructor',
         ].join(' — '),
-        'NO_AUTH_TOKEN',
       );
     }
     headers['Authorization'] = authHeader;

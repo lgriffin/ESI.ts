@@ -1,5 +1,5 @@
 import { ApiClient } from '../ApiClient';
-import { buildError, EsiError } from '../util/error';
+import { EsiError, EsiPaginationError } from '../util/error';
 import { logInfo, logWarn } from '../logger/clientLog';
 import { ParsedHeaders } from '../util/headersUtil';
 import {
@@ -7,7 +7,6 @@ import {
   PageFetcher,
 } from '../pagination/PaginationHandler';
 import { CursorTokens } from '../pagination/CursorPaginationHandler';
-import { CircuitOpenError } from '../circuitBreaker/CircuitBreaker';
 import { ICache } from '../cache/ICache';
 import { cacheResponse, EsiHandlerResponse } from './cachePolicy';
 
@@ -101,16 +100,9 @@ export async function handleOffsetPagination(
       endpoint,
       error: msg,
     });
-    if (
-      paginationError instanceof EsiError ||
-      paginationError instanceof CircuitOpenError
-    ) {
+    if (paginationError instanceof EsiError) {
       throw paginationError;
     }
-    throw buildError(
-      `Pagination incomplete for ${url}: ${msg}`,
-      'PAGINATION_INCOMPLETE',
-      url,
-    );
+    throw new EsiPaginationError(url, paginationError);
   }
 }

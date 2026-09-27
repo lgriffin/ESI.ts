@@ -305,7 +305,8 @@ describe('Validation Integration', () => {
         { issues: [] },
       );
 
-      expect(error.isTimeout()).toBe(true);
+      expect(error.isTimeout()).toBe(false);
+      expect(error.retryable).toBe(false);
       expect(error.isNotFound()).toBe(false);
       expect(error.isRateLimited()).toBe(false);
       expect(error.isUnauthorized()).toBe(false);

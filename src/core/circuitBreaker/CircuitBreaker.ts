@@ -1,6 +1,9 @@
 import { ApiClient } from '../ApiClient';
 import { logWarn, logInfo } from '../logger/clientLog';
 import { ICircuitBreaker } from './ICircuitBreaker';
+import { CircuitOpenError } from '../util/error';
+
+export { CircuitOpenError };
 
 export type CircuitState = 'closed' | 'open' | 'half-open';
 
@@ -249,21 +252,5 @@ export class CircuitBreaker implements ICircuitBreaker {
     }, intervalMs);
     // Don't prevent process exit (important for test runners and CLI tools)
     this.cleanupTimer.unref();
-  }
-}
-
-export class CircuitOpenError extends Error {
-  readonly endpoint: string;
-  readonly failures: number;
-  readonly retryAfterMs: number;
-
-  constructor(endpoint: string, failures: number, retryAfterMs: number) {
-    super(
-      `Circuit breaker open for ${endpoint} after ${failures} failures (retry after ${Math.ceil(retryAfterMs / 1000)}s)`,
-    );
-    this.name = 'CircuitOpenError';
-    this.endpoint = endpoint;
-    this.failures = failures;
-    this.retryAfterMs = retryAfterMs;
   }
 }

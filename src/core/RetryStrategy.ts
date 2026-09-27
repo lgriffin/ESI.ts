@@ -1,10 +1,9 @@
 import { ApiClient } from './ApiClient';
-import { EsiError } from './util/error';
+import { EsiError, EsiTokenRefreshError } from './util/error';
 import { CircuitOpenError } from './circuitBreaker/CircuitBreaker';
 import { RetryConfig, retryDelay } from './util/retry';
 import { sleep } from './util/sleep';
 import { logInfo, logWarn, logError } from './logger/clientLog';
-import { buildError } from './util/error';
 import { IRetryStrategy } from './IRetryStrategy';
 
 export interface RetryContext {
@@ -61,10 +60,7 @@ export class RetryStrategy implements IRetryStrategy {
           try {
             await context.refreshToken();
           } catch (refreshError: unknown) {
-            if (
-              refreshError instanceof EsiError ||
-              refreshError instanceof CircuitOpenError
-            ) {
+            if (refreshError instanceof EsiError) {
               throw refreshError;
             }
             const msg =
@@ -74,10 +70,7 @@ export class RetryStrategy implements IRetryStrategy {
             logError(context.client, `Token refresh failed: ${msg}`, {
               endpoint: context.endpoint,
             });
-            throw buildError(
-              `Token refresh failed: ${msg}`,
-              'TOKEN_REFRESH_FAILED',
-            );
+            throw new EsiTokenRefreshError(refreshError);
           }
           logInfo(context.client, 'Token refreshed, retrying request', {
             endpoint: context.endpoint,
