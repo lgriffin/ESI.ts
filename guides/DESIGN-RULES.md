@@ -308,7 +308,7 @@ Pagination helpers take the caller's HTTP method and must not return a truncated
 
 ## 7 · Layers
 
-Imports in `src/` point inward. `npm run lint:layers` enforces six rules with a local ESLint rule, `layers/inward-imports` in `eslint.layers.rules.cjs`, in CI and in `check:local`:
+Imports in `src/` point inward. `npm run lint:layers` enforces six rules with a local ESLint rule, `layers/inward-imports` in `config/eslint/layers.rules.cjs`, in CI and in `check:local`:
 
 | Directory                      | May not import                                                                                                                                  |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -321,4 +321,4 @@ Imports in `src/` point inward. `npm run lint:layers` enforces six rules with a 
 
 The rule resolves each specifier against the importing file, so it judges an import by where it lands, at any depth: `.././clients` is `clients`. It reads static and type-only imports, re-exports, `import('...')` types and expressions, and `require()`. The lint runs with `--no-inline-config`, so an `eslint-disable` comment does not get round it. When core needs something from an outer layer, add a port in `src/core/ports/` and have the outer layer implement it.
 
-No file breaks the core rule. `BASELINE` in `eslint.layers.rules.cjs` once exempted `ClientRegistry.ts` (now in `src/clients/`) and `configureApiClient.ts` (its `EsiClientConfig` type now lives in `src/core/EsiClientConfig.ts`); it is empty, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added, so a new violation is fixed in the code, not exempted.
+No file breaks the core rule. `BASELINE` in `config/eslint/layers.rules.cjs` once exempted `ClientRegistry.ts` (now in `src/clients/`) and `configureApiClient.ts` (its `EsiClientConfig` type now lives in `src/core/EsiClientConfig.ts`); it is empty, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added, so a new violation is fixed in the code, not exempted.

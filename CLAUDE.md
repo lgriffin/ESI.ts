@@ -107,7 +107,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - **Logging** via pino behind the `ILogger` interface. Level controlled by `ESI_LOG_LEVEL` env var (default: `warn`).
 - **Conventional commits** enforced by commitlint + husky. Types: feat, fix, chore, docs, test, refactor, perf. The type and `!` decide the released version; see Semantic Versioning below.
 - **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types` (types, TTLs, rate-limit groups, scopes) or `npm run spec:generate` (`src/generated/operations.generated.ts`, from the vendored snapshot); do not edit manually.
-- **Layers** point inward: `npm run lint:layers` (`eslint.layers.rules.cjs`) forbids core importing the layers above it, ports importing anything, and generated code importing anything but the ports. Its `BASELINE` only shrinks. See `guides/DESIGN-RULES.md` §7.
+- **Layers** point inward: `npm run lint:layers` (`config/eslint/layers.rules.cjs`) forbids core importing the layers above it, ports importing anything, and generated code importing anything but the ports. Its `BASELINE` only shrinks. See `guides/DESIGN-RULES.md` §7.
 
 ## Architecture
 

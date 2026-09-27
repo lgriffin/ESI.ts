@@ -112,7 +112,7 @@ Five layers, one request path, and side modules that deliberately share nothing 
 | Auth                 | `src/auth`                                                                | EVE SSO (PKCE), token manager and storage, with its own error subtree. Reached from the root and `./errors`; there is no `./auth` sub-path.                                                                                                                                           |
 | Side modules         | `./schemas`, `./errors`, `./testing`, `./client`, `./sde`, `./sde/memory` | The SDE module shares no code with the pipeline, and `lint:layers` holds that in both directions (ARCH-10). It is an offline lookup layer for enriching ESI responses, with its own error hierarchy and its own docs.                                                                 |
 
-`lint:layers` (`eslint.layers.rules.cjs`) holds the direction: ports import nothing, generated code imports only ports, `src/core` imports no domain client, entry point, generated operation, auth, SDE or testing module, and `src/sde` imports nothing from `src/` but the ports while nothing outside it imports the SDE. The baseline of exempt files is empty, and `tests/tdd/layers/layers-lint.test.ts` keeps it so.
+`lint:layers` (`config/eslint/layers.rules.cjs`) holds the direction: ports import nothing, generated code imports only ports, `src/core` imports no domain client, entry point, generated operation, auth, SDE or testing module, and `src/sde` imports nothing from `src/` but the ports while nothing outside it imports the SDE. The baseline of exempt files is empty, and `tests/tdd/layers/layers-lint.test.ts` keeps it so.
 
 ### The request path
 
@@ -182,7 +182,7 @@ Every endpoint exposed by a domain client **shall** be declared in exactly one `
 Request-pipeline modules under `src/core/requestPipeline` **shall** receive cache, rate limiter and circuit breaker as function parameters rather than importing a concrete implementation.
 
 - **Why:** Keeps every stage unit-testable without an `ApiClient` and keeps `dependencies.ts` the one place resolution happens.
-- **Verified by:** Code review. `lint:layers` keeps `src/core` away from clients and entry points but does not check this rule; candidate for an extra rule in `eslint.layers.rules.cjs` scoped to that directory.
+- **Verified by:** Code review. `lint:layers` keeps `src/core` away from clients and entry points but does not check this rule; candidate for an extra rule in `config/eslint/layers.rules.cjs` scoped to that directory.
 
 #### ARCH-04 · Ubiquitous · Enforced
 
@@ -224,7 +224,7 @@ Every construction surface (`EsiClient`, `CustomEsiClient`, `EsiApiFactory`, and
 All pipeline logging **shall** go through the per-client logger with structured context, with the global logger existing only as a fallback for callers with no client handle.
 
 - **Why:** Per-client logging makes log lines attributable when several clients share a process.
-- **Verified by:** `npm run lint` and `npm run lint:layers` (`--no-inline-config`) forbid the global `loggerUtil` in `src/core/requestPipeline/` and `src/clients/` (`eslint.logger-imports.rules.cjs`, proved by `tests/tdd/layers/logger-imports-lint.test.ts`, [#265](https://github.com/lgriffin/ESI.ts/issues/265)). The rate limiter, the ETag cache's startup line, `EsiClient.batch` and the token manager's fallback are covered by `tests/tdd/core/loggerThreading.test.ts` ([#296](https://github.com/lgriffin/ESI.ts/issues/296)). The global logger serves only the standalone batch exports and `EsiTokenManager`, which hold no client.
+- **Verified by:** `npm run lint` and `npm run lint:layers` (`--no-inline-config`) forbid the global `loggerUtil` in `src/core/requestPipeline/` and `src/clients/` (`config/eslint/logger-imports.rules.cjs`, proved by `tests/tdd/layers/logger-imports-lint.test.ts`, [#265](https://github.com/lgriffin/ESI.ts/issues/265)). The rate limiter, the ETag cache's startup line, `EsiClient.batch` and the token manager's fallback are covered by `tests/tdd/core/loggerThreading.test.ts` ([#296](https://github.com/lgriffin/ESI.ts/issues/296)). The global logger serves only the standalone batch exports and `EsiTokenManager`, which hold no client.
 
 #### ARCH-10 · Ubiquitous · Enforced
 
@@ -355,7 +355,7 @@ Each `Rule:` block **shall** state exactly one requirement with one _shall_, nam
 Scenario steps **shall** mock at the transport seam with `jest-fetch-mock` rather than spying on the client method under test.
 
 - **Why:** Spying on the method makes the pipeline invisible to the test. Reference implementations: `etag-caching.steps.ts`, `resilience.steps.ts`.
-- **Verified by:** `npm run lint:bdd-seam` (`eslint.bdd-seam.config.mjs`) on every push (`ci-fast.yml`) and PR (`ci.yml`).
+- **Verified by:** `npm run lint:bdd-seam` (`config/eslint/bdd-seam.config.mjs`) on every push (`ci-fast.yml`) and PR (`ci.yml`).
 
 #### TEST-04 · Ubiquitous · Enforced
 
