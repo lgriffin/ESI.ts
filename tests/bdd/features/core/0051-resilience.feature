@@ -168,6 +168,20 @@ Feature: Resilience and Error Recovery
       When the client requests the server status
       Then the client rejects with an EsiNetworkError that is retryable and is not a TimeoutError
 
+  Rule: If the transport rejects a request with an EsiError, then the EsiClient shall reject the call with that error unchanged.
+    A transport is normally fetch, whose rejections are network faults. A
+    transport that already speaks the SDK's errors, such as a test double
+    refusing a request it has no answer for, means what it throws: wrapping it
+    as an EsiNetworkError would rename the fault and retry it with the
+    caller's backoff.
+
+    Scenario: A configuration error thrown by the transport reaches the caller as itself
+      Given a client configured for the status endpoint
+      And the transport rejects the server status request with a configuration error
+      When the client requests the server status
+      Then the client rejects with that same configuration error
+      And the client sent 1 request
+
   Rule: If an authenticated endpoint is called while no access token is configured, then the EsiClient shall reject the call with an EsiConfigurationError carrying the code NO_AUTH_TOKEN without issuing an HTTP request.
     A missing token is a setup fault the caller fixes in code. It arrives as an
     EsiError subclass with a code, so instanceof and safe mode both keep it,

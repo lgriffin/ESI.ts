@@ -104,7 +104,7 @@ To add a blocking job: add the job, add its id to `ci-success.needs`. To add an 
 
 ### GATE-02 · Every push gets fast feedback
 
-`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 20: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
+`ci-fast.yml` runs on a push to any branch (`'**'`) on Node 20: ESLint, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, `npm test`. It has one unconditional job, so it has no gate of its own; everything it checks is also inside `ci-success`.
 
 ### GATE-03 · The public API surface is diffed
 
@@ -203,7 +203,7 @@ All 24 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the
 
 ### `ci-fast.yml` — CI Fast
 
-One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
+One job, `Lint, Build & Test`, on Node 20: `npm ci`, `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:isolated`, `test`. It runs on every push to every branch, before a pull request exists. Everything it runs is repeated inside `ci-success`, so it is early feedback rather than a required check.
 
 ### `ci.yml` — CI/CD Pipeline
 
@@ -212,7 +212,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | Job (display name)                       | What it does                                                                                                                                                                                                                                                                                                                                                  | In gate |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: |
 | `pr-info` (PR Information)               | Writes title, author, branches and change size to the step summary. Runs on drafts too                                                                                                                                                                                                                                                                        |   yes   |
-| `lint-and-build` (Lint & Build)          | ESLint, `lint:determinism` (fetches master for its baseline), `lint:layers`, Prettier check, build, typecheck, `typecheck:examples`, `spec:generate:check`, `spec:coverage`, `spec:response-schemas`; uploads `dist/`                                                                                                                                         |   yes   |
+| `lint-and-build` (Lint & Build)          | ESLint, `lint:determinism` (fetches master for its baseline), `lint:layers`, Prettier check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, `spec:generate:check`, `spec:coverage`, `spec:response-schemas`; uploads `dist/`                                                                                                                   |   yes   |
 | `static-analysis` (Static Analysis)      | Regenerates types and diffs `src/types/generated/` and `esi-cache-ttls.generated.ts`; knip (non-blocking); `schema:drift:ci`; `validate:auth-scopes`. The two live-spec checks block only when the pull request touches their inputs (below)                                                                                                                  |   yes   |
 | `unit-tests` (Unit Tests)                | `npm test` (unit, composition and BDD) on Node 18, 20 and 22                                                                                                                                                                                                                                                                                                  |   yes   |
 | `coverage` (Test Coverage)               | `npm run coverage` with the thresholds in `jest.unit.config.cjs`; posts or updates a PR comment; uploads `coverage/`                                                                                                                                                                                                                                          |   yes   |

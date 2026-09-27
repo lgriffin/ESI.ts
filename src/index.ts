@@ -8,7 +8,7 @@ export {
   EsiClientBuilder,
   EsiApiFactory,
 } from './EsiClientBuilder';
-export { ApiClientType } from './core/ClientRegistry';
+export { ApiClientType } from './clients/ClientRegistry';
 
 // Core (for direct instantiation)
 export { ApiClient, TokenProvider, FetchLike } from './core/ApiClient';

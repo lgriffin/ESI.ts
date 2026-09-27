@@ -8,6 +8,7 @@ TypeScript wrapper for the EVE Online ESI (EVE Swagger Interface) API. Published
 npm run build          # Dual CJS/ESM bundle (tsup) + declarations (tsc)
 npm run typecheck      # Type-check without emitting (tsc --noEmit)
 npm run typecheck:examples  # Type-check examples/ against src (tsconfig.examples.json)
+npm run typecheck:isolated  # isolatedDeclarations over the exposed layers only (tsconfig.isolated.json; schemas and endpoint maps stay inferred)
 npm run clean          # Remove dist/, coverage/, docs-site/public/api/
 npm run lint           # ESLint (src/)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
@@ -124,7 +125,7 @@ Key middleware in the pipeline:
 
 ### CI Workflows
 
-- **ci-fast.yml** — runs on every push (Node 20): `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format check, build, typecheck, `typecheck:examples`, unit tests
+- **ci-fast.yml** — runs on every push (Node 20): `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format check, build, typecheck, `typecheck:examples`, `typecheck:isolated`, unit tests
 - **ci.yml** — runs on pull requests to master: unit tests on Node 18/20/22, consumer contract on Node 18 to 24, BDD, spec audit, contract, fuzz, coverage, API surface, doc examples and more. `ci-success` is the single required check and fails when any job fails or is skipped
 - **nightly-mutation.yml** — runs nightly: unit mutation testing (Stryker) with a 4-hour timeout, the BDD-only run as one job per shard, and type mutation
 - **nightly-examples.yml** — runs nightly and on PRs touching examples: type-checks every example, runs the public ones against live ESI, opens/closes one issue per failing example

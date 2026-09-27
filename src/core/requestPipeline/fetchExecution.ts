@@ -147,6 +147,10 @@ export async function executeSingleFetch(
         cb.recordFailure(cbKey, 0);
         cbRecorded = true;
       }
+      // A transport that already speaks the SDK's error language (a test
+      // double refusing a request it has no answer for) is passed through:
+      // wrapping it as a network failure would rename it and retry it.
+      if (err instanceof EsiError) throw err;
       if (isAbortError(err)) {
         throw new TimeoutError(timeoutMs, url);
       }

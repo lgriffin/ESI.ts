@@ -300,7 +300,7 @@ URLs are redacted at the logger boundary. Before a line reaches any logger, per-
 
 What is not redacted: nested objects inside the context, parameter names outside the list (matching is case-sensitive), and a value containing a comma or semicolon, which is redacted only up to that character. Keep credentials in headers. The full defence chain is in [SECURITY.md](SECURITY.md).
 
-`tests/tdd/core/redactLog.test.ts` and `clientLog.test.ts` cover the boundary, and `tests/bdd/features/core/0057-logging.feature` drives a request whose URL carries a token through the real pipeline and reads the redacted form at the logger.
+`tests/tdd/core/redactLog.test.ts` and `clientLog.test.ts` cover the boundary, and `tests/bdd/features/core/0058-logging.feature` drives a request whose URL carries a token through the real pipeline and reads the redacted form at the logger.
 
 ## Known gaps
 

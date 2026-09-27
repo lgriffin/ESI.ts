@@ -47,6 +47,11 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'typecheck:isolated',
+    covers: 'isolatedDeclarations holds for the exposed layers',
+    stage: 'quick',
+  },
+  {
     script: 'spec:generate:check',
     covers: 'generated operations match the vendored spec',
     stage: 'quick',

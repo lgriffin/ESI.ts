@@ -7,6 +7,7 @@
  */
 import type { Esi, ScopeTree } from '../../../src/client';
 import { EsiClient } from '../../../src/EsiClient';
+import type { MockTransport } from '../../../src/testing';
 import { createSeamClient } from './transport';
 
 export class World {
@@ -27,6 +28,9 @@ export class World {
 
   /** The shared runtime under test (0056-shared-runtime.feature), once a Given built it. */
   esi: Esi | undefined;
+
+  /** The mock transport under the runtime (0057-mock-transport.feature), once a Given built it. */
+  transport: MockTransport | undefined;
 
   /** Views a Given step opened on the runtime, by the name the scenario uses. */
   readonly views: Record<string, ScopeTree> = {};

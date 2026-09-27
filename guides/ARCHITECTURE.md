@@ -4,7 +4,7 @@
 
 How ESI.ts is layered, the route every request takes, and how each piece of middleware behaves. The charter states the requirements; this guide explains how the code meets them. Where the two disagree, the code is the fact and the difference is called out.
 
-This guide describes the code on `master` at 10.2.3 with ROADMAP Phase 2 PRs 4 to 11 merged. The seams those PRs added (ports, `PipelineTransport`, the generated operations and the scope tree) reach consumers through the `./client` entry: one shared runtime, a public view and a view per identity ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)). [§1a](#1a-ports-adapters-and-the-layer-rule) describes them and says what 11.0.0 will still change: Phase 2 PR 12, the Phase 3 layer baseline and the Phase 4 logger work, as planned in [ROADMAP.md](ROADMAP.md).
+This guide describes the code on `master` at 10.2.3 with ROADMAP Phase 2 merged. The seams it added (ports, `PipelineTransport`, the generated operations and the scope tree) reach consumers through the `./client` entry: one shared runtime, a public view and a view per identity ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); `createMockTransport` in `./testing` implements the `HttpTransport` port for consumers' tests. [§1a](#1a-ports-adapters-and-the-layer-rule) describes them and says what 11.0.0 will still change: the Phase 3 layer baseline and the Phase 4 logger work, as planned in [ROADMAP.md](ROADMAP.md).
 
 Topics with their own guide are summarised here and linked:
 
@@ -275,13 +275,13 @@ graph TB
         Market["MarketClient"]
         Universe["UniverseClient"]
         More["... one per ESI domain"]
+        Registry["ClientRegistry"]
     end
 
     subgraph EndpointLayer["Endpoint Definition Layer"]
         EndpointDef["EndpointDefinition<br/>(responseSchema + requestSchema)"]
         EndpointFiles["*Endpoints.ts (one per domain)"]
         CreateClient["createClient()<br/>→ InferEndpointResult&lt;D&gt;"]
-        Registry["ClientRegistry"]
     end
 
     subgraph SchemaLayer["Schema Validation Layer (Zod)"]
@@ -472,7 +472,7 @@ const status = await esi.public.status.get(); // typed from the spec, unvalidate
 | `src/sde/`                     | Anything in `src/` outside `src/sde/` except the ports; any package but `node:*`, `zod`, `js-yaml`, `adm-zip`, `better-sqlite3` |
 | Anything else in `src/`        | `src/sde/`, or the package's own `./sde` sub-paths (`ARCH-10`, [#462](https://github.com/lgriffin/ESI.ts/issues/462))           |
 
-`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and nothing legacy. Two files break the core rule and are listed in `BASELINE`: `src/core/ClientRegistry.ts` (imports every domain client) and `src/core/configureApiClient.ts` (imports the `EsiClientConfig` type). The baseline only shrinks: `tests/tdd/layers/layers-lint.test.ts` fails when a listed file stops violating the rule. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
+`src/client/` is the `./client` entry (`runtime.ts`, `identity.ts`); it imports `src/core`, `src/adapters` and `src/generated` and nothing legacy. No file breaks the core rule: `BASELINE` in `eslint.layers.rules.cjs` is empty since Phase 3 moved `ClientRegistry` to `src/clients/` and `EsiClientConfig` to `src/core/`, and `tests/tdd/layers/layers-lint.test.ts` fails if an entry is added. The authoring view of the same rule is [DESIGN-RULES.md §7](DESIGN-RULES.md#7--layers).
 
 ```mermaid
 flowchart BT
@@ -511,8 +511,7 @@ Each item is one pull request in [ROADMAP.md](ROADMAP.md). None removes a legacy
 
 | Work                                        | What changes in this architecture                                                                                                                                                                                                     |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 2 PR 12 · mock transport              | `createMockTransport` in `./testing` implements `HttpTransport` for consumers' tests.                                                                                                                                                 |
-| Phase 3 · layer baseline to empty           | `ClientRegistry.ts` moves out of core and `EsiClientConfig` moves in; `BASELINE` becomes `{}`.                                                                                                                                        |
+| Phase 3 · layer baseline to empty           | Done: `ClientRegistry.ts` is in `src/clients/`, `EsiClientConfig` in `src/core/`; `BASELINE` is `{}`.                                                                                                                                 |
 | Phase 4 · logging and import-time behaviour | URL sanitising moves to the logger boundary, the remaining call sites that bypass the per-client logger migrate to it (`ARCH-09`), no pino instance is built at import, and `package.json` declares `sideEffects: false` (`ARCH-06`). |
 | Phase 7 · Node 22                           | `engines.node` becomes `>=22.0.0` in the one `feat!:` commit of the release (`REL-05`).                                                                                                                                               |
 

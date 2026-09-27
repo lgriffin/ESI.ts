@@ -1,5 +1,5 @@
 /**
- * What 0057-logging.feature configures and reads: a logger that records every
+ * What 0058-logging.feature configures and reads: a logger that records every
  * line it receives, and a request interceptor that puts a query parameter on
  * every request URL, the way an application passing a credential in the query
  * would.

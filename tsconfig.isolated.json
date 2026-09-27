@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "isolatedDeclarations": true,
+    "declaration": true,
+    "noEmit": true
+  },
+  "include": [
+    "src/index.ts",
+    "src/errors.ts",
+    "src/EsiClient.ts",
+    "src/EsiClientBuilder.ts",
+    "src/core/**/*.ts",
+    "src/adapters/**/*.ts",
+    "src/generated/**/*.ts",
+    "src/client/**/*.ts",
+    "src/auth/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "src/core/endpoints/*Endpoints.ts"]
+}

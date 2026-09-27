@@ -926,6 +926,66 @@ Zod validation is tested at four levels, each owning a different question:
 | Pipeline    | `tests/fuzz/response-validation-fault-injection.test.ts`, the fault catalogue, recorded replay | What does a consumer receive when ESI sends a body the schema rejects, or a real body it must accept? |
 | Requirement | `tests/bdd/features/core/0053-runtime-validation.feature`, `npm run validate:spec-consistency` | What does the specification promise, and does every Rule agree with the schema about optional fields? |
 
+## Testing your application
+
+An application's own tests run without ESI by handing the runtime a mock transport. `createMockTransport()` from `@lgriffin/esi.ts/testing` is an `HttpTransport`: it answers requests from a table of routes and records every request it saw. Everything between the application's call and the transport is the SDK's real pipeline (URL building, headers, retries, the cache, pagination, response validation), so a test written against it can fail for a bug in the SDK as well as in the application. The specification is [`0057-mock-transport.feature`](../tests/bdd/features/core/0057-mock-transport.feature).
+
+```typescript
+import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
+import { createMockTransport } from '@lgriffin/esi.ts/testing';
+
+const transport = createMockTransport()
+  .respond({
+    method: 'GET',
+    path: '/status',
+    body: {
+      players: 12,
+      server_version: '1',
+      start_time: '2026-09-16T11:00:00Z',
+      vip: false,
+    },
+  })
+  .respond({
+    method: 'GET',
+    path: '/characters/{character_id}/wallet',
+    body: 1234567.89,
+    times: 1,
+  })
+  .respond({
+    method: 'POST',
+    path: /\/universe\/names/,
+    status: 200,
+    body: [],
+  });
+
+const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)', transport });
+const wallet = await esi
+  .as(identityFromToken(token))
+  .character(characterId)
+  .wallet.get();
+
+transport.sent[0]?.headers['authorization']; // "Bearer <token>"
+transport.unrouted; // [] when every request had a route
+transport.reset(); // forget the routes and the record, keep the runtime
+```
+
+A route is one `respond()` call:
+
+| Field     | Meaning                                                                                                                                                                                                     |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `method`  | The HTTP method, compared without regard to case. Omitted, any method.                                                                                                                                      |
+| `path`    | The ESI path template as the spec writes it (`{character_id}` stands for one segment, a trailing slash is ignored, the query string is not compared), or a regular expression tested against the whole URL. |
+| `status`  | 200 to 599. Default 200.                                                                                                                                                                                    |
+| `headers` | Response headers, such as `x-pages` for a paginated route or `etag`.                                                                                                                                        |
+| `body`    | An object, array, number or boolean is JSON-encoded as `application/json`; a string is sent verbatim; omitted, no body.                                                                                     |
+| `times`   | How many matching requests the route answers before it is retired. Omitted, every one.                                                                                                                      |
+
+Routes are tried in the order added and the first match answers. A request no route answers is rejected with an `EsiConfigurationError` (code `CONFIGURATION_ERROR`) naming the request and the route table. The pipeline passes an `EsiError` a transport throws through unchanged, so the call fails at once under that name, without a retry and without falling back to a stale cache entry as an HTTP 5xx would; the transport lists the request under `unrouted`. `sent` holds every request in order, header names in lower case, the body as a string or `undefined`.
+
+`reset()` empties the route table and the record, not the runtime built over the transport: once a route answered with an `etag` header, the runtime's response cache serves that request again without reaching the transport. A test file that repeats a request across a reset builds a runtime per test, or passes `enableETagCache: false` to `createEsi`.
+
+`TestDataFactory`, from the same entry, builds response bodies the schemas accept ([Test helpers](#test-helpers)).
+
 ## Adding tests
 
 1. **A behaviour change** starts with an EARS Rule and a scenario that fails before the implementation exists (`TEST-01`). Add the Rule to the right feature under `tests/bdd/features/`, bind a new feature with a spec entry under `tests/bdd/specs/`, and add one file per new step under `tests/bdd/steps/<keyword>/`. Queue HTTP at the transport seam. Confirm red, implement, confirm green, run `npm run spec:audit`. Never add a legacy step file.
@@ -942,26 +1002,26 @@ Before pushing, `npm run check:local` runs every offline tier CI will.
 
 Every pull request to `master` runs `ci.yml`, whose single required check is `ci-success`. Every push to any branch runs `ci-fast.yml`. The scheduled runs, in UTC:
 
-| Workflow                        | When                                                       | What it runs                                                                                                                                   | On failure                                                                 |
-| ------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `ci-fast.yml`                   | Every push                                                 | `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `npm test` on Node 20 | Status only                                                                |
-| `ci.yml`                        | Every pull request                                         | Every tier marked PR in [the tier table](#the-tiers); `ci-success` fans in all of its jobs                                                     | Blocks the merge                                                           |
-| `ears.yml`                      | Pull requests touching the specification or `src/`; manual | `npm run ears`                                                                                                                                 | Status; advisory                                                           |
-| `nightly-schemathesis.yml`      | Daily 01:00                                                | `npm run fuzz:api` equivalent against a Prism mock                                                                                             | Artifact only                                                              |
-| `nightly-mutation.yml`          | Daily 02:00                                                | Unit mutation (5 shards), BDD-only mutation (9 shards), type mutation; each ratcheted                                                          | Fails the run                                                              |
-| `nightly-mutation-retry.yml`    | When `nightly-mutation.yml` fails on its first attempt     | Re-runs the failed shards once                                                                                                                 | Status only                                                                |
-| `nightly-no-retry.yml`          | Daily 03:00                                                | `npm test` in random order with a fresh seed; fails if any test ran more than once                                                             | Fails the run; `no-retry-report` artifact                                  |
-| `nightly-properties.yml`        | Daily 03:30                                                | `npm run fuzz:properties` with `FC_NUM_RUNS=10000` and a seed per night                                                                        | Issue "Nightly property run failed"                                        |
-| `nightly-interleave.yml`        | Daily 03:30                                                | The composition tier with four calls in seeded random order                                                                                    | Fails the run                                                              |
-| `nightly-faults.yml`            | Daily 03:30                                                | `npm run faults:nightly` and `npm run faults`                                                                                                  | Issue "Nightly fault tier failing"                                         |
-| `nightly-examples.yml`          | Daily 04:15; PRs touching `examples/`                      | Type-checks every example; runs the `public` and `mixed` ones against live ESI                                                                 | One issue per failing example                                              |
-| `nightly-benchmarks.yml`        | Daily 04:30                                                | Benchmarks against a pinned reference; the heap soak and its injected leak                                                                     | `performance-nightly` issue                                                |
-| `consumer-matrix-nightly.yml`   | Daily 04:45                                                | The consumer contract on TypeScript `next`/`latest` and current Node                                                                           | Fails the run                                                              |
-| `nightly-audit.yml`             | Daily 05:00                                                | `npm audit` against the accepted-advisory list                                                                                                 | `security-audit` issue                                                     |
-| `nightly-spec-drift.yml`        | Daily 06:00                                                | Missing endpoints, generated-type freshness, schema drift, against the newest compatibility date                                               | `spec-drift` issue                                                         |
-| `nightly-recorded-payloads.yml` | Daily 06:30                                                | `contract:record`, `contract:shape-diff -- --revert-unchanged`, `contract:replay`                                                              | A pull request with the shape diff; `recorded-payloads-check-failed` issue |
-| `maintenance.yml`               | Mondays 09:00                                              | `contract:snapshot`, `contract:live`, `contract:diff` (oasdiff), outdated, audit, coverage                                                     | Artifacts only                                                             |
-| `post-publish-canary.yml`       | A GitHub release is published                              | Installs the published version from the registry, verifies provenance, loads every sub-path, calls ESI once                                    | `release-verification` issue                                               |
+| Workflow                        | When                                                       | What it runs                                                                                                                                                         | On failure                                                                 |
+| ------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `ci-fast.yml`                   | Every push                                                 | `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, `format:check`, `build`, `typecheck`, `typecheck:examples`, `typecheck:isolated`, `npm test` on Node 20 | Status only                                                                |
+| `ci.yml`                        | Every pull request                                         | Every tier marked PR in [the tier table](#the-tiers); `ci-success` fans in all of its jobs                                                                           | Blocks the merge                                                           |
+| `ears.yml`                      | Pull requests touching the specification or `src/`; manual | `npm run ears`                                                                                                                                                       | Status; advisory                                                           |
+| `nightly-schemathesis.yml`      | Daily 01:00                                                | `npm run fuzz:api` equivalent against a Prism mock                                                                                                                   | Artifact only                                                              |
+| `nightly-mutation.yml`          | Daily 02:00                                                | Unit mutation (5 shards), BDD-only mutation (9 shards), type mutation; each ratcheted                                                                                | Fails the run                                                              |
+| `nightly-mutation-retry.yml`    | When `nightly-mutation.yml` fails on its first attempt     | Re-runs the failed shards once                                                                                                                                       | Status only                                                                |
+| `nightly-no-retry.yml`          | Daily 03:00                                                | `npm test` in random order with a fresh seed; fails if any test ran more than once                                                                                   | Fails the run; `no-retry-report` artifact                                  |
+| `nightly-properties.yml`        | Daily 03:30                                                | `npm run fuzz:properties` with `FC_NUM_RUNS=10000` and a seed per night                                                                                              | Issue "Nightly property run failed"                                        |
+| `nightly-interleave.yml`        | Daily 03:30                                                | The composition tier with four calls in seeded random order                                                                                                          | Fails the run                                                              |
+| `nightly-faults.yml`            | Daily 03:30                                                | `npm run faults:nightly` and `npm run faults`                                                                                                                        | Issue "Nightly fault tier failing"                                         |
+| `nightly-examples.yml`          | Daily 04:15; PRs touching `examples/`                      | Type-checks every example; runs the `public` and `mixed` ones against live ESI                                                                                       | One issue per failing example                                              |
+| `nightly-benchmarks.yml`        | Daily 04:30                                                | Benchmarks against a pinned reference; the heap soak and its injected leak                                                                                           | `performance-nightly` issue                                                |
+| `consumer-matrix-nightly.yml`   | Daily 04:45                                                | The consumer contract on TypeScript `next`/`latest` and current Node                                                                                                 | Fails the run                                                              |
+| `nightly-audit.yml`             | Daily 05:00                                                | `npm audit` against the accepted-advisory list                                                                                                                       | `security-audit` issue                                                     |
+| `nightly-spec-drift.yml`        | Daily 06:00                                                | Missing endpoints, generated-type freshness, schema drift, against the newest compatibility date                                                                     | `spec-drift` issue                                                         |
+| `nightly-recorded-payloads.yml` | Daily 06:30                                                | `contract:record`, `contract:shape-diff -- --revert-unchanged`, `contract:replay`                                                                                    | A pull request with the shape diff; `recorded-payloads-check-failed` issue |
+| `maintenance.yml`               | Mondays 09:00                                              | `contract:snapshot`, `contract:live`, `contract:diff` (oasdiff), outdated, audit, coverage                                                                           | Artifacts only                                                             |
+| `post-publish-canary.yml`       | A GitHub release is published                              | Installs the published version from the registry, verifies provenance, loads every sub-path, calls ESI once                                                          | `release-verification` issue                                               |
 
 Nothing runs the live smoke, client integration, spec contract, gated auth or real-SDE integration suites on a schedule. Every workflow, its jobs and what blocks where are in [QUALITY-GATES.md](QUALITY-GATES.md).
 

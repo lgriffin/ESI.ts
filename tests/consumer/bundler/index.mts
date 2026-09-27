@@ -10,7 +10,7 @@ import {
 } from '@lgriffin/esi.ts';
 import { EsiValidationError } from '@lgriffin/esi.ts/errors';
 import { CharacterInfoSchema } from '@lgriffin/esi.ts/schemas';
-import { TestDataFactory } from '@lgriffin/esi.ts/testing';
+import { createMockTransport, TestDataFactory } from '@lgriffin/esi.ts/testing';
 import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
 import { MemorySdeProvider } from '@lgriffin/esi.ts/sde';
 import { MemorySdeProvider as MemoryOnlyProvider } from '@lgriffin/esi.ts/sde/memory';
@@ -32,5 +32,7 @@ export function checks(): boolean[] {
     typeof createEsi({ userAgent: 'bundler/1.0 (ci@example.com)' }).as(
       identityFromToken('token'),
     ).character === 'function',
+    createMockTransport().respond({ path: '/status', body: {} }).routes
+      .length === 1,
   ];
 }

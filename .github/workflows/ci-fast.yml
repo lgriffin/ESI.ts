@@ -51,5 +51,8 @@ jobs:
       - name: Type check the examples
         run: npm run typecheck:examples
 
+      - name: Type check isolatedDeclarations for the exposed layers
+        run: npm run typecheck:isolated
+
       - name: Run unit tests
         run: npm test
