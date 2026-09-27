@@ -5485,6 +5485,8 @@ export class EsiTokenManager {
     getStoredToken(characterId: number): Promise<StoredToken | null>;
     getToken(characterId: number): Promise<string>;
     hasScopes(characterId: number, scopes: readonly string[]): Promise<boolean>;
+    // Warning: (ae-forgotten-export) The symbol "Identity" needs to be exported by the entry point index.d.ts
+    identity(characterId: number): Identity;
     importToken(token: {
         accessToken: string;
         refreshToken: string;

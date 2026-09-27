@@ -28,6 +28,24 @@ const BASE = 'https://esi.evetech.net';
 describe('buildCacheKey', () => {
   const url = 'https://esi.evetech.net/v1/characters/12345/assets/';
 
+  it('keys by the header given, not the token the client holds now', () => {
+    const client = new ApiClient(BASE, BASE, 'token-now');
+    const sent = 'Bearer token-sent';
+    expect(buildCacheKey(url, client, true, sent)).toBe(
+      `${createHash('sha256').update(sent).digest('hex').slice(0, 16)}:${url}`,
+    );
+    expect(buildCacheKey(url, client, true, sent)).not.toBe(
+      buildCacheKey(url, client, true),
+    );
+  });
+
+  it('trusts the character an accepted sent header names', () => {
+    const client = new ApiClient(BASE, BASE, ssoToken(2));
+    const sent = `Bearer ${ssoToken(1)}`;
+    markTokenAccepted(client, sent);
+    expect(buildCacheKey(url, client, true, sent)).toBe(`character:1:${url}`);
+  });
+
   it('should return the raw URL when client has no access token', () => {
     const client = new ApiClient('test', 'https://esi.evetech.net');
     expect(buildCacheKey(url, client, true)).toBe(url);

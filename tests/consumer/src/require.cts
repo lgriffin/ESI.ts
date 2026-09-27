@@ -28,6 +28,12 @@ import {
   ServerStatusSchema,
 } from '@lgriffin/esi.ts/schemas';
 import { TestDataFactory } from '@lgriffin/esi.ts/testing';
+import {
+  createEsi,
+  identityFromToken,
+  type Esi,
+  type Identity,
+} from '@lgriffin/esi.ts/client';
 import { MemorySdeProvider, type EveType } from '@lgriffin/esi.ts/sde';
 import { MemorySdeProvider as MemoryOnlyProvider } from '@lgriffin/esi.ts/sde/memory';
 
@@ -95,6 +101,28 @@ async function main(): Promise<void> {
   } finally {
     client.shutdown();
   }
+
+  // ./client: one runtime, a public view and a view for an identity, through
+  // the generated operations and the same pipeline.
+  const esi: Esi = createEsi({
+    userAgent: 'consumer-contract/1.0 (ci@example.com)',
+    logLevel: 'error',
+  });
+  stubFetch(STATUS);
+  const publicPlayers: number = (await esi.public.status.get()).players;
+  assert.equal(publicPlayers, STATUS.players);
+  const identity: Identity = identityFromToken('consumer-token');
+  stubFetch(42.5);
+  const balance: number = await esi
+    .as(identity)
+    .character(90000001)
+    .wallet.get();
+  assert.equal(balance, 42.5);
+  assert.throws(
+    () => createEsi({ userAgent: '' }),
+    /VALIDATION_ERROR/,
+    './client refuses an empty user agent',
+  );
 
   // ./errors
   const validation = new EsiValidationError(

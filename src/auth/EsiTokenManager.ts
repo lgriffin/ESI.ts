@@ -1,6 +1,7 @@
 import { EsiClient, EsiClientConfig } from '../EsiClient';
 import type { FetchLike, TokenProvider } from '../core/ApiClient';
 import type { ILogger } from '../core/logger/ILogger';
+import type { Identity } from '../core/ports/Identity';
 import { getLogger } from '../core/logger/loggerUtil';
 import { runWithConcurrency } from '../core/util/concurrency';
 import {
@@ -135,6 +136,8 @@ export class EsiTokenManager {
    * is stale and must not be persisted over the newer state.
    */
   private readonly generations = new Map<number, number>();
+  /** One `Identity` per character, so `esi.as()` returns one view per character. */
+  private readonly identities = new Map<number, Identity>();
 
   constructor(config: EsiTokenManagerConfig) {
     this.storage = config.storage ?? new MemoryTokenStorage();
@@ -334,6 +337,28 @@ export class EsiTokenManager {
       const refreshed = await this.refresh(characterId);
       return refreshed.accessToken;
     };
+  }
+
+  /**
+   * The character as an `Identity` for `esi.as()` on the shared
+   * runtime (`@lgriffin/esi.ts/client`). Before each request the view gets
+   * the stored token, refreshed first when it is stale; after a 401 it gets a
+   * token refreshed through SSO. Nothing is looked up until a request needs
+   * it, so an unknown character fails at the request, not here. The same
+   * object comes back for the same character, so `esi.as()` memoises one
+   * view per character rather than one per call.
+   */
+  identity(characterId: number): Identity {
+    const known = this.identities.get(characterId);
+    if (known) return known;
+    const identity: Identity = Object.freeze({
+      characterId,
+      accessToken: () => this.getToken(characterId),
+      refreshAccessToken: async () =>
+        (await this.refresh(characterId)).accessToken,
+    });
+    this.identities.set(characterId, identity);
+    return identity;
   }
 
   /**

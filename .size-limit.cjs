@@ -9,7 +9,9 @@
  * measured size, in bytes, that its budget was set from. `./schemas` was
  * re-measured when the 2026-08-18 compatibility date added the military
  * campaign and meta name schemas, and `.` once #419, #422 and #424 had
- * grown it past its budget.
+ * grown it past its budget. `./client` was measured when ROADMAP Phase 2
+ * PR 11 added it: the generated operations and the pipeline make it the
+ * largest sub-path after the root.
  *
  * Raising a budget: run `npm run build && npm run size`, set the new
  * measurement plus 5%, update the comment, and say in the pull request body
@@ -37,6 +39,10 @@ const budgets = {
   './testing': {
     import: '16.4 kB', // measured 15540 B
     require: '23 kB', // measured 21854 B
+  },
+  './client': {
+    import: '166.4 kB', // measured 158410 B
+    require: '175.1 kB', // measured 166730 B
   },
   './sde': {
     import: '45.4 kB', // measured 43203 B

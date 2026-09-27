@@ -191,11 +191,9 @@ Implement the interface over Redis, Postgres or a keychain for anything else. `s
 
 ## 4. What 11.0.0 changes
 
-Today `tokens.createClient(id)` builds a complete `EsiClient` for each character. Each of those clients has its own rate limiter and cache. That means ESI's per-IP error budget is tracked once per character, and a token refresh drops that character's cached ETags.
+`tokens.createClient(id)` builds a complete `EsiClient` for each character. Each of those clients has its own rate limiter and cache, so ESI's per-IP error budget is tracked once per character. 11.0.0 fixes that without removing this API:
 
-11.0.0 fixes both problems without removing this API:
+- **Phase 2 PR 10b (done)** keys the cache and the deduplicator by the character the token names instead of the token, so ETags survive a refresh.
+- **Phase 2 PR 11 (done)** adds `@lgriffin/esi.ts/client`: `esi.as(identity)` is an immutable per-character view over one shared runtime, built from `tokens.identity(characterId)`, a raw token (`identityFromToken`) or a `TokenProvider` (`identityFromProvider`). [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide. `createClient` gains a `@deprecated` pointer to it in Phase 7.
 
-- **Phase 2 PR 10b** keys the cache and the deduplicator by a stable identity (the character id) instead of the token, so ETags survive a refresh.
-- **Phase 2 PR 11** adds `esi.as(identity)`: an immutable per-character view over one shared runtime, built from `tokens.identity(characterId)`, a raw token or a `TokenProvider`. `createClient` gains a `@deprecated` pointer to it.
-
-The design is in [ROADMAP.md](ROADMAP.md), Phase 2. The multi-character guide ships with PR 11 ([#432](https://github.com/lgriffin/ESI.ts/issues/432)).
+The design is in [ROADMAP.md](ROADMAP.md), Phase 2.

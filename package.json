@@ -53,6 +53,16 @@
         "default": "./dist/testing/index.js"
       }
     },
+    "./client": {
+      "import": {
+        "types": "./dist/client/index.d.mts",
+        "default": "./dist/client/index.mjs"
+      },
+      "require": {
+        "types": "./dist/client/index.d.ts",
+        "default": "./dist/client/index.js"
+      }
+    },
     "./sde": {
       "import": {
         "types": "./dist/sde/index.d.mts",
@@ -90,6 +100,8 @@
     "start": "ts-node examples/character-profile.ts",
     "example": "ts-node examples/character-profile.ts",
     "example:status": "ts-node examples/status.ts",
+    "example:multi-character": "ts-node examples/multi-character.ts",
+    "example:public-vs-authenticated": "ts-node examples/public-vs-authenticated.ts",
     "example:character": "ts-node examples/character-lookup.ts",
     "example:universe": "ts-node examples/universe-info.ts",
     "example:market": "ts-node examples/market-prices.ts",

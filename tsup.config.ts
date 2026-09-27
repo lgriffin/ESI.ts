@@ -6,6 +6,7 @@ export default defineConfig({
     'src/schemas/index.ts',
     'src/errors.ts',
     'src/testing/index.ts',
+    'src/client/index.ts',
     'src/sde/index.ts',
     'src/sde/memory.ts',
   ],

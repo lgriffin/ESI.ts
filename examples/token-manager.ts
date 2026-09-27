@@ -2,8 +2,9 @@
  * ESI.ts Example: Token Manager
  *
  * Demonstrates EsiTokenManager: the SSO login flow, persistent multi-character
- * token storage, proactive refresh, a client bound to a character, and bulk
- * refresh with a concurrency cap.
+ * token storage, proactive refresh, a view for a character over the shared
+ * runtime (`esi.as(tokens.identity(id))`), and bulk refresh with a
+ * concurrency cap.
  *
  * REQUIRES an SSO application — set ESI_SSO_CLIENT_ID (and, for a
  * confidential client, ESI_SSO_CLIENT_SECRET) in your environment. Register
@@ -26,6 +27,11 @@ import {
   generateState,
   isTokenRevoked,
 } from '../src';
+import { createEsi } from '../src/client';
+
+const esi = createEsi({
+  userAgent: 'esi.ts-examples/1.0 (https://github.com/lgriffin/ESI.ts)',
+});
 
 const CALLBACK_PORT = 8765;
 const CALLBACK_URL = `http://localhost:${CALLBACK_PORT}/callback`;
@@ -122,14 +128,13 @@ async function main() {
   }
   const characterId = active[0]?.characterId ?? (await loginNewCharacter());
 
-  // --- 2. A client bound to the character ---
-  // The manager refreshes the token if it is within 60 s of expiry before
-  // building the client, and again through onTokenRefresh on any 401.
-  const client = await tokens.createClient(characterId, {
-    clientId: 'esi-ts-token-manager-demo',
-  });
+  // --- 2. A view for the character over the shared runtime ---
+  // Before each request the view asks the manager for the token, which is
+  // refreshed first if it is within 60 s of expiry; a 401 refreshes through
+  // SSO and the request is retried once (guides/MULTI-CHARACTER.md).
+  const view = esi.as(tokens.identity(characterId));
   try {
-    const location = await client.location.getCharacterLocation(characterId);
+    const location = await view.character(characterId).location.get();
     console.log(`\nCurrent system: ${location.solar_system_id}`);
   } catch (err) {
     if (isTokenRevoked(err)) {
@@ -138,8 +143,6 @@ async function main() {
     } else {
       console.error('  Error:', err instanceof Error ? err.message : err);
     }
-  } finally {
-    client.shutdown();
   }
 
   // --- 3. Bulk refresh ---

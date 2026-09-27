@@ -424,6 +424,7 @@ describe('entryPointsOf', () => {
       './schemas',
       './errors',
       './testing',
+      './client',
       './sde',
       './sde/memory',
     ]);

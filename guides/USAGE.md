@@ -337,6 +337,8 @@ npm run example:retry-timeout-metadata
 npm run example                 # full character profile
 npm run example:wallet
 npm run example:token-manager   # SSO login, storage and refresh
+npm run example:multi-character # several characters' wallets through one runtime
+npm run example:public-vs-authenticated # the type split, with a @ts-expect-error line
 npm run example:write-ops       # contacts, fittings, mail and UI round trips; use a test character
 
 # Static data (needs sde-data/, see the SDE guide)
@@ -350,7 +352,7 @@ npm run example:sde-basic
 11.0.0 is in progress. [ROADMAP.md](ROADMAP.md) has the order of work and the release gate. For a consumer:
 
 - **Node 22 becomes the floor.** 10.x stays the line for Node 18 and 20.
-- **A new client beside the old one.** `Esi.builder()` builds one shared runtime, holding the rate limiter, error budget, cache and transport. `esi.public` is a typed view in which an authenticated call does not compile. `esi.as(identity)` is an immutable per-character view over the same runtime. The builder requires a user agent. It ships with `guides/MULTI-CHARACTER.md` and a mock transport in `./testing` for your own tests.
+- **A new client beside the old one (on master).** `createEsi()` from `@lgriffin/esi.ts/client` builds one shared runtime, holding the rate limiter, error budget, cache and transport. `esi.public` is a typed view in which an authenticated call does not compile. `esi.as(identity)` is an immutable per-character view over the same runtime. The runtime requires a user agent. [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide; a mock transport in `./testing` for your own tests follows (Phase 2 PR 12).
 - **Nothing on this page is removed in 11.0.** `EsiApiFactory`'s named methods and `EsiTokenManager.createClient` gain `@deprecated` pointers to the builder. Removal waits for 12.0.0 at the earliest, per [SEMVER.md](SEMVER.md).
 - **Already on master and in the 11.0.0 release notes:**
   - The default compatibility date is 2026-08-18.

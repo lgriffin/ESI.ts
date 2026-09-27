@@ -97,9 +97,13 @@ export function hasCachedEntry(
   url: string,
   resolveCache: (client: ApiClient) => ICache | null,
   requiresAuth: boolean = false,
+  authorization?: string,
 ): boolean {
   const cache = resolveCache(client);
-  return !!cache && cache.has(buildCacheKey(url, client, requiresAuth));
+  return (
+    !!cache &&
+    cache.has(buildCacheKey(url, client, requiresAuth, authorization))
+  );
 }
 
 /**
@@ -111,10 +115,11 @@ export function tryStaleCacheResponse(
   parsed: ParsedHeaders,
   resolveCache: (client: ApiClient) => ICache | null,
   requiresAuth: boolean = false,
+  authorization?: string,
 ): EsiHandlerResponse | null {
   const cache = resolveCache(client);
   if (!cache) return null;
-  const key = buildCacheKey(url, client, requiresAuth);
+  const key = buildCacheKey(url, client, requiresAuth, authorization);
   const cachedEntry = cache.get(key);
   if (!cachedEntry) return null;
   return {
@@ -180,6 +185,8 @@ function invalidatedSince(
  * Cache a successful response, or invalidate cache for non-GET methods.
  * `sentAtWriteGeneration` (see currentWriteGeneration) skips storing a GET
  * response whose path a write invalidated while the request was in flight.
+ * `authorization` is the header the request carried, which keys the entry
+ * (see buildCacheKey).
  */
 export function cacheResponse(
   client: ApiClient,
@@ -193,10 +200,11 @@ export function cacheResponse(
   templatePath?: string,
   requiresAuth: boolean = false,
   sentAtWriteGeneration?: number,
+  authorization?: string,
 ): void {
   const cache = resolveCache(client);
   if (useETag && method === 'GET' && cache && parsed.etag) {
-    const key = buildCacheKey(url, client, requiresAuth);
+    const key = buildCacheKey(url, client, requiresAuth, authorization);
     if (
       sentAtWriteGeneration !== undefined &&
       invalidatedSince(cache, sentAtWriteGeneration, key)

@@ -46,6 +46,7 @@ export async function handleOffsetPagination(
   resolveCache: (client: ApiClient) => ICache | null,
   templatePath?: string,
   sentAtWriteGeneration?: number,
+  authorization?: string,
 ): Promise<EsiHandlerResponse> {
   const totalPages = parsed.xPages;
 
@@ -89,6 +90,7 @@ export async function handleOffsetPagination(
       templatePath,
       requiresAuth,
       sentAtWriteGeneration,
+      authorization,
     );
     return { headers: parsed.raw, body: allData, status: 200 };
   } catch (paginationError: unknown) {
