@@ -3,6 +3,14 @@ name: Release Please
 on:
   push:
     branches: [master]
+  # Ship a patch-only release on purpose (an urgent fix): run this workflow
+  # with force-release ticked and it opens the release PR anyway.
+  workflow_dispatch:
+    inputs:
+      force-release:
+        description: Open a release PR even if only fixes landed since the last release
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -21,8 +29,50 @@ jobs:
       version: ${{ steps.release.outputs.version }}
 
     steps:
+      # Releases are cut for new features (minor) and breaking changes
+      # (major) only. Fixes, chores and dependency bumps accumulate and ship
+      # in the next minor, so no release PR is opened until a feat, a
+      # breaking change or a Release-As footer lands. Merging an existing
+      # release PR still tags and publishes, because only the PR step is
+      # skipped.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Decide whether a release is due
+        id: gate
+        env:
+          FORCE: ${{ inputs.force-release }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$FORCE" = "true" ]; then
+            echo "Forced by workflow_dispatch"
+            echo "skip-pr=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # An open release PR (for example a forced patch) keeps updating
+          # with every later fix, so its changelog stays complete.
+          open_prs=$(gh pr list --repo "$REPO" --state open --label 'autorelease: pending' --json number --jq length)
+          if [ "$open_prs" -gt 0 ]; then
+            echo "A release PR is already open; keeping it up to date"
+            echo "skip-pr=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          last=$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' 2>/dev/null || true)
+          range=${last:+$last..}HEAD
+          if git log "$range" --format=%B | grep -E '^(feat(\([^)]*\))?!?|[a-z]+(\([^)]*\))?!): |^BREAKING[ -]CHANGE: |^Release-As: ' >/dev/null; then
+            echo "Release-worthy commits since ${last:-the start}"
+            echo "skip-pr=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Only fixes/chores since $last; not opening a release PR"
+            echo "skip-pr=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
         id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          skip-github-pull-request: ${{ steps.gate.outputs.skip-pr }}
