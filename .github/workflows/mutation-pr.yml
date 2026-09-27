@@ -80,7 +80,7 @@ jobs:
         if: steps.mutation-baseline.outputs.cache-matched-key != ''
         env:
           SHARD: ${{ steps.baseline-shard.outputs.shard }}
-        run: cp "reports/mutation/shards/$SHARD/stryker-incremental.json" reports/mutation/stryker-incremental.json
+        run: cp -f "reports/mutation/shards/$SHARD/stryker-incremental.json" reports/mutation/stryker-incremental.json
 
       # The tier's signal on itself: a deliberately weak test must leave
       # surviving mutants that the ratchet fails.
