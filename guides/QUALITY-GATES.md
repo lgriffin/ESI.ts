@@ -571,7 +571,7 @@ The seed baseline has 424 entries: `.` 197 of 366 exports, `./schemas` 46 of 201
 
 ## Suite-health lint
 
-`npm run lint:suite-health` lints every `.ts`, `.mts` and `.cts` file under `tests/` except the `fixtures/` and `step-fixtures/` trees, which break rules on purpose. It is Testing Runway tier N: it catches the decay that turns a green suite into a decorative one. It is not the `src/` rule set; the config and rules are in `eslint.suite-health.rules.cjs`, loaded by `eslint.suite-health.config.mjs`.
+`npm run lint:suite-health` lints every `.ts`, `.mts` and `.cts` file under `tests/` except the `fixtures/` and `step-fixtures/` trees, which break rules on purpose. It is Testing Runway tier N: it catches the decay that turns a green suite into a decorative one. It is not the `src/` rule set; the config and rules are in `config/eslint/suite-health.rules.cjs`, loaded by `config/eslint/suite-health.config.mjs`.
 
 | Rule                                      | Rejects                                                                                                                                                                                                                                                                                                       |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -695,24 +695,24 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 
 ### Build and static checks
 
-| Script                    | Runs                                                                                    |
-| ------------------------- | --------------------------------------------------------------------------------------- |
-| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                 |
-| `typecheck`               | `tsc --noEmit`                                                                          |
-| `lint` / `lint:fix`       | ESLint over `src`                                                                       |
-| `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`eslint.bdd-seam.rules.cjs`) |
-| `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline            |
-| `lint:layers`             | Imports in `src` point inward (`eslint.layers.rules.cjs`); shrink-only baseline         |
-| `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`eslint.suite-health.rules.cjs`) |
-| `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)             |
-| `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)               |
-| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                         |
-| `knip`                    | Dead code and unused exports (`knip.json`)                                              |
-| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                 |
-| `api-report:check`        | api-extractor, check mode                                                               |
-| `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)              |
-| `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`                                       |
-| `prepare`                 | Install husky hooks, then build                                                         |
+| Script                    | Runs                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------- |
+| `build`                   | `tsup` then `tsc --emitDeclarationOnly`                                                        |
+| `typecheck`               | `tsc --noEmit`                                                                                 |
+| `lint` / `lint:fix`       | ESLint over `src`                                                                              |
+| `lint:bdd-seam`           | ESLint over `tests/bdd` with only the transport-seam rule (`config/eslint/bdd-seam.rules.cjs`) |
+| `lint:determinism`        | Time and randomness in `src` only via the clock module; shrink-only baseline                   |
+| `lint:layers`             | Imports in `src` point inward (`config/eslint/layers.rules.cjs`); shrink-only baseline         |
+| `lint:suite-health`       | ESLint over `tests/` with only the suite-health rules (`config/eslint/suite-health.rules.cjs`) |
+| `lint:package`            | Build, `npm pack`, then publint and attw on the tarball (`-- --skip-build`)                    |
+| `size`                    | size-limit budget per `exports` sub-path, ESM and CJS (`.size-limit.cjs`)                      |
+| `format` / `format:check` | Prettier over `src/**/*.ts` and `tests/**/*.ts`                                                |
+| `knip`                    | Dead code and unused exports (`knip.json`)                                                     |
+| `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                        |
+| `api-report:check`        | api-extractor, check mode                                                                      |
+| `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)                     |
+| `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`                                              |
+| `prepare`                 | Install husky hooks, then build                                                                |
 
 ### Tests
 

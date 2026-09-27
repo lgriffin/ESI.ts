@@ -8,7 +8,7 @@
  * comparison and prints a diff, which is the wrong shape for that.
  *
  * These helpers are the assertion in those tests. `jest/expect-expect` knows
- * their names (ASSERT_FUNCTION_NAMES in eslint.suite-health.rules.cjs), so a
+ * their names (ASSERT_FUNCTION_NAMES in config/eslint/suite-health.rules.cjs), so a
  * test that calls one is not assertion-free; a test that calls neither, and
  * no `expect`, still fails the suite-health lint.
  */
