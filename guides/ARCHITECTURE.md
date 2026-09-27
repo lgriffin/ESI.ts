@@ -4,7 +4,7 @@
 
 How ESI.ts is layered, the route every request takes, and how each piece of middleware behaves. The charter states the requirements; this guide explains how the code meets them. Where the two disagree, the code is the fact and the difference is called out.
 
-This guide describes the code on `master` at 10.2.3 with ROADMAP Phase 2 merged. The seams it added (ports, `PipelineTransport`, the generated operations and the scope tree) reach consumers through the `./client` entry: one shared runtime, a public view and a view per identity ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); `createMockTransport` in `./testing` implements the `HttpTransport` port for consumers' tests. [§1a](#1a-ports-adapters-and-the-layer-rule) describes them and says what 11.0.0 will still change: the Phase 3 layer baseline and the Phase 4 logger work, as planned in [ROADMAP.md](ROADMAP.md).
+This guide describes the code on `master` at 10.2.3 with ROADMAP Phase 2 merged. The seams it added (ports, `PipelineTransport`, the generated operations and the scope tree) reach consumers through the `./client` entry: one shared runtime, a public view and a view per identity ([MULTI-CHARACTER.md](MULTI-CHARACTER.md)); `createMockTransport` in `./testing` implements the `HttpTransport` port for consumers' tests. [§1a](#1a-ports-adapters-and-the-layer-rule) describes them and says what 11.0.0 will still change: the Phase 4 logger work, as planned in [ROADMAP.md](ROADMAP.md).
 
 Topics with their own guide are summarised here and linked:
 
