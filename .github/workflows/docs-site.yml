@@ -1,0 +1,71 @@
+name: Documentation Site
+
+# Builds https://lgriffin.github.io/ESI.ts/ and publishes it to the gh-pages
+# branch (CHARTER DOC-03): the VitePress site from docs-site/, its guide and
+# example pages generated from guides/, README.md and examples/, and the
+# TypeDoc API reference under /api/. `npm run docs:site` is the same build.
+#
+# release.yml calls this after validate-release, so every release publishes
+# the site for its tag. It can also be dispatched by hand on master or a
+# vX.Y.Z tag, to publish the site between releases:
+#   gh workflow run docs-site.yml --ref master
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build and deploy the documentation site
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # One deploy at a time; a second waits rather than racing the first to gh-pages.
+    concurrency:
+      group: docs-site-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: write # push the built site to the gh-pages branch
+
+    steps:
+      - name: Require master or a version tag
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" != "refs/heads/master" ] && ! [[ "$REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Publish the site from master or a vX.Y.Z tag, not $REF"
+            exit 1
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # No package-manager cache in a job that publishes (zizmor cache-poisoning).
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install the site's dependencies
+        run: npm ci --prefix docs-site
+
+      - name: Build the site
+        run: npm run docs:site
+
+      # The version selector is read from package.json at build time; this
+      # checks the page that is about to go out actually carries it.
+      - name: Check the built site's version
+        run: npm run validate:versions -- --site
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs-site/.vitepress/dist

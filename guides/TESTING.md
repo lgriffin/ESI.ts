@@ -44,7 +44,7 @@ Coverage is collected from `src/**/*.ts`, excluding `.d.ts`, `src/types/`, `*.ge
 | Scenarios                                    | 496 (491 `Scenario`, 5 `Scenario Outline`)                    |
 | Audit result                                 | 54 of 54 pass                                                 |
 
-Other counts, each reproducible with `ls` or `find`: 7 tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 24 workflows in `.github/workflows/` (25 files including its `README.md`).
+Other counts, each reproducible with `ls` or `find`: 7 tsd files in `tests/typetests/`, 9 Jest configs (`ls config/jest/*.config.cjs`), and 26 workflows in `.github/workflows/` (27 files including its `README.md`).
 
 ## The tiers
 

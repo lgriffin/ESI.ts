@@ -175,7 +175,7 @@ Test files are linted at commit and in CI with the `src/` rule set (`npm run lin
 
 ## Workflows
 
-All 24 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the directory's `README.md` points here). Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
+All 26 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the directory's `README.md` points here). Every action is pinned to a full commit SHA and every workflow declares read-only top-level permissions with per-job escalation (`SEC-03`, see [SECURITY.md](SECURITY.md)).
 
 | Workflow                        | Trigger                                                            | Blocks                        | Output                                                                        |
 | ------------------------------- | ------------------------------------------------------------------ | ----------------------------- | ----------------------------------------------------------------------------- |
@@ -200,6 +200,7 @@ All 24 workflows live in `.github/workflows/` (`ls .github/workflows/*.yml`; the
 | `maintenance.yml`               | Mondays 09:00 UTC; manual                                          | No                            | Artifacts                                                                     |
 | `release-please.yml`            | Push to `master`                                                   | —                             | Release PR, tag, GitHub release                                               |
 | `release.yml`                   | Tag `v*.*.*` pushed; GitHub release published                      | Publishing                    | npm, GitHub Packages, gh-pages, signed assets                                 |
+| `docs-site.yml`                 | Called by `release.yml` `deploy-docs`; manual on master or a tag   | Publishing the site           | The documentation site on the `gh-pages` branch                               |
 | `post-publish-canary.yml`       | GitHub release published; manual with a version                    | No                            | `release-verification` issue                                                  |
 | `spec-refresh.yml`              | Push to `spec-refresh/**`; manual                                  | No                            | Commits the re-vendored spec and regenerated files                            |
 | `nightly-benchmarks.yml`        | Daily 04:30 UTC; manual                                            | No                            | `performance-nightly` issue, `bench-data` branch, artifacts                   |
@@ -233,7 +234,7 @@ Runs on pull requests only. `lint-and-build` runs first; most test jobs `need` i
 | `api-semver` (API SemVer Gate)           | `npm run api-report:semver`: fails when the report lost or changed a line and no commit in the pull request is `type!:`, has a `BREAKING CHANGE:` footer or an `API-Compatible:` trailer, or when a declared break spans several commits and the pull request title is not `type!:` (GATE-03)                                                                                                                                                                                                                |   yes   |
 | `lockfile` (Lockfile Consistency)        | `npm install --package-lock-only --ignore-scripts` then `git diff --exit-code package-lock.json`. For `dependabot[bot]` the step exits early with a notice; the job still reports success                                                                                                                                                                                                                                                                                                                    |   yes   |
 | `dependency-audit` (Dependency Audit)    | Audits base and head, fails only on advisories the PR introduces. Its steps skip when `package.json` and `package-lock.json` are unchanged; the job still reports success                                                                                                                                                                                                                                                                                                                                    |   yes   |
-| `documentation` (Generate Documentation) | Runs TypeDoc and uploads `docs-site/public/api/`, so a docs break is caught before `release.yml` runs `npm run docs`                                                                                                                                                                                                                                                                                                                                                                                         |   yes   |
+| `documentation` (Generate Documentation) | `npm run docs:site` (TypeDoc, the guide and example pages generated from `guides/` and `examples/`, VitePress with its dead-link check) and `validate:versions -- --site`; uploads the built site. A guide, example or TSDoc change that breaks the site fails here (see [DOCUMENTATION.md](DOCUMENTATION.md#the-documentation-site))                                                                                                                                                                        |   yes   |
 | `zizmor` (Workflow Security (zizmor))    | `uvx zizmor@<pinned>` over `.github/` with `.zizmor.yml`, on every pull request                                                                                                                                                                                                                                                                                                                                                                                                                              |   yes   |
 | `ci-success` (ci-success)                | Fails unless every other job succeeded, and fails if a job is missing from its `needs` (GATE-01)                                                                                                                                                                                                                                                                                                                                                                                                             |    —    |
 | `benchmarks` (Benchmarks (base vs head)) | Builds the base tip and the head on one runner and runs them in 10 alternating processes each (`npm run bench:ab`), then decides statistically (`npm run bench:compare`). Its steps skip when no hot path changed; the job still reports success. See [TESTING.md](TESTING.md#benchmarks-and-the-heap-soak)                                                                                                                                                                                                  |   yes   |
@@ -352,7 +353,7 @@ Much of this overlaps the nightlies, which file issues rather than artifacts. It
 | `validate-release`        | both triggers     | Tag and version checks, lint, format, knip, `audit:check`, changelog entry, build, schema drift, generated freshness, the spec validators, `spec:audit`, the test tiers, `docs`; listed below |
 | `publish-npm`             | release published | `npm publish --provenance` to npmjs.org                                                                                                                                                       |
 | `publish-github`          | release published | `npm publish --provenance` to GitHub Packages                                                                                                                                                 |
-| `deploy-docs`             | both triggers     | TypeDoc to gh-pages from `docs-site/public/api`                                                                                                                                               |
+| `deploy-docs`             | both triggers     | Calls `docs-site.yml`: builds the documentation site with TypeDoc under `/api/` and publishes `docs-site/.vitepress/dist` to gh-pages                                                         |
 | `create-assets`           | both triggers     | `npm pack`, CycloneDX SBOM, docs archive, `checksums.txt`; no OIDC permission                                                                                                                 |
 | `consumer-contract`       | both triggers     | `npm run test:consumer -- --tarball` on the tarball `create-assets` packed, same four rows as `ci.yml`; `publish-npm`, `publish-github` and `sign-and-publish-assets` need it                 |
 | `sign-and-publish-assets` | release published | Keyless cosign signatures and SLSA build provenance (`.intoto.jsonl`), uploads assets to the release; the only job that can mint an OIDC token for signing                                    |
@@ -714,7 +715,7 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 | `api-report`              | api-extractor, local mode: rewrites `etc/esi.ts.api.md`                                        |
 | `api-report:check`        | api-extractor, check mode                                                                      |
 | `api-report:semver`       | Fails if the report lost a line without a breaking-change commit (GATE-03)                     |
-| `clean` / `clean:docs`    | Remove `dist`, `coverage`, `docs-site/public/api`                                              |
+| `clean` / `clean:docs`    | Remove `dist`, `coverage`, and the generated docs (`public/api`, pages, sidebar, build)        |
 | `prepare`                 | Install husky hooks, then build                                                                |
 
 ### Tests
@@ -775,7 +776,7 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 | `validate:esi:vendored` | The same against `tests/contract/snapshots/esi-openapi.snapshot.json`, offline; in `check:local` and after `spec-refresh.yml` regenerates                                                     |
 | `validate:auth-scopes`  | `requiresAuth` versus the generated scope map (`DES-04`); fails in both directions                                                                                                            |
 | `validate:spec`         | Redocly lint of the ESI spec (`redocly.yaml`)                                                                                                                                                 |
-| `validate:versions`     | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts` and the docs-site version selector                                                                                 |
+| `validate:versions`     | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts`, and the docs-site selector reads `package.json`; `-- --site` also checks the built site                           |
 
 ### Security
 
@@ -798,6 +799,9 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 | -------------------------------- | ----------------------------------------------------------------------- |
 | `docs` / `docs:watch`            | TypeDoc into `docs-site/public/api`                                     |
 | `docs:serve`                     | Serve the TypeDoc output on port 8080                                   |
+| `docs:sync`                      | Generate the site's guide and example pages from `guides/`, `examples/` |
+| `docs:site`                      | `docs`, `docs:sync`, then the VitePress build (the published site)      |
+| `docs:site:dev` / `:preview`     | VitePress dev server after `docs:sync`; serve the built site            |
 | `token:create` / `token:refresh` | PKCE token into `.env`, and refresh it (see [SECURITY.md](SECURITY.md)) |
 | `sde:ingest`                     | Build the SDE database from CCP's archive                               |
 | `health-check`                   | `status.getStatus()` against live ESI                                   |
@@ -846,4 +850,4 @@ npm run bench:ab                                  # needs a second tree and a qu
 
 `bdd` and `coverage` are left out because `test` already runs the same suites, `docs` because it asserts nothing, and `knip` because only the release gate blocks on it (`validate` and `check:all` run it).
 
-`validate:versions` runs in `static-analysis` and in `release.yml`: `release-please` keeps `src/core/constants.ts` and the docs-site version selector in step with `package.json` through its `extra-files` setting and the `x-release-please-version` marker, and the check is what catches a hand edit of any of the three.
+`validate:versions` runs in `static-analysis` and in `release.yml`: `release-please` keeps `src/core/constants.ts` in step with `package.json` through its `extra-files` setting, and the check is what catches a hand edit of either. The docs-site version selector is read from `package.json` when the site builds; the check fails if `docs-site/.vitepress/config.ts` stops doing that, and `validate:versions -- --site` fails on a built site showing another version (the `documentation` job and `docs-site.yml` run it).

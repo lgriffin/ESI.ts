@@ -10,6 +10,8 @@
 
 A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), built as an engineered product rather than a generated wrapper. It covers every operation in the ESI OpenAPI specification. Every response is validated at runtime, and caching, rate limiting, retry and pagination follow the rules ESI actually enforces. The claims on this page are backed by a test suite that is itself tested.
 
+**Documentation site: [lgriffin.github.io/ESI.ts](https://lgriffin.github.io/ESI.ts/)**, with these guides, a page for every runnable example, and the [API reference](https://lgriffin.github.io/ESI.ts/api/) generated from the TSDoc.
+
 > **Release line.** `10.2.3` is current on npm and supports Node 18 and later. **11.0.0 is in progress.** It raises the floor to Node 22 and adds a new client built on one shared runtime, with typed public and per-character views. Nothing documented here is removed in 11.0. [What 11.0 changes](guides/USAGE.md#9-what-1100-changes) · [Roadmap and release gate](guides/ROADMAP.md)
 
 ## Install
@@ -108,7 +110,7 @@ A request no route answers is rejected with an `EsiConfigurationError` naming th
 
 ## The engineering stance
 
-The project is run to a written [engineering charter](guides/CHARTER.md). It has 58 numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: 32 are **Enforced**, 5 Practised, 13 Partial and 8 Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
+The project is run to a written [engineering charter](guides/CHARTER.md). It has 61 numbered requirements, each in the same EARS form as the test specification, and each with a status that says whether a machine enforces it: 39 are **Enforced**, 6 Practised, 11 Partial and 5 Gap. A gap is recorded, never hidden. Seven positions explain most of the choices:
 
 1. **The OpenAPI spec is upstream.** Types, cache TTLs, rate-limit groups, scopes and 233 typed operations are generated from it, and CI fails when they go stale.
 2. **Hand-write where judgement matters.** Method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest against the spec.
@@ -132,7 +134,7 @@ Measured on `master` on 2026-09-27 with the commands shown. [TESTING.md](guides/
 | Transport fault catalogue | 148 faults through the real pipeline                                                       | `npm run faults`                                                    |
 | Recorded ESI payloads     | 121 replay tests, re-recorded nightly with a drift PR                                      | `npm run contract:replay`                                           |
 | Mutation testing          | Per-directory floors, ratcheted nightly, changed files on every PR                         | `npm run mutation:ratchet`                                          |
-| CI                        | One required check (`ci-success`) over the full matrix; 24 workflows, 15 of them scheduled | [QUALITY-GATES.md](guides/QUALITY-GATES.md)                         |
+| CI                        | One required check (`ci-success`) over the full matrix; 26 workflows, 15 of them scheduled | [QUALITY-GATES.md](guides/QUALITY-GATES.md)                         |
 
 Every tier has to prove it can fail: a negative fixture, a killed mutant or a caught fault. Every floor is a one-way ratchet.
 
@@ -202,7 +204,7 @@ npm run example:streaming   # stream* over a large region
 npm run example             # full character profile (ESI_ACCESS_TOKEN)
 ```
 
-The full list is in [USAGE.md](guides/USAGE.md#8-examples).
+The full list is in [USAGE.md](guides/USAGE.md#8-examples), and the [examples showcase](https://lgriffin.github.io/ESI.ts/examples/) has a page for each with its source, what it needs and the command that runs it.
 
 ## Contributing
 

@@ -41,7 +41,7 @@ release.yml
 | `validate-release`        | —                                        | tag push and release      | The publish gate, below                                                                                                                                                                                                                                     |
 | `publish-npm`             | `validate-release`, `consumer-contract`  | release only              | Re-checks `checksums.txt`, then `npm publish <tarball> --provenance` of the tarball `create-assets` packed, to `registry.npmjs.org`                                                                                                                         |
 | `publish-github`          | `validate-release`, `consumer-contract`  | release only              | The same tarball, `npm publish <tarball> --provenance` to `npm.pkg.github.com`                                                                                                                                                                              |
-| `deploy-docs`             | `validate-release`                       | release only              | `npm run docs`, then deploys `docs-site/public/api` (TypeDoc) to GitHub Pages                                                                                                                                                                               |
+| `deploy-docs`             | `validate-release`                       | release only              | Calls `docs-site.yml`: `npm run docs:site` (the VitePress site with TypeDoc under `/api/`), `validate:versions -- --site`, then deploys `docs-site/.vitepress/dist` to the `gh-pages` branch                                                                |
 | `create-assets`           | `validate-release`                       | tag push and release      | `npm pack` (fails unless exactly one tarball), the CycloneDX SBOM (`npm run release:sbom`), `docs.tar.gz` of the API reference, `checksums.txt` (SHA-256); uploads as artifact                                                                              |
 | `consumer-contract`       | `create-assets`                          | tag push and release      | The consumer contract (`npm run test:consumer -- --tarball`) against the tarball `create-assets` packed: Node 22 and 24, oldest, repository and latest TypeScript                                                                                           |
 | `sign-and-publish-assets` | `create-assets`, `consumer-contract`     | release only              | Keyless `cosign sign-blob` on the tarball, SBOM and docs archive; SLSA build provenance for the same three (`actions/attest-build-provenance`, checked with `gh attestation verify`); then `gh release upload` of all assets plus `README.md` and `LICENSE` |
@@ -179,7 +179,7 @@ That is what makes the canary's `signatures` check meaningful: the provenance at
 | npm registry (`registry.npmjs.org`)    | `@lgriffin/esi.ts` tarball, `dist/` + README, LICENSE, CHANGELOG                                            | npm provenance (SLSA v1 attestation)                                                                                                                                   |
 | GitHub Packages (`npm.pkg.github.com`) | Same package                                                                                                | Published with `--provenance`                                                                                                                                          |
 | GitHub release assets                  | `lgriffin-esi.ts-X.Y.Z.tgz`, `lgriffin-esi.ts-X.Y.Z.cdx.json` (SBOM), `docs.tar.gz`, `README.md`, `LICENSE` | `checksums.txt` (SHA-256); a `.sigstore.json` bundle per archive and SBOM from keyless cosign; `lgriffin-esi.ts-X.Y.Z.intoto.jsonl`, the SLSA provenance for all three |
-| GitHub Pages                           | TypeDoc API reference from `docs-site/public/api`                                                           | —                                                                                                                                                                      |
+| GitHub Pages                           | The documentation site, with the TypeDoc API reference under `/api/`                                        | —                                                                                                                                                                      |
 
 The published file list is the `files` field in `package.json`. `publishConfig.access` is `public`.
 
@@ -285,16 +285,16 @@ What it describes: the runtime dependency tree of the tarball's own `package.jso
 
 ## Version strings (REL-03)
 
-| Location                                                            | Written by                         | Checked by                  |
-| ------------------------------------------------------------------- | ---------------------------------- | --------------------------- |
-| `package.json`                                                      | release-please                     | `npm run validate:versions` |
-| `package-lock.json`                                                 | release-please (node release type) | `npm ci` in CI              |
-| `.release-please-manifest.json`                                     | release-please                     | —                           |
-| `src/core/constants.ts` (`PACKAGE_VERSION`, sent in the User-Agent) | release-please `extra-files`       | `npm run validate:versions` |
-| README banner                                                       | by hand                            | nothing                     |
-| docs-site version menu                                              | by hand                            | nothing                     |
+| Location                                                            | Written by                         | Checked by                            |
+| ------------------------------------------------------------------- | ---------------------------------- | ------------------------------------- |
+| `package.json`                                                      | release-please                     | `npm run validate:versions`           |
+| `package-lock.json`                                                 | release-please (node release type) | `npm ci` in CI                        |
+| `.release-please-manifest.json`                                     | release-please                     | —                                     |
+| `src/core/constants.ts` (`PACKAGE_VERSION`, sent in the User-Agent) | release-please `extra-files`       | `npm run validate:versions`           |
+| README banner                                                       | by hand                            | nothing                               |
+| docs-site version menu                                              | read from `package.json` at build  | `npm run validate:versions -- --site` |
 
-`scripts/package/validate-versions.ts` compares `package.json` with `PACKAGE_VERSION` and exits non-zero on a mismatch. It runs in `npm run check:all`, not in CI. The charter's direction is to extend it to the README and site, or to remove those banners.
+`scripts/package/validate-versions.ts` compares `package.json` with `PACKAGE_VERSION`, checks that the docs-site selector is still read from `package.json`, and with `--site` checks the built site; it exits non-zero on a mismatch. It runs in `ci.yml` `static-analysis`, `release.yml` `validate-release` and `npm run check:all`, and with `--site` in the `documentation` job and `docs-site.yml`. The README banner is still by hand; `DOC-04` extends the check to it.
 
 ---
 

@@ -122,7 +122,7 @@ export const TIERS: Tier[] = [
   {
     script: 'validate:versions',
     covers:
-      'package.json, constants.ts and the docs-site selector carry one version',
+      'package.json and constants.ts carry one version; the docs-site selector reads it',
     stage: 'quick',
   },
   { script: 'test', covers: 'unit and BDD suites', stage: 'quick' },
@@ -212,6 +212,9 @@ export const NOT_RUN_LOCALLY: Record<string, string> = {
   'bench:compare': 'reads a baseline the benchmark job produces',
   'contract:live': 'calls the live ESI API',
   docs: 'generates TypeDoc output and asserts nothing',
+  'docs:site':
+    'needs the docs-site/ packages installed (`npm ci --prefix docs-site`) and a full TypeDoc and VitePress build; the page generators it runs are unit-tested instead',
+  'docs:sync': 'a step of `docs:site`, whose generators are unit-tested',
   'generate:types': 'downloads the live ESI OpenAPI document',
   'schema:drift': 'downloads the live ESI OpenAPI document',
   'schema:drift:ci': 'downloads the live ESI OpenAPI document',

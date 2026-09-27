@@ -20,7 +20,7 @@
         { "type": "refactor", "section": "Changed" },
         { "type": "perf", "section": "Changed" }
       ],
-      "extra-files": ["src/core/constants.ts", "docs-site/.vitepress/config.ts"]
+      "extra-files": ["src/core/constants.ts"]
     }
   }
 }

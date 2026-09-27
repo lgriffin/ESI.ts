@@ -3,99 +3,108 @@ layout: home
 
 hero:
   name: ESI.ts
-  text: EVE Online ESI API Client
-  tagline: Production-grade TypeScript SDK with runtime validation, intelligent caching, and full endpoint coverage.
+  text: The EVE Online ESI API, typed and validated
+  tagline: A TypeScript client built as an engineered product rather than a generated wrapper. Caching, rate limiting, retry and pagination follow the rules ESI actually enforces.
+  image:
+    src: /logo.svg
+    alt: ESI.ts
   actions:
     - theme: brand
-      text: Get Started
-      link: /guide/getting-started
+      text: Get started
+      link: /guide/usage
     - theme: alt
-      text: Explore Endpoints
-      link: /explorer/
+      text: Browse the examples
+      link: /examples/
     - theme: alt
-      text: GitHub
-      link: https://github.com/lgriffin/ESI.ts
+      text: API reference
+      link: /api/
+      target: _self
 
 features:
-  - icon: 🛡️
-    title: Runtime Validation
-    details: Every GET response validated via Zod schemas. Schema mismatches throw immediately — no silent data corruption when CCP changes a field.
-  - icon: ⚡
-    title: Three-Tier Caching
-    details: Spec-aware TTL (zero HTTP calls), ETag conditional GETs, and stale-on-error fallback. Write operations auto-invalidate related caches.
-  - icon: 🔄
-    title: Resilience Built In
-    details: Exponential backoff with jitter, per-endpoint circuit breaker, automatic 401 token refresh with concurrent coalescing.
-  - icon: 📊
-    title: 235 Endpoints
-    details: 206 from the public ESI spec plus 29 for newer EVE features. All validated against live Tranquility with 52 runnable examples.
-  - icon: 🚀
-    title: Streaming Pagination
-    details: 73+ AsyncGenerator streaming methods across 21 clients. Process market orders, assets, and contracts page-by-page without loading everything into memory.
-  - icon: 🎯
-    title: Rate Limit Groups
-    details: 36 per-group token buckets extracted from the ESI spec at build time. Market requests never starve wallet requests.
+  - title: Every ESI operation, typed
+    details: Domain clients cover every operation in the ESI OpenAPI specification, and spec:coverage fails the build if one goes missing. Types, cache TTLs, rate-limit groups and scopes are generated from the spec.
+    link: /guide/usage
+    linkText: Using the client
+  - title: Runtime validation
+    details: Every GET response is checked against a Zod schema. Unknown fields pass through, so an additive change from CCP never breaks you; a changed shape throws EsiValidationError instead of corrupting your data.
+    link: /guide/runtime-validation
+    linkText: Runtime validation
+  - title: Caching with ETags
+    details: A GET inside ESI's cache window makes no HTTP call. Older entries are revalidated with ETags, a 5xx serves the stale copy, and a write invalidates the reads it affects. Keys are hashed per token.
+    link: /guide/architecture
+    linkText: How the cache works
+  - title: Rate limits per group
+    details: One bucket per ESI rate-limit group, generated from the spec. The limiter learns from ESI's headers and honours Retry-After, and a 420 or 429 blocks only its own group.
+    link: /guide/architecture
+    linkText: Architecture
+  - title: Retry and circuit breaker
+    details: Exponential backoff with jitter, one coalesced token refresh on 401, deduplication of identical in-flight GETs and an opt-in circuit breaker. Each is an interface you can replace.
+    link: /guide/errors
+    linkText: Errors and retryability
+  - title: Pagination and streaming
+    details: Offset and cursor paging. stream* yields one validated page at a time, fetchAll* fetches pages concurrently, and batch and batchPost handle fan-out.
+    link: /guide/pagination
+    linkText: Pagination
+  - title: SSO and many characters
+    details: EVE SSO with PKCE, a token manager for storage, proactive refresh and revocation, and createEsi() — one shared runtime with a typed public view and a view per character.
+    link: /guide/multi-character
+    linkText: Many characters
+  - title: Offline static data
+    details: The ./sde sub-path answers typed queries over CCP's Static Data Export with no database, and shares no code with the HTTP pipeline.
+    link: /guide/sde
+    linkText: Static data (SDE)
+  - title: Tested to the spec
+    details: Behaviour is written as EARS requirements with Gherkin scenarios, backed by property tests, a transport fault catalogue, recorded ESI payloads and mutation testing with ratcheted floors.
+    link: /guide/testing
+    linkText: Testing
 ---
 
-<script setup>
-import { VPTeamMembers } from 'vitepress/theme';
-</script>
-
-## Quick Start
-
-Install the package and make your first API call in under a minute:
+## Quick start
 
 ```bash
 npm install @lgriffin/esi.ts
 ```
 
-```typescript
+```ts
 import { EsiClient } from '@lgriffin/esi.ts';
 
-const client = new EsiClient();
+const client = new EsiClient({ userAgent: 'my-app/1.0 (you@example.com)' });
+try {
+  const status = await client.status.getStatus();
+  console.log(`${status.players} pilots online`);
+} finally {
+  client.shutdown();
+}
+```
 
-// Public data — no auth required
-const status = await client.status.getStatus();
-console.log(`${status.players} pilots online`);
+For many characters over one runtime, `@lgriffin/esi.ts/client` gives a public view in which an authenticated call does not compile, and a view per identity:
 
-const character = await client.characters.getCharacterPublicInfo(1689391488);
-console.log(character.name);
+```ts
+import { createEsi, identityFromToken } from '@lgriffin/esi.ts/client';
 
-// Authenticated — set ESI_ACCESS_TOKEN env var
-const authedClient = new EsiClient({ accessToken: 'your-token' });
-const wallet = await authedClient.wallet.getCharacterWallet(characterId);
+const esi = createEsi({ userAgent: 'my-app/1.0 (you@example.com)' });
+const status = await esi.public.status.get();
 
-await client.shutdown();
+// An access token from your SSO flow. An EsiTokenManager's
+// tokens.identity(characterId) gives a refreshing identity instead.
+const characterId = 2114794365;
+const wallet = await esi
+  .as(identityFromToken(process.env.ESI_ACCESS_TOKEN ?? ''))
+  .character(characterId)
+  .wallet.get();
 ```
 
 <div class="feature-grid">
   <div class="feature-card">
-    <h3>Type Safe</h3>
-    <p>Full TypeScript types for every endpoint, response, and configuration option. Branded ID types prevent mixing character IDs with corporation IDs.</p>
+    <h3><a href="./guide/">Guides</a></h3>
+    <p>Construction, configuration, authentication, pagination, errors, logging and the SDE, plus the engineering charter, architecture and quality gates the project runs to.</p>
   </div>
   <div class="feature-card">
-    <h3>Tree Shakeable</h3>
-    <p>Sub-path exports for schemas, errors, testing, and SDE. Use <code>EsiClientBuilder</code> to load only the domain clients you need.</p>
+    <h3><a href="./examples/">Examples</a></h3>
+    <p>Every runnable program in <code>examples/</code>, type-checked in CI; the ones that need no token run against live ESI every night.</p>
   </div>
   <div class="feature-card">
-    <h3>Spec Accurate</h3>
-    <p>Every endpoint tested against live ESI. Wire format bugs in the OpenAPI spec (query params vs body, field naming) are caught and fixed.</p>
-  </div>
-  <div class="feature-card">
-    <h3>Battle Tested</h3>
-    <p>167 test suites, 4,730 tests across 9 tiers including property-based fuzzing, mutation testing, and contract tests against the live spec.</p>
+    <h3><a href="./api/" target="_self">API reference</a></h3>
+    <p>The TypeDoc reference generated from the TSDoc in <code>src/</code>: every client, method, option, error and response type.</p>
   </div>
 </div>
-
-## Why Not Just Generate a Client?
-
-Tools like `openapi-typescript` can produce a typed client from the ESI spec in minutes. But they stop at type generation. ESI.ts handles the problems you hit _after_ the types compile:
-
-|                   | Generated Client        | ESI.ts                                |
-| ----------------- | ----------------------- | ------------------------------------- |
-| **Validation**    | Types erased at runtime | Zod schemas on every GET              |
-| **Caching**       | You build it            | Three-tier, automatic                 |
-| **Rate Limiting** | You build it            | 36 per-group buckets                  |
-| **Pagination**    | You write the loop      | Automatic + streaming                 |
-| **Retry**         | You build it            | Exponential backoff + circuit breaker |
-| **Spec Bugs**     | Faithfully reproduced   | Tested and fixed                      |
