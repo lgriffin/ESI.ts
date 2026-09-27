@@ -161,8 +161,8 @@
     "example:write-ops": "ts-node examples/write-operations.ts",
     "token:create": "ts-node scripts/auth/create-token.ts",
     "token:refresh": "ts-node scripts/auth/refresh-token.ts",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
     "lint:bdd-seam": "eslint --config config/eslint/bdd-seam.config.mjs tests/bdd",
     "lint:determinism": "ts-node scripts/quality/determinism-lint.ts",
     "lint:layers": "eslint --config config/eslint/layers.config.mjs --no-inline-config src",
@@ -306,6 +306,7 @@
       "prettier --write"
     ],
     "tests/**/*.ts": [
+      "eslint --fix",
       "prettier --write"
     ],
     "*.{json,md,yml,yaml}": [
