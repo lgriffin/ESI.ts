@@ -173,6 +173,12 @@ export const RECIPES: Recipe[] = [
     method: 'getOpenApiJson',
     args: none,
   },
+  {
+    endpoint: 'meta.getOpenApiYaml',
+    client: 'meta',
+    method: 'getOpenApiYaml',
+    args: none,
+  },
 
   // Alliances, corporations, characters
   {

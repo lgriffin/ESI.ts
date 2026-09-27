@@ -50,13 +50,21 @@ function withProbe(body: unknown): unknown {
   return Array.isArray(body) ? body.map(add) : add(body);
 }
 
-function queuePages(fixture: RecordedFixture, probe = false): void {
+function queuePages(
+  fixture: RecordedFixture,
+  definition: EndpointDefinition,
+  probe = false,
+): void {
   for (const page of fixture.pages) {
     queueResponse({
       status: page.status,
       headers: page.headers,
-      // Sent verbatim, so a JSON string or number body is not re-encoded.
-      body: JSON.stringify(probe ? withProbe(page.body) : page.body),
+      // Sent verbatim, so a JSON string or number body is not re-encoded. A
+      // text endpoint (meta/openapi.yaml) stores its document as a string,
+      // which goes out as the document itself rather than a JSON string.
+      body: definition.textResponse
+        ? String(page.body)
+        : JSON.stringify(probe ? withProbe(page.body) : page.body),
       match: exactUrl(page.url),
     });
   }
@@ -80,6 +88,14 @@ function keySetProblems(
   value: unknown,
   expected: unknown,
 ): string[] {
+  // A text document has no keys to compare, so it must come back unchanged.
+  if (typeof expected === 'string') {
+    return value === expected
+      ? []
+      : [
+          `${label}: the client returned ${typeof value === 'string' ? `${value.length} characters of text` : typeof value} that differ from the ${expected.length} characters ESI sent.`,
+        ];
+  }
   const got = keyPaths(value);
   const want = keyPaths(expected);
   const dropped = [...want].filter((p) => !got.has(p));
@@ -142,7 +158,7 @@ export async function replayFixture(
     }
 
     // 1. The recorded body passes validation and keeps its keys.
-    queuePages(fixture);
+    queuePages(fixture, definition);
     let value: unknown;
     try {
       value = await call();
@@ -203,7 +219,7 @@ export async function replayFixture(
         match: exactUrl(fixture.pages[0]!.url),
       });
     } else {
-      queuePages(fixture);
+      queuePages(fixture, definition);
     }
     const revalidated = await followUp('follow-up call');
     const after = sentRequests();
@@ -235,7 +251,7 @@ export async function replayFixture(
       const probeDomain = (
         probeClient as unknown as Record<string, Record<string, unknown>>
       )[fixture.call.client]!;
-      queuePages(fixture, true);
+      queuePages(fixture, definition, true);
       try {
         const probed = await (
           probeDomain[fixture.call.method] as (

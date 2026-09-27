@@ -25,6 +25,12 @@ async function main() {
       `Compatibility dates: ${dates.length}, newest ${[...dates].sort().at(-1) ?? 'none'}`,
     );
 
+    const yaml = await client.meta.getOpenApiYaml();
+    const [, yamlVersion] = /^openapi: *['"]?([^'"\s]+)/m.exec(yaml) ?? [];
+    console.log(
+      `OpenAPI YAML: ${yaml.length} characters, openapi ${yamlVersion ?? 'unknown'}`,
+    );
+
     const { changelog } = await client.meta.getChangelog();
     const [latestDate] = Object.keys(changelog).sort().reverse();
     const latest = latestDate ? (changelog[latestDate] ?? []) : [];
