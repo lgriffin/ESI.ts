@@ -95,6 +95,14 @@ describe('targetsIn', () => {
     expect(targetsIn('a', 'eslint src')).toEqual([]);
     expect(targetsIn('a', 'stryker run')).toEqual([]);
   });
+
+  it('finds a runner config under config/', () => {
+    expect(
+      targetsIn('a', 'stryker run config/mutation/stryker.bdd.config.mjs').map(
+        (t) => t.path,
+      ),
+    ).toEqual(['config/mutation/stryker.bdd.config.mjs']);
+  });
 });
 
 describe('missingTargets', () => {
@@ -108,6 +116,17 @@ describe('missingTargets', () => {
     );
     expect(missing).toEqual([
       { script: 'sde:seed', path: 'scripts/seed-sde-test-db.ts' },
+    ]);
+  });
+
+  it('reports a missing config under config/', () => {
+    expect(
+      missingTargets(
+        { mutation: 'stryker run config/mutation/stryker.config.mjs' },
+        () => false,
+      ),
+    ).toEqual([
+      { script: 'mutation', path: 'config/mutation/stryker.config.mjs' },
     ]);
   });
 

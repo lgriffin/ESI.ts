@@ -23,8 +23,8 @@ export interface ScriptTarget {
 }
 
 /**
- * Paths that must resolve to a file: anything under `scripts/`, `examples/` or
- * `tests/`, and the config files runners are pointed at.
+ * Paths that must resolve to a file: anything under `scripts/`, `examples/`,
+ * `tests/` or `config/`, and the config files runners are pointed at.
  *
  * Deliberately narrow. A token this misses is a target that goes unchecked,
  * which is the status quo; a token it wrongly matches fails the suite on a
@@ -32,7 +32,7 @@ export interface ScriptTarget {
  * shell syntax are left out for that reason.
  */
 const DIRECTORY_TARGET =
-  /^(?:scripts|examples|tests)\/[\w./-]+\.(?:ts|cjs|mjs|js|sh)$/;
+  /^(?:scripts|examples|tests|config)\/[\w./-]+\.(?:ts|cjs|mjs|js|sh)$/;
 const CONFIG_TARGET = /^[\w.-]+\.config\.(?:ts|cjs|mjs|js)$/;
 
 function looksLikeAPath(token: string): boolean {
