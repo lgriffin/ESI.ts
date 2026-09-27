@@ -47,6 +47,7 @@ function load(file: string): Workflow {
 const WRITE_SCOPES: Record<string, string[]> = {
   'ci.yml#coverage': ['pull-requests'],
   'codeql.yml#analyze': ['security-events'],
+  'docs-site.yml#deploy': ['contents'],
   'nightly-audit.yml#audit': ['issues'],
   'nightly-benchmarks.yml#publish': ['contents'],
   'nightly-benchmarks.yml#report': ['issues'],
