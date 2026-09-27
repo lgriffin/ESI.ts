@@ -18,8 +18,16 @@ export const MetaCompatibilityDatesSchema = z.looseObject({
   compatibility_dates: z.array(z.string()),
 });
 
-export const MetaNameSchema = z.looseObject({
+/** One past ESI name, from `history` in `GET /meta/name`. */
+const MetaNameHistorySchema = z.looseObject({
+  date: z.string(),
   name: z.string(),
+});
+
+/** `GET /meta/name`: the current ESI name and the names it had before. */
+export const MetaNameSchema = z.looseObject({
+  current: z.string(),
+  history: z.array(MetaNameHistorySchema),
 });
 
 /** One route's health in `GET /meta/status`. */

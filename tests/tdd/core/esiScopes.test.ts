@@ -44,7 +44,9 @@ describe('ESI Scope Metadata', () => {
     for (const [key, scopes] of Object.entries(esiEndpointScopes)) {
       expect(scopes.length).toBeGreaterThan(0);
       for (const scope of scopes) {
-        expect(scope).toMatch(/^esi-/);
+        // Legacy scopes are esi-<area>.<action>.v1; the ones ESI added from
+        // 2026-08-18 are esi.<area>.<owner>:<action>.
+        expect(scope).toMatch(/^esi[-.]/);
       }
     }
   });

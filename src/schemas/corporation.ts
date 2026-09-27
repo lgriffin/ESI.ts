@@ -1,23 +1,65 @@
 import { z } from 'zod';
 import { esiEnum } from './esiEnum';
 
-export const CorporationInfoSchema = z.looseObject({
-  corporation_id: z.number().optional(),
-  name: z.string(),
-  ticker: z.string(),
-  description: z.string().optional(),
-  url: z.string().optional(),
-  alliance_id: z.number().optional(),
-  ceo_id: z.number(),
-  creator_id: z.number(),
-  date_founded: z.string().optional(),
-  faction_id: z.number().optional(),
-  home_station_id: z.number().optional(),
-  member_count: z.number(),
-  shares: z.number().optional(),
-  tax_rate: z.number(),
-  war_eligible: z.boolean().optional(),
-});
+/**
+ * `GET /corporations/{corporation_id}`. ESI changed this response at
+ * compatibility date 2026-08-18: `tax_rate` became `tax_rates`, `faction_id`
+ * became `enlisted_faction_id`, `ceo_id` and `creator_id` became optional, and
+ * `state`, `type`, `friendly_fire` and `palette` were added. A client can pin
+ * either date, so the fields that exist at only one of them are optional,
+ * and the refinement still requires one of the two tax rate shapes.
+ */
+export const CorporationInfoSchema = z
+  .looseObject({
+    corporation_id: z.number().optional(),
+    name: z.string(),
+    ticker: z.string(),
+    description: z.string().optional(),
+    url: z.string().optional(),
+    alliance_id: z.number().optional(),
+    ceo_id: z.number().optional(),
+    creator_id: z.number().optional(),
+    date_founded: z.string().optional(),
+    /** Before 2026-08-18. */
+    faction_id: z.number().optional(),
+    /** From 2026-08-18. */
+    enlisted_faction_id: z.number().optional(),
+    home_station_id: z.number().optional(),
+    member_count: z.number(),
+    shares: z.number().optional(),
+    /** Before 2026-08-18. */
+    tax_rate: z.number().optional(),
+    /** From 2026-08-18. */
+    tax_rates: z
+      .looseObject({
+        isk: z.number(),
+        loyalty_point: z.number(),
+      })
+      .optional(),
+    war_eligible: z.boolean().optional(),
+    /** From 2026-08-18. */
+    friendly_fire: esiEnum(['legal', 'illegal']).optional(),
+    /** From 2026-08-18. */
+    state: esiEnum(['active', 'closed']).optional(),
+    /** From 2026-08-18. */
+    type: esiEnum(['player_owned', 'npc_owned']).optional(),
+    /** From 2026-08-18. */
+    palette: z
+      .looseObject({
+        main_color: z.string(),
+        secondary_color: z.string().optional(),
+        tertiary_color: z.string().optional(),
+      })
+      .optional(),
+  })
+  .refine(
+    (corp) => corp.tax_rate !== undefined || corp.tax_rates !== undefined,
+    {
+      message:
+        'Expected tax_rate (before 2026-08-18) or tax_rates (from 2026-08-18)',
+      path: ['tax_rates'],
+    },
+  );
 
 export const CorporationAllianceHistorySchema = z.looseObject({
   alliance_id: z.number().optional(),

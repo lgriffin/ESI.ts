@@ -5,9 +5,9 @@
     "method": "getLeaderboardsCharacters",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -61,95 +61,95 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
-        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
-        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+        "etag": "W/\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
+        "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
+        "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
       },
       "body": {
         "kills": {
           "active_total": [
             {
-              "amount": 15829,
+              "amount": 15917,
               "character_id": 95299451
             },
             {
-              "amount": 13399,
+              "amount": 13473,
               "character_id": 1230873801
             },
             {
-              "amount": 12185,
+              "amount": 12187,
               "character_id": 1392757657
             }
           ],
           "last_week": [
             {
-              "amount": 285,
+              "amount": 1008,
+              "character_id": 2123514892
+            },
+            {
+              "amount": 187,
               "character_id": 583637272
             },
             {
-              "amount": 176,
+              "amount": 137,
               "character_id": 90157186
-            },
-            {
-              "amount": 94,
-              "character_id": 1991432800
             }
           ],
           "yesterday": [
             {
-              "amount": 65,
-              "character_id": 583637272
+              "amount": 73,
+              "character_id": 1710359416
             },
             {
-              "amount": 39,
-              "character_id": 90157186
+              "amount": 49,
+              "character_id": 1991432800
             },
             {
-              "amount": 25,
-              "character_id": 2049784221
+              "amount": 29,
+              "character_id": 2122352142
             }
           ]
         },
         "victory_points": {
           "active_total": [
             {
-              "amount": 4765565,
+              "amount": 4772705,
               "character_id": 2117652307
             },
             {
-              "amount": 4705196,
+              "amount": 4712665,
               "character_id": 96338377
             },
             {
-              "amount": 4637211,
+              "amount": 4643112,
               "character_id": 2121503405
             }
           ],
           "last_week": [
             {
-              "amount": 101907,
+              "amount": 127749,
+              "character_id": 2123648067
+            },
+            {
+              "amount": 127262,
               "character_id": 2124325888
             },
             {
-              "amount": 100679,
-              "character_id": 2124329852
-            },
-            {
-              "amount": 98487,
-              "character_id": 2124325894
+              "amount": 127262,
+              "character_id": 2124325892
             }
           ],
           "yesterday": [
             {
-              "amount": 15936,
+              "amount": 22397,
               "character_id": 2124325888
             },
             {
-              "amount": 15936,
-              "character_id": 2124325894
+              "amount": 22397,
+              "character_id": 2124325891
             },
             {
-              "amount": 15936,
+              "amount": 22397,
               "character_id": 2124325892
             }
           ]

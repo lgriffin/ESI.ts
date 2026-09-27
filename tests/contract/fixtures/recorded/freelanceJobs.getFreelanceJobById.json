@@ -3,11 +3,11 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["c45a5895-725b-415b-b9ed-79c54dbb9ccf"]
+    "args": ["05a5c1e2-f7ff-48d9-8015-2b0140ad0179"]
   },
-  "recordedAt": "2026-09-25",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 60,
   "upstreamPages": 1,
   "truncated": [
@@ -15,86 +15,110 @@
       "page": 1,
       "at": "$.details.description",
       "kind": "string",
-      "original": 872,
+      "original": 526,
       "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$.configuration.parameters.fw_complex_type.matcher.values[].values",
+      "kind": "array",
+      "original": 4,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.configuration.parameters.location.matcher.values[].values",
+      "kind": "array",
+      "original": 5,
+      "kept": 3
     }
   ],
   "pages": [
     {
-      "url": "freelance-jobs/c45a5895-725b-415b-b9ed-79c54dbb9ccf",
+      "url": "freelance-jobs/05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Fri, 25 Sep 2026 12:08:15 GMT",
-        "last-modified": "Fri, 25 Sep 2026 12:04:45 GMT"
+        "expires": "Sun, 27 Sep 2026 04:27:01 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:25:25 GMT"
       },
       "body": {
-        "id": "c45a5895-725b-415b-b9ed-79c54dbb9ccf",
-        "name": "Jetunba Do'Bara - Proteins Freezer Reserve",
+        "id": "05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
+        "name": "Gallente Federation Day Contest 2026",
         "state": "Active",
-        "last_modified": "2026-09-25T12:04:45.698Z",
+        "last_modified": "2026-09-27T04:25:25.855Z",
         "progress": {
-          "current": 0,
-          "desired": 150000
+          "current": 14306,
+          "desired": 50000
         },
         "reward": {
-          "initial": 190800000,
-          "remaining": 190800000
+          "initial": 500000000,
+          "remaining": 356940000
         },
         "details": {
-          "description": "<font size=\"14\" color=\"#bfffffff\">Deliver 150,000 units of Proteins to </font><font size=\"14\" color=\"#ffffe400\"><loc><a href=\"http://www.evepandora.com/epics/jetunba-dobara-the-hearth-reborn-1\">Jetunba Do'Bara</a></loc></font><font size=\"14\" color=\"#bfffffff\"> at 1,272 ISK per unit. These supplies will fill the Hearth's freezer areas, establishing a substantial long-term food reserve for its liber",
-          "career": "Unspecified",
-          "created": "2026-09-25T12:04:45.092Z",
-          "expires": "2026-12-25T12:00:00Z",
+          "description": "<font size=\"14\" color=\"#bfffffff\">Objective:<br>Capture as many Plex as you can for the Federation<br>1st Place: 1 Billion ISK<br>2nd Place: 500 Million ISK<br>3rd &amp; 4th Place: 250 Million ISK<br>5th Place:<br>1x Vexor Navy Issue (VNI)<br>1x Exequror Navy Issue (ENI) Hull<br>6th–10th Place:<br>1x Federation Navy Comet Hull<br><br>Get out there and fight for the Federation!<br>Sponsored by The ",
+          "career": "Soldier of Fortune",
+          "created": "2026-06-19T18:55:23.655Z",
+          "expires": "2026-09-29T18:45:00Z",
           "creator": {
             "character": {
-              "id": 151515810,
-              "name": "DeT Resprox"
+              "id": 1291547703,
+              "name": "Makaze Koufu"
             },
             "corporation": {
-              "id": 705444291,
-              "name": "T.R.I.A.D"
+              "id": 98755099,
+              "name": "The Wandering Inn"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
-            "corporation_item_delivery": {
-              "corporation_item_delivery": {
-                "item_type": {
-                  "values": [
-                    {
-                      "value_type": "item_type",
-                      "values": ["2395"]
-                    }
-                  ]
-                },
-                "corporation_office_location": {
-                  "values": [
-                    {
-                      "value_type": "structure",
-                      "values": ["1055410522949"]
-                    }
-                  ]
-                }
+            "empire_faction": {
+              "matcher": {
+                "values": [
+                  {
+                    "value_type": "faction",
+                    "values": ["500004"]
+                  }
+                ]
+              }
+            },
+            "fw_complex_type": {
+              "matcher": {
+                "values": [
+                  {
+                    "value_type": "archetype",
+                    "values": ["33", "35", "34"]
+                  }
+                ]
+              }
+            },
+            "location": {
+              "matcher": {
+                "values": [
+                  {
+                    "value_type": "region",
+                    "values": ["10000069", "10000064", "10000048"]
+                  }
+                ]
               }
             }
           },
-          "method": "DeliverItem"
+          "method": "CaptureFWComplex"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 1272,
+          "reward_per_contribution": 10000,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30002513,
-              "name": "Dammalin"
+              "id": 30003788,
+              "name": "Intaki"
             }
           ]
         }

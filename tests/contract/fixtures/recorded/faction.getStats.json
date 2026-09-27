@@ -5,9 +5,9 @@
     "method": "getStats",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -26,54 +26,54 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
-        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
-        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+        "etag": "W/\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
+        "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
+        "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
       },
       "body": [
         {
           "faction_id": 500001,
           "kills": {
-            "last_week": 2512,
-            "total": 1327791,
-            "yesterday": 344
+            "last_week": 2432,
+            "total": 1330748,
+            "yesterday": 416
           },
-          "pilots": 57243,
-          "systems_controlled": 55,
+          "pilots": 57284,
+          "systems_controlled": 59,
           "victory_points": {
-            "last_week": 1249706,
-            "total": 213827989,
-            "yesterday": 179496
+            "last_week": 1202198,
+            "total": 215446572,
+            "yesterday": 144184
           }
         },
         {
           "faction_id": 500002,
           "kills": {
-            "last_week": 2771,
-            "total": 1192032,
-            "yesterday": 298
+            "last_week": 2510,
+            "total": 1195234,
+            "yesterday": 450
           },
-          "pilots": 34603,
-          "systems_controlled": 25,
+          "pilots": 34611,
+          "systems_controlled": 26,
           "victory_points": {
-            "last_week": 1169102,
-            "total": 185143668,
-            "yesterday": 153782
+            "last_week": 1095068,
+            "total": 186592762,
+            "yesterday": 149977
           }
         },
         {
           "faction_id": 500003,
           "kills": {
-            "last_week": 2290,
-            "total": 1190240,
-            "yesterday": 270
+            "last_week": 2866,
+            "total": 1193743,
+            "yesterday": 287
           },
-          "pilots": 33023,
-          "systems_controlled": 45,
+          "pilots": 33044,
+          "systems_controlled": 43,
           "victory_points": {
-            "last_week": 1244784,
-            "total": 186127517,
-            "yesterday": 176983
+            "last_week": 1107376,
+            "total": 187522410,
+            "yesterday": 154771
           }
         }
       ]

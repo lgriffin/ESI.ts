@@ -5,9 +5,9 @@
     "method": "getLeaderboardsCorporations",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -61,96 +61,96 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
-        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
-        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+        "etag": "W/\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
+        "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
+        "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
       },
       "body": {
         "kills": {
           "active_total": [
             {
-              "amount": 166061,
+              "amount": 166311,
               "corporation_id": 1000180
             },
             {
-              "amount": 144917,
+              "amount": 145171,
               "corporation_id": 1000181
             },
             {
-              "amount": 115671,
+              "amount": 115778,
               "corporation_id": 1000179
             }
           ],
           "last_week": [
             {
-              "amount": 734,
+              "amount": 1008,
+              "corporation_id": 98844282
+            },
+            {
+              "amount": 394,
               "corporation_id": 1836808734
             },
             {
-              "amount": 402,
-              "corporation_id": 98541136
-            },
-            {
-              "amount": 292,
-              "corporation_id": 98726134
+              "amount": 337,
+              "corporation_id": 306830202
             }
           ],
           "yesterday": [
             {
               "amount": 73,
-              "corporation_id": 1836808734
-            },
-            {
-              "amount": 66,
               "corporation_id": 98541136
             },
             {
-              "amount": 64,
-              "corporation_id": 98802730
+              "amount": 67,
+              "corporation_id": 306830202
+            },
+            {
+              "amount": 59,
+              "corporation_id": 846656839
             }
           ]
         },
         "victory_points": {
           "active_total": [
             {
-              "amount": 84666656,
+              "amount": 85279617,
               "corporation_id": 1000180
             },
             {
-              "amount": 78673096,
+              "amount": 78970805,
               "corporation_id": 1000181
             },
             {
-              "amount": 60385089,
+              "amount": 60813005,
               "corporation_id": 1000182
             }
           ],
           "last_week": [
             {
-              "amount": 480449,
+              "amount": 458196,
               "corporation_id": 1000180
             },
             {
-              "amount": 322488,
+              "amount": 333513,
               "corporation_id": 1000182
             },
             {
-              "amount": 304528,
-              "corporation_id": 1000181
+              "amount": 262374,
+              "corporation_id": 917701062
             }
           ],
           "yesterday": [
             {
-              "amount": 71426,
+              "amount": 54261,
+              "corporation_id": 1000182
+            },
+            {
+              "amount": 51515,
               "corporation_id": 1000180
             },
             {
-              "amount": 48798,
+              "amount": 29310,
               "corporation_id": 1000181
-            },
-            {
-              "amount": 41024,
-              "corporation_id": 1000182
             }
           ]
         }

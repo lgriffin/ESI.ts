@@ -5,9 +5,9 @@
     "method": "getEffects",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -15,7 +15,7 @@
       "page": 1,
       "at": "$",
       "kind": "array",
-      "original": 3417,
+      "original": 3422,
       "kept": 3
     }
   ],
@@ -26,11 +26,11 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
-        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
-        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+        "etag": "W/\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
+        "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
+        "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
       },
-      "body": [3417, 6834, 6835]
+      "body": [6844, 6845, 3424]
     }
   ]
 }

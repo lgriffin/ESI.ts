@@ -14,8 +14,11 @@ import {
 
   // military-campaigns
   MilitaryCampaignSchema,
+  MilitaryCampaignsResponseSchema,
   MilitaryCampaignObjectiveSchema,
+  MilitaryCampaignObjectivesResponseSchema,
   CharacterMilitaryCampaignObjectiveSchema,
+  CharacterMilitaryCampaignObjectivesResponseSchema,
 
   // alliance
   AllianceInfoSchema,
@@ -802,6 +805,49 @@ const schemaCases: SchemaTestCase[] = [
   },
 
   // ── corporation ───────────────────────────────────────────────────────────
+  {
+    // Either date carries a tax rate: tax_rate before 2026-08-18, tax_rates
+    // from it. A body with neither is malformed.
+    name: 'CorporationInfoSchema (no tax rate)',
+    schema: CorporationInfoSchema,
+    validData: {
+      name: 'Test Corp',
+      ticker: 'TC',
+      member_count: 50,
+      tax_rates: { isk: 0.1, loyalty_point: 0 },
+    },
+    invalidData: {
+      name: 'Test Corp',
+      ticker: 'TC',
+      member_count: 50,
+    },
+  },
+  {
+    // The body ESI sends from compatibility date 2026-08-18: tax_rates
+    // replaces tax_rate, and ceo_id and creator_id may be absent.
+    name: 'CorporationInfoSchema (2026-08-18)',
+    schema: CorporationInfoSchema,
+    validData: {
+      name: 'C C P Alliance Holding',
+      ticker: 'BSRB',
+      description: 'We must push little cart!',
+      home_station_id: 60014839,
+      member_count: 1,
+      shares: 1000,
+      state: 'active',
+      type: 'player_owned',
+      friendly_fire: 'legal',
+      war_eligible: true,
+      tax_rates: { isk: 0, loyalty_point: 0 },
+      palette: { main_color: '#202020' },
+    },
+    invalidData: {
+      name: 'C C P Alliance Holding',
+      ticker: 'BSRB',
+      member_count: 1,
+      tax_rates: { isk: 'none', loyalty_point: 0 },
+    },
+  },
   {
     name: 'CorporationInfoSchema',
     schema: CorporationInfoSchema,
@@ -2793,51 +2839,84 @@ const schemaCases: SchemaTestCase[] = [
     name: 'MilitaryCampaignSchema',
     schema: MilitaryCampaignSchema,
     validData: {
-      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      state: 'active',
-      progress: 0.75,
-      start_time: '2026-08-01T00:00:00Z',
+      id: '7519d7db-1e95-4d0e-bbbe-c47cd47de3c0',
+      state: 'Completed',
+      progress: 30,
+      started: '2026-06-09T11:00:09.069Z',
+      finished: '2026-09-16T10:24:53.154Z',
     },
     invalidData: {
-      campaign_id: 12345,
-      state: 'active',
-      progress: 0.75,
-      start_time: '2026-08-01T00:00:00Z',
+      id: 12345,
+      state: 'Completed',
+      progress: 30,
     },
+  },
+  {
+    // ESI wraps the list: { campaigns: [...] }.
+    name: 'MilitaryCampaignsResponseSchema',
+    schema: MilitaryCampaignsResponseSchema,
+    validData: {
+      campaigns: [
+        {
+          id: '7519d7db-1e95-4d0e-bbbe-c47cd47de3c0',
+          state: 'Active',
+          progress: 12,
+        },
+      ],
+    },
+    invalidData: { campaigns: 'none' },
   },
   {
     name: 'MilitaryCampaignObjectiveSchema',
     schema: MilitaryCampaignObjectiveSchema,
     validData: {
-      objective_id: 'obj-a1b2c3d4',
-      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      state: 'in_progress',
-      progress: 0.5,
+      id: '0b1e2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
+      state: 'Active',
+      progress: 5,
+      last_modified: '2026-09-20T10:00:00Z',
       participants: { total: 100, committed: 75, contributors: 50 },
     },
     invalidData: {
-      objective_id: 'obj-a1b2c3d4',
-      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      state: 'in_progress',
+      id: '0b1e2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
+      state: 'Active',
       progress: 'bad',
+      last_modified: '2026-09-20T10:00:00Z',
       participants: { total: 100, committed: 75, contributors: 50 },
     },
+  },
+  {
+    // ESI wraps the page: { objectives: [...], cursor }.
+    name: 'MilitaryCampaignObjectivesResponseSchema',
+    schema: MilitaryCampaignObjectivesResponseSchema,
+    validData: {
+      objectives: [],
+      cursor: { before: 'b', after: 'a' },
+    },
+    invalidData: { objectives: {} },
   },
   {
     name: 'CharacterMilitaryCampaignObjectiveSchema',
     schema: CharacterMilitaryCampaignObjectiveSchema,
     validData: {
-      objective_id: 'obj-a1b2c3d4',
-      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      committed: true,
-      contribution: 250,
+      id: '0b1e2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
+      campaign_id: '7519d7db-1e95-4d0e-bbbe-c47cd47de3c0',
+      is_committed: true,
+      contributed: 250,
+      last_modified: '2026-09-20T10:00:00Z',
     },
     invalidData: {
-      objective_id: 'obj-a1b2c3d4',
-      campaign_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      committed: 'bad',
-      contribution: 250,
+      id: '0b1e2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
+      campaign_id: '7519d7db-1e95-4d0e-bbbe-c47cd47de3c0',
+      is_committed: 'bad',
+      contributed: 250,
+      last_modified: '2026-09-20T10:00:00Z',
     },
+  },
+  {
+    name: 'CharacterMilitaryCampaignObjectivesResponseSchema',
+    schema: CharacterMilitaryCampaignObjectivesResponseSchema,
+    validData: { objectives: [] },
+    invalidData: {},
   },
 ];
 

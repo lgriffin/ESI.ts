@@ -6,7 +6,9 @@
  *
  * Budgets are the size measured on master at 81179572 (9.9.0) plus 5%,
  * rounded up to 0.1 kB (1 kB = 1000 B). The comment on each line is the
- * measured size, in bytes, that its budget was set from.
+ * measured size, in bytes, that its budget was set from. `./schemas` was
+ * re-measured when the 2026-08-18 compatibility date added the military
+ * campaign and meta name schemas.
  *
  * Raising a budget: run `npm run build && npm run size`, set the new
  * measurement plus 5%, update the comment, and say in the pull request body
@@ -24,8 +26,8 @@ const budgets = {
     require: '242.9 kB', // measured 231262 B
   },
   './schemas': {
-    import: '58.1 kB', // measured 55240 B
-    require: '71.6 kB', // measured 68145 B
+    import: '61 kB', // measured 58083 B
+    require: '75.4 kB', // measured 71736 B
   },
   './errors': {
     import: '4.1 kB', // measured 3900 B

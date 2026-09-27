@@ -1,7 +1,7 @@
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Compatibility date: 2026-05-19
+// Compatibility date: 2026-08-18
 // Total scopes: 72
-// Endpoints requiring scopes: 137
+// Endpoints requiring scopes: 145
 
 export type EsiScope =
   | 'esi-access.read_lists.v1'
@@ -101,6 +101,8 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'GET:characters/{character_id}/contracts': ['esi-contracts.read_character_contracts.v1'],
   'GET:characters/{character_id}/contracts/{contract_id}/bids': ['esi-contracts.read_character_contracts.v1'],
   'GET:characters/{character_id}/contracts/{contract_id}/items': ['esi-contracts.read_character_contracts.v1'],
+  'GET:characters/{character_id}/cosmetics/skinr': ['esi.cosmetic.char:read'],
+  'GET:characters/{character_id}/cosmetics/skinr/components': ['esi.cosmetic.char:read'],
   'POST:characters/{character_id}/cspa': ['esi-characters.read_contacts.v1'],
   'GET:characters/{character_id}/fatigue': ['esi-characters.read_fatigue.v1'],
   'GET:characters/{character_id}/fittings': ['esi-fittings.read_fittings.v1'],
@@ -127,12 +129,15 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'GET:characters/{character_id}/medals': ['esi-characters.read_medals.v1'],
   'GET:characters/{character_id}/mercenary-tactical-operations': ['esi-activities.read_character.v1'],
   'GET:characters/{character_id}/mercenary-tactical-operations/{operation_id}': ['esi-activities.read_character.v1'],
+  'GET:characters/{character_id}/military-campaigns/objectives': ['esi.activity.char:read'],
+  'GET:characters/{character_id}/military-campaigns/objectives/{objective_id}': ['esi.activity.char:read'],
   'GET:characters/{character_id}/mining': ['esi-industry.read_character_mining.v1'],
   'GET:characters/{character_id}/notifications': ['esi-characters.read_notifications.v1'],
   'GET:characters/{character_id}/notifications/contacts': ['esi-characters.read_notifications.v1'],
   'GET:characters/{character_id}/online': ['esi-location.read_online.v1'],
   'GET:characters/{character_id}/orders': ['esi-markets.read_character_orders.v1'],
   'GET:characters/{character_id}/orders/history': ['esi-markets.read_character_orders.v1'],
+  'GET:characters/{character_id}/paragon-hub/skinr': ['esi.cosmetic.char:read'],
   'GET:characters/{character_id}/planets': ['esi-planets.manage_planets.v1'],
   'GET:characters/{character_id}/planets/{planet_id}': ['esi-planets.manage_planets.v1'],
   'GET:characters/{character_id}/roles': ['esi-characters.read_corporation_roles.v1'],
@@ -209,6 +214,9 @@ export const esiEndpointScopes: Record<string, EsiScope[]> = {
   'DELETE:fleets/{fleet_id}/wings/{wing_id}': ['esi-fleets.write_fleet.v1'],
   'POST:fleets/{fleet_id}/wings/{wing_id}/squads': ['esi-fleets.write_fleet.v1'],
   'GET:markets/structures/{structure_id}': ['esi-markets.structure_markets.v1'],
+  'GET:paragon-hub/skinr/alliances/{alliance_id}': ['esi.cosmetic.char:read'],
+  'GET:paragon-hub/skinr/characters/{character_id}': ['esi.cosmetic.char:read'],
+  'GET:paragon-hub/skinr/corporations/{corporation_id}': ['esi.cosmetic.char:read'],
   'POST:ui/autopilot/waypoint': ['esi-ui.write_waypoint.v1'],
   'POST:ui/openwindow/contract': ['esi-ui.open_window.v1'],
   'POST:ui/openwindow/information': ['esi-ui.open_window.v1'],

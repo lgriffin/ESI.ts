@@ -5,9 +5,9 @@
     "method": "getLeaderboardsOverall",
     "args": []
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": null,
   "upstreamPages": 1,
   "truncated": [
@@ -61,51 +61,51 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "W/\"442f362a6a6d7641570fcb56bd45e55596b3f258f87de30781ed76ed\"",
-        "expires": "Fri, 18 Sep 2026 11:05:00 GMT",
-        "last-modified": "Thu, 17 Sep 2026 11:03:16 GMT"
+        "etag": "W/\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
+        "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
+        "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
       },
       "body": {
         "kills": {
           "active_total": [
             {
-              "amount": 1584246,
+              "amount": 1587363,
               "faction_id": 500004
             },
             {
-              "amount": 1327791,
+              "amount": 1330748,
               "faction_id": 500001
             },
             {
-              "amount": 1192032,
+              "amount": 1195234,
               "faction_id": 500002
             }
           ],
           "last_week": [
             {
-              "amount": 2771,
+              "amount": 2866,
+              "faction_id": 500003
+            },
+            {
+              "amount": 2510,
               "faction_id": 500002
             },
             {
-              "amount": 2558,
-              "faction_id": 500010
-            },
-            {
-              "amount": 2512,
+              "amount": 2432,
               "faction_id": 500001
             }
           ],
           "yesterday": [
             {
-              "amount": 344,
+              "amount": 450,
+              "faction_id": 500002
+            },
+            {
+              "amount": 416,
               "faction_id": 500001
             },
             {
-              "amount": 330,
-              "faction_id": 500010
-            },
-            {
-              "amount": 308,
+              "amount": 380,
               "faction_id": 500004
             }
           ]
@@ -113,44 +113,44 @@
         "victory_points": {
           "active_total": [
             {
-              "amount": 213827989,
+              "amount": 215446572,
               "faction_id": 500001
             },
             {
-              "amount": 209712505,
+              "amount": 211180508,
               "faction_id": 500004
             },
             {
-              "amount": 186127517,
+              "amount": 187522410,
               "faction_id": 500003
             }
           ],
           "last_week": [
             {
-              "amount": 1249706,
+              "amount": 1202198,
               "faction_id": 500001
             },
             {
-              "amount": 1244784,
-              "faction_id": 500003
+              "amount": 1128673,
+              "faction_id": 500004
             },
             {
-              "amount": 1169102,
-              "faction_id": 500002
+              "amount": 1107376,
+              "faction_id": 500003
             }
           ],
           "yesterday": [
             {
-              "amount": 179496,
-              "faction_id": 500001
+              "amount": 161725,
+              "faction_id": 500004
             },
             {
-              "amount": 176983,
+              "amount": 154771,
               "faction_id": 500003
             },
             {
-              "amount": 161814,
-              "faction_id": 500004
+              "amount": 149977,
+              "faction_id": 500002
             }
           ]
         }

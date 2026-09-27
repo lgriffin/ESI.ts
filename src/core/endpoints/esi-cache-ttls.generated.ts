@@ -1,6 +1,6 @@
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Compatibility date: 2026-05-19
-// Endpoints with cache TTLs: 136
+// Compatibility date: 2026-08-18
+// Endpoints with cache TTLs: 146
 
 export const esiCacheTtls: Record<string, number> = {
   'GET:alliances': 3600,
@@ -26,6 +26,8 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:characters/{character_id}/contracts/{contract_id}/bids': 300,
   'GET:characters/{character_id}/contracts/{contract_id}/items': 3600,
   'GET:characters/{character_id}/corporationhistory': 86400,
+  'GET:characters/{character_id}/cosmetics/skinr': 3600,
+  'GET:characters/{character_id}/cosmetics/skinr/components': 3600,
   'GET:characters/{character_id}/fatigue': 300,
   'GET:characters/{character_id}/fittings': 300,
   'GET:characters/{character_id}/fleet': 60,
@@ -43,6 +45,8 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:characters/{character_id}/medals': 3600,
   'GET:characters/{character_id}/mercenary-tactical-operations': 300,
   'GET:characters/{character_id}/mercenary-tactical-operations/{operation_id}': 300,
+  'GET:characters/{character_id}/military-campaigns/objectives': 60,
+  'GET:characters/{character_id}/military-campaigns/objectives/{objective_id}': 60,
   'GET:characters/{character_id}/mining': 600,
   'GET:characters/{character_id}/notifications': 600,
   'GET:characters/{character_id}/notifications/contacts': 600,
@@ -111,6 +115,7 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:corporations/{corporation_id}/wallets': 300,
   'GET:corporations/{corporation_id}/wallets/{division}/journal': 3600,
   'GET:corporations/{corporation_id}/wallets/{division}/transactions': 3600,
+  'GET:cosmetics/skinr/{skinr_id}': 31536000,
   'GET:fleets/{fleet_id}': 5,
   'GET:fleets/{fleet_id}/members': 5,
   'GET:fleets/{fleet_id}/wings': 5,
@@ -127,6 +132,11 @@ export const esiCacheTtls: Record<string, number> = {
   'GET:markets/structures/{structure_id}': 300,
   'GET:meta/changelog': 600,
   'GET:meta/compatibility-dates': 600,
+  'GET:meta/name': 600,
+  'GET:military-campaigns': 60,
+  'GET:military-campaigns/{campaign_id}': 60,
+  'GET:military-campaigns/{campaign_id}/objectives': 60,
+  'GET:military-campaigns/{campaign_id}/objectives/{objective_id}': 60,
   'GET:skyhooks/raidable': 300,
   'GET:sovereignty/campaigns': 5,
   'GET:sovereignty/systems': 300,
