@@ -194,7 +194,7 @@ export const TOOLS_RUN_BY: Record<string, string> = {
 /** Tools CI invokes directly that `check:local` deliberately does not run. */
 export const TOOLS_NOT_RUN_LOCALLY: Record<string, string> = {
   npm: 'ci.yml pins npm itself for one step - `npx --yes npm@11.17.0 pack` - because npm 10 runs `prepare` on `npm pack` even with --ignore-scripts and rebuilds dist/, which would defeat that job. A workaround for the npm the runner bundles, not a gate; esi-23g.43 tracks it',
-  knip: 'ci.yml runs it with --no-exit-code, so it gates nothing; a local tier mirroring a check that cannot fail would say more than it knows (esi-p56 tracks making it block)',
+  knip: 'ci.yml runs it with --no-exit-code, so it gates no pull request; it blocks only at release (release.yml) and in `npm run validate` and `npm run check:all`, which are the local release checks',
 };
 
 export const NOT_RUN_LOCALLY: Record<string, string> = {
