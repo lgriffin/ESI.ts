@@ -54,10 +54,15 @@ async function main() {
       );
     }
 
-    const raidable = await client.skyhooks.getRaidableSkyhooks();
-    const open = raidable.filter((s) => s.is_raidable);
+    const { skyhooks } = await client.skyhooks.getRaidableSkyhooks();
+    const now = Date.now();
+    const open = skyhooks.filter(
+      (s) =>
+        Date.parse(s.theft_vulnerability.start) <= now &&
+        now < Date.parse(s.theft_vulnerability.end),
+    );
     console.log(
-      `\nSkyhooks: ${raidable.length} listed, ${open.length} raidable now`,
+      `\nSkyhooks: ${skyhooks.length} with a theft window, ${open.length} open now`,
     );
   } catch (err) {
     console.error('Error:', err instanceof Error ? err.message : err);
