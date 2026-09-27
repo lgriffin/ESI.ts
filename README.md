@@ -130,6 +130,7 @@ Download SDE data with: `npx ts-node scripts/sde-ingest.ts --output sde-data`
 
 | Document                                           | Description                                                                                   |
 | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [SDE guide](guides/SDE.md)                         | The SDE's role next to the ESI client, C4 diagrams, joining the two by ID, isolation rule     |
 | [SDE README](src/sde/README.md)                    | Module overview, quick start, full API reference (~97 methods), entity coverage table         |
 | [Architecture](src/sde/docs/ARCHITECTURE.md)       | C4 diagrams (context, container, component), data flow sequence, ER diagram, design decisions |
 | [Usage Guide](src/sde/docs/USAGE.md)               | Provider patterns, query examples, error handling                                             |

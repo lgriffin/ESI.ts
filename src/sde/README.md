@@ -2,6 +2,8 @@
 
 Typed, in-memory query layer for the EVE Online Static Data Export (SDE). Reads CCP's YAML files directly from disk into `Map` structures -- no SQLite, no database, no external services. All 102 SDE YAML files are supported, producing 109 strongly-typed entity interfaces with Zod validation schemas.
 
+How the module sits next to the ESI client, with C4 diagrams and the isolation rule, is in [guides/SDE.md](../../guides/SDE.md).
+
 ## Quick Start
 
 ### Install the optional peer dependencies
