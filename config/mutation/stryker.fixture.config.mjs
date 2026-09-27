@@ -2,7 +2,7 @@
  * Negative fixture for the mutation tier: npm run mutation:fixture.
  *
  * Mutates the known-weak tests/mutation-fixture/weakClamp.ts with only its
- * fixture test. scripts/mutation-fixture.ts then asserts some mutants were
+ * fixture test. scripts/mutation/mutation-fixture.ts then asserts some mutants were
  * killed and some survived, and that the ratchet fails the survivors. It runs
  * before the pull request mutation job, so the job proves it can go red.
  *

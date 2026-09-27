@@ -1,8 +1,8 @@
 /**
  * Benchmark process entry point. One invocation runs every task once, in
- * catalogue order, and writes one JSON result file. `scripts/bench-ab.ts`
+ * catalogue order, and writes one JSON result file. `scripts/bench/bench-ab.ts`
  * bundles this file per tree and runs it many times, interleaving base and
- * candidate processes; `scripts/bench-compare.ts` decides.
+ * candidate processes; `scripts/bench/bench-compare.ts` decides.
  *
  *   node --expose-gc harness.cjs --out result.json [--min-cpu-ms 200]
  *                                [--filter <substring>] [--label head]

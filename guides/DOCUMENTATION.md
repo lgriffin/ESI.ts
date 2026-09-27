@@ -93,7 +93,7 @@ Use `no-check` for blocks that are not consumer code: method signature listings,
 
 ### Known-broken examples
 
-When an example exposes a real mismatch that cannot be fixed in the docs alone, mark it `no-check` with a reason that names the bead tracking it, for example `<!-- doc-example: no-check esi-abc.1 getFoo was removed; decide the replacement -->`, and list its key in [`scripts/doc-examples-baseline.json`](../scripts/doc-examples-baseline.json). The key is the file, the nearest heading, and the block's position under that heading: `README.md#Quick Start [1]`.
+When an example exposes a real mismatch that cannot be fixed in the docs alone, mark it `no-check` with a reason that names the bead tracking it, for example `<!-- doc-example: no-check esi-abc.1 getFoo was removed; decide the replacement -->`, and list its key in [`scripts/docs/doc-examples-baseline.json`](../scripts/doc-examples-baseline.json). The key is the file, the nearest heading, and the block's position under that heading: `README.md#Quick Start [1]`.
 
 The baseline only shrinks. The run fails when a `no-check` names a bead but is not listed, when a listed block no longer exists or no longer names a bead (remove the entry once the example is fixed), and when an entry is not on `origin/master` already. Without `origin/master` to compare with, the run fails closed; CI fetches it first.
 

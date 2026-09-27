@@ -1,7 +1,7 @@
 /**
- * Self-tests for the pull request mutation ratchet (scripts/mutation-pr.ts,
+ * Self-tests for the pull request mutation ratchet (scripts/mutation/mutation-pr.ts,
  * npm run mutation:pr) and the known-weak fixture check
- * (scripts/mutation-fixture.ts). Each test is a way the gate could pass when
+ * (scripts/mutation/mutation-fixture.ts). Each test is a way the gate could pass when
  * it should not: a score below its floor, a floor lowered or removed, a
  * baseline that cannot be read, a directory with no floor, a run scored on a
  * subset of a directory, or a fixture that stopped showing survivors.
@@ -26,7 +26,7 @@ import {
   scoreFiles,
   thresholdDecreases,
   undetectedMutants,
-} from '../../../scripts/mutation-ratchet-core';
+} from '../../../scripts/mutation/mutation-ratchet-core';
 
 const UNIT_SCOPE = [
   'src/core/**/*.ts',

@@ -3,11 +3,11 @@
 #
 # The cases themselves are native `claude plugin eval` cases in cases/*/case.yaml.
 # This manifest carries what that format has no field for, and is read by
-# scripts/skill-eval.ts:
+# scripts/quality/skill-eval.ts:
 #
-#   npx ts-node scripts/skill-eval.ts                  # offline, deterministic
-#   npx ts-node scripts/skill-eval.ts --live           # needs ANTHROPIC_API_KEY
-#   npx ts-node scripts/skill-eval.ts --check-version origin/master
+#   npx ts-node scripts/quality/skill-eval.ts                  # offline, deterministic
+#   npx ts-node scripts/quality/skill-eval.ts --live           # needs ANTHROPIC_API_KEY
+#   npx ts-node scripts/quality/skill-eval.ts --check-version origin/master
 #
 # Bump skill.version whenever SKILL.md changes; CI fails otherwise.
 schema_version: 1

@@ -58,7 +58,7 @@ a feature with neither or both:
   wallet, wars. With `step-library.spec.ts` that makes 17 spec files.
 - a **legacy step file**, `step-definitions/<area>/<domain>.steps.ts`, bound
   with `loadFeature(<path>)` / `defineFeature`, with every step inline. These
-  are listed in `scripts/spec-audit-exceptions.json` under `legacyStepFiles`
+  are listed in `scripts/spec/spec-audit-exceptions.json` under `legacyStepFiles`
   (38 entries on 2026-09-27), and the list only shrinks.
 
 ## The runner
@@ -89,7 +89,7 @@ Rules are recovered from the source text, because its parser flattens them.
 
 ## The rules the audit enforces
 
-Every rule in this section has a check in the `scripts/spec-audit*.ts` pair and a
+Every rule in this section has a check in the `scripts/spec/spec-audit*.ts` pair and a
 fixture in `tests/tdd/spec-audit/fixtures/`. If it is listed here, CI fails when
 it is broken.
 
@@ -297,7 +297,7 @@ scenarios. A tracker tag on a scenario does not cover `@bug` on its Rule. Any
 ```bash
 npm run spec:audit             # all feature files
 npm run spec:audit:verbose     # plus requirement and scenario counts
-npx ts-node scripts/spec-audit.ts tests/bdd/features/core/0023-market.feature
+npx ts-node scripts/spec/spec-audit.ts tests/bdd/features/core/0023-market.feature
 ```
 
 It parses the real Gherkin AST, runs in CI, and emits inline annotations on the
@@ -321,7 +321,7 @@ files:
 | A `@esi-` tag names a bead in `.beads/issues.jsonl` (rule 9)     | `bug-unknown-bead`                                                         |
 
 Then, on a full run (no paths given), the step files. These checks live in
-`scripts/spec-audit-steps.ts` and read step files with the TypeScript parser,
+`scripts/spec/spec-audit-steps.ts` and read step files with the TypeScript parser,
 without running them. Each fixture is a small repository tree under
 `tests/tdd/spec-audit/step-fixtures/`:
 
@@ -348,7 +348,7 @@ so a check that stops firing fails the unit suite rather than passing quietly.
 order.
 It drives the CLI in a child process, because `@cucumber/gherkin` is ESM-only
 and Jest cannot load it: the checks that need no Gherkin AST live in
-`scripts/spec-audit-checks.ts`, free of that dependency, and are imported
+`scripts/spec/spec-audit-checks.ts`, free of that dependency, and are imported
 directly.
 
 The audit itself runs as CommonJS under ts-node, so it loads the ESM-only
@@ -357,7 +357,7 @@ That keeps it working on every Node the package supports (18 and above), not
 only on those with `require(esm)` (20.19+ / 22.12+). The unit matrix runs the
 fixture suite on Node 18, 20 and 22, so a regression there fails CI.
 
-`scripts/spec-audit-exceptions.json` lists feature files not yet converted to
+`scripts/spec/spec-audit-exceptions.json` lists feature files not yet converted to
 Rule form. It is a **ratchet in both directions**, and the run fails when:
 
 - an entry is present that is not in the committed baseline on the integration
@@ -366,7 +366,7 @@ Rule form. It is a **ratchet in both directions**, and the run fails when:
 - a listed path does not name an existing `.feature` file — stale entries make
   the remaining work look larger than it is.
 
-The baseline is read with `git show <ref>:scripts/spec-audit-exceptions.json`,
+The baseline is read with `git show <ref>:scripts/spec/spec-audit-exceptions.json`,
 trying `$SPEC_AUDIT_BASE_REF`, then `origin/master`, then `master`. If no ref
 resolves the baseline is empty, so every entry reads as an addition; the
 ratchet fails closed. The list is empty today — new feature files are
@@ -385,7 +385,7 @@ The audit proves a Rule has scenarios. It cannot prove they run: a spec entry
 outside Jest's `testMatch`, a step file whose suite fails to load, a skipped
 test, or a scenario renamed in the feature but not in its legacy step file all
 leave a Rule that reads as verified. `npm run bdd:report`
-(`scripts/bdd-report.ts`) reads the Jest JSON of a full BDD run and joins it to
+(`scripts/quality/bdd-report.ts`) reads the Jest JSON of a full BDD run and joins it to
 the feature files, naming scenarios through `support/outline.ts`, the outline
 the binder names its tests from:
 
@@ -451,7 +451,7 @@ dispatching it with `seed_bdd_thresholds`, which uploads
 ## The consistency check
 
 A well-formed Rule can still promise something the library does not
-guarantee. `npm run validate:spec-consistency` (`scripts/rule-schema-check.ts`,
+guarantee. `npm run validate:spec-consistency` (`scripts/spec/rule-schema-check.ts`,
 part of `check:all`) holds Rule titles to the Zod schemas the pipeline
 validates responses against:
 
@@ -471,7 +471,7 @@ the objects declaring the most of the title's fields, and is reported only when
 optional in all of them. A domain feature with no endpoint file fails the run.
 Fixtures and matcher cases live in `tests/tdd/rule-schema-check/`.
 
-`scripts/rule-schema-exceptions.json` lists `warnOnly` files, whose findings
+`scripts/spec/rule-schema-exceptions.json` lists `warnOnly` files, whose findings
 print as warnings. It ratchets like the audit's list: an entry absent from the
 integration branch, an entry whose file has no findings left, and an entry that
 names no feature file all fail the run.

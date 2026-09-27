@@ -388,7 +388,11 @@ export const contactsEndpointScaffold = {
     method: 'POST',
     requiresAuth: true,
     pathParams: ['characterId'],
-    queryParams: { labelIds: 'label_ids', standing: 'standing', watched: 'watched' },
+    queryParams: {
+      labelIds: 'label_ids',
+      standing: 'standing',
+      watched: 'watched',
+    },
     hasBody: true,
     // responseSchema: TODO — wire hand-written Zod schema
   },
@@ -399,7 +403,11 @@ export const contactsEndpointScaffold = {
     method: 'PUT',
     requiresAuth: true,
     pathParams: ['characterId'],
-    queryParams: { labelIds: 'label_ids', standing: 'standing', watched: 'watched' },
+    queryParams: {
+      labelIds: 'label_ids',
+      standing: 'standing',
+      watched: 'watched',
+    },
     hasBody: true,
     // responseSchema: TODO — wire hand-written Zod schema
   },
@@ -522,7 +530,7 @@ export const corporationEndpointScaffold = {
     // responseSchema: TODO — wire hand-written Zod schema
   },
   // GetCorporationsCorporationIdContainersLogs
-  // Returns logs recorded in the past seven days from all audit log secure containers (ALSC) owned by a 
+  // Returns logs recorded in the past seven days from all audit log secure containers (ALSC) owned by a
   GetCorporationsCorporationIdContainersLogs: {
     path: 'corporations/{corporationId}/containers/logs',
     method: 'GET',
@@ -732,7 +740,12 @@ export const corporationProjectsEndpointScaffold = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['corporationId'],
-    queryParams: { after: 'after', before: 'before', limit: 'limit', state: 'state' },
+    queryParams: {
+      after: 'after',
+      before: 'before',
+      limit: 'limit',
+      state: 'state',
+    },
     // responseSchema: TODO — wire hand-written Zod schema
   },
 } as const satisfies EndpointMap;
@@ -1081,7 +1094,12 @@ export const freelanceJobsEndpointScaffold = {
     path: 'freelance-jobs',
     method: 'GET',
     requiresAuth: false,
-    queryParams: { after: 'after', before: 'before', limit: 'limit', corporationId: 'corporation_id' },
+    queryParams: {
+      after: 'after',
+      before: 'before',
+      limit: 'limit',
+      corporationId: 'corporation_id',
+    },
     // responseSchema: TODO — wire hand-written Zod schema
   },
 } as const satisfies EndpointMap;
@@ -1565,7 +1583,11 @@ export const searchEndpointScaffold = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    queryParams: { categories: 'categories', search: 'search', strict: 'strict' },
+    queryParams: {
+      categories: 'categories',
+      search: 'search',
+      strict: 'strict',
+    },
     // responseSchema: TODO — wire hand-written Zod schema
   },
 } as const satisfies EndpointMap;
@@ -1915,7 +1937,11 @@ export const userInterfaceEndpointScaffold = {
     path: 'ui/autopilot/waypoint',
     method: 'POST',
     requiresAuth: true,
-    queryParams: { addToBeginning: 'add_to_beginning', clearOtherWaypoints: 'clear_other_waypoints', destinationId: 'destination_id' },
+    queryParams: {
+      addToBeginning: 'add_to_beginning',
+      clearOtherWaypoints: 'clear_other_waypoints',
+      destinationId: 'destination_id',
+    },
     // responseSchema: TODO — wire hand-written Zod schema
   },
   // PostUiOpenwindowContract

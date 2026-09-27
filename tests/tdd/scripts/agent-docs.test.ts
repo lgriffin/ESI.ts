@@ -1,6 +1,6 @@
 /**
  * Self-tests for the CLAUDE.md / AGENTS.md mirror check
- * (scripts/agent-docs-core.ts).
+ * (scripts/docs/agent-docs-core.ts).
  *
  * The first case is the one that matters: the sections both agent files carry
  * must read the same. `Semantic Versioning (enforced)` is the reason — it says
@@ -20,7 +20,7 @@ import {
   MIRRORED_SECTIONS,
   mirrorProblems,
   sectionsOf,
-} from '../../../scripts/agent-docs-core';
+} from '../../../scripts/docs/agent-docs-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const claude = readFileSync(path.join(ROOT, 'CLAUDE.md'), 'utf8');

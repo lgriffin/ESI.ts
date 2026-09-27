@@ -24,7 +24,7 @@ js-yaml is required to parse SDE YAML files. It is an optional peer dependency o
 ### 1. Download SDE data
 
 ```bash
-npx ts-node scripts/sde-ingest.ts --output sde-data
+npx ts-node scripts/sde/sde-ingest.ts --output sde-data
 ```
 
 This downloads the latest SDE ZIP from CCP (~200 MB), extracts all YAML files to `./sde-data/`, and removes the ZIP. The `sde-data/` directory is gitignored.
@@ -65,7 +65,7 @@ const sde = SdeDataProvider.fromZip('./eve-online-static-data-latest-yaml.zip');
 CCP SDE ZIP
     |
     v
-scripts/sde-ingest.ts      Download + extract YAML to disk
+scripts/sde/sde-ingest.ts      Download + extract YAML to disk
     |
     v
 SdeDataProvider.fromDirectory(path)
@@ -450,7 +450,7 @@ All 109 interfaces are exported from `src/sde/index.ts` and have corresponding Z
 ## SDE Ingestion CLI
 
 ```bash
-npx ts-node scripts/sde-ingest.ts [options]
+npx ts-node scripts/sde/sde-ingest.ts [options]
 
 Options:
   --output, -o   Output directory (default: ./sde-data)

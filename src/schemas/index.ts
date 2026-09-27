@@ -37,6 +37,6 @@ export * from './universe';
 export * from './wallet';
 export * from './wars';
 
-// Drift detection (scripts/generate-schema-drift-report.ts) compares these
+// Drift detection (scripts/spec/generate-schema-drift-report.ts) compares these
 // hand-written schemas directly against the live ESI OpenAPI spec at runtime.
 // No generated Zod schemas are needed.

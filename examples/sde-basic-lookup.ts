@@ -4,7 +4,7 @@
  * Demonstrates looking up static game data using the SDE module.
  * Requires SDE YAML files extracted to a local directory.
  *
- * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
+ * Setup: npx ts-node scripts/sde/sde-ingest.ts --output sde-data
  * Usage: npx ts-node examples/sde-basic-lookup.ts
  *
  * @nightly sde

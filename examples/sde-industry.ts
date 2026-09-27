@@ -4,7 +4,7 @@
  * Looks up a blueprint and displays its manufacturing requirements,
  * resolving material type IDs to names via the SDE.
  *
- * Setup: npx ts-node scripts/sde-ingest.ts --output sde-data
+ * Setup: npx ts-node scripts/sde/sde-ingest.ts --output sde-data
  * Usage: npx ts-node examples/sde-industry.ts
  *
  * @nightly sde

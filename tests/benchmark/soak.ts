@@ -16,7 +16,7 @@
  *
  * At each sample point every in-flight request has settled; the driver forces
  * two full collections and records `heapUsed`, the cache size and the active
- * timers. `scripts/soak-core.ts` decides whether the run leaked.
+ * timers. `scripts/bench/soak-core.ts` decides whether the run leaked.
  */
 import { EsiClient } from '../../src/EsiClient';
 import { EsiError } from '../../src/core/util/error';

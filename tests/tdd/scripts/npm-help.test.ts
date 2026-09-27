@@ -2,7 +2,7 @@ import {
   renderHelp,
   loadScripts,
   renderRepoHelp,
-} from '../../../scripts/npm-help';
+} from '../../../scripts/quality/npm-help';
 
 describe('npm-help', () => {
   describe('renderHelp (pure)', () => {
@@ -18,7 +18,7 @@ describe('npm-help', () => {
       'example:market': 'ts-node examples/market.ts',
       'bdd:alliance': 'jest alliance',
       'bdd:wallet': 'jest wallet',
-      'token:create': 'ts-node scripts/create-token.ts',
+      'token:create': 'ts-node scripts/auth/create-token.ts',
       'contract:live': 'jest contract',
     };
 

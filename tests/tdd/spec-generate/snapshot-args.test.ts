@@ -1,9 +1,9 @@
 /**
- * Argument parsing for scripts/snapshot-openapi.ts. A mistyped option used to
+ * Argument parsing for scripts/spec/snapshot-openapi.ts. A mistyped option used to
  * fall through to the default date, so the refresh vendored a document nobody
  * asked for and reported success.
  */
-import { parseCompatibilityDate } from '../../../scripts/snapshot-openapi';
+import { parseCompatibilityDate } from '../../../scripts/spec/snapshot-openapi';
 
 describe('parseCompatibilityDate', () => {
   it('uses the fallback with no arguments', () => {

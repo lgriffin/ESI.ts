@@ -92,7 +92,7 @@ jobs:
       # absence of measurement is not evidence of a regression, and failing the
       # pull request for it teaches people to read a red mutation job as noise.
       # A timeout *with* the baseline restored still blocks — that run should
-      # only have had the changed files to mutate. scripts/mutation-ratchet-core.ts
+      # only have had the changed files to mutate. scripts/mutation/mutation-ratchet-core.ts
       # holds the policy, tests/tdd/mutation-ratchet/mutation-pr.test.ts pins it.
       #
       # The tier keeps a hard signal either way: the known-weak fixture above

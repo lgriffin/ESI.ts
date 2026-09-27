@@ -35,7 +35,7 @@ jobs:
           docker tag schemathesis/schemathesis@sha256:9f55988d210ac6bea43088b9839ffb9db6f7224398882eb098cdbc718d4c7a59 schemathesis/schemathesis
 
       - name: Run Schemathesis
-        run: bash scripts/run-schemathesis.sh ./reports/schemathesis
+        run: bash scripts/spec/run-schemathesis.sh ./reports/schemathesis
 
       - name: Upload Schemathesis report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -108,7 +108,7 @@ jobs:
 
           The \`schemathesis\` job ended with \`${RESULT}\`: ${RUN_URL}
 
-          \`scripts/run-schemathesis.sh\` fails when the JUnit report records real
+          \`scripts/spec/run-schemathesis.sh\` fails when the JUnit report records real
           failures, or when it cannot fetch the spec, start the Prism mock or pull
           the image. The \`schemathesis-report\` artifact holds the JUnit report;
           reproduce locally with \`npm run fuzz:api\` (Docker).

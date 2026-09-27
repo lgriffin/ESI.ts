@@ -6,7 +6,7 @@
  * controls. Wall-clock reads, real timers and Math.random() anywhere else make
  * those assertions flaky or impossible, so they are restricted everywhere in
  * src/ except CLOCK_MODULES. Existing sites are counted in
- * scripts/determinism-baseline.json, which only shrinks
+ * scripts/quality/determinism-baseline.json, which only shrinks
  * (npm run lint:determinism).
  *
  * Every restricted construct has an id. The id is tagged into the lint message
@@ -58,7 +58,7 @@ function message(id) {
   return (
     `[determinism:${id}] This ${why[id]}. Take time from the clock module ` +
     `(${CLOCK_MODULES.join(', ')}) so tests can control it. Existing sites ` +
-    'are baselined in scripts/determinism-baseline.json, which only shrinks.'
+    'are baselined in scripts/quality/determinism-baseline.json, which only shrinks.'
   );
 }
 

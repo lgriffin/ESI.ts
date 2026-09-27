@@ -1,6 +1,6 @@
 /**
- * Self-tests for the operation emitter (scripts/spec-generate-core.ts) and the
- * coverage gate (scripts/spec-coverage-core.ts).
+ * Self-tests for the operation emitter (scripts/spec/spec-generate-core.ts) and the
+ * coverage gate (scripts/spec/spec-coverage-core.ts).
  *
  * The fixture below is a small OpenAPI document with one operation per shape
  * the emitter has to handle. The snapshot pins the whole output; the named
@@ -17,12 +17,12 @@ import {
   SPEC_PATH,
   SpecGenerateError,
   type OpenApiDocument,
-} from '../../../scripts/spec-generate-core';
+} from '../../../scripts/spec/spec-generate-core';
 import {
   checkCoverage,
   metasOf,
   type MetaLike,
-} from '../../../scripts/spec-coverage-core';
+} from '../../../scripts/spec/spec-coverage-core';
 import type {
   OperationMeta,
   OperationRequest,

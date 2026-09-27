@@ -15,7 +15,7 @@ import {
   auditStepLayout,
   normaliseStepText,
   stepFileName,
-} from '../../../scripts/spec-audit-steps';
+} from '../../../scripts/spec/spec-audit-steps';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const FIXTURES = path.join(__dirname, 'step-fixtures');
@@ -131,7 +131,7 @@ describe('spec-audit step files', () => {
           [
             '-r',
             'ts-node/register',
-            'scripts/spec-audit.ts',
+            'scripts/spec/spec-audit.ts',
             'tests/tdd/spec-audit/fixtures/compliant.feature',
             '--steps-root=tests/tdd/spec-audit/step-fixtures/step-file-count',
           ],

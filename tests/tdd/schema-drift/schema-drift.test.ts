@@ -19,7 +19,7 @@ import {
   pathShape,
   ratchetProblems,
   serializeBaseline,
-} from '../../../scripts/schema-drift-core';
+} from '../../../scripts/spec/schema-drift-core';
 import {
   ProjectSchema,
   StatusSchema,

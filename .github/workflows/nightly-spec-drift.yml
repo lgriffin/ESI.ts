@@ -35,7 +35,7 @@ jobs:
         id: drift
         run: |
           set +e
-          npx ts-node scripts/check-spec-drift.ts --latest > drift-report.json 2>drift-errors.txt
+          npx ts-node scripts/spec/check-spec-drift.ts --latest > drift-report.json 2>drift-errors.txt
           EXIT_CODE=$?
           set -e
 
@@ -89,7 +89,7 @@ jobs:
           fi
 
       # master is its own base: the nightly reports drift that is not in
-      # scripts/schema-drift-baseline.json and entries that no longer occur.
+      # scripts/spec/schema-drift-baseline.json and entries that no longer occur.
       - name: Check schema drift
         id: schema
         env:
@@ -194,7 +194,7 @@ jobs:
             if [ "$SCHEMA_DRIFT" = "true" ]; then
               echo "### Schema Drift"
               echo ""
-              echo "Hand-written Zod schemas have drifted from the ESI OpenAPI spec beyond \`scripts/schema-drift-baseline.json\`, or baseline entries no longer occur and should be removed."
+              echo "Hand-written Zod schemas have drifted from the ESI OpenAPI spec beyond \`scripts/spec/schema-drift-baseline.json\`, or baseline entries no longer occur and should be removed."
               echo "Run \`npm run schema:drift\` locally to review."
               echo ""
               echo '```'
@@ -205,7 +205,7 @@ jobs:
 
             echo "## How to Resolve"
             echo ""
-            echo "1. Run \`npx ts-node scripts/check-spec-drift.ts --latest\` to check missing endpoints"
+            echo "1. Run \`npx ts-node scripts/spec/check-spec-drift.ts --latest\` to check missing endpoints"
             echo "2. Run \`npm run generate:types\` to regenerate types from the live spec"
             echo "3. Run \`npm run schema:drift\` to review Zod schema divergence"
             echo "4. Close this issue when all gaps are addressed or intentionally skipped"
@@ -357,9 +357,9 @@ jobs:
           ## How to Resolve
 
           1. Open the run and find the first failing step in \`check-spec-drift\`.
-          2. Exit code 2 from \`scripts/check-spec-drift.ts\`, or an invalid \`drift-report.json\`,
+          2. Exit code 2 from \`scripts/spec/check-spec-drift.ts\`, or an invalid \`drift-report.json\`,
              means the script could not fetch or parse the spec; reproduce with
-             \`npx ts-node scripts/check-spec-drift.ts --latest\`.
+             \`npx ts-node scripts/spec/check-spec-drift.ts --latest\`.
           3. A failure in an issue step usually means the token lacks \`issues: write\`
              or the GitHub API was unavailable; re-run the workflow.
           4. This issue closes itself on the next run that completes.

@@ -11,10 +11,10 @@ const projectRoot = path.resolve(__dirname, '../..');
  * - Nightly (nightly-mutation.yml): every file in `mutate`, with --incremental
  *   --force so the run is complete and also writes the incremental file that
  *   pull requests restore from the Actions cache.
- * - Pull requests (npm run mutation:pr): scripts/mutation-pr.ts narrows
+ * - Pull requests (npm run mutation:pr): scripts/mutation/mutation-pr.ts narrows
  *   `mutate` to the changed files and reuses the nightly results for the rest.
  *
- * Scores are gated per directory by scripts/mutation-ratchet-core.ts against
+ * Scores are gated per directory by scripts/mutation/mutation-ratchet-core.ts against
  * config/mutation/unit-thresholds.json, not by a global break threshold.
  *
  * Sharding. One job over all of src/core stopped finishing inside its

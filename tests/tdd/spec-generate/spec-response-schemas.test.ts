@@ -6,11 +6,11 @@ import {
   definitionsOf,
   returnsJsonBody,
   type DefinitionRef,
-} from '../../../scripts/spec-response-schemas-core';
+} from '../../../scripts/spec/spec-response-schemas-core';
 import {
   SPEC_PATH,
   type OpenApiDocument,
-} from '../../../scripts/spec-generate-core';
+} from '../../../scripts/spec/spec-generate-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
 

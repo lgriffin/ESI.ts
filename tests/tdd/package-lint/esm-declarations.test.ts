@@ -1,5 +1,5 @@
 /**
- * scripts/esm-declarations.cjs: the `.d.mts` declarations the `import`
+ * scripts/package/esm-declarations.cjs: the `.d.mts` declarations the `import`
  * condition of every `exports` entry names (esi-23g.29).
  *
  * The rewriting is checked on its own, and then end to end: a tiny package
@@ -22,7 +22,15 @@ import * as ts from 'typescript';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { emitEsmDeclarations, esmTypeEntries, toEsmDeclaration } = require(
-  path.resolve(__dirname, '..', '..', '..', 'scripts', 'esm-declarations.cjs'),
+  path.resolve(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    'scripts',
+    'package',
+    'esm-declarations.cjs',
+  ),
 ) as {
   emitEsmDeclarations: (packageDir: string) => {
     entries: number;
