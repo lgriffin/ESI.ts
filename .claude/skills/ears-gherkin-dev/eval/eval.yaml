@@ -14,7 +14,7 @@ schema_version: 1
 
 skill:
   name: ears-gherkin-dev
-  version: 1.0.1
+  version: 1.0.2
 
 native:
   eval_dir: eval
