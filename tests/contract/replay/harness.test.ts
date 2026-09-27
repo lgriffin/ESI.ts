@@ -13,7 +13,7 @@ import {
 } from '../recorded/fixture';
 import { ARRAY_HEAD, ARRAY_MAX, STRING_MAX } from '../recorded/policy';
 import { shrinkOnlyProblems } from '../recorded/ratchet';
-import { diffShapes, fixtureShape } from '../recorded/shape';
+import { diffShapes, fixtureShape, optionalPaths } from '../recorded/shape';
 
 describe('coverageProblems', () => {
   const base = {
@@ -225,5 +225,49 @@ describe('diffShapes', () => {
     expect(diff(fixture({ rows: [{ id: 1 }] }), fixture({ rows: [] }))).toEqual(
       [],
     );
+  });
+
+  it('ignores optional fields coming and going but not their type changing', () => {
+    const optional = new Set(['$[][].runs', '$[][].extra']);
+    expect(
+      diffShapes(
+        fixtureShape(fixture([{ id: 1 }])),
+        fixtureShape(
+          fixture([{ id: 2, runs: 1, extra: { deep: true }, surprise: 1 }]),
+        ),
+        optional,
+      ),
+    ).toEqual(['$[][].surprise added (number)']);
+    expect(
+      diffShapes(
+        fixtureShape(fixture([{ id: 1, runs: 1 }])),
+        fixtureShape(fixture([{ id: 1, runs: '1' }])),
+        optional,
+      ),
+    ).toEqual(['$[][].runs type number -> string']);
+  });
+});
+
+describe('optionalPaths', () => {
+  it('lists properties the schema does not require, through refs and arrays', () => {
+    const components = {
+      Item: {
+        type: 'object',
+        required: ['id'],
+        properties: {
+          id: { type: 'integer' },
+          runs: { type: 'integer' },
+          child: { $ref: '#/components/schemas/Item' },
+        },
+      },
+    };
+    expect(
+      [
+        ...optionalPaths(
+          { type: 'array', items: { $ref: '#/components/schemas/Item' } },
+          components,
+        ),
+      ].sort(),
+    ).toEqual(['$[][].child', '$[][].runs']);
   });
 });
