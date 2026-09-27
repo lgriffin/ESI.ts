@@ -4,7 +4,7 @@ import { skyhookEndpoints } from '../core/endpoints/skyhookEndpoints';
 import {
   SovereigntyHub,
   OrbitalSkyhook,
-  RaidableSkyhook,
+  RaidableSkyhooksResponse,
   SkyhookDetail,
   SovereigntyHubDetail,
 } from '../types/api-responses';
@@ -39,9 +39,10 @@ export class SkyhooksClient extends BaseEsiClient<typeof skyhookEndpoints> {
   /**
    * Retrieves the rolling list of skyhooks that are currently or becoming raidable across New Eden.
    *
-   * @returns A list of raidable skyhooks
+   * @returns ESI's response as sent: `skyhooks`, one entry per skyhook with its
+   *   planet, solar system and theft vulnerability window
    */
-  getRaidableSkyhooks(): Promise<RaidableSkyhook[]> {
+  getRaidableSkyhooks(): Promise<RaidableSkyhooksResponse> {
     return this.api.getRaidableSkyhooks();
   }
 

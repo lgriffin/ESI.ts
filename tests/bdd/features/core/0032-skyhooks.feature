@@ -35,16 +35,24 @@ Feature: Skyhooks and Sovereignty Hubs
       When the client requests skyhooks
       Then the client shall return silo capacity and levels
 
-  Rule: When raidable skyhooks are requested, the Skyhooks client shall return the public skyhook entries carrying the is_raidable flag, and the raidable_at timestamp when present.
+  Rule: When raidable skyhooks are requested, the Skyhooks client shall return the response's skyhooks list, each entry with its planet, solar system and theft vulnerability window.
     This endpoint is cluster-wide and unauthenticated, so it lists skyhooks
-    belonging to any corporation. Entries whose raid window has not opened yet
-    are still present with is_raidable false, which lets a caller plan ahead
-    from the raidable_at timestamp.
+    belonging to any corporation. ESI wraps the list in an object
+    ({ skyhooks: [...] }), and the client returns that object as sent, the same
+    shape withMetadata and withSafeMode return. Each skyhook gives its
+    planet_id, solar_system_id and the start and end of its theft
+    vulnerability window. Upcoming windows are listed too, so a caller can plan
+    ahead from the start time.
 
-    Scenario: Raidable listing includes entries both inside and outside their raid window
+    Scenario: Raidable listing gives each skyhook's planet and theft window
       Given raidable skyhooks exist across New Eden
       When the client requests raidable skyhooks
       Then the client shall return the raidable list
+
+    Scenario: No skyhook is open to raids
+      Given no skyhook is open to raids
+      When the client requests raidable skyhooks
+      Then the client shall return an empty raidable list
 
   # ── Per-structure detail ────────────────────────────────────────────
 
