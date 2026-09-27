@@ -344,6 +344,9 @@ jobs:
       - name: Audit EARS requirements and Gherkin structure
         run: npm run spec:audit
 
+      - name: Audit the charter's requirement blocks
+        run: npm run charter:audit
+
       - name: Rule titles agree with response schemas
         run: npm run validate:spec-consistency
 
