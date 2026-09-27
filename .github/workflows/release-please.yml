@@ -106,6 +106,45 @@ jobs:
           manifest-file: .release-please-manifest.json
           skip-github-pull-request: ${{ steps.gate.outputs.skip-pr }}
 
+      # A merge commit's body repeats its pull request's title, so
+      # release-please lists every change merged that way twice (#377). This
+      # drops the merge's line from the open release PR's CHANGELOG.md and
+      # body (the body becomes the GitHub release), keeping the commit's own
+      # line, which carries its `closes` links. release-please rewrites the
+      # branch on every push to master, so this runs after each rewrite.
+      - name: Setup Node.js
+        if: steps.gate.outputs.skip-pr != 'true' && steps.release.outputs.release_created != 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          # No npm cache: a cache restored into a release job could be poisoned.
+
+      - name: Drop release-note lines a merge commit repeats
+        if: steps.gate.outputs.skip-pr != 'true' && steps.release.outputs.release_created != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          pr=$(gh pr list --repo "$REPO" --state open --label 'autorelease: pending' \
+            --json number,headRefName --jq '.[0] | select(.) | "\(.number) \(.headRefName)"')
+          if [ -z "$pr" ]; then
+            echo "No open release PR"
+            exit 0
+          fi
+          read -r number branch <<< "$pr"
+          npm ci --ignore-scripts
+          git fetch --no-tags origin "$branch"
+          git checkout -B "$branch" FETCH_HEAD
+          gh pr view "$number" --repo "$REPO" --json body --jq .body > "$RUNNER_TEMP/body.md"
+          npm run release:dedupe-changelog -- --changelog CHANGELOG.md --body "$RUNNER_TEMP/body.md"
+          if ! git diff --quiet -- CHANGELOG.md; then
+            git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -m 'ci(release): drop changelog lines a merge commit repeats' -- CHANGELOG.md
+            git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "HEAD:refs/heads/$branch"
+          fi
+          gh pr edit "$number" --repo "$REPO" --body-file "$RUNNER_TEMP/body.md"
+
   # Fallback for when no release app token was used: the tag and release came
   # from GITHUB_TOKEN, so nothing else started. workflow_dispatch is exempt
   # from that rule, so start the publish here (#383); release.yml then

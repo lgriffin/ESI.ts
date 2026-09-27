@@ -115,6 +115,7 @@ Two practical consequences:
 - A release turns the unreleased block into `## [X.Y.Z] - YYYY-MM-DD`.
 - `validate-release` fails if `CHANGELOG.md` has no heading starting `## [X.Y.Z]` for the version in `package.json`. Both the hand-written heading and release-please's linked heading satisfy that check.
 - Entries describe the consumer-visible change and name the public symbol, in the voice of the existing entries.
+- A change merged with a merge commit is listed once. GitHub's merge commit repeats the pull request's title in its body, and release-please reads that as a second commit, so every such change used to appear twice ([#377](https://github.com/lgriffin/ESI.ts/issues/377)). After release-please updates the release pull request, `release-please.yml` runs `npm run release:dedupe-changelog`, which drops the merge commit's line from the branch's `CHANGELOG.md` and from the pull request body (which becomes the GitHub release) whenever the merged branch has a listed commit of its own. The commit's line stays, with its `closes` links. A merge whose branch has no listed commit keeps its line, so nothing that shipped disappears.
 
 ### Bumped but not published (REL-04)
 
