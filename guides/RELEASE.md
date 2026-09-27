@@ -130,20 +130,28 @@ The current changelog does not yet meet this rule; see [Known state](#known-stat
 
 `validate-release` runs on Node 20 against the tagged commit. Every step blocks the publish except dead-code detection.
 
-| Step                        | Command                                                                                                           | Blocks |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------- | :----: |
-| Lint                        | `npm run lint`                                                                                                    |   ●    |
-| Formatting                  | `npm run format:check`                                                                                            |   ●    |
-| Dead code                   | `npx knip --no-exit-code`                                                                                         |   ◐    |
-| Dependency audit            | `npm run audit:check` (allowlist with expiry, see SECURITY.md)                                                    |   ●    |
-| Changelog entry for version | `grep "## [X.Y.Z]" CHANGELOG.md`                                                                                  |   ●    |
-| Build                       | `npm run build`                                                                                                   |   ●    |
-| Schema drift                | `npm run schema:drift:ci`                                                                                         |   ●    |
-| Generated types fresh       | `npm run generate:types`, then `git diff --exit-code` on `src/types/generated/` and `esi-cache-ttls.generated.ts` |   ●    |
-| Test suite                  | `npm run test:all` (unit + BDD, BDD, integration, fuzz, tsd)                                                      |   ●    |
-| API reference builds        | `npm run docs`                                                                                                    |   ●    |
+| Step                        | Command                                                                                                                     | Blocks |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- | :----: |
+| Tag matches version         | `package.json` version equals the tag, then `npm run validate:versions`                                                     |   ●    |
+| Lint                        | `npm run lint`                                                                                                              |   ●    |
+| Formatting                  | `npm run format:check`                                                                                                      |   ●    |
+| Dead code                   | `npx knip --no-exit-code`                                                                                                   |   ◐    |
+| Dependency audit            | `npm run audit:check` (allowlist with expiry, see SECURITY.md)                                                              |   ●    |
+| Changelog entry for version | `grep "## [X.Y.Z]" CHANGELOG.md`                                                                                            |   ●    |
+| Build                       | `npm run build`                                                                                                             |   ●    |
+| Schema drift                | `npm run schema:drift:ci`                                                                                                   |   ●    |
+| Generated types fresh       | `npm run generate:types`, then `git diff --exit-code` on `src/types/generated/` and `src/core/endpoints/esi-*.generated.ts` |   ●    |
+| Generated operations fresh  | `npm run spec:generate:check`                                                                                               |   ●    |
+| Auth/scope alignment        | `npm run validate:auth-scopes` (DES-04, both directions)                                                                    |   ●    |
+| Endpoint definitions        | `npm run validate:esi` (ARCH-02)                                                                                            |   ●    |
+| EARS spec audit             | `npm run spec:audit`, then `npm run validate:spec-consistency`                                                              |   ●    |
+| Test suite                  | `npm run test:all` (unit + BDD, BDD, integration, fuzz, tsd)                                                                |   ●    |
+| Recorded payload replay     | `npm run contract:replay`                                                                                                   |   ●    |
+| Fault catalogue             | `npm run faults -- --ci`                                                                                                    |   ●    |
+| Live contract tests         | `npm run contract:live`; a 503 from ESI is a warning, as on pull requests                                                   |   ●    |
+| API reference builds        | `npm run docs`                                                                                                              |   ●    |
 
-Not in the release gate today, although they gate pull requests: contract tests, `spec:audit`, `validate:auth-scopes`, `validate:versions` and the API surface diff. A release built from a merged pull request has already passed them. A tag pushed on any other commit has not.
+The shrink-only ratchets in `spec:audit`, `contract:replay` and the fault catalogue compare against the tag itself (`SPEC_AUDIT_BASE_REF`, `CONTRACT_BASE_REF`, `FAULTS_BASE_REF` set to `HEAD`), as schema drift does, so a master that has since shrunk a list cannot block releasing an earlier commit. Not in the release gate, although they gate pull requests: the API surface diff and the SemVer gate, which need a base branch, and the consumer contract, which `release.yml` runs as its own job on the packed tarball.
 
 Run the same checks locally before tagging:
 
