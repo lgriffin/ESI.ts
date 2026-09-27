@@ -26,13 +26,26 @@ export function configureApiClient(
 ): ConfigureApiClientResult {
   let deduplicator: RequestDeduplicator | null = null;
 
+  // Per-client logger first, so the middleware built below (the ETag
+  // cache's startup line included) logs to it from the start.
+  // Only when explicitly configured. Otherwise the pipeline
+  // resolves to the global setLogger() logger, then the built-in pino default
+  // (level from ESI_LOG_LEVEL), so existing global-logger setups keep working.
+  if (config?.logger) {
+    client.setLogger(config.logger);
+  } else if (config?.logLevel) {
+    client.setLogger(createDefaultLogger(config.logLevel));
+  }
+
   // Per-client identity headers. The setters refuse a value that is not a
   // valid header, so a bad one fails here rather than on every request.
   if (config?.tenant !== undefined) client.setTenant(config.tenant);
   if (config?.userAgent !== undefined) client.setUserAgent(config.userAgent);
 
   // Rate limiter (always)
-  client.setRateLimiter(new RateLimiter(config?.rateLimiterConfig));
+  const rateLimiter = new RateLimiter(config?.rateLimiterConfig);
+  rateLimiter.setClient(client);
+  client.setRateLimiter(rateLimiter);
 
   // Request deduplication (on by default)
   if (config?.enableRequestDeduplication !== false) {
@@ -43,8 +56,7 @@ export function configureApiClient(
 
   // ETag cache (on by default)
   if (config?.enableETagCache !== false) {
-    const cache = new ETagCacheManager(config?.etagCacheConfig);
-    cache.setClient(client);
+    const cache = new ETagCacheManager(config?.etagCacheConfig, client);
     client.setCache(cache);
   }
 
@@ -99,15 +111,6 @@ export function configureApiClient(
   // Timeout
   if (config?.timeout !== undefined) {
     client.setTimeout(config.timeout);
-  }
-
-  // Per-client logger only when explicitly configured. Otherwise the pipeline
-  // resolves to the global setLogger() logger, then the built-in pino default
-  // (level from ESI_LOG_LEVEL), so existing global-logger setups keep working.
-  if (config?.logger) {
-    client.setLogger(config.logger);
-  } else if (config?.logLevel) {
-    client.setLogger(createDefaultLogger(config.logLevel));
   }
 
   return { deduplicator };

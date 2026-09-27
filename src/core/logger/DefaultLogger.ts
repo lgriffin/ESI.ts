@@ -33,13 +33,16 @@ export function toPinoLogger(p: {
   info: (...a: unknown[]) => void;
   debug: (...a: unknown[]) => void;
   trace: (...a: unknown[]) => void;
+  isLevelEnabled?: ((level: string) => boolean) | undefined;
+  levelVal?: number | undefined;
+  levels?: { values: Record<string, number> } | undefined;
 }): ILogger {
   // Call through the sink object so pino methods keep their `this` binding.
   const emit =
     (level: LogLevel) =>
     (message: string, context?: LogContext): void =>
       context ? p[level](context, message) : p[level](message);
-  return {
+  const logger: ILogger = {
     fatal: emit('fatal'),
     error: emit('error'),
     warn: emit('warn'),
@@ -47,6 +50,16 @@ export function toPinoLogger(p: {
     debug: emit('debug'),
     trace: emit('trace'),
   };
+  const values = p.levels?.values;
+  if (values && typeof p.levelVal === 'number') {
+    // pino's own isLevelEnabled costs more than the line it would skip; the
+    // numeric comparison reads the current level, so a later change applies.
+    logger.isLevelEnabled = (level) =>
+      (values[level] ?? Infinity) >= (p.levelVal ?? -Infinity);
+  } else if (typeof p.isLevelEnabled === 'function') {
+    logger.isLevelEnabled = (level) => p.isLevelEnabled?.(level) ?? true;
+  }
+  return logger;
 }
 
 /** Backwards-compatible default instance (level from `ESI_LOG_LEVEL`). */

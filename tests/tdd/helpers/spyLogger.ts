@@ -9,7 +9,7 @@
  * (message, context) pair on the right method, not that "something was
  * logged".
  */
-import type { ILogger } from '../../../src/core/logger/ILogger';
+import type { ILogger, LoggerLevel } from '../../../src/core/logger/ILogger';
 
 export type SpyLogger = jest.Mocked<ILogger>;
 
@@ -38,8 +38,8 @@ export function clientWithLogger(logger: ILogger | null): {
 /** Every call made to any level, as `[level, message, context]`, in order. */
 export function logCalls(
   logger: SpyLogger,
-): Array<[keyof ILogger, string, unknown]> {
-  const levels: Array<keyof ILogger> = [
+): Array<[LoggerLevel, string, unknown]> {
+  const levels: LoggerLevel[] = [
     'fatal',
     'error',
     'warn',

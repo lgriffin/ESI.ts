@@ -33,7 +33,13 @@ export class ETagCacheManager implements ICache {
     emit(this.client, message, ctx);
   }
 
-  constructor(config: ETagCacheConfig = {}) {
+  /**
+   * @param client - the client whose logger this cache logs to, from the
+   *   first line (the startup log) on. `setClient` can attach or change it
+   *   later; without one the cache logs to the global logger.
+   */
+  constructor(config: ETagCacheConfig = {}, client?: ApiClient | null) {
+    this.client = client ?? null;
     this.config = {
       maxEntries: config.maxEntries ?? 1000,
       defaultTtl: config.defaultTtl ?? 5 * 60 * 1000, // 5 minutes default

@@ -46,7 +46,7 @@ The unsafe-character check and the encoding step do different jobs. The check re
 
 `sanitizeUrl` replaces the value of any of these query parameters with `[REDACTED]`: `token`, `access_token`, `api_key`, `refresh_token`, `client_secret`, `code`, `key`, `secret`, `auth`, `password`, `bearer`. If the URL cannot be parsed, everything after `?` is replaced with `[params-redacted]`. The function is exported from the root and from `@lgriffin/esi.ts/errors` for consumers who log URLs themselves.
 
-Log lines written by the pipeline (for example `Hitting endpoint: <url>`) do not pass through `sanitizeUrl`. ESI does not carry credentials in query strings, so in normal use there is nothing to redact, but a custom request interceptor that adds a secret to the URL would see it logged at `info`. Logging configuration is covered in [LOGGING.md](LOGGING.md).
+Log lines pass through `sanitizeUrl` too, at the logger boundary: every URL in a line's message and top-level string context values is redacted before any logger, per-client or global, receives it. A custom request interceptor that adds a secret to the URL therefore sees `[REDACTED]` in the `Hitting endpoint: <url>` line, not the secret. Logging configuration and what is not redacted are covered in [LOGGING.md](LOGGING.md#secrets-in-log-output).
 
 ---
 

@@ -1,8 +1,7 @@
 import type { ApiClient } from '../ApiClient';
-import type { LogContext } from './ILogger';
+import type { LogContext, LoggerLevel as Level } from './ILogger';
+import { redactLogContext, redactLogText } from './redactLog';
 import { resolveLogger } from './resolveLogger';
-
-type Level = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 type Emit = (
   client: ApiClient | null | undefined,
@@ -10,13 +9,18 @@ type Emit = (
   context?: LogContext,
 ) => void;
 
+/**
+ * The logger boundary for the pipeline: every line resolves the per-client
+ * logger and has the sensitive query parameters of any URL in its message or
+ * top-level string context values redacted through `sanitizeUrl`, so no call
+ * site has to remember to sanitise.
+ */
 const emit =
   (level: Level): Emit =>
   (client, message, context) => {
-    resolveLogger(client)[level](
-      message,
-      context && Object.keys(context).length > 0 ? context : undefined,
-    );
+    const logger = resolveLogger(client);
+    if (logger.isLevelEnabled?.(level) === false) return;
+    logger[level](redactLogText(message), redactLogContext(context));
   };
 
 export const logFatal: Emit = emit('fatal');

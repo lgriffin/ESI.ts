@@ -1,5 +1,6 @@
-import type { ILogger, LogContext } from './ILogger';
+import type { ILogger, LogContext, LoggerLevel } from './ILogger';
 import { defaultLogger } from './DefaultLogger';
+import { redactLogContext, redactLogText } from './redactLog';
 
 export type { ILogger, LogContext } from './ILogger';
 
@@ -21,29 +22,27 @@ export const setLogger = (customLogger: ILogger): void => {
 
 export const getLogger = (): ILogger => activeLogger;
 
-const ctx = (context?: LogContext): LogContext | undefined =>
-  context && Object.keys(context).length > 0 ? context : undefined;
+const emit =
+  (level: LoggerLevel) =>
+  (message: string, context?: LogContext): void => {
+    if (activeLogger.isLevelEnabled?.(level) === false) return;
+    activeLogger[level](redactLogText(message), redactLogContext(context));
+  };
 
-export const logFatal = (message: string, context?: LogContext): void => {
-  activeLogger.fatal(message, ctx(context));
-};
+export const logFatal: (message: string, context?: LogContext) => void =
+  emit('fatal');
 
-export const logError = (message: string, context?: LogContext): void => {
-  activeLogger.error(message, ctx(context));
-};
+export const logError: (message: string, context?: LogContext) => void =
+  emit('error');
 
-export const logWarn = (message: string, context?: LogContext): void => {
-  activeLogger.warn(message, ctx(context));
-};
+export const logWarn: (message: string, context?: LogContext) => void =
+  emit('warn');
 
-export const logInfo = (message: string, context?: LogContext): void => {
-  activeLogger.info(message, ctx(context));
-};
+export const logInfo: (message: string, context?: LogContext) => void =
+  emit('info');
 
-export const logDebug = (message: string, context?: LogContext): void => {
-  activeLogger.debug(message, ctx(context));
-};
+export const logDebug: (message: string, context?: LogContext) => void =
+  emit('debug');
 
-export const logTrace = (message: string, context?: LogContext): void => {
-  activeLogger.trace(message, ctx(context));
-};
+export const logTrace: (message: string, context?: LogContext) => void =
+  emit('trace');

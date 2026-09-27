@@ -4731,7 +4731,7 @@ export interface EsiClientConfig {
     // (undocumented)
     language?: string | undefined;
     logger?: ILogger | undefined;
-    logLevel?: LogLevel | undefined;
+    logLevel?: LogLevel | 'silent' | undefined;
     // (undocumented)
     onTokenRefresh?: TokenProvider | undefined;
     // (undocumented)
@@ -5590,7 +5590,7 @@ export interface ETagCacheConfig {
 
 // @public (undocumented)
 export class ETagCacheManager implements ICache {
-    constructor(config?: ETagCacheConfig);
+    constructor(config?: ETagCacheConfig, client?: ApiClient | null);
     cleanup(): number;
     clear(): void;
     delete(url: string): boolean;
@@ -6646,6 +6646,7 @@ export interface ILogger {
     fatal(message: string, context?: LogContext): void;
     // (undocumented)
     info(message: string, context?: LogContext): void;
+    isLevelEnabled?(level: LoggerLevel): boolean;
     // (undocumented)
     trace(message: string, context?: LogContext): void;
     // (undocumented)
@@ -7148,6 +7149,9 @@ export const logError: (message: string, context?: LogContext) => void;
 
 // @public (undocumented)
 export const logFatal: (message: string, context?: LogContext) => void;
+
+// @public
+export type LoggerLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 // @public (undocumented)
 export const logInfo: (message: string, context?: LogContext) => void;
@@ -8450,6 +8454,7 @@ export class RateLimiter implements IRateLimiter {
     isBlocked(group?: string): boolean;
     // (undocumented)
     reset(): void;
+    setClient(client: ApiClient | null): void;
     // (undocumented)
     setTestMode(enabled: boolean): void;
     // (undocumented)
@@ -9572,6 +9577,11 @@ export function toPinoLogger(p: {
     info: (...a: unknown[]) => void;
     debug: (...a: unknown[]) => void;
     trace: (...a: unknown[]) => void;
+    isLevelEnabled?: ((level: string) => boolean) | undefined;
+    levelVal?: number | undefined;
+    levels?: {
+        values: Record<string, number>;
+    } | undefined;
 }): ILogger;
 
 // @public (undocumented)

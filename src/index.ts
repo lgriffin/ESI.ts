@@ -182,7 +182,7 @@ export {
   EsiScope,
   esiEndpointScopes,
 } from './core/endpoints/esi-scopes.generated';
-export { ILogger, LogContext } from './core/logger/ILogger';
+export { ILogger, LogContext, LoggerLevel } from './core/logger/ILogger';
 export {
   setLogger,
   getLogger,

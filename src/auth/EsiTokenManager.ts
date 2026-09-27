@@ -3,6 +3,7 @@ import type { FetchLike, TokenProvider } from '../core/ApiClient';
 import type { ILogger } from '../core/logger/ILogger';
 import type { Identity } from '../core/ports/Identity';
 import { getLogger } from '../core/logger/loggerUtil';
+import { redactingLogger } from '../core/logger/redactLog';
 import { runWithConcurrency } from '../core/util/concurrency';
 import {
   EveSsoClient,
@@ -46,7 +47,10 @@ export interface EsiTokenManagerConfig {
   onRefreshError?: ((characterId: number, error: Error) => void) | undefined;
   /** Called when SSO reports a character's refresh token as invalid. */
   onRevoked?: ((characterId: number) => void) | undefined;
-  /** Logger for refresh activity. Defaults to the library logger. */
+  /**
+   * Logger for refresh activity. Defaults to the library logger, resolved at
+   * each log call so a later global `setLogger()` applies.
+   */
   logger?: ILogger | undefined;
   /** Clock override for tests. */
   now?: (() => number) | undefined;
@@ -123,7 +127,8 @@ export class EsiTokenManager {
   private readonly sso: EveSsoClient;
   private readonly refreshSkewMs: number;
   private readonly autoRefresh: boolean;
-  private readonly logger: ILogger;
+  /** The logger passed in config, if any; see `logger` below. */
+  private readonly configuredLogger: ILogger | undefined;
   private readonly now: () => number;
   private readonly hooks: Pick<
     EsiTokenManagerConfig,
@@ -139,6 +144,16 @@ export class EsiTokenManager {
   /** One `Identity` per character, so `esi.as()` returns one view per character. */
   private readonly identities = new Map<number, Identity>();
 
+  /**
+   * Resolved at each log call rather than at construction, so a global
+   * `setLogger()` made after the manager was built still reaches it. Lines
+   * are redacted like the pipeline's, since an SSO error message can carry
+   * a URL.
+   */
+  private get logger(): ILogger {
+    return redactingLogger(this.configuredLogger ?? getLogger());
+  }
+
   constructor(config: EsiTokenManagerConfig) {
     this.storage = config.storage ?? new MemoryTokenStorage();
     this.sso =
@@ -151,7 +166,7 @@ export class EsiTokenManager {
       });
     this.refreshSkewMs = config.refreshSkewMs ?? 60_000;
     this.autoRefresh = config.autoRefresh ?? true;
-    this.logger = config.logger ?? getLogger();
+    this.configuredLogger = config.logger;
     this.now = config.now ?? (() => Date.now());
     this.hooks = {
       onRefresh: config.onRefresh,

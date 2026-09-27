@@ -7,7 +7,7 @@ How a client gets an EVE SSO access token, keeps it fresh, and holds tokens for 
 Three rules hold for every path on this page:
 
 - The library attaches a token only to calls whose endpoint declares SSO scopes. A public call never carries your token, even when the client holds one.
-- A token never appears in clear text in a log line, an error message or a cache key (SEC-02). URLs are redacted in every error, and cache and deduplication keys hash the `Authorization` header.
+- A token never appears in clear text in a log line, an error message or a cache key (SEC-02). URLs are redacted in every error and every log line, and cache and deduplication keys hash the `Authorization` header.
 - Local development credentials come from the PKCE script into a git-ignored `.env`. They never appear in a committed file, fixture or example (SEC-08).
 
 ---

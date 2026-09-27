@@ -113,7 +113,6 @@
       "JumpFatigue",
       "KillmailId",
       "KillmailSummary",
-      "LogContext",
       "LogLevel",
       "LoyaltyPoints",
       "LoyaltyStoreOffer",
@@ -191,8 +190,7 @@
       "WalletTransaction",
       "War",
       "WarId",
-      "WithSafeMode",
-      "toPinoLogger"
+      "WithSafeMode"
     ],
     "./errors": ["ValidationDirection"],
     "./schemas": [
