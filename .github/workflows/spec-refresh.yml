@@ -68,10 +68,12 @@ jobs:
       # The generated types, cache TTLs, rate limit groups and scopes record
       # the date they came from, and generated-spec-date.test.ts fails when it
       # stops matching COMPATIBILITY_DATE. Regenerating them here keeps a date
-      # bump to one edit: change the constant, push to spec-refresh/**.
+      # bump to one edit: change the constant, push to spec-refresh/**. They
+      # are generated from the snapshot fetched above, not a second fetch, so
+      # everything this job commits comes from one document.
       - name: Regenerate types, cache TTLs, rate limit groups and scopes
         run: |
-          npm run generate:types
+          npm run generate:types -- --spec-file=tests/contract/snapshots/esi-openapi.snapshot.json
           npx prettier --write src/types/generated/ 'src/core/endpoints/esi-*.generated.ts'
 
       # Fixtures recorded under another date fail coverage.test.ts. Exit 1
