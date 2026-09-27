@@ -16,13 +16,13 @@ async function main() {
   const client = new EsiClient();
 
   try {
-    const { name } = await client.meta.getName();
-    console.log(`API: ${name}`);
+    const { current, history } = await client.meta.getName();
+    console.log(`API: ${current} (${history.length} earlier names)`);
 
     const { compatibility_dates: dates } =
       await client.meta.getCompatibilityDates();
     console.log(
-      `Compatibility dates: ${dates.length}, newest ${dates.at(-1) ?? 'none'}`,
+      `Compatibility dates: ${dates.length}, newest ${[...dates].sort().at(-1) ?? 'none'}`,
     );
 
     const changelog = await client.meta.getChangelog();
