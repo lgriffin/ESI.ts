@@ -98,6 +98,12 @@ export const TIERS: Tier[] = [
     stage: 'quick',
   },
   {
+    script: 'charter:audit',
+    covers:
+      'CHARTER.md requirement blocks are EARS-compliant and Enforced rows name a mechanism',
+    stage: 'quick',
+  },
+  {
     script: 'validate:spec-consistency',
     covers: 'Rule titles agree with their schemas',
     stage: 'quick',

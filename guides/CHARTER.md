@@ -26,6 +26,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 - **2026-09-27, EARS governance.** Six decisions from the review of the specification's reach, taken by the maintainer on the recommendations recorded in the roadmap: exclusions are stated as unwanted-behaviour Rules (TEST-11, new); the charter itself is audited like a feature file (PROC-06, new); every public client method traces to a Rule (TEST-10, new, shared with Track S Run 4); `npm run ears` already runs in CI (`ears.yml`, on every pull request that touches `src/`, `tests/bdd/` or the EARS scripts; `bdd-tests` and `spec-audit` gate the same ground inside `ci-success`), and making it a required check is a branch-protection setting for the maintainer that would first need the workflow's path filters removed, so a documentation-only pull request is not blocked by a check that never ran; TEST-01 moves to Practised because its RED step is a workflow, not a check; TEST-07 gains the 11.0.0 mutation floors. Statuses that moved down did so with the reason in the row.
 
+- **2026-09-27, the charter audit.** `npm run charter:audit` holds every requirement block of this document to the rules `spec:audit` applies to a `Rule:` and fails an Enforced row that names no mechanism (PROC-06, Enforced). To pass it, twenty-three requirements that had stated two or three obligations were reworded to one `shall` each without changing what they require, three that said "it" now name the system, and DES-03, TEST-08 and GATE-03 name their mechanism in backticks.
+
 - **2026-09-27, the pull-request mutation gate.** The maintainer took `mutation-pr` out of `ci-success` and into its own workflow, `mutation-pr.yml`, so a pull request no longer waits up to 37 minutes for it: it still runs and reports on every pull request, the nightly still holds every floor, and ROADMAP.md's release gate carries the row that puts it back before 11.0.0 ships. GATE-01 needs 23 jobs; TEST-07 stays Enforced on the nightly.
 
 - **2026-09-27, logging at the boundary (Phase 4 items 1 and 2).** ARCH-09 moves from Partial to Enforced: every call site logs through the per-client logger, and a `no-restricted-imports` block in `npm run lint` and `lint:layers` keeps the global `loggerUtil` out of `src/core/requestPipeline/` and `src/clients/` ([#265](https://github.com/lgriffin/ESI.ts/issues/265)). SEC-02 gains log lines to its evidence: URLs are redacted with `sanitizeUrl` at the logger boundary ([#296](https://github.com/lgriffin/ESI.ts/issues/296)). ARCH-06 stays a Gap until item 3.
@@ -195,7 +197,7 @@ The package **shall** publish a dual CJS and ESM build with declaration files fo
 
 #### ARCH-06 · Ubiquitous · Gap
 
-The package manifest **shall** declare `"sideEffects": false`, and no module in `src/` **shall** construct a logger, timer or network client at import time.
+The package **shall** declare `"sideEffects": false` in its manifest and construct no logger, timer or network client at import time in any module under `src/`.
 
 - **Why:** Six entry points are wasted if bundlers must assume side effects. Today `DefaultLogger.ts` and `logger.ts` each build a pino instance on import.
 - **Verified by:** To add: a knip or custom script asserting the flag, plus a bundle-size check on `import { EsiError } from '@lgriffin/esi.ts'`.
@@ -216,14 +218,14 @@ Every construction surface (`EsiClient`, `CustomEsiClient`, `EsiApiFactory`, and
 
 #### ARCH-09 · Ubiquitous · Enforced
 
-All pipeline logging **shall** go through the per-client logger with structured context, and the global logger **shall** exist only as a fallback for callers with no client handle.
+All pipeline logging **shall** go through the per-client logger with structured context, with the global logger existing only as a fallback for callers with no client handle.
 
 - **Why:** Per-client logging makes log lines attributable when several clients share a process.
 - **Verified by:** `npm run lint` and `npm run lint:layers` (`--no-inline-config`) forbid the global `loggerUtil` in `src/core/requestPipeline/` and `src/clients/` (`eslint.logger-imports.rules.cjs`, proved by `tests/tdd/layers/logger-imports-lint.test.ts`, [#265](https://github.com/lgriffin/ESI.ts/issues/265)). The rate limiter, the ETag cache's startup line, `EsiClient.batch` and the token manager's fallback are covered by `tests/tdd/core/loggerThreading.test.ts` ([#296](https://github.com/lgriffin/ESI.ts/issues/296)). The global logger serves only the standalone batch exports and `EsiTokenManager`, which hold no client.
 
 #### ARCH-10 · Ubiquitous · Enforced
 
-`src/sde` **shall** import only Node built-ins, its own files, its peer packages (`zod`, `js-yaml`, `adm-zip`, `better-sqlite3`) and `src/core/ports`, no file under `src/` outside `src/sde` **shall** import it, and the `./sde/memory` bundle **shall** contain no file-system, YAML, ZIP or SQLite code.
+`src/sde` **shall** import only Node built-ins, its own files, its peer packages (`zod`, `js-yaml`, `adm-zip`, `better-sqlite3`) and `src/core/ports`, be imported by no file under `src/` outside `src/sde`, and keep the `./sde/memory` bundle free of file-system, YAML, ZIP or SQLite code.
 
 - **Why:** The SDE is a side module: an offline lookup layer that enriches ESI responses without a consumer in the pipeline. Holding the boundary in both directions keeps the SDE free to change without a release of the client, and keeps the client free of the SDE's optional peers. A bridge between the two was considered on 2026-09-27 and cut; if one is ever wanted it is a separate package above both, so nothing here is added for it.
 - **Verified by:** `npm run lint:layers` (the `sde` and `sideModule` messages of `layers/inward-imports`, covered in both directions by `tests/tdd/layers/layers-lint.test.ts`) and `tests/tdd/sde/memory-entry-bundle.test.ts`, which bundles `src/sde/memory.ts` and the built `dist/sde/memory.{mjs,js}` and fails on `node:fs`, `js-yaml`, `adm-zip` or `better-sqlite3`.
@@ -264,7 +266,7 @@ When an endpoint is added to a definition map, the library **shall** ship a `res
 Files ending in `.generated.ts`, the `okf/` bundle and `etc/esi.ts.api.md` **shall** be regenerated by their script and never edited by hand.
 
 - **Why:** A hand edit is overwritten on the next run and hides the real spec change.
-- **Verified by:** CI freshness diff for generated types; API surface job for the report; Prettier ignore rules.
+- **Verified by:** the generated-types freshness diff (`npm run generate:types` then `git diff --exit-code`) in `ci.yml`; the `api-surface` job for the report; `.prettierignore`.
 
 #### DES-04 · Ubiquitous · Enforced
 
@@ -275,14 +277,14 @@ An endpoint definition **shall** declare `requiresAuth: true` if and only if the
 
 #### DES-05 · Event-driven · Practised
 
-When an endpoint is deprecated upstream, the definition **shall** carry `DeprecationInfo` with a replacement and sunset date, and the client **shall** log a warning on every call to it.
+When an endpoint is deprecated upstream, the client **shall** carry `DeprecationInfo` with a replacement and sunset date on the endpoint's definition and log a warning on every call to it.
 
 - **Why:** Deprecation is a first-class field, not a comment. Consumers get a log line before the endpoint vanishes. The warning is not memoised (`createClient.ts`), so a hot loop logs on each call; revision 1 said "once", which was never true.
 - **Verified by:** Nightly spec drift files an issue; code review adds the field.
 
 #### DES-06 · Ubiquitous · Practised
 
-Configuration and error objects **shall** be immutable after construction; merges **shall** copy rather than mutate.
+Configuration and error objects **shall** be immutable after construction, with merges copying rather than mutating.
 
 - **Why:** `readonly` fields on every error and every strategy config; copy-on-write interceptor lists. Bucket and circuit records are the intentional exception because they are counters.
 - **Verified by:** TypeScript `readonly`; code review.
@@ -296,7 +298,7 @@ The compiler **shall** run with `strict`, `noUncheckedIndexedAccess`, `noImplici
 
 #### DES-08 · Ubiquitous · Partial
 
-Pagination helpers **shall** propagate the caller's HTTP method into the retry context and **shall** surface partial results as an error rather than a silent truncation.
+Pagination helpers **shall** propagate the caller's HTTP method into the retry context and surface partial results as an error rather than a silent truncation.
 
 - **Why:** A helper that retries a mutation, or returns a short list as if it were complete, surprises the consumer. The retry method and the cursor `fetchAll` meet it; the eager 1000-page cap still ends with a log line, not an error ([PAGINATION.md](PAGINATION.md#known-gaps)).
 - **Verified by:** `tests/bdd/features/core/0051-resilience.feature` (a streamed POST answered with 503 is sent once; three failed cursor pages reject).
@@ -347,7 +349,7 @@ Each `Rule:` block **shall** state exactly one requirement with one _shall_, nam
 
 #### TEST-03 · Ubiquitous · Enforced
 
-Scenario steps **shall** mock at the transport seam with `jest-fetch-mock` and **shall not** spy on the client method under test.
+Scenario steps **shall** mock at the transport seam with `jest-fetch-mock` rather than spying on the client method under test.
 
 - **Why:** Spying on the method makes the pipeline invisible to the test. Reference implementations: `etag-caching.steps.ts`, `resilience.steps.ts`.
 - **Verified by:** `npm run lint:bdd-seam` (`eslint.bdd-seam.config.mjs`) on every push (`ci-fast.yml`) and PR (`ci.yml`).
@@ -375,7 +377,7 @@ The consumer-facing type surface **shall** be asserted by tsd tests covering end
 
 #### TEST-07 · Ubiquitous · Enforced
 
-Mutation testing **shall** hold each directory at or above its floor in `mutation-thresholds.json` (unit) and `mutation-bdd-thresholds.json` (BDD), and a PR touching mutated source **shall** run Stryker on the changed files.
+Mutation testing **shall** hold each directory at or above its floor in `mutation-thresholds.json` (unit) and `mutation-bdd-thresholds.json` (BDD), with a PR touching mutated source running Stryker on the changed files.
 
 - **Why:** Nightly-only mutation means a weak test lands before anyone sees the score. Per-directory floors replace the single score of 65, which let a strong directory hide a weak one. Incremental Stryker on changed files keeps the PR cost bounded.
 - **11.0.0 floors (decided 2026-09-27).** The ratchets only rise, and the release gate names where they must stand: every directory in `mutation-thresholds.json` at 60 or above, every directory in `mutation-bdd-thresholds.json` at 20 or above, and every SDE directory at 90 or with each survivor carrying an equivalence reason (Track S Run M). `src/schemas` is measured by the unit tier and `schema:drift` only: scenarios send valid ESI-shaped bodies through the transport seam, so a mutant that relaxes a field is invisible to them by design, and its BDD entry stays at 0 rather than pretending otherwise.
@@ -383,10 +385,10 @@ Mutation testing **shall** hold each directory at or above its floor in `mutatio
 
 #### TEST-08 · Optional · Enforced
 
-Where a test needs live ESI or a real token, it **shall** be gated behind `ESI_LIVE_TESTS` or `ESI_GATED_TESTS` and **shall** soft-skip when ESI returns 503.
+Where a test needs live ESI or a real token, the test **shall** be gated behind `ESI_LIVE_TESTS` or `ESI_GATED_TESTS` and soft-skip when ESI returns 503.
 
 - **Why:** Tranquility downtime must not fail a PR that changed nothing about networking.
-- **Verified by:** Jest configs and the 503 skip in CI jobs.
+- **Verified by:** `jest.integration.live.config.cjs` and `jest.contract.live.config.cjs` refuse to run without `ESI_LIVE_TESTS`; `tests/integration/gated-auth.test.ts` reads `ESI_GATED_TESTS`; the 503 soft-skip sits in the CI jobs that run those tiers.
 
 #### TEST-09 · Ubiquitous · Partial
 
@@ -397,7 +399,7 @@ Test source under `tests/` **shall** be linted with the same ESLint configuratio
 
 #### TEST-10 · Ubiquitous · Gap
 
-Every public method of a domain client and of `IStaticDataProvider` **shall** be named by at least one `Rule:` block or bound step, and the list of methods without one **shall** only shrink.
+Every public method of a domain client and of `IStaticDataProvider` **shall** be named by at least one `Rule:` block or bound step, with the list of methods without one only ever shrinking.
 
 - **Why:** The audit proves every Rule has a scenario, but nothing proves every behaviour has a Rule. Two hundred and thirty-five wired endpoints and ninety-nine provider methods can each lose their specification without a check noticing. A shrink-only baseline turns "specified" into a number that cannot go down.
 - **Verified by:** To add. Track S Run 4 writes `scripts/sde-spec-coverage.ts` for the provider (moves this row to Partial); ROADMAP Phase 5 item 8 extends it to `src/clients/**` with `scripts/client-spec-coverage-baseline.json` (moves it to Enforced), both in `check:all` and `ci.yml`'s `spec-audit` job.
@@ -460,7 +462,7 @@ Every push on every branch **shall** run lint, format check, build, typecheck an
 A change to the public API surface **shall** be visible as a diff to `etc/esi.ts.api.md` in the same pull request.
 
 - **Why:** This is the breaking-change tripwire. Reviewers see the exported shape change, not just the implementation.
-- **Verified by:** API Surface Check job, CRLF-normalised diff against HEAD.
+- **Verified by:** the `api-surface` job ("API Surface Check") in `ci.yml`, a CRLF-normalised diff against HEAD.
 
 #### GATE-04 · Ubiquitous · Gap
 
@@ -478,7 +480,7 @@ Every nightly job that finds a problem **shall** file or update a labelled GitHu
 
 #### GATE-06 · Ubiquitous · Partial
 
-Every npm script referenced in a document **shall** exist in `package.json`, and every script in `package.json` **shall** resolve to an existing file.
+`package.json` **shall** hold every npm script a document references, each resolving to an existing file.
 
 - **Why:** A script that points at a missing file (`sde:seed`, fixed in [#274](https://github.com/lgriffin/ESI.ts/issues/274)) fails only when someone runs it. The second half is enforced; nothing yet checks that scripts named in documents exist.
 - **Verified by:** `tests/tdd/scripts/package-scripts.test.ts`, in `npm test`, for script targets. To add: the same check over `README.md` and `guides/`.
@@ -514,21 +516,21 @@ The library **shall** never write an access token to a log line, an error messag
 
 #### SEC-03 · Ubiquitous · Enforced
 
-Every GitHub Action **shall** be pinned to a full commit SHA with a version comment, and every workflow **shall** declare top-level read-only permissions with per-job escalation.
+Every GitHub Action **shall** be pinned to a full commit SHA with a version comment, inside a workflow that declares top-level read-only permissions with per-job escalation.
 
 - **Why:** Tag pinning is mutable. Scorecard scores both dimensions and zizmor enforces them.
 - **Verified by:** the zizmor job in `ci.yml` (config `.zizmor.yml`); `npm run lint:workflows` (`scripts/workflow-lint.ts`); weekly Scorecard; Dependabot keeps the SHAs current.
 
 #### SEC-04 · Ubiquitous · Enforced
 
-Published packages **shall** carry npm provenance, and release assets **shall** carry keyless cosign signatures and SHA-256 checksums minted in an isolated job.
+Published packages **shall** carry npm provenance, with release assets carrying keyless cosign signatures and SHA-256 checksums minted in an isolated job.
 
 - **Why:** A consumer can verify that the tarball came from this repository's workflow, not from a laptop.
 - **Verified by:** `release.yml`: `npm publish --provenance`, `sign-and-publish-assets` job.
 
 #### SEC-05 · Unwanted · Enforced
 
-If a dependency advisory is accepted rather than fixed, then the acceptance **shall** carry a reason and an expiry date, and an expired acceptance **shall** fail the release.
+If a dependency advisory is accepted rather than fixed, then the acceptance **shall** carry a reason and an expiry date, after which the release fails.
 
 - **Why:** Allowlists rot. An expiry forces the conversation again.
 - **Verified by:** `scripts/audit-check.ts` with `scripts/audit-exceptions.json`.
@@ -542,14 +544,14 @@ Each release **shall** publish a CycloneDX or SPDX SBOM as a signed release asse
 
 #### SEC-07 · Ubiquitous · Partial
 
-The repository **shall** carry a `CODEOWNERS` file, and branch protection on `master` **shall** apply to administrators.
+The repository **shall** carry a `CODEOWNERS` file and branch protection on `master` that applies to administrators.
 
 - **Why:** Both are Scorecard code-review inputs. A solo maintainer can still enforce "admins included" and own every path.
 - **Verified by:** `.github/CODEOWNERS` exists. Admin enforcement lives in GitHub settings and cannot be seen from the repository; record it in the ruleset bead `esi-8we` and in `guides/SECURITY.md`, which still calls it planned ([#270](https://github.com/lgriffin/ESI.ts/issues/270)).
 
 #### SEC-08 · Ubiquitous · Enforced
 
-Local credentials **shall** be minted by the PKCE script into a git-ignored `.env` and **shall** never appear in a committed file, fixture or example.
+Local credentials **shall** be minted by the PKCE script into a git-ignored `.env`, never appearing in a committed file, fixture or example.
 
 - **Why:** The example file is the only one that belongs in git.
 - **Verified by:** `.gitignore`; `scripts/create-token.ts`; consider a secret-scanning pre-commit hook.
@@ -633,14 +635,14 @@ etc/doc-metrics.json            NEW: generated counts: clients, endpoints, rules
 
 #### DOC-01 · Ubiquitous · Gap
 
-Each documentation topic **shall** have exactly one canonical file under `guides/`, and every other mention **shall** link to it rather than restate it.
+Each documentation topic **shall** have exactly one canonical file under `guides/`, with every other mention linking to it rather than restating it.
 
 - **Why:** Four copies of the testing story drifted to two different tier numberings within a month.
 - **Verified by:** To add: a link-check script; the roadmap table above is the migration plan.
 
 #### DOC-02 · Ubiquitous · Enforced
 
-Generated API reference output **shall** be written to a git-ignored directory outside `docs/`, and no npm script **shall** delete a directory containing committed markdown.
+Generated API reference output **shall** be written to a git-ignored directory outside `docs/`, with no npm script deleting a directory containing committed markdown.
 
 - **Why:** The previous configuration wiped five committed files on every `npm run docs`.
 - **Verified by:** `typedoc.json` `out: docs-site/public/api`; `clean` and `clean:docs` scripts updated; `.gitignore` entry.
@@ -661,7 +663,7 @@ Counts quoted in documentation (clients, endpoints, requirements, scenarios, tes
 
 #### DOC-05 · Ubiquitous · Partial
 
-Every guide **shall** open with the charter requirement identifiers it implements and **shall** be reachable from the README within one link.
+Every guide **shall** open with the charter requirement identifiers it implements and be reachable from the README within one link.
 
 - **Why:** Traceability both ways: from a rule to how it is met, and from a reader's landing page to the depth. Ten of seventeen guides carry an `Implements:` line (TESTING, BEADS, DOCUMENTATION, RUNTIME-VALIDATION, AUDIT, MUTATION-TESTING and CHARTER do not), and every guide except `AUDIT.md` is linked from the README.
 - **Verified by:** To add: link-check script asserting each `guides/*.md` is linked from README and carries an `Implements:` line.
@@ -709,14 +711,14 @@ If a version is bumped but not published, then the changelog **shall** record it
 
 #### REL-05 · Ubiquitous · Gap
 
-From 11.0.0 the package **shall** support Node 22 or newer and **shall** be tested on every supported Node line before merge.
+From 11.0.0 the package **shall** support Node 22 or newer, tested on every supported Node line before merge.
 
 - **Why:** Node 18 and 20 have reached end of life (20 in April 2026). Raising the floor is a major version and needs a `feat!:` commit with a `BREAKING CHANGE:` footer, not a silent engines bump; decided for 11.0.0 on 2026-09-26.
 - **Verified by:** Today `engines` says `>=18.0.0`, unit tests run on 18/20/22 and the consumer contract on 18/20/22/24 (`ci.yml`). Moves to Enforced when the 11.0.0 engines bump and the matching CI matrix land.
 
 #### REL-06 · Unwanted · Partial
 
-If a change can make code that works against the previous release fail to compile, throw, or return a different result, then the commit that introduces it **shall** be marked breaking (`type!:` and a `BREAKING CHANGE:` footer with the migration), and anything it removes **shall** have been deprecated in an earlier minor release unless ESI has already removed it.
+If a change can make code that works against the previous release fail to compile, throw, or return a different result, then the commit introducing that change **shall** be marked breaking (`type!:` and a `BREAKING CHANGE:` footer with the migration), with anything the change removes deprecated in an earlier minor release unless ESI has already removed it.
 
 - **Why:** `^9.x` in a consumer's manifest installs every minor and patch automatically. A break released as a minor breaks those installs silently.
 - **Verified by:** `guides/SEMVER.md` classification and the Reviewer Checklist; the `api-semver` job in `ci.yml` (`npm run api-report:semver`) for the root entry point's type surface. Runtime behaviour, schema tightening, sub-path exports and required members on implemented interfaces are review-only.
@@ -736,7 +738,7 @@ All task tracking **shall** live in the Beads tracker (`bd`), with `.beads/issue
 
 #### PROC-02 · State-driven · Practised
 
-While an agent operates under the default conservative profile, it **shall not** commit, push or sync the tracker without an explicit instruction.
+While an agent operates under the default conservative profile, the agent **shall not** commit, push or sync the tracker without an explicit instruction.
 
 - **Why:** Autonomy is earned per session. The handoff reports changed files and proposed commands instead.
 - **Verified by:** AGENTS.md and CLAUDE.md managed blocks.
@@ -746,7 +748,7 @@ While an agent operates under the default conservative profile, it **shall not**
 `master` **shall** accept changes only through a pull request that is up to date with the base and passes the `ci-success` and Lint, Build & Test checks.
 
 - **Why:** Recorded in bead `esi-8we`. Force-push is disabled.
-- **Verified by:** GitHub branch protection.
+- **Verified by:** GitHub `branch protection` on `master`, a repository setting.
 
 #### PROC-04 · Ubiquitous · Partial
 
@@ -762,12 +764,12 @@ Agent instruction files (`AGENTS.md`, `CLAUDE.md`) **shall** contain pointers to
 - **Why:** The Beads quick reference still appears three times in `AGENTS.md` and once in `CLAUDE.md`. Pointers cannot drift. The persona files are gone from the repository root.
 - **Verified by:** Roadmap item for BEADS.md; a line-count ceiling on the managed blocks.
 
-#### PROC-06 · Ubiquitous · Gap
+#### PROC-06 · Ubiquitous · Enforced
 
-Every requirement block in this charter **shall** satisfy the rules `spec:audit` applies to a `Rule:` block (one _shall_, a named system, one of the five patterns, no vague language) and, when its status is Enforced, **shall** name the script or job that proves it.
+Every requirement block in this charter **shall** satisfy the rules `spec:audit` applies to a `Rule:` block (one _shall_, a named system, one of the five patterns, no vague language) and, when its status is Enforced, name the script or job that proves it.
 
-- **Why:** The charter claims to be auditable the way the specification is, and today it is EARS by convention only. A row can say Enforced with a "Verified by" that names nothing, and nobody is told.
-- **Verified by:** To add, ROADMAP Phase 5 item 7: `scripts/charter-audit.ts` parses the `####` blocks with the spec-audit rules plus the "Verified by" check, runs in `check:all` and `ci.yml`'s `spec-audit` job.
+- **Why:** The charter claims to be auditable the way the specification is. Before the audit it was EARS by convention only: a row could say Enforced with a "Verified by" that named nothing, and nobody was told.
+- **Verified by:** `npm run charter:audit` (`scripts/charter-audit.ts`; the checks in `scripts/charter-audit-core.ts`, tested by `tests/tdd/scripts/charter-audit.test.ts`) parses every `####` block with the spec-audit rules and fails an Enforced row that names no script, job or file that exists. Runs in `check:all`, `scripts/verify-local-core.ts` and `ci.yml`'s `spec-audit` job.
 
 ---
 
@@ -809,7 +811,7 @@ Everything found during the survey, and since, that contradicts a requirement ab
 | 30  | HIGH | Releases need a manual dispatch of `release.yml`, and CI on the release-please PR waits for manual approval                     | REL-02                    | A GitHub App token for release-please; waiting on the maintainer to create it                                                                                                     | —            | [#378](https://github.com/lgriffin/ESI.ts/issues/378), [#383](https://github.com/lgriffin/ESI.ts/issues/383) |
 | 31  | MED  | No check that every public client method or provider method has a Rule                                                          | TEST-10                   | Shrink-only method coverage baselines: Track S Run 4 (provider), Phase 5 item 8 (clients)                                                                                         | —            | —                                                                                                            |
 | 32  | LOW  | Exclusions (what the client ignores) stated in prose, not as executable unwanted-behaviour Rules; one such Rule exists          | TEST-11                   | Register **done**: `ears` lists the `shall not` Rules; exclusions written as Rules as each phase touches its area                                                                 | —            | —                                                                                                            |
-| 33  | LOW  | The charter is EARS by convention; no audit parses its requirement blocks or checks Enforced rows name a mechanism              | PROC-06                   | Phase 5 item 7: `scripts/charter-audit.ts`                                                                                                                                        | —            | —                                                                                                            |
+| 33  | LOW  | The charter is EARS by convention; no audit parses its requirement blocks or checks Enforced rows name a mechanism              | PROC-06                   | **Done**: `npm run charter:audit` (Phase 5 item 7)                                                                                                                                | —            | —                                                                                                            |
 
 ---
 
