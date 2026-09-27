@@ -5,9 +5,9 @@
     "method": "getKillmail",
     "args": [90762794, "c5b20a0cd4dd491639c95eb0ddbb60b534e98150"]
   },
-  "recordedAt": "2026-09-17",
-  "compatibilityDate": "2026-05-19",
-  "specHash": "sha256:8266ae85442d9cac8a6f1e941b8bec53e4edd2e150ca9cddd089feb9ce14da6c",
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
   "specCacheSeconds": 2592000,
   "upstreamPages": 1,
   "truncated": [
@@ -34,8 +34,8 @@
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
         "etag": "\"54e88b5a8dbe9bbe654c4ebff529f30d2f2cb3ae15c7d9d616f8348e\"",
-        "expires": "Sat, 17 Oct 2026 14:13:16 GMT",
-        "last-modified": "Thu, 17 Sep 2026 14:13:16 GMT"
+        "expires": "Mon, 26 Oct 2026 11:43:36 GMT",
+        "last-modified": "Sat, 26 Sep 2026 11:43:36 GMT"
       },
       "body": {
         "attackers": [

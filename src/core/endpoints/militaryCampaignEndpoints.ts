@@ -1,9 +1,11 @@
-import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
 import {
   MilitaryCampaignSchema,
+  MilitaryCampaignsResponseSchema,
   MilitaryCampaignObjectiveSchema,
+  MilitaryCampaignObjectivesResponseSchema,
   CharacterMilitaryCampaignObjectiveSchema,
+  CharacterMilitaryCampaignObjectivesResponseSchema,
 } from '../../schemas/military-campaigns';
 
 export const militaryCampaignEndpoints = {
@@ -11,7 +13,7 @@ export const militaryCampaignEndpoints = {
     path: 'military-campaigns',
     method: 'GET',
     requiresAuth: false,
-    responseSchema: z.array(MilitaryCampaignSchema),
+    responseSchema: MilitaryCampaignsResponseSchema,
   },
   getMilitaryCampaign: {
     path: 'military-campaigns/{campaignId}',
@@ -25,7 +27,8 @@ export const militaryCampaignEndpoints = {
     method: 'GET',
     requiresAuth: false,
     pathParams: ['campaignId'],
-    responseSchema: z.array(MilitaryCampaignObjectiveSchema),
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
+    responseSchema: MilitaryCampaignObjectivesResponseSchema,
   },
   getMilitaryCampaignObjective: {
     path: 'military-campaigns/{campaignId}/objectives/{objectiveId}',
@@ -39,7 +42,8 @@ export const militaryCampaignEndpoints = {
     method: 'GET',
     requiresAuth: true,
     pathParams: ['characterId'],
-    responseSchema: z.array(CharacterMilitaryCampaignObjectiveSchema),
+    queryParams: { after: 'after', before: 'before', limit: 'limit' },
+    responseSchema: CharacterMilitaryCampaignObjectivesResponseSchema,
   },
   getCharacterMilitaryCampaignObjective: {
     path: 'characters/{characterId}/military-campaigns/objectives/{objectiveId}',

@@ -1,0 +1,50 @@
+{
+  "endpoint": "meta.getName",
+  "call": {
+    "client": "meta",
+    "method": "getName",
+    "args": []
+  },
+  "recordedAt": "2026-09-27",
+  "compatibilityDate": "2026-08-18",
+  "specHash": "sha256:9a9a0f4af77216300e960cfd2576c9baac085a8170022e40c928c28622d80fc6",
+  "specCacheSeconds": 600,
+  "upstreamPages": 1,
+  "truncated": [
+    {
+      "page": 1,
+      "at": "$.history",
+      "kind": "array",
+      "original": 21,
+      "kept": 3
+    }
+  ],
+  "pages": [
+    {
+      "url": "meta/name",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=600",
+        "content-type": "application/json",
+        "expires": "Sun, 27 Sep 2026 04:35:36 GMT"
+      },
+      "body": {
+        "current": "EVE SKINR Ingenuity (ESI)",
+        "history": [
+          {
+            "date": "2026-08-18",
+            "name": "EVE SKINR Ingenuity (ESI)"
+          },
+          {
+            "date": "2026-08-04",
+            "name": "EVE Soldier Inspiration (ESI)"
+          },
+          {
+            "date": "2026-07-21",
+            "name": "EVE Swatch Illustrators (ESI)"
+          }
+        ]
+      }
+    }
+  ]
+}

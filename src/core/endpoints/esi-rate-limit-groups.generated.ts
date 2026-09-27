@@ -1,6 +1,6 @@
 // Auto-generated from ESI OpenAPI spec — do not edit manually
-// Compatibility date: 2026-05-19
-// Endpoints with rate limit groups: 156
+// Compatibility date: 2026-08-18
+// Endpoints with rate limit groups: 171
 
 export interface RateLimitGroupSpec {
   group: string;
@@ -32,6 +32,8 @@ export const esiRateLimitGroups: Record<string, RateLimitGroupSpec> = {
   'GET:characters/{character_id}/contracts': { group: 'char-contract', maxTokens: 600, windowSizeMs: 900000 },
   'GET:characters/{character_id}/contracts/{contract_id}/bids': { group: 'char-contract', maxTokens: 600, windowSizeMs: 900000 },
   'GET:characters/{character_id}/contracts/{contract_id}/items': { group: 'char-contract', maxTokens: 600, windowSizeMs: 900000 },
+  'GET:characters/{character_id}/cosmetics/skinr': { group: 'char-skinr', maxTokens: 30, windowSizeMs: 900000 },
+  'GET:characters/{character_id}/cosmetics/skinr/components': { group: 'char-skinr', maxTokens: 30, windowSizeMs: 900000 },
   'POST:characters/{character_id}/cspa': { group: 'char-detail', maxTokens: 600, windowSizeMs: 900000 },
   'GET:characters/{character_id}/fatigue': { group: 'char-location', maxTokens: 1200, windowSizeMs: 900000 },
   'GET:characters/{character_id}/fittings': { group: 'fitting', maxTokens: 150, windowSizeMs: 900000 },
@@ -58,10 +60,13 @@ export const esiRateLimitGroups: Record<string, RateLimitGroupSpec> = {
   'GET:characters/{character_id}/medals': { group: 'char-detail', maxTokens: 600, windowSizeMs: 900000 },
   'GET:characters/{character_id}/mercenary-tactical-operations': { group: 'char-activity', maxTokens: 150, windowSizeMs: 900000 },
   'GET:characters/{character_id}/mercenary-tactical-operations/{operation_id}': { group: 'char-activity', maxTokens: 150, windowSizeMs: 900000 },
+  'GET:characters/{character_id}/military-campaigns/objectives': { group: 'char-military-campaign', maxTokens: 150, windowSizeMs: 900000 },
+  'GET:characters/{character_id}/military-campaigns/objectives/{objective_id}': { group: 'char-military-campaign', maxTokens: 150, windowSizeMs: 900000 },
   'GET:characters/{character_id}/mining': { group: 'char-industry', maxTokens: 600, windowSizeMs: 900000 },
   'GET:characters/{character_id}/notifications': { group: 'char-notification', maxTokens: 15, windowSizeMs: 900000 },
   'GET:characters/{character_id}/notifications/contacts': { group: 'char-social', maxTokens: 600, windowSizeMs: 900000 },
   'GET:characters/{character_id}/online': { group: 'char-location', maxTokens: 1200, windowSizeMs: 900000 },
+  'GET:characters/{character_id}/paragon-hub/skinr': { group: 'char-paragon-hub', maxTokens: 150, windowSizeMs: 900000 },
   'GET:characters/{character_id}/planets': { group: 'char-industry', maxTokens: 600, windowSizeMs: 900000 },
   'GET:characters/{character_id}/planets/{planet_id}': { group: 'char-industry', maxTokens: 600, windowSizeMs: 900000 },
   'GET:characters/{character_id}/portrait': { group: 'char-detail', maxTokens: 600, windowSizeMs: 900000 },
@@ -122,6 +127,7 @@ export const esiRateLimitGroups: Record<string, RateLimitGroupSpec> = {
   'GET:corporations/{corporation_id}/wallets': { group: 'corp-wallet', maxTokens: 300, windowSizeMs: 900000 },
   'GET:corporations/{corporation_id}/wallets/{division}/journal': { group: 'corp-wallet', maxTokens: 300, windowSizeMs: 900000 },
   'GET:corporations/{corporation_id}/wallets/{division}/transactions': { group: 'corp-wallet', maxTokens: 300, windowSizeMs: 900000 },
+  'GET:cosmetics/skinr/{skinr_id}': { group: 'skinr', maxTokens: 12000, windowSizeMs: 900000 },
   'GET:fleets/{fleet_id}': { group: 'fleet', maxTokens: 1800, windowSizeMs: 900000 },
   'PUT:fleets/{fleet_id}': { group: 'fleet', maxTokens: 1800, windowSizeMs: 900000 },
   'GET:fleets/{fleet_id}/members': { group: 'fleet', maxTokens: 1800, windowSizeMs: 900000 },
@@ -151,7 +157,16 @@ export const esiRateLimitGroups: Record<string, RateLimitGroupSpec> = {
   'GET:markets/{region_id}/orders': { group: 'market-order', maxTokens: 12000, windowSizeMs: 900000 },
   'GET:meta/changelog': { group: 'meta', maxTokens: 150, windowSizeMs: 900000 },
   'GET:meta/compatibility-dates': { group: 'meta', maxTokens: 150, windowSizeMs: 900000 },
+  'GET:meta/name': { group: 'meta', maxTokens: 150, windowSizeMs: 900000 },
   'GET:meta/status': { group: 'meta', maxTokens: 150, windowSizeMs: 900000 },
+  'GET:military-campaigns': { group: 'military-campaign', maxTokens: 300, windowSizeMs: 900000 },
+  'GET:military-campaigns/{campaign_id}': { group: 'military-campaign', maxTokens: 300, windowSizeMs: 900000 },
+  'GET:military-campaigns/{campaign_id}/objectives': { group: 'military-campaign', maxTokens: 300, windowSizeMs: 900000 },
+  'GET:military-campaigns/{campaign_id}/objectives/{objective_id}': { group: 'military-campaign', maxTokens: 300, windowSizeMs: 900000 },
+  'GET:paragon-hub/skinr': { group: 'paragon-hub', maxTokens: 150, windowSizeMs: 900000 },
+  'GET:paragon-hub/skinr/alliances/{alliance_id}': { group: 'char-paragon-hub', maxTokens: 150, windowSizeMs: 900000 },
+  'GET:paragon-hub/skinr/characters/{character_id}': { group: 'char-paragon-hub', maxTokens: 150, windowSizeMs: 900000 },
+  'GET:paragon-hub/skinr/corporations/{corporation_id}': { group: 'char-paragon-hub', maxTokens: 150, windowSizeMs: 900000 },
   'POST:route/{origin_system_id}/{destination_system_id}': { group: 'routes', maxTokens: 3600, windowSizeMs: 900000 },
   'GET:skyhooks/raidable': { group: 'activity', maxTokens: 30, windowSizeMs: 900000 },
   'GET:sovereignty/campaigns': { group: 'sovereignty', maxTokens: 600, windowSizeMs: 900000 },

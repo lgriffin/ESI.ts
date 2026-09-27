@@ -10,6 +10,7 @@ import { IDeduplicator } from './IDeduplicator';
 import { IRetryStrategy } from './IRetryStrategy';
 import { RetryConfig } from './util/retry';
 import type { ILogger } from './logger/ILogger';
+import { validateHeaderOption } from './util/validation';
 
 export type EsiDatasource = 'tranquility' | 'singularity';
 
@@ -35,6 +36,8 @@ export class ApiClient {
   private validateResponse: boolean = true;
   private validateRequest: boolean = false;
   private language?: string;
+  private tenant?: string;
+  private userAgent?: string;
   private compatibilityDate?: string;
   private fetchFn: FetchLike | null = null;
   private logger: ILogger | null = null;
@@ -165,6 +168,30 @@ export class ApiClient {
 
   setLanguage(language: string | undefined): void {
     this.language = language;
+  }
+
+  /** The `X-Tenant` every request names, or undefined for ESI's default. */
+  getTenant(): string | undefined {
+    return this.tenant;
+  }
+
+  /** @throws VALIDATION_ERROR when the value is not printable ASCII. */
+  setTenant(tenant: string | undefined): void {
+    this.tenant =
+      tenant === undefined ? undefined : validateHeaderOption('tenant', tenant);
+  }
+
+  /** The application's own user agent, sent ahead of the library's. */
+  getUserAgent(): string | undefined {
+    return this.userAgent;
+  }
+
+  /** @throws VALIDATION_ERROR when the value is not printable ASCII. */
+  setUserAgent(userAgent: string | undefined): void {
+    this.userAgent =
+      userAgent === undefined
+        ? undefined
+        : validateHeaderOption('userAgent', userAgent);
   }
 
   getCompatibilityDate(): string | undefined {

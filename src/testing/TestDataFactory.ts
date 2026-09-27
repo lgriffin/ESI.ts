@@ -784,12 +784,12 @@ export class TestDataFactory {
     overrides: Partial<RaidableSkyhook> = {},
   ): RaidableSkyhook {
     return {
-      structure_id: 200000001,
-      system_id: 30000142,
-      corporation_id: 98000002,
-      alliance_id: 99000006,
-      raidable_at: '2026-05-20T12:00:00Z',
-      is_raidable: true,
+      planet_id: 40229601,
+      solar_system_id: 30003618,
+      theft_vulnerability: {
+        start: '2026-09-17T12:14:02Z',
+        end: '2026-09-17T14:14:02Z',
+      },
       ...overrides,
     };
   }
