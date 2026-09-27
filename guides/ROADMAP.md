@@ -1,0 +1,361 @@
+# Road to 11.0.0
+
+**Package:** `@lgriffin/esi.ts` · **Plan revision:** 1 (2026-09-27, measured at v10.2.3, master `519c945`) · **Status:** adopted
+
+The schedule for the next major. [CHARTER.md](CHARTER.md) says what the project holds itself to; this document says in what order the remaining work lands, what each phase must prove before it is called done, and what has to be true before the 11.0.0 release pull request merges. It is written so that a fresh session can pick up any phase from this file alone, without the conversations that produced it.
+
+Precedence: the running code and CI are the fact, the charter is the intent, this roadmap is the order. When this file and a workflow disagree, fix the file in the same pull request.
+
+## How to read this
+
+- A **phase** is a unit of the release: Phases 0 to 7 in the order the plan set on 2026-09-26, plus Track S, the SDE programme, which runs alongside them on its own cadence.
+- Every phase has a **scope** (what is in and what is not), an **order** (the pull requests it lands, each mergeable on its own), a **definition of done** that a reviewer can check from CI and the repository rather than from memory, and the **tracking** that already exists for it. GitHub issues carry `release::11.0` and one `phase::*` label (Phases 0 and 1 closed before the labels existed); beads mirror them.
+- **Done** and **Open** rows cite evidence: a merged pull request, a file, a check name. A row with no evidence is a claim to verify before relying on it.
+- The work follows the rules every other change follows: [SEMVER.md](SEMVER.md) before every commit, the `ears-gherkin-dev` skill for every behaviour change, one concern per pull request, no floor lowered, nothing lands on `master` except through a pull request that passes `ci-success`.
+
+## Where 11.0.0 stands
+
+- **The release pull request is already open.** release-please opened [#405](https://github.com/lgriffin/ESI.ts/pull/405) (`chore(master): release 11.0.0`) on 2026-09-26 because four breaking `fix(schemas)!:` and `fix(core)!:` commits (the 2026-08-18 compatibility date and the schemas it needed) are on master. It stays open and keeps accumulating until the release gate at the end of this document is met. Merging it earlier ships 11.0.0 without the Node 22 floor, the new client, or the SDE work; that decision belongs to the maintainer, not to a session.
+- **Decisions recorded** (CHARTER, 2026-09-26): the target is 11.0.0, not 1.0.0; Node 22 becomes the floor as a declared breaking change (REL-05); pino and zod stay runtime dependencies; Jest, npm, release-please and Dependabot stay the toolchain.
+- **Decided 2026-09-27:** no bridge between the core and the SDE inside this package. A `StaticDataResolver` port was considered and cut; an ESI-to-SDE shim, if it ever exists, is a separate package above both. Nothing in this repository is added for it.
+- **Release blockers outside the phases** (`phase::now`): [#383](https://github.com/lgriffin/ESI.ts/issues/383) and [#378](https://github.com/lgriffin/ESI.ts/issues/378), the release-please token problem. Every release reaches npm only if someone dispatches `release.yml` by hand. Leigh owns this; it needs a GitHub App token or `actions: write` in `release-please.yml`. Gap register row 30.
+
+## Phase map
+
+| Phase | Name                                  | Label                   | State       | Evidence                                                                                                                                                                                                                                                                          |
+| ----- | ------------------------------------- | ----------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Audit and generator decision          | —                       | Done        | [AUDIT.md](AUDIT.md), `docs/spikes/generator/`, [#404](https://github.com/lgriffin/ESI.ts/pull/404)                                                                                                                                                                               |
+| 1     | Generator                             | —                       | Done        | `src/generated/operations.generated.ts`, `spec:generate:check` and `spec:coverage` in CI, [#411](https://github.com/lgriffin/ESI.ts/pull/411)                                                                                                                                     |
+| 2     | Architecture lock                     | `phase::2-architecture` | In progress | PRs 4 to 10 merged; PRs 10b, 11 and 12 open (below)                                                                                                                                                                                                                               |
+| 3     | Types and errors                      | `phase::3-types`        | Open        | [#295](https://github.com/lgriffin/ESI.ts/issues/295), [#266](https://github.com/lgriffin/ESI.ts/issues/266), [#298](https://github.com/lgriffin/ESI.ts/issues/298)                                                                                                               |
+| 4     | Logging and import-time behaviour     | `phase::4-logging`      | Open        | [#296](https://github.com/lgriffin/ESI.ts/issues/296), [#268](https://github.com/lgriffin/ESI.ts/issues/268), [#265](https://github.com/lgriffin/ESI.ts/issues/265)                                                                                                               |
+| 5     | Testing and CI alignment              | `phase::5-testing`      | Open        | [#297](https://github.com/lgriffin/ESI.ts/issues/297), [#271](https://github.com/lgriffin/ESI.ts/issues/271), [#277](https://github.com/lgriffin/ESI.ts/issues/277), [#382](https://github.com/lgriffin/ESI.ts/issues/382), [#380](https://github.com/lgriffin/ESI.ts/issues/380) |
+| 6     | Security and supply chain             | `phase::6-security`     | Open        | [#239](https://github.com/lgriffin/ESI.ts/issues/239), [#270](https://github.com/lgriffin/ESI.ts/issues/270), [#256](https://github.com/lgriffin/ESI.ts/issues/256)                                                                                                               |
+| 7     | Release, Node 22 and the docs rewrite | `phase::7-release-docs` | Open        | [#264](https://github.com/lgriffin/ESI.ts/issues/264), [#272](https://github.com/lgriffin/ESI.ts/issues/272), [#273](https://github.com/lgriffin/ESI.ts/issues/273), [#278](https://github.com/lgriffin/ESI.ts/issues/278)                                                        |
+| S     | SDE programme (eleven runs)           | `phase::s-sde`          | Not started | This document, [Track S](#track-s--the-sde-programme)                                                                                                                                                                                                                             |
+
+Ordering between phases: 2 before 3 (the builder is what Phase 3 moves `ClientRegistry` behind); 3 before 4 (typed errors first, then the logger that reports them); 5 and 6 are independent of 3 and 4 and may interleave; 7 is last because it documents the finished API and carries the `feat!:` Node floor bump that turns the release pull request into the real 11.0.0. Track S has no dependency on Phases 2 to 7 and takes one night a week throughout.
+
+---
+
+## Phase 0 · Audit and generator decision · Done
+
+**Scope.** A measured snapshot of what is hand-written, what is generated, which ESI operations the client covers, and where each gate stands; a decision between an in-repo operation emitter and templating over `@hey-api/openapi-ts`.
+
+**Evidence.** [AUDIT.md](AUDIT.md) (code inventory, operation coverage, mutation baseline, plan gates, transport rules). `docs/spikes/generator/SPIKE.md` recommends the in-repo emitter; five spike operations compile under `strict`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess` and `isolatedDeclarations`.
+
+**Still owed by this phase:** nothing. The numbers in AUDIT.md are re-run, not edited, when a later phase changes them (the commands are listed with each table).
+
+## Phase 1 · Generator · Done
+
+**Scope.** One typed function and one `*Meta` constant per spec operation, emitted from the vendored OpenAPI document, checked in CI.
+
+**Evidence.** `npm run spec:generate` writes `src/generated/operations.generated.ts` (233 operations at compatibility date 2026-08-18). `spec:generate:check` fails when the file is stale; `spec:coverage` fails when a spec operation lacks exactly one Meta. `spec-refresh.yml` re-vendors the snapshot on a GitHub runner. Merged in [#411](https://github.com/lgriffin/ESI.ts/pull/411), [#412](https://github.com/lgriffin/ESI.ts/pull/412).
+
+## Phase 2 · Architecture lock · In progress
+
+**Scope.** The seams the new client stands on: ports, the generated operations wired to the request pipeline, the layer rule, a scope tree, and finally a builder that hands out a public view and per-identity views over one shared runtime. Nothing in this phase removes a legacy surface; `EsiClient`, `CustomEsiClient` and `EsiApiFactory` keep working unchanged, and the old and new trees are kept apart by `lint:layers`.
+
+**Landed** (each is a merged pull request on master):
+
+| PR  | What                                                                                                                                               | Merged                                                       |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 4   | `npm run lint:layers`: ports import nothing, generated code imports only ports, core imports nothing above it. Baseline of two files, shrink-only. | [#418](https://github.com/lgriffin/ESI.ts/pull/418)          |
+| 5   | The six ports in `src/core/ports/` (`CacheStore`, `Clock`, `HttpTransport`, `Logger`, `OperationTransport`, `TokenProvider`) and `systemClock`.    | [#421](https://github.com/lgriffin/ESI.ts/pull/421)          |
+| 6   | Per-client `tenant` (`X-Tenant`) and `userAgent` options, validated in the constructor and the setters.                                            | [#422](https://github.com/lgriffin/ESI.ts/pull/422)          |
+| 7   | `meta.getOpenApiYaml()` through the pipeline; `textResponse` endpoints; no direct `fetch` left in a client.                                        | [#439](https://github.com/lgriffin/ESI.ts/pull/439)          |
+| 8   | Dropped: the beta-route overlay is unnecessary since the 2026-08-18 spec carries every beta route.                                                 | noted in [#442](https://github.com/lgriffin/ESI.ts/pull/442) |
+| 9   | `src/adapters/PipelineTransport` implements `OperationTransport` over the existing pipeline; generated operations share budgets and cache.         | [#442](https://github.com/lgriffin/ESI.ts/pull/442)          |
+| 10  | `createScopeTree(transport)` and `PublicScopeTree`: operations arranged by path prefix (`tree.character(id).wallet.journal.get()`).                | [#445](https://github.com/lgriffin/ESI.ts/pull/445)          |
+
+**Remaining**, in order. Each is one pull request; the design is the one written for [#432](https://github.com/lgriffin/ESI.ts/issues/432) (shared runtime, `Identity`, cache keyed by character id).
+
+- **PR 10b · Cache and dedupe keyed by identity.** Today the ETag cache key hashes the bearer token, so a token refresh empties a character's cache. Key the cache and the in-flight deduplicator by a stable identity (character id where a token carries one, else the token hash), so ETags survive a refresh and two identities never share an entry. EARS rules in `tests/bdd/features/core/` under the caching feature; scenarios at the transport seam that refresh a token mid-sequence and assert a 304 hit. Behaviour-compatible for callers that never refresh; classify as `fix:` or `feat:` per SEMVER.md.
+- **PR 11 · The builder and the shared runtime.** A new entry (the plan calls it the builder; the sub-path name is the executor's call, recorded in the PR) that exports the ports and creates one runtime holding the rate limiter, error budget, cache and transport. `esi.public` (or the equivalent) is a `PublicScopeTree`: an authenticated operation on it does not compile (closes [#183](https://github.com/lgriffin/ESI.ts/issues/183)). `esi.as(identity)` returns an immutable view over the same runtime for one character, taking an identity from `EsiTokenManager`, a raw access token, or a custom `TokenProvider`. The builder refuses to construct without a user agent (decision (e) in [#422](https://github.com/lgriffin/ESI.ts/pull/422): the requirement applies to the new surface only). Ships `guides/MULTI-CHARACTER.md`, `examples/multi-character.ts` and `examples/public-vs-authenticated.ts` per [#432](https://github.com/lgriffin/ESI.ts/issues/432). `etc/esi.ts.api.md` grows; nothing is removed. `feat:`.
+- **PR 12 · Mock transport and quickstart.** `createMockTransport` (in `./testing`) implementing `HttpTransport` for consumers' tests, a quickstart in the README that runs an `as()` call against it, checked by `test:docs-examples`. `feat:`.
+
+**Definition of done.**
+
+- The three pull requests above are merged; [#183](https://github.com/lgriffin/ESI.ts/issues/183) and [#432](https://github.com/lgriffin/ESI.ts/issues/432) closed by them.
+- `tests/typetests/` has a test-d file for the new entry asserting that an authenticated operation on the public view is a type error and that `as()` returns a view with it.
+- `npm run test:consumer` exercises the new sub-path (the consumer contract fails on an unexercised `exports` entry, so this is automatic once the sub-path exists).
+- The CHARTER's Part 2 layer table gains a row for the new tree with status Enforced by `lint:layers`; ARCH-08 (construction parity) names the builder.
+- No entry is added to `BASELINE` in `eslint.layers.rules.cjs`.
+
+## Phase 3 · Types and errors · Open
+
+**Scope.** Everything a consumer sees in a type or a `catch` block. Three threads, all additive in a minor and completed in the major only where a removal is unavoidable and deprecated first.
+
+1. **Layer baseline to empty.** `src/core/ClientRegistry.ts` (imports every domain client) and `src/core/configureApiClient.ts` (imports `EsiClientConfig`) move out of core or the type moves in, and their `BASELINE` entries are deleted. `tests/tdd/layers/layers-lint.test.ts` fails if an entry stops violating the rule, so the deletion is forced. `refactor:`; API report unchanged.
+2. **Error fidelity** ([#295](https://github.com/lgriffin/ESI.ts/issues/295), [#266](https://github.com/lgriffin/ESI.ts/issues/266); ARCH-07). `EsiValidationError` is never retryable; network faults get a typed class instead of `EsiError` with status 0; safe mode and token refresh stop collapsing distinct failures into one type; `isCircuitOpen` is exported from `./errors`; string-typed plumbing errors become an `EsiConfigurationError` family. New classes extend the existing ones so `instanceof EsiError` keeps working: additive, `feat:`. Any change to what an existing class carries or when it is thrown is classified per SEMVER.md and, if breaking, held for the same `feat!:` commit as the Node floor.
+3. **`responseSchema` structural** ([#298](https://github.com/lgriffin/ESI.ts/issues/298); DES-02). Every endpoint definition that returns a body declares a schema. The generator (`scripts/spec-generate-core.ts`) or a test derived from it fails when a definition lacks one, so the rule is a check, not a review comment. Where a schema is added for a route that had none, response validation begins for that route: an additive tightening, documented in the changelog under Changed with the route names.
+4. **Compiler flags.** `exactOptionalPropertyTypes` and `isolatedDeclarations` are on for `src/` (the generated code already compiles under them; AUDIT.md records both off). Consumers are unaffected by the flags themselves; any type that changes shape as a result is classified.
+
+**Definition of done.** `BASELINE` is `{}`; the four ERRORS.md sections for the new classes exist with a scenario each in `tests/bdd/features/core/0051-resilience.feature` or the errors feature; `npm run ears` gives every new requirement a verdict; the `responseSchema` check runs in `ci.yml` `lint-and-build`; `tsconfig.json` carries both flags; `etc/esi.ts.api.md` regenerated and the `api-semver` job green with no undeclared loss; [#295](https://github.com/lgriffin/ESI.ts/issues/295), [#266](https://github.com/lgriffin/ESI.ts/issues/266), [#298](https://github.com/lgriffin/ESI.ts/issues/298) closed.
+
+## Phase 4 · Logging and import-time behaviour · Open
+
+**Scope.** What the package does before the first request and what it writes about each one.
+
+1. **Sanitise at the logger** ([#296](https://github.com/lgriffin/ESI.ts/issues/296); SEC-02, ARCH-09). Every log line that carries a URL passes through `sanitizeUrl` at the logger boundary, not at each call site; the call sites that bypass the per-client logger (`resolveLogger`) migrate to it. Verified by a scenario that logs a request carrying a token in the query and asserts the redacted form at the logger seam.
+2. **Lint gate** ([#265](https://github.com/lgriffin/ESI.ts/issues/265)). `npm run lint` forbids `loggerUtil` global imports inside `src/core/requestPipeline` (an ESLint `no-restricted-imports` block next to the layer rule, run with `--no-inline-config`).
+3. **Lazy logger and `sideEffects: false`** ([#268](https://github.com/lgriffin/ESI.ts/issues/268); ARCH-06). No pino instance is built at import time; `package.json` declares `"sideEffects": false`; `npm run size` budgets fall or hold, and a new test imports the root entry with pino mocked and asserts it was not constructed.
+
+**Definition of done.** The three issues closed; `.size-limit.cjs` budgets not raised for this phase; LOGGING.md's "call sites" section rewritten to say every site uses the per-client logger, with the lint named as the mechanism; CHARTER ARCH-06, ARCH-09 and SEC-02 at Enforced.
+
+## Phase 5 · Testing and CI alignment · Open
+
+**Scope.** The gates the charter promises exist in `ci.yml` and the nightlies, and the ones that flake are made deterministic.
+
+1. **CI matches the gate matrix** ([#297](https://github.com/lgriffin/ESI.ts/issues/297); GATE-01..06, REL-02). Release gate runs the validators the charter lists; never-run validators (`validate:spec`, `validate:versions` where they are missing) are wired or deleted; the dead docs job goes; the generated-freshness diff runs where Part 5 says. QUALITY-GATES.md's matrix is edited in the same pull request so the YAML and the table say the same thing.
+2. **Lint tests, block knip, incremental Stryker** ([#271](https://github.com/lgriffin/ESI.ts/issues/271); TEST-09, GATE-04, TEST-07). `npm run lint` covers `tests/`; knip blocks at release; the PR mutation gate stays (already done) and its stale-survivor reuse ([#380](https://github.com/lgriffin/ESI.ts/issues/380)) is fixed so a strengthened test can raise a floor from a pull request.
+3. **Nightlies file issues** ([#277](https://github.com/lgriffin/ESI.ts/issues/277); GATE-05). Mutation and Schemathesis open or comment on one fixed-title issue on failure and close it on the next green night, the pattern `nightly-spec-drift.yml` already uses.
+4. **Deterministic mutation** ([#382](https://github.com/lgriffin/ESI.ts/issues/382)). The 43 mutants that flip between nightlies on unchanged code move to fake timers; `detectedByEveryRun` is then no longer the only way to seed a floor.
+5. **Live health.** AUDIT.md's one "Not met" gate: a nightly smoke against Tranquility that calls one authenticated route with a maintained token, opening an issue on failure. Needs a repository secret; the executor writes the workflow and the maintainer adds the secret.
+
+**Definition of done.** Every row of QUALITY-GATES.md's matrix matches a job; GATE-01 to GATE-06 at Enforced in the CHARTER; the five issues closed; the AUDIT.md "Plan gates today" table re-run with Live health at Met.
+
+## Phase 6 · Security and supply chain · Open
+
+**Scope.** What the OpenSSF Scorecard measures and what the charter's SEC rows still call Partial.
+
+1. **Scorecard** ([#239](https://github.com/lgriffin/ESI.ts/issues/239) epic, [#243](https://github.com/lgriffin/ESI.ts/issues/243) Code-Review, [#246](https://github.com/lgriffin/ESI.ts/issues/246) Best Practices badge). The score and the date are recorded in the CHARTER's next revision.
+2. **Branch protection for administrators and the remaining SEC-07 item** ([#270](https://github.com/lgriffin/ESI.ts/issues/270)). Repository settings the maintainer changes; the executor verifies with the API and records the result.
+3. **Trusted publishing.** `publish-npm` moves from `NPM_TOKEN` to npm trusted publishing (OIDC), and the registries receive the tested tarball (`npm publish release-artifacts/<tarball> --provenance`) rather than a rebuild, closing the first item in RELEASE.md's Known state. Credentialed jobs: the maintainer approves the workflow change and configures npm.
+4. **Optional JWKS verification** ([#256](https://github.com/lgriffin/ESI.ts/issues/256)). Opt-in signature verification for SSO access tokens, additive, `feat:`. May slip past 11.0.0 without blocking it.
+
+**Definition of done.** SEC-04, SEC-06 and SEC-07 at Enforced; RELEASE.md Known state has no entry about a rebuilt tarball; the Scorecard number in the CHARTER header is newer than 2026-09-27.
+
+## Phase 7 · Release, Node 22 and the docs rewrite · Open
+
+**Scope.** The last phase, because it documents the finished API and carries the one commit that makes the release a major on purpose.
+
+1. **Node 22 floor** (REL-05, [#278](https://github.com/lgriffin/ESI.ts/issues/278)). `engines.node` to `>=22.0.0`, `.nvmrc` to 22, the unit and consumer matrices to 22 and 24, CONTRIBUTING.md and SECURITY.md's support table updated, in one commit titled `feat!: require Node 22` with a `BREAKING CHANGE:` footer that tells a Node 18 or 20 consumer to stay on 10.x. Any other break held from Phases 3 to 6 lands in its own `type!:` commit in the same pull request, each with its migration line; the pull request title is `feat!:`.
+2. **Docs rewrite** ([#264](https://github.com/lgriffin/ESI.ts/issues/264), [#272](https://github.com/lgriffin/ESI.ts/issues/272), [#273](https://github.com/lgriffin/ESI.ts/issues/273), [#276](https://github.com/lgriffin/ESI.ts/issues/276), [#257](https://github.com/lgriffin/ESI.ts/issues/257)). None of this exists yet: today `release.yml` runs only `npm run docs` (TypeDoc) and deploys `docs-site/public/api`, and `validate:versions` compares `package.json` with `src/core/constants.ts` alone. This phase adds `scripts/sync-docs.ts` to copy `guides/` into `docs-site/guide/`, a VitePress build in the release workflow deployed with the TypeDoc output under `/api/`, `scripts/doc-metrics.ts` writing `etc/doc-metrics.json`, and a banner check in `validate:versions` that fails on a stale README or site version; root `TESTING.md` and `guides/MUTATION-TESTING.md` fold into `guides/TESTING.md`; the README shrinks to an orientation page written against the new client, every snippet checked by `test:docs-examples`; `guides/MULTI-CHARACTER.md` and Track S's `guides/sde/` are in the site. The Beads blocks in AGENTS.md and CLAUDE.md become pointers (`tests/tdd/scripts/agent-docs.test.ts` keeps the SemVer copies identical).
+3. **Changelog** ([#275](https://github.com/lgriffin/ESI.ts/issues/275), [#377](https://github.com/lgriffin/ESI.ts/issues/377)). 9.2 to 9.6 backfilled; the duplicate-title entries that merge commits produce are fixed in `release-please-config.json` or by squash discipline, whichever the test in `tests/tdd/scripts/` can check.
+4. **Deprecations that 11.0.0 announces, not removes.** `EsiApiFactory`'s named methods and `EsiTokenManager.createClient` get `@deprecated` JSDoc pointing at the builder and `as()`. Removal is 12.0.0 at the earliest.
+
+**Definition of done.** The release gate below is met in full; `chore(master): release 11.0.0` ([#405](https://github.com/lgriffin/ESI.ts/pull/405)) shows the Node floor under Breaking Changes with its migration line; the docs site deploys from the release workflow and its version banner matches `package.json`.
+
+---
+
+## Track S · The SDE programme
+
+`src/sde` (6,289 hand-written lines, 99 methods on `IStaticDataProvider`, 102 files in `SDE_FILE_REGISTRY`) is a side module: nothing in `src` imports it and it imports nothing from `src`. That isolation is a fact today and a rule almost nowhere, and the quality tiers that make the core dependable stop at its door. Track S takes it from "isolated and best-effort" to "isolated by lint, specified per method, mutated, fuzzed, benchmarked and checked against CCP's real export every night", in eleven unattended overnight runs plus a standing mutation-kill run. It ships inside 11.0.0.
+
+### Where the SDE stands (measured 2026-09-27, master `519c945`)
+
+| Tier                          | Core today                                     | SDE today                                                                                                                                                                                                                                                     | Status   |
+| ----------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Layer lint                    | ports, generated and core all constrained      | Only "core may not import sde" (`ABOVE_CORE` in `eslint.layers.rules.cjs`). Nothing stops `src/clients` or `src/index.ts` importing it, nothing stops `src/sde` importing core                                                                                | Partial  |
+| EARS specification            | 402 requirements, step library, spec entries   | 7 features, 21 rules, 23 scenarios for 99 methods. All 7 step files are legacy `defineFeature` files listed in `legacyStepFiles` (`scripts/spec-audit-exceptions.json`). No requirement for ingestion, optional peers, locale, ZIP metadata or `./sde/memory` | Gap      |
+| Unit mutation                 | `src/core`, per-directory ratchet, five shards | Not mutated: `stryker.config.mjs` and `mutation-unit-shards.json` cover `src/core` only                                                                                                                                                                       | Gap      |
+| BDD mutation                  | sharded, floors 11.7 to 42.8                   | In the `rest` shard of `mutation-bdd-shards.json`; floor 10.6                                                                                                                                                                                                 | Gap      |
+| Type mutation                 | `.` 10.5, `./errors` 24                        | `./sde` 0, `./sde/memory` 0 in `scripts/type-mutation-thresholds.json`; no test-d file for either                                                                                                                                                             | Gap      |
+| Properties and fuzz           | 13 files, 10k runs nightly                     | None                                                                                                                                                                                                                                                          | Gap      |
+| Contract against upstream     | live spec, nightly drift issue                 | `SDE_FILE_REGISTRY` is hand-maintained; nothing compares it with the real ZIP                                                                                                                                                                                 | Gap      |
+| Real data                     | recorded payloads re-recorded nightly          | `tests/integration/sde/sde-real-data.test.ts` is `describe.skip` wherever `sde-data/` is absent, which is everywhere in CI                                                                                                                                    | Gap      |
+| Benchmarks and soak           | `bench:ab` and heap soak nightly               | None; the README's "~500 MB peak" is unmeasured                                                                                                                                                                                                               | Gap      |
+| Determinism                   | clock port                                     | Two `new Date()` exemptions in `scripts/determinism-baseline.json` (`SdeDataProvider.ts`, `ingestion/SdeDatabaseBuilder.ts`)                                                                                                                                  | Partial  |
+| Consumer, docs examples, size | in place                                       | Optional-peer probe, doc type-checks and `.size-limit.cjs` budgets all cover `./sde` and `./sde/memory`                                                                                                                                                       | Enforced |
+| Nightlies                     | 16 scheduled workflows                         | None targets the SDE. The four `examples/sde-*.ts` carry `@nightly sde` and are type-checked, never run                                                                                                                                                       | Gap      |
+
+### The three commitments
+
+1. **Isolated, by lint.** `src/sde` may import Node built-ins, `zod`, its own files and `src/core/ports` only; nothing under `src` outside `src/sde` may import it. `./sde/memory` never reaches `node:fs`, `js-yaml`, `adm-zip` or `better-sqlite3`. An ARCH requirement in the charter, enforced by `lint:layers` and a bundle test.
+2. **Wired up, meaning the machinery, not the pipeline.** No port, no adapter, no name-resolution helper (decided 2026-09-27, above). Every gate the core has also covers `src/sde`: its own mutation shards and floors, spec entries and a per-method coverage gate, a property tier, a real-data nightly with a drift issue, benchmarks, and a charter row for each.
+3. **Bullet-proof, per method.** Every public method on `IStaticDataProvider` is backed by at least one EARS rule and one scenario, gated the way `spec:coverage` gates generated operations. Mutation floors ratchet from 10.6 toward 90. The real CCP export is loaded every night and any new file, field or removed record opens an issue before a user hits it.
+
+### How an overnight run works
+
+Each run is one fresh, unattended session on a branch, scoped so a single night is enough. It ends with a pull request and never touches `master`. Its "done when" is machine-checkable, so the morning review is a glance at CI. Branches are named by conventional type and scope (PROC-04): `<type>/sde-<run-slug>`, for example `chore/sde-isolation-lint`.
+
+Every run's session starts with this preamble, then the run's brief:
+
+```
+You are working unattended on lgriffin/ESI.ts. Read guides/ROADMAP.md, Track S, and take the run named below.
+Clone, run `npm ci`, then `npm run check:local -- --fast` and confirm it is green before changing anything.
+Work on a branch named `<type>/sde-<run-slug>`. Never commit to master. Never push --force.
+Use the ears-gherkin-dev skill for every behaviour change: EARS rule and Gherkin scenario first, red, then green.
+Classify the change per guides/SEMVER.md before committing; no `!`, no BREAKING CHANGE, no public-contract removals. If a step needs a breaking change, stop and write it up in the PR instead.
+Conventional commits, one concern per commit, attribution trailer on each.
+Finish with `npm run check:local` (full) green, `npm run api-report` if any export changed, open a PR titled as the run says, and put in the PR body: what changed, every gate you ran with its result, and anything you could not finish and why.
+If a gate cannot be made green in one night, ship the partial with a shrink-only baseline and say so in the PR body. Do not lower any existing floor.
+```
+
+**Runs that must not proceed alone.** A run stops and writes up instead of deciding when: a rule for existing behaviour reveals the behaviour is wrong (fixing it may be a visible change); a gate needs an existing floor lowered; a public export must be renamed or removed; anything wants the core to import the SDE. Everything else is the run's call, recorded in the PR body.
+
+### Wave A · Lock the boundary
+
+#### Run 1 · Symmetric layer lint and the SDE charter row · 1 night · `chore`
+
+- **Goal.** Turn "the SDE shares no code with the pipeline" from a sentence in CHARTER.md into two lint rules and a bundle test.
+- **Done when.** `lint:layers` fails on (a) any file outside `src/sde` importing `src/sde/**` and (b) any `src/sde` file importing `src/**` other than `src/core/ports`; `tests/tdd/layers/layers-lint.test.ts` covers both directions with positive and negative fixtures; a new `tests/tdd/sde/memory-entry-bundle.test.ts` builds (or uses `dist/` if present) and asserts `dist/sde/memory.mjs` and `dist/sde/memory.js` contain none of `node:fs`, `js-yaml`, `adm-zip`, `better-sqlite3`; CHARTER gains ARCH-10 "Side-module isolation" in EARS form, status Enforced, mechanism `lint:layers` plus that test; ARCHITECTURE.md's layer table row for side modules names both.
+- **Brief.** Extend `eslint.layers.rules.cjs`: add a rule group for `src/sde` allowing `node:*`, `zod`, `./` and `../` within `src/sde`, and `src/core/ports` only; add a rule forbidding `sde/` import paths from any `src` file outside `src/sde`. Keep the existing `ABOVE_CORE` entry. Do not change any `src/sde` runtime code.
+- **PR.** `chore(lint): enforce SDE isolation in both directions`
+- **Marker.** an `sde` rule group in `eslint.layers.rules.cjs`.
+
+#### Run 2 · Mutation plumbing: own shards, own floors, clock port · 1 night · `chore`
+
+- **Goal.** Give the SDE the same ratchet the core has, so every later run's tests count.
+- **Done when.** `mutation-bdd-shards.json` has an `sde` shard (`src/sde`, ingestion included) and `rest` excludes it; `mutation-unit-shards.json` has an `sde` shard and its `$invariant` is widened from "partition `src/core`" to the directories the unit run mutates; `tests/tdd/mutation-ratchet/bddShards.test.ts` and `unitShards.test.ts` pass; `stryker.config.mjs` mutates `src/sde/**/*.ts` with the existing excludes plus `src/sde/SdeTestDataFactory.ts` (a test fixture, commented as such); `mutation-thresholds.json` gains `src/sde` and `src/sde/ingestion` seeded from a local run minus 2 points and marked provisional in the PR body (the nightly re-seeds them; floors come from the nightly, never from a laptop); `nightly-mutation.yml` picks the new shards up (it reads the shard files with `jq`, so no YAML change is expected; confirm); a local `--dryRunOnly` mutant count for each new shard is recorded in the shard file's `$balance`; the two `new Date()` sites in `SdeDataProvider.ts:73` and `ingestion/SdeDatabaseBuilder.ts:213` take an injectable `Clock` from `src/core/ports` (constructor option, default `systemClock`) and their entries leave `scripts/determinism-baseline.json`, with a unit test passing a fixed clock and asserting the timestamp.
+- **Brief.** Read `guides/MUTATION-TESTING.md`, `mutation-bdd-shards.json` and `mutation-unit-shards.json` first. Run `npx stryker run --mutate "src/sde/**/*.ts" --concurrency 4` locally; if it exceeds 90 minutes, run per subdirectory. The clock change is behaviour-neutral.
+- **PR.** `chore(mutation): mutate src/sde in its own shards and seed its floors`
+- **Marker.** an `sde` shard in `mutation-bdd-shards.json`.
+
+### Wave B · Specify it properly
+
+#### Run 3 · Convert the seven legacy SDE step files · 1 night · `test`
+
+- **Goal.** Move the SDE onto the step library and spec entries so it is audited, bound and mutated like a converted core domain.
+- **Done when.** `tests/bdd/specs/sde/0001…0007-*.spec.ts` exist (each `bindFeature(__filename)`); one step per file under `tests/bdd/steps/{given,when,then}/`; fixtures in `tests/bdd/support/sde.ts`; `tests/bdd/step-definitions/sde/` is gone and its seven entries are removed from `legacyStepFiles`; the `bdd:sde` script points at `specs/sde`; `npm run bdd:steps`, `spec:audit` and `ears -- --only=sde` are green with identical scenario counts before and after.
+- **Brief.** Follow `tests/bdd/README.md` sections 6 to 8 and `tests/bdd/GUIDE.md` exactly. Do not reword any Rule text. Where two legacy files define the same step phrase with different bodies, unify the phrase in the step library and adjust the scenario text, recording each such change in the PR body. Run `lint:bdd-seam` and `lint:suite-health` after conversion. Paste the before and after `ears --only=sde` summaries in the PR body.
+- **PR.** `test(bdd): convert SDE step definitions to the step library`
+- **Marker.** no `sde/` entries in `legacyStepFiles`.
+
+#### Run 4 · Method-level spec coverage gate · 1 night · `chore`
+
+- **Goal.** Know exactly which of the 99 interface methods have no requirement, and make that number shrink-only.
+- **Done when.** `scripts/sde-spec-coverage.ts` (pure logic in `sde-spec-coverage-core.ts`, tested under `tests/tdd/scripts/`) parses `IStaticDataProvider.ts` for method names and `tests/bdd/features/sde/**` plus the bound SDE steps for method references, and prints a table of method, rule count, scenario count; `npm run spec:coverage:sde` exists; `--ci` gates against `scripts/sde-spec-coverage-baseline.json`, which may only shrink (the `export-coverage-baseline.json` pattern); the check is in `check:all`, `scripts/verify-local-core.ts` and `ci.yml`'s `spec-audit` job; CHARTER TEST-10 row added at Enforced.
+- **Brief.** Model on `scripts/spec-coverage.ts` and `scripts/export-coverage.ts`. A method counts as covered when a Rule's text or a bound step body calls it by name on the provider. Print the uncovered list grouped by entity family in the section order of `src/sde/README.md` (Types, Universe, Market, Dogma, Industry, Character/Lore, NPC, Agents, Certificates, Skins, Stations, Extensions, Missions, Notifications, Generic, Lifecycle); this list is the input to Runs 5 and 6. Commit the baseline exactly as measured. Write no new scenarios in this run.
+- **PR.** `chore(spec): gate IStaticDataProvider method coverage against the EARS specification`
+- **Marker.** `scripts/sde-spec-coverage.ts` exists.
+
+#### Run 5 · EARS requirements, entity families I · 1 to 2 nights · `test`
+
+- **Goal.** Requirements and scenarios for every uncovered method in Types, Universe (regions, constellations, systems, stargates, planets, moons, stations), Market groups and Dogma (attributes, effects, type attributes and effects).
+- **Done when.** Those families show 0 uncovered in `spec:coverage:sde`; each new Rule is one atomic `shall` with a rationale paragraph and, where the method returns nullable, exactly one lookup-present and one lookup-absent scenario, or where it returns a collection, a "returns every X of Y, ordered by ID" scenario asserting order and count; scenarios run against `MemorySdeProvider` built from `SdeTestDataFactory`; the baseline shrunk; `spec:audit` green.
+- **Brief.** Match the voice of `tests/bdd/features/sde/0001-static-data-lookup.feature`: rule, why it matters to a caller, scenario. Add features `0008+`, one per family; never edit existing rule text. Every FK-traversal method gets a scenario where the parent exists but has no children (empty array, not null). If a method's behaviour is ambiguous from the code (what `searchTypesByName` does with an empty fragment, for example), write the Rule for the current behaviour and flag it in the PR body as "needs a decision" rather than changing it. Stop when the families are covered or after the second night, whichever comes first.
+- **PR.** `test(sde): specify type, universe, market and dogma lookups`
+- **Marker.** Types, Universe, Market and Dogma at 0 uncovered.
+
+#### Run 6 · EARS requirements, entity families II and lifecycle · 1 to 2 nights · `test`
+
+- **Goal.** The remaining families (Industry, Character/Lore, NPC, Agents, Certificates, Skins, Stations, Type extensions, Missions, Notifications, Generic accessors) plus everything that has no feature at all: `fromZip` with nested `_sde.yaml`, optional-peer errors, English-locale extraction, ID-suffix renaming, lazy FK index build, `getVersion` and `close`, `./sde/memory` parity with `./sde`, and the ingestion pipeline (download, extract, build, transforms).
+- **Done when.** `spec:coverage:sde` reports 0 uncovered and the baseline is empty; features exist for `0020-sde-loading`, `0021-sde-optional-peers`, `0022-sde-memory-entry`, `0023-sde-ingestion`; ingestion scenarios mock only at the fs and network seam (`lint:bdd-seam` green); `ears -- --only=sde` gives every requirement a verdict.
+- **Brief.** Same conventions as Run 5. For loading and ingestion, the Given steps build a temp directory or an in-memory ZIP with `adm-zip` from `SdeTestDataFactory` records; nothing touches the network (`SdeDownloader` gets a stubbed `fetch`). Optional-peer scenarios use `jest.doMock` to make the peer unresolvable and assert the `SdeError` message names the install command. One Rule per transform in `ingestion/transforms.ts` (ID renaming, locale extraction, nested metadata) with a scenario each. A parity scenario: every export name from `./sde` except `SdeDataProvider` and the ingestion classes is exported from `./sde/memory`.
+- **PR.** `test(sde): specify remaining lookups, loading, optional peers and ingestion`
+- **Marker.** baseline empty and `0023-sde-ingestion.feature` exists.
+
+### Wave C · Depth tiers
+
+#### Run 7 · Properties and model-based fuzz · 1 night · `test`
+
+- **Goal.** A fast-check tier for the SDE that the nightly property run drives to 10,000 runs.
+- **Done when.** `tests/fuzz/sde-transforms.property.test.ts` (ID renaming is idempotent and reversible on the suffix; locale extraction never returns a non-string for a localised map; nested metadata is found at any depth), `tests/fuzz/sde-provider-model.property.test.ts` (a generated data set loaded into `MemorySdeProvider` answers every lookup identically to a naive oracle over the same arrays, FK-index queries after lazy build included) and `tests/fuzz/sde-schema-fuzz.test.ts` (generated records round-trip through `schemas.ts`; a record missing a required key is rejected) exist; `npm run fuzz:properties` and `nightly-properties.yml` pick them up without workflow changes; each honours `FC_NUM_RUNS` and `FC_SEED` per `tests/fuzz/AGENTS.md`.
+- **Brief.** Read `tests/fuzz/AGENTS.md` and `etag-cache-model.property.test.ts` as the model-based pattern. Arbitraries live in `tests/fuzz/support/sde.ts` and generate internally consistent data (every FK points at an existing parent) plus a controlled fraction of dangling FKs. Keep the PR-time run under 30 seconds at 100 runs. A counter-example is a bug: write the EARS scenario, fix it, note it in the PR body; never weaken the property.
+- **PR.** `test(fuzz): property and model-based tests for the SDE provider and transforms`
+- **Marker.** `tests/fuzz/sde-provider-model.property.test.ts` exists.
+
+#### Run 8 · Type tests and the type-mutation ratchet · 1 night · `test`
+
+- **Goal.** Both SDE entry points get tsd coverage and a non-zero type-mutation floor.
+- **Done when.** `tests/typetests/sde.test-d.ts` and `sde-memory.test-d.ts` assert every `IStaticDataProvider` method's return type (nullable against array), that `MemorySdeData` keys match the entity type names, that `SdeDataProvider` is absent from `./sde/memory`, and that the error guards narrow; `npm run test:type-mutation` run locally for `./sde` and `./sde/memory` and `scripts/type-mutation-thresholds.json` raised from 0 to the measured score minus 2; `scripts/export-coverage-baseline.json` shrunk for the two SDE sub-paths.
+- **PR.** `test(types): tsd coverage for ./sde and ./sde/memory; seed type-mutation floors`
+- **Marker.** `./sde` above 0 in `scripts/type-mutation-thresholds.json`.
+
+#### Run 9 · Real-data nightly and registry drift · 1 to 2 nights · `ci`
+
+- **Goal.** Load CCP's actual latest export every night, run the real-data suite, and open an issue when the export drifts from what the module knows.
+- **Done when.** `.github/workflows/nightly-sde.yml` (cron `15 5 * * *`, after `nightly-audit`, before `nightly-spec-drift`; `timeout-minutes: 60`; concurrency group `nightly-sde`; every action SHA-pinned; zizmor clean) resolves the current build from `SDE_LATEST_BUILD_URL`, restores the ZIP from `actions/cache` keyed on that build number (download only on a miss), runs `sde:ingest` to `sde-data/`, then `tests/integration/sde`; `scripts/sde-drift.ts` (offline, over an extracted directory; pure logic in `sde-drift-core.ts`) compares the ZIP's file list with `SDE_FILE_REGISTRY` and each file's observed top-level keys with the Zod schema for that table, writes `reports/sde-drift.json` and a step summary naming the build; `tests/tdd/scripts/sde-drift.test.ts` uses a fixture directory with one unknown file and one record with an extra key; on drift or failure the workflow opens or comments on one fixed-title issue and closes it after the next green night (the `nightly-spec-drift.yml` pattern); `sde-real-data.test.ts` fails instead of skipping when `SDE_REQUIRE_DATA=1` and `sde-data/` is missing, and gains per-family smoke queries so every family in the README's API reference is exercised against real data; the four `examples/sde-*.ts` run in this workflow through `examples:nightly` (the `sde` tier runs when `sde-data/` is present, otherwise skips); QUALITY-GATES.md gains the GATE-07 row and CLAUDE.md's CI Workflows list names the workflow.
+- **PR.** `ci(sde): nightly real-data run and export drift report`
+- **Marker.** `.github/workflows/nightly-sde.yml` exists.
+
+#### Run 10 · Benchmarks and heap soak · 1 night · `test`
+
+- **Goal.** Measure the load-time and memory claims and put them under the same A/B and trend machinery as the pipeline.
+- **Done when.** `tests/benchmark/sde.bench.ts` measures `fromDirectory` load time on a generated 50k-type synthetic data set, p50 and p95 for `getType`, `searchTypesByName` and one FK-index query before and after index build, and peak heap; `scripts/bench-ab.ts` includes it in `bench:compare`; `scripts/soak.ts` gains an SDE scenario (load, 100k random lookups, close, repeat; heap returns to baseline within a tolerance); `nightly-sde.yml` runs the SDE bench and soak against the real export and publishes the numbers to the step summary; `src/sde/README.md`'s "~500 MB" is replaced with the measured figure and the build it was measured on.
+- **PR.** `test(bench): SDE load, lookup and heap benchmarks with nightly trend`
+- **Marker.** `tests/benchmark/sde.bench.ts` exists.
+
+### Wave D · Write it down
+
+#### Run 11 · Docs consolidation and charter closure · 1 night · `docs`
+
+- **Goal.** Close the open charter items and make every guide describe the SDE as it now is.
+- **Done when.** `src/sde/docs/*` moved to `guides/sde/` with `guides/SDE.md` as the index and `src/sde/README.md` reduced to a pointer; `docs-site/guide/sde.md` regenerated from that source (by `scripts/sync-docs.ts` once Phase 7 adds it, by hand until then, never rewritten separately); `scripts/doc-examples-core.ts` paths updated and `test:docs-examples` green; CHARTER rows ARCH-10 (Run 1), TEST-10 (Run 4), GATE-07 (Run 9) at Enforced and the SDE lines of TEST-05 to TEST-08 and GATE-05 updated; a one-line note that the static-data port was considered and cut; AUDIT.md's `src/sde` line count, mutation and coverage numbers refreshed from the latest nightly; QUALITY-GATES.md's matrix has an SDE column; MUTATION-TESTING.md's "where the scores stand" includes the SDE directories; beads `esi-x3z` and the SDE part of `esi-l38.8` closed or updated.
+- **PR.** `docs(sde): move the SDE doc set to guides/ and record the enforced gates`
+- **Marker.** `guides/sde/` exists.
+
+### Run M · Kill SDE mutants, one directory per night · repeat · `test`
+
+Once Runs 2, 3 and 5 to 7 are merged, the SDE has enough test surface for the same loop as the core attack plan. Schedule it for any night nothing else is queued, until every SDE directory sits at 90 or carries documented equivalents.
+
+- **Input.** The latest `mutation-report` nightly artifact.
+- **Done when.** The chosen directory's score is up by at least 10 points or at 90; every remaining survivor has a verdict (real gap, no coverage, equivalent with a one-line reason, dead code deleted); the floors in `mutation-thresholds.json` and `mutation-bdd-thresholds.json` raised to the nightly-comparable score; one directory per PR.
+- **Brief.** Pick the SDE directory with the highest points-per-kill (100 / valid mutants) below 90. Follow `guides/MUTATION-TESTING.md`: NoCoverage first, then survivors grouped by function, boundary tests at n-1, n, n+1, exact-value assertions instead of `toBeDefined`, side-effect assertions for emptied blocks. Prefer one sharp scenario in the EARS feature over a unit test where the behaviour is caller-visible; unit tests for internals such as index building. Delete redundant tests you make obsolete. Never touch `tests/mutation-fixture`.
+- **PR.** `test(sde): raise <directory> mutation score to <n>`
+- **Marker.** any SDE directory below 90 in the latest mutation report.
+
+### Nightly CI after the programme
+
+| Workflow                  | UTC   | SDE coverage added by                                                                            |
+| ------------------------- | ----- | ------------------------------------------------------------------------------------------------ |
+| `nightly-mutation`        | 02:00 | Run 2: `sde` shards in both the unit and BDD runs, both ratcheted                                |
+| `nightly-no-retry`        | 03:00 | Already runs the SDE suites; grows with Runs 3 to 6                                              |
+| `nightly-properties`      | 03:30 | Run 7: three SDE property files at 10k runs                                                      |
+| `nightly-examples`        | 04:15 | Unchanged: the `sde` tier stays type-check only here and runs inside `nightly-sde`               |
+| `nightly-benchmarks`      | 04:30 | Run 10: SDE bench in the `bench:compare` trend                                                   |
+| `consumer-matrix-nightly` | 04:45 | Already probes the optional peers                                                                |
+| `nightly-sde` (new)       | 05:15 | Runs 9 and 10: real export cached by build, real-data tests, drift issue, bench and soak numbers |
+
+### Cadence and the weekly task
+
+One run a week, Sunday night into Monday at 00:54 Europe/Dublin, as a scheduled task that starts a fresh session against the repository with the preamble above. The SDE is a value-add, not a core use case, so it takes one night a week and no more; the core phases keep the other nights. The task keeps no queue by hand: it checks the repository for each run's marker and for an open pull request whose branch matches `*/sde-*`, and takes the first run that is neither done nor already in review. If the previous week's pull request is open with review comments, it addresses those instead of starting the next run. Runs 1, 2, 7, 8, 9 and 10 do not depend on the spec work, so if a week's run is blocked on review the task may take the next independent one rather than idle.
+
+| Week  | Run    | Marker the task checks                                   |
+| ----- | ------ | -------------------------------------------------------- |
+| 1     | Run 1  | an `sde` rule group in `eslint.layers.rules.cjs`         |
+| 2     | Run 2  | an `sde` shard in `mutation-bdd-shards.json`             |
+| 3     | Run 3  | no `sde/` entries in `legacyStepFiles`                   |
+| 4     | Run 4  | `scripts/sde-spec-coverage.ts` exists                    |
+| 5–6   | Run 5  | Types, Universe, Market, Dogma at 0 uncovered            |
+| 7–8   | Run 6  | baseline empty and `0023-sde-ingestion.feature` exists   |
+| 9     | Run 7  | `tests/fuzz/sde-provider-model.property.test.ts` exists  |
+| 10    | Run 8  | `./sde` type-mutation threshold above 0                  |
+| 11–12 | Run 9  | `.github/workflows/nightly-sde.yml` exists               |
+| 13    | Run 10 | `tests/benchmark/sde.bench.ts` exists                    |
+| 14    | Run 11 | `guides/sde/` exists                                     |
+| 15+   | Run M  | any SDE directory below 90 in the latest mutation report |
+
+Morning review per run is three things: is CI green on the pull request, does the PR body list a gate that could not be made green, and did any floor move down (it must never). Merge, or leave a review comment and re-queue the same brief with "address the review comments on PR #n first".
+
+---
+
+## The 11.0.0 release gate
+
+[#405](https://github.com/lgriffin/ESI.ts/pull/405) merges when every line below is true. Each is checkable from the repository or CI; none is a matter of opinion.
+
+The table is the gate. A row moves to Yes only by citing the merged pull request or the check that proves it, in the same pull request that makes it true; no checkbox syntax, so the tracker stays the tracker (PROC-01).
+
+| Area              | Condition                                                                                                                                                                                                                                                                                                              | Holds today |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Phase 2           | PRs 10b, 11 and 12 merged; [#183](https://github.com/lgriffin/ESI.ts/issues/183) and [#432](https://github.com/lgriffin/ESI.ts/issues/432) closed.                                                                                                                                                                     | No          |
+| Phase 3           | `BASELINE` in `eslint.layers.rules.cjs` is empty; [#295](https://github.com/lgriffin/ESI.ts/issues/295), [#266](https://github.com/lgriffin/ESI.ts/issues/266), [#298](https://github.com/lgriffin/ESI.ts/issues/298) closed.                                                                                          | No          |
+| Phase 4           | [#296](https://github.com/lgriffin/ESI.ts/issues/296), [#268](https://github.com/lgriffin/ESI.ts/issues/268), [#265](https://github.com/lgriffin/ESI.ts/issues/265) closed; `sideEffects: false` in `package.json`.                                                                                                    | No          |
+| Phase 5           | GATE-01 to GATE-06 at Enforced; [#297](https://github.com/lgriffin/ESI.ts/issues/297), [#271](https://github.com/lgriffin/ESI.ts/issues/271), [#277](https://github.com/lgriffin/ESI.ts/issues/277), [#382](https://github.com/lgriffin/ESI.ts/issues/382) closed.                                                     | No          |
+| Phase 6           | SEC-04, SEC-06, SEC-07 at Enforced; trusted publishing live. ([#256](https://github.com/lgriffin/ESI.ts/issues/256) may follow in 11.x.)                                                                                                                                                                               | No          |
+| Phase 7           | `feat!: require Node 22` on master with its `BREAKING CHANGE:` footer; docs site deployed by the release workflow; [#264](https://github.com/lgriffin/ESI.ts/issues/264), [#272](https://github.com/lgriffin/ESI.ts/issues/272), [#273](https://github.com/lgriffin/ESI.ts/issues/273) closed; deprecations announced. | No          |
+| Track S           | Runs 1 to 11 merged (the markers table above all true); every SDE directory at 90 or with every survivor carrying an equivalence reason.                                                                                                                                                                               | No          |
+| Release mechanics | [#383](https://github.com/lgriffin/ESI.ts/issues/383) and [#378](https://github.com/lgriffin/ESI.ts/issues/378) closed: release-please's tag triggers `release.yml` and `post-publish-canary.yml` without a manual dispatch.                                                                                           | No          |
+| Release mechanics | `etc/esi.ts.api.md` regenerated on the release commit; every lost line covered by a `type!:` commit or an `API-Compatible:` trailer.                                                                                                                                                                                   | No          |
+| Release mechanics | `CHANGELOG.md` has a `## [11.0.0]` heading whose Breaking Changes section lists every `!` commit with a migration line.                                                                                                                                                                                                | No          |
+| Release mechanics | SECURITY.md's support table lists 11.x as supported and 10.x with its end date.                                                                                                                                                                                                                                        | No          |
+| Release mechanics | The CHARTER header numbers (clients, endpoints, requirements, scenarios, coverage) re-measured and revision 3 published.                                                                                                                                                                                               | No          |
+| Release mechanics | `npm run check:local -- --all` green on the release commit, and the last nightly of every scheduled workflow green or its issue closed.                                                                                                                                                                                | No          |
+
+## Executing this plan
+
+For a session that picks up a phase or a run:
+
+1. Read this file, then CHARTER.md Part 1 (posture) and the guide the phase's requirement IDs point at. Do not re-derive the plan from the conversations; if this file is wrong, fix it in the pull request.
+2. Take the smallest open unit: one Phase 2 PR, one numbered Phase 3 to 7 item, or one Track S run. One pull request per unit, titled as a conventional commit, body in the Before / After / How shape the repository's pull requests use, listing every gate run and its result.
+3. Every behaviour change starts with the EARS rule and scenario (`ears-gherkin-dev`), classifies itself per SEMVER.md before the commit, and never lowers a floor.
+4. Stop and write up rather than decide when: a breaking change is needed outside Phase 7's `feat!:` commit; an existing floor would have to fall; a public export would be renamed or removed; a run's rule reveals wrong behaviour; anything wants the core to import the SDE; a step needs a repository secret, a setting or a token only the maintainer holds.
+5. On finishing a unit, update this file's phase table and the release gate in the same pull request, so the next session starts from the truth.
+
+### Tracking
+
+Every open item above has a GitHub issue carrying `release::11.0` and its phase label; Track S runs carry `phase::s-sde`. The beads tracker mirrors them: file each with `bd create` from a checkout that has `bd`, one bead per issue, titled `[Run n] <PR title>` or `[Phase n] <item>`, labelled with the phase, and close it when the pull request merges. The scheduled weekly task and the sessions read markers in the repository, not the tracker, so a missing bead never blocks a run.
+
+> **Revision rule.** This roadmap is revised by pull request like any other file. A phase moves to Done only by citing the merged pull request or the check that proves it; a run's "done when" is not softened to fit a night. Adding a phase or run is a reviewed change; removing one needs a bead explaining why.
