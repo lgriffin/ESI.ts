@@ -446,6 +446,27 @@ describe('schema drift report', () => {
         }),
       ]);
     });
+
+    it('leaves out a text endpoint, which has no JSON schema to compare', () => {
+      const mappings = mappingsFromEndpointModules(
+        {
+          'x.ts': {
+            xEndpoints: {
+              getX: { path: 'x', method: 'GET', responseSchema: z.number() },
+              getDoc: {
+                path: 'meta/openapi.yaml',
+                method: 'GET',
+                responseSchema: z.string(),
+                textResponse: { accept: 'application/yaml' },
+              },
+            },
+          },
+        },
+        new Map(),
+      );
+
+      expect(mappings.map((m) => m.endpoint)).toEqual(['xEndpoints.getX']);
+    });
   });
 
   describe('integrity', () => {
