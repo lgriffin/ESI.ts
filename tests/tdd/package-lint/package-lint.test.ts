@@ -52,7 +52,6 @@ const SIZE_HELPER = path.join(
   'size-limit-checks.cjs',
 );
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { sizeLimitChecks } = require(SIZE_HELPER) as {
   sizeLimitChecks: (
     manifest: Record<string, unknown>,
@@ -411,7 +410,6 @@ describe('size budgets: configuration', () => {
     ) as {
       exports: Record<string, unknown>;
     };
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const checks = require(
       path.join(REPO_ROOT, '.size-limit.cjs'),
     ) as unknown[];

@@ -222,6 +222,7 @@ describe('AsyncPaginationIterator', () => {
         pages.push(page);
       }
 
+      expect(pages).toHaveLength(1);
       expect(mockHandleRequest).toHaveBeenCalledWith(
         client,
         'universe/names',
@@ -277,10 +278,17 @@ describe('AsyncPaginationIterator', () => {
 
     it('should fetch remaining pages concurrently within batch size', async () => {
       const callOrder: number[] = [];
+      let inFlight = 0;
+      let maxInFlight = 0;
       mockHandleRequest.mockImplementation(async (_c, endpoint: string) => {
         const pageMatch = endpoint.match(/page=(\d+)/);
         const page = pageMatch ? parseInt(pageMatch[1], 10) : 1;
         callOrder.push(page);
+        inFlight++;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        // Yield so the rest of the batch can start before this page settles.
+        await Promise.resolve();
+        inFlight--;
         return {
           headers: { 'x-pages': '5' },
           body: [{ id: page }],
@@ -300,6 +308,8 @@ describe('AsyncPaginationIterator', () => {
 
       expect(result).toHaveLength(5);
       expect(mockHandleRequest).toHaveBeenCalledTimes(5);
+      expect(callOrder).toEqual([1, 2, 3, 4, 5]);
+      expect(maxInFlight).toBe(2);
     });
 
     it('should return empty array when body is null', async () => {

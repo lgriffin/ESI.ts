@@ -54,7 +54,6 @@ const apiClient = new ApiClientBuilder()
   .setAccessToken(process.env.ESI_ACCESS_TOKEN || 'test-token')
   .build();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const expectedClasses: Record<ApiClientType, new (...args: any[]) => unknown> =
   {
     alliance: AllianceClient,

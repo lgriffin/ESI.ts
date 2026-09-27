@@ -46,7 +46,9 @@ export interface FixtureShape {
 export function fixtureShape(fixture: RecordedFixture): FixtureShape {
   const shapeHeaders = new Set<string>(SHAPE_HEADERS);
   return {
-    status: [...new Set(fixture.pages.map((p) => p.status))].sort(),
+    status: [...new Set(fixture.pages.map((p) => p.status))].sort(
+      (a, b) => a - b,
+    ),
     headers: [
       ...new Set(
         fixture.pages.flatMap((p) =>

@@ -33,8 +33,8 @@ if (GATED_TESTS_ENABLED) {
     });
   });
 
-  afterAll(async () => {
-    await client.shutdown();
+  afterAll(() => {
+    client.shutdown();
   });
 }
 

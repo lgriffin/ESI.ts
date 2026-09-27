@@ -14,7 +14,6 @@ fetchMock.enableMocks();
  * by accessing the protected _client field.
  */
 function getApiClientFromDomainClient(domainClient: unknown): unknown {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (domainClient as any)._client;
 }
 
@@ -37,12 +36,10 @@ describe('Construction parity', () => {
       const customApiClient = getApiClientFromDomainClient(
         customClient.getClient('status'),
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getCache()).not.toBeNull();
 
       // EsiApiFactory: get ApiClient via domain client
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getCache()).not.toBeNull();
 
       esiClient.shutdown();
@@ -59,9 +56,7 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getDeduplicator()).not.toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getDeduplicator()).not.toBeNull();
 
       esiClient.shutdown();
@@ -78,9 +73,7 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getRateLimiter()).not.toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getRateLimiter()).not.toBeNull();
 
       esiClient.shutdown();
@@ -98,9 +91,7 @@ describe('Construction parity', () => {
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
       // Circuit breaker is opt-in, should be null by default
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getCircuitBreaker()).toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getCircuitBreaker()).toBeNull();
 
       esiClient.shutdown();
@@ -123,9 +114,7 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getCache()).toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getCache()).toBeNull();
 
       esiClient.shutdown();
@@ -148,9 +137,7 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getDeduplicator()).toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getDeduplicator()).toBeNull();
 
       esiClient.shutdown();
@@ -173,9 +160,7 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getCircuitBreaker()).not.toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getCircuitBreaker()).not.toBeNull();
 
       esiClient.shutdown();
@@ -198,11 +183,9 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getRetryConfig()).toEqual({
         maxRetries: 5,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getRetryConfig()).toEqual({
         maxRetries: 5,
       });
@@ -228,9 +211,7 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getRetryStrategy()).toBe(strategy);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getRetryStrategy()).toBe(strategy);
 
       esiClient.shutdown();
@@ -251,9 +232,7 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getTimeout()).toBe(5000);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getTimeout()).toBe(5000);
 
       esiClient.shutdown();
@@ -274,9 +253,7 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getValidateResponse()).toBe(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getValidateResponse()).toBe(false);
 
       esiClient.shutdown();
@@ -300,13 +277,10 @@ describe('Construction parity', () => {
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((esiApiClient as any).getCompatibilityDate()).toBe('2026-08-18');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getCompatibilityDate()).toBe(
         '2026-08-18',
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getCompatibilityDate()).toBe(
         '2026-08-18',
       );
@@ -345,55 +319,39 @@ describe('Construction parity', () => {
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
       // Cache present
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getCache()).not.toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getCache()).not.toBeNull();
 
       // Deduplicator present
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getDeduplicator()).not.toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getDeduplicator()).not.toBeNull();
 
       // Rate limiter present
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getRateLimiter()).not.toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getRateLimiter()).not.toBeNull();
 
       // Circuit breaker present
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getCircuitBreaker()).not.toBeNull();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getCircuitBreaker()).not.toBeNull();
 
       // Retry config
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getRetryConfig()).toEqual({
         maxRetries: 3,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getRetryConfig()).toEqual({
         maxRetries: 3,
       });
 
       // Retry strategy
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getRetryStrategy()).toBe(strategy);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getRetryStrategy()).toBe(strategy);
 
       // Timeout
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getTimeout()).toBe(10000);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getTimeout()).toBe(10000);
 
       // Validate response
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getValidateResponse()).toBe(false);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((factoryApiClient as any).getValidateResponse()).toBe(false);
 
       esiClient.shutdown();

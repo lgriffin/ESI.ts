@@ -54,12 +54,17 @@ describe('sleep', () => {
 
   it('does not resolve before the specified time', async () => {
     let resolved = false;
-    sleep(1000).then(() => {
+    const promise = sleep(1000).then(() => {
       resolved = true;
     });
     jest.advanceTimersByTime(999);
     await Promise.resolve();
     expect(resolved).toBe(false);
+
+    // The last millisecond settles it, so the check above could have failed.
+    jest.advanceTimersByTime(1);
+    await promise;
+    expect(resolved).toBe(true);
   });
 
   it('resolves with undefined', async () => {

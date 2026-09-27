@@ -20,7 +20,6 @@ import { tmpdir } from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { emitEsmDeclarations, esmTypeEntries, toEsmDeclaration } = require(
   path.resolve(
     __dirname,

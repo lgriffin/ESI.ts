@@ -115,7 +115,6 @@ describe('spec:response-schemas (DES-02)', () => {
     const modules: Record<string, Record<string, unknown>> = {};
     for (const file of fs.readdirSync(dir)) {
       if (!file.endsWith('Endpoints.ts')) continue;
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       modules[file] = require(path.join(dir, file)) as Record<string, unknown>;
     }
     const report = checkResponseSchemas(spec, definitionsOf(modules));

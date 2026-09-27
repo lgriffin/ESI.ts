@@ -138,7 +138,7 @@ describe('optional peer dependencies of ./sde', () => {
     it('still imports the SDE modules', () => {
       withoutPeers(({ SdeDataProvider, SdeExtractor }) => {
         expect(typeof SdeDataProvider.fromDirectory).toBe('function');
-        expect(new SdeExtractor()).toBeDefined();
+        expect(() => new SdeExtractor()).not.toThrow();
       });
     });
 

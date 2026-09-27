@@ -61,7 +61,7 @@ export function readRunSettings(
   const settings: RunSettings = {};
   const runs = env.FC_NUM_RUNS;
   if (runs !== undefined && runs !== '') {
-    if (!/^[1-9][0-9]{0,6}$/.test(runs)) {
+    if (!/^[1-9]\d{0,6}$/.test(runs)) {
       throw new Error(
         `FC_NUM_RUNS must be a positive integer below 10000000, got "${runs}"`,
       );
@@ -70,7 +70,7 @@ export function readRunSettings(
   }
   const seed = env.FC_SEED;
   if (seed !== undefined && seed !== '') {
-    if (!/^-?[0-9]{1,10}$/.test(seed) || Number(seed) !== (Number(seed) | 0)) {
+    if (!/^-?\d{1,10}$/.test(seed) || Number(seed) !== (Number(seed) | 0)) {
       throw new Error(`FC_SEED must be a 32-bit integer, got "${seed}"`);
     }
     settings.seed = Number(seed);
@@ -80,7 +80,7 @@ export function readRunSettings(
     if (settings.seed === undefined) {
       throw new Error('FC_PATH replays a counter-example and needs FC_SEED');
     }
-    if (!/^[0-9]+(:[0-9]+)*$/.test(replayPath)) {
+    if (!/^\d+(:\d+)*$/.test(replayPath)) {
       throw new Error(`FC_PATH must look like "12:0:3", got "${replayPath}"`);
     }
     settings.path = replayPath;

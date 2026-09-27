@@ -85,7 +85,7 @@ describe('BatchRequestHandler', () => {
       expect(progressCalls.map(([, total]) => total)).toEqual([3, 3, 3]);
       const completedValues = progressCalls
         .map(([completed]) => completed)
-        .sort();
+        .sort((a, b) => a - b);
       expect(completedValues).toEqual([1, 2, 3]);
     });
 

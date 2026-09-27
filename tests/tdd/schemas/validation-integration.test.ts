@@ -268,7 +268,7 @@ describe('Validation Integration', () => {
         { issues: [] },
       );
 
-      expect(error instanceof EsiError).toBe(true);
+      expect(error).toBeInstanceOf(EsiError);
     });
 
     it('should be caught by instanceof Error', () => {
@@ -277,7 +277,7 @@ describe('Validation Integration', () => {
         { issues: [] },
       );
 
-      expect(error instanceof Error).toBe(true);
+      expect(error).toBeInstanceOf(Error);
     });
 
     it('should be catchable in a try-catch targeting EsiError', () => {

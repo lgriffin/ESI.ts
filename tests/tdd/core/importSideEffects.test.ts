@@ -42,9 +42,7 @@ function withPinoSpy<T>(load: () => T): { pino: PinoSpy; loaded: T } {
   return { pino, loaded };
 }
 
-const requireSource = (file: string): unknown =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require(path.join(ROOT, file));
+const requireSource = (file: string): unknown => require(path.join(ROOT, file));
 
 const loadDefaultLogger = (): ILogger =>
   (
