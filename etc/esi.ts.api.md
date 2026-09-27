@@ -52,8 +52,11 @@ export class AccessListsClient extends BaseEsiClient<typeof accessListEndpoints>
 
 // @public (undocumented)
 export interface AddCharacterOptions extends ExchangeCodeOptions {
-    revokeReplaced?: boolean | undefined;
+    revokeReplaced?: boolean;
 }
+
+// @public
+const AddedContactIdsSchema: z.ZodArray<z.ZodNumber>;
 
 // @public (undocumented)
 export type AgentResearch = z.infer<typeof AgentResearchSchema>;
@@ -380,8 +383,8 @@ export class AuthError extends Error {
 
 // @public (undocumented)
 export interface AuthorizationUrlOptions {
-    codeChallenge?: string | undefined;
-    redirectUri?: string | undefined;
+    codeChallenge?: string;
+    redirectUri?: string;
     scopes: readonly string[];
     state: string;
 }
@@ -415,9 +418,9 @@ export function batchFetch<K, T>(keys: K[], fetcher: (key: K) => Promise<T>, opt
 // @public (undocumented)
 export interface BatchOptions {
     // (undocumented)
-    concurrency?: number | undefined;
+    concurrency?: number;
     // (undocumented)
-    onProgress?: ((completed: number, total: number) => void) | undefined;
+    onProgress?: (completed: number, total: number) => void;
 }
 
 // @public (undocumented)
@@ -1824,7 +1827,7 @@ export class CharacterSkillsClient extends BaseEsiClient<typeof skillEndpoints> 
     getCharacterSkills(characterId: number): Promise<{
         skills: CharacterSkill[];
         total_sp: number;
-        unallocated_sp?: number | undefined;
+        unallocated_sp?: number;
     }>;
     // (undocumented)
     streamCharacterSkillQueue(characterId: number): AsyncGenerator<PageResult<SkillQueue>, void, undefined>;
@@ -2115,16 +2118,16 @@ export class CircuitBreaker implements ICircuitBreaker {
 
 // @public (undocumented)
 export interface CircuitBreakerConfig {
-    cleanupIntervalMs?: number | undefined;
+    cleanupIntervalMs?: number;
     // (undocumented)
-    failureThreshold?: number | undefined;
+    failureThreshold?: number;
     // (undocumented)
-    halfOpenMaxAttempts?: number | undefined;
-    keyStrategy?: 'resolved' | 'template' | undefined;
+    halfOpenMaxAttempts?: number;
+    keyStrategy?: 'resolved' | 'template';
     // (undocumented)
-    resetTimeoutMs?: number | undefined;
+    resetTimeoutMs?: number;
     // (undocumented)
-    staleThresholdMs?: number | undefined;
+    staleThresholdMs?: number;
 }
 
 // @public (undocumented)
@@ -2140,13 +2143,17 @@ export interface CircuitBreakerStats {
     totalCircuits: number;
 }
 
-// @public (undocumented)
-export class CircuitOpenError extends Error {
+// @public
+export class CircuitOpenError extends EsiError {
     constructor(endpoint: string, failures: number, retryAfterMs: number);
     // (undocumented)
     readonly endpoint: string;
     // (undocumented)
     readonly failures: number;
+    // (undocumented)
+    isTimeout(): boolean;
+    // (undocumented)
+    get retryable(): boolean;
     // (undocumented)
     readonly retryAfterMs: number;
 }
@@ -2996,9 +3003,9 @@ export class CorporationsClient extends BaseEsiClient<typeof corporationEndpoint
     getCorporationDivisions(corporationId: number): Promise<CorporationDivisions>;
     getCorporationFacilities(corporationId: number): Promise<CorporationFacility[]>;
     getCorporationIcon(corporationId: number): Promise<{
-        px64x64?: string | undefined;
-        px128x128?: string | undefined;
-        px256x256?: string | undefined;
+        px64x64?: string;
+        px128x128?: string;
+        px256x256?: string;
     }>;
     getCorporationInfo(corporationId: number): Promise<CorporationInfo>;
     getCorporationIssuedMedals(corporationId: number): Promise<CorporationIssuedMedal[]>;
@@ -4193,6 +4200,9 @@ export function createDefaultLogger(level?: string): ILogger;
 // @public
 export function createNoopLogger(): ILogger;
 
+// @public
+const CspaChargeCostSchema: z.ZodNumber;
+
 // @public (undocumented)
 export interface CursorOptions {
     // (undocumented)
@@ -4699,53 +4709,58 @@ export class EsiClientBuilder {
 // @public (undocumented)
 export interface EsiClientConfig {
     // (undocumented)
-    accessToken?: string | undefined;
+    accessToken?: string;
     // (undocumented)
-    baseUrl?: string | undefined;
+    baseUrl?: string;
     // (undocumented)
-    circuitBreakerConfig?: CircuitBreakerConfig | undefined;
+    circuitBreakerConfig?: CircuitBreakerConfig;
     // (undocumented)
-    clientId?: string | undefined;
+    clientId?: string;
     // (undocumented)
-    compatibilityDate?: string | undefined;
+    compatibilityDate?: string;
     // (undocumented)
-    datasource?: EsiDatasource | undefined;
+    datasource?: EsiDatasource;
     // (undocumented)
-    enableCircuitBreaker?: boolean | undefined;
+    enableCircuitBreaker?: boolean;
     // (undocumented)
-    enableETagCache?: boolean | undefined;
+    enableETagCache?: boolean;
     // (undocumented)
-    enableRequestDeduplication?: boolean | undefined;
+    enableRequestDeduplication?: boolean;
     // (undocumented)
-    etagCacheConfig?: ETagCacheConfig | undefined;
+    etagCacheConfig?: ETagCacheConfig;
     // (undocumented)
-    language?: string | undefined;
-    logger?: ILogger | undefined;
-    logLevel?: LogLevel | undefined;
+    language?: string;
+    logger?: ILogger;
+    logLevel?: LogLevel;
     // (undocumented)
-    onTokenRefresh?: TokenProvider | undefined;
+    onTokenRefresh?: TokenProvider;
     // (undocumented)
-    rateLimiterConfig?: RateLimiterConfig | undefined;
+    rateLimiterConfig?: RateLimiterConfig;
     // (undocumented)
-    requestInterceptors?: RequestInterceptor[] | undefined;
+    requestInterceptors?: RequestInterceptor[];
     // (undocumented)
-    responseInterceptors?: ResponseInterceptor[] | undefined;
+    responseInterceptors?: ResponseInterceptor[];
     // (undocumented)
-    retryAttempts?: number | undefined;
+    retryAttempts?: number;
     // (undocumented)
-    retryConfig?: RetryConfig | undefined;
+    retryConfig?: RetryConfig;
     // (undocumented)
-    retryStrategy?: IRetryStrategy | undefined;
-    tenant?: string | undefined;
+    retryStrategy?: IRetryStrategy;
+    tenant?: string;
     // (undocumented)
-    timeout?: number | undefined;
+    timeout?: number;
     // (undocumented)
-    unsafeAllowCustomHost?: boolean | undefined;
-    userAgent?: string | undefined;
+    unsafeAllowCustomHost?: boolean;
+    userAgent?: string;
     // (undocumented)
-    validateRequest?: boolean | undefined;
+    validateRequest?: boolean;
     // (undocumented)
-    validateResponse?: boolean | undefined;
+    validateResponse?: boolean;
+}
+
+// @public
+export class EsiConfigurationError extends EsiFaultError {
+    constructor(code: 'VALIDATION_ERROR' | 'NO_AUTH_TOKEN' | 'CONFIGURATION_ERROR', message: string);
 }
 
 // @public (undocumented)
@@ -4807,7 +4822,32 @@ export class EsiError extends Error {
     // (undocumented)
     readonly statusCode: number;
     // (undocumented)
-    readonly url?: string | undefined;
+    readonly url?: string;
+}
+
+// @public
+export type EsiFaultCode = 'VALIDATION_ERROR' | 'NO_AUTH_TOKEN' | 'CONFIGURATION_ERROR' | 'JSON_PARSE_ERROR' | 'PAGINATION_INCOMPLETE' | 'TOKEN_REFRESH_FAILED' | 'ESIJS_ERROR';
+
+// @public
+export class EsiFaultError extends EsiError {
+    constructor(code: EsiFaultCode, message: string, url?: string, cause?: unknown);
+    // (undocumented)
+    readonly cause: unknown;
+    // (undocumented)
+    readonly code: EsiFaultCode;
+    // (undocumented)
+    isTimeout(): boolean;
+    // (undocumented)
+    get retryable(): boolean;
+}
+
+// @public
+export class EsiNetworkError extends EsiError {
+    constructor(reason: string, url?: string, cause?: unknown);
+    // (undocumented)
+    readonly cause: unknown;
+    // (undocumented)
+    isTimeout(): boolean;
 }
 
 // @public (undocumented)
@@ -5186,6 +5226,16 @@ interface EsiOperationTypes {
     'PostUniverseNames': UniverseNamesPost[];
 }
 
+// @public
+export class EsiPaginationError extends EsiFaultError {
+    constructor(where: string, cause: unknown);
+}
+
+// @public
+export class EsiParseError extends EsiFaultError {
+    constructor(message: string, url?: string, cause?: unknown);
+}
+
 // @public (undocumented)
 export interface EsiResponse<T> {
     // (undocumented)
@@ -5482,7 +5532,7 @@ export class EsiTokenManager {
     importToken(token: {
         accessToken: string;
         refreshToken: string;
-        expiresIn?: number | undefined;
+        expiresIn?: number;
     }): Promise<StoredToken>;
     listCharacters(): Promise<CharacterSummary[]>;
     listTokens(): Promise<StoredToken[]>;
@@ -5494,19 +5544,24 @@ export class EsiTokenManager {
 
 // @public (undocumented)
 export interface EsiTokenManagerConfig {
-    autoRefresh?: boolean | undefined;
-    callbackUrl?: string | undefined;
+    autoRefresh?: boolean;
+    callbackUrl?: string;
     clientId: string;
-    clientSecret?: string | undefined;
-    fetch?: FetchLike | undefined;
-    logger?: ILogger | undefined;
-    now?: (() => number) | undefined;
-    onRefresh?: ((token: StoredToken) => void) | undefined;
-    onRefreshError?: ((characterId: number, error: Error) => void) | undefined;
-    onRevoked?: ((characterId: number) => void) | undefined;
-    refreshSkewMs?: number | undefined;
-    ssoClient?: EveSsoClient | undefined;
-    storage?: ITokenStorage | undefined;
+    clientSecret?: string;
+    fetch?: FetchLike;
+    logger?: ILogger;
+    now?: () => number;
+    onRefresh?: (token: StoredToken) => void;
+    onRefreshError?: (characterId: number, error: Error) => void;
+    onRevoked?: (characterId: number) => void;
+    refreshSkewMs?: number;
+    ssoClient?: EveSsoClient;
+    storage?: ITokenStorage;
+}
+
+// @public
+export class EsiTokenRefreshError extends EsiFaultError {
+    constructor(cause: unknown);
 }
 
 // @public (undocumented)
@@ -5515,17 +5570,20 @@ export class EsiValidationError extends EsiError {
     // (undocumented)
     readonly direction: ValidationDirection;
     // (undocumented)
+    isTimeout(): boolean;
+    get retryable(): boolean;
+    // (undocumented)
     readonly validationError: unknown;
 }
 
 // @public (undocumented)
 export interface ETagCacheConfig {
     // (undocumented)
-    cleanupInterval?: number | undefined;
+    cleanupInterval?: number;
     // (undocumented)
-    defaultTtl?: number | undefined;
+    defaultTtl?: number;
     // (undocumented)
-    maxEntries?: number | undefined;
+    maxEntries?: number;
 }
 
 // @public (undocumented)
@@ -5560,14 +5618,14 @@ export interface EveJwtClaims {
     // (undocumented)
     [claim: string]: unknown;
     // (undocumented)
-    aud?: string | string[] | undefined;
-    exp?: number | undefined;
-    iat?: number | undefined;
+    aud?: string | string[];
+    exp?: number;
+    iat?: number;
     // (undocumented)
-    iss?: string | undefined;
-    name?: string | undefined;
-    owner?: string | undefined;
-    scp?: string | string[] | undefined;
+    iss?: string;
+    name?: string;
+    owner?: string;
+    scp?: string | string[];
     sub: string;
 }
 
@@ -5589,17 +5647,17 @@ export class EveSsoClient {
 
 // @public (undocumented)
 export interface EveSsoClientConfig {
-    callbackUrl?: string | undefined;
+    callbackUrl?: string;
     clientId: string;
-    clientSecret?: string | undefined;
-    fetch?: FetchLike | undefined;
-    ssoBaseUrl?: string | undefined;
+    clientSecret?: string;
+    fetch?: FetchLike;
+    ssoBaseUrl?: string;
 }
 
 // @public (undocumented)
 export interface ExchangeCodeOptions {
-    codeVerifier?: string | undefined;
-    redirectUri?: string | undefined;
+    codeVerifier?: string;
+    redirectUri?: string;
 }
 
 // @public (undocumented)
@@ -5874,8 +5932,8 @@ const FactionWarfareWarSchema: z.ZodObject<{
 
 // @public
 export function fetchAllCursorPages<TResponse, TItem = unknown>(fetcher: (before?: string, after?: string) => Promise<TResponse>, getItems: (response: TResponse) => TItem[], getCursor: (response: TResponse) => {
-    before?: string | null | undefined;
-    after?: string | null | undefined;
+    before?: string | null;
+    after?: string | null;
 }): Promise<TItem[]>;
 
 // Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
@@ -5906,11 +5964,16 @@ export class FileTokenStorage implements ITokenStorage {
 
 // @public (undocumented)
 export interface FileTokenStorageOptions {
-    mode?: number | undefined;
+    mode?: number;
 }
 
 // @public (undocumented)
 export type Fitting = z.infer<typeof FittingSchema>;
+
+// @public
+const FittingCreatedSchema: z.ZodObject<{
+    fitting_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const FittingSchema: z.ZodObject<{
@@ -6056,8 +6119,18 @@ interface FleetsFleetIdWingsGet {
     })[];
 }
 
+// @public
+const FleetSquadCreatedSchema: z.ZodObject<{
+    squad_id: z.ZodNumber;
+}, z.core.$loose>;
+
 // @public (undocumented)
 export type FleetWing = z.infer<typeof FleetWingSchema>;
+
+// @public
+const FleetWingCreatedSchema: z.ZodObject<{
+    wing_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const FleetWingSchema: z.ZodObject<{
@@ -6833,13 +6906,28 @@ export function isCharacterNotFound(error: unknown): error is CharacterNotFoundE
 export function isCircuitOpen(error: unknown): error is CircuitOpenError;
 
 // @public (undocumented)
+export function isConfigurationError(error: unknown): error is EsiConfigurationError;
+
+// @public (undocumented)
 export function isEsiError(error: unknown): error is EsiError;
+
+// @public (undocumented)
+export function isFaultError(error: unknown): error is EsiFaultError;
 
 // @public (undocumented)
 export function isForbidden(error: unknown): error is EsiError;
 
 // @public (undocumented)
+export function isNetworkError(error: unknown): error is EsiNetworkError;
+
+// @public (undocumented)
 export function isNotFound(error: unknown): error is EsiError;
+
+// @public (undocumented)
+export function isPaginationError(error: unknown): error is EsiPaginationError;
+
+// @public (undocumented)
+export function isParseError(error: unknown): error is EsiParseError;
 
 // @public (undocumented)
 export function isRateLimited(error: unknown): error is EsiError;
@@ -6855,6 +6943,9 @@ export function isSsoError(error: unknown): error is SsoError;
 
 // @public (undocumented)
 export function isTimeout(error: unknown): error is TimeoutError;
+
+// @public (undocumented)
+export function isTokenRefreshError(error: unknown): error is EsiTokenRefreshError;
 
 // @public (undocumented)
 export function isTokenRevoked(error: unknown): error is TokenRevokedError;
@@ -7154,8 +7245,8 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
         name: string;
     }[]>;
     getMailLabels(characterId: number): Promise<{
-        total_unread_count?: number | undefined;
-        labels?: MailLabel[] | undefined;
+        total_unread_count?: number;
+        labels?: MailLabel[];
     }>;
     sendMail(characterId: number, body: object): Promise<number>;
     // (undocumented)
@@ -7185,6 +7276,9 @@ const MailHeaderSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
+// @public
+const MailIdSchema: z.ZodNumber;
+
 // @public (undocumented)
 const MailingListSchema: z.ZodObject<{
     mailing_list_id: z.ZodNumber;
@@ -7193,6 +7287,9 @@ const MailingListSchema: z.ZodObject<{
 
 // @public (undocumented)
 export type MailLabel = z.infer<typeof MailLabelSchema>;
+
+// @public
+const MailLabelIdSchema: z.ZodNumber;
 
 // @public (undocumented)
 const MailLabelSchema: z.ZodObject<{
@@ -8362,13 +8459,13 @@ export class RateLimiter implements IRateLimiter {
 // @public (undocumented)
 export interface RateLimiterConfig {
     // (undocumented)
-    decelerationThreshold?: number | undefined;
+    decelerationThreshold?: number;
     // (undocumented)
-    endpointOverrides?: Record<string, RateLimitEndpointOverride> | undefined;
+    endpointOverrides?: Record<string, RateLimitEndpointOverride>;
     // (undocumented)
-    minDelayMs?: number | undefined;
+    minDelayMs?: number;
     // (undocumented)
-    userKeyExtractor?: ((headers: Record<string, string>) => string) | undefined;
+    userKeyExtractor?: (headers: Record<string, string>) => string;
 }
 
 // @public (undocumented)
@@ -8430,15 +8527,15 @@ const RateLimitMetaSchema: z.ZodObject<{
 
 // @public (undocumented)
 export interface RefreshAllOptions {
-    concurrency?: number | undefined;
-    expiringWithinMs?: number | undefined;
-    onProgress?: ((completed: number, total: number) => void) | undefined;
-    signal?: AbortSignal | undefined;
+    concurrency?: number;
+    expiringWithinMs?: number;
+    onProgress?: (completed: number, total: number) => void;
+    signal?: AbortSignal;
 }
 
 // @public (undocumented)
 export interface RefreshOptions {
-    scopes?: readonly string[] | undefined;
+    scopes?: readonly string[];
 }
 
 // @public (undocumented)
@@ -8472,7 +8569,7 @@ const RegionInfoSchema: z.ZodObject<{
 
 // @public (undocumented)
 export interface RemoveCharacterOptions {
-    revoke?: boolean | undefined;
+    revoke?: boolean;
 }
 
 // @public (undocumented)
@@ -8531,29 +8628,29 @@ export type ResponseInterceptor = (context: ResponseContext) => ResponseContext 
 // @public (undocumented)
 export interface RetryConfig {
     // (undocumented)
-    baseDelayMs?: number | undefined;
+    baseDelayMs?: number;
     // (undocumented)
-    maxDelayMs?: number | undefined;
+    maxDelayMs?: number;
     // (undocumented)
-    maxRetries?: number | undefined;
+    maxRetries?: number;
     // (undocumented)
-    retryMutations?: boolean | undefined;
+    retryMutations?: boolean;
 }
 
 // @public (undocumented)
 export interface RetryContext {
     // (undocumented)
-    client?: ApiClient | undefined;
+    client?: ApiClient;
     // (undocumented)
     endpoint: string;
     // (undocumented)
     method: string;
     // (undocumented)
-    refreshToken?: (() => Promise<void>) | undefined;
+    refreshToken?: () => Promise<void>;
     // (undocumented)
     requiresAuth: boolean;
     // @deprecated (undocumented)
-    retryOperation?: (() => Promise<unknown>) | undefined;
+    retryOperation?: () => Promise<unknown>;
 }
 
 // @public (undocumented)
@@ -8580,16 +8677,16 @@ export class RouteClient extends BaseEsiClient<typeof routeEndpoints> {
 // @public (undocumented)
 export interface RouteOptions {
     // (undocumented)
-    avoid_systems?: number[] | undefined;
+    avoid_systems?: number[];
     // (undocumented)
     connections?: {
         from: number;
         to: number;
-    }[] | undefined;
+    }[];
     // (undocumented)
-    preference?: 'Shorter' | 'Safer' | 'LessSecure' | undefined;
+    preference?: 'Shorter' | 'Safer' | 'LessSecure';
     // (undocumented)
-    security_penalty?: number | undefined;
+    security_penalty?: number;
 }
 
 // @public (undocumented)
@@ -8627,9 +8724,11 @@ declare namespace schemas {
         CharacterAffiliationSchema,
         ContactNotificationSchema,
         CharacterRoleSchema,
+        CspaChargeCostSchema,
         CloneInfoSchema,
         ContactSchema,
         ContactLabelSchema,
+        AddedContactIdsSchema,
         ContractSchema,
         PublicContractSchema,
         ContractItemSchema,
@@ -8684,10 +8783,13 @@ declare namespace schemas {
         FactionWarfareLeaderboardSchema,
         FactionWarfareCorporationStatsSchema,
         FittingSchema,
+        FittingCreatedSchema,
         FleetInfoSchema,
         FleetMemberSchema,
         FleetWingSchema,
         CharacterFleetInfoSchema,
+        FleetWingCreatedSchema,
+        FleetSquadCreatedSchema,
         EsiCursorSchema,
         FreelanceJobSummarySchema,
         FreelanceJobsListingSchema,
@@ -8719,6 +8821,8 @@ declare namespace schemas {
         MailLabelSchema,
         MailLabelsResponseSchema,
         MailingListSchema,
+        MailIdSchema,
+        MailLabelIdSchema,
         MarketOrderSchema,
         CharacterMarketOrderSchema,
         CharacterMarketOrderHistorySchema,
@@ -9253,7 +9357,7 @@ export class SsoError extends AuthError {
     // (undocumented)
     readonly errorCode: string;
     // (undocumented)
-    readonly errorDescription?: string | undefined;
+    readonly errorDescription?: string;
     isRetryable(): boolean;
     // (undocumented)
     readonly statusCode: number;
@@ -9455,7 +9559,7 @@ export type TokenProvider = () => Promise<string>;
 export class TokenRevokedError extends AuthError {
     constructor(message: string, characterId?: number);
     // (undocumented)
-    readonly characterId?: number | undefined;
+    readonly characterId?: number;
 }
 
 // @public
