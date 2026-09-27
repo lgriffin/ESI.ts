@@ -54,6 +54,25 @@ describe('loggerUtil', () => {
     ]);
   });
 
+  it('redacts a sensitive query parameter in the message and context', () => {
+    const logger = spyLogger();
+    setLogger(logger);
+
+    logError('GET /characters/1/?code=abc failed', {
+      url: 'https://login.eveonline.com/v2/oauth/token?client_secret=x',
+    });
+
+    expect(logCalls(logger)).toEqual([
+      [
+        'error',
+        'GET /characters/1/?code=%5BREDACTED%5D failed',
+        {
+          url: 'https://login.eveonline.com/v2/oauth/token?client_secret=%5BREDACTED%5D',
+        },
+      ],
+    ]);
+  });
+
   it('passes a non-empty context through and an empty one as undefined', () => {
     const logger = spyLogger();
     setLogger(logger);

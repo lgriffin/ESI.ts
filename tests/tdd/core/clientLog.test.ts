@@ -63,6 +63,45 @@ describe('clientLog', () => {
   });
 });
 
+describe('clientLog redaction at the logger boundary', () => {
+  const secret =
+    'https://esi.evetech.net/latest/characters/1/assets/?token=s3cret';
+
+  it.each([
+    ['fatal', logFatal],
+    ['error', logError],
+    ['warn', logWarn],
+    ['info', logInfo],
+    ['debug', logDebug],
+    ['trace', logTrace],
+  ] as const)(
+    'redacts a sensitive query parameter at %s, in the message and the url field',
+    (level, log) => {
+      const logger = spyLogger();
+
+      log(asClient(clientWithLogger(logger)), `Request to ${secret}`, {
+        url: secret,
+        status: 200,
+      });
+
+      const redacted =
+        'https://esi.evetech.net/latest/characters/1/assets/?token=%5BREDACTED%5D';
+      expect(logCalls(logger)).toEqual([
+        [level, `Request to ${redacted}`, { url: redacted, status: 200 }],
+      ]);
+    },
+  );
+
+  it('redacts on the global fallback too', () => {
+    const global = spyLogger();
+    setLogger(global);
+
+    logWarn(null, `GET ${secret}`);
+
+    expect(global.warn.mock.calls[0]?.[0]).not.toContain('s3cret');
+  });
+});
+
 describe('resolveLogger', () => {
   const original = getLogger();
   afterEach(() => setLogger(original));

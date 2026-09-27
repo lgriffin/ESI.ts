@@ -1,5 +1,6 @@
 import type { ILogger, LogContext } from './ILogger';
 import { defaultLogger } from './DefaultLogger';
+import { redactLogContext, redactLogText } from './redactLog';
 
 export type { ILogger, LogContext } from './ILogger';
 
@@ -22,28 +23,28 @@ export const setLogger = (customLogger: ILogger): void => {
 export const getLogger = (): ILogger => activeLogger;
 
 const ctx = (context?: LogContext): LogContext | undefined =>
-  context && Object.keys(context).length > 0 ? context : undefined;
+  redactLogContext(context);
 
 export const logFatal = (message: string, context?: LogContext): void => {
-  activeLogger.fatal(message, ctx(context));
+  activeLogger.fatal(redactLogText(message), ctx(context));
 };
 
 export const logError = (message: string, context?: LogContext): void => {
-  activeLogger.error(message, ctx(context));
+  activeLogger.error(redactLogText(message), ctx(context));
 };
 
 export const logWarn = (message: string, context?: LogContext): void => {
-  activeLogger.warn(message, ctx(context));
+  activeLogger.warn(redactLogText(message), ctx(context));
 };
 
 export const logInfo = (message: string, context?: LogContext): void => {
-  activeLogger.info(message, ctx(context));
+  activeLogger.info(redactLogText(message), ctx(context));
 };
 
 export const logDebug = (message: string, context?: LogContext): void => {
-  activeLogger.debug(message, ctx(context));
+  activeLogger.debug(redactLogText(message), ctx(context));
 };
 
 export const logTrace = (message: string, context?: LogContext): void => {
-  activeLogger.trace(message, ctx(context));
+  activeLogger.trace(redactLogText(message), ctx(context));
 };
