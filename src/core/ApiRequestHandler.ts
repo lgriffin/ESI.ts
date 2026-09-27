@@ -233,7 +233,7 @@ export const handleSinglePageRequest = async (
   return retryStrategy.execute<EsiHandlerResponse>(doExecute, {
     client,
     endpoint,
-    method: 'GET',
+    method,
     requiresAuth,
     refreshToken: client.hasTokenProvider()
       ? () => client.refreshToken().then(() => {})

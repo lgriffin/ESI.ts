@@ -484,25 +484,25 @@ describe('CursorPaginationHandler', () => {
       expect(result).toEqual([{ id: 1 }, { id: 2 }]);
     });
 
-    it('should stop after maxRetries consecutive failures', async () => {
+    it('rejects with the last page error after consecutive failures', async () => {
       const firstPageData = [{ id: 1 }];
       const firstCursors = { before: null, after: 'c1' };
 
       // All fetches fail
       fetchMock.mockResponse('Server Error', { status: 500 });
 
-      const result = await CursorPaginationHandler.fetchAll(
-        client,
-        'corporations/123/projects',
-        'GET',
-        false,
-        firstPageData,
-        firstCursors,
-        undefined,
-        {},
-      );
-
-      expect(result).toEqual([{ id: 1 }]);
+      await expect(
+        CursorPaginationHandler.fetchAll(
+          client,
+          'corporations/123/projects',
+          'GET',
+          false,
+          firstPageData,
+          firstCursors,
+          undefined,
+          {},
+        ),
+      ).rejects.toMatchObject({ statusCode: 500 });
     });
 
     it('should pass refreshToken when client has token provider', async () => {
@@ -778,13 +778,15 @@ describe('CursorPaginationHandler', () => {
       ]);
     });
 
-    it('gives up after exactly three consecutive failed pages', async () => {
+    it('rejects after exactly three consecutive failed pages', async () => {
       client.setRetryConfig({ maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1 });
       const logger = spyLogger();
       client.setLogger(logger);
       const pageFetch = jest.fn().mockRejectedValue(new Error('boom'));
 
-      expect(await run(pageFetch)).toEqual([{ id: 1 }]);
+      await expect(run(pageFetch)).rejects.toThrow(
+        '[PAGINATION_INCOMPLETE] Pagination incomplete for corps/1/projects: boom',
+      );
 
       expect(pageFetch).toHaveBeenCalledTimes(3);
       expect(logCalls(logger).filter(([level]) => level !== 'info')).toEqual([

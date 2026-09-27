@@ -279,6 +279,18 @@ Feature: Resilience and Error Recovery
       Then the client resolves with the names from the retry
       And the client sent 2 requests
 
+  Rule: If a non-GET request issued by a stream or fetch-all helper is answered with HTTP 503, then the EsiClient shall reject after a single request.
+    The stream and fetch-all helpers take the endpoint's method from its
+    definition. The retry decision must see that method too, or a mutation
+    requested through a helper is retried as if it were a GET.
+
+    Scenario: Streaming name resolution answered with 503 is not retried
+      Given a client with retries enabled
+      And ESI answers the name resolution request with HTTP 503
+      When the client streams name resolution for one identifier
+      Then the client rejects with an EsiError carrying status 503
+      And the client sent 1 POST request
+
   # ── Circuit states ──────────────────────────────────────────────────
 
   Rule: While the circuit for an endpoint is open, the EsiClient shall reject calls to that endpoint with CircuitOpenError without issuing an HTTP request.
@@ -394,6 +406,17 @@ Feature: Resilience and Error Recovery
       Then the client resolves with the orders from both pages
       And the repeated page 1 request carried no If-None-Match header
       And the client sent 7 requests
+
+  Rule: If three consecutive cursor pages fail, then the cursor pagination handler shall reject with the error of the last failed page instead of returning the items fetched so far.
+    A cursor walk that stops part way cannot tell the caller how much is
+    missing, so a partial result is an error rather than a short list.
+
+    Scenario: Corporation projects whose next page fails three times are not returned in part
+      Given a cursor pagination client without retries
+      And ESI answers every corporation projects page after the first with HTTP 503
+      When the handler fetches every corporation project after a first page of 1 project
+      Then the handler rejects with an EsiError carrying status 503
+      And the handler sent 3 requests
 
   # ── Deduplication of in-flight requests ─────────────────────────────
 
