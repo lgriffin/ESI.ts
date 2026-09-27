@@ -28,7 +28,7 @@ tests/bdd/
   features/
     core/         NNNN-domain.feature   — one file per domain client, plus cross-cutting concerns
     integration/  multi-client workflows
-    performance/  throughput and latency characteristics
+    performance/  smoke checks of waiting, overlap and large payloads; no latency budget
     sde/          static data export provider
   specs/
     core/…/NNNN-domain.spec.ts   — binds the feature at the same path under features/
@@ -52,13 +52,14 @@ a feature with neither or both:
 
 - a **spec entry**, `specs/<area>/NNNN-domain.spec.ts`, whose whole content is
   `bindFeature(__filename)`. Its steps come from the global library in
-  `steps/`. Converted domains: access-lists, alliance, clones, corporation
-  projects, cosmetics, dogma, insurance, killmails, mail, market, meta, route,
-  universe, wallet, wars.
+  `steps/`. Sixteen domains are converted (`ls tests/bdd/specs/core`):
+  access-lists, alliance, clones, corporation projects, cosmetics, dogma,
+  insurance, killmails, mail, market, meta, request-headers, route, universe,
+  wallet, wars. With `step-library.spec.ts` that makes 17 spec files.
 - a **legacy step file**, `step-definitions/<area>/<domain>.steps.ts`, bound
   with `loadFeature(<path>)` / `defineFeature`, with every step inline. These
-  are listed in `scripts/spec-audit-exceptions.json` under `legacyStepFiles`,
-  and the list only shrinks.
+  are listed in `scripts/spec-audit-exceptions.json` under `legacyStepFiles`
+  (38 entries on 2026-09-27), and the list only shrinks.
 
 ## The runner
 
@@ -431,18 +432,21 @@ A Rule is protection only when three things hold, each owned by one gate:
 
 Rules whose domain mutation score is not ratcheted are documentation, not
 protection. A scenario that executes and passes can still pass whatever the
-client does. `mutation-bdd-thresholds.json` is empty today (`{}`), so no
-directory is ratcheted and no Rule is yet protected in this third sense. Floors
-are per directory (`src/clients`, `src/core/<sub>`), so a domain's Rules count
-once the directory holding its client has an entry.
+client does. Floors are per directory (`src/clients`, `src/core/<sub>`,
+`src/sde`, ...), so a domain's Rules count once the directory holding its code
+has an entry, and every scored directory must have one or the ratchet fails.
+`mutation-bdd-thresholds.json` holds 15 floors today, from 0% (`src/schemas`)
+and 10.6% (`src/sde`) to 42.8% (`src/core/util`). A floor of 0 ratchets
+nothing yet: it records that the scenarios kill no mutant in that directory.
 
-The floors were empty because the run that produces them never finished: one
-job mutating all of `src/` against the step definitions alone was killed at 30
-minutes. `nightly-mutation.yml` now runs that job once per shard in
-`mutation-bdd-shards.json` and merges the reports. Seed the floors by
+The floors were first seeded on 19 September 2026. Until then the file was
+empty, because the run that produces them never finished: one job mutating all
+of `src/` against the step definitions alone was killed at 30 minutes.
+`nightly-mutation.yml` now runs that job once per shard in
+`mutation-bdd-shards.json` and merges the reports. Raise the floors by
 dispatching it with `seed_bdd_thresholds`, which uploads
 `mutation-bdd-thresholds.json` raised to that run's scores for review; see
-`guides/MUTATION-TESTING.md`.
+[`guides/MUTATION-TESTING.md`](../../guides/MUTATION-TESTING.md#where-the-scores-stand).
 
 ## The consistency check
 

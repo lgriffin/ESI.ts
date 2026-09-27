@@ -68,12 +68,21 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 
 ## Project Structure
 
+- `src/EsiClient.ts`, `src/EsiClientBuilder.ts` — the construction surfaces: `EsiClient`, `EsiClientBuilder` → `CustomEsiClient`, `EsiApiFactory`; `src/index.ts` is the root entry
 - `src/clients/` — 39 hand-written domain clients (Alliance, Character, Cosmetics, Market, ParagonHub, etc.) extending `BaseEsiClient`
-- `src/core/` — ApiRequestHandler, rate limiter, circuit breaker, caching, pagination, retry strategy
-- `src/core/endpoints/` — Endpoint definitions (`*Endpoints.ts`) + generated metadata
+- `src/core/` — the pipeline: `ApiClient`, `ApiRequestHandler`, `configureApiClient`, rate limiter, circuit breaker, ETag cache, deduplicator, retry strategy, pagination, `clock.ts` (the only module allowed to read time; `lint:determinism`)
+- `src/core/requestPipeline/` — the single-purpose modules `ApiRequestHandler` coordinates: headers, cache policy, status handling, fetch execution, pagination orchestration, middleware bridge, dependency resolution. Area notes in its `AGENTS.md`
+- `src/core/endpoints/` — 39 endpoint maps (`*Endpoints.ts`), `createClient()`, and the generated TTL, rate-limit-group and scope tables
 - `src/core/circuitBreaker/` — Circuit breaker implementation + `ICircuitBreaker` interface
-- `src/schemas/` — 37 hand-written Zod v4 schemas for runtime validation
+- `src/core/ports/` — six type-only ports (`CacheStore`, `Clock`, `HttpTransport`, `Logger`, `OperationTransport`, `TokenProvider`). They import nothing; not exported until the 11.0 builder (ROADMAP Phase 2 PR 11)
+- `src/adapters/` — `PipelineTransport`, which implements `OperationTransport` over the existing pipeline. Not exported yet
+- `src/generated/` — `operations.generated.ts`: 233 typed operations, `ScopeTree`, `PublicScopeTree` and `createScopeTree`, generated from the vendored spec. Imports only the ports. Not exported yet
+- `src/auth/` — `EveSsoClient` (OAuth2 + PKCE), `EsiTokenManager` (multi-character tokens and refresh), `MemoryTokenStorage` / `FileTokenStorage`, auth errors
+- `src/errors.ts` — the `./errors` sub-path entry
+- `src/schemas/` — hand-written Zod v4 schemas: 36 domain modules plus `common.ts` and `esiEnum.ts`
 - `src/types/` — Hand-written response types + `generated/esi-spec.generated.ts`
+- `src/sde/` — Static Data Export side module (`./sde`, `./sde/memory`); shares no code with the pipeline, enforced both ways by `lint:layers`
+- `src/testing/` — `TestDataFactory` and helpers, the `./testing` sub-path
 - `tests/tdd/` — Unit tests
 - `tests/tdd/helpers/` — Shared test utilities (e.g., `clientErrorTests.ts`)
 - `tests/benchmark/` — Performance benchmark tests
@@ -94,13 +103,14 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - **Dual CJS/ESM build** via tsup (esbuild) for JS bundles + tsc for declaration files.
 - **Logging** via pino behind the `ILogger` interface. Level controlled by `ESI_LOG_LEVEL` env var (default: `warn`).
 - **Conventional commits** enforced by commitlint + husky. Types: feat, fix, chore, docs, test, refactor, perf. The type and `!` decide the released version; see Semantic Versioning below.
-- **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types`, do not edit manually.
+- **Generated files** (`*.generated.ts`) are auto-generated from the ESI OpenAPI spec. Re-generate with `npm run generate:types` (types, TTLs, rate-limit groups, scopes) or `npm run spec:generate` (`src/generated/operations.generated.ts`, from the vendored snapshot); do not edit manually.
+- **Layers** point inward: `npm run lint:layers` (`eslint.layers.rules.cjs`) forbids core importing the layers above it, ports importing anything, and generated code importing anything but the ports. Its `BASELINE` only shrinks. See `guides/DESIGN-RULES.md` §7.
 
 ## Architecture
 
 ### Request Pipeline
 
-`Client method` → `BaseEsiClient.api` → `createClient()` → `handleRequest()` → `RetryStrategy.execute()` → `executeRequest()` → `fetch()`
+`Client method` → `createClient()` closure → `handleRequest()` (spec-TTL cache check) → `RetryStrategy.execute()` (each attempt re-checks the spec-TTL cache) → deduplicator (GET without body) → `executeRequest()` → `executeSingleFetch()` (headers, request interceptors, circuit breaker, rate limiter, `fetch` with timeout) → status handling, cache write, pagination, response interceptors → Zod validation in `createClient()`. Full walkthrough: `guides/ARCHITECTURE.md` §2.
 
 Key middleware in the pipeline:
 
@@ -113,11 +123,14 @@ Key middleware in the pipeline:
 
 ### CI Workflows
 
-- **ci-fast.yml** — runs on all pushes: lint, format, build, typecheck, unit tests (Node 20)
-- **ci.yml** — runs on PRs to master: full matrix (Node 18/20/22), BDD, contract, fuzz, coverage with PR comment, quality gate
+- **ci-fast.yml** — runs on every push (Node 20): `lint`, `lint:layers`, `lint:bdd-seam`, `lint:suite-health`, format check, build, typecheck, `typecheck:examples`, unit tests
+- **ci.yml** — runs on pull requests to master: unit tests on Node 18/20/22, consumer contract on Node 18 to 24, BDD, spec audit, contract, fuzz, coverage, API surface, doc examples and more. `ci-success` is the single required check and fails when any job fails or is skipped
 - **nightly-mutation.yml** — runs nightly: unit mutation testing (Stryker) with a 4-hour timeout, the BDD-only run as one job per shard, and type mutation
 - **nightly-examples.yml** — runs nightly and on PRs touching examples: type-checks every example, runs the public ones against live ESI, opens/closes one issue per failing example
 - **skill-eval.yml** — runs on PRs touching `.claude/skills/**`: skill eval suite with thresholds and a cost budget
+- **spec-refresh.yml** — on push to `spec-refresh/**` or manual dispatch: re-vendors the ESI OpenAPI document at `COMPATIBILITY_DATE` and regenerates every generated file from it
+
+These are the ones an agent meets most. `.github/workflows/` holds 25 workflow files; `guides/QUALITY-GATES.md` lists every one and what it gates.
 
 ## Semantic Versioning (enforced)
 
@@ -151,6 +164,7 @@ Review against the checklist and severities in `AGENTS.md` (Reviewer Checklist).
 
 - `src/types/generated/` — auto-generated from OpenAPI spec
 - `src/core/endpoints/esi-*.generated.ts` — auto-generated cache TTLs, rate limits, scopes
+- `src/generated/operations.generated.ts` — generated operations and scope tree (`npm run spec:generate`)
 - `dist/` — build output
 - `etc/esi.ts.api.md` — auto-generated API surface report
 - `okf/` — auto-generated OKF knowledge bundle from OpenAPI spec
