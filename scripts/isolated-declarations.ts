@@ -27,27 +27,43 @@ if (read.error) {
   process.exit(2);
 }
 const parsed = ts.parseJsonConfigFileContent(read.config, ts.sys, root);
+const format = (diagnostics: readonly ts.Diagnostic[]): string =>
+  ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+    getCanonicalFileName: (file) => file,
+    getCurrentDirectory: () => root,
+    getNewLine: () => '\n',
+  });
+
+// A config that fails to parse, or an include pattern that matches nothing,
+// would otherwise pass as "no diagnostics in no files".
+if (parsed.errors.length > 0) {
+  console.error(format(parsed.errors));
+  process.exit(2);
+}
 const inScope = new Set(parsed.fileNames.map((file) => path.resolve(file)));
+if (inScope.size === 0) {
+  console.error(
+    'isolatedDeclarations: tsconfig.isolated.json includes no files.',
+  );
+  process.exit(2);
+}
+
 const program = ts.createProgram({
   rootNames: parsed.fileNames,
   options: parsed.options,
 });
+// Diagnostics with no file are the compiler's own (an option conflict, a
+// missing lib) and always count; file diagnostics count inside the scope.
 const reported = ts
   .getPreEmitDiagnostics(program)
   .filter(
     (diagnostic) =>
-      diagnostic.file !== undefined &&
+      diagnostic.file === undefined ||
       inScope.has(path.resolve(diagnostic.file.fileName)),
   );
 
 if (reported.length > 0) {
-  console.error(
-    ts.formatDiagnosticsWithColorAndContext(reported, {
-      getCanonicalFileName: (file) => file,
-      getCurrentDirectory: () => root,
-      getNewLine: () => '\n',
-    }),
-  );
+  console.error(format(reported));
   console.error(
     `isolatedDeclarations: ${reported.length} diagnostic(s) in ${inScope.size} checked files.`,
   );
