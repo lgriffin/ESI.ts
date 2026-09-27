@@ -341,6 +341,24 @@ describe('requestPipeline/cachePolicy', () => {
           jest.restoreAllMocks();
         });
 
+        it('serves a spec-TTL hit up to one millisecond before the TTL, not at it', () => {
+          store({}, 'status');
+          const hit = () =>
+            trySpecAwareCacheHit(
+              client,
+              statusUrl,
+              'GET',
+              'status',
+              resolveCache,
+            );
+
+          now += 29_999;
+          expect(hit()!.cacheHitType).toBe('spec-ttl');
+
+          now += 1;
+          expect(hit()).toBeNull();
+        });
+
         it('stops the spec-TTL hit at the TTL but keeps the entry for stale use', () => {
           store({}, 'status');
 
