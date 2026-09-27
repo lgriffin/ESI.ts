@@ -30,6 +30,8 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 - **2026-09-27, logging at the boundary (Phase 4 items 1 and 2).** ARCH-09 moves from Partial to Enforced: every call site logs through the per-client logger, and a `no-restricted-imports` block in `npm run lint` and `lint:layers` keeps the global `loggerUtil` out of `src/core/requestPipeline/` and `src/clients/` ([#265](https://github.com/lgriffin/ESI.ts/issues/265)). SEC-02 gains log lines to its evidence: URLs are redacted with `sanitizeUrl` at the logger boundary ([#296](https://github.com/lgriffin/ESI.ts/issues/296)). ARCH-06 stays a Gap until item 3.
 
+- **2026-09-27, nothing built at import (Phase 4 item 3).** ARCH-06 moves from Gap to Enforced: the default logger builds its pino instance on first use, `package.json` declares `"sideEffects": false`, and `tests/tdd/core/importSideEffects.test.ts` holds both ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
+
 ### 11.0.0
 
 The next major is 11.0.0, built in the phases of the Road to Done plan (Phase 0 audit in [AUDIT.md](AUDIT.md); Phase 1 generator done; Phase 2 architecture lock in progress). The phase schedule, each phase's definition of done, the SDE programme and the release gate are in [ROADMAP.md](ROADMAP.md). Decided on 2026-09-26:
@@ -193,12 +195,12 @@ The package **shall** publish a dual CJS and ESM build with declaration files fo
 - **Why:** Subpath entries are the tree-shaking story while the root barrel stays wide.
 - **Verified by:** `tsup.config.ts`, the `package-lint` job in `ci.yml` (publint and Are The Types Wrong on the packed tarball), and the consumer contract.
 
-#### ARCH-06 · Ubiquitous · Gap
+#### ARCH-06 · Ubiquitous · Enforced
 
 The package manifest **shall** declare `"sideEffects": false`, and no module in `src/` **shall** construct a logger, timer or network client at import time.
 
-- **Why:** Six entry points are wasted if bundlers must assume side effects. Today `DefaultLogger.ts` and `logger.ts` each build a pino instance on import.
-- **Verified by:** To add: a knip or custom script asserting the flag, plus a bundle-size check on `import { EsiError } from '@lgriffin/esi.ts'`.
+- **Why:** Seven entry points are wasted if bundlers must assume side effects. The default logger builds its pino instance on first use, not on import ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
+- **Verified by:** `tests/tdd/core/importSideEffects.test.ts`: it imports the source of every `exports` entry with pino replaced by a spy and fails if the spy was called, asserts the manifest flag, and bundles `import { EsiError }` from the root entry with esbuild (ESM and CJS) and fails if the bundle reaches pino. `npm run size` holds every entry to its budget.
 
 #### ARCH-07 · Ubiquitous · Partial
 
@@ -783,7 +785,7 @@ Everything found during the survey, and since, that contradicts a requirement ab
 | 4   | MED  | `logFatal`/`logTrace` were not exported; global-logger fallback needs a lint gate                                               | ARCH-09                   | **Done**: exports in revision 1; `no-restricted-imports` gate in `npm run lint` and `lint:layers`                                                                                 | `esi-772`    | [#265](https://github.com/lgriffin/ESI.ts/issues/265)                                                        |
 | 5   | MED  | `isCircuitOpen` missing from `./errors`; plumbing errors are string-typed                                                       | ARCH-07                   | Export guard; introduce `EsiConfigurationError` family                                                                                                                            | `esi-gyh`    | [#266](https://github.com/lgriffin/ESI.ts/issues/266)                                                        |
 | 6   | MED  | `CustomEsiClient` missing four getters                                                                                          | ARCH-08                   | **Done**: getters added, compile-time check in `customClientGetters.test.ts`; `EsiApiFactory` reaches all 39 through `createClient(type)`, with named methods for 9               | `esi-eqq`    | [#267](https://github.com/lgriffin/ESI.ts/issues/267)                                                        |
-| 7   | MED  | No `sideEffects: false`; two pino instances built at import                                                                     | ARCH-06                   | Lazy logger; add flag; bundle-size check                                                                                                                                          | `esi-piw`    | [#268](https://github.com/lgriffin/ESI.ts/issues/268)                                                        |
+| 7   | MED  | No `sideEffects: false`; two pino instances built at import                                                                     | ARCH-06                   | **Done**: default logger built on first use; `"sideEffects": false`; `importSideEffects.test.ts` spies on pino and bundles `import { EsiError }`                                  | `esi-piw`    | [#268](https://github.com/lgriffin/ESI.ts/issues/268)                                                        |
 | 8   | MED  | `handleSinglePageRequest` hardcodes GET; cursor `fetchAll` swallows failures                                                    | DES-08                    | **Done**: rules in `0051-resilience.feature`; the stream helpers pass the real method and the cursor `fetchAll` rejects                                                           | `esi-dwi`    | [#269](https://github.com/lgriffin/ESI.ts/issues/269)                                                        |
 | 9   | MED  | No SBOM; no CODEOWNERS; admins exempt from protection                                                                           | SEC-06, SEC-07            | SBOM **done** (SEC-06); CODEOWNERS **done**; admins-included not verifiable from the repo                                                                                         | `esi-wze`    | [#270](https://github.com/lgriffin/ESI.ts/issues/270)                                                        |
 | 10  | MED  | Tests not linted; knip non-blocking; mutation never gates                                                                       | TEST-09, GATE-04, TEST-07 | Incremental Stryker on PR **done** (TEST-07); suite-health and seam lint added; extend `npm run lint`; block knip at release                                                      | `esi-p56`    | [#271](https://github.com/lgriffin/ESI.ts/issues/271)                                                        |
