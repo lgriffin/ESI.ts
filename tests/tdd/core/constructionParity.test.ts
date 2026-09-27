@@ -294,11 +294,14 @@ describe('Construction parity', () => {
       });
       const factoryClient = EsiApiFactory.createClient('status', config);
 
+      const esiApiClient = getApiClientFromDomainClient(esiClient.status);
       const customApiClient = getApiClientFromDomainClient(
         customClient.getClient('status'),
       );
       const factoryApiClient = getApiClientFromDomainClient(factoryClient);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((esiApiClient as any).getCompatibilityDate()).toBe('2026-08-18');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((customApiClient as any).getCompatibilityDate()).toBe(
         '2026-08-18',
