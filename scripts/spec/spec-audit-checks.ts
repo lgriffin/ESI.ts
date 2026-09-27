@@ -269,22 +269,14 @@ export function loadBaselineExceptions(): {
   ].filter((ref): ref is string => Boolean(ref));
 
   for (const ref of refs) {
-    let raw: string | undefined;
-    // The list lived at scripts/spec-audit-exceptions.json until scripts/ was
-    // split by job; a base branch from before the move still has it there.
-    for (const candidate of [relPath, 'scripts/spec-audit-exceptions.json']) {
-      try {
-        raw = execFileSync('git', ['show', `${ref}:${candidate}`], {
-          cwd: REPO_ROOT,
-          encoding: 'utf-8',
-          stdio: ['ignore', 'pipe', 'ignore'],
-        });
-        break;
-      } catch {
-        // Not at this path on this ref; try the next path.
-      }
-    }
-    if (raw === undefined) {
+    let raw: string;
+    try {
+      raw = execFileSync('git', ['show', `${ref}:${relPath}`], {
+        cwd: REPO_ROOT,
+        encoding: 'utf-8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+    } catch {
       continue; // Ref not available in this checkout; try the next one.
     }
     try {
