@@ -336,7 +336,7 @@ const canRun =
         .getAllEntities<EveType>('eve_types')
         .filter((t) => t.published === true);
       const noName = types.filter((t) => !t.name || t.name === '');
-      expect(noName.length).toBe(0);
+      expect(noName).toHaveLength(0);
     });
 
     it('solar systems should have valid security status', () => {
@@ -344,7 +344,7 @@ const canRun =
       const invalid = systems.filter(
         (s) => s.securityStatus < -1.1 || s.securityStatus > 1.1,
       );
-      expect(invalid.length).toBe(0);
+      expect(invalid).toHaveLength(0);
     });
 
     it('market groups should form a valid tree', () => {
@@ -353,7 +353,7 @@ const canRun =
       const orphans = groups.filter(
         (g) => g.parentGroupId != null && !ids.has(g.parentGroupId),
       );
-      expect(orphans.length).toBe(0);
+      expect(orphans).toHaveLength(0);
     });
   });
 

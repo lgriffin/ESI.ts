@@ -397,7 +397,7 @@ describe('requestPipeline/statusHandling', () => {
         JSON.stringify({ error: 'x'.repeat(1000) }),
         { status: 400 },
       );
-      expect((await readEsiErrorReason(response))!.length).toBe(200);
+      expect(await readEsiErrorReason(response)).toHaveLength(200);
     });
 
     it('carries the reason in the thrown message, ahead of the hint', () => {

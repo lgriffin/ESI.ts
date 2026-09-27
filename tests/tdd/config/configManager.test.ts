@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import path from 'path';
 import { getConfig } from '../../../src/config/configManager';
 
@@ -45,7 +46,6 @@ describe('configManager', () => {
       const esiJsonPath = path.join(configDir, 'esi.json');
 
       // Verify esi.json exists at the expected location
-      const fs = require('fs');
       expect(fs.existsSync(esiJsonPath)).toBe(true);
 
       // Verify getConfig() works (proving getDirname resolves correctly)

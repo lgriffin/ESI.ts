@@ -1,7 +1,6 @@
 import { ESLint } from 'eslint';
 import tseslint from 'typescript-eslint';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const seamRules = require('../../../config/eslint/bdd-seam.rules.cjs');
 
 const eslint = new ESLint({

@@ -8,7 +8,6 @@
  * an otherwise real pipeline without touching the real one. Call `jest.doMock`
  * from the test file, with paths relative to that file.
  */
-/* eslint-disable @typescript-eslint/no-require-imports */
 import type { ApiClient } from '../../../src/core/ApiClient';
 import type { configureApiClient } from '../../../src/core/configureApiClient';
 import type { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';

@@ -141,7 +141,8 @@ describe('RequestDeduplicator', () => {
 
   describe('clear', () => {
     it('should clear in-flight map', () => {
-      dedup.dedupe('key1', () => new Promise(() => {}));
+      // Never settles: the request must stay in flight until clear().
+      void dedup.dedupe('key1', () => new Promise(() => {}));
       expect(dedup.pending).toBe(1);
 
       dedup.clear();

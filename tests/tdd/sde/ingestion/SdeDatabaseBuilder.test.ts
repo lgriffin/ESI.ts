@@ -19,7 +19,6 @@ let Database: new (
 };
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   Database = require('better-sqlite3');
   hasBetterSqlite3 = true;
 } catch {

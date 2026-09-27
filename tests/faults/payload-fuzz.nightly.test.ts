@@ -85,7 +85,6 @@ function discoverEndpoints(): Case[] {
   }
   const cases: Case[] = [];
   for (const file of files) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require(path.join(ENDPOINTS_DIR, file)) as Record<
       string,
       EndpointMap

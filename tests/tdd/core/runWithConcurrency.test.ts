@@ -135,7 +135,7 @@ describe('runWithConcurrency', () => {
     await runWithConcurrency(['a', 'b'], async (_item, index) => {
       seen.push(index);
     });
-    expect(seen.sort()).toEqual([0, 1]);
+    expect([...seen].sort((a, b) => a - b)).toEqual([0, 1]);
   });
 
   it.each([
@@ -199,7 +199,7 @@ describe('runWithConcurrency', () => {
         },
       },
     );
-    expect(seen.sort()).toEqual([1, 2, 3, 4]);
+    expect([...seen].sort((a, b) => a - b)).toEqual([1, 2, 3, 4]);
     expect(results.map((r) => r.status)).toEqual([
       'fulfilled',
       'fulfilled',

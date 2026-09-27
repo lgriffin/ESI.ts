@@ -377,7 +377,7 @@ defineFeature(feature, (test) => {
       expect(corporation.name).toBe('Test Corporation');
       expect(corporation.member_count).toBe(150);
       expect(members).toEqual(memberIds);
-      expect(members.length).toBe(corporation.member_count);
+      expect(members).toHaveLength(corporation.member_count);
 
       const totalWalletBalance = wallets.reduce(
         (total: number, wallet: any) => total + wallet.balance,
@@ -700,7 +700,7 @@ defineFeature(feature, (test) => {
       const reason = (portrait as PromiseRejectedResult).reason;
       expect(reason).toBeInstanceOf(EsiError);
       expect((reason as EsiError).statusCode).toBe(503);
-      expect(sentPaths().filter((p) => p.endsWith('/portrait/')).length).toBe(
+      expect(sentPaths().filter((p) => p.endsWith('/portrait/'))).toHaveLength(
         RETRYABLE_ATTEMPTS,
       );
     });

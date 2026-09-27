@@ -80,7 +80,10 @@ describe('Parameter Validation Fuzz Tests', () => {
       }
     });
 
-    it('should never return successfully for non-string/non-number inputs', () => {
+    // Non-primitive inputs are not rejected outright: an object stringifies
+    // to '[object Object]', which is a valid segment. What must hold is that
+    // whatever is returned is safe to splice into the path.
+    it('should only return a non-empty, safe segment for non-string/non-number inputs', () => {
       fc.assert(
         fc.property(
           fc
@@ -94,11 +97,15 @@ describe('Parameter Validation Fuzz Tests', () => {
                 typeof v !== 'boolean',
             ),
           (input) => {
+            let result: string;
             try {
-              validatePathParam('test_id', input);
+              result = validatePathParam('test_id', input);
             } catch {
-              // Any error is acceptable — validation rejected the input
+              return; // Rejected: nothing reaches the path.
             }
+            expect(result).not.toBe('');
+            expect(result).not.toMatch(UNSAFE_PATH_CHARS);
+            expect(isDotSegment(result)).toBe(false);
           },
         ),
         { numRuns: 500 },
@@ -189,7 +196,10 @@ describe('Parameter Validation Fuzz Tests', () => {
       );
     });
 
-    it('should never return successfully for non-primitive inputs', () => {
+    // Non-primitive inputs are not rejected outright: an array stringifies
+    // to its comma-joined elements. What must hold is that whatever is
+    // returned is the input's string form, within the length limit.
+    it('should only return the string form, within the length limit, for non-primitive inputs', () => {
       fc.assert(
         fc.property(
           fc
@@ -203,11 +213,14 @@ describe('Parameter Validation Fuzz Tests', () => {
                 typeof v !== 'boolean',
             ),
           (input) => {
+            let result: string;
             try {
-              validateQueryParam('test', input);
+              result = validateQueryParam('test', input);
             } catch {
-              // Any error is acceptable — validation rejected the input
+              return; // Rejected: nothing reaches the query string.
             }
+            expect(result).toBe(`${input as string}`);
+            expect(result.length).toBeLessThanOrEqual(2000);
           },
         ),
         { numRuns: 500 },

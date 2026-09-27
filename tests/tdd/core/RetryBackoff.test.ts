@@ -38,7 +38,7 @@ describe('retryDelay utility', () => {
       const samples = Array.from({ length: 50 }, () =>
         retryDelay(attempt, 1000, 100000),
       );
-      delays.push(samples.reduce((a, b) => a + b) / samples.length);
+      delays.push(samples.reduce((a, b) => a + b, 0) / samples.length);
     }
     for (let i = 1; i < delays.length; i++) {
       expect(delays[i]!).toBeGreaterThan(delays[i - 1]!);

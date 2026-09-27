@@ -10,7 +10,7 @@ npm run typecheck      # Type-check without emitting (tsc --noEmit)
 npm run typecheck:examples  # Type-check examples/ against src (tsconfig.examples.json)
 npm run typecheck:isolated  # isolatedDeclarations over the exposed layers only (tsconfig.isolated.json; schemas and endpoint maps stay inferred)
 npm run clean          # Remove dist/, coverage/, docs-site/public/api/
-npm run lint           # ESLint (src/)
+npm run lint           # ESLint (src/ and tests/; test relaxations declared in eslint.config.mjs)
 npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bdd)
 npm run lint:determinism  # Time/timers/Math.random in src/ only via the clock module (shrink-only baseline)
 npm run lint:layers    # Imports in src/ point inward: core, ports, generated (shrink-only baseline)

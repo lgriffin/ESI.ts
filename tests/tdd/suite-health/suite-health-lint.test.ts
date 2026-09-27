@@ -5,7 +5,6 @@ import { ESLint } from 'eslint';
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const FIXTURES = path.join(__dirname, 'fixtures');
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { config } = require('../../../config/eslint/suite-health.rules.cjs');
 
 // The config the npm script uses, globs included, so a broken `files` or

@@ -358,6 +358,9 @@ class Run<W> {
       });
     };
     let promise: Promise<unknown>;
+    // The try catches only a synchronous throw from run(), turning it into a
+    // rejection; the .then below handles every rejection. Deferring run()
+    // into a promise chain instead would shift the interleaving by a tick.
     try {
       promise = actor.run(this.world);
     } catch (error) {
