@@ -2,6 +2,7 @@ import tseslint from 'typescript-eslint';
 import security from 'eslint-plugin-security';
 import sonarjs from 'eslint-plugin-sonarjs';
 import prettierConfig from 'eslint-config-prettier';
+import loggerImports from './eslint.logger-imports.rules.cjs';
 
 export default tseslint.config(
   {
@@ -67,4 +68,8 @@ export default tseslint.config(
       'sonarjs/fixme-tag': 'off',
     },
   },
+
+  // src/core/requestPipeline and src/clients log through the per-client
+  // logger, never the global loggerUtil (#265).
+  ...loggerImports.loggerImportsConfig(),
 );
