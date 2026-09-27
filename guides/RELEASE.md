@@ -128,14 +128,14 @@ The current changelog does not yet meet this rule; see [Known state](#known-stat
 
 ## What gates a publish (REL-02)
 
-`validate-release` runs on Node 20 against the tagged commit. Every step blocks the publish except dead-code detection.
+`validate-release` runs on Node 20 against the tagged commit. Every step blocks the publish.
 
 | Step                        | Command                                                                                                                     | Blocks |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------- | :----: |
 | Tag matches version         | `package.json` version equals the tag, then `npm run validate:versions`                                                     |   ●    |
 | Lint                        | `npm run lint`                                                                                                              |   ●    |
 | Formatting                  | `npm run format:check`                                                                                                      |   ●    |
-| Dead code                   | `npx knip --no-exit-code`                                                                                                   |   ◐    |
+| Dead code                   | `npx knip`                                                                                                                  |   ●    |
 | Dependency audit            | `npm run audit:check` (allowlist with expiry, see SECURITY.md)                                                              |   ●    |
 | Changelog entry for version | `grep "## [X.Y.Z]" CHANGELOG.md`                                                                                            |   ●    |
 | Build                       | `npm run build`                                                                                                             |   ●    |

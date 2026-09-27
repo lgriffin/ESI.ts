@@ -168,6 +168,8 @@ jobs:
           echo "::warning::$problem. This pull request does not touch the generator or the generated files, so the drift is already on the base branch; nightly-spec-drift.yml files it as a spec-drift issue."
           echo "Generated types differ from the live ESI spec (pre-existing drift, not blocking)." >> "$GITHUB_STEP_SUMMARY"
 
+      # Reported, not blocking, to keep pull request friction low; release.yml
+      # runs the same check as a blocking gate (CHARTER GATE-04).
       - name: Run dead code detection (knip)
         run: npx knip --no-exit-code
 

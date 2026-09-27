@@ -1,0 +1,34 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  // Tests, scripts and examples consume src/ (and the devDependencies) but
+  // are not themselves checked for unused files or exports: they are entry
+  // points. `project` stays src/ so the dead-code findings are about the
+  // library.
+  "entry": ["tests/**/*.ts", "scripts/**/*.ts", "examples/**/*.ts"],
+  "project": ["src/**/*.ts"],
+  "jest": { "config": ["config/jest/*.config.cjs"] },
+  "eslint": { "entry": ["config/eslint/suite-health.rules.cjs"] },
+  "ignoreDependencies": [
+    // Named only in the Stryker configs' JSDoc `@type` imports; it arrives
+    // with @stryker-mutator/core.
+    "@stryker-mutator/api",
+    // scripts/package-lint-core.ts runs its CLI by path
+    // (node_modules/@arethetypeswrong/cli/...), which knip cannot follow.
+    "@arethetypeswrong/cli",
+  ],
+  // Compiled by tsc for its type assertions, imported by nothing.
+  "ignore": ["src/types/generated/spec-alignment.check.ts"],
+  "ignoreIssues": {
+    // The SDE schema catalogue: one Zod schema per SDE entity, kept complete
+    // on purpose (guides/SDE.md, src/sde/README.md) though only some are
+    // imported today.
+    "src/sde/schemas.ts": ["exports"],
+    // The ingestion pipeline's barrel re-exports each module's option and
+    // result types alongside its classes.
+    "src/sde/ingestion/index.ts": ["types"],
+  },
+  "ignoreExportsUsedInFile": true,
+  // Test fixtures import paths that exist only in their fixture trees, and
+  // tsc already fails on an unresolved import under src/.
+  "exclude": ["unresolved"],
+}

@@ -88,8 +88,11 @@ jobs:
       - name: 🔍 Check formatting
         run: npm run format:check
 
+      # CHARTER GATE-04: an unused file, export or dependency stops the
+      # release. Intentional exceptions live in knip.jsonc, each with its
+      # reason. ci.yml runs the same check without blocking pull requests.
       - name: 🔍 Dead code detection
-        run: npx knip --no-exit-code
+        run: npx knip
 
       # Unlike the PR path, a release is exactly where a state-of-the-world audit
       # belongs — we are about to ship to consumers, so a newly disclosed high

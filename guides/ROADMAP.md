@@ -124,6 +124,8 @@ Ordering between phases: 2 before 3 (the builder is what Phase 3 moves `ClientRe
 
 **Also landed:** item 7, the charter audit: `npm run charter:audit` (`scripts/charter-audit.ts`, checks in `charter-audit-core.ts`) parses every `####` block of CHARTER.md with the spec-audit rules and fails an Enforced row naming no script, job or file that exists; in `check:all`, `verify-local` and `ci.yml`'s `spec-audit` job; PROC-06 Enforced; twenty-three requirements reworded to one `shall`. Item 6, the exclusion register: `npm run ears` lists every `shall not` Rule with its verdict and scenarios in `reports/ears/ears-report.md` and the job summary; TESTING.md and `tests/bdd/GUIDE.md` describe it. TEST-11 stays Partial until each phase writes its area's exclusions as Rules.
 
+**Also landed:** item 2's knip part: `release.yml` runs `npx knip` without `--no-exit-code` on a clean baseline, `knip.jsonc` treats tests, scripts and examples as entry points and gives each exception a reason, and `validate` and `check:all` block on it; GATE-04 Enforced. `ci.yml` still only reports. Linting `tests/` and the stale-survivor fix remain.
+
 **Definition of done.** Every row of QUALITY-GATES.md's matrix matches a job; GATE-01 to GATE-06, TEST-10, TEST-11 and PROC-06 at Enforced in the CHARTER; the five issues closed; the AUDIT.md "Plan gates today" table re-run with Live health at Met.
 
 ## Phase 6 · Security and supply chain · Open
