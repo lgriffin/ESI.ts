@@ -140,6 +140,15 @@ describe('Security: Path Parameter Injection', () => {
     );
   });
 
+  it.each(['.', '..'])('should reject the dot segment %p', (segment) => {
+    expect(() => validatePathParam('id', segment)).toThrow(/dot segment/);
+  });
+
+  it('should accept other values that contain dots', () => {
+    expect(validatePathParam('id', '...')).toBe('...');
+    expect(validatePathParam('id', 'a.b')).toBe('a.b');
+  });
+
   it('should reject query string injection (?)', () => {
     expect(() => validatePathParam('id', 'value?admin=true')).toThrow(
       /invalid characters/,

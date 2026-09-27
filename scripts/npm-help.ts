@@ -33,6 +33,7 @@ const DESCS: Record<string, string> = {
   fuzz: 'Property-based fuzz tests (fast-check)',
   benchmark: 'Performance benchmark tests',
   mutation: 'Mutation testing (Stryker)',
+  ears: 'Standalone EARS check: one pass/fail verdict per requirement',
   'contract:live': 'Deep contract tests against the live ESI spec',
   knip: 'Detect dead code and unused exports',
   'validate:esi': 'Report hand-written vs generated type drift',
