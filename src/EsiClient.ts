@@ -53,7 +53,11 @@ import { RateLimiterConfig } from './core/rateLimiter/RateLimiter';
 import { RequestDeduplicator } from './core/RequestDeduplicator';
 import { RetryConfig } from './core/util/retry';
 import { IRetryStrategy } from './core/IRetryStrategy';
-import { EsiDiagnostics } from './core/EsiDiagnostics';
+import {
+  EsiDiagnostics,
+  type CacheStats,
+  type CircuitBreakerStats,
+} from './core/EsiDiagnostics';
 import {
   batchFetch,
   batchPost,
@@ -312,7 +316,7 @@ export class EsiClient {
     return this._diagnostics;
   }
 
-  getCacheStats() {
+  getCacheStats(): CacheStats | null {
     return this.diagnostics.getCacheStats();
   }
 
@@ -324,7 +328,7 @@ export class EsiClient {
     this.diagnostics.updateCacheConfig(newConfig);
   }
 
-  getCircuitBreakerStats() {
+  getCircuitBreakerStats(): CircuitBreakerStats | null {
     return this.diagnostics.getCircuitBreakerStats();
   }
 
