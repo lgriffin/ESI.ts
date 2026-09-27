@@ -1,8 +1,8 @@
 /**
- * The one seam generated operations (`src/generated/`) call. Phase 2 of the
- * Road to Done plan backs it with the existing request pipeline (cache, auth,
- * retry, rate limiter); until then nothing in the package calls it and it is
- * not exported.
+ * The one seam generated operations (`src/generated/`) call.
+ * `src/adapters/PipelineTransport` backs it with the existing request pipeline
+ * (cache, auth, retry, rate limiter). Neither is exported yet: the new client
+ * tree (Phase 2 PR 11) is their first public caller.
  */
 
 /** How an operation splits its results across calls. */
