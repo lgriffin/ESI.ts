@@ -3,6 +3,7 @@ import { EsiError } from '../../../src/core/util/error';
 import { CircuitOpenError } from '../../../src/core/circuitBreaker/CircuitBreaker';
 import { ApiClient } from '../../../src/core/ApiClient';
 import { configureApiClient } from '../../../src/core/configureApiClient';
+import * as sleepModule from '../../../src/core/util/sleep';
 
 describe('RetryStrategy', () => {
   const baseContext: RetryContext = {
@@ -37,6 +38,21 @@ describe('RetryStrategy', () => {
   });
 
   describe('with retries', () => {
+    // Back-offs are recorded, not waited out, and the jitter factor is pinned
+    // to 1 (Math.random 0.5), so each test asserts the exact delays.
+    let sleepSpy: jest.SpyInstance;
+    let randomSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+      randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    });
+
+    afterEach(() => {
+      sleepSpy.mockRestore();
+      randomSpy.mockRestore();
+    });
+
     it('should retry on retryable EsiError', async () => {
       const strategy = new RetryStrategy({
         maxRetries: 2,
@@ -54,6 +70,7 @@ describe('RetryStrategy', () => {
 
       expect(result).toEqual({ data: 'recovered' });
       expect(operation).toHaveBeenCalledTimes(2);
+      expect(sleepSpy.mock.calls).toEqual([[1]]);
     });
 
     it('should throw after max retries exhausted', async () => {
@@ -69,6 +86,28 @@ describe('RetryStrategy', () => {
         'Service Unavailable',
       );
       expect(operation).toHaveBeenCalledTimes(3);
+      expect(sleepSpy.mock.calls).toEqual([[1], [2]]);
+    });
+
+    it('defaults to a 1s base delay capped at 30s', async () => {
+      const strategy = new RetryStrategy({ maxRetries: 6 });
+      const operation = jest
+        .fn()
+        .mockRejectedValue(
+          new EsiError(503, 'Service Unavailable', 'test/endpoint'),
+        );
+
+      await expect(strategy.execute(operation, baseContext)).rejects.toThrow(
+        'Service Unavailable',
+      );
+      expect(sleepSpy.mock.calls).toEqual([
+        [1000],
+        [2000],
+        [4000],
+        [8000],
+        [16000],
+        [30000],
+      ]);
     });
 
     it('should not retry non-retryable errors', async () => {
@@ -83,6 +122,7 @@ describe('RetryStrategy', () => {
         'Not Found',
       );
       expect(operation).toHaveBeenCalledTimes(1);
+      expect(sleepSpy).not.toHaveBeenCalled();
     });
 
     it('should not retry mutations by default', async () => {
@@ -116,6 +156,7 @@ describe('RetryStrategy', () => {
 
       expect(result).toEqual({ data: 'ok' });
       expect(operation).toHaveBeenCalledTimes(2);
+      expect(sleepSpy.mock.calls).toEqual([[1]]);
     });
   });
 

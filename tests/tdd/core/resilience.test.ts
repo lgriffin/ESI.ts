@@ -262,6 +262,19 @@ describe('Resilience: Error Handling and Recovery', () => {
       resetGlobals();
     });
 
+    // On Jest's fake clock: the request is aborted when the client's own
+    // timer fires at exactly `timeout`, not whenever a real 200ms response
+    // and a real retry back-off happen to finish. Retries are off so the
+    // error the caller sees is the timeout itself.
+    beforeEach(() => {
+      jest.useFakeTimers({ now: 1_000_000 });
+    });
+
+    afterEach(() => {
+      client?.shutdown();
+      jest.useRealTimers();
+    });
+
     it('should throw on timeout when request exceeds timeout duration', async () => {
       client = new EsiClient({
         clientId: 'resilience-timeout',
@@ -269,37 +282,77 @@ describe('Resilience: Error Handling and Recovery', () => {
         unsafeAllowCustomHost: true,
         enableETagCache: false,
         enableRequestDeduplication: false,
+        retryAttempts: 0,
         timeout: 50,
       });
 
+      // A response that would arrive after 200ms, unless the request's signal
+      // aborts it first, the way a real fetch does.
       fetchMock.mockResponseOnce(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
+        (request) =>
+          new Promise((resolve, reject) => {
+            const arrival = setTimeout(
               () =>
                 resolve({
                   body: JSON.stringify({ players: 1 }),
                   headers: standardHeaders(),
                 }),
               200,
-            ),
-          ),
+            );
+            request.signal.addEventListener('abort', () => {
+              clearTimeout(arrival);
+              reject(
+                Object.assign(new Error('The operation was aborted.'), {
+                  name: 'AbortError',
+                }),
+              );
+            });
+          }),
       );
 
-      await expect(client.status.getStatus()).rejects.toThrow();
+      let outcome: unknown;
+      const pending = client.status.getStatus().then(
+        () => {
+          outcome = 'resolved';
+        },
+        (err: unknown) => {
+          outcome = err;
+        },
+      );
+
+      await jest.advanceTimersByTimeAsync(49);
+      expect(outcome).toBeUndefined();
+
+      await jest.advanceTimersByTimeAsync(1);
+      await pending;
+      expect(outcome).toBeInstanceOf(TimeoutError);
+      expect((outcome as TimeoutError).timeoutMs).toBe(50);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Retry with Backoff', () => {
+    let sleepSpy: jest.SpyInstance;
+    let randomSpy: jest.SpyInstance;
+
     beforeEach(() => {
       resetGlobals();
+      sleepSpy = jest.spyOn(sleepModule, 'sleep').mockResolvedValue(undefined);
+      // Jitter factor 0.75 + 0.5 * 0.5 = 1: each wait is exactly base * 2^attempt.
+      randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      // The rate limiter's 50ms minimum delay goes through the same sleep();
+      // on a frozen clock it asks for the whole 50ms every time.
+      jest.useFakeTimers({ now: 1_000_000 });
+    });
+
+    afterEach(() => {
+      client?.shutdown();
+      jest.useRealTimers();
+      sleepSpy.mockRestore();
+      randomSpy.mockRestore();
     });
 
     it('should succeed after retrying through transient 503 errors', async () => {
-      const sleepSpy = jest
-        .spyOn(sleepModule, 'sleep')
-        .mockResolvedValue(undefined);
-
       client = new EsiClient({
         clientId: 'resilience-retry-backoff',
         baseUrl: BASE_URL,
@@ -332,10 +385,9 @@ describe('Resilience: Error Handling and Recovery', () => {
       const result = await client.status.getStatus();
       expect(result.players).toBe(42);
       expect(fetchMock).toHaveBeenCalledTimes(3);
-      // sleep should have been called for each retry wait
-      expect(sleepSpy).toHaveBeenCalled();
-
-      sleepSpy.mockRestore();
+      // One back-off per retry, doubling from baseDelayMs, each followed by
+      // the rate limiter's minimum delay before the retried request.
+      expect(sleepSpy.mock.calls).toEqual([[10], [50], [20], [50]]);
     });
   });
 

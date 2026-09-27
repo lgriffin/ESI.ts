@@ -7,6 +7,7 @@ import {
   ResponseContext,
 } from '../../../src/core/middleware/Middleware';
 import fetchMock from 'jest-fetch-mock';
+import { useFakeDate } from '../helpers/fakeDate';
 
 fetchMock.enableMocks();
 
@@ -198,11 +199,20 @@ describe('Middleware', () => {
         return ctx;
       });
 
-      fetchMock.mockResponseOnce(JSON.stringify({}));
+      // Date is frozen and the response takes exactly 25ms of it to arrive.
+      useFakeDate(1_000_000);
+      try {
+        fetchMock.mockResponseOnce(async () => {
+          jest.setSystemTime(Date.now() + 25);
+          return JSON.stringify({});
+        });
 
-      await handleRequest(client, 'v1/status/', 'GET');
+        await handleRequest(client, 'v1/status/', 'GET');
+      } finally {
+        jest.useRealTimers();
+      }
 
-      expect(capturedDuration).toBeGreaterThanOrEqual(0);
+      expect(capturedDuration).toBe(25);
     });
 
     it('should pass actual HTTP status code to response interceptor', async () => {

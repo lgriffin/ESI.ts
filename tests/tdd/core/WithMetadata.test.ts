@@ -4,6 +4,7 @@ import { ApiClient } from '../../../src/core/ApiClient';
 import { RateLimiter } from '../../../src/core/rateLimiter/RateLimiter';
 import { ETagCacheManager } from '../../../src/core/cache/ETagCacheManager';
 import fetchMock from 'jest-fetch-mock';
+import { useFakeDate } from '../helpers/fakeDate';
 
 fetchMock.enableMocks();
 
@@ -112,17 +113,25 @@ describe('withMetadata()', () => {
   });
 
   describe('response timing', () => {
-    it('meta.responseTimeMs is a non-negative number', async () => {
-      fetchMock.mockResponseOnce(JSON.stringify([99000001]), {
-        headers: standardHeaders(),
-      });
+    it('meta.responseTimeMs is the time the request took', async () => {
+      // Date is frozen and the response takes exactly 40ms of it to arrive.
+      useFakeDate(1_000_000);
+      try {
+        fetchMock.mockResponseOnce(async () => {
+          jest.setSystemTime(Date.now() + 40);
+          return {
+            body: JSON.stringify([99000001]),
+            headers: standardHeaders(),
+          };
+        });
 
-      const metaClient = allianceClient.withMetadata();
-      const result = await metaClient.getAlliances();
+        const metaClient = allianceClient.withMetadata();
+        const result = await metaClient.getAlliances();
 
-      expect(result.meta.responseTimeMs).toBeDefined();
-      expect(typeof result.meta.responseTimeMs).toBe('number');
-      expect(result.meta.responseTimeMs!).toBeGreaterThanOrEqual(0);
+        expect(result.meta.responseTimeMs).toBe(40);
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 
