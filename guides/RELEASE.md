@@ -36,17 +36,17 @@ release.yml
 
 ### Jobs in `release.yml`
 
-| Job                       | Needs                                    | Runs on                   | Does                                                                                                                                                                           |
-| ------------------------- | ---------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `validate-release`        | —                                        | tag push and release      | The publish gate, below                                                                                                                                                        |
-| `publish-npm`             | `validate-release`, `consumer-contract`  | release only              | `npm ci`, `npm run build`, `npm publish --provenance` to `registry.npmjs.org`                                                                                                  |
-| `publish-github`          | `validate-release`, `consumer-contract`  | release only              | Same build, `npm publish --provenance` to `npm.pkg.github.com`                                                                                                                 |
-| `deploy-docs`             | `validate-release`                       | release only              | `npm run docs`, then deploys `docs-site/public/api` (TypeDoc) to GitHub Pages                                                                                                  |
-| `create-assets`           | `validate-release`                       | tag push and release      | `npm pack` (fails unless exactly one tarball), the CycloneDX SBOM (`npm run release:sbom`), `docs.tar.gz` of the API reference, `checksums.txt` (SHA-256); uploads as artifact |
-| `consumer-contract`       | `create-assets`                          | tag push and release      | The consumer contract (`npm run test:consumer -- --tarball`) against the tarball `create-assets` packed: Node 18, 20, 22 and 24, oldest, repository and latest TypeScript      |
-| `sign-and-publish-assets` | `create-assets`, `consumer-contract`     | release only              | Keyless `cosign sign-blob` on the tarball, SBOM and docs archive, then `gh release upload` of all assets plus `README.md` and `LICENSE`                                        |
-| `dispatch-canary`         | `publish-npm`, `sign-and-publish-assets` | when `publish-npm` passed | Dispatches `post-publish-canary.yml` on the tag (`actions: write`)                                                                                                             |
-| `notify-success`          | all of the above                         | when `publish-npm` passed | Log line only                                                                                                                                                                  |
+| Job                       | Needs                                    | Runs on                   | Does                                                                                                                                                                                                                                                        |
+| ------------------------- | ---------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validate-release`        | —                                        | tag push and release      | The publish gate, below                                                                                                                                                                                                                                     |
+| `publish-npm`             | `validate-release`, `consumer-contract`  | release only              | Re-checks `checksums.txt`, then `npm publish <tarball> --provenance` of the tarball `create-assets` packed, to `registry.npmjs.org`                                                                                                                         |
+| `publish-github`          | `validate-release`, `consumer-contract`  | release only              | The same tarball, `npm publish <tarball> --provenance` to `npm.pkg.github.com`                                                                                                                                                                              |
+| `deploy-docs`             | `validate-release`                       | release only              | `npm run docs`, then deploys `docs-site/public/api` (TypeDoc) to GitHub Pages                                                                                                                                                                               |
+| `create-assets`           | `validate-release`                       | tag push and release      | `npm pack` (fails unless exactly one tarball), the CycloneDX SBOM (`npm run release:sbom`), `docs.tar.gz` of the API reference, `checksums.txt` (SHA-256); uploads as artifact                                                                              |
+| `consumer-contract`       | `create-assets`                          | tag push and release      | The consumer contract (`npm run test:consumer -- --tarball`) against the tarball `create-assets` packed: Node 18, 20, 22 and 24, oldest, repository and latest TypeScript                                                                                   |
+| `sign-and-publish-assets` | `create-assets`, `consumer-contract`     | release only              | Keyless `cosign sign-blob` on the tarball, SBOM and docs archive; SLSA build provenance for the same three (`actions/attest-build-provenance`, checked with `gh attestation verify`); then `gh release upload` of all assets plus `README.md` and `LICENSE` |
+| `dispatch-canary`         | `publish-npm`, `sign-and-publish-assets` | when `publish-npm` passed | Dispatches `post-publish-canary.yml` on the tag (`actions: write`)                                                                                                                                                                                          |
+| `notify-success`          | all of the above                         | when `publish-npm` passed | Log line only                                                                                                                                                                                                                                               |
 
 The workflow holds top-level `contents: read`. Only `publish-npm`, `publish-github` and `sign-and-publish-assets` receive `id-token: write`, and signing sits in its own job so that no build step shares a job with the ability to mint an OIDC token.
 
@@ -174,18 +174,18 @@ That is what makes the canary's `signatures` check meaningful: the provenance at
 
 ## What is published where
 
-| Destination                            | Artefact                                                                                                    | Integrity                                                                                     |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| npm registry (`registry.npmjs.org`)    | `@lgriffin/esi.ts` tarball, `dist/` + README, LICENSE, CHANGELOG                                            | npm provenance (SLSA v1 attestation)                                                          |
-| GitHub Packages (`npm.pkg.github.com`) | Same package                                                                                                | Published with `--provenance`                                                                 |
-| GitHub release assets                  | `lgriffin-esi.ts-X.Y.Z.tgz`, `lgriffin-esi.ts-X.Y.Z.cdx.json` (SBOM), `docs.tar.gz`, `README.md`, `LICENSE` | `checksums.txt` (SHA-256); a `.sigstore.json` bundle per archive and SBOM from keyless cosign |
-| GitHub Pages                           | TypeDoc API reference from `docs-site/public/api`                                                           | —                                                                                             |
+| Destination                            | Artefact                                                                                                    | Integrity                                                                                                                                                              |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| npm registry (`registry.npmjs.org`)    | `@lgriffin/esi.ts` tarball, `dist/` + README, LICENSE, CHANGELOG                                            | npm provenance (SLSA v1 attestation)                                                                                                                                   |
+| GitHub Packages (`npm.pkg.github.com`) | Same package                                                                                                | Published with `--provenance`                                                                                                                                          |
+| GitHub release assets                  | `lgriffin-esi.ts-X.Y.Z.tgz`, `lgriffin-esi.ts-X.Y.Z.cdx.json` (SBOM), `docs.tar.gz`, `README.md`, `LICENSE` | `checksums.txt` (SHA-256); a `.sigstore.json` bundle per archive and SBOM from keyless cosign; `lgriffin-esi.ts-X.Y.Z.intoto.jsonl`, the SLSA provenance for all three |
+| GitHub Pages                           | TypeDoc API reference from `docs-site/public/api`                                                           | —                                                                                                                                                                      |
 
 The published file list is the `files` field in `package.json`. `publishConfig.access` is `public`.
 
 ### The post-publish canary (tier P)
 
-Everything above the publish step checks what CI built. `post-publish-canary.yml` checks what the registry serves, which is not the same artefact: `publish-npm` rebuilds rather than uploading the tarball the consumer matrix tested (`esi-23g.42`), and a broken `exports` map is invisible until somebody installs it.
+Everything above the publish step checks what CI built. `post-publish-canary.yml` checks what the registry serves, which is not always the same artefact: `publish-npm` uploads the tarball the consumer matrix tested, but the registry can still serve something else, and a broken `exports` map is invisible until somebody installs it.
 
 `release.yml` dispatches it once `publish-npm` has succeeded and the assets job has finished. It installs the version into an empty directory with nothing from this repository on disk, and establishes four things:
 
@@ -255,6 +255,17 @@ Releases from 10.0.0 on carry a Sigstore bundle (`.sigstore.json`) per asset. Ea
 
 Repeat with `docs.tar.gz` for the documentation archive.
 
+**Build provenance.** From the first release after this change, each release carries `lgriffin-esi.ts-X.Y.Z.intoto.jsonl`: one SLSA provenance attestation naming the tarball, the SBOM and `docs.tar.gz` by SHA-256, signed through Sigstore by `release.yml` and also recorded on the repository. With the GitHub CLI, either form verifies:
+
+```bash
+gh attestation verify lgriffin-esi.ts-X.Y.Z.tgz --repo lgriffin/ESI.ts
+gh attestation verify lgriffin-esi.ts-X.Y.Z.tgz --repo lgriffin/ESI.ts \
+  --bundle lgriffin-esi.ts-X.Y.Z.intoto.jsonl \
+  --signer-workflow lgriffin/ESI.ts/.github/workflows/release.yml
+```
+
+`sign-and-publish-assets` runs the second command on all three assets before it uploads anything, so a release never carries a provenance file that does not verify. The file is also what OpenSSF Scorecard's Signed-Releases check looks for.
+
 **SBOM (SEC-06).** From the first release after this change, each release carries `lgriffin-esi.ts-X.Y.Z.cdx.json`, a CycloneDX 1.5 JSON bill of materials for that tarball, listed in `checksums.txt` and signed like the tarball:
 
 ```bash
@@ -299,7 +310,8 @@ The package declares `"engines": { "node": ">=18.0.0" }` (REL-05) and supports T
 
 Recorded 2026-09-16. Each item contradicts a requirement above and belongs in a bead, not a softened sentence.
 
-- **npm and GitHub Packages publish a fresh build, not the tested tarball.** `consumer-contract` runs against the tarball `create-assets` packs, which is the one signed and attached to the release. `publish-npm` and `publish-github` wait for it but run `npm run build` and `npm publish` themselves, so the registries receive a rebuild of the same commit. Publishing `release-artifacts/<tarball>` with `npm publish <file> --provenance` would make all three the same bytes; that changes the credentialed jobs, so it is a separate change.
+- **npm publishing still uses a long-lived token.** Both publish jobs now upload the tarball `create-assets` packed and cosign signed (`esi-23g.42`), so the registries and the GitHub Release carry the same bytes. `publish-npm` still authenticates with the `NPM_TOKEN` secret; moving it to npm trusted publishing needs the maintainer to configure the trusted publisher on npmjs.com first ([SECURITY.md](SECURITY.md#5-settings-only-the-maintainer-can-change), ROADMAP Phase 6 item 3).
+- **Recent GitHub releases are missing their signed assets.** v10.2.0 carries the tarball, SBOM, docs archive, their cosign bundles and `checksums.txt`; v10.2.2 and v10.2.3 carry no assets at all (checked 2026-09-27), so `sign-and-publish-assets` did not run or did not finish for them. OpenSSF Scorecard's Signed-Releases check reads the last five releases, so it stays low until the releases in that window are signed; no release before this change has a `.intoto.jsonl`.
 - **release-please needed repository permission to open its pull request.** It computed the version but failed with "GitHub Actions is not permitted to create or approve pull requests" until that repository setting was enabled (2026-09-16). Releases 9.8.0 and 9.9.0 were hand-written `chore: release X.Y.Z` commits.
 - **Releases created with the workflow's `GITHUB_TOKEN` do not trigger other workflows.** 10.1.0 and 10.1.1 were tagged and released on GitHub but never published to npm, because nothing dispatched `release.yml`. `release-please.yml` now uses the [release app token](#the-release-app-token) when it is configured, and dispatches `release.yml` and the canary itself when it is not.
 - **v9.7.0 has no signed assets.** Its `sign-and-publish-assets` job failed because cosign 3 requires `--bundle` for `sign-blob`; the job now writes a Sigstore bundle per asset. npm and GitHub Packages publishing succeeded for that release.
