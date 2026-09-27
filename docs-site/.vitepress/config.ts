@@ -2,8 +2,7 @@ import { defineConfig } from 'vitepress';
 
 export default defineConfig({
   title: 'ESI.ts',
-  description:
-    'Production-grade TypeScript client for the EVE Online ESI API',
+  description: 'Production-grade TypeScript client for the EVE Online ESI API',
   head: [
     [
       'link',
@@ -24,7 +23,7 @@ export default defineConfig({
       { text: 'Examples', link: '/examples/' },
       { text: 'Explorer', link: '/explorer/' },
       {
-        text: 'v9.6.1',
+        text: 'v10.2.3', // x-release-please-version
         items: [
           {
             text: 'Changelog',
@@ -127,8 +126,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern:
-        'https://github.com/lgriffin/ESI.ts/edit/master/docs-site/:path',
+      pattern: 'https://github.com/lgriffin/ESI.ts/edit/master/docs-site/:path',
       text: 'Edit this page on GitHub',
     },
 

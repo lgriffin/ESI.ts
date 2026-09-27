@@ -30,7 +30,7 @@ How the tests themselves are organised is in [TESTING.md](TESTING.md). The relea
 | Generated operations fresh                 |   ·    |            ·             |        ●         |       ·       |         ●          |
 | Endpoint definitions (`validate:esi`)      |   ·    |            ·             |     ● (3)(7)     |       ·       |         ●          |
 | ESI spec lint (`validate:spec`)            |   ·    |            ·             |      ● (7)       |       ·       |         ·          |
-| Version check (`validate:versions`)        |   ·    |            ·             |        ·         |       ·       |         ●          |
+| Version check (`validate:versions`)        |   ·    |            ·             |        ●         |       ·       |         ●          |
 | Auth/scope alignment                       |   ·    |            ·             |        ●         |       ·       |         ●          |
 | Export coverage (every export in a test)   |   ·    |            ·             |        ●         |       ·       |         ·          |
 | Live contract tests                        |   ·    |            ·             |      ● (3)       | ◐ weekly (4)  |       ● (3)        |
@@ -154,7 +154,7 @@ The issue-filing workflows keep at most one open issue per label or title: if on
 
 ### GATE-06 · Scripts resolve to files
 
-Checked by `tests/tdd/scripts/package-scripts.test.ts`, so it runs in `npm test`: every path a script names under `scripts/`, `examples/` or `tests/`, and every runner config it is pointed at, must be a file that exists. Adding a script whose target is not there fails the suite and names the command that would break.
+Checked by `tests/tdd/scripts/package-scripts.test.ts`, so it runs in `npm test`: every path a script names under `scripts/`, `examples/` or `tests/`, and every runner config it is pointed at, must be a file that exists. Adding a script whose target is not there fails the suite and names the command that would break. The same test reads the other direction: every `npm run <name>` that `README.md`, `CLAUDE.md`, `AGENTS.md`, the guides (ROADMAP.md aside, since it names scripts later plan items add) and the BDD README and GUIDE tell the reader to type must be a script `package.json` defines; a placeholder such as `npm run bdd:<domain>` is skipped.
 
 Two scripts used to point at files that were never committed — `sde:seed` at `scripts/seed-sde-test-db.ts` and `example:sde-cross-ref` at `examples/sde-cross-reference.ts`. Both are gone; the three SDE examples that do exist (`sde-fitting`, `sde-industry`, `sde-market-tree`) have scripts now.
 
@@ -675,17 +675,18 @@ npx ts-node scripts/audit-check.ts --filter --in audit-raw.json --out audit-repo
 
 The same "explicit, reasoned exception" pattern appears in nine more places:
 
-| File                                   | Consumed by                    | Rule                                                                                                                    |
-| -------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| `mutation-bdd-thresholds.json`         | `npm run mutation:bdd:ratchet` | Per-directory BDD mutation floors; every scored directory needs one; `--update` only raises them                        |
-| `mutation-thresholds.json`             | `npm run mutation:pr`          | Per-directory unit mutation floors; every mutated directory needs one; they may only rise                               |
-| `type-mutation-thresholds.json`        | `npm run test:type-mutation`   | In `scripts/`. Per-entry-point type mutation floors; only rise against `origin/master`                                  |
-| `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | Two ratchets: `unconverted` (empty; the audit fails if a listed file passes) and `legacyStepFiles` (38; gains no entry) |
-| `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                                        |
-| `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)                               |
-| `scripts/determinism-baseline.json`    | `npm run lint:determinism`     | Clock, timer and `Math.random()` sites per file and construct; shrink-only, stale counts fail                           |
-| `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map; empty; stale entries fail  |
-| `scripts/package-lint-baseline.json`   | `npm run lint:package`         | Known publint/attw finding → bead id; shrink-only, stale entries fail                                                   |
+| File                                   | Consumed by                    | Rule                                                                                                                                                                   |
+| -------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mutation-bdd-thresholds.json`         | `npm run mutation:bdd:ratchet` | Per-directory BDD mutation floors; every scored directory needs one; `--update` only raises them                                                                       |
+| `mutation-thresholds.json`             | `npm run mutation:pr`          | Per-directory unit mutation floors; every mutated directory needs one; they may only rise                                                                              |
+| `type-mutation-thresholds.json`        | `npm run test:type-mutation`   | In `scripts/`. Per-entry-point type mutation floors; only rise against `origin/master`                                                                                 |
+| `scripts/spec-audit-exceptions.json`   | `npm run spec:audit`           | Two ratchets: `unconverted` (empty; the audit fails if a listed file passes) and `legacyStepFiles` (38; gains no entry)                                                |
+| `scripts/schema-drift-exceptions.json` | `npm run schema:drift`         | Schema name → accepted permanent deviations (field paths); an unused entry warns                                                                                       |
+| `scripts/schema-drift-baseline.json`   | `npm run schema:drift:ci`      | Known drift → bead id; shrink-only, stale entries fail. See [Schema drift](#schema-drift)                                                                              |
+| `scripts/determinism-baseline.json`    | `npm run lint:determinism`     | Clock, timer and `Math.random()` sites per file and construct; shrink-only, stale counts fail                                                                          |
+| `scripts/auth-scope-exceptions.json`   | `npm run validate:auth-scopes` | `METHOD:path` key with a `reason`, for endpoints whose scope mapping lags the generated map; empty; stale entries fail                                                 |
+| `scripts/esi-endpoint-exceptions.json` | `npm run validate:esi`         | `METHOD path` key with a `reason`, for definitions the spec does not list (today the two `/meta/openapi.*` documents); any other definition absent from the spec fails |
+| `scripts/package-lint-baseline.json`   | `npm run lint:package`         | Known publint/attw finding → bead id; shrink-only, stale entries fail                                                                                                  |
 
 ---
 
@@ -760,18 +761,19 @@ The same "explicit, reasoned exception" pattern appears in nine more places:
 
 ### Spec alignment and generation
 
-| Script                 | Runs                                                                                     |
-| ---------------------- | ---------------------------------------------------------------------------------------- |
-| `generate:types`       | Types, cache TTLs, rate-limit groups and scopes from the live spec                       |
-| `generate:okf`         | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                    |
-| `generate:endpoints`   | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                    |
-| `generate:all`         | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi`    |
-| `schema:drift`         | Zod schema versus spec report; exits 2 only when the check compared nothing              |
-| `schema:drift:ci`      | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline      |
-| `validate:esi`         | Endpoint definitions versus the spec at `COMPATIBILITY_DATE`; fails on method mismatches |
-| `validate:auth-scopes` | `requiresAuth` versus the generated scope map (`DES-04`); fails in both directions       |
-| `validate:spec`        | Redocly lint of the ESI spec (`redocly.yaml`)                                            |
-| `validate:versions`    | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts`               |
+| Script                  | Runs                                                                                                                                                                                     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generate:types`        | Types, cache TTLs, rate-limit groups and scopes from the live spec                                                                                                                       |
+| `generate:okf`          | OKF knowledge bundle in `okf/` (see [OKF.md](OKF.md))                                                                                                                                    |
+| `generate:endpoints`    | Endpoint definition scaffold (see [DESIGN-RULES.md](DESIGN-RULES.md))                                                                                                                    |
+| `generate:all`          | `generate:types`, `generate:okf`, `contract:snapshot`, `schema:drift`, `validate:esi`                                                                                                    |
+| `schema:drift`          | Zod schema versus spec report; exits 2 only when the check compared nothing                                                                                                              |
+| `schema:drift:ci`       | The same, also exiting 1 on drift outside the baseline or a stale or grown baseline                                                                                                      |
+| `validate:esi`          | Endpoint definitions versus the spec at `COMPATIBILITY_DATE`; fails on a method mismatch or a definition the spec lacks (`scripts/esi-endpoint-exceptions.json` lists the reasoned ones) |
+| `validate:esi:vendored` | The same against `tests/contract/snapshots/esi-openapi.snapshot.json`, offline; in `check:local` and after `spec-refresh.yml` regenerates                                                |
+| `validate:auth-scopes`  | `requiresAuth` versus the generated scope map (`DES-04`); fails in both directions                                                                                                       |
+| `validate:spec`         | Redocly lint of the ESI spec (`redocly.yaml`)                                                                                                                                            |
+| `validate:versions`     | `package.json` version equals `PACKAGE_VERSION` in `src/core/constants.ts` and the docs-site version selector                                                                            |
 
 ### Security
 
@@ -824,7 +826,7 @@ npm run check:all    # validate + validate:esi + validate:spec + validate:versio
 
 Neither reproduces `ci-success` completely, and neither includes the tiers added around the unit suite. `check:all` needs network access for the spec checks.
 
-`check:local` covers typecheck, the examples type-check, generated-operation freshness and coverage, every lint (`lint`, `lint:suite-health`, `lint:determinism`, `lint:layers`, `lint:bdd-seam`, `lint:workflows`), `spec:audit`, `validate:spec-consistency`, `validate:auth-scopes`, `test`, `test:integration`, `faults`, `contract:replay`, `fuzz` and `test:export-coverage`; then, after a build, `test:types`, `test:docs-examples`, `lint:package`, `size` and `test:consumer`; `--all` adds `test:type-mutation`. What it leaves out, each with the reason `NOT_RUN_LOCALLY` records in `scripts/verify-local-core.ts`:
+`check:local` covers typecheck, the examples type-check, generated-operation freshness and coverage, every lint (`lint`, `lint:suite-health`, `lint:determinism`, `lint:layers`, `lint:bdd-seam`, `lint:workflows`), `spec:audit`, `charter:audit`, `validate:spec-consistency`, `validate:auth-scopes`, `validate:esi:vendored` (the endpoint check against the vendored snapshot), `validate:versions`, `test`, `test:integration`, `faults`, `contract:replay`, `fuzz` and `test:export-coverage`; then, after a build, `test:types`, `test:docs-examples`, `lint:package`, `size` and `test:consumer`; `--all` adds `test:type-mutation`. What it leaves out, each with the reason `NOT_RUN_LOCALLY` records in `scripts/verify-local-core.ts`:
 
 ```bash
 npm run format:check                              # CRLF on a Windows checkout fails ~994 files; run it on a path
@@ -842,4 +844,4 @@ npm run bench:ab                                  # needs a second tree and a qu
 
 `bdd` and `coverage` are left out because `test` already runs the same suites, `docs` because it asserts nothing, and `knip` because CI runs it with `--no-exit-code`.
 
-`validate:versions` runs in `release.yml` only: `release-please` keeps `src/core/constants.ts` in step with `package.json` through its `extra-files` setting, so a pull request has nothing to catch that the release gate does not.
+`validate:versions` runs in `static-analysis` and in `release.yml`: `release-please` keeps `src/core/constants.ts` and the docs-site version selector in step with `package.json` through its `extra-files` setting and the `x-release-please-version` marker, and the check is what catches a hand edit of any of the three.

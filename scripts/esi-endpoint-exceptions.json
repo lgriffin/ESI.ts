@@ -1,0 +1,10 @@
+[
+  {
+    "key": "GET meta/openapi.json",
+    "reason": "The specification document itself; ESI serves it under /meta/ but does not list it as a path"
+  },
+  {
+    "key": "GET meta/openapi.yaml",
+    "reason": "The specification document itself; ESI serves it under /meta/ but does not list it as a path"
+  }
+]

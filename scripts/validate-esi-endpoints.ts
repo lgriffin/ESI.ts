@@ -8,7 +8,18 @@
  * Usage: npx ts-node scripts/validate-esi-endpoints.ts
  *        npx ts-node scripts/validate-esi-endpoints.ts --compatibility-date=2026-08-04
  *        npx ts-node scripts/validate-esi-endpoints.ts --latest
+ *        npx ts-node scripts/validate-esi-endpoints.ts --spec-file=tests/contract/snapshots/esi-openapi.snapshot.json
  *        npm run validate:esi
+ *        npm run validate:esi:vendored
+ *
+ * `--spec-file` reads the vendored snapshot instead of fetching, so
+ * `check:local` and `spec-refresh.yml` run it offline against the document the
+ * generated files came from; the fetch remains the default in CI.
+ *
+ * A definition the spec does not list fails the run unless
+ * scripts/esi-endpoint-exceptions.json gives a reason for its `METHOD path`
+ * key: a refreshed spec that dropped a route the clients still expose is a
+ * finding, not a footnote.
  */
 
 import * as fs from 'fs';
@@ -25,6 +36,27 @@ const DEFAULT_COMPATIBILITY_DATE = COMPATIBILITY_DATE;
 const ESI_OPENAPI_BASE = 'https://esi.evetech.net/meta/openapi.json';
 const ESI_COMPATIBILITY_DATES_URL =
   'https://esi.evetech.net/meta/compatibility-dates';
+
+const EXCEPTIONS_FILE = path.resolve(__dirname, 'esi-endpoint-exceptions.json');
+
+function loadExceptions(): Map<string, string> {
+  const map = new Map<string, string>();
+  if (!fs.existsSync(EXCEPTIONS_FILE)) return map;
+  const entries = JSON.parse(fs.readFileSync(EXCEPTIONS_FILE, 'utf-8')) as {
+    key: string;
+    reason: string;
+  }[];
+  for (const e of entries) map.set(e.key, e.reason);
+  return map;
+}
+
+function parseSpecFile(): string | undefined {
+  for (const arg of process.argv.slice(2)) {
+    const match = arg.match(/^--spec-file=(.+)$/);
+    if (match) return match[1]!;
+  }
+  return undefined;
+}
 
 function parseCompatibilityDate(): string | 'latest' {
   for (const arg of process.argv.slice(2)) {
@@ -221,6 +253,7 @@ function printReport(
   result: ValidationResult,
   codebaseCount: number,
   specCount: number,
+  exceptions: Map<string, string>,
 ): void {
   console.log('\n========================================');
   console.log('  ESI Endpoint Validation Report');
@@ -249,10 +282,13 @@ function printReport(
     hasIssues = true;
     console.log('--- IN CODEBASE BUT NOT IN ESI SPEC ---');
     console.log(
-      '  (May be newer endpoints not yet in public spec, or removed endpoints)',
+      '  (A removed endpoint, or one the spec does not list; add a reason to scripts/esi-endpoint-exceptions.json if intentional)',
     );
     for (const e of result.inCodebaseOnly) {
-      console.log(`  [EXTRA] ${e.method} ${e.path}  (${e.name} in ${e.file})`);
+      const reason = exceptions.get(`${e.method} ${e.path}`);
+      console.log(
+        `  [${reason ? 'OK' : 'EXTRA'}] ${e.method} ${e.path}  (${e.name} in ${e.file})${reason ? ` -- ${reason}` : ''}`,
+      );
     }
     console.log('');
   }
@@ -524,7 +560,20 @@ function printTypeDriftReport(drift: TypeDriftResult): void {
   console.log('\n========================================\n');
 }
 
-async function main(): Promise<void> {
+async function loadSpec(): Promise<OpenApiSpec> {
+  const specFile = parseSpecFile();
+  if (specFile) {
+    console.log(`Reading ESI OpenAPI spec from ${specFile}...`);
+    try {
+      return JSON.parse(
+        fs.readFileSync(path.resolve(process.cwd(), specFile), 'utf-8'),
+      ) as OpenApiSpec;
+    } catch (err) {
+      console.error(`Failed to read ESI OpenAPI spec: ${err}`);
+      process.exit(1);
+    }
+  }
+
   const requested = parseCompatibilityDate();
   const compatibilityDate = await resolveCompatibilityDate(requested);
   const specUrl = buildSpecUrl(compatibilityDate);
@@ -532,18 +581,21 @@ async function main(): Promise<void> {
   console.log(`Compatibility date: ${compatibilityDate}`);
   console.log(`Fetching ESI OpenAPI spec from ${specUrl}...`);
 
-  let spec: OpenApiSpec;
   try {
     const response = await fetch(specUrl);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    spec = (await response.json()) as OpenApiSpec;
+    return (await response.json()) as OpenApiSpec;
   } catch (err) {
     console.error(`Failed to fetch ESI OpenAPI spec: ${err}`);
     console.error('Check your network connection and try again.');
     process.exit(1);
   }
+}
+
+async function main(): Promise<void> {
+  const spec = await loadSpec();
 
   console.log('Parsing codebase endpoint definitions...');
   const codebaseEntries = parseEndpointFiles();
@@ -552,8 +604,9 @@ async function main(): Promise<void> {
   console.log(`Found ${codebaseEntries.length} endpoints in codebase`);
   console.log(`Found ${specEntries.length} endpoints in ESI spec`);
 
+  const exceptions = loadExceptions();
   const result = validate(codebaseEntries, specEntries);
-  printReport(result, codebaseEntries.length, specEntries.length);
+  printReport(result, codebaseEntries.length, specEntries.length, exceptions);
 
   // Type drift detection
   console.log('Checking type drift...');
@@ -572,7 +625,11 @@ async function main(): Promise<void> {
     printTypeDriftReport(drift);
   }
 
-  const exitCode = result.methodMismatches.length > 0 ? 1 : 0;
+  const unexplained = result.inCodebaseOnly.filter(
+    (e) => !exceptions.has(`${e.method} ${e.path}`),
+  );
+  const exitCode =
+    result.methodMismatches.length > 0 || unexplained.length > 0 ? 1 : 0;
   process.exit(exitCode);
 }
 

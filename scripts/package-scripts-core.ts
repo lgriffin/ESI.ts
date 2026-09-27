@@ -9,7 +9,9 @@
  *
  * This is the cheap check that closes that gap, run from
  * `tests/tdd/scripts/package-scripts.test.ts` so it happens in `npm test`
- * rather than needing its own CI job.
+ * rather than needing its own CI job. The second half of GATE-06 is the
+ * other direction: every `npm run <name>` a document tells the reader to
+ * type is a script `package.json` defines.
  *
  * Pure functions with no I/O, so the unit suite can import them.
  */
@@ -84,4 +86,30 @@ export function describeMissing(missing: ScriptTarget[]): string {
         `  npm run ${m.script} → ${m.path} does not exist; restore the file or drop the script`,
     )
     .join('\n');
+}
+
+/**
+ * Every script name a document tells the reader to run, as `npm run <name>`,
+ * in order of first appearance. A placeholder such as `npm run bdd:<domain>`
+ * or `npm run <script>` names no script and is left out.
+ */
+export function scriptsNamedIn(markdown: string): string[] {
+  const found: string[] = [];
+  const seen = new Set<string>();
+  for (const match of markdown.matchAll(/npm run ([A-Za-z0-9:_.-]*)(<?)/g)) {
+    const name = match[1] ?? '';
+    if (name.length === 0 || name.endsWith(':') || match[2] === '<') continue;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    found.push(name);
+  }
+  return found;
+}
+
+/** The names a document runs that `scripts` does not define. */
+export function undefinedScripts(
+  markdown: string,
+  scripts: Record<string, string>,
+): string[] {
+  return scriptsNamedIn(markdown).filter((name) => !(name in scripts));
 }
