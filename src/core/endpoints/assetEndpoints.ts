@@ -40,6 +40,7 @@ export const assetEndpoints = {
   postCorporationAssetLocations: {
     path: 'corporations/{corporationId}/assets/locations/',
     method: 'POST',
+    responseSchema: z.array(AssetLocationSchema),
     requiresAuth: true,
     pathParams: ['corporationId'],
     bodyBuilder: (itemIds: number[]) => itemIds,
@@ -47,6 +48,7 @@ export const assetEndpoints = {
   postCorporationAssetNames: {
     path: 'corporations/{corporationId}/assets/names/',
     method: 'POST',
+    responseSchema: z.array(AssetNameSchema),
     requiresAuth: true,
     pathParams: ['corporationId'],
     bodyBuilder: (itemIds: number[]) => itemIds,

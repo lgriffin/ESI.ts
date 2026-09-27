@@ -55,3 +55,9 @@ export const MailingListSchema = z.looseObject({
   mailing_list_id: z.number(),
   name: z.string(),
 });
+
+/** POST characters/{character_id}/mail: the sent mail's ID. */
+export const MailIdSchema = z.number();
+
+/** POST characters/{character_id}/mail/labels: the new label's ID. */
+export const MailLabelIdSchema = z.number();

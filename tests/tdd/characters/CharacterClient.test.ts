@@ -179,22 +179,18 @@ describe('CharacterClient', () => {
   });
 
   it('should return valid structure for postCspaChargeCost', async () => {
-    const mockResponse = {
-      cost: 123456.78,
-    };
-
-    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    // ESI answers 201 with the charge in ISK as a bare number.
+    fetchMock.mockResponseOnce(JSON.stringify(123456.78), { status: 201 });
 
     const body = {
       characters: [1234567890, 1234567891],
     };
 
-    const result: { cost: number } = await getBody(() =>
+    const result: number = await getBody(() =>
       characterClient.postCspaChargeCost(123456, body.characters),
     );
 
-    expect(result).toHaveProperty('cost');
-    expect(typeof result.cost).toBe('number');
+    expect(result).toBe(123456.78);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/cspa/',
     );

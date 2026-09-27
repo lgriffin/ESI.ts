@@ -13,3 +13,8 @@ export const FittingSchema = z.looseObject({
     }),
   ),
 });
+
+/** POST characters/{character_id}/fittings: the new fitting's ID. */
+export const FittingCreatedSchema = z.looseObject({
+  fitting_id: z.number(),
+});

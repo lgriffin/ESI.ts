@@ -60,11 +60,8 @@ describe('MailClient', () => {
   });
 
   it('should send a new mail', async () => {
-    const mockResponse = {
-      mail_id: 1,
-    };
-
-    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    // ESI answers 201 with the new mail's ID as a bare integer.
+    fetchMock.mockResponseOnce(JSON.stringify(987654), { status: 201 });
 
     const body = {
       recipients: [{ recipient_id: 123, recipient_type: 'character' }],
@@ -74,8 +71,7 @@ describe('MailClient', () => {
 
     const result = await getBody(() => mailClient.sendMail(123456, body));
 
-    expect(result).toHaveProperty('mail_id');
-    expect(typeof result.mail_id).toBe('number');
+    expect(result).toBe(987654);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/mail/',
     );
@@ -174,11 +170,8 @@ describe('MailClient', () => {
   });
 
   it('should create a mail label', async () => {
-    const mockResponse = {
-      label_id: 1,
-    };
-
-    fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+    // ESI answers 201 with the new label's ID as a bare integer.
+    fetchMock.mockResponseOnce(JSON.stringify(42), { status: 201 });
 
     const body = {
       name: 'New Label',
@@ -188,8 +181,7 @@ describe('MailClient', () => {
       mailClient.createMailLabel(123456, body),
     );
 
-    expect(result).toHaveProperty('label_id');
-    expect(typeof result.label_id).toBe('number');
+    expect(result).toBe(42);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://esi.evetech.net/latest/characters/123456/mail/labels/',
     );

@@ -135,3 +135,6 @@ export const CharacterRoleSchema = z.looseObject({
   roles_at_base: z.array(z.string()).optional(),
   roles_at_other: z.array(z.string()).optional(),
 });
+
+/** POST characters/{character_id}/cspa: the CSPA charge in ISK. */
+export const CspaChargeCostSchema = z.number();

@@ -55,6 +55,9 @@ export interface AddCharacterOptions extends ExchangeCodeOptions {
     revokeReplaced?: boolean;
 }
 
+// @public
+const AddedContactIdsSchema: z.ZodArray<z.ZodNumber>;
+
 // @public (undocumented)
 export type AgentResearch = z.infer<typeof AgentResearchSchema>;
 
@@ -4193,6 +4196,9 @@ export function createDefaultLogger(level?: string): ILogger;
 // @public
 export function createNoopLogger(): ILogger;
 
+// @public
+const CspaChargeCostSchema: z.ZodNumber;
+
 // @public (undocumented)
 export interface CursorOptions {
     // (undocumented)
@@ -5912,6 +5918,11 @@ export interface FileTokenStorageOptions {
 // @public (undocumented)
 export type Fitting = z.infer<typeof FittingSchema>;
 
+// @public
+const FittingCreatedSchema: z.ZodObject<{
+    fitting_id: z.ZodNumber;
+}, z.core.$loose>;
+
 // @public (undocumented)
 const FittingSchema: z.ZodObject<{
     fitting_id: z.ZodNumber;
@@ -6056,8 +6067,18 @@ interface FleetsFleetIdWingsGet {
     })[];
 }
 
+// @public
+const FleetSquadCreatedSchema: z.ZodObject<{
+    squad_id: z.ZodNumber;
+}, z.core.$loose>;
+
 // @public (undocumented)
 export type FleetWing = z.infer<typeof FleetWingSchema>;
+
+// @public
+const FleetWingCreatedSchema: z.ZodObject<{
+    wing_id: z.ZodNumber;
+}, z.core.$loose>;
 
 // @public (undocumented)
 const FleetWingSchema: z.ZodObject<{
@@ -7185,6 +7206,9 @@ const MailHeaderSchema: z.ZodObject<{
     }, z.core.$loose>>>;
 }, z.core.$loose>;
 
+// @public
+const MailIdSchema: z.ZodNumber;
+
 // @public (undocumented)
 const MailingListSchema: z.ZodObject<{
     mailing_list_id: z.ZodNumber;
@@ -7193,6 +7217,9 @@ const MailingListSchema: z.ZodObject<{
 
 // @public (undocumented)
 export type MailLabel = z.infer<typeof MailLabelSchema>;
+
+// @public
+const MailLabelIdSchema: z.ZodNumber;
 
 // @public (undocumented)
 const MailLabelSchema: z.ZodObject<{
@@ -8627,9 +8654,11 @@ declare namespace schemas {
         CharacterAffiliationSchema,
         ContactNotificationSchema,
         CharacterRoleSchema,
+        CspaChargeCostSchema,
         CloneInfoSchema,
         ContactSchema,
         ContactLabelSchema,
+        AddedContactIdsSchema,
         ContractSchema,
         PublicContractSchema,
         ContractItemSchema,
@@ -8684,10 +8713,13 @@ declare namespace schemas {
         FactionWarfareLeaderboardSchema,
         FactionWarfareCorporationStatsSchema,
         FittingSchema,
+        FittingCreatedSchema,
         FleetInfoSchema,
         FleetMemberSchema,
         FleetWingSchema,
         CharacterFleetInfoSchema,
+        FleetWingCreatedSchema,
+        FleetSquadCreatedSchema,
         EsiCursorSchema,
         FreelanceJobSummarySchema,
         FreelanceJobsListingSchema,
@@ -8719,6 +8751,8 @@ declare namespace schemas {
         MailLabelSchema,
         MailLabelsResponseSchema,
         MailingListSchema,
+        MailIdSchema,
+        MailLabelIdSchema,
         MarketOrderSchema,
         CharacterMarketOrderSchema,
         CharacterMarketOrderHistorySchema,

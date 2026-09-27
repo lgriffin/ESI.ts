@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { EndpointMap } from './EndpointDefinition';
-import { ContactSchema, ContactLabelSchema } from '../../schemas/contacts';
+import {
+  ContactSchema,
+  ContactLabelSchema,
+  AddedContactIdsSchema,
+} from '../../schemas/contacts';
 
 export const contactEndpoints = {
   getAllianceContacts: {
@@ -48,6 +52,7 @@ export const contactEndpoints = {
   addContacts: {
     path: 'characters/{characterId}/contacts',
     method: 'POST',
+    responseSchema: AddedContactIdsSchema,
     requiresAuth: true,
     pathParams: ['characterId'],
     queryParams: { standing: 'standing' },

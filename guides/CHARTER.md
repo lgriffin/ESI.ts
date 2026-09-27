@@ -248,7 +248,7 @@ Every hand-written response schema **shall** use `z.looseObject` so that fields 
 When an endpoint is added to a definition map, the library **shall** ship a `responseSchema` for it, since a missing schema degrades the inferred return type to `unknown`.
 
 - **Why:** Types are inferred from the schema. No schema means no type, which is a silent regression for consumers.
-- **Verified by:** Contract test response-schema coverage; `tests/typetests/domain-responses.test-d.ts`.
+- **Verified by:** `npm run spec:response-schemas` in `ci.yml` `lint-and-build` (every definition whose spec operation returns JSON declares a schema); `tests/typetests/domain-responses.test-d.ts`.
 
 #### DES-03 · Ubiquitous · Enforced
 
