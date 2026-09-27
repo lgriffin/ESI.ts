@@ -22,6 +22,10 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 - **11.0.0 decisions** recorded below. REL-05 now states the Node 22 floor, so it reads Gap until the 11.0.0 engines bump lands; the requirement changed, the code did not regress.
 - **Gap register** rows closed with evidence, the eleven findings filed after revision 1 (#290 to #300) added, and one new finding (a bare `..` path parameter) registered.
 
+### Amendments after revision 2
+
+- **2026-09-27, EARS governance.** Six decisions from the review of the specification's reach, taken by the maintainer on the recommendations recorded in the roadmap: exclusions are stated as unwanted-behaviour Rules (TEST-11, new); the charter itself is audited like a feature file (PROC-06, new); every public client method traces to a Rule (TEST-10, new, shared with Track S Run 4); `npm run ears` already runs in CI (`ears.yml`, on every pull request that touches `src/`, `tests/bdd/` or the EARS scripts; `bdd-tests` and `spec-audit` gate the same ground inside `ci-success`), and making it a required check is a branch-protection setting for the maintainer that would first need the workflow's path filters removed, so a documentation-only pull request is not blocked by a check that never ran; TEST-01 moves to Practised because its RED step is a workflow, not a check; TEST-07 gains the 11.0.0 mutation floors. Statuses that moved down did so with the reason in the row.
+
 ### 11.0.0
 
 The next major is 11.0.0, built in the phases of the Road to Done plan (Phase 0 audit in [AUDIT.md](AUDIT.md); Phase 1 generator done; Phase 2 architecture lock in progress). The phase schedule, each phase's definition of done, the SDE programme and the release gate are in [ROADMAP.md](ROADMAP.md). Decided on 2026-09-26:
@@ -322,12 +326,12 @@ Other nightlies: interleave, no-retry, recorded payloads, consumer matrix, examp
 | Functions       | 75%   | 96.09%                 |     | PR       | Changed files, gated by the same thresholds                     |
 | Lines           | 90%   | 98.37%                 |     |          | The global `break` is off (`stryker.config.mjs`, `break: null`) |
 
-#### TEST-01 · Event-driven · Enforced
+#### TEST-01 · Event-driven · Practised
 
 When observable client behaviour changes, the change **shall** be preceded by an EARS requirement in a `Rule:` block and a scenario that fails before the implementation exists.
 
-- **Why:** The most common defect in the suite has been scenarios that cannot fail. Red before green is the only defence.
-- **Verified by:** `ears-gherkin-dev` workflow; `npm run spec:audit` on PR; ratchet file `scripts/spec-audit-exceptions.json` has an empty `unconverted` list and a `legacyStepFiles` list, and both may only shrink.
+- **Why:** The most common defect in the suite has been scenarios that cannot fail. Red before green is the only defence. The form of the requirement is machine-checked; that the scenario failed first is a step in a workflow, and no check can establish it after the fact, so the status is Practised (moved from Enforced on 2026-09-27 for that reason, not because the code regressed).
+- **Verified by:** The `ears-gherkin-dev` workflow for the RED step. The form is enforced: `npm run spec:audit` on PR; the ratchet file `scripts/spec-audit-exceptions.json` has an empty `unconverted` list and a `legacyStepFiles` list, and both may only shrink.
 
 #### TEST-02 · Ubiquitous · Enforced
 
@@ -369,6 +373,7 @@ The consumer-facing type surface **shall** be asserted by tsd tests covering end
 Mutation testing **shall** hold each directory at or above its floor in `mutation-thresholds.json` (unit) and `mutation-bdd-thresholds.json` (BDD), and a PR touching mutated source **shall** run Stryker on the changed files.
 
 - **Why:** Nightly-only mutation means a weak test lands before anyone sees the score. Per-directory floors replace the single score of 65, which let a strong directory hide a weak one. Incremental Stryker on changed files keeps the PR cost bounded.
+- **11.0.0 floors (decided 2026-09-27).** The ratchets only rise, and the release gate names where they must stand: every directory in `mutation-thresholds.json` at 60 or above, every directory in `mutation-bdd-thresholds.json` at 20 or above, and every SDE directory at 90 or with each survivor carrying an equivalence reason (Track S Run M). `src/schemas` is measured by the unit tier and `schema:drift` only: scenarios send valid ESI-shaped bodies through the transport seam, so a mutant that relaxes a field is invisible to them by design, and its BDD entry stays at 0 rather than pretending otherwise.
 - **Verified by:** `mutation-pr` job ("Mutation (changed files)") in `ci.yml`, required by `ci-success`; nightly ratchets in `nightly-mutation.yml`. Open: flip-flopping mutants ([#382](https://github.com/lgriffin/ESI.ts/issues/382)) and stale incremental results ([#380](https://github.com/lgriffin/ESI.ts/issues/380)).
 
 #### TEST-08 · Optional · Enforced
@@ -384,6 +389,20 @@ Test source under `tests/` **shall** be linted with the same ESLint configuratio
 
 - **Why:** Floating promises in a step file produce a scenario that passes without asserting. Targeted rules now cover the worst failure modes, but the main configuration still skips `tests/`.
 - **Verified by:** `lint:suite-health` over `tests/` (no `.only`/`.skip`/`.todo`, no assertion-free tests or Then steps, no swallowed assertions) and `lint:bdd-seam` over `tests/bdd`, both on push and PR. To add: extend `npm run lint` (still `eslint src`) to `tests/`, including `no-floating-promises` ([#271](https://github.com/lgriffin/ESI.ts/issues/271)).
+
+#### TEST-10 · Ubiquitous · Gap
+
+Every public method of a domain client and of `IStaticDataProvider` **shall** be named by at least one `Rule:` block or bound step, and the list of methods without one **shall** only shrink.
+
+- **Why:** The audit proves every Rule has a scenario, but nothing proves every behaviour has a Rule. Two hundred and thirty-five wired endpoints and ninety-nine provider methods can each lose their specification without a check noticing. A shrink-only baseline turns "specified" into a number that cannot go down.
+- **Verified by:** To add. Track S Run 4 writes `scripts/sde-spec-coverage.ts` for the provider (moves this row to Partial); ROADMAP Phase 5 item 8 extends it to `src/clients/**` with `scripts/client-spec-coverage-baseline.json` (moves it to Enforced), both in `check:all` and `ci.yml`'s `spec-audit` job.
+
+#### TEST-11 · Optional · Partial
+
+Where the client deliberately does not act on an ESI behaviour (a status, a header, a field, an endpoint feature), the exclusion **shall** be stated as an unwanted-behaviour Rule (`If <condition>, then the <system> shall not <response>.`) with a scenario that proves the absence.
+
+- **Why:** The specification governs what the client does; what it ignores is a decision too, and an unstated exclusion reads as an omission the next contributor "fixes". One such Rule exists today (the circuit breaker not counting 4xx other than 420 and 429, `0051-resilience.feature`); the other exclusions live in prose (`SECURITY.md`, `SDE.md`, `ARCHITECTURE.md`) where nothing executes them.
+- **Verified by:** The form: `npm run spec:audit` accepts the unwanted pattern with a negated response. The register: to add, ROADMAP Phase 5 item 6 makes `npm run ears` list the exclusion Rules as their own section of the report, and DOC lists them in TESTING.md. The completeness is a review question (AGENTS.md checklist), not a check: no script can know what the client should ignore.
 
 ---
 
@@ -738,6 +757,13 @@ Agent instruction files (`AGENTS.md`, `CLAUDE.md`) **shall** contain pointers to
 - **Why:** The Beads quick reference still appears three times in `AGENTS.md` and once in `CLAUDE.md`. Pointers cannot drift. The persona files are gone from the repository root.
 - **Verified by:** Roadmap item for BEADS.md; a line-count ceiling on the managed blocks.
 
+#### PROC-06 · Ubiquitous · Gap
+
+Every requirement block in this charter **shall** satisfy the rules `spec:audit` applies to a `Rule:` block (one _shall_, a named system, one of the five patterns, no vague language) and, when its status is Enforced, **shall** name the script or job that proves it.
+
+- **Why:** The charter claims to be auditable the way the specification is, and today it is EARS by convention only. A row can say Enforced with a "Verified by" that names nothing, and nobody is told.
+- **Verified by:** To add, ROADMAP Phase 5 item 7: `scripts/charter-audit.ts` parses the `####` blocks with the spec-audit rules plus the "Verified by" check, runs in `check:all` and `ci.yml`'s `spec-audit` job.
+
 ---
 
 ## Part 10 · Gap register
@@ -776,6 +802,9 @@ Everything found during the survey, and since, that contradicts a requirement ab
 | 28  | LOW  | Minor defects: `schema:drift` pairing, half-open extra probe, unused `clientId`, TEST-03 spy                                    | several                   | **Done**                                                                                                                                                                          | `esi-l38.11` | [#300](https://github.com/lgriffin/ESI.ts/issues/300)                                                        |
 | 29  | MED  | A path parameter of exactly `..` passes validation and URL parsing collapses the segment (`characters/../assets/` → `/assets/`) | Part 6 step 2, SEC-01     | Reject `.` and `..` as path parameters; add the case to `security.test.ts`                                                                                                        | —            | [#430](https://github.com/lgriffin/ESI.ts/pull/430)                                                          |
 | 30  | HIGH | Releases need a manual dispatch of `release.yml`, and CI on the release-please PR waits for manual approval                     | REL-02                    | A GitHub App token for release-please; waiting on the maintainer to create it                                                                                                     | —            | [#378](https://github.com/lgriffin/ESI.ts/issues/378), [#383](https://github.com/lgriffin/ESI.ts/issues/383) |
+| 31  | MED  | No check that every public client method or provider method has a Rule                                                          | TEST-10                   | Shrink-only method coverage baselines: Track S Run 4 (provider), Phase 5 item 8 (clients)                                                                                         | —            | —                                                                                                            |
+| 32  | LOW  | Exclusions (what the client ignores) stated in prose, not as executable unwanted-behaviour Rules; one such Rule exists          | TEST-11                   | Phase 5 item 6: `ears` reports the exclusion register; exclusions written as Rules as each phase touches its area                                                                 | —            | —                                                                                                            |
+| 33  | LOW  | The charter is EARS by convention; no audit parses its requirement blocks or checks Enforced rows name a mechanism              | PROC-06                   | Phase 5 item 7: `scripts/charter-audit.ts`                                                                                                                                        | —            | —                                                                                                            |
 
 ---
 
