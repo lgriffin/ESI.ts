@@ -65,7 +65,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           package-manager-cache: false
 
       - name: 📋 Install dependencies
@@ -196,7 +196,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           package-manager-cache: false
           registry-url: 'https://registry.npmjs.org'
 
@@ -234,7 +234,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           package-manager-cache: false
           registry-url: 'https://npm.pkg.github.com'
 
@@ -271,7 +271,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           package-manager-cache: false
 
       - name: 📋 Install dependencies
@@ -307,7 +307,7 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           package-manager-cache: false
 
       - name: 📋 Install dependencies
