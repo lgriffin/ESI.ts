@@ -57,7 +57,7 @@ The workflow holds top-level `contents: read`. Only `publish-npm`, `publish-gith
 
 Releases are cut for new features and breaking changes only. A gate step in `release-please.yml` scans the commits since the last `vX.Y.Z` tag and skips release-please's pull-request step unless one of them is a `feat:`, carries `!` or a `BREAKING CHANGE:` footer, or has a `Release-As:` footer. The release step always runs, so merging an existing release pull request still tags and publishes.
 
-Once a release pull request is open, later fixes keep updating it, and they appear under **Fixed** in the changelog of that minor. To ship a fix on its own (a security or regression fix that cannot wait), run the workflow by hand with `force-release`:
+Once a release pull request is open (label `autorelease: pending`), the gate lets every later push through, so later fixes keep updating it, and they appear under **Fixed** in the changelog of that minor. To ship a fix on its own (a security or regression fix that cannot wait), run the workflow by hand with `force-release`:
 
 ```bash
 gh workflow run release-please.yml -f force-release=true
