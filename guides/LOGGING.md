@@ -54,7 +54,7 @@ Every log call inside the pipeline names the `ApiClient` it belongs to. The logg
 
 1. **Per-client.** The logger stored on that `ApiClient`. `configureApiClient` sets it from `EsiClientConfig.logger`, or, failing that, builds a fresh pino logger from `EsiClientConfig.logLevel`. If neither option is given, the client has no logger of its own.
 2. **Global.** The logger installed with `setLogger()`, if one has been installed.
-3. **Default.** The module-level pino instance, level from `ESI_LOG_LEVEL` or `warn`.
+3. **Default.** The module-level default logger, level from `ESI_LOG_LEVEL` or `warn`. Its pino instance is built on first use (see [Import-time behaviour](#import-time-behaviour)).
 
 `EsiClient`, `CustomEsiClient` (via `EsiClientBuilder`) and every `EsiApiFactory.create*` method all route through `configureApiClient`, so the two config options behave the same on all three construction surfaces.
 
@@ -99,9 +99,17 @@ setLogger(createDefaultLogger('info'));
 
 Valid levels are pino's: `fatal`, `error`, `warn`, `info`, `debug`, `trace`, plus `silent` to disable output. `silent` is accepted at runtime but is not a member of the `LogLevel` type, so use `ESI_LOG_LEVEL=silent` or `createNoopLogger()` rather than `logLevel: 'silent'`.
 
-An unrecognised value throws from pino when the logger is built. For `ESI_LOG_LEVEL` that is at import time, because the default instance is built when the module loads (see [Known gaps](#known-gaps)).
+An unrecognised value throws from pino when the logger is built. For a client without `logger` or `logLevel`, and for `EsiTokenManager` and the standalone batch helpers, that is the first line logged through the default logger, not the import (see [Import-time behaviour](#import-time-behaviour)).
 
 pino is a runtime dependency. The library does not configure transports, redaction or pretty-printing on the default instance. If you want any of those, build your own pino logger and pass it through `toPinoLogger`.
+
+### Import-time behaviour
+
+Importing the package, from the root entry or any sub-path, constructs no logger, timer or network client, and `package.json` declares `"sideEffects": false`, so a bundler may drop every module a consumer does not use (CHARTER ARCH-06).
+
+The default logger is an `ILogger` whose pino instance is built on its first use: the first call to a level method or to `isLevelEnabled`. `ESI_LOG_LEVEL` is read at that moment, so a value set after the import but before the first line is honoured. Once built, the default logger calls the pino-backed methods directly; the laziness costs nothing after the first line. Up to 10.2.3 the instance was built when the module loaded, so `ESI_LOG_LEVEL` was read, and an invalid value thrown, at import.
+
+`tests/tdd/core/importSideEffects.test.ts` imports every entry point with pino replaced by a spy and fails if it was called, and bundles `import { EsiError }` from the root entry and fails if the bundle reaches pino.
 
 ## Bringing your own logger
 
@@ -306,6 +314,6 @@ What is not redacted: nested objects inside the context, parameter names outside
 
 Stated against the charter, measured against the code at the time of writing.
 
-**ARCH-06 · Gap: logger construction at import.** `src/core/logger/DefaultLogger.ts` builds the default pino instance when the module loads, and the deprecated default export of `src/core/logger/logger.ts` builds a second one when that module loads (nothing in `src/` imports it). Consequences: pino is initialised by any import of the root entry point, an invalid `ESI_LOG_LEVEL` throws on import rather than on first use, and `package.json` cannot yet declare `"sideEffects": false`. The fix is a lazily built default. Tracked as `esi-piw` ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
+**ARCH-06 · Enforced: nothing built at import.** Closed by [#268](https://github.com/lgriffin/ESI.ts/issues/268): the default logger, and the deprecated default export of `src/core/logger/logger.ts`, build their pino instance on first use, and `package.json` declares `"sideEffects": false` (see [Import-time behaviour](#import-time-behaviour)).
 
 **ARCH-09 · Enforced: per-client logging.** Closed by [#296](https://github.com/lgriffin/ESI.ts/issues/296) and [#265](https://github.com/lgriffin/ESI.ts/issues/265): every call site uses the per-client logger (see [Call sites](#call-sites)), and `npm run lint` holds `src/core/requestPipeline/` and `src/clients/` off the global `loggerUtil`.

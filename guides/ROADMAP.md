@@ -120,6 +120,8 @@ Ordering between phases: 2 before 3 (the builder is what Phase 3 moves `ClientRe
 
 **Landed:** item 1, CI matches the gate matrix: `validate-release` runs every validator the charter lists for it, `validate:esi` and `validate:spec` run in `static-analysis`, the freshness diff covers the rate-limit-group and scope files, and `validate:auth-scopes` fails both directions of DES-04 (CHARTER gap register row 25). Item 6, the exclusion register: `npm run ears` lists every `shall not` Rule with its verdict and scenarios in `reports/ears/ears-report.md` and the job summary; TESTING.md and `tests/bdd/GUIDE.md` describe it. TEST-11 stays Partial until each phase writes its area's exclusions as Rules.
 
+**Also landed:** item 7, the charter audit: `npm run charter:audit` (`scripts/charter-audit.ts`, checks in `charter-audit-core.ts`) parses every `####` block of CHARTER.md with the spec-audit rules and fails an Enforced row naming no script, job or file that exists; in `check:all`, `verify-local` and `ci.yml`'s `spec-audit` job; PROC-06 Enforced; twenty-three requirements reworded to one `shall`. Item 6, the exclusion register: `npm run ears` lists every `shall not` Rule with its verdict and scenarios in `reports/ears/ears-report.md` and the job summary; TESTING.md and `tests/bdd/GUIDE.md` describe it. TEST-11 stays Partial until each phase writes its area's exclusions as Rules.
+
 **Definition of done.** Every row of QUALITY-GATES.md's matrix matches a job; GATE-01 to GATE-06, TEST-10, TEST-11 and PROC-06 at Enforced in the CHARTER; the five issues closed; the AUDIT.md "Plan gates today" table re-run with Live health at Met.
 
 ## Phase 6 · Security and supply chain · Open

@@ -6,6 +6,7 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "type": "commonjs",
+  "sideEffects": false,
   "engines": {
     "node": ">=18.0.0"
   },
@@ -263,6 +264,7 @@
     "spec:coverage": "ts-node scripts/spec-coverage.ts",
     "spec:response-schemas": "ts-node scripts/spec-response-schemas.ts",
     "spec:audit": "ts-node scripts/spec-audit.ts",
+    "charter:audit": "ts-node scripts/charter-audit.ts",
     "spec:audit:verbose": "ts-node scripts/spec-audit.ts --verbose",
     "bdd:report": "ts-node scripts/bdd-report.ts",
     "ears": "ts-node scripts/ears.ts",
@@ -270,7 +272,7 @@
     "check:local": "ts-node scripts/verify-local.ts",
     "check:local:fast": "ts-node scripts/verify-local.ts --fast",
     "check:local:all": "ts-node scripts/verify-local.ts --all",
-    "check:all": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code && npm run validate:esi && npm run validate:spec && npm run validate:versions && npm run spec:audit && npm run validate:spec-consistency",
+    "check:all": "npm run lint && npm run format:check && npm run build && npm run coverage && knip --no-exit-code && npm run validate:esi && npm run validate:spec && npm run validate:versions && npm run spec:audit && npm run charter:audit && npm run validate:spec-consistency",
     "docs": "typedoc --options typedoc.json",
     "docs:watch": "typedoc --options typedoc.json --watch",
     "docs:serve": "npx http-server docs-site/public/api -p 8080 -o",
