@@ -20,7 +20,7 @@ export interface RawFetchResult {
   parsed: ParsedHeaders;
   url: string;
   /** The Authorization header the request carried, if any. */
-  authorization?: string;
+  authorization?: string | undefined;
 }
 
 export interface SingleFetchResult {

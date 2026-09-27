@@ -8,9 +8,9 @@ import { characterIdOfToken } from '../core/util/callerIdentity';
  * short-lived script or a token another system keeps fresh and hands in.
  */
 export function identityFromToken(accessToken: string): Identity {
-  const characterId = characterIdOfToken(accessToken) ?? undefined;
+  const characterId = characterIdOfToken(accessToken);
   return Object.freeze({
-    characterId,
+    ...(characterId === null ? {} : { characterId }),
     accessToken: () => Promise.resolve(accessToken),
   });
 }
@@ -31,7 +31,9 @@ export function identityFromProvider(
   options: ProviderIdentityOptions = {},
 ): Identity {
   return Object.freeze({
-    characterId: options.characterId,
+    ...(options.characterId === undefined
+      ? {}
+      : { characterId: options.characterId }),
     accessToken: () => provider(),
     refreshAccessToken: () => provider(),
   });

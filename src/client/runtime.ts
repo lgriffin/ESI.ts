@@ -30,7 +30,7 @@ import type {
   OperationTransport,
 } from '../core/ports/OperationTransport';
 import type { RateLimiterConfig } from '../core/rateLimiter/RateLimiter';
-import { buildError } from '../core/util/error';
+import { EsiConfigurationError } from '../core/util/error';
 import { RetryConfig } from '../core/util/retry';
 import { validateBaseUrl, validateHeaderOption } from '../core/util/validation';
 import {
@@ -113,9 +113,9 @@ class PublicTransport implements OperationTransport {
 
 function refusePublic(meta: OperationMeta): void {
   if (meta.scopes.length === 0) return;
-  throw buildError(
-    `${meta.operationId} requires ${meta.scopes.join(', ')} and the public view holds no token. Fix: call it through esi.as(identity)`,
+  throw new EsiConfigurationError(
     'NO_AUTH_TOKEN',
+    `${meta.operationId} requires ${meta.scopes.join(', ')} and the public view holds no token. Fix: call it through esi.as(identity)`,
   );
 }
 
@@ -205,9 +205,9 @@ function viewClient(
 
 export function createEsi(options: EsiOptions): Esi {
   if (typeof options.userAgent !== 'string' || options.userAgent === '') {
-    throw buildError(
-      'userAgent is required: an application name, version and contact address',
+    throw new EsiConfigurationError(
       'VALIDATION_ERROR',
+      'userAgent is required: an application name, version and contact address',
     );
   }
   validateHeaderOption('userAgent', options.userAgent);
