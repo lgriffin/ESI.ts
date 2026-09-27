@@ -16004,3 +16004,4466 @@ export function getWarsWarIdKillmails(
     { path: { war_id: params.war_id }, query: {} },
   );
 }
+
+/**
+ * Every operation, arranged by path prefix: `character(id).wallet.get()`.
+ * Built by scripts/spec-scope-tree.ts; see its header for the naming rules.
+ */
+export interface ScopeTree {
+  readonly alliance: {
+    (allianceId: AllianceID): {
+      /**
+       * Get alliance's public information
+       *
+       * `GET /alliances/{alliance_id}`. Public. See `getAlliancesAllianceId`.
+       */
+      get(): ReturnType<typeof getAlliancesAllianceId>;
+      readonly contacts: {
+        /**
+         * Get alliance contacts
+         *
+         * `GET /alliances/{alliance_id}/contacts`. Requires `esi-alliances.read_contacts.v1`. See `getAlliancesAllianceIdContacts`.
+         */
+        get(): ReturnType<typeof getAlliancesAllianceIdContacts>;
+        readonly labels: {
+          /**
+           * Get alliance contact labels
+           *
+           * `GET /alliances/{alliance_id}/contacts/labels`. Requires `esi-alliances.read_contacts.v1`. See `getAlliancesAllianceIdContactsLabels`.
+           */
+          get(): ReturnType<typeof getAlliancesAllianceIdContactsLabels>;
+        };
+      };
+      readonly corporations: {
+        /**
+         * List alliance's corporations
+         *
+         * `GET /alliances/{alliance_id}/corporations`. Public. See `getAlliancesAllianceIdCorporations`.
+         */
+        get(): ReturnType<typeof getAlliancesAllianceIdCorporations>;
+      };
+      readonly icons: {
+        /**
+         * Get alliance icon
+         *
+         * `GET /alliances/{alliance_id}/icons`. Public. See `getAlliancesAllianceIdIcons`.
+         */
+        get(): ReturnType<typeof getAlliancesAllianceIdIcons>;
+      };
+    };
+  };
+  readonly alliances: {
+    /**
+     * List all alliances
+     *
+     * `GET /alliances`. Public. See `getAlliances`.
+     */
+    get(): ReturnType<typeof getAlliances>;
+  };
+  readonly character: {
+    (characterId: CharacterID): {
+      /**
+       * Get character's public information
+       *
+       * `GET /characters/{character_id}`. Public. See `getCharactersDetail`.
+       */
+      get(): ReturnType<typeof getCharactersDetail>;
+      readonly accessLists: {
+        (accessListId: AccessListID): {
+          /**
+           * Get Access List details
+           *
+           * `GET /characters/{character_id}/access-lists/{access_list_id}`. Requires `esi-access.read_lists.v1`. See `getCharactersAccessListsDetail`.
+           */
+          get(): ReturnType<typeof getCharactersAccessListsDetail>;
+        };
+        /**
+         * List Access Lists
+         *
+         * `GET /characters/{character_id}/access-lists`. Requires `esi-access.read_lists.v1`. See `getCharactersAccessListsListing`.
+         */
+        get(): ReturnType<typeof getCharactersAccessListsListing>;
+      };
+      readonly agentsResearch: {
+        /**
+         * Get agents research
+         *
+         * `GET /characters/{character_id}/agents_research`. Requires `esi-characters.read_agents_research.v1`. See `getCharactersCharacterIdAgentsResearch`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdAgentsResearch>;
+      };
+      readonly assets: {
+        /**
+         * Get character assets
+         *
+         * `GET /characters/{character_id}/assets`. Requires `esi-assets.read_assets.v1`. See `getCharactersCharacterIdAssets`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdAssets>;
+        readonly locations: {
+          /**
+           * Get character asset locations
+           *
+           * `POST /characters/{character_id}/assets/locations`. Requires `esi-assets.read_assets.v1`. See `postCharactersCharacterIdAssetsLocations`.
+           */
+          post(
+            body: PostCharactersCharacterIdAssetsLocationsBody,
+          ): ReturnType<typeof postCharactersCharacterIdAssetsLocations>;
+        };
+        readonly names: {
+          /**
+           * Get character asset names
+           *
+           * `POST /characters/{character_id}/assets/names`. Requires `esi-assets.read_assets.v1`. See `postCharactersCharacterIdAssetsNames`.
+           */
+          post(
+            body: PostCharactersCharacterIdAssetsNamesBody,
+          ): ReturnType<typeof postCharactersCharacterIdAssetsNames>;
+        };
+      };
+      readonly attributes: {
+        /**
+         * Get character attributes
+         *
+         * `GET /characters/{character_id}/attributes`. Requires `esi-skills.read_skills.v1`. See `getCharactersCharacterIdAttributes`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdAttributes>;
+      };
+      readonly blueprints: {
+        /**
+         * Get blueprints
+         *
+         * `GET /characters/{character_id}/blueprints`. Requires `esi-characters.read_blueprints.v1`. See `getCharactersCharacterIdBlueprints`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdBlueprints>;
+      };
+      readonly calendar: {
+        (eventId: number): {
+          /**
+           * Get an event
+           *
+           * `GET /characters/{character_id}/calendar/{event_id}`. Requires `esi-calendar.read_calendar_events.v1`. See `getCharactersCharacterIdCalendarEventId`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdCalendarEventId>;
+          /**
+           * Respond to an event
+           *
+           * `PUT /characters/{character_id}/calendar/{event_id}`. Requires `esi-calendar.respond_calendar_events.v1`. See `putCharactersCharacterIdCalendarEventId`.
+           */
+          put(
+            body: PutCharactersCharacterIdCalendarEventIdBody,
+          ): ReturnType<typeof putCharactersCharacterIdCalendarEventId>;
+          readonly attendees: {
+            /**
+             * Get attendees
+             *
+             * `GET /characters/{character_id}/calendar/{event_id}/attendees`. Requires `esi-calendar.read_calendar_events.v1`. See `getCharactersCharacterIdCalendarEventIdAttendees`.
+             */
+            get(): ReturnType<
+              typeof getCharactersCharacterIdCalendarEventIdAttendees
+            >;
+          };
+        };
+        /**
+         * List calendar event summaries
+         *
+         * `GET /characters/{character_id}/calendar`. Requires `esi-calendar.read_calendar_events.v1`. See `getCharactersCharacterIdCalendar`.
+         */
+        get(
+          params?: Omit<GetCharactersCharacterIdCalendarParams, 'character_id'>,
+        ): ReturnType<typeof getCharactersCharacterIdCalendar>;
+      };
+      readonly clones: {
+        /**
+         * Get clones
+         *
+         * `GET /characters/{character_id}/clones`. Requires `esi-clones.read_clones.v1`. See `getCharactersCharacterIdClones`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdClones>;
+      };
+      readonly contacts: {
+        /**
+         * Delete contacts
+         *
+         * `DELETE /characters/{character_id}/contacts`. Requires `esi-characters.write_contacts.v1`. See `deleteCharactersCharacterIdContacts`.
+         */
+        delete(
+          params: Omit<
+            DeleteCharactersCharacterIdContactsParams,
+            'character_id'
+          >,
+        ): ReturnType<typeof deleteCharactersCharacterIdContacts>;
+        /**
+         * Get contacts
+         *
+         * `GET /characters/{character_id}/contacts`. Requires `esi-characters.read_contacts.v1`. See `getCharactersCharacterIdContacts`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdContacts>;
+        /**
+         * Add contacts
+         *
+         * `POST /characters/{character_id}/contacts`. Requires `esi-characters.write_contacts.v1`. See `postCharactersCharacterIdContacts`.
+         */
+        post(
+          body: PostCharactersCharacterIdContactsBody,
+          params: Omit<PostCharactersCharacterIdContactsParams, 'character_id'>,
+        ): ReturnType<typeof postCharactersCharacterIdContacts>;
+        /**
+         * Edit contacts
+         *
+         * `PUT /characters/{character_id}/contacts`. Requires `esi-characters.write_contacts.v1`. See `putCharactersCharacterIdContacts`.
+         */
+        put(
+          body: PutCharactersCharacterIdContactsBody,
+          params: Omit<PutCharactersCharacterIdContactsParams, 'character_id'>,
+        ): ReturnType<typeof putCharactersCharacterIdContacts>;
+        readonly labels: {
+          /**
+           * Get contact labels
+           *
+           * `GET /characters/{character_id}/contacts/labels`. Requires `esi-characters.read_contacts.v1`. See `getCharactersCharacterIdContactsLabels`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdContactsLabels>;
+        };
+      };
+      readonly contracts: {
+        (contractId: number): {
+          readonly bids: {
+            /**
+             * Get contract bids
+             *
+             * `GET /characters/{character_id}/contracts/{contract_id}/bids`. Requires `esi-contracts.read_character_contracts.v1`. See `getCharactersCharacterIdContractsContractIdBids`.
+             */
+            get(): ReturnType<
+              typeof getCharactersCharacterIdContractsContractIdBids
+            >;
+          };
+          readonly items: {
+            /**
+             * Get contract items
+             *
+             * `GET /characters/{character_id}/contracts/{contract_id}/items`. Requires `esi-contracts.read_character_contracts.v1`. See `getCharactersCharacterIdContractsContractIdItems`.
+             */
+            get(): ReturnType<
+              typeof getCharactersCharacterIdContractsContractIdItems
+            >;
+          };
+        };
+        /**
+         * Get contracts
+         *
+         * `GET /characters/{character_id}/contracts`. Requires `esi-contracts.read_character_contracts.v1`. See `getCharactersCharacterIdContracts`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdContracts>;
+      };
+      readonly corporationhistory: {
+        /**
+         * Get corporation history
+         *
+         * `GET /characters/{character_id}/corporationhistory`. Public. See `getCharactersCharacterIdCorporationhistory`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdCorporationhistory>;
+      };
+      readonly cosmetics: {
+        readonly skinr: {
+          /**
+           * List a character's owned SKINR licenses
+           *
+           * `GET /characters/{character_id}/cosmetics/skinr`. Requires `esi.cosmetic.char:read`. See `getCharactersCosmeticsSkinr`.
+           */
+          get(): ReturnType<typeof getCharactersCosmeticsSkinr>;
+          readonly components: {
+            /**
+             * List a character's owned SKINR component licenses
+             *
+             * `GET /characters/{character_id}/cosmetics/skinr/components`. Requires `esi.cosmetic.char:read`. See `getCharactersCosmeticsSkinrComponents`.
+             */
+            get(): ReturnType<typeof getCharactersCosmeticsSkinrComponents>;
+          };
+        };
+      };
+      readonly cspa: {
+        /**
+         * Calculate a CSPA charge cost
+         *
+         * `POST /characters/{character_id}/cspa`. Requires `esi-characters.read_contacts.v1`. See `postCharactersCharacterIdCspa`.
+         */
+        post(
+          body: PostCharactersCharacterIdCspaBody,
+        ): ReturnType<typeof postCharactersCharacterIdCspa>;
+      };
+      readonly fatigue: {
+        /**
+         * Get jump fatigue
+         *
+         * `GET /characters/{character_id}/fatigue`. Requires `esi-characters.read_fatigue.v1`. See `getCharactersCharacterIdFatigue`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdFatigue>;
+      };
+      readonly fittings: {
+        (fittingId: number): {
+          /**
+           * Delete fitting
+           *
+           * `DELETE /characters/{character_id}/fittings/{fitting_id}`. Requires `esi-fittings.write_fittings.v1`. See `deleteCharactersCharacterIdFittingsFittingId`.
+           */
+          delete(): ReturnType<
+            typeof deleteCharactersCharacterIdFittingsFittingId
+          >;
+        };
+        /**
+         * Get fittings
+         *
+         * `GET /characters/{character_id}/fittings`. Requires `esi-fittings.read_fittings.v1`. See `getCharactersCharacterIdFittings`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdFittings>;
+        /**
+         * Create fitting
+         *
+         * `POST /characters/{character_id}/fittings`. Requires `esi-fittings.write_fittings.v1`. See `postCharactersCharacterIdFittings`.
+         */
+        post(
+          body: PostCharactersCharacterIdFittingsBody,
+        ): ReturnType<typeof postCharactersCharacterIdFittings>;
+      };
+      readonly fleet: {
+        /**
+         * Get character fleet info
+         *
+         * `GET /characters/{character_id}/fleet`. Requires `esi-fleets.read_fleet.v1`. See `getCharactersCharacterIdFleet`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdFleet>;
+      };
+      readonly freelanceJobs: {
+        (jobId: UUID): {
+          readonly participation: {
+            /**
+             * Get character freelance job participation
+             *
+             * `GET /characters/{character_id}/freelance-jobs/{job_id}/participation`. Requires `esi-characters.read_freelance_jobs.v1`. See `getCharactersFreelanceJobsParticipation`.
+             */
+            get(): ReturnType<typeof getCharactersFreelanceJobsParticipation>;
+          };
+        };
+        /**
+         * List character freelance jobs
+         *
+         * `GET /characters/{character_id}/freelance-jobs`. Requires `esi-characters.read_freelance_jobs.v1`. See `getCharactersFreelanceJobsListing`.
+         */
+        get(): ReturnType<typeof getCharactersFreelanceJobsListing>;
+      };
+      readonly fw: {
+        readonly stats: {
+          /**
+           * Overview of a character involved in faction warfare
+           *
+           * `GET /characters/{character_id}/fw/stats`. Requires `esi-characters.read_fw_stats.v1`. See `getCharactersCharacterIdFwStats`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdFwStats>;
+        };
+      };
+      readonly implants: {
+        /**
+         * Get active implants
+         *
+         * `GET /characters/{character_id}/implants`. Requires `esi-clones.read_implants.v1`. See `getCharactersCharacterIdImplants`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdImplants>;
+      };
+      readonly industry: {
+        readonly jobs: {
+          /**
+           * List character industry jobs
+           *
+           * `GET /characters/{character_id}/industry/jobs`. Requires `esi-industry.read_character_jobs.v1`. See `getCharactersCharacterIdIndustryJobs`.
+           */
+          get(
+            params?: Omit<
+              GetCharactersCharacterIdIndustryJobsParams,
+              'character_id'
+            >,
+          ): ReturnType<typeof getCharactersCharacterIdIndustryJobs>;
+        };
+      };
+      readonly killmails: {
+        readonly recent: {
+          /**
+           * Get a character's recent kills and losses
+           *
+           * `GET /characters/{character_id}/killmails/recent`. Requires `esi-killmails.read_killmails.v1`. See `getCharactersCharacterIdKillmailsRecent`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdKillmailsRecent>;
+        };
+      };
+      readonly location: {
+        /**
+         * Get character location
+         *
+         * `GET /characters/{character_id}/location`. Requires `esi-location.read_location.v1`. See `getCharactersCharacterIdLocation`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdLocation>;
+      };
+      readonly loyalty: {
+        readonly points: {
+          /**
+           * Get loyalty points
+           *
+           * `GET /characters/{character_id}/loyalty/points`. Requires `esi-characters.read_loyalty.v1`. See `getCharactersCharacterIdLoyaltyPoints`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdLoyaltyPoints>;
+        };
+      };
+      readonly mail: {
+        (mailId: number): {
+          /**
+           * Delete a mail
+           *
+           * `DELETE /characters/{character_id}/mail/{mail_id}`. Requires `esi-mail.organize_mail.v1`. See `deleteCharactersCharacterIdMailMailId`.
+           */
+          delete(): ReturnType<typeof deleteCharactersCharacterIdMailMailId>;
+          /**
+           * Return a mail
+           *
+           * `GET /characters/{character_id}/mail/{mail_id}`. Requires `esi-mail.read_mail.v1`. See `getCharactersCharacterIdMailMailId`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdMailMailId>;
+          /**
+           * Update metadata about a mail
+           *
+           * `PUT /characters/{character_id}/mail/{mail_id}`. Requires `esi-mail.organize_mail.v1`. See `putCharactersCharacterIdMailMailId`.
+           */
+          put(
+            body: PutCharactersCharacterIdMailMailIdBody,
+          ): ReturnType<typeof putCharactersCharacterIdMailMailId>;
+        };
+        /**
+         * Return mail headers
+         *
+         * `GET /characters/{character_id}/mail`. Requires `esi-mail.read_mail.v1`. See `getCharactersCharacterIdMail`.
+         */
+        get(
+          params?: Omit<GetCharactersCharacterIdMailParams, 'character_id'>,
+        ): ReturnType<typeof getCharactersCharacterIdMail>;
+        /**
+         * Send a new mail
+         *
+         * `POST /characters/{character_id}/mail`. Requires `esi-mail.send_mail.v1`. See `postCharactersCharacterIdMail`.
+         */
+        post(
+          body: PostCharactersCharacterIdMailBody,
+        ): ReturnType<typeof postCharactersCharacterIdMail>;
+        readonly labels: {
+          (labelId: number): {
+            /**
+             * Delete a mail label
+             *
+             * `DELETE /characters/{character_id}/mail/labels/{label_id}`. Requires `esi-mail.organize_mail.v1`. See `deleteCharactersCharacterIdMailLabelsLabelId`.
+             */
+            delete(): ReturnType<
+              typeof deleteCharactersCharacterIdMailLabelsLabelId
+            >;
+          };
+          /**
+           * Get mail labels and unread counts
+           *
+           * `GET /characters/{character_id}/mail/labels`. Requires `esi-mail.read_mail.v1`. See `getCharactersCharacterIdMailLabels`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdMailLabels>;
+          /**
+           * Create a mail label
+           *
+           * `POST /characters/{character_id}/mail/labels`. Requires `esi-mail.organize_mail.v1`. See `postCharactersCharacterIdMailLabels`.
+           */
+          post(
+            body: PostCharactersCharacterIdMailLabelsBody,
+          ): ReturnType<typeof postCharactersCharacterIdMailLabels>;
+        };
+        readonly lists: {
+          /**
+           * Return mailing list subscriptions
+           *
+           * `GET /characters/{character_id}/mail/lists`. Requires `esi-mail.read_mail.v1`. See `getCharactersCharacterIdMailLists`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdMailLists>;
+        };
+      };
+      readonly medals: {
+        /**
+         * Get medals
+         *
+         * `GET /characters/{character_id}/medals`. Requires `esi-characters.read_medals.v1`. See `getCharactersCharacterIdMedals`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdMedals>;
+      };
+      readonly mercenaryTacticalOperations: {
+        (operationId: UUID): {
+          /**
+           * Get Mercenary Tactical Operation details
+           *
+           * `GET /characters/{character_id}/mercenary-tactical-operations/{operation_id}`. Requires `esi-activities.read_character.v1`. See `getCharactersMercenaryTacticalOperationsDetail`.
+           */
+          get(): ReturnType<
+            typeof getCharactersMercenaryTacticalOperationsDetail
+          >;
+        };
+        /**
+         * List Mercenary Tactical Operations
+         *
+         * `GET /characters/{character_id}/mercenary-tactical-operations`. Requires `esi-activities.read_character.v1`. See `getCharactersMercenaryTacticalOperationsListing`.
+         */
+        get(): ReturnType<
+          typeof getCharactersMercenaryTacticalOperationsListing
+        >;
+      };
+      readonly militaryCampaigns: {
+        readonly objectives: {
+          (objectiveId: UUID): {
+            /**
+             * Get character military campaign objective participation
+             *
+             * `GET /characters/{character_id}/military-campaigns/objectives/{objective_id}`. Requires `esi.activity.char:read`. See `getCharactersMilitaryCampaignsObjectivesParticipation`.
+             */
+            get(): ReturnType<
+              typeof getCharactersMilitaryCampaignsObjectivesParticipation
+            >;
+          };
+          /**
+           * List character participation in military campaigns
+           *
+           * `GET /characters/{character_id}/military-campaigns/objectives`. Requires `esi.activity.char:read`. See `getCharactersMilitaryCampaignsObjectivesListing`.
+           */
+          get(
+            params?: Omit<
+              GetCharactersMilitaryCampaignsObjectivesListingParams,
+              'character_id'
+            >,
+          ): ReturnType<typeof getCharactersMilitaryCampaignsObjectivesListing>;
+        };
+      };
+      readonly mining: {
+        /**
+         * Character mining ledger
+         *
+         * `GET /characters/{character_id}/mining`. Requires `esi-industry.read_character_mining.v1`. See `getCharactersCharacterIdMining`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdMining>;
+      };
+      readonly notifications: {
+        /**
+         * Get character notifications
+         *
+         * `GET /characters/{character_id}/notifications`. Requires `esi-characters.read_notifications.v1`. See `getCharactersCharacterIdNotifications`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdNotifications>;
+        readonly contacts: {
+          /**
+           * Get new contact notifications
+           *
+           * `GET /characters/{character_id}/notifications/contacts`. Requires `esi-characters.read_notifications.v1`. See `getCharactersCharacterIdNotificationsContacts`.
+           */
+          get(): ReturnType<
+            typeof getCharactersCharacterIdNotificationsContacts
+          >;
+        };
+      };
+      readonly online: {
+        /**
+         * Get character online
+         *
+         * `GET /characters/{character_id}/online`. Requires `esi-location.read_online.v1`. See `getCharactersCharacterIdOnline`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdOnline>;
+      };
+      readonly orders: {
+        /**
+         * List open orders from a character
+         *
+         * `GET /characters/{character_id}/orders`. Requires `esi-markets.read_character_orders.v1`. See `getCharactersCharacterIdOrders`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdOrders>;
+        readonly history: {
+          /**
+           * List historical orders by a character
+           *
+           * `GET /characters/{character_id}/orders/history`. Requires `esi-markets.read_character_orders.v1`. See `getCharactersCharacterIdOrdersHistory`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdOrdersHistory>;
+        };
+      };
+      readonly paragonHub: {
+        readonly skinr: {
+          /**
+           * List a character's Paragon Hub SKINR listings
+           *
+           * `GET /characters/{character_id}/paragon-hub/skinr`. Requires `esi.cosmetic.char:read`. See `getCharactersParagonHubSkinr`.
+           */
+          get(
+            params?: Omit<GetCharactersParagonHubSkinrParams, 'character_id'>,
+          ): ReturnType<typeof getCharactersParagonHubSkinr>;
+        };
+      };
+      readonly planets: {
+        (planetId: number): {
+          /**
+           * Get colony layout
+           *
+           * `GET /characters/{character_id}/planets/{planet_id}`. Requires `esi-planets.manage_planets.v1`. See `getCharactersCharacterIdPlanetsPlanetId`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdPlanetsPlanetId>;
+        };
+        /**
+         * Get colonies
+         *
+         * `GET /characters/{character_id}/planets`. Requires `esi-planets.manage_planets.v1`. See `getCharactersCharacterIdPlanets`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdPlanets>;
+      };
+      readonly portrait: {
+        /**
+         * Get character portraits
+         *
+         * `GET /characters/{character_id}/portrait`. Public. See `getCharactersCharacterIdPortrait`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdPortrait>;
+      };
+      readonly roles: {
+        /**
+         * Get character corporation roles
+         *
+         * `GET /characters/{character_id}/roles`. Requires `esi-characters.read_corporation_roles.v1`. See `getCharactersCharacterIdRoles`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdRoles>;
+      };
+      readonly search: {
+        /**
+         * Search on a string
+         *
+         * `GET /characters/{character_id}/search`. Requires `esi-search.search_structures.v1`. See `getCharactersCharacterIdSearch`.
+         */
+        get(
+          params: Omit<GetCharactersCharacterIdSearchParams, 'character_id'>,
+        ): ReturnType<typeof getCharactersCharacterIdSearch>;
+      };
+      readonly ship: {
+        /**
+         * Get current ship
+         *
+         * `GET /characters/{character_id}/ship`. Requires `esi-location.read_ship_type.v1`. See `getCharactersCharacterIdShip`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdShip>;
+      };
+      readonly skillqueue: {
+        /**
+         * Get character's skill queue
+         *
+         * `GET /characters/{character_id}/skillqueue`. Requires `esi-skills.read_skillqueue.v1`. See `getCharactersCharacterIdSkillqueue`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdSkillqueue>;
+      };
+      readonly skills: {
+        /**
+         * Get character skills
+         *
+         * `GET /characters/{character_id}/skills`. Requires `esi-skills.read_skills.v1`. See `getCharactersCharacterIdSkills`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdSkills>;
+      };
+      readonly standings: {
+        /**
+         * Get standings
+         *
+         * `GET /characters/{character_id}/standings`. Requires `esi-characters.read_standings.v1`. See `getCharactersCharacterIdStandings`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdStandings>;
+      };
+      readonly structures: {
+        readonly mercenaryDens: {
+          (mercenaryDenId: ItemID): {
+            /**
+             * Get Mercenary Den details
+             *
+             * `GET /characters/{character_id}/structures/mercenary-dens/{mercenary_den_id}`. Requires `esi-structures.read_character.v1`. See `getCharactersStructuresMercenaryDensDetail`.
+             */
+            get(): ReturnType<
+              typeof getCharactersStructuresMercenaryDensDetail
+            >;
+          };
+          /**
+           * List Mercenary Dens
+           *
+           * `GET /characters/{character_id}/structures/mercenary-dens`. Requires `esi-structures.read_character.v1`. See `getCharactersStructuresMercenaryDensListing`.
+           */
+          get(): ReturnType<typeof getCharactersStructuresMercenaryDensListing>;
+        };
+      };
+      readonly titles: {
+        /**
+         * Get character corporation titles
+         *
+         * `GET /characters/{character_id}/titles`. Requires `esi-characters.read_titles.v1`. See `getCharactersCharacterIdTitles`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdTitles>;
+      };
+      readonly wallet: {
+        /**
+         * Get a character's wallet balance
+         *
+         * `GET /characters/{character_id}/wallet`. Requires `esi-wallet.read_character_wallet.v1`. See `getCharactersCharacterIdWallet`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdWallet>;
+        readonly journal: {
+          /**
+           * Get character wallet journal
+           *
+           * `GET /characters/{character_id}/wallet/journal`. Requires `esi-wallet.read_character_wallet.v1`. See `getCharactersCharacterIdWalletJournal`.
+           */
+          get(): ReturnType<typeof getCharactersCharacterIdWalletJournal>;
+        };
+        readonly transactions: {
+          /**
+           * Get wallet transactions
+           *
+           * `GET /characters/{character_id}/wallet/transactions`. Requires `esi-wallet.read_character_wallet.v1`. See `getCharactersCharacterIdWalletTransactions`.
+           */
+          get(
+            params?: Omit<
+              GetCharactersCharacterIdWalletTransactionsParams,
+              'character_id'
+            >,
+          ): ReturnType<typeof getCharactersCharacterIdWalletTransactions>;
+        };
+      };
+    };
+  };
+  readonly characters: {
+    readonly affiliation: {
+      /**
+       * Character affiliation
+       *
+       * `POST /characters/affiliation`. Public. See `postCharactersAffiliation`.
+       */
+      post(
+        body: PostCharactersAffiliationBody,
+      ): ReturnType<typeof postCharactersAffiliation>;
+    };
+  };
+  readonly contracts: {
+    readonly public: {
+      (regionId: number): {
+        /**
+         * Get public contracts
+         *
+         * `GET /contracts/public/{region_id}`. Public. See `getContractsPublicRegionId`.
+         */
+        get(): ReturnType<typeof getContractsPublicRegionId>;
+      };
+      readonly bids: {
+        (contractId: number): {
+          /**
+           * Get public contract bids
+           *
+           * `GET /contracts/public/bids/{contract_id}`. Public. See `getContractsPublicBidsContractId`.
+           */
+          get(): ReturnType<typeof getContractsPublicBidsContractId>;
+        };
+      };
+      readonly items: {
+        (contractId: number): {
+          /**
+           * Get public contract items
+           *
+           * `GET /contracts/public/items/{contract_id}`. Public. See `getContractsPublicItemsContractId`.
+           */
+          get(): ReturnType<typeof getContractsPublicItemsContractId>;
+        };
+      };
+    };
+  };
+  readonly corporation: {
+    (corporationId: CorporationID): {
+      /**
+       * Get corporation's public information
+       *
+       * `GET /corporations/{corporation_id}`. Public. See `getCorporationsCorporationId`.
+       */
+      get(): ReturnType<typeof getCorporationsCorporationId>;
+      readonly alliancehistory: {
+        /**
+         * Get alliance history
+         *
+         * `GET /corporations/{corporation_id}/alliancehistory`. Public. See `getCorporationsCorporationIdAlliancehistory`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdAlliancehistory>;
+      };
+      readonly assets: {
+        /**
+         * Get corporation assets
+         *
+         * `GET /corporations/{corporation_id}/assets`. Requires `esi-assets.read_corporation_assets.v1`. See `getCorporationsCorporationIdAssets`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdAssets>;
+        readonly locations: {
+          /**
+           * Get corporation asset locations
+           *
+           * `POST /corporations/{corporation_id}/assets/locations`. Requires `esi-assets.read_corporation_assets.v1`. See `postCorporationsCorporationIdAssetsLocations`.
+           */
+          post(
+            body: PostCorporationsCorporationIdAssetsLocationsBody,
+          ): ReturnType<typeof postCorporationsCorporationIdAssetsLocations>;
+        };
+        readonly names: {
+          /**
+           * Get corporation asset names
+           *
+           * `POST /corporations/{corporation_id}/assets/names`. Requires `esi-assets.read_corporation_assets.v1`. See `postCorporationsCorporationIdAssetsNames`.
+           */
+          post(
+            body: PostCorporationsCorporationIdAssetsNamesBody,
+          ): ReturnType<typeof postCorporationsCorporationIdAssetsNames>;
+        };
+      };
+      readonly blueprints: {
+        /**
+         * Get corporation blueprints
+         *
+         * `GET /corporations/{corporation_id}/blueprints`. Requires `esi-corporations.read_blueprints.v1`. See `getCorporationsCorporationIdBlueprints`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdBlueprints>;
+      };
+      readonly contacts: {
+        /**
+         * Get corporation contacts
+         *
+         * `GET /corporations/{corporation_id}/contacts`. Requires `esi-corporations.read_contacts.v1`. See `getCorporationsCorporationIdContacts`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdContacts>;
+        readonly labels: {
+          /**
+           * Get corporation contact labels
+           *
+           * `GET /corporations/{corporation_id}/contacts/labels`. Requires `esi-corporations.read_contacts.v1`. See `getCorporationsCorporationIdContactsLabels`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdContactsLabels>;
+        };
+      };
+      readonly containers: {
+        readonly logs: {
+          /**
+           * Get all corporation ALSC logs
+           *
+           * `GET /corporations/{corporation_id}/containers/logs`. Requires `esi-corporations.read_container_logs.v1`. See `getCorporationsCorporationIdContainersLogs`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdContainersLogs>;
+        };
+      };
+      readonly contracts: {
+        (contractId: number): {
+          readonly bids: {
+            /**
+             * Get corporation contract bids
+             *
+             * `GET /corporations/{corporation_id}/contracts/{contract_id}/bids`. Requires `esi-contracts.read_corporation_contracts.v1`. See `getCorporationsCorporationIdContractsContractIdBids`.
+             */
+            get(): ReturnType<
+              typeof getCorporationsCorporationIdContractsContractIdBids
+            >;
+          };
+          readonly items: {
+            /**
+             * Get corporation contract items
+             *
+             * `GET /corporations/{corporation_id}/contracts/{contract_id}/items`. Requires `esi-contracts.read_corporation_contracts.v1`. See `getCorporationsCorporationIdContractsContractIdItems`.
+             */
+            get(): ReturnType<
+              typeof getCorporationsCorporationIdContractsContractIdItems
+            >;
+          };
+        };
+        /**
+         * Get corporation contracts
+         *
+         * `GET /corporations/{corporation_id}/contracts`. Requires `esi-contracts.read_corporation_contracts.v1`. See `getCorporationsCorporationIdContracts`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdContracts>;
+      };
+      readonly customsOffices: {
+        /**
+         * List corporation customs offices
+         *
+         * `GET /corporations/{corporation_id}/customs_offices`. Requires `esi-planets.read_customs_offices.v1`. See `getCorporationsCorporationIdCustomsOffices`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdCustomsOffices>;
+      };
+      readonly divisions: {
+        /**
+         * Get corporation divisions
+         *
+         * `GET /corporations/{corporation_id}/divisions`. Requires `esi-corporations.read_divisions.v1`. See `getCorporationsCorporationIdDivisions`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdDivisions>;
+      };
+      readonly facilities: {
+        /**
+         * Get corporation facilities
+         *
+         * `GET /corporations/{corporation_id}/facilities`. Requires `esi-corporations.read_facilities.v1`. See `getCorporationsCorporationIdFacilities`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdFacilities>;
+      };
+      readonly freelanceJobs: {
+        (jobId: UUID): {
+          readonly participants: {
+            /**
+             * List participants of a freelance job
+             *
+             * `GET /corporations/{corporation_id}/freelance-jobs/{job_id}/participants`. Requires `esi-corporations.read_freelance_jobs.v1`. See `getCorporationsFreelanceJobsParticipants`.
+             */
+            get(
+              params?: Omit<
+                GetCorporationsFreelanceJobsParticipantsParams,
+                'corporation_id' | 'job_id'
+              >,
+            ): ReturnType<typeof getCorporationsFreelanceJobsParticipants>;
+          };
+        };
+        /**
+         * List corporation freelance jobs
+         *
+         * `GET /corporations/{corporation_id}/freelance-jobs`. Requires `esi-corporations.read_freelance_jobs.v1`. See `getCorporationsFreelanceJobsListing`.
+         */
+        get(
+          params?: Omit<
+            GetCorporationsFreelanceJobsListingParams,
+            'corporation_id'
+          >,
+        ): ReturnType<typeof getCorporationsFreelanceJobsListing>;
+      };
+      readonly fw: {
+        readonly stats: {
+          /**
+           * Overview of a corporation involved in faction warfare
+           *
+           * `GET /corporations/{corporation_id}/fw/stats`. Requires `esi-corporations.read_fw_stats.v1`. See `getCorporationsCorporationIdFwStats`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdFwStats>;
+        };
+      };
+      readonly icons: {
+        /**
+         * Get corporation icon
+         *
+         * `GET /corporations/{corporation_id}/icons`. Public. See `getCorporationsCorporationIdIcons`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdIcons>;
+      };
+      readonly industry: {
+        readonly jobs: {
+          /**
+           * List corporation industry jobs
+           *
+           * `GET /corporations/{corporation_id}/industry/jobs`. Requires `esi-industry.read_corporation_jobs.v1`. See `getCorporationsCorporationIdIndustryJobs`.
+           */
+          get(
+            params?: Omit<
+              GetCorporationsCorporationIdIndustryJobsParams,
+              'corporation_id'
+            >,
+          ): ReturnType<typeof getCorporationsCorporationIdIndustryJobs>;
+        };
+      };
+      readonly killmails: {
+        readonly recent: {
+          /**
+           * Get a corporation's recent kills and losses
+           *
+           * `GET /corporations/{corporation_id}/killmails/recent`. Requires `esi-killmails.read_corporation_killmails.v1`. See `getCorporationsCorporationIdKillmailsRecent`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdKillmailsRecent>;
+        };
+      };
+      readonly medals: {
+        /**
+         * Get corporation medals
+         *
+         * `GET /corporations/{corporation_id}/medals`. Requires `esi-corporations.read_medals.v1`. See `getCorporationsCorporationIdMedals`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdMedals>;
+        readonly issued: {
+          /**
+           * Get corporation issued medals
+           *
+           * `GET /corporations/{corporation_id}/medals/issued`. Requires `esi-corporations.read_medals.v1`. See `getCorporationsCorporationIdMedalsIssued`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdMedalsIssued>;
+        };
+      };
+      readonly members: {
+        /**
+         * Get corporation members
+         *
+         * `GET /corporations/{corporation_id}/members`. Requires `esi-corporations.read_corporation_membership.v1`. See `getCorporationsCorporationIdMembers`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdMembers>;
+        readonly limit: {
+          /**
+           * Get corporation member limit
+           *
+           * `GET /corporations/{corporation_id}/members/limit`. Requires `esi-corporations.track_members.v1`. See `getCorporationsCorporationIdMembersLimit`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdMembersLimit>;
+        };
+        readonly titles: {
+          /**
+           * Get corporation's members' titles
+           *
+           * `GET /corporations/{corporation_id}/members/titles`. Requires `esi-corporations.read_titles.v1`. See `getCorporationsCorporationIdMembersTitles`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdMembersTitles>;
+        };
+      };
+      readonly membertracking: {
+        /**
+         * Track corporation members
+         *
+         * `GET /corporations/{corporation_id}/membertracking`. Requires `esi-corporations.track_members.v1`. See `getCorporationsCorporationIdMembertracking`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdMembertracking>;
+      };
+      readonly mining: {
+        readonly extractions: {
+          /**
+           * Moon extraction timers
+           *
+           * `GET /corporation/{corporation_id}/mining/extractions`. Requires `esi-industry.read_corporation_mining.v1`. See `getCorporationCorporationIdMiningExtractions`.
+           */
+          get(): ReturnType<
+            typeof getCorporationCorporationIdMiningExtractions
+          >;
+        };
+        readonly observers: {
+          (observerId: number): {
+            /**
+             * Observed corporation mining
+             *
+             * `GET /corporation/{corporation_id}/mining/observers/{observer_id}`. Requires `esi-industry.read_corporation_mining.v1`. See `getCorporationCorporationIdMiningObserversObserverId`.
+             */
+            get(): ReturnType<
+              typeof getCorporationCorporationIdMiningObserversObserverId
+            >;
+          };
+          /**
+           * Corporation mining observers
+           *
+           * `GET /corporation/{corporation_id}/mining/observers`. Requires `esi-industry.read_corporation_mining.v1`. See `getCorporationCorporationIdMiningObservers`.
+           */
+          get(): ReturnType<typeof getCorporationCorporationIdMiningObservers>;
+        };
+      };
+      readonly orders: {
+        /**
+         * List open orders from a corporation
+         *
+         * `GET /corporations/{corporation_id}/orders`. Requires `esi-markets.read_corporation_orders.v1`. See `getCorporationsCorporationIdOrders`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdOrders>;
+        readonly history: {
+          /**
+           * List historical orders from a corporation
+           *
+           * `GET /corporations/{corporation_id}/orders/history`. Requires `esi-markets.read_corporation_orders.v1`. See `getCorporationsCorporationIdOrdersHistory`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdOrdersHistory>;
+        };
+      };
+      readonly projects: {
+        (projectId: UUID): {
+          /**
+           * Get project details
+           *
+           * `GET /corporations/{corporation_id}/projects/{project_id}`. Requires `esi-corporations.read_projects.v1`. See `getCorporationsProjectsDetail`.
+           */
+          get(): ReturnType<typeof getCorporationsProjectsDetail>;
+          readonly contribution: {
+            (characterId: CharacterID): {
+              /**
+               * Get your project contribution
+               *
+               * `GET /corporations/{corporation_id}/projects/{project_id}/contribution/{character_id}`. Requires `esi-corporations.read_projects.v1`. See `getCorporationsProjectsContribution`.
+               */
+              get(): ReturnType<typeof getCorporationsProjectsContribution>;
+            };
+          };
+          readonly contributors: {
+            /**
+             * List project contributors
+             *
+             * `GET /corporations/{corporation_id}/projects/{project_id}/contributors`. Requires `esi-corporations.read_projects.v1`. See `getCorporationsProjectsContributors`.
+             */
+            get(
+              params?: Omit<
+                GetCorporationsProjectsContributorsParams,
+                'corporation_id' | 'project_id'
+              >,
+            ): ReturnType<typeof getCorporationsProjectsContributors>;
+          };
+        };
+        /**
+         * List corporation projects
+         *
+         * `GET /corporations/{corporation_id}/projects`. Requires `esi-corporations.read_projects.v1`. See `getCorporationsProjectsListing`.
+         */
+        get(
+          params?: Omit<GetCorporationsProjectsListingParams, 'corporation_id'>,
+        ): ReturnType<typeof getCorporationsProjectsListing>;
+      };
+      readonly roles: {
+        /**
+         * Get corporation member roles
+         *
+         * `GET /corporations/{corporation_id}/roles`. Requires `esi-corporations.read_corporation_membership.v1`. See `getCorporationsCorporationIdRoles`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdRoles>;
+        readonly history: {
+          /**
+           * Get corporation member roles history
+           *
+           * `GET /corporations/{corporation_id}/roles/history`. Requires `esi-corporations.read_corporation_membership.v1`. See `getCorporationsCorporationIdRolesHistory`.
+           */
+          get(): ReturnType<typeof getCorporationsCorporationIdRolesHistory>;
+        };
+      };
+      readonly shareholders: {
+        /**
+         * Get corporation shareholders
+         *
+         * `GET /corporations/{corporation_id}/shareholders`. Requires `esi-wallet.read_corporation_wallets.v1`. See `getCorporationsCorporationIdShareholders`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdShareholders>;
+      };
+      readonly standings: {
+        /**
+         * Get corporation standings
+         *
+         * `GET /corporations/{corporation_id}/standings`. Requires `esi-corporations.read_standings.v1`. See `getCorporationsCorporationIdStandings`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdStandings>;
+      };
+      readonly starbases: {
+        (starbaseId: number): {
+          /**
+           * Get starbase (POS) detail
+           *
+           * `GET /corporations/{corporation_id}/starbases/{starbase_id}`. Requires `esi-corporations.read_starbases.v1`. See `getCorporationsCorporationIdStarbasesStarbaseId`.
+           */
+          get(
+            params: Omit<
+              GetCorporationsCorporationIdStarbasesStarbaseIdParams,
+              'corporation_id' | 'starbase_id'
+            >,
+          ): ReturnType<typeof getCorporationsCorporationIdStarbasesStarbaseId>;
+        };
+        /**
+         * Get corporation starbases (POSes)
+         *
+         * `GET /corporations/{corporation_id}/starbases`. Requires `esi-corporations.read_starbases.v1`. See `getCorporationsCorporationIdStarbases`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdStarbases>;
+      };
+      readonly structures: {
+        /**
+         * Get corporation structures
+         *
+         * `GET /corporations/{corporation_id}/structures`. Requires `esi-corporations.read_structures.v1`. See `getCorporationsCorporationIdStructures`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdStructures>;
+        readonly skyhooks: {
+          (skyhookId: ItemID): {
+            /**
+             * Get Skyhook details
+             *
+             * `GET /corporations/{corporation_id}/structures/skyhooks/{skyhook_id}`. Requires `esi-structures.read_corporation.v1`. See `getCorporationsStructuresSkyhooksDetail`.
+             */
+            get(): ReturnType<typeof getCorporationsStructuresSkyhooksDetail>;
+          };
+          /**
+           * List Skyhooks
+           *
+           * `GET /corporations/{corporation_id}/structures/skyhooks`. Requires `esi-structures.read_corporation.v1`. See `getCorporationsStructuresSkyhooksListing`.
+           */
+          get(): ReturnType<typeof getCorporationsStructuresSkyhooksListing>;
+        };
+        readonly sovereigntyHubs: {
+          (sovereigntyHubId: ItemID): {
+            /**
+             * Get Sovereignty Hub details
+             *
+             * `GET /corporations/{corporation_id}/structures/sovereignty-hubs/{sovereignty_hub_id}`. Requires `esi-structures.read_corporation.v1`. See `getCorporationsStructuresSovereigntyHubsDetail`.
+             */
+            get(): ReturnType<
+              typeof getCorporationsStructuresSovereigntyHubsDetail
+            >;
+          };
+          /**
+           * List Sovereignty Hubs
+           *
+           * `GET /corporations/{corporation_id}/structures/sovereignty-hubs`. Requires `esi-structures.read_corporation.v1`. See `getCorporationsStructuresSovereigntyHubsListing`.
+           */
+          get(): ReturnType<
+            typeof getCorporationsStructuresSovereigntyHubsListing
+          >;
+        };
+      };
+      readonly titles: {
+        /**
+         * Get corporation titles
+         *
+         * `GET /corporations/{corporation_id}/titles`. Requires `esi-corporations.read_titles.v1`. See `getCorporationsCorporationIdTitles`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdTitles>;
+      };
+      readonly wallets: {
+        (division: number): {
+          readonly journal: {
+            /**
+             * Get corporation wallet journal
+             *
+             * `GET /corporations/{corporation_id}/wallets/{division}/journal`. Requires `esi-wallet.read_corporation_wallets.v1`. See `getCorporationsCorporationIdWalletsDivisionJournal`.
+             */
+            get(): ReturnType<
+              typeof getCorporationsCorporationIdWalletsDivisionJournal
+            >;
+          };
+          readonly transactions: {
+            /**
+             * Get corporation wallet transactions
+             *
+             * `GET /corporations/{corporation_id}/wallets/{division}/transactions`. Requires `esi-wallet.read_corporation_wallets.v1`. See `getCorporationsCorporationIdWalletsDivisionTransactions`.
+             */
+            get(
+              params?: Omit<
+                GetCorporationsCorporationIdWalletsDivisionTransactionsParams,
+                'corporation_id' | 'division'
+              >,
+            ): ReturnType<
+              typeof getCorporationsCorporationIdWalletsDivisionTransactions
+            >;
+          };
+        };
+        /**
+         * Returns a corporation's wallet balance
+         *
+         * `GET /corporations/{corporation_id}/wallets`. Requires `esi-wallet.read_corporation_wallets.v1`. See `getCorporationsCorporationIdWallets`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdWallets>;
+      };
+    };
+  };
+  readonly corporations: {
+    readonly npccorps: {
+      /**
+       * Get npc corporations
+       *
+       * `GET /corporations/npccorps`. Public. See `getCorporationsNpccorps`.
+       */
+      get(): ReturnType<typeof getCorporationsNpccorps>;
+    };
+  };
+  readonly cosmetics: {
+    readonly skinr: {
+      (skinrId: string): {
+        /**
+         * Get SKINR attributes
+         *
+         * `GET /cosmetics/skinr/{skinr_id}`. Public. See `getCosmeticsSkinr`.
+         */
+        get(): ReturnType<typeof getCosmeticsSkinr>;
+      };
+    };
+  };
+  readonly dogma: {
+    readonly attributes: {
+      (attributeId: number): {
+        /**
+         * Get attribute information
+         *
+         * `GET /dogma/attributes/{attribute_id}`. Public. See `getDogmaAttributesAttributeId`.
+         */
+        get(): ReturnType<typeof getDogmaAttributesAttributeId>;
+      };
+      /**
+       * Get attributes
+       *
+       * `GET /dogma/attributes`. Public. See `getDogmaAttributes`.
+       */
+      get(): ReturnType<typeof getDogmaAttributes>;
+    };
+    readonly dynamic: {
+      readonly items: {
+        (
+          typeId: number,
+          itemId: number,
+        ): {
+          /**
+           * Get dynamic item information
+           *
+           * `GET /dogma/dynamic/items/{type_id}/{item_id}`. Public. See `getDogmaDynamicItemsTypeIdItemId`.
+           */
+          get(): ReturnType<typeof getDogmaDynamicItemsTypeIdItemId>;
+        };
+      };
+    };
+    readonly effects: {
+      (effectId: number): {
+        /**
+         * Get effect information
+         *
+         * `GET /dogma/effects/{effect_id}`. Public. See `getDogmaEffectsEffectId`.
+         */
+        get(): ReturnType<typeof getDogmaEffectsEffectId>;
+      };
+      /**
+       * Get effects
+       *
+       * `GET /dogma/effects`. Public. See `getDogmaEffects`.
+       */
+      get(): ReturnType<typeof getDogmaEffects>;
+    };
+  };
+  readonly fleet: {
+    (fleetId: number): {
+      /**
+       * Get fleet information
+       *
+       * `GET /fleets/{fleet_id}`. Requires `esi-fleets.read_fleet.v1`. See `getFleetsFleetId`.
+       */
+      get(): ReturnType<typeof getFleetsFleetId>;
+      /**
+       * Update fleet
+       *
+       * `PUT /fleets/{fleet_id}`. Requires `esi-fleets.write_fleet.v1`. See `putFleetsFleetId`.
+       */
+      put(body: PutFleetsFleetIdBody): ReturnType<typeof putFleetsFleetId>;
+      readonly members: {
+        (memberId: number): {
+          /**
+           * Kick fleet member
+           *
+           * `DELETE /fleets/{fleet_id}/members/{member_id}`. Requires `esi-fleets.write_fleet.v1`. See `deleteFleetsFleetIdMembersMemberId`.
+           */
+          delete(): ReturnType<typeof deleteFleetsFleetIdMembersMemberId>;
+          /**
+           * Move fleet member
+           *
+           * `PUT /fleets/{fleet_id}/members/{member_id}`. Requires `esi-fleets.write_fleet.v1`. See `putFleetsFleetIdMembersMemberId`.
+           */
+          put(
+            body: PutFleetsFleetIdMembersMemberIdBody,
+          ): ReturnType<typeof putFleetsFleetIdMembersMemberId>;
+        };
+        /**
+         * Get fleet members
+         *
+         * `GET /fleets/{fleet_id}/members`. Requires `esi-fleets.read_fleet.v1`. See `getFleetsFleetIdMembers`.
+         */
+        get(): ReturnType<typeof getFleetsFleetIdMembers>;
+        /**
+         * Create fleet invitation
+         *
+         * `POST /fleets/{fleet_id}/members`. Requires `esi-fleets.write_fleet.v1`. See `postFleetsFleetIdMembers`.
+         */
+        post(
+          body: PostFleetsFleetIdMembersBody,
+        ): ReturnType<typeof postFleetsFleetIdMembers>;
+      };
+      readonly squads: {
+        (squadId: number): {
+          /**
+           * Delete fleet squad
+           *
+           * `DELETE /fleets/{fleet_id}/squads/{squad_id}`. Requires `esi-fleets.write_fleet.v1`. See `deleteFleetsFleetIdSquadsSquadId`.
+           */
+          delete(): ReturnType<typeof deleteFleetsFleetIdSquadsSquadId>;
+          /**
+           * Rename fleet squad
+           *
+           * `PUT /fleets/{fleet_id}/squads/{squad_id}`. Requires `esi-fleets.write_fleet.v1`. See `putFleetsFleetIdSquadsSquadId`.
+           */
+          put(
+            body: PutFleetsFleetIdSquadsSquadIdBody,
+          ): ReturnType<typeof putFleetsFleetIdSquadsSquadId>;
+        };
+      };
+      readonly wings: {
+        (wingId: number): {
+          /**
+           * Delete fleet wing
+           *
+           * `DELETE /fleets/{fleet_id}/wings/{wing_id}`. Requires `esi-fleets.write_fleet.v1`. See `deleteFleetsFleetIdWingsWingId`.
+           */
+          delete(): ReturnType<typeof deleteFleetsFleetIdWingsWingId>;
+          /**
+           * Rename fleet wing
+           *
+           * `PUT /fleets/{fleet_id}/wings/{wing_id}`. Requires `esi-fleets.write_fleet.v1`. See `putFleetsFleetIdWingsWingId`.
+           */
+          put(
+            body: PutFleetsFleetIdWingsWingIdBody,
+          ): ReturnType<typeof putFleetsFleetIdWingsWingId>;
+          readonly squads: {
+            /**
+             * Create fleet squad
+             *
+             * `POST /fleets/{fleet_id}/wings/{wing_id}/squads`. Requires `esi-fleets.write_fleet.v1`. See `postFleetsFleetIdWingsWingIdSquads`.
+             */
+            post(): ReturnType<typeof postFleetsFleetIdWingsWingIdSquads>;
+          };
+        };
+        /**
+         * Get fleet wings
+         *
+         * `GET /fleets/{fleet_id}/wings`. Requires `esi-fleets.read_fleet.v1`. See `getFleetsFleetIdWings`.
+         */
+        get(): ReturnType<typeof getFleetsFleetIdWings>;
+        /**
+         * Create fleet wing
+         *
+         * `POST /fleets/{fleet_id}/wings`. Requires `esi-fleets.write_fleet.v1`. See `postFleetsFleetIdWings`.
+         */
+        post(): ReturnType<typeof postFleetsFleetIdWings>;
+      };
+    };
+  };
+  readonly freelanceJob: {
+    (jobId: UUID): {
+      /**
+       * Get freelance job details
+       *
+       * `GET /freelance-jobs/{job_id}`. Public. See `getFreelanceJobsDetail`.
+       */
+      get(): ReturnType<typeof getFreelanceJobsDetail>;
+    };
+  };
+  readonly freelanceJobs: {
+    /**
+     * List freelance jobs
+     *
+     * `GET /freelance-jobs`. Public. See `getFreelanceJobsListing`.
+     */
+    get(
+      params?: GetFreelanceJobsListingParams,
+    ): ReturnType<typeof getFreelanceJobsListing>;
+  };
+  readonly fw: {
+    readonly leaderboards: {
+      /**
+       * List of the top factions in faction warfare
+       *
+       * `GET /fw/leaderboards`. Public. See `getFwLeaderboards`.
+       */
+      get(): ReturnType<typeof getFwLeaderboards>;
+      readonly characters: {
+        /**
+         * List of the top pilots in faction warfare
+         *
+         * `GET /fw/leaderboards/characters`. Public. See `getFwLeaderboardsCharacters`.
+         */
+        get(): ReturnType<typeof getFwLeaderboardsCharacters>;
+      };
+      readonly corporations: {
+        /**
+         * List of the top corporations in faction warfare
+         *
+         * `GET /fw/leaderboards/corporations`. Public. See `getFwLeaderboardsCorporations`.
+         */
+        get(): ReturnType<typeof getFwLeaderboardsCorporations>;
+      };
+    };
+    readonly stats: {
+      /**
+       * An overview of statistics about factions involved in faction warfare
+       *
+       * `GET /fw/stats`. Public. See `getFwStats`.
+       */
+      get(): ReturnType<typeof getFwStats>;
+    };
+    readonly systems: {
+      /**
+       * Ownership of faction warfare systems
+       *
+       * `GET /fw/systems`. Public. See `getFwSystems`.
+       */
+      get(): ReturnType<typeof getFwSystems>;
+    };
+    readonly wars: {
+      /**
+       * Data about which NPC factions are at war
+       *
+       * `GET /fw/wars`. Public. See `getFwWars`.
+       */
+      get(): ReturnType<typeof getFwWars>;
+    };
+  };
+  readonly incursions: {
+    /**
+     * List incursions
+     *
+     * `GET /incursions`. Public. See `getIncursions`.
+     */
+    get(): ReturnType<typeof getIncursions>;
+  };
+  readonly industry: {
+    readonly facilities: {
+      /**
+       * List industry facilities
+       *
+       * `GET /industry/facilities`. Public. See `getIndustryFacilities`.
+       */
+      get(): ReturnType<typeof getIndustryFacilities>;
+    };
+    readonly systems: {
+      /**
+       * List solar system cost indices
+       *
+       * `GET /industry/systems`. Public. See `getIndustrySystems`.
+       */
+      get(): ReturnType<typeof getIndustrySystems>;
+    };
+  };
+  readonly insurance: {
+    readonly prices: {
+      /**
+       * List insurance levels
+       *
+       * `GET /insurance/prices`. Public. See `getInsurancePrices`.
+       */
+      get(): ReturnType<typeof getInsurancePrices>;
+    };
+  };
+  readonly killmail: {
+    (
+      killmailId: number,
+      killmailHash: string,
+    ): {
+      /**
+       * Get a single killmail
+       *
+       * `GET /killmails/{killmail_id}/{killmail_hash}`. Public. See `getKillmailsKillmailIdKillmailHash`.
+       */
+      get(): ReturnType<typeof getKillmailsKillmailIdKillmailHash>;
+    };
+  };
+  readonly loyalty: {
+    readonly stores: {
+      (corporationId: CorporationID): {
+        readonly offers: {
+          /**
+           * List loyalty store offers
+           *
+           * `GET /loyalty/stores/{corporation_id}/offers`. Public. See `getLoyaltyStoresCorporationIdOffers`.
+           */
+          get(): ReturnType<typeof getLoyaltyStoresCorporationIdOffers>;
+        };
+      };
+    };
+  };
+  readonly market: {
+    (regionId: number): {
+      readonly history: {
+        /**
+         * List historical market statistics in a region
+         *
+         * `GET /markets/{region_id}/history`. Public. See `getMarketsRegionIdHistory`.
+         */
+        get(
+          params: Omit<GetMarketsRegionIdHistoryParams, 'region_id'>,
+        ): ReturnType<typeof getMarketsRegionIdHistory>;
+      };
+      readonly orders: {
+        /**
+         * List orders in a region
+         *
+         * `GET /markets/{region_id}/orders`. Public. See `getMarketsRegionIdOrders`.
+         */
+        get(
+          params: Omit<GetMarketsRegionIdOrdersParams, 'region_id'>,
+        ): ReturnType<typeof getMarketsRegionIdOrders>;
+      };
+      readonly types: {
+        /**
+         * List type IDs relevant to a market
+         *
+         * `GET /markets/{region_id}/types`. Public. See `getMarketsRegionIdTypes`.
+         */
+        get(): ReturnType<typeof getMarketsRegionIdTypes>;
+      };
+    };
+  };
+  readonly markets: {
+    readonly groups: {
+      (marketGroupId: number): {
+        /**
+         * Get item group information
+         *
+         * `GET /markets/groups/{market_group_id}`. Public. See `getMarketsGroupsMarketGroupId`.
+         */
+        get(): ReturnType<typeof getMarketsGroupsMarketGroupId>;
+      };
+      /**
+       * Get item groups
+       *
+       * `GET /markets/groups`. Public. See `getMarketsGroups`.
+       */
+      get(): ReturnType<typeof getMarketsGroups>;
+    };
+    readonly prices: {
+      /**
+       * List market prices
+       *
+       * `GET /markets/prices`. Public. See `getMarketsPrices`.
+       */
+      get(): ReturnType<typeof getMarketsPrices>;
+    };
+    readonly structures: {
+      (structureId: number): {
+        /**
+         * List orders in a structure
+         *
+         * `GET /markets/structures/{structure_id}`. Requires `esi-markets.structure_markets.v1`. See `getMarketsStructuresStructureId`.
+         */
+        get(): ReturnType<typeof getMarketsStructuresStructureId>;
+      };
+    };
+  };
+  readonly meta: {
+    readonly changelog: {
+      /**
+       * Get changelog
+       *
+       * `GET /meta/changelog`. Public. See `getMetaChangelog`.
+       */
+      get(): ReturnType<typeof getMetaChangelog>;
+    };
+    readonly compatibilityDates: {
+      /**
+       * Get compatibility dates
+       *
+       * `GET /meta/compatibility-dates`. Public. See `getMetaCompatibilityDates`.
+       */
+      get(): ReturnType<typeof getMetaCompatibilityDates>;
+    };
+    readonly name: {
+      /**
+       * Get the name of ESI
+       *
+       * `GET /meta/name`. Public. See `getMetaName`.
+       */
+      get(): ReturnType<typeof getMetaName>;
+    };
+    readonly status: {
+      /**
+       * Get health status
+       *
+       * `GET /meta/status`. Public. See `getMetaStatus`.
+       */
+      get(): ReturnType<typeof getMetaStatus>;
+    };
+  };
+  readonly militaryCampaign: {
+    (campaignId: UUID): {
+      /**
+       * Get military campaign details
+       *
+       * `GET /military-campaigns/{campaign_id}`. Public. See `getMilitaryCampaignsDetail`.
+       */
+      get(): ReturnType<typeof getMilitaryCampaignsDetail>;
+      readonly objectives: {
+        (objectiveId: UUID): {
+          /**
+           * Get military campaign objective details
+           *
+           * `GET /military-campaigns/{campaign_id}/objectives/{objective_id}`. Public. See `getMilitaryCampaignsObjectivesDetail`.
+           */
+          get(): ReturnType<typeof getMilitaryCampaignsObjectivesDetail>;
+        };
+        /**
+         * List military campaign objectives
+         *
+         * `GET /military-campaigns/{campaign_id}/objectives`. Public. See `getMilitaryCampaignsObjectivesListing`.
+         */
+        get(
+          params?: Omit<
+            GetMilitaryCampaignsObjectivesListingParams,
+            'campaign_id'
+          >,
+        ): ReturnType<typeof getMilitaryCampaignsObjectivesListing>;
+      };
+    };
+  };
+  readonly militaryCampaigns: {
+    /**
+     * List military campaigns
+     *
+     * `GET /military-campaigns`. Public. See `getMilitaryCampaignsListing`.
+     */
+    get(): ReturnType<typeof getMilitaryCampaignsListing>;
+  };
+  readonly paragonHub: {
+    readonly skinr: {
+      /**
+       * List public Paragon Hub SKINR listings
+       *
+       * `GET /paragon-hub/skinr`. Public. See `getParagonHubSkinr`.
+       */
+      get(
+        params?: GetParagonHubSkinrParams,
+      ): ReturnType<typeof getParagonHubSkinr>;
+      readonly alliances: {
+        (allianceId: AllianceID): {
+          /**
+           * List Paragon Hub SKINR listings targeted at an alliance
+           *
+           * `GET /paragon-hub/skinr/alliances/{alliance_id}`. Requires `esi.cosmetic.char:read`. See `getParagonHubSkinrAlliances`.
+           */
+          get(
+            params?: Omit<GetParagonHubSkinrAlliancesParams, 'alliance_id'>,
+          ): ReturnType<typeof getParagonHubSkinrAlliances>;
+        };
+      };
+      readonly characters: {
+        (characterId: CharacterID): {
+          /**
+           * List Paragon Hub SKINR listings targeted at a character
+           *
+           * `GET /paragon-hub/skinr/characters/{character_id}`. Requires `esi.cosmetic.char:read`. See `getParagonHubSkinrCharacters`.
+           */
+          get(
+            params?: Omit<GetParagonHubSkinrCharactersParams, 'character_id'>,
+          ): ReturnType<typeof getParagonHubSkinrCharacters>;
+        };
+      };
+      readonly corporations: {
+        (corporationId: CorporationID): {
+          /**
+           * List Paragon Hub SKINR listings targeted at a corporation
+           *
+           * `GET /paragon-hub/skinr/corporations/{corporation_id}`. Requires `esi.cosmetic.char:read`. See `getParagonHubSkinrCorporations`.
+           */
+          get(
+            params?: Omit<
+              GetParagonHubSkinrCorporationsParams,
+              'corporation_id'
+            >,
+          ): ReturnType<typeof getParagonHubSkinrCorporations>;
+        };
+      };
+    };
+  };
+  readonly route: {
+    (
+      originSystemId: SolarSystemID,
+      destinationSystemId: SolarSystemID,
+    ): {
+      /**
+       * Get route between two systems
+       *
+       * `POST /route/{origin_system_id}/{destination_system_id}`. Public. See `postRoute`.
+       */
+      post(body: RouteRequestBody): ReturnType<typeof postRoute>;
+    };
+  };
+  readonly skyhooks: {
+    readonly raidable: {
+      /**
+       * List (upcoming) raidable Skyhooks
+       *
+       * `GET /skyhooks/raidable`. Public. See `getSkyhooksRaidable`.
+       */
+      get(): ReturnType<typeof getSkyhooksRaidable>;
+    };
+  };
+  readonly sovereignty: {
+    readonly campaigns: {
+      /**
+       * List sovereignty campaigns
+       *
+       * `GET /sovereignty/campaigns`. Public. See `getSovereigntyCampaigns`.
+       */
+      get(): ReturnType<typeof getSovereigntyCampaigns>;
+    };
+    readonly systems: {
+      /**
+       * List sovereignty details for K-space systems
+       *
+       * `GET /sovereignty/systems`. Public. See `getSovereigntySystems`.
+       */
+      get(): ReturnType<typeof getSovereigntySystems>;
+    };
+  };
+  readonly status: {
+    /**
+     * Get the server's status
+     *
+     * `GET /status`. Public. See `getStatus`.
+     */
+    get(): ReturnType<typeof getStatus>;
+  };
+  readonly ui: {
+    readonly autopilot: {
+      readonly waypoint: {
+        /**
+         * Set Autopilot Waypoint
+         *
+         * `POST /ui/autopilot/waypoint`. Requires `esi-ui.write_waypoint.v1`. See `postUiAutopilotWaypoint`.
+         */
+        post(
+          params: PostUiAutopilotWaypointParams,
+        ): ReturnType<typeof postUiAutopilotWaypoint>;
+      };
+    };
+    readonly openwindow: {
+      readonly contract: {
+        /**
+         * Open Contract Window
+         *
+         * `POST /ui/openwindow/contract`. Requires `esi-ui.open_window.v1`. See `postUiOpenwindowContract`.
+         */
+        post(
+          params: PostUiOpenwindowContractParams,
+        ): ReturnType<typeof postUiOpenwindowContract>;
+      };
+      readonly information: {
+        /**
+         * Open Information Window
+         *
+         * `POST /ui/openwindow/information`. Requires `esi-ui.open_window.v1`. See `postUiOpenwindowInformation`.
+         */
+        post(
+          params: PostUiOpenwindowInformationParams,
+        ): ReturnType<typeof postUiOpenwindowInformation>;
+      };
+      readonly marketdetails: {
+        /**
+         * Open Market Details
+         *
+         * `POST /ui/openwindow/marketdetails`. Requires `esi-ui.open_window.v1`. See `postUiOpenwindowMarketdetails`.
+         */
+        post(
+          params: PostUiOpenwindowMarketdetailsParams,
+        ): ReturnType<typeof postUiOpenwindowMarketdetails>;
+      };
+      readonly newmail: {
+        /**
+         * Open New Mail Window
+         *
+         * `POST /ui/openwindow/newmail`. Requires `esi-ui.open_window.v1`. See `postUiOpenwindowNewmail`.
+         */
+        post(
+          body: PostUiOpenwindowNewmailBody,
+        ): ReturnType<typeof postUiOpenwindowNewmail>;
+      };
+    };
+  };
+  readonly universe: {
+    readonly ancestries: {
+      /**
+       * Get ancestries
+       *
+       * `GET /universe/ancestries`. Public. See `getUniverseAncestries`.
+       */
+      get(): ReturnType<typeof getUniverseAncestries>;
+    };
+    readonly asteroidBelts: {
+      (asteroidBeltId: number): {
+        /**
+         * Get asteroid belt information
+         *
+         * `GET /universe/asteroid_belts/{asteroid_belt_id}`. Public. See `getUniverseAsteroidBeltsAsteroidBeltId`.
+         */
+        get(): ReturnType<typeof getUniverseAsteroidBeltsAsteroidBeltId>;
+      };
+    };
+    readonly bloodlines: {
+      /**
+       * Get bloodlines
+       *
+       * `GET /universe/bloodlines`. Public. See `getUniverseBloodlines`.
+       */
+      get(): ReturnType<typeof getUniverseBloodlines>;
+    };
+    readonly categories: {
+      (categoryId: number): {
+        /**
+         * Get item category information
+         *
+         * `GET /universe/categories/{category_id}`. Public. See `getUniverseCategoriesCategoryId`.
+         */
+        get(): ReturnType<typeof getUniverseCategoriesCategoryId>;
+      };
+      /**
+       * Get item categories
+       *
+       * `GET /universe/categories`. Public. See `getUniverseCategories`.
+       */
+      get(): ReturnType<typeof getUniverseCategories>;
+    };
+    readonly constellations: {
+      (constellationId: number): {
+        /**
+         * Get constellation information
+         *
+         * `GET /universe/constellations/{constellation_id}`. Public. See `getUniverseConstellationsConstellationId`.
+         */
+        get(): ReturnType<typeof getUniverseConstellationsConstellationId>;
+      };
+      /**
+       * Get constellations
+       *
+       * `GET /universe/constellations`. Public. See `getUniverseConstellations`.
+       */
+      get(): ReturnType<typeof getUniverseConstellations>;
+    };
+    readonly factions: {
+      /**
+       * Get factions
+       *
+       * `GET /universe/factions`. Public. See `getUniverseFactions`.
+       */
+      get(): ReturnType<typeof getUniverseFactions>;
+    };
+    readonly graphics: {
+      (graphicId: number): {
+        /**
+         * Get graphic information
+         *
+         * `GET /universe/graphics/{graphic_id}`. Public. See `getUniverseGraphicsGraphicId`.
+         */
+        get(): ReturnType<typeof getUniverseGraphicsGraphicId>;
+      };
+      /**
+       * Get graphics
+       *
+       * `GET /universe/graphics`. Public. See `getUniverseGraphics`.
+       */
+      get(): ReturnType<typeof getUniverseGraphics>;
+    };
+    readonly groups: {
+      (groupId: number): {
+        /**
+         * Get item group information
+         *
+         * `GET /universe/groups/{group_id}`. Public. See `getUniverseGroupsGroupId`.
+         */
+        get(): ReturnType<typeof getUniverseGroupsGroupId>;
+      };
+      /**
+       * Get item groups
+       *
+       * `GET /universe/groups`. Public. See `getUniverseGroups`.
+       */
+      get(): ReturnType<typeof getUniverseGroups>;
+    };
+    readonly ids: {
+      /**
+       * Bulk names to IDs
+       *
+       * `POST /universe/ids`. Public. See `postUniverseIds`.
+       */
+      post(body: PostUniverseIdsBody): ReturnType<typeof postUniverseIds>;
+    };
+    readonly moons: {
+      (moonId: number): {
+        /**
+         * Get moon information
+         *
+         * `GET /universe/moons/{moon_id}`. Public. See `getUniverseMoonsMoonId`.
+         */
+        get(): ReturnType<typeof getUniverseMoonsMoonId>;
+      };
+    };
+    readonly names: {
+      /**
+       * Get names and categories for a set of IDs
+       *
+       * `POST /universe/names`. Public. See `postUniverseNames`.
+       */
+      post(body: PostUniverseNamesBody): ReturnType<typeof postUniverseNames>;
+    };
+    readonly planets: {
+      (planetId: number): {
+        /**
+         * Get planet information
+         *
+         * `GET /universe/planets/{planet_id}`. Public. See `getUniversePlanetsPlanetId`.
+         */
+        get(): ReturnType<typeof getUniversePlanetsPlanetId>;
+      };
+    };
+    readonly races: {
+      /**
+       * Get character races
+       *
+       * `GET /universe/races`. Public. See `getUniverseRaces`.
+       */
+      get(): ReturnType<typeof getUniverseRaces>;
+    };
+    readonly regions: {
+      (regionId: number): {
+        /**
+         * Get region information
+         *
+         * `GET /universe/regions/{region_id}`. Public. See `getUniverseRegionsRegionId`.
+         */
+        get(): ReturnType<typeof getUniverseRegionsRegionId>;
+      };
+      /**
+       * Get regions
+       *
+       * `GET /universe/regions`. Public. See `getUniverseRegions`.
+       */
+      get(): ReturnType<typeof getUniverseRegions>;
+    };
+    readonly schematics: {
+      (schematicId: number): {
+        /**
+         * Get schematic information
+         *
+         * `GET /universe/schematics/{schematic_id}`. Public. See `getUniverseSchematicsSchematicId`.
+         */
+        get(): ReturnType<typeof getUniverseSchematicsSchematicId>;
+      };
+    };
+    readonly stargates: {
+      (stargateId: number): {
+        /**
+         * Get stargate information
+         *
+         * `GET /universe/stargates/{stargate_id}`. Public. See `getUniverseStargatesStargateId`.
+         */
+        get(): ReturnType<typeof getUniverseStargatesStargateId>;
+      };
+    };
+    readonly stars: {
+      (starId: number): {
+        /**
+         * Get star information
+         *
+         * `GET /universe/stars/{star_id}`. Public. See `getUniverseStarsStarId`.
+         */
+        get(): ReturnType<typeof getUniverseStarsStarId>;
+      };
+    };
+    readonly stations: {
+      (stationId: number): {
+        /**
+         * Get station information
+         *
+         * `GET /universe/stations/{station_id}`. Public. See `getUniverseStationsStationId`.
+         */
+        get(): ReturnType<typeof getUniverseStationsStationId>;
+      };
+    };
+    readonly structures: {
+      (structureId: number): {
+        /**
+         * Get structure information
+         *
+         * `GET /universe/structures/{structure_id}`. Requires `esi-universe.read_structures.v1`. See `getUniverseStructuresStructureId`.
+         */
+        get(): ReturnType<typeof getUniverseStructuresStructureId>;
+      };
+      /**
+       * List all public structures
+       *
+       * `GET /universe/structures`. Public. See `getUniverseStructures`.
+       */
+      get(
+        params?: GetUniverseStructuresParams,
+      ): ReturnType<typeof getUniverseStructures>;
+    };
+    readonly systemJumps: {
+      /**
+       * Get system jumps
+       *
+       * `GET /universe/system_jumps`. Public. See `getUniverseSystemJumps`.
+       */
+      get(): ReturnType<typeof getUniverseSystemJumps>;
+    };
+    readonly systemKills: {
+      /**
+       * Get system kills
+       *
+       * `GET /universe/system_kills`. Public. See `getUniverseSystemKills`.
+       */
+      get(): ReturnType<typeof getUniverseSystemKills>;
+    };
+    readonly systems: {
+      (systemId: number): {
+        /**
+         * Get solar system information
+         *
+         * `GET /universe/systems/{system_id}`. Public. See `getUniverseSystemsSystemId`.
+         */
+        get(): ReturnType<typeof getUniverseSystemsSystemId>;
+      };
+      /**
+       * Get solar systems
+       *
+       * `GET /universe/systems`. Public. See `getUniverseSystems`.
+       */
+      get(): ReturnType<typeof getUniverseSystems>;
+    };
+    readonly types: {
+      (typeId: number): {
+        /**
+         * Get type information
+         *
+         * `GET /universe/types/{type_id}`. Public. See `getUniverseTypesTypeId`.
+         */
+        get(): ReturnType<typeof getUniverseTypesTypeId>;
+      };
+      /**
+       * Get types
+       *
+       * `GET /universe/types`. Public. See `getUniverseTypes`.
+       */
+      get(): ReturnType<typeof getUniverseTypes>;
+    };
+  };
+  readonly war: {
+    (warId: number): {
+      /**
+       * Get war information
+       *
+       * `GET /wars/{war_id}`. Public. See `getWarsWarId`.
+       */
+      get(): ReturnType<typeof getWarsWarId>;
+      readonly killmails: {
+        /**
+         * List kills for a war
+         *
+         * `GET /wars/{war_id}/killmails`. Public. See `getWarsWarIdKillmails`.
+         */
+        get(): ReturnType<typeof getWarsWarIdKillmails>;
+      };
+    };
+  };
+  readonly wars: {
+    /**
+     * List wars
+     *
+     * `GET /wars`. Public. See `getWars`.
+     */
+    get(params?: GetWarsParams): ReturnType<typeof getWars>;
+  };
+}
+
+/** The operations that need no SSO scope, arranged as in `ScopeTree`. */
+export interface PublicScopeTree {
+  readonly alliance: {
+    (allianceId: AllianceID): {
+      /**
+       * Get alliance's public information
+       *
+       * `GET /alliances/{alliance_id}`. Public. See `getAlliancesAllianceId`.
+       */
+      get(): ReturnType<typeof getAlliancesAllianceId>;
+      readonly corporations: {
+        /**
+         * List alliance's corporations
+         *
+         * `GET /alliances/{alliance_id}/corporations`. Public. See `getAlliancesAllianceIdCorporations`.
+         */
+        get(): ReturnType<typeof getAlliancesAllianceIdCorporations>;
+      };
+      readonly icons: {
+        /**
+         * Get alliance icon
+         *
+         * `GET /alliances/{alliance_id}/icons`. Public. See `getAlliancesAllianceIdIcons`.
+         */
+        get(): ReturnType<typeof getAlliancesAllianceIdIcons>;
+      };
+    };
+  };
+  readonly alliances: {
+    /**
+     * List all alliances
+     *
+     * `GET /alliances`. Public. See `getAlliances`.
+     */
+    get(): ReturnType<typeof getAlliances>;
+  };
+  readonly character: {
+    (characterId: CharacterID): {
+      /**
+       * Get character's public information
+       *
+       * `GET /characters/{character_id}`. Public. See `getCharactersDetail`.
+       */
+      get(): ReturnType<typeof getCharactersDetail>;
+      readonly corporationhistory: {
+        /**
+         * Get corporation history
+         *
+         * `GET /characters/{character_id}/corporationhistory`. Public. See `getCharactersCharacterIdCorporationhistory`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdCorporationhistory>;
+      };
+      readonly portrait: {
+        /**
+         * Get character portraits
+         *
+         * `GET /characters/{character_id}/portrait`. Public. See `getCharactersCharacterIdPortrait`.
+         */
+        get(): ReturnType<typeof getCharactersCharacterIdPortrait>;
+      };
+    };
+  };
+  readonly characters: {
+    readonly affiliation: {
+      /**
+       * Character affiliation
+       *
+       * `POST /characters/affiliation`. Public. See `postCharactersAffiliation`.
+       */
+      post(
+        body: PostCharactersAffiliationBody,
+      ): ReturnType<typeof postCharactersAffiliation>;
+    };
+  };
+  readonly contracts: {
+    readonly public: {
+      (regionId: number): {
+        /**
+         * Get public contracts
+         *
+         * `GET /contracts/public/{region_id}`. Public. See `getContractsPublicRegionId`.
+         */
+        get(): ReturnType<typeof getContractsPublicRegionId>;
+      };
+      readonly bids: {
+        (contractId: number): {
+          /**
+           * Get public contract bids
+           *
+           * `GET /contracts/public/bids/{contract_id}`. Public. See `getContractsPublicBidsContractId`.
+           */
+          get(): ReturnType<typeof getContractsPublicBidsContractId>;
+        };
+      };
+      readonly items: {
+        (contractId: number): {
+          /**
+           * Get public contract items
+           *
+           * `GET /contracts/public/items/{contract_id}`. Public. See `getContractsPublicItemsContractId`.
+           */
+          get(): ReturnType<typeof getContractsPublicItemsContractId>;
+        };
+      };
+    };
+  };
+  readonly corporation: {
+    (corporationId: CorporationID): {
+      /**
+       * Get corporation's public information
+       *
+       * `GET /corporations/{corporation_id}`. Public. See `getCorporationsCorporationId`.
+       */
+      get(): ReturnType<typeof getCorporationsCorporationId>;
+      readonly alliancehistory: {
+        /**
+         * Get alliance history
+         *
+         * `GET /corporations/{corporation_id}/alliancehistory`. Public. See `getCorporationsCorporationIdAlliancehistory`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdAlliancehistory>;
+      };
+      readonly icons: {
+        /**
+         * Get corporation icon
+         *
+         * `GET /corporations/{corporation_id}/icons`. Public. See `getCorporationsCorporationIdIcons`.
+         */
+        get(): ReturnType<typeof getCorporationsCorporationIdIcons>;
+      };
+    };
+  };
+  readonly corporations: {
+    readonly npccorps: {
+      /**
+       * Get npc corporations
+       *
+       * `GET /corporations/npccorps`. Public. See `getCorporationsNpccorps`.
+       */
+      get(): ReturnType<typeof getCorporationsNpccorps>;
+    };
+  };
+  readonly cosmetics: {
+    readonly skinr: {
+      (skinrId: string): {
+        /**
+         * Get SKINR attributes
+         *
+         * `GET /cosmetics/skinr/{skinr_id}`. Public. See `getCosmeticsSkinr`.
+         */
+        get(): ReturnType<typeof getCosmeticsSkinr>;
+      };
+    };
+  };
+  readonly dogma: {
+    readonly attributes: {
+      (attributeId: number): {
+        /**
+         * Get attribute information
+         *
+         * `GET /dogma/attributes/{attribute_id}`. Public. See `getDogmaAttributesAttributeId`.
+         */
+        get(): ReturnType<typeof getDogmaAttributesAttributeId>;
+      };
+      /**
+       * Get attributes
+       *
+       * `GET /dogma/attributes`. Public. See `getDogmaAttributes`.
+       */
+      get(): ReturnType<typeof getDogmaAttributes>;
+    };
+    readonly dynamic: {
+      readonly items: {
+        (
+          typeId: number,
+          itemId: number,
+        ): {
+          /**
+           * Get dynamic item information
+           *
+           * `GET /dogma/dynamic/items/{type_id}/{item_id}`. Public. See `getDogmaDynamicItemsTypeIdItemId`.
+           */
+          get(): ReturnType<typeof getDogmaDynamicItemsTypeIdItemId>;
+        };
+      };
+    };
+    readonly effects: {
+      (effectId: number): {
+        /**
+         * Get effect information
+         *
+         * `GET /dogma/effects/{effect_id}`. Public. See `getDogmaEffectsEffectId`.
+         */
+        get(): ReturnType<typeof getDogmaEffectsEffectId>;
+      };
+      /**
+       * Get effects
+       *
+       * `GET /dogma/effects`. Public. See `getDogmaEffects`.
+       */
+      get(): ReturnType<typeof getDogmaEffects>;
+    };
+  };
+  readonly freelanceJob: {
+    (jobId: UUID): {
+      /**
+       * Get freelance job details
+       *
+       * `GET /freelance-jobs/{job_id}`. Public. See `getFreelanceJobsDetail`.
+       */
+      get(): ReturnType<typeof getFreelanceJobsDetail>;
+    };
+  };
+  readonly freelanceJobs: {
+    /**
+     * List freelance jobs
+     *
+     * `GET /freelance-jobs`. Public. See `getFreelanceJobsListing`.
+     */
+    get(
+      params?: GetFreelanceJobsListingParams,
+    ): ReturnType<typeof getFreelanceJobsListing>;
+  };
+  readonly fw: {
+    readonly leaderboards: {
+      /**
+       * List of the top factions in faction warfare
+       *
+       * `GET /fw/leaderboards`. Public. See `getFwLeaderboards`.
+       */
+      get(): ReturnType<typeof getFwLeaderboards>;
+      readonly characters: {
+        /**
+         * List of the top pilots in faction warfare
+         *
+         * `GET /fw/leaderboards/characters`. Public. See `getFwLeaderboardsCharacters`.
+         */
+        get(): ReturnType<typeof getFwLeaderboardsCharacters>;
+      };
+      readonly corporations: {
+        /**
+         * List of the top corporations in faction warfare
+         *
+         * `GET /fw/leaderboards/corporations`. Public. See `getFwLeaderboardsCorporations`.
+         */
+        get(): ReturnType<typeof getFwLeaderboardsCorporations>;
+      };
+    };
+    readonly stats: {
+      /**
+       * An overview of statistics about factions involved in faction warfare
+       *
+       * `GET /fw/stats`. Public. See `getFwStats`.
+       */
+      get(): ReturnType<typeof getFwStats>;
+    };
+    readonly systems: {
+      /**
+       * Ownership of faction warfare systems
+       *
+       * `GET /fw/systems`. Public. See `getFwSystems`.
+       */
+      get(): ReturnType<typeof getFwSystems>;
+    };
+    readonly wars: {
+      /**
+       * Data about which NPC factions are at war
+       *
+       * `GET /fw/wars`. Public. See `getFwWars`.
+       */
+      get(): ReturnType<typeof getFwWars>;
+    };
+  };
+  readonly incursions: {
+    /**
+     * List incursions
+     *
+     * `GET /incursions`. Public. See `getIncursions`.
+     */
+    get(): ReturnType<typeof getIncursions>;
+  };
+  readonly industry: {
+    readonly facilities: {
+      /**
+       * List industry facilities
+       *
+       * `GET /industry/facilities`. Public. See `getIndustryFacilities`.
+       */
+      get(): ReturnType<typeof getIndustryFacilities>;
+    };
+    readonly systems: {
+      /**
+       * List solar system cost indices
+       *
+       * `GET /industry/systems`. Public. See `getIndustrySystems`.
+       */
+      get(): ReturnType<typeof getIndustrySystems>;
+    };
+  };
+  readonly insurance: {
+    readonly prices: {
+      /**
+       * List insurance levels
+       *
+       * `GET /insurance/prices`. Public. See `getInsurancePrices`.
+       */
+      get(): ReturnType<typeof getInsurancePrices>;
+    };
+  };
+  readonly killmail: {
+    (
+      killmailId: number,
+      killmailHash: string,
+    ): {
+      /**
+       * Get a single killmail
+       *
+       * `GET /killmails/{killmail_id}/{killmail_hash}`. Public. See `getKillmailsKillmailIdKillmailHash`.
+       */
+      get(): ReturnType<typeof getKillmailsKillmailIdKillmailHash>;
+    };
+  };
+  readonly loyalty: {
+    readonly stores: {
+      (corporationId: CorporationID): {
+        readonly offers: {
+          /**
+           * List loyalty store offers
+           *
+           * `GET /loyalty/stores/{corporation_id}/offers`. Public. See `getLoyaltyStoresCorporationIdOffers`.
+           */
+          get(): ReturnType<typeof getLoyaltyStoresCorporationIdOffers>;
+        };
+      };
+    };
+  };
+  readonly market: {
+    (regionId: number): {
+      readonly history: {
+        /**
+         * List historical market statistics in a region
+         *
+         * `GET /markets/{region_id}/history`. Public. See `getMarketsRegionIdHistory`.
+         */
+        get(
+          params: Omit<GetMarketsRegionIdHistoryParams, 'region_id'>,
+        ): ReturnType<typeof getMarketsRegionIdHistory>;
+      };
+      readonly orders: {
+        /**
+         * List orders in a region
+         *
+         * `GET /markets/{region_id}/orders`. Public. See `getMarketsRegionIdOrders`.
+         */
+        get(
+          params: Omit<GetMarketsRegionIdOrdersParams, 'region_id'>,
+        ): ReturnType<typeof getMarketsRegionIdOrders>;
+      };
+      readonly types: {
+        /**
+         * List type IDs relevant to a market
+         *
+         * `GET /markets/{region_id}/types`. Public. See `getMarketsRegionIdTypes`.
+         */
+        get(): ReturnType<typeof getMarketsRegionIdTypes>;
+      };
+    };
+  };
+  readonly markets: {
+    readonly groups: {
+      (marketGroupId: number): {
+        /**
+         * Get item group information
+         *
+         * `GET /markets/groups/{market_group_id}`. Public. See `getMarketsGroupsMarketGroupId`.
+         */
+        get(): ReturnType<typeof getMarketsGroupsMarketGroupId>;
+      };
+      /**
+       * Get item groups
+       *
+       * `GET /markets/groups`. Public. See `getMarketsGroups`.
+       */
+      get(): ReturnType<typeof getMarketsGroups>;
+    };
+    readonly prices: {
+      /**
+       * List market prices
+       *
+       * `GET /markets/prices`. Public. See `getMarketsPrices`.
+       */
+      get(): ReturnType<typeof getMarketsPrices>;
+    };
+  };
+  readonly meta: {
+    readonly changelog: {
+      /**
+       * Get changelog
+       *
+       * `GET /meta/changelog`. Public. See `getMetaChangelog`.
+       */
+      get(): ReturnType<typeof getMetaChangelog>;
+    };
+    readonly compatibilityDates: {
+      /**
+       * Get compatibility dates
+       *
+       * `GET /meta/compatibility-dates`. Public. See `getMetaCompatibilityDates`.
+       */
+      get(): ReturnType<typeof getMetaCompatibilityDates>;
+    };
+    readonly name: {
+      /**
+       * Get the name of ESI
+       *
+       * `GET /meta/name`. Public. See `getMetaName`.
+       */
+      get(): ReturnType<typeof getMetaName>;
+    };
+    readonly status: {
+      /**
+       * Get health status
+       *
+       * `GET /meta/status`. Public. See `getMetaStatus`.
+       */
+      get(): ReturnType<typeof getMetaStatus>;
+    };
+  };
+  readonly militaryCampaign: {
+    (campaignId: UUID): {
+      /**
+       * Get military campaign details
+       *
+       * `GET /military-campaigns/{campaign_id}`. Public. See `getMilitaryCampaignsDetail`.
+       */
+      get(): ReturnType<typeof getMilitaryCampaignsDetail>;
+      readonly objectives: {
+        (objectiveId: UUID): {
+          /**
+           * Get military campaign objective details
+           *
+           * `GET /military-campaigns/{campaign_id}/objectives/{objective_id}`. Public. See `getMilitaryCampaignsObjectivesDetail`.
+           */
+          get(): ReturnType<typeof getMilitaryCampaignsObjectivesDetail>;
+        };
+        /**
+         * List military campaign objectives
+         *
+         * `GET /military-campaigns/{campaign_id}/objectives`. Public. See `getMilitaryCampaignsObjectivesListing`.
+         */
+        get(
+          params?: Omit<
+            GetMilitaryCampaignsObjectivesListingParams,
+            'campaign_id'
+          >,
+        ): ReturnType<typeof getMilitaryCampaignsObjectivesListing>;
+      };
+    };
+  };
+  readonly militaryCampaigns: {
+    /**
+     * List military campaigns
+     *
+     * `GET /military-campaigns`. Public. See `getMilitaryCampaignsListing`.
+     */
+    get(): ReturnType<typeof getMilitaryCampaignsListing>;
+  };
+  readonly paragonHub: {
+    readonly skinr: {
+      /**
+       * List public Paragon Hub SKINR listings
+       *
+       * `GET /paragon-hub/skinr`. Public. See `getParagonHubSkinr`.
+       */
+      get(
+        params?: GetParagonHubSkinrParams,
+      ): ReturnType<typeof getParagonHubSkinr>;
+    };
+  };
+  readonly route: {
+    (
+      originSystemId: SolarSystemID,
+      destinationSystemId: SolarSystemID,
+    ): {
+      /**
+       * Get route between two systems
+       *
+       * `POST /route/{origin_system_id}/{destination_system_id}`. Public. See `postRoute`.
+       */
+      post(body: RouteRequestBody): ReturnType<typeof postRoute>;
+    };
+  };
+  readonly skyhooks: {
+    readonly raidable: {
+      /**
+       * List (upcoming) raidable Skyhooks
+       *
+       * `GET /skyhooks/raidable`. Public. See `getSkyhooksRaidable`.
+       */
+      get(): ReturnType<typeof getSkyhooksRaidable>;
+    };
+  };
+  readonly sovereignty: {
+    readonly campaigns: {
+      /**
+       * List sovereignty campaigns
+       *
+       * `GET /sovereignty/campaigns`. Public. See `getSovereigntyCampaigns`.
+       */
+      get(): ReturnType<typeof getSovereigntyCampaigns>;
+    };
+    readonly systems: {
+      /**
+       * List sovereignty details for K-space systems
+       *
+       * `GET /sovereignty/systems`. Public. See `getSovereigntySystems`.
+       */
+      get(): ReturnType<typeof getSovereigntySystems>;
+    };
+  };
+  readonly status: {
+    /**
+     * Get the server's status
+     *
+     * `GET /status`. Public. See `getStatus`.
+     */
+    get(): ReturnType<typeof getStatus>;
+  };
+  readonly universe: {
+    readonly ancestries: {
+      /**
+       * Get ancestries
+       *
+       * `GET /universe/ancestries`. Public. See `getUniverseAncestries`.
+       */
+      get(): ReturnType<typeof getUniverseAncestries>;
+    };
+    readonly asteroidBelts: {
+      (asteroidBeltId: number): {
+        /**
+         * Get asteroid belt information
+         *
+         * `GET /universe/asteroid_belts/{asteroid_belt_id}`. Public. See `getUniverseAsteroidBeltsAsteroidBeltId`.
+         */
+        get(): ReturnType<typeof getUniverseAsteroidBeltsAsteroidBeltId>;
+      };
+    };
+    readonly bloodlines: {
+      /**
+       * Get bloodlines
+       *
+       * `GET /universe/bloodlines`. Public. See `getUniverseBloodlines`.
+       */
+      get(): ReturnType<typeof getUniverseBloodlines>;
+    };
+    readonly categories: {
+      (categoryId: number): {
+        /**
+         * Get item category information
+         *
+         * `GET /universe/categories/{category_id}`. Public. See `getUniverseCategoriesCategoryId`.
+         */
+        get(): ReturnType<typeof getUniverseCategoriesCategoryId>;
+      };
+      /**
+       * Get item categories
+       *
+       * `GET /universe/categories`. Public. See `getUniverseCategories`.
+       */
+      get(): ReturnType<typeof getUniverseCategories>;
+    };
+    readonly constellations: {
+      (constellationId: number): {
+        /**
+         * Get constellation information
+         *
+         * `GET /universe/constellations/{constellation_id}`. Public. See `getUniverseConstellationsConstellationId`.
+         */
+        get(): ReturnType<typeof getUniverseConstellationsConstellationId>;
+      };
+      /**
+       * Get constellations
+       *
+       * `GET /universe/constellations`. Public. See `getUniverseConstellations`.
+       */
+      get(): ReturnType<typeof getUniverseConstellations>;
+    };
+    readonly factions: {
+      /**
+       * Get factions
+       *
+       * `GET /universe/factions`. Public. See `getUniverseFactions`.
+       */
+      get(): ReturnType<typeof getUniverseFactions>;
+    };
+    readonly graphics: {
+      (graphicId: number): {
+        /**
+         * Get graphic information
+         *
+         * `GET /universe/graphics/{graphic_id}`. Public. See `getUniverseGraphicsGraphicId`.
+         */
+        get(): ReturnType<typeof getUniverseGraphicsGraphicId>;
+      };
+      /**
+       * Get graphics
+       *
+       * `GET /universe/graphics`. Public. See `getUniverseGraphics`.
+       */
+      get(): ReturnType<typeof getUniverseGraphics>;
+    };
+    readonly groups: {
+      (groupId: number): {
+        /**
+         * Get item group information
+         *
+         * `GET /universe/groups/{group_id}`. Public. See `getUniverseGroupsGroupId`.
+         */
+        get(): ReturnType<typeof getUniverseGroupsGroupId>;
+      };
+      /**
+       * Get item groups
+       *
+       * `GET /universe/groups`. Public. See `getUniverseGroups`.
+       */
+      get(): ReturnType<typeof getUniverseGroups>;
+    };
+    readonly ids: {
+      /**
+       * Bulk names to IDs
+       *
+       * `POST /universe/ids`. Public. See `postUniverseIds`.
+       */
+      post(body: PostUniverseIdsBody): ReturnType<typeof postUniverseIds>;
+    };
+    readonly moons: {
+      (moonId: number): {
+        /**
+         * Get moon information
+         *
+         * `GET /universe/moons/{moon_id}`. Public. See `getUniverseMoonsMoonId`.
+         */
+        get(): ReturnType<typeof getUniverseMoonsMoonId>;
+      };
+    };
+    readonly names: {
+      /**
+       * Get names and categories for a set of IDs
+       *
+       * `POST /universe/names`. Public. See `postUniverseNames`.
+       */
+      post(body: PostUniverseNamesBody): ReturnType<typeof postUniverseNames>;
+    };
+    readonly planets: {
+      (planetId: number): {
+        /**
+         * Get planet information
+         *
+         * `GET /universe/planets/{planet_id}`. Public. See `getUniversePlanetsPlanetId`.
+         */
+        get(): ReturnType<typeof getUniversePlanetsPlanetId>;
+      };
+    };
+    readonly races: {
+      /**
+       * Get character races
+       *
+       * `GET /universe/races`. Public. See `getUniverseRaces`.
+       */
+      get(): ReturnType<typeof getUniverseRaces>;
+    };
+    readonly regions: {
+      (regionId: number): {
+        /**
+         * Get region information
+         *
+         * `GET /universe/regions/{region_id}`. Public. See `getUniverseRegionsRegionId`.
+         */
+        get(): ReturnType<typeof getUniverseRegionsRegionId>;
+      };
+      /**
+       * Get regions
+       *
+       * `GET /universe/regions`. Public. See `getUniverseRegions`.
+       */
+      get(): ReturnType<typeof getUniverseRegions>;
+    };
+    readonly schematics: {
+      (schematicId: number): {
+        /**
+         * Get schematic information
+         *
+         * `GET /universe/schematics/{schematic_id}`. Public. See `getUniverseSchematicsSchematicId`.
+         */
+        get(): ReturnType<typeof getUniverseSchematicsSchematicId>;
+      };
+    };
+    readonly stargates: {
+      (stargateId: number): {
+        /**
+         * Get stargate information
+         *
+         * `GET /universe/stargates/{stargate_id}`. Public. See `getUniverseStargatesStargateId`.
+         */
+        get(): ReturnType<typeof getUniverseStargatesStargateId>;
+      };
+    };
+    readonly stars: {
+      (starId: number): {
+        /**
+         * Get star information
+         *
+         * `GET /universe/stars/{star_id}`. Public. See `getUniverseStarsStarId`.
+         */
+        get(): ReturnType<typeof getUniverseStarsStarId>;
+      };
+    };
+    readonly stations: {
+      (stationId: number): {
+        /**
+         * Get station information
+         *
+         * `GET /universe/stations/{station_id}`. Public. See `getUniverseStationsStationId`.
+         */
+        get(): ReturnType<typeof getUniverseStationsStationId>;
+      };
+    };
+    readonly structures: {
+      /**
+       * List all public structures
+       *
+       * `GET /universe/structures`. Public. See `getUniverseStructures`.
+       */
+      get(
+        params?: GetUniverseStructuresParams,
+      ): ReturnType<typeof getUniverseStructures>;
+    };
+    readonly systemJumps: {
+      /**
+       * Get system jumps
+       *
+       * `GET /universe/system_jumps`. Public. See `getUniverseSystemJumps`.
+       */
+      get(): ReturnType<typeof getUniverseSystemJumps>;
+    };
+    readonly systemKills: {
+      /**
+       * Get system kills
+       *
+       * `GET /universe/system_kills`. Public. See `getUniverseSystemKills`.
+       */
+      get(): ReturnType<typeof getUniverseSystemKills>;
+    };
+    readonly systems: {
+      (systemId: number): {
+        /**
+         * Get solar system information
+         *
+         * `GET /universe/systems/{system_id}`. Public. See `getUniverseSystemsSystemId`.
+         */
+        get(): ReturnType<typeof getUniverseSystemsSystemId>;
+      };
+      /**
+       * Get solar systems
+       *
+       * `GET /universe/systems`. Public. See `getUniverseSystems`.
+       */
+      get(): ReturnType<typeof getUniverseSystems>;
+    };
+    readonly types: {
+      (typeId: number): {
+        /**
+         * Get type information
+         *
+         * `GET /universe/types/{type_id}`. Public. See `getUniverseTypesTypeId`.
+         */
+        get(): ReturnType<typeof getUniverseTypesTypeId>;
+      };
+      /**
+       * Get types
+       *
+       * `GET /universe/types`. Public. See `getUniverseTypes`.
+       */
+      get(): ReturnType<typeof getUniverseTypes>;
+    };
+  };
+  readonly war: {
+    (warId: number): {
+      /**
+       * Get war information
+       *
+       * `GET /wars/{war_id}`. Public. See `getWarsWarId`.
+       */
+      get(): ReturnType<typeof getWarsWarId>;
+      readonly killmails: {
+        /**
+         * List kills for a war
+         *
+         * `GET /wars/{war_id}/killmails`. Public. See `getWarsWarIdKillmails`.
+         */
+        get(): ReturnType<typeof getWarsWarIdKillmails>;
+      };
+    };
+  };
+  readonly wars: {
+    /**
+     * List wars
+     *
+     * `GET /wars`. Public. See `getWars`.
+     */
+    get(params?: GetWarsParams): ReturnType<typeof getWars>;
+  };
+}
+
+/** The scope tree over one transport. */
+export function createScopeTree(transport: OperationTransport): ScopeTree {
+  return {
+    alliance: (allianceId: AllianceID) => ({
+      get: () => getAlliancesAllianceId(transport, { alliance_id: allianceId }),
+      contacts: {
+        get: () =>
+          getAlliancesAllianceIdContacts(transport, {
+            alliance_id: allianceId,
+          }),
+        labels: {
+          get: () =>
+            getAlliancesAllianceIdContactsLabels(transport, {
+              alliance_id: allianceId,
+            }),
+        },
+      },
+      corporations: {
+        get: () =>
+          getAlliancesAllianceIdCorporations(transport, {
+            alliance_id: allianceId,
+          }),
+      },
+      icons: {
+        get: () =>
+          getAlliancesAllianceIdIcons(transport, { alliance_id: allianceId }),
+      },
+    }),
+    alliances: {
+      get: () => getAlliances(transport),
+    },
+    character: (characterId: CharacterID) => ({
+      get: () => getCharactersDetail(transport, { character_id: characterId }),
+      accessLists: Object.assign(
+        (accessListId: AccessListID) => ({
+          get: () =>
+            getCharactersAccessListsDetail(transport, {
+              character_id: characterId,
+              access_list_id: accessListId,
+            }),
+        }),
+        {
+          get: () =>
+            getCharactersAccessListsListing(transport, {
+              character_id: characterId,
+            }),
+        },
+      ),
+      agentsResearch: {
+        get: () =>
+          getCharactersCharacterIdAgentsResearch(transport, {
+            character_id: characterId,
+          }),
+      },
+      assets: {
+        get: () =>
+          getCharactersCharacterIdAssets(transport, {
+            character_id: characterId,
+          }),
+        locations: {
+          post: (body: PostCharactersCharacterIdAssetsLocationsBody) =>
+            postCharactersCharacterIdAssetsLocations(
+              transport,
+              { character_id: characterId },
+              body,
+            ),
+        },
+        names: {
+          post: (body: PostCharactersCharacterIdAssetsNamesBody) =>
+            postCharactersCharacterIdAssetsNames(
+              transport,
+              { character_id: characterId },
+              body,
+            ),
+        },
+      },
+      attributes: {
+        get: () =>
+          getCharactersCharacterIdAttributes(transport, {
+            character_id: characterId,
+          }),
+      },
+      blueprints: {
+        get: () =>
+          getCharactersCharacterIdBlueprints(transport, {
+            character_id: characterId,
+          }),
+      },
+      calendar: Object.assign(
+        (eventId: number) => ({
+          get: () =>
+            getCharactersCharacterIdCalendarEventId(transport, {
+              character_id: characterId,
+              event_id: eventId,
+            }),
+          put: (body: PutCharactersCharacterIdCalendarEventIdBody) =>
+            putCharactersCharacterIdCalendarEventId(
+              transport,
+              { character_id: characterId, event_id: eventId },
+              body,
+            ),
+          attendees: {
+            get: () =>
+              getCharactersCharacterIdCalendarEventIdAttendees(transport, {
+                character_id: characterId,
+                event_id: eventId,
+              }),
+          },
+        }),
+        {
+          get: (
+            params?: Omit<
+              GetCharactersCharacterIdCalendarParams,
+              'character_id'
+            >,
+          ) =>
+            getCharactersCharacterIdCalendar(transport, {
+              ...params,
+              character_id: characterId,
+            }),
+        },
+      ),
+      clones: {
+        get: () =>
+          getCharactersCharacterIdClones(transport, {
+            character_id: characterId,
+          }),
+      },
+      contacts: {
+        delete: (
+          params: Omit<
+            DeleteCharactersCharacterIdContactsParams,
+            'character_id'
+          >,
+        ) =>
+          deleteCharactersCharacterIdContacts(transport, {
+            ...params,
+            character_id: characterId,
+          }),
+        get: () =>
+          getCharactersCharacterIdContacts(transport, {
+            character_id: characterId,
+          }),
+        post: (
+          body: PostCharactersCharacterIdContactsBody,
+          params: Omit<PostCharactersCharacterIdContactsParams, 'character_id'>,
+        ) =>
+          postCharactersCharacterIdContacts(
+            transport,
+            { ...params, character_id: characterId },
+            body,
+          ),
+        put: (
+          body: PutCharactersCharacterIdContactsBody,
+          params: Omit<PutCharactersCharacterIdContactsParams, 'character_id'>,
+        ) =>
+          putCharactersCharacterIdContacts(
+            transport,
+            { ...params, character_id: characterId },
+            body,
+          ),
+        labels: {
+          get: () =>
+            getCharactersCharacterIdContactsLabels(transport, {
+              character_id: characterId,
+            }),
+        },
+      },
+      contracts: Object.assign(
+        (contractId: number) => ({
+          bids: {
+            get: () =>
+              getCharactersCharacterIdContractsContractIdBids(transport, {
+                character_id: characterId,
+                contract_id: contractId,
+              }),
+          },
+          items: {
+            get: () =>
+              getCharactersCharacterIdContractsContractIdItems(transport, {
+                character_id: characterId,
+                contract_id: contractId,
+              }),
+          },
+        }),
+        {
+          get: () =>
+            getCharactersCharacterIdContracts(transport, {
+              character_id: characterId,
+            }),
+        },
+      ),
+      corporationhistory: {
+        get: () =>
+          getCharactersCharacterIdCorporationhistory(transport, {
+            character_id: characterId,
+          }),
+      },
+      cosmetics: {
+        skinr: {
+          get: () =>
+            getCharactersCosmeticsSkinr(transport, {
+              character_id: characterId,
+            }),
+          components: {
+            get: () =>
+              getCharactersCosmeticsSkinrComponents(transport, {
+                character_id: characterId,
+              }),
+          },
+        },
+      },
+      cspa: {
+        post: (body: PostCharactersCharacterIdCspaBody) =>
+          postCharactersCharacterIdCspa(
+            transport,
+            { character_id: characterId },
+            body,
+          ),
+      },
+      fatigue: {
+        get: () =>
+          getCharactersCharacterIdFatigue(transport, {
+            character_id: characterId,
+          }),
+      },
+      fittings: Object.assign(
+        (fittingId: number) => ({
+          delete: () =>
+            deleteCharactersCharacterIdFittingsFittingId(transport, {
+              character_id: characterId,
+              fitting_id: fittingId,
+            }),
+        }),
+        {
+          get: () =>
+            getCharactersCharacterIdFittings(transport, {
+              character_id: characterId,
+            }),
+          post: (body: PostCharactersCharacterIdFittingsBody) =>
+            postCharactersCharacterIdFittings(
+              transport,
+              { character_id: characterId },
+              body,
+            ),
+        },
+      ),
+      fleet: {
+        get: () =>
+          getCharactersCharacterIdFleet(transport, {
+            character_id: characterId,
+          }),
+      },
+      freelanceJobs: Object.assign(
+        (jobId: UUID) => ({
+          participation: {
+            get: () =>
+              getCharactersFreelanceJobsParticipation(transport, {
+                character_id: characterId,
+                job_id: jobId,
+              }),
+          },
+        }),
+        {
+          get: () =>
+            getCharactersFreelanceJobsListing(transport, {
+              character_id: characterId,
+            }),
+        },
+      ),
+      fw: {
+        stats: {
+          get: () =>
+            getCharactersCharacterIdFwStats(transport, {
+              character_id: characterId,
+            }),
+        },
+      },
+      implants: {
+        get: () =>
+          getCharactersCharacterIdImplants(transport, {
+            character_id: characterId,
+          }),
+      },
+      industry: {
+        jobs: {
+          get: (
+            params?: Omit<
+              GetCharactersCharacterIdIndustryJobsParams,
+              'character_id'
+            >,
+          ) =>
+            getCharactersCharacterIdIndustryJobs(transport, {
+              ...params,
+              character_id: characterId,
+            }),
+        },
+      },
+      killmails: {
+        recent: {
+          get: () =>
+            getCharactersCharacterIdKillmailsRecent(transport, {
+              character_id: characterId,
+            }),
+        },
+      },
+      location: {
+        get: () =>
+          getCharactersCharacterIdLocation(transport, {
+            character_id: characterId,
+          }),
+      },
+      loyalty: {
+        points: {
+          get: () =>
+            getCharactersCharacterIdLoyaltyPoints(transport, {
+              character_id: characterId,
+            }),
+        },
+      },
+      mail: Object.assign(
+        (mailId: number) => ({
+          delete: () =>
+            deleteCharactersCharacterIdMailMailId(transport, {
+              character_id: characterId,
+              mail_id: mailId,
+            }),
+          get: () =>
+            getCharactersCharacterIdMailMailId(transport, {
+              character_id: characterId,
+              mail_id: mailId,
+            }),
+          put: (body: PutCharactersCharacterIdMailMailIdBody) =>
+            putCharactersCharacterIdMailMailId(
+              transport,
+              { character_id: characterId, mail_id: mailId },
+              body,
+            ),
+        }),
+        {
+          get: (
+            params?: Omit<GetCharactersCharacterIdMailParams, 'character_id'>,
+          ) =>
+            getCharactersCharacterIdMail(transport, {
+              ...params,
+              character_id: characterId,
+            }),
+          post: (body: PostCharactersCharacterIdMailBody) =>
+            postCharactersCharacterIdMail(
+              transport,
+              { character_id: characterId },
+              body,
+            ),
+          labels: Object.assign(
+            (labelId: number) => ({
+              delete: () =>
+                deleteCharactersCharacterIdMailLabelsLabelId(transport, {
+                  character_id: characterId,
+                  label_id: labelId,
+                }),
+            }),
+            {
+              get: () =>
+                getCharactersCharacterIdMailLabels(transport, {
+                  character_id: characterId,
+                }),
+              post: (body: PostCharactersCharacterIdMailLabelsBody) =>
+                postCharactersCharacterIdMailLabels(
+                  transport,
+                  { character_id: characterId },
+                  body,
+                ),
+            },
+          ),
+          lists: {
+            get: () =>
+              getCharactersCharacterIdMailLists(transport, {
+                character_id: characterId,
+              }),
+          },
+        },
+      ),
+      medals: {
+        get: () =>
+          getCharactersCharacterIdMedals(transport, {
+            character_id: characterId,
+          }),
+      },
+      mercenaryTacticalOperations: Object.assign(
+        (operationId: UUID) => ({
+          get: () =>
+            getCharactersMercenaryTacticalOperationsDetail(transport, {
+              character_id: characterId,
+              operation_id: operationId,
+            }),
+        }),
+        {
+          get: () =>
+            getCharactersMercenaryTacticalOperationsListing(transport, {
+              character_id: characterId,
+            }),
+        },
+      ),
+      militaryCampaigns: {
+        objectives: Object.assign(
+          (objectiveId: UUID) => ({
+            get: () =>
+              getCharactersMilitaryCampaignsObjectivesParticipation(transport, {
+                character_id: characterId,
+                objective_id: objectiveId,
+              }),
+          }),
+          {
+            get: (
+              params?: Omit<
+                GetCharactersMilitaryCampaignsObjectivesListingParams,
+                'character_id'
+              >,
+            ) =>
+              getCharactersMilitaryCampaignsObjectivesListing(transport, {
+                ...params,
+                character_id: characterId,
+              }),
+          },
+        ),
+      },
+      mining: {
+        get: () =>
+          getCharactersCharacterIdMining(transport, {
+            character_id: characterId,
+          }),
+      },
+      notifications: {
+        get: () =>
+          getCharactersCharacterIdNotifications(transport, {
+            character_id: characterId,
+          }),
+        contacts: {
+          get: () =>
+            getCharactersCharacterIdNotificationsContacts(transport, {
+              character_id: characterId,
+            }),
+        },
+      },
+      online: {
+        get: () =>
+          getCharactersCharacterIdOnline(transport, {
+            character_id: characterId,
+          }),
+      },
+      orders: {
+        get: () =>
+          getCharactersCharacterIdOrders(transport, {
+            character_id: characterId,
+          }),
+        history: {
+          get: () =>
+            getCharactersCharacterIdOrdersHistory(transport, {
+              character_id: characterId,
+            }),
+        },
+      },
+      paragonHub: {
+        skinr: {
+          get: (
+            params?: Omit<GetCharactersParagonHubSkinrParams, 'character_id'>,
+          ) =>
+            getCharactersParagonHubSkinr(transport, {
+              ...params,
+              character_id: characterId,
+            }),
+        },
+      },
+      planets: Object.assign(
+        (planetId: number) => ({
+          get: () =>
+            getCharactersCharacterIdPlanetsPlanetId(transport, {
+              character_id: characterId,
+              planet_id: planetId,
+            }),
+        }),
+        {
+          get: () =>
+            getCharactersCharacterIdPlanets(transport, {
+              character_id: characterId,
+            }),
+        },
+      ),
+      portrait: {
+        get: () =>
+          getCharactersCharacterIdPortrait(transport, {
+            character_id: characterId,
+          }),
+      },
+      roles: {
+        get: () =>
+          getCharactersCharacterIdRoles(transport, {
+            character_id: characterId,
+          }),
+      },
+      search: {
+        get: (
+          params: Omit<GetCharactersCharacterIdSearchParams, 'character_id'>,
+        ) =>
+          getCharactersCharacterIdSearch(transport, {
+            ...params,
+            character_id: characterId,
+          }),
+      },
+      ship: {
+        get: () =>
+          getCharactersCharacterIdShip(transport, {
+            character_id: characterId,
+          }),
+      },
+      skillqueue: {
+        get: () =>
+          getCharactersCharacterIdSkillqueue(transport, {
+            character_id: characterId,
+          }),
+      },
+      skills: {
+        get: () =>
+          getCharactersCharacterIdSkills(transport, {
+            character_id: characterId,
+          }),
+      },
+      standings: {
+        get: () =>
+          getCharactersCharacterIdStandings(transport, {
+            character_id: characterId,
+          }),
+      },
+      structures: {
+        mercenaryDens: Object.assign(
+          (mercenaryDenId: ItemID) => ({
+            get: () =>
+              getCharactersStructuresMercenaryDensDetail(transport, {
+                character_id: characterId,
+                mercenary_den_id: mercenaryDenId,
+              }),
+          }),
+          {
+            get: () =>
+              getCharactersStructuresMercenaryDensListing(transport, {
+                character_id: characterId,
+              }),
+          },
+        ),
+      },
+      titles: {
+        get: () =>
+          getCharactersCharacterIdTitles(transport, {
+            character_id: characterId,
+          }),
+      },
+      wallet: {
+        get: () =>
+          getCharactersCharacterIdWallet(transport, {
+            character_id: characterId,
+          }),
+        journal: {
+          get: () =>
+            getCharactersCharacterIdWalletJournal(transport, {
+              character_id: characterId,
+            }),
+        },
+        transactions: {
+          get: (
+            params?: Omit<
+              GetCharactersCharacterIdWalletTransactionsParams,
+              'character_id'
+            >,
+          ) =>
+            getCharactersCharacterIdWalletTransactions(transport, {
+              ...params,
+              character_id: characterId,
+            }),
+        },
+      },
+    }),
+    characters: {
+      affiliation: {
+        post: (body: PostCharactersAffiliationBody) =>
+          postCharactersAffiliation(transport, body),
+      },
+    },
+    contracts: {
+      public: Object.assign(
+        (regionId: number) => ({
+          get: () =>
+            getContractsPublicRegionId(transport, { region_id: regionId }),
+        }),
+        {
+          bids: (contractId: number) => ({
+            get: () =>
+              getContractsPublicBidsContractId(transport, {
+                contract_id: contractId,
+              }),
+          }),
+          items: (contractId: number) => ({
+            get: () =>
+              getContractsPublicItemsContractId(transport, {
+                contract_id: contractId,
+              }),
+          }),
+        },
+      ),
+    },
+    corporation: (corporationId: CorporationID) => ({
+      get: () =>
+        getCorporationsCorporationId(transport, {
+          corporation_id: corporationId,
+        }),
+      alliancehistory: {
+        get: () =>
+          getCorporationsCorporationIdAlliancehistory(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      assets: {
+        get: () =>
+          getCorporationsCorporationIdAssets(transport, {
+            corporation_id: corporationId,
+          }),
+        locations: {
+          post: (body: PostCorporationsCorporationIdAssetsLocationsBody) =>
+            postCorporationsCorporationIdAssetsLocations(
+              transport,
+              { corporation_id: corporationId },
+              body,
+            ),
+        },
+        names: {
+          post: (body: PostCorporationsCorporationIdAssetsNamesBody) =>
+            postCorporationsCorporationIdAssetsNames(
+              transport,
+              { corporation_id: corporationId },
+              body,
+            ),
+        },
+      },
+      blueprints: {
+        get: () =>
+          getCorporationsCorporationIdBlueprints(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      contacts: {
+        get: () =>
+          getCorporationsCorporationIdContacts(transport, {
+            corporation_id: corporationId,
+          }),
+        labels: {
+          get: () =>
+            getCorporationsCorporationIdContactsLabels(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      containers: {
+        logs: {
+          get: () =>
+            getCorporationsCorporationIdContainersLogs(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      contracts: Object.assign(
+        (contractId: number) => ({
+          bids: {
+            get: () =>
+              getCorporationsCorporationIdContractsContractIdBids(transport, {
+                corporation_id: corporationId,
+                contract_id: contractId,
+              }),
+          },
+          items: {
+            get: () =>
+              getCorporationsCorporationIdContractsContractIdItems(transport, {
+                corporation_id: corporationId,
+                contract_id: contractId,
+              }),
+          },
+        }),
+        {
+          get: () =>
+            getCorporationsCorporationIdContracts(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      ),
+      customsOffices: {
+        get: () =>
+          getCorporationsCorporationIdCustomsOffices(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      divisions: {
+        get: () =>
+          getCorporationsCorporationIdDivisions(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      facilities: {
+        get: () =>
+          getCorporationsCorporationIdFacilities(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      freelanceJobs: Object.assign(
+        (jobId: UUID) => ({
+          participants: {
+            get: (
+              params?: Omit<
+                GetCorporationsFreelanceJobsParticipantsParams,
+                'corporation_id' | 'job_id'
+              >,
+            ) =>
+              getCorporationsFreelanceJobsParticipants(transport, {
+                ...params,
+                corporation_id: corporationId,
+                job_id: jobId,
+              }),
+          },
+        }),
+        {
+          get: (
+            params?: Omit<
+              GetCorporationsFreelanceJobsListingParams,
+              'corporation_id'
+            >,
+          ) =>
+            getCorporationsFreelanceJobsListing(transport, {
+              ...params,
+              corporation_id: corporationId,
+            }),
+        },
+      ),
+      fw: {
+        stats: {
+          get: () =>
+            getCorporationsCorporationIdFwStats(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      icons: {
+        get: () =>
+          getCorporationsCorporationIdIcons(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      industry: {
+        jobs: {
+          get: (
+            params?: Omit<
+              GetCorporationsCorporationIdIndustryJobsParams,
+              'corporation_id'
+            >,
+          ) =>
+            getCorporationsCorporationIdIndustryJobs(transport, {
+              ...params,
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      killmails: {
+        recent: {
+          get: () =>
+            getCorporationsCorporationIdKillmailsRecent(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      medals: {
+        get: () =>
+          getCorporationsCorporationIdMedals(transport, {
+            corporation_id: corporationId,
+          }),
+        issued: {
+          get: () =>
+            getCorporationsCorporationIdMedalsIssued(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      members: {
+        get: () =>
+          getCorporationsCorporationIdMembers(transport, {
+            corporation_id: corporationId,
+          }),
+        limit: {
+          get: () =>
+            getCorporationsCorporationIdMembersLimit(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+        titles: {
+          get: () =>
+            getCorporationsCorporationIdMembersTitles(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      membertracking: {
+        get: () =>
+          getCorporationsCorporationIdMembertracking(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      mining: {
+        extractions: {
+          get: () =>
+            getCorporationCorporationIdMiningExtractions(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+        observers: Object.assign(
+          (observerId: number) => ({
+            get: () =>
+              getCorporationCorporationIdMiningObserversObserverId(transport, {
+                corporation_id: corporationId,
+                observer_id: observerId,
+              }),
+          }),
+          {
+            get: () =>
+              getCorporationCorporationIdMiningObservers(transport, {
+                corporation_id: corporationId,
+              }),
+          },
+        ),
+      },
+      orders: {
+        get: () =>
+          getCorporationsCorporationIdOrders(transport, {
+            corporation_id: corporationId,
+          }),
+        history: {
+          get: () =>
+            getCorporationsCorporationIdOrdersHistory(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      projects: Object.assign(
+        (projectId: UUID) => ({
+          get: () =>
+            getCorporationsProjectsDetail(transport, {
+              corporation_id: corporationId,
+              project_id: projectId,
+            }),
+          contribution: (characterId: CharacterID) => ({
+            get: () =>
+              getCorporationsProjectsContribution(transport, {
+                corporation_id: corporationId,
+                project_id: projectId,
+                character_id: characterId,
+              }),
+          }),
+          contributors: {
+            get: (
+              params?: Omit<
+                GetCorporationsProjectsContributorsParams,
+                'corporation_id' | 'project_id'
+              >,
+            ) =>
+              getCorporationsProjectsContributors(transport, {
+                ...params,
+                corporation_id: corporationId,
+                project_id: projectId,
+              }),
+          },
+        }),
+        {
+          get: (
+            params?: Omit<
+              GetCorporationsProjectsListingParams,
+              'corporation_id'
+            >,
+          ) =>
+            getCorporationsProjectsListing(transport, {
+              ...params,
+              corporation_id: corporationId,
+            }),
+        },
+      ),
+      roles: {
+        get: () =>
+          getCorporationsCorporationIdRoles(transport, {
+            corporation_id: corporationId,
+          }),
+        history: {
+          get: () =>
+            getCorporationsCorporationIdRolesHistory(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      },
+      shareholders: {
+        get: () =>
+          getCorporationsCorporationIdShareholders(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      standings: {
+        get: () =>
+          getCorporationsCorporationIdStandings(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      starbases: Object.assign(
+        (starbaseId: number) => ({
+          get: (
+            params: Omit<
+              GetCorporationsCorporationIdStarbasesStarbaseIdParams,
+              'corporation_id' | 'starbase_id'
+            >,
+          ) =>
+            getCorporationsCorporationIdStarbasesStarbaseId(transport, {
+              ...params,
+              corporation_id: corporationId,
+              starbase_id: starbaseId,
+            }),
+        }),
+        {
+          get: () =>
+            getCorporationsCorporationIdStarbases(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      ),
+      structures: {
+        get: () =>
+          getCorporationsCorporationIdStructures(transport, {
+            corporation_id: corporationId,
+          }),
+        skyhooks: Object.assign(
+          (skyhookId: ItemID) => ({
+            get: () =>
+              getCorporationsStructuresSkyhooksDetail(transport, {
+                corporation_id: corporationId,
+                skyhook_id: skyhookId,
+              }),
+          }),
+          {
+            get: () =>
+              getCorporationsStructuresSkyhooksListing(transport, {
+                corporation_id: corporationId,
+              }),
+          },
+        ),
+        sovereigntyHubs: Object.assign(
+          (sovereigntyHubId: ItemID) => ({
+            get: () =>
+              getCorporationsStructuresSovereigntyHubsDetail(transport, {
+                corporation_id: corporationId,
+                sovereignty_hub_id: sovereigntyHubId,
+              }),
+          }),
+          {
+            get: () =>
+              getCorporationsStructuresSovereigntyHubsListing(transport, {
+                corporation_id: corporationId,
+              }),
+          },
+        ),
+      },
+      titles: {
+        get: () =>
+          getCorporationsCorporationIdTitles(transport, {
+            corporation_id: corporationId,
+          }),
+      },
+      wallets: Object.assign(
+        (division: number) => ({
+          journal: {
+            get: () =>
+              getCorporationsCorporationIdWalletsDivisionJournal(transport, {
+                corporation_id: corporationId,
+                division: division,
+              }),
+          },
+          transactions: {
+            get: (
+              params?: Omit<
+                GetCorporationsCorporationIdWalletsDivisionTransactionsParams,
+                'corporation_id' | 'division'
+              >,
+            ) =>
+              getCorporationsCorporationIdWalletsDivisionTransactions(
+                transport,
+                {
+                  ...params,
+                  corporation_id: corporationId,
+                  division: division,
+                },
+              ),
+          },
+        }),
+        {
+          get: () =>
+            getCorporationsCorporationIdWallets(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      ),
+    }),
+    corporations: {
+      npccorps: {
+        get: () => getCorporationsNpccorps(transport),
+      },
+    },
+    cosmetics: {
+      skinr: (skinrId: string) => ({
+        get: () => getCosmeticsSkinr(transport, { skinr_id: skinrId }),
+      }),
+    },
+    dogma: {
+      attributes: Object.assign(
+        (attributeId: number) => ({
+          get: () =>
+            getDogmaAttributesAttributeId(transport, {
+              attribute_id: attributeId,
+            }),
+        }),
+        {
+          get: () => getDogmaAttributes(transport),
+        },
+      ),
+      dynamic: {
+        items: (typeId: number, itemId: number) => ({
+          get: () =>
+            getDogmaDynamicItemsTypeIdItemId(transport, {
+              type_id: typeId,
+              item_id: itemId,
+            }),
+        }),
+      },
+      effects: Object.assign(
+        (effectId: number) => ({
+          get: () =>
+            getDogmaEffectsEffectId(transport, { effect_id: effectId }),
+        }),
+        {
+          get: () => getDogmaEffects(transport),
+        },
+      ),
+    },
+    fleet: (fleetId: number) => ({
+      get: () => getFleetsFleetId(transport, { fleet_id: fleetId }),
+      put: (body: PutFleetsFleetIdBody) =>
+        putFleetsFleetId(transport, { fleet_id: fleetId }, body),
+      members: Object.assign(
+        (memberId: number) => ({
+          delete: () =>
+            deleteFleetsFleetIdMembersMemberId(transport, {
+              fleet_id: fleetId,
+              member_id: memberId,
+            }),
+          put: (body: PutFleetsFleetIdMembersMemberIdBody) =>
+            putFleetsFleetIdMembersMemberId(
+              transport,
+              { fleet_id: fleetId, member_id: memberId },
+              body,
+            ),
+        }),
+        {
+          get: () => getFleetsFleetIdMembers(transport, { fleet_id: fleetId }),
+          post: (body: PostFleetsFleetIdMembersBody) =>
+            postFleetsFleetIdMembers(transport, { fleet_id: fleetId }, body),
+        },
+      ),
+      squads: (squadId: number) => ({
+        delete: () =>
+          deleteFleetsFleetIdSquadsSquadId(transport, {
+            fleet_id: fleetId,
+            squad_id: squadId,
+          }),
+        put: (body: PutFleetsFleetIdSquadsSquadIdBody) =>
+          putFleetsFleetIdSquadsSquadId(
+            transport,
+            { fleet_id: fleetId, squad_id: squadId },
+            body,
+          ),
+      }),
+      wings: Object.assign(
+        (wingId: number) => ({
+          delete: () =>
+            deleteFleetsFleetIdWingsWingId(transport, {
+              fleet_id: fleetId,
+              wing_id: wingId,
+            }),
+          put: (body: PutFleetsFleetIdWingsWingIdBody) =>
+            putFleetsFleetIdWingsWingId(
+              transport,
+              { fleet_id: fleetId, wing_id: wingId },
+              body,
+            ),
+          squads: {
+            post: () =>
+              postFleetsFleetIdWingsWingIdSquads(transport, {
+                fleet_id: fleetId,
+                wing_id: wingId,
+              }),
+          },
+        }),
+        {
+          get: () => getFleetsFleetIdWings(transport, { fleet_id: fleetId }),
+          post: () => postFleetsFleetIdWings(transport, { fleet_id: fleetId }),
+        },
+      ),
+    }),
+    freelanceJob: (jobId: UUID) => ({
+      get: () => getFreelanceJobsDetail(transport, { job_id: jobId }),
+    }),
+    freelanceJobs: {
+      get: (params?: GetFreelanceJobsListingParams) =>
+        getFreelanceJobsListing(transport, params),
+    },
+    fw: {
+      leaderboards: {
+        get: () => getFwLeaderboards(transport),
+        characters: {
+          get: () => getFwLeaderboardsCharacters(transport),
+        },
+        corporations: {
+          get: () => getFwLeaderboardsCorporations(transport),
+        },
+      },
+      stats: {
+        get: () => getFwStats(transport),
+      },
+      systems: {
+        get: () => getFwSystems(transport),
+      },
+      wars: {
+        get: () => getFwWars(transport),
+      },
+    },
+    incursions: {
+      get: () => getIncursions(transport),
+    },
+    industry: {
+      facilities: {
+        get: () => getIndustryFacilities(transport),
+      },
+      systems: {
+        get: () => getIndustrySystems(transport),
+      },
+    },
+    insurance: {
+      prices: {
+        get: () => getInsurancePrices(transport),
+      },
+    },
+    killmail: (killmailId: number, killmailHash: string) => ({
+      get: () =>
+        getKillmailsKillmailIdKillmailHash(transport, {
+          killmail_id: killmailId,
+          killmail_hash: killmailHash,
+        }),
+    }),
+    loyalty: {
+      stores: (corporationId: CorporationID) => ({
+        offers: {
+          get: () =>
+            getLoyaltyStoresCorporationIdOffers(transport, {
+              corporation_id: corporationId,
+            }),
+        },
+      }),
+    },
+    market: (regionId: number) => ({
+      history: {
+        get: (params: Omit<GetMarketsRegionIdHistoryParams, 'region_id'>) =>
+          getMarketsRegionIdHistory(transport, {
+            ...params,
+            region_id: regionId,
+          }),
+      },
+      orders: {
+        get: (params: Omit<GetMarketsRegionIdOrdersParams, 'region_id'>) =>
+          getMarketsRegionIdOrders(transport, {
+            ...params,
+            region_id: regionId,
+          }),
+      },
+      types: {
+        get: () => getMarketsRegionIdTypes(transport, { region_id: regionId }),
+      },
+    }),
+    markets: {
+      groups: Object.assign(
+        (marketGroupId: number) => ({
+          get: () =>
+            getMarketsGroupsMarketGroupId(transport, {
+              market_group_id: marketGroupId,
+            }),
+        }),
+        {
+          get: () => getMarketsGroups(transport),
+        },
+      ),
+      prices: {
+        get: () => getMarketsPrices(transport),
+      },
+      structures: (structureId: number) => ({
+        get: () =>
+          getMarketsStructuresStructureId(transport, {
+            structure_id: structureId,
+          }),
+      }),
+    },
+    meta: {
+      changelog: {
+        get: () => getMetaChangelog(transport),
+      },
+      compatibilityDates: {
+        get: () => getMetaCompatibilityDates(transport),
+      },
+      name: {
+        get: () => getMetaName(transport),
+      },
+      status: {
+        get: () => getMetaStatus(transport),
+      },
+    },
+    militaryCampaign: (campaignId: UUID) => ({
+      get: () =>
+        getMilitaryCampaignsDetail(transport, { campaign_id: campaignId }),
+      objectives: Object.assign(
+        (objectiveId: UUID) => ({
+          get: () =>
+            getMilitaryCampaignsObjectivesDetail(transport, {
+              campaign_id: campaignId,
+              objective_id: objectiveId,
+            }),
+        }),
+        {
+          get: (
+            params?: Omit<
+              GetMilitaryCampaignsObjectivesListingParams,
+              'campaign_id'
+            >,
+          ) =>
+            getMilitaryCampaignsObjectivesListing(transport, {
+              ...params,
+              campaign_id: campaignId,
+            }),
+        },
+      ),
+    }),
+    militaryCampaigns: {
+      get: () => getMilitaryCampaignsListing(transport),
+    },
+    paragonHub: {
+      skinr: {
+        get: (params?: GetParagonHubSkinrParams) =>
+          getParagonHubSkinr(transport, params),
+        alliances: (allianceId: AllianceID) => ({
+          get: (
+            params?: Omit<GetParagonHubSkinrAlliancesParams, 'alliance_id'>,
+          ) =>
+            getParagonHubSkinrAlliances(transport, {
+              ...params,
+              alliance_id: allianceId,
+            }),
+        }),
+        characters: (characterId: CharacterID) => ({
+          get: (
+            params?: Omit<GetParagonHubSkinrCharactersParams, 'character_id'>,
+          ) =>
+            getParagonHubSkinrCharacters(transport, {
+              ...params,
+              character_id: characterId,
+            }),
+        }),
+        corporations: (corporationId: CorporationID) => ({
+          get: (
+            params?: Omit<
+              GetParagonHubSkinrCorporationsParams,
+              'corporation_id'
+            >,
+          ) =>
+            getParagonHubSkinrCorporations(transport, {
+              ...params,
+              corporation_id: corporationId,
+            }),
+        }),
+      },
+    },
+    route: (
+      originSystemId: SolarSystemID,
+      destinationSystemId: SolarSystemID,
+    ) => ({
+      post: (body: RouteRequestBody) =>
+        postRoute(
+          transport,
+          {
+            origin_system_id: originSystemId,
+            destination_system_id: destinationSystemId,
+          },
+          body,
+        ),
+    }),
+    skyhooks: {
+      raidable: {
+        get: () => getSkyhooksRaidable(transport),
+      },
+    },
+    sovereignty: {
+      campaigns: {
+        get: () => getSovereigntyCampaigns(transport),
+      },
+      systems: {
+        get: () => getSovereigntySystems(transport),
+      },
+    },
+    status: {
+      get: () => getStatus(transport),
+    },
+    ui: {
+      autopilot: {
+        waypoint: {
+          post: (params: PostUiAutopilotWaypointParams) =>
+            postUiAutopilotWaypoint(transport, params),
+        },
+      },
+      openwindow: {
+        contract: {
+          post: (params: PostUiOpenwindowContractParams) =>
+            postUiOpenwindowContract(transport, params),
+        },
+        information: {
+          post: (params: PostUiOpenwindowInformationParams) =>
+            postUiOpenwindowInformation(transport, params),
+        },
+        marketdetails: {
+          post: (params: PostUiOpenwindowMarketdetailsParams) =>
+            postUiOpenwindowMarketdetails(transport, params),
+        },
+        newmail: {
+          post: (body: PostUiOpenwindowNewmailBody) =>
+            postUiOpenwindowNewmail(transport, body),
+        },
+      },
+    },
+    universe: {
+      ancestries: {
+        get: () => getUniverseAncestries(transport),
+      },
+      asteroidBelts: (asteroidBeltId: number) => ({
+        get: () =>
+          getUniverseAsteroidBeltsAsteroidBeltId(transport, {
+            asteroid_belt_id: asteroidBeltId,
+          }),
+      }),
+      bloodlines: {
+        get: () => getUniverseBloodlines(transport),
+      },
+      categories: Object.assign(
+        (categoryId: number) => ({
+          get: () =>
+            getUniverseCategoriesCategoryId(transport, {
+              category_id: categoryId,
+            }),
+        }),
+        {
+          get: () => getUniverseCategories(transport),
+        },
+      ),
+      constellations: Object.assign(
+        (constellationId: number) => ({
+          get: () =>
+            getUniverseConstellationsConstellationId(transport, {
+              constellation_id: constellationId,
+            }),
+        }),
+        {
+          get: () => getUniverseConstellations(transport),
+        },
+      ),
+      factions: {
+        get: () => getUniverseFactions(transport),
+      },
+      graphics: Object.assign(
+        (graphicId: number) => ({
+          get: () =>
+            getUniverseGraphicsGraphicId(transport, { graphic_id: graphicId }),
+        }),
+        {
+          get: () => getUniverseGraphics(transport),
+        },
+      ),
+      groups: Object.assign(
+        (groupId: number) => ({
+          get: () => getUniverseGroupsGroupId(transport, { group_id: groupId }),
+        }),
+        {
+          get: () => getUniverseGroups(transport),
+        },
+      ),
+      ids: {
+        post: (body: PostUniverseIdsBody) => postUniverseIds(transport, body),
+      },
+      moons: (moonId: number) => ({
+        get: () => getUniverseMoonsMoonId(transport, { moon_id: moonId }),
+      }),
+      names: {
+        post: (body: PostUniverseNamesBody) =>
+          postUniverseNames(transport, body),
+      },
+      planets: (planetId: number) => ({
+        get: () =>
+          getUniversePlanetsPlanetId(transport, { planet_id: planetId }),
+      }),
+      races: {
+        get: () => getUniverseRaces(transport),
+      },
+      regions: Object.assign(
+        (regionId: number) => ({
+          get: () =>
+            getUniverseRegionsRegionId(transport, { region_id: regionId }),
+        }),
+        {
+          get: () => getUniverseRegions(transport),
+        },
+      ),
+      schematics: (schematicId: number) => ({
+        get: () =>
+          getUniverseSchematicsSchematicId(transport, {
+            schematic_id: schematicId,
+          }),
+      }),
+      stargates: (stargateId: number) => ({
+        get: () =>
+          getUniverseStargatesStargateId(transport, {
+            stargate_id: stargateId,
+          }),
+      }),
+      stars: (starId: number) => ({
+        get: () => getUniverseStarsStarId(transport, { star_id: starId }),
+      }),
+      stations: (stationId: number) => ({
+        get: () =>
+          getUniverseStationsStationId(transport, { station_id: stationId }),
+      }),
+      structures: Object.assign(
+        (structureId: number) => ({
+          get: () =>
+            getUniverseStructuresStructureId(transport, {
+              structure_id: structureId,
+            }),
+        }),
+        {
+          get: (params?: GetUniverseStructuresParams) =>
+            getUniverseStructures(transport, params),
+        },
+      ),
+      systemJumps: {
+        get: () => getUniverseSystemJumps(transport),
+      },
+      systemKills: {
+        get: () => getUniverseSystemKills(transport),
+      },
+      systems: Object.assign(
+        (systemId: number) => ({
+          get: () =>
+            getUniverseSystemsSystemId(transport, { system_id: systemId }),
+        }),
+        {
+          get: () => getUniverseSystems(transport),
+        },
+      ),
+      types: Object.assign(
+        (typeId: number) => ({
+          get: () => getUniverseTypesTypeId(transport, { type_id: typeId }),
+        }),
+        {
+          get: () => getUniverseTypes(transport),
+        },
+      ),
+    },
+    war: (warId: number) => ({
+      get: () => getWarsWarId(transport, { war_id: warId }),
+      killmails: {
+        get: () => getWarsWarIdKillmails(transport, { war_id: warId }),
+      },
+    }),
+    wars: {
+      get: (params?: GetWarsParams) => getWars(transport, params),
+    },
+  };
+}

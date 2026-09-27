@@ -15,6 +15,8 @@ export const SPEC_PATH = 'tests/contract/snapshots/esi-openapi.snapshot.json';
 /** The module it writes. */
 export const OUT_PATH = 'src/generated/operations.generated.ts';
 
+import { scopeTreeSource } from './spec-scope-tree';
+
 // OpenAPI documents are untyped JSON.
 type Schema = Record<string, any>;
 
@@ -38,6 +40,21 @@ export interface GeneratedOperation {
   readonly pagination: Pagination;
   readonly deprecated: boolean;
   readonly headers: readonly string[];
+  /** The spec summary, for the scope tree's JSDoc. */
+  readonly summary?: string;
+  /** Path parameters in the order the template names them, with their types. */
+  readonly pathParams: readonly {
+    readonly name: string;
+    readonly type: string;
+  }[];
+  /**
+   * What the function takes after the path parameters: nothing, only
+   * optional query parameters, or at least one required one.
+   */
+  readonly query: 'none' | 'optional' | 'required';
+  /** The `*Params` interface, when the function takes params. */
+  readonly paramsType?: string;
+  readonly body?: { readonly type: string; readonly optional: boolean };
 }
 
 export interface GenerateResult {
@@ -364,6 +381,7 @@ export function generateOperations(
           `export function ${fn}(${signature.join(', ')}): ${returns} {\n` +
           `  return ${call};\n}\n`,
       );
+      const templateOrder = [...path.matchAll(/\{(\w+)\}/g)].map((m) => m[1]!);
       operations.push({
         operationId,
         functionName: fn,
@@ -373,6 +391,26 @@ export function generateOperations(
         pagination,
         deprecated,
         headers,
+        summary: op.summary,
+        pathParams: templateOrder.map((name) => {
+          const p = pathParams.find((x) => x.name === name);
+          if (!p) {
+            throw new SpecGenerateError(
+              `${operationId}: path parameter {${name}} is not declared`,
+            );
+          }
+          return { name, type: inlineType(p.schema ?? {}) };
+        }),
+        query:
+          queryParams.length === 0
+            ? 'none'
+            : queryParams.some((p) => p.required === true)
+              ? 'required'
+              : 'optional',
+        paramsType: fields.length > 0 ? paramsName : undefined,
+        body: body
+          ? { type: body, optional: bodyOptional === true }
+          : undefined,
       });
     }
   }
@@ -388,7 +426,7 @@ export function generateOperations(
   const types = [...declared.keys()].sort().map((name) => declared.get(name)!);
 
   return {
-    source: `${header}${types.join('\n')}\n${functions.join('\n')}`,
+    source: `${header}${types.join('\n')}\n${functions.join('\n')}\n${scopeTreeSource(operations)}`,
     operations,
     typeCount: declared.size,
   };
