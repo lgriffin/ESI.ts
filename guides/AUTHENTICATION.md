@@ -31,7 +31,7 @@ const explicit = new EsiClient({ accessToken: token });
 explicit.setAccessToken(newToken);
 ```
 
-To get a token, register an application at [EVE Developers](https://developers.eveonline.com/), choose the scopes it needs, and run the [OAuth2 flow](https://docs.esi.evetech.net/docs/sso/). For local work, `npx ts-node scripts/create-token.ts` runs the PKCE flow and writes the result to `.env`. Copy `.env.example` first.
+To get a token, register an application at [EVE Developers](https://developers.eveonline.com/), choose the scopes it needs, and run the [OAuth2 flow](https://docs.esi.evetech.net/docs/sso/). For local work, `npx ts-node scripts/auth/create-token.ts` runs the PKCE flow and writes the result to `.env`. Copy `.env.example` first.
 
 `esiEndpointScopes` (see [USAGE.md](USAGE.md#7-generated-types-and-scopes)) tells you which scopes a route needs before you ask the player for them.
 

@@ -1,6 +1,6 @@
 /**
  * Size budgets for every `package.json` `exports` sub-path (`npm run size`).
- * How a check measures is described in scripts/size-limit-checks.cjs:
+ * How a check measures is described in scripts/package/size-limit-checks.cjs:
  * the entry plus every chunk it loads, minified, uncompressed, with runtime
  * and peer dependencies external.
  *
@@ -22,7 +22,7 @@
 'use strict';
 
 const manifest = require('./package.json');
-const { sizeLimitChecks } = require('./scripts/size-limit-checks.cjs');
+const { sizeLimitChecks } = require('./scripts/package/size-limit-checks.cjs');
 
 const budgets = {
   '.': {

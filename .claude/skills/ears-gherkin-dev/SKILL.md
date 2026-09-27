@@ -126,7 +126,7 @@ Fix every finding before considering the work complete. Do this proactively —
 do not wait to be asked.
 
 If you converted a previously-unconverted feature file, remove its entry from
-`scripts/spec-audit-exceptions.json`. That list is a ratchet: it only shrinks,
+`scripts/spec/spec-audit-exceptions.json`. That list is a ratchet: it only shrinks,
 and the audit fails if a listed file now passes. Never add an entry.
 
 ## The EARS patterns
@@ -145,7 +145,7 @@ does it last?", use `While`. Only `If` takes `then`, and `then` comes before
 
 ## What the audit rejects
 
-`scripts/spec-audit.ts` parses the Gherkin AST and fails on:
+`scripts/spec/spec-audit.ts` parses the Gherkin AST and fails on:
 
 - A Rule title with zero or more than one `shall`.
 - `should`, `may`, `will`, `must` in a Rule title.
@@ -174,6 +174,6 @@ asserts. Read the assertion and put that number in the requirement.
 ## Changing this skill
 
 Changes to this skill are gated (R14). Bump `skill.version` in
-`eval/eval.yaml`, then run `npx ts-node scripts/skill-eval.ts`; the offline
+`eval/eval.yaml`, then run `npx ts-node scripts/quality/skill-eval.ts`; the offline
 judges must pass. On the PR, `skill-eval.yml` also runs the live eval cases
 against the manifest's thresholds and cost budget.

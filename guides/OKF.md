@@ -123,7 +123,7 @@ npm run generate:okf
 
 This fetches the live ESI OpenAPI spec from `https://esi.evetech.net/meta/openapi.json` and regenerates the entire `okf/` directory. The previous bundle is replaced on each run.
 
-The generator script is `scripts/generate-okf.ts`. The bundle is a generated artefact: never edit files under `okf/` by hand (see [DESIGN-RULES.md](DESIGN-RULES.md)). It extracts:
+The generator script is `scripts/docs/generate-okf.ts`. The bundle is a generated artefact: never edit files under `okf/` by hand (see [DESIGN-RULES.md](DESIGN-RULES.md)). It extracts:
 
 - Endpoint paths, methods, and descriptions
 - Authentication requirements and OAuth2 scopes

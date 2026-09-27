@@ -24,7 +24,7 @@ import {
   checkBugTags,
   checkExceptionList,
   loadBeadIds,
-} from '../../../scripts/spec-audit-checks';
+} from '../../../scripts/spec/spec-audit-checks';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const FIXTURES = 'tests/tdd/spec-audit/fixtures';
@@ -34,7 +34,7 @@ function runAudit(target: string): string {
   try {
     return execFileSync(
       process.execPath,
-      ['-r', 'ts-node/register', 'scripts/spec-audit.ts', target],
+      ['-r', 'ts-node/register', 'scripts/spec/spec-audit.ts', target],
       {
         cwd: REPO_ROOT,
         encoding: 'utf-8',

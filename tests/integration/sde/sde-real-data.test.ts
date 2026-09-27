@@ -5,7 +5,7 @@
  * that the provider can query all entity types correctly.
  *
  * The SDE data directory (sde-data/) is gitignored and must be populated:
- *   npx ts-node scripts/sde-ingest.ts --output sde-data
+ *   npx ts-node scripts/sde/sde-ingest.ts --output sde-data
  *
  * Skip automatically when the data directory does not exist.
  */

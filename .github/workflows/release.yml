@@ -106,7 +106,7 @@ jobs:
       - name: 🏗️ Build project
         run: npm run build
 
-      # Fails on drift not in scripts/schema-drift-baseline.json and on stale
+      # Fails on drift not in scripts/spec/schema-drift-baseline.json and on stale
       # entries. The shrink-only half of the ratchet is enforced on pull
       # requests; here the tag is its own base, so a master that has since
       # pruned the baseline cannot block releasing an earlier commit.
@@ -335,7 +335,7 @@ jobs:
       # its own package.json, versions pinned by package-lock.json, dev
       # dependencies left out. The script fails the release if the SBOM does
       # not name this package at this version or misses a runtime dependency;
-      # scripts/release-sbom-core.ts says why it does not run
+      # scripts/release/release-sbom-core.ts says why it does not run
       # `npm sbom --omit dev` on the checkout.
       - name: 📋 Generate the SBOM
         id: sbom

@@ -37,7 +37,7 @@ import {
   runExample,
   typeCheckWorkspace,
   writeWorkspace,
-} from '../../../scripts/doc-examples-core';
+} from '../../../scripts/docs/doc-examples-core';
 
 const fence = '```';
 

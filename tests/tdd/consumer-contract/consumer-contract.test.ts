@@ -1,5 +1,5 @@
 /**
- * Negative fixtures for the consumer matrix (scripts/consumer-contract-core.ts,
+ * Negative fixtures for the consumer matrix (scripts/quality/consumer-contract-core.ts,
  * run by `npm run test:consumer`).
  *
  * Each test writes a small dual CommonJS/ES module package into the
@@ -27,7 +27,7 @@ import {
   writeProbes,
   type Cell,
   type EsbuildLike,
-} from '../../../scripts/consumer-contract-core';
+} from '../../../scripts/quality/consumer-contract-core';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const TSC = path.join(REPO_ROOT, 'node_modules', 'typescript', 'bin', 'tsc');

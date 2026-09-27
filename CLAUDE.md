@@ -15,7 +15,7 @@ npm run lint:bdd-seam  # BDD scenarios mock only at the transport seam (tests/bd
 npm run lint:determinism  # Time/timers/Math.random in src/ only via the clock module (shrink-only baseline)
 npm run lint:layers    # Imports in src/ point inward: core, ports, generated (shrink-only baseline)
 npm run lint:suite-health  # tests/: no .only/.skip/.todo, no assertion-free tests or Then steps, no swallowed assertions or unrestored console mocks
-npm run lint:package   # publint + attw on the npm pack tarball (known findings: scripts/package-lint-baseline.json)
+npm run lint:package   # publint + attw on the npm pack tarball (known findings: scripts/package/package-lint-baseline.json)
 npm run size           # size-limit budget per exports sub-path, ESM and CJS (.size-limit.cjs; build first)
 npm run format:check   # Prettier check
 npm run validate       # lint + format + build + coverage + knip
@@ -39,9 +39,9 @@ npm run test:integration  # Integration tests
 npm run contract       # Contract tests against live ESI spec
 npm run fuzz           # Property-based fuzz tests (fast-check)
 npm run fuzz:api       # Schemathesis API fuzzing (requires Docker)
-npm run benchmark      # Benchmark HEAD against a reference commit (scripts/bench-ab.ts); see bench:compare, bench:trend, soak
+npm run benchmark      # Benchmark HEAD against a reference commit (scripts/bench/bench-ab.ts); see bench:compare, bench:trend, soak
 npm run test:types     # Type tests (tsd)
-npm run test:export-coverage  # Public exports no test references (--ci gates against scripts/export-coverage-baseline.json)
+npm run test:export-coverage  # Public exports no test references (--ci gates against scripts/package/export-coverage-baseline.json)
 npm run test:type-mutation  # Mutate built dist/*.d.ts, run tsd per mutant; -- --ratchet gates (nightly)
 npm run test:consumer  # Pack, install into a clean consumer, type-check + run CJS/ESM/sub-paths (not in npm test)
 npm run test:docs-examples  # Type-check every ts block in README/guides/SDE docs against the packed package (not in npm test)
@@ -94,7 +94,7 @@ CI verifies generated types are fresh via `git diff --exit-code`.
 - `tests/contract/` — Contract tests against live OpenAPI spec
 - `tests/fuzz/` — Property-based fuzz tests (fast-check)
 - `tests/typetests/` — Type-level tests (tsd)
-- `tests/consumer/` — Consumer contract package driven by `scripts/consumer-contract.ts` against the packed tarball
+- `tests/consumer/` — Consumer contract package driven by `scripts/quality/consumer-contract.ts` against the packed tarball
 - `tests/doc-examples/` — Prelude and stub fetch for `npm run test:docs-examples`; annotations in `guides/DOCUMENTATION.md`
 - `okf/` — Generated OKF v0.2 knowledge bundle (per-endpoint + per-schema concepts)
 

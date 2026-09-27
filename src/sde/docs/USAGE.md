@@ -11,7 +11,7 @@ Both are optional peer dependencies of `@lgriffin/esi.ts`, so installing the lib
 ## Downloading SDE Data
 
 ```bash
-npx ts-node scripts/sde-ingest.ts --output sde-data
+npx ts-node scripts/sde/sde-ingest.ts --output sde-data
 ```
 
 This downloads the latest SDE ZIP from CCP (~200 MB), extracts all YAML files to `./sde-data/`, and cleans up the archive. The directory is gitignored by default.

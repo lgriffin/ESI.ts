@@ -435,7 +435,7 @@ Phase 2 of the 11.0 plan put seams under the pipeline so a new client can be bui
 
 ### Generated operations and the scope tree
 
-`src/generated/operations.generated.ts` is written by `scripts/spec-generate.ts` from the vendored snapshot at compatibility date `2026-08-18` (`COMPATIBILITY_DATE` in `src/core/constants.ts`). For each of the spec's 233 operations it holds a `*Meta` constant and a function that takes an `OperationTransport` and typed parameters. `scripts/spec-scope-tree.ts` appends three more exports:
+`src/generated/operations.generated.ts` is written by `scripts/spec/spec-generate.ts` from the vendored snapshot at compatibility date `2026-08-18` (`COMPATIBILITY_DATE` in `src/core/constants.ts`). For each of the spec's 233 operations it holds a `*Meta` constant and a function that takes an `OperationTransport` and typed parameters. `scripts/spec/spec-scope-tree.ts` appends three more exports:
 
 - `ScopeTree`: every operation arranged by path prefix, so `GET /characters/{character_id}/wallet/journal` is `tree.character(id).wallet.journal.get()`.
 - `PublicScopeTree`: the same arrangement holding only the operations whose `scopes` are empty. An authenticated operation is absent from the type, so calling one does not compile.
@@ -649,7 +649,7 @@ Per-client settings are plain values with a setter each. `configureApiClient` or
 | `validateResponse` / `validateRequest` | `setValidateResponse()` / `setValidateRequest()` | `configureApiClient`        | Zod validation ([§10](#10-response-and-request-validation))         |
 | `timeout`                              | `setTimeout()`                                   | `configureApiClient`        | Per-request `AbortController` timeout, default 30 s                 |
 
-**Time is not injectable yet.** `src/core/clock.ts` exports `systemClock`, the `Clock` port's real implementation, and `npm run lint:determinism` blocks new direct reads of `Date.now()`, timers and `Math.random()` in `src/`. The existing sites in the rate limiter, cache, circuit breaker and request handler are listed in `scripts/determinism-baseline.json` and still read the wall clock directly; no pipeline class takes a `Clock`. `EsiTokenManager` takes a `now` function for tests.
+**Time is not injectable yet.** `src/core/clock.ts` exports `systemClock`, the `Clock` port's real implementation, and `npm run lint:determinism` blocks new direct reads of `Date.now()`, timers and `Math.random()` in `src/`. The existing sites in the rate limiter, cache, circuit breaker and request handler are listed in `scripts/quality/determinism-baseline.json` and still read the wall clock directly; no pipeline class takes a `Clock`. `EsiTokenManager` takes a `now` function for tests.
 
 **The ports are not the interfaces above.** The `ApiClient` setters take the `I*` interfaces. The Phase 2 ports in [§1a](#1a-ports-adapters-and-the-layer-rule) are the seams `./client` exports; the existing classes match `HttpTransport`, `Logger` and `TokenProvider` structurally but none declares `implements` for a port.
 
@@ -1179,7 +1179,7 @@ Pipeline code logs through `logInfo` / `logWarn` / … in `src/core/logger/clien
 
 ## 14. Code Generation
 
-Five generated artefacts come from two generators (`ARCH-01`). `npm run generate:types` (`scripts/generate-esi-types.ts`) fetches the ESI OpenAPI document at `COMPATIBILITY_DATE` (or `--latest`, `--compatibility-date=`, `--spec-file=`) and writes four:
+Five generated artefacts come from two generators (`ARCH-01`). `npm run generate:types` (`scripts/spec/generate-esi-types.ts`) fetches the ESI OpenAPI document at `COMPATIBILITY_DATE` (or `--latest`, `--compatibility-date=`, `--spec-file=`) and writes four:
 
 | Artefact                                                | Consumed by                                                |
 | ------------------------------------------------------- | ---------------------------------------------------------- |
@@ -1188,7 +1188,7 @@ Five generated artefacts come from two generators (`ARCH-01`). `npm run generate
 | `src/core/endpoints/esi-rate-limit-groups.generated.ts` | `RateLimiter` group buckets                                |
 | `src/core/endpoints/esi-scopes.generated.ts`            | `validate:auth-scopes`, scope lookups for consumers        |
 
-`npm run spec:generate` (`scripts/spec-generate.ts`, with `scripts/spec-scope-tree.ts` for the tree) never touches the network. It reads the vendored snapshot `tests/contract/snapshots/esi-openapi.snapshot.json` and writes the fifth:
+`npm run spec:generate` (`scripts/spec/spec-generate.ts`, with `scripts/spec/spec-scope-tree.ts` for the tree) never touches the network. It reads the vendored snapshot `tests/contract/snapshots/esi-openapi.snapshot.json` and writes the fifth:
 
 | Artefact                                | Consumed by                                                                                                                         |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -1224,7 +1224,7 @@ flowchart TB
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | Generated freshness           | `git diff --exit-code` on `src/types/generated/` and every `src/core/endpoints/esi-*.generated.ts` after `generate:types`, in `ci.yml`, `release.yml` and the nightly | Stale generated types, TTLs, rate-limit groups or scopes after an ESI spec change |
 | Generated operations          | `spec:generate:check` and `spec:coverage` in `ci.yml` `lint-and-build`; `spec:generate:check` in `release.yml`                                                        | An edited or stale `operations.generated.ts`, or an operation missing from it     |
-| Auth / scope cross-validation | `scripts/validate-auth-scopes.ts`                                                                                                                                     | `requiresAuth` disagreeing with the scope map in either direction (`DES-04`)      |
+| Auth / scope cross-validation | `scripts/spec/validate-auth-scopes.ts`                                                                                                                                | `requiresAuth` disagreeing with the scope map in either direction (`DES-04`)      |
 | Spec-alignment assertions     | `AssertTrue<HasAllSpecKeys<SpecType, ZodType>>` at compile time                                                                                                       | A hand-written schema missing a field the spec defines                            |
 | Schema drift                  | `npm run schema:drift`                                                                                                                                                | Hand-written schemas diverging from the spec's field names and types              |
 

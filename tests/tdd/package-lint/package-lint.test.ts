@@ -1,8 +1,8 @@
 /**
  * Negative fixtures for the packaging checks: `npm run lint:package`
- * (publint and attw on the packed tarball, scripts/package-lint-core.ts) and
+ * (publint and attw on the packed tarball, scripts/package/package-lint-core.ts) and
  * `npm run size` (size-limit budgets per exports sub-path,
- * scripts/size-limit-checks.cjs).
+ * scripts/package/size-limit-checks.cjs).
  *
  * Each tool runs for real against a tiny package written to a temporary
  * directory: one with a broken `exports` map, which both linters must
@@ -35,7 +35,7 @@ import {
   runAttw,
   runPublint,
   type Finding,
-} from '../../../scripts/package-lint-core';
+} from '../../../scripts/package/package-lint-core';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const SIZE_LIMIT_BIN = path.join(
@@ -44,7 +44,12 @@ const SIZE_LIMIT_BIN = path.join(
   'size-limit',
   'bin.js',
 );
-const SIZE_HELPER = path.join(REPO_ROOT, 'scripts', 'size-limit-checks.cjs');
+const SIZE_HELPER = path.join(
+  REPO_ROOT,
+  'scripts',
+  'package',
+  'size-limit-checks.cjs',
+);
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { sizeLimitChecks } = require(SIZE_HELPER) as {

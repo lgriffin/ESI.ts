@@ -1,16 +1,16 @@
 /**
- * Self-tests for the scope tree emitter (scripts/spec-scope-tree.ts): the
+ * Self-tests for the scope tree emitter (scripts/spec/spec-scope-tree.ts): the
  * naming rules, and the shapes it refuses because the tree could not hold
  * them without two operations fighting over one name.
  */
-import type { GeneratedOperation } from '../../../scripts/spec-generate-core';
+import type { GeneratedOperation } from '../../../scripts/spec/spec-generate-core';
 import {
   buildScopeTree,
   camelCase,
   ScopeTreeError,
   scopeTreeSource,
   singular,
-} from '../../../scripts/spec-scope-tree';
+} from '../../../scripts/spec/spec-scope-tree';
 
 function op(
   method: GeneratedOperation['method'],

@@ -102,7 +102,7 @@ jobs:
   # The ratchet is per directory, so it has to see the whole run. The merge
   # refuses a shard that is missing, empty or overlapping another rather than
   # scoring a directory on the jobs that happened to survive
-  # (scripts/mutation-merge-core.ts).
+  # (scripts/mutation/mutation-merge-core.ts).
   mutation-ratchet:
     name: Unit Mutation Ratchet
     runs-on: ubuntu-latest
@@ -244,7 +244,7 @@ jobs:
   # The ratchet is per directory, so it has to see the whole run. The merge
   # fails on a shard that is missing, empty or overlapping another rather than
   # scoring a directory on the jobs that happened to survive
-  # (scripts/mutation-merge-core.ts). `if: always()` so a failed shard reaches
+  # (scripts/mutation/mutation-merge-core.ts). `if: always()` so a failed shard reaches
   # the merge and is named there instead of the gate being skipped.
   bdd-mutation-ratchet:
     name: BDD Mutation Ratchet

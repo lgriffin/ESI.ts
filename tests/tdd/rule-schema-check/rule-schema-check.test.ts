@@ -26,7 +26,7 @@ import {
   endpointsNamedBy,
   findFieldMentions,
   mapFeatureToEndpoints,
-} from '../../../scripts/rule-schema-checks';
+} from '../../../scripts/spec/rule-schema-checks';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
@@ -440,7 +440,7 @@ function runCheck(target: string): { output: string; status: number } {
   try {
     const stdout = execFileSync(
       process.execPath,
-      ['-r', 'ts-node/register', 'scripts/rule-schema-check.ts', target],
+      ['-r', 'ts-node/register', 'scripts/spec/rule-schema-check.ts', target],
       {
         cwd: REPO_ROOT,
         encoding: 'utf-8',

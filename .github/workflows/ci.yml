@@ -136,9 +136,9 @@ jobs:
             if git diff --quiet HEAD^1 HEAD -- "$@"; then echo false; else echo true; fi
           }
           {
-            echo "types=$(touches scripts/generate-esi-types.ts src/types/generated/ 'src/core/endpoints/esi-*.generated.ts')"
-            echo "schemas=$(touches scripts/generate-schema-drift-report.ts scripts/schema-drift-core.ts scripts/schema-drift-baseline.json scripts/schema-drift-exceptions.json src/schemas/ src/core/endpoints/ package-lock.json)"
-            echo "endpoints=$(touches scripts/validate-esi-endpoints.ts src/core/endpoints/ src/core/constants.ts package.json)"
+            echo "types=$(touches scripts/spec/generate-esi-types.ts src/types/generated/ 'src/core/endpoints/esi-*.generated.ts')"
+            echo "schemas=$(touches scripts/spec/generate-schema-drift-report.ts scripts/spec/schema-drift-core.ts scripts/spec/schema-drift-baseline.json scripts/spec/schema-drift-exceptions.json src/schemas/ src/core/endpoints/ package-lock.json)"
+            echo "endpoints=$(touches scripts/spec/validate-esi-endpoints.ts src/core/endpoints/ src/core/constants.ts package.json)"
             echo "speclint=$(touches redocly.yaml package.json package-lock.json)"
           } | tee -a "$GITHUB_OUTPUT"
 
@@ -172,7 +172,7 @@ jobs:
         run: npx knip --no-exit-code
 
       # Every public export must be referenced by a test, or listed in
-      # scripts/export-coverage-baseline.json. The baseline only shrinks
+      # scripts/package/export-coverage-baseline.json. The baseline only shrinks
       # relative to the base tip, HEAD^1 (fetch-depth 2 above); without a base
       # ref the check fails closed.
       - name: Check every public export is referenced by a test
@@ -180,7 +180,7 @@ jobs:
           EXPORT_COVERAGE_BASE_REF: HEAD^1
         run: npm run test:export-coverage -- --ci
 
-      # Drift listed in scripts/schema-drift-baseline.json passes; the baseline
+      # Drift listed in scripts/spec/schema-drift-baseline.json passes; the baseline
       # may only shrink relative to the base tip, which fetch-depth 2 provides
       # as HEAD^1 (a pull request checkout has no origin/master).
       - name: Check schema drift
@@ -195,7 +195,7 @@ jobs:
           elif grep -q "HTTP 503" /tmp/schema-drift.log; then
             echo "::warning::ESI API returned 503 — skipping schema drift check"
           else
-            problem="Zod schemas diverge from the ESI spec beyond scripts/schema-drift-baseline.json, the baseline is stale or grew, or the check is broken — run 'npm run schema:drift' to review"
+            problem="Zod schemas diverge from the ESI spec beyond scripts/spec/schema-drift-baseline.json, the baseline is stale or grew, or the check is broken — run 'npm run schema:drift' to review"
           fi
 
           if [ -z "$problem" ]; then exit 0; fi
@@ -643,7 +643,7 @@ jobs:
     # under node16, nodenext and bundler resolution, skipLibCheck off), loads
     # and runs every sub-path on this Node, checks dual-build parity, and
     # bundles ./errors with esbuild to prove it leaves the clients behind.
-    # See scripts/consumer-contract.ts.
+    # See scripts/quality/consumer-contract.ts.
     #
     # Each row pairs a Node line with a TypeScript version: `oldest` is the
     # declared floor (OLDEST_TYPESCRIPT), `repo` the version this repository
@@ -735,7 +735,7 @@ jobs:
     needs: lint-and-build
     # Static checks on what npm publishes: publint and Are The Types Wrong on
     # the `npm pack` tarball (node16 CJS/ESM and bundler resolution; known
-    # findings in scripts/package-lint-baseline.json, shrink-only), then the
+    # findings in scripts/package/package-lint-baseline.json, shrink-only), then the
     # size-limit budget of every exports sub-path, ESM and CJS
     # (.size-limit.cjs). It packs the dist/ that lint-and-build uploaded
     # instead of building again. Re-running this job alone after that
@@ -969,7 +969,7 @@ jobs:
     # request's base tip and head on the same runner and runs them in
     # alternating processes, so runner-to-runner noise cancels. The
     # comparison fails only on a statistically significant slowdown of at
-    # least 10% (see scripts/bench-compare-core.ts); a missing baseline fails.
+    # least 10% (see scripts/bench/bench-compare-core.ts); a missing baseline fails.
     #
     # Most pull requests cannot change these numbers, and a benchmark that
     # blocks unrelated work teaches people to bump thresholds. So the job runs
@@ -987,7 +987,7 @@ jobs:
       - name: Check whether this pull request touches the hot paths
         id: hot
         run: |
-          if git diff --quiet HEAD^1 HEAD -- src/core/ src/schemas/ tests/benchmark/ scripts/bench-ab.ts scripts/bench-compare.ts scripts/bench-compare-core.ts package-lock.json; then
+          if git diff --quiet HEAD^1 HEAD -- src/core/ src/schemas/ tests/benchmark/ scripts/bench/bench-ab.ts scripts/bench/bench-compare.ts scripts/bench/bench-compare-core.ts package-lock.json; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "Benchmarks not run: nothing under src/core/, src/schemas/, tests/benchmark/, the bench scripts or package-lock.json changed." | tee -a "$GITHUB_STEP_SUMMARY"
           else

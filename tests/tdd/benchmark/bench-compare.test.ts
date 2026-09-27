@@ -7,7 +7,7 @@ import {
   normalCdf,
   renderMarkdown,
   seededRandom,
-} from '../../../scripts/bench-compare-core';
+} from '../../../scripts/bench/bench-compare-core';
 import type {
   HarnessResult,
   TaskSummary,

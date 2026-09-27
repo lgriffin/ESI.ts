@@ -4,7 +4,7 @@ import {
   analyseSoak,
   linearFit,
   renderSoakMarkdown,
-} from '../../../scripts/soak-core';
+} from '../../../scripts/bench/soak-core';
 import {
   SoakRun,
   SoakSample,

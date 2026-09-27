@@ -18,7 +18,7 @@
  * to report unused steps. That is this suite's dry run.
  *
  * jest-cucumber is used for parsing only, through `outline.ts`, which recovers
- * each scenario's Rule and is shared with `scripts/bdd-report.ts` so the
+ * each scenario's Rule and is shared with `scripts/quality/bdd-report.ts` so the
  * report names scenarios exactly as the tests here are named.
  */
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';

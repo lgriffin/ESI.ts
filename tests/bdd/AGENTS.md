@@ -19,7 +19,7 @@ edit anything here:
 - A feature runs through `specs/<area>/NNNN-domain.spec.ts`, which contains
   only `bindFeature(__filename)`.
 - Never add a file to `step-definitions/`, or an entry to `legacyStepFiles` in
-  `scripts/spec-audit-exceptions.json`. Those only shrink.
+  `scripts/spec/spec-audit-exceptions.json`. Those only shrink.
 
 ## Mock at the transport seam
 
@@ -40,4 +40,4 @@ npm run bdd:steps     # every step matches one definition; no unused definitions
 npm run spec:audit    # feature files, step-file layout, and the ratchets
 ```
 
-`scripts/spec-audit-exceptions.json` only shrinks. Never add an entry to it.
+`scripts/spec/spec-audit-exceptions.json` only shrinks. Never add an entry to it.

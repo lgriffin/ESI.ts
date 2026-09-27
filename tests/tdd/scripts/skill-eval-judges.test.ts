@@ -28,7 +28,7 @@ import {
   stepTestNames,
   validateManifest,
   validateNativeCase,
-} from '../../../scripts/skill-eval-judges';
+} from '../../../scripts/quality/skill-eval-judges';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const EVAL_DIR = path.join(

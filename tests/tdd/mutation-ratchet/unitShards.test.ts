@@ -4,7 +4,7 @@
  * Same contract as the BDD shards, over a smaller tree: the shards must
  * partition `src/core`, because a file claimed by no shard is never mutated
  * and its directory's score silently improves, while a file claimed by two is
- * counted twice. `scripts/mutation-merge-core.ts` holds the logic and
+ * counted twice. `scripts/mutation/mutation-merge-core.ts` holds the logic and
  * `bddShards.test.ts` covers its behaviour in detail; this file pins the unit
  * shard list itself.
  *
@@ -22,7 +22,7 @@ import {
   baselineShardFor,
   parseShards,
   shardsClaiming,
-} from '../../../scripts/mutation-merge-core';
+} from '../../../scripts/mutation/mutation-merge-core';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const SHARDS_FILE = 'config/mutation/unit-shards.json';

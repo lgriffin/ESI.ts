@@ -17,7 +17,7 @@ Importing `@lgriffin/esi.ts/sde` does not load them, and `MemorySdeProvider` nev
 ### 1. Download SDE Data
 
 ```bash
-npx ts-node scripts/sde-ingest.ts --output sde-data
+npx ts-node scripts/sde/sde-ingest.ts --output sde-data
 ```
 
 This downloads the latest SDE ZIP from CCP (~200 MB), extracts all YAML files to `./sde-data/`, and removes the ZIP. The `sde-data/` directory is gitignored.
@@ -96,7 +96,7 @@ const system = factory.createSolarSystem({ name: 'Test System' });
 ```
 CCP SDE ZIP (~200 MB)
     ↓
-scripts/sde-ingest.ts         Download + extract YAML to disk
+scripts/sde/sde-ingest.ts         Download + extract YAML to disk
     ↓
 SdeDataProvider.fromDirectory(path)
     ↓
@@ -361,7 +361,7 @@ All 109 interfaces are exported from `@lgriffin/esi.ts/sde` and have correspondi
 ## SDE Ingestion CLI
 
 ```bash
-npx ts-node scripts/sde-ingest.ts [options]
+npx ts-node scripts/sde/sde-ingest.ts [options]
 
 Options:
   --output, -o   Output directory (default: ./sde-data)

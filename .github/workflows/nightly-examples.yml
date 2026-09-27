@@ -1,7 +1,7 @@
 name: Nightly Examples
 
 # Runs every example tagged `@nightly public` or `@nightly mixed` against live
-# ESI, from source and with no access token (scripts/examples-core.ts says
+# ESI, from source and with no access token (scripts/docs/examples-core.ts says
 # what the tags mean). Every example is also type-checked, including the
 # authenticated and SDE ones that are not run.
 #
@@ -21,7 +21,7 @@ on:
     branches: [master]
     paths:
       - 'examples/**'
-      - 'scripts/examples-*'
+      - 'scripts/docs/examples-*'
       - 'tsconfig.examples.json'
       - '.github/workflows/nightly-examples.yml'
 

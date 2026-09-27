@@ -2,7 +2,7 @@
  * The shape of a feature file as the BDD runner sees it: Feature, then Rule,
  * then one entry per scenario that runs, with outline examples expanded.
  *
- * The binder plans and names its tests from this, and `scripts/bdd-report.ts`
+ * The binder plans and names its tests from this, and `scripts/quality/bdd-report.ts`
  * reads the same outline to decide which scenarios a BDD run executed and to
  * label each JUnit test case with its Rule. Keeping one outline is what makes
  * those names agree: a scenario title here is the Jest test title, including

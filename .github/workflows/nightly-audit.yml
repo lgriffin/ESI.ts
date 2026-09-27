@@ -38,12 +38,12 @@ jobs:
           # file unparseable and every jq query below would silently misreport.
           npm audit --json > audit-raw.json 2>/dev/null || true
 
-          # Drop advisories recorded as accepted in scripts/audit-exceptions.json,
+          # Drop advisories recorded as accepted in scripts/quality/audit-exceptions.json,
           # so a reviewed known risk stops re-filing an issue every night. This
           # also hard-fails if an acceptance has passed its expiry date, which is
           # how an accepted risk gets revisited instead of quietly becoming
           # permanent. Output keeps npm's shape, so the jq below is unchanged.
-          npx ts-node scripts/audit-check.ts --filter --in audit-raw.json --out audit-report.json
+          npx ts-node scripts/quality/audit-check.ts --filter --in audit-raw.json --out audit-report.json
 
           COUNT=$(jq '.vulnerabilities | length' audit-report.json)
           if [ "$COUNT" -eq 0 ]; then
@@ -137,7 +137,7 @@ jobs:
           2. Run \`npm audit fix\` for automatic patches
           3. For breaking changes: \`npm audit fix --force\` (review carefully)
           4. If there is no acceptable fix, record the reviewed risk in
-             \`scripts/audit-exceptions.json\` with a reason and an expiry date;
+             \`scripts/quality/audit-exceptions.json\` with a reason and an expiry date;
              accepted advisories stop being reported here until they expire
           5. Close this issue when every listed vulnerability is fixed or accepted
 

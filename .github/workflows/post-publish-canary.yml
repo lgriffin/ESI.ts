@@ -9,7 +9,7 @@ name: Post-publish Canary
 # repository on disk, then establishes four things: the registry serves the
 # exact version, its signature and provenance verify, every documented
 # sub-path loads under both require and import, and one real call to ESI
-# returns data. scripts/release-canary-core.ts says why each one is there.
+# returns data. scripts/release/release-canary-core.ts says why each one is there.
 #
 # A failure means consumers are broken right now, so it opens a high-severity
 # issue rather than a nightly note. A published version cannot be replaced;
