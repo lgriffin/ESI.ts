@@ -58,14 +58,72 @@ export function fixtureShape(fixture: RecordedFixture): FixtureShape {
   };
 }
 
+/** A JSON Schema fragment as the ESI OpenAPI document writes one. */
+interface SchemaNode {
+  $ref?: string;
+  type?: string | string[];
+  properties?: Record<string, SchemaNode>;
+  required?: string[];
+  items?: SchemaNode;
+  oneOf?: SchemaNode[];
+  anyOf?: SchemaNode[];
+  allOf?: SchemaNode[];
+}
+
+/**
+ * Key paths the OpenAPI response schema declares but does not require, in
+ * fixture shape notation (the page body is `$[]`). ESI leaves these out when
+ * they do not apply (blueprint fields on a contract item that is not a
+ * blueprint), so whether they appear depends on which live record the
+ * recorder picked, not on ESI changing.
+ */
+export function optionalPaths(
+  schema: unknown,
+  components: Record<string, unknown> = {},
+): Set<string> {
+  const out = new Set<string>();
+  // `refs` holds the $refs already followed on this branch, so a
+  // self-referencing schema stops instead of recursing forever.
+  const walk = (node: SchemaNode, at: string, refs: ReadonlySet<string>) => {
+    if (node.$ref) {
+      if (refs.has(node.$ref)) return;
+      const target = components[node.$ref.replace('#/components/schemas/', '')];
+      if (target && typeof target === 'object') {
+        walk(target as SchemaNode, at, new Set([...refs, node.$ref]));
+      }
+      return;
+    }
+    for (const branch of [
+      ...(node.oneOf ?? []),
+      ...(node.anyOf ?? []),
+      ...(node.allOf ?? []),
+    ])
+      walk(branch, at, refs);
+    if (node.items) walk(node.items, `${at}[]`, refs);
+    const required = new Set(node.required ?? []);
+    for (const [key, child] of Object.entries(node.properties ?? {})) {
+      if (!required.has(key)) out.add(`${at}.${key}`);
+      walk(child, `${at}.${key}`, refs);
+    }
+  };
+  if (schema && typeof schema === 'object') {
+    walk(schema as SchemaNode, '$[]', new Set());
+  }
+  return out;
+}
+
 /**
  * Human-readable differences between two fixture shapes; empty when equal.
  * An array that is empty in one recording and not in the other has no
  * element shape to compare, so element paths under it are not reported.
+ * A field in `optional` (see optionalPaths), or under one, appearing or
+ * disappearing is sampling, not drift, and is not reported either; a type
+ * change on it still is.
  */
 export function diffShapes(
   before: FixtureShape,
   after: FixtureShape,
+  optional: ReadonlySet<string> = new Set(),
 ): string[] {
   const out: string[] = [];
   if (before.status.join() !== after.status.join()) {
@@ -83,6 +141,11 @@ export function diffShapes(
       (parent) => p.startsWith(`${parent}[]`) && !(`${parent}[]` in shape),
     );
 
+  const declaredOptional = (p: string) =>
+    [...optional].some(
+      (o) => p === o || p.startsWith(`${o}.`) || p.startsWith(`${o}[]`),
+    );
+
   const paths = new Set([
     ...Object.keys(before.body),
     ...Object.keys(after.body),
@@ -91,10 +154,10 @@ export function diffShapes(
     const b = before.body[p];
     const a = after.body[p];
     if (b && !a) {
-      if (!underEmptyArray(after.body, p))
+      if (!underEmptyArray(after.body, p) && !declaredOptional(p))
         out.push(`${p} removed (was ${b.join('|')})`);
     } else if (!b && a) {
-      if (!underEmptyArray(before.body, p))
+      if (!underEmptyArray(before.body, p) && !declaredOptional(p))
         out.push(`${p} added (${a.join('|')})`);
     } else if (a && b && a.join() !== b.join()) {
       out.push(`${p} type ${b.join('|')} -> ${a.join('|')}`);

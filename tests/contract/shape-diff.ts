@@ -5,6 +5,8 @@
  * `npm run contract:record`) with the committed ones at --ref, by shape:
  * status, which cache headers are sent, and the JSON type at every key path.
  * Values (prices, IDs, dates, ETags) are ignored. See recorded/shape.ts.
+ * A field the vendored OpenAPI snapshot declares optional appearing or
+ * disappearing is ignored too: it depends on which live record was sampled.
  *
  * --revert-unchanged restores every fixture whose shape did not change, so
  * only shape changes are left in the working tree for the nightly pull
@@ -20,8 +22,31 @@ import {
   loadFixture,
   parseFixture,
 } from './recorded/fixture';
-import { FIXTURES_DIR, REPO_ROOT } from './recorded/policy';
-import { diffShapes, fixtureShape } from './recorded/shape';
+import { findSpecOperation, OpenApiSpec } from './helpers';
+import { publicGetEndpoints } from './recorded/catalogue';
+import { CONTRACT_DIR, FIXTURES_DIR, REPO_ROOT } from './recorded/policy';
+import { diffShapes, fixtureShape, optionalPaths } from './recorded/shape';
+
+const SNAPSHOT_PATH = path.join(
+  CONTRACT_DIR,
+  'snapshots',
+  'esi-openapi.snapshot.json',
+);
+
+/** Optional response fields per fixture endpoint, from the vendored spec. */
+function optionalFieldsByEndpoint(): Map<string, Set<string>> {
+  const spec = JSON.parse(
+    fs.readFileSync(SNAPSHOT_PATH, 'utf-8'),
+  ) as OpenApiSpec;
+  const out = new Map<string, Set<string>>();
+  for (const { key, definition } of publicGetEndpoints()) {
+    const op = findSpecOperation(spec, definition.path, 'GET');
+    const schema =
+      op?.responses?.['200']?.content?.['application/json']?.schema;
+    out.set(key, optionalPaths(schema, spec.components?.schemas));
+  }
+  return out;
+}
 
 function option(name: string): string | undefined {
   const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
@@ -51,6 +76,7 @@ function main(): number {
   const current = new Map(
     listFixtureFiles().map((file) => [path.basename(file), file]),
   );
+  const optional = optionalFieldsByEndpoint();
   const sections: string[] = [];
   let changed = 0;
 
@@ -72,7 +98,11 @@ function main(): number {
       git(['show', `${ref}:${rel}`]),
       `${ref}:${rel}`,
     );
-    const diffs = diffShapes(fixtureShape(before), fixtureShape(after));
+    const diffs = diffShapes(
+      fixtureShape(before),
+      fixtureShape(after),
+      optional.get(after.endpoint),
+    );
     if (diffs.length === 0) {
       if (revert) git(['checkout', ref, '--', rel]);
       continue;

@@ -134,6 +134,22 @@ jobs:
           body-path: pr-body.md
           labels: payload-drift
 
+      # A drift pull request from an earlier night is stale once the fixtures
+      # match again (master re-recorded them, or ESI went back), and it only
+      # collects merge conflicts, so close it.
+      - name: Close a stale drift pull request
+        if: steps.shape.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" \
+            --head automation/recorded-payload-shapes --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr close "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --delete-branch \
+              --comment "Tonight's re-recording matches the committed fixtures by shape, so this drift no longer applies. Closing automatically."
+          fi
+
       - name: Summary
         env:
           RECORD_EXIT: ${{ steps.record.outputs.exit }}

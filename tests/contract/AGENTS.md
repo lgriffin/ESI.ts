@@ -35,7 +35,10 @@ client method through the BDD transport seam
   replay rejects it with `EsiValidationError` naming `players`.
 - `replay/harness.test.ts` shows the coverage check, the shrink-only ratchet
   (including failing closed with no base ref), truncation and the shape diff
-  each reporting a crafted fault.
+  each reporting a crafted fault. The shape diff does not report a field the
+  vendored OpenAPI snapshot declares optional appearing or disappearing (for
+  example blueprint fields on a contract item): that depends on which live
+  record was sampled. A type change on such a field is still reported.
 - Mutants run against the 79 replays when the tier was built, each failing
   with a message naming the check: no `If-None-Match` header (70 failed),
   `z.looseObject` → `z.object` in `src/schemas/` (57), offset pagination
