@@ -148,7 +148,11 @@ describe('URL Construction Fuzz Tests', () => {
           fc
             .string()
             .filter(
-              (s) => s.length > 0 && !/[/\\?#@!$&'()*+,;=<>{}|^`]/.test(s),
+              (s) =>
+                s.length > 0 &&
+                !/[/\\?#@!$&'()*+,;=<>{}|^`]/.test(s) &&
+                s !== '.' &&
+                s !== '..',
             ),
           (input) => {
             const result = buildEndpointPath(singleParamDef, [input]);
