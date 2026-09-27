@@ -11,6 +11,10 @@
  * - src/client and src/adapters (the builder tree and the port
  *   implementations) must not import the legacy domain clients or entry
  *   points they are replacing.
+ * - src/sde is a side module (CHARTER ARCH-10). It imports Node built-ins,
+ *   its own files, its peer packages and src/core/ports only, and nothing
+ *   under src/ outside src/sde imports it. The rule holds in both directions,
+ *   so the SDE can neither reach the pipeline nor be reached by it.
  *
  * The rule resolves every module specifier against the importing file, so a
  * redundant segment (`.././clients`) or a detour (`./../ApiClient`) is judged
@@ -53,6 +57,16 @@ const LEGACY = ['clients', 'EsiClient', 'EsiClientBuilder', 'index'];
 
 const PORTS = 'src/core/ports';
 
+/** The side module that shares no code with the pipeline (ARCH-10). */
+const SDE = 'src/sde';
+
+/**
+ * Packages src/sde may import: its runtime dependency and the optional peers
+ * it loads lazily (see src/sde/optionalPeers.ts). Node built-ins are allowed
+ * by their `node:` prefix.
+ */
+const SDE_PACKAGES = ['zod', 'js-yaml', 'adm-zip', 'better-sqlite3'];
+
 const messages = {
   core:
     '[layers:core] src/core must not import {{target}}, a layer built on top of it. ' +
@@ -66,6 +80,12 @@ const messages = {
   legacy:
     '[layers:legacy] The new client tree must not import {{target}}, a legacy client or entry point. ' +
     'See guides/DESIGN-RULES.md#7--layers.',
+  sde:
+    '[layers:sde] src/sde is a side module: it imports Node built-ins, its own files, its peer packages ' +
+    'and src/core/ports only, not {{target}}. See guides/DESIGN-RULES.md#7--layers.',
+  sideModule:
+    '[layers:sideModule] Nothing outside src/sde may import {{target}}: the SDE shares no code with ' +
+    'the pipeline. A bridge belongs in a separate package. See guides/DESIGN-RULES.md#7--layers.',
 };
 
 const within = (file, dir) => file === dir || file.startsWith(`${dir}/`);
@@ -100,11 +120,18 @@ function check(importer, specifier, baseline) {
       ? null
       : { messageId: 'generated', target: shown };
   }
+  if (within(importer, SDE)) {
+    const allowed = relative
+      ? within(target, SDE) || within(target, PORTS)
+      : specifier.startsWith('node:') || SDE_PACKAGES.includes(specifier);
+    return allowed ? null : { messageId: 'sde', target: shown };
+  }
   if (!relative) return null;
   const top = topOfSrc(target);
   if (within(importer, 'src/core') && !baseline.includes(importer)) {
     return ABOVE_CORE.includes(top) ? { messageId: 'core', target } : null;
   }
+  if (top === 'sde') return { messageId: 'sideModule', target };
   if (within(importer, 'src/client') || within(importer, 'src/adapters')) {
     return LEGACY.includes(top) ? { messageId: 'legacy', target } : null;
   }

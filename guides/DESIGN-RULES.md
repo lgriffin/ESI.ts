@@ -308,7 +308,7 @@ Pagination helpers take the caller's HTTP method and must not return a truncated
 
 ## 7 · Layers
 
-Imports in `src/` point inward. `npm run lint:layers` enforces four rules with a local ESLint rule, `layers/inward-imports` in `eslint.layers.rules.cjs`, in CI and in `check:local`:
+Imports in `src/` point inward. `npm run lint:layers` enforces six rules with a local ESLint rule, `layers/inward-imports` in `eslint.layers.rules.cjs`, in CI and in `check:local`:
 
 | Directory                      | May not import                                                                                                                                  |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -316,6 +316,8 @@ Imports in `src/` point inward. `npm run lint:layers` enforces four rules with a
 | `src/generated/`               | Anything except `src/core/ports/`. Change the generator, not its output.                                                                        |
 | `src/core/` (the pipeline)     | The layers built on it: `clients/`, `EsiClient`, `EsiClientBuilder`, `index`, `generated/`, `auth/`, `sde/`, `testing/`, `client/`, `adapters/` |
 | `src/client/`, `src/adapters/` | The legacy domain clients and entry points: `clients/`, `EsiClient`, `EsiClientBuilder`, `index`                                                |
+| `src/sde/` (side module)       | Anything in `src/` outside `src/sde/` except `src/core/ports/`; any package other than `node:*`, `zod`, `js-yaml`, `adm-zip`, `better-sqlite3`  |
+| Everything else in `src/`      | `sde/`. The SDE shares no code with the pipeline (ARCH-10); a bridge belongs in a separate package                                              |
 
 The rule resolves each specifier against the importing file, so it judges an import by where it lands, at any depth: `.././clients` is `clients`. It reads static and type-only imports, re-exports, `import('...')` types and expressions, and `require()`. The lint runs with `--no-inline-config`, so an `eslint-disable` comment does not get round it. When core needs something from an outer layer, add a port in `src/core/ports/` and have the outer layer implement it.
 
