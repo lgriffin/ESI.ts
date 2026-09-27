@@ -1173,7 +1173,7 @@ Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON
 
 ## 13. Logging
 
-Pipeline code logs through `logInfo` / `logWarn` / … in `src/core/logger/clientLog.ts`, which resolve the logger per call: the client's own logger, then the global logger from `setLogger()`, then the pino default at `ESI_LOG_LEVEL` (default `warn`). `ARCH-09` requires all pipeline logging to take the per-client route; the rate limiter still logs with no client handle and so reaches the global logger. ROADMAP Phase 4 migrates the remaining call sites, moves URL sanitising to the logger boundary, adds a lint that forbids the global logger import inside `src/core/requestPipeline`, and stops building a pino instance at import. The `Logger` port in `src/core/ports/` has the same six methods as `ILogger`. See [LOGGING.md](LOGGING.md).
+Pipeline code logs through `logInfo` / `logWarn` / … in `src/core/logger/clientLog.ts`, which resolve the logger per call: the client's own logger, then the global logger from `setLogger()`, then the pino default at `ESI_LOG_LEVEL` (default `warn`), built on its first use and never at import (`ARCH-06`). `ARCH-09` requires all pipeline logging to take the per-client route; the rate limiter still logs with no client handle and so reaches the global logger. ROADMAP Phase 4 migrates the remaining call sites, moves URL sanitising to the logger boundary, and adds a lint that forbids the global logger import inside `src/core/requestPipeline`. The `Logger` port in `src/core/ports/` has the same six methods as `ILogger`. See [LOGGING.md](LOGGING.md).
 
 ---
 
