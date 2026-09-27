@@ -96,9 +96,9 @@ Five layers, one request path, and side modules that deliberately share nothing 
 | Generated operations | `src/generated/operations.generated.ts`                       | One function per spec operation, importing only ports. Checked by `spec:generate:check` and `spec:coverage` in CI; not yet called by any client.                                                                                                                                      |
 | Clock                | `src/core/clock.ts`                                           | `systemClock` is where wall-clock time, timers and `Math.random` belong. `npm run lint:determinism` blocks new direct reads; the existing sites (rate limiter, cache, circuit breaker, request handler and others) sit in `scripts/determinism-baseline.json`, which may only shrink. |
 | Auth                 | `src/auth`                                                    | EVE SSO (PKCE), token manager and storage, with its own error subtree. Reached from the root and `./errors`; there is no `./auth` sub-path.                                                                                                                                           |
-| Side modules         | `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory` | The SDE module shares no code with the pipeline. It is an offline lookup layer for enriching ESI responses, with its own error hierarchy and its own docs.                                                                                                                            |
+| Side modules         | `./schemas`, `./errors`, `./testing`, `./sde`, `./sde/memory` | The SDE module shares no code with the pipeline, and `lint:layers` holds that in both directions (ARCH-10). It is an offline lookup layer for enriching ESI responses, with its own error hierarchy and its own docs.                                                                 |
 
-`lint:layers` (`eslint.layers.rules.cjs`) holds the direction: ports import nothing, generated code imports only ports, and `src/core` imports no domain client, entry point, generated operation, auth, SDE or testing module. Existing violations (`ClientRegistry.ts`, `configureApiClient.ts`) sit in a baseline that may only shrink.
+`lint:layers` (`eslint.layers.rules.cjs`) holds the direction: ports import nothing, generated code imports only ports, `src/core` imports no domain client, entry point, generated operation, auth, SDE or testing module, and `src/sde` imports nothing from `src/` but the ports while nothing outside it imports the SDE. Existing violations (`ClientRegistry.ts`, `configureApiClient.ts`) sit in a baseline that may only shrink.
 
 ### The request path
 
@@ -211,6 +211,13 @@ All pipeline logging **shall** go through the per-client logger with structured 
 
 - **Why:** Per-client logging makes log lines attributable when several clients share a process.
 - **Verified by:** `npm run typecheck`. `requestPipeline/` imports only `clientLog` today and only `resolveLogger.ts` uses the global fallback, but no gate holds it there yet ([#265](https://github.com/lgriffin/ESI.ts/issues/265)); several call sites outside the pipeline still bypass the per-client logger ([#296](https://github.com/lgriffin/ESI.ts/issues/296)).
+
+#### ARCH-10 · Ubiquitous · Enforced
+
+`src/sde` **shall** import only Node built-ins, its own files, its peer packages (`zod`, `js-yaml`, `adm-zip`, `better-sqlite3`) and `src/core/ports`, no file under `src/` outside `src/sde` **shall** import it, and the `./sde/memory` bundle **shall** contain no file-system, YAML, ZIP or SQLite code.
+
+- **Why:** The SDE is a side module: an offline lookup layer that enriches ESI responses without a consumer in the pipeline. Holding the boundary in both directions keeps the SDE free to change without a release of the client, and keeps the client free of the SDE's optional peers. A bridge between the two was considered on 2026-09-27 and cut; if one is ever wanted it is a separate package above both, so nothing here is added for it.
+- **Verified by:** `npm run lint:layers` (the `sde` and `sideModule` messages of `layers/inward-imports`, covered in both directions by `tests/tdd/layers/layers-lint.test.ts`) and `tests/tdd/sde/memory-entry-bundle.test.ts`, which bundles `src/sde/memory.ts` and the built `dist/sde/memory.{mjs,js}` and fails on `node:fs`, `js-yaml`, `adm-zip` or `better-sqlite3`.
 
 ---
 
