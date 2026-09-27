@@ -1,6 +1,19 @@
 import { createHash } from 'crypto';
 import { buildCacheKey } from '../../../src/core/cache/cacheKey';
 import { ApiClient } from '../../../src/core/ApiClient';
+import { buildDedupeKey } from '../../../src/core/cache/cacheKey';
+
+/** An unsigned JWT naming a character, as EVE SSO issues; `jti` makes each one distinct. */
+function ssoToken(characterId: number, jti = 'a'): string {
+  const b64 = (v: string) => Buffer.from(v).toString('base64url');
+  return [
+    b64(JSON.stringify({ alg: 'RS256', typ: 'JWT' })),
+    b64(JSON.stringify({ sub: `CHARACTER:EVE:${characterId}`, jti })),
+    b64('signature'),
+  ].join('.');
+}
+
+const BASE = 'https://esi.evetech.net';
 
 describe('buildCacheKey', () => {
   const url = 'https://esi.evetech.net/v1/characters/12345/assets/';
@@ -122,5 +135,71 @@ describe('buildCacheKey', () => {
     expect(buildCacheKey(publicUrl, clientA, false)).toBe(
       buildCacheKey(publicUrl, clientB, false),
     );
+  });
+
+  describe('with EVE SSO tokens', () => {
+    it('keys by the character the token names', () => {
+      const client = new ApiClient('test', BASE, ssoToken(95465499));
+      expect(buildCacheKey(url, client, true)).toBe(
+        `character:95465499:${url}`,
+      );
+    });
+
+    it('keeps the key when the token is replaced by another for the same character', () => {
+      const client = new ApiClient('test', BASE, ssoToken(95465499, 'first'));
+      const before = buildCacheKey(url, client, true);
+      client.setAccessToken(ssoToken(95465499, 'second'));
+      expect(buildCacheKey(url, client, true)).toBe(before);
+    });
+
+    it('changes the key when the token is replaced by one for another character', () => {
+      const client = new ApiClient('test', BASE, ssoToken(1));
+      const before = buildCacheKey(url, client, true);
+      client.setAccessToken(ssoToken(2));
+      expect(buildCacheKey(url, client, true)).not.toBe(before);
+    });
+
+    it('gives two clients holding tokens for one character the same key', () => {
+      const a = new ApiClient('test', BASE, ssoToken(95465499, 'a'));
+      const b = new ApiClient('test', BASE, ssoToken(95465499, 'b'));
+      expect(buildCacheKey(url, a, true)).toBe(buildCacheKey(url, b, true));
+    });
+
+    it('changes the key when an SSO token is replaced by an opaque one', () => {
+      const client = new ApiClient('test', BASE, ssoToken(95465499));
+      const before = buildCacheKey(url, client, true);
+      client.setAccessToken('opaque');
+      expect(buildCacheKey(url, client, true)).toMatch(/^[0-9a-f]{16}:/);
+      expect(buildCacheKey(url, client, true)).not.toBe(before);
+    });
+
+    it('does not let a public endpoint key carry the character', () => {
+      const client = new ApiClient('test', BASE, ssoToken(95465499));
+      expect(buildCacheKey(url, client, false)).toBe(url);
+    });
+  });
+
+  describe('buildDedupeKey', () => {
+    const endpoint = 'characters/95465499/online';
+
+    it('draws the same identity line as the cache key', () => {
+      const client = new ApiClient('test', BASE, ssoToken(95465499));
+      expect(buildDedupeKey(endpoint, client, true)).toBe(
+        `character:95465499:${endpoint}`,
+      );
+      client.setAccessToken('opaque');
+      expect(buildDedupeKey(endpoint, client, true)).toBe(
+        buildCacheKey(endpoint, client, true),
+      );
+    });
+
+    it('returns the bare endpoint for public requests and for a client with no token', () => {
+      expect(
+        buildDedupeKey(endpoint, new ApiClient('test', BASE, 'opaque'), false),
+      ).toBe(endpoint);
+      expect(buildDedupeKey(endpoint, new ApiClient('test', BASE), true)).toBe(
+        endpoint,
+      );
+    });
   });
 });

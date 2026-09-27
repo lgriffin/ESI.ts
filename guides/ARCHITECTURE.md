@@ -551,7 +551,7 @@ Tier 3  Full request    200 → cache it (if ESI sent an ETag)
 
 **Write invalidation.** A non-GET response that reaches the cache-write step deletes every entry whose key contains the request path. 201 and 204 responses return before that step, so they do not invalidate today.
 
-**Keys and isolation.** Public endpoints are keyed by URL and shared across callers of the same client. Authenticated endpoints prefix the key with the first 16 hex characters of a SHA-256 hash of the `Authorization` header (`src/core/cache/cacheKey.ts`), so two characters never share a cached body. See [SECURITY.md](SECURITY.md).
+**Keys and isolation.** Public endpoints are keyed by URL and shared across callers of the same client. Authenticated endpoints prefix the key with the caller's identity (`src/core/cache/cacheKey.ts`, `src/core/util/callerIdentity.ts`): `character:<id>` read from the `sub` claim of an EVE SSO token, so a token refresh keeps the character's entries, or the first 16 hex characters of a SHA-256 hash of the `Authorization` header for a token that names no character. Two characters never share a cached body, and the in-flight deduplicator draws the same line. See [SECURITY.md](SECURITY.md).
 
 **Eviction.** When `maxEntries` is reached, storing a new key evicts the oldest entry; replacing a stored key evicts nothing. Retention past the freshness TTL does not raise this bound. A timer removes expired entries every `cleanupInterval`; `shutdown()` stops it.
 

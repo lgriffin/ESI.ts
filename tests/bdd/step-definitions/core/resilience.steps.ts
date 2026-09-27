@@ -1,5 +1,6 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import fetchMock from 'jest-fetch-mock';
+import { makeJwt } from '../shared/sso-helpers';
 import {
   CircuitBreaker,
   CircuitOpenError,
@@ -1406,6 +1407,58 @@ defineFeature(feature, (test) => {
         // scenario would pass whatever the deduplication key is.
         await new Promise((resolve) => setTimeout(resolve, 5));
         client.setAccessToken('a-second-characters-token');
+        const second = client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
+        outcomes = await Promise.allSettled([first, second]);
+      },
+    );
+
+    then('both calls resolve with the online payload', () => {
+      expect(outcomes).toHaveLength(2);
+      for (const outcome of outcomes) {
+        expectResolvedWith(outcome, ONLINE_PAYLOAD);
+      }
+    });
+
+    and(/^the client sent (\d+) requests?$/, (count: string) => {
+      expect(requestsSent()).toBe(Number(count));
+    });
+  });
+
+  test('A concurrent online request under a refreshed token for the same character is coalesced', ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    let client: EsiClient;
+    let outcomes: Outcome[];
+
+    given('a client with request deduplication and no ETag cache', () => {
+      client = createSeamClient({ enableETagCache: false });
+    });
+
+    and(
+      /^ESI answers the character online request after (\d+) milliseconds with a payload (\d+) times$/,
+      (delay: string, times: string) => {
+        queueResponse({
+          body: ONLINE_PAYLOAD,
+          delayMs: Number(delay),
+          match: ONLINE_PATH,
+          times: Number(times),
+        });
+      },
+    );
+
+    when(
+      /^the client requests the character online status under an SSO token for character (\d+), replaces it with a new SSO token for that character, and requests it again before the first resolves$/,
+      async (characterId: string) => {
+        const id = Number(characterId);
+        client.setAccessToken(makeJwt({ characterId: id }));
+        const first = client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        client.setAccessToken(
+          makeJwt({ characterId: id, ownerHash: 'rotated' }),
+        );
         const second = client.location.getCharacterOnline(ONLINE_CHARACTER_ID);
         outcomes = await Promise.allSettled([first, second]);
       },

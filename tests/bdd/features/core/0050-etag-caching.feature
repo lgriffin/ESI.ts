@@ -241,3 +241,67 @@ Feature: ETag Caching
       Given a client with ETag caching disabled
       When the client makes API requests without cache
       Then responses shall be returned normally without caching
+
+  # ── Identity ─────────────────────────────────────────────────────────
+
+  Rule: When the access token is replaced by another EVE SSO token for the same character, the ETag cache shall serve that character's stored entries under the new token.
+    An EVE SSO access token is a JWT whose sub claim names the character, and
+    a refresh rotates the token without changing the character. The cache
+    keys authenticated entries by that character id rather than by the token,
+    so a refresh, whether the caller sets a new token or the 401 path obtains
+    one, keeps every ETag the character has earned. The character id is read
+    from the token without verifying its signature: the token is what the
+    client will send, and ESI decides whether it is genuine.
+
+    Scenario: Structure orders revalidated by a 304 after the access token is replaced
+      Given a client holding an SSO access token for character 90000001
+      And ESI answers the structure orders request with an ETag
+      And the client has requested the structure orders
+      When the access token is replaced by a new SSO token for character 90000001
+      And the structure orders TTL has elapsed
+      And ESI answers the revalidation of the structure orders with HTTP 304
+      And the client requests the structure orders again
+      Then the client resolves with the cached structure orders from a 304 revalidation
+      And the revalidation request carried the cached structure orders ETag in If-None-Match
+
+    Scenario: Token refresh after a 401 keeps the character's cached entry
+      Given a client whose refresh provider issues a new SSO token for character 90000001
+      And ESI answers the structure orders request with an ETag
+      And the client has requested the structure orders
+      When the structure orders TTL has elapsed
+      And ESI answers the next structure orders request with HTTP 401 and the retry with HTTP 304
+      And the client requests the structure orders again
+      Then the client resolves with the cached structure orders from a 304 revalidation
+      And the client sent 3 requests, the last carrying the cached structure orders ETag in If-None-Match
+
+  Rule: If two EVE SSO access tokens carry different character ids, then the ETag cache shall keep a separate entry for each character.
+    A structure's order book, a corporation's wallet or a character's own
+    location answer differently for every character that asks, so an entry
+    stored for one character is never an answer for another, whatever the
+    URL.
+
+    Scenario: A second character's structure orders are fetched rather than served from the first character's entry
+      Given a client holding an SSO access token for character 90000001
+      And ESI answers the structure orders request with an ETag
+      And the client has requested the structure orders
+      When the access token is replaced by an SSO token for character 90000002
+      And ESI answers the structure orders request with an ETag
+      And the client requests the structure orders again
+      Then the second structure orders request carried no If-None-Match header
+      And the cache holds 2 entries
+
+  Rule: If an access token is not an EVE SSO JWT, then the ETag cache shall scope that token's entries by a hash of the token.
+    A token that names no character (a raw string in a test, a token from
+    another issuer) has no identity to key by except itself. The hash keeps
+    the token out of cache keys, which reach logs and statistics, and two
+    such tokens never share an entry even when they belong to one person.
+
+    Scenario: An opaque token replaced by another opaque token fetches the structure orders afresh
+      Given a client holding an opaque access token
+      And ESI answers the structure orders request with an ETag
+      And the client has requested the structure orders
+      When the access token is replaced by a different opaque token
+      And ESI answers the structure orders request with an ETag
+      And the client requests the structure orders again
+      Then the second structure orders request carried no If-None-Match header
+      And the cache holds 2 entries

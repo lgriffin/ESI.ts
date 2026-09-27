@@ -75,7 +75,7 @@ Seven positions that explain most of the individual choices below. A proposal th
 2. **Hand-write where judgement matters.** Domain clients, endpoint definitions and Zod schemas are written by people, because method names, argument shapes and validation strictness are product decisions. Drift reports keep them honest.
 3. **Tolerate additive change.** `z.looseObject` everywhere and `esiEnum` unions mean a new field or enum member from CCP never breaks a consumer at runtime. Removal is a breaking change; addition is not.
 4. **Resilience is pluggable.** Retry, rate limiting, circuit breaking, deduplication, caching and the transport itself are interfaces with default implementations and setters. Nothing in the pipeline imports a concrete middleware.
-5. **Secure by construction.** HTTPS and a host allowlist at construction, tokens attached only where a scope is declared, URLs redacted in every error, cache keys hashed per token. The controls are tests, not advice.
+5. **Secure by construction.** HTTPS and a host allowlist at construction, tokens attached only where a scope is declared, URLs redacted in every error, cache keys scoped per character (or per hashed token). The controls are tests, not advice.
 6. **The specification executes.** Behaviour is stated as EARS requirements in Gherkin, one per `Rule:`, verified by scenarios that mock the transport seam. The audit fails a PR that weakens the wording.
 7. **Verifiable supply chain.** Every action SHA-pinned, least-privilege tokens, npm provenance on both registries, keyless cosign signatures and checksums on release assets, advisories accepted only with an expiry date.
 

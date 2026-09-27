@@ -40,7 +40,7 @@ The unsafe-character check and the encoding step do different jobs. The check re
 
 ### Cache isolation
 
-`buildCacheKey` in `src/core/cache/cacheKey.ts` returns the bare URL for public endpoints, so they share one cache entry. For an endpoint with `requiresAuth`, the key is prefixed with the first 16 hex characters of a SHA-256 hash of the `Authorization` header. Two characters requesting the same authenticated path never share a cached body or ETag, and the token never appears in a key in clear text.
+`buildCacheKey` in `src/core/cache/cacheKey.ts` returns the bare URL for public endpoints, so they share one cache entry. For an endpoint with `requiresAuth`, the key is prefixed with the caller's identity: `character:<id>` from the `sub` claim of an EVE SSO access token (decoded, not verified: the token is what the client sends, and ESI judges it), or the first 16 hex characters of a SHA-256 hash of the `Authorization` header for a token that names no character. Two characters requesting the same authenticated path never share a cached body or ETag, a refreshed token keeps its character's entries, and the token never appears in a key in clear text.
 
 ### URL sanitisation
 
