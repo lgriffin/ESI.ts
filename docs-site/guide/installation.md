@@ -6,7 +6,7 @@
 npm install @lgriffin/esi.ts
 ```
 
-Requires Node.js 18 or later.
+Requires Node.js 22.12 or later from 11.0.0. 10.x supports Node 18 and 20.
 
 ### Optional peer dependencies
 

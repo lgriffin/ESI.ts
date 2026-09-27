@@ -188,14 +188,7 @@ describe('heap soak against the real pipeline', () => {
       expect(run.listenersAfterShutdown).toBeLessThanOrEqual(
         run.listenersBefore,
       );
-      // On Node 18 this run grows about 400 bytes per request whatever the
-      // client does: its bundled undici retains something per `Response`, and
-      // the same code is flat on 20 and 22. The gate that matters runs on
-      // Node 20 (nightly-benchmarks.yml), so the heap finding is only
-      // asserted where the platform can hold it.
-      if (Number(process.versions.node.split('.')[0]) >= 20) {
-        expect(heap).toEqual([]);
-      }
+      expect(heap).toEqual([]);
     },
     TIMEOUT_MS,
   );

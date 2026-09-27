@@ -353,7 +353,7 @@ npm run example:sde-basic
 
 11.0.0 is in progress. [ROADMAP.md](ROADMAP.md) has the order of work and the release gate. For a consumer:
 
-- **Node 22 becomes the floor.** 10.x stays the line for Node 18 and 20.
+- **Node 22 becomes the floor.** `engines.node` is `>=22.12.0` (the first 22.x that loads an ES module through `require()` without a flag), and CI tests Node 22.12, the latest 22 and 24 only. 10.x stays the line for Node 18 and 20, which are end of life. To upgrade, move the runtime (and any `.nvmrc`, Docker base image or CI `node-version`) to Node 22.12 or later before installing 11.x; on Node 18 or 20, keep `"@lgriffin/esi.ts": "^10.0.0"`. No code change is needed for the Node floor itself.
 - **A new client beside the old one (on master).** `createEsi()` from `@lgriffin/esi.ts/client` builds one shared runtime, holding the rate limiter, error budget, cache and transport. `esi.public` is a typed view in which an authenticated call does not compile. `esi.as(identity)` is an immutable per-character view over the same runtime. The runtime requires a user agent. [MULTI-CHARACTER.md](MULTI-CHARACTER.md) is the guide; `createMockTransport()` in `./testing` answers its requests in your own tests ([TESTING.md](TESTING.md#testing-your-application)).
 - **Nothing on this page is removed in 11.0.** `EsiApiFactory`'s nine named methods and `EsiTokenManager.createClient` are `@deprecated`, pointing at `createEsi()` and `esi.as(identity)`; `EsiApiFactory.createClient(type)` is not deprecated. Removal waits for 12.0.0 at the earliest, per [SEMVER.md](SEMVER.md).
 - **Already on master and in the 11.0.0 release notes:**

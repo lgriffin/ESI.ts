@@ -18,7 +18,7 @@ A TypeScript client for the [EVE Online ESI API](https://esi.evetech.net/), buil
 npm install @lgriffin/esi.ts
 ```
 
-You need Node.js 18 or later (22 from 11.0.0). TypeScript projects need TypeScript 5.4 or later, under `node16`, `nodenext` or `bundler` module resolution. The consumer contract checks every one of those combinations against the published tarball, as ES module and CommonJS.
+You need Node.js 22.12 or later from 11.0.0; 10.x, current on npm, supports Node 18 and 20. TypeScript projects need TypeScript 5.4 or later, under `node16`, `nodenext` or `bundler` module resolution. The consumer contract checks every one of those combinations against the published tarball, as ES module and CommonJS.
 
 ## Quick start
 

@@ -4,7 +4,7 @@ Thank you for your interest in contributing to ESI.ts! This guide will help you 
 
 ## Prerequisites
 
-- **Node.js** 18 or later
+- **Node.js** 22.12 or later (`.nvmrc` pins 22)
 - **npm**
 
 ## Getting Started

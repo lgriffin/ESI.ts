@@ -10,10 +10,9 @@
  * set below what its entry and shared chunk weigh. If a tool upgrade or a
  * wiring change stops a check from firing, these tests fail.
  *
- * Each suite runs where its tool does. attw 0.18 needs Node 20 or later, so
- * its suite is skipped on Node 18. size-limit 13 needs Node 22.18 or later
- * (its `engines`), so its suite is skipped on Node 18 and 20; the unit-tests
- * job runs it on 22, and the Package Lint job runs `npm run size` on 22.
+ * size-limit 13 needs Node 22.18 or later (its `engines`), so its suite is
+ * skipped on an older Node 22; the unit-tests job runs it on 22 and 24, and
+ * the Package Lint job runs `npm run size` on 22.
  */
 import { spawnSync } from 'child_process';
 import {
@@ -63,7 +62,6 @@ const { sizeLimitChecks } = require(SIZE_HELPER) as {
 const [nodeMajor = 0, nodeMinor = 0] = process.versions.node
   .split('.')
   .map(Number);
-const describeWithTools = nodeMajor >= 20 ? describe : describe.skip;
 const describeWithSizeLimit =
   nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 18)
     ? describe
@@ -192,7 +190,7 @@ describe('package lint: baseline evaluation', () => {
   });
 });
 
-describeWithTools('package lint: publint and attw on packed fixtures', () => {
+describe('package lint: publint and attw on packed fixtures', () => {
   let work: string;
   const broken: { publint: Finding[]; attw: Finding[] } = {
     publint: [],

@@ -23,9 +23,9 @@
  *
  * `@cucumber/gherkin` and `@cucumber/messages` are ESM-only, and ts-node runs
  * this file as CommonJS. A static import would compile to `require()`, which
- * only loads ESM on Node 20.19+ / 22.12+ (`require(esm)`). The Cucumber
+ * only loads ESM on Node 22.12+ (`require(esm)`). The Cucumber
  * packages are therefore loaded at runtime with a real dynamic `import()`,
- * which every supported Node (18+) provides — see `importEsm` below.
+ * which every supported Node (22+) provides — see `importEsm` below.
  *
  * Usage: npx ts-node scripts/spec/spec-audit.ts [paths...] [--verbose]
  *        npm run spec:audit

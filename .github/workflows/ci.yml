@@ -48,7 +48,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -123,7 +123,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -264,7 +264,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [22, 24]
 
     steps:
       - name: Checkout code
@@ -301,7 +301,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -339,7 +339,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -382,7 +382,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -422,7 +422,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -463,7 +463,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -491,7 +491,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -515,7 +515,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -545,7 +545,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -568,7 +568,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -605,7 +605,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           package-manager-cache: false
 
       - name: Download build artifacts
@@ -614,7 +614,7 @@ jobs:
           name: build-files
           path: dist/
 
-      # npm 10, the version Node 20 bundles, runs `prepare` on `npm pack`
+      # npm 10, the version Node 22 bundles, runs `prepare` on `npm pack`
       # even with --ignore-scripts (fixed in npm 11), and `prepare` rebuilds
       # dist/. npm 11 packs the dist/ downloaded above, which is the point of
       # this job: every cell installs those bytes.
@@ -649,23 +649,25 @@ jobs:
     #
     # Each row pairs a Node line with a TypeScript version: `oldest` is the
     # declared floor (OLDEST_TYPESCRIPT), `repo` the version this repository
-    # builds with, `latest` npm's latest tag. Node 18 has no require(esm), so
-    # it catches a `require` condition resolving to an ES module. The wider
-    # matrix (TypeScript next, current Node) runs nightly in
-    # consumer-matrix-nightly.yml.
+    # builds with, `latest` npm's latest tag. Node 22.12 is the floor
+    # (`engines`, the first 22.x that loads an ES module through require()
+    # without a flag), 24 the current LTS. The wider matrix (TypeScript next,
+    # current Node) runs nightly in consumer-matrix-nightly.yml.
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - node-version: 18
+          # The engines floor itself, pinned: a bare 22 installs the newest
+          # 22.x and would never exercise the oldest Node 11.x supports.
+          - node-version: '22.12'
             typescript: oldest
-          - node-version: 20
-            typescript: repo
           - node-version: 22
             typescript: latest
           - node-version: 24
             typescript: repo
+          - node-version: 24
+            typescript: latest
 
     steps:
       - name: Checkout code
@@ -713,7 +715,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -805,7 +807,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       # --ignore-scripts skips `prepare` (a full build); the gate only needs ts-node.
@@ -837,7 +839,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -866,7 +868,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Check lockfile is up to date
         env:
@@ -877,7 +879,7 @@ jobs:
             exit 0
           fi
           # npm 11 writes a `libc` field on platform-specific optional
-          # packages and npm 10 (bundled with Node 20) strips it, so checking
+          # packages and npm 10 (bundled with Node 22) strips it, so checking
           # with npm 10 fails on every lockfile Dependabot (npm 11) wrote.
           # Pin the npm this check uses; `npm install` with npm 11 locally
           # produces the same bytes.
@@ -920,7 +922,7 @@ jobs:
         if: steps.deps.outputs.changed == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       # --ignore-scripts skips `prepare` (which runs a full tsup build). The only
@@ -998,7 +1000,7 @@ jobs:
         if: steps.hot.outputs.run == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       # --ignore-scripts skips `prepare` (a full build); the harness is bundled

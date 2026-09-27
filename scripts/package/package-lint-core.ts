@@ -13,7 +13,7 @@
  * - attw problems under the resolutions the package supports: `node16-cjs`,
  *   `node16-esm` and `bundler` (attw's `node16` profile). `node10` is left
  *   out on purpose. It ignores `exports`, so no sub-path other than `.` can
- *   resolve under it; `engines.node` is `>=18`, where every runtime reads
+ *   resolve under it; `engines.node` is `>=22`, where every runtime reads
  *   `exports`; and TypeScript deprecated `moduleResolution: node10` in 5.x
  *   and this repository builds with TypeScript 6. A consumer still on
  *   `node10` gets the root entry through `main` and `types`, which attw

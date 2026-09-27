@@ -36,14 +36,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       # `prepare` builds dist/.
       - name: Install dependencies and build
         run: npm ci
 
-      # npm 10, the version Node 20 bundles, runs `prepare` on `npm pack` even
+      # npm 10, the version Node 22 bundles, runs `prepare` on `npm pack` even
       # with --ignore-scripts (fixed in npm 11), which would build dist/ a
       # second time. npm 11 packs the one the install above built.
       - name: Pack
