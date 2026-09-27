@@ -14,7 +14,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const DEFAULT_COMPATIBILITY_DATE = '2025-12-16';
+import { COMPATIBILITY_DATE } from '../src/core/constants';
+
+/**
+ * The date the client sends as `X-Compatibility-Date`, so the definitions are
+ * checked against the spec ESI actually serves them (generate-esi-types.ts
+ * does the same).
+ */
+const DEFAULT_COMPATIBILITY_DATE = COMPATIBILITY_DATE;
 const ESI_OPENAPI_BASE = 'https://esi.evetech.net/meta/openapi.json';
 const ESI_COMPATIBILITY_DATES_URL =
   'https://esi.evetech.net/meta/compatibility-dates';

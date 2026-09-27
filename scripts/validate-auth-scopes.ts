@@ -2,13 +2,18 @@
  * Auth/Scope Cross-Validation Script
  *
  * Compares `requiresAuth` in hand-written *Endpoints.ts files against
- * the scope map in esi-scopes.generated.ts. Catches two classes of bug:
+ * the scope map in esi-scopes.generated.ts. DES-04 is an "if and only if",
+ * so both directions fail the run:
  *
  *   ERROR: requiresAuth=false but esiEndpointScopes has an entry
  *          (no Authorization header sent, ESI returns 401/403)
  *
- *   WARN:  requiresAuth=true but no esiEndpointScopes entry
- *          (auth sent, but scope map is incomplete for OAuth consent screens)
+ *   ERROR: requiresAuth=true but no esiEndpointScopes entry
+ *          (a token is sent where ESI asks for none, or the scope map is
+ *          incomplete for OAuth consent screens), unless the key is listed
+ *          in auth-scope-exceptions.json with a reason
+ *
+ *   ERROR: an exception that no longer excuses a mismatch (stale entry)
  *
  * Usage: npx ts-node scripts/validate-auth-scopes.ts
  *        npm run validate:auth-scopes
@@ -94,9 +99,7 @@ function parseEndpointFiles(): EndpointEntry[] {
     .readdirSync(ENDPOINTS_DIR)
     .filter(
       (f) =>
-        f.endsWith('Endpoints.ts') &&
-        !SKIP_FILES.has(f) &&
-        !isGeneratedFile(f),
+        f.endsWith('Endpoints.ts') && !SKIP_FILES.has(f) && !isGeneratedFile(f),
     );
 
   for (const file of files) {
@@ -135,9 +138,7 @@ function parseEndpointFiles(): EndpointEntry[] {
         const pathMatch = line.match(/path:\s*'([^']+)'/);
         if (pathMatch) currentPath = pathMatch[1]!;
 
-        const methodMatch = line.match(
-          /method:\s*'(GET|POST|PUT|DELETE)'/,
-        );
+        const methodMatch = line.match(/method:\s*'(GET|POST|PUT|DELETE)'/);
         if (methodMatch) currentMethod = methodMatch[1]!;
 
         const authMatch = line.match(/requiresAuth:\s*(true|false)/);
@@ -150,7 +151,13 @@ function parseEndpointFiles(): EndpointEntry[] {
         if (ch === '}') {
           depth--;
           // When we exit an endpoint block back to depth 1, emit the entry
-          if (depth === 1 && currentName && currentPath && currentMethod && currentAuth !== null) {
+          if (
+            depth === 1 &&
+            currentName &&
+            currentPath &&
+            currentMethod &&
+            currentAuth !== null
+          ) {
             const normalized = normalizePath(currentPath);
             const key = `${currentMethod}:${normalized}`;
             entries.push({
@@ -224,6 +231,7 @@ interface ValidationResult {
     excepted: boolean;
     exceptionReason?: string;
   }[];
+  staleExceptions: { key: string; reason: string }[];
   ok: number;
 }
 
@@ -232,7 +240,12 @@ function validate(
   scopeKeys: Set<string>,
   exceptions: Map<string, string>,
 ): ValidationResult {
-  const result: ValidationResult = { errors: [], warnings: [], ok: 0 };
+  const result: ValidationResult = {
+    errors: [],
+    warnings: [],
+    staleExceptions: [],
+    ok: 0,
+  };
 
   for (const entry of endpoints) {
     const hasScope = scopeKeys.has(entry.key);
@@ -257,6 +270,15 @@ function validate(
     }
   }
 
+  // An exception that excuses nothing would silently excuse the next
+  // regression on that key, so it has to go once the mismatch is fixed.
+  const excused = new Set(
+    result.warnings.filter((w) => w.excepted).map((w) => w.entry.key),
+  );
+  for (const [key, reason] of exceptions) {
+    if (!excused.has(key)) result.staleExceptions.push({ key, reason });
+  }
+
   return result;
 }
 
@@ -278,8 +300,9 @@ function printReport(
   console.log(`Aligned (OK):                 ${result.ok}`);
   console.log(`Errors:                       ${result.errors.length}`);
   console.log(
-    `Warnings:                     ${result.warnings.length} (${result.warnings.filter((w) => w.excepted).length} excepted)`,
+    `Auth without scope:           ${result.warnings.length} (${result.warnings.filter((w) => w.excepted).length} excepted)`,
   );
+  console.log(`Stale exceptions:             ${result.staleExceptions.length}`);
   console.log('');
 
   if (result.errors.length > 0) {
@@ -300,17 +323,16 @@ function printReport(
   const exceptedWarnings = result.warnings.filter((w) => w.excepted);
 
   if (activeWarnings.length > 0) {
+    console.log('--- ERRORS (requiresAuth=true but no scope entry) ---');
     console.log(
-      '--- WARNINGS (requiresAuth=true but no scope entry) ---',
+      '  The token is sent, but the generated scope map lists no scope (DES-04).',
     );
     console.log(
-      '  These may be legitimate (some endpoints need auth without specific scopes).',
+      '  Fix the definition, or record a genuine lag in the generated map in',
     );
-    console.log(
-      '  Add to auth-scope-exceptions.json if intentional.\n',
-    );
+    console.log('  auth-scope-exceptions.json with a reason.\n');
     for (const w of activeWarnings) {
-      console.log(`  [WARN] ${w.entry.name} in ${w.entry.file}`);
+      console.log(`  [ERROR] ${w.entry.name} in ${w.entry.file}`);
       console.log(`    Key:  ${w.entry.key}`);
       console.log(`    Path: ${w.entry.rawPath}`);
       console.log('');
@@ -320,14 +342,27 @@ function printReport(
   if (exceptedWarnings.length > 0) {
     console.log('--- EXCEPTED WARNINGS ---');
     for (const w of exceptedWarnings) {
-      console.log(
-        `  [OK] ${w.entry.key} -- ${w.exceptionReason}`,
-      );
+      console.log(`  [OK] ${w.entry.key} -- ${w.exceptionReason}`);
     }
     console.log('');
   }
 
-  if (result.errors.length === 0 && activeWarnings.length === 0) {
+  if (result.staleExceptions.length > 0) {
+    console.log('--- ERRORS (stale exceptions) ---');
+    console.log(
+      '  These keys no longer excuse a mismatch; remove them from auth-scope-exceptions.json.\n',
+    );
+    for (const s of result.staleExceptions) {
+      console.log(`  [ERROR] ${s.key} -- ${s.reason}`);
+    }
+    console.log('');
+  }
+
+  if (
+    result.errors.length === 0 &&
+    activeWarnings.length === 0 &&
+    result.staleExceptions.length === 0
+  ) {
     console.log('All endpoints pass auth/scope cross-validation.\n');
   }
 
@@ -354,7 +389,12 @@ function main(): void {
   const result = validate(endpoints, scopeKeys, exceptions);
   printReport(result, endpoints.length, scopeKeys.size);
 
-  if (result.errors.length > 0) {
+  const unexcused = result.warnings.filter((w) => !w.excepted).length;
+  if (
+    result.errors.length > 0 ||
+    unexcused > 0 ||
+    result.staleExceptions.length > 0
+  ) {
     process.exit(1);
   }
 

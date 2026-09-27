@@ -34,6 +34,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 
 - **2026-09-27, nothing built at import (Phase 4 item 3).** ARCH-06 moves from Gap to Enforced: the default logger builds its pino instance on first use, `package.json` declares `"sideEffects": false`, and `tests/tdd/core/importSideEffects.test.ts` holds both ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
 - **2026-09-27, nightlies file issues (Phase 5 item 3).** `nightly-mutation.yml` and `nightly-schemathesis.yml` now open or comment on one fixed-title issue on failure and close it on the next green night, the pattern `nightly-spec-drift.yml` uses; gap register row 16 is Done ([#277](https://github.com/lgriffin/ESI.ts/issues/277)). GATE-05 stays Partial: the no-retry, interleaving and consumer-matrix nightlies still only fail the run.
+- **2026-09-27, CI matches the gate matrix (Phase 5 item 1, [#297](https://github.com/lgriffin/ESI.ts/issues/297)).** `validate-release` now runs `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests (503 soft-skips), with the shrink-only ratchets compared against the previous release tag (the job fails when none resolves). `validate:esi` and `validate:spec` run in `static-analysis` on every pull request, blocking when the pull request touches their inputs; `validate:versions` already ran in the release gate. The generated-freshness diff covers every `src/core/endpoints/esi-*.generated.ts`, so the rate-limit-group and scope files are diffed in CI, at release and nightly (ARCH-01). `validate:auth-scopes` fails both directions of DES-04 and on a stale exception; the fourteen stale entries in `scripts/auth-scope-exceptions.json` are removed. The pull-request contract step gains `pipefail`, without which its `if` read `tee`'s status and a failing live suite passed. The documentation job and `example:sde-cross-ref` were already fixed on master. Gap register row 25 is done.
 
 ### 11.0.0
 
@@ -168,14 +169,14 @@ Configuration and plumbing faults (`NO_AUTH_TOKEN`, `CONFIGURATION_ERROR`, `JSON
 The library **shall** derive response types, cache TTLs, rate-limit groups and endpoint scopes from the live ESI OpenAPI specification and commit the generated output.
 
 - **Why:** CCP changes ESI on its own schedule. Generated metadata is the only way to keep 235 endpoints honest.
-- **Verified by:** `npm run generate:types` then `git diff --exit-code` on `src/types/generated/` and `esi-cache-ttls.generated.ts` in CI and the release gate. The PR check fails only when a PR touches the generator inputs and warns otherwise; the rate-limit-group and scope files are not diffed yet. `spec:generate:check` does the same for the generated operations.
+- **Verified by:** `npm run generate:types` then `git diff --exit-code` on `src/types/generated/` and every `src/core/endpoints/esi-*.generated.ts` (cache TTLs, rate-limit groups, scopes) in CI, the release gate and the nightly spec-drift run. The PR check fails only when a PR touches the generator inputs and warns otherwise. `spec:generate:check` does the same for the generated operations, on pull requests and at release.
 
 #### ARCH-02 · Ubiquitous · Enforced
 
 Every endpoint exposed by a domain client **shall** be declared in exactly one `*Endpoints.ts` definition map that names its path, method, authentication requirement and response schema.
 
 - **Why:** The definition is the contract. `createClient`, the contract tests, the scope validator and the OKF bundle all read from it.
-- **Verified by:** `npm run validate:esi`, `npm run validate:auth-scopes`, `tests/contract/`.
+- **Verified by:** `npm run validate:esi` and `npm run validate:auth-scopes` in the CI static-analysis job and the release gate, `tests/contract/`.
 
 #### ARCH-03 · Ubiquitous · Practised
 
@@ -276,7 +277,7 @@ Files ending in `.generated.ts`, the `okf/` bundle and `etc/esi.ts.api.md` **sha
 An endpoint definition **shall** declare `requiresAuth: true` if and only if the generated scope map lists at least one scope for it.
 
 - **Why:** The bearer token is attached only when `requiresAuth` is set. A mismatch either leaks a token or breaks a call.
-- **Verified by:** `npm run validate:auth-scopes` in the CI static-analysis job.
+- **Verified by:** `npm run validate:auth-scopes` in the CI static-analysis job and the release gate; both directions exit 1, and so does an entry in `scripts/auth-scope-exceptions.json` that no longer excuses a mismatch.
 
 #### DES-05 · Event-driven · Practised
 
@@ -420,31 +421,35 @@ Where the client deliberately does not act on an ESI behaviour (a status, a head
 
 What runs where. ● blocks; ◐ runs but does not block; · does not run.
 
-| Check                                                           | Commit | Push |             PR              |        Nightly         | Release  |
-| --------------------------------------------------------------- | :----: | :--: | :-------------------------: | :--------------------: | :------: |
-| lint-staged: ESLint fix + Prettier                              |   ●    |  ·   |              ·              |           ·            |    ·     |
-| commitlint (conventional commits)                               |   ●    |  ·   |              ·              |           ·            |    ·     |
-| ESLint, Prettier check, build, typecheck, examples typecheck    |   ·    |  ●   |              ●              |           ·            |    ●     |
-| lint:layers, lint:bdd-seam, lint:suite-health                   |   ·    |  ●   |              ●              |           ·            |    ·     |
-| lint:determinism                                                |   ·    |  ·   |              ●              |           ·            |    ·     |
-| Unit tests + BDD (`npm test`)                                   |   ·    | ● 20 |         ● 18/20/22          |           ·            |    ●     |
-| Coverage thresholds + PR comment                                |   ·    |  ·   |              ●              |           ·            |    ·     |
-| EARS spec audit, BDD report                                     |   ·    |  ·   |              ●              |           ·            |    ·     |
-| Generated types and operations fresh, schema drift, auth scopes |   ·    |  ·   | ● if inputs touched, else ◐ |     ◐ files issue      |    ●     |
-| Contract replay, fault catalogue, fuzz, integration, type tests |   ·    |  ·   |              ●              |           ◐            |    ●     |
-| API surface diff (api-extractor) and api-semver                 |   ·    |  ·   |              ●              |           ·            |    ·     |
-| Export coverage, package lint (publint, attw), size-limit       |   ·    |  ·   |              ●              |           ·            |    ·     |
-| Consumer contract (Node 18/20/22/24), doc examples              |   ·    |  ·   |              ●              |   ◐ consumer matrix    |    ·     |
-| TypeDoc build                                                   |   ·    |  ·   |              ●              |           ·            |    ·     |
-| Benchmarks A/B                                                  |   ·    |  ·   |              ●              |           ◐            |    ·     |
-| Dependency audit (diff-aware / allowlist)                       |   ·    |  ·   |      ● new advisories       |     ◐ files issue      | ● ≥ high |
-| knip dead-code                                                  |   ·    |  ·   |              ◐              |           ·            |    ◐     |
-| CodeQL                                                          |   ·    |  ●   |              ●              |        ● weekly        |    ·     |
-| zizmor (workflow security), workflow lint                       |   ·    |  ·   |              ●              |           ·            |    ·     |
-| Stryker mutation                                                |   ·    |  ·   |       ● changed files       | ◐ ratchet, files issue |    ·     |
-| Schemathesis API fuzz                                           |   ·    |  ·   |              ·              |     ◐ files issue      |    ·     |
-| Spec drift, faults, properties, examples, recorded payloads     |   ·    |  ·   |              ·              |     ◐ files issue      |    ·     |
-| OpenSSF Scorecard                                               |   ·    |  ·   |              ·              |        ◐ weekly        |    ·     |
+| Check                                                           | Commit | Push |             PR              |        Nightly         |  Release  |
+| --------------------------------------------------------------- | :----: | :--: | :-------------------------: | :--------------------: | :-------: |
+| lint-staged: ESLint fix + Prettier                              |   ●    |  ·   |              ·              |           ·            |     ·     |
+| commitlint (conventional commits)                               |   ●    |  ·   |              ·              |           ·            |     ·     |
+| ESLint, Prettier check, build, typecheck, examples typecheck    |   ·    |  ●   |              ●              |           ·            |     ●     |
+| lint:layers, lint:bdd-seam, lint:suite-health                   |   ·    |  ●   |              ●              |           ·            |     ·     |
+| lint:determinism                                                |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Unit tests + BDD (`npm test`)                                   |   ·    | ● 20 |         ● 18/20/22          |           ·            |     ●     |
+| Coverage thresholds + PR comment                                |   ·    |  ·   |              ●              |           ·            |     ·     |
+| EARS spec audit, BDD report                                     |   ·    |  ·   |              ●              |           ·            |     ●     |
+| Generated types and operations fresh, schema drift, auth scopes |   ·    |  ·   | ● if inputs touched, else ◐ |     ◐ files issue      |     ●     |
+| Endpoint definitions against the spec (`validate:esi`)          |   ·    |  ·   | ● if inputs touched, else ◐ |           ·            |     ●     |
+| Redocly lint of the ESI spec (`validate:spec`)                  |   ·    |  ·   | ● if inputs touched, else ◐ |           ·            |     ·     |
+| Version consistency (`validate:versions`)                       |   ·    |  ·   |              ·              |           ·            |     ●     |
+| Live contract tests                                             |   ·    |  ·   |          ● (503 ◐)          |        ◐ weekly        | ● (503 ◐) |
+| Contract replay, fault catalogue, fuzz, integration, type tests |   ·    |  ·   |              ●              |           ◐            |     ●     |
+| API surface diff (api-extractor) and api-semver                 |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Export coverage, package lint (publint, attw), size-limit       |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Consumer contract (Node 18/20/22/24), doc examples              |   ·    |  ·   |              ●              |   ◐ consumer matrix    |     ·     |
+| TypeDoc build                                                   |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Benchmarks A/B                                                  |   ·    |  ·   |              ●              |           ◐            |     ·     |
+| Dependency audit (diff-aware / allowlist)                       |   ·    |  ·   |      ● new advisories       |     ◐ files issue      | ● ≥ high  |
+| knip dead-code                                                  |   ·    |  ·   |              ◐              |           ·            |     ◐     |
+| CodeQL                                                          |   ·    |  ●   |              ●              |        ● weekly        |     ·     |
+| zizmor (workflow security), workflow lint                       |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Stryker mutation                                                |   ·    |  ·   |       ● changed files       | ◐ ratchet, files issue |     ·     |
+| Schemathesis API fuzz                                           |   ·    |  ·   |              ·              |     ◐ files issue      |     ·     |
+| Spec drift, faults, properties, examples, recorded payloads     |   ·    |  ·   |              ·              |     ◐ files issue      |     ·     |
+| OpenSSF Scorecard                                               |   ·    |  ·   |              ·              |        ◐ weekly        |     ·     |
 
 #### GATE-01 · Ubiquitous · Enforced
 
@@ -696,14 +701,14 @@ Every commit on `master` **shall** follow the conventional-commit format so that
 A release **shall** publish only after lint, format, audit allowlist, changelog presence, build, schema drift, generated-type freshness and the full test suite pass on the tag.
 
 - **Why:** The tag is the last place to stop a bad build.
-- **Verified by:** `release.yml` `validate-release` job.
+- **Verified by:** `release.yml` `validate-release` job, which also runs `validate:versions`, `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests.
 
 #### REL-03 · Ubiquitous · Partial
 
 The version string **shall** be identical in `package.json`, `src/core/constants.ts`, the README banner and the docs-site version selector.
 
 - **Why:** The first two are checked. The README banner (v9.5.2) and the site selector (v9.6.1) have lagged the package by a major.
-- **Verified by:** `scripts/validate-versions.ts`; extend to markdown and the VitePress config, or remove the banners.
+- **Verified by:** `scripts/validate-versions.ts`, run by `validate-release`; extend to markdown and the VitePress config, or remove the banners.
 
 #### REL-04 · Unwanted · Gap
 
@@ -806,7 +811,7 @@ Everything found during the survey, and since, that contradicts a requirement ab
 | 22  | HIGH | Release pipeline broken: release-please GraphQL failure, cosign `--bundle`, token trigger, version marker                       | REL-02, SEC-04            | **Done**: cosign 3 bundle, `x-release-please-version` marker; the remaining trigger problems are row 30                                                                           | `esi-l38.5`  | [#294](https://github.com/lgriffin/ESI.ts/issues/294)                                                        |
 | 23  | MED  | Validation errors retryable, network faults untyped, safe mode and token refresh collapse types                                 | ARCH-07                   | **Done**: typed classes ([#470](https://github.com/lgriffin/ESI.ts/pull/470))                                                                                                     | `esi-l38.6`  | [#295](https://github.com/lgriffin/ESI.ts/issues/295)                                                        |
 | 24  | MED  | Log lines carry unsanitised URLs; several call sites bypass the per-client logger                                               | SEC-02, ARCH-09           | **Done**: `sanitizeUrl` at the logger boundary; rate limiter, cache, batch and token manager migrated                                                                             | `esi-l38.7`  | [#296](https://github.com/lgriffin/ESI.ts/issues/296)                                                        |
-| 25  | MED  | CI does not match the gate matrix: release gate, never-run validators, dead docs job, freshness diff                            | GATE-01..06, REL-02       | Align workflows with Part 5; Phase 5                                                                                                                                              | `esi-l38.8`  | [#297](https://github.com/lgriffin/ESI.ts/issues/297)                                                        |
+| 25  | MED  | CI does not match the gate matrix: release gate, never-run validators, dead docs job, freshness diff                            | GATE-01..06, REL-02       | **Done**: release gate runs the charter's validators; `validate:esi` and `validate:spec` wired; freshness diff covers every `esi-*.generated.ts`                                  | `esi-l38.8`  | [#297](https://github.com/lgriffin/ESI.ts/issues/297)                                                        |
 | 26  | MED  | Endpoints returning a body lack `responseSchema`                                                                                | DES-02                    | **Done**: `spec:response-schemas` ([#471](https://github.com/lgriffin/ESI.ts/pull/471))                                                                                           | `esi-l38.9`  | [#298](https://github.com/lgriffin/ESI.ts/issues/298)                                                        |
 | 27  | LOW  | Charter revision 1 carried factual errors found while writing the guides                                                        | DOC-01                    | **Done in revision 2**                                                                                                                                                            | `esi-l38.10` | [#299](https://github.com/lgriffin/ESI.ts/issues/299)                                                        |
 | 28  | LOW  | Minor defects: `schema:drift` pairing, half-open extra probe, unused `clientId`, TEST-03 spy                                    | several                   | **Done**                                                                                                                                                                          | `esi-l38.11` | [#300](https://github.com/lgriffin/ESI.ts/issues/300)                                                        |

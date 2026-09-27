@@ -52,6 +52,19 @@ describe('generated artefacts match the compatibility date the client sends', ()
   });
 });
 
+describe('redocly.yaml lints the spec the client asks for', () => {
+  // YAML cannot import the constant, so `npm run validate:spec` would keep
+  // linting a stale document after COMPATIBILITY_DATE moves.
+  it('pins its spec URL to COMPATIBILITY_DATE', () => {
+    const config = readFileSync(path.join(ROOT, 'redocly.yaml'), 'utf8');
+    const dates = [...config.matchAll(/compatibility_date=([\d-]+)/g)].map(
+      (m) => m[1],
+    );
+    expect(dates.length).toBeGreaterThan(0);
+    expect(dates.every((d) => d === COMPATIBILITY_DATE)).toBe(true);
+  });
+});
+
 describe('recordedDate', () => {
   it('reads the header the generator writes', () => {
     expect(recordedDate(GENERATED[0] as string)).toBe(COMPATIBILITY_DATE);

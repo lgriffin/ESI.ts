@@ -66,13 +66,13 @@ jobs:
         run: |
           set +e
           if npm run generate:types 2>&1 | tee /tmp/gen-types.log; then
-            if git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts > /dev/null 2>&1; then
+            if git diff --exit-code src/types/generated/ 'src/core/endpoints/esi-*.generated.ts' > /dev/null 2>&1; then
               echo "stale=false" >> "$GITHUB_OUTPUT"
             else
               echo "stale=true" >> "$GITHUB_OUTPUT"
               {
                 echo "diff<<EOFDIFF"
-                git diff --stat src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts
+                git diff --stat src/types/generated/ 'src/core/endpoints/esi-*.generated.ts'
                 echo "EOFDIFF"
               } >> "$GITHUB_OUTPUT"
             fi

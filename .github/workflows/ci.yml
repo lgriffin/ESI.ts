@@ -106,9 +106,9 @@ jobs:
   static-analysis:
     name: Static Analysis
     runs-on: ubuntu-latest
-    # The generated-types and schema-drift checks compare the repository with
-    # the live ESI spec, so, like `npm audit`, they can go red on a pull
-    # request that changed nothing they read. Each one blocks only when the
+    # The generated-types, schema-drift, endpoint and spec-lint checks compare
+    # the repository with the live ESI spec, so, like `npm audit`, they can go
+    # red on a pull request that changed nothing they read. Each one blocks only when the
     # pull request touches its inputs. Otherwise a failure is drift that
     # already exists on the base branch: it is downgraded to a warning, and
     # nightly-spec-drift.yml files it as a `spec-drift` issue.
@@ -136,10 +136,14 @@ jobs:
             if git diff --quiet HEAD^1 HEAD -- "$@"; then echo false; else echo true; fi
           }
           {
-            echo "types=$(touches scripts/generate-esi-types.ts src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts)"
+            echo "types=$(touches scripts/generate-esi-types.ts src/types/generated/ 'src/core/endpoints/esi-*.generated.ts')"
             echo "schemas=$(touches scripts/generate-schema-drift-report.ts scripts/schema-drift-core.ts scripts/schema-drift-baseline.json scripts/schema-drift-exceptions.json src/schemas/ src/core/endpoints/ package-lock.json)"
+            echo "endpoints=$(touches scripts/validate-esi-endpoints.ts src/core/endpoints/ src/core/constants.ts package.json)"
+            echo "speclint=$(touches redocly.yaml package.json package-lock.json)"
           } | tee -a "$GITHUB_OUTPUT"
 
+      # Every file generate:types writes: the types, and the TTL, rate-limit
+      # group and scope tables (ARCH-01).
       - name: Verify generated types are up to date
         env:
           TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.types }}
@@ -147,7 +151,7 @@ jobs:
           set -o pipefail
           problem=""
           if npm run generate:types 2>&1 | tee /tmp/gen-types.log; then
-            if ! git diff --exit-code src/types/generated/ src/core/endpoints/esi-cache-ttls.generated.ts; then
+            if ! git diff --exit-code src/types/generated/ 'src/core/endpoints/esi-*.generated.ts'; then
               problem="Generated types are stale — run 'npm run generate:types' and commit the result"
             fi
           elif grep -q "HTTP 503" /tmp/gen-types.log; then
@@ -204,6 +208,47 @@ jobs:
 
       - name: Validate auth/scope alignment
         run: npm run validate:auth-scopes
+
+      # ARCH-02: every endpoint definition's method agrees with the spec at the
+      # compatibility date the client sends (COMPATIBILITY_DATE).
+      - name: Validate endpoint definitions against the ESI spec
+        env:
+          TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.endpoints }}
+        run: |
+          set -o pipefail
+          problem=""
+          if npm run validate:esi 2>&1 | tee /tmp/validate-esi.log; then
+            true
+          elif grep -q "HTTP 503" /tmp/validate-esi.log; then
+            echo "::warning::ESI API returned 503 — skipping endpoint validation"
+          else
+            problem="An endpoint definition disagrees with the ESI spec, or the check is broken — run 'npm run validate:esi' to review"
+          fi
+
+          if [ -z "$problem" ]; then exit 0; fi
+          if [ "$TOUCHES_INPUTS" = "true" ]; then
+            echo "::error::$problem"
+            exit 1
+          fi
+          echo "::warning::$problem. This pull request does not touch the endpoint definitions or the script, so the disagreement is already on the base branch."
+          echo "Endpoint definitions disagree with the live ESI spec (pre-existing, not blocking)." >> "$GITHUB_STEP_SUMMARY"
+
+      # Redocly lint of the ESI document at COMPATIBILITY_DATE
+      # (redocly.yaml). It reads nothing in src/, so it blocks only when the
+      # pull request changes its configuration or the Redocly version.
+      - name: Lint the ESI spec (Redocly)
+        env:
+          TOUCHES_INPUTS: ${{ steps.spec-inputs.outputs.speclint }}
+        run: |
+          set -o pipefail
+          if npm run validate:spec 2>&1 | tee /tmp/validate-spec.log; then exit 0; fi
+          problem="Redocly lint of the ESI spec failed — run 'npm run validate:spec' to review"
+          if [ "$TOUCHES_INPUTS" = "true" ]; then
+            echo "::error::$problem"
+            exit 1
+          fi
+          echo "::warning::$problem. This pull request does not touch redocly.yaml, package.json or the lockfile, so the failure comes from ESI or the network."
+          echo "Redocly lint of the ESI spec failed (not caused by this pull request, not blocking)." >> "$GITHUB_STEP_SUMMARY"
 
   unit-tests:
     name: Unit Tests (Node ${{ matrix.node-version }})
@@ -378,8 +423,11 @@ jobs:
 
       # contract:live, not contract: if ESI_LIVE_TESTS were dropped from env below,
       # `contract` would skip every suite and pass. contract:live throws instead.
+      # pipefail: without it the `if` reads tee's status, so a failing suite
+      # would pass.
       - name: Run contract tests
         run: |
+          set -o pipefail
           if npm run contract:live 2>&1 | tee /tmp/contract.log; then
             true
           elif grep -q "HTTP 503" /tmp/contract.log; then
