@@ -3,7 +3,7 @@
   "call": {
     "client": "freelanceJobs",
     "method": "getFreelanceJobById",
-    "args": ["30740f7d-169d-4ddd-a516-7625c2ae8912"]
+    "args": ["05a5c1e2-f7ff-48d9-8015-2b0140ad0179"]
   },
   "recordedAt": "2026-09-27",
   "compatibilityDate": "2026-08-18",
@@ -15,84 +15,110 @@
       "page": 1,
       "at": "$.details.description",
       "kind": "string",
-      "original": 744,
+      "original": 526,
       "kept": 400
+    },
+    {
+      "page": 1,
+      "at": "$.configuration.parameters.fw_complex_type.matcher.values[].values",
+      "kind": "array",
+      "original": 4,
+      "kept": 3
+    },
+    {
+      "page": 1,
+      "at": "$.configuration.parameters.location.matcher.values[].values",
+      "kind": "array",
+      "original": 5,
+      "kept": 3
     }
   ],
   "pages": [
     {
-      "url": "freelance-jobs/30740f7d-169d-4ddd-a516-7625c2ae8912",
+      "url": "freelance-jobs/05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=60",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:01:20 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:55:16 GMT"
+        "expires": "Sun, 27 Sep 2026 04:27:01 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:25:25 GMT"
       },
       "body": {
-        "id": "30740f7d-169d-4ddd-a516-7625c2ae8912",
-        "name": "SAT - Combat Air Patrol",
+        "id": "05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
+        "name": "Gallente Federation Day Contest 2026",
         "state": "Active",
-        "last_modified": "2026-09-27T03:55:16.234Z",
+        "last_modified": "2026-09-27T04:25:25.855Z",
         "progress": {
-          "current": 13135,
+          "current": 14306,
           "desired": 50000
         },
         "reward": {
-          "initial": 50000000,
-          "remaining": 36865000
+          "initial": 500000000,
+          "remaining": 356940000
         },
         "details": {
-          "description": "<font size=\"14\" color=\"#bfffffff\"><br></font><font size=\"14\" color=\"#ffd98d00\"><a href=\"recruitmentAd:224734549//182334\">SAT Systems Mining</a></font><font size=\"14\" color=\"#bfffffff\"> <br><br>SAT Systems Mining Corporation seeks bold combat pilots to shield our supply lines, hunt down marauding rats, and secure vital systems — join the frontline and earn while you learn.<br><br>Responsibilities:<",
-          "career": "Enforcer",
-          "created": "2026-09-11T20:37:50.504Z",
-          "expires": "2026-10-11T20:30:00Z",
+          "description": "<font size=\"14\" color=\"#bfffffff\">Objective:<br>Capture as many Plex as you can for the Federation<br>1st Place: 1 Billion ISK<br>2nd Place: 500 Million ISK<br>3rd &amp; 4th Place: 250 Million ISK<br>5th Place:<br>1x Vexor Navy Issue (VNI)<br>1x Exequror Navy Issue (ENI) Hull<br>6th–10th Place:<br>1x Federation Navy Comet Hull<br><br>Get out there and fight for the Federation!<br>Sponsored by The ",
+          "career": "Soldier of Fortune",
+          "created": "2026-06-19T18:55:23.655Z",
+          "expires": "2026-09-29T18:45:00Z",
           "creator": {
             "character": {
-              "id": 520308510,
-              "name": "Koudo"
+              "id": 1291547703,
+              "name": "Makaze Koufu"
             },
             "corporation": {
-              "id": 224734549,
-              "name": "SAT Systems Mining Corporation"
+              "id": 98755099,
+              "name": "The Wandering Inn"
             }
           }
         },
         "configuration": {
           "version": 1,
           "parameters": {
+            "empire_faction": {
+              "matcher": {
+                "values": [
+                  {
+                    "value_type": "faction",
+                    "values": ["500004"]
+                  }
+                ]
+              }
+            },
+            "fw_complex_type": {
+              "matcher": {
+                "values": [
+                  {
+                    "value_type": "archetype",
+                    "values": ["33", "35", "34"]
+                  }
+                ]
+              }
+            },
             "location": {
               "matcher": {
                 "values": [
                   {
                     "value_type": "region",
-                    "values": ["10000037"]
+                    "values": ["10000069", "10000064", "10000048"]
                   }
                 ]
               }
             }
           },
-          "method": "KillNPC"
+          "method": "CaptureFWComplex"
         },
         "contribution": {
           "max_committed_participants": 10000,
-          "reward_per_contribution": 1000,
+          "reward_per_contribution": 10000,
           "submission_multiplier": 1
         },
         "access_and_visibility": {
           "acl_protected": false,
           "broadcast_locations": [
             {
-              "id": 30003017,
-              "name": "Harerget"
-            },
-            {
-              "id": 30003010,
-              "name": "Halle"
-            },
-            {
-              "id": 30100035,
-              "name": "Forte"
+              "id": 30003788,
+              "name": "Intaki"
             }
           ]
         }

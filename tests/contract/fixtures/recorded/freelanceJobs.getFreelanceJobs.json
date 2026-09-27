@@ -26,50 +26,54 @@
       "headers": {
         "cache-control": "public, max-age=0, must-revalidate",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:00:20 GMT"
+        "expires": "Sun, 27 Sep 2026 04:26:00 GMT"
       },
       "body": {
         "cursor": {
-          "before": "1.GNkRRU8oGzQ=",
-          "after": "1.GNkRi4R_txA="
+          "before": "1.GNkS6qT2pLw=",
+          "after": "1.GNkS8XtMhkg="
         },
         "freelance_jobs": [
-          {
-            "id": "30740f7d-169d-4ddd-a516-7625c2ae8912",
-            "name": "SAT - Combat Air Patrol",
-            "state": "Active",
-            "last_modified": "2026-09-27T03:55:16.234Z",
-            "progress": {
-              "current": 13135,
-              "desired": 50000
-            },
-            "reward": {
-              "initial": 50000000,
-              "remaining": 36865000
-            }
-          },
-          {
-            "id": "1af146ea-9b48-4418-82d6-d0641bc59b5b",
-            "name": "..::Mining-Race::.. ❤ FREE REWARDS ❤",
-            "state": "Active",
-            "last_modified": "2026-09-27T03:59:23.917Z",
-            "progress": {
-              "current": 8326024,
-              "desired": 1000000000000000000
-            }
-          },
           {
             "id": "05a5c1e2-f7ff-48d9-8015-2b0140ad0179",
             "name": "Gallente Federation Day Contest 2026",
             "state": "Active",
-            "last_modified": "2026-09-27T04:00:09.944Z",
+            "last_modified": "2026-09-27T04:25:25.855Z",
             "progress": {
-              "current": 14304,
+              "current": 14306,
               "desired": 50000
             },
             "reward": {
               "initial": 500000000,
-              "remaining": 356960000
+              "remaining": 356940000
+            }
+          },
+          {
+            "id": "d949b957-bd25-497c-9441-4c536e13f244",
+            "name": "New Player Support Program by \"Tenebris Academy\"",
+            "state": "Active",
+            "last_modified": "2026-09-27T04:25:33.521Z",
+            "progress": {
+              "current": 116702,
+              "desired": 175000
+            },
+            "reward": {
+              "initial": 700000000,
+              "remaining": 233192000
+            }
+          },
+          {
+            "id": "115ab093-5347-48ea-a850-757ed574d8ea",
+            "name": "New Player Support Program by \"Tenebris Academy\"",
+            "state": "Active",
+            "last_modified": "2026-09-27T04:25:34.082Z",
+            "progress": {
+              "current": 49063,
+              "desired": 190000
+            },
+            "reward": {
+              "initial": 760000000,
+              "remaining": 563748000
             }
           }
         ]

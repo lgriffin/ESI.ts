@@ -68,7 +68,7 @@
       "headers": {
         "cache-control": "public, max-age=600",
         "content-type": "application/json",
-        "expires": "Sun, 27 Sep 2026 04:09:55 GMT"
+        "expires": "Sun, 27 Sep 2026 04:35:37 GMT"
       },
       "body": {
         "changelog": {

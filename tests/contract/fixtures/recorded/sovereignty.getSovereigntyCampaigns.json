@@ -26,17 +26,17 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"17e680808ec2380f122ae43aae2f1843480daaece5830360496871e5\"",
-        "expires": "Sun, 27 Sep 2026 04:00:21 GMT",
-        "last-modified": "Sun, 27 Sep 2026 04:00:16 GMT"
+        "etag": "\"b3cf019c2adbc92d2c3a9a083eb797b6e6bf3acb64ef9f4a8e79c99c\"",
+        "expires": "Sun, 27 Sep 2026 04:26:02 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:25:57 GMT"
       },
       "body": [
         {
-          "attackers_score": 0.4,
+          "attackers_score": 0.61,
           "campaign_id": 112206,
           "constellation_id": 20000227,
           "defender_id": 99015215,
-          "defender_score": 0.6,
+          "defender_score": 0.39,
           "event_type": "ihub_defense",
           "solar_system_id": 30001546,
           "start_time": "2026-09-27T03:25:02Z",

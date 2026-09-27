@@ -3,7 +3,7 @@
   "call": {
     "client": "cosmetics",
     "method": "getSkinr",
-    "args": ["245b561c20476bb6a8a8bc5b3c2ca86afe1b91de02bf4d7f91620d7aebb49563"]
+    "args": ["5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd"]
   },
   "recordedAt": "2026-09-27",
   "compatibilityDate": "2026-08-18",
@@ -21,22 +21,23 @@
   ],
   "pages": [
     {
-      "url": "cosmetics/skinr/245b561c20476bb6a8a8bc5b3c2ca86afe1b91de02bf4d7f91620d7aebb49563",
+      "url": "cosmetics/skinr/5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
       "status": 200,
       "headers": {
         "cache-control": "public, max-age=31536000, immutable, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"cd0a4382e2fd0c49c92727a3b3f9903606f1ec24f11aa7b2c4edac84990d5c70\"",
-        "expires": "Mon, 27 Sep 2027 04:00:21 GMT",
-        "last-modified": "Wed, 23 Sep 2026 12:08:32 GMT"
+        "etag": "W/\"b863a4e02c71c9c127228fc0a7eed6758e65814440bc7397b92a7e2024dcc46e\"",
+        "expires": "Mon, 27 Sep 2027 04:26:02 GMT",
+        "last-modified": "Wed, 23 Sep 2026 09:45:52 GMT"
       },
       "body": {
-        "id": "245b561c20476bb6a8a8bc5b3c2ca86afe1b91de02bf4d7f91620d7aebb49563",
-        "name": "Tor's Miasmos Hauler",
-        "creator_id": 2123610356,
-        "ship_type_id": 12743,
+        "id": "5ad758a15e0bdfe1dff831b138068f4fabacb28ad94a7527073b818b566383fd",
+        "name": "Sun God Ra Avatar",
+        "line": "Uglyyoda Designs",
+        "creator_id": 2119597578,
+        "ship_type_id": 11567,
         "tier": {
-          "level": 8
+          "level": 15
         },
         "layout": {
           "slots": [
@@ -44,7 +45,7 @@
               "id": 1,
               "configuration": {
                 "nanocoating": {
-                  "id": 1787
+                  "id": 1917
                 }
               }
             },
@@ -52,7 +53,7 @@
               "id": 2,
               "configuration": {
                 "nanocoating": {
-                  "id": 205
+                  "id": 1873
                 }
               }
             },
@@ -60,7 +61,7 @@
               "id": 3,
               "configuration": {
                 "nanocoating": {
-                  "id": 1133
+                  "id": 1917
                 }
               }
             },
@@ -68,7 +69,7 @@
               "id": 5,
               "configuration": {
                 "pattern": {
-                  "id": 1923,
+                  "id": 1700,
                   "configuration": {
                     "projection": {
                       "slot1": true,
@@ -78,23 +79,23 @@
                     },
                     "transform": {
                       "position": {
-                        "x": 0.1389770209789276,
-                        "y": 220.83375549316406,
-                        "z": 171.976806640625
+                        "x": -8717.140625,
+                        "y": 1200.8851318359375,
+                        "z": -13588.4052734375
                       },
                       "rotation": {
-                        "x": -0.23317213356494904,
-                        "y": -0.23373307287693024,
-                        "z": 0.6675485968589783,
-                        "w": -0.6673523783683777
+                        "x": 0.00528407096862793,
+                        "y": 0.14416170120239258,
+                        "z": 0.04638645425438881,
+                        "w": -0.9884424209594727
                       },
                       "scaling": {
-                        "x": 47.5,
-                        "y": 47.5,
-                        "z": 47.5
+                        "x": 2493.9217981663805,
+                        "y": 2493.9217981663805,
+                        "z": 2493.9217981663805
                       }
                     },
-                    "mirrored": false
+                    "mirrored": true
                   }
                 }
               }

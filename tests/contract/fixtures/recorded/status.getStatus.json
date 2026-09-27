@@ -18,13 +18,13 @@
       "headers": {
         "cache-control": "public, max-age=30, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
-        "etag": "W/\"630cd99f61b5c3ad42587d0ef4f4ef946201e1397050e46c1ed2e5e58307533e\"",
-        "expires": "Sun, 27 Sep 2026 04:00:24 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:59:49 GMT"
+        "etag": "W/\"148caca5c1670cceaea8135b2a6d67f997100f1f7890d7baad047f1f50b95985\"",
+        "expires": "Sun, 27 Sep 2026 04:26:06 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:25:32 GMT"
       },
       "body": {
         "server_version": "3542233",
-        "players": 22036,
+        "players": 21621,
         "vip": false,
         "start_time": "2026-09-26T11:03:07Z"
       }

@@ -19,8 +19,8 @@
         "cache-control": "public, max-age=3600, must-revalidate, stale-if-error=900",
         "content-type": "application/json",
         "etag": "W/\"8fa9422f7167e8755a844eec6301036d09745a4911a3eb8663fad15dc4d0e960\"",
-        "expires": "Sun, 27 Sep 2026 04:59:56 GMT",
-        "last-modified": "Sun, 27 Sep 2026 03:23:38 GMT"
+        "expires": "Sun, 27 Sep 2026 05:25:38 GMT",
+        "last-modified": "Sun, 27 Sep 2026 04:24:11 GMT"
       },
       "body": {
         "creator_corporation_id": 109299958,

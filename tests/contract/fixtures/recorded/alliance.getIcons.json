@@ -18,7 +18,7 @@
       "headers": {
         "cache-control": "public",
         "content-type": "application/json; charset=UTF-8",
-        "etag": "\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
+        "etag": "W/\"913b3f4e2ed35371bed5a2ddb54a29f6451d6062f85c3490634a33b0\"",
         "expires": "Sun, 27 Sep 2026 11:05:00 GMT",
         "last-modified": "Sat, 26 Sep 2026 11:03:07 GMT"
       },
