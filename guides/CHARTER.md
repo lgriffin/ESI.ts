@@ -33,6 +33,7 @@ The governing statement of how ESI.ts is designed, built, tested, secured, docum
 - **2026-09-27, logging at the boundary (Phase 4 items 1 and 2).** ARCH-09 moves from Partial to Enforced: every call site logs through the per-client logger, and a `no-restricted-imports` block in `npm run lint` and `lint:layers` keeps the global `loggerUtil` out of `src/core/requestPipeline/` and `src/clients/` ([#265](https://github.com/lgriffin/ESI.ts/issues/265)). SEC-02 gains log lines to its evidence: URLs are redacted with `sanitizeUrl` at the logger boundary ([#296](https://github.com/lgriffin/ESI.ts/issues/296)). ARCH-06 stays a Gap until item 3.
 
 - **2026-09-27, nothing built at import (Phase 4 item 3).** ARCH-06 moves from Gap to Enforced: the default logger builds its pino instance on first use, `package.json` declares `"sideEffects": false`, and `tests/tdd/core/importSideEffects.test.ts` holds both ([#268](https://github.com/lgriffin/ESI.ts/issues/268)).
+- **2026-09-27, nightlies file issues (Phase 5 item 3).** `nightly-mutation.yml` and `nightly-schemathesis.yml` now open or comment on one fixed-title issue on failure and close it on the next green night, the pattern `nightly-spec-drift.yml` uses; gap register row 16 is Done ([#277](https://github.com/lgriffin/ESI.ts/issues/277)). GATE-05 stays Partial: the no-retry, interleaving and consumer-matrix nightlies still only fail the run.
 - **2026-09-27, CI matches the gate matrix (Phase 5 item 1, [#297](https://github.com/lgriffin/ESI.ts/issues/297)).** `validate-release` now runs `spec:generate:check`, `validate:auth-scopes`, `validate:esi`, `spec:audit`, `validate:spec-consistency`, `contract:replay`, the fault catalogue and the live contract tests (503 soft-skips), with the shrink-only ratchets compared against the previous release tag (the job fails when none resolves). `validate:esi` and `validate:spec` run in `static-analysis` on every pull request, blocking when the pull request touches their inputs; `validate:versions` already ran in the release gate. The generated-freshness diff covers every `src/core/endpoints/esi-*.generated.ts`, so the rate-limit-group and scope files are diffed in CI, at release and nightly (ARCH-01). `validate:auth-scopes` fails both directions of DES-04 and on a stale exception; the fourteen stale entries in `scripts/auth-scope-exceptions.json` are removed. The pull-request contract step gains `pipefail`, without which its `if` read `tee`'s status and a failing live suite passed. The documentation job and `example:sde-cross-ref` were already fixed on master. Gap register row 25 is done.
 
 ### 11.0.0
@@ -420,35 +421,35 @@ Where the client deliberately does not act on an ESI behaviour (a status, a head
 
 What runs where. ● blocks; ◐ runs but does not block; · does not run.
 
-| Check                                                           | Commit | Push |             PR              |      Nightly      |  Release  |
-| --------------------------------------------------------------- | :----: | :--: | :-------------------------: | :---------------: | :-------: |
-| lint-staged: ESLint fix + Prettier                              |   ●    |  ·   |              ·              |         ·         |     ·     |
-| commitlint (conventional commits)                               |   ●    |  ·   |              ·              |         ·         |     ·     |
-| ESLint, Prettier check, build, typecheck, examples typecheck    |   ·    |  ●   |              ●              |         ·         |     ●     |
-| lint:layers, lint:bdd-seam, lint:suite-health                   |   ·    |  ●   |              ●              |         ·         |     ·     |
-| lint:determinism                                                |   ·    |  ·   |              ●              |         ·         |     ·     |
-| Unit tests + BDD (`npm test`)                                   |   ·    | ● 20 |         ● 18/20/22          |         ·         |     ●     |
-| Coverage thresholds + PR comment                                |   ·    |  ·   |              ●              |         ·         |     ·     |
-| EARS spec audit, BDD report                                     |   ·    |  ·   |              ●              |         ·         |     ●     |
-| Generated types and operations fresh, schema drift, auth scopes |   ·    |  ·   | ● if inputs touched, else ◐ |   ◐ files issue   |     ●     |
-| Endpoint definitions against the spec (`validate:esi`)          |   ·    |  ·   | ● if inputs touched, else ◐ |         ·         |     ●     |
-| Redocly lint of the ESI spec (`validate:spec`)                  |   ·    |  ·   | ● if inputs touched, else ◐ |         ·         |     ·     |
-| Version consistency (`validate:versions`)                       |   ·    |  ·   |              ·              |         ·         |     ●     |
-| Live contract tests                                             |   ·    |  ·   |          ● (503 ◐)          |     ◐ weekly      | ● (503 ◐) |
-| Contract replay, fault catalogue, fuzz, integration, type tests |   ·    |  ·   |              ●              |         ◐         |     ●     |
-| API surface diff (api-extractor) and api-semver                 |   ·    |  ·   |              ●              |         ·         |     ·     |
-| Export coverage, package lint (publint, attw), size-limit       |   ·    |  ·   |              ●              |         ·         |     ·     |
-| Consumer contract (Node 18/20/22/24), doc examples              |   ·    |  ·   |              ●              | ◐ consumer matrix |     ·     |
-| TypeDoc build                                                   |   ·    |  ·   |              ●              |         ·         |     ·     |
-| Benchmarks A/B                                                  |   ·    |  ·   |              ●              |         ◐         |     ·     |
-| Dependency audit (diff-aware / allowlist)                       |   ·    |  ·   |      ● new advisories       |   ◐ files issue   | ● ≥ high  |
-| knip dead-code                                                  |   ·    |  ·   |              ◐              |         ·         |     ◐     |
-| CodeQL                                                          |   ·    |  ●   |              ●              |     ● weekly      |     ·     |
-| zizmor (workflow security), workflow lint                       |   ·    |  ·   |              ●              |         ·         |     ·     |
-| Stryker mutation                                                |   ·    |  ·   |       ● changed files       |     ◐ ratchet     |     ·     |
-| Schemathesis API fuzz                                           |   ·    |  ·   |              ·              |  ◐ artifact only  |     ·     |
-| Spec drift, faults, properties, examples, recorded payloads     |   ·    |  ·   |              ·              |   ◐ files issue   |     ·     |
-| OpenSSF Scorecard                                               |   ·    |  ·   |              ·              |     ◐ weekly      |     ·     |
+| Check                                                           | Commit | Push |             PR              |        Nightly         |  Release  |
+| --------------------------------------------------------------- | :----: | :--: | :-------------------------: | :--------------------: | :-------: |
+| lint-staged: ESLint fix + Prettier                              |   ●    |  ·   |              ·              |           ·            |     ·     |
+| commitlint (conventional commits)                               |   ●    |  ·   |              ·              |           ·            |     ·     |
+| ESLint, Prettier check, build, typecheck, examples typecheck    |   ·    |  ●   |              ●              |           ·            |     ●     |
+| lint:layers, lint:bdd-seam, lint:suite-health                   |   ·    |  ●   |              ●              |           ·            |     ·     |
+| lint:determinism                                                |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Unit tests + BDD (`npm test`)                                   |   ·    | ● 20 |         ● 18/20/22          |           ·            |     ●     |
+| Coverage thresholds + PR comment                                |   ·    |  ·   |              ●              |           ·            |     ·     |
+| EARS spec audit, BDD report                                     |   ·    |  ·   |              ●              |           ·            |     ●     |
+| Generated types and operations fresh, schema drift, auth scopes |   ·    |  ·   | ● if inputs touched, else ◐ |     ◐ files issue      |     ●     |
+| Endpoint definitions against the spec (`validate:esi`)          |   ·    |  ·   | ● if inputs touched, else ◐ |           ·            |     ●     |
+| Redocly lint of the ESI spec (`validate:spec`)                  |   ·    |  ·   | ● if inputs touched, else ◐ |           ·            |     ·     |
+| Version consistency (`validate:versions`)                       |   ·    |  ·   |              ·              |           ·            |     ●     |
+| Live contract tests                                             |   ·    |  ·   |          ● (503 ◐)          |        ◐ weekly        | ● (503 ◐) |
+| Contract replay, fault catalogue, fuzz, integration, type tests |   ·    |  ·   |              ●              |           ◐            |     ●     |
+| API surface diff (api-extractor) and api-semver                 |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Export coverage, package lint (publint, attw), size-limit       |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Consumer contract (Node 18/20/22/24), doc examples              |   ·    |  ·   |              ●              |   ◐ consumer matrix    |     ·     |
+| TypeDoc build                                                   |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Benchmarks A/B                                                  |   ·    |  ·   |              ●              |           ◐            |     ·     |
+| Dependency audit (diff-aware / allowlist)                       |   ·    |  ·   |      ● new advisories       |     ◐ files issue      | ● ≥ high  |
+| knip dead-code                                                  |   ·    |  ·   |              ◐              |           ·            |     ◐     |
+| CodeQL                                                          |   ·    |  ●   |              ●              |        ● weekly        |     ·     |
+| zizmor (workflow security), workflow lint                       |   ·    |  ·   |              ●              |           ·            |     ·     |
+| Stryker mutation                                                |   ·    |  ·   |       ● changed files       | ◐ ratchet, files issue |     ·     |
+| Schemathesis API fuzz                                           |   ·    |  ·   |              ·              |     ◐ files issue      |     ·     |
+| Spec drift, faults, properties, examples, recorded payloads     |   ·    |  ·   |              ·              |     ◐ files issue      |     ·     |
+| OpenSSF Scorecard                                               |   ·    |  ·   |              ·              |        ◐ weekly        |     ·     |
 
 #### GATE-01 · Ubiquitous · Enforced
 
@@ -482,8 +483,8 @@ knip **shall** block the release gate on unused exports and dependencies, with a
 
 Every nightly job that finds a problem **shall** file or update a labelled GitHub issue rather than only failing the run.
 
-- **Why:** A red nightly nobody reads is the same as no nightly. Revision 1 marked this Enforced while two nightlies still filed nothing; revision 2 corrects it, tracked by [#277](https://github.com/lgriffin/ESI.ts/issues/277) (bead `esi-mbr`).
-- **Verified by:** Audit, spec drift, faults, properties, benchmarks, examples and the post-publish canary file issues. Recorded-payload drift opens a pull request instead, and only a failed run files an issue. `nightly-mutation.yml` and `nightly-schemathesis.yml` upload artifacts only; extend them.
+- **Why:** A red nightly nobody reads is the same as no nightly. Revision 1 marked this Enforced while two nightlies still filed nothing; revision 2 corrected it, and [#277](https://github.com/lgriffin/ESI.ts/issues/277) (bead `esi-mbr`) closed those two.
+- **Verified by:** Audit, spec drift, faults, properties, benchmarks, examples, mutation, Schemathesis and the post-publish canary file issues. `nightly-mutation.yml` and `nightly-schemathesis.yml` each end in a `report` job that opens or comments on one fixed-title issue (labels `mutation` and `api-fuzz`) and closes it on the next green run. Recorded-payload drift opens a pull request instead, and only a failed run files an issue. Still failing the run only: `nightly-no-retry.yml`, `nightly-interleave.yml` and `consumer-matrix-nightly.yml`, which is why this stays Partial.
 
 #### GATE-06 · Ubiquitous · Partial
 
@@ -801,7 +802,7 @@ Everything found during the survey, and since, that contradicts a requirement ab
 | 13  | LOW  | `sde:seed` points at a missing script                                                                                           | GATE-06                   | **Done**: removed; script targets checked by `package-scripts.test.ts`                                                                                                            | `esi-x3z`    | [#274](https://github.com/lgriffin/ESI.ts/issues/274)                                                        |
 | 14  | LOW  | Changelog skips 9.2 to 9.6                                                                                                      | REL-04                    | Backfill once                                                                                                                                                                     | `esi-5fu`    | [#275](https://github.com/lgriffin/ESI.ts/issues/275)                                                        |
 | 15  | LOW  | Beads quick reference duplicated five times; persona files untracked in the repo root                                           | PROC-05, PROC-04          | Persona files **gone**; pointers still to do                                                                                                                                      | `esi-udr`    | [#276](https://github.com/lgriffin/ESI.ts/issues/276)                                                        |
-| 16  | LOW  | Nightly mutation and Schemathesis upload artifacts but file no issue                                                            | GATE-05                   | Add issue step like the audit job                                                                                                                                                 | `esi-mbr`    | [#277](https://github.com/lgriffin/ESI.ts/issues/277)                                                        |
+| 16  | LOW  | Nightly mutation and Schemathesis upload artifacts but file no issue                                                            | GATE-05                   | **Done**: each ends in a `report` job that opens, comments on or closes one fixed-title issue (`mutation`, `api-fuzz`)                                                            | `esi-mbr`    | [#277](https://github.com/lgriffin/ESI.ts/issues/277)                                                        |
 | 17  | LOW  | `CONTRIBUTING.md` says Node 18 while `.nvmrc` says 20; populated `.env` in working trees                                        | SEC-08, REL-05            | State the 11.0.0 floor (Node 22) in CONTRIBUTING; housekeeping                                                                                                                    | `esi-wc6`    | [#278](https://github.com/lgriffin/ESI.ts/issues/278)                                                        |
 | 18  | HIGH | Authenticated paginated results cached under an unhashed key; repeat calls returned page 1                                      | DES-08, SEC-02            | **Done**: the combined body is cached with `requiresAuth`, so it lands under the token-hashed key                                                                                 | `esi-l38.1`  | [#290](https://github.com/lgriffin/ESI.ts/issues/290)                                                        |
 | 19  | HIGH | Default all-pages call silently returned page 1 when a later page kept failing                                                  | DES-08                    | **Done**: surfaces `PAGINATION_INCOMPLETE` ([#413](https://github.com/lgriffin/ESI.ts/pull/413))                                                                                  | `esi-l38.2`  | [#291](https://github.com/lgriffin/ESI.ts/issues/291)                                                        |
