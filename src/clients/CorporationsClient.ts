@@ -106,9 +106,11 @@ export class CorporationsClient extends BaseEsiClient<
    * @param corporationId - The ID of the corporation whose icons to retrieve
    * @returns Icon URLs at 64x64, 128x128, and 256x256 resolutions
    */
-  getCorporationIcon(
-    corporationId: number,
-  ): Promise<{ px64x64?: string; px128x128?: string; px256x256?: string }> {
+  getCorporationIcon(corporationId: number): Promise<{
+    px64x64?: string | undefined;
+    px128x128?: string | undefined;
+    px256x256?: string | undefined;
+  }> {
     return this.api.getCorporationIcon(corporationId);
   }
 

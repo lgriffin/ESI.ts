@@ -287,5 +287,11 @@ describe('ETagCacheManager', () => {
       const updatedStats = cacheManager.getStats();
       expect(updatedStats.maxEntries).toBe(10);
     });
+
+    it('keeps the current value for a setting passed as undefined', () => {
+      cacheManager.updateConfig({ maxEntries: undefined });
+
+      expect(cacheManager.getStats().maxEntries).toBe(5);
+    });
   });
 });

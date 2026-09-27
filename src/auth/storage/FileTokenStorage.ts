@@ -39,7 +39,7 @@ export interface FileTokenStorageOptions {
    * POSIX permission bits for the token file. Defaults to `0o600` (owner
    * read/write only). Ignored on platforms without POSIX modes.
    */
-  mode?: number;
+  mode?: number | undefined;
 }
 
 /**

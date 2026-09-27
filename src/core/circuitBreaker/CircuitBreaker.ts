@@ -5,14 +5,14 @@ import { ICircuitBreaker } from './ICircuitBreaker';
 export type CircuitState = 'closed' | 'open' | 'half-open';
 
 export interface CircuitBreakerConfig {
-  failureThreshold?: number;
-  resetTimeoutMs?: number;
-  halfOpenMaxAttempts?: number;
-  staleThresholdMs?: number;
+  failureThreshold?: number | undefined;
+  resetTimeoutMs?: number | undefined;
+  halfOpenMaxAttempts?: number | undefined;
+  staleThresholdMs?: number | undefined;
   /** 'resolved' (default, current behavior) | 'template' (group by endpoint template path) */
-  keyStrategy?: 'resolved' | 'template';
+  keyStrategy?: 'resolved' | 'template' | undefined;
   /** Interval in ms for automatic cleanup of stale circuits. 0 or undefined disables. Recommended value: staleThresholdMs. */
-  cleanupIntervalMs?: number;
+  cleanupIntervalMs?: number | undefined;
 }
 
 interface CircuitRecord {

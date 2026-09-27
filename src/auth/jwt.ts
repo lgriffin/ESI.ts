@@ -5,17 +5,17 @@ export interface EveJwtClaims {
   /** `CHARACTER:EVE:<characterId>` */
   sub: string;
   /** Character name. */
-  name?: string;
+  name?: string | undefined;
   /** Granted scopes: a single string, or an array when more than one. */
-  scp?: string | string[];
+  scp?: string | string[] | undefined;
   /** Expiry as epoch seconds. */
-  exp?: number;
+  exp?: number | undefined;
   /** Issued-at as epoch seconds. */
-  iat?: number;
+  iat?: number | undefined;
   /** Owner hash; changes on character transfer. */
-  owner?: string;
-  iss?: string;
-  aud?: string | string[];
+  owner?: string | undefined;
+  iss?: string | undefined;
+  aud?: string | string[] | undefined;
   [claim: string]: unknown;
 }
 
@@ -93,8 +93,8 @@ export function decodeAccessToken(token: string): DecodedAccessToken {
     characterId,
     characterName: typeof claims.name === 'string' ? claims.name : '',
     scopes: parseScopes(claims.scp),
-    expiresAt: typeof claims.exp === 'number' ? claims.exp * 1000 : undefined,
-    ownerHash: typeof claims.owner === 'string' ? claims.owner : undefined,
+    ...(typeof claims.exp === 'number' && { expiresAt: claims.exp * 1000 }),
+    ...(typeof claims.owner === 'string' && { ownerHash: claims.owner }),
     claims,
   };
 }

@@ -7,12 +7,12 @@ import { CircuitBreaker } from './circuitBreaker/CircuitBreaker';
 export class ApiClientBuilder {
   private clientId!: string;
   private link!: string;
-  private accessToken?: string;
-  private rateLimiter?: IRateLimiter;
-  private cache?: ICache;
-  private circuitBreaker?: CircuitBreaker;
-  private _timeout?: number;
-  private _fetch?: FetchLike;
+  private accessToken?: string | undefined;
+  private rateLimiter?: IRateLimiter | undefined;
+  private cache?: ICache | undefined;
+  private circuitBreaker?: CircuitBreaker | undefined;
+  private _timeout?: number | undefined;
+  private _fetch?: FetchLike | undefined;
 
   setClientId(clientId: string): ApiClientBuilder {
     this.clientId = clientId;

@@ -107,7 +107,7 @@ export async function executeSingleFetch(
   const options: RequestInit = {
     method,
     headers: req.headers,
-    body: req.body ? JSON.stringify(req.body) : undefined,
+    ...(req.body ? { body: JSON.stringify(req.body) } : {}),
   };
 
   const url = req.url;

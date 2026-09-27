@@ -52,7 +52,7 @@ export class AccessListsClient extends BaseEsiClient<typeof accessListEndpoints>
 
 // @public (undocumented)
 export interface AddCharacterOptions extends ExchangeCodeOptions {
-    revokeReplaced?: boolean;
+    revokeReplaced?: boolean | undefined;
 }
 
 // @public
@@ -383,8 +383,8 @@ export class AuthError extends Error {
 
 // @public (undocumented)
 export interface AuthorizationUrlOptions {
-    codeChallenge?: string;
-    redirectUri?: string;
+    codeChallenge?: string | undefined;
+    redirectUri?: string | undefined;
     scopes: readonly string[];
     state: string;
 }
@@ -418,9 +418,9 @@ export function batchFetch<K, T>(keys: K[], fetcher: (key: K) => Promise<T>, opt
 // @public (undocumented)
 export interface BatchOptions {
     // (undocumented)
-    concurrency?: number;
+    concurrency?: number | undefined;
     // (undocumented)
-    onProgress?: (completed: number, total: number) => void;
+    onProgress?: ((completed: number, total: number) => void) | undefined;
 }
 
 // @public (undocumented)
@@ -1827,7 +1827,7 @@ export class CharacterSkillsClient extends BaseEsiClient<typeof skillEndpoints> 
     getCharacterSkills(characterId: number): Promise<{
         skills: CharacterSkill[];
         total_sp: number;
-        unallocated_sp?: number;
+        unallocated_sp?: number | undefined;
     }>;
     // (undocumented)
     streamCharacterSkillQueue(characterId: number): AsyncGenerator<PageResult<SkillQueue>, void, undefined>;
@@ -2118,16 +2118,16 @@ export class CircuitBreaker implements ICircuitBreaker {
 
 // @public (undocumented)
 export interface CircuitBreakerConfig {
-    cleanupIntervalMs?: number;
+    cleanupIntervalMs?: number | undefined;
     // (undocumented)
-    failureThreshold?: number;
+    failureThreshold?: number | undefined;
     // (undocumented)
-    halfOpenMaxAttempts?: number;
-    keyStrategy?: 'resolved' | 'template';
+    halfOpenMaxAttempts?: number | undefined;
+    keyStrategy?: 'resolved' | 'template' | undefined;
     // (undocumented)
-    resetTimeoutMs?: number;
+    resetTimeoutMs?: number | undefined;
     // (undocumented)
-    staleThresholdMs?: number;
+    staleThresholdMs?: number | undefined;
 }
 
 // @public (undocumented)
@@ -2999,9 +2999,9 @@ export class CorporationsClient extends BaseEsiClient<typeof corporationEndpoint
     getCorporationDivisions(corporationId: number): Promise<CorporationDivisions>;
     getCorporationFacilities(corporationId: number): Promise<CorporationFacility[]>;
     getCorporationIcon(corporationId: number): Promise<{
-        px64x64?: string;
-        px128x128?: string;
-        px256x256?: string;
+        px64x64?: string | undefined;
+        px128x128?: string | undefined;
+        px256x256?: string | undefined;
     }>;
     getCorporationInfo(corporationId: number): Promise<CorporationInfo>;
     getCorporationIssuedMedals(corporationId: number): Promise<CorporationIssuedMedal[]>;
@@ -4705,53 +4705,53 @@ export class EsiClientBuilder {
 // @public (undocumented)
 export interface EsiClientConfig {
     // (undocumented)
-    accessToken?: string;
+    accessToken?: string | undefined;
     // (undocumented)
-    baseUrl?: string;
+    baseUrl?: string | undefined;
     // (undocumented)
-    circuitBreakerConfig?: CircuitBreakerConfig;
+    circuitBreakerConfig?: CircuitBreakerConfig | undefined;
     // (undocumented)
-    clientId?: string;
+    clientId?: string | undefined;
     // (undocumented)
-    compatibilityDate?: string;
+    compatibilityDate?: string | undefined;
     // (undocumented)
-    datasource?: EsiDatasource;
+    datasource?: EsiDatasource | undefined;
     // (undocumented)
-    enableCircuitBreaker?: boolean;
+    enableCircuitBreaker?: boolean | undefined;
     // (undocumented)
-    enableETagCache?: boolean;
+    enableETagCache?: boolean | undefined;
     // (undocumented)
-    enableRequestDeduplication?: boolean;
+    enableRequestDeduplication?: boolean | undefined;
     // (undocumented)
-    etagCacheConfig?: ETagCacheConfig;
+    etagCacheConfig?: ETagCacheConfig | undefined;
     // (undocumented)
-    language?: string;
-    logger?: ILogger;
-    logLevel?: LogLevel;
+    language?: string | undefined;
+    logger?: ILogger | undefined;
+    logLevel?: LogLevel | undefined;
     // (undocumented)
-    onTokenRefresh?: TokenProvider;
+    onTokenRefresh?: TokenProvider | undefined;
     // (undocumented)
-    rateLimiterConfig?: RateLimiterConfig;
+    rateLimiterConfig?: RateLimiterConfig | undefined;
     // (undocumented)
-    requestInterceptors?: RequestInterceptor[];
+    requestInterceptors?: RequestInterceptor[] | undefined;
     // (undocumented)
-    responseInterceptors?: ResponseInterceptor[];
+    responseInterceptors?: ResponseInterceptor[] | undefined;
     // (undocumented)
-    retryAttempts?: number;
+    retryAttempts?: number | undefined;
     // (undocumented)
-    retryConfig?: RetryConfig;
+    retryConfig?: RetryConfig | undefined;
     // (undocumented)
-    retryStrategy?: IRetryStrategy;
-    tenant?: string;
+    retryStrategy?: IRetryStrategy | undefined;
+    tenant?: string | undefined;
     // (undocumented)
-    timeout?: number;
+    timeout?: number | undefined;
     // (undocumented)
-    unsafeAllowCustomHost?: boolean;
-    userAgent?: string;
+    unsafeAllowCustomHost?: boolean | undefined;
+    userAgent?: string | undefined;
     // (undocumented)
-    validateRequest?: boolean;
+    validateRequest?: boolean | undefined;
     // (undocumented)
-    validateResponse?: boolean;
+    validateResponse?: boolean | undefined;
 }
 
 // @public (undocumented)
@@ -4813,7 +4813,7 @@ export class EsiError extends Error {
     // (undocumented)
     readonly statusCode: number;
     // (undocumented)
-    readonly url?: string;
+    readonly url?: string | undefined;
 }
 
 // @public (undocumented)
@@ -5488,7 +5488,7 @@ export class EsiTokenManager {
     importToken(token: {
         accessToken: string;
         refreshToken: string;
-        expiresIn?: number;
+        expiresIn?: number | undefined;
     }): Promise<StoredToken>;
     listCharacters(): Promise<CharacterSummary[]>;
     listTokens(): Promise<StoredToken[]>;
@@ -5500,19 +5500,19 @@ export class EsiTokenManager {
 
 // @public (undocumented)
 export interface EsiTokenManagerConfig {
-    autoRefresh?: boolean;
-    callbackUrl?: string;
+    autoRefresh?: boolean | undefined;
+    callbackUrl?: string | undefined;
     clientId: string;
-    clientSecret?: string;
-    fetch?: FetchLike;
-    logger?: ILogger;
-    now?: () => number;
-    onRefresh?: (token: StoredToken) => void;
-    onRefreshError?: (characterId: number, error: Error) => void;
-    onRevoked?: (characterId: number) => void;
-    refreshSkewMs?: number;
-    ssoClient?: EveSsoClient;
-    storage?: ITokenStorage;
+    clientSecret?: string | undefined;
+    fetch?: FetchLike | undefined;
+    logger?: ILogger | undefined;
+    now?: (() => number) | undefined;
+    onRefresh?: ((token: StoredToken) => void) | undefined;
+    onRefreshError?: ((characterId: number, error: Error) => void) | undefined;
+    onRevoked?: ((characterId: number) => void) | undefined;
+    refreshSkewMs?: number | undefined;
+    ssoClient?: EveSsoClient | undefined;
+    storage?: ITokenStorage | undefined;
 }
 
 // @public (undocumented)
@@ -5527,11 +5527,11 @@ export class EsiValidationError extends EsiError {
 // @public (undocumented)
 export interface ETagCacheConfig {
     // (undocumented)
-    cleanupInterval?: number;
+    cleanupInterval?: number | undefined;
     // (undocumented)
-    defaultTtl?: number;
+    defaultTtl?: number | undefined;
     // (undocumented)
-    maxEntries?: number;
+    maxEntries?: number | undefined;
 }
 
 // @public (undocumented)
@@ -5566,14 +5566,14 @@ export interface EveJwtClaims {
     // (undocumented)
     [claim: string]: unknown;
     // (undocumented)
-    aud?: string | string[];
-    exp?: number;
-    iat?: number;
+    aud?: string | string[] | undefined;
+    exp?: number | undefined;
+    iat?: number | undefined;
     // (undocumented)
-    iss?: string;
-    name?: string;
-    owner?: string;
-    scp?: string | string[];
+    iss?: string | undefined;
+    name?: string | undefined;
+    owner?: string | undefined;
+    scp?: string | string[] | undefined;
     sub: string;
 }
 
@@ -5595,17 +5595,17 @@ export class EveSsoClient {
 
 // @public (undocumented)
 export interface EveSsoClientConfig {
-    callbackUrl?: string;
+    callbackUrl?: string | undefined;
     clientId: string;
-    clientSecret?: string;
-    fetch?: FetchLike;
-    ssoBaseUrl?: string;
+    clientSecret?: string | undefined;
+    fetch?: FetchLike | undefined;
+    ssoBaseUrl?: string | undefined;
 }
 
 // @public (undocumented)
 export interface ExchangeCodeOptions {
-    codeVerifier?: string;
-    redirectUri?: string;
+    codeVerifier?: string | undefined;
+    redirectUri?: string | undefined;
 }
 
 // @public (undocumented)
@@ -5880,8 +5880,8 @@ const FactionWarfareWarSchema: z.ZodObject<{
 
 // @public
 export function fetchAllCursorPages<TResponse, TItem = unknown>(fetcher: (before?: string, after?: string) => Promise<TResponse>, getItems: (response: TResponse) => TItem[], getCursor: (response: TResponse) => {
-    before?: string | null;
-    after?: string | null;
+    before?: string | null | undefined;
+    after?: string | null | undefined;
 }): Promise<TItem[]>;
 
 // Warning: (ae-forgotten-export) The symbol "ResponseSchema" needs to be exported by the entry point index.d.ts
@@ -5912,7 +5912,7 @@ export class FileTokenStorage implements ITokenStorage {
 
 // @public (undocumented)
 export interface FileTokenStorageOptions {
-    mode?: number;
+    mode?: number | undefined;
 }
 
 // @public (undocumented)
@@ -7175,8 +7175,8 @@ export class MailClient extends BaseEsiClient<typeof mailEndpoints> {
         name: string;
     }[]>;
     getMailLabels(characterId: number): Promise<{
-        total_unread_count?: number;
-        labels?: MailLabel[];
+        total_unread_count?: number | undefined;
+        labels?: MailLabel[] | undefined;
     }>;
     sendMail(characterId: number, body: object): Promise<number>;
     // (undocumented)
@@ -8389,13 +8389,13 @@ export class RateLimiter implements IRateLimiter {
 // @public (undocumented)
 export interface RateLimiterConfig {
     // (undocumented)
-    decelerationThreshold?: number;
+    decelerationThreshold?: number | undefined;
     // (undocumented)
-    endpointOverrides?: Record<string, RateLimitEndpointOverride>;
+    endpointOverrides?: Record<string, RateLimitEndpointOverride> | undefined;
     // (undocumented)
-    minDelayMs?: number;
+    minDelayMs?: number | undefined;
     // (undocumented)
-    userKeyExtractor?: (headers: Record<string, string>) => string;
+    userKeyExtractor?: ((headers: Record<string, string>) => string) | undefined;
 }
 
 // @public (undocumented)
@@ -8457,15 +8457,15 @@ const RateLimitMetaSchema: z.ZodObject<{
 
 // @public (undocumented)
 export interface RefreshAllOptions {
-    concurrency?: number;
-    expiringWithinMs?: number;
-    onProgress?: (completed: number, total: number) => void;
-    signal?: AbortSignal;
+    concurrency?: number | undefined;
+    expiringWithinMs?: number | undefined;
+    onProgress?: ((completed: number, total: number) => void) | undefined;
+    signal?: AbortSignal | undefined;
 }
 
 // @public (undocumented)
 export interface RefreshOptions {
-    scopes?: readonly string[];
+    scopes?: readonly string[] | undefined;
 }
 
 // @public (undocumented)
@@ -8499,7 +8499,7 @@ const RegionInfoSchema: z.ZodObject<{
 
 // @public (undocumented)
 export interface RemoveCharacterOptions {
-    revoke?: boolean;
+    revoke?: boolean | undefined;
 }
 
 // @public (undocumented)
@@ -8558,29 +8558,29 @@ export type ResponseInterceptor = (context: ResponseContext) => ResponseContext 
 // @public (undocumented)
 export interface RetryConfig {
     // (undocumented)
-    baseDelayMs?: number;
+    baseDelayMs?: number | undefined;
     // (undocumented)
-    maxDelayMs?: number;
+    maxDelayMs?: number | undefined;
     // (undocumented)
-    maxRetries?: number;
+    maxRetries?: number | undefined;
     // (undocumented)
-    retryMutations?: boolean;
+    retryMutations?: boolean | undefined;
 }
 
 // @public (undocumented)
 export interface RetryContext {
     // (undocumented)
-    client?: ApiClient;
+    client?: ApiClient | undefined;
     // (undocumented)
     endpoint: string;
     // (undocumented)
     method: string;
     // (undocumented)
-    refreshToken?: () => Promise<void>;
+    refreshToken?: (() => Promise<void>) | undefined;
     // (undocumented)
     requiresAuth: boolean;
     // @deprecated (undocumented)
-    retryOperation?: () => Promise<unknown>;
+    retryOperation?: (() => Promise<unknown>) | undefined;
 }
 
 // @public (undocumented)
@@ -8607,16 +8607,16 @@ export class RouteClient extends BaseEsiClient<typeof routeEndpoints> {
 // @public (undocumented)
 export interface RouteOptions {
     // (undocumented)
-    avoid_systems?: number[];
+    avoid_systems?: number[] | undefined;
     // (undocumented)
     connections?: {
         from: number;
         to: number;
-    }[];
+    }[] | undefined;
     // (undocumented)
-    preference?: 'Shorter' | 'Safer' | 'LessSecure';
+    preference?: 'Shorter' | 'Safer' | 'LessSecure' | undefined;
     // (undocumented)
-    security_penalty?: number;
+    security_penalty?: number | undefined;
 }
 
 // @public (undocumented)
@@ -9287,7 +9287,7 @@ export class SsoError extends AuthError {
     // (undocumented)
     readonly errorCode: string;
     // (undocumented)
-    readonly errorDescription?: string;
+    readonly errorDescription?: string | undefined;
     isRetryable(): boolean;
     // (undocumented)
     readonly statusCode: number;
@@ -9489,7 +9489,7 @@ export type TokenProvider = () => Promise<string>;
 export class TokenRevokedError extends AuthError {
     constructor(message: string, characterId?: number);
     // (undocumented)
-    readonly characterId?: number;
+    readonly characterId?: number | undefined;
 }
 
 // @public

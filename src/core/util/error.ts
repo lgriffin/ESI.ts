@@ -29,7 +29,7 @@ export function sanitizeUrl(url?: string): string | undefined {
 }
 
 export class EsiError extends Error {
-  public readonly url?: string;
+  public readonly url?: string | undefined;
 
   constructor(
     public readonly statusCode: number,

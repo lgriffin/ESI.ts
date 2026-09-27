@@ -22,9 +22,9 @@ export type FetchLike = (
 ) => Promise<Response>;
 
 export class ApiClient {
-  private datasource?: EsiDatasource;
-  private tokenProvider?: TokenProvider;
-  private refreshInFlight?: Promise<string>;
+  private datasource?: EsiDatasource | undefined;
+  private tokenProvider?: TokenProvider | undefined;
+  private refreshInFlight?: Promise<string> | undefined;
   private middleware: MiddlewareManager = new MiddlewareManager();
   private cache: ICache | null = null;
   private rateLimiter: IRateLimiter | null = null;
@@ -35,10 +35,10 @@ export class ApiClient {
   private retryStrategy: IRetryStrategy | null = null;
   private validateResponse: boolean = true;
   private validateRequest: boolean = false;
-  private language?: string;
-  private tenant?: string;
-  private userAgent?: string;
-  private compatibilityDate?: string;
+  private language?: string | undefined;
+  private tenant?: string | undefined;
+  private userAgent?: string | undefined;
+  private compatibilityDate?: string | undefined;
   private fetchFn: FetchLike | null = null;
   private logger: ILogger | null = null;
 

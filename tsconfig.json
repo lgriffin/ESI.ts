@@ -6,6 +6,7 @@
     "strict": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noImplicitOverride": true,
     "skipLibCheck": true,
@@ -16,6 +17,9 @@
     "types": ["jest", "node"],
     "rootDir": "./src",
     "outDir": "./dist"
+  },
+  "ts-node": {
+    "compilerOptions": { "exactOptionalPropertyTypes": false }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

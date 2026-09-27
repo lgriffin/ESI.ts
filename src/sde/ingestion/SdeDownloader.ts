@@ -13,8 +13,8 @@ export interface SdeBuildInfo {
 
 export interface SdeDownloadOptions {
   outputPath: string;
-  onProgress?: (downloaded: number, total: number) => void;
-  signal?: AbortSignal;
+  onProgress?: ((downloaded: number, total: number) => void) | undefined;
+  signal?: AbortSignal | undefined;
 }
 
 export class SdeDownloader {
@@ -65,7 +65,9 @@ export class SdeDownloader {
   async download(options: SdeDownloadOptions): Promise<string> {
     let response: Response;
     try {
-      response = await fetch(SDE_DOWNLOAD_URL, { signal: options.signal });
+      response = await fetch(SDE_DOWNLOAD_URL, {
+        signal: options.signal ?? null,
+      });
     } catch (error) {
       throw new SdeError(
         `Failed to download SDE: ${error instanceof Error ? error.message : String(error)}`,
