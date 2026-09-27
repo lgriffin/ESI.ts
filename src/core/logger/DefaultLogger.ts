@@ -1,5 +1,5 @@
 import pino from 'pino';
-import type { ILogger, LogContext } from './ILogger';
+import type { ILogger, LogContext, LoggerLevel } from './ILogger';
 
 /**
  * The default `ILogger` implementation — a thin wrapper around pino.
@@ -15,10 +15,21 @@ import type { ILogger, LogContext } from './ILogger';
  */
 export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
+/**
+ * An `ILogger` whose methods are plain functions that ignore `this`, so they
+ * can be copied onto another object. `toPinoLogger` builds one.
+ */
+type DetachedLogger = {
+  [L in LoggerLevel]: (message: string, context?: LogContext) => void;
+} & { isLevelEnabled?: (level: LoggerLevel) => boolean };
+
 export function createDefaultLogger(level?: string): ILogger {
+  return buildDefaultLogger(level);
+}
+
+function buildDefaultLogger(level?: string): DetachedLogger {
   const resolved = level || process.env.ESI_LOG_LEVEL || 'warn';
-  const pinoLogger = pino({ level: resolved });
-  return toPinoLogger(pinoLogger);
+  return adaptPino(pino({ level: resolved }));
 }
 
 /**
@@ -37,12 +48,16 @@ export function toPinoLogger(p: {
   levelVal?: number | undefined;
   levels?: { values: Record<string, number> } | undefined;
 }): ILogger {
+  return adaptPino(p);
+}
+
+function adaptPino(p: Parameters<typeof toPinoLogger>[0]): DetachedLogger {
   // Call through the sink object so pino methods keep their `this` binding.
   const emit =
     (level: LogLevel) =>
     (message: string, context?: LogContext): void =>
       context ? p[level](context, message) : p[level](message);
-  const logger: ILogger = {
+  const logger: DetachedLogger = {
     fatal: emit('fatal'),
     error: emit('error'),
     warn: emit('warn'),
@@ -62,5 +77,44 @@ export function toPinoLogger(p: {
   return logger;
 }
 
-/** Backwards-compatible default instance (level from `ESI_LOG_LEVEL`). */
-export const defaultLogger: ILogger = createDefaultLogger();
+const LEVELS: readonly LoggerLevel[] = [
+  'fatal',
+  'error',
+  'warn',
+  'info',
+  'debug',
+  'trace',
+];
+
+/**
+ * An `ILogger` that builds its pino logger on first use: the first call to a
+ * level method or to `isLevelEnabled`. Nothing is constructed when the module
+ * loads, so importing the package starts no pino instance (CHARTER ARCH-06)
+ * and `ESI_LOG_LEVEL` is read when the first line is logged, not at import.
+ *
+ * On that first call the object replaces its own methods with the built
+ * logger's, so every later call goes straight to pino with no extra hop.
+ * The object's identity never changes, so it can be held and compared.
+ */
+export function createLazyDefaultLogger(): ILogger {
+  const lazy = {} as DetachedLogger;
+  const materialise = (): DetachedLogger => {
+    const real = buildDefaultLogger();
+    for (const level of LEVELS) lazy[level] = real[level];
+    lazy.isLevelEnabled = real.isLevelEnabled ?? ((): boolean => true);
+    return real;
+  };
+  for (const level of LEVELS) {
+    lazy[level] = (message: string, context?: LogContext): void =>
+      materialise()[level](message, context);
+  }
+  lazy.isLevelEnabled = (level: LoggerLevel): boolean =>
+    materialise().isLevelEnabled?.(level) ?? true;
+  return lazy;
+}
+
+/**
+ * Backwards-compatible default instance (level from `ESI_LOG_LEVEL`). Built
+ * lazily: the pino logger behind it is constructed on its first use.
+ */
+export const defaultLogger: ILogger = createLazyDefaultLogger();

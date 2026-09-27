@@ -1,10 +1,16 @@
-import { createDefaultLogger, defaultLogger } from './DefaultLogger';
+import {
+  createDefaultLogger,
+  createLazyDefaultLogger,
+  defaultLogger,
+} from './DefaultLogger';
 import type { ILogger } from './ILogger';
 
 export { createDefaultLogger, defaultLogger };
 export type { LogLevel } from './DefaultLogger';
 
-const globalLogger: ILogger = createDefaultLogger();
+// Built on first use, like `defaultLogger`: importing this module starts no
+// pino instance.
+const globalLogger: ILogger = createLazyDefaultLogger();
 
 /**
  * @deprecated The global logger singleton was removed in favor of per-client
