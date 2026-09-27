@@ -197,6 +197,22 @@ export function reportFails(report: EarsReport): boolean {
   );
 }
 
+/** Why the report fails, naming the audit and the verdicts separately. */
+export function failureReason(report: EarsReport): string {
+  if (report.requirements.length === 0)
+    return 'no EARS requirement was found to verify.';
+  const reasons: string[] = [];
+  if (report.audit === 'failed')
+    reasons.push(
+      'the spec audit failed, so the requirements are not all well-formed EARS',
+    );
+  const broken = report.requirements.filter(
+    (r) => r.verdict !== 'verified',
+  ).length;
+  if (broken > 0) reasons.push(`${broken} requirement(s) are not verified`);
+  return `${reasons.join('; ')}.`;
+}
+
 function count<T>(items: readonly T[], test: (item: T) => boolean): number {
   return items.filter(test).length;
 }
@@ -255,7 +271,7 @@ export function toConsole(report: EarsReport): string {
 
   lines.push(
     reportFails(report)
-      ? 'FAIL: not every EARS requirement is verified.'
+      ? `FAIL: ${failureReason(report)}`
       : `PASS: all ${reqs.length} EARS requirements are verified.`,
   );
   return lines.join('\n');
@@ -277,8 +293,10 @@ export function toMarkdown(report: EarsReport, generatedAt: string): string {
     `| ${report.audit} | ${reqs.length} | ${verdicts('verified')} | ${verdicts('failing')} | ${verdicts('unverified')} |`,
     '',
     reportFails(report)
-      ? '**Result: FAIL.** Not every requirement is verified; the table below says which and why.'
-      : '**Result: PASS.** Every requirement is well-formed and every scenario under it ran and passed.',
+      ? `**Result: FAIL.** ${failureReason(report)}`
+      : report.audit === 'skipped'
+        ? '**Result: PASS.** Every scenario under every requirement ran and passed. The spec audit was skipped, so well-formedness was not checked.'
+        : '**Result: PASS.** Every requirement is well-formed and every scenario under it ran and passed.',
     '',
   ];
 

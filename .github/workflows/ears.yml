@@ -16,7 +16,13 @@ on:
       - 'scripts/ears-core.ts'
       - 'scripts/bdd-report-core.ts'
       - 'scripts/spec-audit*.ts'
+      - 'scripts/spec-audit-exceptions.json'
+      - '.beads/issues.jsonl'
+      - 'package.json'
+      - 'package-lock.json'
       - 'jest.unit.config.cjs'
+      - 'tsconfig.json'
+      - 'tsconfig.test.json'
       - '.github/workflows/ears.yml'
   workflow_dispatch:
 

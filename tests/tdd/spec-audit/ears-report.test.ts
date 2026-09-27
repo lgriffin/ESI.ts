@@ -10,6 +10,7 @@ import {
   OutlineSummary,
   buildReport,
   classifyEars,
+  failureReason,
   reportFails,
   toConsole,
   toMarkdown,
@@ -186,6 +187,34 @@ describe('EARS requirement report', () => {
       expect(reportFails(report)).toBe(true);
     });
 
+    it('says the audit failed, not that requirements are unverified, when only the audit failed', () => {
+      const report = buildReport(
+        [outline([[WHEN, 1]])],
+        [scenario(WHEN, 'a', 'passed')],
+        'failed',
+      );
+
+      expect(failureReason(report)).toBe(
+        'the spec audit failed, so the requirements are not all well-formed EARS.',
+      );
+      expect(toMarkdown(report, 'now')).toContain(
+        '**Result: FAIL.** the spec audit failed',
+      );
+    });
+
+    it('does not claim well-formedness when the audit was skipped', () => {
+      const report = buildReport(
+        [outline([[WHEN, 1]])],
+        [scenario(WHEN, 'a', 'passed')],
+        'skipped',
+      );
+
+      expect(reportFails(report)).toBe(false);
+      expect(toMarkdown(report, 'now')).toContain(
+        'The spec audit was skipped, so well-formedness was not checked.',
+      );
+    });
+
     it('fails when there is no requirement to verify', () => {
       expect(reportFails(buildReport([], [], 'passed'))).toBe(true);
     });
@@ -246,7 +275,7 @@ describe('EARS requirement report', () => {
       expect(text).toContain(`[FAIL] 0001-alpha#R2  ${FILE}:13`);
       expect(text).toContain(IF);
       expect(text).not.toContain(`[PASS]`);
-      expect(text).toContain('FAIL: not every EARS requirement is verified.');
+      expect(text).toContain('FAIL: 1 requirement(s) are not verified.');
     });
 
     it('writes a Markdown report with verdicts, feedback and every requirement', () => {
